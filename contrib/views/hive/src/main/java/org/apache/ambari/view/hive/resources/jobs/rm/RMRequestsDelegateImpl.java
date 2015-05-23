@@ -59,8 +59,7 @@ public class RMRequestsDelegateImpl implements RMRequestsDelegate {
     String response;
     try {
       InputStream responseInputStream = context.getURLStreamProvider().readFrom(url, "GET",
-                                                                                (String)null,
-                                                                                new HashMap<String, String>());
+          (String)null, new HashMap<String, String>());
       response = IOUtils.toString(responseInputStream);
     } catch (IOException e) {
       throw new ServiceFormattedException(
@@ -75,8 +74,7 @@ public class RMRequestsDelegateImpl implements RMRequestsDelegate {
     String response;
     try {
       InputStream responseInputStream = context.getURLStreamProvider().readFrom(url, "GET",
-                                                                                (String)null,
-                                                                                new HashMap<String, String>());
+          (String)null, new HashMap<String, String>());
       response = IOUtils.toString(responseInputStream);
     } catch (IOException e) {
       throw new ServiceFormattedException(
@@ -89,8 +87,7 @@ public class RMRequestsDelegateImpl implements RMRequestsDelegate {
     String response;
     try {
       InputStream responseInputStream = context.getURLStreamProvider().readFrom(url, "GET",
-                                                                                (String)null,
-                                                                                new HashMap<String, String>());
+          (String)null, new HashMap<String, String>());
       response = IOUtils.toString(responseInputStream);
     } catch (IOException e) {
       LOG.error("Error while reading from RM", e);

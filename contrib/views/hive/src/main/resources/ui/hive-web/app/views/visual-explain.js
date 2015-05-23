@@ -32,17 +32,23 @@ export default Ember.View.extend({
     this._super();
 
     var target = this.$('#visual-explain');
+    var panel = this.$('#visual-explain .panel-body');
 
-    target.css('min-height', $('.main-content').height());
+    panel.css('min-height', $('.main-content').height());
     target.animate({ width: $('.main-content').width() }, 'fast');
 
     this.$('#visual-explain-graph').draggable();
+
+    if (this.get('controller.rerender')) {
+      this.renderDag();
+    }
   },
 
   willDestroyElement: function () {
     var target = this.$('#visual-explain');
+    var panel = this.$('#visual-explain .panel-body');
 
-    target.css('min-height', 0);
+    panel.css('min-height', 0);
     target.css('width', 0);
   },
 
@@ -455,4 +461,3 @@ export default Ember.View.extend({
         .renderEdges();
   }
 });
-

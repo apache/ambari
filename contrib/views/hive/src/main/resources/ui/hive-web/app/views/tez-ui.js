@@ -21,15 +21,17 @@ import Ember from 'ember';
 export default Ember.View.extend({
   didInsertElement: function () {
     var target = this.$('#tez-ui');
+    var panel = this.$('#tez-ui .panel-body');
 
-    target.css('min-height', $('.main-content').height());
+    panel.css('min-height', $('.main-content').height());
     target.animate({ width: $('.main-content').width() }, 'fast');
   },
 
   willDestroyElement: function () {
     var target = this.$('#tez-ui');
+    var panel = this.$('#tez-ui .panel-body');
 
-    target.css('min-height', 0);
+    panel.css('min-height', 0);
     target.css('width', 0);
   }
 });

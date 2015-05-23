@@ -28,7 +28,7 @@ export default {
     Ember.I18n.translations = TRANSLATIONS;
     Ember.TextField.reopen(Ember.I18n.TranslateableAttributes);
   }
-}
+};
 
 TRANSLATIONS = {
   tooltips: {
@@ -38,7 +38,10 @@ TRANSLATIONS = {
     settings: 'Settings',
     visualExplain: 'Visual Explain',
     tez: 'Tez',
-    notifications: 'Notifications'
+    notifications: 'Notifications',
+    expand: 'Expand query panel',
+    makeSettingGlobal: 'Make setting global',
+    overwriteGlobalValue: 'Overwrite global setting value'
   },
 
   alerts: {
@@ -61,6 +64,9 @@ TRANSLATIONS = {
     success: {
       sessions: {
         deleted: 'Session invalidated'
+      },
+      settings: {
+        saved: 'Settings have been saved.'
       }
     }
   },
@@ -80,7 +86,12 @@ TRANSLATIONS = {
     },
 
     download: {
-      csv: 'Download results as CSV'
+      csv: 'Download results as CSV',
+      hdfs: 'Please enter save path and name'
+    },
+
+    changeTitle: {
+      heading: 'Rename worksheet'
     }
   },
 
@@ -96,6 +107,7 @@ TRANSLATIONS = {
       parameters: 'Parameters',
       visualExplain: 'Visual Explain',
       tez: 'TEZ',
+      status: 'Status: ',
       messages: 'Messages'
     },
     download: 'Save results...',
@@ -105,7 +117,8 @@ TRANSLATIONS = {
   placeholders: {
     search: {
       tables: 'Search tables...',
-      columns: 'Search columns in result tables...'
+      columns: 'Search columns in result tables...',
+      results: 'Filter columns...'
     },
     select: {
       database: 'Select Database...',

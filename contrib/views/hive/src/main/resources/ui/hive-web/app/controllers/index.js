@@ -44,6 +44,38 @@ export default Ember.Controller.extend({
   tezUI: Ember.computed.alias('controllers.' + constants.namingConventions.tezUI),
   jobProgress: Ember.computed.alias('controllers.' + constants.namingConventions.jobProgress),
 
+  isDatabaseExplorerVisible: true,
+
+  init: function () {
+    this._super();
+
+    // initialize queryParams with an empty array
+    this.set('queryParams', Ember.ArrayProxy.create({ content: Ember.A([]) }));
+
+    this.set('queryProcessTabs', Ember.ArrayProxy.create({ content: Ember.A([
+      Ember.Object.create({
+        name: Ember.I18n.t('menus.logs'),
+        path: constants.namingConventions.subroutes.jobLogs
+      }),
+      Ember.Object.create({
+        name: Ember.I18n.t('menus.results'),
+        path: constants.namingConventions.subroutes.jobResults
+      }),
+      Ember.Object.create({
+        name: Ember.I18n.t('menus.explain'),
+        path: constants.namingConventions.subroutes.jobExplain
+      })
+    ])}));
+
+    this.set('queryPanelActions', Ember.ArrayProxy.create({ content: Ember.A([
+      Ember.Object.create({
+        icon: 'fa-expand',
+        action: 'toggleDatabaseExplorerVisibility',
+        tooltip: Ember.I18n.t('tooltips.expand')
+      })
+    ])}));
+  },
+
   canExecute: function () {
     var isModelRunning = this.get('model.isRunning');
     var hasParams = this.get('queryParams.length');
@@ -82,7 +114,7 @@ export default Ember.Controller.extend({
     currentParams.setObjects(updatedParams);
   }.observes('openQueries.currentQuery.fileContent'),
 
-  _executeQuery: function (shouldExplain, shouldGetVisualExplain) {
+  _executeQuery: function (referrer, shouldExplain, shouldGetVisualExplain) {
     var queryId,
         query,
         finalQuery,
@@ -93,7 +125,8 @@ export default Ember.Controller.extend({
     job = this.store.createRecord(constants.namingConventions.job, {
       title: originalModel.get('title'),
       sessionTag: originalModel.get('sessionTag'),
-      dataBase: this.get('databases.selectedDatabase.name')
+      dataBase: this.get('databases.selectedDatabase.name'),
+      referrer: referrer
     });
 
     originalModel.set('isRunning', true);
@@ -202,7 +235,7 @@ export default Ember.Controller.extend({
     query = query.trim();
 
     //update with the current settings
-    if (validSettings) {
+    if (validSettings.get('length')) {
       query = '\n' + query;
 
       validSettings.forEach(function (setting) {
@@ -276,28 +309,6 @@ export default Ember.Controller.extend({
     });
 
     return query;
-  },
-
-  init: function () {
-    this._super();
-
-    // initialize queryParams with an empty array
-    this.set('queryParams', Ember.ArrayProxy.create({ content: Ember.A([]) }));
-
-    this.set('queryProcessTabs', Ember.ArrayProxy.create({ content: Ember.A([
-      Ember.Object.create({
-        name: Ember.I18n.t('menus.logs'),
-        path: constants.namingConventions.subroutes.jobLogs
-      }),
-      Ember.Object.create({
-        name: Ember.I18n.t('menus.results'),
-        path: constants.namingConventions.subroutes.jobResults
-      }),
-      Ember.Object.create({
-        name: Ember.I18n.t('menus.explain'),
-        path: constants.namingConventions.subroutes.jobExplain
-      })
-    ])}));
   },
 
   displayJobTabs: function () {
@@ -397,7 +408,7 @@ export default Ember.Controller.extend({
     return components;
   },
 
-  saveToHDFS: function () {
+  saveToHDFS: function (path) {
     var job = this.get('content');
 
     if (!utils.insensitiveCompare(job.get('status'), constants.statuses.succeeded)) {
@@ -406,7 +417,7 @@ export default Ember.Controller.extend({
 
     var self = this;
 
-    var file = "/tmp/" + job.get('id') + ".csv";
+    var file = "/tmp/" + path + ".csv";
     var url = this.container.lookup('adapter:application').buildURL();
     url +=  "/jobs/" + job.get('id') + "/results/csv/saveToHDFS";
 
@@ -446,10 +457,25 @@ export default Ember.Controller.extend({
     tabs.findBy('path', constants.namingConventions.subroutes.jobResults).set('visible', !show);
   },
 
+  queryProcessTitle: function () {
+    return Ember.I18n.t('titles.query.process') + ' (' + Ember.I18n.t('titles.query.status') + this.get('content.status') + ')';
+  }.property('content.status'),
+
   actions: {
     saveToHDFS: function () {
-      this.set('content.isRunning', true);
-      this.saveToHDFS();
+      var self = this,
+          defer = Ember.RSVP.defer();
+
+      this.send('openModal', 'modal-save', {
+        heading: "modals.download.hdfs",
+        text: this.get('content.title') + '_' + this.get('content.id'),
+        defer: defer
+      });
+
+      defer.promise.then(function (text) {
+        self.set('content.isRunning', true);
+        self.saveToHDFS(text);
+      });
     },
 
     downloadAsCSV: function () {
@@ -543,6 +569,10 @@ export default Ember.Controller.extend({
 
       defer.promise.then(function (result) {
         currentQuery.set('fileContent', self.prependQuerySettings(currentQuery.get('fileContent')));
+        // we need to update the original model
+        // because when this is executed
+        // it sets the title from the original model
+        self.set('model.title', result.get('text'));
 
         if (result.get('overwrite')) {
           self.get('openQueries').save(self.get('content'), null, true, result.get('text'));
@@ -556,11 +586,13 @@ export default Ember.Controller.extend({
       });
     },
 
-    executeQuery: function () {
+    executeQuery: function (referrer) {
       var self = this;
       var subroute;
 
-      this._executeQuery().then(function (job) {
+      referrer = referrer || constants.jobReferrer.job;
+
+      this._executeQuery(referrer).then(function (job) {
         if (job.get('status') !== constants.statuses.succeeded) {
           subroute = constants.namingConventions.subroutes.jobLogs;
         } else {
@@ -579,13 +611,17 @@ export default Ember.Controller.extend({
     explainQuery: function () {
       var self = this;
 
-      this._executeQuery(true).then(function (job) {
+      this._executeQuery(constants.jobReferrer.explain, true).then(function (job) {
         self.get('openQueries').updateTabSubroute(job, constants.namingConventions.subroutes.jobExplain);
 
         self.transitionToRoute(constants.namingConventions.subroutes.historyQuery, job.get('id'));
       }, function (err) {
-        this.notify.error(err.responseJSON.message, err.responseJSON.trace);
+        self.notify.error(err.responseJSON.message, err.responseJSON.trace);
       });
+    },
+
+    toggleDatabaseExplorerVisibility: function () {
+      this.toggleProperty('isDatabaseExplorerVisible');
     }
   }
 });

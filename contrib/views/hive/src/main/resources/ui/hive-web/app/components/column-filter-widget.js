@@ -43,7 +43,7 @@ export default Ember.Component.extend({
     },
 
     sendFilter: function (params) {
-      if (params) {
+      if (params.from && params.to) {
         this.set('filterValue', Ember.Object.create({
           min: params.from,
           max: params.to

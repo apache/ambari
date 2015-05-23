@@ -1,3 +1,4 @@
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -26,21 +27,56 @@ export default Ember.ObjectController.extend({
 
   processResults: function () {
     var results = this.get('results');
+    var filterValue = this.get('filterValue');
+    var columns;
+    var rows;
+    var filteredColumns;
+    var filteredRows;
 
-    if (!results || !results.schema || !results.rows) {
+    if (!results) {
       return;
     }
 
-    var schema = results.schema.map(function (column) {
+    columns = results.schema;
+    rows = results.rows;
+
+    if (!columns || !rows) {
+      return;
+    }
+
+    columns = columns.map(function (column) {
       return {
         name: column[0],
         type: column[1],
-        index: column[2]
+        index: column[2] - 1 //normalize index to 0 based
       };
     });
 
-    this.set('formattedResults', { schema: schema, rows: results.rows });
-  }.observes('results'),
+    if (filterValue) {
+      filteredColumns = columns.filter(function (column) {
+        return utils.insensitiveContains(column.name, filterValue);
+      });
+
+      if (filteredColumns.length < columns.length) {
+        filteredRows = rows.map(function (row) {
+          var updatedRow = [];
+
+          updatedRow.pushObjects(row.filter(function (item, index) {
+            return this.findBy('index', index);
+          }, this));
+
+          return updatedRow;
+        }, filteredColumns);
+      } else {
+        filteredRows = rows;
+      }
+    } else {
+      filteredColumns = columns;
+      filteredRows = rows;
+    }
+
+    this.set('formattedResults', { columns: filteredColumns, rows: filteredRows });
+  }.observes('results', 'filterValue'),
 
   keepAlive: function (job) {
     Ember.run.later(this, function () {
@@ -164,6 +200,10 @@ export default Ember.ObjectController.extend({
       if (resultsIndex > 0) {
         this.set('results', existingJob.results.objectAt(resultsIndex - 1));
       }
+    },
+
+    filterResults: function (value) {
+      this.set('filterValue', value);
     }
   }
 });

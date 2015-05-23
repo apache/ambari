@@ -100,6 +100,7 @@ export default Ember.Controller.extend({
     // no instance created
     if (data.instances && !data.instances.length) {
       this.set('error', 'tez.errors.no.instance');
+      return;
     }
   }
 });

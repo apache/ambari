@@ -22,9 +22,12 @@ import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.hive.BaseService;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.persistence.utils.OnlyOwnersFilteringStrategy;
+import org.apache.ambari.view.hive.utils.HdfsApi;
+import org.apache.ambari.view.hive.utils.HdfsUtil;
 import org.apache.ambari.view.hive.utils.NotFoundFormattedException;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,6 +171,51 @@ public class SavedQueryService extends BaseService {
       throw ex;
     } catch (ItemNotFound itemNotFound) {
       throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
+  }
+
+  /**
+   * Get default settings for query
+   */
+  @GET
+  @Path("defaultSettings")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getDefaultSettings() {
+    try {
+      String defaultsFile = context.getProperties().get("scripts.settings.defaults-file");
+      HdfsApi hdfsApi = getSharedObjectsFactory().getHdfsApi();
+
+      String defaults = "{\"settings\": {}}";
+      if (hdfsApi.exists(defaultsFile)) {
+        defaults = HdfsUtil.readFile(hdfsApi, defaultsFile);
+      }
+      return Response.ok(JSONValue.parse(defaults)).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
+  }
+
+  /**
+   * Set default settings for query (overwrites if present)
+   */
+  @POST
+  @Path("defaultSettings")
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response setDefaultSettings(JSONObject settings) {
+    try {
+      String defaultsFile = context.getProperties().get("scripts.settings.defaults-file");
+      HdfsApi hdfsApi = getSharedObjectsFactory().getHdfsApi();
+
+      HdfsUtil.putStringToFile(hdfsApi, defaultsFile,
+                               settings.toString());
+      String defaults = HdfsUtil.readFile(hdfsApi, defaultsFile);
+      return Response.ok(JSONValue.parse(defaults)).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
     } catch (Exception ex) {
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }

@@ -36,6 +36,7 @@ export default DS.Model.extend({
   page: DS.attr(),
   statusDir: DS.attr('string'),
   applicationId: DS.attr(),
+  referrer: DS.attr('string'),
   confFile: DS.attr('string'),
 
   dateSubmittedTimestamp: function () {

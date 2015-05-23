@@ -169,7 +169,7 @@ export default Ember.ArrayController.extend({
     var table = database.get('tables').findBy('name', tableName);
 
     //if all the columns were already loaded for this table, do not get them again.
-    if (table.columns && !table.get('hasNext')) {
+    if (!table || (table.columns && !table.get('hasNext'))) {
       defer.resolve();
     } else {
       this.set('isLoading', true);
@@ -203,7 +203,8 @@ export default Ember.ArrayController.extend({
     return [
       Ember.Object.create({
         icon: 'fa-refresh',
-        action: 'refreshDatabaseExplorer'
+        action: 'refreshDatabaseExplorer',
+        tooltip: Ember.I18n.t('tooltips.refresh')
       })
     ];
   }.property(),
@@ -213,12 +214,29 @@ export default Ember.ArrayController.extend({
       var self = this;
       var selectedDatabase = this.get('selectedDatabase');
 
+      this.set('isLoading', true);
+
       this.store.unloadAll('database');
-      this.store.fetchAll('database').then(function () {
-        var database = self.get('model').findBy('id', selectedDatabase.get('id'));
-        self.set('selectedDatabase', database);
+      this.store.fetchAll('database').then(function (databases) {
+        var database;
+
+        self.set('model', databases);
+
+        //if a database was previously selected, check if it still exists
+        if (selectedDatabase) {
+          database = databases.findBy('id', selectedDatabase.get('id'));
+
+          if (!database) {
+            self.set('selectedDatabase', databases.objectAt(0));
+          }
+        } else if (self.get('model.length')) {
+          self.set('selectedDatabase', databases.objectAt(0));
+        }
+
+        self.set('isLoading');
       }).catch(function (response) {
         self.notify.error(response.responseJSON.message, response.responseJSON.trace);
+        self.set('isLoading');
       });
     },
 
@@ -233,7 +251,7 @@ export default Ember.ArrayController.extend({
         self.get('openQueries.currentQuery')
           .set('fileContent', query);
 
-        self.send('executeQuery');
+        self.send('executeQuery', constants.jobReferrer.sample);
       });
     },
 
@@ -302,6 +320,8 @@ export default Ember.ArrayController.extend({
           resultsTab = this.get('tabs').findBy('view', constants.namingConventions.databaseSearch),
           tableSearchResults = this.get('tableSearchResults');
 
+      searchTerm = searchTerm ? searchTerm.toLowerCase() : '';
+
       this.set('tablesSearchTerm', searchTerm);
       resultsTab.set('visible', true);
       this.set('selectedTab', resultsTab);
@@ -323,6 +343,8 @@ export default Ember.ArrayController.extend({
           database = this.get('selectedDatabase'),
           resultsTab = this.get('tabs').findBy('view', constants.namingConventions.databaseSearch),
           tables = this.get('tableSearchResults.tables');
+
+      searchTerm = searchTerm ? searchTerm.toLowerCase() : '';
 
       this.set('selectedTab', resultsTab);
 

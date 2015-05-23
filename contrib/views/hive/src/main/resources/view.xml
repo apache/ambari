@@ -17,7 +17,7 @@
 <view>
     <name>HIVE</name>
     <label>Hive</label>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
 
     <min-ambari-version>2.0.*</min-ambari-version>
 
@@ -72,6 +72,14 @@
         <label>Jobs HDFS Directory</label>
         <placeholder>/user/${username}/hive/jobs</placeholder>
         <default-value>/user/${username}/hive/jobs</default-value>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>scripts.settings.defaults-file</name>
+        <description>File path for saving default settings for query</description>
+        <label>Default script settings file</label>
+        <default-value>/user/${username}/.${instanceName}.defaultSettings</default-value>
         <required>true</required>
     </parameter>
 

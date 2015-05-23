@@ -21,7 +21,8 @@ import constants from 'hive/utils/constants';
 
 export default DS.RESTAdapter.extend({
   headers: {
-    'X-Requested-By': 'ambari'
+    'X-Requested-By': 'ambari',
+    'Content-Type': 'application/json'
   },
 
   buildURL: function () {

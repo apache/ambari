@@ -38,7 +38,7 @@
       {{#if iconActions}}
         {{#each iconAction in iconActions}}
         <i {{action "sendMenuItemAction" iconAction.action}}
-          {{bind-attr class=":pull-right :panel-action-icon :fa iconAction.icon"}}></i>
+          {{bind-attr class=":pull-right :panel-action-icon :fa iconAction.icon" title="iconAction.tooltip"}}></i>
         {{/each}}
       {{/if}}
 

@@ -17,7 +17,7 @@
 */
 
 .query-menu {
-  margin-top: 57px;
+  margin-top: 58px;
 
   span, popover {
     cursor: pointer;
@@ -35,12 +35,12 @@
 .editor-overlay {
   width: 100%;
   overflow-y: scroll;
-  height: calc(100% - 41px);
-  top: 41px;
+  height: calc(100% - 57px);
+  top: 57px;
   left: 0;
   background-color: #fff;
   position: absolute;
-  padding: 0 15px;
+  padding: 10px 15px;
   z-index: 1000;
 
   border: 1px solid $border-color;
@@ -60,7 +60,7 @@
 .query-menu-tab .badge {
   position: absolute;
   top: -4px;
-  right: 0;
+  right: 0px;
   background-color: red;
   color: #fff;
   padding: 2px 4px;

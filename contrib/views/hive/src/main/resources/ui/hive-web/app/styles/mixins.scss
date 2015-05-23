@@ -21,3 +21,8 @@
      -moz-box-shadow: $horizontal $vertical $blur $color;
           box-shadow: $horizontal $vertical $blur $color;
 }
+
+@mixin animate-width($time) {
+  -webkit-transition: $time;
+  transition: width $time;
+}

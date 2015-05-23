@@ -16,32 +16,41 @@
 * limitations under the License.
 }}
 
-{{#if results}}
-  <table class="table table-expandable">
-    <thead>
-      <tr>
-        {{#each column in formattedResults.schema}}
-          <th> {{column.name}} </th>
-        {{/each}}
-      </tr>
-    </thead>
-    <tbody>
-      {{#each row in formattedResults.rows}}
+<div id="query-results">
+  {{#if results}}
+    <div class="query-results-tools">
+      {{extended-input type="text"
+                       class="pull-left input-sm form-control"
+                       placeholderTranslation='placeholders.search.results'
+                       valueChanged="filterResults"}}
+
+      <div class="pull-right">
+        <button type="button" {{action "getPreviousPage"}}
+                {{bind-attr class=":btn :btn-sm :btn-default disablePrevious:disabled"}}>{{t "buttons.previousPage"}}</button>
+        <button type="button" {{action "getNextPage"}}
+                {{bind-attr class=":btn :btn-sm :btn-default disableNext:disabled"}}>{{t "buttons.nextPage"}}</button>
+      </div>
+    </div>
+
+    <table class="table table-expandable">
+      <thead>
         <tr>
-          {{#each item in row}}
-            <td>{{item}}</td>
+          {{#each column in formattedResults.columns}}
+            <th> {{column.name}} </th>
           {{/each}}
         </tr>
-      {{/each}}
-    </tbody>
-  </table>
-
-  <div class="pull-right">
-    <button type="button" {{action "getPreviousPage"}}
-            {{bind-attr class=":btn :btn-sm :btn-default disablePrevious:disabled"}}>{{t "buttons.previousPage"}}</button>
-    <button type="button" {{action "getNextPage"}}
-            {{bind-attr class=":btn :btn-sm :btn-default disableNext:disabled"}}>{{t "buttons.nextPage"}}</button>
-  </div>
-{{else}}
-  {{error}}
-{{/if}}
+      </thead>
+      <tbody>
+        {{#each row in formattedResults.rows}}
+          <tr>
+            {{#each item in row}}
+              <td>{{item}}</td>
+            {{/each}}
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{else}}
+    {{error}}
+  {{/if}}
+</div>

@@ -19,6 +19,8 @@
 package org.apache.ambari.view.hive.utils;
 
 
+import org.apache.commons.io.IOUtils;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +47,24 @@ public class HdfsUtil {
     } catch (IOException e) {
       throw new ServiceFormattedException("F070 Could not write file " + filePath, e);
     } catch (InterruptedException e) {
-      throw new ServiceFormattedException("F070 Could not write file " + filePath, e);
+      throw new ServiceFormattedException("F071 Could not write file " + filePath, e);
+    }
+  }
+
+
+  /**
+   * Read string from file
+   * @param filePath path to file
+   */
+  public static String readFile(HdfsApi hdfs, String filePath) {
+    FSDataInputStream stream;
+    try {
+      stream = hdfs.open(filePath);
+      return IOUtils.toString(stream);
+    } catch (IOException e) {
+      throw new ServiceFormattedException("F080 Could not read file " + filePath, e);
+    } catch (InterruptedException e) {
+      throw new ServiceFormattedException("F081 Could not read file " + filePath, e);
     }
   }
 

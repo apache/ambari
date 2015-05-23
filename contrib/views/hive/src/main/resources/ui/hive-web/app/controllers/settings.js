@@ -31,6 +31,49 @@ export default Ember.ArrayController.extend({
   sessionTag: Ember.computed.alias('index.model.sessionTag'),
   sessionActive: Ember.computed.alias('index.model.sessionActive'),
 
+  createDefaultsSettings: function(settings) {
+    var globalSettings = [];
+    var newSetting;
+
+    for (var key in settings) {
+      newSetting = this.createSetting(key, settings[key]);
+      globalSettings.push(newSetting);
+    }
+
+    this.get('globalSettings').setObjects(globalSettings);
+  },
+
+  loadDefaultSettings: function() {
+    var adapter       = this.container.lookup('adapter:application');
+    var url           = adapter.buildURL() + '/savedQueries/defaultSettings';
+    var self = this;
+
+    adapter.ajax(url)
+      .then(function(response) {
+        self.createDefaultsSettings(response.settings);
+      })
+      .catch(function(error) {
+        self.notify.error(error.responseJSON.message, error.responseJSON.trace);
+      });
+  }.on('init'),
+
+  setSettingsTabs: function() {
+    this.set('settingsTabs', Ember.ArrayProxy.create({ content: [
+      Ember.Object.create({
+        name: 'Query Settings',
+        view: constants.namingConventions.settingsQuery,
+        visible: true
+      }),
+      Ember.Object.create({
+        name: 'Global Settings',
+        view: constants.namingConventions.settingsGlobal,
+        visible: true
+      })
+    ]}));
+
+    this.set('selectedTab', this.get('selectTab.firstObject'));
+  }.on('init'),
+
   canInvalidateSession: Ember.computed.and('sessionTag', 'sessionActive'),
 
   predefinedSettings: constants.hiveParameters,
@@ -58,19 +101,35 @@ export default Ember.ArrayController.extend({
     return targetSettings;
   }.property('openQueries.currentQuery'),
 
+  settingsSets: [
+    Ember.Object.create({ name: 'Set 1' }),
+    Ember.Object.create({ name: 'Set 2' }),
+    Ember.Object.create({ name: 'Set 3' })
+  ],
+
+  globalSettings: Ember.ArrayProxy.create({ content: []}),
+
   updateSettingsId: function (oldId, newId) {
     this.filterBy('id', oldId).setEach('id', newId);
   },
 
   getCurrentValidSettings: function () {
     var currentSettings = this.get('currentSettings');
+    var globalSettings = this.get('globalSettings');
     var validSettings = [];
+    var settings = Ember.copy(currentSettings.get('settings'));
 
-    if (!currentSettings) {
+    globalSettings.map(function(setting) {
+      if (!settings.findBy('key.name', setting.get('key.name'))) {
+        settings.pushObject(setting);
+      }
+    });
+
+    if (!currentSettings && !globalSettings) {
       return '';
     }
 
-    currentSettings.get('settings').map(function (setting) {
+    settings.map(function (setting) {
       if (setting.get('valid')) {
         validSettings.pushObject('set %@ = %@;'.fmt(setting.get('key.name'), setting.get('value')));
       }
@@ -88,19 +147,43 @@ export default Ember.ArrayController.extend({
     return settings && settings.get('settings.length');
   },
 
-  parseQuerySettings: function () {
-    var query = this.get('openQueries.currentQuery');
-    var content = query.get('fileContent');
+  createSetting: function(name, value) {
     var self = this;
-    var regex = new RegExp(utils.regexes.setSetting);
-    var settings = content.match(regex) || [];
-    var targetSettings = this.findBy('id', this.get('index.model.id'));
+    var setting = Ember.Object.createWithMixins({
+      valid     : true,
+      value     : Ember.computed.alias('selection.value'),
+      selection : Ember.Object.create(),
 
-    if (!query || !targetSettings) {
+      isInGlobal: function() {
+        return self.get('globalSettings').mapProperty('key.name').contains(this.get('key.name'));
+      }.property('key.name')
+    });
+
+    if (name) {
+      setting.set('key', Ember.Object.create({ name: name }));
+    }
+
+    if (value) {
+      setting.set('selection.value', value);
+    }
+
+    return setting;
+  },
+
+  parseQuerySettings: function () {
+    var self           = this;
+    var query          = this.get('openQueries.currentQuery');
+    var content        = query.get('fileContent');
+    var regex          = new RegExp(utils.regexes.setSetting);
+    var settings       = content.match(regex);
+    var targetSettings = this.get('currentSettings');
+
+    if (!query || !settings) {
       return;
     }
 
-    settings = settings.map(function (setting) {
+    var parsedSettings = [];
+    settings.forEach(function (setting) {
       var KeyValue = setting.split('=');
       var name     = KeyValue[0].replace('set', '').trim();
       var value    = KeyValue[1].replace(';', '').trim();
@@ -111,21 +194,15 @@ export default Ember.ArrayController.extend({
         });
       }
 
-      var settingObj = Ember.Object.createWithMixins({
-        key: Ember.Object.create({ name: 'nam' }),
-        selection : Ember.Object.create({ value: 'val'}),
+      if (self.get('globalSettings').findBy('key.name', name)) {
+        return false;
+      }
 
-        value: Ember.computed.alias('selection.value'),
-        valid: true
-      });
-
-      settingObj.set('key.name', name);
-      settingObj.set('selection.value', value);
-
-      return settingObj;
+      parsedSettings.push(self.createSetting(name, value));
     });
 
-    targetSettings.set('settings', settings);
+    query.set('fileContent', content.replace(regex, '').trim());
+    targetSettings.set('settings', parsedSettings);
   }.observes('openQueries.currentQuery', 'openQueries.currentQuery.fileContent', 'openQueries.tabUpdated'),
 
   validate: function () {
@@ -185,13 +262,7 @@ export default Ember.ArrayController.extend({
 
   actions: {
     add: function () {
-      var setting = Ember.Object.createWithMixins({
-        valid: true,
-        selection: Ember.Object.create(),
-        value: Ember.computed.alias('selection.value')
-      });
-
-      this.get('currentSettings.settings').pushObject(setting);
+      this.get('currentSettings.settings').pushObject(this.createSetting());
     },
 
     remove: function (setting) {
@@ -235,11 +306,54 @@ export default Ember.ArrayController.extend({
       adapter.ajax(url, 'DELETE').catch(function (response) {
         if ([200, 404].contains(response.status)) {
           model.set('sessionActive', false);
-          self.notify.success('alerts.success.sessions.deleted');
+          self.notify.success(Ember.I18n.t('alerts.success.sessions.deleted'));
         } else {
           self.notify.error(response.responseJSON.message, response.responseJSON.trace);
         }
       });
+    },
+
+    makeSettingGlobal: function(setting) {
+      // @TODO: should remove from all query settings?
+      // @TODO: validate setting? maybe its not needed bc it was already validated?
+      this.get('globalSettings').pushObject(setting);
+      this.get('currentSettings.settings').removeObject(setting);
+    },
+
+    removeGlobal: function(setting) {
+      this.get('globalSettings').removeObject(setting);
+    },
+
+    overwriteGlobalValue: function(setting) {
+      var globalSetting = this.get('globalSettings').findBy('key.name', setting.get('key.name'));
+
+      if (globalSetting) {
+        globalSetting.set('value', setting.get('value'));
+        this.get('currentSettings.settings').removeObject(setting);
+      }
+    },
+
+    saveDefaultSettings: function() {
+      var self     = this;
+      var data     = {};
+      var adapter  = this.container.lookup('adapter:application');
+      var url      = adapter.buildURL() + '/savedQueries/defaultSettings';
+      var settings = this.get('globalSettings');
+
+      settings.forEach(function(setting) {
+        data[ setting.get('key.name') ] = setting.get('value');
+      });
+
+      adapter.ajax(url, 'POST', {
+        data: {settings: data }
+      })
+        .then(function(response) {
+          if (response && response.settings) {
+            self.notify.success(Ember.I18n.t('alerts.success.settings.saved'));
+          } else {
+            self.notify.error(response.responseJSON.message, response.responseJSON.trace);
+          }
+        });
     }
   }
 });

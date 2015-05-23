@@ -18,12 +18,12 @@
 
 <div id="index-content">
   <div class="main-content">
-    <aside class="col-md-3 col-xs-12 no-padding">
+    <aside {{bind-attr class="isDatabaseExplorerVisible:col-md-3:no-width :col-xs-12 :no-padding"}}>
       {{render 'databases'}}
     </aside>
 
-    <div class="col-md-9 col-xs-12 query-container">
-      {{#panel-widget headingTranslation="titles.query.editor" classNames="query-editor-panel"}}
+    <div {{bind-attr class="isDatabaseExplorerVisible:col-md-9:col-md-12 :col-xs-12 :query-container"}}>
+      {{#panel-widget headingTranslation="titles.query.editor" classNames="query-editor-panel" iconActions=queryPanelActions}}
         {{render 'open-queries'}}
 
         <div class="toolbox">
@@ -67,8 +67,8 @@
       {{/if}}
 
       {{#if displayJobTabs}}
-        {{#panel-widget headingTranslation="titles.query.process"
-                        isLoading=model.isRunning
+        {{#panel-widget heading=queryProcessTitle
+                        isLoading=content.isRunning
                         menuItems=downloadMenu
                         menuHeadingTranslation="titles.download"
                         classNames="query-process-results-panel"}}

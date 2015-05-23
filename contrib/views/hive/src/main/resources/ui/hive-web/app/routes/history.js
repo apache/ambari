@@ -25,6 +25,12 @@ export default Ember.Route.extend({
   },
 
   setupController: function (controller, model) {
-    controller.set('history', model);
+    var filteredModel = model.filter(function (job) {
+       //filter out jobs with referrer type of sample, explain and visual explain
+       return !job.get('referrer') ||
+              job.get('referrer') === constants.jobReferrer.job;
+    });
+
+    controller.set('history', filteredModel);
   }
 });

@@ -80,8 +80,21 @@ a {
   background: white;
 }
 
-aside  hr {
-  margin: 10px 0;
+aside  {
+  hr {
+    margin: 10px 0;
+  }
+
+  &.no-width {
+    width: 0;
+    overflow: hidden;
+
+    @include animate-width(0.25s);
+  }
+
+  &.col-md-3 {
+    @include animate-width(0.25s);
+  }
 }
 
 .halfed {
@@ -207,6 +220,14 @@ dropdown .fa-remove {
 .query-container {
   position: relative;
   padding-right: 0;
+
+  &.col-md-9 {
+    @include animate-width(0.25s);
+  }
+
+  &.col-md-12 {
+    @include animate-width(0.25s);
+  }
 }
 
 .main-content {
@@ -218,7 +239,7 @@ dropdown .fa-remove {
   font-size: 20px;
 
   &.active {
-    color: #428bca;
+    color: white;
   }
 
   &.text-icon {
@@ -229,9 +250,11 @@ dropdown .fa-remove {
 
 .query-context-tab {
   background: #f1f1f1;
+  border-left: 2px solid #428bca;
 
   &.active {
-    background: white;
+    color: #428bca;
+    border-left: 2px solid white;
   }
 }
 
@@ -356,10 +379,13 @@ body {
   line-height: 24px;
 }
 
+.settings-controls {
+  margin: 10px 0;
+}
+
 .setting {
   float: left;
-  padding-right: 10px;
-  padding-top: 10px;
+  padding: 10px 0 0 0;
 
   .input-group {
     width: 100%;
@@ -370,18 +396,43 @@ body {
   }
 }
 
-.setting .remove {
+.setting .remove, .setting .makeGlobal {
   line-height: 30px;
   font-size: 18px;
   cursor: pointer;
-  position: absolute;
-  right: -5px;
-  top: -10px;
+  // position: absolute;
+  // right: -5px;
+  // top: -10px;
 }
 
-tabs {
-  display: block;
-  position: relative;
+.setting .makeGlobal.overwriteGlobal {
+  color: #ff3322;
+}
+
+.setting .setting-input-value {
+  width: calc(100% - 50px);
+  display: inline-block;
+}
+.setting .global-setting-value {
+  width: calc(100% - 25px);
+}
+
+.setting .makeGlobal {
+  top: 30px;
+}
+
+.settings-set {
+  margin: 10px 0;
+}
+.settings-set h3 {
+  display: inline-block;
+  margin: 0 10px 0 0;
+  vertical-align: top;
+  line-height: 35px;
+}
+.settings-set .settings-set-selector {
+  display: inline-block;
+  width: 300px;
 }
 
 tree-view ul li {
@@ -480,4 +531,19 @@ tree-view ul li {
 
 .messages-controls {
   margin: 0 0 10px;
+}
+
+#query-results {
+  .table {
+    display: inline-block;
+    overflow: auto;
+  }
+
+  .query-results-tools {
+    margin-top: 10px;
+  }
+
+  input {
+    width: 300px;
+  }
 }

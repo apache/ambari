@@ -180,9 +180,9 @@ export default Ember.ArrayController.extend({
         queryFile: model.get('queryFile'),
         owner: model.get('owner')
       });
-    } else {
-      tab.set('name', newTitle);
     }
+
+    tab.set('name', newTitle);
 
     //if saving a new query from an existing one create a new record and save it
     if (!isUpdating && !model.get('isNew') && model.get('constructor.typeKey') !== constants.namingConventions.job) {
@@ -375,6 +375,23 @@ export default Ember.ArrayController.extend({
     getColumnsForAutocomplete: function (tableName, callback) {
       this.get('databases').getAllColumns(tableName).then(function () {
         callback();
+      });
+    },
+
+    changeTabTitle: function(tab) {
+      var self = this,
+          defer = Ember.RSVP.defer(),
+          title = this.get('index.content.title');
+
+      this.send('openModal', 'modal-save', {
+        heading: 'modals.changeTitle.heading',
+        text: title,
+        defer: defer
+      });
+
+      defer.promise.then(function (result) {
+        self.set('index.model.title', result);
+        tab.set('name', result);
       });
     }
   }

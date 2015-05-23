@@ -18,7 +18,6 @@
 
 package org.apache.ambari.view.hive.client;
 
-import org.apache.ambari.view.hive.utils.HiveClientFormattedException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.shims.ShimLoader;

@@ -21,7 +21,7 @@
     {{#if tab.visible}}
       {{#if tab.path}}
         {{#link-to tab.path tab.id tagName="li"}}
-          <a>
+          <a {{action 'titleClick' tab on="doubleClick"}}>
             {{tab.name}}
             {{#if tab.isDirty}}*{{/if}}
             {{#if view.removeEnabled}}

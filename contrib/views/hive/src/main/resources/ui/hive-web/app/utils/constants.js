@@ -81,6 +81,8 @@ export default Ember.Object.create({
     tables: 'tables',
     columns: 'columns',
     settings: 'settings',
+    settingsQuery: 'settings-query',
+    settingsGlobal: 'settings-global',
     jobProgress: 'job-progress',
     queryTabs: 'query-tabs'
   },
@@ -152,6 +154,13 @@ export default Ember.Object.create({
     }
   ],
 
+  jobReferrer: {
+    sample: 'sample',
+    explain: 'explain',
+    visualExplain: 'visualExplain',
+    job: 'job'
+  },
+
   statuses: {
     unknown: "UNKNOWN",
     initialized: "INITIALIZED",
@@ -182,7 +191,7 @@ export default Ember.Object.create({
 
   //this can be replaced by a string.format implementation
   adapter: {
-    version: '0.2.0',
+    version: '0.3.0',
     instance: 'Hive',
     apiPrefix: '/api/v1/views/HIVE/versions/',
     instancePrefix: '/instances/',

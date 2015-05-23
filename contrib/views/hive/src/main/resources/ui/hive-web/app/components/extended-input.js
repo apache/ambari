@@ -36,7 +36,7 @@ export default Ember.TextField.extend(Ember.I18n.TranslateableProperties, {
       dynamicContext.set(dynamicValue, this.get('value'));
     }
 
-    this.sendAction('valueChanged');
+    this.sendAction('valueChanged', this.get('value'));
   },
 
   keyUp: function (e) {

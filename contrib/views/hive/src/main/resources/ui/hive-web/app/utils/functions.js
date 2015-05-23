@@ -60,5 +60,9 @@ export default Ember.Object.create({
     return args.find(function (arg) {
       return sourceString.match(new RegExp('^' + arg + '$', 'i'));
     });
+  },
+
+  insensitiveContains: function (sourceString, destString) {
+    return sourceString.toLowerCase().indexOf(destString.toLowerCase()) > -1;
   }
 });

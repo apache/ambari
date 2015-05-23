@@ -64,7 +64,9 @@ public class HdfsApi {
     conf.set("fs.hdfs.impl", DistributedFileSystem.class.getName());
     conf.set("fs.webhdfs.impl", WebHdfsFileSystem.class.getName());
     conf.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem");
+
     ugi = UserGroupInformation.createProxyUser(username, getProxyUser());
+
     fs = ugi.doAs(new PrivilegedExceptionAction<FileSystem>() {
       public FileSystem run() throws IOException {
         return FileSystem.get(URI.create(defaultFs), conf);

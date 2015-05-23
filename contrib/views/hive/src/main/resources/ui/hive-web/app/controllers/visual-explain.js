@@ -21,20 +21,34 @@ import constants from 'hive/utils/constants';
 
 export default Ember.Controller.extend({
   needs: [ constants.namingConventions.index,
+           constants.namingConventions.openQueries,
            constants.namingConventions.jobProgress ],
 
   index: Ember.computed.alias('controllers.' + constants.namingConventions.index),
   jobProgress: Ember.computed.alias('controllers.' + constants.namingConventions.jobProgress),
+  openQueries: Ember.computed.alias('controllers.' + constants.namingConventions.openQueries),
 
   updateProgress: function () {
     this.set('verticesProgress', this.get('jobProgress.stages'));
   }.observes('jobProgress.stages', 'jobProgress.stages.@each.value'),
 
+  observeCurrentQuery: function () {
+    this.set('shouldChangeGraph', true);
+  }.observes('openQueries.currentQuery', 'openQueries.currentQuery.fileContent'),
+
   actions: {
     onTabOpen: function () {
       var self = this;
 
-      this.get('index')._executeQuery(true, true).then(function (json) {
+      if (!this.get('shouldChangeGraph') && this.get('json')) {
+        this.set('rerender', true);
+        return;
+      }
+
+      this.set('rerender');
+      this.toggleProperty('shouldChangeGraph');
+
+      this.get('index')._executeQuery(constants.jobReferrer.visualExplain, true, true).then(function (json) {
         //this condition should be changed once we change the way of retrieving this json
         if (json['STAGE PLANS']['Stage-1']) {
           self.set('json', json);

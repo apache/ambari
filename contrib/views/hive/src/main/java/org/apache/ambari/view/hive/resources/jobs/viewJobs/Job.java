@@ -112,4 +112,8 @@ public interface Job extends Serializable,Indexed,PersonalResource {
   String getStatusMessage();
 
   void setStatusMessage(String message);
+
+  String getReferrer();
+
+  void setReferrer(String referrer);
 }

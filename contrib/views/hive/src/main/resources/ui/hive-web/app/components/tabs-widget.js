@@ -59,6 +59,10 @@ export default Ember.Component.extend({
 
     selectTab: function (tab) {
       this.set('selectedTab', tab);
+    },
+
+    titleClick: function(tab) {
+      this.sendAction('onActiveTitleClick', tab);
     }
   }
 });

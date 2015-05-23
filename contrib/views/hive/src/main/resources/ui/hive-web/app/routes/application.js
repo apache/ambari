@@ -23,10 +23,16 @@ export default Ember.Route.extend({
   setupController: function () {
     var self = this;
 
-    this.controllerFor(constants.namingConventions.databases).set('model', this.store.find(constants.namingConventions.database));
+    this.store.find(constants.namingConventions.database).then(function (databases) {
+      self.controllerFor(constants.namingConventions.databases).set('model', databases);
+    }, function (err) {
+      self.notify.error(err.responseJSON.message, err.responseJSON.trace);
+    });
 
     this.store.find(constants.namingConventions.udf).then(function (udfs) {
       self.controllerFor(constants.namingConventions.udfs).set('udfs', udfs);
+    }, function (err) {
+      self.notify.error(err.responseJSON.message, err.responseJSON.trace);
     });
   },
 
@@ -59,6 +65,7 @@ export default Ember.Route.extend({
         into: overlay.into
       });
     },
+
     closeOverlay: function (overlay) {
       return this.disconnectOutlet({
         outlet: overlay.outlet,

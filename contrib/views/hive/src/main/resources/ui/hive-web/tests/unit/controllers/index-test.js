@@ -252,7 +252,7 @@ test('donwloadMenu returns only saveToHDFS if csvUrl is false', function() {
       constructor: {
         typeKey: 'notjob'
       },
-      status: 'SUCCEEDED'
+      status: 'SUCCEEDED',
   });
 
   var controller = this.subject({ content: content });
@@ -271,7 +271,7 @@ test('donwloadMenu returns saveToHDFS and csvUrl', function() {
       constructor: {
         typeKey: 'job'
       },
-      status: 'SUCCEEDED'
+      status: 'SUCCEEDED',
   });
 
   var controller = this.subject({ content: content });
