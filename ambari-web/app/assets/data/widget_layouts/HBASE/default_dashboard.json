@@ -136,13 +136,13 @@
               "id": 36,
               "metrics": "[{\"name\":\"cpu_idle\",\"metric_path\":\"metrics/cpu/cpu_idle\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"disk_free\",\"metric_path\":\"metrics/disk/disk_free\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"pkts_in\",\"metric_path\":\"metrics/network/pkts_in\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"pkts_out\",\"metric_path\":\"metrics/network/pkts_out\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"}]",
               "author": "ambari",
-              "description": "ReqionServer widget for Host CPU, Network and Disk Utilization",
+              "description": "RegionServer widget for Host CPU, Network and Disk Utilization",
               "scope": "CLUSTER",
               "properties": "{\"graph_type\":\"LINE\",\"time_range\":\"86400000\"}",
               "widget_name": "RS_HOST_METRICS",
               "widget_type": "GRAPH",
               "time_created": 1428990958952,
-              "display_name": "ReqionServer System Metrics",
+              "display_name": "RegionServer System Metrics",
               "values": "[{\"name\":\"CPU Idle\",\"value\":\"${cpu_idle}\"},{\"name\":\"Disk Free\",\"value\":\"${disk_free}\"},{\"name\":\"Network Packets In/Out\",\"value\":\"${pkts_in + pkts_out}\"}]",
               "cluster_name": "c1"
             }

@@ -256,7 +256,7 @@
         },
         {
           "widget_name": "Cluster CPU",
-          "description": "ReqionServer widget for CPU utilization",
+          "description": "RegionServer widget for CPU utilization",
           "default_section_name": "HBASE_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -294,7 +294,7 @@
           ],
           "values": [
             {
-              "name": "ReqionServer widget for CPU utilization",
+              "name": "RegionServer widget for CPU utilization",
               "value": "${(cpu_system._sum + cpu_user._sum + cpu_nice._sum)/(cpu_system._sum + cpu_user._sum + cpu_nice._sum + cpu_idle._sum + cpu_wio._sum)}"
             }
           ],
@@ -306,7 +306,7 @@
         },
         {
           "widget_name": "Cluster Network",
-          "description": "ReqionServer widget for network utilization",
+          "description": "RegionServer widget for network utilization",
           "default_section_name": "HBASE_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -341,7 +341,7 @@
         },
         {
           "widget_name": "Cluster Disk",
-          "description": "ReqionServer widget for Disk utilization",
+          "description": "RegionServer widget for Disk utilization",
           "default_section_name": "HBASE_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
