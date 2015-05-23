@@ -78,9 +78,12 @@ class JobHistoryServer(Script):
       conf_select.select(params.stack_name, "spark", params.version)
       hdp_select.select("spark-historyserver", params.version)
 
-      resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user)
-      if resource_created:
-        params.HdfsResource(None, action="execute")
+      # Spark 1.3.1.2.3, and higher, which was included in HDP 2.3, does not have a dependency on Tez, so it does not
+      # need to copy the tarball, otherwise, copy it.
+      if compare_versions(format_hdp_stack_version(params.version), '2.3.0.0') < 0:
+        resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user)
+        if resource_created:
+          params.HdfsResource(None, action="execute")
 
 if __name__ == "__main__":
   JobHistoryServer().execute()

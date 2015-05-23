@@ -264,17 +264,6 @@ class TestJobHistoryServer(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute', 'hdp-select set spark-historyserver {0}'.format(version))
-
-    copy_to_hdfs_mock.assert_called_with("tez", "hadoop", "hdfs")
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-    )
     self.assertNoMoreResources()
 
     self.assertEquals(2, mocks_dict['call'].call_count)

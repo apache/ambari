@@ -18,11 +18,18 @@ limitations under the License.
 Ambari Agent
 
 """
-
-from resource_management import *
+from resource_management.libraries.script import Script
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
+from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
+from resource_management.core.resources.system import File, Execute
+
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
+
+from resource_management.core.logger import Logger
 
 class TezServiceCheck(Script):
   pass
@@ -53,6 +60,9 @@ class TezServiceCheckLinux(TezServiceCheck):
       owner = params.smokeuser,
       source = format("{tmp_dir}/sample-tez-test"),
     )
+
+    if params.hdp_stack_version and compare_versions(params.hdp_stack_version, '2.2.0.0') >= 0:
+      copy_to_hdfs("tez", params.user_group, params.hdfs_user)
 
     params.HdfsResource(None, action = "execute")
 

@@ -48,6 +48,10 @@
               </packages>
             </osSpecific>
           </osSpecifics>
+
+          <requiredServices>
+            <service>YARN</service>
+          </requiredServices>
         </service>
     </services>
 </metainfo>

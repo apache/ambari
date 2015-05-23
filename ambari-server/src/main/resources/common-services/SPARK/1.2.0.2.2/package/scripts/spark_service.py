@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions import format
 from resource_management.core.resources.system import File, Execute
@@ -32,9 +33,12 @@ def spark_service(action):
       spark_kinit_cmd = format("{kinit_path_local} -kt {spark_kerberos_keytab} {spark_principal}; ")
       Execute(spark_kinit_cmd, user=params.spark_user)
 
-    resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user)
-    if resource_created:
-      params.HdfsResource(None, action="execute")
+    # Spark 1.3.1.2.3, and higher, which was included in HDP 2.3, does not have a dependency on Tez, so it does not
+    # need to copy the tarball, otherwise, copy it.
+    if params.hdp_stack_version and compare_versions(params.hdp_stack_version, '2.3.0.0') < 0:
+      resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user)
+      if resource_created:
+        params.HdfsResource(None, action="execute")
 
     no_op_test = format(
       'ls {spark_history_server_pid_file} >/dev/null 2>&1 && ps -p `cat {spark_history_server_pid_file}` >/dev/null 2>&1')
