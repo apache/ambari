@@ -24,6 +24,7 @@ import os
 import re
 from alerts.base_alert import BaseAlert
 from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 
 logger = logging.getLogger()
 
@@ -98,7 +99,9 @@ class ScriptAlert(BaseAlert):
       matchObj = re.match( r'((.*)services\/(.*)\/package\/)', self.path_to_script)
       if matchObj:
         basedir = matchObj.group(1)
-        with Environment(basedir, tmp_dir=self.config.get('agent', 'tmp_dir')) as env:
+        Logger.logger = logging.getLogger()
+        Logger.logger.setLevel(logging.ERROR)
+        with Environment(basedir, tmp_dir=self.config.get('agent', 'tmp_dir'), logging_level=logging.ERROR) as env:
           return cmd_module.execute(configurations, self.parameters, self.host_name)
       else:
         return cmd_module.execute(configurations, self.parameters, self.host_name)
