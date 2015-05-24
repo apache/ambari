@@ -156,7 +156,7 @@ has_tez = 'tez-site' in config['configurations']
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_oozie_server = not len(oozie_servers) == 0
 
-hbase_tmp_dir = "/tmp/hbase-hbase"
+hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 
 proxyuser_group = default("/configurations/hadoop-env/proxyuser_group","users")
 dfs_cluster_administrators_group = config['configurations']['hdfs-site']["dfs.cluster.administrators"]

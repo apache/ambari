@@ -26,7 +26,6 @@ from stacks.utils.RMFTestCase import *
 class TestHbaseRegionServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HBASE/0.96.0.2.0/package"
   STACK_VERSION = "2.0.6"
-  TMP_PATH = '/tmp/hbase-hbase'
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
@@ -131,19 +130,19 @@ class TestHbaseRegionServer(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
-    self.assertResourceCalled('Directory', self.TMP_PATH,
+    self.assertResourceCalled('Directory', '/hadoop/hbase',
       owner = 'hbase',
       mode=0775,
       recursive = True,
       cd_access='a'
     )
-    self.assertResourceCalled('Directory', self.TMP_PATH + '/local',
+    self.assertResourceCalled('Directory', '/hadoop/hbase/local',
       owner = 'hbase',
       group = 'hadoop',
       mode=0775,
       recursive = True,
     )
-    self.assertResourceCalled('Directory', self.TMP_PATH +'/local/jars',
+    self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',
       owner = 'hbase',
       group = 'hadoop',
       mode=0775,
@@ -218,19 +217,19 @@ class TestHbaseRegionServer(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
-    self.assertResourceCalled('Directory', self.TMP_PATH,
+    self.assertResourceCalled('Directory', '/hadoop/hbase',
       owner = 'hbase',
       mode=0775,
       recursive = True,
       cd_access='a'
     )
-    self.assertResourceCalled('Directory', self.TMP_PATH + '/local',
+    self.assertResourceCalled('Directory', '/hadoop/hbase/local',
       owner = 'hbase',
       group = 'hadoop',
       mode=0775,
       recursive = True,
     )
-    self.assertResourceCalled('Directory', self.TMP_PATH + '/local/jars',
+    self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',
       owner = 'hbase',
       group = 'hadoop',
       mode=0775,
@@ -316,19 +315,19 @@ class TestHbaseRegionServer(RMFTestCase):
       group = 'hadoop',
       recursive = True)
 
-    self.assertResourceCalled('Directory', self.TMP_PATH,
+    self.assertResourceCalled('Directory', '/hadoop/hbase',
       owner = 'hbase',
       mode = 0775,
       recursive = True,
       cd_access='a')
 
-    self.assertResourceCalled('Directory', self.TMP_PATH + '/local',
+    self.assertResourceCalled('Directory', '/hadoop/hbase/local',
       owner = 'hbase',
       group = 'hadoop',
       mode=0775,
       recursive = True)
 
-    self.assertResourceCalled('Directory', self.TMP_PATH + '/local/jars',
+    self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',
       owner = 'hbase',
       group = 'hadoop',
       mode=0775,

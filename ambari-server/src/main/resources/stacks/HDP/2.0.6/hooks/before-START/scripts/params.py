@@ -108,7 +108,7 @@ hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_p
 task_log4j_properties_location = os.path.join(hadoop_conf_dir, "task-log4j.properties")
 
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
-hbase_tmp_dir = "/tmp/hbase-hbase"
+hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 #db params
 server_db_name = config['hostLevelParams']['db_name']
 db_driver_filename = config['hostLevelParams']['db_driver_filename']
