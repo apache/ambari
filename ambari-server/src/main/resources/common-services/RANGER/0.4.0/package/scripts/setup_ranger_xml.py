@@ -20,7 +20,7 @@ limitations under the License.
 import os
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File, Directory, Execute
-from resource_management.core.source import DownloadSource
+from resource_management.core.source import DownloadSource, InlineTemplate
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.resources.modify_properties_file import ModifyPropertiesFile
 from resource_management.core.exceptions import Fail

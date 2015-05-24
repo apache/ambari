@@ -52,7 +52,7 @@ class RangerAdmin(Script):
     import params
 
     env.set_params(params)
-    Execute(format('{params.ranger_stop}'), user=params.unix_user)
+    Execute(format('{params.ranger_stop}'), environment={'JAVA_HOME': params.java_home}, user=params.unix_user)
 
 
   def pre_rolling_restart(self, env):

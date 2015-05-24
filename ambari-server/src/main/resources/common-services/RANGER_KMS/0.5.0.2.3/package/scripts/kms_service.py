@@ -29,10 +29,10 @@ def kms_service(action='start'):
   if action == 'start':
     no_op_test = format('ps -ef | grep proc_rangerkms | grep -v grep')
     cmd = format('{kms_home}/ranger-kms start')
-    Execute(cmd, not_if=no_op_test, user=format('{kms_user}'))
+    Execute(cmd, not_if=no_op_test, environment={'JAVA_HOME': format('{java_home}')}, user=format('{kms_user}'))
   elif action == 'stop':
     cmd = format('{kms_home}/ranger-kms stop')
-    Execute(cmd, user=format('{kms_user}'))
+    Execute(cmd, environment={'JAVA_HOME': format('{java_home}')}, user=format('{kms_user}'))
   elif action == 'status':
     cmd = 'ps -ef | grep proc_rangerkms | grep -v grep'
     code, output = shell.call(cmd, timeout=20)

@@ -46,6 +46,7 @@ class TestRangerAdmin(RMFTestCase):
     )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-start',
+        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ps -ef | grep proc_rangeradmin | grep -v grep',
         user = 'ranger',
     )
@@ -60,7 +61,8 @@ class TestRangerAdmin(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-stop',
-        user = 'ranger',
+        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        user = 'ranger'
     )
     self.assertNoMoreResources()
     
@@ -85,6 +87,7 @@ class TestRangerAdmin(RMFTestCase):
     )
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-start',
+        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ps -ef | grep proc_rangeradmin | grep -v grep',
         user = 'ranger',
     )
@@ -100,6 +103,7 @@ class TestRangerAdmin(RMFTestCase):
     )
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-stop',
         user = 'ranger',
+        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'}
     )
     self.assertNoMoreResources()
 

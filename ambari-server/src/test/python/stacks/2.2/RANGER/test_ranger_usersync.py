@@ -47,6 +47,7 @@ class TestRangerUsersync(RMFTestCase):
     )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', ('/usr/bin/ranger-usersync-start',),
+        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ps -ef | grep proc_rangerusersync | grep -v grep',
         sudo = True,
     )
@@ -61,7 +62,8 @@ class TestRangerUsersync(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', ('/usr/bin/ranger-usersync-stop',),
-        sudo = True,
+	    environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        sudo = True
     )
     self.assertNoMoreResources()
     
@@ -86,8 +88,9 @@ class TestRangerUsersync(RMFTestCase):
     )
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', ('/usr/bin/ranger-usersync-start',),
+        environment= {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ps -ef | grep proc_rangerusersync | grep -v grep',
-        sudo = True,
+        sudo = True
     )
     self.assertNoMoreResources()
     
@@ -100,7 +103,8 @@ class TestRangerUsersync(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', ('/usr/bin/ranger-usersync-stop',),
-        sudo = True,
+	    environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        sudo = True
     )
     self.assertNoMoreResources()
     
@@ -114,7 +118,10 @@ class TestRangerUsersync(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertTrue(setup_usersync_mock.called)
-    self.assertResourceCalled("Execute", ("/usr/bin/ranger-usersync-stop",), sudo=True)
+    self.assertResourceCalled("Execute", ("/usr/bin/ranger-usersync-stop",),
+                              environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_67'},
+                              sudo = True
+    )
     self.assertResourceCalled("Execute", "hdp-select set ranger-usersync 2.2.2.0-2399")
 
   @patch("setup_ranger.setup_usersync")
@@ -135,7 +142,9 @@ class TestRangerUsersync(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertTrue(setup_usersync_mock.called)
-    self.assertResourceCalled("Execute", ("/usr/bin/ranger-usersync-stop",), sudo=True)
+    self.assertResourceCalled("Execute", ("/usr/bin/ranger-usersync-stop",),
+                              environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_67'},
+                              sudo = True)
     self.assertResourceCalled("Execute", "hdp-select set ranger-usersync 2.3.0.0-1234")
 
     self.assertEquals(3, mocks_dict['call'].call_count)

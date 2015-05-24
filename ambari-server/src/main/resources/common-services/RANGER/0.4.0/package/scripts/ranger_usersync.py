@@ -54,7 +54,7 @@ class RangerUsersync(Script):
     import params
     env.set_params(params)
     
-    Execute((params.usersync_stop,), sudo=True)
+    Execute((params.usersync_stop,), environment={'JAVA_HOME': params.java_home}, sudo=True)
     
   def status(self, env):
     cmd = 'ps -ef | grep proc_rangerusersync | grep -v grep'
