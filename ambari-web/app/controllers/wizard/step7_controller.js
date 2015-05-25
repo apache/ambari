@@ -754,9 +754,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         var c = serviceConfigs.findProperty('serviceName', 'HDFS').configs,
           nameServiceId = c.findProperty('name', 'dfs.nameservices'),
           removedConfigs = c.filterProperty('category', 'SECONDARY_NAMENODE');
-        removedConfigs.map(function (config) {
-          c = c.without(config);
-        });
+        removedConfigs.setEach('isVisible', false);
         serviceConfigs.findProperty('serviceName', 'HDFS').configs = c;
 
         if(this.get('selectedServiceNames').contains('HBASE') && nameServiceId){

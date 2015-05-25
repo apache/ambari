@@ -1254,11 +1254,11 @@ describe('App.InstallerStep7Controller', function () {
         Em.Object.create({
           serviceName: 'HDFS',
           configs: [
-            {category: 'SECONDARY_NAMENODE'},
-            {category: 'SECONDARY_NAMENODE'},
-            {category: 'NameNode'},
-            {category: 'NameNode'},
-            {category: 'SECONDARY_NAMENODE'}
+            Em.Object.create({category: 'SECONDARY_NAMENODE'}),
+            Em.Object.create({category: 'SECONDARY_NAMENODE'}),
+            Em.Object.create({category: 'NameNode'}),
+            Em.Object.create({category: 'NameNode'}),
+            Em.Object.create({category: 'SECONDARY_NAMENODE'})
           ]
         }),
         Em.Object.create({serviceName: 's2'})]
@@ -1271,7 +1271,7 @@ describe('App.InstallerStep7Controller', function () {
       installerStep7Controller.setStepConfigs([], []);
       expect(installerStep7Controller.get('stepConfigs').everyProperty('showConfig', true)).to.equal(true);
       expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 'HDFS').get('selected')).to.equal(true);
-      expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs').length).to.equal(2);
+      expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs').length).to.equal(5);
       App.get.restore();
     });
 

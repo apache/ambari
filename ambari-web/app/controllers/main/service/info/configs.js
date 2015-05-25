@@ -830,9 +830,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         if (App.get('isHaEnabled')) {
           var c = serviceConfig.configs,
             removedConfigs = c.filterProperty('category', 'SECONDARY_NAMENODE');
-          removedConfigs.map(function (config) {
-            c = c.without(config);
-          });
+          removedConfigs.setEach('isVisible', false);
           serviceConfig.configs = c;
         }
       }
