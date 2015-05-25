@@ -180,6 +180,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       label: Em.I18n.t('dashboard.widgets.wizard.step2.dataSeries').format(id),
       isRemovable: !isDefault,
       expression: Em.Object.create({
+        id: id,
         data: [],
         isInvalid: false,
         isEmpty: function () {

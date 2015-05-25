@@ -298,10 +298,9 @@ App.AddMetricExpressionView = Em.View.extend({
   componentMap: function () {
     var servicesMap = {};
     var result = [];
-    var components = [];
     var masterNames = App.StackServiceComponent.find().filterProperty('isMaster').mapProperty('componentName');
     var parentView = this.get('parentView');
-
+    var expressionId = "_" + parentView.get('expression.id');
     if (this.get('controller.filteredMetrics')) {
       this.get('controller.filteredMetrics').forEach(function (metric) {
         var service = servicesMap[metric.service_name];
@@ -352,8 +351,8 @@ App.AddMetricExpressionView = Em.View.extend({
           count: servicesMap[serviceName].components[componentId].count,
           metrics: servicesMap[serviceName].components[componentId].metrics.uniq().sort(),
           selected: false,
-          id: componentId,
-          aggregatorId: componentId + '_aggregator',
+          id: componentId + expressionId,
+          aggregatorId: componentId + expressionId + '_aggregator',
           serviceName: serviceName,
           showAggregateSelect: function () {
             return this.get('level') === 'COMPONENT';
