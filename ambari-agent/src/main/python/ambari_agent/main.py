@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 import logging.handlers
+import logging.config
 import signal
 from optparse import OptionParser
 import sys
@@ -42,7 +43,7 @@ from ambari_commons import shell
 import HeartbeatHandlers
 from HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
@@ -70,19 +71,27 @@ def setup_logging(verbose):
 
 def update_log_level(config):
   # Setting loglevel based on config file
-  try:
-    loglevel = config.get('agent', 'loglevel')
-    if loglevel is not None:
-      if loglevel == 'DEBUG':
-        logging.basicConfig(format=formatstr, level=logging.DEBUG, filename=AmbariConfig.AmbariConfig.getLogFile())
-        logger.setLevel(logging.DEBUG)
-        logger.info("Newloglevel=logging.DEBUG")
-      else:
-        logging.basicConfig(format=formatstr, level=logging.INFO, filename=AmbariConfig.AmbariConfig.getLogFile())
-        logger.setLevel(logging.INFO)
-        logger.debug("Newloglevel=logging.INFO")
-  except Exception, err:
-    logger.info("Default loglevel=DEBUG")
+  global logger
+  log_cfg_file = os.path.join(os.path.dirname(AmbariConfig.AmbariConfig.getConfigFile()), "logging.conf")
+  if os.path.exists(log_cfg_file):
+    logging.config.fileConfig(log_cfg_file)
+    # create logger
+    logger = logging.getLogger(__name__)
+    logger.info("Logging configured by " + log_cfg_file)
+  else:  
+    try:
+      loglevel = config.get('agent', 'loglevel')
+      if loglevel is not None:
+        if loglevel == 'DEBUG':
+          logging.basicConfig(format=formatstr, level=logging.DEBUG, filename=AmbariConfig.AmbariConfig.getLogFile())
+          logger.setLevel(logging.DEBUG)
+          logger.info("Newloglevel=logging.DEBUG")
+        else:
+          logging.basicConfig(format=formatstr, level=logging.INFO, filename=AmbariConfig.AmbariConfig.getLogFile())
+          logger.setLevel(logging.INFO)
+          logger.debug("Newloglevel=logging.INFO")
+    except Exception, err:
+      logger.info("Default loglevel=DEBUG")
 
 
 #  ToDo: move that function inside AmbariConfig

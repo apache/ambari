@@ -25,7 +25,6 @@ import threading
 import pprint
 import os
 import json
-from random import randint
 import time
 
 from AgentException import AgentException
@@ -95,7 +94,7 @@ class ActionQueue(threading.Thread):
     self.statusCommandQueue.queue.clear()
 
     for command in commands:
-      logger.info("Adding " + command['commandType'] + " for service " + \
+      logger.debug("Adding " + command['commandType'] + " for service " + \
                   command['serviceName'] + " of cluster " + \
                   command['clusterName'] + " to the queue.")
       self.statusCommandQueue.put(command)
@@ -107,7 +106,7 @@ class ActionQueue(threading.Thread):
       if not command.has_key('clusterName'):
         command['clusterName'] = 'null'
 
-      logger.info("Adding " + command['commandType'] + " for role " + \
+      logger.debug("Adding " + command['commandType'] + " for role " + \
                   command['role'] + " for service " + \
                   command['serviceName'] + " of cluster " + \
                   command['clusterName'] + " to the queue.")
@@ -230,7 +229,7 @@ class ActionQueue(threading.Thread):
               "cluster {cluster}.".format(
               commandId = str(commandId), role=command['role'],
               cluster=clusterName)
-    logger.info(message)
+    logger.debug(message)
 
     taskId = command['taskId']
     # Preparing 'IN_PROGRESS' report

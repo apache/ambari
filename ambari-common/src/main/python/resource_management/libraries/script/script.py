@@ -166,7 +166,7 @@ class Script(object):
     Sets up logging;
     Parses command parameters and executes method relevant to command type
     """
-    logger, chout, cherr = Logger.initialize_logger()
+    logger, chout, cherr = Logger.initialize_logger(__name__)
     
     # parse arguments
     if len(sys.argv) < 7:

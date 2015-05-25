@@ -23,7 +23,7 @@ import json
 import os
 import threading
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 class ClusterConfiguration():
   """

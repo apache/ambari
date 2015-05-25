@@ -450,10 +450,14 @@ public class ClustersImpl implements Clusters {
     checkLoaded();
 
     Map<String, Host> hostMap = new HashMap<String, Host>();
-
+    Host host = null;
     for (String hostName : hostSet) {
-      Host host = hosts.get(hostName);
-      if (null == hostName) {
+      if (null != hostName) {
+          host= hosts.get(hostName);
+        if (host == null) {
+          throw new HostNotFoundException(hostName);
+        }
+      } else {
         throw new HostNotFoundException(hostName);
       }
 

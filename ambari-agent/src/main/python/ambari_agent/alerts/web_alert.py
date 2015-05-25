@@ -46,7 +46,7 @@ except ImportError:
   import md5
   _md5 = md5.new
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 # default timeout
 DEFAULT_CONNECTION_TIMEOUT = 5

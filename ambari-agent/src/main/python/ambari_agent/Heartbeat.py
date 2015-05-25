@@ -29,7 +29,7 @@ from ambari_agent.HostInfo import HostInfo
 from ambari_agent.Hardware import Hardware
 
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 firstContact = True
 class Heartbeat:
@@ -74,7 +74,7 @@ class Heartbeat:
     if int(id) == 0:
       componentsMapped = False
 
-    logger.info("Building Heartbeat: {responseId = %s, timestamp = %s, commandsInProgress = %s, componentsMapped = %s}",
+    logger.debug("Building Heartbeat: {responseId = %s, timestamp = %s, commandsInProgress = %s, componentsMapped = %s}",
         str(id), str(timestamp), repr(commandsInProgress), repr(componentsMapped))
 
     if logger.isEnabledFor(logging.DEBUG):

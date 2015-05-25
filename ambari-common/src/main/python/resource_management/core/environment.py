@@ -48,7 +48,7 @@ class Environment(object):
     self.reset(basedir, test_mode, tmp_dir)
     
     if not Logger.logger:
-      Logger.initialize_logger(logging_level)
+      Logger.initialize_logger(__name__, logging_level)
 
   def reset(self, basedir, test_mode, tmp_dir):
     self.system = System.get_instance()
