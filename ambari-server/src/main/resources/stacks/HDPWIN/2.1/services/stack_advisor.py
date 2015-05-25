@@ -636,7 +636,7 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     if dir.startswith("hdfs://"):
       return None #TODO following code fails for hdfs://, is this valid check for hdfs?
 
-    dir = re.sub("^file://", "", dir, count=1)
+    dir = re.sub("^file:/*", "", dir, count=1)
     mountPoints = {}
     for mountPoint in hostInfo["disk_info"]:
       mountPoints[mountPoint["mountpoint"]] = to_number(mountPoint["available"])
@@ -782,7 +782,7 @@ def getMountPointForDir(dir, mountPoints):
     # "/", "/hadoop/hdfs", and "/hadoop/hdfs/data".
     # So take the one with the greatest number of segments.
     for mountPoint in mountPoints:
-      if dir.startswith(mountPoint):
+      if dir.startswith(os.path.splitdrive(mountPoint)[0].lower()):
         if bestMountFound is None:
           bestMountFound = mountPoint
         elif bestMountFound.count(os.path.sep) < mountPoint.count(os.path.sep):
