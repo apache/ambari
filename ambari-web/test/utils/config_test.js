@@ -472,6 +472,13 @@ describe('App.config', function () {
       var miscCategory = App.config.get('preDefinedServiceConfigs').findProperty('serviceName', 'MISC');
       expect(Em.keys(miscCategory.get('configTypes'))).to.eql(['cluster-env', 'hadoop-env', 'oozie-env']);
     });
+
+    it('should not load configs for missed config types', function() {
+      var hdfsService = App.config.get('preDefinedServiceConfigs').findProperty('serviceName', 'HDFS');
+      var rangerRelatedConfigs = hdfsService.get('configs').filterProperty('filename', 'ranger-hdfs-plugin-properties.xml');
+      expect(rangerRelatedConfigs.length).to.be.eql(0);
+      expect(hdfsService.get('configs.length') > 0).to.be.true;
+    });
   });
   
   describe('#isManagedMySQLForHiveAllowed', function () {

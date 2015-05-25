@@ -76,6 +76,7 @@ App.config = Em.Object.create({
   setPreDefinedServiceConfigs: function (isMiscTabToBeAdded) {
     var configs = this.get('preDefinedSiteProperties');
     var services = [];
+    var self = this;
     var stackServices = App.StackService.find().filterProperty('id');
     // Only include services that has configTypes related to them for service configuration page
     var servicesWithConfigTypes = stackServices.filter(function (service) {
@@ -102,7 +103,15 @@ App.config = Em.Object.create({
     }
 
     allTabs.forEach(function (service) {
-      var serviceConfigs = configs.filterProperty('serviceName', service.get('serviceName'));
+      var configTypes = Em.keys(service.get('configTypes'));
+      // filter properties by service name and service config types
+      var serviceConfigs = configs.filterProperty('serviceName', service.get('serviceName')).filter(function(property) {
+        var propFilename = self.getConfigTagFromFileName(Em.getWithDefault(property, 'filename', ''));
+        if (propFilename && service.get('serviceName') != 'MISC') {
+          return configTypes.contains(propFilename);
+        }
+        return true;
+      });
       service.set('configs', serviceConfigs);
       services.push(service);
     });
@@ -497,12 +506,20 @@ App.config = Em.Object.create({
     var preDefinedNames = preDefinedConfigs.mapProperty('name');
     var storedNames = storedConfigs.mapProperty('name');
     var names = preDefinedNames.concat(storedNames).uniq();
+    var configTypes = Em.keys(App.StackService.find().filter(function(service) {
+      return selectedServiceNames.contains(service.get('serviceName'));
+    }).mapProperty('configTypes'))
+      .uniq().compact().filter(function(configType) { return !!configType; });
+
     names.forEach(function (name) {
       var storedCfgs = storedConfigs.filterProperty('name', name);
       var preDefinedCfgs = [];
       var preDefinedConfig = preDefinedConfigs.filterProperty('name', name);
       preDefinedConfig.forEach(function (_preDefinedConfig) {
         if (selectedServiceNames.contains(_preDefinedConfig.serviceName) || _preDefinedConfig.serviceName === 'MISC') {
+          if (_preDefinedConfig.serviceName != 'MISC' && _preDefinedConfig.filename && !configTypes.contains(_preDefinedConfig.filename)) {
+            return;
+          }
           preDefinedCfgs.push(_preDefinedConfig);
         }
       }, this);
