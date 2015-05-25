@@ -204,18 +204,6 @@ describe('configPropertyHelper', function () {
           title: 'should ignore ZooKeeper Server hostnames'
         }
       ],
-      'hbase.tmp.dir': [
-        {
-          filename: 'hbase-site.xml',
-          isUnionAllMountPointsCalled: true,
-          title: 'unionAllMountPoints should be called'
-        },
-        {
-          filename: 'ams-hbase-site.xml',
-          isUnionAllMountPointsCalled: false,
-          title: 'unionAllMountPoints shouldn\'t be called'
-        }
-      ],
       'hivemetastore_host': {
         localDB: {
           masterComponentHosts: [
@@ -403,22 +391,6 @@ describe('configPropertyHelper', function () {
       });
     });
 
-    cases['hbase.tmp.dir'].forEach(function (item) {
-      var isOnlyFirstOneNeeded = true,
-        localDB = {
-          p: 'v'
-        };
-      it(item.title, function () {
-        sinon.stub(configPropertyHelper, 'unionAllMountPoints', Em.K);
-        serviceConfigProperty.setProperties({
-          name: 'hbase.tmp.dir',
-          filename: item.filename
-        });
-        configPropertyHelper.initialValue(serviceConfigProperty, localDB);
-        expect(configPropertyHelper.unionAllMountPoints.calledWith(serviceConfigProperty, isOnlyFirstOneNeeded, localDB)).to.equal(item.isUnionAllMountPointsCalled);
-        configPropertyHelper.unionAllMountPoints.restore();
-      });
-    });
 
     it(cases['hivemetastore_host'].title, function () {
       serviceConfigProperty.set('name', 'hivemetastore_host');
@@ -770,11 +742,6 @@ describe('configPropertyHelper', function () {
         },
         {
           name: 'oozie_data_dir',
-          isOnlyFirstOneNeeded: true,
-          value: '/media/disk0/default'
-        },
-        {
-          name: 'hbase.tmp.dir',
           isOnlyFirstOneNeeded: true,
           value: '/media/disk0/default'
         },

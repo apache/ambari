@@ -671,7 +671,7 @@ var hdp2properties = [
   {
     "id": "site property",
     "name": "hbase.tmp.dir",
-    "displayName": "HBase local directory",
+    "displayName": "HBase tmp directory",
     "defaultDirectory": "/hadoop/hbase",
     "displayType": "directory",
     "category": "Advanced hbase-site",

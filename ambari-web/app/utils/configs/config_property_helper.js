@@ -288,11 +288,6 @@ module.exports = {
       case 'log.dirs':  // for Kafka Broker
         this.unionAllMountPoints(configProperty, !isOnlyFirstOneNeeded, localDB);
         break;
-      case 'hbase.tmp.dir':
-        if (configProperty.get('filename') == 'hbase-site.xml') {
-          this.unionAllMountPoints(configProperty, isOnlyFirstOneNeeded, localDB);
-        }
-        break;
       case 'fs.checkpoint.dir':
       case 'dfs.namenode.checkpoint.dir':
       case 'yarn.timeline-service.leveldb-timeline-store.path':
@@ -446,12 +441,6 @@ module.exports = {
         components = masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
-        }, this);
-        break;
-      case 'hbase.tmp.dir':
-        temp = slaveComponentHostsInDB.findProperty('componentName', 'HBASE_REGIONSERVER');
-        temp.hosts.forEach(function (host) {
-          setOfHostNames.push(host.hostName);
         }, this);
         break;
       case 'storm.local.dir':
