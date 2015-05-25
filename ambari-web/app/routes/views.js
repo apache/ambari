@@ -39,7 +39,9 @@ module.exports = Em.Route.extend({
       var href = ['/views', params.viewName, params.version, params.instanceName + "/"].join('/');
       var viewPath = this.parseViewPath(window.location.href.slice(window.location.href.indexOf('?')));
       if (viewPath) {
-        href = ['/views', params.viewName, params.version, params.instanceName.slice(0, params.instanceName.lastIndexOf('?'))].join('/');
+        href = ['/views', params.viewName, params.version, params.instanceName.slice(0, params.instanceName.lastIndexOf('?')) + "/"].join('/');
+        //remove slash from viewPath since href already contains it at the end
+        if (viewPath.charAt(0) === '/') viewPath = viewPath.slice(1);
       }
 
       router.get('mainViewsController').dataLoading().done(function() {
