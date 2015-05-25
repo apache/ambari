@@ -17,22 +17,35 @@ limitations under the License.
 
 """
 
-from resource_management import *
+import os
+import tarfile
 
+from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, validate_security_config_properties, get_params_from_filesystem, \
   FILE_TYPE_XML
-import sys
+from resource_management.core.resources.system import File, Execute, Directory
+from resource_management.core.resources.service import Service
+from resource_management.core.logger import Logger
+
+from ambari_commons import OSConst, OSCheck
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
+if OSCheck.is_windows_family():
+  from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
+
 import upgrade
-import os
 from knox import knox
 from knox_ldap import ldap
 from setup_ranger_knox import setup_ranger_knox
-from ambari_commons import OSConst
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-
 
 class KnoxGateway(Script):
   def install(self, env):
@@ -98,9 +111,38 @@ class KnoxGatewayDefault(KnoxGateway):
     import params
     env.set_params(params)
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      upgrade.backup_data()
+
+      absolute_backup_dir = None
+      if params.upgrade_direction and params.upgrade_direction == Direction.UPGRADE:
+        Logger.info("Backing up directories. Initial conf folder: %s" % os.path.realpath(params.knox_conf_dir))
+
+        # This will backup the contents of the conf directory into /tmp/knox-upgrade-backup/knox-conf-backup.tar
+        absolute_backup_dir = upgrade.backup_data()
+
+      # conf-select will change the symlink to the conf folder.
       conf_select.select(params.stack_name, "knox", params.version)
       hdp_select.select("knox-server", params.version)
+
+      # Extract the tar of the old conf folder into the new conf directory
+      if absolute_backup_dir is not None and params.upgrade_direction and params.upgrade_direction == Direction.UPGRADE:
+        conf_tar_source_path = os.path.join(absolute_backup_dir, upgrade.BACKUP_CONF_ARCHIVE)
+        if os.path.exists(conf_tar_source_path):
+          extract_dir = os.path.realpath(params.knox_conf_dir)
+          conf_tar_dest_path = os.path.join(extract_dir, upgrade.BACKUP_CONF_ARCHIVE)
+          Logger.info("Copying %s into %s file." % (upgrade.BACKUP_CONF_ARCHIVE, conf_tar_dest_path))
+          Execute("cp %s %s" % (conf_tar_source_path, conf_tar_dest_path))
+
+          tarball = None
+          try:
+            tarball = tarfile.open(conf_tar_source_path, "r")
+            Logger.info("Extracting %s into %s directory." % (upgrade.BACKUP_CONF_ARCHIVE, extract_dir))
+            tarball.extractall(extract_dir)
+
+            Logger.info("Deleting temporary tar at %s" % conf_tar_dest_path)
+            Execute("rm %s" % (conf_tar_dest_path))
+          finally:
+            if tarball:
+              tarball.close()
 
   def start(self, env, rolling_restart=False):
     import params

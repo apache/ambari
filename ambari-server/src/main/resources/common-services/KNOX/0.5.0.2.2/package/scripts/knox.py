@@ -18,9 +18,19 @@ limitations under the License.
 """
 
 import os
-from resource_management import *
+
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.core.resources.service import ServiceConfig
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.resources.template_config import TemplateConfig
+from resource_management.core.resources.system import File, Execute, Directory
+from resource_management.core.shell import as_user
+from resource_management.core.source import InlineTemplate
+
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
+from resource_management.core.logger import Logger
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def knox():
@@ -66,7 +76,7 @@ def knox():
 def knox():
     import params
 
-    directories = [params.knox_data_dir, params.knox_logs_dir, params.knox_pid_dir, params.knox_conf_dir]
+    directories = [params.knox_data_dir, params.knox_logs_dir, params.knox_pid_dir, params.knox_conf_dir, os.path.join(params.knox_conf_dir, "topologies")]
     for directory in directories:
       Directory(directory,
                 owner = params.knox_user,

@@ -365,21 +365,23 @@ class Controller(threading.Thread):
 
   def registerAndHeartbeat(self):
     registerResponse = self.registerWithServer()
-    message = registerResponse['response']
-    logger.info("Registration response from %s was %s", self.serverHostname, message)
 
-    if self.isRegistered:
-      # Clearing command queue to stop executing "stale" commands
-      # after registration
-      logger.info('Resetting ActionQueue...')
-      self.actionQueue.reset()
+    if "response" in registerResponse:
+      message = registerResponse["response"]
+      logger.info("Registration response from %s was %s", self.serverHostname, message)
 
-      # Process callbacks
-      for callback in self.registration_listeners:
-        callback()
+      if self.isRegistered:
+        # Clearing command queue to stop executing "stale" commands
+        # after registration
+        logger.info('Resetting ActionQueue...')
+        self.actionQueue.reset()
 
-      time.sleep(self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC)
-      self.heartbeatWithServer()
+        # Process callbacks
+        for callback in self.registration_listeners:
+          callback()
+
+        time.sleep(self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC)
+        self.heartbeatWithServer()
 
   def restartAgent(self):
     sys.exit(AGENT_AUTO_RESTART_EXIT_CODE)

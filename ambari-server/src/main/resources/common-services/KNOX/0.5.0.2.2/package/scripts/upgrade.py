@@ -32,7 +32,7 @@ BACKUP_CONF_ARCHIVE = "knox-conf-backup.tar"
 def backup_data():
   """
   Backs up the knox data as part of the upgrade process.
-  :return:
+  :return: Returns the path to the absolute backup directory.
   """
   Logger.info('Backing up Knox data directory before upgrade...')
   directoryMappings = _get_directory_mappings()
@@ -58,6 +58,7 @@ def backup_data():
     finally:
       if tarball:
         tarball.close()
+  return absolute_backup_dir
 
 def _get_directory_mappings():
   """
@@ -67,5 +68,6 @@ def _get_directory_mappings():
   """
   import params
 
-  return { params.knox_data_dir : BACKUP_DATA_ARCHIVE, params.knox_conf_dir : BACKUP_CONF_ARCHIVE }
+  return { params.knox_data_dir : BACKUP_DATA_ARCHIVE,
+           params.knox_conf_dir + "/": BACKUP_CONF_ARCHIVE} # the trailing "/" is important here so as to not include the "conf" folder itself
 

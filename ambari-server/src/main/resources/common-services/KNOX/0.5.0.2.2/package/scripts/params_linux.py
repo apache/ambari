@@ -33,6 +33,7 @@ config = Script.get_config()
 
 tmp_dir = Script.get_tmp_dir()
 stack_name = default("/hostLevelParams/stack_name", None)
+upgrade_direction = default("/commandParams/upgrade_direction", None)
 version = default("/commandParams/version", None)
 
 knox_master_secret_path = '/var/lib/knox/data/security/master'
