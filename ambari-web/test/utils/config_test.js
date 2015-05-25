@@ -1266,4 +1266,37 @@ describe('App.config', function () {
 
   });
 
+  describe('#removeRangerConfigs', function () {
+
+    it('should remove ranger configs and categories', function () {
+      var configs = [
+        Em.Object.create({
+          configs: [
+            Em.Object.create({filename: 'filename'}),
+            Em.Object.create({filename: 'ranger-filename'})
+          ],
+          configCategories: [
+            Em.Object.create({name: 'ranger-name'}),
+            Em.Object.create({name: 'name'}),
+            Em.Object.create({name: 'also-ranger-name'})
+          ]
+        })
+      ];
+      App.config.removeRangerConfigs(configs);
+      expect(configs).eql(
+          [
+            Em.Object.create({
+              configs: [
+                Em.Object.create({filename: 'filename'})
+              ],
+              configCategories: [
+                Em.Object.create({name: 'name'})
+              ]
+            })
+          ]
+      );
+    });
+
+  });
+
 });
