@@ -353,10 +353,10 @@ class HdfsResourceWebHDFS:
     for file in list_status:
       if file['pathSuffix']:
         new_path = target + "/" + file['pathSuffix']
-        results.add(new_path)
+        results.append(new_path)
         
         if file['type'] == 'DIRECTORY':
-          _fill_directories_list(new_path, results)  
+          self._fill_directories_list(new_path, results)  
     
 class HdfsResourceProvider(Provider):
   def __init__(self, resource):
