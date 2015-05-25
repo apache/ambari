@@ -119,12 +119,11 @@ class HdfsResourceJar:
     env.config['hdfs_files'] = []
 
 class WebHDFSUtil:
-  def __init__(self, address, run_user, logoutput, security_enabled, kinit_function):
+  def __init__(self, address, run_user, logoutput, security_enabled):
     self.address = address
     self.run_user = run_user
     self.logoutput = logoutput
     self.security_enabled = security_enabled
-    self.kinit_function = kinit_function
     
   def parse_path(self, path):
     """
@@ -165,7 +164,6 @@ class WebHDFSUtil:
     if file_to_put:
       cmd += ["-T", file_to_put]
     if self.security_enabled:
-      self.kinit_function()
       cmd += ["--negotiate", "-u", ":"]
       
     cmd.append(url)
@@ -215,12 +213,14 @@ class HdfsResourceWebHDFS:
   def action_delayed(self, action_name, main_resource):
     main_resource.assert_parameter_is_set('user')
     
+    if main_resource.resource.security_enabled:
+      main_resource.kinit()
+    
     address = main_resource.https_nn_address if main_resource.is_https_enabled else main_resource.http_nn_address
     protocol = "https" if main_resource.is_https_enabled else "http"
     
     self.util = WebHDFSUtil(format("{protocol}://{address}"), main_resource.resource.user, 
-                            main_resource.resource.logoutput, main_resource.resource.security_enabled,
-                            main_resource.kinit)
+                            main_resource.resource.logoutput, main_resource.resource.security_enabled)
     self.mode = oct(main_resource.resource.mode)[1:] if main_resource.resource.mode else main_resource.resource.mode
     self.mode_set = False
     self.main_resource = main_resource
