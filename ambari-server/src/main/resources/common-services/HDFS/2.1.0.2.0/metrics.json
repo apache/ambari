@@ -4440,7 +4440,7 @@
               "temporal": true
             },
             "metrics/jvm/JvmMetrics/MemNonHeapMaxM": {
-              "metri	c": "jvm.JvmMetrics.MemNonHeapMaxM",
+              "metric": "jvm.JvmMetrics.MemNonHeapMaxM",
               "pointInTime": true,
               "temporal": true
             },
@@ -5296,7 +5296,7 @@
               "temporal": true
             },
             "metrics/jvm/JvmMetrics/MemNonHeapMaxM": {
-              "metri	c": "jvm.JvmMetrics.MemNonHeapMaxM",
+              "metric": "jvm.JvmMetrics.MemNonHeapMaxM",
               "pointInTime": true,
               "temporal": true
             },
