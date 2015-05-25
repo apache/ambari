@@ -314,13 +314,22 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       dbAccessor.executeQuery("ALTER TABLE " + HOST_CONFIG_MAPPING_TABLE + " DROP CONSTRAINT FK_hostconfigmapping_host_name");
     } else {
       dbAccessor.dropConstraint(HOST_COMPONENT_STATE_TABLE, "hostcomponentstate_host_name");
+      dbAccessor.dropConstraint(HOST_COMPONENT_STATE_TABLE, "fk_hostcomponentstate_host_name");
+
       dbAccessor.dropConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "hstcmponentdesiredstatehstname");
+      dbAccessor.dropConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "fk_hostcomponentdesiredstate_host_name");
+
       dbAccessor.dropConstraint(HOST_ROLE_COMMAND_TABLE, "FK_host_role_command_host_name");
       dbAccessor.dropConstraint(HOST_STATE_TABLE, "FK_hoststate_host_name");
       dbAccessor.dropConstraint(HOST_VERSION_TABLE, "FK_host_version_host_name");
+
       dbAccessor.dropConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "FK_cghm_hname");
+      dbAccessor.dropConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "fk_configgrouphostmapping_host_name");
+
       // FK_krb_pr_host_hostname used to have a CASCADE DELETE, which is not needed.
       dbAccessor.dropConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_hostname");
+      dbAccessor.dropConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "fk_kerberos_principal_host_host_name");
+
       // FK_krb_pr_host_principalname used to have a CASCADE DELETE, which is not needed, so it will be recreated without it.
       dbAccessor.executeQuery("ALTER TABLE " + KERBEROS_PRINCIPAL_HOST_TABLE + " DROP CONSTRAINT FK_krb_pr_host_principalname");
 
@@ -331,6 +340,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     // They were either swapped, or pointing to the wrong table. Ignore failures for both of these.
     try {
       dbAccessor.dropConstraint(CLUSTER_HOST_MAPPING_TABLE, "ClusterHostMapping_host_name", true);
+      dbAccessor.dropConstraint(CLUSTER_HOST_MAPPING_TABLE, "fk_clusterhostmapping_host_name", true);
     } catch (Exception e) {
       LOG.warn("Performed best attempt at deleting FK ClusterHostMapping_host_name. " +
           "It is possible it did not exist or the deletion failed. " +  e.getMessage());
@@ -350,7 +360,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     if (databaseType == Configuration.DatabaseType.DERBY) {
       String constraintName = getDerbyTableConstraintName("p", HOSTS_TABLE);
       if (null != constraintName) {
-        dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " DROP CONSTRAINT " + constraintName);
+        dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " DROP CONSTRAINT " + constraintName + " CASCADE");
       }
     } else {
       dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " DROP CONSTRAINT hosts_pkey");
