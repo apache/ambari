@@ -32,7 +32,6 @@
           <category>MASTER</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
-          <timelineAppid>HBASE</timelineAppid>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -73,7 +72,6 @@
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
-          <timelineAppid>HBASE</timelineAppid>
           <commandScript>
             <script>scripts/hbase_regionserver.py</script>
             <scriptType>PYTHON</scriptType>

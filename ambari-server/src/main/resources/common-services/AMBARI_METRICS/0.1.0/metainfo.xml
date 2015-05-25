@@ -31,7 +31,6 @@
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <versionAdvertised>false</versionAdvertised>
-          <timelineAppid>AMS-HBASE</timelineAppid>
           <dependencies>
             <dependency>
               <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
