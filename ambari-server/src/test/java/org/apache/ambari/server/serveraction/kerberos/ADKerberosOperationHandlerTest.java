@@ -441,21 +441,6 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
 
   }
 
-  @Test
-  public void testEscapeDistinguishedName() throws NoSuchMethodException, InvalidNameException {
-    ADKerberosOperationHandler handler = new ADKerberosOperationHandler();
-
-    try {
-      handler.escapeDNCharacters("nn/c6501.ambari.apache.org");
-      Assert.fail("Expected InvalidNameException");
-    } catch (InvalidNameException e) {
-      // This is expected
-    }
-
-    Assert.assertEquals("CN=nn\\/c6501.ambari.apache.org,OU=HDP,DC=HDP01,DC=LOCAL",
-        handler.escapeDNCharacters("CN=nn/c6501.ambari.apache.org,OU=HDP,DC=HDP01,DC=LOCAL"));
-  }
-
   /**
    * Implementation to illustrate the use of operations on this class
    *
