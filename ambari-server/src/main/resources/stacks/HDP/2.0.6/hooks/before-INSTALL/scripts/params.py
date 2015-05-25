@@ -86,7 +86,7 @@ is_slave = hostname in slave_hosts
 if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 
-hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
+hbase_tmp_dir = "/tmp/hbase-hbase"
 
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
