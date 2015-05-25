@@ -388,7 +388,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/HDFS/configurations/dfs.namenode.http-address",
       "StackConfigurations" : {
-        "property_description" : "The name of the default file system.  Either the\nliteral string \"local\" or a host:port for NDFS.",
+        "property_description" : "The name of the default file system.  Either the\nliteral string \"local\" or a host:port for HDFS.",
         "property_name" : "dfs.namenode.http-address",
         "property_value" : "localhost:50070",
         "service_name" : "HDFS",
@@ -712,7 +712,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/HDFS/configurations/fs.defaultFS",
       "StackConfigurations" : {
-        "property_description" : "The name of the default file system.  Either the\n  literal string \"local\" or a host:port for NDFS.",
+        "property_description" : "The name of the default file system.  Either the\n  literal string \"local\" or a host:port for HDFS.",
         "property_name" : "fs.defaultFS",
         "property_value" : "hdfs://localhost:8020",
         "service_name" : "HDFS",

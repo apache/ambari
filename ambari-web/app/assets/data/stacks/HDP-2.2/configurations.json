@@ -4636,7 +4636,7 @@
           "href" : "http://c6401:8080/api/v1/stacks/HDP/versions/2.2/services/HDFS/configurations/dfs.namenode.http-address",
           "StackConfigurations" : {
             "final" : "true",
-            "property_description" : "The name of the default file system.  Either the\n      literal string \"local\" or a host:port for NDFS.",
+            "property_description" : "The name of the default file system.  Either the\n      literal string \"local\" or a host:port for HDFS.",
             "property_name" : "dfs.namenode.http-address",
             "property_type" : [ ],
             "property_value" : "localhost:50070",
@@ -4860,7 +4860,7 @@
           "href" : "http://c6401:8080/api/v1/stacks/HDP/versions/2.2/services/HDFS/configurations/fs.defaultFS",
           "StackConfigurations" : {
             "final" : "true",
-            "property_description" : "The name of the default file system.  Either the\n  literal string \"local\" or a host:port for NDFS.",
+            "property_description" : "The name of the default file system.  Either the\n  literal string \"local\" or a host:port for HDFS.",
             "property_name" : "fs.defaultFS",
             "property_type" : [ ],
             "property_value" : "hdfs://localhost:8020",

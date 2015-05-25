@@ -60,7 +60,7 @@
     <!-- cluster variant -->
     <value></value>
     <description>The name of the default file system.  Either the
-  literal string "local" or a host:port for NDFS.</description>
+  literal string "local" or a host:port for HDFS.</description>
     <final>true</final>
   </property>
 
