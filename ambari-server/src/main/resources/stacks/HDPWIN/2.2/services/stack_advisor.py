@@ -317,7 +317,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     hive_cbo_enable = configurations["hive-site"]["properties"]["hive.cbo.enable"]
     putHiveSiteProperty("hive.stats.fetch.partition.stats", hive_cbo_enable)
     putHiveSiteProperty("hive.stats.fetch.column.stats", hive_cbo_enable)
-    putHiveSiteProperty("hive.compute.query.using.stats ", "true")
+    putHiveSiteProperty("hive.compute.query.using.stats", "true")
 
     # Interactive Query
     putHiveServerProperty("hive.server2.tez.initialize.default.sessions", "false")

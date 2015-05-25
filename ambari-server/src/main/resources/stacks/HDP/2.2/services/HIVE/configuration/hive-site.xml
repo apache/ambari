@@ -764,6 +764,10 @@ limitations under the License.
         <type>hive-env</type>
         <name>cost_based_optimizer</name>
       </property>
+      <property>
+        <type>hive-site</type>
+        <name>hive.cbo.enable</name>
+      </property>
     </depends-on>
   </property>
   <property>
@@ -794,6 +798,10 @@ limitations under the License.
       <property>
         <type>hive-env</type>
         <name>cost_based_optimizer</name>
+      </property>
+      <property>
+        <type>hive-site</type>
+        <name>hive.cbo.enable</name>
       </property>
     </depends-on>
   </property>
@@ -1491,6 +1499,12 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.cbo.enable</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
