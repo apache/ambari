@@ -80,6 +80,7 @@ if has_ranger_admin:
   ambari_ranger_admin = config['configurations']['ranger-env']['ranger_admin_username']
   ambari_ranger_password = config['configurations']['ranger-env']['ranger_admin_password']
   admin_uname_password = format("{admin_uname}:{admin_password}")
+  ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
 
 java_share_dir = '/usr/share/java'
 
@@ -157,6 +158,6 @@ kms_ranger_plugin_repo = {
   'type' : 'kms'
 }
 
-xa_audit_db_is_enabled = config['configurations']['ranger-kms-audit']['xasecure.audit.db.is.enabled']
+xa_audit_db_is_enabled = config['configurations']['ranger-kms-audit']['xasecure.audit.destination.db']
 ssl_keystore_password = unicode(config['configurations']['ranger-kms-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
 ssl_truststore_password = unicode(config['configurations']['ranger-kms-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])

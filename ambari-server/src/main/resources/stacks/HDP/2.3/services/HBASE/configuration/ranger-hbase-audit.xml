@@ -24,59 +24,34 @@
     <name>xasecure.audit.is.enabled</name>
     <value>true</value>
     <description></description>
-  </property> 
-  
+  </property>
+
   <property>
-    <name>xasecure.audit.db.is.enabled</name>
+    <name>xasecure.audit.destination.db</name>
     <value>false</value>
     <description></description>
-  </property> 
-  
-  <property>
-    <name>xasecure.audit.db.is.async</name>
-    <value>true</value>
-    <description></description>
-  </property> 
-  
-  <property>
-    <name>xasecure.audit.db.async.max.queue.size</name>
-    <value>10240</value>
-    <description></description>
-  </property> 
+  </property>
 
   <property>
-    <name>xasecure.audit.db.async.max.flush.interval.ms</name>
-    <value>30000</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.db.batch.size</name>
-    <value>100</value>
-    <description></description>
-  </property> 
-
-  
-  <property>
-    <name>xasecure.audit.jpa.javax.persistence.jdbc.url</name>
+    <name>xasecure.audit.destination.db.jdbc.url</name>
     <value>{{audit_jdbc_url}}</value>
     <description></description>
   </property>
 
   <property>
-    <name>xasecure.audit.jpa.javax.persistence.jdbc.user</name>
+    <name>xasecure.audit.destination.db.user</name>
     <value>{{xa_audit_db_user}}</value>
     <description></description>
   </property>
 
   <property>
-    <name>xasecure.audit.jpa.javax.persistence.jdbc.password</name>
+    <name>xasecure.audit.destination.db.password</name>
     <value>crypted</value>
     <description></description>
   </property>
 
   <property>
-    <name>xasecure.audit.jpa.javax.persistence.jdbc.driver</name>
+    <name>xasecure.audit.destination.db.jdbc.driver</name>
     <value>{{jdbc_driver}}</value>
     <description></description>
   </property>
@@ -86,184 +61,52 @@
     <value>jceks://file{{credential_file}}</value>
     <description></description>
   </property>
-  
-  <property>
-    <name>xasecure.audit.hdfs.is.enabled</name>
-    <value>false</value>
-    <description></description>
-  </property> 
 
   <property>
-    <name>xasecure.audit.hdfs.is.async</name>
+    <name>xasecure.audit.destination.hdfs</name>
     <value>true</value>
     <description></description>
-  </property> 
-  
-  <property>
-    <name>xasecure.audit.hdfs.async.max.queue.size</name>
-    <value>1048576</value>
-    <description></description>
-  </property> 
+  </property>
 
   <property>
-    <name>xasecure.audit.hdfs.async.max.flush.interval.ms</name>
-    <value>30000</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.hdfs.config.encoding</name>
-    <value></value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.hdfs.config.destination.directory</name>
-    <value>hdfs://NAMENODE_HOST:8020/ranger/audit/%app-type%/%time:yyyyMMdd%</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.hdfs.config.destination.file</name>
-    <value>%hostname%-audit.log</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.hdfs.config.destination.flush.interval.seconds</name>
-    <value>900</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.hdfs.config.destination.rollover.interval.seconds</name>
-    <value>86400</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.hdfs.config.destination.open.retry.interval.seconds</name>
-    <value>60</value>
+    <name>xasecure.audit.destination.hdfs.dir</name>
+    <value>hdfs://NAMENODE_HOSTNAME:8020/ranger/audit</value>
     <description></description>
   </property>
 
   <property>
-    <name>xasecure.audit.hdfs.config.local.buffer.directory</name>
-    <value>/var/log/hbase/audit/%app-type%</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.hdfs.config.local.buffer.file</name>
-    <value>%time:yyyyMMdd-HHmm.ss%.log</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.hdfs.config.local.buffer.file.buffer.size.bytes</name>
-    <value>8192</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.hdfs.config.local.buffer.flush.interval.seconds</name>
-    <value>60</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.hdfs.config.local.buffer.rollover.interval.seconds</name>
-    <value>600</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.hdfs.config.local.archive.directory</name>
-    <value>/var/log/hbase/audit/archive/%app-type%</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.hdfs.config.local.archive.max.file.count</name>
-    <value>10</value>
-    <description></description>
-  </property> 
-  
-  <property>
-    <name>xasecure.audit.log4j.is.enabled</name>
-    <value>false</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.log4j.is.async</name>
-    <value>false</value>
-    <description></description>
-  </property> 
-  
-  <property>
-    <name>xasecure.audit.log4j.async.max.queue.size</name>
-    <value>10240</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.log4j.async.max.flush.interval.ms</name>
-    <value>30000</value>
-    <description></description>
-  </property>   
-  
-  <property>
-    <name>xasecure.audit.kafka.is.enabled</name>
-    <value>false</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.kafka.async.max.queue.size</name>
-    <value>1</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.kafka.async.max.flush.interval.ms</name>
-    <value>1000</value>
-    <description></description>
-  </property> 
-  
-  <property>
-    <name>xasecure.audit.kafka.broker_list</name>
-    <value>localhost:9092</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.kafka.topic_name</name>
-    <value>ranger_audits</value>
-    <description></description>
-  </property> 
-    
-  <property>
-    <name>xasecure.audit.solr.is.enabled</name>
-    <value>false</value>
-    <description></description>
-  </property> 
-  
-  <property>
-    <name>xasecure.audit.solr.async.max.queue.size</name>
-    <value>1</value>
-    <description></description>
-  </property> 
-
-  <property>
-    <name>xasecure.audit.solr.async.max.flush.interval.ms</name>
-    <value>1000</value>
+    <name>xasecure.audit.destination.hdfs.batch.filespool.dir</name>
+    <value>/var/log/hbase/audit/hdfs/spool</value>
     <description></description>
   </property>
-  
+
   <property>
-    <name>xasecure.audit.solr.solr_url</name>
-    <value>http://localhost:6083/solr/ranger_audits</value>
+    <name>xasecure.audit.destination.solr</name>
+    <value>true</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>xasecure.audit.destination.solr.urls</name>
+    <value>{{ranger_audit_solr_urls}}</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>xasecure.audit.destination.solr.zookeepers</name>
+    <value>none</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>xasecure.audit.destination.solr.batch.filespool.dir</name>
+    <value>/var/log/hbase/audit/solr/spool</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>xasecure.audit.provider.summary.enabled</name>
+    <value>true</value>
     <description></description>
   </property>
 

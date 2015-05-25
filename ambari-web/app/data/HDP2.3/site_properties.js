@@ -176,17 +176,7 @@ hdp23properties.push({
   /**************************************** RANGER - HDFS Plugin ***************************************/
   {
     "id": "site property",
-    "name": "xasecure.audit.hdfs.config.encoding",
-    "displayName": "xasecure.audit.hdfs.config.encoding",
-    "recommendedValue": "",
-    "isRequired": false,
-    "filename": "ranger-hdfs-audit.xml",
-    "category": "Advanced ranger-hdfs-audit",
-    "serviceName": "HDFS"
-  },
-  {
-    "id": "site property",
-    "name": "xasecure.audit.db.is.enabled",
+    "name": "xasecure.audit.destination.db",
     "displayName": "Audit to DB",
     "displayType": "checkbox",
     "filename": "ranger-hdfs-audit.xml",
@@ -195,7 +185,7 @@ hdp23properties.push({
   },
   {
     "id": "site property",
-    "name": "xasecure.audit.hdfs.is.enabled",
+    "name": "xasecure.audit.destination.hdfs",
     "displayName": "Audit to HDFS",
     "displayType": "checkbox",
     "filename": "ranger-hdfs-audit.xml",
@@ -204,7 +194,7 @@ hdp23properties.push({
   },
   {
     "id": "site property",
-    "name": "xasecure.audit.solr.is.enabled",
+    "name": "xasecure.audit.destination.solr",
     "displayName": "Audit to SOLR",
     "displayType": "checkbox",
     "filename": "ranger-hdfs-audit.xml",
@@ -213,54 +203,44 @@ hdp23properties.push({
   },
   {
     "id": "site property",
-    "name": "xasecure.audit.hdfs.config.encoding",
-    "displayName": "xasecure.audit.hdfs.config.encoding",
-    "recommendedValue": "",
-    "isRequired": false,
-    "filename": "ranger-hive-audit.xml",
-    "category": "Advanced ranger-hive-audit",
-    "serviceName": "HIVE"
-  },
-  {
-    "id": "site property",
-    "name": "xasecure.audit.hdfs.config.encoding",
-    "displayName": "xasecure.audit.hdfs.config.encoding",
-    "recommendedValue": "",
-    "isRequired": false,
-    "filename": "ranger-knox-audit.xml",
-    "category": "Advanced ranger-knox-audit",
-    "serviceName": "KNOX"
-  },
-  {
-    "id": "site property",
-    "name": "xasecure.audit.hdfs.config.encoding",
-    "displayName": "xasecure.audit.hdfs.config.encoding",
-    "recommendedValue": "",
-    "isRequired": false,
-    "filename": "ranger-storm-audit.xml",
-    "category": "Advanced ranger-storm-audit",
-    "serviceName": "STORM"
-  },
-  {
-    "id": "site property",
-    "name": "xasecure.audit.hdfs.config.encoding",
-    "displayName": "xasecure.audit.hdfs.config.encoding",
-    "recommendedValue": "",
-    "isRequired": false,
-    "filename": "ranger-yarn-audit.xml",
-    "category": "Advanced ranger-yarn-audit",
-    "serviceName": "YARN"
-  },
-  {
-    "id": "site property",
-    "name": "xasecure.audit.hdfs.config.encoding",
-    "displayName": "xasecure.audit.hdfs.config.encoding",
+    "name": "xasecure.audit.destination.db",
+    "displayName": "Audit to DB",
     "defaultValue": "",
     "isRequired": false,
     "filename": "ranger-kms-audit.xml",
     "category": "Advanced ranger-kms-audit",
     "serviceName": "RANGER_KMS"
   },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.hdfs",
+    "displayName": "Audit to HDFS",
+    "defaultValue": "",
+    "isRequired": false,
+    "filename": "ranger-kms-audit.xml",
+    "category": "Advanced ranger-kms-audit",
+    "serviceName": "RANGER_KMS"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.solr",
+    "displayName": "Audit to SOLR",
+    "defaultValue": "",
+    "isRequired": false,
+    "filename": "ranger-kms-audit.xml",
+    "category": "Advanced ranger-kms-audit",
+    "serviceName": "RANGER_KMS"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.provider.summary.enabled",
+    "displayName": "Audit provider summary enabled",
+    "defaultValue": "",
+    "isRequired": false,
+    "filename": "ranger-kms-audit.xml",
+    "category": "Advanced ranger-kms-audit",
+    "serviceName": "RANGER_KMS"
+  },        
   {
     "id": "site property",
     "name": "ranger-yarn-plugin-enabled",
@@ -283,7 +263,7 @@ hdp23properties.push({
   },
   {
     "id": "site property",
-    "name": "xasecure.audit.hdfs.is.enabled",
+    "name": "xasecure.audit.destination.hdfs",
     "displayName": "Audit to HDFS",
     "displayType": "checkbox",
     "filename": "ranger-hbase-audit.xml",
@@ -292,7 +272,7 @@ hdp23properties.push({
   },
   {
     "id": "site property",
-    "name": "xasecure.audit.solr.is.enabled",
+    "name": "xasecure.audit.destination.solr",
     "displayName": "Audit to SOLR",
     "displayType": "checkbox",
     "filename": "ranger-hbase-audit.xml",
@@ -301,18 +281,134 @@ hdp23properties.push({
   },
   {
     "id": "site property",
-    "name": "xasecure.audit.hdfs.config.encoding",
-    "displayName": "xasecure.audit.hdfs.config.encoding",
-    "recommendedValue": "",
-    "isRequired": false,
+    "name": "xasecure.audit.destination.db",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-hive-audit.xml",
+    "category": "Advanced ranger-hive-audit",
+    "serviceName": "HIVE"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.hdfs",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-hive-audit.xml",
+    "category": "Advanced ranger-hive-audit",
+    "serviceName": "HIVE"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.solr",
+    "displayName": "Audit to SOLR",
+    "displayType": "checkbox",
+    "filename": "ranger-hive-audit.xml",
+    "category": "Advanced ranger-hive-audit",
+    "serviceName": "HIVE"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.db",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-knox-audit.xml",
+    "category": "Advanced ranger-knox-audit",
+    "serviceName": "KNOX"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.hdfs",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-knox-audit.xml",
+    "category": "Advanced ranger-knox-audit",
+    "serviceName": "KNOX"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.solr",
+    "displayName": "Audit to SOLR",
+    "displayType": "checkbox",
+    "filename": "ranger-knox-audit.xml",
+    "category": "Advanced ranger-knox-audit",
+    "serviceName": "KNOX"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.db",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-storm-audit.xml",
+    "category": "Advanced ranger-storm-audit",
+    "serviceName": "STORM"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.hdfs",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-storm-audit.xml",
+    "category": "Advanced ranger-storm-audit",
+    "serviceName": "STORM"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.solr",
+    "displayName": "Audit to SOLR",
+    "displayType": "checkbox",
+    "filename": "ranger-storm-audit.xml",
+    "category": "Advanced ranger-storm-audit",
+    "serviceName": "STORM"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.db",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-yarn-audit.xml",
+    "category": "Advanced ranger-yarn-audit",
+    "serviceName": "YARN"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.hdfs",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-yarn-audit.xml",
+    "category": "Advanced ranger-yarn-audit",
+    "serviceName": "YARN"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.solr",
+    "displayName": "Audit to SOLR",
+    "displayType": "checkbox",
+    "filename": "ranger-yarn-audit.xml",
+    "category": "Advanced ranger-yarn-audit",
+    "serviceName": "YARN"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.provider.summary.enabled",
+    "displayName": "Audit provider summary enabled",
+    "displayType": "checkbox",
+    "filename": "ranger-hdfs-audit.xml",
+    "category": "Advanced ranger-hdfs-audit",
+    "serviceName": "HDFS"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.provider.summary.enabled",
+    "displayName": "Audit provider summary enabled",
+    "displayType": "checkbox",
     "filename": "ranger-hbase-audit.xml",
     "category": "Advanced ranger-hbase-audit",
     "serviceName": "HBASE"
   },
   {
     "id": "site property",
-    "name": "xasecure.audit.db.is.enabled",
-    "displayName": "Audit to DB",
+    "name": "xasecure.audit.provider.summary.enabled",
+    "displayName": "Audit provider summary enabled",
     "displayType": "checkbox",
     "filename": "ranger-hive-audit.xml",
     "category": "Advanced ranger-hive-audit",
@@ -320,26 +416,8 @@ hdp23properties.push({
   },
   {
     "id": "site property",
-    "name": "xasecure.audit.hdfs.is.enabled",
-    "displayName": "Audit to HDFS",
-    "displayType": "checkbox",
-    "filename": "ranger-hive-audit.xml",
-    "category": "Advanced ranger-hive-audit",
-    "serviceName": "HIVE"
-  },
-  {
-    "id": "site property",
-    "name": "xasecure.audit.solr.is.enabled",
-    "displayName": "Audit to SOLR",
-    "displayType": "checkbox",
-    "filename": "ranger-hive-audit.xml",
-    "category": "Advanced ranger-hive-audit",
-    "serviceName": "HIVE"
-  },
-  {
-    "id": "site property",
-    "name": "xasecure.audit.db.is.enabled",
-    "displayName": "Audit to DB",
+    "name": "xasecure.audit.provider.summary.enabled",
+    "displayName": "Audit provider summary enabled",
     "displayType": "checkbox",
     "filename": "ranger-knox-audit.xml",
     "category": "Advanced ranger-knox-audit",
@@ -347,53 +425,8 @@ hdp23properties.push({
   },
   {
     "id": "site property",
-    "name": "xasecure.audit.hdfs.is.enabled",
-    "displayName": "Audit to HDFS",
-    "displayType": "checkbox",
-    "filename": "ranger-knox-audit.xml",
-    "category": "Advanced ranger-knox-audit",
-    "serviceName": "KNOX"
-  },
-  {
-    "id": "site property",
-    "name": "xasecure.audit.solr.is.enabled",
-    "displayName": "Audit to SOLR",
-    "displayType": "checkbox",
-    "filename": "ranger-knox-audit.xml",
-    "category": "Advanced ranger-knox-audit",
-    "serviceName": "KNOX"
-  },
-  {
-    "id": "site property",
-    "name": "xasecure.audit.db.is.enabled",
-    "displayName": "Audit to DB",
-    "displayType": "checkbox",
-    "filename": "ranger-storm-audit.xml",
-    "category": "Advanced ranger-storm-audit",
-    "serviceName": "STORM"
-  },
-  {
-    "id": "site property",
-    "name": "xasecure.audit.hdfs.is.enabled",
-    "displayName": "Audit to HDFS",
-    "displayType": "checkbox",
-    "filename": "ranger-storm-audit.xml",
-    "category": "Advanced ranger-storm-audit",
-    "serviceName": "STORM"
-  },
-  {
-    "id": "site property",
-    "name": "xasecure.audit.solr.is.enabled",
-    "displayName": "Audit to SOLR",
-    "displayType": "checkbox",
-    "filename": "ranger-storm-audit.xml",
-    "category": "Advanced ranger-storm-audit",
-    "serviceName": "STORM"
-  },
-  {
-    "id": "site property",
-    "name": "xasecure.audit.db.is.enabled",
-    "displayName": "Audit to DB",
+    "name": "xasecure.audit.provider.summary.enabled",
+    "displayName": "Audit provider summary enabled",
     "displayType": "checkbox",
     "filename": "ranger-yarn-audit.xml",
     "category": "Advanced ranger-yarn-audit",
@@ -401,21 +434,21 @@ hdp23properties.push({
   },
   {
     "id": "site property",
-    "name": "xasecure.audit.hdfs.is.enabled",
-    "displayName": "Audit to HDFS",
+    "name": "xasecure.audit.provider.summary.enabled",
+    "displayName": "Audit provider summary enabled",
     "displayType": "checkbox",
-    "filename": "ranger-yarn-audit.xml",
-    "category": "Advanced ranger-yarn-audit",
-    "serviceName": "YARN"
+    "filename": "ranger-storm-audit.xml",
+    "category": "Advanced ranger-storm-audit",
+    "serviceName": "STORM"
   },
   {
     "id": "site property",
-    "name": "xasecure.audit.solr.is.enabled",
-    "displayName": "Audit to SOLR",
+    "name": "xasecure.audit.provider.summary.enabled",
+    "displayName": "Audit provider summary enabled",
     "displayType": "checkbox",
-    "filename": "ranger-yarn-audit.xml",
-    "category": "Advanced ranger-yarn-audit",
-    "serviceName": "YARN"
+    "filename": "ranger-kafka-audit.xml",
+    "category": "Advanced ranger-kafka-audit",
+    "serviceName": "KAFKA"
   },
   {
     "name": "ranger_mysql_host",

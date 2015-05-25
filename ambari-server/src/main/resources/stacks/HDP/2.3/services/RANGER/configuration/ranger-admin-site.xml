@@ -122,7 +122,7 @@
   </property>
 
   <property>
-    <name>ranger.solr.url</name>
+    <name>ranger.audit.solr.urls</name>
     <value>http://solr_host:6083/solr/ranger_audits</value>
     <description></description>
   </property>
@@ -233,6 +233,24 @@
   <property>
     <name>ranger.jpa.audit.jdbc.dialect</name>
     <value>{{jdbc_dialect}}</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.audit.solr.zookeepers</name>
+    <value>NONE</value>
+    <description></description>
+  </property> 
+
+  <property>
+    <name>ranger.audit.solr.username</name>
+    <value>ranger_solr</value>
+    <description></description>
+  </property> 
+
+  <property>
+    <name>ranger.audit.solr.password</name>
+    <value>NONE</value>
     <description></description>
   </property> 
 
