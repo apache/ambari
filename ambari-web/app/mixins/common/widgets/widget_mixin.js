@@ -133,7 +133,7 @@ App.WidgetMixin = Ember.Mixin.create({
       metrics.forEach(function (metric, index) {
         var key;
         if (metric.host_component_criteria) {
-          this.tweakHostComponentCriteria(metric);
+          this.createActualHostComponentCriteria(metric);
           key = metric.service_name + '_' + metric.component_name + '_' + metric.host_component_criteria;
         } else {
           key = metric.service_name + '_' + metric.component_name;
@@ -153,27 +153,29 @@ App.WidgetMixin = Ember.Mixin.create({
   },
 
   /**
-   * Tweak necessary host component criteria
-   * NameNode HA host component criteria is applicable only in HA mode
+   * Create actual host component criteria  from persisted host component criteria
+   * NameNode HA and ReourceManager HA host component criteria is applicable only in HA mode
    */
-  tweakHostComponentCriteria: function (metric) {
+  createActualHostComponentCriteria: function (metric) {
     switch (metric.component_name) {
       case 'NAMENODE':
         if (metric.host_component_criteria === 'host_components/metrics/dfs/FSNamesystem/HAState=active') {
-          //if (metric.host_component_criteria)
           var hdfs = App.HDFSService.find().objectAt(0);
           var activeNNHostName = !hdfs.get('snameNode') && hdfs.get('activeNameNode');
           if (!activeNNHostName) {
-            metric.host_component_criteria = 'host_components/HostRoles/component_name=NAMENODE';
+            metric.actual_host_component_criteria = 'host_components/HostRoles/component_name=NAMENODE';
+          } else {
+            metric.actual_host_component_criteria = metric.host_component_criteria;
           }
         }
         break;
       case 'RESOURCEMANAGER':
         if (metric.host_component_criteria === 'host_components/HostRoles/ha_state=ACTIVE') {
-          //if (metric.host_component_criteria)
           var yarn = App.YARNService.find().objectAt(0);
           if (!yarn.get('isRMHaEnabled')) {
-            metric.host_component_criteria = 'host_components/HostRoles/component_name=RESOURCEMANAGER';
+            metric.actual_host_component_criteria = 'host_components/HostRoles/component_name=RESOURCEMANAGER';
+          } else {
+            metric.actual_host_component_criteria = metric.host_component_criteria;
           }
         }
         break;
@@ -245,7 +247,7 @@ App.WidgetMixin = Ember.Mixin.create({
         serviceName: request.service_name,
         componentName: request.component_name,
         metricPaths: request.metric_paths.join(','),
-        hostComponentCriteria: request.host_component_criteria
+        hostComponentCriteria: request.actual_host_component_criteria || request.host_component_criteria
       }
     });
   },

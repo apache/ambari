@@ -129,6 +129,7 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
         author: this.get('widgetAuthor'),
         metrics: this.get('widgetMetrics').map(function (metric) {
           delete metric.data;
+          delete metric.actual_host_component_criteria;
           return metric;
         }),
         values: this.get('widgetValues').map(function (value) {
