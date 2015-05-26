@@ -106,8 +106,9 @@ regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xm
 pid_dir = status_params.pid_dir
 tmp_dir = "/tmp/hbase-hbase"
 # TODO UPGRADE default, update site during upgrade
-_local_dir_conf = "/tmp/hbase-hbase/local"
-local_dir = substitute_vars(_local_dir_conf, config['configurations']['hbase-site'])
+local_dir = "/tmp/hbase-hbase/local"
+# _local_dir_conf = "/tmp/hbase-hbase/local"
+# local_dir = substitute_vars(_local_dir_conf, config['configurations']['hbase-site'])
 
 client_jaas_config_file = format("{hbase_conf_dir}/hbase_client_jaas.conf")
 master_jaas_config_file = format("{hbase_conf_dir}/hbase_master_jaas.conf")
