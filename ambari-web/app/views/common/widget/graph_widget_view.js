@@ -208,31 +208,16 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
    * @returns {$.ajax}
    */
   getHostComponentMetrics: function (request) {
-    var dfd;
-    var self = this;
-    dfd = $.Deferred();
-    this.getHostComponentName(request).done(function (data) {
-      if (data) {
-        request.host_name = data.host_components[0].HostRoles.host_name;
-        App.ajax.send({
-          name: 'widgets.hostComponent.metrics.get',
-          sender: self,
-          data: {
-            componentName: request.component_name,
-            hostName: request.host_name,
-            metricPaths: self.addTimeProperties(request.metric_paths).join(',')
-          }
-        }).done(function(metricData) {
-          self.getMetricsSuccessCallback(metricData);
-          dfd.resolve();
-        }).fail(function(data){
-          dfd.reject();
-        });
-      }
-    }).fail(function(data){
-      dfd.reject();
+    return App.ajax.send({
+      name: 'widgets.hostComponent.metrics.get',
+      sender: this,
+      data: {
+        componentName: request.component_name,
+        metricPaths: this.addTimeProperties(request.metric_paths).join(','),
+        hostComponentCriteria: this.computeHostComponentCriteria(request)
+      },
+      success: 'getHostComponentMetricsSuccessCallback'
     });
-    return dfd.promise();
   },
 
   /**

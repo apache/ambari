@@ -2522,13 +2522,8 @@ var urls = {
     mock: '/data/metrics/{serviceName}/Append_num_ops_&_Delete_num_ops.json'
   },
 
-  'widgets.hostComponent.get.hostName': {
-    real: '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?{hostComponentCriteria}',
-    mock: '/data/metrics/{serviceName}/Append_num_ops.json'
-  },
-
   'widgets.hostComponent.metrics.get': {
-    real: '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?fields={metricPaths}&format=null_padding',
+    real: '/clusters/{clusterName}/host_components?HostRoles/component_name={componentName}{hostComponentCriteria}&fields={metricPaths}&format=null_padding',
     mock: '/data/metrics/{serviceName}/Append_num_ops.json'
   },
 

@@ -480,7 +480,11 @@ App.UpdateController = Em.Controller.extend({
   updateUnhealthyAlertInstances: function (callback) {
     var testUrl = '/data/alerts/alert_instances.json';
     var queryParams = this.get('queryParamsForUnhealthyAlertInstances');
-    var realUrl = '/alerts?fields=*&Alert/state.in(CRITICAL,WARNING)&Alert/maintenance_state.in(OFF)&from=' + queryParams.from + '&page_size=' + queryParams.page_size;
+    var realUrl = '/alerts?fields=' +
+      'Alert/component_name,Alert/definition_id,Alert/definition_name,Alert/host_name,Alert/id,Alert/instance,' +
+      'Alert/label,Alert/latest_timestamp,Alert/maintenance_state,Alert/original_timestamp,Alert/scope,' +
+      'Alert/service_name,Alert/state,Alert/text' +
+      '&Alert/state.in(CRITICAL,WARNING)&Alert/maintenance_state.in(OFF)&from=' + queryParams.from + '&page_size=' + queryParams.page_size;
     var url = this.getUrl(testUrl, realUrl);
 
     App.HttpClient.get(url, App.alertInstanceMapper, {

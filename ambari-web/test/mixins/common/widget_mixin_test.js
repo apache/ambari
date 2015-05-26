@@ -25,35 +25,25 @@ describe('App.WidgetMixin', function() {
     var mixinObject = mixinClass.create();
     beforeEach(function () {
       this.mock = sinon.stub(mixinObject, 'getRequestData');
-      sinon.stub(mixinObject, 'getHostComponentMetrics').returns({always: function(callback){
-        callback();
-      }});
-      sinon.stub(mixinObject, 'getServiceComponentMetrics').returns({complete: function(callback){
-        callback();
-      }});
-      sinon.stub(mixinObject, 'onMetricsLoaded');
+      sinon.stub(App.WidgetLoadAggregator, 'add');
     });
     afterEach(function () {
       this.mock.restore();
-      mixinObject.getHostComponentMetrics.restore();
-      mixinObject.getServiceComponentMetrics.restore();
-      mixinObject.onMetricsLoaded.restore();
+      App.WidgetLoadAggregator.add.restore();
     });
     it('has host_component_criteria', function () {
       this.mock.returns({'key1': {host_component_criteria: 'criteria'}});
       mixinObject.set('isLoaded', false);
       mixinObject.loadMetrics();
 
-      expect(mixinObject.getHostComponentMetrics.calledWith({host_component_criteria: 'criteria'})).to.be.true;
-      expect(mixinObject.onMetricsLoaded.calledOnce).to.be.true;
+      expect(App.WidgetLoadAggregator.add.calledOnce).to.be.true;
     });
     it('host_component_criteria is absent', function () {
       this.mock.returns({'key1': {}});
       mixinObject.set('isLoaded', false);
       mixinObject.loadMetrics();
 
-      expect(mixinObject.getServiceComponentMetrics.calledWith({})).to.be.true;
-      expect(mixinObject.onMetricsLoaded.calledOnce).to.be.true;
+      expect(App.WidgetLoadAggregator.add.calledOnce).to.be.true;
     });
   });
 
@@ -175,8 +165,7 @@ describe('App.WidgetMixin', function() {
           serviceName: 'S1',
           componentName: 'C1',
           metricPaths: 'w1,w2'
-        },
-        success: 'getMetricsSuccessCallback'
+        }
       })
     });
   });
@@ -208,28 +197,12 @@ describe('App.WidgetMixin', function() {
   describe("#getHostComponentMetrics()", function () {
     var mixinObject = mixinClass.create();
     before(function () {
-      sinon.stub(App.ajax, 'send').returns({done: function(callback){
-        callback();
-        return this;
-      },fail: function(callback){
-        callback();
-        return this;
-      }});
-      sinon.stub(mixinObject, 'getHostComponentName').returns({done: function(callback){
-        var data = {host_components: [{HostRoles:{host_name:"c6401"}}]};
-        callback(data);
-        return this;
-      },fail: function(callback){
-        callback();
-        return this;
-      }});
-
-      sinon.stub(mixinObject, 'getMetricsSuccessCallback')
+      sinon.stub(App.ajax, 'send');
+      sinon.stub(mixinObject, 'computeHostComponentCriteria').returns('criteria')
     });
     after(function () {
       App.ajax.send.restore();
-      mixinObject.getHostComponentName.restore();
-      mixinObject.getMetricsSuccessCallback.restore();
+      mixinObject.computeHostComponentCriteria.restore();
     });
     it("", function () {
       var request = {
@@ -243,8 +216,8 @@ describe('App.WidgetMixin', function() {
         sender: mixinObject,
         data: {
           componentName: 'C1',
-          hostName: "c6401",
-          metricPaths: 'w1,w2'
+          metricPaths: 'w1,w2',
+          hostComponentCriteria: 'criteria'
         }
       })
     });
@@ -359,6 +332,116 @@ describe('App.WidgetMixin', function() {
         },
         success: 'postWidgetDefinitionSuccessCallback'
       });
+    });
+  });
+});
+
+
+describe('App.WidgetLoadAggregator', function() {
+  var aggregator = App.WidgetLoadAggregator;
+
+  describe("#add()", function () {
+    beforeEach(function () {
+      sinon.stub(window, 'setTimeout').returns('timeId');
+    });
+    afterEach(function () {
+      window.setTimeout.restore();
+    });
+    it("timeout started", function () {
+      aggregator.set('timeoutId', 'timeId');
+      aggregator.get('requests').clear();
+      aggregator.add({});
+      expect(aggregator.get('requests')).to.not.be.empty;
+      expect(window.setTimeout.called).to.be.false;
+    });
+    it("timeout started", function () {
+      aggregator.set('timeoutId', null);
+      aggregator.get('requests').clear();
+      aggregator.add({});
+      expect(aggregator.get('requests')).to.not.be.empty;
+      expect(window.setTimeout.calledOnce).to.be.true;
+      expect(aggregator.get('timeoutId')).to.equal('timeId');
+    });
+  });
+
+  describe("#groupRequests()", function () {
+    it("", function () {
+      var requests = [
+        {
+          startCallName: 'n1',
+          data: {
+            component_name: 'C1',
+            metric_paths: ['m1']
+          },
+          context: 'c1'
+        },
+        {
+          startCallName: 'n1',
+          data: {
+            component_name: 'C1',
+            metric_paths: ['m2']
+          },
+          context: 'c2'
+        },
+        {
+          startCallName: 'n2',
+          data: {
+            component_name: 'C1',
+            metric_paths: ['m3']
+          },
+          context: 'c3'
+        },
+        {
+          startCallName: 'n1',
+          data: {
+            component_name: 'C2',
+            metric_paths: ['m4']
+          },
+          context: 'c4'
+        }
+      ];
+      var result = aggregator.groupRequests(requests);
+
+      expect(result['n1_C1'].subRequests.length).to.equal(2);
+      expect(result['n1_C1'].data.metric_paths.length).to.equal(2);
+      expect(result['n2_C1'].subRequests.length).to.equal(1);
+      expect(result['n2_C1'].data.metric_paths.length).to.equal(1);
+      expect(result['n1_C2'].subRequests.length).to.equal(1);
+      expect(result['n1_C2'].data.metric_paths.length).to.equal(1);
+    });
+  });
+
+  describe("#runRequests()", function() {
+    var mock = {
+      f1: function () {
+        return {
+          done: Em.K,
+          complete: Em.K
+        }
+      }
+    };
+    beforeEach(function () {
+      sinon.stub(aggregator, 'groupRequests', function(requests){
+        return requests;
+      });
+      sinon.spy(mock, 'f1');
+    });
+    afterEach(function () {
+      aggregator.groupRequests.restore();
+      mock.f1.restore();
+    });
+    it("", function() {
+      var requests = {
+        'r1': {
+          data: {
+            metric_paths: ['m1', 'm1', 'm2']
+          },
+          context: mock,
+          startCallName: 'f1'
+        }
+      };
+      aggregator.runRequests(requests);
+      expect(mock.f1.calledWith(requests['r1'].data)).to.be.true;
     });
   });
 });

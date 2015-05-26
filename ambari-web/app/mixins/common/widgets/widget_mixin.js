@@ -110,14 +110,26 @@ App.WidgetMixin = Ember.Mixin.create({
           });
         }
       } else if (request.host_component_criteria) {
-        this.getHostComponentMetrics(request).always(function () {
-          requestCounter--;
-          if (requestCounter === 0) self.onMetricsLoaded();
+        App.WidgetLoadAggregator.add({
+          data: request,
+          context: this,
+          startCallName: 'getHostComponentMetrics',
+          successCallback: this.getHostComponentMetricsSuccessCallback,
+          completeCallback: function () {
+            requestCounter--;
+            if (requestCounter === 0) this.onMetricsLoaded();
+          }
         });
       } else {
-        this.getServiceComponentMetrics(request).complete(function () {
-          requestCounter--;
-          if (requestCounter === 0) self.onMetricsLoaded();
+        App.WidgetLoadAggregator.add({
+          data: request,
+          context: this,
+          startCallName: 'getServiceComponentMetrics',
+          successCallback: this.getMetricsSuccessCallback,
+          completeCallback: function () {
+            requestCounter--;
+            if (requestCounter === 0) this.onMetricsLoaded();
+          }
         });
       }
     }
@@ -133,7 +145,6 @@ App.WidgetMixin = Ember.Mixin.create({
       metrics.forEach(function (metric, index) {
         var key;
         if (metric.host_component_criteria) {
-          this.createActualHostComponentCriteria(metric);
           key = metric.service_name + '_' + metric.component_name + '_' + metric.host_component_criteria;
         } else {
           key = metric.service_name + '_' + metric.component_name;
@@ -154,32 +165,30 @@ App.WidgetMixin = Ember.Mixin.create({
 
   /**
    * Create actual host component criteria  from persisted host component criteria
-   * NameNode HA and ReourceManager HA host component criteria is applicable only in HA mode
+   * NameNode HA and ResourceManager HA host component criteria is applicable only in HA mode
+   * @param {object} request
    */
-  createActualHostComponentCriteria: function (metric) {
-    switch (metric.component_name) {
+  computeHostComponentCriteria: function (request) {
+    switch (request.component_name) {
       case 'NAMENODE':
-        if (metric.host_component_criteria === 'host_components/metrics/dfs/FSNamesystem/HAState=active') {
+        if (request.host_component_criteria === 'host_components/metrics/dfs/FSNamesystem/HAState=active') {
           var hdfs = App.HDFSService.find().objectAt(0);
           var activeNNHostName = !hdfs.get('snameNode') && hdfs.get('activeNameNode');
           if (!activeNNHostName) {
-            metric.actual_host_component_criteria = 'host_components/HostRoles/component_name=NAMENODE';
-          } else {
-            metric.actual_host_component_criteria = metric.host_component_criteria;
+            return '';
           }
         }
         break;
       case 'RESOURCEMANAGER':
-        if (metric.host_component_criteria === 'host_components/HostRoles/ha_state=ACTIVE') {
+        if (request.host_component_criteria === 'host_components/HostRoles/ha_state=ACTIVE') {
           var yarn = App.YARNService.find().objectAt(0);
           if (!yarn.get('isRMHaEnabled')) {
-            metric.actual_host_component_criteria = 'host_components/HostRoles/component_name=RESOURCEMANAGER';
-          } else {
-            metric.actual_host_component_criteria = metric.host_component_criteria;
+            return '';
           }
         }
         break;
     }
+    return request.host_component_criteria.replace('host_components/', '&');
   },
 
   /**
@@ -195,63 +204,32 @@ App.WidgetMixin = Ember.Mixin.create({
         serviceName: request.service_name,
         componentName: request.component_name,
         metricPaths: request.metric_paths.join(',')
-      },
-      success: 'getMetricsSuccessCallback'
-    });
-  },
-
-  /**
-   * make GET call to server in order to fetch specifc host-component metrics
-   * @param {object} request
-   * @returns {$.Deferred}
-   */
-  getHostComponentMetrics: function (request) {
-    var dfd;
-    var self = this;
-    dfd = $.Deferred();
-    this.getHostComponentName(request).done(function (data) {
-      if (data) {
-        request.host_name = data.host_components[0].HostRoles.host_name;
-        App.ajax.send({
-          name: 'widgets.hostComponent.metrics.get',
-          sender: self,
-          data: {
-            componentName: request.component_name,
-            hostName: request.host_name,
-            metricPaths: request.metric_paths.join(',')
-          }
-        }).done(function (metricData) {
-          self.getMetricsSuccessCallback(metricData);
-          dfd.resolve();
-        }).fail(function (data) {
-          dfd.reject();
-        });
       }
-    }).fail(function (data) {
-      dfd.reject();
     });
-    return dfd.promise();
   },
 
-
   /**
-   * make GET call to server in order to fetch host-component names
+   * make GET call to server in order to fetch specific host-component metrics
    * @param {object} request
    * @returns {$.ajax}
    */
-  getHostComponentName: function (request) {
+  getHostComponentMetrics: function (request) {
     return App.ajax.send({
-      name: 'widgets.hostComponent.get.hostName',
+      name: 'widgets.hostComponent.metrics.get',
       sender: this,
       data: {
-        serviceName: request.service_name,
         componentName: request.component_name,
         metricPaths: request.metric_paths.join(','),
-        hostComponentCriteria: request.actual_host_component_criteria || request.host_component_criteria
+        hostComponentCriteria: this.computeHostComponentCriteria(request)
       }
     });
   },
 
+  getHostComponentMetricsSuccessCallback: function (data) {
+    if (data.items[0]) {
+      this.getMetricsSuccessCallback(data.items[0]);
+    }
+  },
 
   /**
    * callback on getting aggregated metrics and host component metrics
@@ -625,5 +603,117 @@ App.WidgetPreviewMixin = Ember.Mixin.create({
   }.observes('controller.widgetProperties', 'controller.widgetValues', 'controller.widgetMetrics', 'controller.widgetName'),
   onMetricsLoaded: function () {
     this.drawWidget();
+  }
+});
+
+
+/**
+ * aggregate requests to load metrics by component name
+ * requests can be added via add method
+ * input example:
+ * {
+ *   data: request,
+ *   context: this,
+ *   startCallName: this.getServiceComponentMetrics,
+ *   successCallback: this.getMetricsSuccessCallback,
+ *   completeCallback: function () {
+ *     requestCounter--;
+ *     if (requestCounter === 0) this.onMetricsLoaded();
+ *   }
+ * }
+ * @type {Em.Object}
+ */
+App.WidgetLoadAggregator = Em.Object.create({
+  /**
+   * @type {Array}
+   */
+  requests: [],
+
+  /**
+   * @type {number|null}
+   */
+  timeoutId: null,
+
+  /**
+   * @type {number}
+   * @const
+   */
+  BULK_INTERVAL: 1000,
+
+  /**
+   * add request
+   * every {{BULK_INTERVAL}} requests get collected, aggregated and sent to server
+   *
+   * @param {object} request
+   */
+  add: function (request) {
+    var self = this;
+
+    this.get('requests').push(request);
+    if (Em.isNone(this.get('timeoutId'))) {
+      this.set('timeoutId', window.setTimeout(function () {
+        self.runRequests(self.get('requests'));
+        self.get('requests').clear();
+        clearTimeout(self.get('timeoutId'));
+        self.set('timeoutId', null);
+      }, this.get('BULK_INTERVAL')));
+    }
+  },
+
+  /**
+   * return requests which grouped into bulks
+   * @param {Array} requests
+   * @returns {object} bulks
+   */
+  groupRequests: function (requests) {
+    var bulks = {};
+
+    requests.forEach(function (request) {
+      var id = request.startCallName + "_" + request.data.component_name;
+
+      if (Em.isNone(bulks[id])) {
+        bulks[id] = {
+          data: request.data,
+          context: request.context,
+          startCallName: request.startCallName
+        };
+        bulks[id].subRequests = [{
+          context: request.context,
+          successCallback: request.successCallback,
+          completeCallback: request.completeCallback
+        }];
+      } else {
+        bulks[id].data.metric_paths.pushObjects(request.data.metric_paths);
+        bulks[id].subRequests.push({
+          context: request.context,
+          successCallback: request.successCallback,
+          completeCallback: request.completeCallback
+        });
+      }
+    }, this);
+    return bulks;
+  },
+
+  /**
+   * run aggregated requests
+   * @param {Array} requests
+   */
+  runRequests: function (requests) {
+    var bulks = this.groupRequests(requests);
+
+    for (var id in bulks) {
+      (function (_request) {
+        _request.data.metric_paths = _request.data.metric_paths.uniq();
+        _request.context[_request.startCallName].call(_request.context, _request.data).done(function (response) {
+          _request.subRequests.forEach(function (subRequest) {
+            subRequest.successCallback.call(subRequest.context, response);
+          }, this);
+        }).complete(function () {
+          _request.subRequests.forEach(function (subRequest) {
+            subRequest.completeCallback.call(subRequest.context);
+          }, this);
+        });
+      })(bulks[id]);
+    }
   }
 });
