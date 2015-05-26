@@ -883,7 +883,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  @Transactional
   public void handleEvent(ServiceComponentHostEvent event)
       throws InvalidStateTransitionException {
     if (LOG.isDebugEnabled()) {
