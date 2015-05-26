@@ -250,7 +250,18 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-
+  <xs:complexType name="PathType">
+    <xs:annotation>
+      <xs:documentation>Defines a single classpath.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element type="xs:string" name="path" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>The path of a filename or URL pointing to a directory or jar file. A directory path should end with '/'.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
   <xs:element name="view">
     <xs:annotation>
       <xs:documentation>Defines a view.</xs:documentation>
@@ -304,6 +315,11 @@
         <xs:element type="xs:boolean" name="system" minOccurs="0" maxOccurs="1" default="false">
           <xs:annotation>
             <xs:documentation>Indicates whether or not this is a system view.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element type="PathType" name="classpath" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>Extra class path entries for this view. A directory path should end with '/'.</xs:documentation>
           </xs:annotation>
         </xs:element>
         <xs:element type="xs:string" name="view-class" minOccurs="0" maxOccurs="1">

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.view;
 
 import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +27,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
@@ -151,7 +151,10 @@ public class ViewExtractor {
           throw new ExtractionException(msg);
         }
       }
-      return getArchiveClassLoader(archiveDir);
+
+      ViewConfig viewConfig = archiveUtility.getViewConfigFromExtractedArchive(archivePath, false);
+
+      return getArchiveClassLoader(viewConfig, archiveDir);
 
     } catch (Exception e) {
       String msg = "Caught exception trying to extract the view archive " + archivePath + ".";
@@ -180,8 +183,8 @@ public class ViewExtractor {
   // ----- archiveUtility methods ----------------------------------------------------
 
   // get a class loader for the given archive directory
-  private ClassLoader getArchiveClassLoader(File archiveDir)
-      throws MalformedURLException, IOException {
+  private ClassLoader getArchiveClassLoader(ViewConfig viewConfig, File archiveDir)
+      throws IOException {
 
     String    archivePath = archiveDir.getAbsolutePath();
     List<URL> urlList     = new LinkedList<URL>();
@@ -210,7 +213,7 @@ public class ViewExtractor {
     // include the archive directory
     urlList.add(archiveDir.toURI().toURL());
 
-    return new ViewClassLoader(urlList.toArray(new URL[urlList.size()]));
+    return new ViewClassLoader(viewConfig, urlList.toArray(new URL[urlList.size()]));
   }
 
 

@@ -19,12 +19,14 @@
 package org.apache.ambari.server.view;
 
 import junit.framework.Assert;
+import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.junit.Test;
 
 import java.io.File;
 import java.net.URL;
 
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -38,17 +40,18 @@ public class ViewClassLoaderTest {
   public void testGetResource() throws Exception {
     ClassLoader parentClassLoader = createMock(ClassLoader.class);
     URL parentResource = new File("parent-resource").toURI().toURL();
+    ViewConfig viewConfig = createNiceMock(ViewConfig.class);
 
     expect(parentClassLoader.getResource("parent-resource")).andReturn(parentResource).once();
 
-    replay(parentClassLoader);
+    replay(parentClassLoader, viewConfig);
 
     File file = new File("./src/test/resources");
     URL testURL = file.toURI().toURL();
 
     URL[] urls = new URL[]{testURL};
 
-    ViewClassLoader classLoader = new ViewClassLoader(parentClassLoader, urls);
+    ViewClassLoader classLoader = new ViewClassLoader(viewConfig, parentClassLoader, urls);
 
     URL url = classLoader.getResource("ambari.properties");
 
@@ -59,13 +62,14 @@ public class ViewClassLoaderTest {
     Assert.assertNotNull(url);
     Assert.assertSame(parentResource, url);
 
-    verify(parentClassLoader);
+    verify(parentClassLoader, viewConfig);
   }
 
   @Test
   public void testLoadClass() throws Exception {
     TestClassLoader parentClassLoader = createMock(TestClassLoader.class);
     Class parentClass = Object.class;
+    ViewConfig viewConfig = createNiceMock(ViewConfig.class);
 
     expect(parentClassLoader.getPackage("org.apache.ambari.server.view")).andReturn(null).anyTimes();
     expect(parentClassLoader.loadClass("java.lang.Object")).andReturn(parentClass).anyTimes();
@@ -74,14 +78,14 @@ public class ViewClassLoaderTest {
     expect(parentClassLoader.loadClass("com.google.inject.AbstractModule")).andReturn(parentClass).once();
     expect(parentClassLoader.loadClass("org.slf4j.LoggerFactory")).andReturn(parentClass).once();
 
-    replay(parentClassLoader);
+    replay(parentClassLoader, viewConfig);
 
     File file = new File("./target/test-classes");
     URL testURL = file.toURI().toURL();
 
     URL[] urls = new URL[]{testURL};
 
-    ViewClassLoader classLoader = new ViewClassLoader(parentClassLoader, urls);
+    ViewClassLoader classLoader = new ViewClassLoader(viewConfig, parentClassLoader, urls);
 
     Class clazz = classLoader.loadClass("org.apache.ambari.server.view.ViewClassLoaderTest");
 
@@ -110,7 +114,7 @@ public class ViewClassLoaderTest {
     Assert.assertNotNull(clazz);
     Assert.assertSame(parentClass, clazz);
 
-    verify(parentClassLoader);
+    verify(parentClassLoader, viewConfig);
   }
 
   public class TestClassLoader extends ClassLoader {

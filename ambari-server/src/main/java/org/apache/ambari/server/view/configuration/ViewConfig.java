@@ -27,6 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import java.util.Collections;
@@ -84,6 +85,13 @@ public class ViewConfig {
    * Indicates whether or not this is a system view.
    */
   private boolean system;
+
+  /**
+   * The list of extra classpath elements.
+   */
+  @XmlElementWrapper
+  @XmlElement(name="path")
+  private List<String> classpath;
 
   /**
    * The main view class name.
@@ -233,6 +241,16 @@ public class ViewConfig {
    */
   public boolean isSystem() {
     return system;
+  }
+
+  /**
+   * Get the extra classpath as a comma separated path of filenames or URLs pointing to
+   * directories or jar files.
+   *
+   * @return the extra classpath
+   */
+  public String getExtraClasspath() {
+    return classpath == null ? null : StringUtils.join(classpath, ",");
   }
 
   /**

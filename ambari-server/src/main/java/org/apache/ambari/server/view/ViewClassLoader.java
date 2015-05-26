@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.view;
 
+import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.eclipse.jetty.webapp.WebAppClassLoader;
 import org.eclipse.jetty.webapp.WebAppContext;
 
@@ -38,10 +39,11 @@ public class ViewClassLoader extends WebAppClassLoader {
    * The URLs will be searched in the order specified for classes and resources before searching
    * the parent class loader.
    *
-   * @param urls  the URLs from which to load classes and resources
+   * @param viewConfig  the view configuration
+   * @param urls        the URLs from which to load classes and resources
    */
-  public ViewClassLoader(URL[] urls) throws IOException {
-    this(null, urls);
+  public ViewClassLoader(ViewConfig viewConfig, URL[] urls) throws IOException {
+    this(viewConfig, null, urls);
   }
 
   /**
@@ -49,11 +51,12 @@ public class ViewClassLoader extends WebAppClassLoader {
    * The URLs will be searched in the order specified for classes and resources before searching the specified
    * parent class loader.
    *
-   * @param parent  the parent class loader
-   * @param urls    the URLs from which to load classes and resources
+   * @param viewConfig  the view configuration
+   * @param parent      the parent class loader
+   * @param urls        the URLs from which to load classes and resources
    */
-  public ViewClassLoader(ClassLoader parent, URL[] urls) throws IOException {
-    super(parent, getInitContext());
+  public ViewClassLoader(ViewConfig viewConfig, ClassLoader parent, URL[] urls) throws IOException {
+    super(parent, getInitContext(viewConfig));
 
     for (URL url : urls) {
       addURL(url);
@@ -64,9 +67,8 @@ public class ViewClassLoader extends WebAppClassLoader {
   // ----- helper methods ----------------------------------------------------
 
   // Get a context to initialize the class loader.
-  private static WebAppContext getInitContext() {
-    // For now we are using defaults or setting the values for things like parent loader priority and
-    // system classes.  In the future we may allow overrides at the view level.
+  private static WebAppContext getInitContext(ViewConfig viewConfig) {
+
     WebAppContext webAppContext = new WebAppContext();
 
     // add com.google.inject as system classes to allow for injection in view components using the google annotation
@@ -74,6 +76,13 @@ public class ViewClassLoader extends WebAppClassLoader {
     // add org.slf4j as system classes to avoid linkage errors
     webAppContext.addSystemClass("org.slf4j.");
 
+    // set the class loader settings from the configuration
+    if (viewConfig != null) {
+      String extraClasspath = viewConfig.getExtraClasspath();
+      if (extraClasspath != null) {
+        webAppContext.setExtraClasspath(extraClasspath);
+      }
+    }
     return webAppContext;
   }
 }
