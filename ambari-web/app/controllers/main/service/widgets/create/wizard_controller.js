@@ -161,7 +161,7 @@ App.WidgetWizardController = App.WizardController.extend({
   saveClusterStatus: function (clusterStatus) {
     App.clusterStatus.setClusterStatus({
       clusterState: clusterStatus,
-      wizardControllerName: 'widgetWizardController',
+      wizardControllerName: this.get('name'),
       localdb: App.db.data
     });
   },

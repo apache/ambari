@@ -361,35 +361,14 @@ App.Router = Em.Router.extend({
     } else {
       if (this.get('clusterInstallCompleted')) {
         App.clusterStatus.updateFromServer(false).complete(function () {
-          var clusterStatusOnServer = App.clusterStatus.get('value');
           var route = 'main.dashboard.index';
-          if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addHostController.name')) {
-            // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
-            route = 'main.hostAdd';
-          } else if (clusterStatusOnServer && (clusterStatusOnServer.wizardControllerName === App.router.get('addSecurityController.name') || clusterStatusOnServer.wizardControllerName === App.router.get('mainAdminSecurityDisableController.name'))) {
-            // if wizardControllerName == "addSecurityController", then it means someone closed the browser or the browser was crashed when we were last in Add Security wizard
-            route = 'main.admin.adminSecurity';
-          } else if (clusterStatusOnServer && (clusterStatusOnServer.wizardControllerName === App.router.get('kerberosWizardController.name'))) {
-            // if wizardControllerName == "adminKerberosController", then it means someone closed the browser or the browser was crashed when we were last in Add Kerberos wizard
-            route = 'main.admin.adminKerberos.adminAddKerberos';
-          } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addServiceController.name')) {
-            // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
-            route = 'main.serviceAdd';
-          } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('reassignMasterController.name')) {
-            // if wizardControllerName == "reassignMasterController", then it means someone closed the browser or the browser was crashed when we were last in Reassign Master wizard
-            route = 'main.reassign';
-          } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('highAvailabilityWizardController.name')) {
-            // if wizardControllerName == "highAvailabilityWizardController", then it means someone closed the browser or the browser was crashed when we were last in NameNode High Availability wizard
-            route = 'main.services.enableHighAvailability';
-          } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('rMHighAvailabilityWizardController.name')) {
-            // if wizardControllerName == "highAvailabilityWizardController", then it means someone closed the browser or the browser was crashed when we were last in NameNode High Availability wizard
-            route = 'main.services.enableRMHighAvailability';
-          } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('rollbackHighAvailabilityWizardController.name')) {
-            // if wizardControllerName == "highAvailabilityRollbackController", then it means someone closed the browser or the browser was crashed when we were last in NameNode High Availability Rollback wizard
-            route = 'main.services.rollbackHighAvailability';
-          } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('mainAdminStackAndUpgradeController.name')) {
-            // if wizardControllerName == "mainAdminStackAndUpgradeController", then it means someone closed the browser or the browser was crashed when we were last in Rolling Upgrade wizard
-            route = 'main.admin.stackAndUpgrade';
+          var clusterStatusOnServer = App.clusterStatus.get('value');
+          if (clusterStatusOnServer) {
+            var wizardControllerRoutes = require('data/controller_route');
+            var wizardControllerRoute =  wizardControllerRoutes.findProperty('wizardControllerName', clusterStatusOnServer.wizardControllerName);
+            if (wizardControllerRoute) {
+              route =  wizardControllerRoute.route;
+            }
           }
           callback(route);
         });
