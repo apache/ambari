@@ -279,10 +279,7 @@ class ActionQueue(threading.Thread):
       if isCommandBackground:
         return
       else:
-        if commandresult['exitcode'] == 0:
-          status = self.COMPLETED_STATUS
-        else:
-          status = self.FAILED_STATUS
+        status = self.COMPLETED_STATUS if commandresult['exitcode'] == 0 else self.FAILED_STATUS
 
       if status != self.COMPLETED_STATUS and retryAble == True and maxAttempts > numAttempts:
         delay = self.get_retry_delay(delay)
