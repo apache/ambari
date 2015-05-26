@@ -377,7 +377,7 @@ public class ConfigHelperTest {
     }
 
     @Test
-    public void testCloneAttributesMap_sourceIsNull() throws Exception {
+    public void testCloneAttributesMapSourceIsNull() throws Exception {
       // init
       Map<String, Map<String, String>> targetAttributesMap = new HashMap<String, Map<String, String>>();
       Map<String, String> attributesValues = new HashMap<String, String>();
@@ -405,7 +405,7 @@ public class ConfigHelperTest {
     }
 
     @Test
-    public void testCloneAttributesMap_targetIsNull() throws Exception {
+    public void testCloneAttributesMapTargetIsNull() throws Exception {
       // init
       Map<String, Map<String, String>> targetAttributesMap = null;
       Map<String, Map<String, String>> sourceAttributesMap = new HashMap<String, Map<String, String>>();
@@ -469,7 +469,7 @@ public class ConfigHelperTest {
     }
 
     @Test
-    public void testMergeAttributes_noAttributeOverrides() throws Exception {
+    public void testMergeAttributesWithNoAttributeOverrides() throws Exception {
       Map<String, Map<String, String>> persistedAttributes = new HashMap<String, Map<String, String>>();
       Map<String, String> persistedFinalAttrs = new HashMap<String, String>();
       persistedFinalAttrs.put("a", "true");
@@ -496,7 +496,7 @@ public class ConfigHelperTest {
     }
 
     @Test
-    public void testMergeAttributes_nullAttributes() throws Exception {
+    public void testMergeAttributesWithNullAttributes() throws Exception {
       Map<String, Map<String, String>> persistedAttributes = new HashMap<String, Map<String, String>>();
       Map<String, String> persistedFinalAttrs = new HashMap<String, String>();
       persistedFinalAttrs.put("a", "true");
@@ -524,7 +524,7 @@ public class ConfigHelperTest {
     }
 
     @Test
-    public void testMergeAttributes_nullProperties() throws Exception {
+    public void testMergeAttributesWithNullProperties() throws Exception {
       Map<String, Map<String, String>> persistedAttributes = new HashMap<String, Map<String, String>>();
       Map<String, String> persistedFinalAttrs = new HashMap<String, String>();
       persistedFinalAttrs.put("a", "true");
@@ -620,7 +620,7 @@ public class ConfigHelperTest {
     }
 
     @Test
-    public void testGetServiceProperties_SimpleInvocation() throws Exception {
+    public void testGetServicePropertiesSimpleInvocation() throws Exception {
       Cluster mockCluster = createStrictMock(Cluster.class);
       StackId mockStackVersion = createStrictMock(StackId.class);
       AmbariMetaInfo mockAmbariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
@@ -654,7 +654,7 @@ public class ConfigHelperTest {
     }
 
     @Test
-    public void testGetServiceProperties_DoNoRemoveExcluded() throws Exception {
+    public void testGetServicePropertiesDoNoRemoveExcluded() throws Exception {
       StackId mockStackVersion = createStrictMock(StackId.class);
       AmbariMetaInfo mockAmbariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
       ServiceInfo mockServiceInfo = createStrictMock(ServiceInfo.class);
@@ -685,7 +685,7 @@ public class ConfigHelperTest {
     }
 
     @Test
-    public void testGetServiceProperties_RemoveExcluded() throws Exception {
+    public void testGetServicePropertiesRemoveExcluded() throws Exception {
       StackId mockStackVersion = createStrictMock(StackId.class);
       AmbariMetaInfo mockAmbariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
       ServiceInfo mockServiceInfo = createStrictMock(ServiceInfo.class);

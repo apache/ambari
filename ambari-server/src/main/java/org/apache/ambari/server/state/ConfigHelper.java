@@ -867,6 +867,59 @@ public class ConfigHelper {
     }
   }
 
+  /**
+   * Gets the default properties from the specified stack and services when a
+   * cluster is first installed.
+   *
+   * @param stack
+   *          the stack to pull stack-values from (not {@code null})
+   * @param cluster
+   *          the cluster to use when determining which services default
+   *          configurations to include (not {@code null}).
+   * @return a mapping of configuration type to map of key/value pairs for the
+   *         default configurations.
+   * @throws AmbariException
+   */
+  public Map<String, Map<String, String>> getDefaultProperties(StackId stack, Cluster cluster)
+      throws AmbariException {
+    Map<String, Map<String, String>> defaultPropertiesByType = new HashMap<String, Map<String, String>>();
+
+    // populate the stack (non-service related) properties first
+    Set<org.apache.ambari.server.state.PropertyInfo> stackConfigurationProperties = ambariMetaInfo.getStackProperties(
+        stack.getStackName(), stack.getStackVersion());
+
+    for (PropertyInfo stackDefaultProperty : stackConfigurationProperties) {
+      String type = ConfigHelper.fileNameToConfigType(stackDefaultProperty.getFilename());
+
+      if (!defaultPropertiesByType.containsKey(type)) {
+        defaultPropertiesByType.put(type, new HashMap<String, String>());
+      }
+
+      defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
+          stackDefaultProperty.getValue());
+    }
+
+    // for every installed service, populate the default service properties
+    for (String serviceName : cluster.getServices().keySet()) {
+      Set<org.apache.ambari.server.state.PropertyInfo> serviceConfigurationProperties = ambariMetaInfo.getServiceProperties(
+          stack.getStackName(), stack.getStackVersion(), serviceName);
+
+      // !!! use new stack as the basis
+      for (PropertyInfo serviceDefaultProperty : serviceConfigurationProperties) {
+        String type = ConfigHelper.fileNameToConfigType(serviceDefaultProperty.getFilename());
+
+        if (!defaultPropertiesByType.containsKey(type)) {
+          defaultPropertiesByType.put(type, new HashMap<String, String>());
+        }
+
+        defaultPropertiesByType.get(type).put(serviceDefaultProperty.getName(),
+            serviceDefaultProperty.getValue());
+      }
+    }
+
+    return defaultPropertiesByType;
+  }
+
   private boolean calculateIsStaleConfigs(ServiceComponentHost sch) throws AmbariException {
 
     if (sch.isRestartRequired()) {

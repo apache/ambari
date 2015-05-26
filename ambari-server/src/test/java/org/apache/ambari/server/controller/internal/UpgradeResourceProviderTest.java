@@ -68,6 +68,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.RepositoryVersionState;
@@ -79,6 +80,7 @@ import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Assert;
@@ -111,10 +113,17 @@ public class UpgradeResourceProviderTest {
   public void before() throws Exception {
     // setup the config helper for placeholder resolution
     configHelper = EasyMock.createNiceMock(ConfigHelper.class);
+
     expect(
         configHelper.getPlaceholderValueFromDesiredConfigurations(
             EasyMock.anyObject(Cluster.class), EasyMock.eq("{{foo/bar}}"))).andReturn(
         "placeholder-rendered-properly").anyTimes();
+
+    expect(
+        configHelper.getDefaultProperties(EasyMock.anyObject(StackId.class),
+            EasyMock.anyObject(Cluster.class))).andReturn(
+        new HashMap<String, Map<String, String>>()).anyTimes();
+
 
     EasyMock.replay(configHelper);
 
@@ -692,9 +701,109 @@ public class UpgradeResourceProviderTest {
         }
       }
     }
+  }
 
+  /**
+   * Tests merging configurations between existing and new stack values on
+   * upgrade.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testMergeConfigurations() throws Exception {
+    StackId stack211 = new StackId("HDP-2.1.1");
+    StackId stack220 = new StackId("HDP-2.2.0");
 
+    Map<String, Map<String, String>> stack211Configs = new HashMap<String, Map<String, String>>();
+    Map<String, String> stack211FooType = new HashMap<String, String>();
+    Map<String, String> stack211BarType = new HashMap<String, String>();
+    Map<String, String> stack211BazType = new HashMap<String, String>();
+    stack211Configs.put("foo-site", stack211FooType);
+    stack211Configs.put("bar-site", stack211BarType);
+    stack211Configs.put("baz-site", stack211BazType);
+    stack211FooType.put("1", "one");
+    stack211FooType.put("11", "one-one");
+    stack211BarType.put("2", "two");
+    stack211BazType.put("3", "three");
 
+    Map<String, Map<String, String>> stack220Configs = new HashMap<String, Map<String, String>>();
+    Map<String, String> stack220FooType = new HashMap<String, String>();
+    Map<String, String> stack220BazType = new HashMap<String, String>();
+    stack220Configs.put("foo-site", stack220FooType);
+    stack220Configs.put("baz-site", stack220BazType);
+    stack220FooType.put("1", "one-new");
+    stack220FooType.put("111", "one-one-one");
+    stack220BazType.put("3", "three-new");
+
+    Map<String, String> clusterFooType = new HashMap<String, String>();
+    Map<String, String> clusterBarType = new HashMap<String, String>();
+    Map<String, String> clusterBazType = new HashMap<String, String>();
+
+    Config fooConfig = EasyMock.createNiceMock(Config.class);
+    Config barConfig = EasyMock.createNiceMock(Config.class);
+    Config bazConfig = EasyMock.createNiceMock(Config.class);
+
+    clusterFooType.put("1", "one");
+    clusterFooType.put("11", "one-one");
+    clusterBarType.put("2", "two");
+    clusterBazType.put("3", "three-changed");
+
+    expect(fooConfig.getProperties()).andReturn(clusterFooType);
+    expect(barConfig.getProperties()).andReturn(clusterBarType);
+    expect(bazConfig.getProperties()).andReturn(clusterBazType);
+
+    Map<String, DesiredConfig> desiredConfigurations = new HashMap<String, DesiredConfig>();
+    desiredConfigurations.put("foo-site", null);
+    desiredConfigurations.put("bar-site", null);
+    desiredConfigurations.put("baz-site", null);
+
+    Cluster cluster = EasyMock.createNiceMock(Cluster.class);
+    expect(cluster.getCurrentStackVersion()).andReturn(stack211);
+    expect(cluster.getDesiredStackVersion()).andReturn(stack220);
+    expect(cluster.getDesiredConfigs()).andReturn(desiredConfigurations);
+    expect(cluster.getDesiredConfigByType("foo-site")).andReturn(fooConfig);
+    expect(cluster.getDesiredConfigByType("bar-site")).andReturn(barConfig);
+    expect(cluster.getDesiredConfigByType("baz-site")).andReturn(bazConfig);
+
+    // setup the config helper for placeholder resolution
+    EasyMock.reset(configHelper);
+
+    expect(
+        configHelper.getDefaultProperties(EasyMock.eq(stack211), EasyMock.anyObject(Cluster.class))).andReturn(
+        stack211Configs).anyTimes();
+
+    expect(
+        configHelper.getDefaultProperties(EasyMock.eq(stack220), EasyMock.anyObject(Cluster.class))).andReturn(
+        stack220Configs).anyTimes();
+
+    Capture<Map<String, Map<String, String>>> expectedConfigurationsCapture = new Capture<Map<String, Map<String, String>>>();
+
+    configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
+        EasyMock.anyObject(AmbariManagementController.class),
+        EasyMock.capture(expectedConfigurationsCapture),
+        EasyMock.anyObject(String.class), EasyMock.anyObject(String.class));
+
+    EasyMock.expectLastCall().once();
+
+    EasyMock.replay(configHelper, cluster, fooConfig, barConfig, bazConfig);
+
+    UpgradeResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    upgradeResourceProvider.processConfigurations(cluster, "2.2.0.0", Direction.UPGRADE);
+
+    Map<String, Map<String, String>> expectedConfigurations = expectedConfigurationsCapture.getValue();
+    Map<String, String> expectedFooType = expectedConfigurations.get("foo-site");
+    Map<String, String> expectedBarType = expectedConfigurations.get("bar-site");
+    Map<String, String> expectedBazType = expectedConfigurations.get("baz-site");
+
+    // the really important values are one-new and three-changed; one-new
+    // indicates that the new stack value is changed since it was not customized
+    // while three-changed represents that the customized value was preserved
+    // even though the stack value changed
+    assertEquals("one-new", expectedFooType.get("1"));
+    assertEquals("one-one", expectedFooType.get("11"));
+    assertEquals("two", expectedBarType.get("2"));
+    assertEquals("three-changed", expectedBazType.get("3"));
   }
 
   /**
@@ -717,7 +826,4 @@ public class UpgradeResourceProviderTest {
       binder.bind(ConfigHelper.class).toInstance(configHelper);
     }
   }
-
-
-
 }
