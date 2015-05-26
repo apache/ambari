@@ -4043,17 +4043,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       widgetEntity.setMetrics(gson.toJson(layoutInfo.getMetricsInfo()));
       widgetEntity.setProperties(gson.toJson(layoutInfo.getProperties()));
       widgetEntity.setWidgetValues(gson.toJson(layoutInfo.getValues()));
+      widgetEntity.setListWidgetLayoutUserWidgetEntity(new LinkedList<WidgetLayoutUserWidgetEntity>());
       LOG.debug("Creating cluster widget with: name = " +
         layoutInfo.getWidgetName() + ", type = " + layoutInfo.getType() + ", " +
         "cluster = " + clusterEntity.getClusterName());
-      widgetDAO.create(widgetEntity);
-
-      createdEntities = widgetDAO.findByName(clusterEntity.getClusterId(), layoutInfo.getWidgetName(),
-              user, layoutInfo.getDefaultSectionName());
-      if (createdEntities != null && !createdEntities.isEmpty()) {
-        return createdEntities.iterator().next();
-      }
-
+      return widgetEntity;
     } else {
       LOG.warn("Skip creating widget from stack artifact since one or more " +
         "already exits with name = " + layoutInfo.getWidgetName() + ", " +
@@ -4101,6 +4095,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               widgetLayoutUserWidgetEntity.setWidgetOrder(order++);
               widgetLayoutUserWidgetEntity.setWidgetLayout(layoutEntity);
               widgetLayoutUserWidgetEntityList.add(widgetLayoutUserWidgetEntity);
+              widgetEntity.getListWidgetLayoutUserWidgetEntity().add(widgetLayoutUserWidgetEntity);
             }
           }
           layoutEntity.setListWidgetLayoutUserWidgetEntity(widgetLayoutUserWidgetEntityList);

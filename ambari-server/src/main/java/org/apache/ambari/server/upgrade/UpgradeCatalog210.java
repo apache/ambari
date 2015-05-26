@@ -629,6 +629,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     for (Long stackEntityId : stackEntityIds) {
       StackEntity stackEntity = stackDAO.findById(stackEntityId);
       String outdatedJson = entityToJsonMap.get(stackEntityId);
+      String outdatedRepoStack = MessageFormat.format("{0}-{1}",stackEntity.getStackName(),stackEntity.getStackVersion());
 
       String clustersSQL = MessageFormat.format(UPDATE_TEMPLATE, "clusters",
           DESIRED_STACK_ID_COLUMN_NAME, stackEntityId,
@@ -663,7 +664,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
       String repoVersionSQL = MessageFormat.format(UPDATE_TEMPLATE,
           REPO_VERSION_TABLE, STACK_ID_COLUMN_NAME, stackEntityId, "stack",
-          outdatedJson);
+          outdatedRepoStack);
 
       dbAccessor.executeQuery(clustersSQL);
       dbAccessor.executeQuery(hostComponentDesiredStateSQL);
