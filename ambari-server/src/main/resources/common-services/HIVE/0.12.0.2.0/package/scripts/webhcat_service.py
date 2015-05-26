@@ -23,7 +23,7 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def webhcat_service(action='start'):
+def webhcat_service(action='start', rolling_restart=False):
   import params
   if action == 'start' or action == 'stop':
     Service(params.webhcat_server_win_service_name, action=action)

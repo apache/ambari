@@ -44,12 +44,7 @@ stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 #hadoop params
-slider_bin_dir = "/usr/lib/slider/bin"
-if Script.is_hdp_stack_greater_or_equal("2.2"):
-  slider_bin_dir = '/usr/hdp/current/slider-client/bin'
-
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-slider_conf_dir = "/usr/hdp/current/slider-client/conf"
 
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']

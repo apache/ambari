@@ -26,6 +26,7 @@ config = Script.get_config()
 
 hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
 slider_home = os.environ['SLIDER_HOME']
+slider_bin_dir = os.path.join(slider_home, 'bin')
 slider_conf_dir = os.path.join(slider_home, 'conf')
 storm_slider_conf_dir = os.path.join(os.environ['STORM_HOME'], 'conf')
 slider_home_dir = slider_home

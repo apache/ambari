@@ -23,6 +23,26 @@
     <name>ams_user</name>
     <deleted>true</deleted>
   </property>
+  <property>
+    <name>metrics_collector_log_dir</name>
+    <value>C:\var\log\ambari-metrics-collector</value>
+    <description>Collector log directory.</description>
+  </property>
+  <property>
+    <name>metrics_collector_pid_dir</name>
+    <value>C:\var\run\ambari-metrics-collector</value>
+    <description>Collector pid directory.</description>
+  </property>
+  <property>
+    <name>metrics_monitor_pid_dir</name>
+    <value>C:\var\run\ambari-metrics-monitor</value>
+    <description>Monitor pid directory.</description>
+  </property>
+  <property>
+    <name>metrics_monitor_log_dir</name>
+    <value>C:\var\log\ambari-metrics-monitor</value>
+    <description>Monitor log directory.</description>
+  </property>
 
   <property>
     <name>content</name>

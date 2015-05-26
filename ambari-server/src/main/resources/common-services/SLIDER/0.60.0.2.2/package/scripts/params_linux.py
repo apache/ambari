@@ -21,6 +21,11 @@ from resource_management.libraries.script.script import Script
 # server configurations
 config = Script.get_config()
 
+#hadoop params
+slider_bin_dir = "/usr/lib/slider/bin"
+if Script.is_hdp_stack_greater_or_equal("2.2"):
+    slider_bin_dir = '/usr/hdp/current/slider-client/bin'
+
 slider_conf_dir = "/usr/hdp/current/slider-client/conf"
 storm_slider_conf_dir = '/usr/hdp/current/storm-slider-client/conf'
 slider_home_dir = '/usr/hdp/current/slider-client'

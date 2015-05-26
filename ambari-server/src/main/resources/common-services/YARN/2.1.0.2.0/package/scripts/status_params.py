@@ -29,7 +29,7 @@ tmp_dir = Script.get_tmp_dir()
 if OSCheck.is_windows_family():
   resourcemanager_win_service_name = 'resourcemanager'
   nodemanager_win_service_name = 'nodemanager'
-  historyserver_win_service_name = 'jobhistoryserver'
+  historyserver_win_service_name = 'historyserver'
   timelineserver_win_service_name = 'timelineserver'
 
   service_map = {

@@ -26,7 +26,8 @@ import sys
 import json
 import logging
 import platform
-from ambari_commons.os_check import OSCheck
+from ambari_commons import OSCheck, OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.resources import PropertiesFile
 from resource_management.core.resources import File, Directory
@@ -280,7 +281,7 @@ class Script(object):
     :return: a normalized HDP stack version or None
     """
     stack_name = Script.get_stack_name()
-    if stack_name is None or stack_name.upper() != "HDP":
+    if stack_name is None or stack_name.upper() not in ["HDP", "HDPWIN"]:
       return None
 
     config = Script.get_config()
@@ -366,8 +367,9 @@ class Script(object):
     if OSCheck.is_windows_family():
       #TODO hacky install of windows msi, remove it or move to old(2.1) stack definition when component based install will be implemented
       hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
-      install_windows_msi(os.path.join(config['hostLevelParams']['jdk_location'], "hdp.msi"),
-                          config["hostLevelParams"]["agentCacheDir"], "hdp.msi", hadoop_user, self.get_password(hadoop_user),
+      install_windows_msi(config['hostLevelParams']['jdk_location'],
+                          config["hostLevelParams"]["agentCacheDir"], ["hdp-2.3.0.0.winpkg.msi", "hdp-2.3.0.0.cab", "hdp-2.3.0.0-01.cab"],
+                          hadoop_user, self.get_password(hadoop_user),
                           str(config['hostLevelParams']['stack_version']))
       reload_windows_env()
     self.set_version()

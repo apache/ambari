@@ -767,27 +767,6 @@ def formatXmxSizeToBytes(value):
     }[1]
   return to_number(value) * m
 
-def getPort(address):
-  """
-  Extracts port from the address like 0.0.0.0:1019
-  """
-  if address is None:
-    return None
-  m = re.search(r'(?:http(?:s)?://)?([\w\d.]*):(\d{1,5})', address)
-  if m is not None:
-    return int(m.group(2))
-  else:
-    return None
-
-def isSecurePort(port):
-  """
-  Returns True if port is root-owned at *nix systems
-  """
-  if port is not None:
-    return port < 1024
-  else:
-    return False
-
 def getMountPointForDir(dir, mountPoints):
   """
   :param dir: Directory to check, even if it doesn't exist.

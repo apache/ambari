@@ -36,7 +36,7 @@ class HbaseServiceCheckWindows(HbaseServiceCheck):
     env.set_params(params)
     smoke_cmd = os.path.join(params.hdp_root, "Run-SmokeTests.cmd")
     service = "HBASE"
-    Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True)
+    Execute(format("cmd /C {smoke_cmd} {service}"), user=params.hbase_user, logoutput=True)
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)

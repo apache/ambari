@@ -31,7 +31,7 @@ limitations under the License.
 
   <property>
     <name>templeton.libjars</name>
-    <value>/usr/hdp/current/zookeeper-client/zookeeper.jar</value>
+    <value>file:///c:/hdp/hive/lib/zookeeper.jar</value>
     <description>Jars to add the the classpath.</description>
   </property>
 

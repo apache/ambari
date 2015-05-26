@@ -18,8 +18,35 @@ limitations under the License.
 """
 
 import math
-from math import floor
+import re
 from urlparse import urlparse
+
+def getSiteProperties(configurations, siteName):
+  siteConfig = configurations.get(siteName)
+  if siteConfig is None:
+    return None
+  return siteConfig.get("properties")
+
+def getPort(address):
+  """
+  Extracts port from the address like 0.0.0.0:1019
+  """
+  if address is None:
+    return None
+  m = re.search(r'(?:http(?:s)?://)?([\w\d.]*):(\d{1,5})', address)
+  if m is not None:
+    return int(m.group(2))
+  else:
+    return None
+
+def isSecurePort(port):
+  """
+  Returns True if port is root-owned at *nix systems
+  """
+  if port is not None:
+    return port < 1024
+  else:
+    return False
 
 class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
 
@@ -160,7 +187,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
       cpuPercentageLimit = 0.8
       if "yarn.nodemanager.resource.percentage-physical-cpu-limit" in configurations["yarn-site"]["properties"]:
         cpuPercentageLimit = float(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"])
-      cpuLimit = max(1, int(floor(nodeManagerHost["Hosts"]["cpu_count"] * cpuPercentageLimit)))
+      cpuLimit = max(1, int(math.floor(nodeManagerHost["Hosts"]["cpu_count"] * cpuPercentageLimit)))
       putYarnProperty('yarn.nodemanager.resource.cpu-vcores', str(cpuLimit))
       putYarnProperty('yarn.scheduler.maximum-allocation-vcores', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
       putYarnPropertyAttribute('yarn.nodemanager.resource.memory-mb', 'maximum', int(nodeManagerHost["Hosts"]["total_mem"] / 1024)) # total_mem in kb
@@ -647,9 +674,9 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
 
     #Adding Ranger Plugin logic here 
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hdfs-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'No'
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'no'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()):
+    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'yes'):
       if hdfs_site['dfs.permissions.enabled'] != 'true':
         validationItems.append({"config-name": 'dfs.permissions.enabled',
                                     "item": self.getWarnItem(
@@ -747,12 +774,12 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     validationItems = [] 
     #Adding Ranger Plugin logic here 
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-hive-plugin-enabled']
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'no'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ##Add stack validations only if Ranger is enabled.
     if ("RANGER" in servicesList):
       ##Add stack validations for  Ranger plugin enabled.
-      if (ranger_plugin_enabled.lower() == 'Yes'.lower()):
+      if (ranger_plugin_enabled.lower() == 'yes'):
         prop_name = 'hive.security.authorization.manager'
         prop_val = "com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory"
         if hive_server2[prop_name] != prop_val:
@@ -803,12 +830,12 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     validationItems = []
     #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-hive-plugin-enabled']
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'no'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ##Add stack validations only if Ranger is enabled.
     if ("RANGER" in servicesList):
       ##Add stack validations for  Ranger plugin enabled.
-      if (ranger_plugin_enabled.lower() == 'Yes'.lower()):
+      if (ranger_plugin_enabled.lower() == 'yes'):
         prop_name = 'hive.security.authorization.enabled'
         prop_val = 'true'
         if hive_site[prop_name] != prop_val:
@@ -861,11 +888,11 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
 
     #Adding Ranger Plugin logic here 
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hbase-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-hbase-plugin-enabled']
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'no'
     prop_name = 'hbase.security.authorization'
     prop_val = "true"
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()):
+    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'yes'):
       if hbase_site[prop_name] != prop_val:
         validationItems.append({"config-name": prop_name,
                                 "item": self.getWarnItem(

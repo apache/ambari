@@ -51,6 +51,11 @@ def quote_path(filepath):
     filepath_ret = filepath
   return filepath_ret
 
+def trim_uri(file_uri):
+  if file_uri.startswith("file:///"):
+    return file_uri[8:].replace("/", os.sep)
+  return file_uri
+
 def _search_file(filename, search_path, pathsep):
   for path in string.split(search_path, pathsep):
     candidate = os.path.join(path, filename)

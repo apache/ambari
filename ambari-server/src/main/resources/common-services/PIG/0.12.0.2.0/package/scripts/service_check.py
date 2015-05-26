@@ -18,19 +18,19 @@ limitations under the License.
 Ambari Agent
 
 """
+
 import os
 
-from resource_management.libraries.script.script import Script
-from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
-from resource_management.libraries.functions.version import compare_versions
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.source import InlineTemplate, StaticFile
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
-from resource_management.libraries.functions import format
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.script.script import Script
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from resource_management.core.resources.system import File, Execute
-from resource_management.core.source import StaticFile
-
 
 class PigServiceCheck(Script):
   pass
@@ -126,7 +126,7 @@ class PigServiceCheckWindows(PigServiceCheck):
     env.set_params(params)
     smoke_cmd = os.path.join(params.hdp_root,"Run-SmokeTests.cmd")
     service = "PIG"
-    Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True, user=params.hdfs_user)
+    Execute(format("cmd /C {smoke_cmd} {service}", smoke_cmd=smoke_cmd, service=service), logoutput=True, user=params.pig_user, timeout=300)
 
 if __name__ == "__main__":
   PigServiceCheck().execute()

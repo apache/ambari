@@ -71,8 +71,8 @@ def yaml_config_template(configurations):
 
 def yaml_config(filename, configurations = None, conf_dir = None, owner = None, group = None):
   import params
-  config_content = InlineTemplate('''{% for key, value in configurations_dict.items() %}{{ key }}: {{ escape_yaml_property(value) }}
-{% endfor %}''', configurations_dict=configurations, extra_imports=[escape_yaml_property])
+  config_content = InlineTemplate('''{% for key, value in configurations_dict|dictsort %}{{ key }}: {{ escape_yaml_property(resource_management.core.source.InlineTemplate(value).get_content()) }}
+{% endfor %}''', configurations_dict=configurations, extra_imports=[escape_yaml_property, resource_management, resource_management.core, resource_management.core.source])
 
   File (os.path.join(params.conf_dir, filename),
         content = config_content,

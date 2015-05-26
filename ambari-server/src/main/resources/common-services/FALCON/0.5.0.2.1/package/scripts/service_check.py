@@ -47,7 +47,7 @@ class FalconServiceCheckWindows(FalconServiceCheck):
     env.set_params(params)
     smoke_cmd = os.path.join(params.hdp_root,"Run-SmokeTests.cmd")
     service = "FALCON"
-    Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True)
+    Execute(format("cmd /C {smoke_cmd} {service}"), user=params.falcon_user, logoutput=True)
 
 if __name__ == "__main__":
   FalconServiceCheck().execute()
