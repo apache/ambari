@@ -1464,19 +1464,6 @@ describe('App.InstallerStep7Controller', function () {
       sinon.stub(installerStep7Controller, 'selectProperService', Em.K);
       sinon.stub(installerStep7Controller, 'setStepConfigs', Em.K);
       sinon.stub(App.router, 'send', Em.K);
-      sinon.stub(App.StackService, 'find', function () {
-        return {
-          findProperty: function () {
-            return Em.Object.create({
-              isInstalled: true,
-              isSelected: false
-            });
-          },
-          filterProperty: function () {
-            return [];
-          }
-        }
-      });
     });
     afterEach(function () {
       App.config.fileConfigsIntoTextarea.restore();
@@ -1487,7 +1474,6 @@ describe('App.InstallerStep7Controller', function () {
       installerStep7Controller.selectProperService.restore();
       installerStep7Controller.setStepConfigs.restore();
       App.router.send.restore();
-      App.StackService.find.restore();
     });
 
     it('should run some methods' , function () {

@@ -1590,29 +1590,6 @@ App.config = Em.Object.create({
       });
       return !!matchingConfigType;
     }
-  },
-
-  /**
-   * Remove all ranger-related configs, that should be available only if Ranger is installed
-   * @param configs - stepConfigs object
-   */
-  removeRangerConfigs: function (configs) {
-    configs.forEach(function (service) {
-      var filteredConfigs = [];
-      service.get('configs').forEach(function (config) {
-        if (!/^ranger-/.test(config.get('filename'))) {
-          filteredConfigs.push(config);
-        }
-      });
-      service.set('configs', filteredConfigs);
-      var filteredCategories = [];
-      service.get('configCategories').forEach(function (category) {
-        if (!/ranger-/.test(category.get('name'))) {
-          filteredCategories.push(category);
-        }
-      });
-      service.set('configCategories', filteredCategories);
-    });
   }
 
 });
