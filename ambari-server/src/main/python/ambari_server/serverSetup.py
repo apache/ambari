@@ -1014,7 +1014,7 @@ def check_setup_already_done():
 def setup(options):
   if options.only_silent:
     if check_setup_already_done():
-      print "Nothing was done. Please, use ambari-server setup command without [-s] key, to change configuration."
+      print "Nothing was done. Ambari Setup already performed and cannot re-run setup in silent mode. Use \"ambari-server setup\" command without -s option to change Ambari setup."
       sys.exit(0)
 
   retcode = verify_setup_allowed()
