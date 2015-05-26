@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProviderTest;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -25,6 +26,7 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -159,6 +161,24 @@ public class BlueprintFactoryTest {
     assertTrue(configuration.getAttributes().isEmpty());
 
     verify(dao, entity, configEntity);
+  }
+
+  @Test(expected=NoSuchStackException.class)
+  public void testCreateInvalidStack() throws Exception {
+    EasyMockSupport mockSupport = new EasyMockSupport();
+    BlueprintFactory.StackFactory mockStackFactory =
+      mockSupport.createMock(BlueprintFactory.StackFactory.class);
+
+    // setup mock to throw exception, to simulate invalid stack request
+    expect(mockStackFactory.createStack("null", "null", null)).andThrow(new ObjectNotFoundException("Invalid Stack"));
+
+    mockSupport.replayAll();
+
+    BlueprintFactory factoryUnderTest =
+      new BlueprintFactory(mockStackFactory);
+    factoryUnderTest.createStack(new HashMap<String, Object>());
+
+    mockSupport.verifyAll();
   }
 
   @Test(expected=IllegalArgumentException.class)

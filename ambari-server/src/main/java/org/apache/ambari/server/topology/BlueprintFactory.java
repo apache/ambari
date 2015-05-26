@@ -21,7 +21,9 @@ package org.apache.ambari.server.topology;
 
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -66,6 +68,16 @@ public class BlueprintFactory {
   private static BlueprintDAO blueprintDAO;
   private ConfigurationFactory configFactory = new ConfigurationFactory();
 
+  private final StackFactory stackFactory;
+
+  public BlueprintFactory() {
+    this(new DefaultStackFactory());
+  }
+
+  protected BlueprintFactory(StackFactory stackFactory) {
+    this.stackFactory = stackFactory;
+  }
+
   public Blueprint getBlueprint(String blueprintName) throws NoSuchStackException {
     BlueprintEntity entity = blueprintDAO.findByName(blueprintName);
     //todo: just return null?
@@ -95,14 +107,13 @@ public class BlueprintFactory {
     return new BlueprintImpl(name, hostGroups, stack, configuration);
   }
 
-  //todo: StackFactory
   protected Stack createStack(Map<String, Object> properties) throws NoSuchStackException {
     String stackName = String.valueOf(properties.get(STACK_NAME_PROPERTY_ID));
     String stackVersion = String.valueOf(properties.get(STACK_VERSION_PROPERTY_ID));
     try {
       //todo: don't pass in controller
-      return new Stack(stackName, stackVersion, AmbariServer.getController());
-    } catch (StackAccessException e) {
+      return stackFactory.createStack(stackName, stackVersion, AmbariServer.getController());
+    } catch (ObjectNotFoundException e) {
       throw new NoSuchStackException(stackName, stackVersion);
     } catch (AmbariException e) {
       //todo:
@@ -195,5 +206,28 @@ public class BlueprintFactory {
   @Inject
   public static void init(BlueprintDAO dao) {
     blueprintDAO   = dao;
+  }
+
+  /**
+   * Internal interface used to abstract out the process of creating the Stack object.
+   *
+   * This is used to simplify unit testing, since a new Factory can be provided to
+   * simulate various Stack or error conditions.
+   */
+  interface StackFactory {
+      public Stack createStack(String stackName, String stackVersion, AmbariManagementController managementController) throws AmbariException;
+  }
+
+  /**
+   * Default implementation of StackFactory.
+   *
+   * Calls the Stack constructor to create the Stack instance.
+   *
+   */
+  private static class DefaultStackFactory implements StackFactory {
+    @Override
+    public Stack createStack(String stackName, String stackVersion, AmbariManagementController managementController) throws AmbariException {
+      return new Stack(stackName, stackVersion, managementController);
+    }
   }
 }
