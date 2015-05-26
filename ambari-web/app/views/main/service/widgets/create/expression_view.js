@@ -204,7 +204,10 @@ App.AddMetricExpressionView = Em.View.extend({
   controller: function () {
     return this.get('parentView.controller');
   }.property('parentView.controller'),
-  elementId: 'add-metric-menu',
+  elementId: function () {
+    var expressionId = "_" + this.get('parentView').get('expression.id');
+    return 'add-metric-menu' + expressionId;
+  }.property(),
   didInsertElement: function () {
     //prevent dropdown closing on click select
     $('html').on('click.dropdown', '.dropdown-menu li', function (e) {
@@ -329,7 +332,7 @@ App.AddMetricExpressionView = Em.View.extend({
     }
 
     for (var serviceName in servicesMap) {
-      components = [];
+      var components = [];
       for (var componentId in servicesMap[serviceName].components) {
 
         //HBase service should not show "Active HBase master"
@@ -429,7 +432,8 @@ App.InputCursorTextfieldView = Ember.TextField.extend({
         this.set('value', '');
       } else if (value && value == 'm') {
         // open add metric menu
-        $('#add-metric-menu > div > a').click();
+        var expressionId = "_" + parentView.get('expression.id');
+        $('#add-metric-menu' + expressionId + '> div > a').click();
         this.set('value', '');
       } else if (value) {
         // invalid operator
