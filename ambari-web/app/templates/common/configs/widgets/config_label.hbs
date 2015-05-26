@@ -20,6 +20,6 @@
   <div class="clearfix"></div>
   <p {{bindAttr class=":widget-config-label view.configLabelClass"}}>
    {{view view.issueView configBinding="view.config"}}
-   {{formatWordBreak view.configLabel}}
+   {{formatWordBreak view.configLabel data-original-titleBinding="view.issueMessage"}}
   </p>
 {{/if}}

@@ -119,6 +119,8 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
 
   classNameBindings:['isComparison:compare-mode'],
 
+  issueMessage: '',
+
   issueView: Em.View.extend({
 
     tagName: 'i',
@@ -182,6 +184,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
       this.set('parentView.configLabelClass', issue.configLabelClass);
       this.set('issueIconClass', issue.iconClass);
       this.set('issueMessage', issue.message);
+      this.set('parentView.issueMessage', issue.message);
     },
 
     /**
@@ -325,6 +328,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   }.observes('controller.recommendationTimeStamp'),
 
   didInsertElement: function () {
+    App.tooltip($(this.get('element')).find('span'));
     var self = this;
     var element = this.$();
     if (element) {

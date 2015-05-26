@@ -765,6 +765,7 @@ App.registerBoundHelper('formatNull', Em.View.extend({
  * {{formatWordBreak 'apple.banana.uranium'}}
  */
 App.registerBoundHelper('formatWordBreak', Em.View.extend({
+  attributeBindings: ["data-original-title"],
   tagName: 'span',
   template: Em.Handlebars.compile('{{{view.result}}}'),
 
