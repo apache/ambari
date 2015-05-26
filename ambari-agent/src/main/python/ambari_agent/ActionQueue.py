@@ -94,7 +94,7 @@ class ActionQueue(threading.Thread):
     self.statusCommandQueue.queue.clear()
 
     for command in commands:
-      logger.debug("Adding " + command['commandType'] + " for service " + \
+      logger.info("Adding " + command['commandType'] + " for service " + \
                   command['serviceName'] + " of cluster " + \
                   command['clusterName'] + " to the queue.")
       self.statusCommandQueue.put(command)
@@ -106,7 +106,7 @@ class ActionQueue(threading.Thread):
       if not command.has_key('clusterName'):
         command['clusterName'] = 'null'
 
-      logger.debug("Adding " + command['commandType'] + " for role " + \
+      logger.info("Adding " + command['commandType'] + " for role " + \
                   command['role'] + " for service " + \
                   command['serviceName'] + " of cluster " + \
                   command['clusterName'] + " to the queue.")
@@ -229,7 +229,7 @@ class ActionQueue(threading.Thread):
               "cluster {cluster}.".format(
               commandId = str(commandId), role=command['role'],
               cluster=clusterName)
-    logger.debug(message)
+    logger.info(message)
 
     taskId = command['taskId']
     # Preparing 'IN_PROGRESS' report

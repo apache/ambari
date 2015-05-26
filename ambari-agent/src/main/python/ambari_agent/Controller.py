@@ -122,7 +122,7 @@ class Controller(threading.Thread):
 
         try:
           server_ip = socket.gethostbyname(self.hostname)
-          logger.debug("Registering with %s (%s) (agent=%s)", self.hostname, server_ip, prettyData)
+          logger.info("Registering with %s (%s) (agent=%s)", self.hostname, server_ip, prettyData)
         except socket.error:
           logger.warn("Unable to determine the IP address of '%s', agent registration may fail (agent=%s)",
                       self.hostname, prettyData)
@@ -148,7 +148,7 @@ class Controller(threading.Thread):
           return ret
 
         self.responseId = int(ret['responseId'])
-        logger.debug("Registration Successful (response id = %s)", self.responseId)
+        logger.info("Registration Successful (response id = %s)", self.responseId)
 
         self.isRegistered = True
         if 'statusCommands' in ret.keys():
@@ -241,7 +241,7 @@ class Controller(threading.Thread):
 
         serverId = int(response['responseId'])
 
-        logger.debug('Heartbeat response received (id = %s)', serverId)
+        logger.info('Heartbeat response received (id = %s)', serverId)
 
         if 'hasMappedComponents' in response.keys():
           self.hasMappedComponents = response['hasMappedComponents'] is not False
@@ -366,12 +366,12 @@ class Controller(threading.Thread):
   def registerAndHeartbeat(self):
     registerResponse = self.registerWithServer()
     message = registerResponse['response']
-    logger.debug("Registration response from %s was %s", self.serverHostname, message)
+    logger.info("Registration response from %s was %s", self.serverHostname, message)
 
     if self.isRegistered:
       # Clearing command queue to stop executing "stale" commands
       # after registration
-      logger.debug('Resetting ActionQueue...')
+      logger.info('Resetting ActionQueue...')
       self.actionQueue.reset()
 
       # Process callbacks

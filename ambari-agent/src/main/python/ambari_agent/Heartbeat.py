@@ -74,7 +74,7 @@ class Heartbeat:
     if int(id) == 0:
       componentsMapped = False
 
-    logger.debug("Building Heartbeat: {responseId = %s, timestamp = %s, commandsInProgress = %s, componentsMapped = %s}",
+    logger.info("Building Heartbeat: {responseId = %s, timestamp = %s, commandsInProgress = %s, componentsMapped = %s}",
         str(id), str(timestamp), repr(commandsInProgress), repr(componentsMapped))
 
     if logger.isEnabledFor(logging.DEBUG):

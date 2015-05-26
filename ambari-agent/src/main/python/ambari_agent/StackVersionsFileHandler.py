@@ -104,7 +104,7 @@ class StackVersionsFileHandler:
      Called to create file when it does not exist
     '''
     if not os.path.isfile(self.versionsFilePath):
-      logger.debug("Creating stacks versions file at %s" % self.versionsFilePath)
+      logger.info("Creating stacks versions file at %s" % self.versionsFilePath)
       open(self.versionsFilePath, 'w').close()
 
 

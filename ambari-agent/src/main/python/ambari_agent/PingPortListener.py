@@ -47,7 +47,7 @@ class PingPortListener(threading.Thread):
     self.socket.bind((self.host, self.port))
     self.socket.listen(1)
     config.set('agent','current_ping_port',str(self.socket.getsockname()[1]))
-    logger.debug("Ping port listener started on port: " + str(self.socket.getsockname()[1]))
+    logger.info("Ping port listener started on port: " + str(self.socket.getsockname()[1]))
 
 
   def run_os_command_in_shell(self, command):

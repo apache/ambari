@@ -56,7 +56,7 @@ class NetUtil:
 
        Additionally returns body of request, if available
     """
-    logger.debug("Connecting to " + url)
+    logger.info("Connecting to " + url)
     responseBody = ""
 
     try:
