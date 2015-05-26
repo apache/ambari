@@ -193,6 +193,7 @@ App.WidgetWizardController = App.WizardController.extend({
         dfd.resolve(self.get('content.allMetrics'));
       });
     } else {
+      this.set("content.isMetricsLoaded", true);
       this.set('content.allMetrics', allMetrics);
       dfd.resolve(allMetrics);
     }
