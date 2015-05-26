@@ -168,7 +168,23 @@ App.MainAdminStackVersionsView = Em.View.extend({
    */
   goToVersions: function () {
     return App.showConfirmationPopup(function () {
-      window.location.replace('/views/ADMIN_VIEW/2.0.0/INSTANCE/#/stackVersions');
+      App.ajax.send({
+        name: 'ambari.service.load_server_version',
+        sender: this
+      }).then(function(data) {
+        var components = Em.get(data,'components');
+        if (Em.isArray(components)) {
+          var mappedVersions = components.map(function(component) {
+              if (Em.get(component, 'RootServiceComponents.component_version')) {
+                return Em.get(component, 'RootServiceComponents.component_version');
+              }
+            }),
+            sortedMappedVersions = mappedVersions.sort(),
+            latestVersion = sortedMappedVersions[sortedMappedVersions.length-1];
+            console.log('/views/ADMIN_VIEW/' + latestVersion + '/INSTANCE/#/stackVersions');
+            window.location.replace('/views/ADMIN_VIEW/' + latestVersion + '/INSTANCE/#/stackVersions');
+        }
+      });
     },
     Em.I18n.t('admin.stackVersions.manageVersions.popup.body'),
     null,

@@ -201,6 +201,12 @@ var urls = {
     'mock': '/data/services/ambari.json'
   },
 
+  'ambari.service.load_server_version': {
+    'real': '/services/AMBARI?fields=components/RootServiceComponents/component_version&components/RootServiceComponents/component_name=AMBARI_SERVER&minimal_response=true',
+    'mock': '/data/services/ambari.json'
+  },
+
+
   'service.flume.agent.command': {
     'real': '/clusters/{clusterName}/hosts/{host}/host_components/FLUME_HANDLER',
     'mock': '',

@@ -17,7 +17,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
 <view>
   <name>ADMIN_VIEW</name>
   <label>Ambari Admin View</label>
-  <version>2.0.0</version>
+  <version>2.1.0</version>
   <system>true</system>
   <instance>
     <name>INSTANCE</name>

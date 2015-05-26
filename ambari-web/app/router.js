@@ -275,8 +275,6 @@ App.Router = Em.Router.extend({
   },
 
   loginGetClustersSuccessCallback: function (clustersData, opt, params) {
-    var adminViewUrl = '/views/ADMIN_VIEW/2.0.0/INSTANCE/#/';
-    //TODO: Replace hard coded value with query. Same in templates/application.hbs
     var loginController = this.get('loginController');
     var loginData = params.loginData;
     var privileges = loginData.privileges || [];
@@ -290,8 +288,12 @@ App.Router = Em.Router.extend({
           router.setClusterInstalled(clustersData);
           transitionToApp = true;
         } else {
-          window.location = adminViewUrl;
-          return;
+          App.ajax.send({
+            name: 'ambari.service.load_server_version',
+            sender: this,
+            success: 'adminViewInfoSuccessCallback',
+            error: 'adminViewInfoErrorCallback'
+          });
         }
       } else {
         if (clustersData.items.length) {
@@ -312,7 +314,7 @@ App.Router = Em.Router.extend({
       }
       App.set('isPermissionDataLoaded', true);
       if (transitionToApp) {
-        if (!Em.isNone(router.get('preferedPath')) && 
+        if (!Em.isNone(router.get('preferedPath')) &&
             router.get('preferedPath') != "#/login") {
           window.location = router.get('preferedPath');
           router.set('preferedPath', null);
@@ -326,6 +328,23 @@ App.Router = Em.Router.extend({
         router.transitionTo('main.views.index');
         loginController.postLogin(true,true);
       }
+  },
+  adminViewInfoSuccessCallback: function(data) {
+    var components = Em.get(data,'components');
+    if (Em.isArray(components)) {
+      var mappedVersions = components.map(function(component) {
+          if (Em.get(component, 'RootServiceComponents.component_version')) {
+            return Em.get(component, 'RootServiceComponents.component_version');
+          }
+        }),
+        sortedMappedVersions = mappedVersions.sort(),
+        latestVersion = sortedMappedVersions[sortedMappedVersions.length-1];
+      window.location.replace('/views/ADMIN_VIEW/' + latestVersion + '/INSTANCE/#/');
+    }
+  },
+
+  adminViewInfoErrorCallback: function (req) {
+    console.log("Get admin view version error: " + req.statusCode);
   },
 
   loginGetClustersErrorCallback: function (req) {
@@ -506,7 +525,12 @@ App.Router = Em.Router.extend({
             router.transitionTo('login');
           });
         } else {
-            window.location.replace('/views/ADMIN_VIEW/2.0.0/INSTANCE/#/');
+          App.ajax.send({
+            name: 'ambari.service.load_server_version',
+            sender: router,
+            success: 'adminViewInfoSuccessCallback',
+            error: 'adminViewInfoErrorCallback'
+          });
         }
       }
     }),

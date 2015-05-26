@@ -108,4 +108,60 @@ describe('App.Router', function () {
 
   });
 
+  describe('#adminViewInfoSuccessCallback', function() {
+    beforeEach(function() {
+      sinon.stub(window.location, 'replace', Em.K);
+    });
+    afterEach(function() {
+      window.location.replace.restore();
+    });
+
+    it('should redirect to the latest version of admin view', function() {
+      var tests = [{
+        mockData: {
+          components: [{
+            'RootServiceComponents': {
+              'component_version': '1.9.0'
+            }
+          }, {
+            'RootServiceComponents': {
+              'component_version': '2.0.0'
+            }
+          }]
+        },
+        expected: '/views/ADMIN_VIEW/2.0.0/INSTANCE/#/'
+      }, {
+        mockData: {
+          components: [{
+            'RootServiceComponents': {
+              'component_version': '1.9.0'
+            }
+          }, {
+            'RootServiceComponents': {
+              'component_version': '2.1.0'
+            }
+          }, {
+            'RootServiceComponents': {
+              'component_version': '2.0.0'
+            }
+          }]
+        },
+        expected: '/views/ADMIN_VIEW/2.1.0/INSTANCE/#/'
+      }, {
+        mockData: {
+          versions: [{
+            'RootServiceComponents': {
+              version: '2.1.0'
+            }
+          }]
+        },
+        expected: '/views/ADMIN_VIEW/2.1.0/INSTANCE/#/'
+      }];
+
+      tests.forEach(function(data) {
+        router.adminViewInfoSuccessCallback(data.mockData);
+        expect(window.location.replace.calledWith(data.expected)).to.be.true;
+      });
+    });
+  });
 });
