@@ -500,16 +500,18 @@ App.config = Em.Object.create({
     var mergedConfigs = [];
     var contentProperties = advancedConfigs ? this.createContentProperties(advancedConfigs) : [];
     var preDefinedConfigs = this.get('preDefinedSiteProperties').concat(contentProperties);
-
+    var self = this;
     storedConfigs = (storedConfigs) ? storedConfigs : [];
 
     var preDefinedNames = preDefinedConfigs.mapProperty('name');
     var storedNames = storedConfigs.mapProperty('name');
     var names = preDefinedNames.concat(storedNames).uniq();
-    var configTypes = Em.keys(App.StackService.find().filter(function(service) {
+    var configTypes = App.StackService.find().filter(function(service) {
       return selectedServiceNames.contains(service.get('serviceName'));
-    }).mapProperty('configTypes'))
-      .uniq().compact().filter(function(configType) { return !!configType; });
+    }).map(function(item) {
+      return Em.keys(item.get('configTypes'));
+    }).reduce(function(p,c) { return p.concat(c); })
+    .uniq().compact().filter(function(configType) { return !!configType; });
 
     names.forEach(function (name) {
       var storedCfgs = storedConfigs.filterProperty('name', name);
@@ -517,7 +519,7 @@ App.config = Em.Object.create({
       var preDefinedConfig = preDefinedConfigs.filterProperty('name', name);
       preDefinedConfig.forEach(function (_preDefinedConfig) {
         if (selectedServiceNames.contains(_preDefinedConfig.serviceName) || _preDefinedConfig.serviceName === 'MISC') {
-          if (_preDefinedConfig.serviceName != 'MISC' && _preDefinedConfig.filename && !configTypes.contains(_preDefinedConfig.filename)) {
+          if (_preDefinedConfig.serviceName != 'MISC' && _preDefinedConfig.filename && !configTypes.contains(self.getConfigTagFromFileName(_preDefinedConfig.filename))) {
             return;
           }
           preDefinedCfgs.push(_preDefinedConfig);
