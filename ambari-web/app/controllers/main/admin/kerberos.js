@@ -385,6 +385,8 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
         },
         success: 'getSecurityTypeSuccess'
       })
+    } else if (Em.typeOf(callback)=== 'function') {
+      callback();
     }
   },
 
