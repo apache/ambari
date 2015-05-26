@@ -277,6 +277,10 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
     this.get('tasks').findProperty('id', taskId).set('status', status);
   },
 
+  setTaskCanSkip: function (taskId, canSkip) {
+    this.get('tasks').findProperty('id', taskId).set('canSkip', true);
+  },
+
   setRequestIds: function (taskId, requestIds) {
     this.get('tasks').findProperty('id', taskId).set('requestIds', requestIds);
   },
@@ -336,12 +340,19 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
       } else {
         this.set('showRetry', true);
       }
+
+      if (this.get('tasks').someProperty('canSkip', true)) {
+        this.get('tasks').findProperty('canSkip', true).set('showSkip', true);
+      }
+
       if (App.supports.autoRollbackHA) {
         this.get('tasks').findProperty('status', 'FAILED').set('showRollback', true);
       }
     }
     this.get('tasks').filterProperty('status', 'COMPLETED').setEach('showRetry', false);
     this.get('tasks').filterProperty('status', 'COMPLETED').setEach('showRollback', false);
+    this.get('tasks').filterProperty('status', 'COMPLETED').setEach('showSkip', false);
+    this.get('tasks').filterProperty('status', 'IN_PROGRESS').setEach('showSkip', false);
 
     if (data && data.deferred) {
       data.deferred.resolve();
@@ -357,6 +368,11 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
 
   onTaskError: function () {
     this.setTaskStatus(this.get('currentTaskId'), 'FAILED');
+  },
+
+  onTaskErrorWithSkip: function () {
+    this.onTaskError();
+    this.setTaskCanSkip(this.get('currentTaskId'), true);
   },
 
   onSingleRequestError: function (jqXHR, ajaxOptions, error, opt) {
@@ -512,7 +528,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
           },
           success: 'onCreateComponent',
           error: 'onCreateComponent'
-        });        
+        });
       } else {
         self.onCreateComponent(null, null, {
           hostName: result.mapProperty('hostName'),
@@ -542,7 +558,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
 
   /**
    * Update component status on selected hosts.
-   * 
+   *
    * @param {string} componentName
    * @param {(string|string[])} hostName
    * @param {string} serviceName
@@ -660,5 +676,3 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
   }
 
 });
-
-

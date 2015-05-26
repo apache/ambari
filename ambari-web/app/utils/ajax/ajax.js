@@ -1422,6 +1422,22 @@ var urls = {
       }
     }
   },
+
+  'admin.unkerberize.cluster.skip': {
+    'type': 'PUT',
+    'real': '/clusters/{clusterName}?manage_kerberos_identities=false',
+    'mock': '',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          Clusters: {
+            security_type: "NONE"
+          }
+        })
+      }
+    }
+  },
+
   'get.cluster.artifact': {
     'real': '/clusters/{clusterName}/artifacts/{artifactName}?fields=artifact_data',
     'mock': '/data/wizard/kerberos/stack_descriptors.json'

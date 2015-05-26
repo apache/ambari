@@ -41,6 +41,15 @@ App.KerberosDisableController = App.KerberosProgressPageController.extend(App.Wi
       name: 'admin.unkerberize.cluster',
       sender: this,
       success: 'startPolling',
+      error: 'onTaskErrorWithSkip'
+    });
+  },
+
+  skipTask: function () {
+    return App.ajax.send({
+      name: 'admin.unkerberize.cluster.skip',
+      sender: this,
+      success: 'startPolling',
       error: 'onTaskError'
     });
   },
