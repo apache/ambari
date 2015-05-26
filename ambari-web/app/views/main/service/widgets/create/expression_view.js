@@ -210,6 +210,11 @@ App.AddMetricExpressionView = Em.View.extend({
     $('html').on('click.dropdown', '.dropdown-menu li', function (e) {
       $(this).hasClass('keep-open') && e.stopPropagation();
     });
+    $('html').on('blur', '#add-metric-menu>div.btn-group', function (e) {
+      //reset to default
+      $('.aggregator-select select').val('').trigger("chosen:updated");
+      $('.metric-select select').val('').trigger("chosen:updated");
+    });
   },
 
   metricsSelectionObj: function () {
