@@ -226,3 +226,19 @@ class TestUtils(TestCase):
     # now supply keyword args to override env params
     formatted_message = formatter.format(message, envfoo="foobar", envbar="foobarbaz", foo="foo3", bar="bar3")
     self.assertEquals("foo3 bar3 foobar foobarbaz", formatted_message)
+
+  def test_compare_versions(self):
+    self.assertEquals(utils.compare_versions("1.7.0", "2.0.0"), -1)
+    self.assertEquals(utils.compare_versions("2.0.0", "2.0.0"), 0)
+    self.assertEquals(utils.compare_versions("2.1.0", "2.0.0"), 1)
+
+    self.assertEquals(utils.compare_versions("1.7.0_abc", "2.0.0-abc"), -1)
+    self.assertEquals(utils.compare_versions("2.0.0.abc", "2.0.0_abc"), 0)
+    self.assertEquals(utils.compare_versions("2.1.0-abc", "2.0.0.abc"), 1)
+
+    self.assertEquals(utils.compare_versions("2.1.0-1","2.0.0-2"),1)
+    self.assertEquals(utils.compare_versions("2.0.0_1","2.0.0-2"),0)
+    self.assertEquals(utils.compare_versions("2.0.0-1","2.0.0-2"),0)
+    self.assertEquals(utils.compare_versions("2.0.0_1","2.0.0_2"),0)
+    self.assertEquals(utils.compare_versions("2.0.0-abc","2.0.0_abc"),0)
+

@@ -248,7 +248,26 @@ def get_postgre_running_status():
 
 
 def compare_versions(version1, version2):
+  """Compare two versions by digits. Ignore any alphanumeric characters after - and _ postfix.
+  Return 1 if version1 is newer than version2
+  Return -1 if version1 is older than version2
+  Return 0 if two versions are the same
+  """
   def normalize(v):
+    v = str(v)
+    v = re.sub(r'^\D+', '', v)
+    v = re.sub(r'\D+$', '', v)
+    v = v.strip(".-_")
+    pos_under = v.find("_")
+    pos_dash = v.find("-")
+    if pos_under > 0 and pos_dash < 0:
+      pos = pos_under
+    elif pos_under < 0 and pos_dash > 0:
+      pos = pos_dash
+    else:
+      pos = min(pos_under, pos_dash)
+    if pos > 0:
+      v = v[0:pos]
     return [int(x) for x in re.sub(r'(\.0+)*$', '', v).split(".")]
   return cmp(normalize(version1), normalize(version2))
   pass
