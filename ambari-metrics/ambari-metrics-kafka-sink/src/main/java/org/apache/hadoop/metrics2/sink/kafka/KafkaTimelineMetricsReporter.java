@@ -34,6 +34,7 @@ import kafka.metrics.KafkaMetricsConfig;
 import kafka.metrics.KafkaMetricsReporter;
 import kafka.utils.VerifiableProperties;
 import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
@@ -260,17 +261,8 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       String[] metricHNames = cacheKafkaSummarizable(currentTimeMillis, sanitizedName, histogram);
       String[] metricSNames = cacheKafkaSnapshot(currentTimeMillis, sanitizedName, snapshot);
 
-      String[] metricNames = new String[] {
-          metricHNames[0],
-          metricHNames[1],
-          metricSNames[0],
-          metricHNames[2],
-          metricSNames[1],
-          metricSNames[2],
-          metricSNames[3],
-          metricSNames[4],
-          metricSNames[5],
-          metricHNames[3] };
+      String[] metricNames = (String[]) ArrayUtils.addAll(metricHNames, metricSNames);
+
       populateMetricsList(context, metricNames);
     }
 
@@ -284,22 +276,9 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       String[] metricTNames = cacheKafkaSummarizable(currentTimeMillis, sanitizedName, timer);
       String[] metricSNames = cacheKafkaSnapshot(currentTimeMillis, sanitizedName, snapshot);
 
-      String[] metricNames = new String[] {
-          metricMNames[0],
-          metricMNames[1],
-          metricMNames[2],
-          metricMNames[3],
-          metricMNames[4],
-          metricTNames[0],
-          metricTNames[1],
-          metricSNames[0],
-          metricTNames[2],
-          metricSNames[1],
-          metricSNames[2],
-          metricSNames[3],
-          metricSNames[4],
-          metricSNames[5],
-          metricTNames[3] };
+      String[] metricNames = (String[]) ArrayUtils.addAll(metricMNames, metricTNames);
+      metricNames = (String[]) ArrayUtils.addAll(metricNames, metricSNames);
+
       populateMetricsList(context, metricNames);
     }
 
