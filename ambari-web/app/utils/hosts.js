@@ -211,12 +211,25 @@ module.exports = {
             data: {
               hostNames: hostNames.join(','),
               requestInfo: operationData.message,
-              rackId: rackId
+              rackId: rackId,
+              hostNamesArray: hostNames
             },
+            success: 'successRackId',
             error: 'errorRackId'
           });
         }
         this.hide();
+      }
+    });
+  },
+
+  /**
+   * Success callback for set rack id request
+   */
+  successRackId: function (response, request, params) {
+    App.Host.find().forEach(function(host){
+      if (params.hostNamesArray.contains(host.get('hostName'))) {
+        host.set('rack', params.rackId)
       }
     });
   },
