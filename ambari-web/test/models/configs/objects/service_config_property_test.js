@@ -574,4 +574,39 @@ describe('App.ServiceConfigProperty', function () {
 
   });
 
+  describe('#undoAvailable', function () {
+
+    Em.A([
+      {
+        cantBeUndone: true,
+        isNotDefaultValue: true,
+        e: false
+      },
+      {
+        cantBeUndone: false,
+        isNotDefaultValue: true,
+        e: true
+      },
+      {
+        cantBeUndone: true,
+        isNotDefaultValue: false,
+        e: false
+      },
+      {
+        cantBeUndone: false,
+        isNotDefaultValue: false,
+        e: false
+      }
+    ]).forEach(function (test) {
+      it('', function () {
+        serviceConfigProperty.reopen({
+          cantBeUndone: test.cantBeUndone,
+          isNotDefaultValue: test.isNotDefaultValue
+        });
+        expect(serviceConfigProperty.get('undoAvailable')).to.equal(test.e);
+      });
+    });
+
+  });
+
 });

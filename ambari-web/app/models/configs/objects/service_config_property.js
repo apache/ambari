@@ -239,7 +239,7 @@ App.ServiceConfigProperty = Em.Object.extend({
    * @type {boolean}
    */
   undoAvailable: function () {
-    return this.get('cantBeUndone') && this.get('isNotDefaultValue');
+    return !this.get('cantBeUndone') && this.get('isNotDefaultValue');
   }.property('cantBeUndone', 'isNotDefaultValue'),
 
   /**
