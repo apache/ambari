@@ -29,6 +29,7 @@ exports.config =
       joinTo:
         'javascripts/app.js': /^app/
         'javascripts/vendor.js': /^bower_components|vendor/
+        'javascripts/test.js': /^test(\/|\\)(?!vendor)/
       order:
         before: [
           'bower_components/jquery/dist/jquery.js',
