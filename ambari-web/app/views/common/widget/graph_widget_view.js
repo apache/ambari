@@ -252,6 +252,9 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
     isPreview: function () {
       return this.get('parentView.isPreview');
     }.property('parentView.isPreview'),
+    displayUnit: function () {
+      return this.get('parentView.content.properties.display_unit');
+    }.property('parentView.content.properties.display_unit'),
 
     /**
      * set custom time range for graph widget

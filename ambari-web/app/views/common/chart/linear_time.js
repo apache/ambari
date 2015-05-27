@@ -144,6 +144,12 @@ App.ChartLinearTimeView = Ember.View.extend({
    */
   height: 150,
 
+  /**
+   * @type {string}
+   * @default null
+   */
+  displayUnit: null,
+
   didInsertElement: function () {
     this.loadData();
     this.registerGraph();
@@ -452,6 +458,7 @@ App.ChartLinearTimeView = Ember.View.extend({
     // Format series for display
     var series_min_length = 100000000;
     data.forEach(function (series) {
+      var displayUnit = self.get('displayUnit');
       var seriesColor = self.colorForSeries(series);
       if (Em.isNone(seriesColor)) {
         seriesColor = palette.color();
@@ -474,13 +481,25 @@ App.ChartLinearTimeView = Ember.View.extend({
             max = series.data[i]['y'];
           }
         }
-        series.name = string_utils.pad(series.name.length > 36 ? series.name.substr(0, 36) + '...' : series.name, 40, '&nbsp;', 2) + '|&nbsp;' +
-                      string_utils.pad('min', 5, '&nbsp;', 3) +
-                      string_utils.pad(self.get('yAxisFormatter')(min), 12, '&nbsp;', 3) +
-                      string_utils.pad('avg', 5, '&nbsp;', 3) +
-                      string_utils.pad(self.get('yAxisFormatter')(avg/series.data.compact().length), 12, '&nbsp;', 3) +
-                      string_utils.pad('max', 12, '&nbsp;', 3) +
-                      string_utils.pad(self.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
+
+        if (displayUnit) {
+          displayUnit = "&nbsp;" + (displayUnit.length > 3 ? displayUnit.substr(0, 3) + '...' : displayUnit);
+          series.name = string_utils.pad(series.name.length > 36 ? series.name.substr(0, 36) + '...' : series.name, 40, '&nbsp;', 2) + '|&nbsp;' +
+          string_utils.pad('min', 5, '&nbsp;', 3) +
+          string_utils.pad(self.get('yAxisFormatter')(min) + displayUnit, 12, '&nbsp;', 3) +
+          string_utils.pad('avg', 5, '&nbsp;', 3) +
+          string_utils.pad(self.get('yAxisFormatter')(avg/series.data.compact().length) + displayUnit, 12, '&nbsp;', 3) +
+          string_utils.pad('max', 12, '&nbsp;', 3) +
+          string_utils.pad(self.get('yAxisFormatter')(max) + displayUnit, 5, '&nbsp;', 3);
+        } else {
+          series.name = string_utils.pad(series.name.length > 36 ? series.name.substr(0, 36) + '...' : series.name, 40, '&nbsp;', 2) + '|&nbsp;' +
+          string_utils.pad('min', 5, '&nbsp;', 3) +
+          string_utils.pad(self.get('yAxisFormatter')(min), 12, '&nbsp;', 3) +
+          string_utils.pad('avg', 5, '&nbsp;', 3) +
+          string_utils.pad(self.get('yAxisFormatter')(avg/series.data.compact().length), 12, '&nbsp;', 3) +
+          string_utils.pad('max', 12, '&nbsp;', 3) +
+          string_utils.pad(self.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
+        }
       }
       if (series.data.length < series_min_length) {
         series_min_length = series.data.length;
