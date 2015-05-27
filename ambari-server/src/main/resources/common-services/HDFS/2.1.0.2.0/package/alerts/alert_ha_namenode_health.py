@@ -20,6 +20,10 @@ limitations under the License.
 
 import urllib2
 import json
+import logging
+
+from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.core.environment import Environment
 
 RESULT_STATE_OK = 'OK'
 RESULT_STATE_CRITICAL = 'CRITICAL'
@@ -35,8 +39,14 @@ NN_HTTP_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.http-address}}'
 NN_HTTPS_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.https-address}}'
 DFS_POLICY_KEY = '{{hdfs-site/dfs.http.policy}}'
 
+KERBEROS_KEYTAB = '{{hdfs-site/dfs.web.authentication.kerberos.keytab}}'
+KERBEROS_PRINCIPAL = '{{hdfs-site/dfs.web.authentication.kerberos.principal}}'
+SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
+
 CONNECTION_TIMEOUT_KEY = 'connection.timeout'
 CONNECTION_TIMEOUT_DEFAULT = 5.0
+
+logger = logging.getLogger()
 
 def get_tokens():
   """
@@ -44,7 +54,7 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return (HDFS_SITE_KEY, NAMESERVICE_KEY, NN_HTTP_ADDRESS_KEY,
-  NN_HTTPS_ADDRESS_KEY, DFS_POLICY_KEY)
+  NN_HTTPS_ADDRESS_KEY, DFS_POLICY_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY)
   
 
 def execute(configurations={}, parameters={}, host_name=None):
@@ -71,6 +81,19 @@ def execute(configurations={}, parameters={}, host_name=None):
   connection_timeout = CONNECTION_TIMEOUT_DEFAULT
   if CONNECTION_TIMEOUT_KEY in parameters:
     connection_timeout = float(parameters[CONNECTION_TIMEOUT_KEY])
+
+  security_enabled = False
+  if SECURITY_ENABLED_KEY in configurations:
+    security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
+
+  kerberos_keytab = None
+  if KERBEROS_KEYTAB in configurations:
+    kerberos_keytab = configurations[KERBEROS_KEYTAB]
+
+  kerberos_principal = None
+  if KERBEROS_PRINCIPAL in configurations:
+    kerberos_principal = configurations[KERBEROS_PRINCIPAL]
+    kerberos_principal = kerberos_principal.replace('_HOST', host_name)
 
 
   # determine whether or not SSL is enabled
@@ -113,7 +136,15 @@ def execute(configurations={}, parameters={}, host_name=None):
 
       try:
         jmx_uri = jmx_uri_fragment.format(value)
-        state = get_value_from_jmx(jmx_uri, 'State', connection_timeout)
+        if kerberos_principal is not None and kerberos_keytab is not None and security_enabled:
+          env = Environment.get_instance()
+          state_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
+                                                    jmx_uri,"ha_nn_health", None, False,
+                                                    "NameNode High Availability Health")
+          state_response_json = json.loads(state_response)
+          state = state_response_json["beans"][0]['State']
+        else:
+          state = get_value_from_jmx(jmx_uri, 'State', connection_timeout)
 
         if state == HDFS_NN_STATE_ACTIVE:
           active_namenodes.append(value)

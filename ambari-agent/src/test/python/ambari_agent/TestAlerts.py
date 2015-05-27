@@ -255,12 +255,12 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
-    alert = MetricAlert(definition_json, definition_json['source'])
+    alert = MetricAlert(definition_json, definition_json['source'], None)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
 
     # trip an OK
-    ma_load_jmx_mock.return_value = [1, 25]
+    ma_load_jmx_mock.return_value = ([1, 25], None)
 
     alert.collect()
     alerts = collector.alerts()
@@ -269,7 +269,7 @@ class TestAlerts(TestCase):
     self.assertEquals('(Unit Tests) OK: 1 25 125', alerts[0]['text'])
 
     # trip a warning
-    ma_load_jmx_mock.return_value = [1, 75]
+    ma_load_jmx_mock.return_value = ([1, 75], None)
 
     alert.collect()
     alerts = collector.alerts()
@@ -278,7 +278,7 @@ class TestAlerts(TestCase):
     self.assertEquals('(Unit Tests) Warning: 1 75 175', alerts[0]['text'])
 
     # trip a critical now
-    ma_load_jmx_mock.return_value = [1, 150]
+    ma_load_jmx_mock.return_value = ([1, 150], None)
 
     alert.collect()
     alerts = collector.alerts()
@@ -289,12 +289,12 @@ class TestAlerts(TestCase):
     del definition_json['source']['jmx']['value']
     collector = AlertCollector()
 
-    alert = MetricAlert(definition_json, definition_json['source'])
+    alert = MetricAlert(definition_json, definition_json['source'], None)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
 
     # now try without any jmx value to compare to
-    ma_load_jmx_mock.return_value = [1, 25]
+    ma_load_jmx_mock.return_value = ([1, 25], None)
 
     alert.collect()
     alerts = collector.alerts()
@@ -307,13 +307,13 @@ class TestAlerts(TestCase):
   def test_alert_uri_structure(self, ma_load_jmx_mock):
     definition_json = self._get_metric_alert_definition()
 
-    ma_load_jmx_mock.return_value = [0,0]
+    ma_load_jmx_mock.return_value = ([0,0], None)
     
     # run the alert without specifying any keys; an exception should be thrown
     # indicating that there was no URI and the result is UNKNOWN
     collector = AlertCollector()
     cluster_configuration = self.__get_cluster_configuration()
-    alert = MetricAlert(definition_json, definition_json['source'])
+    alert = MetricAlert(definition_json, definition_json['source'], None)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -329,7 +329,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
-    alert = MetricAlert(definition_json, definition_json['source'])
+    alert = MetricAlert(definition_json, definition_json['source'], None)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -345,7 +345,7 @@ class TestAlerts(TestCase):
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
     collector = AlertCollector()
-    alert = MetricAlert(definition_json, definition_json['source'])
+    alert = MetricAlert(definition_json, definition_json['source'], None)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -361,7 +361,7 @@ class TestAlerts(TestCase):
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
     collector = AlertCollector()
-    alert = MetricAlert(definition_json, definition_json['source'])
+    alert = MetricAlert(definition_json, definition_json['source'], None)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -378,7 +378,7 @@ class TestAlerts(TestCase):
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
     collector = AlertCollector()
-    alert = MetricAlert(definition_json, definition_json['source'])
+    alert = MetricAlert(definition_json, definition_json['source'], None)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -628,7 +628,7 @@ class TestAlerts(TestCase):
     self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), 'Connection failed to {1}')
 
     definition_json['source']['type'] = 'METRIC'
-    alert = MetricAlert(definition_json, definition_json['source'])
+    alert = MetricAlert(definition_json, definition_json['source'], None)
     self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), '{0}')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), '{0}')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), '{0}')
@@ -867,7 +867,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
-    alert = MetricAlert(definition_json, definition_json['source'])
+    alert = MetricAlert(definition_json, definition_json['source'], None)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
 
@@ -965,7 +965,7 @@ class TestAlerts(TestCase):
 
     # the metric definition will not and should default to 5.0
     definition_json = self._get_metric_alert_definition()
-    alert = MetricAlert(definition_json, definition_json['source'])
+    alert = MetricAlert(definition_json, definition_json['source'], None)
     self.assertEquals(5.0, alert.connection_timeout)
 
 

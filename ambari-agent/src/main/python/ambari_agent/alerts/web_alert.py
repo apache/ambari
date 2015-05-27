@@ -20,18 +20,15 @@ limitations under the License.
 
 import logging
 import time
-import subprocess
 import os
 import urllib2
 from urllib2 import HTTPError
-import uuid
 
 from  tempfile import gettempdir
 from alerts.base_alert import BaseAlert
 from collections import namedtuple
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
-from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions import get_klist_path
+from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from ambari_commons import OSCheck
 from ambari_commons.inet_utils import resolve_address
 
@@ -175,60 +172,11 @@ class WebAlert(BaseAlert):
         if tmp_dir is None:
           tmp_dir = gettempdir()
 
-        ccache_file_name = _md5("{0}|{1}".format(kerberos_principal, kerberos_keytab)).hexdigest()
-        ccache_file_path = "{0}{1}web_alert_cc_{2}".format(tmp_dir, os.sep, ccache_file_name)
-        kerberos_env = {'KRB5CCNAME': ccache_file_path}
-
         # Get the configured Kerberos executables search paths, if any
         kerberos_executable_search_paths = self._get_configuration_value('{{kerberos-env/executable_search_paths}}')
 
-        # If there are no tickets in the cache or they are expired, perform a kinit, else use what
-        # is in the cache
-        klist_path_local = get_klist_path(kerberos_executable_search_paths)
-
-        if os.system("{0} -s {1}".format(klist_path_local, ccache_file_path)) != 0:
-          kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
-          logger.debug("[Alert][{0}] Enabling Kerberos authentication via GSSAPI using ccache at {1}.".format(
-            self.get_name(), ccache_file_path))
-
-          os.system("{0} -l 5m -c {1} -kt {2} {3} > /dev/null".format(
-            kinit_path_local, ccache_file_path, kerberos_keytab,
-            kerberos_principal))
-        else:
-          logger.debug("[Alert][{0}] Kerberos authentication via GSSAPI already enabled using ccache at {1}.".format(
-            self.get_name(), ccache_file_path))
-
-        # check if cookies dir exists, if not then create it
-        tmp_dir = self.config.get('agent', 'tmp_dir')
-        cookies_dir = os.path.join(tmp_dir, "cookies")
-
-        if not os.path.exists(cookies_dir):
-          os.makedirs(cookies_dir)
-
-        cookie_file_name = str(uuid.uuid4())
-        cookie_file = os.path.join(cookies_dir, cookie_file_name)
-
-        start_time = time.time()
-
-        try:
-          curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-sL', '-w',
-            '%{http_code}', url, '--connect-timeout', self.curl_connection_timeout,
-            '-o', '/dev/null'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kerberos_env)
-
-          curl_stdout, curl_stderr = curl.communicate()
-        finally:
-          if os.path.isfile(cookie_file):
-            os.remove(cookie_file)
-
-        # empty quotes evaluates to false
-        if curl_stderr:
-          error_msg = curl_stderr
-
-        # empty quotes evaluates to false
-        if curl_stdout:
-          response_code = int(curl_stdout)
-
-        time_millis = time.time() - start_time
+        response_code, error_msg, time_millis = curl_krb_request(tmp_dir, kerberos_keytab, kerberos_principal, url,
+                                               "web_alert", kerberos_executable_search_paths, True, self.get_name())
       else:
         # kerberos is not involved; use urllib2
         response_code, time_millis, error_msg = self._make_web_request_urllib(url)

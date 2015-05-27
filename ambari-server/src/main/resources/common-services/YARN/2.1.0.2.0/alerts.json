@@ -43,6 +43,8 @@
           "type": "METRIC",
           "uri": {
             "http": "{{mapred-site/mapreduce.jobhistory.webapp.address}}",
+            "kerberos_keytab": "{{mapred-site/mapreduce.jobhistory.webapp.spnego-keytab-file}}",
+            "kerberos_principal": "{{mapred-site/mapreduce.jobhistory.webapp.spnego-principal}}",
             "https": "{{mapred-site/mapreduce.jobhistory.webapp.https.address}}",
             "https_property": "{{mapred-site/mapreduce.jobhistory.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
@@ -83,6 +85,8 @@
           "uri": {
             "http": "{{mapred-site/mapreduce.jobhistory.webapp.address}}",
             "https": "{{mapred-site/mapreduce.jobhistory.webapp.https.address}}",
+            "kerberos_keytab": "{{mapred-site/mapreduce.jobhistory.webapp.spnego-keytab-file}}",
+            "kerberos_principal": "{{mapred-site/mapreduce.jobhistory.webapp.spnego-principal}}",
             "https_property": "{{mapred-site/mapreduce.jobhistory.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0
@@ -270,6 +274,8 @@
           "uri": {
             "http": "{{yarn-site/yarn.resourcemanager.webapp.address}}",
             "https": "{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
+            "kerberos_keytab": "{{yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file}}",
+            "kerberos_principal": "{{yarn-site/yarn.resourcemanager.webapp.spnego-principal}}",
             "https_property": "{{yarn-site/yarn.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,
@@ -314,6 +320,8 @@
           "uri": {
             "http": "{{yarn-site/yarn.resourcemanager.webapp.address}}",
             "https": "{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
+            "kerberos_keytab": "{{yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file}}",
+            "kerberos_principal": "{{yarn-site/yarn.resourcemanager.webapp.spnego-principal}}",
             "https_property": "{{yarn-site/yarn.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "connection_timeout": 5.0,

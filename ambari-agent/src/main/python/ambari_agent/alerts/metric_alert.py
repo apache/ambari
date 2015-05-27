@@ -25,18 +25,22 @@ import re
 import urllib2
 import uuid
 
+from  tempfile import gettempdir
 from alerts.base_alert import BaseAlert
 from ambari_commons.urllib_handlers import RefreshHeaderProcessor
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
+from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 
 logger = logging.getLogger()
+
+SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 
 # default timeout
 DEFAULT_CONNECTION_TIMEOUT = 5.0
 
 class MetricAlert(BaseAlert):
   
-  def __init__(self, alert_meta, alert_source_meta):
+  def __init__(self, alert_meta, alert_source_meta, config):
     super(MetricAlert, self).__init__(alert_meta, alert_source_meta)
 
     connection_timeout = DEFAULT_CONNECTION_TIMEOUT
@@ -57,6 +61,7 @@ class MetricAlert(BaseAlert):
     # python uses 5.0, not 5
     self.connection_timeout = float(connection_timeout)
 
+    self.config = config
 
   def _collect(self):
     if self.metric_info is None:
@@ -85,14 +90,20 @@ class MetricAlert(BaseAlert):
     value_list = []
 
     if isinstance(self.metric_info, JmxMetric):
-      value_list.extend(self._load_jmx(alert_uri.is_ssl_enabled, host, port, self.metric_info))
-      check_value = self.metric_info.calculate(value_list)
-      value_list.append(check_value)
+      jmx_property_values, http_code = self._load_jmx(alert_uri.is_ssl_enabled, host, port, self.metric_info)
+      if not jmx_property_values and http_code in [200, 307]:
+        collect_result = self.RESULT_UNKNOWN
+        value_list.append('HTTP {0} response (metrics unavailable)'.format(str(http_code)))
+      elif not jmx_property_values and http_code not in [200, 307]:
+        raise Exception("[Alert][{0}] Unable to get json from jmx response!".format(self.get_name()))
+      else:
+        value_list.extend(jmx_property_values)
+        check_value = self.metric_info.calculate(value_list)
+        value_list.append(check_value)
       
-      collect_result = self.__get_result(value_list[0] if check_value is None else check_value)
+        collect_result = self.__get_result(value_list[0] if check_value is None else check_value)
 
-    logger.debug("[Alert][{0}] Resolved values = {1}".format(
-      self.get_name(), str(value_list)))
+        logger.debug("[Alert][{0}] Resolved values = {1}".format(self.get_name(), str(value_list)))
     
     return (collect_result, value_list)
 
@@ -155,9 +166,27 @@ class MetricAlert(BaseAlert):
   def _load_jmx(self, ssl, host, port, jmx_metric):
     """ creates a JmxMetric object that holds info about jmx-based metrics """
     value_list = []
+    kerberos_keytab = None
+    kerberos_principal = None
 
     if logger.isEnabledFor(logging.DEBUG):
       logger.debug(str(jmx_metric.property_map))
+
+    security_enabled = str(self._get_configuration_value(SECURITY_ENABLED_KEY)).upper() == 'TRUE'
+
+    if self.uri_property_keys.kerberos_principal is not None:
+      kerberos_principal = self._get_configuration_value(
+      self.uri_property_keys.kerberos_principal)
+
+      if kerberos_principal is not None:
+        # substitute _HOST in kerberos principal with actual fqdn
+        kerberos_principal = kerberos_principal.replace('_HOST', self.host_name)
+
+    if self.uri_property_keys.kerberos_keytab is not None:
+      kerberos_keytab = self._get_configuration_value(self.uri_property_keys.kerberos_keytab)
+
+    if "0.0.0.0" in str(host):
+      host = self.host_name
 
     for jmx_property_key, jmx_property_value in jmx_metric.property_map.iteritems():
       url = "{0}://{1}:{2}/jmx?qry={3}".format(
@@ -166,10 +195,25 @@ class MetricAlert(BaseAlert):
       # use a customer header processor that will look for the non-standard
       # "Refresh" header and attempt to follow the redirect
       response = None
+      content = ''
       try:
-        url_opener = urllib2.build_opener(RefreshHeaderProcessor())
-        response = url_opener.open(url, timeout=self.connection_timeout)
-        content = response.read()
+        if kerberos_principal is not None and kerberos_keytab is not None and security_enabled:
+          tmp_dir = self.config.get('agent', 'tmp_dir')
+          if tmp_dir is None:
+            tmp_dir = gettempdir()
+
+          kerberos_executable_search_paths = self._get_configuration_value('{{kerberos-env/executable_search_paths}}')
+
+          response, error_msg, time_millis = curl_krb_request(tmp_dir, kerberos_keytab, kerberos_principal, url,
+                                          "metric_alert", kerberos_executable_search_paths, False, self.get_name())
+          content = response
+        else:
+          url_opener = urllib2.build_opener(RefreshHeaderProcessor())
+          response = url_opener.open(url, timeout=self.connection_timeout)
+          content = response.read()
+      except Exception, exception:
+        if logger.isEnabledFor(logging.DEBUG):
+          logger.exception("[Alert][{0}] Unable to make a web request: {1}".format(self.get_name(), str(exception)))
       finally:
         # explicitely close the connection as we've seen python hold onto these
         if response is not None:
@@ -179,16 +223,30 @@ class MetricAlert(BaseAlert):
             logger.debug("[Alert][{0}] Unable to close JMX URL connection to {1}".format
               (self.get_name(), url))
 
-      json_response = json.loads(content)
-      json_data = json_response['beans'][0]
-      
-      for attr in jmx_property_value:
-        if attr not in json_data:
-          raise Exception("Unable to find {0} in JSON from {1} ".format(attr, url))
+      json_is_valid = True
+      try:
+        json_response = json.loads(content)
+        json_data = json_response['beans'][0]
+      except Exception, exception:
+        json_is_valid = False
+        if logger.isEnabledFor(logging.DEBUG):
+          logger.exception("[Alert][{0}] Convert response to json failed or json doesn't contain needed data: {1}".
+                         format(self.get_name(), str(exception)))
 
-        value_list.append(json_data[attr])
-        
-    return value_list
+      if json_is_valid:
+        for attr in jmx_property_value:
+          if attr not in json_data:
+            raise Exception("Unable to find {0} in JSON from {1} ".format(attr, url))
+
+          value_list.append(json_data[attr])
+
+      http_response_code = None
+      if not json_is_valid and security_enabled and \
+            kerberos_principal is not None and kerberos_keytab is not None:
+        http_response_code, error_msg, time_millis = curl_krb_request(tmp_dir, kerberos_keytab, kerberos_principal, url,
+                                              "metric_alert", kerberos_executable_search_paths, True, self.get_name())
+
+    return (value_list, http_response_code)
 
   def _get_reporting_text(self, state):
     '''

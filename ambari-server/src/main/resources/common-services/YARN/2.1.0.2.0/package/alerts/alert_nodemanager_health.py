@@ -23,6 +23,8 @@ import socket
 import urllib2
 from ambari_commons import OSCheck
 from ambari_commons.inet_utils import resolve_address
+from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.core.environment import Environment
 
 RESULT_CODE_OK = 'OK'
 RESULT_CODE_CRITICAL = 'CRITICAL'
@@ -38,6 +40,10 @@ CRITICAL_HTTP_STATUS_MESSAGE = 'HTTP {0} returned from {1} ({2})'
 CRITICAL_NODEMANAGER_STATUS_MESSAGE = 'NodeManager returned an unexpected status of "{0}"'
 CRITICAL_NODEMANAGER_UNKNOWN_JSON_MESSAGE = 'Unable to determine NodeManager health from unexpected JSON response'
 
+KERBEROS_KEYTAB = '{{yarn-site/yarn.nodemanager.webapp.spnego-keytab-file}}'
+KERBEROS_PRINCIPAL = '{{yarn-site/yarn.nodemanager.webapp.spnego-principal}}'
+SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
+
 NODEMANAGER_DEFAULT_PORT = 8042
 
 CONNECTION_TIMEOUT_KEY = 'connection.timeout'
@@ -49,7 +55,7 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return (NODEMANAGER_HTTP_ADDRESS_KEY,NODEMANAGER_HTTPS_ADDRESS_KEY,
-  YARN_HTTP_POLICY_KEY)
+  YARN_HTTP_POLICY_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY)
   
 
 def execute(configurations={}, parameters={}, host_name=None):
@@ -70,6 +76,19 @@ def execute(configurations={}, parameters={}, host_name=None):
   http_uri = None
   https_uri = None
   http_policy = 'HTTP_ONLY'
+
+  security_enabled = False
+  if SECURITY_ENABLED_KEY in configurations:
+    security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
+
+  kerberos_keytab = None
+  if KERBEROS_KEYTAB in configurations:
+    kerberos_keytab = configurations[KERBEROS_KEYTAB]
+
+  kerberos_principal = None
+  if KERBEROS_PRINCIPAL in configurations:
+    kerberos_principal = configurations[KERBEROS_PRINCIPAL]
+    kerberos_principal = kerberos_principal.replace('_HOST', host_name)
 
   if NODEMANAGER_HTTP_ADDRESS_KEY in configurations:
     http_uri = configurations[NODEMANAGER_HTTP_ADDRESS_KEY]
@@ -116,8 +135,16 @@ def execute(configurations={}, parameters={}, host_name=None):
   query = "{0}://{1}/ws/v1/node/info".format(scheme,uri)
 
   try:
-    # execute the query for the JSON that includes templeton status
-    url_response = urllib2.urlopen(query, timeout=connection_timeout)
+    if kerberos_principal is not None and kerberos_keytab is not None and security_enabled:
+      env = Environment.get_instance()
+      url_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
+                                                query, "nm_health_alert", None, False, "NodeManager Health")
+
+      json_response = json.loads(url_response)
+    else:
+      # execute the query for the JSON that includes templeton status
+      url_response = urllib2.urlopen(query, timeout=connection_timeout)
+      json_response = json.loads(url_response.read())
   except urllib2.HTTPError, httpError:
     label = CRITICAL_HTTP_STATUS_MESSAGE.format(str(httpError.code), query,
       str(httpError))
@@ -129,7 +156,6 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   # URL response received, parse it
   try:
-    json_response = json.loads(url_response.read())
     node_healthy = json_response['nodeInfo']['nodeHealthy']
     node_healthy_report = json_response['nodeInfo']['healthReport']
 

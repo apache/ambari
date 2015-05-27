@@ -205,7 +205,7 @@ class TestMetricAlert(TestCase):
     mock_collector = MagicMock()
     mock_collector.put = Mock(side_effect=collector_side_effect)
 
-    alert = MetricAlert(alert_meta, alert_source_meta)
+    alert = MetricAlert(alert_meta, alert_source_meta, None)
     alert.set_helpers(mock_collector, {'foo-site/bar': 12, 'foo-site/baz': 'asd'})
     alert.set_cluster(cluster, host)
 

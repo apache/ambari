@@ -270,7 +270,7 @@ class AlertSchedulerHandler():
     alert = None
 
     if source_type == AlertSchedulerHandler.TYPE_METRIC:
-      alert = MetricAlert(json_definition, source)
+      alert = MetricAlert(json_definition, source, self.config)
     elif source_type == AlertSchedulerHandler.TYPE_PORT:
       alert = PortAlert(json_definition, source)
     elif source_type == AlertSchedulerHandler.TYPE_SCRIPT:
