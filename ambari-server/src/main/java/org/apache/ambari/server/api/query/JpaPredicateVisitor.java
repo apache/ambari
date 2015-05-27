@@ -227,24 +227,24 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
     for (int i = 0; i < predicates.length; i++) {
       PredicateHelper.visit(predicates[i], this);
     }
-
+    javax.persistence.criteria.Predicate jpaPredicate = null;
     // the list is done; deque and apply logical AND or OR
     predicateList = m_queue.pollLast();
+    if (predicateList != null) {
+      javax.persistence.criteria.Predicate[] array = new javax.persistence.criteria.Predicate[predicateList.size()];
+      array = predicateList.toArray(array);
 
-    javax.persistence.criteria.Predicate jpaPredicate = null;
-    javax.persistence.criteria.Predicate[] array = new javax.persistence.criteria.Predicate[predicateList.size()];
-    array = predicateList.toArray(array);
+      if ("AND".equals(operator)) {
+        jpaPredicate = m_builder.and(array);
+      } else {
+        jpaPredicate = m_builder.or(array);
+      }
 
-    if ("AND".equals(operator)) {
-      jpaPredicate = m_builder.and(array);
-    } else {
-      jpaPredicate = m_builder.or(array);
-    }
-
-    if (null == m_queue.peekLast()) {
-      m_lastPredicate = jpaPredicate;
-    } else {
-      m_queue.peekLast().add(jpaPredicate);
+      if (null == m_queue.peekLast()) {
+        m_lastPredicate = jpaPredicate;
+      } else {
+        m_queue.peekLast().add(jpaPredicate);
+      }
     }
   }
 

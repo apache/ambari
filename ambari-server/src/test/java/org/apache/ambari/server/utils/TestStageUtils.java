@@ -301,8 +301,8 @@ public class TestStageUtils {
 
     //Treat null values
     while (pingPorts.contains(null)) {
-      int indexOfNull = pingPorts.indexOf(null);
-      pingPorts.set(indexOfNull, StageUtils.DEFAULT_PING_PORT);
+      pingPorts.remove(null);
+      pingPorts.add(StageUtils.DEFAULT_PING_PORT);
     }
 
     assertEquals(pingPorts, reindexedPorts);

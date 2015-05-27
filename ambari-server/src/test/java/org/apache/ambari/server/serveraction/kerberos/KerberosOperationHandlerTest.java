@@ -147,21 +147,22 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
     fis.close();
 
     File f = handler.createKeytabFile(Base64.encodeBase64String(data));
+    if (f != null) {
+      try {
+        Keytab keytab = Keytab.read(f);
+        Assert.assertNotNull(keytab);
 
-    try {
-      Keytab keytab = Keytab.read(f);
-      Assert.assertNotNull(keytab);
+        List<KeytabEntry> entries = keytab.getEntries();
+        Assert.assertNotNull(entries);
+        Assert.assertFalse(entries.isEmpty());
 
-      List<KeytabEntry> entries = keytab.getEntries();
-      Assert.assertNotNull(entries);
-      Assert.assertFalse(entries.isEmpty());
-
-      for (KeytabEntry entry : entries) {
-        Assert.assertEquals(principal, entry.getPrincipalName());
-      }
-    } finally {
-      if (!f.delete()) {
-        f.deleteOnExit();
+        for (KeytabEntry entry : entries) {
+          Assert.assertEquals(principal, entry.getPrincipalName());
+        }
+      } finally {
+        if (!f.delete()) {
+          f.deleteOnExit();
+        }
       }
     }
   }

@@ -84,22 +84,23 @@ public class ConfigurationModule extends BaseModule<ConfigurationModule, Configu
   @Override
   public void resolve(ConfigurationModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices) throws AmbariException {
     // merge properties also removes deleted props so should be called even if extension is disabled
-   
-    if (parent != null && parent.info != null){
-      if (!parent.isValid() || !parent.info.isValid()){
-        setValid(false);
-        info.setValid(false);
-        setErrors(parent.getErrors());
-        setErrors(parent.info.getErrors());
-        info.setErrors(parent.getErrors());
-        info.setErrors(parent.info.getErrors());
+    if (parent != null) {
+      if (parent.info != null) {
+        if (!parent.isValid() || !parent.info.isValid()) {
+          setValid(false);
+          info.setValid(false);
+          setErrors(parent.getErrors());
+          setErrors(parent.info.getErrors());
+          info.setErrors(parent.getErrors());
+          info.setErrors(parent.info.getErrors());
+        }
       }
-    }
-    
-    mergeProperties(parent);
 
-    if (isExtensionEnabled()) {
-      mergeAttributes(parent);
+      mergeProperties(parent);
+
+      if (isExtensionEnabled()) {
+        mergeAttributes(parent);
+      }
     }
   }
 

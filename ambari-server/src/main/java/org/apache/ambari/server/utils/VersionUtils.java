@@ -37,9 +37,17 @@ public class VersionUtils {
    */
   public static int compareVersions(String version1, String version2, int maxLengthToCompare)
     throws IllegalArgumentException {
+    if (version1 == null){
+      throw new IllegalArgumentException("version1 cannot be null");
+    }
+    
+    if (version2 == null){
+      throw new IllegalArgumentException("version2 cannot be null");
+    }    
+    
     version1 = StringUtils.trim(version1);
     version2 = StringUtils.trim(version2);
-
+    
     if (version1.indexOf('-') >=0) {
       version1 = version1.substring(0, version1.indexOf('-'));
     }
@@ -47,11 +55,11 @@ public class VersionUtils {
       version2 = version2.substring(0, version2.indexOf('-'));
     }
 
-    if (version1 == null || version1.isEmpty()) {
-      throw new IllegalArgumentException("version1 cannot be null or empty");
+    if (version1.isEmpty()) {
+      throw new IllegalArgumentException("version1 cannot be empty");
     }
-    if (version2 == null || version2.isEmpty()) {
-      throw new IllegalArgumentException("version2 cannot be null or empty");
+    if (version2.isEmpty()) {
+      throw new IllegalArgumentException("version2 cannot be empty");
     }
     if (maxLengthToCompare < 0) {
       throw new IllegalArgumentException("maxLengthToCompare cannot be less than 0");

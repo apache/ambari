@@ -804,7 +804,9 @@ public class GangliaPropertyProviderTest {
         }
       });
       
-
+      if (actualParam == null) {
+        return false;
+      }
       List<String> actualParamList = new ArrayList<String>(Arrays.asList(actualParam.getValue().split(",")));
       List<String> expectedParamList = new ArrayList<String>(Arrays.asList(expectedParam.getValue().split(",")));
       

@@ -1540,6 +1540,9 @@ public class ViewRegistry {
       ViewConfig viewConfig = archiveUtility.getViewConfigFromExtractedArchive(extractedArchiveDirPath,
           configuration.isViewValidationEnabled());
 
+      if (viewConfig == null) {
+        setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, "View configuration not found");
+      } 
       viewDefinition.setConfiguration(viewConfig);
 
       if (checkViewVersions(viewDefinition, serverVersion)) {

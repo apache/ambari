@@ -53,6 +53,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
+import static org.junit.Assert.assertNotNull;
 
 public class TestActionManager {
 
@@ -124,7 +125,7 @@ public class TestActionManager {
       "STRUCTURED_OUTPUT",
       am.getAction(requestId, stageId)
         .getHostRoleCommand(hostname, "HBASE_MASTER").getStructuredOut());
-
+    assertNotNull(db.getRequest(requestId));
     assertFalse(db.getRequest(requestId).getEndTime() == -1);
   }
 

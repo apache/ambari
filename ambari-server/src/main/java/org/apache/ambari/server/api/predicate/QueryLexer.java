@@ -647,7 +647,7 @@ public class QueryLexer {
       String tokenValue = token;
       if (ctx.getBracketScore() > 0) {
         Deque<Token> intermediateTokens = ctx.getIntermediateTokens();
-        if (! intermediateTokens.isEmpty()) {
+        if (intermediateTokens !=null && !intermediateTokens.isEmpty()) {
           Token lastToken = intermediateTokens.peek();
           if (lastToken.getType() == Token.TYPE.VALUE_OPERAND) {
             intermediateTokens.pop();

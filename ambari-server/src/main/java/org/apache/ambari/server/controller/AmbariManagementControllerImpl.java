@@ -2349,18 +2349,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Override
   public Set<StackConfigurationDependencyResponse> getStackConfigurationDependencies(
-      Set<StackConfigurationDependencyRequest> requests) throws AmbariException {
-      Set<StackConfigurationDependencyResponse> response =
-        new HashSet<StackConfigurationDependencyResponse>();
+          Set<StackConfigurationDependencyRequest> requests) throws AmbariException {
+    Set<StackConfigurationDependencyResponse> response
+            = new HashSet<StackConfigurationDependencyResponse>();
+    if (requests != null) {
       for (StackConfigurationDependencyRequest request : requests) {
 
-        String stackName    = request.getStackName();
+        String stackName = request.getStackName();
         String stackVersion = request.getStackVersion();
-        String serviceName  = request.getServiceName();
+        String serviceName = request.getServiceName();
         String propertyName = request.getPropertyName();
 
-        Set<StackConfigurationDependencyResponse> stackConfigurations =
-          getStackConfigurationDependencies(request);
+        Set<StackConfigurationDependencyResponse> stackConfigurations
+                = getStackConfigurationDependencies(request);
 
         for (StackConfigurationDependencyResponse dependencyResponse : stackConfigurations) {
           dependencyResponse.setStackName(stackName);
@@ -2370,8 +2371,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
         response.addAll(stackConfigurations);
       }
-
-      return response;  }
+    }
+    return response;
+  }
 
   private Set<StackConfigurationDependencyResponse> getStackConfigurationDependencies(StackConfigurationDependencyRequest request) throws AmbariException {
     Set<StackConfigurationDependencyResponse> response =

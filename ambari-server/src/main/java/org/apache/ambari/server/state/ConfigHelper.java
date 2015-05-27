@@ -129,28 +129,30 @@ public class ConfigHelper {
       String tag = clusterEntry.getValue().getTag();
 
       // 1) start with cluster config
-      Config config = cluster.getConfig(type, tag);
-      if (null == config) {
-        continue;
-      }
+      if (cluster != null) {
+        Config config = cluster.getConfig(type, tag);
+        if (null == config) {
+          continue;
+        }
 
-      Map<String, String> tags = new LinkedHashMap<String, String>();
+        Map<String, String> tags = new LinkedHashMap<String, String>();
 
-      tags.put(CLUSTER_DEFAULT_TAG, config.getTag());
+        tags.put(CLUSTER_DEFAULT_TAG, config.getTag());
 
       // AMBARI-3672. Only consider Config groups for override tags
-      // tags -> (configGroupId, versionTag)
-      if (hostConfigOverrides != null) {
-        HostConfig hostConfig = hostConfigOverrides.get(config.getType());
-        if (hostConfig != null) {
-          for (Entry<Long, String> tagEntry : hostConfig
-              .getConfigGroupOverrides().entrySet()) {
-            tags.put(tagEntry.getKey().toString(), tagEntry.getValue());
+        // tags -> (configGroupId, versionTag)
+        if (hostConfigOverrides != null) {
+          HostConfig hostConfig = hostConfigOverrides.get(config.getType());
+          if (hostConfig != null) {
+            for (Entry<Long, String> tagEntry : hostConfig
+                    .getConfigGroupOverrides().entrySet()) {
+              tags.put(tagEntry.getKey().toString(), tagEntry.getValue());
+            }
           }
         }
-      }
 
-      resolved.put(type, tags);
+        resolved.put(type, tags);
+      }
     }
 
     return resolved;

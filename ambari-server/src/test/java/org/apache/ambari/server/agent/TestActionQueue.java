@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.easymock.EasyMock;
+import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -371,6 +372,7 @@ public class TestActionQueue {
     List<AgentCommand> commands = queue.dequeue(c6401,
         AgentCommandType.ALERT_DEFINITION_COMMAND);
 
+    assertNotNull(commands);
     assertEquals(3, commands.size());
     assertEquals(4, queue.size(c6401));
     assertEquals(3, queue.size(c6402));

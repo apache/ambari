@@ -203,7 +203,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
       Stack stack = hostGroup.getStack();
       // if component isn't a client, add a start task
-      if (! stack.getComponentInfo(component).isClient()) {
+      if (stack!=null && !stack.getComponentInfo(component).isClient()) {
         HostRoleCommand logicalStartTask = context.createAmbariTask(
             getRequestId(), id, component, hostName, AmbariContext.TaskType.START);
         logicalTasks.put(logicalStartTask.getTaskId(), logicalStartTask);

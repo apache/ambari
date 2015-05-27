@@ -3808,7 +3808,7 @@ public class AmbariManagementControllerTest {
     reqs.add(req1);
     updateHostAndCompareExpectedFailure(reqs, "Invalid desired stack id");
 
-    c1.setCurrentStackVersion(null);
+    c1.setCurrentStackVersion(new StackId("HDP-0.0"));
     sch1.setStackVersion(new StackId("HDP-0.1"));
     reqs.clear();
     req1 = new ServiceComponentHostRequest(clusterName, serviceName1,

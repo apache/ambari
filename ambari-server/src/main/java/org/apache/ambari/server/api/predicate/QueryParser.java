@@ -500,7 +500,9 @@ public class QueryParser {
     @Override
     public int _handleToken(ParseContext ctx) throws InvalidQueryException {
       Token token = ctx.getTokens()[ctx.getCurrentTokensIndex()];
-      ctx.getPrecedingExpression().setRightOperand(token.getValue());
+      if (ctx.getPrecedingExpression() != null) {
+        ctx.getPrecedingExpression().setRightOperand(token.getValue());
+      }
 
       return 1;
     }

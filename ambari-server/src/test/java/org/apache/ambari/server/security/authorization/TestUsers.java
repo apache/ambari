@@ -192,6 +192,7 @@ public class TestUsers {
     users.createGroup("group");
 
     users.setGroupLdap("group");
+    Assert.assertNotNull(users.getGroup("group"));
     Assert.assertTrue(users.getGroup("group").isLdapGroup());
 
     try {

@@ -114,7 +114,7 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
 
       final StackId stackId = getStackInformationFromUrl(propertyMap);
 
-      if (propertyMaps.size() == 1 && propertyMap.get(REPOSITORY_VERSION_ID_PROPERTY_ID) == null) {
+      if (stackId != null && propertyMaps.size() == 1 && propertyMap.get(REPOSITORY_VERSION_ID_PROPERTY_ID) == null) {
         requestedEntities.addAll(s_repositoryVersionDAO.findByStack(stackId));
 
         Map<String, UpgradePack> packs = s_ambariMetaInfo.get().getUpgradePacks(

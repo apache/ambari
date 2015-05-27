@@ -55,45 +55,45 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
 
   @Override
   public void resolve(ComponentModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices) {
-    ComponentInfo parentInfo = parent.getModuleInfo();
-    if (parent != null){
-      if (!parent.isValid()){
+    if (parent != null) {
+      ComponentInfo parentInfo = parent.getModuleInfo();
+      if (!parent.isValid()) {
         setValid(false);
         setErrors(parent.getErrors());
       }
-    }
-    
-    if (componentInfo.getCommandScript() == null) {
-      componentInfo.setCommandScript(parentInfo.getCommandScript());
-    }
-    if (componentInfo.getDisplayName() == null) {
-      componentInfo.setDisplayName(parentInfo.getDisplayName());
-    }
-    if (componentInfo.getConfigDependencies() == null) {
-      componentInfo.setConfigDependencies(parentInfo.getConfigDependencies());
-    }
-    if (componentInfo.getClientConfigFiles() == null) {
-      componentInfo.setClientConfigFiles(parentInfo.getClientConfigFiles());
-    }
-    if (componentInfo.getClientsToUpdateConfigs() == null) {
-      componentInfo.setClientsToUpdateConfigs(parentInfo.getClientsToUpdateConfigs());
-    }
-    if (componentInfo.getCategory() == null) {
-      componentInfo.setCategory(parentInfo.getCategory());
-    }
-    if (componentInfo.getCardinality() == null) {
-      componentInfo.setCardinality(parentInfo.getCardinality());
-    }
-    componentInfo.setVersionAdvertised(parentInfo.isVersionAdvertised());
-    if (componentInfo.getAutoDeploy() == null) {
-      componentInfo.setAutoDeploy(parentInfo.getAutoDeploy());
-    }
 
-    mergeComponentDependencies(parentInfo.getDependencies(),
-        componentInfo.getDependencies());
+      if (componentInfo.getCommandScript() == null) {
+        componentInfo.setCommandScript(parentInfo.getCommandScript());
+      }
+      if (componentInfo.getDisplayName() == null) {
+        componentInfo.setDisplayName(parentInfo.getDisplayName());
+      }
+      if (componentInfo.getConfigDependencies() == null) {
+        componentInfo.setConfigDependencies(parentInfo.getConfigDependencies());
+      }
+      if (componentInfo.getClientConfigFiles() == null) {
+        componentInfo.setClientConfigFiles(parentInfo.getClientConfigFiles());
+      }
+      if (componentInfo.getClientsToUpdateConfigs() == null) {
+        componentInfo.setClientsToUpdateConfigs(parentInfo.getClientsToUpdateConfigs());
+      }
+      if (componentInfo.getCategory() == null) {
+        componentInfo.setCategory(parentInfo.getCategory());
+      }
+      if (componentInfo.getCardinality() == null) {
+        componentInfo.setCardinality(parentInfo.getCardinality());
+      }
+      componentInfo.setVersionAdvertised(parentInfo.isVersionAdvertised());
+      if (componentInfo.getAutoDeploy() == null) {
+        componentInfo.setAutoDeploy(parentInfo.getAutoDeploy());
+      }
 
-    mergeCustomCommands(parentInfo.getCustomCommands(),
-        componentInfo.getCustomCommands());
+      mergeComponentDependencies(parentInfo.getDependencies(),
+              componentInfo.getDependencies());
+
+      mergeCustomCommands(parentInfo.getCustomCommands(),
+              componentInfo.getCustomCommands());
+    }
   }
 
   @Override

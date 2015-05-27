@@ -94,19 +94,19 @@ public class TestVersionUtils {
   @Test
   public void testVersionCompareError() {
     expectedException.expect(IllegalArgumentException.class);
-    expectedException.expectMessage("version2 cannot be null or empty");
+    expectedException.expectMessage("version2 cannot be empty");
     VersionUtils.areVersionsEqual("1.2.3", "", false);
 
     expectedException.expect(IllegalArgumentException.class);
-    expectedException.expectMessage("version1 cannot be null or empty");
+    expectedException.expectMessage("version1 cannot be null");
     VersionUtils.areVersionsEqual(null, "", false);
 
     expectedException.expect(IllegalArgumentException.class);
-    expectedException.expectMessage("version1 cannot be null or empty");
-    VersionUtils.areVersionsEqual("", "1", false);
+    expectedException.expectMessage("version2 cannot be null");
+    VersionUtils.areVersionsEqual("", null, false);
 
     expectedException.expect(IllegalArgumentException.class);
-    expectedException.expectMessage("version1 cannot be null or empty");
+    expectedException.expectMessage("version1 cannot be empty");
     VersionUtils.compareVersions("", "1", 2);
 
     expectedException.expect(IllegalArgumentException.class);

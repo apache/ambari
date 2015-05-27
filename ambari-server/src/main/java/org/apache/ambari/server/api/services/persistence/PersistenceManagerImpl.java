@@ -49,30 +49,34 @@ public class PersistenceManagerImpl implements PersistenceManager {
 
   @Override
   public RequestStatus create(ResourceInstance resource, RequestBody requestBody)
-      throws UnsupportedPropertyException,
-             SystemException,
-             ResourceAlreadyExistsException,
-             NoSuchParentResourceException {
+          throws UnsupportedPropertyException,
+          SystemException,
+          ResourceAlreadyExistsException,
+          NoSuchParentResourceException {
+    if (resource != null) {
 
-    Map<Resource.Type, String> mapResourceIds = resource.getKeyValueMap();
-    Resource.Type type = resource.getResourceDefinition().getType();
-    Schema schema = m_controller.getSchema(type);
+      Map<Resource.Type, String> mapResourceIds = resource.getKeyValueMap();
+      Resource.Type type = resource.getResourceDefinition().getType();
+      Schema schema = m_controller.getSchema(type);
 
-    Set<NamedPropertySet> setProperties = requestBody.getNamedPropertySets();
-    if (setProperties.size() == 0) {
-      requestBody.addPropertySet(new NamedPropertySet("", new HashMap<String, Object>()));
-    }
+      Set<NamedPropertySet> setProperties = requestBody.getNamedPropertySets();
+      if (setProperties.isEmpty()) {
+        requestBody.addPropertySet(new NamedPropertySet("", new HashMap<String, Object>()));
+      }
 
-    for (NamedPropertySet propertySet : setProperties) {
-      for (Map.Entry<Resource.Type, String> entry : mapResourceIds.entrySet()) {
-        Map<String, Object> mapProperties = propertySet.getProperties();
-        String property = schema.getKeyPropertyId(entry.getKey());
-        if (!mapProperties.containsKey(property)) {
-          mapProperties.put(property, entry.getValue());
+      for (NamedPropertySet propertySet : setProperties) {
+        for (Map.Entry<Resource.Type, String> entry : mapResourceIds.entrySet()) {
+          Map<String, Object> mapProperties = propertySet.getProperties();
+          String property = schema.getKeyPropertyId(entry.getKey());
+          if (!mapProperties.containsKey(property)) {
+            mapProperties.put(property, entry.getValue());
+          }
         }
       }
+      return m_controller.createResources(type, createControllerRequest(requestBody));
+    } else {
+      throw new NoSuchParentResourceException("Resource is null");
     }
-    return m_controller.createResources(type, createControllerRequest(requestBody));
   }
 
   @Override

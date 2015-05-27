@@ -525,25 +525,28 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
      */
     private void populateResource(Resource resource, GangliaMetric gangliaMetric) {
       String metric_name = gangliaMetric.getMetric_name();
+      Set<String> propertyIdSet = null;
+      List<String> parameterList = null;
+      if (metric_name != null) {
+        propertyIdSet = metrics.get(metric_name);
+        parameterList = new LinkedList<String>();
 
-      Set<String> propertyIdSet = metrics.get(metric_name);
-      List<String> parameterList  = new LinkedList<String>();
+        if (propertyIdSet == null) {
+          for (Map.Entry<String, Set<String>> entry : metrics.entrySet()) {
 
-      if (propertyIdSet == null) {
-        for (Map.Entry<String, Set<String>> entry : metrics.entrySet()) {
+            String key = entry.getKey();
 
-          String key = entry.getKey();
+            Pattern pattern = Pattern.compile(key);
+            Matcher matcher = pattern.matcher(metric_name);
 
-          Pattern pattern = Pattern.compile(key);
-          Matcher matcher = pattern.matcher(metric_name);
-
-          if (matcher.matches()) {
-            propertyIdSet = entry.getValue();
-            // get parameters
-            for (int i = 0; i < matcher.groupCount(); ++i) {
-              parameterList.add(matcher.group(i + 1));
+            if (matcher.matches()) {
+              propertyIdSet = entry.getValue();
+              // get parameters
+              for (int i = 0; i < matcher.groupCount(); ++i) {
+                parameterList.add(matcher.group(i + 1));
+              }
+              break;
             }
-            break;
           }
         }
       }
@@ -552,7 +555,7 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
         if (metricsMap != null) {
           for (String propertyId : propertyIdSet) {
             if (propertyId != null) {
-              if (metricsMap.containsKey(propertyId)){
+              if (metricsMap.containsKey(propertyId)) {
                 if (containsArguments(propertyId)) {
                   int i = 1;
                   for (String param : parameterList) {

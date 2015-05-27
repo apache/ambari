@@ -1319,8 +1319,8 @@ public class HostImpl implements Host {
     Map<String, DesiredConfig> clusterDesiredConfigs = (cluster == null) ? new HashMap<String, DesiredConfig>() : cluster.getDesiredConfigs();
 
     if (clusterDesiredConfigs != null) {
-      for (Map.Entry<String, DesiredConfig> desiredConfigEntry :
-          clusterDesiredConfigs.entrySet()) {
+      for (Map.Entry<String, DesiredConfig> desiredConfigEntry
+              : clusterDesiredConfigs.entrySet()) {
         HostConfig hostConfig = new HostConfig();
         hostConfig.setDefaultVersionTag(desiredConfigEntry.getValue().getTag());
         hostConfigMap.put(desiredConfigEntry.getKey(), hostConfig);
@@ -1332,7 +1332,7 @@ public class HostImpl implements Host {
     if (configGroups != null && !configGroups.isEmpty()) {
       for (ConfigGroup configGroup : configGroups.values()) {
         for (Map.Entry<String, Config> configEntry : configGroup
-            .getConfigurations().entrySet()) {
+                .getConfigurations().entrySet()) {
 
           String configType = configEntry.getKey();
           // HostConfig config holds configType -> versionTag, per config group
@@ -1340,12 +1340,13 @@ public class HostImpl implements Host {
           if (hostConfig == null) {
             hostConfig = new HostConfig();
             hostConfigMap.put(configType, hostConfig);
-            hostConfig.setDefaultVersionTag(cluster.getDesiredConfigByType
-              (configType).getTag());
+            if (cluster != null) {
+              hostConfig.setDefaultVersionTag(cluster.getDesiredConfigByType(configType).getTag());
+            }
           }
           Config config = configEntry.getValue();
           hostConfig.getConfigGroupOverrides().put(configGroup.getId(),
-            config.getTag());
+                  config.getTag());
         }
       }
     }

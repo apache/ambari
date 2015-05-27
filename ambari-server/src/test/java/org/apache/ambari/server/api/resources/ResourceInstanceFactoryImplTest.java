@@ -22,6 +22,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * ResourceInstanceFactoryImpl unit tests.
@@ -53,6 +54,7 @@ public class ResourceInstanceFactoryImplTest {
     ResourceDefinition resourceDefinition = ResourceInstanceFactoryImpl.getResourceDefinition(
         Resource.Type.HostKerberosIdentity, null);
 
+    assertNotNull(resourceDefinition);
     assertEquals("kerberos_identity", resourceDefinition.getSingularName());
     assertEquals("kerberos_identities", resourceDefinition.getPluralName());
     assertEquals(Resource.Type.HostKerberosIdentity, resourceDefinition.getType());

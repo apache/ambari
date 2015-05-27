@@ -188,7 +188,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
     for (Map<String, Object> propertyMap: propertyMaps) {
       final StackId stackId = getStackInformationFromUrl(propertyMap);
 
-      if (propertyMaps.size() == 1 && propertyMap.get(REPOSITORY_VERSION_ID_PROPERTY_ID) == null) {
+      if (stackId != null && propertyMaps.size() == 1 && propertyMap.get(REPOSITORY_VERSION_ID_PROPERTY_ID) == null) {
         requestedEntities.addAll(repositoryVersionDAO.findByStack(stackId));
       } else {
         final Long id;

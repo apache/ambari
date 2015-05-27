@@ -226,6 +226,7 @@ public class ConfigGroupTest {
 
     Assert.assertNull(clusters.getHostsForCluster(clusterName).get("h1"));
     // Assumes that 1L is the id of host h1, as specified in createConfigGroup
+    Assert.assertNotNull(configGroupHostMappingDAO.findByHostId(1L));
     Assert.assertTrue(configGroupHostMappingDAO.findByHostId(1L).isEmpty());
     Assert.assertFalse(configGroup.getHosts().containsKey(1L));
   }

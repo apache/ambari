@@ -420,18 +420,18 @@ public class AlertDefinitionDAO {
     alertDefinition = findById(alertDefinition.getDefinitionId());
     if (null != alertDefinition) {
       entityManager.remove(alertDefinition);
-    }
 
-    // publish the alert definition removal
-    AlertDefinition coerced = alertDefinitionFactory.coerce(alertDefinition);
-    if (null != coerced) {
-      AlertDefinitionDeleteEvent event = new AlertDefinitionDeleteEvent(
-          alertDefinition.getClusterId(), coerced);
+      // publish the alert definition removal
+      AlertDefinition coerced = alertDefinitionFactory.coerce(alertDefinition);
+      if (null != coerced) {
+        AlertDefinitionDeleteEvent event = new AlertDefinitionDeleteEvent(
+                alertDefinition.getClusterId(), coerced);
 
-      eventPublisher.publish(event);
-    } else {
-      LOG.warn("Unable to broadcast alert removal event for {}",
-          alertDefinition.getDefinitionName());
+        eventPublisher.publish(event);
+      } else {
+        LOG.warn("Unable to broadcast alert removal event for {}",
+                alertDefinition.getDefinitionName());
+      }
     }
   }
 
