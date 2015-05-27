@@ -46,6 +46,10 @@ App.PlainConfigTextField = Ember.View.extend(App.SupportsDependentConfigs, {
     this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
   },
 
+  insertNewline: function() {
+    this.get('parentView').trigger('toggleWidgetView');
+  },
+
   didInsertElement: function() {
     this._super();
     this.set('serviceConfig.displayType', Em.getWithDefault(this, 'serviceConfig.stackConfigProperty.valueAttributes.type', 'string'));
