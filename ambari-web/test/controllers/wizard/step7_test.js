@@ -2046,4 +2046,51 @@ describe('App.InstallerStep7Controller', function () {
 
   });
 
+  describe('#_reconfigureServicesOnNnHa', function () {
+
+    var dfsNameservices = 'some_cluster';
+
+    Em.A([
+      {
+        serviceName: 'HBASE',
+        configToUpdate: 'hbase.rootdir',
+        oldValue: 'hdfs://nameserv:8020/apps/hbase/data',
+        expectedNewValue: 'hdfs://' + dfsNameservices + '/apps/hbase/data'
+      },
+      {
+        serviceName: 'ACCUMULO',
+        configToUpdate: 'instance.volumes',
+        oldValue: 'hdfs://localhost:8020/apps/accumulo/data',
+        expectedNewValue: 'hdfs://' + dfsNameservices + '/apps/accumulo/data'
+      }
+    ]).forEach(function (test) {
+      it(test.serviceName + ' ' + test.configToUpdate, function () {
+        var serviceConfigs = [App.ServiceConfig.create({
+          serviceName: test.serviceName,
+          configs: [
+            Em.Object.create({
+              name: test.configToUpdate,
+              value: test.oldValue
+            })
+          ]
+        }),
+          App.ServiceConfig.create({
+            serviceName: 'HDFS',
+            configs: [
+              Em.Object.create({
+                name: 'dfs.nameservices',
+                value: dfsNameservices
+              })
+            ]
+          })];
+        installerStep7Controller.reopen({
+          selectedServiceNames: [test.serviceName, 'HDFS']
+        });
+        serviceConfigs = installerStep7Controller._reconfigureServicesOnNnHa(serviceConfigs);
+        expect(serviceConfigs.findProperty('serviceName', test.serviceName).configs.findProperty('name', test.configToUpdate).get('value')).to.equal(test.expectedNewValue);
+      });
+    });
+
+  });
+
 });

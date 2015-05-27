@@ -711,7 +711,7 @@ App.config = Em.Object.create({
    * @param allSelectedServiceNames
    * @param installedServiceNames
    * @param localDB
-   * @return {Array}
+   * @return {App.ServiceConfig[]}
    */
   renderConfigs: function (configs, storedConfigs, allSelectedServiceNames, installedServiceNames, localDB) {
     var renderedServiceConfigs = [];

@@ -749,32 +749,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         var isInstallableService = App.StackService.find(serviceName).get('isInstallable');
         if (!isInstallableService) serviceConfigObj.set('showConfig', false);
       }, this);
-      // if HA is enabled -> Remove SNameNode, hbase.rootdir should use Name Service ID
+      // if HA is enabled -> Remove SNameNode
       if (App.get('isHaEnabled')) {
         var c = serviceConfigs.findProperty('serviceName', 'HDFS').configs,
-          nameServiceId = c.findProperty('name', 'dfs.nameservices'),
           removedConfigs = c.filterProperty('category', 'SECONDARY_NAMENODE');
         removedConfigs.setEach('isVisible', false);
         serviceConfigs.findProperty('serviceName', 'HDFS').configs = c;
 
-        if(this.get('selectedServiceNames').contains('HBASE') && nameServiceId){
-          var hRootDir = serviceConfigs.findProperty('serviceName', 'HBASE').configs.findProperty('name','hbase.rootdir'),
-            valueToChange = hRootDir.get('value').replace(/\/\/.*:/i, '//' + nameServiceId.get('value') + ':');
-
-          hRootDir.setProperties({
-            'value':  valueToChange,
-            'recommendedValue' : valueToChange
-          });
-        }
-        if(this.get('selectedServiceNames').contains('ACCUMULO') && nameServiceId){
-          var vols = serviceConfigs.findProperty('serviceName', 'ACCUMULO').configs.findProperty('name','instance.volumes'),
-            valueToChange = vols.get('value').replace(/\/\/.*:[0-9]+/i, '//' + nameServiceId.get('value'));
-
-          vols.setProperties({
-            'value':  valueToChange,
-            'recommendedValue' : valueToChange
-          });
-        }
+        serviceConfigs = this._reconfigureServicesOnNnHa(serviceConfigs);
       }
     }
 
@@ -792,6 +774,41 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     }
 
     this.set('stepConfigs', serviceConfigs);
+  },
+
+  /**
+   * When NameNode HA is enabled some configs based on <code>dfs.nameservices</code> should be changed
+   * This happens only if service is added AFTER NN HA is enabled
+   *
+   * @param {App.ServiceConfig[]} serviceConfigs
+   * @method _reconfigureServiceOnNnHa
+   * @private
+   * @returns {App.ServiceConfig[]}
+   */
+  _reconfigureServicesOnNnHa: function (serviceConfigs) {
+    var selectedServiceNames = this.get('selectedServiceNames');
+    var nameServiceId = serviceConfigs.findProperty('serviceName', 'HDFS').configs.findProperty('name', 'dfs.nameservices');
+    Em.A([
+      {
+        serviceName: 'HBASE',
+        configToUpdate: 'hbase.rootdir'
+      },
+      {
+        serviceName: 'ACCUMULO',
+        configToUpdate: 'instance.volumes'
+      }
+    ]).forEach(function (c) {
+      if (selectedServiceNames.contains(c.serviceName) && nameServiceId) {
+        var cfg = serviceConfigs.findProperty('serviceName', c.serviceName).configs.findProperty('name', c.configToUpdate),
+          newValue = cfg.get('value').replace(/\/\/.*:[0-9]+/i, '//' + nameServiceId.get('value'));
+
+        cfg.setProperties({
+          value: newValue,
+          recommendedValue: newValue
+        });
+      }
+    });
+    return serviceConfigs;
   },
 
   /**
