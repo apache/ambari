@@ -263,7 +263,7 @@ limitations under the License.
       <minimum>1073741824</minimum>
       <maximum>17179869184</maximum>
       <unit>B</unit>
-      <increment-step></increment-step>
+      <increment-step>1073741824</increment-step>
     </value-attributes>
   </property>
 
