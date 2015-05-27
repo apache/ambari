@@ -360,8 +360,8 @@ Em.I18n.translations = {
   'popup.dependent.configs.header': 'Dependent Configurations',
   'popup.dependent.configs.title': 'Configurations depending on changes made are show below. It is recommended to update these values. Properties that are not selected have user supplied value different than the recommendation',
   'popup.dependent.configs.table.saveProperty': 'Save property',
-  'popup.dependent.configs.table.currentValue': 'Current value',
-  'popup.dependent.configs.table.recommendedValue': 'Recommended',
+  'popup.dependent.configs.table.initValue': 'Initial value',
+  'popup.dependent.configs.table.recommendedValue': 'Recommended value',
 
   'popup.dependent.configs.select.config.group.header': 'Select Config Group',
   'popup.dependent.configs.select.config.group': 'Please select to which config group would you like to save dependent properties',
