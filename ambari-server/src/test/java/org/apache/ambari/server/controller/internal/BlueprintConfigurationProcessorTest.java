@@ -30,6 +30,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -2280,7 +2281,7 @@ public class BlueprintConfigurationProcessorTest {
     updater.doUpdateForBlueprintExport();
 
     assertEquals("oozie property not updated correctly",
-      createExportedHostName(expectedHostGroupName, expectedPortNum), oozieSiteProperties.get("oozie.base.url"));
+        createExportedHostName(expectedHostGroupName, expectedPortNum), oozieSiteProperties.get("oozie.base.url"));
     assertEquals("oozie property not updated correctly",
       createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.authentication.kerberos.principal"));
     assertEquals("oozie property not updated correctly",
@@ -3907,7 +3908,7 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
-  public void testGetRequiredHostGroups___validComponentCountofZero() throws Exception {
+  public void testGetRequiredHostGroups___validComponentCountOfZero() throws Exception {
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
     Map<String, String> hiveSite = new HashMap<String, String>();
     properties.put("hive-site", hiveSite);
@@ -3940,9 +3941,76 @@ public class BlueprintConfigurationProcessorTest {
 
     // call top-level export method
     Collection<String> requiredGroups = updater.getRequiredHostGroups();
-    System.out.println("Required Groups: " + requiredGroups);
+    assertEquals(0, requiredGroups.size());
+  }
 
+  @Test
+  public void testGetRequiredHostGroups___invalidComponentCountOfZero() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> coreSiteMap = new HashMap<String, String>();
+    properties.put("core-site", coreSiteMap);
 
+    coreSiteMap.put("fs.defaultFS", "localhost");
+
+    Configuration clusterConfig = new Configuration(properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("HIVE_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton("host2"));
+
+    Collection<TestHostGroup> hostGroups = new ArrayList<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    // call top-level export method
+    Collection<String> requiredGroups = updater.getRequiredHostGroups();
+    assertEquals(0, requiredGroups.size());
+  }
+
+  @Test
+  public void testGetRequiredHostGroups___multipleGroups() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> coreSiteMap = new HashMap<String, String>();
+    properties.put("core-site", coreSiteMap);
+
+    coreSiteMap.put("fs.defaultFS", "localhost");
+
+    Configuration clusterConfig = new Configuration(properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("HIVE_SERVER");
+    hgComponents1.add("NAMENODE");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("NAMENODE");
+    hgComponents2.add("DATANODE");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton("host2"));
+
+    Collection<TestHostGroup> hostGroups = new ArrayList<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    // call top-level export method
+    Collection<String> requiredGroups = updater.getRequiredHostGroups();
+    assertEquals(2, requiredGroups.size());
+    assertTrue(requiredGroups.containsAll(Arrays.asList("group1", "group2")));
   }
 
   private static String createExportedAddress(String expectedPortNum, String expectedHostGroupName) {

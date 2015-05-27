@@ -139,7 +139,7 @@ public class BlueprintConfigurationProcessor {
           Map<String, String> typeMap = clusterProps.get(type);
           if (typeMap != null && typeMap.containsKey(propertyName)) {
             requiredHostGroups.addAll(updater.getRequiredHostGroups(
-                typeMap.get(propertyName), clusterProps, clusterTopology));
+                propertyName, typeMap.get(propertyName), clusterProps, clusterTopology));
           }
 
           // host group configs
@@ -148,7 +148,7 @@ public class BlueprintConfigurationProcessor {
             Map<String, String> hgTypeMap = hgConfigProps.get(type);
             if (hgTypeMap != null && hgTypeMap.containsKey(propertyName)) {
               requiredHostGroups.addAll(updater.getRequiredHostGroups(
-                  hgTypeMap.get(propertyName), hgConfigProps, clusterTopology));
+                  propertyName, hgTypeMap.get(propertyName), hgConfigProps, clusterTopology));
             }
           }
         }
@@ -857,7 +857,7 @@ public class BlueprintConfigurationProcessor {
     /**
      * Update a property value.
      *
-     * @param propertyName    name of
+     * @param propertyName    property name
      * @param origValue       original value of property
      * @param properties      all properties
      * @param topology        cluster topology
@@ -869,9 +869,20 @@ public class BlueprintConfigurationProcessor {
                                          Map<String, Map<String, String>> properties,
                                          ClusterTopology topology);
 
-    Collection<String> getRequiredHostGroups(String origValue,
-                                                    Map<String, Map<String, String>> properties,
-                                                    ClusterTopology topology);
+    /**
+     * Determine the required host groups for the provided property.
+     *
+     * @param propertyName    property name
+     * @param origValue       original value of property
+     * @param properties      all properties
+     * @param topology        cluster topology
+     *
+     * @return new property value
+     */
+    Collection<String> getRequiredHostGroups(String propertyName,
+                                             String origValue,
+                                             Map<String, Map<String, String>> properties,
+                                             ClusterTopology topology);
   }
 
   /**
@@ -1001,16 +1012,17 @@ public class BlueprintConfigurationProcessor {
               }
             }
 
-
-            throw new IllegalArgumentException("Unable to update configuration property " + "'" + propertyName + "'"+ " with topology information. " +
-              "Component '" + component + "' is not mapped to any host group or is mapped to multiple groups.");
+            throw new IllegalArgumentException(
+                String.format("Unable to update configuration property '%s' with topology information. " +
+                    "Component '%s' is mapped to an invalid number of hosts '%s'.", propertyName, component, matchingGroupCount));
           }
         }
       }
     }
 
     @Override
-    public Collection<String> getRequiredHostGroups(String origValue,
+    public Collection<String> getRequiredHostGroups(String propertyName,
+                                                    String origValue,
                                                     Map<String, Map<String, String>> properties,
                                                     ClusterTopology topology) {
       //todo: getHostStrings
@@ -1021,78 +1033,17 @@ public class BlueprintConfigurationProcessor {
       } else {
         Collection<String> matchingGroups = topology.getHostGroupsForComponent(component);
         int matchingGroupCount = matchingGroups.size();
-        if (matchingGroupCount == 1) {
-          return Collections.singleton(matchingGroups.iterator().next());
+        if (matchingGroupCount != 0) {
+          return new HashSet<String>(matchingGroups);
         } else {
           Cardinality cardinality = topology.getBlueprint().getStack().getCardinality(component);
           // if no matching host groups are found for a component whose configuration
           // is handled by this updater, return an empty set
-          if (matchingGroupCount == 0 && cardinality.isValidCount(0)) {
-            return Collections.emptySet();
-          } else {
-            //todo: shouldn't have all of these hard coded HA rules here
-            if (topology.isNameNodeHAEnabled() && isComponentNameNode() && (matchingGroupCount == 2)) {
-              // if this is the defaultFS property, it should reflect the nameservice name,
-              // rather than a hostname (used in non-HA scenarios)
-              if (properties.containsKey("core-site") && properties.get("core-site").get("fs.defaultFS").equals(origValue)) {
-                return Collections.emptySet();
-              }
-
-              if (properties.containsKey("hbase-site") && properties.get("hbase-site").get("hbase.rootdir").equals(origValue)) {
-                // hbase-site's reference to the namenode is handled differently in HA mode, since the
-                // reference must point to the logical nameservice, rather than an individual namenode
-                return Collections.emptySet();
-              }
-
-              if (properties.containsKey("accumulo-site") && properties.get("accumulo-site").get("instance.volumes").equals(origValue)) {
-                // accumulo-site's reference to the namenode is handled differently in HA mode, since the
-                // reference must point to the logical nameservice, rather than an individual namenode
-                return Collections.emptySet();
-              }
-
-              if (!origValue.contains("localhost")) {
-                // if this NameNode HA property is a FDQN, then simply return it
-                return Collections.emptySet();
-              }
-            }
-
-            if (topology.isNameNodeHAEnabled() && isComponentSecondaryNameNode() && (matchingGroupCount == 0)) {
-              // if HDFS HA is enabled, then no replacement is necessary for properties that refer to the SECONDARY_NAMENODE
-              // eventually this type of information should be encoded in the stacks
-              return Collections.emptySet();
-            }
-
-            if (topology.isYarnResourceManagerHAEnabled() && isComponentResourceManager() && (matchingGroupCount == 2)) {
-              if (!origValue.contains("localhost")) {
-                // if this Yarn property is a FQDN, then simply return it
-                return Collections.emptySet();
-              }
-            }
-
-            if ((isOozieServerHAEnabled(properties)) && isComponentOozieServer() && (matchingGroupCount > 1)) {
-              if (!origValue.contains("localhost")) {
-                // if this Oozie property is a FQDN, then simply return it
-                return Collections.emptySet();
-              }
-            }
-
-            if ((isHiveServerHAEnabled(properties)) && isComponentHiveServer() && (matchingGroupCount > 1)) {
-              if (!origValue.contains("localhost")) {
-                // if this Hive property is a FQDN, then simply return it
-                return Collections.emptySet();
-              }
-            }
-
-            if ((isComponentHiveMetaStoreServer()) && matchingGroupCount > 1) {
-              if (!origValue.contains("localhost")) {
-                // if this Hive MetaStore property is a FQDN, then simply return it
-                return Collections.emptySet();
-              }
-            }
-            //todo: property name
-            throw new IllegalArgumentException("Unable to update configuration property with topology information. " +
-                "Component '" + component + "' is not mapped to any host group or is mapped to multiple groups.");
+          if (! cardinality.isValidCount(0)) {
+            LOG.warn("The property '{}' is associated with the component '{}' which isn't mapped to any host group. " +
+                    "This may affect configuration topology resolution.", propertyName, component);
           }
+          return Collections.emptySet();
         }
       }
     }
@@ -1205,12 +1156,13 @@ public class BlueprintConfigurationProcessor {
     }
 
     @Override
-    public Collection<String> getRequiredHostGroups(String origValue,
+    public Collection<String> getRequiredHostGroups(String propertyName,
+                                                    String origValue,
                                                     Map<String, Map<String, String>> properties,
                                                     ClusterTopology topology) {
 
       try {
-        return super.getRequiredHostGroups(origValue, properties, topology);
+        return super.getRequiredHostGroups(propertyName, origValue, properties, topology);
       } catch (IllegalArgumentException e) {
         return Collections.emptySet();
       }
@@ -1275,9 +1227,12 @@ public class BlueprintConfigurationProcessor {
     }
 
     @Override
-    public Collection<String> getRequiredHostGroups(String origValue, Map<String, Map<String, String>> properties, ClusterTopology topology) {
+    public Collection<String> getRequiredHostGroups(String propertyName,
+                                                    String origValue,
+                                                    Map<String, Map<String, String>> properties,
+                                                    ClusterTopology topology) {
       if (isDatabaseManaged(properties)) {
-        return super.getRequiredHostGroups(origValue, properties, topology);
+        return super.getRequiredHostGroups(propertyName, origValue, properties, topology);
       } else {
         return Collections.emptySet();
       }
@@ -1450,7 +1405,8 @@ public class BlueprintConfigurationProcessor {
     }
 
     @Override
-    public Collection<String> getRequiredHostGroups(String origValue,
+    public Collection<String> getRequiredHostGroups(String propertyName,
+                                                    String origValue,
                                                     Map<String, Map<String, String>> properties,
                                                     ClusterTopology topology) {
 
@@ -1503,8 +1459,10 @@ public class BlueprintConfigurationProcessor {
     }
 
     @Override
-    public Collection<String> getRequiredHostGroups(String origValue,
-                                                    Map<String, Map<String, String>> properties, ClusterTopology topology) {
+    public Collection<String> getRequiredHostGroups(String propertyName,
+                                                    String origValue,
+                                                    Map<String, Map<String, String>> properties,
+                                                    ClusterTopology topology) {
       return Collections.emptySet();
     }
   }
@@ -1558,10 +1516,12 @@ public class BlueprintConfigurationProcessor {
     public abstract String doFormat(String originalValue);
 
     @Override
-    public Collection<String> getRequiredHostGroups(String origValue,
-                                                    Map<String, Map<String, String>> properties, ClusterTopology topology) {
+    public Collection<String> getRequiredHostGroups(String propertyName,
+                                                    String origValue,
+                                                    Map<String, Map<String, String>> properties,
+                                                    ClusterTopology topology) {
 
-      return propertyUpdater.getRequiredHostGroups(origValue, properties, topology);
+      return propertyUpdater.getRequiredHostGroups(propertyName, origValue, properties, topology);
     }
 
     /**
@@ -1656,7 +1616,8 @@ public class BlueprintConfigurationProcessor {
     }
 
     @Override
-    public Collection<String> getRequiredHostGroups(String origValue,
+    public Collection<String> getRequiredHostGroups(String propertyName,
+                                                    String origValue,
                                                     Map<String, Map<String, String>> properties,
                                                     ClusterTopology topology) {
 
@@ -1728,7 +1689,8 @@ public class BlueprintConfigurationProcessor {
     }
 
     @Override
-    public Collection<String> getRequiredHostGroups(String origValue,
+    public Collection<String> getRequiredHostGroups(String propertyName,
+                                                    String origValue,
                                                     Map<String, Map<String, String>> properties,
                                                     ClusterTopology topology) {
 
@@ -1747,7 +1709,7 @@ public class BlueprintConfigurationProcessor {
         String key = keyValuePair.split("=")[0];
         if (mapOfKeysToUpdaters.containsKey(key)) {
           requiredGroups.addAll(mapOfKeysToUpdaters.get(key).getRequiredHostGroups(
-              keyValuePair.split("=")[1], properties, topology));
+              propertyName, keyValuePair.split("=")[1], properties, topology));
         }
       }
       return requiredGroups;
