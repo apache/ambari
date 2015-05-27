@@ -17,24 +17,37 @@
  */
 package org.apache.ambari.server.controller.metrics;
 
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.apache.ambari.server.controller.utilities.PropertyHelper.AGGREGATE_FUNCTION_IDENTIFIERS;
+
 public class MetricsDataTransferMethodFactory {
   private static final Set<String> PERCENTAGE_METRIC;
 
   static {
-    Set<String> temp = new HashSet<String>();
-    temp.add("cpu_wio");
-    temp.add("cpu_idle");
-    temp.add("cpu_nice");
-    temp.add("cpu_aidle");
-    temp.add("cpu_system");
-    temp.add("cpu_user");
-    PERCENTAGE_METRIC = Collections.unmodifiableSet(temp);
+    Set<String> percentMetrics = new HashSet<String>();
+    percentMetrics.add("cpu_wio");
+    percentMetrics.add("cpu_idle");
+    percentMetrics.add("cpu_nice");
+    percentMetrics.add("cpu_aidle");
+    percentMetrics.add("cpu_system");
+    percentMetrics.add("cpu_user");
+
+    Set<String> metricsWithAggregateFunctionIds = new HashSet<String>();
+    for (String metric : percentMetrics) {
+      for (String aggregateFunctionId : AGGREGATE_FUNCTION_IDENTIFIERS) {
+        metricsWithAggregateFunctionIds.add(metric + aggregateFunctionId);
+      }
+    }
+
+    percentMetrics.addAll(metricsWithAggregateFunctionIds);
+
+    PERCENTAGE_METRIC = Collections.unmodifiableSet(percentMetrics);
   }
 
   private static final MetricsDataTransferMethod percentageAdjustment = new PercentageAdjustmentTransferMethod();
