@@ -72,12 +72,12 @@ public class ClusterConfigEntity {
   private String tag;
 
   @Basic(fetch = FetchType.LAZY)
-  @Column(name = "config_data", nullable = false, insertable = true, updatable = false)
+  @Column(name = "config_data", nullable = false, insertable = true)
   @Lob
   private String configJson;
 
   @Basic(fetch = FetchType.LAZY)
-  @Column(name = "config_attributes", nullable = true, insertable = true, updatable = false)
+  @Column(name = "config_attributes", nullable = true, insertable = true)
   @Lob
   private String configAttributesJson;
 

@@ -83,7 +83,8 @@ java64_home = config['hostLevelParams']['java_home']
 jps_binary = format("{java64_home}/bin/jps")
 nimbus_port = config['configurations']['storm-site']['nimbus.thrift.port']
 storm_zookeeper_root_dir = default('/configurations/storm-site/storm.zookeeper.root', None)
-storm_zookeeper_servers = default('/configurations/storm-site/storm.zookeeper.servers', None)
+storm_zookeeper_servers = config['configurations']['storm-site']['storm.zookeeper.servers']
+storm_zookeeper_port = config['configurations']['storm-site']['storm.zookeeper.port']
 
 # nimbus.seeds is supported in HDP 2.3.0.0 and higher
 nimbus_seeds_supported = default('/configurations/storm-env/nimbus_seeds_supported', False)

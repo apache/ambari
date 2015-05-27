@@ -17,40 +17,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-import re
 import os
 import resource_management
+
+from ambari_commons.yaml_utils import escape_yaml_property
 from resource_management.core.source import InlineTemplate
 from resource_management.core.resources.system import File
-
-def escape_yaml_property(value):
-  unquouted = False
-  unquouted_values = ["null","Null","NULL","true","True","TRUE","false","False","FALSE","YES","Yes","yes","NO","No","no","ON","On","on","OFF","Off","off"]
-  if value in unquouted_values:
-    unquouted = True
-
-  # if is list [a,b,c] or dictionary {a: v, b: v2, c: v3}
-  if re.match('^\w*\[.+\]\w*$', value) or re.match('^\w*\{.+\}\w*$', value):
-    unquouted = True
-
-  try:
-    int(value)
-    unquouted = True
-  except ValueError:
-    pass
-  
-  try:
-    float(value)
-    unquouted = True
-  except ValueError:
-    pass
-  
-  if not unquouted:
-    value = value.replace("'","''")
-    value = "'"+value+"'"
-    
-  return value
 
 def replace_jaas_placeholder(name, security_enabled, conf_dir):
   if name.find('_JAAS_PLACEHOLDER') > -1:

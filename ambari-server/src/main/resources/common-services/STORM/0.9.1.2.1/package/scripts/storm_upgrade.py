@@ -19,6 +19,7 @@ limitations under the License.
 import json
 import os
 
+from ambari_commons import yaml_utils
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory
@@ -48,24 +49,49 @@ class StormUpgrade(Script):
     """
     import params
 
+
     Logger.info('Clearing Storm data from ZooKeeper')
 
     storm_zookeeper_root_dir = params.storm_zookeeper_root_dir
     if storm_zookeeper_root_dir is None:
       raise Fail("The storm ZooKeeper directory specified by storm-site/storm.zookeeper.root must be specified")
 
-    # create the ZooKeeper delete command
-    if params.version is not None:
-      command = "/usr/hdp/{0}/zookeeper/bin/zkCli.sh rmr /storm".format(params.version)
-    else:
-      command = "/usr/hdp/current/zookeeper-client/bin/zkCli.sh rmr /storm"
+    # the zookeeper client must be given a zookeeper host to contact
+    storm_zookeeper_server_list = yaml_utils.get_values_from_yaml_array(params.storm_zookeeper_servers)
+    if storm_zookeeper_server_list is None:
+      Logger.info("Unable to extract ZooKeeper hosts from '{0}', assuming localhost").format(params.storm_zookeeper_servers)
+      storm_zookeeper_server_list = ["localhost"]
 
+    # kinit if needed
     if params.security_enabled:
       kinit_command=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
       Execute(kinit_command,user=params.smokeuser)
 
-    # clean out ZK
-    Execute(command, user=params.storm_user, tries=1)
+    # for every zk server, try to remove /storm
+    zookeeper_data_cleared = False
+    for storm_zookeeper_server in storm_zookeeper_server_list:
+      # determine where the zkCli.sh shell script is
+      zk_command_location = "/usr/hdp/current/zookeeper-client/bin/zkCli.sh"
+      if params.version is not None:
+        zk_command_location = "/usr/hdp/{0}/zookeeper/bin/zkCli.sh".format(params.version)
+
+      # create the ZooKeeper delete command
+      command = "{0} -server {1}:{2} rmr /storm".format(
+        zk_command_location, storm_zookeeper_server, params.storm_zookeeper_port)
+
+      # clean out ZK
+      try:
+        Execute(command, user=params.storm_user, logoutput=True, tries=1)
+        zookeeper_data_cleared = True
+        break
+      except:
+        # the command failed, try a different ZK server
+        pass
+
+    # fail if the ZK data could not be cleared
+    if not zookeeper_data_cleared:
+      raise Fail("Unable to clear ZooKeeper Storm data on any of the following ZooKeeper hosts: {0}".format(
+        storm_zookeeper_server_list))
 
 
   def delete_storm_local_data(self, env):

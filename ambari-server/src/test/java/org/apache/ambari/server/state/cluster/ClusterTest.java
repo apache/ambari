@@ -42,8 +42,6 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
 
-import com.google.gson.Gson;
-import com.google.inject.persist.UnitOfWork;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -65,6 +63,7 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
@@ -108,12 +107,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
+import com.google.inject.persist.UnitOfWork;
 import com.google.inject.util.Modules;
 
 public class ClusterTest {
@@ -1904,5 +1905,61 @@ public class ClusterTest {
 
     verify(hostVersionDAOMock).merge(hostVersionCaptor.capture());
     assertEquals(hostVersionCaptor.getValue().getState(), RepositoryVersionState.CURRENT);
+  }
+
+  /**
+   * Tests that an existing configuration can be successfully updated without
+   * creating a new version.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testClusterConfigMergingWithoutNewVersion() throws Exception {
+    createDefaultCluster();
+
+    Cluster cluster = clusters.getCluster("c1");
+    ClusterEntity clusterEntity = clusterDAO.findByName("c1");
+    assertEquals(0, clusterEntity.getClusterConfigEntities().size());
+
+    final Config originalConfig = configFactory.createNew(cluster, "foo-site",
+        new HashMap<String, String>() {
+          {
+            put("one", "two");
+          }
+        }, new HashMap<String, Map<String, String>>());
+
+    originalConfig.setTag("version3");
+    originalConfig.persist();
+    cluster.addConfig(originalConfig);
+
+    ConfigGroup configGroup = configGroupFactory.createNew(cluster, "g1", "t1", "",
+        new HashMap<String, Config>() {
+          {
+            put("foo-site", originalConfig);
+          }
+        }, Collections.<Long, Host> emptyMap());
+
+    configGroup.persist();
+    cluster.addConfigGroup(configGroup);
+
+    clusterEntity = clusterDAO.findByName("c1");
+    assertEquals(1, clusterEntity.getClusterConfigEntities().size());
+
+    Map<String, Config> configsByType = cluster.getConfigsByType("foo-site");
+    Config config = configsByType.entrySet().iterator().next().getValue();
+
+    Map<String, String> properties = config.getProperties();
+    properties.put("three", "four");
+    config.setProperties(properties);
+
+    config.persist(false);
+
+    clusterEntity = clusterDAO.findByName("c1");
+    assertEquals(1, clusterEntity.getClusterConfigEntities().size());
+    ClusterConfigEntity clusterConfigEntity = clusterEntity.getClusterConfigEntities().iterator().next();
+    assertTrue(clusterConfigEntity.getData().contains("one"));
+    assertTrue(clusterConfigEntity.getData().contains("two"));
+    assertTrue(clusterConfigEntity.getData().contains("three"));
+    assertTrue(clusterConfigEntity.getData().contains("four"));
   }
 }

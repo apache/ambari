@@ -27,7 +27,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.core.source import Template
 from resource_management.libraries.functions import compare_versions
-from yaml_utils import yaml_config_template, yaml_config
+from storm_yaml_utils import yaml_config_template, yaml_config
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 

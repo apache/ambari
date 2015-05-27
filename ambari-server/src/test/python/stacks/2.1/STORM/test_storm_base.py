@@ -113,10 +113,10 @@ class TestStormBase(RMFTestCase):
     return storm_yarn_content
 
   def call_storm_template_and_assert(self, confDir="/etc/storm/conf"):
-    import yaml_utils
+    import storm_yaml_utils
 
     with RMFTestCase.env as env:
-      storm_yarn_temlate = yaml_utils.yaml_config_template(self.getConfig()['configurations']['storm-site'])
+      storm_yarn_temlate = storm_yaml_utils.yaml_config_template(self.getConfig()['configurations']['storm-site'])
 
       self.assertResourceCalled('File', confDir + '/storm.yaml',
         owner = 'storm',

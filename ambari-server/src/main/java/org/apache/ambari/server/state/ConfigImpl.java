@@ -28,6 +28,8 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -37,6 +39,11 @@ import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
 
 public class ConfigImpl implements Config {
+  /**
+   * Logger.
+   */
+  private final static Logger LOG = LoggerFactory.getLogger(ConfigImpl.class);
+
   public static final String GENERATED_TAG_PREFIX = "generatedTag_";
 
   private Cluster cluster;
@@ -47,12 +54,16 @@ public class ConfigImpl implements Config {
   private Map<String, String> properties;
   private Map<String, Map<String, String>> propertiesAttributes;
   private ClusterConfigEntity entity;
+
   @Inject
   private ClusterDAO clusterDAO;
+
   @Inject
   private Gson gson;
+
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
+
   @AssistedInject
   public ConfigImpl(@Assisted Cluster cluster, @Assisted String type, @Assisted Map<String, String> properties,
       @Assisted Map<String, Map<String, String>> propertiesAttributes, Injector injector) {
@@ -66,7 +77,6 @@ public class ConfigImpl implements Config {
     stackId = cluster.getDesiredStackVersion();
 
     injector.injectMembers(this);
-
   }
 
 
@@ -204,16 +214,20 @@ public class ConfigImpl implements Config {
       entity.setTimestamp(new Date().getTime());
       entity.setStack(clusterEntity.getDesiredStack());
       entity.setData(gson.toJson(getProperties()));
+
       if (null != getPropertiesAttributes()) {
         entity.setAttributes(gson.toJson(getPropertiesAttributes()));
       }
 
       clusterDAO.createConfig(entity);
-
       clusterEntity.getClusterConfigEntities().add(entity);
+      clusterDAO.merge(clusterEntity);
+      cluster.refresh();
     } else {
       // only supporting changes to the properties
       ClusterConfigEntity entity = null;
+
+      // find the existing configuration to update
       for (ClusterConfigEntity cfe : clusterEntity.getClusterConfigEntities()) {
         if (getTag().equals(cfe.getTag()) &&
             getType().equals(cfe.getType()) &&
@@ -221,15 +235,17 @@ public class ConfigImpl implements Config {
           entity = cfe;
           break;
         }
-
       }
 
+      // if the configuration was found, then update it
       if (null != entity) {
+        LOG.debug(
+            "Updating {} version {} with new configurations; a new version will not be created",
+            getType(), getVersion());
+
         entity.setData(gson.toJson(getProperties()));
+        clusterDAO.merge(clusterEntity);
       }
     }
-
-    clusterDAO.merge(clusterEntity);
-    cluster.refresh();
   }
 }
