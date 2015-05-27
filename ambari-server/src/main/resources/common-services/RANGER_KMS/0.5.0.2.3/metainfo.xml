@@ -63,10 +63,14 @@
       </osSpecifics>
 
       <configuration-dependencies>
-        <config-type>kms-properties</config-type>                
-        <config-type>kms-acls</config-type>
+        <config-type>kms-properties</config-type>
         <config-type>kms-site</config-type>
-        <config-type>kms-log4j</config-type>        
+        <config-type>kms-log4j</config-type>
+        <config-type>dbks-site</config-type>
+        <config-type>ranger-kms-site</config-type>
+        <config-type>ranger-kms-audit</config-type>
+        <config-type>ranger-kms-policymgr-ssl</config-type>
+        <config-type>ranger-kms-security</config-type>
       </configuration-dependencies>
 
       <commandScript>

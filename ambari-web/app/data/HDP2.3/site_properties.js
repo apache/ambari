@@ -204,8 +204,7 @@ hdp23properties.push({
     "id": "site property",
     "name": "xasecure.audit.destination.db",
     "displayName": "Audit to DB",
-    "defaultValue": "",
-    "isRequired": false,
+    "displayType": "checkbox",
     "filename": "ranger-kms-audit.xml",
     "category": "Advanced ranger-kms-audit",
     "serviceName": "RANGER_KMS"
@@ -214,8 +213,7 @@ hdp23properties.push({
     "id": "site property",
     "name": "xasecure.audit.destination.hdfs",
     "displayName": "Audit to HDFS",
-    "defaultValue": "",
-    "isRequired": false,
+    "displayType": "checkbox",
     "filename": "ranger-kms-audit.xml",
     "category": "Advanced ranger-kms-audit",
     "serviceName": "RANGER_KMS"
@@ -224,8 +222,7 @@ hdp23properties.push({
     "id": "site property",
     "name": "xasecure.audit.destination.solr",
     "displayName": "Audit to SOLR",
-    "defaultValue": "",
-    "isRequired": false,
+    "displayType": "checkbox",
     "filename": "ranger-kms-audit.xml",
     "category": "Advanced ranger-kms-audit",
     "serviceName": "RANGER_KMS"
@@ -234,8 +231,7 @@ hdp23properties.push({
     "id": "site property",
     "name": "xasecure.audit.provider.summary.enabled",
     "displayName": "Audit provider summary enabled",
-    "defaultValue": "",
-    "isRequired": false,
+    "displayType": "checkbox",
     "filename": "ranger-kms-audit.xml",
     "category": "Advanced ranger-kms-audit",
     "serviceName": "RANGER_KMS"
