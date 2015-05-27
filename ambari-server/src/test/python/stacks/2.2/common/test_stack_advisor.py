@@ -1129,20 +1129,30 @@ class TestHDP22StackAdvisor(TestCase):
     self.assertEquals(configurations, expected)
 
     #test recommendations
-    configurations = expected
     configurations["hive-site"]["properties"]["hive.cbo.enable"] = "false"
     configurations["hive-env"]["properties"]["hive_security_authorization"] = "sqlstdauth"
-    services["configurations"] = configurations
-    services["changed-configurations"] = [{"type": "hive-site", "key": "hive.cbo.enable"},
-                                          {"type": "hive-env", "key": "hive_security_authorization"}]
+    services["changed-configurations"] = [{"type": "hive-site", "name": "hive.cbo.enable"},
+                                          {"type": "hive-env", "name": "hive_security_authorization"}]
+    expected["hive-env"]["properties"]["hive_security_authorization"] = "sqlstdauth"
+    expected["hive-site"]["properties"]["hive.cbo.enable"] = "false"
     expected["hive-site"]["properties"]["hive.stats.fetch.partition.stats"]="false"
     expected["hive-site"]["properties"]["hive.stats.fetch.column.stats"]="false"
+    expected["hive-site"]["properties"]["hive.security.authorization.enabled"]="true"
+    expected["hiveserver2-site"]["properties"]["hive.server2.enable.doAs"]="false"
     expected["hive-site"]["properties"]["hive.security.metastore.authorization.manager"]=\
       ",org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
 
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
+
+    # test 'hive_security_authorization'=='sqlstdauth' => 'hive.server2.enable.doAs'=='false'
+    configurations["hive-env"]["properties"]["hive_security_authorization"] = "none"
+    expected["hive-env"]["properties"]["hive_security_authorization"] = "none"
+    expected["hive-site"]["properties"]["hive.security.authorization.enabled"]="false"
+    expected["hiveserver2-site"]["properties"]["hive.server2.enable.doAs"]="true"
+    self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
 
   def test_recommendMapredConfigurationAttributesWithPigService(self):
     configurations = {

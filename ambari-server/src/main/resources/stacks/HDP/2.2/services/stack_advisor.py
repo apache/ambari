@@ -366,7 +366,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       pass
     sqlstdauth_class = "org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
 
+    putHiveServerProperty("hive.server2.enable.doAs", "true")
+
     if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "sqlstdauth":
+      putHiveServerProperty("hive.server2.enable.doAs", "false")
       if sqlstdauth_class not in auth_manager_value:
         putHiveSiteProperty("hive.security.metastore.authorization.manager", auth_manager_value + "," + sqlstdauth_class)
     elif auth_manager_value != '':
@@ -376,7 +379,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHiveSiteProperty("hive.security.metastore.authorization.manager", ",".join(auth_manager_values))
       pass
 
-    putHiveServerProperty("hive.server2.enable.doAs", "true")
     putHiveSiteProperty("hive.server2.use.SSL", "false")
 
     #Hive authentication

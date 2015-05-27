@@ -1157,6 +1157,12 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_security_authorization</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hive.server2.table.type.mapping</name>
