@@ -360,10 +360,11 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     if (databaseType == Configuration.DatabaseType.DERBY) {
       String constraintName = getDerbyTableConstraintName("p", HOSTS_TABLE);
       if (null != constraintName) {
-        dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " DROP CONSTRAINT " + constraintName + " CASCADE");
+        // Derby doesn't support CASCADE DELETE.
+        dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " DROP CONSTRAINT " + constraintName);
       }
     } else {
-      dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " DROP CONSTRAINT hosts_pkey");
+      dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " DROP CONSTRAINT hosts_pkey CASCADE");
     }
     dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " ADD CONSTRAINT PK_hosts_id PRIMARY KEY (host_id)");
     dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " ADD CONSTRAINT UQ_hosts_host_name UNIQUE (host_name)");
