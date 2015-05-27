@@ -255,8 +255,6 @@ public class AlertsDAO {
       typedQuery.setMaxResults(request.Pagination.getPageSize());
     }
 
-    typedQuery = setQueryRefreshHint(typedQuery);
-
     return daoUtils.selectList(typedQuery);
   }
 
@@ -300,8 +298,6 @@ public class AlertsDAO {
       typedQuery.setFirstResult(offset);
       typedQuery.setMaxResults(request.Pagination.getPageSize());
     }
-
-    typedQuery = setQueryRefreshHint(typedQuery);
 
     return daoUtils.selectList(typedQuery);
   }
@@ -358,7 +354,6 @@ public class AlertsDAO {
         "AlertCurrentEntity.findByDefinitionId", AlertCurrentEntity.class);
 
     query.setParameter("definitionId", Long.valueOf(definitionId));
-    query = setQueryRefreshHint(query);
 
     return daoUtils.selectList(query);
   }
@@ -375,7 +370,6 @@ public class AlertsDAO {
         "AlertCurrentEntity.findByCluster", AlertCurrentEntity.class);
 
     query.setParameter("clusterId", Long.valueOf(clusterId));
-    query = setQueryRefreshHint(query);
 
     return daoUtils.selectList(query);
   }
@@ -502,7 +496,6 @@ public class AlertsDAO {
     query.setParameter("serviceName", serviceName);
     query.setParameter("inlist", EnumSet.of(Scope.ANY, Scope.SERVICE));
 
-    query = setQueryRefreshHint(query);
     return daoUtils.selectList(query);
   }
 
@@ -517,7 +510,6 @@ public class AlertsDAO {
     query.setParameter("hostName", hostName);
     query.setParameter("definitionName", alertName);
 
-    query = setQueryRefreshHint(query);
     return daoUtils.selectOne(query);
   }
 
@@ -778,7 +770,6 @@ public class AlertsDAO {
     query.setParameter("clusterId", Long.valueOf(clusterId));
     query.setParameter("definitionName", alertName);
 
-    query = setQueryRefreshHint(query);
     return daoUtils.selectOne(query);
   }
 

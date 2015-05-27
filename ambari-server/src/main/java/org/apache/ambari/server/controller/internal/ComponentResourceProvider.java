@@ -442,7 +442,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   // Get the components for the given request.
-  private synchronized Set<ServiceComponentResponse> getComponents(
+  private Set<ServiceComponentResponse> getComponents(
       ServiceComponentRequest request) throws AmbariException {
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {

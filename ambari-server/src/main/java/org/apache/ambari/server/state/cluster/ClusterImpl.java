@@ -164,12 +164,12 @@ public class ClusterImpl implements Cluster {
   /**
    * Map of existing config groups
    */
-  private Map<Long, ConfigGroup> clusterConfigGroups;
+  private volatile Map<Long, ConfigGroup> clusterConfigGroups;
 
   /**
    * Map of Request schedules for this cluster
    */
-  private Map<Long, RequestExecution> requestExecutions;
+  private volatile Map<Long, RequestExecution> requestExecutions;
 
   private final ReadWriteLock clusterGlobalLock = new ReentrantReadWriteLock();
 
@@ -485,22 +485,18 @@ public class ClusterImpl implements Cluster {
   @Override
   public Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname)
     throws AmbariException {
+    loadConfigGroups();
     Map<Long, ConfigGroup> configGroups = new HashMap<Long, ConfigGroup>();
-    Map<Long, ConfigGroup> configGroupMap = getConfigGroups();
 
     clusterGlobalLock.readLock().lock();
     try {
-      HostEntity hostEntity = hostDAO.findByName(hostname);
-      if (hostEntity != null) {
-        Set<ConfigGroupHostMapping> hostMappingEntities = configGroupHostMappingDAO.findByHostId(hostEntity.getHostId());
-
-        if (hostMappingEntities != null && !hostMappingEntities.isEmpty()) {
-          for (ConfigGroupHostMapping entity : hostMappingEntities) {
-            ConfigGroup configGroup = configGroupMap.get(entity.getConfigGroupId());
-            if (configGroup != null
-                && !configGroups.containsKey(configGroup.getId())) {
-              configGroups.put(configGroup.getId(), configGroup);
-            }
+      for (Entry<Long, ConfigGroup> groupEntry : clusterConfigGroups.entrySet()) {
+        Long id = groupEntry.getKey();
+        ConfigGroup group = groupEntry.getValue();
+        for (Host host : group.getHosts().values()) {
+          if (StringUtils.equals(hostname, host.getHostName())) {
+            configGroups.put(id, group);
+            break;
           }
         }
       }

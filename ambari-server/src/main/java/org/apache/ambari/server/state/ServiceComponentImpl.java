@@ -61,7 +61,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
   private final boolean isClientComponent;
   private final boolean isMasterComponent;
-  boolean persisted = false;
+  volatile boolean persisted = false;
   @Inject
   private ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
   @Inject

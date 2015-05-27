@@ -100,7 +100,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   private final ServiceComponent serviceComponent;
   private final Host host;
-  private boolean persisted = false;
+  private volatile boolean persisted = false;
 
   @Inject
   HostComponentStateDAO hostComponentStateDAO;

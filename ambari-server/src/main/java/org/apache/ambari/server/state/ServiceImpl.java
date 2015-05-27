@@ -62,7 +62,7 @@ public class ServiceImpl implements Service {
   private static final Logger LOG =
       LoggerFactory.getLogger(ServiceImpl.class);
 
-  private boolean persisted = false;
+  private volatile boolean persisted = false;
   private final Cluster cluster;
   private Map<String, ServiceComponent> components;
   private final boolean isClientOnlyService;
