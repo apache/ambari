@@ -109,16 +109,15 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   # --- Tarballs ---
   # DON'T CHANGE THESE VARIABLE NAMES
   # Values don't change from those in copy_tarball.py
-  hive_tar_source = "/usr/hdp/%s/hive/hive.tar.gz"      % STACK_VERSION_PATTERN
-  pig_tar_source = "/usr/hdp/%s/pig/pig.tar.gz"         % STACK_VERSION_PATTERN
-  hive_tar_dest_file = "/hdp/apps/%s/hive/hive.tar.gz"  % STACK_VERSION_PATTERN
-  pig_tar_dest_file = "/hdp/apps/%s/pig/pig.tar.gz"     % STACK_VERSION_PATTERN
+  hive_tar_source = "/usr/hdp/{0}/hive/hive.tar.gz".format(STACK_VERSION_PATTERN)
+  pig_tar_source = "/usr/hdp/{0}/pig/pig.tar.gz".format(STACK_VERSION_PATTERN)
+  hive_tar_dest_file = "/hdp/apps/{0}/hive/hive.tar.gz".format(STACK_VERSION_PATTERN)
+  pig_tar_dest_file = "/hdp/apps/{0}/pig/pig.tar.gz".format(STACK_VERSION_PATTERN)
 
-
-  hadoop_streaming_tar_source = "/usr/hdp/%s/hadoop/hadoop-streaming.jar"    % STACK_VERSION_PATTERN
-  sqoop_tar_source = "/usr/hdp/%s/sqoop/sqoop.tar.gz"                        % STACK_VERSION_PATTERN
-  hadoop_streaming_tar_dest_dir = "/hdp/apps/%s/mapreduce/"                  % STACK_VERSION_PATTERN
-  sqoop_tar_dest_dir = "/hdp/apps/%s/sqoop/"                                 % STACK_VERSION_PATTERN
+  hadoop_streaming_tar_source = "/usr/hdp/{0}/hadoop/hadoop-streaming.jar".format(STACK_VERSION_PATTERN)
+  sqoop_tar_source = "/usr/hdp/{0}/sqoop/sqoop.tar.gz".format(STACK_VERSION_PATTERN)
+  hadoop_streaming_tar_dest_dir = "/hdp/apps/{0}/mapreduce/".format(STACK_VERSION_PATTERN)
+  sqoop_tar_dest_dir = "/hdp/apps/{0}/sqoop/".format(STACK_VERSION_PATTERN)
 
   tarballs_mode = 0444
 else:
