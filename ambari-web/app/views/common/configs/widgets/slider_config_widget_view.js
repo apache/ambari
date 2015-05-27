@@ -215,13 +215,13 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       if (parsed > max) {
         this.set('isMirrorValueValid', false);
         this.get('config').setProperties({
-          warnMessage: Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(max),
+          warnMessage: Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(max + this.get('unitLabel')),
           warn: true
         });
       } else if (parsed < min) {
         this.set('isMirrorValueValid', false);
         this.get('config').setProperties({
-          warnMessage: Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(min),
+          warnMessage: Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(min + this.get('unitLabel')),
           warn: true
         });
       } else {
