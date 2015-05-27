@@ -90,6 +90,8 @@ public class ComponentInfo {
   @XmlElement(name="auto-deploy")
   private AutoDeployInfo autoDeploy;
 
+  private String timelineAppid;
+
   public ComponentInfo() {
   }
 
@@ -109,6 +111,7 @@ public class ComponentInfo {
     autoDeploy = prototype.autoDeploy;
     configDependencies = prototype.configDependencies;
     clientConfigFiles = prototype.clientConfigFiles;
+    timelineAppid = prototype.timelineAppid;
   }
 
   public String getName() {
@@ -250,6 +253,14 @@ public class ComponentInfo {
 
   public void setClientsToUpdateConfigs(List<String> clientsToUpdateConfigs) {
     this.clientsToUpdateConfigs = clientsToUpdateConfigs;
+  }
+
+  public String getTimelineAppid() {
+    return timelineAppid;
+  }
+
+  public void setTimelineAppid(String timelineAppid) {
+    this.timelineAppid = timelineAppid;
   }
 
   @Override
