@@ -35,8 +35,8 @@ def check_service_status(name):
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def check_service_status(name):
-  import params
+  import service_mapping
   if name=='collector':
-    check_windows_service_status(params.ams_collector_win_service_name)
+    check_windows_service_status(service_mapping.ams_collector_win_service_name)
   elif name == 'monitor':
-    check_windows_service_status(params.ams_monitor_win_service_name)
+    check_windows_service_status(service_mapping.ams_monitor_win_service_name)

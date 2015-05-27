@@ -50,6 +50,4 @@ hadoop_native_lib = os.path.join(os.environ["HADOOP_HOME"], "bin")
 hadoop_bin_dir = os.path.join(os.environ["HADOOP_HOME"], "bin")
 hadoop_conf_dir = os.path.join(os.environ["HADOOP_HOME"], "conf")
 
-ams_collector_win_service_name = "AmbariMetricsCollector"
-ams_monitor_win_service_name = "AmbariMetricsHostMonitoring"
-ams_embedded_hbase_win_service_name = "ams_hbase_master"
+from service_mapping import *

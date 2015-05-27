@@ -339,6 +339,8 @@
             <exclude>contrib/views/*/.classpath</exclude>
             <exclude>contrib/views/*/.project</exclude>
             <exclude>contrib/views/*/.settings/**</exclude>
+            <exclude>contrib/views/capacity-scheduler/src/main/resources/ui/app/**</exclude>
+            <exclude>contrib/views/capacity-scheduler/src/main/resources/ui/runner.js</exclude>
 
             <exclude>contrib/ambari-scom/ambari-scom-server/pass.txt</exclude>
             <exclude>contrib/ambari-scom/ambari-scom-server/target/**</exclude>

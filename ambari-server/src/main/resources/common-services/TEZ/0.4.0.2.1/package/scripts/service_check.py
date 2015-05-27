@@ -18,6 +18,7 @@ limitations under the License.
 Ambari Agent
 
 """
+import os
 from resource_management.libraries.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
