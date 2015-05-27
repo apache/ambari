@@ -703,17 +703,6 @@ App.MainHostDetailsController = Em.Controller.extend({
     }, this);
 
     configs['storm-site']['nimbus.seeds'] = JSON.stringify(stormNimbusHosts).replace(/"/g, "'");
-
-    if (stormNimbusHosts.length > 1) {
-      // for HA Nimbus
-      configs['storm-site']['topology.max.replication.wait.time.sec'] = '-1';
-      configs['storm-site']['topology.min.replication.count'] = '2';
-    } else {
-      // for non-HA Nimbus
-      configs['storm-site']['topology.max.replication.wait.time.sec'] = App.StackConfigProperty.find().findProperty('name', 'topology.max.replication.wait.time.sec').get('value');
-      configs['storm-site']['topology.min.replication.count'] = App.StackConfigProperty.find().findProperty('name', 'topology.min.replication.count').get('value');
-    }
-
     var groups = [
       {
         properties: {

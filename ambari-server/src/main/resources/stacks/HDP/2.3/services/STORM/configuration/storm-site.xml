@@ -25,15 +25,25 @@
     <description>Comma-delimited list of the hosts running nimbus server.</description>
   </property>
   <property>
-    <name>topology.min.replication.count</name>
+    <name>topology.min.replication.count.default</name>
     <value>1</value>
-    <description> Minimum number of nimbus hosts where the code must be replicated before leader nimbus can mark the topology as active and create assignments. </description>
+    <description>Dafault minimum number of nimbus hosts where the code must be replicated before leader nimbus can mark the topology as active and create assignments. </description>
   </property>
-   <property>
-      <name>topology.max.replication.wait.time.sec</name>
+  <property>
+    <name>topology.min.replication.count</name>
+    <value>{{actual_topology_min_replication_count}}</value>
+    <description>Calculated minimum number of nimbus hosts where the code must be replicated before leader nimbus can mark the topology as active and create assignments. </description>
+  </property>  
+  <property>
+      <name>topology.max.replication.wait.time.sec.default</name>
       <value>60</value>
-      <description>Maximum wait time for the nimbus host replication to achieve the nimbus.min.replication.count. Once this time is elapsed nimbus will go ahead and perform topology activation tasks even if required nimbus.min.replication.count is not achieved</description>
-   </property>
+      <description>Default maximum wait time for the nimbus host replication to achieve the nimbus.min.replication.count. Once this time is elapsed nimbus will go ahead and perform topology activation tasks even if required nimbus.min.replication.count is not achieved</description>
+  </property>
+  <property>
+      <name>topology.max.replication.wait.time.sec</name>
+      <value>{{actual_topology_max_replication_wait_time_sec}}</value>
+      <description>Calculated maximum wait time for the nimbus host replication to achieve the nimbus.min.replication.count. Once this time is elapsed nimbus will go ahead and perform topology activation tasks even if required nimbus.min.replication.count is not achieved</description>
+  </property>  
    <property>
     <name>nimbus.host</name>
     <value>localhost</value>

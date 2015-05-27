@@ -89,6 +89,19 @@ storm_zookeeper_servers = default('/configurations/storm-site/storm.zookeeper.se
 nimbus_seeds_supported = default('/configurations/storm-env/nimbus_seeds_supported', False)
 nimbus_host = default('/configurations/storm-site/nimbus.host', None)
 nimbus_seeds = default('/configurations/storm-site/nimbus.seeds', None)
+default_topology_max_replication_wait_time_sec = default('/configurations/storm-site/topology.max.replication.wait.time.sec.default', None)
+actual_topology_max_replication_wait_time_sec = default('/configurations/storm-site/topology.max.replication.wait.time.sec', None)
+nimbus_hosts = default("/clusterHostInfo/nimbus_hosts", [])
+actual_topology_min_replication_count = default('/configurations/storm-site/topology.min.replication.count', None)
+default_topology_min_replication_count = default('/configurations/storm-site/topology.min.replication.count.default', None)
+
+#Calculate topology.max.replication.wait.time.sec and topology.min.replication.count
+if len(nimbus_hosts) > 1:
+  actual_topology_max_replication_wait_time_sec = -1
+  actual_topology_min_replication_count = 2
+else:
+  actual_topology_max_replication_wait_time_sec = default_topology_max_replication_wait_time_sec
+  actual_topology_min_replication_count = default_topology_min_replication_count  
 
 rest_api_port = "8745"
 rest_api_admin_port = "8746"
