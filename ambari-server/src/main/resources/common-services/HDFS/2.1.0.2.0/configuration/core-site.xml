@@ -67,9 +67,12 @@
   <property>
     <name>fs.trash.interval</name>
     <value>360</value>
-    <description>Number of minutes between trash checkpoints.
-  If zero, the trash feature is disabled.
-  </description>
+    <description>Number of minutes after which the checkpoint gets deleted.
+        If zero, the trash feature is disabled.
+        This option may be configured both on the server and the client.
+        If trash is disabled server side then the client side configuration is checked.
+        If trash is enabled on the server side then the value configured on the server is used and the client configuration value is ignored.
+    </description>
   </property>
 
   <!-- ipc properties: copied from kryptonite configuration -->
