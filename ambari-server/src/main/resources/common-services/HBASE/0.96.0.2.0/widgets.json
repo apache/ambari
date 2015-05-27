@@ -341,31 +341,36 @@
         },
         {
           "widget_name": "Cluster Disk",
-          "description": "RegionServer widget for Disk utilization",
+          "description": "RegionServer widget for Disk throughput",
           "default_section_name": "HBASE_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "disk_free._sum",
-              "metric_path": "metrics/disk/disk_free._sum",
+              "name": "read_bps._sum",
+              "metric_path": "metrics/disk/read_bps._sum",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "disk_total._sum",
-              "metric_path": "metrics/disk/disk_total._sum",
+              "name": "write_bps._sum",
+              "metric_path": "metrics/disk/write_bps._sum",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
           ],
           "values": [
             {
-              "name": "Disk Utlization",
-              "value": "${(disk_total._sum - disk_free._sum)/disk_total._sum}"
+              "name": "Read throughput",
+              "value": "${read_bps._sum/1048576}"
+            },
+            {
+              "name": "Write throughput",
+              "value": "${write_bps._sum/1048576}"
             }
           ],
           "properties": {
+            "display_unit": "Mbps",
             "graph_type": "LINE",
             "time_range": "1"
           }

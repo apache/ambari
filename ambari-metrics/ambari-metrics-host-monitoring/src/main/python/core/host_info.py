@@ -43,6 +43,8 @@ class HostInfo():
     self.__last_network_io_time = 0
     self.__last_network_data = {}
     self.__last_network_lock = threading.Lock()
+    self.__last_disk_io_time = 0
+    self.__last_disk_data = {}
     self.__host_static_info = self.get_host_static_info()
     self.__config = config
 
@@ -256,9 +258,16 @@ class HostInfo():
     # read_time: time spent reading from disk (in milliseconds)
     # write_time: time spent writing to disk (in milliseconds)
 
+    current_time = time.time()
+    delta = current_time - self.__last_disk_io_time
+    self.__last_disk_io_time = current_time
+
+    if delta <= 0:
+      delta = float("inf")
+
     io_counters = psutil.disk_io_counters()
 
-    return {
+    new_disk_stats = {
       'read_count' : io_counters.read_count if hasattr(io_counters, 'read_count') else 0,
       'write_count' : io_counters.write_count if hasattr(io_counters, 'write_count') else 0,
       'read_bytes' : io_counters.read_bytes if hasattr(io_counters, 'read_bytes') else 0,
@@ -266,6 +275,14 @@ class HostInfo():
       'read_time' : io_counters.read_time if hasattr(io_counters, 'read_time') else 0,
       'write_time' : io_counters.write_time if hasattr(io_counters, 'write_time') else 0
     }
+    if not self.__last_disk_data:
+      self.__last_disk_data = new_disk_stats
+    read_bps = (new_disk_stats['read_bytes'] - self.__last_disk_data['read_bytes']) / delta
+    write_bps = (new_disk_stats['write_bytes'] - self.__last_disk_data['write_bytes']) / delta
+    self.__last_disk_data = new_disk_stats
+    new_disk_stats['read_bps'] = read_bps
+    new_disk_stats['write_bps'] = write_bps
+    return new_disk_stats
 
   def get_hostname(self):
     global cached_hostname

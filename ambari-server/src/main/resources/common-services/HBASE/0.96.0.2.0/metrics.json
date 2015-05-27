@@ -40,6 +40,16 @@
               "pointInTime":true,
               "temporal":true
             },
+            "metrics/disk/read_bps":{
+              "metric":"read_bps",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/disk/write_bps":{
+              "metric":"write_bps",
+              "pointInTime":true,
+              "temporal":true
+            },
             "metrics/load/load_fifteen":{
               "metric":"load_fifteen",
               "pointInTime":true,
@@ -1684,6 +1694,18 @@
             },
             "metrics/disk/disk_total":{
               "metric":"disk_total",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
+            "metrics/disk/read_bps":{
+              "metric":"read_bps",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
+            "metrics/disk/write_bps":{
+              "metric":"write_bps",
               "pointInTime":true,
               "temporal":true,
               "amsHostMetric":true
