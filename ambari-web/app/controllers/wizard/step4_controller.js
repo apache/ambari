@@ -29,6 +29,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   content: [],
 
+  isValidating: false,
+
   /**
    * Check / Uncheck 'Select All' checkbox with one argument; Check / Uncheck all other checkboxes with more arguments
    * @type {bool}
@@ -64,7 +66,9 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * Drop errorStack content on selected state changes.
    **/
   clearErrors: function() {
-    this.set('errorStack', []);
+    if (!this.get('isValidating')) {
+      this.set('errorStack', []);
+    }
   }.observes('@each.isSelected'),
 
   /**
@@ -155,6 +159,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method validate
    **/
   validate: function() {
+    var result;
+    this.set('isValidating', true);
     this.serviceDependencyValidation();
     this.fileSystemServiceValidation();
     if (this.get('wizardController.name') == 'installerController') {
@@ -164,9 +170,12 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     this.sparkValidation();
     if (!!this.get('errorStack').filterProperty('isShown', false).length) {
       this.showError(this.get('errorStack').findProperty('isShown', false));
-      return false;
+      result = false;
+    } else {
+      result = true;
     }
-    return true;
+    this.set('isValidating', false);
+    return result;
   },
 
   /**

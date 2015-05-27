@@ -778,4 +778,33 @@ describe('App.WizardStep4Controller', function () {
 
   });
 
+  describe('#clearErrors', function () {
+
+    var cases = [
+      {
+        isValidating: true,
+        errorStack: [{}],
+        title: 'error stack shouldn\'t be cleared during validation'
+      },
+      {
+        isValidating: false,
+        errorStack: [],
+        title: 'error stack should be cleared'
+      }
+    ];
+
+    beforeEach(function () {
+      controller.set('errorStack', [{}]);
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        controller.set('isValidating', item.isValidating);
+        controller.propertyDidChange('@each.isSelected');
+        expect(controller.get('errorStack')).to.eql(item.errorStack);
+      });
+    });
+
+  });
+
 });
