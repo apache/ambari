@@ -16,6 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import sys
 from unittest import TestCase
 from mock.mock import patch, MagicMock, call
 
@@ -35,9 +36,9 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_has_calls([call("dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep '^some-package$'"),
-                                call(['/usr/bin/apt-get', '-q', '-o', 'Dpkg::Options::=--force-confdef', '--allow-unauthenticated', '--assume-yes', 'install', 'some-package'], logoutput=False, sudo=True, env={'DEBIAN_FRONTEND': 'noninteractive'}),
-                                call(['/usr/bin/apt-get', 'update', '-qq'], logoutput=False, sudo=True)])
+    call_mock.assert_has_calls([call("dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep ^some-package$"),
+ call(['/usr/bin/apt-get', '-q', '-o', 'Dpkg::Options::=--force-confdef', '--allow-unauthenticated', '--assume-yes', 'install', 'some-package'], logoutput=False, sudo=True, env={'DEBIAN_FRONTEND': 'noninteractive'}),
+ call(['/usr/bin/apt-get', 'update', '-qq'], logoutput=False, sudo=True)])
     
     shell_mock.assert_has_calls([call(['/usr/bin/apt-get', '-q', '-o', 'Dpkg::Options::=--force-confdef', 
                                        '--allow-unauthenticated', '--assume-yes', 'install', 'some-package'], logoutput=False, sudo=True)])
@@ -50,8 +51,9 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_has_calls([call("dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep '^some-package$'"),
-                                call(['/usr/bin/apt-get', '-q', '-o', 'Dpkg::Options::=--force-confdef', '--allow-unauthenticated', '--assume-yes', 'install', 'some-package'], logoutput=False, sudo=True, env={'DEBIAN_FRONTEND': 'noninteractive'})])
+    call_mock.assert_has_calls([call("dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep ^some-package$"),
+ call(['/usr/bin/apt-get', '-q', '-o', 'Dpkg::Options::=--force-confdef', '--allow-unauthenticated', '--assume-yes', 'install', 'some-package'], logoutput=False, sudo=True, env={'DEBIAN_FRONTEND': 'noninteractive'})])
+
     
     self.assertEqual(shell_mock.call_count, 0, "shell.checked_call shouldn't be called")
 
@@ -59,19 +61,11 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'ubuntu')
   def test_action_install_regex_ubuntu(self, shell_mock, call_mock):
-    call_mock.side_effect = [(0, None),
-                             (0, "some-package1\nsome-package2"),
-                             (0, "Some text.\nStatus: install ok installed\nSome text"),
-                             (0, "Some text.\nStatus: not installed\nSome text"),
-                             (0, None)]
+    call_mock.side_effect = [(0, None)]
     with Environment('/') as env:
       Package("some_package.*",
       )
-    call_mock.assert_has_calls([call("dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep '^some-package.*$'"),
-                                call("apt-cache --names-only search '^some-package.*$' | awk '{print $1}'"),
-                                call("dpkg --status 'some-package1'"),
-                                call("dpkg --status 'some-package2'"),
-                                call(['/usr/bin/apt-get', '-q', '-o', 'Dpkg::Options::=--force-confdef', '--allow-unauthenticated', '--assume-yes', 'install', 'some-package.*'], logoutput=False, sudo=True, env={'DEBIAN_FRONTEND': 'noninteractive'})])
+    call_mock.assert_has_calls([call("dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep ^some-package.*$")])
     self.assertEqual(shell_mock.call_count, 0, "shell.checked_call shouldn't be called")
 
   @patch.object(shell, "call")
@@ -86,57 +80,56 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package.*",
               )
-    call_mock.assert_has_calls([call("dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep '^some-package.*$'"),
-                                call("apt-cache --names-only search '^some-package.*$' | awk '{print $1}'"),
-                                call("dpkg --status 'some-package1'"),
-                                call("dpkg --status 'some-package2'")])
-    self.assertEqual(call_mock.call_count, 4, "Package should not be installed")
+    call_mock.assert_has_calls([call("dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep ^some-package.*$")])
+    self.assertEqual(call_mock.call_count, 1, "Package should not be installed")
     self.assertEqual(shell_mock.call_count, 0, "shell.checked_call shouldn't be called")
 
-  @patch.object(shell, "call")
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
-  def test_action_install_rhel(self, shell_mock, call_mock):
-    call_mock.return_value= (1, None)
+  def test_action_install_rhel(self, shell_mock):
+    sys.modules['yum'] = MagicMock()
+    sys.modules['yum'].YumBase.return_value = MagicMock()
+    sys.modules['yum'].YumBase.return_value.rpmdb = MagicMock()
+    sys.modules['yum'].YumBase.return_value.rpmdb.simplePkgList.return_value = [('some_packag',)]
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_called_with("installed_pkgs=`rpm -qa 'some_package'` ; [ ! -z \"$installed_pkgs\" ]")
+    self.assertTrue(sys.modules['yum'].YumBase.return_value.rpmdb.simplePkgList.called)
     shell_mock.assert_called_with(['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install', 'some_package'], logoutput=False, sudo=True)
 
-  @patch.object(shell, "call")
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
-  def test_action_install_pattern_rhel(self, shell_mock, call_mock):
-    call_mock.side_effect=[(0, None), (1, "Some text")]
+  def test_action_install_pattern_rhel(self, shell_mock):
+    sys.modules['yum'] = MagicMock()
+    sys.modules['yum'].YumBase.return_value = MagicMock()
+    sys.modules['yum'].YumBase.return_value.rpmdb = MagicMock()
+    sys.modules['yum'].YumBase.return_value.rpmdb.simplePkgList.return_value = [('some_packag',)]
     with Environment('/') as env:
       Package("some_package*",
       )
-    call_mock.assert_has_calls([call("installed_pkgs=`rpm -qa 'some_package*'` ; [ ! -z \"$installed_pkgs\" ]"),
-                                call("! yum list available 'some_package*'")])
     shell_mock.assert_called_with(['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install', 'some_package*'], logoutput=False, sudo=True)
 
-  @patch.object(shell, "call")
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
-  def test_action_install_pattern_installed_rhel(self, shell_mock, call_mock):
-    call_mock.side_effect=[(0, None), (0, "Some text")]
+  def test_action_install_pattern_installed_rhel(self, shell_mock):
+    sys.modules['yum'] = MagicMock()
+    sys.modules['yum'].YumBase.return_value = MagicMock()
+    sys.modules['yum'].YumBase.return_value.rpmdb = MagicMock()
+    sys.modules['yum'].YumBase.return_value.rpmdb.simplePkgList.return_value = [('some_package_1_2_3',)]
     with Environment('/') as env:
       Package("some_package*",
       )
-    call_mock.assert_has_calls([call("installed_pkgs=`rpm -qa 'some_package*'` ; [ ! -z \"$installed_pkgs\" ]"),
-                                call("! yum list available 'some_package*'")])
     self.assertEqual(shell_mock.call_count, 0, "shell.checked_call shouldn't be called")
 
-  @patch.object(shell, "call")
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'suse')
-  def test_action_install_suse(self, shell_mock, call_mock):
-    call_mock.return_value= (1, None)
+  def test_action_install_suse(self, shell_mock):
+    sys.modules['rpm'] = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_packages'}]
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_called_with("installed_pkgs=`rpm -qa 'some_package'` ; [ ! -z \"$installed_pkgs\" ]")
     shell_mock.assert_called_with(['/usr/bin/zypper', '--quiet', 'install', '--auto-agree-with-licenses', '--no-confirm', 'some_package'], logoutput=False, sudo=True)
 
   @patch.object(shell, "call")
@@ -151,22 +144,25 @@ class TestPackageResource(TestCase):
                                 call("zypper --non-interactive search --type package --uninstalled-only --match-exact 'some_package*'")])
     shell_mock.assert_called_with(['/usr/bin/zypper', '--quiet', 'install', '--auto-agree-with-licenses', '--no-confirm', 'some_package*'], logoutput=False, sudo=True)
 
-  @patch.object(shell, "call")
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'suse')
-  def test_action_install_pattern_suse(self, shell_mock, call_mock):
-    call_mock.side_effect=[(0, None), (0, "Loading repository data...\nReading installed packages...\nNo packages found.\n")]
+  def test_action_install_pattern_suse(self, shell_mock):
+    sys.modules['rpm'] = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_packagetest'}]
     with Environment('/') as env:
       Package("some_package*",
               )
-    call_mock.assert_has_calls([call("installed_pkgs=`rpm -qa 'some_package*'` ; [ ! -z \"$installed_pkgs\" ]"),
-                                call("zypper --non-interactive search --type package --uninstalled-only --match-exact 'some_package*'")])
     self.assertEqual(shell_mock.call_count, 0, "shell.checked_call shouldn't be called")
 
   @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
   def test_action_install_existent_rhel(self, shell_mock):
+    sys.modules['yum'] = MagicMock()
+    sys.modules['yum'].YumBase.return_value = MagicMock()
+    sys.modules['yum'].YumBase.return_value.rpmdb = MagicMock()
+    sys.modules['yum'].YumBase.return_value.rpmdb.simplePkgList.return_value = [('some_package',)]
     with Environment('/') as env:
       Package("some_package",
               )
@@ -188,6 +184,9 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'suse')
   def test_action_install_existent_suse(self, shell_mock):
+    sys.modules['rpm'] = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_package'}]
     with Environment('/') as env:
       Package("some_package",
               )
@@ -197,6 +196,10 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
   def test_action_remove_rhel(self, shell_mock):
+    sys.modules['yum'] = MagicMock()
+    sys.modules['yum'].YumBase.return_value = MagicMock()
+    sys.modules['yum'].YumBase.return_value.rpmdb = MagicMock()
+    sys.modules['yum'].YumBase.return_value.rpmdb.simplePkgList.return_value = [('some_package',)]
     with Environment('/') as env:
       Package("some_package",
               action = "remove"
@@ -207,6 +210,9 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'suse')
   def test_action_remove_suse(self, shell_mock):
+    sys.modules['rpm'] = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_package'}]
     with Environment('/') as env:
       Package("some_package",
               action = "remove"

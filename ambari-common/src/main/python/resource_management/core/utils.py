@@ -20,6 +20,9 @@ Ambari Agent
 
 """
 
+import contextlib
+import sys
+import cStringIO
 from resource_management.core.exceptions import Fail
 
 class AttributeDictionary(object):
@@ -106,3 +109,10 @@ def checked_unite(dict1, dict2):
   result.update(dict2)
   
   return result
+
+@contextlib.contextmanager
+def suppress_stdout():
+  save_stdout = sys.stdout
+  sys.stdout = cStringIO.StringIO()
+  yield
+  sys.stdout = save_stdout

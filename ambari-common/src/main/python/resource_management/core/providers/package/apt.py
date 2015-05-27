@@ -22,6 +22,7 @@ Ambari Agent
 import os
 import tempfile
 import shutil
+import re
 
 from resource_management.core.providers.package import PackageProvider
 from resource_management.core import shell
@@ -39,14 +40,9 @@ REMOVE_CMD = {
 }
 REPO_UPDATE_CMD = ['/usr/bin/apt-get', 'update','-qq']
 
-CHECK_EXISTENCE_CMD = "dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep '^%s$'"
-GET_PACKAGES_BY_PATTERN_CMD = "apt-cache --names-only search '^%s$' | awk '{print $1}'"
-GET_PACKAGE_STATUS_CMD = "dpkg --status '%s'"
-
-PACKAGE_INSTALLED_STATUS = 'Status: install ok installed'
-
-EMPTY_FILE = "/dev/null"
 APT_SOURCES_LIST_DIR = "/etc/apt/sources.list.d"
+
+CHECK_CMD = "dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep ^%s$"
 
 def replace_underscores(function_to_decorate):
   def wrapper(*args):
@@ -60,7 +56,7 @@ class AptProvider(PackageProvider):
 
   @replace_underscores
   def install_package(self, name, use_repos=[]):
-    if not self._check_existence(name) or use_repos:
+    if use_repos or not self._check_existence(name):
       cmd = INSTALL_CMD[self.get_logoutput()]
       copied_sources_files = []
       is_tmp_dir_created = False
@@ -117,16 +113,24 @@ class AptProvider(PackageProvider):
       Logger.info("Skipping removal of non-existing package %s" % (name))
 
   @replace_underscores
-  def _check_existence(self, name):
-    code, out = shell.call(CHECK_EXISTENCE_CMD % name)
-    if bool(code):
-      return False
-    elif '*' in name or '.' in name:  # Check if all packages matching regexp are installed
-      code1, out1 = shell.call(GET_PACKAGES_BY_PATTERN_CMD % name)
-      for package_name in out1.splitlines():
-        code2, out2 = shell.call(GET_PACKAGE_STATUS_CMD % package_name)
-        if PACKAGE_INSTALLED_STATUS not in out2.splitlines():
-          return False
-      return True
-    else:
-      return True
+  def _check_existence(self, name): 
+    """
+    For regexp names:
+    If only part of packages were installed during early canceling.
+    Let's say:
+    1. install hbase-2-3-.*
+    2. Only hbase-2-3-1234 is installed, but is not hbase-2-3-1234-regionserver yet.
+    3. We cancel the apt-get
+    
+    In that case this is bug of packages we require.
+    And hbase-2-3-*-regionserver should be added to metainfo.xml.
+    
+    Checking existence should never fail in such a case for hbase-2-3-.*, otherwise it
+    gonna break things like removing packages and some other things.
+    
+    Note: this method SHOULD NOT use apt-get (apt.cache is using dpkg not apt). Because a lot of issues we have, when customer have
+    apt-get in inconsistant state (locked, used, having invalid repo). Once packages are installed
+    we should not rely on that.
+    """
+    code, out = shell.call(CHECK_CMD % name)
+    return not bool(code)

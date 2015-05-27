@@ -170,7 +170,7 @@ def _call(command, logoutput=None, throw_on_failure=True,
       if ready:
         line = os.read(master_fd, 512)
         if not line:
-            break
+          continue
           
         out += line
         try:

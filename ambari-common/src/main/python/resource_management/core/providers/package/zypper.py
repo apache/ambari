@@ -24,6 +24,9 @@ from resource_management.core.providers.package import PackageProvider
 from resource_management.core import shell
 from resource_management.core.shell import string_cmd_from_args_list
 from resource_management.core.logger import Logger
+from resource_management.core.utils import suppress_stdout
+
+import re
 
 INSTALL_CMD = {
   True: ['/usr/bin/zypper', 'install', '--auto-agree-with-licenses', '--no-confirm'],
@@ -33,10 +36,6 @@ REMOVE_CMD = {
   True: ['/usr/bin/zypper', 'remove', '--no-confirm'],
   False: ['/usr/bin/zypper', '--quiet', 'remove', '--no-confirm'],
 }
-CHECK_CMD = "installed_pkgs=`rpm -qa '%s'` ; [ ! -z \"$installed_pkgs\" ]"
-GET_NOT_INSTALLED_CMD = "zypper --non-interactive search --type package --uninstalled-only --match-exact '%s'"
-
-NO_PACKAGES_FOUND_STATUS = 'No packages found.'
 
 LIST_ACTIVE_REPOS_CMD = ['/usr/bin/zypper', 'repos']
 
@@ -55,7 +54,7 @@ def get_active_base_repos():
 
 class ZypperProvider(PackageProvider):
   def install_package(self, name, use_repos=[]):
-    if not self._check_existence(name) or use_repos:
+    if use_repos or not self._check_existence(name):
       cmd = INSTALL_CMD[self.get_logoutput()]
       if use_repos:
         active_base_repos = get_active_base_repos()
@@ -85,11 +84,32 @@ class ZypperProvider(PackageProvider):
       Logger.info("Skipping removal of non-existing package %s" % (name))
 
   def _check_existence(self, name):
-    code, out = shell.call(CHECK_CMD % name)
-    if bool(code):
-      return False
-    elif '*' in name or '?' in name:  # Check if all packages matching pattern are installed
-      code1, out1 = shell.call(GET_NOT_INSTALLED_CMD % name)
-      return NO_PACKAGES_FOUND_STATUS in out1.splitlines()
-    else:
-      return True
+    """
+    For regexp names:
+    If only part of packages were installed during early canceling.
+    Let's say:
+    1. install hbase_2_3_*
+    2. Only hbase_2_3_1234 is installed, but is not hbase_2_3_1234_regionserver yet.
+    3. We cancel the zypper
+    
+    In that case this is bug of packages we require.
+    And hbase_2_3_*_regionserver should be added to metainfo.xml.
+    
+    Checking existence should never fail in such a case for hbase_2_3_*, otherwise it
+    gonna break things like removing packages and some other things.
+    
+    Note: this method SHOULD NOT use zypper. Because a lot of issues we have, when customer have
+    zypper in inconsistant state (locked, used, having invalid repo). Once packages are installed
+    we should not rely on that.
+    """
+    import rpm # this is faster then calling 'rpm'-binary externally.
+    ts = rpm.TransactionSet()
+    packages = ts.dbMatch()
+    
+    name_regex = re.escape(name).replace("\\?", ".").replace("\\*", ".*") + '$'
+    regex = re.compile(name_regex)
+    
+    for package in packages:
+      if regex.match(package['name']):
+        return True
+    return False
