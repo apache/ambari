@@ -165,7 +165,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hbase-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-hbase-plugin-enabled']
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hbase-plugin-enabled'] if ranger_plugin_properties else 'No'
     prop_name = 'hbase.security.authorization'
     prop_val = "true"
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
