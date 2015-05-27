@@ -22,7 +22,7 @@ Ambari Agent
 
 __all__ = ["Service", "ServiceConfig"]
 
-from resource_management.core.base import Resource, ResourceArgument, ForcedListArgument
+from resource_management.core.base import Resource, ResourceArgument, ForcedListArgument, PasswordArgument
 
 
 class Service(Resource):
@@ -46,6 +46,6 @@ class ServiceConfig(Resource):
   #exe_path = ResourceArgument()
   #arguments = ResourceArgument()
   username = ResourceArgument()
-  password = ResourceArgument()
+  password = PasswordArgument()
 
   actions = ["nothing", "install", "configure", "change_user", "uninstall"]
