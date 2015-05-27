@@ -173,8 +173,7 @@ App.WidgetMixin = Ember.Mixin.create({
       case 'NAMENODE':
         if (request.host_component_criteria === 'host_components/metrics/dfs/FSNamesystem/HAState=active') {
           var hdfs = App.HDFSService.find().objectAt(0);
-          var activeNNHostName = !hdfs.get('snameNode') && hdfs.get('activeNameNode');
-          if (!activeNNHostName) {
+          if (!hdfs.get('isNnHaEnabled')) {
             return '';
           }
         }

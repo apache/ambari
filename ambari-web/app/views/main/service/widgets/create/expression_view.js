@@ -336,9 +336,13 @@ App.AddMetricExpressionView = Em.View.extend({
       for (var componentId in servicesMap[serviceName].components) {
 
         //HBase service should not show "Active HBase master"
-        if (servicesMap[serviceName].components[componentId].component_name === 'HBASE_MASTER' &&
-          servicesMap[serviceName].components[componentId].level === 'HOSTCOMPONENT') continue;
+        var isActiveHbaseMaster = servicesMap[serviceName].components[componentId].component_name === 'HBASE_MASTER' &&
+          servicesMap[serviceName].components[componentId].level === 'HOSTCOMPONENT';
 
+        // Hide the option if none of the hostComponent is created in the cluster yet
+        var componentName = servicesMap[serviceName].components[componentId].component_name;
+        var isHostComponentAbsent = !App.HostComponent.find().filterProperty('componentName',componentName).length;
+        if (isActiveHbaseMaster || isHostComponentAbsent) continue;
         var component = Em.Object.create({
           componentName: servicesMap[serviceName].components[componentId].component_name,
           level: servicesMap[serviceName].components[componentId].level,
