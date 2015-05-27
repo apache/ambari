@@ -81,4 +81,9 @@
     <deleted>true</deleted>
   </property>
 
+  <property>
+    <name>SQL_COMMAND_INVOKER</name>
+    <deleted>true</deleted>
+  </property>
+
 </configuration>

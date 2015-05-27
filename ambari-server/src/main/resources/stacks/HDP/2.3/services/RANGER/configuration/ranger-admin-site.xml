@@ -80,13 +80,13 @@
 
   <property>
     <name>ranger.jpa.jdbc.driver</name>
-    <value>{{jdbc_driver}}</value>
+    <value>com.mysql.jdbc.Driver</value>
     <description></description>
   </property>
 
   <property>
     <name>ranger.jpa.jdbc.url</name>
-    <value>{{db_jdbc_url}}</value>
+    <value>jdbc:mysql://localhost</value>
     <description></description>
   </property> 
 
@@ -177,7 +177,7 @@
 
   <property>
     <name>ranger.jpa.audit.jdbc.driver</name>
-    <value>{{jdbc_driver}}</value>
+    <value>{{ranger_jdbc_driver}}</value>
     <description></description>
   </property>
 

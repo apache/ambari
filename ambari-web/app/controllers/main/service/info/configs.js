@@ -1183,6 +1183,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       serviceName: 'STORM',
       serviceUseThis: [],
       m: true
+    },
+    {
+      hostProperty: 'rangerserver_host',
+      componentName: 'RANGER_ADMIN',
+      serviceName: 'RANGER',
+      serviceUseThis: [],
+      m: true
     }
   ],
 

@@ -457,7 +457,8 @@ hdp22properties.push(
     "isVisible": true,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
-    "category": "DBSettings"
+    "category": "DBSettings",
+    "index": 1
   },
   {
     "id": "site property",
@@ -483,7 +484,8 @@ hdp22properties.push(
     "isVisible": true,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
-    "category": "DBSettings"
+    "category": "DBSettings",
+    "index": 2
   },
   {
     "id": "site property",
@@ -496,7 +498,8 @@ hdp22properties.push(
     "isVisible": true,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
-    "category": "DBSettings"
+    "category": "DBSettings",
+    "index": 5
   },
   {
     "id": "site property",
@@ -509,7 +512,8 @@ hdp22properties.push(
     "isVisible": true,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
-    "category": "DBSettings"
+    "category": "DBSettings",
+    "index": 6
   },
   {
     "id": "site property",
@@ -522,7 +526,8 @@ hdp22properties.push(
     "isVisible": true,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
-    "category": "DBSettings"
+    "category": "DBSettings",
+    "index": 7
   },
 
   {
@@ -536,7 +541,8 @@ hdp22properties.push(
     "isVisible": true,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
-    "category": "DBSettings"
+    "category": "DBSettings",
+    "index": 3
   },
   {
     "id": "site property",
@@ -549,7 +555,8 @@ hdp22properties.push(
     "isVisible": true,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
-    "category": "DBSettings"
+    "category": "DBSettings",
+    "index": 4
   },
   {
     "id": "site property",
@@ -562,7 +569,8 @@ hdp22properties.push(
     "isVisible": true,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
-    "category": "DBSettings"
+    "category": "DBSettings",
+    "index": 11
   },
   {
     "id": "site property",
@@ -575,7 +583,8 @@ hdp22properties.push(
     "isVisible": true,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
-    "category": "DBSettings"
+    "category": "DBSettings",
+    "index": 12
   },
   {
     "id": "site property",
@@ -588,7 +597,8 @@ hdp22properties.push(
     "isVisible": true,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
-    "category": "DBSettings"
+    "category": "DBSettings",
+    "index": 13
   },
   {
     "id": "puppet var",

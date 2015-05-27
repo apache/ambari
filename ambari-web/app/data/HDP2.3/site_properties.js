@@ -22,7 +22,6 @@ var hdp22properties = require('data/HDP2.2/site_properties').configProperties;
 
 var excludedConfigs = [
   'DB_FLAVOR',
-  'SQL_COMMAND_INVOKER',
   'db_name',
   'db_root_user',
   'db_root_password',
@@ -82,7 +81,7 @@ hdp23properties.push({
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "DBSettings",
-    "index": 0
+    "index": 1
   },
   {
     "name": "ranger_mysql_database",
@@ -515,22 +514,7 @@ hdp23properties.push({
     "index": 9
   },
   {
-    "name": "SQL_COMMAND_INVOKER",
-    "id": "site property",
-    "displayName": "SQL Command Invoker",
-    "recommendedValue": "mysql",
-    "isObserved": true,
-    "isReconfigurable": true,
-    "displayType": "",
-    "isOverridable": false,
-    "isVisible": true,
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 10
-  },
-  {
-    "name": "ranger_jdbc_connection_url",
+    "name": "ranger.jpa.jdbc.url",
     "id": "site property",
     "displayName": "JDBC connect string for a Ranger database",
     "recommendedValue": "",
@@ -540,12 +524,12 @@ hdp23properties.push({
     "isObserved": true,
     "isVisible": true,
     "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
+    "filename": "ranger-admin-site.xml",
     "category": "DBSettings",
-    "index": 11
+    "index": 9
   },
   {
-    "name": "ranger_jdbc_driver",
+    "name": "ranger.jpa.jdbc.driver",
     "id": "site property",
     "displayName": "Driver class name for a JDBC Ranger database",
     "recommendedValue": "",
@@ -555,9 +539,9 @@ hdp23properties.push({
     "isOverridable": false,
     "isVisible": true,
     "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
+    "filename": "ranger-admin-site.xml",
     "category": "DBSettings",
-    "index": 12
+    "index": 8
   },
   {
     "name": "db_root_user",
@@ -572,7 +556,7 @@ hdp23properties.push({
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "DBSettings",
-    "index": 13
+    "index": 5
   },
   {
     "name": "db_root_password",
@@ -587,7 +571,7 @@ hdp23properties.push({
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "DBSettings",
-    "index": 14
+    "index": 6
   },
   {
     "name": "db_name",
@@ -602,7 +586,7 @@ hdp23properties.push({
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "DBSettings",
-    "index": 15
+    "index": 7
   },
   {
     "id": "site property",
@@ -622,6 +606,19 @@ hdp23properties.push({
     "displayType": "",
     "isOverridable": false,
     "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "RangerSettings"
+  },
+  {
+    "id": "puppet var",
+    "name": "ranger.externalurl",
+    "displayName": "External URL",
+    "recommendedValue": "http://localhost:6080",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": false,
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
     "category": "RangerSettings"
@@ -668,6 +665,19 @@ hdp23properties.push({
     "isVisible": true,
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
+    "category": "RangerSettings"
+  },
+  {
+    "id": "puppet var",
+    "name": "policymgr_external_url",
+    "displayName": "External URL",
+    "recommendedValue": "http://localhost:6080",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
     "category": "RangerSettings"
   },
   {

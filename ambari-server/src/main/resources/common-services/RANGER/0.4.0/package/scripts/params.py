@@ -96,30 +96,22 @@ java_share_dir = '/usr/share/java'
 if db_flavor.lower() == 'mysql':
   jdbc_symlink_name = "mysql-jdbc-driver.jar"
   jdbc_jar_name = "mysql-connector-java.jar"
-  db_jdbc_url = format('jdbc:log4jdbc:mysql://{db_host}/{ranger_db_name}')
-  audit_jdbc_url = format('jdbc:log4jdbc:mysql://{db_host}/{ranger_auditdb_name}')
-  jdbc_driver = "net.sf.log4jdbc.DriverSpy"
+  audit_jdbc_url = format('jdbc:mysql://{db_host}/{ranger_auditdb_name}')
   jdbc_dialect = "org.eclipse.persistence.platform.database.MySQLPlatform"
 elif db_flavor.lower() == 'oracle':
   jdbc_jar_name = "ojdbc6.jar"
   jdbc_symlink_name = "oracle-jdbc-driver.jar"
-  db_jdbc_url = format('jdbc:oracle:thin:\@//{db_host}')
   audit_jdbc_url = format('jdbc:oracle:thin:\@//{db_host}')
-  jdbc_driver = "oracle.jdbc.OracleDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
 elif db_flavor.lower() == 'postgres':
   jdbc_jar_name = "postgresql.jar"
   jdbc_symlink_name = "postgres-jdbc-driver.jar"
-  db_jdbc_url = format('jdbc:postgresql://{db_host}/{ranger_db_name}')
   audit_jdbc_url = format('jdbc:postgresql://{db_host}/{ranger_auditdb_name}')
-  jdbc_driver = "org.postgresql.Driver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.PostgreSQLPlatform"
 elif db_flavor.lower() == 'sqlserver':
   jdbc_jar_name = "sqljdbc4.jar"
   jdbc_symlink_name = "mssql-jdbc-driver.jar"
-  db_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={ranger_db_name}')
   audit_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={ranger_auditdb_name}')
-  jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLServerPlatform"
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
@@ -130,8 +122,8 @@ driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 #for db connection
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
-ranger_jdbc_connection_url = config["configurations"]["ranger-env"]["ranger_jdbc_connection_url"]
-ranger_jdbc_driver = config["configurations"]["ranger-env"]["ranger_jdbc_driver"]
+ranger_jdbc_connection_url = config["configurations"]["ranger-admin-site"]["ranger.jpa.jdbc.url"]
+ranger_jdbc_driver = config["configurations"]["ranger-admin-site"]["ranger.jpa.jdbc.driver"]
 
 ranger_credential_provider_path = config["configurations"]["ranger-admin-site"]["ranger.credential.provider.path"]
 ranger_jpa_jdbc_credential_alias = config["configurations"]["ranger-admin-site"]["ranger.jpa.jdbc.credential.alias"]

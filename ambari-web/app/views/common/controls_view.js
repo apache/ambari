@@ -422,11 +422,10 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     // so as to not lose the user's customizations on these fields
     if (['addServiceController', 'installerController'].contains(this.get('controller.wizardController.name'))) {
       if (/^New\s\w+\sDatabase$/.test(this.get('serviceConfig.value')) ||
-        this.get('dontUseHandleDbConnection').contains(this.get('serviceConfig.name')) ||
-        this.get('serviceConfig.serviceName') === 'RANGER') {
+        this.get('dontUseHandleDbConnection').contains(this.get('serviceConfig.name'))) {
         this.onOptionsChange();
       } else {
-        if (App.get('isHadoopWindowsStack') && /SQL\sauthentication/.test(this.get('serviceConfig.value'))) {
+        if ((App.get('isHadoopWindowsStack') && /SQL\sauthentication/.test(this.get('serviceConfig.value'))) || this.get('serviceConfig.name') === 'DB_FLAVOR') {
           this.onOptionsChange();
         }
         this.handleDBConnectionProperty();
@@ -444,10 +443,10 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     // functionality added in HDP 2.3
     // remove DB_FLAVOR so it can handle DB Connection checks
     if (App.get('currentStackName') == 'HDP' && majorVersion >= 2  && minorVersion>= 3) {
-      return ['authentication_method'];
+      return ['ranger.authentication.method'];
     }
     return ['DB_FLAVOR', 'authentication_method'];
-  }.property(),
+  }.property('App.currentStackName'),
 
   configs: function () {
     if (this.get('controller.name') == 'mainServiceInfoConfigsController') return this.get('categoryConfigsAll');
@@ -577,9 +576,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
             break;
           case 'RANGER':
             var mysqlUrl = 'jdbc:mysql://{0}/{1}',
-              sqlCommand = 'mysql',
               sqlConnectorJARValue = '/usr/share/java/mysql-connector-java.jar',
-              sqlCommandInvoker = categoryConfigsAll.findProperty('name','SQL_COMMAND_INVOKER'),
               sqlConnectorJAR = this.get('parentView.serviceConfigs').findProperty('name', 'SQL_CONNECTOR_JAR'),
               dbFlavor = this.get('serviceConfig.value'),
               databasesTypes = /MYSQL|POSTGRES|ORACLE|MSSQL/gi,
@@ -590,7 +587,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
                 connectionUrlValue = oracleUrl.format(hostName, databaseName);
                 connectionUrlDefaultValue = oracleUrl.format(hostNameDefault, databaseNameDefault);
                 dbClassValue = 'oracle.jdbc.driver.OracleDriver';
-                sqlCommand = 'sqlplus';
                 sqlConnectorJARValue = '/usr/share/java/ojdbc6.jar';
                 break;
               case 'MYSQL':
@@ -603,21 +599,18 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
                 connectionUrlValue = postgresUrl.format(hostName, databaseName);
                 connectionUrlDefaultValue = postgresUrl.format(hostNameDefault, databaseNameDefault);
                 dbClassValue = 'org.postgresql.Driver';
-                sqlCommand = 'psql';
                 sqlConnectorJARValue = '/usr/share/java/postgresql.jar';
                 break;
               case 'MSSQL':
                 connectionUrlValue = mssqlUrl.format(hostName, databaseName);
                 connectionUrlDefaultValue = mssqlUrl.format(hostNameDefault, databaseNameDefault);
                 dbClassValue = 'com.microsoft.sqlserver.jdbc.SQLServerDriver';
-                sqlCommand = 'sqlcmd';
                 sqlConnectorJARValue = '/usr/share/java/sqljdbc4.jar';
                 break;
             }
             this.get('categoryConfigsAll').findProperty('name', 'db_host').set('value', this.get('hostNameProperty.value'));
             sqlConnectorJAR.set('value',sqlConnectorJARValue);
             sqlConnectorJAR.set('recommendedValue',sqlConnectorJARValue);
-            sqlCommandInvoker.set('value', sqlCommand);
             break;
         }
         connectionUrl.set('value', connectionUrlValue);
@@ -741,19 +734,19 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     var connectionUrlConfig = {
       'HIVE': 'javax.jdo.option.ConnectionURL',
       'OOZIE':'oozie.service.JPAService.jdbc.url',
-      'RANGER': 'ranger_jdbc_connection_url'
+      'RANGER': App.get('isHadoop23Stack') ? 'ranger.jpa.jdbc.url' : 'ranger_jdbc_connection_url'
     };
     return this.get('categoryConfigsAll').findProperty('name', connectionUrlConfig[this.get('serviceConfig.serviceName')]);
-  }.property('serviceConfig.serviceName'),
+  }.property('serviceConfig.serviceName', 'App.isHadoop23Stack'),
 
   dbClass: function () {
     var dbClassConfig = {
       'HIVE': 'javax.jdo.option.ConnectionDriverName',
       'OOZIE':'oozie.service.JPAService.jdbc.driver',
-      'RANGER': 'ranger_jdbc_driver'
+      'RANGER': App.get('isHadoop23Stack') ? 'ranger.jpa.jdbc.driver' : 'ranger_jdbc_driver'
     };
     return this.get('categoryConfigsAll').findProperty('name', dbClassConfig[this.get('serviceConfig.serviceName')]);
-  }.property('serviceConfig.serviceName'),
+  }.property('serviceConfig.serviceName', 'App.isHadoop23Stack'),
 
   /**
    * `Observer` that add <code>additionalView</code> to <code>App.ServiceConfigProperty</code>
@@ -782,7 +775,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     var propertyAppendTo2 = propertyHive ? propertyHive : propertyOozie;
     // RANGER specific
     if (this.get('serviceConfig.serviceName') === 'RANGER') {
-      propertyAppendTo1 = this.get('categoryConfigsAll').findProperty('name', 'db_name');
+      propertyAppendTo1 = this.get('categoryConfigsAll').findProperty('name', 'ranger.jpa.jdbc.url');
       propertyAppendTo2 = this.get('categoryConfigsAll').findProperty('name', 'DB_FLAVOR');
       // check for all db types when installing Ranger - not only for existing ones
       checkDatabase = true;
@@ -792,7 +785,9 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     if (currentDB && checkDatabase) {
       if (handledProperties.contains(this.get('serviceConfig.name'))) {
         if (propertyAppendTo1) {
-          propertyAppendTo1.set('additionalView', App.CheckDBConnectionView.extend({databaseName: currentDB}));
+          Em.run.next(function(){
+            propertyAppendTo1.set('additionalView', App.CheckDBConnectionView.extend({databaseName: currentDB}));
+          });
         }
         if (propertyAppendTo2) {
           propertyAppendTo2.set('additionalView', Ember.View.extend({
@@ -1212,10 +1207,11 @@ App.CheckDBConnectionView = Ember.View.extend({
       OOZIE: ['oozie.db.schema.name', 'oozie.service.JPAService.jdbc.username', 'oozie.service.JPAService.jdbc.password', 'oozie.service.JPAService.jdbc.driver', 'oozie.service.JPAService.jdbc.url'],
       HIVE: ['ambari.hive.db.schema.name', 'javax.jdo.option.ConnectionUserName', 'javax.jdo.option.ConnectionPassword', 'javax.jdo.option.ConnectionDriverName', 'javax.jdo.option.ConnectionURL'],
       KERBEROS: ['kdc_host'],
-      RANGER: ['db_root_user', 'db_root_password', 'db_name', 'ranger_jdbc_connection_url', 'ranger_jdbc_driver']
+      RANGER: App.get('isHadoop23Stack') ? ['db_root_user', 'db_root_password', 'db_name', 'ranger.jpa.jdbc.url', 'ranger.jpa.jdbc.driver'] :
+          ['db_root_user', 'db_root_password', 'db_name', 'ranger_jdbc_connection_url', 'ranger_jdbc_driver']
     };
     return propertiesMap[this.get('parentView.service.serviceName')];
-  }.property(),
+  }.property('App.isHadoop23Stack'),
   /** @property {Object} propertiesPattern - check pattern according to type of connection properties **/
   propertiesPattern: function() {
     var patterns = {

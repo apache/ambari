@@ -54,7 +54,7 @@
 
   <property>
     <name>db_host</name>
-    <value>localhost</value>
+    <value></value>
     <description>Database host</description>
   </property>
 
