@@ -239,11 +239,20 @@ var serverWrapperView = Em.View.extend({
    */
   sort: function (property, order) {
     var status = order ? 'sorting_desc' : 'sorting_asc';
+    var self = this;
 
     this.resetSort();
     this.get('childViews').findProperty('name', property.get('name')).set('status', status);
     this.saveSortStatuses();
-    this.get('parentView').refresh();
+    if (!this.get('parentView.filteringComplete')) {
+      clearTimeout(this.get('parentView.timeOut'));
+      this.set('parentView.timeOut', setTimeout(function () {
+        self.sort(property, order);
+      }, this.get('parentView.filterWaitingTime')));
+    } else {
+      clearTimeout(this.get('parentView.timeOut'));
+      this.get('parentView').refresh();
+    }
   },
 
   /**

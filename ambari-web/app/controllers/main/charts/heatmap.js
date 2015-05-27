@@ -24,6 +24,11 @@ App.MainChartsHeatmapController = Em.Controller.extend(App.WidgetSectionMixin, {
   rackViews: [],
 
   /**
+   * @type {boolean}
+   */
+  isLoaded: false,
+
+  /**
    * Heatmap metrics that are available choices  on the page
    */
   heatmapCategories: [],
@@ -65,16 +70,20 @@ App.MainChartsHeatmapController = Em.Controller.extend(App.WidgetSectionMixin, {
   /**
    * This function is called from the binded view of the controller
    */
-  loadPageData: function() {
+  loadPageData: function () {
     var self = this;
-    this.resetPageData();
-    this.getAllHeatMaps().done(function(allHeatmapData){
-      allHeatmapData.items.forEach(function(_allHeatmapData) {
-        self.get('allHeatmaps').pushObject(_allHeatmapData.WidgetInfo);
+    this.loadRacks().done(function (data) {
+      self.set('isLoaded', true);
+      self.loadRacksSuccessCallback(data);
+      self.resetPageData();
+      self.getAllHeatMaps().done(function (allHeatmapData) {
+        allHeatmapData.items.forEach(function (_allHeatmapData) {
+          self.get('allHeatmaps').pushObject(_allHeatmapData.WidgetInfo);
+        });
+        var categories = self.categorizeByServiceName(self.get('allHeatmaps'));
+        self.set('heatmapCategories', categories);
+        self.getActiveWidgetLayout();
       });
-      var categories = self.categorizeByServiceName(self.get('allHeatmaps'));
-      self.set('heatmapCategories', categories);
-      self.getActiveWidgetLayout();
     });
   },
 

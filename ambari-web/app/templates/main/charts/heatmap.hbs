@@ -17,37 +17,39 @@
 }}
 
 <div class="heatmap">
+  {{#if isLoaded}}
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span2 legend-column">
 
-  <div class="container-fluid">
-    <div class="row-fluid">
-      <div class="span2 legend-column">
+          {{view view.dropdownView}}
 
-        {{view view.dropdownView}}
-
-        {{#if controller.selectedMetric}}
-          <table class="legend">
-            {{#each slot in controller.selectedMetric.slotDefinitions}}
-              <tr>
-                <td>
-                  <div class="tile" {{bindAttr style="slot.cssStyle"}}></div>
-                </td>
-                <td>{{slot.label}}</td>
-              </tr>
-            {{/each}}
-          </table>
-          {{t common.maximum}}:
-          <div id="inputMaximum" class="control-group">
-            {{view Ember.TextField type="text" maxlength="8" valueBinding="controller.inputMaximum" class="span6"}}
-            {{controller.selectedMetric.units}}
+          {{#if controller.selectedMetric}}
+            <table class="legend">
+              {{#each slot in controller.selectedMetric.slotDefinitions}}
+                <tr>
+                  <td>
+                    <div class="tile" {{bindAttr style="slot.cssStyle"}}></div>
+                  </td>
+                  <td>{{slot.label}}</td>
+                </tr>
+              {{/each}}
+            </table>
+            {{t common.maximum}}:
+            <div id="inputMaximum" class="control-group">
+              {{view Ember.TextField type="text" maxlength="8" valueBinding="controller.inputMaximum" class="span6"}}
+              {{controller.selectedMetric.units}}
+            </div>
+          {{/if}}
+        </div>
+        {{#if controller.activeWidget}}
+          <div class="active-widget" {{bindAttr id="activeWidget.id"}}>
+            {{view activeWidget.viewClass contentBinding="activeWidget" racksBinding = "racks" idBinding="activeWidget.id"}}
           </div>
         {{/if}}
       </div>
-      {{#if controller.activeWidget}}
-        <div class="active-widget" {{bindAttr id="activeWidget.id"}}>
-          {{view activeWidget.viewClass contentBinding="activeWidget" racksBinding = "racks" idBinding="activeWidget.id"}}
-        </div>
-      {{/if}}
     </div>
-  </div>
-
+  {{else}}
+    <div class="spinner"></div>
+  {{/if}}
 </div>

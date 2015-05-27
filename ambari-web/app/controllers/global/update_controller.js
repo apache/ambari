@@ -469,7 +469,10 @@ App.UpdateController = Em.Controller.extend({
   },
   updateAlertDefinitions: function (callback) {
     var testUrl = '/data/alerts/alertDefinitions.json';
-    var realUrl = '/alert_definitions?fields=*';
+    var realUrl = '/alert_definitions?fields=' +
+      'AlertDefinition/component_name,AlertDefinition/description,AlertDefinition/enabled,AlertDefinition/id,' +
+      'AlertDefinition/ignore_host,AlertDefinition/interval,AlertDefinition/label,AlertDefinition/name,' +
+      'AlertDefinition/scope,AlertDefinition/service_name,AlertDefinition/source';
     var url = this.getUrl(testUrl, realUrl);
 
     App.HttpClient.get(url, App.alertDefinitionsMapper, {
@@ -504,7 +507,8 @@ App.UpdateController = Em.Controller.extend({
 
   updateAlertGroups: function (callback) {
     var testUrl = '/data/alerts/alertGroups.json';
-    var realUrl = '/alert_groups?fields=*';
+    var realUrl = '/alert_groups?fields=' +
+      'AlertGroup/default,AlertGroup/definitions,AlertGroup/id,AlertGroup/name,AlertGroup/targets';
     var url = this.getUrl(testUrl, realUrl);
 
     App.HttpClient.get(url, App.alertGroupsMapper, {
