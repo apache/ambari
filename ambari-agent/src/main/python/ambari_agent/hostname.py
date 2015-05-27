@@ -21,7 +21,6 @@ limitations under the License.
 import socket
 import subprocess
 import urllib2
-import AmbariConfig
 import logging
 import traceback
 
@@ -77,7 +76,15 @@ def public_hostname(config):
                 + " :out " + out + " :err " + err)
     logger.info("Defaulting to fqdn.")
 
-  cached_public_hostname = socket.getfqdn().lower()
+  try:
+    handle = urllib2.urlopen('http://169.254.169.254/latest/meta-data/public-hostname', '', 2)
+    str = handle.read()
+    handle.close()
+    cached_public_hostname = str.lower()
+    logger.info("Read public hostname '" + cached_public_hostname + "' from http://169.254.169.254/latest/meta-data/public-hostname")
+  except:
+    cached_public_hostname = socket.getfqdn().lower()
+    logger.info("Read public hostname '" + cached_public_hostname + "' using socket.getfqdn()")
   return cached_public_hostname
 
 def server_hostname(config):
