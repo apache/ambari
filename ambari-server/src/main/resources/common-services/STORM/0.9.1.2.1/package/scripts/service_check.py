@@ -52,7 +52,8 @@ class ServiceCheckDefault(ServiceCheck):
     unique = get_unique_id_and_date()
 
     File("/tmp/wordCount.jar",
-         content=StaticFile("wordCount.jar")
+         content=StaticFile("wordCount.jar"),
+         owner=params.storm_user
     )
 
     cmd = ""
