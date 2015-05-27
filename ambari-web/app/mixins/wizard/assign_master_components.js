@@ -475,9 +475,11 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @method clearStep
    */
   clearStep: function () {
-    this.set('hosts', []);
-    this.set('selectedServicesMasters', []);
-    this.set('servicesMasters', []);
+    this.setProperties({
+      hosts: [],
+      selectedServicesMasters: [],
+      servicesMasters: []
+    });
     App.StackServiceComponent.find().forEach(function (stackComponent) {
       stackComponent.set('serviceComponentId', 1);
     }, this);
@@ -836,11 +838,19 @@ App.AssignMasterComponents = Em.Mixin.create({
     return App.StackServiceComponent.find().findProperty('componentName', master).get('serviceName');
   },
 
+  /**
+   * Sort components by their service (using <code>App.StackService.displayOrder</code>)
+   * Services not in App.StackService.displayOrder are moved to the end of the list
+   *
+   * @param components
+   * @returns {*}
+   */
   sortComponentsByServiceName: function(components) {
     var displayOrder = App.StackService.displayOrder;
+    var indexForUnordered = Math.max(displayOrder.length, components.length);
     return components.sort(function (a, b) {
-      var aValue = displayOrder.indexOf(a.serviceId) != -1 ? displayOrder.indexOf(a.serviceId) : components.length;
-      var bValue = displayOrder.indexOf(b.serviceId) != -1 ? displayOrder.indexOf(b.serviceId) : components.length;
+      var aValue = displayOrder.indexOf(a.serviceId) != -1 ? displayOrder.indexOf(a.serviceId) : indexForUnordered;
+      var bValue = displayOrder.indexOf(b.serviceId) != -1 ? displayOrder.indexOf(b.serviceId) : indexForUnordered;
       return aValue - bValue;
     });
   },
@@ -852,7 +862,7 @@ App.AssignMasterComponents = Em.Mixin.create({
     var components = App.StackServiceComponent.find().filterProperty('isOtherComponentCoHosted');
     var selectedServicesMasters = this.get('selectedServicesMasters');
     components.forEach(function (component) {
-      var componentName = component.get('componentName')
+      var componentName = component.get('componentName');
       var hostComponent = selectedServicesMasters.findProperty('component_name', componentName);
       var dependentCoHosts = component.get('coHostedComponents');
       dependentCoHosts.forEach(function (coHostedComponent) {
