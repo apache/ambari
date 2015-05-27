@@ -20,10 +20,37 @@ var App = require('app');
 
 App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageController.extend({
 
-  commands: ['stopRequiredServices', 'cleanMySqlServer', 'createHostComponents', 'putHostComponentsInMaintenanceMode', 'reconfigure', 'installHostComponents', 'startZooKeeperServers', 'startNameNode', 'deleteHostComponents', 'configureMySqlServer',
-  'startMySqlServer', 'startNewMySqlServer' , 'startRequiredServices'],
+  commands: [
+    'stopRequiredServices',
+    'cleanMySqlServer',
+    'createHostComponents',
+    'putHostComponentsInMaintenanceMode',
+    'reconfigure',
+    'installHostComponents',
+    'startZooKeeperServers',
+    'startNameNode',
+    'deleteHostComponents',
+    'configureMySqlServer',
+    'startMySqlServer',
+    'startNewMySqlServer',
+    'startRequiredServices'
+  ],
+
   // custom commands for Components with DB Configuration and Check
-  commandsForDB: ['createHostComponents', 'installHostComponents', 'configureMySqlServer', 'startMySqlServer', 'testDBConnection', 'stopRequiredServices', 'cleanMySqlServer', 'putHostComponentsInMaintenanceMode', 'reconfigure', 'deleteHostComponents', 'configureMySqlServer', 'startRequiredServices'],
+  commandsForDB: [
+    'createHostComponents',
+    'installHostComponents',
+    'configureMySqlServer',
+    'restartMySqlServer',
+    'testDBConnection',
+    'stopRequiredServices',
+    'cleanMySqlServer',
+    'putHostComponentsInMaintenanceMode',
+    'reconfigure',
+    'deleteHostComponents',
+    'configureMySqlServer',
+    'startRequiredServices'
+  ],
 
   clusterDeployState: 'REASSIGN_MASTER_INSTALLING',
 
@@ -308,7 +335,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
 
       if(is_remote_db || db_type !== 'mysql') {
-        this.removeTasks(['configureMySqlServer', 'startMySqlServer', 'cleanMySqlServer', 'configureMySqlServer']);
+        this.removeTasks(['configureMySqlServer', 'startMySqlServer', 'restartMySqlServer', 'cleanMySqlServer', 'configureMySqlServer']);
       }
 
       if (db_type === 'derby') {
@@ -317,7 +344,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     }
 
     if ( this.get('content.reassign.component_name') !== 'MYSQL_SERVER' && !this.isComponentWithDB()) {
-      this.removeTasks(['configureMySqlServer', 'startMySqlServer', 'cleanMySqlServer', 'startNewMySqlServer', 'configureMySqlServer']);
+      this.removeTasks(['configureMySqlServer', 'startMySqlServer', 'restartMySqlServer', 'cleanMySqlServer', 'startNewMySqlServer', 'configureMySqlServer']);
     }
 
     if ( this.get('content.reassign.component_name') === 'MYSQL_SERVER' ) {
@@ -859,6 +886,35 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         HostRoles: {
           state: "STARTED"
         }
+      },
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
+  },
+
+  restartMySqlServer: function() {
+    var context = "Restart MySql Server";
+
+    var resource_filters = {
+      component_name: "MYSQL_SERVER",
+      hosts: App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName'),
+      service_name: "HIVE"
+    };
+
+    var operation_level = {
+      level: "HOST_COMPONENT",
+      cluster_name: this.get('content.cluster.name'),
+      service_name: "HIVE",
+      hostcomponent_name: "MYSQL_SERVER"
+    };
+
+    App.ajax.send({
+      name: 'restart.hostComponents',
+      sender: this,
+      data: {
+        context: context,
+        resource_filters: [resource_filters],
+        operation_level: operation_level
       },
       success: 'startPolling',
       error: 'onTaskError'

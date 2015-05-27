@@ -1852,6 +1852,7 @@ Em.I18n.translations = {
   'services.reassign.step4.tasks.testHiveMysqlConnection.title':'Test MYSQL Connection',
   'services.reassign.step4.tasks.configureMySqlServer.title':'Configure MYSQL Server',
   'services.reassign.step4.tasks.startMySqlServer.title':'Start MYSQL Server',
+  'services.reassign.step4.tasks.restartMySqlServer.title':'Restart MYSQL Server',
   'services.reassign.step4.tasks.testDBConnection.title':'Test DB Connection',
   'services.reassign.step4.tasks.testDBConnection.tooltip':'Database Host: {0}\n' +
   'Database Type: {1}\n' +
