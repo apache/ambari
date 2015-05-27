@@ -89,7 +89,7 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
           scheme: [ '#FFFFFF', color_green  ].reverse()
         }));
         return color_green;
-      } else if (!isNaN(threshold2) && used.isInRange(threshold1, threshold2)) {
+      } else if ((!isNaN(threshold2) && used.isInRange(threshold1, threshold2)) || (isNaN(threshold2) && used > threshold1) ) {
         this.set('palette', new Rickshaw.Color.Palette({
           scheme: [ '#FFFFFF', color_orange  ].reverse()
         }));
