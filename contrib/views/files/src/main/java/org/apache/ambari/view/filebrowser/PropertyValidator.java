@@ -40,10 +40,12 @@ public class PropertyValidator implements Validator {
   public ValidationResult validateProperty(String property, ViewInstanceDefinition viewInstanceDefinition, ValidationContext validationContext) {
     if (property.equals(WEBHDFS_URL)) {
       String webhdfsUrl = viewInstanceDefinition.getPropertyMap().get(WEBHDFS_URL);
-      try {
-        new URI(webhdfsUrl);
-      } catch (URISyntaxException e) {
-        return new InvalidPropertyValidationResult(false, "Must be valid URL");
+      if (webhdfsUrl != null) {
+        try {
+          new URI(webhdfsUrl);
+        } catch (URISyntaxException e) {
+          return new InvalidPropertyValidationResult(false, "Must be valid URL");
+        }
       }
     }
     return ValidationResult.SUCCESS;

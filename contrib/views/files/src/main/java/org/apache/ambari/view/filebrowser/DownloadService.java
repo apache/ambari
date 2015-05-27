@@ -48,6 +48,7 @@ import javax.xml.bind.annotation.XmlElement;
 import com.google.gson.Gson;
 import org.apache.ambari.view.filebrowser.utils.NotFoundFormattedException;
 import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.ambari.view.ViewContext;

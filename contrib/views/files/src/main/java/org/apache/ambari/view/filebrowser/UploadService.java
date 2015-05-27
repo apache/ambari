@@ -29,6 +29,7 @@ import javax.ws.rs.core.Response;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.hadoop.fs.FSDataOutputStream;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;

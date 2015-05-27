@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.filebrowser;
+package org.apache.ambari.view.utils.hdfs;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
@@ -25,59 +25,47 @@ import org.apache.hadoop.fs.permission.FsPermission;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URI;
 import java.security.PrivilegedExceptionAction;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.hadoop.security.UserGroupInformation;
 import org.json.simple.JSONArray;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.LinkedHashMap;
 
 /**
  * Hdfs Business Delegate
  */
 public class HdfsApi {
-  protected static final Logger logger = LoggerFactory.getLogger(HdfsApi.class);
-
-  private final Configuration conf = new Configuration();
-  private final Map<String, String> params;
+private final Configuration conf;
+  private final Map<String, String> authParams;
 
   private FileSystem fs;
   private UserGroupInformation ugi;
 
   /**
    * Constructor
-   * @param defaultFs hdfs uri
-   * @param params map of parameters
+   * @param configurationBuilder hdfs configuration builder
+   * @param authParams map of parameters
    * @throws IOException
    * @throws InterruptedException
    */
-  public HdfsApi(final String defaultFs, String username, Map<String, String> params) throws IOException,
-      InterruptedException {
-    logger.info("Files View HdfsApi is connecting to '%s'", defaultFs);
-    this.params = params;
-    conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
-    conf.set("fs.webhdfs.impl", "org.apache.hadoop.hdfs.web.WebHdfsFileSystem");
-    conf.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem");
+  public HdfsApi(ConfigurationBuilder configurationBuilder, String username, AuthConfigurationBuilder authParams) throws IOException,
+      InterruptedException, HdfsApiException {
+    this.authParams = authParams.build();
+    conf = configurationBuilder.build();
 
     ugi = UserGroupInformation.createProxyUser(username, getProxyUser());
 
     fs = ugi.doAs(new PrivilegedExceptionAction<FileSystem>() {
       public FileSystem run() throws IOException {
-        return FileSystem.get(URI.create(defaultFs), conf);
+        return FileSystem.get(conf);
       }
     });
   }
 
   private UserGroupInformation getProxyUser() throws IOException {
     UserGroupInformation proxyuser;
-    if (params.containsKey("proxyuser")) {
-      proxyuser = UserGroupInformation.createRemoteUser(params.get("proxyuser"));
+    if (authParams.containsKey("proxyuser")) {
+      proxyuser = UserGroupInformation.createRemoteUser(authParams.get("proxyuser"));
     } else {
       proxyuser = UserGroupInformation.getCurrentUser();
     }
@@ -88,8 +76,9 @@ public class HdfsApi {
 
   private UserGroupInformation.AuthenticationMethod getAuthenticationMethod() {
     UserGroupInformation.AuthenticationMethod authMethod;
-    if (params.containsKey("auth")) {
-      authMethod = UserGroupInformation.AuthenticationMethod.valueOf(params.get("auth"));
+    if (authParams.containsKey("auth")) {
+      String authName = authParams.get("auth");
+      authMethod = UserGroupInformation.AuthenticationMethod.valueOf(authName.toUpperCase());
     } else {
       authMethod = UserGroupInformation.AuthenticationMethod.SIMPLE;
     }
@@ -191,6 +180,19 @@ public class HdfsApi {
   }
 
   /**
+   * Hdfs Status
+   * @return home directory
+   * @throws Exception
+   */
+  public synchronized FsStatus getStatus() throws Exception {
+    return ugi.doAs(new PrivilegedExceptionAction<FsStatus>() {
+      public FsStatus run() throws IOException {
+        return fs.getStatus();
+      }
+    });
+  }
+
+  /**
    * Trash directory
    * @return trash directory
    * @throws Exception
@@ -204,35 +206,35 @@ public class HdfsApi {
       }
     });
   }
- 
-   /**
-    * Trash directory path.
-    *
-    * @return trash directory path
-    * @throws Exception
-    */
+
+  /**
+   * Trash directory path.
+   *
+   * @return trash directory path
+   * @throws Exception
+   */
   public String getTrashDirPath() throws Exception {
     Path trashDir = getTrashDir();
-    
-    return  trashDir.toUri().getRawPath();
+
+    return trashDir.toUri().getRawPath();
   }
 
-   /**
-    * Trash directory path.
-    *
-    * @param    filePath        the path to the file
-    * @return trash directory path for the file
-    * @throws Exception
-    */
+  /**
+   * Trash directory path.
+   *
+   * @param    filePath        the path to the file
+   * @return trash directory path for the file
+   * @throws Exception
+   */
   public String getTrashDirPath(String filePath) throws Exception {
-      String trashDirPath = getTrashDirPath();
+    String trashDirPath = getTrashDirPath();
 
-      Path path = new Path(filePath);
-      trashDirPath = trashDirPath+"/"+path.getName();
-      
-    return  trashDirPath;
+    Path path = new Path(filePath);
+    trashDirPath = trashDirPath + "/" + path.getName();
+
+    return trashDirPath;
   }
-      
+
   /**
    * Empty trash
    * @return
@@ -339,16 +341,25 @@ public class HdfsApi {
    * Copy file
    * @param src source path
    * @param dest destination path
-   * @return success
-   * @throws IOException
+   * @throws java.io.IOException
    * @throws InterruptedException
    */
-  public boolean copy(final String src, final String dest) throws IOException,
-      InterruptedException {
+  public synchronized void copy(final String src, final String dest) throws IOException, InterruptedException, HdfsApiException {
+    boolean result = ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
+      public Boolean run() throws Exception {
+        return FileUtil.copy(fs, new Path(src), fs, new Path(dest), false, conf);
+      }
+    });
+
+    if (!result) {
+      throw new HdfsApiException("HDFS010 Can't copy source file from \" + src + \" to \" + dest");
+    }
+  }
+
+  public synchronized boolean exists(final String newFilePath) throws IOException, InterruptedException {
     return ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
-        return FileUtil
-            .copy(fs, new Path(src), fs, new Path(dest), false, conf);
+        return fs.exists(new Path(newFilePath));
       }
     });
   }
@@ -377,7 +388,6 @@ public class HdfsApi {
    *          Hadoop file status.
    * @return The JSON representation of the file status.
    */
-
   public Map<String, Object> fileStatusToJSON(FileStatus status) {
     Map<String, Object> json = new LinkedHashMap<String, Object>();
     json.put("path", Path.getPathWithoutSchemeAndAuthority(status.getPath())

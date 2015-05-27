@@ -16,34 +16,36 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.filebrowser;
+package org.apache.ambari.view.utils.hdfs;
 
 import org.junit.Test;
 
+import java.net.URI;
+
 import static org.junit.Assert.*;
 
-public class HdfsServiceTest {
+public class ConfigurationBuilderTest {
   @Test
-  public void testNormalizeFsUrlWithoutProtocol() throws Exception {
-    String normalized = HdfsService.normalizeFsUrl("namenode.example.com:50070");
+  public void testAddProtocolMissing() throws Exception {
+    String normalized = ConfigurationBuilder.addProtocolIfMissing("namenode.example.com:50070");
     assertEquals(normalized, "webhdfs://namenode.example.com:50070");
   }
 
   @Test
-  public void testNormalizeFsUrlWithoutPort() throws Exception {
-    String normalized = HdfsService.normalizeFsUrl("webhdfs://namenode.example.com");
+  public void testAddProtocolPresent() throws Exception {
+    String normalized = ConfigurationBuilder.addProtocolIfMissing("webhdfs://namenode.example.com");
+    assertEquals(normalized, "webhdfs://namenode.example.com");
+  }
+
+  @Test
+  public void testAddPortMissing() throws Exception {
+    String normalized = ConfigurationBuilder.addPortIfMissing("webhdfs://namenode.example.com");
     assertEquals(normalized, "webhdfs://namenode.example.com:50070");
   }
 
   @Test
-  public void testNormalizeFsUrlOnlyHostname() throws Exception {
-    String normalized = HdfsService.normalizeFsUrl("namenode.example.com");
-    assertEquals(normalized, "webhdfs://namenode.example.com:50070");
-  }
-
-  @Test
-  public void testNormalizeFsUrlFixNoCorrectUrl() throws Exception {
-    String normalized = HdfsService.normalizeFsUrl("webhdfs://namenode.example.com:50070");
+  public void testAddPortPresent() throws Exception {
+    String normalized = ConfigurationBuilder.addPortIfMissing("webhdfs://namenode.example.com:50070");
     assertEquals(normalized, "webhdfs://namenode.example.com:50070");
   }
 }

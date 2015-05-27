@@ -22,6 +22,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,29 +69,13 @@ public abstract class HdfsService {
    */
   public HdfsApi getApi(ViewContext context) {
     if (_api == null) {
-//      Thread.currentThread().setContextClassLoader(null);
-      String defaultFs = context.getProperties().get("webhdfs.url");
-
-      defaultFs = normalizeFsUrl(defaultFs);
-
       try {
-        _api = new HdfsApi(defaultFs, getDoAsUsername(context), getHdfsAuthParams(context));
+        _api = HdfsUtil.connectToHDFSApi(context);
       } catch (Exception ex) {
         throw new ServiceFormattedException("HdfsApi connection failed. Check \"webhdfs.url\" property", ex);
       }
     }
     return _api;
-  }
-
-  protected static String normalizeFsUrl(String defaultFs) {
-    //TODO: Don't add port if HA is enabled
-    if (!defaultFs.matches("^[^:]+://.*$"))
-      defaultFs = "webhdfs://" + defaultFs;
-
-    if (!defaultFs.matches("^.*:\\d+$"))
-      defaultFs = defaultFs + ":50070";
-
-    return defaultFs;
   }
 
   private static Map<String, String> getHdfsAuthParams(ViewContext context) {

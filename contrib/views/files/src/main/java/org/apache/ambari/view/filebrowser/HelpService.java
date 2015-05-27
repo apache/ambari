@@ -30,6 +30,7 @@ import javax.ws.rs.core.Response;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.filebrowser.utils.NotFoundFormattedException;
 import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
 
 /**
  * Help service

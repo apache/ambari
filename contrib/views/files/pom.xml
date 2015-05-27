@@ -15,107 +15,95 @@
    limitations under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.ambari.contrib.views</groupId>
+  <artifactId>files</artifactId>
+  <version>0.2.0-SNAPSHOT</version>
+  <name>Files</name>
+
+  <parent>
     <groupId>org.apache.ambari.contrib.views</groupId>
-    <artifactId>files</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
-    <name>Files</name>
+    <artifactId>ambari-contrib-views</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+  </parent>
 
-    <parent>
-        <groupId>org.apache.ambari.contrib.views</groupId>
-        <artifactId>ambari-contrib-views</artifactId>
-        <version>2.0.0-SNAPSHOT</version>
-    </parent>
-
-    <dependencies>
+  <dependencies>
     <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-hdfs</artifactId>
-        <version>${hadoop-version}</version>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs</artifactId>
+      <version>${hadoop-version}</version>
     </dependency>
     <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-common</artifactId>
-        <version>${hadoop-version}</version>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop-version}</version>
     </dependency>
     <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <scope>test</scope>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>org.easymock</groupId>
-        <artifactId>easymock</artifactId>
-        <scope>test</scope>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>com.google.inject</groupId>
-        <artifactId>guice</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.glassfish.jersey.containers</groupId>
-        <artifactId>jersey-container-servlet</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>com.sun.jersey.contribs</groupId>
-        <artifactId>jersey-multipart</artifactId>
-        <version>1.18</version>
-    </dependency>
-    <dependency>
-        <groupId>com.googlecode.json-simple</groupId>
-        <artifactId>json-simple</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-minicluster</artifactId>
-        <version>${hadoop-version}</version>
-        <scope>test</scope>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
     </dependency>
 
     <dependency>
-        <groupId>org.glassfish.jersey.test-framework</groupId>
-        <artifactId>jersey-test-framework-core</artifactId>
-        <version>2.6</version>
-        <scope>test</scope>
+      <groupId>com.sun.jersey.contribs</groupId>
+      <artifactId>jersey-multipart</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.glassfish.jersey.test-framework.providers</groupId>
-        <artifactId>jersey-test-framework-provider-grizzly2</artifactId>
-        <version>2.6</version>
-        <scope>test</scope>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
     </dependency>
     <dependency>
-        <groupId>
-        org.glassfish.jersey.test-framework.providers
-        </groupId>
-        <artifactId>
-        jersey-test-framework-provider-bundle
-        </artifactId>
-        <version>2.6</version>
-        <scope>test</scope>
-        <type>pom</type>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-minicluster</artifactId>
+      <version>${hadoop-version}</version>
+      <scope>test</scope>
     </dependency>
-    <dependency>
-        <groupId>org.apache.ambari</groupId>
-        <artifactId>ambari-views</artifactId>
-        <scope>provided</scope>
-    </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.2.2</version>
-        </dependency>
-    </dependencies>
 
-    <properties>
-      <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
-      <hadoop-version>2.2.0</hadoop-version>
-      <nodejs.directory>${basedir}/target/nodejs</nodejs.directory>
-      <npm.version>1.4.3</npm.version>
-      <ui.directory>${basedir}/src/main/resources/ui</ui.directory>
-    </properties>
-    <build>
+    <dependency>
+      <groupId>com.sun.jersey.jersey-test-framework</groupId>
+      <artifactId>jersey-test-framework-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-views</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari.contrib.views</groupId>
+      <artifactId>ambari-views-utils</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.containers</groupId>
+      <artifactId>jersey-container-servlet</artifactId>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <properties>
+    <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
+    <hadoop-version>2.6.0</hadoop-version>
+    <nodejs.directory>${basedir}/target/nodejs</nodejs.directory>
+    <npm.version>1.4.3</npm.version>
+    <ui.directory>${basedir}/src/main/resources/ui</ui.directory>
+  </properties>
+  <build>
 
     <plugins>
       <plugin>
@@ -227,99 +215,99 @@
         </executions>
       </plugin>
       <plugin>
-         <groupId>org.vafer</groupId>
-         <artifactId>jdeb</artifactId>
-         <version>1.0.1</version>
-         <executions>
-             <execution>
-                 <phase>none</phase>
-                 <goals>
-                     <goal>jdeb</goal>
-                 </goals>
-             </execution>
-         </executions>
-         <configuration>
-             <skip>true</skip>
-             <submodules>false</submodules>
-         </configuration>
-     </plugin>
+        <groupId>org.vafer</groupId>
+        <artifactId>jdeb</artifactId>
+        <version>1.0.1</version>
+        <executions>
+          <execution>
+            <phase>none</phase>
+            <goals>
+              <goal>jdeb</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <skip>true</skip>
+          <submodules>false</submodules>
+        </configuration>
+      </plugin>
     </plugins>
     <resources>
-        <resource>
+      <resource>
         <directory>src/main/resources/ui/public</directory>
         <filtering>false</filtering>
-        </resource>
+      </resource>
 
-        <resource>
+      <resource>
         <directory>src/main/resources/</directory>
         <filtering>false</filtering>
         <includes>
-            <include>view.xml</include>
+          <include>view.xml</include>
         </includes>
-        </resource>
+      </resource>
 
-        <resource>
-          <targetPath>WEB-INF/lib</targetPath>
-          <filtering>false</filtering>
-          <directory>target/lib</directory>
-        </resource>
+      <resource>
+        <targetPath>WEB-INF/lib</targetPath>
+        <filtering>false</filtering>
+        <directory>target/lib</directory>
+      </resource>
     </resources>
     <pluginManagement>
-        <plugins>
+      <plugins>
         <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
         <plugin>
-            <groupId>org.eclipse.m2e</groupId>
-            <artifactId>lifecycle-mapping</artifactId>
-            <version>1.0.0</version>
-            <configuration>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
             <lifecycleMappingMetadata>
-                <pluginExecutions>
+              <pluginExecutions>
                 <pluginExecution>
-                    <pluginExecutionFilter>
+                  <pluginExecutionFilter>
                     <groupId>
-                        org.codehaus.mojo
+                      org.codehaus.mojo
                     </groupId>
                     <artifactId>
-                        exec-maven-plugin
+                      exec-maven-plugin
                     </artifactId>
                     <versionRange>
-                        [1.2.1,)
+                      [1.2.1,)
                     </versionRange>
                     <goals>
-                        <goal>exec</goal>
+                      <goal>exec</goal>
                     </goals>
-                    </pluginExecutionFilter>
-                    <action>
+                  </pluginExecutionFilter>
+                  <action>
                     <ignore></ignore>
-                    </action>
+                  </action>
                 </pluginExecution>
                 <pluginExecution>
-                    <pluginExecutionFilter>
+                  <pluginExecutionFilter>
                     <groupId>
-                        com.github.eirslett
+                      com.github.eirslett
                     </groupId>
                     <artifactId>
-                        frontend-maven-plugin
+                      frontend-maven-plugin
                     </artifactId>
                     <versionRange>
-                        [0.0.14,)
+                      [0.0.14,)
                     </versionRange>
                     <goals>
-                        <goal>
+                      <goal>
                         install-node-and-npm
-                        </goal>
-                        <goal>npm</goal>
+                      </goal>
+                      <goal>npm</goal>
                     </goals>
-                    </pluginExecutionFilter>
-                    <action>
+                  </pluginExecutionFilter>
+                  <action>
                     <ignore></ignore>
-                    </action>
+                  </action>
                 </pluginExecution>
-                </pluginExecutions>
+              </pluginExecutions>
             </lifecycleMappingMetadata>
-            </configuration>
+          </configuration>
         </plugin>
-        </plugins>
+      </plugins>
     </pluginManagement>
   </build>
   <profiles>

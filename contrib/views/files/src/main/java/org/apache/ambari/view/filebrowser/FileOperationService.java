@@ -33,6 +33,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.filebrowser.utils.NotFoundFormattedException;
 import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.json.simple.JSONObject;
 
 /**
@@ -139,10 +141,12 @@ public class FileOperationService extends HdfsService {
     try {
       HdfsApi api = getApi(context);
       ResponseBuilder result;
-      if (api.copy(request.src, request.dst)) {
+      try {
+        api.copy(request.src, request.dst);
+
         result = Response.ok(getApi(context).fileStatusToJSON(api
             .getFileStatus(request.dst)));
-      } else {
+      } catch (HdfsApiException e) {
         result = Response.ok(new BoolResult(false)).status(422);
       }
       return result.build();

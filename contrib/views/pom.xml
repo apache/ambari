@@ -34,11 +34,13 @@
   </properties>
   <modules>
     <module>files</module>
+    <module>jobs</module>
     <module>pig</module>
     <module>slider</module>
     <module>capacity-scheduler</module>
     <module>hive</module>
     <module>tez</module>
+    <module>utils</module>
   </modules>
   <build>
     <pluginManagement>
