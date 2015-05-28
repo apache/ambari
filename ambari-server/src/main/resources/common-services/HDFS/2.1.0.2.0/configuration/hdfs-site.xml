@@ -174,7 +174,7 @@
       Values less than or equal to 0 mean not to start in safe mode.
       Values greater than 1 will make safe mode permanent.
     </description>
-    <display-name>Minimum replicated blocks %ge</display-name>
+    <display-name>Minimum replicated blocks %</display-name>
     <value-attributes>
       <type>float</type>
       <minimum>0.990</minimum>
