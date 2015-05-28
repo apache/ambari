@@ -79,7 +79,7 @@
   <property>
     <name>namenode_opt_newsize</name>
     <value>200</value>
-    <description>NameNode new generation size</description>
+    <description>Default size of Java new generation for NameNode (Java option -XX:NewSize) Note: The value of NameNode new generation size (default size of Java new generation for NameNode (Java option -XX:NewSize)) should be 1/8 of maximum heap size (-Xmx). Ensure that the value of the namenode_opt_newsize property is 1/8 the value of maximum heap size (-Xmx).</description>
   </property>
   <property>
     <name>namenode_opt_maxnewsize</name>
