@@ -176,8 +176,8 @@ else:
 hbase_env_sh_template = config['configurations']['ams-hbase-env']['content']
 ams_env_sh_template = config['configurations']['ams-env']['content']
 
+hbase_staging_dir = default("/configurations/ams-hbase-site/hbase.bulkload.staging.dir", "/amshbase/staging")
 
-hbase_staging_dir = "/apps/hbase/staging"
 #for create_hdfs_directory
 hostname = config["hostname"]
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
