@@ -28,7 +28,7 @@ limitations under the License.
   <property>
     <name>hive.exec.reducers.bytes.per.reducer</name>
     <value>67108864</value>
-    <description>size per reducer.The default is 256Mb, i.e if the input size is 1G, it will use 4 reducers.</description>
+    <description>Defines the size per reducer. For example, if it is set to 64M, given 256M input size, 4 reducers will be used.</description>
   </property>
 
   <property>
