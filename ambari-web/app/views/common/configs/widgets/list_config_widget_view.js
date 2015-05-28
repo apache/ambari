@@ -120,7 +120,9 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
     this._super();
     this.addObserver('options.@each.isSelected', this, this.calculateVal);
     this.addObserver('options.@each.isSelected', this, this.checkSelectedItemsCount);
-    this.calculateVal();
+    if (this.isValueCompatibleWithWidget()) {
+      this.calculateVal();
+    }
     this.checkSelectedItemsCount();
     Em.run.next(function () {
       App.tooltip(this.$('[rel="tooltip"]'));
@@ -150,20 +152,19 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
    * Used on <code>willInsertElement</code> and when user click on "Undo"-button (to restore default value)
    * @method calculateInitVal
    */
-  calculateInitVal: function () {
+  calculateInitVal: function (configValue) {
     var config = this.get('config'),
       options = this.get('options'),
-      value = config.get('value'),
+      value = configValue || config.get('value'),
       self = this,
       val = [];
-    if (value !== '') {
+    if (value !== '' && this.isOptionExist(value)) {
       if ('string' === Em.typeOf(value)) {
         value = value.split(',');
       }
       options.invoke('setProperties', {isSelected: false, isDisabled: false});
       val = value.map(function (v) {
         var option = options.findProperty('value', v.trim());
-        Em.assert('option with value `%@` is missing for config `%@`'.fmt(v, config.get('name')), option);
         option.setProperties({
           order: self.get('orderCounter'),
           isSelected: true
@@ -236,7 +237,7 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
    */
   restoreValue: function() {
     this._super();
-    this.calculateInitVal();
+    this.setValue(this.get('config.value'));
   },
 
   /**
@@ -244,7 +245,7 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
    */
   setRecommendedValue: function () {
     this._super();
-    this.calculateInitVal();
+    this.setValue(this.get('config.value'));
   },
 
   /**
@@ -264,12 +265,32 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
     }
   }),
 
-  setValue: function() {
-    this.calculateInitVal();
+  setValue: function(value) {
+    if (value && this.isOptionExist(value)) {
+      this.calculateInitVal(value);
+    } else {
+      this.calculateInitVal();
+    }
+    if (!this.isValueCompatibleWithWidget() && !this.get('config.showAsTextBox')) {
+      this.set('config.showAsTextBox', true);
+    }
   },
 
   isValueCompatibleWithWidget: function() {
-    return this._super() && this.get('options').someProperty('value', this.get('config.value'));
+    return this._super() && this.isOptionExist(this.get('config.value'));
+  },
+
+  isOptionExist: function(value) {
+    var isExist = false;
+    if (value !== null && value !== undefined) {
+      value = Em.typeOf(value) == 'string' ? value.split(',') : value;
+      value.forEach(function(item) {
+        isExist = this.get('options').mapProperty('value').contains(item);
+      }, this);
+      return isExist;
+    } else {
+      return false;
+    }
   }
 
 });
