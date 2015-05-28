@@ -37,6 +37,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   stepConfigs: [],
 
+  hash: null,
+
   selectedService: null,
 
   slaveHostToGroup: null,
@@ -276,6 +278,38 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.get('stepConfigs').clear();
     this.set('filter', '');
     this.get('filterColumns').setEach('selected', false);
+  },
+
+  /**
+   * Generate "finger-print" for current <code>stepConfigs[0]</code>
+   * Used to determine, if user has some unsaved changes (comparing with <code>hash</code>)
+   * @returns {string|null}
+   * @method getHash
+   */
+  getHash: function () {
+    if (!this.get('stepConfigs')[0]) {
+      return null;
+    }
+    var hash = {};
+    this.get('stepConfigs').forEach(function(stepConfig){
+      stepConfig.configs.forEach(function (config) {
+        hash[config.get('name')] = {value: config.get('value'), overrides: [], isFinal: config.get('isFinal')};
+        if (!config.get('overrides')) return;
+        if (!config.get('overrides.length')) return;
+
+        config.get('overrides').forEach(function (override) {
+          hash[config.get('name')].overrides.push(override.get('value'));
+        });
+      });
+    });
+    return JSON.stringify(hash);
+  },
+
+   /**
+   * Are some changes available
+   */
+  hasChanges: function () {
+    return this.get('hash') != this.getHash();
   },
 
   /**
@@ -657,6 +691,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (self.get('content.skipConfigStep')) {
         App.router.send('next');
       }
+      self.set('hash', self.getHash());
     });
   },
 
@@ -772,7 +807,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         miscService.configs = c;
       }
     }
-
     this.set('stepConfigs', serviceConfigs);
   },
 
@@ -1310,6 +1344,25 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     return deferred;
   },
 
+  showChangesWarningPopup: function(goToNextStep) {
+    var self = this;
+    return App.ModalPopup.show({
+      header: Em.I18n.t('common.warning'),
+      body: Em.I18n.t('services.service.config.exitChangesPopup.body'),
+      secondary: Em.I18n.t('common.cancel'),
+      primary: Em.I18n.t('yes'),
+      onPrimary: function () {
+        if (goToNextStep) {
+          goToNextStep();
+          this.hide(); 
+        }
+      },
+      onSecondary: function () {
+        this.hide();
+      }
+    });
+  },
+
   showDatabaseConnectionWarningPopup: function (serviceNames, deferred) {
     var self = this;
     return App.ModalPopup.show({
@@ -1326,7 +1379,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         deferred.reject();
         this._super();
       }
-    })
+    });
   },
   /**
    * Proceed to the next step
