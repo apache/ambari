@@ -27,8 +27,10 @@ def ranger_service(name, action=None):
     Execute(params.ranger_start, environment={'JAVA_HOME': params.java_home}, user=params.unix_user, not_if=no_op_test)
   elif name == 'ranger_usersync':
     no_op_test = format('ps -ef | grep proc_rangerusersync | grep -v grep')
-    
+
+
     if params.stack_is_hdp23_or_further:
+      Execute(('chown','-R', format('{unix_user}:{unix_group}'), format('{usersync_log_dir}/')), sudo=True)
       Execute(params.usersync_start,
               environment={'JAVA_HOME': params.java_home},          
               not_if=no_op_test,

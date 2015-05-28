@@ -35,7 +35,7 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
     #additional namenode)
     create_name_dirs(params.dfs_name_dir)
   elif action == "start":
-    setup_ranger_hdfs()
+    setup_ranger_hdfs(rolling_upgrade = rolling_restart)
     import params
     if do_format:
       format_namenode()

@@ -44,7 +44,7 @@ def setup_ranger_plugin(component_select_name, service_name,
                         plugin_policymgr_ssl_properties, plugin_policymgr_ssl_attributes,
                         component_list, audit_db_is_enabled, credential_file, 
                         xa_audit_db_password, ssl_truststore_password,
-                        ssl_keystore_password, api_version=None):
+                        ssl_keystore_password, api_version=None, hdp_version_override = None):
 
   File(component_downloaded_custom_connector,
     content = DownloadSource(component_driver_curl_source)
@@ -56,6 +56,9 @@ def setup_ranger_plugin(component_select_name, service_name,
   )
 
   hdp_version = get_hdp_version(component_select_name)
+  if hdp_version_override is not None:
+    hdp_version = hdp_version_override
+
   component_conf_dir = conf_dict
   
   if plugin_enabled:

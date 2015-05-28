@@ -311,6 +311,107 @@
 
     <service name="RANGER">
       <component name="RANGER_ADMIN">
+        <pre-upgrade>
+          <task xsi:type="configure">
+            <type>ranger-env</type>
+            <set key="xml_configurations_supported" value="true" />
+          </task>
+          <task xsi:type="configure" summary="Updating Ranger Admin">
+            <type>ranger-admin-site</type>
+            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_CLIENT_AUTH" to-key="xasecure.policymgr.clientssl.keystore" default-value="" />
+            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_KEYSTORE_FILE" to-key="ranger.https.attrib.keystore.file" default-value="" />
+            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_KEYSTORE_PASS" to-key="ranger.service.https.attrib.keystore.pass" default-value="" mask="true" />
+            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_KEY_ALIAS" to-key="ranger.service.https.attrib.keystore.keyalias" default-value="" />
+            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_SERVICE_PORT" to-key="ranger.service.https.port" default-value="" />
+            <transfer operation="copy" from-type="ranger-site" from-key="HTTP_ENABLED" to-key="ranger.service.http.enabled" default-value="" />
+            <transfer operation="copy" from-type="ranger-site" from-key="HTTP_SERVICE_PORT" to-key="ranger.service.http.port" default-value="" />
+
+            <transfer operation="copy" from-type="admin-properties" from-key="authServiceHostName" to-key="ranger.unixauth.service.hostname" default-value="" />
+            <transfer operation="copy" from-type="admin-properties" from-key="authServicePort" to-key="ranger.unixauth.service.port" default-value="" />
+            <transfer operation="copy" from-type="admin-properties" from-key="authentication_method" to-key="ranger.authentication.method" default-value="" />
+            <transfer operation="copy" from-type="admin-properties" from-key="remoteLoginEnabled" to-key="ranger.unixauth.remote.login.enabled" default-value="" />
+            <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_url" to-key="ranger.ldap.url" default-value="" />
+            <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_userDNpattern" to-key="ranger.ldap.user.dnpattern" default-value="" />
+            <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_groupSearchBase" to-key="ranger.ldap.group.searchbase" default-value="" />
+            <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_groupSearchFilter" to-key="ranger.ldap.group.searchfilter" default-value="" />
+            <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_groupRoleAttribute" to-key="ranger.ldap.group.roleattribute" default-value="" />
+            <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_ad_domain" to-key="ranger.ldap.ad.domain" default-value="" />
+            <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_ad_url" to-key="ranger.ldap.ad.url" default-value="" />
+            <transfer operation="copy" from-type="admin-properties" from-key="policymgr_external_url" to-key="ranger.externalurl" default-value="" />
+            <transfer operation="copy" from-type="admin-properties" from-key="db_user" to-key="ranger.jpa.jdbc.user" default-value="" />
+            <transfer operation="copy" from-type="admin-properties" from-key="db_password" to-key="ranger.jpa.jdbc.password" default-value="" mask="true" />
+            <transfer operation="copy" from-type="admin-properties" from-key="audit_db_user" to-key="ranger.jpa.audit.jdbc.user" default-value="" />
+            <transfer operation="copy" from-type="admin-properties" from-key="audit_db_password" to-key="ranger.jpa.audit.jdbc.password" default-value="" mask="true" />
+
+            <set key="ranger.audit.solr.urls" value="" />
+            <set key="ranger.audit.solr.zookeepers" value="" />
+            <set key="ranger.audit.solr.username" value="" />
+            <set key="ranger.audit.solr.password" value="" />
+            <set key="ranger.audit.solr.authentication-method" value="" />
+            <set key="ranger.audit.source.type" value="" />
+          </task>
+          
+          <task xsi:type="server_action" summary="Calculating Ranger Properties" class="org.apache.ambari.server.serveraction.upgrades.RangerConfigCalculation" />
+          <task xsi:type="manual">
+            <message>ASDFJASD;LFJKASD;LFJASD;FLKAS</message>
+          </task>
+          
+          <task xsi:type="configure" summary="Updating Ranger Usersync">
+            <type>ranger-ugsync-site</type>
+            <transfer operation="copy" from-type="usersync-properties" from-key="CRED_KEYSTORE_FILENAME" to-key="ranger.usersync.credstore.filename" default-value="/etc/ranger/usersync/ugsync.jceks" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="MIN_UNIX_USER_ID_TO_SYNC" to-key="ranger.usersync.unix.minUserId" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_INTERVAL" to-key="ranger.usersync.sleeptimeinmillisbetweensynccycle" default-value="60000" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_BIND_DN" to-key="ranger.usersync.ldap.binddn" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_BIND_PASSWORD" to-key="" default-value="ranger.usersync.ldap.ldapbindpassword" mask="true" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_GROUPNAME_CASE_CONVERSION" to-key="ranger.usersync.ldap.groupname.caseconversion" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_URL" to-key="ranger.usersync.ldap.url" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USERNAME_CASE_CONVERSION" to-key="ranger.usersync.ldap.username.caseconversion" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE" to-key="ranger.usersync.group.memberattributename" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_NAME_ATTRIBUTE" to-key="ranger.usersync.group.nameattribute" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_OBJECT_CLASS" to-key="ranger.usersync.group.objectclass" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_BASE" to-key="ranger.usersync.group.searchbase" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_FILTER" to-key="ranger.usersync.group.searchfilter" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_SCOPE" to-key="ranger.usersync.group.searchscope" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="logdir" to-key="ranger.usersync.logdir" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_SOURCE" to-key="ranger.usersync.source.impl.class" default-value="org.apache.ranger.unixusersync.process.UnixUserGroupBuilder" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="POLICY_MGR_URL" to-key="ranger.usersync.policymanager.baseURL" default-value="{{ranger_external_url}}" />
+          </task>
+            
+          <task xsi:type="configure">
+            <type>ranger-site</type>
+            <transfer operation="delete" delete-key="HTTPS_CLIENT_AUTH" />
+            <transfer operation="delete" delete-key="HTTPS_KEYSTORE_FILE" />
+            <transfer operation="delete" delete-key="HTTPS_KEYSTORE_PASS" />
+            <transfer operation="delete" delete-key="HTTPS_KEY_ALIAS" />
+            <transfer operation="delete" delete-key="HTTPS_SERVICE_PORT" />
+            <transfer operation="delete" delete-key="HTTP_ENABLED" />
+            <transfer operation="delete" delete-key="HTTP_SERVICE_PORT" />
+            <transfer operation="delete" delete-key="" />
+          </task>
+
+          <task xsi:type="configure">
+            <type>usersync-properties</type>
+            <transfer operation="delete" delete-key="CRED_KEYSTORE_FILENAME" />
+            <transfer operation="delete" delete-key="MIN_UNIX_USER_ID_TO_SYNC" />
+            <transfer operation="delete" delete-key="SYNC_INTERVAL" />
+            <transfer operation="delete" delete-key="SYNC_LDAP_BIND_DN" />
+            <transfer operation="delete" delete-key="SYNC_LDAP_BIND_PASSWORD" />
+            <transfer operation="delete" delete-key="SYNC_LDAP_GROUPNAME_CASE_CONVERSION" />
+            <transfer operation="delete" delete-key="SYNC_LDAP_URL" />
+            <transfer operation="delete" delete-key="SYNC_LDAP_USERNAME_CASE_CONVERSION" />
+            <transfer operation="delete" delete-key="SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE" />
+            <transfer operation="delete" delete-key="SYNC_LDAP_USER_NAME_ATTRIBUTE" />
+            <transfer operation="delete" delete-key="SYNC_LDAP_USER_OBJECT_CLASS" />
+            <transfer operation="delete" delete-key="SYNC_LDAP_USER_SEARCH_BASE" />
+            <transfer operation="delete" delete-key="SYNC_LDAP_USER_SEARCH_FILTER" />
+            <transfer operation="delete" delete-key="SYNC_LDAP_USER_SEARCH_SCOPE" />
+            <transfer operation="delete" delete-key="logdir" />
+            <transfer operation="delete" delete-key="SYNC_SOURCE" />
+            <transfer operation="delete" delete-key="POLICY_MGR_URL" />
+            <transfer operation="delete" delete-key="" />
+          </task>
+        </pre-upgrade>
+      
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>

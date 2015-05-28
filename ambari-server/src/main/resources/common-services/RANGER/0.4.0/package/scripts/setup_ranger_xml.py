@@ -30,25 +30,36 @@ from resource_management.libraries.functions.is_empty import is_empty
 # This file contains functions used for setup/configure of Ranger Admin and Ranger Usersync.
 # The design is to mimic what is done by the setup.sh script bundled by Ranger component currently.
 
-def ranger(name=None):
+def ranger(name=None, rolling_upgrade=False):
   """
   parameter name: name of ranger service component
   """
   if name == 'ranger_admin':
-    setup_ranger_admin()
+    setup_ranger_admin(rolling_upgrade=rolling_upgrade)
 
   if name == 'ranger_usersync':
     setup_usersync()
 
-def setup_ranger_admin():
+def setup_ranger_admin(rolling_upgrade=False):
   import params
+
+  ranger_home = params.ranger_home
+  ranger_conf = params.ranger_conf
+
+  if rolling_upgrade:
+    ranger_home = format("/usr/hdp/{version}/ranger-admin")
+    ranger_conf = format("/usr/hdp/{version}/ranger-admin/conf")
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
     content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
   )
 
+  cp = format("{check_db_connection_jar}")
+  cp = cp + os.pathsep + format("{driver_curl_target}")
+  cp = cp + os.pathsep + format("{ranger_home}/ews/webapp/WEB-INF/lib/*")
+
   db_connection_check_command = format(
-    "{java_home}/bin/java -cp {check_db_connection_jar}:{driver_curl_target} org.apache.ambari.server.DBConnectionVerification '{ranger_jdbc_connection_url}' {ranger_db_user} {ranger_db_password!p} {ranger_jdbc_driver}")
+    "{java_home}/bin/java -cp {cp} org.apache.ambari.server.DBConnectionVerification '{ranger_jdbc_connection_url}' {ranger_db_user} {ranger_db_password!p} {ranger_jdbc_driver}")
 
   Execute(db_connection_check_command, path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10)
 
@@ -56,6 +67,16 @@ def setup_ranger_admin():
     not_if=format("ls {ranger_home}/conf"),
     only_if=format("ls {ranger_home}/ews/webapp/WEB-INF/classes/conf"),
     sudo=True)
+
+  if rolling_upgrade:
+    src_file = format('{ranger_home}/ews/webapp/WEB-INF/classes/conf.dist/ranger-admin-default-site.xml')
+    dst_file = format('{ranger_home}/conf/ranger-admin-default-site.xml')
+    Execute(('cp', '-f', src_file, dst_file), sudo=True)
+
+    src_file = format('{ranger_home}/ews/webapp/WEB-INF/classes/conf.dist/security-applicationContext.xml')
+    dst_file = format('{ranger_home}/conf/security-applicationContext.xml')
+
+    Execute(('cp', '-f', src_file, dst_file), sudo=True)
 
   Execute(('chown','-R',format('{unix_user}:{unix_group}'), format('{ranger_home}/')), sudo=True)
 
@@ -65,23 +86,23 @@ def setup_ranger_admin():
     sudo=True)
 
   XmlConfig("ranger-admin-site.xml",
-    conf_dir=params.ranger_conf,
+    conf_dir=ranger_conf,
     configurations=params.config['configurations']['ranger-admin-site'],
     configuration_attributes=params.config['configuration_attributes']['ranger-admin-site'],
     owner=params.unix_user,
     group=params.unix_group,
     mode=0644)
 
-  Directory(os.path.join(params.ranger_conf,'ranger_jaas'),
+  Directory(os.path.join(ranger_conf,'ranger_jaas'),
     mode=0700,
     owner=params.unix_user,
     group=params.unix_group,
   )
 
-  do_keystore_setup()
+  do_keystore_setup(rolling_upgrade=rolling_upgrade)
 
 
-def setup_ranger_db():
+def setup_ranger_db(rolling_upgrade=False):
   import params
   
   File(params.downloaded_custom_connector,
@@ -98,6 +119,10 @@ def setup_ranger_db():
       not_if=format("test -f {driver_curl_target}"),
       sudo=True)
 
+  ranger_home = params.ranger_home
+  if rolling_upgrade:
+    ranger_home = format("/usr/hdp/{version}/ranger-admin")
+
   if not os.path.isfile(os.path.join(params.ranger_home, 'ews', 'lib',params.jdbc_jar_name)):
     Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(params.ranger_home, 'ews', 'lib')),
       path=["/bin", "/usr/bin/"],
@@ -111,29 +136,42 @@ def setup_ranger_db():
   if params.create_db_dbuser:
     Logger.info('Setting up Ranger DB and DB User')
     dba_setup = format('python {ranger_home}/dba_script.py -q')
-    Execute(dba_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+    Execute(dba_setup, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
   else:
     Logger.info('Separate DBA property not set. Assuming Ranger DB and DB User exists!')
 
   db_setup = format('python {ranger_home}/db_setup.py')
-  Execute(db_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+  Execute(db_setup, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
 
 
-def setup_java_patch():
+def setup_java_patch(rolling_upgrade=False):
   import params
+
+  ranger_home = params.ranger_home
+  if rolling_upgrade:
+    ranger_home = format("/usr/hdp/{version}/ranger-admin")
 
   setup_java_patch = format('python {ranger_home}/db_setup.py -javapatch')
-  Execute(setup_java_patch, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+  Execute(setup_java_patch, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
 
 
-def do_keystore_setup(): 
+def do_keystore_setup(rolling_upgrade=False): 
   import params
+
+  ranger_home = params.ranger_home
+  cred_lib_path = params.cred_lib_path
+  cred_setup_prefix = params.cred_setup_prefix
+
+  if rolling_upgrade:
+    ranger_home = format("/usr/hdp/{version}/ranger-admin")
+    cred_lib_path = os.path.join(ranger_home,"cred","lib","*")
+    cred_setup_prefix = format('python {ranger_home}/ranger_credential_helper.py -l "{cred_lib_path}"')
 
   if not is_empty(params.ranger_credential_provider_path):    
     jceks_path = params.ranger_credential_provider_path
     cred_setup = format('{cred_setup_prefix} -f {jceks_path} -k "{ranger_jpa_jdbc_credential_alias}" -v "{ranger_ambari_db_password}" -c 1')
 
-    Execute(cred_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+    Execute(cred_setup, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
 
     File(params.ranger_credential_provider_path,
       owner = params.unix_user,
@@ -144,7 +182,7 @@ def do_keystore_setup():
     jceks_path = params.ranger_credential_provider_path
     cred_setup = format('{cred_setup_prefix} -f {jceks_path} -k "{ranger_jpa_audit_jdbc_credential_alias}" -v "{ranger_ambari_audit_db_password}" -c 1')
 
-    Execute(cred_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+    Execute(cred_setup, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
 
     File(params.ranger_credential_provider_path,
       owner = params.unix_user,

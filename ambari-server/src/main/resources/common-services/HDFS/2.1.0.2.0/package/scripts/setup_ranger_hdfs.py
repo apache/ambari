@@ -19,7 +19,7 @@ limitations under the License.
 """
 from resource_management.core.logger import Logger
 
-def setup_ranger_hdfs():
+def setup_ranger_hdfs(rolling_upgrade = False):
   import params
 
   if params.has_ranger_admin:
@@ -28,6 +28,11 @@ def setup_ranger_hdfs():
       from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
     else:
       from resource_management.libraries.functions.setup_ranger_plugin import setup_ranger_plugin
+
+    hdp_version = None
+
+    if rolling_upgrade:
+      hdp_version = params.version
 
     setup_ranger_plugin('hadoop-client', 'hdfs',
                         params.downloaded_custom_connector, params.driver_curl_source,
@@ -42,7 +47,7 @@ def setup_ranger_hdfs():
                         plugin_policymgr_ssl_properties=params.config['configurations']['ranger-hdfs-policymgr-ssl'], plugin_policymgr_ssl_attributes=params.config['configuration_attributes']['ranger-hdfs-policymgr-ssl'],
                         component_list=['hadoop-client'], audit_db_is_enabled=params.xa_audit_db_is_enabled,
                         credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password, 
-                        ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password
-    )
+                        ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
+                        hdp_version_override = hdp_version)
   else:
     Logger.info('Ranger admin not installed')

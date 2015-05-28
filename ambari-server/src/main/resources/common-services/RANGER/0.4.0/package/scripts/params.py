@@ -60,7 +60,8 @@ if stack_is_hdp22_or_further:
   ranger_ugsync_conf = '/etc/ranger/usersync/conf'
 
 if stack_is_hdp23_or_further:
-  ranger_conf    = '/usr/hdp/current/ranger-admin/conf'
+  ranger_conf = '/usr/hdp/current/ranger-admin/conf'
+  ranger_ugsync_conf = '/usr/hdp/current/ranger-usersync/conf'
 
 usersync_services_file = "/usr/hdp/current/ranger-usersync/ranger-usersync-services.sh"
 
