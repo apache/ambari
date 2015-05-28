@@ -74,9 +74,12 @@ public class ViewClassLoaderTest {
     expect(parentClassLoader.getPackage("org.apache.ambari.server.view")).andReturn(null).anyTimes();
     expect(parentClassLoader.loadClass("java.lang.Object")).andReturn(parentClass).anyTimes();
     expect(parentClassLoader.loadClass("ParentClass")).andReturn(parentClass).once();
+    expect(parentClassLoader.loadClass("org.apache.ambari.server.controller.spi.ResourceProvider")).andReturn(parentClass).once();
+    expect(parentClassLoader.loadClass("org.apache.ambari.view.ViewContext")).andReturn(parentClass).once();
     expect(parentClassLoader.loadClass("javax.xml.parsers.SAXParserFactory")).andReturn(parentClass).once();
     expect(parentClassLoader.loadClass("com.google.inject.AbstractModule")).andReturn(parentClass).once();
     expect(parentClassLoader.loadClass("org.slf4j.LoggerFactory")).andReturn(parentClass).once();
+    expect(parentClassLoader.loadClass("com.sun.jersey.api.ConflictException")).andReturn(parentClass).once();
 
     replay(parentClassLoader, viewConfig);
 
@@ -87,29 +90,38 @@ public class ViewClassLoaderTest {
 
     ViewClassLoader classLoader = new ViewClassLoader(viewConfig, parentClassLoader, urls);
 
-    Class clazz = classLoader.loadClass("org.apache.ambari.server.view.ViewClassLoaderTest");
-
-    Assert.assertNotNull(clazz);
-
-    clazz = classLoader.loadClass("ParentClass");
+    // should be loaded by parent loader
+    Class clazz = classLoader.loadClass("ParentClass");
 
     Assert.assertNotNull(clazz);
     Assert.assertSame(parentClass, clazz);
 
-    // should be loaded by parent loader
+    clazz = classLoader.loadClass("org.apache.ambari.server.controller.spi.ResourceProvider");
+
+    Assert.assertNotNull(clazz);
+    Assert.assertSame(parentClass, clazz);
+
+    clazz = classLoader.loadClass("org.apache.ambari.view.ViewContext");
+
+    Assert.assertNotNull(clazz);
+    Assert.assertSame(parentClass, clazz);
+
     clazz = classLoader.loadClass("javax.xml.parsers.SAXParserFactory");
 
     Assert.assertNotNull(clazz);
     Assert.assertSame(parentClass, clazz);
 
-    // should be loaded by parent loader
     clazz = classLoader.loadClass("com.google.inject.AbstractModule");
 
     Assert.assertNotNull(clazz);
     Assert.assertSame(parentClass, clazz);
 
-    // should be loaded by parent loader
     clazz = classLoader.loadClass("org.slf4j.LoggerFactory");
+
+    Assert.assertNotNull(clazz);
+    Assert.assertSame(parentClass, clazz);
+
+    clazz = classLoader.loadClass("com.sun.jersey.api.ConflictException");
 
     Assert.assertNotNull(clazz);
     Assert.assertSame(parentClass, clazz);

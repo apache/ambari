@@ -71,10 +71,16 @@ public class ViewClassLoader extends WebAppClassLoader {
 
     WebAppContext webAppContext = new WebAppContext();
 
+    // add ambari classes as system classes
+    webAppContext.addSystemClass("org.apache.ambari.server.");
+    webAppContext.addSystemClass("org.apache.ambari.view.");
+
     // add com.google.inject as system classes to allow for injection in view components using the google annotation
     webAppContext.addSystemClass("com.google.inject.");
-    // add org.slf4j as system classes to avoid linkage errors
+
+    // add as system classes to avoid conflicts and linkage errors
     webAppContext.addSystemClass("org.slf4j.");
+    webAppContext.addSystemClass("com.sun.jersey.");
 
     // set the class loader settings from the configuration
     if (viewConfig != null) {
