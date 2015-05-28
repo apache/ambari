@@ -101,9 +101,9 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       = PropertyHelper.getPropertyId("HostRoles", "desired_admin_state");
   protected static final String HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID
       = "HostRoles/maintenance_state";
-  protected static final String HOST_COMPONENT_HDP_VERSION
+  protected static final String HOST_COMPONENT_HDP_VERSION_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "hdp_version");
-  protected static final String HOST_COMPONENT_UPGRADE_STATE = "HostRoles/upgrade_state";
+  protected static final String HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID = "HostRoles/upgrade_state";
 
   //Component name mappings
   private final Map<String, PropertyProvider> HOST_COMPONENT_PROPERTIES_PROVIDER = new HashMap<String, PropertyProvider>();
@@ -249,14 +249,16 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
               response.getActualConfigs(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID,
               response.isStaleConfig(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_UPGRADE_STATE,
+      setResourceProperty(resource, HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID,
               response.getUpgradeState(), requestedIds);
 
-      HostVersionEntity versionEntity = hostVersionDAO.
-              findByHostAndStateCurrent(response.getClusterName(), response.getHostname());
-      if (versionEntity != null) {
-        setResourceProperty(resource, HOST_COMPONENT_HDP_VERSION,
-                versionEntity.getRepositoryVersion().getDisplayName(), requestedIds);
+      if (requestedIds.contains(HOST_COMPONENT_HDP_VERSION_PROPERTY_ID)) {
+        HostVersionEntity versionEntity = hostVersionDAO.
+            findByHostAndStateCurrent(response.getClusterName(), response.getHostname());
+        if (versionEntity != null) {
+          setResourceProperty(resource, HOST_COMPONENT_HDP_VERSION_PROPERTY_ID,
+              versionEntity.getRepositoryVersion().getDisplayName(), requestedIds);
+        }
       }
 
       if (response.getAdminState() != null) {

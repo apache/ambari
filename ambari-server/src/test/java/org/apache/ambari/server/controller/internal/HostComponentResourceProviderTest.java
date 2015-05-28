@@ -163,7 +163,7 @@ public class HostComponentResourceProviderTest {
     expectedNameValues.put(
         HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
     expectedNameValues.put(
-        HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE, UpgradeState.NONE.name());
+        HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
 
 
     // set expectations
@@ -196,7 +196,7 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID, stackId.getStackId());
     hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
-    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE, UpgradeState.NONE.name());
+    hostsComponentResource1.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
 
     Resource hostsComponentResource2 = new ResourceImpl(Resource.Type.HostComponent);
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -207,7 +207,7 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID, stackId.getStackId());
     hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
-    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE, UpgradeState.NONE.name());
+    hostsComponentResource2.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
 
     Resource hostsComponentResource3 = new ResourceImpl(Resource.Type.HostComponent);
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -218,7 +218,7 @@ public class HostComponentResourceProviderTest {
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, State.STARTED.name());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_STACK_ID_PROPERTY_ID, stackId.getStackId());
     hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID, stackId2.getStackId());
-    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE, UpgradeState.NONE.name());
+    hostsComponentResource3.setProperty(HostComponentResourceProvider.HOST_COMPONENT_UPGRADE_STATE_PROPERTY_ID, UpgradeState.NONE.name());
 
     hostsComponentResources.add(hostsComponentResource1);
     hostsComponentResources.add(hostsComponentResource2);
