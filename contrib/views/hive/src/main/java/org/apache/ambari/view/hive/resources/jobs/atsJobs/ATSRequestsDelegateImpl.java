@@ -39,7 +39,13 @@ public class ATSRequestsDelegateImpl implements ATSRequestsDelegate {
 
   public ATSRequestsDelegateImpl(ViewContext context, String atsUrl) {
     this.context = context;
-    this.atsUrl = atsUrl;
+    this.atsUrl = addProtocolIfMissing(atsUrl);
+  }
+
+  private String addProtocolIfMissing(String atsUrl) {
+    if (!atsUrl.matches("^[^:]+://.*$"))
+      atsUrl = "http://" + atsUrl;
+    return atsUrl;
   }
 
   @Override
@@ -49,7 +55,9 @@ public class ATSRequestsDelegateImpl implements ATSRequestsDelegate {
 
   @Override
   public String hiveQueryIdOperationIdUrl(String operationId) {
-    return atsUrl + "/ws/v1/timeline/HIVE_QUERY_ID?primaryFilter=operationid:" + operationId;
+    // ATS parses operationId started with digit as integer and not returns the response.
+    // Quotation prevents this.
+    return atsUrl + "/ws/v1/timeline/HIVE_QUERY_ID?primaryFilter=operationid:%22" + operationId + "%22";
   }
 
   @Override

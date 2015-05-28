@@ -61,8 +61,9 @@ public class UDFResourceProvider implements ResourceProvider<UDF> {
 
   @Override
   public Set<UDF> getResources(ReadRequest readRequest) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
-    if (context == null)
-      return new HashSet();
+    if (context == null) {
+      return new HashSet<UDF>();
+    }
     return new HashSet<UDF>(getResourceManager().readAll(
         new OnlyOwnersFilteringStrategy(this.context.getUsername())));
   }

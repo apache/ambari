@@ -70,8 +70,9 @@ public class PersonalCRUDResourceManager<T extends PersonalResource> extends CRU
 
   @Override
   protected boolean checkPermissions(T object) {
-    if (ignorePermissions)
+    if (ignorePermissions) {
       return true;
+    }
     return object.getOwner().compareTo(this.context.getUsername()) == 0;
   }
 

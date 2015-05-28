@@ -60,8 +60,9 @@ public class FileResourceResourceProvider implements ResourceProvider<FileResour
 
   @Override
   public Set<FileResourceItem> getResources(ReadRequest readRequest) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
-    if (context == null)
-      return new HashSet();
+    if (context == null) {
+      return new HashSet<FileResourceItem>();
+    }
     return new HashSet<FileResourceItem>(getResourceManager().readAll(
         new OnlyOwnersFilteringStrategy(this.context.getUsername())));
   }

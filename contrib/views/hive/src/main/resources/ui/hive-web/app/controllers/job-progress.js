@@ -63,7 +63,7 @@ export default Ember.Controller.extend({
 
           self.set('totalProgress', total);
 
-          if (job.get('isRunning')) {
+          if (job.get('isRunning') && total < 100) {
             reloadProgress();
           }
 
@@ -77,14 +77,14 @@ export default Ember.Controller.extend({
     this.set('stages', []);
     this.set('totalProgress', 0);
 
-    if (!job.get('applicationId')) {
+    if (!job.get('dagId')) {
       return;
     }
 
     url += '/' + constants.namingConventions.jobs + '/' + job.get('id') + '/progress';
 
     reloadProgress();
-  }.observes('index.model', 'index.model.applicationId'),
+  }.observes('index.model', 'index.model.dagId'),
 
   displayProgress: function () {
     return this.get('index.model.constructor.typeKey') === constants.namingConventions.job;

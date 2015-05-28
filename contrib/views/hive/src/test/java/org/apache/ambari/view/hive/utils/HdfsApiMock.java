@@ -18,6 +18,8 @@
 
 package org.apache.ambari.view.hive.utils;
 
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 
@@ -34,11 +36,11 @@ public class HdfsApiMock {
   private ByteArrayOutputStream fsLogsOutputStream;
   private HdfsApi hdfsApi;
 
-  public HdfsApiMock(String inputFileContent) throws IOException, InterruptedException {
+  public HdfsApiMock(String inputFileContent) throws IOException, InterruptedException, HdfsApiException {
     setupHdfsApi(inputFileContent);
   }
 
-  protected void setupHdfsApi(String inputFileContent) throws IOException, InterruptedException {
+  protected void setupHdfsApi(String inputFileContent) throws IOException, InterruptedException, HdfsApiException {
     hdfsApi = createNiceMock(HdfsApi.class);
 
     hdfsApi.copy(anyString(), anyString());

@@ -272,8 +272,9 @@ public class JobService extends BaseService {
                              @QueryParam("columns") final String requestedColumns) {
     try {
       final JobController jobController = getResourceManager().readController(jobId);
-      if (!jobController.hasResults())
+      if (!jobController.hasResults()) {
         return ResultsPaginationController.emptyResponse().build();
+      }
 
       return ResultsPaginationController.getInstance(context)
            .request(jobId, searchId, true, fromBeginning, count,
@@ -355,7 +356,6 @@ public class JobService extends BaseService {
       if (remove != null && remove.compareTo("true") == 0) {
         getResourceManager().delete(id);
       }
-//      getResourceManager().delete(Integer.valueOf(queryId));
       return Response.status(204).build();
     } catch (WebApplicationException ex) {
       throw ex;

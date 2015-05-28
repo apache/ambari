@@ -27,7 +27,8 @@ import org.apache.ambari.view.hive.client.HiveClientException;
 import org.apache.ambari.view.hive.resources.savedQueries.SavedQuery;
 import org.apache.ambari.view.hive.resources.savedQueries.SavedQueryService;
 import org.apache.ambari.view.hive.utils.BadRequestFormattedException;
-import org.apache.ambari.view.hive.utils.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.hive.service.cli.thrift.*;
 import org.json.simple.JSONObject;
 import org.junit.*;
@@ -80,7 +81,7 @@ public class JobServiceTest extends BaseHiveTest {
   }
 
   @Test
-  public void createJobFromQuery() throws IOException, InterruptedException {
+  public void createJobFromQuery() throws IOException, InterruptedException, HdfsApiException {
     setupHdfsApiMock();
 
     SavedQuery savedQueryForJob = createSavedQuery("Test", null);
@@ -99,7 +100,7 @@ public class JobServiceTest extends BaseHiveTest {
   }
 
   @Test
-  public void createJobForcedContent() throws IOException, InterruptedException {
+  public void createJobForcedContent() throws IOException, InterruptedException, HdfsApiException {
     HdfsApiMock hdfsApiMock = setupHdfsApiMock();
 
     JobService.JobRequest request = new JobService.JobRequest();
@@ -206,7 +207,7 @@ public class JobServiceTest extends BaseHiveTest {
     return ((Map) jobObj.get("job")).get(field);
   }
 
-  private HdfsApiMock setupHdfsApiMock() throws IOException, InterruptedException {
+  private HdfsApiMock setupHdfsApiMock() throws IOException, InterruptedException, HdfsApiException {
     HdfsApiMock hdfsApiMock = new HdfsApiMock("select * from Z");
     HdfsApi hdfsApi = hdfsApiMock.getHdfsApi();
     jobService.getSharedObjectsFactory().setInstance(HdfsApi.class, hdfsApi);

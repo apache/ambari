@@ -26,8 +26,9 @@ import org.apache.ambari.view.hive.resources.jobs.atsJobs.IATSParser;
 import org.apache.ambari.view.hive.resources.savedQueries.SavedQuery;
 import org.apache.ambari.view.hive.resources.savedQueries.SavedQueryResourceManager;
 import org.apache.ambari.view.hive.utils.*;
-import org.apache.ambari.view.hive.utils.HdfsApi;
-import org.apache.ambari.view.hive.utils.HdfsUtil;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
+import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.apache.hive.service.cli.thrift.TSessionHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,8 +111,9 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
 
   private TSessionHandle getSession() {
     try {
-      if (job.getSessionTag() != null)
+      if (job.getSessionTag() != null) {
         return hiveConnection.getSessionByTag(getJob().getSessionTag());
+      }
     } catch (HiveClientException ignore) {
       LOG.debug("Stale sessionTag was provided, new session will be opened");
     }
@@ -182,6 +184,8 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
       LOG.error("Error while fetching logs: " + ex.getMessage());
     } catch (ItemNotFound itemNotFound) {
       LOG.debug("No TOperationHandle for job#" + job.getId() + ", can't read logs");
+    } catch (HdfsApiException e) {
+      throw new ServiceFormattedException(e);
     }
   }
 
@@ -270,7 +274,11 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
     LOG.debug("Creating log file for job#" + job.getId());
 
     String logFile = job.getStatusDir() + "/" + "logs";
-    HdfsUtil.putStringToFile(hdfsApi, logFile, "");
+    try {
+      HdfsUtil.putStringToFile(hdfsApi, logFile, "");
+    } catch (HdfsApiException e) {
+      throw new ServiceFormattedException(e);
+    }
 
     job.setLogFile(logFile);
     LOG.debug("Log file for job#" + job.getId() + ": " + logFile);
@@ -278,7 +286,12 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
 
   private void setupStatusDir() {
     String newDirPrefix = makeStatusDirectoryPrefix();
-    String newDir = HdfsUtil.findUnallocatedFileName(hdfsApi, newDirPrefix, "");
+    String newDir = null;
+    try {
+      newDir = HdfsUtil.findUnallocatedFileName(hdfsApi, newDirPrefix, "");
+    } catch (HdfsApiException e) {
+      throw new ServiceFormattedException(e);
+    }
 
     job.setStatusDir(newDir);
     LOG.debug("Status dir for job#" + job.getId() + ": " + newDir);
@@ -329,6 +342,8 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
       throw new ServiceFormattedException("F040 Error when creating file " + jobQueryFilePath, e);
     } catch (InterruptedException e) {
       throw new ServiceFormattedException("F040 Error when creating file " + jobQueryFilePath, e);
+    } catch (HdfsApiException e) {
+      throw new ServiceFormattedException(e);
     }
     job.setQueryFile(jobQueryFilePath);
 

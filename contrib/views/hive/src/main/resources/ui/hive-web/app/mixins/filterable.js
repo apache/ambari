@@ -59,6 +59,10 @@ export default Ember.Mixin.create({
 
   updateFilters: function (property, filterValue, exactMatch) {
     var addFilter = function () {
+      if (!filterValue) {
+        return;
+      }
+
       this.get('filters').pushObject(Ember.Object.create({
         property: property,
         exactMatch: exactMatch,

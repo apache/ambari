@@ -61,8 +61,9 @@ public class JobResourceProvider implements ResourceProvider<Job> {
 
   @Override
   public Set<Job> getResources(ReadRequest readRequest) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
-    if (context == null)
-      return new HashSet();
+    if (context == null) {
+      return new HashSet<Job>();
+    }
     return new HashSet<Job>(getResourceManager().readAll(
         new OnlyOwnersFilteringStrategy(this.context.getUsername())));
   }

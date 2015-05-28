@@ -91,7 +91,7 @@ export default Ember.ObjectController.extend({
           //backend issue, this will be split in done and fail callbacks once its fixed.
           if (data.status === 404) {
             existingJob.set('results', []);
-            self.send('getNextPage', true, job);
+            self.set('error', data.responseJSON.message);
           } else if (data.status === 200) {
             self.keepAlive(job);
           }

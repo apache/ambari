@@ -21,25 +21,54 @@ package org.apache.ambari.view.hive.resources.jobs.rm;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.TezVertexId;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Parser of Resource Manager responses
+ */
 public class RMParser {
+  protected final static Logger LOG =
+      LoggerFactory.getLogger(RMParser.class);
   private RMRequestsDelegate delegate;
 
   public RMParser(RMRequestsDelegate delegate) {
     this.delegate = delegate;
   }
 
+  /**
+   * Progress of DAG
+   * @param appId App Id
+   * @param dagId DAG Id
+   * @return progress of DAG
+   */
   public Double getDAGProgress(String appId, String dagId) {
     String dagIdx = parseDagIdIndex(dagId);
-    JSONObject dagProgress = (JSONObject) delegate.dagProgress(appId, dagIdx).get("dagProgress");
-    return (Double) (dagProgress.get("progress"));
+    JSONObject progresses = delegate.dagProgress(appId, dagIdx);
+
+    double dagProgressValue;
+    if (progresses != null) {
+      JSONObject dagProgress = (JSONObject) progresses.get("dagProgress");
+      dagProgressValue = (Double) (dagProgress.get("progress"));
+    } else {
+      LOG.error("Error while retrieving progress of " + appId + ":" + dagId + ". 0 assumed.");
+      dagProgressValue = 0;
+    }
+    return dagProgressValue;
   }
 
+  /**
+   * Progress of vertices
+   * @param appId App Id
+   * @param dagId DAG Id
+   * @param vertices vertices list
+   * @return list of vertices
+   */
   public List<VertexProgress> getDAGVerticesProgress(String appId, String dagId, List<TezVertexId> vertices) {
     String dagIdx = parseDagIdIndex(dagId);
 
@@ -58,10 +87,22 @@ public class RMParser {
 
     String commaSeparatedVertices = builder.toString();
 
-    JSONArray vertexProgresses = (JSONArray) delegate.verticesProgress(
-        appId, dagIdx, commaSeparatedVertices).get("vertexProgresses");
-
     List<VertexProgress> parsedVertexProgresses = new LinkedList<VertexProgress>();
+    JSONObject vertexProgressesResponse = delegate.verticesProgress(
+        appId, dagIdx, commaSeparatedVertices);
+    if (vertexProgressesResponse == null) {
+      LOG.error("Error while retrieving progress of vertices " +
+          appId + ":" + dagId + ":" + commaSeparatedVertices + ". 0 assumed for all vertices.");
+      for (TezVertexId vertexId : vertices) {
+        VertexProgress vertexProgressInfo = new VertexProgress();
+        vertexProgressInfo.name = vertexId.vertexName;
+        vertexProgressInfo.progress = 0.0;
+        parsedVertexProgresses.add(vertexProgressInfo);
+      }
+      return parsedVertexProgresses;
+    }
+    JSONArray vertexProgresses = (JSONArray) vertexProgressesResponse.get("vertexProgresses");
+
     for (Object vertex : vertexProgresses) {
       JSONObject jsonObject = (JSONObject) vertex;
 

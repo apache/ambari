@@ -60,7 +60,14 @@
             {{code-helper controller.file.fileContent}}
 
             {{#if controller.canStop}}
-              <button type="button" class="btn btn-danger btn-sm pull-right" {{action "stop"}}>{{t "buttons.stopJob"}}</button>
+              <button type="button" class="btn btn-danger btn-sm pull-right" {{action "stop"}}>
+                {{#if item.isCancelling}}
+                  {{t "buttons.stoppingJob"}}
+                  <div class="spinner small inline-spinner"></div>
+                {{else}}
+                  {{t "buttons.stopJob"}}
+                {{/if}}
+              </button>
             {{/if}}
           </td>
         </tr>

@@ -21,10 +21,16 @@ import constants from 'hive/utils/constants';
 
 export default Ember.Route.extend({
   model: function () {
-    return this.store.find(constants.namingConventions.savedQuery);
+    return this.store.find(constants.namingConventions.savedQuery).catch(function (err) {
+      self.notify.error(err.responseJSON.message, err.responseJSON.trace);
+    });
   },
 
   setupController: function (controller, model) {
+    if (!model) {
+      return;
+    }
+
     controller.set('queries', model);
   }
 });

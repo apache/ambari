@@ -69,7 +69,7 @@ export default Ember.View.extend({
         }
       });
     });
-  }.observes('controller.verticesProgress', 'verticesGroups'),
+  }.observes('controller.verticesProgress.@each.value', 'verticesGroups'),
 
   jsonChanged: function () {
     if (this.get('controller.json')) {

@@ -21,19 +21,25 @@ package org.apache.ambari.view.hive.client;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive.utils.HiveClientFormattedException;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
+import org.apache.ambari.view.utils.ambari.AmbariApi;
+import org.apache.ambari.view.utils.ambari.AmbariApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ConnectionFactory implements IConnectionFactory {
   private final static Logger LOG =
       LoggerFactory.getLogger(ConnectionFactory.class);
   private ViewContext context;
+  private AmbariApi ambariApi;
 
   public ConnectionFactory(ViewContext context) {
     this.context = context;
+    this.ambariApi = new AmbariApi(context);
   }
 
   @Override
@@ -47,6 +53,21 @@ public class ConnectionFactory implements IConnectionFactory {
   }
 
   private String getHiveHost() {
+    if (ambariApi.isClusterAssociated()) {
+      List<String> hiveServerHosts;
+      try {
+        hiveServerHosts = ambariApi.getHostsWithComponent("HIVE_SERVER");
+      } catch (AmbariApiException e) {
+        throw new ServiceFormattedException(e);
+      }
+
+      if (!hiveServerHosts.isEmpty()) {
+        String hostname = hiveServerHosts.get(0);
+        LOG.info("HIVE_SERVER component was found on host " + hostname);
+        return hostname;
+      }
+      LOG.warn("No host was found with HIVE_SERVER component. Using hive.host property to get hostname.");
+    }
     return context.getProperties().get("hive.host");
   }
 

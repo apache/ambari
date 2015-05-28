@@ -20,6 +20,7 @@ package org.apache.ambari.view.hive.resources.jobs.rm;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
+import org.apache.ambari.view.utils.ambari.AmbariApi;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;

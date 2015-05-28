@@ -21,10 +21,18 @@ import constants from 'hive/utils/constants';
 
 export default Ember.Route.extend({
   model: function () {
-    return this.store.find(constants.namingConventions.job);
+    var self = this;
+
+    return this.store.find(constants.namingConventions.job).catch(function (err) {
+      self.notify.error(err.responseJSON.message, err.responseJSON.trace);
+    });
   },
 
   setupController: function (controller, model) {
+    if (!model) {
+      return;
+    }
+
     var filteredModel = model.filter(function (job) {
        //filter out jobs with referrer type of sample, explain and visual explain
        return !job.get('referrer') ||

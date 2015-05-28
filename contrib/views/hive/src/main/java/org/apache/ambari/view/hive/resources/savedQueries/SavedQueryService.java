@@ -22,10 +22,10 @@ import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.hive.BaseService;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.persistence.utils.OnlyOwnersFilteringStrategy;
-import org.apache.ambari.view.hive.utils.HdfsApi;
-import org.apache.ambari.view.hive.utils.HdfsUtil;
 import org.apache.ambari.view.hive.utils.NotFoundFormattedException;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.slf4j.Logger;
@@ -211,7 +211,7 @@ public class SavedQueryService extends BaseService {
       HdfsApi hdfsApi = getSharedObjectsFactory().getHdfsApi();
 
       HdfsUtil.putStringToFile(hdfsApi, defaultsFile,
-                               settings.toString());
+          settings.toString());
       String defaults = HdfsUtil.readFile(hdfsApi, defaultsFile);
       return Response.ok(JSONValue.parse(defaults)).build();
     } catch (WebApplicationException ex) {

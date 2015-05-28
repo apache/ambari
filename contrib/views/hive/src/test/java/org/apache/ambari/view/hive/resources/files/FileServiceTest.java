@@ -21,7 +21,7 @@ package org.apache.ambari.view.hive.resources.files;
 import org.apache.ambari.view.hive.ServiceTestUtils;
 import org.apache.ambari.view.hive.HDFSTest;
 import org.apache.ambari.view.hive.utils.*;
-import org.apache.ambari.view.hive.utils.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 import org.json.simple.JSONObject;

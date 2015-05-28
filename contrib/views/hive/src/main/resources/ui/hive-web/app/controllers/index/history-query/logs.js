@@ -42,10 +42,12 @@ export default Ember.ObjectController.extend({
         };
 
     job.reload().then(function () {
-      if (utils.insensitiveCompare(job.get('status'), constants.statuses.error)) {
+      if (utils.insensitiveCompare(job.get('status'), constants.statuses.error) ||
+          utils.insensitiveCompare(job.get('status'), constants.statuses.failed)) {
         handleError(job.get('statusMessage'));
-      } else {
-        self.get('files').reload(job.get('logFile')).then(function (file) {
+      }
+
+      self.get('files').reload(job.get('logFile')).then(function (file) {
         var fileContent = file.get('fileContent');
 
         if (fileContent) {
@@ -53,10 +55,9 @@ export default Ember.ObjectController.extend({
         }
 
         defer.resolve();
-        },function (err) {
-          handleError(err);
-        });
-      }
+      },function (err) {
+        handleError(err);
+      });
     }, function (err) {
       handleError(err);
     });

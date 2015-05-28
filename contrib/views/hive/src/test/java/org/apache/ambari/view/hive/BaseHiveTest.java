@@ -69,6 +69,8 @@ public abstract class BaseHiveTest {
     properties.put("dataworker.storagePath", hiveStorageFile.toString());
     properties.put("scripts.dir", "/tmp/.hiveQueries");
     properties.put("jobs.dir", "/tmp/.hiveJobs");
+    properties.put("yarn.ats.url", "127.0.0.1:8188");
+    properties.put("yarn.resourcemanager.url", "127.0.0.1:8088");
 
     setupProperties(properties, baseDir);
 

@@ -18,7 +18,7 @@
 
 package org.apache.ambari.view.hive.utils;
 
-import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.hadoop.fs.FSDataInputStream;
 
 import java.io.IOException;

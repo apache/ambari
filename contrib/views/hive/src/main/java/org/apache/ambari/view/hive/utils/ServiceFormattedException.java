@@ -39,6 +39,10 @@ public class ServiceFormattedException extends WebApplicationException {
     super(errorEntity(message, null, suggestStatus(null), null));
   }
 
+  public ServiceFormattedException(Throwable exception) {
+    super(errorEntity(null, exception, suggestStatus(exception), null));
+  }
+
   public ServiceFormattedException(String message, Throwable exception) {
     super(errorEntity(message, exception, suggestStatus(exception), null));
   }
@@ -53,7 +57,9 @@ public class ServiceFormattedException extends WebApplicationException {
 
   private static int suggestStatus(Throwable exception) {
     int status = 500;
-    if (exception == null) return status;
+    if (exception == null) {
+      return status;
+    }
     if (exception instanceof AccessControlException) {
       status = 403;
     }
@@ -73,7 +79,14 @@ public class ServiceFormattedException extends WebApplicationException {
       trace += sw.toString();
 
       if (message == null) {
-        response.put("message", "E090 " + e.getClass().getSimpleName());
+        String innerMessage = e.getMessage();
+        String autoMessage;
+
+        if (innerMessage != null)
+          autoMessage = String.format("E090 %s [%s]", innerMessage, e.getClass().getSimpleName());
+        else
+          autoMessage = "E090 " + e.getClass().getSimpleName();
+        response.put("message", autoMessage);
       }
     }
     response.put("trace", trace);

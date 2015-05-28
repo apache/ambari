@@ -81,8 +81,9 @@ public class LogParser {
 
   public AppId getLastAppInList() {
     Object[] appIds = appsList.toArray();
-    if (appIds.length == 0)
+    if (appIds.length == 0) {
       return null;
+    }
     return (AppId) appIds[appsList.size()-1];
   }
 

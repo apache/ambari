@@ -169,6 +169,8 @@ export default Ember.Object.create({
     canceled: "CANCELED",
     closed: "CLOSED",
     error: "ERROR",
+    failed: 'FAILED',
+    killed: 'KILLED',
     pending: "PENDING"
   },
 
@@ -191,7 +193,7 @@ export default Ember.Object.create({
 
   //this can be replaced by a string.format implementation
   adapter: {
-    version: '0.3.0',
+    version: '0.4.0',
     instance: 'Hive',
     apiPrefix: '/api/v1/views/HIVE/versions/',
     instancePrefix: '/instances/',

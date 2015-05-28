@@ -27,6 +27,9 @@ import org.slf4j.LoggerFactory;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Parser of ATS responses
+ */
 public class ATSParser implements IATSParser {
   protected final static Logger LOG =
       LoggerFactory.getLogger(ATSParser.class);

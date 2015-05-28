@@ -136,11 +136,22 @@ export default Ember.ArrayController.extend(FilterableMixin, {
     },
 
     interruptJob: function (job) {
-      var self = this,
-          id = job.get('id');
+      var self = this;
+      var id = job.get('id');
+      var url = this.container.lookup('adapter:application').buildURL();
+      url +=  "/jobs/" + id;
 
-      job.destroyRecord().then(function () {
-        self.store.find(constants.namingConventions.job, id);
+      job.set('isCancelling', true);
+
+      Ember.$.ajax({
+         url: url,
+         type: 'DELETE',
+         headers: {
+          'X-Requested-By': 'ambari',
+         },
+         success: function () {
+           job.reload();
+         }
       });
     },
 

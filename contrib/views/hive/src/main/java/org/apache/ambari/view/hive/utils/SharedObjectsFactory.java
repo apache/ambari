@@ -34,6 +34,11 @@ import org.apache.ambari.view.hive.resources.jobs.rm.RMParserFactory;
 import org.apache.ambari.view.hive.resources.jobs.viewJobs.IJobControllerFactory;
 import org.apache.ambari.view.hive.resources.jobs.viewJobs.JobControllerFactory;
 import org.apache.ambari.view.hive.resources.savedQueries.SavedQueryResourceManager;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
+import org.apache.ambari.view.utils.hdfs.HdfsUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +49,9 @@ import java.util.Map;
  * will use different connection.
  */
 public class SharedObjectsFactory implements IStorageFactory, IConnectionFactory {
+  protected final static Logger LOG =
+      LoggerFactory.getLogger(SharedObjectsFactory.class);
+
   private ViewContext context;
   private final IConnectionFactory hiveConnectionFactory;
   private final IStorageFactory storageFactory;
@@ -137,8 +145,15 @@ public class SharedObjectsFactory implements IStorageFactory, IConnectionFactory
 
   // =============================
   public HdfsApi getHdfsApi() {
-    if (!localObjects.get(HdfsApi.class).containsKey(getTagName()))
-      localObjects.get(HdfsApi.class).put(getTagName(), HdfsApi.connectToHDFSApi(context));
+    if (!localObjects.get(HdfsApi.class).containsKey(getTagName())) {
+      try {
+        localObjects.get(HdfsApi.class).put(getTagName(), HdfsUtil.connectToHDFSApi(context));
+      } catch (HdfsApiException e) {
+        String message = "F060 Couldn't open connection to HDFS";
+        LOG.error(message);
+        throw new ServiceFormattedException(message, e);
+      }
+    }
     return (HdfsApi) localObjects.get(HdfsApi.class).get(getTagName());
   }
 

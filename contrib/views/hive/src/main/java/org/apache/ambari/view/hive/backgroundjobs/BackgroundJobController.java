@@ -52,28 +52,32 @@ public class BackgroundJobController {
   }
 
   public Thread.State state(String key) {
-    if (!jobs.containsKey(key))
+    if (!jobs.containsKey(key)) {
       return Thread.State.TERMINATED;
+    }
 
     Thread.State state = jobs.get(key).getState();
 
-    if (state == Thread.State.TERMINATED)
+    if (state == Thread.State.TERMINATED) {
       jobs.remove(key);
+    }
 
     return state;
   }
 
   public boolean interrupt(String key) {
-    if (!jobs.containsKey(key))
+    if (!jobs.containsKey(key)) {
       return false;
+    }
 
     jobs.get(key).interrupt();
     return true;
   }
 
   public boolean isInterrupted(String key) {
-    if (state(key) == Thread.State.TERMINATED)
+    if (state(key) == Thread.State.TERMINATED) {
       return true;
+    }
 
     return jobs.get(key).isInterrupted();
   }

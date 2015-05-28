@@ -61,8 +61,9 @@ public class ResultsPaginationController {
 
     @Override
     public long expirationTime(String key, Cursor value) {
-      if (key.startsWith("$"))
+      if (key.startsWith("$")) {
         return -1;  //never expire
+      }
       return super.expirationTime(key, value);
     }
   }
@@ -85,8 +86,9 @@ public class ResultsPaginationController {
     if (searchId == null)
       searchId = DEFAULT_SEARCH_ID;
     String effectiveKey = key + "?" + searchId;
-    if (!getResultsCache().containsKey(effectiveKey))
+    if (!getResultsCache().containsKey(effectiveKey)) {
       return false;
+    }
     Cursor cursor = getResultsCache().get(effectiveKey);
     getResultsCache().put(effectiveKey, cursor);
     return true;

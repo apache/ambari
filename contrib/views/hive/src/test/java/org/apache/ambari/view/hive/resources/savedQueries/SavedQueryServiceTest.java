@@ -19,9 +19,7 @@
 package org.apache.ambari.view.hive.resources.savedQueries;
 
 import org.apache.ambari.view.hive.HDFSTest;
-import org.apache.ambari.view.hive.utils.HdfsApi;
 import org.apache.ambari.view.hive.utils.NotFoundFormattedException;
-import org.apache.ambari.view.hive.utils.SharedObjectsFactory;
 import org.json.simple.JSONObject;
 import org.junit.*;
 import org.junit.rules.ExpectedException;

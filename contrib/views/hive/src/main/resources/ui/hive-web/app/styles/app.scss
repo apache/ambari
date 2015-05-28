@@ -205,7 +205,7 @@ aside  {
   color: green;
 }
 
-.CANCELED, .ERROR {
+.CANCELED, .ERROR, .FAILED, .KILLED {
   color: red;
 }
 
@@ -337,6 +337,11 @@ body {
     background-size: 20px;
     width: 20px;
     height: 20px;
+  }
+
+  &.inline-spinner {
+    vertical-align: middle;
+    display: inline-block;
   }
 }
 
@@ -521,12 +526,12 @@ tree-view ul li {
         border-radius: 0;
         margin: 0 10px 10px 10px;
       }
-
-      .progress-bar {
-        min-width: 2em;
-      }
     }
   }
+}
+
+.progress-bar {
+  min-width: 2em;
 }
 
 .messages-controls {

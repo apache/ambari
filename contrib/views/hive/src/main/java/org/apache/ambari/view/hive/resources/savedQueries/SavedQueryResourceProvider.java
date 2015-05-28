@@ -63,8 +63,9 @@ public class SavedQueryResourceProvider implements ResourceProvider<SavedQuery> 
 
   @Override
   public Set<SavedQuery> getResources(ReadRequest readRequest) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
-    if (context == null)
-      return new HashSet();
+    if (context == null) {
+      return new HashSet<SavedQuery>();
+    }
     return new HashSet<SavedQuery>(getResourceManager().readAll(
         new OnlyOwnersFilteringStrategy(this.context.getUsername())));
   }

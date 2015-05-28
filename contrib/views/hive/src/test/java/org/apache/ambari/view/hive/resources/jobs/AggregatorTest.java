@@ -261,8 +261,9 @@ public class AggregatorTest {
     @Override
     public Job read(Object id) throws ItemNotFound {
       for(Job job : jobs) {
-        if (job.getId().equals(id))
+        if (job.getId().equals(id)) {
           return job;
+        }
       }
       throw new ItemNotFound();
     }

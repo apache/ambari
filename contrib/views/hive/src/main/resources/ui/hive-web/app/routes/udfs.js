@@ -25,6 +25,8 @@ export default Ember.Route.extend({
 
     this.store.find(constants.namingConventions.fileResource).then(function (fileResources) {
       self.controllerFor(constants.namingConventions.fileResources).set('model', fileResources);
-    });
+    }).catch(function (err) {
+      self.notify.error(err.responseJSON.message, err.responseJSON.trace);
+    });;
   }
 });

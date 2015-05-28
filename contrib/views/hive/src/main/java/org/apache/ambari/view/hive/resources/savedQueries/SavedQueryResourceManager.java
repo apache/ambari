@@ -23,7 +23,8 @@ import org.apache.ambari.view.hive.persistence.utils.FilteringStrategy;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.resources.PersonalCRUDResourceManager;
 import org.apache.ambari.view.hive.utils.*;
-import org.apache.ambari.view.hive.utils.HdfsUtil;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
+import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,8 +79,13 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
     String baseFileName = String.format(userScriptsPath +
         "/%s-%s", normalizedName, timestamp);
 
-    String newFilePath = HdfsUtil.findUnallocatedFileName(sharedObjectsFactory.getHdfsApi(), baseFileName, ".hql");
-    HdfsUtil.putStringToFile(sharedObjectsFactory.getHdfsApi(), newFilePath, "");
+    String newFilePath = null;
+    try {
+      newFilePath = HdfsUtil.findUnallocatedFileName(sharedObjectsFactory.getHdfsApi(), baseFileName, ".hql");
+      HdfsUtil.putStringToFile(sharedObjectsFactory.getHdfsApi(), newFilePath, "");
+    } catch (HdfsApiException e) {
+      throw new ServiceFormattedException(e);
+    }
 
     object.setQueryFile(newFilePath);
     storageFactory.getStorage().store(SavedQuery.class, object);
@@ -105,9 +111,22 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
         LOG.error("Can't read query file " + savedQuery.getQueryFile());
         return;
       }
-      savedQuery.setShortQuery(query.substring(0, (query.length() > 42)?42:query.length()));
+      savedQuery.setShortQuery(makeShortQuery(query));
     }
     storageFactory.getStorage().store(SavedQuery.class, savedQuery);
+  }
+
+  /**
+   * Generate short preview of query.
+   * Remove SET settings like "set hive.execution.engine=tez;" from beginning
+   * and trim to 42 symbols.
+   * @param query full query
+   * @return shortened query
+   */
+  protected static String makeShortQuery(String query) {
+    query = query.replaceAll("(?i)set\\s+[\\w\\-.]+(\\s*)=(\\s*)[\\w\\-.]+(\\s*);", "");
+    query = query.trim();
+    return query.substring(0, (query.length() > 42)?42:query.length());
   }
 
   @Override

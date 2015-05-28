@@ -23,6 +23,8 @@ import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.hive.BaseService;
 import org.apache.ambari.view.hive.utils.*;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -218,7 +220,7 @@ public class FileService extends BaseService {
    */
   public static void hdfsSmokeTest(ViewContext context) {
     try {
-      HdfsApi api = HdfsApi.connectToHDFSApi(context);
+      HdfsApi api = HdfsUtil.connectToHDFSApi(context);
       api.getStatus();
     } catch (WebApplicationException ex) {
       throw ex;

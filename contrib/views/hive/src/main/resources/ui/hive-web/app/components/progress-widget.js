@@ -22,7 +22,7 @@ export default Ember.Component.extend({
   tagName: 'progress-bar',
 
   updateValue: function () {
-    var progress = this.get('value') || 0;
+    var progress = this.get('value') ? this.get('value').toFixed() : 0;
 
     this.set('style', 'width: %@%'.fmt(progress));
     this.set('percentage', '%@%'.fmt(progress));

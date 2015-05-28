@@ -129,7 +129,9 @@ export default Ember.Controller.extend({
       referrer: referrer
     });
 
-    originalModel.set('isRunning', true);
+    if (!shouldGetVisualExplain) {
+      originalModel.set('isRunning', true);
+    }
 
      //if it's a saved query / history entry set the queryId
     if (!originalModel.get('isNew')) {
@@ -178,14 +180,11 @@ export default Ember.Controller.extend({
     job.save().then(function () {
       self.get('results').getResultsJson(job).then(function (json) {
         defer.resolve(json);
-        originalModel.set('isRunning', undefined);
       }, function (err) {
         defer.reject(err);
-        originalModel.set('isRunning', undefined);
       });
     }, function (err) {
       defer.reject(err);
-        originalModel.set('isRunning', undefined);
     });
 
     return defer.promise;
@@ -417,7 +416,7 @@ export default Ember.Controller.extend({
 
     var self = this;
 
-    var file = "/tmp/" + path + ".csv";
+    var file = path + ".csv";
     var url = this.container.lookup('adapter:application').buildURL();
     url +=  "/jobs/" + job.get('id') + "/results/csv/saveToHDFS";
 

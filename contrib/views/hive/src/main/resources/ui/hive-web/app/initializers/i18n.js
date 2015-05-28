@@ -183,6 +183,7 @@ TRANSLATIONS = {
     history: 'History',
     ok: 'OK',
     stopJob: 'Stop execution',
+    stoppingJob: 'Stopping...',
     close: 'Close',
     clearFilters: 'Clear filters',
     expand: 'Expand message',

@@ -188,8 +188,9 @@ public class Connection {
   }
 
   private String getAuthParamDefault(String key, String defaultValue) {
-    if (authParams.containsKey(key))
+    if (authParams.containsKey(key)) {
       return authParams.get(key);
+    }
     return defaultValue;
   }
 
