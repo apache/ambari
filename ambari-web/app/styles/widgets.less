@@ -20,6 +20,8 @@
 @undo-btn-margin: 10px;
 @controls-min-width: 55px;
 @combo-widget-width: 100px;
+@overriden-property-bg-color: rgba(211, 237, 247, 0.39);
+@overriden-property-widget-padding: 8px;
 @green: #6ebd45;
 @slider-light-grey: #e6e6e6;
 @slider-dark-grey: #aaaaaa;
@@ -112,6 +114,24 @@
     margin-left: -20px;
     margin-right: 0;
     padding-left: 20px;
+  }
+  // background hack instead of increasing padding,
+  // because we have lack of space for widget container.
+  &.overridden-property {
+    background-color: @overriden-property-bg-color;
+    position: relative;
+    &:before {
+      height: 100%;
+      width: @overriden-property-widget-padding;
+      content: '';
+      position: absolute;
+      top: 0;
+      display: block;
+      background-color: @overriden-property-bg-color;
+    }
+    &:before {
+      left: -@overriden-property-widget-padding;
+    }
   }
 }
 

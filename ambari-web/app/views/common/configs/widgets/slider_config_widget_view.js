@@ -27,6 +27,8 @@ var validator = require('utils/validator');
  */
 App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
 
+  classNames: ['widget-config'],
+
   templateName: require('templates/common/configs/widgets/slider_config_widget'),
 
   supportSwitchToCheckBox: true,
@@ -274,7 +276,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       config = this.get('config'),
       valueAttributes = config.get('stackConfigProperty.valueAttributes'),
       parseFunction = this.get('parseFunction'),
-      ticks = [this.get('minMirrorValue')],
+      ticks = [this.valueForTick(this.get('minMirrorValue'), true)],
       ticksLabels = [],
       recommendedValue = this.valueForTick(+this.get('widgetRecommendedValue')),
       range = this.get('maxMirrorValue') - this.get('minMirrorValue'),
@@ -287,14 +289,23 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     for (var i = 1; i <= 3; i++) {
       var val = this.get('minMirrorValue') + range * (i / (isSmallInt ? 3 : 4));
       // if value's type is float, ticks may be float too
-      ticks.push(this.valueForTick(val));
+      ticks.push(this.valueForTick(val, false));
     }
 
-    ticks.push(this.get('maxMirrorValue'));
+    ticks.push(this.valueForTick(this.get('maxMirrorValue'), false));
     ticks = ticks.uniq();
     ticks.forEach(function (tick, index, items) {
       ticksLabels.push((items.length < 5 || index % 2 === 0 || items.length - 1 == index) ? tick + ' ' + self.get('unitLabel') : '');
     });
+
+    if(!isSmallInt) {
+      ticks.push(this.get('maxMirrorValue'));
+    }
+    var ticksLength = ticks.length;
+    ticks = ticks.uniq();
+    if (ticksLength === ticks.length) {
+      ticksLabels.insertAt(1, '');
+    }
 
     // default marker should be added only if recommendedValue is in range [min, max]
     if (recommendedValue <= this.get('maxMirrorValue') && recommendedValue >= this.get('minMirrorValue') && recommendedValue != '') {
@@ -322,7 +333,8 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         ticks.insertAt(recommendedValueMirroredId, this.valueForTick((ticks[recommendedValueMirroredId] + ticks[recommendedValueMirroredId - 1]) / 2));
         // get new index for default value
         recommendedValueId = ticks.indexOf(recommendedValue);
-      } else {
+      }
+      else {
         recommendedValueId = ticks.indexOf(recommendedValue);
       }
     }
@@ -331,7 +343,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
      * Slider some times change config value while being created,
      * this may happens when slider recreating couple times during small period.
      * To cover this situation need to reset config value after slider initializing
-     * @type {Sting}
+     * @type {String}
      */
     var correctConfigValue = this.get('config.value');
 
@@ -394,11 +406,19 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    *
    * @method valueForTick
    * @param {Number} val
+   * @param {Boolean} [toGreater]
    * @private
    * @returns {Number}
    */
-  valueForTick: function(val) {
-    return this.get('unitType') === 'int' ? Math.round(val) : parseFloat(val.toFixed(3));
+  valueForTick: function(val, toGreater) {
+    toGreater = toGreater || false;
+    var func = toGreater ? Math.round : Math.floor;
+    if (this.get('unitType') === 'int') {
+      return func(val);
+    }
+    var mirrorStep = this.get('mirrorStep');
+    var r = func(val / mirrorStep);
+    return parseFloat((r * mirrorStep).toFixed(3));
   },
 
   /**
