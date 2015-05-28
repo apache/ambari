@@ -35,7 +35,7 @@
                   <li class="keep-open metric-select" {{action selectComponents component target="view"}}>
                       {{view App.JqueryChosenView optionsBinding="component.metrics" elementIdBinding="component.id" selectionObjBinding="view.metricsSelectionObj"}}
                   </li>
-                  <!--select aggregare function -->
+                  <!--select aggregator function -->
                   <li {{bindAttr class=":keep-open :aggregator-select component.showAggregateSelect::hidden"}}
                     {{action selectComponents component target="view"}}
                     {{translateAttr data-original-title="dashboard.widgets.wizard.step2.aggregateTooltip"}}>

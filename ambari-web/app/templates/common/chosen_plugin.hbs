@@ -18,6 +18,6 @@
 
 <option value="" disabled
         selected>{{view.selectionObj.placeholder_text}}</option>
-{{#each item in view.options}}
-  <option>{{unbound item}}</option>
+{{#each view.options}}
+  <option {{bindAttr title="this"}}>{{unbound this}}</option>
 {{/each}}

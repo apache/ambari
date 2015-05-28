@@ -242,6 +242,7 @@ App.AddMetricExpressionView = Em.View.extend({
     var self = this;
     return Em.Object.create({
       placeholder_text: Em.I18n.t('dashboard.widgets.wizard.step2.aggregateFunction.scanOps'),
+      no_results_text: Em.I18n.t('dashboard.widgets.wizard.step2.aggregateFunction.notFound'),
       onChangeCallback: function (event, obj) {
         self.set('currentSelectedComponent.selectedAggregation', obj.selected);
       }

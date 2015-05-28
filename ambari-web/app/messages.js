@@ -2602,6 +2602,7 @@ Em.I18n.translations = {
   'dashboard.widgets.wizard.step2.addMetric': 'Add Metric',
   'dashboard.widgets.wizard.step2.aggregateFunction': 'Aggregator Function',
   'dashboard.widgets.wizard.step2.aggregateFunction.scanOps': 'Select Aggregation',
+  'dashboard.widgets.wizard.step2.aggregateFunction.notFound': 'No aggregator function found',
   'dashboard.widgets.wizard.step2.aggregateTooltip': 'This mathematical function will be applied to compute single value for selected metric across all host components',
   'dashboard.widgets.wizard.step2.threshold.ok.tooltip': 'This is the threshold value at which the widget color changes from green (OK) to orange (Warning)',
   'dashboard.widgets.wizard.step2.threshold.warning.tooltip': 'This is the threshold value at which the widget color changes from orange (Warning) to red (Critical)',
