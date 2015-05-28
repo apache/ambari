@@ -320,7 +320,7 @@ App.config = Em.Object.create({
           name: index,
           value: value,
           savedValue: value,
-          recommendedValue: advancedConfig ? Em.get(advancedConfig, 'recommencedValue') : null,
+          recommendedValue: advancedConfig ? Em.get(advancedConfig, 'recommendedValue') : null,
           filename: filename,
           isUserProperty: !advancedConfig,
           isVisible: !!service,

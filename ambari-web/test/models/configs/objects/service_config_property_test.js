@@ -175,20 +175,24 @@ var serviceConfigProperty,
     {
       initial: {
         displayType: 'password',
-        value: 'value'
+        value: 'value',
+        recommendedValue: 'recommended'
       },
       result: {
-        retypedPassword: 'value'
+        retypedPassword: 'value',
+        recommendedValue: ''
       }
     },
     {
       initial: {
         id: 'puppet var',
         value: '',
-        savedValue: 'default'
+        savedValue: 'default',
+        recommendedValue: 'recommended'
       },
       result: {
-        value: 'default'
+        value: 'default',
+        recommendedValue: 'recommended'
       }
     }
   ],

@@ -195,15 +195,16 @@ App.ServiceConfigProperty = Em.Object.extend({
   }.property('isUserProperty', 'isOriginalSCP', 'overrides.length'),
 
   init: function () {
-    if(this.get("displayType")=="password"){
-      this.set('retypedPassword', this.get('value'));
-    }
     if ((this.get('id') === 'puppet var') && this.get('value') == '') {
       if (this.get('savedValue')) {
         this.set('value', this.get('savedValue'));
       } else if (this.get('recommendedValue')) {
         this.set('value', this.get('recommendedValue'));
       }
+    }
+    if(this.get("displayType") === "password"){
+      this.set('retypedPassword', this.get('value'));
+      this.set('recommendedValue', '');
     }
     this.set('initialValue', this.get('value'));
   },
@@ -271,7 +272,7 @@ App.ServiceConfigProperty = Em.Object.extend({
    * @type {boolean}
    */
   overrideAvailable: function () {
-    return !this.get('isComparison') && this.get('isPropertyOverridable');
+    return !this.get('isComparison') && this.get('isPropertyOverridable') && (this.get('displayType') !== 'password');
   }.property('isPropertyOverridable', 'isComparison'),
 
   isValid: function () {
