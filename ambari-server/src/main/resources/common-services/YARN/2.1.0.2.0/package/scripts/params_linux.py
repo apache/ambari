@@ -97,6 +97,9 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   # directory, which is symlinked by hadoop-client only
   hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
 
+  # Timeline Service property that was added in 2.2
+  ats_leveldb_state_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.leveldb-state-store.path']
+
 limits_conf_dir = "/etc/security/limits.d"
 execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir + os.pathsep + yarn_container_bin
 
