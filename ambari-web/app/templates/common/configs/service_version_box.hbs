@@ -29,6 +29,7 @@
       {{#if serviceVersion.isCurrent}}
         <div class="current-label">
           <span class="label label-success label-current icon-ok" data-toggle="tooltip" {{translateAttr title="common.current"}}>
+            <i {{bindAttr class=":icon-refresh :restart-required-service serviceVersion.isRestartRequired::hidden"}}></i>
           </span>
         </div>
       {{/if}}
