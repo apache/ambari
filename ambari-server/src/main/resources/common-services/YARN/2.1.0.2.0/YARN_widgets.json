@@ -7,7 +7,7 @@
       "widgetLayoutInfo": [
         {
           "widget_name": "Memory Utilization",
-          "description": "Memory Utilization Ratio",
+          "description": "Memory Utilization",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -27,7 +27,7 @@
           "values": [
             {
               "name": "Memory Utilization",
-              "value": "${yarn.QueueMetrics.Queue=root.AllocatedMB._sum / (yarn.QueueMetrics.Queue=root.AvailableMB._sum + yarn.QueueMetrics.Queue=root.AvailableMB._sum)}"
+              "value": "${(yarn.QueueMetrics.Queue=root.AllocatedMB._sum / (yarn.QueueMetrics.Queue=root.AvailableMB._sum + yarn.QueueMetrics.Queue=root.AvailableMB._sum)) * 100}"
             }
           ],
           "properties": {
@@ -38,7 +38,7 @@
         },
         {
           "widget_name": "CPU Utilization",
-          "description": "CPU Utilization Ratio",
+          "description": "CPU Utilization",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -58,7 +58,7 @@
           "values": [
             {
               "name": "Total Allocatable CPU Utilized across NodeManager",
-              "value": "${yarn.QueueMetrics.Queue=root.default.AllocatedVCores._sum / (yarn.QueueMetrics.Queue=root.default.AllocatedVCores._sum + yarn.QueueMetrics.Queue=root.default.AvailableVCores._sum)}"
+              "value": "${(yarn.QueueMetrics.Queue=root.default.AllocatedVCores._sum / (yarn.QueueMetrics.Queue=root.default.AllocatedVCores._sum + yarn.QueueMetrics.Queue=root.default.AvailableVCores._sum)) * 100}"
             }
           ],
           "properties": {
@@ -98,7 +98,7 @@
         },
         {
           "widget_name": "Container Failures",
-          "description": "Ratio of Container Failures",
+          "description": "Container Failures",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -142,7 +142,7 @@
           "values": [
             {
               "name": "Container Failures",
-              "value": "${yarn.NodeManagerMetrics.ContainersFailed._sum/(yarn.NodeManagerMetrics.ContainersFailed._sum + yarn.NodeManagerMetrics.ContainersCompleted._sum + yarn.NodeManagerMetrics.ContainersLaunched._sum + yarn.NodeManagerMetrics.ContainersIniting._sum + yarn.NodeManagerMetrics.ContainersKilled._sum + yarn.NodeManagerMetrics.ContainersRunning._sum)}"
+              "value": "${(yarn.NodeManagerMetrics.ContainersFailed._sum/(yarn.NodeManagerMetrics.ContainersFailed._sum + yarn.NodeManagerMetrics.ContainersCompleted._sum + yarn.NodeManagerMetrics.ContainersLaunched._sum + yarn.NodeManagerMetrics.ContainersIniting._sum + yarn.NodeManagerMetrics.ContainersKilled._sum + yarn.NodeManagerMetrics.ContainersRunning._sum)) * 100}"
             }
           ],
           "properties": {
@@ -153,7 +153,7 @@
         },
         {
           "widget_name": "App Failures",
-          "description": "App Failures ratio",
+          "description": "App Failures",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -197,7 +197,7 @@
           "values": [
             {
               "name": "App Failures",
-              "value": "${yarn.QueueMetrics.Queue=root.AppsFailed/(yarn.QueueMetrics.Queue=root.AppsFailed + yarn.QueueMetrics.Queue=root.AppsKilled + yarn.QueueMetrics.Queue=root.AppsPending + yarn.QueueMetrics.Queue=root.AppsRunning + yarn.QueueMetrics.Queue=root.AppsSubmitted + yarn.QueueMetrics.Queue=root.AppsCompleted)}"
+              "value": "${(yarn.QueueMetrics.Queue=root.AppsFailed/(yarn.QueueMetrics.Queue=root.AppsFailed + yarn.QueueMetrics.Queue=root.AppsKilled + yarn.QueueMetrics.Queue=root.AppsPending + yarn.QueueMetrics.Queue=root.AppsRunning + yarn.QueueMetrics.Queue=root.AppsSubmitted + yarn.QueueMetrics.Queue=root.AppsCompleted)) * 100}"
             }
           ],
           "properties": {
@@ -258,42 +258,47 @@
           ],
           "values": [
             {
-              "name": "Memory utilization on NodeManager hosts",
-              "value": "${(mem_total._sum - mem_free._sum - mem_cached._sum)/mem_total._sum}"
+              "name": "Memory utilization",
+              "value": "${((mem_total._sum - mem_free._sum - mem_cached._sum)/mem_total._sum) * 100}"
             }
           ],
           "properties": {
+            "display_unit": "%",
             "graph_type": "LINE",
             "time_range": "1"
           }
         },
         {
           "widget_name": "Cluster Disk",
-          "description": "NodeManager widget for disk utilization",
-          "default_section_name": "YARN_SUMMARY",
+          "description": "NodeManager widget for Disk throughput",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "disk_free._sum",
-              "metric_path": "metrics/disk/disk_free._sum",
+              "name": "read_bps._sum",
+              "metric_path": "metrics/disk/read_bps._sum",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },
             {
-              "name": "disk_total._sum",
-              "metric_path": "metrics/disk/disk_total._sum",
+              "name": "write_bps._sum",
+              "metric_path": "metrics/disk/write_bps._sum",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             }
           ],
           "values": [
             {
-              "name": "Disk Utlization",
-              "value": "${(disk_total._sum - disk_free._sum)/disk_total._sum}"
+              "name": "Read throughput",
+              "value": "${read_bps._sum/1048576}"
+            },
+            {
+              "name": "Write throughput",
+              "value": "${write_bps._sum/1048576}"
             }
           ],
           "properties": {
+            "display_unit": "Mbps",
             "graph_type": "LINE",
             "time_range": "1"
           }
@@ -373,8 +378,8 @@
           ],
           "values": [
             {
-              "name": "CPU utilization on NameNode host",
-              "value": "${(cpu_system._sum + cpu_user._sum + cpu_nice._sum)/(cpu_system._sum + cpu_user._sum + cpu_nice._sum + cpu_idle._sum + cpu_wio._sum)}"
+              "name": "CPU utilization",
+              "value": "${((cpu_system._sum + cpu_user._sum + cpu_nice._sum)/(cpu_system._sum + cpu_user._sum + cpu_nice._sum + cpu_idle._sum + cpu_wio._sum)) * 100}"
             }
           ],
           "properties": {

@@ -54,7 +54,6 @@
             }
           ],
           "properties": {
-            "display_unit": "Requests",
             "graph_type": "LINE",
             "time_range": "1"
           }
@@ -163,7 +162,6 @@
             }
           ],
           "properties": {
-            "display_unit": "Connections",
             "graph_type": "LINE",
             "time_range": "1"
           }
@@ -294,8 +292,8 @@
           ],
           "values": [
             {
-              "name": "RegionServer widget for CPU utilization",
-              "value": "${(cpu_system._sum + cpu_user._sum + cpu_nice._sum)/(cpu_system._sum + cpu_user._sum + cpu_nice._sum + cpu_idle._sum + cpu_wio._sum)}"
+              "name": "CPU utilization",
+              "value": "${((cpu_system._sum + cpu_user._sum + cpu_nice._sum)/(cpu_system._sum + cpu_user._sum + cpu_nice._sum + cpu_idle._sum + cpu_wio._sum)) * 100}"
             }
           ],
           "properties": {

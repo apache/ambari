@@ -152,6 +152,18 @@
               "pointInTime": true,
               "temporal": true
             },
+            "metrics/disk/read_bps":{
+              "metric":"read_bps",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
+            "metrics/disk/write_bps":{
+              "metric":"write_bps",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
             "metrics/jvm/memHeapCommittedM": {
               "metric": "jvm.JvmMetrics.MemHeapCommittedM",
               "pointInTime": false,

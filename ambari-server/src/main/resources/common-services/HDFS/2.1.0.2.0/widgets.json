@@ -6,7 +6,7 @@
       "section_name": "HDFS_SUMMARY",
       "widgetLayoutInfo": [
         {
-          "widget_name": "NameNode GC",
+          "widget_name": "NameNode GC count",
           "description": "This widget shows JVM Garbage collection statistics for Active NameNode",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -14,13 +14,6 @@
             {
               "name": "jvm.JvmMetrics.GcCount",
               "metric_path": "metrics/jvm/gcCount",
-              "service_name": "HDFS",
-              "component_name": "NAMENODE",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
-            },
-            {
-              "name": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep",
-              "metric_path": "metrics/jvm/GcTimeMillisConcurrentMarkSweep",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
@@ -39,16 +32,37 @@
               "value": "${jvm.JvmMetrics.GcCount}"
             },
             {
-              "name": "GC time in major collection",
-              "value": "${jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep}"
-            },
-            {
               "name": "GC count of type major collection",
               "value": "${jvm.JvmMetrics.GcCountConcurrentMarkSweep}"
             }
           ],
           "properties": {
-            "display_unit": "Requests",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "NameNode GC time",
+          "description": "This widget shows JVM Garbage collection time in major collection for Active NameNode",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep",
+              "metric_path": "metrics/jvm/GcTimeMillisConcurrentMarkSweep",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "GC time in major collection",
+              "value": "${jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep}"
+            }
+          ],
+          "properties": {
+            "display_unit": "ms",
             "graph_type": "LINE",
             "time_range": "1"
           }
@@ -70,12 +84,11 @@
           ],
           "values": [
             {
-              "name": "NN Connection Load",
+              "name": "Open Connections",
               "value": "${rpc.rpc.NumOpenConnections}"
             }
           ],
           "properties": {
-            "display_unit": "Connections",
             "graph_type": "LINE",
             "time_range": "1"
           }
@@ -111,6 +124,7 @@
             }
           ],
           "properties": {
+            "display_unit": "MB",
             "graph_type": "LINE",
             "time_range": "1"
           }
@@ -179,12 +193,12 @@
           ],
           "values": [
             {
-              "name": "CPU utilization on NameNode host",
-              "value": "${(cpu_system + cpu_user + cpu_nice)/(cpu_system + cpu_user + cpu_nice + cpu_idle + cpu_wio)}"
+              "name": "CPU utilization",
+              "value": "${((cpu_system + cpu_user + cpu_nice)/(cpu_system + cpu_user + cpu_nice + cpu_idle + cpu_wio)) * 100}"
             },
             {
-              "name": "Memory utilization on NameNode host",
-              "value": "${(mem_total - mem_free - mem_cached)/mem_total}"
+              "name": "Memory utilization",
+              "value": "${((mem_total - mem_free - mem_cached)/mem_total) * 100}"
             }
           ],
           "properties": {
