@@ -27,6 +27,8 @@ var validator = require('utils/validator');
  */
 App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
 
+  classNames: ['widget-config'],
+
   templateName: require('templates/common/configs/widgets/slider_config_widget'),
 
   supportSwitchToCheckBox: true,
