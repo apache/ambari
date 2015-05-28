@@ -31,23 +31,23 @@ STACK_VERSION_PATTERN = "{{ stack_version }}"
 
 TARBALL_MAP = {
   "HDP": {
-    "tez":       ("/usr/hdp/%s/tez/lib/tez.tar.gz" % STACK_VERSION_PATTERN,
-                  "/hdp/apps/%s/tez/tez.tar.gz"    % STACK_VERSION_PATTERN),
+    "tez":       ("/usr/hdp/{0}/tez/lib/tez.tar.gz".format(STACK_VERSION_PATTERN),
+                  "/hdp/apps/{0}/tez/tez.tar.gz".format(STACK_VERSION_PATTERN)),
 
-    "hive":      ("/usr/hdp/%s/hive/hive.tar.gz"   % STACK_VERSION_PATTERN,
-                  "/hdp/apps/%s/hive/hive.tar.gz"  % STACK_VERSION_PATTERN),
+    "hive":      ("/usr/hdp/{0}/hive/hive.tar.gz".format(STACK_VERSION_PATTERN),
+                  "/hdp/apps/{0}/hive/hive.tar.gz".format(STACK_VERSION_PATTERN)),
 
-    "pig":       ("/usr/hdp/%s/pig/pig.tar.gz"     % STACK_VERSION_PATTERN,
-                  "/hdp/apps/%s/pig/pig.tar.gz"    % STACK_VERSION_PATTERN),
+    "pig":       ("/usr/hdp/{0}/pig/pig.tar.gz".format(STACK_VERSION_PATTERN),
+                  "/hdp/apps/{0}/pig/pig.tar.gz".format(STACK_VERSION_PATTERN)),
 
-    "hadoop_streaming": ("/usr/hdp/%s/hadoop/hadoop-streaming.jar"     % STACK_VERSION_PATTERN,
-                         "/hdp/apps/%s/mapreduce/hadoop-streaming.jar" % STACK_VERSION_PATTERN),
+    "hadoop_streaming": ("/usr/hdp/{0}/hadoop-mapreduce/hadoop-streaming.jar".format(STACK_VERSION_PATTERN),
+                         "/hdp/apps/{0}/mapreduce/hadoop-streaming.jar".format(STACK_VERSION_PATTERN)),
 
-    "sqoop":     ("/usr/hdp/%s/sqoop/sqoop.tar.gz"  % STACK_VERSION_PATTERN,
-                  "/hdp/apps/%s/sqoop/sqoop.tar.gz" % STACK_VERSION_PATTERN),
+    "sqoop":     ("/usr/hdp/{0}/sqoop/sqoop.tar.gz".format(STACK_VERSION_PATTERN),
+                  "/hdp/apps/{0}/sqoop/sqoop.tar.gz".format(STACK_VERSION_PATTERN)),
 
-    "mapreduce": ("/usr/hdp/%s/hadoop/mapreduce.tar.gz"     % STACK_VERSION_PATTERN,
-                  "/hdp/apps/%s/mapreduce/mapreduce.tar.gz" % STACK_VERSION_PATTERN)
+    "mapreduce": ("/usr/hdp/{0}/hadoop/mapreduce.tar.gz".format(STACK_VERSION_PATTERN),
+                  "/hdp/apps/{0}/mapreduce/mapreduce.tar.gz".format(STACK_VERSION_PATTERN))
   }
 }
 

@@ -222,4 +222,4 @@ def _get_directory_mappings():
   """
   import params
 
-  return { params.conf_dir : BACKUP_CONF_ARCHIVE }
+  return { params.conf_dir + "/" : BACKUP_CONF_ARCHIVE }  # the trailing "/" is important here so as to not include the "conf" folder itself

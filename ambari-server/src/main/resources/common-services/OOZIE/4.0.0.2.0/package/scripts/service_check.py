@@ -17,16 +17,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
+import glob
+
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources import File
 from resource_management.core.source import StaticFile
 from resource_management.core.system import System
 from resource_management.libraries.functions import format
 from resource_management.libraries.script import Script
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.core.exceptions import Fail
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
-import os
-import glob
+
+from resource_management.core.logger import Logger
 
 class OozieServiceCheck(Script):
   pass
@@ -41,6 +46,17 @@ class OozieServiceCheckDefault(OozieServiceCheck):
     # on HDP1 this file is different
     prepare_hdfs_file_name = 'prepareOozieHdfsDirectories.sh'
     smoke_test_file_name = 'oozieSmoke2.sh'
+
+    if 'yarn-site' in params.config['configurations']:
+      XmlConfig("yarn-site.xml",
+                conf_dir=params.hadoop_conf_dir,
+                configurations=params.config['configurations']['yarn-site'],
+                owner=params.hdfs_user,
+                group=params.user_group,
+                mode=0644
+      )
+    else:
+      raise Fail("yarn-site.xml was not present in config parameters.")
 
     OozieServiceCheckDefault.oozie_smoke_shell_file(smoke_test_file_name, prepare_hdfs_file_name)
 

@@ -35,11 +35,20 @@ class TestServiceCheck(RMFTestCase):
                         hdp_stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    
+
+    self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
+      owner = 'hdfs',
+      group = 'hadoop',
+      conf_dir = '/etc/hadoop/conf',
+      mode = 0644,
+      configurations = self.getConfig()['configurations']['yarn-site'],
+    )
+
     self.assert_service_check()
     self.assertNoMoreResources()
     
   def test_service_check_secured(self):
+    self.maxDiff = None
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                         classname="OozieServiceCheck",
                         command="service_check",
@@ -47,7 +56,15 @@ class TestServiceCheck(RMFTestCase):
                         hdp_stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    
+
+    self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
+      owner = 'hdfs',
+      group = 'hadoop',
+      conf_dir = '/etc/hadoop/conf',
+      mode = 0644,
+      configurations = self.getConfig()['configurations']['yarn-site'],
+    )
+
     self.assert_service_check()
     self.assertNoMoreResources()
         
