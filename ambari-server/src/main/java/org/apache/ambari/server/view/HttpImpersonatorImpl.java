@@ -24,16 +24,15 @@ import org.apache.ambari.server.proxy.ProxyService;
 import org.apache.ambari.view.ImpersonatorSetting;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.HttpImpersonator;
+import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
 
 
 /**
@@ -44,25 +43,22 @@ import java.util.ArrayList;
  */
 public class HttpImpersonatorImpl implements HttpImpersonator {
   private ViewContext context;
-  private FactoryHelper helper;
+  private final URLStreamProvider urlStreamProvider;
 
-  /**
-   * Helper class that is mocked during unit testing.
-   */
-  static class FactoryHelper{
-    BufferedReader makeBR(InputStreamReader in){
-      return new BufferedReader(in);
-    }
-  }
+  private static Logger LOG = LoggerFactory.getLogger(HttpImpersonatorImpl.class);
 
   public HttpImpersonatorImpl(ViewContext c) {
     this.context = c;
-    this.helper = new FactoryHelper();
+
+    ComponentSSLConfiguration configuration = ComponentSSLConfiguration.instance();
+    this.urlStreamProvider = new URLStreamProvider(ProxyService.URL_CONNECT_TIMEOUT,
+        ProxyService.URL_READ_TIMEOUT, configuration.getTruststorePath(),
+        configuration.getTruststorePassword(), configuration.getTruststoreType());
   }
 
-  public HttpImpersonatorImpl(ViewContext c, FactoryHelper h) {
+  public HttpImpersonatorImpl(ViewContext c, URLStreamProvider urlStreamProvider) {
     this.context = c;
-    this.helper = h;
+    this.urlStreamProvider = urlStreamProvider;
   }
 
   public ViewContext getContext() {
@@ -128,16 +124,14 @@ public class HttpImpersonatorImpl implements HttpImpersonator {
     }
 
     try {
+      String username = impersonatorSetting.getUsername();
+      if (username != null) {
+        URIBuilder builder = new URIBuilder(url);
+        builder.addParameter(impersonatorSetting.getDoAsParamName(), username);
+        url = builder.build().toString();
+      }
 
-      ComponentSSLConfiguration configuration = ComponentSSLConfiguration.instance();
-      URLStreamProvider urlStreamProvider = new URLStreamProvider(ProxyService.URL_CONNECT_TIMEOUT,
-          ProxyService.URL_READ_TIMEOUT, configuration.getTruststorePath(),
-          configuration.getTruststorePassword(), configuration.getTruststoreType());
-
-      Map<String, List<String>> headers = new HashMap<String, List<String>>();
-      headers.put(impersonatorSetting.getDoAsParamName(), new ArrayList<String>() {{add(impersonatorSetting.getUsername()); }} );
-
-      HttpURLConnection connection = urlStreamProvider.processURL(url, requestType, (String) null, headers);
+      HttpURLConnection connection = urlStreamProvider.processURL(url, requestType, (String) null, null);
 
       int responseCode = connection.getResponseCode();
       InputStream resultInputStream;
@@ -147,7 +141,7 @@ public class HttpImpersonatorImpl implements HttpImpersonator {
         resultInputStream = connection.getInputStream();
       }
 
-      rd = this.helper.makeBR(new InputStreamReader(resultInputStream));
+      rd = new BufferedReader(new InputStreamReader(resultInputStream));
 
       if (rd != null) {
         line = rd.readLine();
@@ -157,10 +151,8 @@ public class HttpImpersonatorImpl implements HttpImpersonator {
         }
         rd.close();
       }
-    } catch (IOException e) {
-      e.printStackTrace();
     } catch (Exception e) {
-      e.printStackTrace();
+      LOG.error("Exception caught processing impersonator request.", e);
     }
     return result;
   }

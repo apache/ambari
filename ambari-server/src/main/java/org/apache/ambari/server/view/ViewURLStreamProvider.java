@@ -23,9 +23,11 @@ import org.apache.ambari.server.proxy.ProxyService;
 import org.apache.ambari.view.ViewContext;
 import org.apache.commons.io.IOUtils;
 
+import org.apache.http.client.utils.URIBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -86,13 +88,13 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
                             String userName)
       throws IOException {
 
-    return readFrom(spec, requestMethod, body, addDoAsHeader(spec, headers, userName));
+    return readFrom(addDoAs(spec, userName), requestMethod, body, headers);
   }
 
   @Override
   public InputStream readAs(String spec, String requestMethod, InputStream body, Map<String, String> headers,
                             String userName) throws IOException {
-    return readFrom(spec, requestMethod, body, addDoAsHeader(spec, headers, userName));
+    return readFrom(addDoAs(spec, userName), requestMethod, body, headers);
   }
 
 
@@ -113,20 +115,19 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
 
   // ----- helper methods ----------------------------------------------------
 
-  // add the "do as" header
-  private Map<String, String> addDoAsHeader(String spec, Map<String, String> headers, String userName) {
+  // add the "do as" query parameter
+  private String addDoAs(String spec, String userName) throws IOException {
     if (spec.toLowerCase().contains(DO_AS_PARAM)) {
       throw new IllegalArgumentException("URL cannot contain \"" + DO_AS_PARAM + "\" parameter.");
     }
 
-    if (headers == null) {
-      headers = new HashMap<String, String>();
-    } else {
-      headers = new HashMap<String, String>(headers);
+    try {
+      URIBuilder builder = new URIBuilder(spec);
+      builder.addParameter(DO_AS_PARAM, userName);
+      return builder.build().toString();
+    } catch (URISyntaxException e) {
+      throw new IOException(e);
     }
-
-    headers.put(DO_AS_PARAM, userName);
-    return headers;
   }
 
   // get the input stream response from the underlying stream provider

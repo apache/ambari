@@ -104,13 +104,11 @@ public class ViewURLStreamProviderTest {
 
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("header", "headerValue");
-    headers.put("doAs", "joe");
 
     Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
     headerMap.put("header", Collections.singletonList("headerValue"));
-    headerMap.put("doAs", Collections.singletonList("joe"));
 
-    expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
+    expect(streamProvider.processURL(eq("spec?doAs=joe"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
     expect(urlConnection.getInputStream()).andReturn(inputStream);
 
     replay(streamProvider, urlConnection, inputStream);
@@ -132,13 +130,11 @@ public class ViewURLStreamProviderTest {
 
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("header", "headerValue");
-    headers.put("doAs", "joe");
 
     Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
     headerMap.put("header", Collections.singletonList("headerValue"));
-    headerMap.put("doAs", Collections.singletonList("joe"));
 
-    expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
+    expect(streamProvider.processURL(eq("spec?doAs=joe"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
     expect(urlConnection.getInputStream()).andReturn(inputStream);
     expect(viewContext.getUsername()).andReturn("joe").anyTimes();
 
@@ -219,13 +215,11 @@ public class ViewURLStreamProviderTest {
 
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("header", "headerValue");
-    headers.put("doAs", "joe");
 
     Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
     headerMap.put("header", Collections.singletonList("headerValue"));
-    headerMap.put("doAs", Collections.singletonList("joe"));
 
-    expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
+    expect(streamProvider.processURL(eq("spec?doAs=joe"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
     expect(urlConnection.getInputStream()).andReturn(inputStream);
 
     replay(streamProvider, urlConnection, inputStream);
@@ -249,13 +243,11 @@ public class ViewURLStreamProviderTest {
 
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("header", "headerValue");
-    headers.put("doAs", "joe");
 
     Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
     headerMap.put("header", Collections.singletonList("headerValue"));
-    headerMap.put("doAs", Collections.singletonList("joe"));
 
-    expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
+    expect(streamProvider.processURL(eq("spec?doAs=joe"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
     expect(urlConnection.getInputStream()).andReturn(inputStream);
     expect(viewContext.getUsername()).andReturn("joe").anyTimes();
 

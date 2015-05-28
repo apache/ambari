@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.view;
 
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
+import org.apache.ambari.view.HttpImpersonator;
 import org.apache.ambari.view.ImpersonatorSetting;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.server.controller.internal.AppCookieManager;
@@ -25,104 +27,77 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import sun.nio.cs.StandardCharsets;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import static org.easymock.EasyMock.aryEq;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.when;
 
 
 public class HttpImpersonatorImplTest {
 
-  String cookie;
-  String username;
-  ViewContext viewContext;
-  HttpImpersonatorImpl impersonator;
-  String expectedResult;
-
-  @Before
-  public void setUp() throws Exception {
-    String uuid = UUID.randomUUID().toString().replace("-", "");
-    this.cookie = uuid;
-    this.username = "admin" + uuid;
-
-    AppCookieManager mockAppCookieManager = Mockito.mock(AppCookieManager.class);
-    when(mockAppCookieManager.getAppCookie(anyString(), anyBoolean())).thenReturn(cookie);
-
-    this.expectedResult = "Dummy text from HTTP response";
-    BufferedReader mockBufferedReader = Mockito.mock(BufferedReader.class);
-    when(mockBufferedReader.readLine()).thenReturn(expectedResult).thenReturn(null);
-
-    HttpImpersonatorImpl.FactoryHelper mockFactory = Mockito.mock(HttpImpersonatorImpl.FactoryHelper.class);
-    when(mockFactory.makeBR(any(InputStreamReader.class))).thenReturn(mockBufferedReader);
-
-    this.viewContext = Mockito.mock(ViewContext.class);
-    when(this.viewContext.getUsername()).thenReturn(username);
-
-    this.impersonator = new HttpImpersonatorImpl(this.viewContext, mockFactory);
-    when(this.viewContext.getHttpImpersonator()).thenReturn(this.impersonator);
-  }
-
-  @Test
-  public void testBasic() throws Exception {
-    String urlToRead = "http://foo.com";
-    String requestMethod = "GET";
-    URL url = new URL(urlToRead);
-
-    // Test default params
-    HttpURLConnection conn1 = (HttpURLConnection) url.openConnection();
-
-    conn1 = this.viewContext.getHttpImpersonator().doAs(conn1, requestMethod);
-    Assert.assertEquals(requestMethod, conn1.getRequestMethod());
-    Assert.assertEquals(username, conn1.getRequestProperty("doAs"));
-
-    // Test specific params
-    HttpURLConnection conn2 = (HttpURLConnection) url.openConnection();
-    conn2 = this.viewContext.getHttpImpersonator().doAs(conn2, requestMethod, "admin", "username");
-    Assert.assertEquals(requestMethod, conn2.getRequestMethod());
-    Assert.assertEquals("admin", conn2.getRequestProperty("username"));
-  }
-
   @Test
   public void testRequestURL() throws Exception {
-    String urlToRead = "http://foo.com";
-    String requestMethod = "GET";
 
-    // Test default params
-    ImpersonatorSetting impersonatorSetting = new ImpersonatorSettingImpl(this.viewContext);
-    when(this.viewContext.getImpersonatorSetting()).thenReturn(impersonatorSetting);
-    String actualResult = this.viewContext.getHttpImpersonator().requestURL(urlToRead, requestMethod, impersonatorSetting);
-    Assert.assertEquals(this.expectedResult, actualResult);
+    URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
+    HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
+    ViewContext viewContext = createNiceMock(ViewContext.class);
+
+    String responseBody = "Response body...";
+    InputStream inputStream = new ByteArrayInputStream(responseBody.getBytes(Charset.forName("UTF-8")));
+
+    expect(streamProvider.processURL(eq("spec?doAs=joe"), eq("requestMethod"), eq((String) null), eq((Map<String, List<String>>)null))).andReturn(urlConnection);
+    expect(urlConnection.getInputStream()).andReturn(inputStream);
+    expect(viewContext.getUsername()).andReturn("joe").anyTimes();
+
+    replay(streamProvider, urlConnection, viewContext);
+
+    HttpImpersonatorImpl impersonator = new HttpImpersonatorImpl(viewContext, streamProvider);
+    ImpersonatorSetting setting = new ImpersonatorSettingImpl(viewContext);
+
+    Assert.assertEquals(responseBody, impersonator.requestURL("spec", "requestMethod", setting));
+
+    verify(streamProvider, urlConnection, viewContext);
   }
 
   @Test
   public void testRequestURLWithCustom() throws Exception {
-    String urlToRead = "http://foo.com";
-    String requestMethod = "GET";
 
-    // Test custom params
-    ImpersonatorSetting impersonatorSetting = new ImpersonatorSettingImpl("hive", "impersonate");
-    when(this.viewContext.getImpersonatorSetting()).thenReturn(impersonatorSetting);
-    String actualResult = this.viewContext.getHttpImpersonator().requestURL(urlToRead, requestMethod, impersonatorSetting);
-    Assert.assertEquals(this.expectedResult, actualResult);
-  }
+    URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
+    HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
+    ViewContext viewContext = createNiceMock(ViewContext.class);
 
-  @Test
-  public void testInvalidURL() throws Exception {
-    String urlToRead = "http://foo.com?" + "doAs" + "=hive";
-    String requestMethod = "GET";
-    URL url = new URL(urlToRead);
+    String responseBody = "Response body...";
+    InputStream inputStream = new ByteArrayInputStream(responseBody.getBytes(Charset.forName("UTF-8")));
 
-    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-    try {
-      this.viewContext.getHttpImpersonator().doAs(conn, requestMethod);
-      Assert.fail("Expected an exception to be thrown.");
-    } catch(IllegalArgumentException e) {
-      //expected
-    }
+    expect(streamProvider.processURL(eq("spec?impersonate=hive"), eq("requestMethod"), eq((String) null), eq((Map<String, List<String>>)null))).andReturn(urlConnection);
+    expect(urlConnection.getInputStream()).andReturn(inputStream);
+
+    replay(streamProvider, urlConnection);
+
+    HttpImpersonatorImpl impersonator = new HttpImpersonatorImpl(viewContext, streamProvider);
+    ImpersonatorSetting setting = new ImpersonatorSettingImpl("hive", "impersonate");
+
+    Assert.assertEquals(responseBody, impersonator.requestURL("spec", "requestMethod", setting));
+
+    verify(streamProvider, urlConnection);
   }
 }
