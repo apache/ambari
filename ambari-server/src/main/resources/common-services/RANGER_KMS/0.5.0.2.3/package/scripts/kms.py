@@ -101,7 +101,7 @@ def do_keystore_setup(cred_provider_path, credential_alias, credential_password)
   if cred_provider_path is not None:
     cred_setup = format('{cred_setup_prefix} -f {cred_provider_path} -k "{credential_alias}" -v "{credential_password}" -c 1')
 
-    Execute(cred_setup, logoutput=True)
+    Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True)
 
     File(cred_provider_path,
       owner = params.kms_user,
@@ -268,13 +268,13 @@ def enable_kms_plugin():
 
     if params.xa_audit_db_is_enabled:
       cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "auditDBCred" -v "{xa_audit_db_password}" -c 1')
-      Execute(cred_setup, logoutput=True)
+      Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True)
 
     cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "sslKeyStore" -v "{ssl_keystore_password}" -c 1')
-    Execute(cred_setup, logoutput=True)
+    Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True)
 
     cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "sslTrustStore" -v "{ssl_truststore_password}" -c 1')
-    Execute(cred_setup, logoutput=True)
+    Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True)
 
     File(params.credential_file,
       owner = params.kms_user,
