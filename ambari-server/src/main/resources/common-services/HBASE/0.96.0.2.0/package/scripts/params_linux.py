@@ -226,8 +226,9 @@ policy_user = config['configurations']['ranger-hbase-plugin-properties']['policy
 #For curl command in ranger plugin to get db connector
 jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
-enable_ranger_hbase = (config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled'].lower() == 'yes')
+enable_ranger_hbase = False
 if has_ranger_admin:
+  enable_ranger_hbase = (config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled'].lower() == 'yes')
   xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
   repo_config_password = unicode(config['configurations']['ranger-hbase-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()

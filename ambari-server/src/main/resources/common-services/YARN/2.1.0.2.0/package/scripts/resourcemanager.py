@@ -112,7 +112,7 @@ class ResourcemanagerDefault(Resourcemanager):
 
     env.set_params(params)
     self.configure(env) # FOR SECURITY
-    if params.is_supported_yarn_ranger:
+    if params.has_ranger_admin and params.is_supported_yarn_ranger:
       setup_ranger_yarn() #Ranger Yarn Plugin related calls 
     if not Script.is_hdp_stack_greater_or_equal("2.2"):
       install_tez_jars()

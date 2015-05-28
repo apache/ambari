@@ -278,72 +278,73 @@ else:
   namenode_hostname = config['clusterHostInfo']['namenode_host'][0]
 
 ranger_admin_log_dir = default("/configurations/ranger-env/ranger_admin_log_dir","/var/log/ranger/admin")
-is_supported_yarn_ranger = config['configurations']['yarn-env']['is_supported_yarn_ranger']
 
 #ranger yarn properties
-if has_ranger_admin and is_supported_yarn_ranger:
+if has_ranger_admin:
+  is_supported_yarn_ranger = config['configurations']['yarn-env']['is_supported_yarn_ranger']
 
-  enable_ranger_yarn = (config['configurations']['ranger-yarn-plugin-properties']['ranger-yarn-plugin-enabled'].lower() == 'yes')
-  policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
-  sql_connector_jar = config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
-  xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
-  xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
-  xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
-  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
-  xa_db_host = config['configurations']['admin-properties']['db_host']
-  repo_name = str(config['clusterName']) + '_yarn'
+  if is_supported_yarn_ranger:
+    enable_ranger_yarn = (config['configurations']['ranger-yarn-plugin-properties']['ranger-yarn-plugin-enabled'].lower() == 'yes')
+    policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
+    sql_connector_jar = config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
+    xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
+    xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
+    xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
+    xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
+    xa_db_host = config['configurations']['admin-properties']['db_host']
+    repo_name = str(config['clusterName']) + '_yarn'
 
-  ranger_env = config['configurations']['ranger-env']
-  ranger_plugin_properties = config['configurations']['ranger-yarn-plugin-properties']
-  policy_user = config['configurations']['ranger-yarn-plugin-properties']['policy_user']
-  
-  ranger_plugin_config = {
-    'username' : config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
-    'password' : unicode(config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']),
-    'yarn.url' : config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'],
-    'commonNameForCertificate' : config['configurations']['ranger-yarn-plugin-properties']['common.name.for.certificate']
-  }
+    ranger_env = config['configurations']['ranger-env']
+    ranger_plugin_properties = config['configurations']['ranger-yarn-plugin-properties']
+    policy_user = config['configurations']['ranger-yarn-plugin-properties']['policy_user']
 
-  yarn_ranger_plugin_repo = {
-    'isEnabled': 'true',
-    'configs': ranger_plugin_config,
-    'description': 'yarn repo',
-    'name': repo_name,
-    'repositoryType': 'yarn',
-    'type': 'yarn',
-    'assetType': '1'
-  }
-  #For curl command in ranger plugin to get db connector
-  jdk_location = config['hostLevelParams']['jdk_location']
-  java_share_dir = '/usr/share/java'
-  if xa_audit_db_flavor and xa_audit_db_flavor == 'mysql':
-    jdbc_symlink_name = "mysql-jdbc-driver.jar"
-    jdbc_jar_name = "mysql-connector-java.jar"
-    audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
-    jdbc_driver = "com.mysql.jdbc.Driver"
-  elif xa_audit_db_flavor and xa_audit_db_flavor == 'oracle':
-    jdbc_jar_name = "ojdbc6.jar"
-    jdbc_symlink_name = "oracle-jdbc-driver.jar"
-    audit_jdbc_url = format('jdbc:oracle:thin:\@//{xa_db_host}')
-    jdbc_driver = "oracle.jdbc.OracleDriver"
-  elif xa_audit_db_flavor and xa_audit_db_flavor == 'postgres':
-    jdbc_jar_name = "postgresql.jar"
-    jdbc_symlink_name = "postgres-jdbc-driver.jar"
-    audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
-    jdbc_driver = "org.postgresql.Driver"
-  elif xa_audit_db_flavor and xa_audit_db_flavor == 'sqlserver':
-    jdbc_jar_name = "sqljdbc4.jar"
-    jdbc_symlink_name = "mssql-jdbc-driver.jar"
-    audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
-    jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+    ranger_plugin_config = {
+      'username' : config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
+      'password' : unicode(config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']),
+      'yarn.url' : config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'],
+      'commonNameForCertificate' : config['configurations']['ranger-yarn-plugin-properties']['common.name.for.certificate']
+    }
 
-  downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
+    yarn_ranger_plugin_repo = {
+      'isEnabled': 'true',
+      'configs': ranger_plugin_config,
+      'description': 'yarn repo',
+      'name': repo_name,
+      'repositoryType': 'yarn',
+      'type': 'yarn',
+      'assetType': '1'
+    }
+    #For curl command in ranger plugin to get db connector
+    jdk_location = config['hostLevelParams']['jdk_location']
+    java_share_dir = '/usr/share/java'
+    if xa_audit_db_flavor and xa_audit_db_flavor == 'mysql':
+      jdbc_symlink_name = "mysql-jdbc-driver.jar"
+      jdbc_jar_name = "mysql-connector-java.jar"
+      audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
+      jdbc_driver = "com.mysql.jdbc.Driver"
+    elif xa_audit_db_flavor and xa_audit_db_flavor == 'oracle':
+      jdbc_jar_name = "ojdbc6.jar"
+      jdbc_symlink_name = "oracle-jdbc-driver.jar"
+      audit_jdbc_url = format('jdbc:oracle:thin:\@//{xa_db_host}')
+      jdbc_driver = "oracle.jdbc.OracleDriver"
+    elif xa_audit_db_flavor and xa_audit_db_flavor == 'postgres':
+      jdbc_jar_name = "postgresql.jar"
+      jdbc_symlink_name = "postgres-jdbc-driver.jar"
+      audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
+      jdbc_driver = "org.postgresql.Driver"
+    elif xa_audit_db_flavor and xa_audit_db_flavor == 'sqlserver':
+      jdbc_jar_name = "sqljdbc4.jar"
+      jdbc_symlink_name = "mssql-jdbc-driver.jar"
+      audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
+      jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
 
-  driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
-  driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+    downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
-  ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
-  xa_audit_db_is_enabled = config['configurations']['ranger-yarn-audit']['xasecure.audit.destination.db'] if xml_configurations_supported else None
-  ssl_keystore_password = unicode(config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
-  ssl_truststore_password = unicode(config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
-  credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None
+    driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
+    driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+
+    ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
+    xa_audit_db_is_enabled = config['configurations']['ranger-yarn-audit']['xasecure.audit.destination.db'] if xml_configurations_supported else None
+    ssl_keystore_password = unicode(config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
+    ssl_truststore_password = unicode(config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
+    credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None

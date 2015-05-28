@@ -393,9 +393,7 @@ HdfsResource = functools.partial(
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
-if Script.is_hdp_stack_greater_or_equal("2.2"):
-  enable_ranger_hive = (config['configurations']['ranger-hive-plugin-properties']['ranger-hive-plugin-enabled'].lower() == 'yes')
-xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']  
+xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
 
 #ranger hive properties
 policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
@@ -419,6 +417,7 @@ if security_enabled:
 
 #For curl command in ranger plugin to get db connector
 if has_ranger_admin:
+  enable_ranger_hive = (config['configurations']['ranger-hive-plugin-properties']['ranger-hive-plugin-enabled'].lower() == 'yes')
   repo_config_password = unicode(config['configurations']['ranger-hive-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
 
