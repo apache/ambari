@@ -25,6 +25,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
