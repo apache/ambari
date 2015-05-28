@@ -1961,5 +1961,16 @@ public class ClusterTest {
     assertTrue(clusterConfigEntity.getData().contains("two"));
     assertTrue(clusterConfigEntity.getData().contains("three"));
     assertTrue(clusterConfigEntity.getData().contains("four"));
+
+    cluster.refresh();
+
+    clusterEntity = clusterDAO.findByName("c1");
+    assertEquals(1, clusterEntity.getClusterConfigEntities().size());
+    clusterConfigEntity = clusterEntity.getClusterConfigEntities().iterator().next();
+    assertTrue(clusterConfigEntity.getData().contains("one"));
+    assertTrue(clusterConfigEntity.getData().contains("two"));
+    assertTrue(clusterConfigEntity.getData().contains("three"));
+    assertTrue(clusterConfigEntity.getData().contains("four"));
+
   }
 }

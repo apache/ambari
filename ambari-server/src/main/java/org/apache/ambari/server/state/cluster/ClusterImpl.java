@@ -616,7 +616,7 @@ public class ClusterImpl implements Cluster {
       clusterEntity.setClusterName(clusterName);
 
       // RollbackException possibility if UNIQUE constraint violated
-      clusterDAO.merge(clusterEntity);
+      clusterEntity = clusterDAO.merge(clusterEntity);
       clusters.updateClusterName(oldName, clusterName);
     } finally {
       clusterGlobalLock.writeLock().unlock();
@@ -900,7 +900,7 @@ public class ClusterImpl implements Cluster {
           stackId.getStackVersion());
 
       clusterEntity.setDesiredStack(stackEntity);
-      clusterDAO.merge(clusterEntity);
+      clusterEntity = clusterDAO.merge(clusterEntity);
 
       if (cascade) {
         for (Service service : getServices().values()) {
@@ -960,7 +960,7 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.writeLock().lock();
     try {
       clusterEntity.setProvisioningState(provisioningState);
-      clusterDAO.merge(clusterEntity);
+      clusterEntity = clusterDAO.merge(clusterEntity);
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
@@ -988,7 +988,7 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.writeLock().lock();
     try {
       clusterEntity.setSecurityType(securityType);
-      clusterDAO.merge(clusterEntity);
+      clusterEntity = clusterDAO.merge(clusterEntity);
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
@@ -2233,7 +2233,7 @@ public class ClusterImpl implements Cluster {
           entity.setSelected(0);
         }
       }
-      clusterDAO.merge(clusterEntity);
+      clusterEntity = clusterDAO.merge(clusterEntity);
 
       for (ClusterConfigEntity configEntity : serviceConfigEntity.getClusterConfigEntities()) {
         selectConfig(configEntity.getType(), configEntity.getTag(), user);
@@ -2309,8 +2309,7 @@ public class ClusterImpl implements Cluster {
     entity.setTag(tag);
     entities.add(entity);
 
-    clusterDAO.merge(clusterEntity);
-
+    clusterEntity = clusterDAO.merge(clusterEntity);
   }
 
   @Transactional
@@ -2718,7 +2717,7 @@ public class ClusterImpl implements Cluster {
         }
       }
 
-      clusterDAO.merge(clusterEntity);
+      clusterEntity = clusterDAO.merge(clusterEntity);
 
       cacheConfigurations();
     } finally {

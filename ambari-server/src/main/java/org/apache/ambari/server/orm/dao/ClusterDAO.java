@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -238,7 +237,7 @@ public class ClusterDAO {
 
   /**
    * Retrieve entity data from DB
-   * 
+   *
    * @param clusterEntity
    *          entity to refresh
    */
@@ -247,10 +246,43 @@ public class ClusterDAO {
     entityManagerProvider.get().refresh(clusterEntity);
   }
 
-  @Transactional
+  /**
+   * Merge the specified entity into the current persistence context.
+   *
+   * @param clusterEntity
+   *          the entity to merge (not {@code null}).
+   * @return the managed entity which was merged (never {@code null}).
+   */
   public ClusterEntity merge(ClusterEntity clusterEntity) {
-    return entityManagerProvider.get().merge(clusterEntity);
+    return merge(clusterEntity, false);
   }
+
+  /**
+   * Merge the specified entity into the current persistence context, optionally
+   * instructing the {@link EntityManager} to write any queued persist/merges
+   * into the database immediately.
+   *
+   * @param clusterEntity
+   *          the entity to merge (not {@code null}).
+   * @param flush
+   *          if {@code true} then {@link EntityManager#flush()} will be invoked
+   *          immediately after the merge.
+   * @return the managed entity which was merged (never {@code null}).
+   */
+  @Transactional
+  public ClusterEntity merge(ClusterEntity clusterEntity, boolean flush) {
+    EntityManager entityManager = entityManagerProvider.get();
+    clusterEntity = entityManager.merge(clusterEntity);
+
+    // force any queued persist/merges to be written to the database, including
+    // the merge from above
+    if (flush) {
+      entityManager.flush();
+    }
+
+    return clusterEntity;
+  }
+
 
   @Transactional
   public void remove(ClusterEntity clusterEntity) {

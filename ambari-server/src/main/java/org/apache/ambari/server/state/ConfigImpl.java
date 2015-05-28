@@ -221,7 +221,10 @@ public class ConfigImpl implements Config {
 
       clusterDAO.createConfig(entity);
       clusterEntity.getClusterConfigEntities().add(entity);
-      clusterDAO.merge(clusterEntity);
+
+      // save the entity, forcing a flush to ensure the refresh picks up the
+      // newest data
+      clusterDAO.merge(clusterEntity, true);
       cluster.refresh();
     } else {
       // only supporting changes to the properties
@@ -244,7 +247,11 @@ public class ConfigImpl implements Config {
             getType(), getVersion());
 
         entity.setData(gson.toJson(getProperties()));
-        clusterDAO.merge(clusterEntity);
+
+        // save the entity, forcing a flush to ensure the refresh picks up the
+        // newest data
+        clusterDAO.merge(clusterEntity, true);
+        cluster.refresh();
       }
     }
   }
