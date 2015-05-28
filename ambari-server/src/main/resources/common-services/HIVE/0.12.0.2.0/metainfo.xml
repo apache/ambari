@@ -295,6 +295,9 @@
         <config-type>webhcat-site</config-type>
         <config-type>webhcat-env</config-type>
         <config-type>ranger-hive-plugin-properties</config-type>
+        <config-type>ranger-hive-audit</config-type>
+        <config-type>ranger-hive-policymgr-ssl</config-type>
+        <config-type>ranger-hive-security</config-type>
       </configuration-dependencies>
     </service>
   </services>

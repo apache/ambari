@@ -28,7 +28,7 @@
 
   <property>
     <name>ranger.plugin.knox.policy.source.impl</name>
-    <value>org.apache.ranger.admin.client.RangerAdminRESTClient</value>
+    <value>org.apache.ranger.admin.client.RangerAdminJersey2RESTClient</value>
     <description>Class to retrieve policies from the source</description>
   </property>
 

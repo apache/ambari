@@ -780,6 +780,24 @@ hdp23properties.push({
     "filename": "ranger-admin-site.xml",
     "category": "ADSettings"
   },
+  {
+    "id": "site property",
+    "name": "ranger.usersync.ldap.bindkeystore",
+    "displayName": "ranger.usersync.ldap.bindkeystore",
+    "category": "Advanced ranger-ugsync-site",
+    "isRequired": false,
+    "serviceName": "RANGER",
+    "filename": "ranger-ugsync-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "common.name.for.certificate",
+    "displayName": "common.name.for.certificate",
+    "category": "Advanced ranger-yarn-plugin-properties",
+    "isRequired": false,
+    "serviceName": "YARN",
+    "filename": "ranger-yarn-plugin-properties.xml"
+  },
 
   /*********RANGER FOR HBASE************/
   {

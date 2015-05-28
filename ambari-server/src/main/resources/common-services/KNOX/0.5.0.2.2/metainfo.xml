@@ -83,6 +83,9 @@
         <config-type>gateway-log4j</config-type>
         <config-type>topology</config-type>
         <config-type>ranger-knox-plugin-properties</config-type>
+        <config-type>ranger-knox-audit</config-type>
+        <config-type>ranger-knox-policymgr-ssl</config-type>
+        <config-type>ranger-knox-security</config-type>
       </configuration-dependencies>
     </service>
   </services>

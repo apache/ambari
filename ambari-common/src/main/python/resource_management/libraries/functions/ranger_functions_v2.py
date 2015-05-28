@@ -178,7 +178,7 @@ class RangeradminV2:
     :return: Returns user credentials if user exist otherwise rerutns credentials of  created user.
     """
     try:
-      url =  self.url_users + '?startIndex=0'
+      url =  self.url_users + '?name=' + str(ambari_admin_username)
       request = urllib2.Request(url)
       base_64_string = base64.encodestring(usernamepassword).replace('\n', '')
       request.add_header("Content-Type", "application/json")

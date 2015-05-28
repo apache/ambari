@@ -143,6 +143,9 @@
         <config-type>hbase-env</config-type>
         <config-type>hbase-log4j</config-type>
         <config-type>ranger-hbase-plugin-properties</config-type>
+        <config-type>ranger-hbase-audit</config-type>
+        <config-type>ranger-hbase-policymgr-ssl</config-type>
+        <config-type>ranger-hbase-security</config-type>
       </configuration-dependencies>
 
     </service>

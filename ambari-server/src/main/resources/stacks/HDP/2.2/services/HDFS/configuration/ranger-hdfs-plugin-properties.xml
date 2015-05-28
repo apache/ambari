@@ -28,7 +28,7 @@
 
 	<property>
 		<name>common.name.for.certificate</name>
-		<value>-</value>
+		<value></value>
 		<description>Used for repository creation on ranger admin
 		</description>
 	</property>

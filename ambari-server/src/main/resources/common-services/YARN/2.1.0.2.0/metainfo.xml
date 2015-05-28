@@ -244,6 +244,10 @@
         <config-type>mapred-env</config-type>
         <config-type>ssl-client</config-type>
         <config-type>ssl-server</config-type>
+        <config-type>ranger-yarn-plugin-properties</config-type>
+        <config-type>ranger-yarn-audit</config-type>
+        <config-type>ranger-yarn-policymgr-ssl</config-type>
+        <config-type>ranger-yarn-security</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
       <widgetsFileName>MAPREDUCE2_widgets.json</widgetsFileName>

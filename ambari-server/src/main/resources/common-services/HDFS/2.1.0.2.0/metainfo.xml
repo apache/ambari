@@ -237,6 +237,9 @@
         <config-type>ranger-hdfs-plugin-properties</config-type>
         <config-type>ssl-client</config-type>
         <config-type>ssl-server</config-type>
+        <config-type>ranger-hdfs-audit</config-type>
+        <config-type>ranger-hdfs-policymgr-ssl</config-type>
+        <config-type>ranger-hdfs-security</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
     </service>

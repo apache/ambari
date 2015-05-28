@@ -126,6 +126,9 @@
         <config-type>storm-site</config-type>
         <config-type>storm-env</config-type>
         <config-type>ranger-storm-plugin-properties</config-type>
+        <config-type>ranger-storm-audit</config-type>
+        <config-type>ranger-storm-policymgr-ssl</config-type>
+        <config-type>ranger-storm-security</config-type>
       </configuration-dependencies>
     </service>
   </services>

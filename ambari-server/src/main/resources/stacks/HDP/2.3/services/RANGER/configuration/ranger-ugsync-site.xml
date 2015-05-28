@@ -148,7 +148,7 @@
 
   <property>
     <name>ranger.usersync.ldap.bindkeystore</name>
-    <value>-</value>
+    <value></value>
     <description></description>
   </property>
 

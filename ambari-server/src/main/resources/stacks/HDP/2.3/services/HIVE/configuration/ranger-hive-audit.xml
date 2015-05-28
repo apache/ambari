@@ -82,7 +82,7 @@
 
   <property>
     <name>xasecure.audit.destination.solr</name>
-    <value>true</value>
+    <value>false</value>
     <description></description>
   </property>
 

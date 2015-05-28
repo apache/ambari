@@ -778,6 +778,60 @@ hdp22properties.push(
   },
   {
     "id": "site property",
+    "name": "common.name.for.certificate",
+    "displayName": "common.name.for.certificate",
+    "category": "Advanced ranger-hdfs-plugin-properties",
+    "isRequired": false,
+    "serviceName": "HDFS",
+    "filename": "ranger-hdfs-plugin-properties.xml"
+  },
+  {
+    "id": "site property",
+    "name": "common.name.for.certificate",
+    "displayName": "common.name.for.certificate",
+    "category": "Advanced ranger-hive-plugin-properties",
+    "isRequired": false,
+    "serviceName": "HIVE",
+    "filename": "ranger-hive-plugin-properties.xml"
+  },
+  {
+    "id": "site property",
+    "name": "common.name.for.certificate",
+    "displayName": "common.name.for.certificate",
+    "category": "Advanced ranger-hbase-plugin-properties",
+    "isRequired": false,
+    "serviceName": "HBASE",
+    "filename": "ranger-hbase-plugin-properties.xml"
+  },
+  {
+    "id": "site property",
+    "name": "common.name.for.certificate",
+    "displayName": "common.name.for.certificate",
+    "category": "Advanced ranger-knox-plugin-properties",
+    "isRequired": false,
+    "serviceName": "KNOX",
+    "filename": "ranger-knox-plugin-properties.xml"
+  },
+  {
+    "id": "site property",
+    "name": "common.name.for.certificate",
+    "displayName": "common.name.for.certificate",
+    "category": "Advanced ranger-storm-plugin-properties",
+    "isRequired": false,
+    "serviceName": "STORM",
+    "filename": "ranger-storm-plugin-properties.xml"
+  },
+  {
+    "id": "site property",
+    "name": "SYNC_LDAP_USER_SEARCH_FILTER",
+    "displayName": "SYNC_LDAP_USER_SEARCH_FILTER",
+    "category": "Advanced usersync-properties",
+    "isRequired": false,
+    "serviceName": "RANGER",
+    "filename": "usersync-properties.xml"
+  },
+  {
+    "id": "site property",
     "name": "hbase.bucketcache.ioengine",
     "displayName": "hbase.bucketcache.ioengine",
     "isRequired": false,

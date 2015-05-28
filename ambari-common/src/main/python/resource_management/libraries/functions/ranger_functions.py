@@ -258,7 +258,7 @@ class Rangeradmin:
 
   def create_ambari_admin_user(self,ambari_admin_username, ambari_admin_password,usernamepassword):
     try:
-      url =  self.urlUsers + '?startIndex=0'
+      url =  self.urlUsers + '?name=' + str(ambari_admin_username)
       request = urllib2.Request(url)
       base64string = base64.encodestring(usernamepassword).replace('\n', '')
       request.add_header("Content-Type", "application/json")
