@@ -19,7 +19,7 @@
 
 {{#if view.supportSwitchToCheckBox}}
   <div {{bindAttr class="view.config.showAsTextBox::hide :left :widget-config-raw"}}>
-    {{view App.PlainConfigTextField serviceConfigBinding="view.config" disabledBinding="view.canNotEdit"}}
+    {{view App.PlainConfigTextField sectionBinding="view.section" subSectionBinding="view.subSection" configBinding="view.config" disabledBinding="view.canNotEdit"}}
   </div>
 {{/if}}
 {{#if view.canEdit}}
