@@ -23,32 +23,6 @@ require('views/main/menu');
 var mainMenuView = App.MainMenuView.create();
 describe('App.MainMenuView', function () {
 
-  describe('#content', function () {
-    beforeEach(function () {
-      this.mock = sinon.stub(App, 'get');
-      sinon.stub(App.router, 'get')
-        .withArgs('clusterController.isLoaded').returns(true)
-        .withArgs('loggedIn').returns(true);
-    });
-    afterEach(function () {
-      this.mock.restore();
-      App.router.get.restore();
-    });
-
-    it('menu should be populated if cluster installation is completed', function () {
-      this.mock.withArgs('router.clusterInstallCompleted').returns(true);
-      App.router.notifyPropertyChange('clusterInstallCompleted');
-      expect(mainMenuView.get('content').length > 1).to.be.true;
-    });
-
-    it('menu should not be populated if cluster installation is not completed', function () {
-      this.mock.withArgs('router.clusterInstallCompleted').returns(false);
-      App.router.notifyPropertyChange('clusterInstallCompleted');
-      expect(mainMenuView.get('content').length > 1).to.be.false;
-    });
-
-  });
-
   describe('#itemViewClass', function () {
 
     beforeEach(function () {

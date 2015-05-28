@@ -38,9 +38,10 @@ App.FilterComboCleanableView = Ember.View.extend({
     this.clearFilter();
   },
 
-  placeHolder: function(){
-    return this.t('common.combobox.placeholder');
-  }.property(),
+  /**
+   * @type {string}
+   */
+  placeHolder: Em.I18n.t('common.combobox.placeholder'),
 
   /**
    * Onclick handler for dropdown menu

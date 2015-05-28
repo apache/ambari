@@ -495,8 +495,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
       this.getCompareVersionConfigs(compareServiceVersions).done(function (json) {
         self.initCompareConfig(allConfigs, json);
-        self.set('compareServiceVersion', null);
-        self.set('isCompareMode', true);
+        self.setProperties({
+          compareServiceVersion: null,
+          isCompareMode: true
+        });
         dfd.resolve(true);
       }).fail(function () {
           self.set('compareServiceVersion', null);
@@ -655,9 +657,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       }
       compareObject.serviceVersion = App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + compareConfig.service_config_version);
       compareObject = App.ServiceConfigProperty.create(compareObject);
-      compareObject.set('isFinal', compareConfig.isFinal);
-      compareObject.set('value', App.config.formatOverrideValue(serviceConfig, compareConfig.value));
-      compareObject.set('compareConfigs', null);
+      compareObject.setProperties({
+        isFinal: compareConfig.isFinal,
+        value: App.config.formatOverrideValue(serviceConfig, compareConfig.value),
+        compareConfigs: null
+      });
     }
     return compareObject;
   },
@@ -688,7 +692,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
-   * check value and final attribute of original and compare config for differencies
+   * check value and final attribute of original and compare config for differences
    * @param originalConfig
    * @param compareConfig
    * @return {Boolean}

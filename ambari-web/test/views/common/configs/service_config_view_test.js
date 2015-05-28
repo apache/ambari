@@ -46,7 +46,8 @@ describe('App.ServiceConfigView', function () {
           App.ServiceConfigCategory.create({ name: 'category1', canAddProperty: false}),
           App.ServiceConfigCategory.create({ name: 'category2', siteFileName: 'xml', canAddProperty: true}),
           App.ServiceConfigCategory.create({ name: 'category3', siteFileName: 'xml', canAddProperty: false})
-        ]
+        ],
+        configs: []
       }
     },
     {
@@ -63,7 +64,8 @@ describe('App.ServiceConfigView', function () {
           App.ServiceConfigCategory.create({ name: 'category1', canAddProperty: true}),
           App.ServiceConfigCategory.create({ name: 'category2', siteFileName: 'xml', canAddProperty: true}),
           App.ServiceConfigCategory.create({ name: 'category3', siteFileName: 'xml', canAddProperty: false})
-        ]
+        ],
+        configs: []
       }
     }
   ];

@@ -28,7 +28,9 @@ describe('App.ServiceConfigContainerView', function () {
     };
 
   beforeEach(function () {
-    view = App.ServiceConfigContainerView.create();
+    view = App.ServiceConfigContainerView.create({
+      filter: ''
+    });
   });
 
   describe('#pushView', function () {
@@ -44,7 +46,8 @@ describe('App.ServiceConfigContainerView', function () {
     it('should add a child view', function () {
       view.set('controller', Em.Object.create({
         selectedService: {
-          configCategories: []
+          configCategories: [],
+          configs: []
         }
       }));
       expect(view.get('childViews')).to.have.length(1);
@@ -54,7 +57,8 @@ describe('App.ServiceConfigContainerView', function () {
       view.set('controller', Em.Object.create({
         name: 'controller',
         selectedService: {
-          configCategories: []
+          configCategories: [],
+          configs: []
         }
       }));
       expect(view.get('childViews.firstObject.controller.name')).to.equal('controller');
@@ -63,7 +67,8 @@ describe('App.ServiceConfigContainerView', function () {
     it('should add config categories', function () {
       view.set('controller', Em.Object.create({
         selectedService: {
-          configCategories: [Em.Object.create(), Em.Object.create()]
+          configCategories: [Em.Object.create(), Em.Object.create()],
+          configs: []
         }
       }));
       expect(view.get('childViews.firstObject.serviceConfigsByCategoryView.childViews')).to.have.length(2);

@@ -36,12 +36,22 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
 
   service: null,
 
-  canEdit: true, // View is editable or read-only?
-
-  serviceConfigs: null, // General, Advanced, NameNode, SNameNode, DataNode, etc.
+  /**
+   * View is editable or read-only?
+   * @type {boolean}
+   */
+  canEdit: true,
 
   /**
-   * @type {Array}
+   * All configs for current <code>service</code>
+   * @type {App.ServiceConfigProperty[]}
+   */
+  serviceConfigs: null,
+
+  /**
+   * Configs for current category filtered by <code>isVisible</code>
+   * and sorted by <code>displayType</code> and <code>index</code>
+   * @type {App.ServiceConfigProperty[]}
    */
   categoryConfigs: function () {
     // sort content type configs, sort the rest of configs based on index and then add content array at the end (as intended)
@@ -59,6 +69,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    * is helpful in Oozie/Hive database configuration, where
    * MySQL etc. database options don't show up, because
    * they were not visible initially.
+   * @type {App.ServiceConfigProperty[]}
    */
    categoryConfigsAll: function () {
      return this.get('serviceConfigs').filterProperty('category', this.get('category.name'));
@@ -81,17 +92,19 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     var isCustomPropertiesCategory = this.get('category.customCanAddProperty');
     var emptyFiltered = this.get('categoryConfigs').filterProperty('isHiddenByFilter', false).length > 0;
     var isWidgetsOnlyCategory = this.get('categoryConfigs.length') == this.get('categoryConfigs').filterProperty('widget').length;
-    return isCustomPropertiesCategory && this.get('controller.filter') === '' && !this.get('parentView.columns').someProperty('selected') || (emptyFiltered && !isWidgetsOnlyCategory);
+    return isCustomPropertiesCategory && this.get('controller.filter') === '' && !this.get('parentView.columns').someProperty('selected') ||
+      (emptyFiltered && !isWidgetsOnlyCategory);
   }.property('category.customCanAddProperty', 'categoryConfigs.@each.isHiddenByFilter', 'categoryConfigs.@each.widget', 'controller.filter', 'parentView.columns.@each.selected'),
 
   /**
    * Re-order the configs to list content displayType properties at last in the category
-   * @param categoryConfigs
+   * @param {App.ServiceConfigProperty[]} categoryConfigs
+   * @method orderContentAtLast
    */
   orderContentAtLast: function (categoryConfigs) {
     var contentProperties = categoryConfigs.filterProperty('displayType', 'content');
     if (!contentProperties.length) {
-      return categoryConfigs
+      return categoryConfigs;
     }
     else {
       return categoryConfigs.sort(function (a, b) {
@@ -100,12 +113,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
         if (aContent && bContent) {
           return 0;
         }
-        else if (aContent) {
-          return 1;
-        }
-        else {
-          return -1;
-        }
+        return aContent ? 1 : -1;
       });
     }
   },
@@ -220,47 +228,16 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
 
   /**
    * Filtered <code>categoryConfigs</code> array. Used to show filtered result
+   * @method filteredCategoryConfigs
    */
   filteredCategoryConfigs: function () {
     $('.popover').remove();
     var filter = this.get('parentView.filter').toLowerCase();
-    var selectedFilters = this.get('parentView.columns').filterProperty('selected');
     var filteredResult = this.get('categoryConfigs');
     var isInitialRendering = !arguments.length || arguments[1] != 'categoryConfigs';
 
-    if (selectedFilters.length > 0 || filter.length > 0 || this.get('state') === 'inDOM') {
-      filteredResult.forEach(function (config) {
-        var passesFilters = true;
-
-        selectedFilters.forEach(function (filter) {
-          if (config.get(filter.attributeName) !== filter.attributeValue) {
-            passesFilters = false;
-          }
-        });
-
-        if (!passesFilters) {
-          config.set('isHiddenByFilter', true);
-          return false;
-        }
-
-        var searchString = config.get('savedValue') + config.get('description') +
-          config.get('displayName') + config.get('name') + config.get('value') + config.getWithDefault('stackConfigProperty.displayName', '');
-
-        if (config.get('overrides')) {
-          config.get('overrides').forEach(function (overriddenConf) {
-            searchString += overriddenConf.get('value') + overriddenConf.get('group.name');
-          });
-        }
-
-        if (filter != null && typeof searchString === "string") {
-          config.set('isHiddenByFilter', !(searchString.toLowerCase().indexOf(filter) > -1));
-        } else {
-          config.set('isHiddenByFilter', false);
-        }
-      });
-    }
-    filteredResult = this.sortByIndex(filteredResult);
     filteredResult = filteredResult.filterProperty('isHiddenByFilter', false);
+    filteredResult = this.sortByIndex(filteredResult);
 
     if (filter) {
       if (filteredResult.length && typeof this.get('category.collapsedByDefault') === 'undefined') {
@@ -268,13 +245,17 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
         this.set('category.collapsedByDefault', this.get('category.isCollapsed'));
       }
       this.set('category.isCollapsed', !filteredResult.length);
-    } else if (typeof this.get('category.collapsedByDefault') !== 'undefined') {
-      // If user clear filter -- restore defaults
-      this.set('category.isCollapsed', this.get('category.collapsedByDefault'));
-      this.set('category.collapsedByDefault', undefined);
-    } else if (isInitialRendering && !filteredResult.length) {
-      this.set('category.isCollapsed', true);
     }
+    else
+      if (typeof this.get('category.collapsedByDefault') !== 'undefined') {
+        // If user clear filter -- restore defaults
+        this.set('category.isCollapsed', this.get('category.collapsedByDefault'));
+        this.set('category.collapsedByDefault', undefined);
+      }
+      else
+        if (isInitialRendering && !filteredResult.length) {
+          this.set('category.isCollapsed', true);
+        }
 
     var categoryBlock = $('.' + this.get('category.name').split(' ').join('.') + '>.accordion-body');
     this.get('category.isCollapsed') ? categoryBlock.hide() : categoryBlock.show();
