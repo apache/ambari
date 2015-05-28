@@ -248,15 +248,30 @@ App.QueueSerializer = DS.RESTSerializer.extend(App.SerializerMixin,{
     return json;
   },
   serializeHasMany:function (record, json, relationship) {
-    var key = relationship.key;
-    json[[this.PREFIX, record.get('path'), 'accessible-node-labels'].join('.')] = (record.get('labelsEnabled'))?'':null;
-    record.get(key).map(function (l,idx,labels) {
-      json[[this.PREFIX, record.get('path'), 'accessible-node-labels'].join('.')] = (record.get('accessAllLabels'))?'*':labels.mapBy('name').join(',');
+    var key = relationship.key,
+        recordLabels = record.get(key),
+        accessible_node_labels_key = [this.PREFIX, record.get('path'), 'accessible-node-labels'].join('.');
+
+    switch (true) {
+      case (record.get('accessAllLabels')):
+        json[accessible_node_labels_key] = '*';
+        break;
+      case (!Em.isEmpty(recordLabels)):
+        json[accessible_node_labels_key] = recordLabels.mapBy('name').join(',');
+        break;
+      case (record.get('labelsEnabled')):
+        json[accessible_node_labels_key] = '';
+        break;
+      default:
+        json[accessible_node_labels_key] = null;
+    }
+
+    recordLabels.forEach(function (l) {
       if (!record.get('store.nodeLabels').findBy('name',l.get('name')).notExist) {
-        json[[this.PREFIX, record.get('path'), 'accessible-node-labels', l.get('name'), 'capacity'].join('.')] = l.get('capacity');
-        json[[this.PREFIX, record.get('path'), 'accessible-node-labels', l.get('name'), 'maximum-capacity'].join('.')] = l.get('maximum_capacity');
+        json[[accessible_node_labels_key, l.get('name'), 'capacity'].join('.')] = l.get('capacity');
+        json[[accessible_node_labels_key, l.get('name'), 'maximum-capacity'].join('.')] = l.get('maximum_capacity');
       }
-    },this);
+    });
   }
 });
 

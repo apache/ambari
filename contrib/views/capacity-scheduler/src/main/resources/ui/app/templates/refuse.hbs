@@ -16,10 +16,16 @@
 * limitations under the License.
 }}
 
-<div class="col-md-12">
+<div class="col-md-12 refuse-page">
   <div class="page-header">
     <div class="pull-right"> {{#link-to 'queues'}} <i class="fa fa-refresh" ></i> Retry connection {{/link-to}} </div>
     <h3>Couldn't connect to the cluster</h3>
   </div>
-  <div>{{content.message}}</div>
+  <div class="page-body">
+    <p>{{content.message}}</p>
+    <a data-toggle="collapse" href="#trace" aria-expanded="false" {{bind-attr class=":collapsed content.trace::hide"}} >
+      trace  <i class="fa fa-angle-up"></i>
+    </a>
+    <div class="collapse" id="trace"> <pre> {{content.trace}} </pre> </div>
+  </div>
 </div>

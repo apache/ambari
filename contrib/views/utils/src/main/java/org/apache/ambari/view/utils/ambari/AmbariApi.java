@@ -29,8 +29,11 @@ import org.json.simple.JSONValue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides API to Ambari. Supports both Local and Remote cluster association.
@@ -44,9 +47,10 @@ public class AmbariApi {
 
   private Cluster cluster;
   private ViewContext context;
-  private String remoteUrl;
+  private String remoteUrlCluster;
   private String remoteUsername;
   private String remotePassword;
+  private String requestedBy = "views";
 
   /**
    * Constructor for Ambari API based on ViewContext
@@ -55,9 +59,32 @@ public class AmbariApi {
   public AmbariApi(ViewContext context) {
     this.context = context;
 
-    remoteUrl = context.getProperties().get(AMBARI_SERVER_URL_INSTANCE_PROPERTY);
+    remoteUrlCluster = context.getProperties().get(AMBARI_SERVER_URL_INSTANCE_PROPERTY);
     remoteUsername = context.getProperties().get(AMBARI_SERVER_USERNAME_INSTANCE_PROPERTY);
     remotePassword = context.getProperties().get(AMBARI_SERVER_PASSWORD_INSTANCE_PROPERTY);
+  }
+
+  /**
+   * X-Requested-By header value
+   * @param requestedBy value of X-Requested-By header
+   */
+  public void setRequestedBy(String requestedBy) {
+    this.requestedBy = requestedBy;
+  }
+
+  private String parseAmbariHostname(String remoteUrlCluster) {
+    String hostname;
+    try {
+      URI uri = new URI(remoteUrlCluster);
+      hostname = String.format("%s://%s", uri.getScheme(), uri.getHost());
+      if (uri.getPort() != -1) {
+        hostname += ":" + uri.getPort();
+      }
+    } catch (URISyntaxException e) {
+      throw new AmbariApiException("RA060 Malformed URI of remote Ambari");
+    }
+
+    return hostname;
   }
 
   /**
@@ -68,7 +95,7 @@ public class AmbariApi {
    */
   public List<String> getHostsWithComponent(String requestComponent) throws AmbariApiException {
     String method = "hosts?fields=Hosts/public_host_name,host_components/HostRoles/component_name";
-    String response = readFromAmbari(method);
+    String response = requestClusterAPI(method);
 
     List<String> foundHosts = new ArrayList<String>();
 
@@ -90,38 +117,87 @@ public class AmbariApi {
   }
 
   /**
-   * Request to Ambari REST API. Supports both local and remote cluster
-   * @param method REST API path, e.g. /api/v1/clusters/mycluster?...
+   * Shortcut for GET method
+   * @param path REST API path
+   * @return response
+   * @throws AmbariApiException
+   */
+  public String requestClusterAPI(String path) throws AmbariApiException {
+    return requestClusterAPI(path, "GET", null, null);
+  }
+
+  /**
+   * Request to Ambari REST API for current cluster. Supports both local and remote cluster
+   * @param path REST API path after cluster name e.g. /api/v1/clusters/mycluster/[method]
+   * @param method HTTP method
+   * @param data HTTP data
+   * @param headers HTTP headers
    * @return response
    * @throws AmbariApiException IO error or not associated with cluster
    */
-  public String readFromAmbari(String method) throws AmbariApiException {
+  public String requestClusterAPI(String path, String method, String data, Map<String, String> headers) throws AmbariApiException {
     String response;
+    URLStreamProviderBasicAuth urlStreamProvider = getUrlStreamProviderBasicAuth();
 
     try {
-      InputStream inputStream;
+      String url;
 
       if (isLocalCluster()) {
-        AmbariStreamProvider ambariStreamProvider = context.getAmbariStreamProvider();
-        String url = String.format("/api/v1/clusters/%s/%s", getCluster().getName(), method);
-        inputStream = ambariStreamProvider.readFrom(url, "GET", (String) null, null, true);
+        url = String.format("/api/v1/clusters/%s/%s", getCluster().getName(), path);
 
       } else if (isRemoteCluster()) {
-        URLStreamProvider urlStreamProvider = getUrlStreamProviderBasicAuth();
-        String url = String.format("%s/%s", remoteUrl, method);
-        inputStream = urlStreamProvider.readFrom(url, "GET", (String) null, null);
+
+        url = String.format("%s/%s", remoteUrlCluster, path);
 
       } else {
         throw new NoClusterAssociatedException(
             "RA030 View is not associated with any cluster. No way to request Ambari.");
       }
 
+      InputStream inputStream = urlStreamProvider.readFrom(url, method, data, headers);
       response = IOUtils.toString(inputStream);
     } catch (IOException e) {
       throw new AmbariApiException("RA040 I/O error while requesting Ambari", e);
     }
     return response;
   }
+
+  /**
+   * Request to Ambari REST API. Supports both local and remote cluster
+   * @param path REST API path, e.g. /api/v1/clusters/mycluster/
+   * @param method HTTP method
+   * @param data HTTP data
+   * @param headers HTTP headers
+   * @return response
+   * @throws AmbariApiException IO error or not associated with cluster
+   */
+  public String readFromAmbari(String path, String method, String data, Map<String, String> headers) throws AmbariApiException {
+    String response;
+    URLStreamProviderBasicAuth urlStreamProvider = getUrlStreamProviderBasicAuth();
+
+    try {
+      String url;
+
+      if (isLocalCluster()) {
+        url = path;
+
+      } else if (isRemoteCluster()) {
+        String ambariUrl = parseAmbariHostname(remoteUrlCluster);
+        url = ambariUrl + path;
+
+      } else {
+        throw new NoClusterAssociatedException(
+            "RA060 View is not associated with any cluster. No way to request Ambari.");
+      }
+
+      InputStream inputStream = urlStreamProvider.readFrom(url, method, data, headers);
+      response = IOUtils.toString(inputStream);
+    } catch (IOException e) {
+      throw new AmbariApiException("RA050 I/O error while requesting Ambari", e);
+    }
+    return response;
+  }
+
 
   /**
    * Check if associated with local or remote cluster
@@ -170,7 +246,7 @@ public class AmbariApi {
    * @return true if associated
    */
   public boolean isRemoteCluster() {
-    return remoteUrl != null && !remoteUrl.isEmpty();
+    return remoteUrlCluster != null && !remoteUrlCluster.isEmpty();
   }
 
   /**
@@ -182,21 +258,31 @@ public class AmbariApi {
       return null;
 
     URLStreamProvider urlStreamProviderBasicAuth = getUrlStreamProviderBasicAuth();
-    return new RemoteCluster(remoteUrl, urlStreamProviderBasicAuth);
+    return new RemoteCluster(remoteUrlCluster, urlStreamProviderBasicAuth);
   }
 
   /**
    * Build URLStreamProvider with Basic Authentication for Remote Cluster
    * @return URLStreamProvider
    */
-  public URLStreamProvider getUrlStreamProviderBasicAuth() {
-    if (remoteUsername == null || remoteUsername.isEmpty() ||
-        remotePassword == null || remotePassword.isEmpty()) {
-      throw new AmbariApiException("RA020 Remote Ambari username and password are not filled");
+  public URLStreamProviderBasicAuth getUrlStreamProviderBasicAuth() {
+    URLStreamProviderBasicAuth urlStreamProviderBasicAuth;
+    if (isRemoteCluster()) {
+      if (remoteUsername == null || remoteUsername.isEmpty() ||
+          remotePassword == null || remotePassword.isEmpty()) {
+        throw new AmbariApiException("RA020 Remote Ambari username and password are not filled");
+      }
+
+      URLStreamProvider urlStreamProvider = context.getURLStreamProvider();
+      urlStreamProviderBasicAuth =
+          new URLStreamProviderBasicAuth(urlStreamProvider, remoteUsername, remotePassword);
+    } else if (isLocalCluster()) {
+      urlStreamProviderBasicAuth = new URLStreamProviderBasicAuth(context.getAmbariStreamProvider());
+    } else {
+      throw new NoClusterAssociatedException(
+          "RA070 Not associated with any cluster. URLStreamProvider is not available");
     }
-
-    URLStreamProvider urlStreamProvider = context.getURLStreamProvider();
-
-    return new URLStreamProviderBasicAuth(urlStreamProvider, remoteUsername, remotePassword);
+    urlStreamProviderBasicAuth.setRequestedBy(requestedBy);
+    return urlStreamProviderBasicAuth;
   }
 }

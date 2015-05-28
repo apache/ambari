@@ -23,7 +23,7 @@ This View provides a UI to manage queues for the YARN Capacity Scheduler.
 Requirements
 -----
 
-- Ambari 1.7.0 or later
+- Ambari 2.1.0 or later
 - YARN
 
 Build
@@ -35,11 +35,11 @@ The view can be built as a maven project.
 
 The build will produce the view archive.
 
-    target/capacity-scheduler-0.3.0-SNAPSHOT.jar
+    target/capacity-scheduler-???-SNAPSHOT.jar
 
 Place the view archive on the Ambari Server and restart to deploy.    
 
-    cp capacity-scheduler-0.3.0-SNAPSHOT /var/lib/ambari-server/resources/views/
+    cp capacity-scheduler-???-SNAPSHOT /var/lib/ambari-server/resources/views/
     ambari-server restart
 
 Deploying the View
@@ -49,7 +49,7 @@ Use the [Ambari Vagrant](https://cwiki.apache.org/confluence/display/AMBARI/Quic
 
 Deploy the Capacity Scheduler view into Ambari.
 
-    cp capacity-scheduler-0.3.0-SNAPSHOT /var/lib/ambari-server/resources/views/
+    cp capacity-scheduler-???-SNAPSHOT /var/lib/ambari-server/resources/views/
     ambari-server restart
 
 From the Ambari Administration interface, create a view instance.
@@ -65,7 +65,7 @@ From the Ambari Administration interface, create a view instance.
 
 Login to Ambari and browse to the view instance.
 
-    http://c6401.ambari.apache.org:8080/#/main/views/CAPACITY-SCHEDULER/0.3.0/CS_1
+    http://c6401.ambari.apache.org:8080/#/main/views/CAPACITY-SCHEDULER/???/CS_1
 
 Local Development
 -----

@@ -234,7 +234,7 @@
     margin-bottom: 20px;
     min-height: 20px;
     padding: 15px;
-    padding-top: 0;
+    padding-top: 0px;
 
     // ----- QUEUE -> HEADING ROW -----
 
@@ -736,6 +736,24 @@
   }
 }
 
+// ----- REFUSE PAGE -----
+
+.refuse-page {
+  .page-body a {
+    &.collapsed i {
+      filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+      -webkit-transform: rotate(180deg);
+      -moz-transform: rotate(180deg);
+      -ms-transform: rotate(180deg);
+      -o-transform: rotate(180deg);
+      transform: rotate(180deg);
+    }
+    text-decoration: none;
+    font-size: .8em;
+    text-transform: uppercase;
+  }
+}
+
 // ----- COMPONENTS -----
 
 
@@ -814,7 +832,7 @@
     padding: 8px;
     border-radius: 4px;
     background-color: #fff;
-    box-shadow: 0 0 5px;
+    box-shadow: 0px 0 5px;
   }
 }
 

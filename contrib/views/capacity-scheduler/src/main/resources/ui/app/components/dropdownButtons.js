@@ -51,4 +51,4 @@ App.DropdownButtonsComponent = Em.Component.extend(App.ClickElsewhereMixin,{
       this.sendAction('action',arg);
     }
   }
-});
+})

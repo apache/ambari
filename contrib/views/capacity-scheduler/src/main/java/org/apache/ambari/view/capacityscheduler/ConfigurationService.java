@@ -20,8 +20,9 @@ package org.apache.ambari.view.capacityscheduler;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.capacityscheduler.utils.MisconfigurationFormattedException;
-import org.apache.ambari.view.capacityscheduler.proxy.Proxy;
 import org.apache.ambari.view.capacityscheduler.utils.ServiceFormattedException;
+import org.apache.ambari.view.utils.ambari.AmbariApi;
+import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -31,22 +32,22 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.net.ConnectException;
 import java.util.HashMap;
-import java.net.URL;
-import java.net.MalformedURLException;
+import java.util.Map;
 
 /**
- * Help service
+ * Configuration service for accessing Ambari REST API for capacity scheduler config.
+ *
  */
 public class ConfigurationService {
 
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurationService.class);
-  private final Proxy proxy;
-  private final String baseUrl;
-  private final String serverUrl;
+  private final AmbariApi ambariApi;
 
   private ViewContext context;
-  private final String refreshRMRequestData =
+  private static final String REFRESH_RM_REQUEST_DATA =
       "{\n" +
       "  \"RequestInfo\" : {\n" +
       "    \"command\" : \"REFRESHQUEUES\",\n" +
@@ -59,12 +60,12 @@ public class ConfigurationService {
       "    \"hosts\" : \"%s\"\n" +
       "  }]\n" +
       "}";
-  private final String restartRMRequestData = "{\"RequestInfo\": {\n" +
+  private static final String RESTART_RM_REQUEST_DATA = "{\"RequestInfo\": {\n" +
       "    \"command\":\"RESTART\",\n" +
       "    \"context\":\"Restart ResourceManager\",\n" +
       "    \"operation_level\": {\n" +
       "        \"level\":\"HOST_COMPONENT\",\n" +
-      "        \"cluster_name\":\"MyCluster\",\n" +
+      "        \"cluster_name\":\"%s\",\n" +
       "        \"host_name\":\"%s\",\n" +
       "        \"service_name\":\"YARN\",\n" +
       "        \"hostcomponent_name\":\"RESOURCEMANAGER\"\n" +
@@ -86,46 +87,27 @@ public class ConfigurationService {
    */
   public ConfigurationService(ViewContext context) {
     this.context = context;
-
-    proxy = new Proxy(context.getURLStreamProvider());
-    proxy.setUseAuthorization(true);
-    proxy.setUsername(context.getProperties().get("ambari.server.username"));
-    proxy.setPassword(context.getProperties().get("ambari.server.password"));
-
-    HashMap<String, String> customHeaders = new HashMap<String, String>();
-    customHeaders.put("X-Requested-By", "view-capacity-scheduler");
-    proxy.setCustomHeaders(customHeaders);
-
-    baseUrl = context.getProperties().get("ambari.server.url");
-    
-    URL url = null;
-    try {
-        url = new URL(baseUrl);
-    } catch (MalformedURLException ex) {
-      throw new ServiceFormattedException("Error in ambari.server.url property: " + ex.getMessage(), ex);
-    }
-
-    String clusterName = url.getFile(); // TODO: make it more robust
-    serverUrl = baseUrl.substring(0, baseUrl.length() - clusterName.length());
+    this.ambariApi = new AmbariApi(context);
+    this.ambariApi.setRequestedBy("view-capacity-scheduler");
   }
 
   // ================================================================================
   // Configuration Reading
   // ================================================================================
 
-  private final String versionTagUrl = "%s?fields=Clusters/desired_configs/capacity-scheduler";
-  private final String configurationUrl = "%s/configurations?type=capacity-scheduler";
-  private final String configurationUrlByTag = "%%s/configurations?type=capacity-scheduler&tag=%s";
-  private final String rmHostUrl = "%s/services/YARN/components/RESOURCEMANAGER?fields=host_components/host_name";
+  private static final String VERSION_TAG_URL = "?fields=Clusters/desired_configs/capacity-scheduler";
+  private static final String CONFIGURATION_URL = "configurations?type=capacity-scheduler";
+  private static final String CONFIGURATION_URL_BY_TAG = "configurations?type=capacity-scheduler&tag=%s";
+  private static final String RM_HOST_URL = "services/YARN/components/RESOURCEMANAGER?fields=host_components/host_name";
 
-  private final String rmGetNodeLabelUrl = "http://%s:8088/ws/v1/cluster/get-node-labels";
+  private static final String RM_GET_NODE_LABEL_URL = "http://%s:8088/ws/v1/cluster/get-node-labels";
 
   // ================================================================================
   // Privilege Reading
   // ================================================================================
 
-  private final String clusterOperatorPrivilegeUrl = "%s?privileges/PrivilegeInfo/permission_name=CLUSTER.OPERATE&privileges/PrivilegeInfo/principal_name=%s";
-  private final String ambariAdminPrivilegeUrl = "%s/api/v1/users/%s?Users/admin=true";
+  private static final String CLUSTER_OPERATOR_PRIVILEGE_URL = "?privileges/PrivilegeInfo/permission_name=CLUSTER.OPERATE&privileges/PrivilegeInfo/principal_name=%s";
+  private static final String AMBARI_ADMIN_PRIVILEGE_URL = "/api/v1/users/%s?Users/admin=true";
 
   /**
    * Gets capacity scheduler configuration.
@@ -164,7 +146,7 @@ public class ConfigurationService {
     try {
       validateViewConfiguration();
 
-      JSONObject configurations = proxy.request(baseUrl).get().asJSON();
+      JSONObject configurations = readFromCluster("");
       response = Response.ok(configurations).build();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -188,9 +170,8 @@ public class ConfigurationService {
     try {
       validateViewConfiguration();
 
-      String url = String.format(configurationUrl, baseUrl);
-      JSONObject configurations = proxy.request(url).get().asJSON();
-      response = Response.ok(configurations).build();
+      JSONObject responseJSON = readFromCluster(CONFIGURATION_URL);
+      response = Response.ok( responseJSON ).build();
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (Exception ex) {
@@ -234,10 +215,10 @@ public class ConfigurationService {
   @Path("/privilege")
   public Response getPrivilege() {
     Response response = null;
-    
+
     try {
       boolean   operator = isOperator();
-            
+
       response = Response.ok(operator).build();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -260,9 +241,15 @@ public class ConfigurationService {
     Response response;
 
     try {
-      String nodeLabels = proxy.request(String.format(rmGetNodeLabelUrl, getRMHost())).get().asString();
+      String url = String.format(RM_GET_NODE_LABEL_URL, getRMHost());
+
+      InputStream rmResponse = context.getURLStreamProvider().readFrom(
+          url, "GET", (String) null, new HashMap<String, String>());
+      String nodeLabels = IOUtils.toString(rmResponse);
 
       response = Response.ok(nodeLabels).build();
+    } catch (ConnectException ex) {
+      throw new ServiceFormattedException("Connection to Resource Manager refused", ex);
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (Exception ex) {
@@ -282,43 +269,85 @@ public class ConfigurationService {
       validateViewConfiguration();
             
       // first check if the user is an CLUSTER.OPERATOR
-      String url = String.format(clusterOperatorPrivilegeUrl, baseUrl, context.getUsername()); 
-      JSONObject json = proxy.request(url).get().asJSON();
+      String url = String.format(CLUSTER_OPERATOR_PRIVILEGE_URL, context.getUsername());
+      JSONObject json = readFromCluster(url);
 
       if (json == null || json.size() <= 0) {
         // user is not a CLUSTER.OPERATOR but might be an AMBARI.ADMIN
-        url = String.format(ambariAdminPrivilegeUrl, serverUrl, context.getUsername()); 
-        json = proxy.request(url).get().asJSON();
-        if (json == null || json.size() <= 0)
-            return false;
+        url = String.format(AMBARI_ADMIN_PRIVILEGE_URL, context.getUsername());
+        String response = ambariApi.readFromAmbari(url, "GET", null, null);
+        if (response == null || response.isEmpty()) {
+          return false;
+        }
+        json = getJsonObject(response);
+        if (json == null || json.size() <= 0) {
+          return false;
+        }
       }
       
     return  true;
   }
-  
+
+  private JSONObject readFromCluster(String url) {
+    String response = ambariApi.requestClusterAPI(url);
+    if (response == null || response.isEmpty()) {
+      return null;
+    }
+
+    return getJsonObject(response);
+  }
+
+  private JSONObject getJsonObject(String response) {
+    if (response == null || response.isEmpty()) {
+      return null;
+    }
+    JSONObject jsonObject = (JSONObject) JSONValue.parse(response);
+
+    if (jsonObject.get("status") != null && (Long)jsonObject.get("status") >= 400L) {
+      // Throw exception if HTTP status is not OK
+      String message;
+      if (jsonObject.containsKey("message")) {
+        message = (String) jsonObject.get("message");
+      } else {
+        message = "without message";
+      }
+      throw new ServiceFormattedException("Proxy: Server returned error " + jsonObject.get("status") + " " +
+          message + ". Check Capacity-Scheduler instance properties.");
+    }
+    return jsonObject;
+  }
+
   /**
    * Validates the view configuration properties.
    *
    * @throws MisconfigurationFormattedException if one of the required view configuration properties are not set
    */
   private void validateViewConfiguration() {
+    // check if we are cluster config'd, if so, just go
+    if (ambariApi.isLocalCluster()) {
+      return;
+    }
+
     String hostname = context.getProperties().get("ambari.server.url");
-    if (hostname == null)
+    if (hostname == null) {
       throw new MisconfigurationFormattedException("ambari.server.url");
+    }
 
     String username = context.getProperties().get("ambari.server.username");
-    if (username == null)
+    if (username == null) {
       throw new MisconfigurationFormattedException("ambari.server.username");
+    }
 
     String password = context.getProperties().get("ambari.server.password");
-    if (password == null)
+    if (password == null) {
       throw new MisconfigurationFormattedException("ambari.server.password");
+    }
   }
 
   private JSONObject getConfigurationFromAmbari(String versionTag) {
-    String urlTemplate = String.format(configurationUrlByTag, versionTag);
-    String url = String.format(urlTemplate, baseUrl);
-    return proxy.request(url).get().asJSON();
+    String url = String.format(CONFIGURATION_URL_BY_TAG, versionTag);
+    JSONObject responseJSON = readFromCluster(url);
+    return  responseJSON;
   }
 
   /**
@@ -351,8 +380,8 @@ public class ConfigurationService {
    * @return  the desired config JSON object
    */
   private JSONObject getDesiredConfigs() {
-    String url = String.format(versionTagUrl, baseUrl);
-    return proxy.request(url).get().asJSON();
+    JSONObject response = readFromCluster(VERSION_TAG_URL);
+    return response;
   }
 
   // ================================================================================
@@ -376,9 +405,10 @@ public class ConfigurationService {
         return Response.status(401).build();
       }
 
-      response = proxy.request(baseUrl).
-                    setData(request).
-                    put().asJSON();
+      Map<String, String> headers = new HashMap<String, String>();
+      headers.put("Content-Type", "application/x-www-form-urlencoded");
+      String responseString = ambariApi.requestClusterAPI("", "PUT", request.toJSONString(), headers);
+      response = getJsonObject(responseString);
 
     } catch (WebApplicationException ex) {
       throw ex;
@@ -406,10 +436,11 @@ public class ConfigurationService {
       }
 
       String rmHost = getRMHost();
-      JSONObject data = (JSONObject) JSONValue.parse(String.format(refreshRMRequestData, rmHost));
-      proxy.request(baseUrl + "/requests/").
-          setData(data).
-          post();
+      JSONObject data = getJsonObject(String.format(REFRESH_RM_REQUEST_DATA, rmHost));
+
+      Map<String, String> headers = new HashMap<String, String>();
+      headers.put("Content-Type", "application/x-www-form-urlencoded");
+      ambariApi.requestClusterAPI("requests/", "POST", data.toJSONString(), headers);
 
     } catch (WebApplicationException ex) {
       throw ex;
@@ -436,10 +467,12 @@ public class ConfigurationService {
       }
 
       String rmHost = getRMHost();
-      JSONObject data = (JSONObject) JSONValue.parse(String.format(restartRMRequestData, rmHost, rmHost));
-      proxy.request(baseUrl + "/requests/").
-          setData(data).
-          post();
+      JSONObject data = getJsonObject(String.format(RESTART_RM_REQUEST_DATA,
+          ambariApi.getCluster().getName(), rmHost, rmHost));
+
+      Map<String, String> headers = new HashMap<String, String>();
+      headers.put("Content-Type", "application/x-www-form-urlencoded");
+      ambariApi.requestClusterAPI("requests/", "POST", data.toJSONString(), headers);
 
     } catch (WebApplicationException ex) {
       throw ex;
@@ -451,7 +484,9 @@ public class ConfigurationService {
 
   private String getRMHost() {
     String rmHost = null;
-    JSONObject rmData = proxy.request(String.format(rmHostUrl, baseUrl)).get().asJSON();
+    JSONObject rmData = readFromCluster(RM_HOST_URL);
+    if (rmData == null)
+      throw new ServiceFormattedException("Cannot retrieve ResourceManager host");
     JSONArray components = (JSONArray) rmData.get("host_components");
     for(Object component : components) {
       JSONObject roles = (JSONObject) ((JSONObject) component).get("HostRoles");
@@ -461,8 +496,8 @@ public class ConfigurationService {
       }
     }
     if (rmHost == null)
-      throw new ServiceFormattedException("Can't retrieve Resource Manager Host");
+      throw new ServiceFormattedException("Can't find ResourceManager host");
     return rmHost;
   }
 
-}
+} // end ConfigurationService

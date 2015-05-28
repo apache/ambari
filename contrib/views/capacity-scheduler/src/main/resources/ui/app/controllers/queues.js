@@ -228,7 +228,7 @@ App.QueuesController = Ember.ArrayController.extend({
    * check if RM needs restart
    * @type {bool}
    */
-  needRestart: Em.computed.alias('hasDeletedQueues'),
+  needRestart: Em.computed.and('hasDeletedQueues','isOperator'),
 
   /**
    * True if some queue of desired configs was removed.
@@ -244,7 +244,7 @@ App.QueuesController = Ember.ArrayController.extend({
    * check if RM needs refresh
    * @type {bool}
    */
-  needRefresh: cmp.and('needRefreshProps','noNeedRestart'),
+  needRefresh: cmp.and('needRefreshProps','noNeedRestart','isOperator'),
 
   /**
    * Inverted needRestart value.
@@ -305,7 +305,7 @@ App.QueuesController = Ember.ArrayController.extend({
    * check if can save configs
    * @type {bool}
    */
-  canNotSave: cmp.any('hasOverCapacity', 'hasUncompetedAddings','hasNotValid','isNotOperator'),
+  canNotSave: cmp.any('hasOverCapacity', 'hasUncompetedAddings','hasNotValid'),
 
   /**
    * List of not valid queues.

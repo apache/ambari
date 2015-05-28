@@ -45,10 +45,10 @@
                     isNotOperator=isNotOperator
                   }}
                   <li >
-                    <a href="#" {{action 'saveModal' 'refresh' target="view"}} {{bind-attr class=":btn isNotOperator:disabled needRefresh::disabled"}}><i class="fa fa-fw fa-refresh"></i> Save and Refresh Queues</a>
+                    <a href="#" {{action 'saveModal' 'refresh' target="view"}} {{bind-attr class=":btn needRefresh::disabled"}}><i class="fa fa-fw fa-refresh"></i> Save and Refresh Queues</a>
                   </li>
                   <li>
-                    <a href="#" {{action 'saveModal' target="view"}} {{bind-attr class=":btn isNotOperator:disabled needSave::disabled"}}><i class="fa fa-fw fa-save"></i> Save Only</a>
+                    <a href="#" {{action 'saveModal' target="view"}} {{bind-attr class=":btn needSave::disabled"}}><i class="fa fa-fw fa-save"></i> Save Only</a>
                   </li>
                   {{dropdown-buttons action='downloadConfig' layoutName='components/dropdownDownload'}}
                 </ul>

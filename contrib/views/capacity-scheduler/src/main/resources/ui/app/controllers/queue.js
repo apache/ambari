@@ -209,7 +209,7 @@ App.QueueController = Ember.ObjectController.extend({
     if (arguments.length > 1) {
       if (!this.get('isFairOP')) {
         this.send('rollbackProp','enable_size_based_weight',this.get('content'));
-      }
+      };
       this.set('content.ordering_policy',val || null);
     }
     return this.get('content.ordering_policy');

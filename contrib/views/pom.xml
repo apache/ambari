@@ -91,6 +91,7 @@
             <exclude>**/assets/stylesheets/**</exclude>
             <exclude>**/assets/static/javascripts/**</exclude>
             <exclude>**/assets/static/stylesheets/**</exclude>
+            <exclude>storm/src/main/resources/**</exclude>
           </excludes>
         </configuration>
       </plugin>
