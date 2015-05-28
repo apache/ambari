@@ -116,3 +116,92 @@ if security_enabled and hdp_stack_version != "" and compare_versions(hdp_stack_v
     kafka_kerberos_params = "-Djava.security.auth.login.config="+ conf_dir +"/kafka_jaas.conf"
 else:
     kafka_kerberos_params = ''
+
+# ***********************  RANGER PLUGIN CHANGES ***********************
+# ranger host
+# **********************************************************************
+ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
+has_ranger_admin = not len(ranger_admin_hosts) == 0
+xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
+ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
+
+ranger_admin_log_dir = default("/configurations/ranger-env/ranger_admin_log_dir","/var/log/ranger/admin")
+is_supported_kafka_ranger = config['configurations']['kafka-env']['is_supported_kafka_ranger']
+
+#ranger kafka properties
+if has_ranger_admin and is_supported_kafka_ranger:
+
+  enable_ranger_kafka = config['configurations']['ranger-kafka-plugin-properties']['ranger-kafka-plugin-enabled']
+  enable_ranger_kafka = enable_ranger_kafka is not None and enable_ranger_kafka.lower() == 'yes'
+  policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
+  sql_connector_jar = config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
+  xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
+  xa_audit_db_flavor = xa_audit_db_flavor.lower() if xa_audit_db_flavor else None
+  xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
+  xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
+  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
+  xa_db_host = config['configurations']['admin-properties']['db_host']
+  repo_name = str(config['clusterName']) + '_kafka'
+
+  ranger_env = config['configurations']['ranger-env']
+  ranger_plugin_properties = config['configurations']['ranger-kafka-plugin-properties']
+  
+  ranger_kafka_audit = config['configurations']['ranger-kafka-audit']
+  ranger_kafka_audit_attrs = config['configuration_attributes']['ranger-kafka-audit']
+  ranger_kafka_security = config['configurations']['ranger-kafka-security']
+  ranger_kafka_security_attrs = config['configuration_attributes']['ranger-kafka-security']
+  ranger_kafka_policymgr_ssl = config['configurations']['ranger-kafka-policymgr-ssl']
+  ranger_kafka_policymgr_ssl_attrs = config['configuration_attributes']['ranger-kafka-policymgr-ssl']
+
+  policy_user = config['configurations']['ranger-kafka-plugin-properties']['policy_user']
+  
+  ranger_plugin_config = {
+    'username' : config['configurations']['ranger-kafka-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
+    'password' : unicode(config['configurations']['ranger-kafka-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']),
+    'zookeeper.connect' : config['configurations']['ranger-kafka-plugin-properties']['zookeeper.connect'],
+    'commonNameForCertificate' : config['configurations']['ranger-kafka-plugin-properties']['common.name.for.certificate']
+  }
+
+  kafka_ranger_plugin_repo = {
+    'isEnabled': 'true',
+    'configs': ranger_plugin_config,
+    'description': 'kafka repo',
+    'name': repo_name,
+    'repositoryType': 'kafka',
+    'type': 'kafka',
+    'assetType': '1'
+  }
+  #For curl command in ranger plugin to get db connector
+  jdk_location = config['hostLevelParams']['jdk_location']
+  java_share_dir = '/usr/share/java'
+  if xa_audit_db_flavor and xa_audit_db_flavor == 'mysql':
+    jdbc_symlink_name = "mysql-jdbc-driver.jar"
+    jdbc_jar_name = "mysql-connector-java.jar"
+    audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
+    jdbc_driver = "com.mysql.jdbc.Driver"
+  elif xa_audit_db_flavor and xa_audit_db_flavor == 'oracle':
+    jdbc_jar_name = "ojdbc6.jar"
+    jdbc_symlink_name = "oracle-jdbc-driver.jar"
+    audit_jdbc_url = format('jdbc:oracle:thin:\@//{xa_db_host}')
+    jdbc_driver = "oracle.jdbc.OracleDriver"
+  elif xa_audit_db_flavor and xa_audit_db_flavor == 'postgres':
+    jdbc_jar_name = "postgresql.jar"
+    jdbc_symlink_name = "postgres-jdbc-driver.jar"
+    audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
+    jdbc_driver = "org.postgresql.Driver"
+  elif xa_audit_db_flavor and xa_audit_db_flavor == 'sqlserver':
+    jdbc_jar_name = "sqljdbc4.jar"
+    jdbc_symlink_name = "mssql-jdbc-driver.jar"
+    audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
+    jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+
+  downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
+
+  driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
+  driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+
+  ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
+  xa_audit_db_is_enabled = config['configurations']['ranger-kafka-audit']['xasecure.audit.destination.db'] if xml_configurations_supported else None
+  ssl_keystore_password = unicode(config['configurations']['ranger-kafka-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
+  ssl_truststore_password = unicode(config['configurations']['ranger-kafka-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
+  credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None

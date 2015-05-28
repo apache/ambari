@@ -22,6 +22,7 @@ import sys
 import upgrade
 
 from kafka import kafka
+from setup_ranger_kafka import setup_ranger_kafka
 
 class KafkaBroker(Script):
 
@@ -46,6 +47,8 @@ class KafkaBroker(Script):
     import params
     env.set_params(params)
     self.configure(env)
+    if params.is_supported_kafka_ranger:
+      setup_ranger_kafka() #Ranger Kafka Plugin related call 
     daemon_cmd = format('source {params.conf_dir}/kafka-env.sh ; {params.kafka_bin} start')
     no_op_test = format('ls {params.kafka_pid_file} >/dev/null 2>&1 && ps -p `cat {params.kafka_pid_file}` >/dev/null 2>&1')
     Execute(daemon_cmd,

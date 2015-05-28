@@ -249,6 +249,17 @@ hdp23properties.push({
   },
   {
     "id": "site property",
+    "name": "ranger-kafka-plugin-enabled",
+    "displayType": "checkbox",
+    "displayName": "Enable Ranger for KAFKA",
+    "isOverridable": false,
+    "filename": "ranger-kafka-plugin-properties.xml",
+    "category": "Advanced ranger-kafka-plugin-properties",
+    "serviceName": "KAFKA",
+    "index": 1
+  },
+  {
+    "id": "site property",
     "name": "xasecure.audit.db.is.enabled",
     "displayName": "Audit to DB",
     "displayType": "checkbox",

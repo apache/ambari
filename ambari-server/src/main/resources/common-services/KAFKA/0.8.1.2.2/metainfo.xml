@@ -76,6 +76,10 @@
         <config-type>kafka-broker</config-type>
         <config-type>kafka-env</config-type>
         <config-type>kafka-log4j</config-type>
+        <config-type>ranger-kafka-plugin-properties</config-type>
+        <config-type>ranger-kafka-audit</config-type>
+        <config-type>ranger-kafka-policymgr-ssl</config-type>
+        <config-type>ranger-kafka-security</config-type>
       </configuration-dependencies>
       <restartRequiredAfterChange>true</restartRequiredAfterChange>
     </service>

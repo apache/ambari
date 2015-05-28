@@ -60,4 +60,8 @@ if [ -e "/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar" ]; th
 fi
     </value>
   </property>
+  <property>
+    <name>is_supported_kafka_ranger</name>
+    <value>False</value>
+  </property>
 </configuration>
