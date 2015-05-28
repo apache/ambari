@@ -342,7 +342,10 @@ class ActionScheduler implements Runnable {
           if (cluster != null) {
             List<ServiceComponentHostEvent> failedEvents =
               cluster.processServiceComponentHostEvents(eventMap);
-            LOG.debug("==> {} events failed.", failedEvents.size());
+
+            if (failedEvents.size() > 0) {
+              LOG.error("==> {} events failed.", failedEvents.size());
+            }
 
             for (Iterator<ExecutionCommand> iterator = commandsToUpdate.iterator(); iterator.hasNext(); ) {
               ExecutionCommand cmd = iterator.next();

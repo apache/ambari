@@ -43,6 +43,7 @@ import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -2454,8 +2455,24 @@ public class ClusterImpl implements Cluster {
           ServiceComponent serviceComponent = service.getServiceComponent(event.getServiceComponentName());
           ServiceComponentHost serviceComponentHost = serviceComponent.getServiceComponentHost(event.getHostName());
           serviceComponentHost.handleEvent(event);
+        } catch (ServiceNotFoundException e) {
+          LOG.error(String.format("ServiceComponentHost lookup exception. Service not found for Service: %s. Error: %s",
+              serviceName, e.getMessage()));
+          e.printStackTrace();
+          failedEvents.add(event);
+        } catch (ServiceComponentNotFoundException e) {
+          LOG.error(String.format("ServiceComponentHost lookup exception. Service Component not found for Service: %s, Component: %s. Error: %s",
+              serviceName, event.getServiceComponentName(), e.getMessage()));
+          e.printStackTrace();
+          failedEvents.add(event);
+        } catch (ServiceComponentHostNotFoundException e) {
+          LOG.error(String.format("ServiceComponentHost lookup exception. Service Component Host not found for Service: %s, Component: %s, Host: %s. Error: %s",
+              serviceName, event.getServiceComponentName(), event.getHostName(), e.getMessage()));
+          e.printStackTrace();
+          failedEvents.add(event);
         } catch (AmbariException e) {
           LOG.error("ServiceComponentHost lookup exception ", e.getMessage());
+          e.printStackTrace();
           failedEvents.add(event);
         } catch (InvalidStateTransitionException e) {
           LOG.error("Invalid transition ", e);
@@ -2466,8 +2483,6 @@ public class ClusterImpl implements Cluster {
           } else {
             failedEvents.add(event);
           }
-
-
         }
       }
     } finally {
