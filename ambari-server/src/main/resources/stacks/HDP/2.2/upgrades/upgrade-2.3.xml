@@ -352,9 +352,6 @@
           </task>
           
           <task xsi:type="server_action" summary="Calculating Ranger Properties" class="org.apache.ambari.server.serveraction.upgrades.RangerConfigCalculation" />
-          <task xsi:type="manual">
-            <message>ASDFJASD;LFJKASD;LFJASD;FLKAS</message>
-          </task>
           
           <task xsi:type="configure" summary="Updating Ranger Usersync">
             <type>ranger-ugsync-site</type>
