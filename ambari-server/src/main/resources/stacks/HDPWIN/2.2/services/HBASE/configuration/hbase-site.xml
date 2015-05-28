@@ -32,14 +32,22 @@
   <property>
     <name>hbase.hregion.majorcompaction</name>
     <value>604800000</value>
-    <description>Time between major compactions, expressed in milliseconds. Set to 0 to disable
+    <description>
+      Time between major compactions, expressed in milliseconds. Set to 0 to disable
       time-based automatic major compactions. User-requested and size-based major compactions will
       still run. This value is multiplied by hbase.hregion.majorcompaction.jitter to cause
       compaction to start at a somewhat-random time during a given window of time. The default value
       is 7 days, expressed in milliseconds. If major compactions are causing disruption in your
       environment, you can configure them to run at off-peak times for your deployment, or disable
       time-based major compactions by setting this parameter to 0, and run major compactions in a
-      cron job or by another external mechanism.</description>
+      cron job or by another external mechanism.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>2592000000</maximum>
+      <unit>milliseconds</unit>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.hregion.majorcompaction.jitter</name>
@@ -60,6 +68,22 @@
     resultant flush files take a long time to compact or split, or
     worse, we OOME.
     </description>
+    <display-name>HBase Region Block Multiplier</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>2</value>
+        </entry>
+        <entry>
+          <value>4</value>
+        </entry>
+        <entry>
+          <value>8</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.bucketcache.ioengine</name>

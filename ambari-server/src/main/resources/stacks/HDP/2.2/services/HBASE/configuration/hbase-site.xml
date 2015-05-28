@@ -66,6 +66,7 @@
     resultant flush files take a long time to compact or split, or
     worse, we OOME.
     </description>
+    <display-name>HBase Region Block Multiplier</display-name>
     <value-attributes>
       <type>value-list</type>
       <entries>
