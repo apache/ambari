@@ -148,6 +148,24 @@ describe("App.MainServiceInfoConfigsController", function () {
   });
 
   describe("#hasUnsavedChanges", function () {
+    var cases = [
+      {
+        hash: null,
+        hasUnsavedChanges: false,
+        title: 'configs not rendered'
+      },
+      {
+        hash: 'hash1',
+        hasUnsavedChanges: true,
+        title: 'with unsaved'
+      },
+      {
+        hash: 'hash',
+        hasUnsavedChanges: false,
+        title: 'without unsaved'
+      }
+    ];
+
     beforeEach(function () {
       sinon.stub(mainServiceInfoConfigsController, "getHash", function () {
         return "hash"
@@ -157,14 +175,11 @@ describe("App.MainServiceInfoConfigsController", function () {
       mainServiceInfoConfigsController.getHash.restore();
     });
 
-    it("with unsaved", function () {
-      mainServiceInfoConfigsController.set("hash", "hash1");
-      expect(mainServiceInfoConfigsController.hasUnsavedChanges()).to.equal(true);
-    });
-
-    it("without unsaved", function () {
-      mainServiceInfoConfigsController.set("hash", "hash");
-      expect(mainServiceInfoConfigsController.hasUnsavedChanges()).to.equal(false);
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        mainServiceInfoConfigsController.set('hash', item.hash);
+        expect(mainServiceInfoConfigsController.hasUnsavedChanges()).to.equal(item.hasUnsavedChanges);
+      });
     });
   });
 

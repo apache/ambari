@@ -156,7 +156,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    * @method hasUnsavedChanges
    */
   hasUnsavedChanges: function () {
-    return this.get('hash') != this.getHash();
+    return !Em.isNone(this.get('hash')) && this.get('hash') != this.getHash();
   },
 
   /*********************************** 1. PRE SAVE CHECKS ************************************/
