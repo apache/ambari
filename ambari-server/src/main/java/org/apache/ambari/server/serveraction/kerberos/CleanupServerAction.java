@@ -77,8 +77,6 @@ public class CleanupServerAction extends KerberosServerAction {
     Cluster cluster = getCluster();
     if (cluster.getSecurityType().equals(SecurityType.NONE)) { // double check this is done in a non secure environment
       removeKerberosArtifact(cluster);
-      LOG.info("Kerberos descriptor removed successfully.");
-      actionLog.writeStdOut("Kerberos descriptor removed successfully.");
     }
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
@@ -104,8 +102,11 @@ public class CleanupServerAction extends KerberosServerAction {
 
     try {
       artifactProvider.deleteResources(predicate);
+      LOG.info("Kerberos descriptor removed successfully.");
+      actionLog.writeStdOut("Kerberos descriptor removed successfully.");
     } catch (NoSuchResourceException e) {
-      throw new AmbariException("Could not find the Kerberos descriptor to delete", e);
+      LOG.warn("The Kerberos descriptor was not found in the database while attempting to remove.");
+      actionLog.writeStdOut("The Kerberos descriptor was not found in the database while attempting to remove.");
     } catch (Exception e) {
       throw new AmbariException("An unknown error occurred while trying to delete the cluster Kerberos descriptor", e);
     }
