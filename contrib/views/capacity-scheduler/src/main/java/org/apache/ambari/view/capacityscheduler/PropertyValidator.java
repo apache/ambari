@@ -37,6 +37,10 @@ public class PropertyValidator implements Validator {
 
   @Override
   public ValidationResult validateProperty(String property, ViewInstanceDefinition viewInstanceDefinition, ValidationContext validationContext) {
+    if (viewInstanceDefinition.getClusterHandle() != null) {
+      return ValidationResult.SUCCESS;
+    }
+
     if (property.equals(AMBARI_SERVER_URL)) {
       String ambariServerUrl = viewInstanceDefinition.getPropertyMap().get(AMBARI_SERVER_URL);
       URL url = null;
