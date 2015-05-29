@@ -194,6 +194,8 @@ class RecoveryManager:
       status = self.statuses[component]
       if status["current"] == status["desired"]:
         return False
+      if status["desired"] not in self.allowed_desired_states:
+        return False
     else:
       status = self.statuses[component]
       if status["current"] == status["desired"] and status['stale_config'] == False:
@@ -279,7 +281,8 @@ class RecoveryManager:
             elif status["desired"] == self.INSTALLED:
               if status["current"] == self.INIT:
                 command = self.get_install_command(component)
-              # else issue a STOP command
+              elif status["current"] == self.STARTED:
+                command = self.get_stop_command(component)
           else:
             if status["current"] == self.INSTALLED:
               command = self.get_install_command(component)
@@ -523,7 +526,7 @@ class RecoveryManager:
       for command in commands:
         if self.COMMAND_TYPE in command and command[self.COMMAND_TYPE] == ActionQueue.EXECUTION_COMMAND:
           if self.ROLE in command:
-            if command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_INSTALL:
+            if command[self.ROLE_COMMAND] in (ActionQueue.ROLE_COMMAND_INSTALL, ActionQueue.ROLE_COMMAND_STOP):
               self.update_desired_status(command[self.ROLE], LiveStatus.DEAD_STATUS)
             if command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_START:
               self.update_desired_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
@@ -577,6 +580,26 @@ class RecoveryManager:
         logger.info("INSTALL command cannot be computed as details are not received from Server.")
     else:
       logger.info("Recovery is not enabled. INSTALL command will not be computed.")
+    return None
+    pass
+
+  def get_stop_command(self, component):
+    if self.paused:
+      logger.info("Recovery is paused, likely tasks waiting in pipeline for this host.")
+      return None
+
+    if self.enabled():
+      logger.debug("Using stored STOP command for %s", component)
+      if self.command_exists(component, ActionQueue.EXECUTION_COMMAND):
+        command = copy.deepcopy(self.stored_exec_commands[component])
+        command[self.ROLE_COMMAND] = "STOP"
+        command[self.COMMAND_TYPE] = ActionQueue.AUTO_EXECUTION_COMMAND
+        command[self.TASK_ID] = self.get_unique_task_id()
+        return command
+      else:
+        logger.info("STOP command cannot be computed as details are not received from Server.")
+    else:
+      logger.info("Recovery is not enabled. STOP command will not be computed.")
     return None
     pass
 

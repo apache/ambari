@@ -422,7 +422,7 @@ class ActionQueue(threading.Thread):
       else:
         component_status = LiveStatus.DEAD_STATUS
         self.controller.recovery_manager.update_current_status(component, component_status)
-        request_execution_cmd = self.controller.recovery_manager.requires_recovery(component)
+      request_execution_cmd = self.controller.recovery_manager.requires_recovery(component)
 
       if component_status_result.has_key('structuredOut'):
         component_extra = component_status_result['structuredOut']

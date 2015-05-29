@@ -316,7 +316,8 @@ class TestRecoveryManager(TestCase):
        1200, 1201, 1203,
        4000, 4001, 4002, 4003,
        4100, 4101, 4102, 4103,
-       4200, 4201, 4202]
+       4200, 4201, 4202,
+       4300, 4301, 4302]
     rm = RecoveryManager(True)
     rm.update_config(15, 5, 1, 16, True, False)
 
@@ -383,6 +384,12 @@ class TestRecoveryManager(TestCase):
     self.assertEqual(1, len(commands))
     self.assertEqual("CUSTOM_COMMAND", commands[0]["roleCommand"])
     self.assertEqual("RESTART", commands[0]["hostLevelParams"]["custom_command"])
+
+    rm.update_current_status("NODEMANAGER", "STARTED")
+    rm.update_desired_status("NODEMANAGER", "INSTALLED")
+    commands = rm.get_recovery_commands()
+    self.assertEqual(1, len(commands))
+    self.assertEqual("STOP", commands[0]["roleCommand"])
     pass
 
   @patch.object(RecoveryManager, "update_config")
