@@ -94,7 +94,8 @@ describe('App.WidgetWizardStep3Controller', function () {
         controllerName: 'widgetEditController'
       }));
       controller.initPreviewData();
-      expect(controller.addObserver.calledWith('isSharedChecked')).to.be.true;
+      controller.get('isSharedCheckboxDisabled') ? expect(controller.addObserver.calledWith('isSharedChecked')).to.be.false:
+        expect(controller.addObserver.calledWith('isSharedChecked')).to.be.true;
       expect(controller.get('widgetProperties')).to.equal('widgetProperties');
       expect(controller.get('widgetValues')).to.equal('widgetValues');
       expect(controller.get('widgetMetrics')).to.equal('widgetMetrics');

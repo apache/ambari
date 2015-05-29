@@ -92,8 +92,11 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
     this.set('widgetDescription', this.get('content.widgetDescription'));
     this.set('isSharedChecked', this.get('content.widgetScope') == 'CLUSTER');
     // on editing, don't allow changing from shared scope to unshare
-    this.set('isSharedCheckboxDisabled', this.get('content.widgetScope') == 'CLUSTER' && this.get('isEditController'));
-    this.addObserver('isSharedChecked', this, this.showConfirmationOnSharing);
+    var isSharedCheckboxDisabled = ((this.get('content.widgetScope') == 'CLUSTER') && this.get('isEditController'));
+    this.set('isSharedCheckboxDisabled', isSharedCheckboxDisabled);
+    if (!isSharedCheckboxDisabled) {
+      this.addObserver('isSharedChecked', this, this.showConfirmationOnSharing);
+    }
   },
 
   /**
