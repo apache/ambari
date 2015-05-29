@@ -70,9 +70,12 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   maxMirrorValue: function() {
     var parseFunction = this.get('mirrorValueParseFunction');
-    var max = this.widgetValueByConfigAttributes(this.get('config.stackConfigProperty.valueAttributes.maximum'));
+    var defaultGroupAttr = this.get('config.stackConfigProperty.valueAttributes');
+    var groupAttr = this.get('configGroup') && this.get('config.stackConfigProperty.valueAttributes')[this.get('configGroup.name')];
+    var maximum = (groupAttr && !Em.isNone(groupAttr['maximum'])) ? groupAttr['maximum'] : defaultGroupAttr['maximum'];
+    var max = this.widgetValueByConfigAttributes(maximum);
     return parseFunction(max);
-  }.property('config.stackConfigProperty.valueAttributes.maximum'),
+  }.property('config.stackConfigProperty.valueAttributes.maximum', 'controller.forceUpdateBoundaries'),
 
   /**
    * min allowed value transformed form config unit to widget unit
@@ -80,9 +83,12 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   minMirrorValue: function() {
     var parseFunction = this.get('mirrorValueParseFunction');
-    var min = this.widgetValueByConfigAttributes(this.get('config.stackConfigProperty.valueAttributes.minimum'));
+    var defaultGroupAttr = this.get('config.stackConfigProperty.valueAttributes');
+    var groupAttr = this.get('configGroup') && this.get('config.stackConfigProperty.valueAttributes')[this.get('configGroup.name')];
+    var minimum = (groupAttr && !Em.isNone(groupAttr['minimum'])) ? groupAttr['minimum'] : defaultGroupAttr['minimum'];
+    var min = this.widgetValueByConfigAttributes(minimum);
     return parseFunction(min);
-  }.property('config.stackConfigProperty.valueAttributes.minimum'),
+  }.property('config.stackConfigProperty.valueAttributes.minimum', 'controller.forceUpdateBoundaries'),
 
   /**
    * step transformed form config units to widget units

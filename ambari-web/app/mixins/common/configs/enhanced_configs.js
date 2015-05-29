@@ -29,6 +29,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   recommendationTimeStamp: null,
 
   /**
+   * this property is used to force update min/max values
+   * for not default config groups
+   * @type {boolean}
+   */
+  forceUpdateBoundaries: false,
+
+  /**
    * flag is true when Ambari changes some of the dependent properties
    * @type {boolean}
    */
@@ -254,13 +261,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         hosts: this.get('hostNames'),
         services: this.get('serviceNames')
       };
-      if (App.get('isClusterSupportsEnhancedConfigs') && changedConfigs) {
+      if (App.get('isClusterSupportsEnhancedConfigs')) {
         if (changedConfigs) {
           dataToSend.recommend = 'configuration-dependencies';
           dataToSend.changed_configurations = changedConfigs;
         }
         if (!this.get('selectedConfigGroup.isDefault') && this.get('selectedConfigGroup.hosts.length') > 0) {
-          var configGroups = this.buildConfigGroupJSON(this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs'), this.get('selectedConfigGroup'));
+          var configGroups = this.buildConfigGroupJSON(this.get('selectedService.configs'), this.get('selectedConfigGroup'));
           recommendations.config_groups = [configGroups];
         }
       }
@@ -271,6 +278,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         data: {
           stackVersionUrl: App.get('stackVersionURL'),
           dataToSend: dataToSend,
+          selectedConfigGroup: this.get('selectedConfigGroup.isDefault') ? null : this.get('selectedConfigGroup.name'),
           initial: initial
         },
         success: 'dependenciesSuccess',
@@ -322,7 +330,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @method dependenciesSuccess
    */
   dependenciesSuccess: function (data, opt, params) {
-    this._saveRecommendedValues(data, params.initial, params.dataToSend.changed_configurations);
+    this._saveRecommendedValues(data, params.initial, params.dataToSend.changed_configurations, params.selectedConfigGroup);
     this.set("recommendationsConfigs", Em.get(data.resources[0] , "recommendations.blueprint.configurations"));
     if (!params.initial) {
       this.updateDependentConfigs();
@@ -397,14 +405,14 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @method saveRecommendedValues
    * @private
    */
-  _saveRecommendedValues: function(data, updateOnlyBoundaries, changedConfigs) {
+  _saveRecommendedValues: function(data, updateOnlyBoundaries, changedConfigs, selectedConfigGroup) {
     Em.assert('invalid data - `data.resources[0].recommendations.blueprint.configurations` not defined ', data && data.resources[0] && Em.get(data.resources[0], 'recommendations.blueprint.configurations'));
     var configObject = data.resources[0].recommendations.blueprint.configurations;
-    this.parseConfigsByTag(configObject, updateOnlyBoundaries, changedConfigs, false);
+    this.parseConfigsByTag(configObject, updateOnlyBoundaries, changedConfigs, selectedConfigGroup);
     if (!this.get('selectedConfigGroup.isDefault') && data.resources[0].recommendations['config-groups']) {
       var configFroGroup = data.resources[0].recommendations['config-groups'][0];
-      this.parseConfigsByTag(configFroGroup.configurations, updateOnlyBoundaries, changedConfigs, true);
-      this.parseConfigsByTag(configFroGroup.dependent_configurations, updateOnlyBoundaries, changedConfigs, true);
+      this.parseConfigsByTag(configFroGroup.configurations, updateOnlyBoundaries, changedConfigs, selectedConfigGroup);
+      this.parseConfigsByTag(configFroGroup.dependent_configurations, updateOnlyBoundaries, changedConfigs, selectedConfigGroup);
     }
   },
 
@@ -412,12 +420,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * saves values from response for dependent configs to <code>_dependentConfigValues<code>
    * @param configObject - JSON response from `recommendations` endpoint
    * @param updateOnlyBoundaries
-   * @param notDefaultGroup
+   * @param selectedConfigGroup
    * @param {App.ServiceConfigProperty[]} parentConfigs - config properties for which recommendations were received
    * @method saveRecommendedValues
    * @private
    */
-  parseConfigsByTag: function(configObject, updateOnlyBoundaries, parentConfigs, notDefaultGroup) {
+  parseConfigsByTag: function(configObject, updateOnlyBoundaries, parentConfigs, selectedConfigGroup) {
+    var notDefaultGroup = !!selectedConfigGroup;
     var parentPropertiesNames = parentConfigs ? parentConfigs.mapProperty('name') : [];
     /** get all configs by config group **/
     for (var key in configObject) {
@@ -522,7 +531,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           }
         }
       }
-      this._saveRecommendedAttributes(configObject, parentPropertiesNames, updateOnlyBoundaries);
+      this._saveRecommendedAttributes(configObject, parentPropertiesNames, updateOnlyBoundaries, selectedConfigGroup);
     }
   },
 
@@ -535,7 +544,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @param updateOnlyBoundaries
    * @private
    */
-  _saveRecommendedAttributes: function(configs, parentPropertiesNames, updateOnlyBoundaries) {
+  _saveRecommendedAttributes: function(configs, parentPropertiesNames, updateOnlyBoundaries, selectedConfigGroup) {
     var self = this;
     Em.keys(configs).forEach(function (siteName) {
       var service = App.config.getServiceByConfigType(siteName);
@@ -576,7 +585,18 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
               }
             }
           } else if (stackProperty) {
-            Em.set(stackProperty.get('valueAttributes'), attributeName, attributes[attributeName]);
+            if (selectedConfigGroup) {
+              if (!stackProperty.get('valueAttributes')[selectedConfigGroup]) {
+                /** create not default group object for updating such values as min/max **/
+                Em.set(stackProperty.get('valueAttributes'), selectedConfigGroup, {});
+              }
+              if (stackProperty.get('valueAttributes')[selectedConfigGroup][attributeName] != attributes[attributeName]) {
+                Em.set(stackProperty.get('valueAttributes')[selectedConfigGroup], attributeName, attributes[attributeName]);
+                self.toggleProperty('forceUpdateBoundaries');
+              }
+            } else {
+              Em.set(stackProperty.get('valueAttributes'), attributeName, attributes[attributeName]);
+            }
           }
         });
       });

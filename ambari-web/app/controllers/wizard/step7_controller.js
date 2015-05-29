@@ -1106,6 +1106,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       this._setEditableValue(config);
       this._setOverrides(config, overrides);
     }, this);
+    this.getRecommendationsForDependencies(null, true, Em.K);
   }.observes('selectedConfigGroup'),
 
   /**
