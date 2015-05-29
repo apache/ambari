@@ -516,8 +516,9 @@ class WinServiceController:
       if waitSecs:
         win32serviceutil.WaitForServiceStatus(serviceName, win32service.SERVICE_RUNNING, waitSecs)
     except win32service.error, exc:
-      msg = "Error starting service: %s" % exc.strerror
-      err = exc.winerror
+      if exc.winerror != 1056:
+        msg = "Error starting service: %s" % exc.strerror
+        err = exc.winerror
     return err, msg
 
   @staticmethod
@@ -532,8 +533,9 @@ class WinServiceController:
         if waitSecs:
           win32serviceutil.WaitForServiceStatus(serviceName, win32service.SERVICE_STOPPED, waitSecs)
     except win32service.error, exc:
-      msg = "Error stopping service: %s (%d)" % (exc.strerror, exc.winerror)
-      err = exc.winerror
+      if exc.winerror != 1062:
+        msg = "Error stopping service: %s (%d)" % (exc.strerror, exc.winerror)
+        err = exc.winerror
     return err, msg
 
   @staticmethod
@@ -568,7 +570,8 @@ class WinServiceController:
         if waitSecs:
           win32serviceutil.WaitForServiceStatus(serviceName, win32service.SERVICE_RUNNING, waitSecs)
     except win32service.error, exc:
-      err = exc.winerror
+      if exc.winerror != 1056:
+        err = exc.winerror
     return err
 
 
