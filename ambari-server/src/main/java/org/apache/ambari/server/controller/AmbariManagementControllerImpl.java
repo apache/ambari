@@ -58,6 +58,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -762,7 +763,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private Config createConfig(Cluster cluster, String type, Map<String, String> properties,
       String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
-    Config config = configFactory.createNew (cluster, type,
+    Config config = configFactory.createNew(cluster, type,
         properties, propertiesAttributes);
 
     if (!StringUtils.isEmpty(versionTag)) {
@@ -2397,51 +2398,58 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     return response;  }
 
-  @Transactional
   void updateServiceStates(
+      Cluster cluster,
       Map<State, List<Service>> changedServices,
       Map<State, List<ServiceComponent>> changedComps,
       Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts,
       Collection<ServiceComponentHost> ignoredScHosts
   ) {
-    if (changedServices != null) {
-      for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
-        State newState = entry.getKey();
-        for (Service s : entry.getValue()) {
-          if (s.isClientOnlyService()
-              && newState == State.STARTED) {
-            continue;
+    Lock clusterWriteLock = cluster.getClusterGlobalLock().writeLock();
+
+    clusterWriteLock.lock();
+    try {
+      if (changedServices != null) {
+        for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
+          State newState = entry.getKey();
+          for (Service s : entry.getValue()) {
+            if (s.isClientOnlyService()
+                && newState == State.STARTED) {
+              continue;
+            }
+            s.setDesiredState(newState);
           }
-          s.setDesiredState(newState);
         }
       }
-    }
 
-    if (changedComps != null) {
-      for (Entry<State, List<ServiceComponent>> entry :
-          changedComps.entrySet()){
-        State newState = entry.getKey();
-        for (ServiceComponent sc : entry.getValue()) {
-          sc.setDesiredState(newState);
+      if (changedComps != null) {
+        for (Entry<State, List<ServiceComponent>> entry :
+            changedComps.entrySet()) {
+          State newState = entry.getKey();
+          for (ServiceComponent sc : entry.getValue()) {
+            sc.setDesiredState(newState);
+          }
         }
       }
-    }
 
-    for (Map<State, List<ServiceComponentHost>> stateScHostMap :
-        changedScHosts.values()) {
-      for (Entry<State, List<ServiceComponentHost>> entry :
-          stateScHostMap.entrySet()) {
-        State newState = entry.getKey();
-        for (ServiceComponentHost sch : entry.getValue()) {
-          sch.setDesiredState(newState);
+      for (Map<State, List<ServiceComponentHost>> stateScHostMap :
+          changedScHosts.values()) {
+        for (Entry<State, List<ServiceComponentHost>> entry :
+            stateScHostMap.entrySet()) {
+          State newState = entry.getKey();
+          for (ServiceComponentHost sch : entry.getValue()) {
+            sch.setDesiredState(newState);
+          }
         }
       }
-    }
 
-    if (ignoredScHosts != null) {
-      for (ServiceComponentHost scHost : ignoredScHosts) {
-        scHost.setDesiredState(scHost.getState());
+      if (ignoredScHosts != null) {
+        for (ServiceComponentHost scHost : ignoredScHosts) {
+          scHost.setDesiredState(scHost.getState());
+        }
       }
+    } finally {
+      clusterWriteLock.unlock();
     }
   }
 
@@ -2477,7 +2485,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         changedHosts, requestParameters, requestProperties,
         runSmokeTest, reconfigureClients);
 
-    updateServiceStates(changedServices, changedComponents, changedHosts, ignoredHosts);
+    updateServiceStates(cluster, changedServices, changedComponents, changedHosts, ignoredHosts);
     return requestStages;
   }
 
