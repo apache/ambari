@@ -151,6 +151,13 @@ public interface ViewContext {
   public URLStreamProvider getURLStreamProvider();
 
   /**
+   * Get a URL connection provider.
+   *
+   * @return a connection provider
+   */
+  public URLConnectionProvider getURLConnectionProvider();
+
+  /**
    * Get an Ambari stream provider.
    *
    * @return an Ambari stream provider

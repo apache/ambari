@@ -27,6 +27,7 @@ import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.server.view.configuration.ViewConfigTest;
 import org.apache.ambari.view.ResourceProvider;
+import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.cluster.Cluster;
 import org.junit.Assert;
 import org.junit.Test;
@@ -193,6 +194,30 @@ public class ViewContextImplTest {
     replay(viewRegistry);
 
     Assert.assertEquals(urlStreamProvider, viewContext.getURLStreamProvider());
+
+    verify(viewRegistry);
+  }
+
+  @Test
+  public void testGetURLConnectionProvider() throws Exception {
+    InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+    ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
+    ViewURLStreamProvider urlStreamProvider = createNiceMock(ViewURLStreamProvider.class);
+
+    ResourceProvider provider = createNiceMock(ResourceProvider.class);
+    Resource.Type type = new Resource.Type("MY_VIEW/myType");
+
+    viewInstanceDefinition.addResourceProvider(type, provider);
+
+    ViewContext viewContext = new ViewContextImpl(viewInstanceDefinition, viewRegistry);
+
+    expect(viewRegistry.createURLStreamProvider(viewContext)).andReturn(urlStreamProvider);
+
+    replay(viewRegistry);
+
+    Assert.assertEquals(urlStreamProvider, viewContext.getURLConnectionProvider());
 
     verify(viewRegistry);
   }

@@ -38,6 +38,7 @@ import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.SecurityException;
 import org.apache.ambari.view.SystemException;
+import org.apache.ambari.view.URLConnectionProvider;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewController;
 import org.apache.ambari.view.ViewDefinition;
@@ -258,6 +259,12 @@ public class ViewContextImpl implements ViewContext, ViewController {
 
   @Override
   public org.apache.ambari.view.URLStreamProvider getURLStreamProvider() {
+    ensureURLStreamProvider();
+    return streamProvider;
+  }
+
+  @Override
+  public URLConnectionProvider getURLConnectionProvider() {
     ensureURLStreamProvider();
     return streamProvider;
   }

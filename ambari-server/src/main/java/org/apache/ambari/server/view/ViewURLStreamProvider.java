@@ -20,6 +20,7 @@ package org.apache.ambari.server.view;
 
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.proxy.ProxyService;
+import org.apache.ambari.view.URLConnectionProvider;
 import org.apache.ambari.view.ViewContext;
 import org.apache.commons.io.IOUtils;
 
@@ -36,7 +37,7 @@ import java.util.Map;
 /**
  * Wrapper around an internal URL stream provider.
  */
-public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamProvider {
+public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamProvider, URLConnectionProvider {
 
   /**
    * The key for the "doAs" header.
@@ -87,7 +88,6 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
   public InputStream readAs(String spec, String requestMethod, String body, Map<String, String> headers,
                             String userName)
       throws IOException {
-
     return readFrom(addDoAs(spec, userName), requestMethod, body, headers);
   }
 
@@ -112,6 +112,55 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
     return readAs(spec, requestMethod, body, headers, viewContext.getUsername());
   }
 
+  @Override
+  public HttpURLConnection getConnection(String spec,
+                                         String requestMethod,
+                                         String body,
+                                         Map<String, String> headers) throws IOException {
+    return getHttpURLConnection(spec, requestMethod, headers, body == null ? null : body.getBytes());
+  }
+
+  @Override
+  public HttpURLConnection getConnection(String spec,
+                                         String requestMethod,
+                                         InputStream body,
+                                         Map<String, String> headers) throws IOException {
+    return getHttpURLConnection(spec, requestMethod, headers, body == null ? null : IOUtils.toByteArray(body));
+  }
+
+  @Override
+  public HttpURLConnection getConnectionAs(String spec,
+                                           String requestMethod,
+                                           String body,
+                                           Map<String, String> headers,
+                                           String userName) throws IOException {
+    return getConnection(addDoAs(spec, userName), requestMethod, body, headers);
+  }
+
+  @Override
+  public HttpURLConnection getConnectionAs(String spec,
+                                           String requestMethod,
+                                           InputStream body,
+                                           Map<String, String> headers,
+                                           String userName) throws IOException {
+    return getConnection(addDoAs(spec, userName), requestMethod, body, headers);
+  }
+
+  @Override
+  public HttpURLConnection getConnectionAsCurrent(String spec,
+                                                  String requestMethod,
+                                                  String body,
+                                                  Map<String, String> headers) throws IOException {
+    return getConnectionAs(spec, requestMethod, body, headers, viewContext.getUsername());
+  }
+
+  @Override
+  public HttpURLConnection getConnectionAsCurrent(String spec,
+                                                  String requestMethod,
+                                                  InputStream body,
+                                                  Map<String, String> headers) throws IOException {
+    return getConnectionAs(spec, requestMethod, body, headers, viewContext.getUsername());
+  }
 
   // ----- helper methods ----------------------------------------------------
 
@@ -133,18 +182,24 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
   // get the input stream response from the underlying stream provider
   private InputStream getInputStream(String spec, String requestMethod, Map<String, String> headers, byte[] info)
       throws IOException {
-    // adapt the headers to the internal URLStreamProvider processURL signature
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
-    for (Map.Entry<String, String> entry : headers.entrySet()) {
-      headerMap.put(entry.getKey(), Collections.singletonList(entry.getValue()));
-    }
-
-    HttpURLConnection connection = streamProvider.processURL(spec, requestMethod, info, headerMap);
+    HttpURLConnection connection = getHttpURLConnection(spec, requestMethod, headers, info);
 
     int responseCode = connection.getResponseCode();
 
     return responseCode >= ProxyService.HTTP_ERROR_RANGE_START ?
         connection.getErrorStream() : connection.getInputStream();
   }
-}
 
+  // get the input stream response from the underlying stream provider
+  private HttpURLConnection getHttpURLConnection(String spec, String requestMethod,
+                                                 Map<String, String> headers, byte[] info)
+      throws IOException {
+    // adapt the headers to the internal URLStreamProvider processURL signature
+    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    for (Map.Entry<String, String> entry : headers.entrySet()) {
+      headerMap.put(entry.getKey(), Collections.singletonList(entry.getValue()));
+    }
+    return streamProvider.processURL(spec, requestMethod, info, headerMap);
+  }
+
+}

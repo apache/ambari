@@ -127,9 +127,9 @@
                 <configuration>
                     <excludes>
                         <exclude>**/*.json</exclude>
-                    </excludes>
-                    <excludes>
                         <exclude>**/*.iml</exclude>
+                        <exclude>**/*.lst</exclude>
+                        <exclude>**/rat.txt</exclude>
                     </excludes>
                 </configuration>
                 <executions>
