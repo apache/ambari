@@ -22,6 +22,12 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
   templateName: require('templates/common/widget/graph_widget'),
 
   /**
+   *  type of metric query from which the widget is comprised
+   */
+
+  metricType: 'TEMPORAL',
+
+  /**
    * common metrics container
    * @type {Array}
    */
@@ -182,42 +188,6 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
         }
       }
     }, this);
-  },
-
-  /**
-   * make GET call to server in order to fetch service-component metrics
-   * @param {object} request
-   * @returns {$.ajax}
-   */
-  getServiceComponentMetrics: function (request) {
-    return App.ajax.send({
-      name: 'widgets.serviceComponent.metrics.get',
-      sender: this,
-      data: {
-        serviceName: request.service_name,
-        componentName: request.component_name,
-        metricPaths: this.addTimeProperties(request.metric_paths).join(',')
-      },
-      success: 'getMetricsSuccessCallback'
-    });
-  },
-
-  /**
-   * make GET call to server in order to fetch host-component metrics
-   * @param {object} request
-   * @returns {$.ajax}
-   */
-  getHostComponentMetrics: function (request) {
-    return App.ajax.send({
-      name: 'widgets.hostComponent.metrics.get',
-      sender: this,
-      data: {
-        componentName: request.component_name,
-        metricPaths: this.addTimeProperties(request.metric_paths).join(','),
-        hostComponentCriteria: this.computeHostComponentCriteria(request)
-      },
-      success: 'getHostComponentMetricsSuccessCallback'
-    });
   },
 
   /**

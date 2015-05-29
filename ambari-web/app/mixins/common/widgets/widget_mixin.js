@@ -21,6 +21,11 @@ var App = require('app');
 App.WidgetMixin = Ember.Mixin.create({
 
   /**
+   *  type of metric query from which the widget is comprised
+   */
+
+  metricType: 'POINT_IN_TIME',
+  /**
    * @type {RegExp}
    * @const
    */
@@ -152,9 +157,18 @@ App.WidgetMixin = Ember.Mixin.create({
         var requestMetric = $.extend({}, metric);
 
         if (requestsData[key]) {
-          requestsData[key]["metric_paths"].push(requestMetric["metric_path"]);
+          requestsData[key]["metric_paths"].push({
+            metric_path: requestMetric["metric_path"],
+            metric_type: this.get('metricType'),
+            id: requestMetric["metric_path"] + "_" + this.get('metricType'),
+            context: this
+          });
         } else {
-          requestMetric["metric_paths"] = [requestMetric["metric_path"]];
+          requestMetric["metric_paths"] = [{
+            metric_path: requestMetric["metric_path"],
+            metric_type: this.get('metricType'),
+            id: requestMetric["metric_path"] + "_" + this.get('metricType'),
+            context: this}];
           delete requestMetric["metric_path"];
           requestsData[key] = requestMetric;
         }
@@ -202,10 +216,26 @@ App.WidgetMixin = Ember.Mixin.create({
       data: {
         serviceName: request.service_name,
         componentName: request.component_name,
-        metricPaths: request.metric_paths.join(',')
+        metricPaths: this.prepareMetricPaths(request.metric_paths)
       }
     });
   },
+
+  /**
+   *  aggregate all metric names in the query. Add time range and step to temporal queries
+   */
+  prepareMetricPaths: function(metricPaths) {
+    var temporalMetrics = metricPaths.filterProperty('metric_type', 'TEMPORAL');
+    var pointInTimeMetrics = metricPaths.filterProperty('metric_type', 'POINT_IN_TIME');
+    var result = temporalMetrics.length ? temporalMetrics[0].context.addTimeProperties(temporalMetrics.mapProperty('metric_path')) : [];
+
+    if (pointInTimeMetrics.length) {
+      result = result.concat(pointInTimeMetrics.mapProperty('metric_path'));
+    }
+
+    return result.join(',');
+  },
+
 
   /**
    * make GET call to server in order to fetch specific host-component metrics
@@ -218,7 +248,7 @@ App.WidgetMixin = Ember.Mixin.create({
       sender: this,
       data: {
         componentName: request.component_name,
-        metricPaths: request.metric_paths.join(','),
+        metricPaths: this.prepareMetricPaths(request.metric_paths),
         hostComponentCriteria: this.computeHostComponentCriteria(request)
       }
     });
@@ -639,6 +669,8 @@ App.WidgetLoadAggregator = Em.Object.create({
    */
   BULK_INTERVAL: 1000,
 
+  arrayUtils: require('utils/array_utils'),
+
   /**
    * add request
    * every {{BULK_INTERVAL}} requests get collected, aggregated and sent to server
@@ -699,10 +731,10 @@ App.WidgetLoadAggregator = Em.Object.create({
    */
   runRequests: function (requests) {
     var bulks = this.groupRequests(requests);
-
+    var self = this;
     for (var id in bulks) {
       (function (_request) {
-        _request.data.metric_paths = _request.data.metric_paths.uniq();
+        _request.data.metric_paths = self.arrayUtils.uniqObjectsbyId(_request.data.metric_paths, "id");
         _request.context[_request.startCallName].call(_request.context, _request.data).done(function (response) {
           _request.subRequests.forEach(function (subRequest) {
             subRequest.successCallback.call(subRequest.context, response);
