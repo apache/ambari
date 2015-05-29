@@ -289,6 +289,8 @@
             <!--Jinja2 library (BSD license)-->
             <exclude>ambari-common/src/main/python/ambari_jinja2/**</exclude>
             <exclude>ambari-common/src/main/python/jinja2/**</exclude>
+            <!--Simplejson library (MIT license)-->
+            <exclude>ambari-common/src/main/python/ambari_simplejson/**</exclude>
 
             <exclude>ambari-web/node_modules/**</exclude>
 
