@@ -558,6 +558,23 @@ public class AlertDispatchDAO {
   }
 
   /**
+   * Persists new alert notices.
+   *
+   * @param entities
+   *          the targets to persist (not {@code null}).
+   */
+  @Transactional
+  public void createNotices(List<AlertNoticeEntity> entities) {
+    if (null == entities) {
+      return;
+    }
+
+    for (AlertNoticeEntity entity : entities) {
+      create(entity);
+    }
+  }
+
+  /**
    * Persists a new alert target.
    *
    * @param alertTarget

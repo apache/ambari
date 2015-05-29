@@ -533,6 +533,7 @@ public class AlertResourceProviderTest {
       expect(configuration.getDatabaseDriver()).andReturn(JDBC_IN_MEMROY_DRIVER).anyTimes();
       expect(configuration.getDatabaseUser()).andReturn("test").anyTimes();
       expect(configuration.getDatabasePassword()).andReturn("test").anyTimes();
+      expect(configuration.getAlertEventPublisherPoolSize()).andReturn(Integer.valueOf(Configuration.ALERTS_EXECUTION_SCHEDULER_THREADS_DEFAULT)).anyTimes();
       replay(configuration);
     }
   }

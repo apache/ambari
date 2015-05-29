@@ -110,7 +110,7 @@ public class AlertStateChangedEventTest {
         dispatchDao.findGroupsByDefinition(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
         groups).once();
 
-    dispatchDao.create(EasyMock.anyObject(AlertNoticeEntity.class));
+    dispatchDao.createNotices(EasyMock.<List<AlertNoticeEntity>>anyObject());
     EasyMock.expectLastCall().once();
 
     EasyMock.replay(alertTarget, alertGroup, dispatchDao);
@@ -162,6 +162,8 @@ public class AlertStateChangedEventTest {
     EasyMock.expect(
         dispatchDao.findGroupsByDefinition(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
         groups).once();
+
+    dispatchDao.createNotices(EasyMock.<List<AlertNoticeEntity>>anyObject());
 
     // dispatchDao should be strict enough to throw an exception on verify
     // that the create alert notice method was not called

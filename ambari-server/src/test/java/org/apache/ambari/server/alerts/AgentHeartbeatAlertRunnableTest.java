@@ -44,6 +44,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -219,6 +220,7 @@ public class AgentHeartbeatAlertRunnableTest {
       Cluster cluster = EasyMock.createNiceMock(Cluster.class);
 
       binder.bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
+      binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
       binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
       binder.bind(Cluster.class).toInstance(cluster);
       binder.bind(AlertDefinitionDAO.class).toInstance(createNiceMock(AlertDefinitionDAO.class));

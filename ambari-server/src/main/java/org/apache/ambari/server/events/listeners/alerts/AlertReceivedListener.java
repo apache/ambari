@@ -19,6 +19,7 @@ package org.apache.ambari.server.events.listeners.alerts;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
@@ -28,6 +29,7 @@ import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
 import org.apache.ambari.server.events.InitialAlertEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
@@ -100,12 +102,20 @@ public class AlertReceivedListener {
    */
   @Subscribe
   @AllowConcurrentEvents
+  @RequiresSession
   public void onAlertEvent(AlertReceivedEvent event) {
     if (LOG.isDebugEnabled()) {
       LOG.debug(event.toString());
     }
 
     Alert alert = event.getAlert();
+
+    // jobs that were running when a service/component/host was changed
+    // which invalidate the alert should not be reported
+    if (!isValid(alert)) {
+      return;
+    }
+
     long clusterId = event.getClusterId();
 
     AlertDefinitionEntity definition = m_definitionDao.findByName(clusterId,
@@ -129,13 +139,7 @@ public class AlertReceivedListener {
       return;
     }
 
-    // jobs that were running when a service/component/host was changed
-    // which invalidate the alert should not be reported
-    if (!isValid(alert)) {
-      return;
-    }
-
-    AlertCurrentEntity current = null;
+    AlertCurrentEntity current;
 
     if (StringUtils.isBlank(alert.getHostName()) || definition.isHostIgnored()) {
       current = m_alertsDao.findCurrentByNameNoHost(clusterId, alert.getName());
@@ -151,7 +155,7 @@ public class AlertReceivedListener {
       current.setMaintenanceState(MaintenanceState.OFF);
       current.setAlertHistory(history);
       current.setLatestTimestamp(alert.getTimestamp());
-      current.setOriginalTimestamp(Long.valueOf(alert.getTimestamp()));
+      current.setOriginalTimestamp(alert.getTimestamp());
       m_alertsDao.create(current);
 
       // broadcast the initial alert being received
@@ -162,7 +166,7 @@ public class AlertReceivedListener {
     } else if (alert.getState() == current.getAlertHistory().getAlertState()) {
       current.setLatestTimestamp(alert.getTimestamp());
       current.setLatestText(alert.getText());
-      current = m_alertsDao.merge(current);
+      m_alertsDao.merge(current);
     } else {
       if (LOG.isDebugEnabled()) {
         LOG.debug(
@@ -179,16 +183,11 @@ public class AlertReceivedListener {
       AlertHistoryEntity history = createHistory(clusterId,
           oldHistory.getAlertDefinition(), alert);
 
-      // manually create the new history entity since we are merging into
-      // an existing current entity
-      m_alertsDao.create(history);
-
-      current.setAlertHistory(history);
-      current.setLatestTimestamp(Long.valueOf(alert.getTimestamp()));
-      current.setOriginalTimestamp(Long.valueOf(alert.getTimestamp()));
+      current.setLatestTimestamp(alert.getTimestamp());
+      current.setOriginalTimestamp(alert.getTimestamp());
       current.setLatestText(alert.getText());
 
-      current = m_alertsDao.merge(current);
+      current = m_alertsDao.mergeAlertCurrentWithAlertHistory(current, history);
 
       if (LOG.isDebugEnabled()) {
         LOG.debug(
@@ -252,58 +251,26 @@ public class AlertReceivedListener {
       return false;
     }
 
-    Map<String, Service> services = cluster.getServices();
-    Service service = services.get(serviceName);
-    if (null == service) {
-      LOG.error("Unable to process alert {} for an invalid service named {}",
-          alert.getName(), serviceName);
-
-      return false;
-    }
-
     if (StringUtils.isNotBlank(hostName)) {
-      List<Host> hosts = m_clusters.get().getHosts();
-      if (null == hosts) {
+      // if valid hostname
+      if (!m_clusters.get().hostExists(hostName)) {
         LOG.error("Unable to process alert {} for an invalid host named {}",
             alert.getName(), hostName);
+        return false;
+      }
+      if (!cluster.getServices().containsKey(serviceName)) {
+        LOG.error("Unable to process alert {} for an invalid service named {}",
+            alert.getName(), serviceName);
 
         return false;
       }
-
-      boolean validHost = false;
-      for (Host host : hosts) {
-        if (hostName.equals(host.getHostName())) {
-          validHost = true;
-          break;
-        }
-      }
-
-      if (!validHost) {
-        LOG.error("Unable to process alert {} for an invalid host named {}",
-            alert.getName(), hostName);
-
-        return false;
-      }
-    }
-
-    // if the alert is for a host/component then verify that the component
-    // is actually installed on that host
-    if (StringUtils.isNotBlank(hostName) && null != componentName) {
-      boolean validServiceComponentHost = false;
-      List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts(hostName);
-
-      for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
-        if (componentName.equals(serviceComponentHost.getServiceComponentName())) {
-          validServiceComponentHost = true;
-          break;
-        }
-      }
-
-      if (!validServiceComponentHost) {
-        LOG.warn(
+      // if the alert is for a host/component then verify that the component
+      // is actually installed on that host
+      if (null != componentName &&
+          !cluster.getHosts(serviceName, componentName).contains(hostName)) {
+        LOG.error(
             "Unable to process alert {} for an invalid service {} and component {} on host {}",
             alert.getName(), serviceName, componentName, hostName);
-
         return false;
       }
     }

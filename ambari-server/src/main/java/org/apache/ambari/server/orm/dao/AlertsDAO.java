@@ -717,6 +717,27 @@ public class AlertsDAO {
   }
 
   /**
+   * Merge the specified current alert with the history and
+   * the existing alert in the database in a single transaction.
+   *
+   * @param alert
+   *          the current alert to merge (not {@code null}).
+   * @param history
+   *          the history to set to alert (not {@code null}).
+   * @return the updated current alert with merged content (never @code null}).
+   */
+  @Transactional
+  public AlertCurrentEntity mergeAlertCurrentWithAlertHistory(
+      AlertCurrentEntity alert, AlertHistoryEntity history) {
+
+    // manually create the new history entity since we are merging into
+    // an existing current entity
+    create(history);
+    alert.setAlertHistory(history);
+    return merge(alert);
+  }
+
+  /**
    * Removes the specified current alert from the database.
    *
    * @param alert
@@ -771,25 +792,6 @@ public class AlertsDAO {
     query.setParameter("definitionName", alertName);
 
     return daoUtils.selectOne(query);
-  }
-
-  /**
-   * Sets {@link QueryHints#REFRESH} on the specified query so that child
-   * entities are not stale.
-   * <p/>
-   * See <a
-   * href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=398067">https://bugs
-   * .eclipse.org/bugs/show_bug.cgi?id=398067</a>
-   *
-   * @param query
-   * @return
-   */
-  private <T> TypedQuery<T> setQueryRefreshHint(TypedQuery<T> query) {
-    // !!! https://bugs.eclipse.org/bugs/show_bug.cgi?id=398067
-    // ensure that an associated entity with a JOIN is not stale; this causes
-    // the associated AlertHistoryEntity to be stale
-    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
-    return query;
   }
 
   /**

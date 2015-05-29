@@ -80,6 +80,13 @@ public interface Clusters {
   public Host getHost(String hostname) throws AmbariException;
 
   /**
+   * Check if host exists
+   * @param hostname Name of the host requested
+   * @return is host exists
+   */
+  public boolean hostExists(String hostname);
+
+  /**
    * Get a Host object managed by this server
    * @param hostId Host Id from the {@link org.apache.ambari.server.orm.entities.HostEntity} objecty
    * @return Host object

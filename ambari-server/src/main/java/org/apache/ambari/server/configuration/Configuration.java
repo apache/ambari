@@ -379,6 +379,9 @@ public class Configuration {
    */
   private static final String ALERT_TEMPLATE_FILE = "alerts.template.file";
 
+  public static final String ALERTS_EXECUTION_SCHEDULER_THREADS_KEY = "alerts.execution.scheduler.maxThreads";
+  public static final String ALERTS_EXECUTION_SCHEDULER_THREADS_DEFAULT = "2";
+
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
 
@@ -1182,7 +1185,7 @@ public class Configuration {
 
   public int getOneWayAuthPort() {
     return Integer.parseInt(properties.getProperty(SRVR_ONE_WAY_SSL_PORT_KEY,
-                                                   String.valueOf(SRVR_ONE_WAY_SSL_PORT_DEFAULT)));
+        String.valueOf(SRVR_ONE_WAY_SSL_PORT_DEFAULT)));
   }
 
   public int getTwoWayAuthPort() {
@@ -1283,7 +1286,7 @@ public class Configuration {
 
   public Integer getRequestReadTimeout() {
     return Integer.parseInt(properties.getProperty(REQUEST_READ_TIMEOUT,
-                                                   REQUEST_READ_TIMEOUT_DEFAULT));
+        REQUEST_READ_TIMEOUT_DEFAULT));
   }
 
   public Integer getRequestConnectTimeout() {
@@ -1293,7 +1296,7 @@ public class Configuration {
 
   public String getExecutionSchedulerConnections() {
     return properties.getProperty(EXECUTION_SCHEDULER_CONNECTIONS,
-                                  DEFAULT_SCHEDULER_MAX_CONNECTIONS);
+        DEFAULT_SCHEDULER_MAX_CONNECTIONS);
   }
 
   public Long getExecutionSchedulerMisfireToleration() {
@@ -1431,6 +1434,14 @@ public class Configuration {
    */
   public String getAlertTemplateFile() {
     return properties.getProperty(ALERT_TEMPLATE_FILE);
+  }
+
+  /**
+   * @return max thread pool size for AlertEventPublisher, default 2
+   */
+  public int getAlertEventPublisherPoolSize() {
+    return Integer.parseInt(properties.getProperty(
+        ALERTS_EXECUTION_SCHEDULER_THREADS_KEY, ALERTS_EXECUTION_SCHEDULER_THREADS_DEFAULT));
   }
 
   /**

@@ -343,6 +343,13 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
+  public boolean hostExists(String hostname){
+    checkLoaded();
+
+    return hosts.containsKey(hostname);
+  }
+
+  @Override
   public Host getHostById(Long hostId) throws AmbariException {
     checkLoaded();
 

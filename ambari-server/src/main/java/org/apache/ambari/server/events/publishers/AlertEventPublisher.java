@@ -23,6 +23,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.inject.Inject;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.AlertEvent;
 
 import com.google.common.eventbus.AsyncEventBus;
@@ -49,10 +51,12 @@ public final class AlertEventPublisher {
   /**
    * Constructor.
    */
-  public AlertEventPublisher() {
+  @Inject
+  public AlertEventPublisher(Configuration config) {
     // create a fixed executor that is unbounded for now and will run rejected
     // requests in the calling thread to prevent loss of alert handling
-    ThreadPoolExecutor executor = new ThreadPoolExecutor(2, 2, 0L,
+    int poolsize = config.getAlertEventPublisherPoolSize();
+    ThreadPoolExecutor executor = new ThreadPoolExecutor(2, poolsize, 0L,
         TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(),
         new AlertEventBusThreadFactory(),
         new ThreadPoolExecutor.CallerRunsPolicy());

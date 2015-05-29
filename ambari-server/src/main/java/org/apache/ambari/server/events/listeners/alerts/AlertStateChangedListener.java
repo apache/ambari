@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.events.listeners.alerts;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -119,7 +120,7 @@ public class AlertStateChangedListener {
     }
 
     List<AlertGroupEntity> groups = m_alertsDispatchDao.findGroupsByDefinition(definition);
-
+    List<AlertNoticeEntity> notices = new LinkedList<AlertNoticeEntity>();
     // for each group, determine if there are any targets that need to receive
     // a notification about the alert state change event
     for (AlertGroupEntity group : groups) {
@@ -138,10 +139,10 @@ public class AlertStateChangedListener {
         notice.setAlertTarget(target);
         notice.setAlertHistory(event.getNewHistoricalEntry());
         notice.setNotifyState(NotificationState.PENDING);
-
-        m_alertsDispatchDao.create(notice);
+        notices.add(notice);
       }
     }
+    m_alertsDispatchDao.createNotices(notices);
   }
 
   /**
