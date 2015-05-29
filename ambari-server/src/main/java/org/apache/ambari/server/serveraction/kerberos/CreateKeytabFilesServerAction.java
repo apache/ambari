@@ -150,13 +150,19 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
 
     if (identityRecord != null) {
       String message;
+      String dataDirectory = getDataDirectoryPath();
 
       if (operationHandler == null) {
         message = String.format("Failed to create keytab file for %s, missing KerberosOperationHandler", evaluatedPrincipal);
         actionLog.writeStdErr(message);
         LOG.error(message);
         commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
-      } else {
+      } else if (dataDirectory == null) {
+        message = "The data directory has not been set. Generated keytab files can not be stored.";
+        LOG.error(message);
+        commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+      }
+      else {
         Map<String, String> principalPasswordMap = getPrincipalPasswordMap(requestSharedDataContext);
         Map<String, Integer> principalKeyNumberMap = getPrincipalKeyNumberMap(requestSharedDataContext);
 
@@ -178,7 +184,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
 
             // Determine where to store the keytab file.  It should go into a host-specific
             // directory under the previously determined data directory.
-            File hostDirectory = new File(getDataDirectoryPath(), hostName);
+            File hostDirectory = new File(dataDirectory, hostName);
 
             // Ensure the host directory exists...
             if (!hostDirectory.exists() && hostDirectory.mkdirs()) {

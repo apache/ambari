@@ -81,6 +81,17 @@ public interface Cluster {
   List<ServiceComponentHost> getServiceComponentHosts(String hostname);
 
   /**
+   * Get all ServiceComponentHosts for a given service and optional component
+   *
+   * If the component name is <code>null</code>, all components for the requested service will be returned.
+   *
+   * @param serviceName the name a the desired service
+   * @param componentName the name a the desired component - null indicates all components for the service
+   * @return a list of found ServiceComponentHost instances
+   */
+  List<ServiceComponentHost> getServiceComponentHosts(String serviceName, String componentName);
+
+  /**
    * Get all hosts associated with this cluster.
    *
    * @return collection of hosts that are associated with this cluster

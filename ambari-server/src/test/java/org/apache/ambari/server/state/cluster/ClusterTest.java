@@ -740,6 +740,80 @@ public class ClusterTest {
   }
 
   @Test
+  public void testGetServiceComponentHosts_ForService() throws Exception {
+    createDefaultCluster();
+
+    Service s = serviceFactory.createNew(c1, "HDFS");
+    c1.addService(s);
+    s.persist();
+
+    ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
+    s.addServiceComponent(scNN);
+    scNN.persist();
+    ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
+    scNN.addServiceComponentHost(schNNH1);
+    schNNH1.persist();
+
+    ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE");
+    s.addServiceComponent(scDN);
+    scDN.persist();
+    ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
+    scDN.addServiceComponentHost(scDNH1);
+    scDNH1.persist();
+    ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
+    scDN.addServiceComponentHost(scDNH2);
+    scDNH2.persist();
+
+    List<ServiceComponentHost> scHosts;
+
+    scHosts = c1.getServiceComponentHosts("HDFS", null);
+    Assert.assertEquals(3, scHosts.size());
+
+    scHosts = c1.getServiceComponentHosts("UNKNOWN SERVICE", null);
+    Assert.assertEquals(0, scHosts.size());
+  }
+
+  @Test
+  public void testGetServiceComponentHosts_ForServiceComponent() throws Exception {
+    createDefaultCluster();
+
+    Service s = serviceFactory.createNew(c1, "HDFS");
+    c1.addService(s);
+    s.persist();
+
+    ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
+    s.addServiceComponent(scNN);
+    scNN.persist();
+    ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
+    scNN.addServiceComponentHost(schNNH1);
+    schNNH1.persist();
+
+    ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE");
+    s.addServiceComponent(scDN);
+    scDN.persist();
+    ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
+    scDN.addServiceComponentHost(scDNH1);
+    scDNH1.persist();
+    ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
+    scDN.addServiceComponentHost(scDNH2);
+    scDNH2.persist();
+
+    List<ServiceComponentHost> scHosts;
+
+    scHosts = c1.getServiceComponentHosts("HDFS", "DATANODE");
+    Assert.assertEquals(2, scHosts.size());
+
+    scHosts = c1.getServiceComponentHosts("HDFS", "UNKNOWN COMPONENT");
+    Assert.assertEquals(0, scHosts.size());
+
+    scHosts = c1.getServiceComponentHosts("UNKNOWN SERVICE", "DATANODE");
+    Assert.assertEquals(0, scHosts.size());
+
+    scHosts = c1.getServiceComponentHosts("UNKNOWN SERVICE", "UNKNOWN COMPONENT");
+    Assert.assertEquals(0, scHosts.size());
+  }
+
+  @Test
   public void testGetAndSetConfigs() throws Exception {
     createDefaultCluster();
 

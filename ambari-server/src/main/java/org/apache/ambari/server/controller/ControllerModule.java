@@ -284,6 +284,7 @@ public class ControllerModule extends AbstractModule {
     bind(KerberosOperationHandlerFactory.class);
     bind(KerberosDescriptorFactory.class);
     bind(KerberosServiceDescriptorFactory.class);
+    bind(KerberosHelper.class).to(KerberosHelperImpl.class);
 
     bind(Configuration.class).toInstance(configuration);
     bind(OsFamily.class).toInstance(os_family);

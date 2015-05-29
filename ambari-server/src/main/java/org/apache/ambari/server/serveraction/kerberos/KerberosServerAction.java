@@ -70,6 +70,15 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   public static final String DEFAULT_REALM = "default_realm";
 
   /**
+   * A (command parameter) property name used to hold the (serialized) service/component filter map.
+   */
+  public static final String SERVICE_COMPONENT_FILTER = "service_component_filter";
+
+  /**
+   * A (command parameter) property name used to hold the (serialized) identity filter list.
+   */
+  public static final String IDENTITY_FILTER = "identity_filter";
+  /**
    * A (command parameter) property name used to hold the relevant KDC type value.  See
    * {@link org.apache.ambari.server.serveraction.kerberos.KDCType} for valid values
    */

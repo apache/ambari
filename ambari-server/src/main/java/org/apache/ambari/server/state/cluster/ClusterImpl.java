@@ -797,6 +797,30 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  public List<ServiceComponentHost> getServiceComponentHosts(String serviceName, String componentName) {
+    ArrayList<ServiceComponentHost> foundItems = new ArrayList<ServiceComponentHost>();
+
+    loadServiceHostComponents();
+    clusterGlobalLock.readLock().lock();
+    try {
+      Map<String, Map<String, ServiceComponentHost>> foundByService = serviceComponentHosts.get(serviceName);
+      if (foundByService != null) {
+        if (componentName == null) {
+          for(Map<String, ServiceComponentHost> foundByComponent :foundByService.values()) {
+            foundItems.addAll(foundByComponent.values());
+          }
+        } else if (foundByService.containsKey(componentName)) {
+          foundItems.addAll(foundByService.get(componentName).values());
+        }
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+
+    return foundItems;
+  }
+
+  @Override
   public void addService(Service service)
     throws AmbariException {
     loadServices();

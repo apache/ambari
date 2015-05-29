@@ -1095,75 +1095,78 @@ public class HeartBeatHandler {
    * @throws AmbariException
    */
   void injectKeytab(ExecutionCommand ec, String command, String targetHost) throws AmbariException {
-    List<Map<String, String>> kcp = ec.getKerberosCommandParams();
     String dataDir = ec.getCommandParams().get(KerberosServerAction.DATA_DIRECTORY);
-    KerberosIdentityDataFileReader reader = null;
 
-    try {
-      reader = kerberosIdentityDataFileReaderFactory.createKerberosIdentityDataFileReader(new File(dataDir, KerberosIdentityDataFileReader.DATA_FILE_NAME));
+    if(dataDir != null) {
+      KerberosIdentityDataFileReader reader = null;
+      List<Map<String, String>> kcp = ec.getKerberosCommandParams();
 
-      for (Map<String, String> record : reader) {
-        String hostName = record.get(KerberosIdentityDataFileReader.HOSTNAME);
+      try {
+        reader = kerberosIdentityDataFileReaderFactory.createKerberosIdentityDataFileReader(new File(dataDir, KerberosIdentityDataFileReader.DATA_FILE_NAME));
 
-        if (targetHost.equalsIgnoreCase(hostName)) {
+        for (Map<String, String> record : reader) {
+          String hostName = record.get(KerberosIdentityDataFileReader.HOSTNAME);
 
-          if ("SET_KEYTAB".equalsIgnoreCase(command)) {
-            String keytabFilePath = record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
+          if (targetHost.equalsIgnoreCase(hostName)) {
 
-            if (keytabFilePath != null) {
+            if ("SET_KEYTAB".equalsIgnoreCase(command)) {
+              String keytabFilePath = record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
 
-              String sha1Keytab = DigestUtils.sha1Hex(keytabFilePath);
-              File keytabFile = new File(dataDir + File.separator + hostName + File.separator + sha1Keytab);
+              if (keytabFilePath != null) {
 
-              if (keytabFile.canRead()) {
-                Map<String, String> keytabMap = new HashMap<String, String>();
-                String principal = record.get(KerberosIdentityDataFileReader.PRINCIPAL);
-                String isService = record.get(KerberosIdentityDataFileReader.SERVICE);
+                String sha1Keytab = DigestUtils.sha1Hex(keytabFilePath);
+                File keytabFile = new File(dataDir + File.separator + hostName + File.separator + sha1Keytab);
 
-                keytabMap.put(KerberosIdentityDataFileReader.HOSTNAME, hostName);
-                keytabMap.put(KerberosIdentityDataFileReader.SERVICE, isService);
-                keytabMap.put(KerberosIdentityDataFileReader.COMPONENT, record.get(KerberosIdentityDataFileReader.COMPONENT));
-                keytabMap.put(KerberosIdentityDataFileReader.PRINCIPAL, principal);
-                keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH, keytabFilePath);
-                keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_NAME, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_NAME));
-                keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_ACCESS, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_ACCESS));
-                keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_NAME, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_NAME));
-                keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_ACCESS, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_ACCESS));
+                if (keytabFile.canRead()) {
+                  Map<String, String> keytabMap = new HashMap<String, String>();
+                  String principal = record.get(KerberosIdentityDataFileReader.PRINCIPAL);
+                  String isService = record.get(KerberosIdentityDataFileReader.SERVICE);
 
-                BufferedInputStream bufferedIn = new BufferedInputStream(new FileInputStream(keytabFile));
-                byte[] keytabContent = IOUtils.toByteArray(bufferedIn);
-                String keytabContentBase64 = Base64.encodeBase64String(keytabContent);
-                keytabMap.put(KerberosServerAction.KEYTAB_CONTENT_BASE64, keytabContentBase64);
+                  keytabMap.put(KerberosIdentityDataFileReader.HOSTNAME, hostName);
+                  keytabMap.put(KerberosIdentityDataFileReader.SERVICE, isService);
+                  keytabMap.put(KerberosIdentityDataFileReader.COMPONENT, record.get(KerberosIdentityDataFileReader.COMPONENT));
+                  keytabMap.put(KerberosIdentityDataFileReader.PRINCIPAL, principal);
+                  keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH, keytabFilePath);
+                  keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_NAME, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_NAME));
+                  keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_ACCESS, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_ACCESS));
+                  keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_NAME, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_NAME));
+                  keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_ACCESS, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_ACCESS));
 
-                kcp.add(keytabMap);
+                  BufferedInputStream bufferedIn = new BufferedInputStream(new FileInputStream(keytabFile));
+                  byte[] keytabContent = IOUtils.toByteArray(bufferedIn);
+                  String keytabContentBase64 = Base64.encodeBase64String(keytabContent);
+                  keytabMap.put(KerberosServerAction.KEYTAB_CONTENT_BASE64, keytabContentBase64);
+
+                  kcp.add(keytabMap);
+                }
               }
+            } else if ("REMOVE_KEYTAB".equalsIgnoreCase(command)) {
+              Map<String, String> keytabMap = new HashMap<String, String>();
+
+              keytabMap.put(KerberosIdentityDataFileReader.HOSTNAME, hostName);
+              keytabMap.put(KerberosIdentityDataFileReader.SERVICE, record.get(KerberosIdentityDataFileReader.SERVICE));
+              keytabMap.put(KerberosIdentityDataFileReader.COMPONENT, record.get(KerberosIdentityDataFileReader.COMPONENT));
+              keytabMap.put(KerberosIdentityDataFileReader.PRINCIPAL, record.get(KerberosIdentityDataFileReader.PRINCIPAL));
+              keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH));
+
+              kcp.add(keytabMap);
             }
-          } else if ("REMOVE_KEYTAB".equalsIgnoreCase(command)) {
-            Map<String, String> keytabMap = new HashMap<String, String>();
-
-            keytabMap.put(KerberosIdentityDataFileReader.HOSTNAME, hostName);
-            keytabMap.put(KerberosIdentityDataFileReader.SERVICE, record.get(KerberosIdentityDataFileReader.SERVICE));
-            keytabMap.put(KerberosIdentityDataFileReader.COMPONENT, record.get(KerberosIdentityDataFileReader.COMPONENT));
-            keytabMap.put(KerberosIdentityDataFileReader.PRINCIPAL, record.get(KerberosIdentityDataFileReader.PRINCIPAL));
-            keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH));
-
-            kcp.add(keytabMap);
+          }
+        }
+      } catch (IOException e) {
+        throw new AmbariException("Could not inject keytabs to enable kerberos");
+      } finally {
+        if (reader != null) {
+          try {
+            reader.close();
+          } catch (Throwable t) {
+            // ignored
           }
         }
       }
-    } catch (IOException e) {
-      throw new AmbariException("Could not inject keytabs to enable kerberos");
-    }  finally {
-      if (reader != null) {
-        try {
-          reader.close();
-        } catch (Throwable t) {
-          // ignored
-        }
-      }
-    }
 
-    ec.setKerberosCommandParams(kcp);
+      ec.setKerberosCommandParams(kcp);
+    }
   }
 
   /**

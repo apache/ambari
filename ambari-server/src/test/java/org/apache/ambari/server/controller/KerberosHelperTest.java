@@ -113,15 +113,19 @@ public class KerberosHelperTest extends EasyMockSupport {
   private final ClusterController clusterController = createStrictMock(ClusterController.class);
   private final KerberosDescriptorFactory kerberosDescriptorFactory = createStrictMock(KerberosDescriptorFactory.class);
   private final KerberosConfigDataFileWriterFactory kerberosConfigDataFileWriterFactory = createStrictMock(KerberosConfigDataFileWriterFactory.class);
-  private final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
-  private final TopologyManager topologyManager = createNiceMock(TopologyManager.class);
+  private final AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
+  private final TopologyManager topologyManager = createMock(TopologyManager.class);
 
   @Before
   public void setUp() throws Exception {
     reset(clusterController);
     reset(metaInfo);
 
-    final KerberosOperationHandlerFactory kerberosOperationHandlerFactory = createNiceMock(KerberosOperationHandlerFactory.class);
+    final KerberosOperationHandlerFactory kerberosOperationHandlerFactory = createMock(KerberosOperationHandlerFactory.class);
+
+    expect(kerberosOperationHandlerFactory.getKerberosOperationHandler(KDCType.NONE))
+        .andReturn(null)
+        .anyTimes();
 
     expect(kerberosOperationHandlerFactory.getKerberosOperationHandler(KDCType.MIT_KDC))
         .andReturn(new KerberosOperationHandler() {
@@ -183,6 +187,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(KerberosDescriptorFactory.class).toInstance(kerberosDescriptorFactory);
         bind(KerberosConfigDataFileWriterFactory.class).toInstance(kerberosConfigDataFileWriterFactory);
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+        bind(KerberosHelper.class).to(KerberosHelperImpl.class);
       }
     });
 
@@ -215,11 +220,11 @@ public class KerberosHelperTest extends EasyMockSupport {
   public void testMissingKrb5Conf() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
-    final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
+    final Map<String, String> kerberosEnvProperties = createMock(Map.class);
     expect(kerberosEnvProperties.get("ldap_url")).andReturn("").once();
     expect(kerberosEnvProperties.get("container_dn")).andReturn("").once();
 
-    final Config kerberosEnvConfig = createNiceMock(Config.class);
+    final Config kerberosEnvConfig = createMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).once();
 
     final Cluster cluster = createNiceMock(Cluster.class);
@@ -234,14 +239,14 @@ public class KerberosHelperTest extends EasyMockSupport {
   public void testMissingKerberosEnvConf() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
-    final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
+    final Map<String, String> kerberosEnvProperties = createMock(Map.class);
     expect(kerberosEnvProperties.get("realm")).andReturn("EXAMPLE.COM").once();
     expect(kerberosEnvProperties.get("kdc_host")).andReturn("10.0.100.1").once();
 
-    final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
+    final Map<String, String> krb5ConfProperties = createMock(Map.class);
     expect(krb5ConfProperties.get("kadmin_host")).andReturn("10.0.100.1").once();
 
-    final Config krb5ConfConfig = createNiceMock(Config.class);
+    final Config krb5ConfConfig = createMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
 
     final Cluster cluster = createNiceMock(Cluster.class);
@@ -849,27 +854,9 @@ public class KerberosHelperTest extends EasyMockSupport {
                                   boolean getStackDescriptor) throws Exception {
 
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+    boolean identitiesManaged = (manageIdentities == null) || !"false".equalsIgnoreCase(manageIdentities);
 
-    KerberosConfigDataFileWriter kerberosConfigDataFileWriter = createMock(KerberosConfigDataFileWriter.class);
-    kerberosConfigDataFileWriter.addRecord("cluster-env", "security_enabled", "true", "SET");
-    expectLastCall().times(1);
-    kerberosConfigDataFileWriter.addRecord("service1-site", "component1.kerberos.principal", "component1/_HOST@${realm}", "SET");
-    expectLastCall().times(1);
-    kerberosConfigDataFileWriter.addRecord("service1-site", "component1.keytab.file", "${keytab_dir}/service1.keytab", "SET");
-    expectLastCall().times(1);
-    kerberosConfigDataFileWriter.addRecord("service2-site", "component2.kerberos.principal", "component2/host1@${realm}", "SET");
-    expectLastCall().times(1);
-    kerberosConfigDataFileWriter.addRecord("service2-site", "component2.keytab.file", "${keytab_dir}/service2.keytab", "SET");
-    expectLastCall().times(1);
-    kerberosConfigDataFileWriter.close();
-    expectLastCall().times(1);
-
-    KerberosConfigDataFileWriterFactory factory = injector.getInstance(KerberosConfigDataFileWriterFactory.class);
-    expect(factory.createKerberosConfigDataFileWriter(anyObject(File.class)))
-        .andReturn(kerberosConfigDataFileWriter)
-        .times(1);
-
-    final StackId stackVersion = createNiceMock(StackId.class);
+    final StackId stackVersion = createMock(StackId.class);
 
     final ServiceComponentHost schKerberosClient = createMock(ServiceComponentHost.class);
     expect(schKerberosClient.getServiceName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
@@ -920,7 +907,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(serviceKerberos.getName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
     expect(serviceKerberos.getServiceComponents())
         .andReturn(Collections.singletonMap(Role.KERBEROS_CLIENT.name(), serviceComponentKerberosClient))
-            .times(3);
+            .times(1);
     serviceKerberos.setSecurityState(SecurityState.SECURED_KERBEROS);
     expectLastCall().once();
 
@@ -928,7 +915,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .times(3);
+        .times(1);
     service1.setSecurityState(SecurityState.SECURED_KERBEROS);
     expectLastCall().once();
 
@@ -936,7 +923,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .times(3);
+        .times(1);
     service2.setSecurityState(SecurityState.SECURED_KERBEROS);
     expectLastCall().once();
 
@@ -945,12 +932,12 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosEnvProperties.get("manage_identities")).andReturn(manageIdentities).anyTimes();
     expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").anyTimes();
 
-    final Config kerberosEnvConfig = createNiceMock(Config.class);
+    final Config kerberosEnvConfig = createMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).anyTimes();
 
     final Map<String, String> krb5ConfProperties = createMock(Map.class);
 
-    final Config krb5ConfConfig = createNiceMock(Config.class);
+    final Config krb5ConfConfig = createMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
     final Cluster cluster = createMock(Cluster.class);
@@ -988,98 +975,51 @@ public class KerberosHelperTest extends EasyMockSupport {
         put("kerberos_admin/" + KerberosCredential.KEY_NAME_KEYTAB, kerberosCredential.getKeytab());
       }
     }}).anyTimes();
+    expect(cluster.getServiceComponentHosts("KERBEROS", "KERBEROS_CLIENT")).andReturn(
+        Arrays.asList(schKerberosClient)
+    ).once();
 
-    final Clusters clusters = injector.getInstance(Clusters.class);
-    expect(clusters.getHostsForCluster("c1"))
-        .andReturn(new HashMap<String, Host>() {
-          {
-            put("host1", host);
-          }
-        })
-        .once();
-    if((manageIdentities == null) || !"false".equalsIgnoreCase(manageIdentities)) {
+    if(identitiesManaged) {
+      final Clusters clusters = injector.getInstance(Clusters.class);
       expect(clusters.getHost("host1"))
           .andReturn(host)
           .once();
     }
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "host1"))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
-        .once();
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
         .andReturn(Collections.<String, Map<String, String>>emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
-        .andReturn(createNiceMock(RoleCommandOrder.class))
+        .andReturn(createMock(RoleCommandOrder.class))
         .once();
 
-    final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), anyObject(Map.class)))
-        .andReturn(new HashMap<String, Map<String, String>>() {
-          {
-            put("cluster-env", new HashMap<String, String>() {{
-              put("kerberos_domain", "FOOBAR.COM");
-            }});
-          }
-        })
-        .times(2);
+    final KerberosIdentityDescriptor identityDescriptor1 = createMock(KerberosIdentityDescriptor.class);
 
-    final KerberosPrincipalDescriptor principalDescriptor1 = createNiceMock(KerberosPrincipalDescriptor.class);
-    expect(principalDescriptor1.getValue()).andReturn("component1/_HOST@${realm}").once();
-    expect(principalDescriptor1.getType()).andReturn(KerberosPrincipalType.SERVICE).once();
-    expect(principalDescriptor1.getConfiguration()).andReturn("service1-site/component1.kerberos.principal").once();
+    final KerberosIdentityDescriptor identityDescriptor2 = createMock(KerberosIdentityDescriptor.class);
 
-    final KerberosPrincipalDescriptor principalDescriptor2 = createNiceMock(KerberosPrincipalDescriptor.class);
-    expect(principalDescriptor2.getValue()).andReturn("component2/${host}@${realm}").once();
-    expect(principalDescriptor2.getType()).andReturn(KerberosPrincipalType.SERVICE).once();
-    expect(principalDescriptor2.getConfiguration()).andReturn("service2-site/component2.kerberos.principal").once();
-
-    final KerberosKeytabDescriptor keytabDescriptor1 = createNiceMock(KerberosKeytabDescriptor.class);
-    expect(keytabDescriptor1.getFile()).andReturn("${keytab_dir}/service1.keytab").once();
-    expect(keytabDescriptor1.getOwnerName()).andReturn("service1").once();
-    expect(keytabDescriptor1.getOwnerAccess()).andReturn("rw").once();
-    expect(keytabDescriptor1.getGroupName()).andReturn("hadoop").once();
-    expect(keytabDescriptor1.getGroupAccess()).andReturn("").once();
-    expect(keytabDescriptor1.getConfiguration()).andReturn("service1-site/component1.keytab.file").once();
-    expect(keytabDescriptor1.isCachable()).andReturn(false).once();
-
-    final KerberosKeytabDescriptor keytabDescriptor2 = createNiceMock(KerberosKeytabDescriptor.class);
-    expect(keytabDescriptor2.getFile()).andReturn("${keytab_dir}/service2.keytab").once();
-    expect(keytabDescriptor2.getOwnerName()).andReturn("service2").once();
-    expect(keytabDescriptor2.getOwnerAccess()).andReturn("rw").once();
-    expect(keytabDescriptor2.getGroupName()).andReturn("hadoop").once();
-    expect(keytabDescriptor2.getGroupAccess()).andReturn("").once();
-    expect(keytabDescriptor2.getConfiguration()).andReturn("service2-site/component2.keytab.file").once();
-    expect(keytabDescriptor2.isCachable()).andReturn(false).once();
-
-    final KerberosIdentityDescriptor identityDescriptor1 = createNiceMock(KerberosIdentityDescriptor.class);
-    expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).once();
-    expect(identityDescriptor1.getKeytabDescriptor()).andReturn(keytabDescriptor1).once();
-
-    final KerberosIdentityDescriptor identityDescriptor2 = createNiceMock(KerberosIdentityDescriptor.class);
-    expect(identityDescriptor2.getPrincipalDescriptor()).andReturn(principalDescriptor2).once();
-    expect(identityDescriptor2.getKeytabDescriptor()).andReturn(keytabDescriptor2).once();
-
-    final KerberosComponentDescriptor componentDescriptor1 = createNiceMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor1.getIdentities(true)).
+    final KerberosComponentDescriptor componentDescriptor1 = createMock(KerberosComponentDescriptor.class);
+    expect(componentDescriptor1.getIdentities(false)).
         andReturn(new ArrayList<KerberosIdentityDescriptor>() {{
           add(identityDescriptor1);
         }}).once();
 
-    final KerberosComponentDescriptor componentDescriptor2 = createNiceMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor2.getIdentities(true)).
+    final KerberosComponentDescriptor componentDescriptor2 = createMock(KerberosComponentDescriptor.class);
+    expect(componentDescriptor2.getIdentities(false)).
         andReturn(new ArrayList<KerberosIdentityDescriptor>() {{
           add(identityDescriptor2);
         }}).once();
 
-    final KerberosServiceDescriptor serviceDescriptor1 = createNiceMock(KerberosServiceDescriptor.class);
+    final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
     expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).once();
+    expect(serviceDescriptor1.getIdentities(false)).andReturn(null).once();
 
-    final KerberosServiceDescriptor serviceDescriptor2 = createNiceMock(KerberosServiceDescriptor.class);
+    final KerberosServiceDescriptor serviceDescriptor2 = createMock(KerberosServiceDescriptor.class);
     expect(serviceDescriptor2.getComponent("COMPONENT2")).andReturn(componentDescriptor2).once();
+    expect(serviceDescriptor2.getIdentities(false)).andReturn(null).once();
 
-    final KerberosDescriptor kerberosDescriptor = createNiceMock(KerberosDescriptor.class);
+    final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
+    expect(kerberosDescriptor.getService("KERBEROS")).andReturn(null).once();
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).once();
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).once();
 
@@ -1109,7 +1049,13 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     // This is a STRICT mock to help ensure that the end result is what we want.
     final RequestStageContainer requestStageContainer = createStrictMock(RequestStageContainer.class);
-    if((manageIdentities == null) || !"false".equalsIgnoreCase(manageIdentities)) {
+    // Create Preparation Stage
+    expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(anyObject(List.class));
+    expectLastCall().once();
+
+    if(identitiesManaged) {
       // Create Principals Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
@@ -1154,26 +1100,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
-    KerberosConfigDataFileWriter kerberosConfigDataFileWriter = createMock(KerberosConfigDataFileWriter.class);
-    kerberosConfigDataFileWriter.addRecord("cluster-env", "security_enabled", "false", "SET");
-    expectLastCall().times(1);
-    kerberosConfigDataFileWriter.addRecord("service1-site", "component1.kerberos.principal", null, "REMOVE");
-    expectLastCall().times(1);
-    kerberosConfigDataFileWriter.addRecord("service1-site", "component1.keytab.file", null, "REMOVE");
-    expectLastCall().times(1);
-    kerberosConfigDataFileWriter.addRecord("service2-site", "component2.kerberos.principal", null, "REMOVE");
-    expectLastCall().times(1);
-    kerberosConfigDataFileWriter.addRecord("service2-site", "component2.keytab.file", null, "REMOVE");
-    expectLastCall().times(1);
-    kerberosConfigDataFileWriter.close();
-    expectLastCall().times(1);
-
-    KerberosConfigDataFileWriterFactory factory = injector.getInstance(KerberosConfigDataFileWriterFactory.class);
-    expect(factory.createKerberosConfigDataFileWriter(anyObject(File.class)))
-        .andReturn(kerberosConfigDataFileWriter)
-        .times(1);
-
-    final StackId stackVersion = createNiceMock(StackId.class);
+    final StackId stackVersion = createMock(StackId.class);
 
     final ServiceComponentHost schKerberosClient = createMock(ServiceComponentHost.class);
     expect(schKerberosClient.getServiceName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
@@ -1185,7 +1112,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(schKerberosClient.getState()).andReturn(State.INSTALLED).anyTimes();
 
     final ServiceComponentHost sch1 = createMock(ServiceComponentHost.class);
-    expect(sch1.getServiceName()).andReturn("SERVICE1").times(2);
+    expect(sch1.getServiceName()).andReturn("SERVICE1").times(1);
     expect(sch1.getServiceComponentName()).andReturn("COMPONENT1").once();
     expect(sch1.getSecurityState()).andReturn(SecurityState.SECURED_KERBEROS).anyTimes();
     expect(sch1.getDesiredSecurityState()).andReturn(SecurityState.SECURED_KERBEROS).anyTimes();
@@ -1199,7 +1126,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(expectLastCall()).once();
 
     final ServiceComponentHost sch2 = createMock(ServiceComponentHost.class);
-    expect(sch2.getServiceName()).andReturn("SERVICE2").times(2);
+    expect(sch2.getServiceName()).andReturn("SERVICE2").times(1);
     expect(sch2.getServiceComponentName()).andReturn("COMPONENT2").anyTimes();
     expect(sch2.getSecurityState()).andReturn(SecurityState.SECURED_KERBEROS).anyTimes();
     expect(sch2.getDesiredSecurityState()).andReturn(SecurityState.SECURED_KERBEROS).anyTimes();
@@ -1223,7 +1150,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(serviceKerberos.getName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
     expect(serviceKerberos.getServiceComponents())
         .andReturn(Collections.singletonMap(Role.KERBEROS_CLIENT.name(), serviceComponentKerberosClient))
-        .times(3);
+        .times(1);
     serviceKerberos.setSecurityState(SecurityState.UNSECURED);
     expectLastCall().once();
 
@@ -1231,7 +1158,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .times(3);
+        .times(1);
     service1.setSecurityState(SecurityState.UNSECURED);
     expectLastCall().once();
 
@@ -1239,20 +1166,20 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .times(3);
+        .times(1);
     service2.setSecurityState(SecurityState.UNSECURED);
     expectLastCall().once();
 
-    final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
+    final Map<String, String> kerberosEnvProperties = createMock(Map.class);
     expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").anyTimes();
     expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").anyTimes();
 
-    final Config kerberosEnvConfig = createNiceMock(Config.class);
+    final Config kerberosEnvConfig = createMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).anyTimes();
 
-    final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
+    final Map<String, String> krb5ConfProperties = createMock(Map.class);
 
-    final Config krb5ConfConfig = createNiceMock(Config.class);
+    final Config krb5ConfConfig = createMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
     final Cluster cluster = createNiceMock(Cluster.class);
@@ -1290,96 +1217,40 @@ public class KerberosHelperTest extends EasyMockSupport {
       }
     }}).anyTimes();
 
-    final Clusters clusters = injector.getInstance(Clusters.class);
-    expect(clusters.getHostsForCluster("c1"))
-        .andReturn(new HashMap<String, Host>() {
-          {
-            put("host1", host);
-          }
-        })
-        .once();
-    expect(clusters.getHost("host1"))
-        .andReturn(host)
-        .once();
-
-
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "host1"))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
-        .once();
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
         .andReturn(Collections.<String, Map<String, String>>emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
-        .andReturn(createNiceMock(RoleCommandOrder.class))
+        .andReturn(createMock(RoleCommandOrder.class))
         .once();
 
-    final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), anyObject(Map.class)))
-        .andReturn(new HashMap<String, Map<String, String>>() {
-          {
-            put("cluster-env", new HashMap<String, String>() {{
-              put("kerberos_domain", "FOOBAR.COM");
-            }});
-          }
-        })
-        .times(2);
+    final KerberosIdentityDescriptor identityDescriptor1 = createMock(KerberosIdentityDescriptor.class);
 
-    final KerberosPrincipalDescriptor principalDescriptor1 = createNiceMock(KerberosPrincipalDescriptor.class);
-    expect(principalDescriptor1.getValue()).andReturn("component1/_HOST@${realm}").once();
-    expect(principalDescriptor1.getType()).andReturn(KerberosPrincipalType.SERVICE).once();
-    expect(principalDescriptor1.getConfiguration()).andReturn("service1-site/component1.kerberos.principal").once();
+    final KerberosIdentityDescriptor identityDescriptor2 = createMock(KerberosIdentityDescriptor.class);
 
-    final KerberosPrincipalDescriptor principalDescriptor2 = createNiceMock(KerberosPrincipalDescriptor.class);
-    expect(principalDescriptor2.getValue()).andReturn("component2/${host}@${realm}").once();
-    expect(principalDescriptor2.getType()).andReturn(KerberosPrincipalType.SERVICE).once();
-    expect(principalDescriptor2.getConfiguration()).andReturn("service2-site/component2.kerberos.principal").once();
-
-    final KerberosKeytabDescriptor keytabDescriptor1 = createNiceMock(KerberosKeytabDescriptor.class);
-    expect(keytabDescriptor1.getFile()).andReturn("${keytab_dir}/service1.keytab").once();
-    expect(keytabDescriptor1.getOwnerName()).andReturn("service1").once();
-    expect(keytabDescriptor1.getOwnerAccess()).andReturn("rw").once();
-    expect(keytabDescriptor1.getGroupName()).andReturn("hadoop").once();
-    expect(keytabDescriptor1.getGroupAccess()).andReturn("").once();
-    expect(keytabDescriptor1.getConfiguration()).andReturn("service1-site/component1.keytab.file").once();
-    expect(keytabDescriptor1.isCachable()).andReturn(false).once();
-
-    final KerberosKeytabDescriptor keytabDescriptor2 = createNiceMock(KerberosKeytabDescriptor.class);
-    expect(keytabDescriptor2.getFile()).andReturn("${keytab_dir}/service2.keytab").once();
-    expect(keytabDescriptor2.getOwnerName()).andReturn("service2").once();
-    expect(keytabDescriptor2.getOwnerAccess()).andReturn("rw").once();
-    expect(keytabDescriptor2.getGroupName()).andReturn("hadoop").once();
-    expect(keytabDescriptor2.getGroupAccess()).andReturn("").once();
-    expect(keytabDescriptor2.getConfiguration()).andReturn("service2-site/component2.keytab.file").once();
-    expect(keytabDescriptor2.isCachable()).andReturn(false).once();
-
-    final KerberosIdentityDescriptor identityDescriptor1 = createNiceMock(KerberosIdentityDescriptor.class);
-    expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).once();
-    expect(identityDescriptor1.getKeytabDescriptor()).andReturn(keytabDescriptor1).once();
-
-    final KerberosIdentityDescriptor identityDescriptor2 = createNiceMock(KerberosIdentityDescriptor.class);
-    expect(identityDescriptor2.getPrincipalDescriptor()).andReturn(principalDescriptor2).once();
-    expect(identityDescriptor2.getKeytabDescriptor()).andReturn(keytabDescriptor2).once();
-
-    final KerberosComponentDescriptor componentDescriptor1 = createNiceMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor1.getIdentities(true)).
+    final KerberosComponentDescriptor componentDescriptor1 = createMock(KerberosComponentDescriptor.class);
+    expect(componentDescriptor1.getIdentities(false)).
         andReturn(new ArrayList<KerberosIdentityDescriptor>() {{
           add(identityDescriptor1);
         }}).once();
 
-    final KerberosComponentDescriptor componentDescriptor2 = createNiceMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor2.getIdentities(true)).
+    final KerberosComponentDescriptor componentDescriptor2 = createMock(KerberosComponentDescriptor.class);
+    expect(componentDescriptor2.getIdentities(false)).
         andReturn(new ArrayList<KerberosIdentityDescriptor>() {{
           add(identityDescriptor2);
         }}).once();
 
-    final KerberosServiceDescriptor serviceDescriptor1 = createNiceMock(KerberosServiceDescriptor.class);
+    final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
     expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).once();
+    expect(serviceDescriptor1.getIdentities(false)).andReturn(null).times(1);
 
-    final KerberosServiceDescriptor serviceDescriptor2 = createNiceMock(KerberosServiceDescriptor.class);
+    final KerberosServiceDescriptor serviceDescriptor2 = createMock(KerberosServiceDescriptor.class);
     expect(serviceDescriptor2.getComponent("COMPONENT2")).andReturn(componentDescriptor2).once();
+    expect(serviceDescriptor2.getIdentities(false)).andReturn(null).times(1);
 
-    final KerberosDescriptor kerberosDescriptor = createNiceMock(KerberosDescriptor.class);
+    final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
+    expect(kerberosDescriptor.getService("KERBEROS")).andReturn(null).once();
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).once();
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).once();
 
@@ -1410,6 +1281,11 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     // This is a STRICT mock to help ensure that the end result is what we want.
     final RequestStageContainer requestStageContainer = createStrictMock(RequestStageContainer.class);
+    // Preparation Stage
+    expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(anyObject(List.class));
+    expectLastCall().once();
     // Update Configs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
@@ -1451,7 +1327,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
-    final StackId stackVersion = createNiceMock(StackId.class);
+    final StackId stackVersion = createMock(StackId.class);
 
     final ServiceComponentHost schKerberosClient = createMock(ServiceComponentHost.class);
     expect(schKerberosClient.getServiceName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
@@ -1503,7 +1379,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     }
     else {
       schKerberosClientInvalid = null;
-      sch1a = null;
       hostInvalid = null;
     }
 
@@ -1522,30 +1397,30 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(serviceKerberos.getName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
     expect(serviceKerberos.getServiceComponents())
         .andReturn(Collections.singletonMap(Role.KERBEROS_CLIENT.name(), serviceComponentKerberosClient))
-        .times(3);
+        .times(1);
 
     final Service service1 = createStrictMock(Service.class);
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .times(3);
+        .times(1);
 
     final Service service2 = createStrictMock(Service.class);
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .times(3);
+        .times(1);
 
-    final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
+    final Map<String, String> kerberosEnvProperties = createMock(Map.class);
     expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").anyTimes();
     expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").anyTimes();
 
-    final Config kerberosEnvConfig = createNiceMock(Config.class);
+    final Config kerberosEnvConfig = createMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).anyTimes();
 
-    final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
+    final Map<String, String> krb5ConfProperties = createMock(Map.class);
 
-    final Config krb5ConfConfig = createNiceMock(Config.class);
+    final Config krb5ConfConfig = createMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
     final Cluster cluster = createNiceMock(Cluster.class);
@@ -1587,99 +1462,40 @@ public class KerberosHelperTest extends EasyMockSupport {
       }
     }}).anyTimes();
 
-    final Clusters clusters = injector.getInstance(Clusters.class);
-    expect(clusters.getHostsForCluster("c1"))
-        .andReturn(new HashMap<String, Host>() {
-          {
-            put("host1", host);
-
-            if (testInvalidHost) {
-              put("host2", hostInvalid);
-            }
-          }
-        })
-        .once();
-    expect(clusters.getHost("host1"))
-        .andReturn(host)
-        .once();
-
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "host1"))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
-        .once();
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
         .andReturn(Collections.<String, Map<String, String>>emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
-        .andReturn(createNiceMock(RoleCommandOrder.class))
+        .andReturn(createMock(RoleCommandOrder.class))
         .once();
 
-    final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), anyObject(Map.class)))
-        .andReturn(new HashMap<String, Map<String, String>>() {
-          {
-            put("cluster-env", new HashMap<String, String>() {{
-              put("kerberos_domain", "FOOBAR.COM");
-            }});
-          }
-        })
-        .times(2);
+    final KerberosIdentityDescriptor identityDescriptor1 = createMock(KerberosIdentityDescriptor.class);
 
-    final KerberosPrincipalDescriptor principalDescriptor1 = createNiceMock(KerberosPrincipalDescriptor.class);
-    expect(principalDescriptor1.getValue()).andReturn("component1/_HOST@${realm}").once();
-    expect(principalDescriptor1.getType()).andReturn(KerberosPrincipalType.SERVICE).once();
-    expect(principalDescriptor1.getConfiguration()).andReturn("service1-site/component1.kerberos.principal").once();
+    final KerberosIdentityDescriptor identityDescriptor2 = createMock(KerberosIdentityDescriptor.class);
 
-    final KerberosPrincipalDescriptor principalDescriptor2 = createNiceMock(KerberosPrincipalDescriptor.class);
-    expect(principalDescriptor2.getValue()).andReturn("component2/${host}@${realm}").once();
-    expect(principalDescriptor2.getType()).andReturn(KerberosPrincipalType.SERVICE).once();
-    expect(principalDescriptor2.getConfiguration()).andReturn("service2-site/component2.kerberos.principal").once();
-
-    final KerberosKeytabDescriptor keytabDescriptor1 = createNiceMock(KerberosKeytabDescriptor.class);
-    expect(keytabDescriptor1.getFile()).andReturn("${keytab_dir}/service1.keytab").once();
-    expect(keytabDescriptor1.getOwnerName()).andReturn("service1").once();
-    expect(keytabDescriptor1.getOwnerAccess()).andReturn("rw").once();
-    expect(keytabDescriptor1.getGroupName()).andReturn("hadoop").once();
-    expect(keytabDescriptor1.getGroupAccess()).andReturn("").once();
-    expect(keytabDescriptor1.getConfiguration()).andReturn("service1-site/component1.keytab.file").once();
-    expect(keytabDescriptor1.isCachable()).andReturn(false).once();
-
-    final KerberosKeytabDescriptor keytabDescriptor2 = createNiceMock(KerberosKeytabDescriptor.class);
-    expect(keytabDescriptor2.getFile()).andReturn("${keytab_dir}/service2.keytab").once();
-    expect(keytabDescriptor2.getOwnerName()).andReturn("service2").once();
-    expect(keytabDescriptor2.getOwnerAccess()).andReturn("rw").once();
-    expect(keytabDescriptor2.getGroupName()).andReturn("hadoop").once();
-    expect(keytabDescriptor2.getGroupAccess()).andReturn("").once();
-    expect(keytabDescriptor2.getConfiguration()).andReturn("service2-site/component2.keytab.file").once();
-    expect(keytabDescriptor2.isCachable()).andReturn(false).once();
-
-    final KerberosIdentityDescriptor identityDescriptor1 = createNiceMock(KerberosIdentityDescriptor.class);
-    expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).once();
-    expect(identityDescriptor1.getKeytabDescriptor()).andReturn(keytabDescriptor1).once();
-
-    final KerberosIdentityDescriptor identityDescriptor2 = createNiceMock(KerberosIdentityDescriptor.class);
-    expect(identityDescriptor2.getPrincipalDescriptor()).andReturn(principalDescriptor2).once();
-    expect(identityDescriptor2.getKeytabDescriptor()).andReturn(keytabDescriptor2).once();
-
-    final KerberosComponentDescriptor componentDescriptor1 = createNiceMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor1.getIdentities(true)).
+    final KerberosComponentDescriptor componentDescriptor1 = createMock(KerberosComponentDescriptor.class);
+    expect(componentDescriptor1.getIdentities(false)).
         andReturn(new ArrayList<KerberosIdentityDescriptor>() {{
           add(identityDescriptor1);
         }}).once();
 
-    final KerberosComponentDescriptor componentDescriptor2 = createNiceMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor2.getIdentities(true)).
+    final KerberosComponentDescriptor componentDescriptor2 = createMock(KerberosComponentDescriptor.class);
+    expect(componentDescriptor2.getIdentities(false)).
         andReturn(new ArrayList<KerberosIdentityDescriptor>() {{
           add(identityDescriptor2);
         }}).once();
 
-    final KerberosServiceDescriptor serviceDescriptor1 = createNiceMock(KerberosServiceDescriptor.class);
+    final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
     expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).once();
+    expect(serviceDescriptor1.getIdentities(false)).andReturn(null).once();
 
-    final KerberosServiceDescriptor serviceDescriptor2 = createNiceMock(KerberosServiceDescriptor.class);
+    final KerberosServiceDescriptor serviceDescriptor2 = createMock(KerberosServiceDescriptor.class);
     expect(serviceDescriptor2.getComponent("COMPONENT2")).andReturn(componentDescriptor2).once();
+    expect(serviceDescriptor2.getIdentities(false)).andReturn(null).once();
 
-    final KerberosDescriptor kerberosDescriptor = createNiceMock(KerberosDescriptor.class);
+    final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
+    expect(kerberosDescriptor.getService("KERBEROS")).andReturn(null).once();
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).once();
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).once();
 
@@ -1708,6 +1524,11 @@ public class KerberosHelperTest extends EasyMockSupport {
     if (mockRequestStageContainer) {
       // This is a STRICT mock to help ensure that the end result is what we want.
       requestStageContainer = createStrictMock(RequestStageContainer.class);
+      // Create Preparation Stage
+      expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+      expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.addStages(anyObject(List.class));
+      expectLastCall().once();
       // Create Principals Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
@@ -1871,6 +1692,8 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     expect(kerberosDescriptorFactory.createInstance(anyObject(Map.class)))
         .andReturn(kerberosDescriptor).once();
+
+    expect(metaInfo.getKerberosDescriptor("HDP", "2.2")).andReturn(null).once();
   }
 
   private void setupGetDescriptorFromStack(KerberosDescriptor kerberosDescriptor) throws Exception {
@@ -1918,11 +1741,12 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(sch1C.getServiceComponentName()).andReturn("COMPONENT1").anyTimes();
     expect(sch1C.getHostName()).andReturn("hostC").anyTimes();
 
-    final ServiceComponentHost sch2 = createStrictMock(ServiceComponentHost.class);
+    final ServiceComponentHost sch2 = createMock(ServiceComponentHost.class);
     expect(sch2.getServiceName()).andReturn("SERVICE2").anyTimes();
     expect(sch2.getServiceComponentName()).andReturn("COMPONENT3").anyTimes();
+    expect(sch2.getHostName()).andReturn("hostA").anyTimes();
 
-    final ServiceComponentHost sch3 = createStrictMock(ServiceComponentHost.class);
+    final ServiceComponentHost sch3 = createMock(ServiceComponentHost.class);
     expect(sch3.getServiceName()).andReturn("SERVICE3").anyTimes();
     expect(sch3.getServiceComponentName()).andReturn("COMPONENT3").anyTimes();
     expect(sch3.getHostName()).andReturn("hostA").anyTimes();
@@ -1947,30 +1771,30 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(serviceKerberos.getName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
     expect(serviceKerberos.getServiceComponents())
         .andReturn(Collections.singletonMap(Role.KERBEROS_CLIENT.name(), serviceComponentKerberosClient))
-        .times(5);
+        .times(1);
 
     final Service service1 = createStrictMock(Service.class);
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .times(5);
+        .times(1);
 
     final Service service2 = createStrictMock(Service.class);
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .times(5);
+        .times(1);
 
-    final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
+    final Map<String, String> kerberosEnvProperties = createMock(Map.class);
     expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").anyTimes();
     expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").anyTimes();
 
-    final Config kerberosEnvConfig = createNiceMock(Config.class);
+    final Config kerberosEnvConfig = createMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).anyTimes();
 
-    final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
+    final Map<String, String> krb5ConfProperties = createMock(Map.class);
 
-    final Config krb5ConfConfig = createNiceMock(Config.class);
+    final Config krb5ConfConfig = createMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
     final Cluster cluster = createNiceMock(Cluster.class);
@@ -2023,50 +1847,13 @@ public class KerberosHelperTest extends EasyMockSupport {
       }
     }}).anyTimes();
 
-    final Clusters clusters = injector.getInstance(Clusters.class);
-    expect(clusters.getHostsForCluster("c1"))
-        .andReturn(new HashMap<String, Host>() {
-          {
-            put("hostA", hostA);
-            put("hostB", hostB);
-            put("hostC", hostC);
-          }
-        })
-        .once();
-    expect(clusters.getHost("hostA"))
-        .andReturn(hostA)
-        .times(1);
-    expect(clusters.getHost("hostB"))
-        .andReturn(hostB)
-        .times(1);
-
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "hostA"))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
-        .once();
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "hostB"))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
-        .once();
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "hostC"))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
-        .once();
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
         .andReturn(Collections.<String, Map<String, String>>emptyMap())
         .times(3);
     expect(ambariManagementController.getRoleCommandOrder(cluster))
-        .andReturn(createNiceMock(RoleCommandOrder.class))
+        .andReturn(createMock(RoleCommandOrder.class))
         .once();
-
-    final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), anyObject(Map.class)))
-        .andReturn(new HashMap<String, Map<String, String>>() {
-          {
-            put("cluster-env", new HashMap<String, String>() {{
-              put("kerberos_domain", "FOOBAR.COM");
-            }});
-          }
-        })
-        .times(4);
 
     final KerberosPrincipalDescriptor principalDescriptor1a = createMock(KerberosPrincipalDescriptor.class);
     expect(principalDescriptor1a.getValue()).andReturn("component1a/_HOST@${realm}").anyTimes();
@@ -2087,22 +1874,8 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(principalDescriptor3.getConfiguration()).andReturn("service3-site/component3.kerberos.principal").anyTimes();
 
     final KerberosKeytabDescriptor keytabDescriptor1 = createMock(KerberosKeytabDescriptor.class);
-    expect(keytabDescriptor1.getFile()).andReturn("${keytab_dir}/service1.keytab").times(3);
-    expect(keytabDescriptor1.getOwnerName()).andReturn("service1").times(3);
-    expect(keytabDescriptor1.getOwnerAccess()).andReturn("rw").times(3);
-    expect(keytabDescriptor1.getGroupName()).andReturn("hadoop").times(3);
-    expect(keytabDescriptor1.getGroupAccess()).andReturn("").times(3);
-    expect(keytabDescriptor1.getConfiguration()).andReturn("service1-site/component1.keytab.file").times(3);
-    expect(keytabDescriptor1.isCachable()).andReturn(false).times(3);
 
     final KerberosKeytabDescriptor keytabDescriptor3 = createMock(KerberosKeytabDescriptor.class);
-    expect(keytabDescriptor3.getFile()).andReturn("${keytab_dir}/service3.keytab").once();
-    expect(keytabDescriptor3.getOwnerName()).andReturn("service3").once();
-    expect(keytabDescriptor3.getOwnerAccess()).andReturn("rw").once();
-    expect(keytabDescriptor3.getGroupName()).andReturn("hadoop").once();
-    expect(keytabDescriptor3.getGroupAccess()).andReturn("").once();
-    expect(keytabDescriptor3.getConfiguration()).andReturn("service3-site/component3.keytab.file").once();
-    expect(keytabDescriptor3.isCachable()).andReturn(false).times(1);
 
     final KerberosIdentityDescriptor identityDescriptor1a = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor1a.getName()).andReturn("identity1a").anyTimes();
@@ -2123,48 +1896,31 @@ public class KerberosHelperTest extends EasyMockSupport {
       add(identityDescriptor1b);
     }};
     final KerberosComponentDescriptor componentDescriptor1 = createStrictMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor1.getIdentities(true)).andReturn(identityDescriptors1).times(1);
-    expect(componentDescriptor1.getConfigurations(true)).andReturn(null).times(1);
-    expect(componentDescriptor1.getIdentities(true)).andReturn(identityDescriptors1).times(1);
-    expect(componentDescriptor1.getConfigurations(true)).andReturn(null).times(1);
-    expect(componentDescriptor1.getIdentities(true)).andReturn(identityDescriptors1).times(1);
-    expect(componentDescriptor1.getConfigurations(true)).andReturn(null).times(1);
-    expect(componentDescriptor1.getIdentities(true)).andReturn(identityDescriptors1).times(1);
-    expect(componentDescriptor1.getAuthToLocalProperties()).andReturn(null).times(1);
+    expect(componentDescriptor1.getIdentities(false)).andReturn(identityDescriptors1).times(3);
 
     final ArrayList<KerberosIdentityDescriptor> identityDescriptors3 = new ArrayList<KerberosIdentityDescriptor>() {{
       add(identityDescriptor3);
     }};
     final KerberosComponentDescriptor componentDescriptor3 = createStrictMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor3.getIdentities(true)).andReturn(identityDescriptors3).times(1);
-    expect(componentDescriptor3.getConfigurations(true)).andReturn(null).times(1);
+    expect(componentDescriptor3.getIdentities(false)).andReturn(identityDescriptors3).times(1);
 
     final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor1.getIdentities(true)).andReturn(null).times(4);
-    expect(serviceDescriptor1.getName()).andReturn("SERVICE1").times(1);
-    expect(serviceDescriptor1.getComponents()).andReturn(new HashMap<String, KerberosComponentDescriptor>(){{
-      put("COMPONENT1", componentDescriptor1);
-    }}).times(1);
-    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).times(3);
-    expect(serviceDescriptor1.getAuthToLocalProperties()).andReturn(null).once();
+    expect(serviceDescriptor1.getIdentities(false)).andReturn(null).times(1);
+    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).times(1);
+    expect(serviceDescriptor1.getIdentities(false)).andReturn(null).times(1);
+    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).times(1);
+    expect(serviceDescriptor1.getIdentities(false)).andReturn(null).times(1);
+    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).times(1);
 
     final KerberosServiceDescriptor serviceDescriptor3 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor3.getIdentities(true)).andReturn(null).times(1);
-    expect(serviceDescriptor3.getName()).andReturn("SERVICE3").times(1);
-    expect(serviceDescriptor3.getComponent("COMPONENT3")).andReturn(componentDescriptor3).once();
+    expect(serviceDescriptor3.getIdentities(false)).andReturn(null).times(1);
+    expect(serviceDescriptor3.getComponent("COMPONENT3")).andReturn(componentDescriptor3).times(1);
 
     final KerberosDescriptor kerberosDescriptor = createStrictMock(KerberosDescriptor.class);
-    expect(kerberosDescriptor.getProperties()).andReturn(null).once();
-    expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).times(3);
+    expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).times(1);
     expect(kerberosDescriptor.getService("SERVICE3")).andReturn(serviceDescriptor3).times(1);
-    expect(kerberosDescriptor.getIdentities()).andReturn(null).once();
-    expect(kerberosDescriptor.getAuthToLocalProperties()).andReturn(null).once();
-
-    expect(kerberosDescriptor.getServices()).andReturn(new HashMap<String, KerberosServiceDescriptor>()
-    {{
-      put("SERVICE1", serviceDescriptor1);
-      put("SERVICE3", serviceDescriptor3);
-    }}).once();
+    expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).times(1);
+    expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).times(1);
 
     setupGetDescriptorFromCluster(kerberosDescriptor);
 
@@ -2188,6 +1944,11 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     // This is a STRICT mock to help ensure that the end result is what we want.
     final RequestStageContainer requestStageContainer = createStrictMock(RequestStageContainer.class);
+    // Preparation Stage
+    expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(anyObject(List.class));
+    expectLastCall().once();
     // Create Principals Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
@@ -2239,11 +2000,11 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(sch1.getServiceComponentName()).andReturn("COMPONENT1").anyTimes();
     expect(sch1.getHostName()).andReturn("host1").anyTimes();
 
-    final ServiceComponentHost sch2 = createStrictMock(ServiceComponentHost.class);
+    final ServiceComponentHost sch2 = createMock(ServiceComponentHost.class);
     expect(sch2.getServiceName()).andReturn("SERVICE2").anyTimes();
     expect(sch2.getServiceComponentName()).andReturn("COMPONENT3").anyTimes();
 
-    final ServiceComponentHost sch3 = createStrictMock(ServiceComponentHost.class);
+    final ServiceComponentHost sch3 = createMock(ServiceComponentHost.class);
     expect(sch3.getServiceName()).andReturn("SERVICE3").anyTimes();
     expect(sch3.getServiceComponentName()).andReturn("COMPONENT3").anyTimes();
     expect(sch3.getHostName()).andReturn("host1").anyTimes();
@@ -2260,30 +2021,30 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(serviceKerberos.getName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
     expect(serviceKerberos.getServiceComponents())
         .andReturn(Collections.singletonMap(Role.KERBEROS_CLIENT.name(), serviceComponentKerberosClient))
-        .times(3);
+        .times(1);
 
     final Service service1 = createStrictMock(Service.class);
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .times(3);
+        .times(1);
 
     final Service service2 = createStrictMock(Service.class);
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .times(3);
+        .times(1);
 
-    final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
+    final Map<String, String> kerberosEnvProperties = createMock(Map.class);
     expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").anyTimes();
     expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").anyTimes();
 
-    final Config kerberosEnvConfig = createNiceMock(Config.class);
+    final Config kerberosEnvConfig = createMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).anyTimes();
 
-    final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
+    final Map<String, String> krb5ConfProperties = createMock(Map.class);
 
-    final Config krb5ConfConfig = createNiceMock(Config.class);
+    final Config krb5ConfConfig = createMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
     final Cluster cluster = createNiceMock(Cluster.class);
@@ -2321,39 +2082,13 @@ public class KerberosHelperTest extends EasyMockSupport {
       }
     }}).anyTimes();
 
-    final Clusters clusters = injector.getInstance(Clusters.class);
-    expect(clusters.getHostsForCluster("c1"))
-        .andReturn(new HashMap<String, Host>() {
-          {
-            put("host1", host);
-          }
-        })
-        .once();
-    expect(clusters.getHost("host1"))
-        .andReturn(host)
-        .once();
-
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "host1"))
-        .andReturn(Collections.<String, Map<String, String>>emptyMap())
-        .once();
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
         .andReturn(Collections.<String, Map<String, String>>emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
-        .andReturn(createNiceMock(RoleCommandOrder.class))
+        .andReturn(createMock(RoleCommandOrder.class))
         .once();
-
-    final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), anyObject(Map.class)))
-        .andReturn(new HashMap<String, Map<String, String>>() {
-          {
-            put("cluster-env", new HashMap<String, String>() {{
-              put("kerberos_domain", "FOOBAR.COM");
-            }});
-          }
-        })
-        .times(2);
 
     final KerberosPrincipalDescriptor principalDescriptor1a = createMock(KerberosPrincipalDescriptor.class);
     expect(principalDescriptor1a.getValue()).andReturn("component1a/_HOST@${realm}").anyTimes();
@@ -2374,22 +2109,8 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(principalDescriptor3.getConfiguration()).andReturn("service3-site/component3.kerberos.principal").anyTimes();
 
     final KerberosKeytabDescriptor keytabDescriptor1 = createMock(KerberosKeytabDescriptor.class);
-    expect(keytabDescriptor1.getFile()).andReturn("${keytab_dir}/service1.keytab").once();
-    expect(keytabDescriptor1.getOwnerName()).andReturn("service1").once();
-    expect(keytabDescriptor1.getOwnerAccess()).andReturn("rw").once();
-    expect(keytabDescriptor1.getGroupName()).andReturn("hadoop").once();
-    expect(keytabDescriptor1.getGroupAccess()).andReturn("").once();
-    expect(keytabDescriptor1.getConfiguration()).andReturn("service1-site/component1.keytab.file").once();
-    expect(keytabDescriptor1.isCachable()).andReturn(false).once();
 
     final KerberosKeytabDescriptor keytabDescriptor3 = createMock(KerberosKeytabDescriptor.class);
-    expect(keytabDescriptor3.getFile()).andReturn("${keytab_dir}/service3.keytab").once();
-    expect(keytabDescriptor3.getOwnerName()).andReturn("service3").once();
-    expect(keytabDescriptor3.getOwnerAccess()).andReturn("rw").once();
-    expect(keytabDescriptor3.getGroupName()).andReturn("hadoop").once();
-    expect(keytabDescriptor3.getGroupAccess()).andReturn("").once();
-    expect(keytabDescriptor3.getConfiguration()).andReturn("service3-site/component3.keytab.file").once();
-    expect(keytabDescriptor3.isCachable()).andReturn(false).once();
 
     final KerberosIdentityDescriptor identityDescriptor1a = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor1a.getName()).andReturn("identity1a").anyTimes();
@@ -2410,44 +2131,25 @@ public class KerberosHelperTest extends EasyMockSupport {
       add(identityDescriptor1b);
     }};
     final KerberosComponentDescriptor componentDescriptor1 = createStrictMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor1.getIdentities(true)).andReturn(identityDescriptors1).times(1);
-    expect(componentDescriptor1.getConfigurations(true)).andReturn(null).times(1);
-    expect(componentDescriptor1.getIdentities(true)).andReturn(identityDescriptors1).times(1);
-    expect(componentDescriptor1.getAuthToLocalProperties()).andReturn(null).times(1);
+    expect(componentDescriptor1.getIdentities(false)).andReturn(identityDescriptors1).times(1);
 
     final ArrayList<KerberosIdentityDescriptor> identityDescriptors3 = new ArrayList<KerberosIdentityDescriptor>() {{
       add(identityDescriptor3);
     }};
     final KerberosComponentDescriptor componentDescriptor3 = createStrictMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor3.getIdentities(true)).andReturn(identityDescriptors3).times(1);
-    expect(componentDescriptor3.getConfigurations(true)).andReturn(null).times(1);
+    expect(componentDescriptor3.getIdentities(false)).andReturn(identityDescriptors3).times(1);
 
     final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor1.getIdentities(true)).andReturn(null).times(1);
-    expect(serviceDescriptor1.getName()).andReturn("SERVICE1").times(1);
-    expect(serviceDescriptor1.getIdentities(true)).andReturn(null).times(1);
-    expect(serviceDescriptor1.getComponents()).andReturn(new HashMap<String, KerberosComponentDescriptor>(){{
-      put("COMPONENT1", componentDescriptor1);
-    }}).times(1);
-    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).once();
-    expect(serviceDescriptor1.getAuthToLocalProperties()).andReturn(null).once();
+    expect(serviceDescriptor1.getIdentities(false)).andReturn(null).times(1);
+    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).times(1);
 
     final KerberosServiceDescriptor serviceDescriptor3 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor3.getIdentities(true)).andReturn(null).times(1);
-    expect(serviceDescriptor3.getName()).andReturn("SERVICE3").times(1);
-    expect(serviceDescriptor3.getComponent("COMPONENT3")).andReturn(componentDescriptor3).once();
+    expect(serviceDescriptor3.getIdentities(false)).andReturn(null).times(1);
+    expect(serviceDescriptor3.getComponent("COMPONENT3")).andReturn(componentDescriptor3).times(1);
 
     final KerberosDescriptor kerberosDescriptor = createStrictMock(KerberosDescriptor.class);
-    expect(kerberosDescriptor.getProperties()).andReturn(null).once();
-    expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).once();
-    expect(kerberosDescriptor.getService("SERVICE3")).andReturn(serviceDescriptor3).once();
-    expect(kerberosDescriptor.getIdentities()).andReturn(null).once();
-    expect(kerberosDescriptor.getAuthToLocalProperties()).andReturn(null).once();
-    expect(kerberosDescriptor.getServices()).andReturn(new HashMap<String, KerberosServiceDescriptor>()
-    {{
-      put("SERVCE1", serviceDescriptor1);
-      put("SERVCE2", serviceDescriptor3);
-    }}).once();
+    expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).times(1);
+    expect(kerberosDescriptor.getService("SERVICE3")).andReturn(serviceDescriptor3).times(1);
 
     setupGetDescriptorFromCluster(kerberosDescriptor);
 
@@ -2471,6 +2173,11 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     // This is a STRICT mock to help ensure that the end result is what we want.
     final RequestStageContainer requestStageContainer = createStrictMock(RequestStageContainer.class);
+    // Preparation Stage
+    expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(anyObject(List.class));
+    expectLastCall().once();
     // Delete Principals Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
@@ -2507,22 +2214,22 @@ public class KerberosHelperTest extends EasyMockSupport {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
     boolean managingIdentities = !Boolean.FALSE.equals(manageIdentities);
 
-    final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
+    final Map<String, String> kerberosEnvProperties = createMock(Map.class);
     expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").anyTimes();
     expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").anyTimes();
 
-    if (manageIdentities != null) {
-      expect(kerberosEnvProperties.get("manage_identities"))
-          .andReturn((manageIdentities) ? "true" : "false")
-          .anyTimes();
-    }
+    expect(kerberosEnvProperties.get("manage_identities"))
+        .andReturn((manageIdentities == null)
+            ? null
+            : ((manageIdentities) ? "true" : "false"))
+        .anyTimes();
 
-    final Config kerberosEnvConfig = createNiceMock(Config.class);
+    final Config kerberosEnvConfig = createMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).anyTimes();
 
-    final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
+    final Map<String, String> krb5ConfProperties = createMock(Map.class);
 
-    final Config krb5ConfConfig = createNiceMock(Config.class);
+    final Config krb5ConfConfig = createMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
     final Map<String,Object> attributeMap = new HashMap<String, Object>();
@@ -2644,7 +2351,7 @@ public class KerberosHelperTest extends EasyMockSupport {
           .andReturn(Collections.<String, Map<String, String>>emptyMap())
           .once();
       expect(ambariManagementController.getRoleCommandOrder(cluster))
-          .andReturn(createNiceMock(RoleCommandOrder.class))
+          .andReturn(createMock(RoleCommandOrder.class))
           .once();
 
       final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
@@ -2681,6 +2388,11 @@ public class KerberosHelperTest extends EasyMockSupport {
           })
           .anyTimes();
 
+      // Preparation Stage
+      expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+      expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.addStages(anyObject(List.class));
+      expectLastCall().once();
       // Create Principals Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
@@ -2774,16 +2486,17 @@ public class KerberosHelperTest extends EasyMockSupport {
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
         .times(2);
 
-    final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
+    final Map<String, String> kerberosEnvProperties = createMock(Map.class);
     expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").anyTimes();
     expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").anyTimes();
+    expect(kerberosEnvProperties.get("manage_identities")).andReturn(null).anyTimes();
 
-    final Config kerberosEnvConfig = createNiceMock(Config.class);
+    final Config kerberosEnvConfig = createMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).anyTimes();
 
-    final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
+    final Map<String, String> krb5ConfProperties = createMock(Map.class);
 
-    final Config krb5ConfConfig = createNiceMock(Config.class);
+    final Config krb5ConfConfig = createMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
     final Cluster cluster = createNiceMock(Cluster.class);
@@ -2841,7 +2554,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         .andReturn(Collections.<String, Map<String, String>>emptyMap())
         .once();
     expect(ambariManagementController.getRoleCommandOrder(cluster))
-        .andReturn(createNiceMock(RoleCommandOrder.class))
+        .andReturn(createMock(RoleCommandOrder.class))
         .once();
 
     final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
@@ -2880,7 +2593,12 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     // This is a STRICT mock to help ensure that the end result is what we want.
     final RequestStageContainer requestStageContainer = createStrictMock(RequestStageContainer.class);
-    // Delete  Principals Stage
+    // Preparation Stage
+    expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(anyObject(List.class));
+    expectLastCall().once();
+    // Delete Principals Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.addStages(anyObject(List.class));
@@ -2956,7 +2674,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(host2.getHostName()).andReturn("host2").anyTimes();
     expect(host2.getState()).andReturn(HostState.HEALTHY).anyTimes();
 
-    final ServiceComponent serviceComponentKerberosClient = createMock(ServiceComponent.class);
+    final ServiceComponent serviceComponentKerberosClient = createNiceMock(ServiceComponent.class);
     expect(serviceComponentKerberosClient.getName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
     expect(serviceComponentKerberosClient.getServiceComponentHosts()).andReturn(Collections.singletonMap("host1", schKerberosClient1)).anyTimes();
 
