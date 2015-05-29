@@ -117,6 +117,10 @@
       <outputDirectory>ambari-server-${project.version}/sbin/ambari_jinja2</outputDirectory>
     </fileSet>
     <fileSet>
+      <directory>${basedir}/../ambari-common/src/main/python/ambari_simplejson</directory>
+      <outputDirectory>ambari-server-${project.version}/sbin/ambari_simplejson</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>${basedir}/../ambari-common/src/main/python/resource_management</directory>
       <outputDirectory>ambari-server-${project.version}/sbin/resource_management</outputDirectory>
     </fileSet>

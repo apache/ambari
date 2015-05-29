@@ -45,6 +45,10 @@
       <outputDirectory>/sbin/ambari_jinja2</outputDirectory>
     </fileSet>
     <fileSet>
+      <directory>${basedir}/../ambari-common/src/main/python/ambari_simplejson</directory>
+      <outputDirectory>/sbin/ambari_simplejson</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>${project.basedir}/conf/windows</directory>
       <outputDirectory>/</outputDirectory>
       <excludes>
