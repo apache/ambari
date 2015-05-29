@@ -76,6 +76,7 @@
             <exclude>**/.editorconfig</exclude>
             <exclude>**/.jshintrc</exclude>
             <exclude>**/.tmp/**</exclude>
+            <exclude>**/tmp/**</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.svg</exclude>
             <exclude>**/vendor/**</exclude>
@@ -85,6 +86,7 @@
             <exclude>**/public/**</exclude>
             <exclude>**/dist/**</exclude>
             <exclude>**/bower_components/**</exclude>
+            <exclude>**/bower/**</exclude>
             <exclude>**/node/**</exclude>
             <exclude>**/runner.js</exclude>
             <exclude>**/assets/javascripts/**</exclude>
