@@ -133,7 +133,7 @@
           <skip>true</skip>
           <attach>false</attach>
           <submodules>true</submodules>
-          <controlDir>${basedir}/../../ambari-project/src/main/package/deb/control</controlDir>
+          <controlDir>${ambari.dir}/ambari-project/src/main/package/deb/control</controlDir>
         </configuration>
       </plugin>
       <plugin>
