@@ -23,7 +23,6 @@ __all__ = ["Script"]
 
 import os
 import sys
-import json
 import logging
 import platform
 from ambari_commons import OSCheck, OSConst
@@ -41,6 +40,8 @@ from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
 from resource_management.core.resources.system import Execute
+
+import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
 if OSCheck.is_windows_family():
   from resource_management.libraries.functions.install_hdp_msi import install_windows_msi

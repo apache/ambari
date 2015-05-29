@@ -36,6 +36,7 @@
     <ambari_commons.install.dir>/usr/lib/ambari-server/lib/ambari_commons</ambari_commons.install.dir>
     <resource_management.install.dir>/usr/lib/ambari-server/lib/resource_management</resource_management.install.dir>
     <jinja.install.dir>/usr/lib/ambari-server/lib/ambari_jinja2</jinja.install.dir>
+    <simplejson.install.dir>/usr/lib/ambari-server/lib/ambari_simplejson</simplejson.install.dir>
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
     <ambari-admin-dir>${basedir}/../ambari-admin</ambari-admin-dir>
     <contrib-views-dir>${basedir}/../contrib/views</contrib-views-dir>
@@ -280,6 +281,7 @@
           <defaultDirmode>755</defaultDirmode>
           <defaultUsername>root</defaultUsername>
           <defaultGroupname>root</defaultGroupname>
+          <needarch>x86_64</needarch>
           <mappings>
             <mapping>
               <directory>/usr/lib/ambari-server</directory>
@@ -339,7 +341,18 @@
                 </source>
               </sources>
             </mapping>
-              <mapping>
+            <mapping>
+              <directory>${simplejson.install.dir}</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.basedir}/../ambari-common/src/main/python/ambari_simplejson</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
               <directory>/usr/sbin</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -1098,6 +1111,17 @@
               <mapper>
                 <type>perm</type>
                 <prefix>${jinja.install.dir}</prefix>
+                <filemode>755</filemode>
+                <user>root</user>
+                <group>root</group>
+              </mapper>
+            </data>
+            <data>
+              <src>${project.basedir}/../ambari-common/src/main/python/ambari_simplejson</src>
+              <type>directory</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>${simplejson.install.dir}</prefix>
                 <filemode>755</filemode>
                 <user>root</user>
                 <group>root</group>

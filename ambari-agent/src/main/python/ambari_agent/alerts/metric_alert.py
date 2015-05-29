@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 import imp
-import json
+import ambari_simplejson as json
 import logging
 import re
 import urllib2

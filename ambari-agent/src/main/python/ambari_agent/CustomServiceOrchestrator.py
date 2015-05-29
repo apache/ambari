@@ -20,7 +20,7 @@ limitations under the License.
 
 import logging
 import os
-import json
+import ambari_simplejson as json
 import sys
 from ambari_commons import shell
 import threading

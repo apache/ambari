@@ -116,11 +116,12 @@ class Logger:
 
   @staticmethod
   def get_arg_repr(x, y):
+    if isinstance(y, basestring) and len(y) > MESSAGE_MAX_LEN:
+      y = '...'
+        
     # strip unicode 'u' sign
     if isinstance(y, unicode):
       # don't show long messages
-      if len(y) > MESSAGE_MAX_LEN:
-        y = '...'
       val = repr(y).lstrip('u')
     # don't show dicts of configurations
     # usually too long

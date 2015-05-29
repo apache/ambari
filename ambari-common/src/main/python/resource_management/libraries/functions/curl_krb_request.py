@@ -23,7 +23,6 @@ Ambari Agent
 __all__ = ["curl_krb_request"]
 import logging
 import os
-import uuid
 import time
 import subprocess
 
@@ -47,6 +46,7 @@ logger = logging.getLogger()
 
 def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix, krb_exec_search_paths,
                      return_only_http_code, alert_name):
+  import uuid
   # Create the kerberos credentials cache (ccache) file and set it in the environment to use
   # when executing curl. Use the md5 hash of the combination of the principal and keytab file
   # to generate a (relatively) unique cache filename so that we can use it as needed.

@@ -19,7 +19,7 @@ limitations under the License.
 
 import sys
 import os
-import json
+import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import  tempfile
 from resource_management import *
 from resource_management.libraries.functions import conf_select

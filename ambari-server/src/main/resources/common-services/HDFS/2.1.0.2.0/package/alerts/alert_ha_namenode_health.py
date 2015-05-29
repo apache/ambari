@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 import urllib2
-import json
+import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import logging
 
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request

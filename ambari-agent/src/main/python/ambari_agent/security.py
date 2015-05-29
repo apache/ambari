@@ -23,7 +23,7 @@ import ssl
 import os
 import logging
 import subprocess
-import json
+import ambari_simplejson as json
 import pprint
 import traceback
 import hostname

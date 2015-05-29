@@ -23,9 +23,6 @@ from resource_management.core.system import System
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import default, format
 
-import json
-import collections
-
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
@@ -107,16 +104,3 @@ if has_hbase_masters:
 #repo params
 repo_info = config['hostLevelParams']['repo_info']
 service_repo_info = default("/hostLevelParams/service_repo_info",None)
-
-user_to_groups_dict = collections.defaultdict(lambda:[user_group])
-user_to_groups_dict[smoke_user] = [proxyuser_group]
-if has_ganglia_server:
-  user_to_groups_dict[gmond_user] = [gmond_user]
-  user_to_groups_dict[gmetad_user] = [gmetad_user]
-if has_tez:
-  user_to_groups_dict[tez_user] = [proxyuser_group]
-
-user_to_gid_dict = collections.defaultdict(lambda:user_group)
-
-user_list = json.loads(config['hostLevelParams']['user_list'])
-group_list = json.loads(config['hostLevelParams']['group_list'])

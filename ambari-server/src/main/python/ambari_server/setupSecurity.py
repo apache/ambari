@@ -19,7 +19,7 @@ limitations under the License.
 '''
 import base64
 import fileinput
-import json
+import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import os
 import re
 import shutil

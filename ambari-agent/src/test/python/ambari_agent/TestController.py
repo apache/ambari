@@ -27,7 +27,7 @@ from mock.mock import patch, MagicMock, call, Mock
 import logging
 import platform
 from threading import Event
-import json
+import ambari_simplejson
 from ambari_commons import OSCheck
 from only_for_platform import not_for_platform, only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
 from ambari_agent import Controller, ActionQueue, Register
@@ -66,7 +66,7 @@ class TestController(unittest.TestCase):
     self.controller.netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC = 0.1
 
 
-  @patch("json.dumps")
+  @patch("ambari_simplejson.dumps")
   @patch("time.sleep")
   @patch("pprint.pformat")
   @patch.object(Controller, "randint")
@@ -142,7 +142,7 @@ class TestController(unittest.TestCase):
     LiveStatus_mock.SERVICES = ["foo"]
     LiveStatus_mock.CLIENT_COMPONENTS = ["foo"]
     LiveStatus_mock.COMPONENTS = ["foo"]
-    commands = json.loads('[{"clusterName":"dummy_cluster"}]')
+    commands = ambari_simplejson.loads('[{"clusterName":"dummy_cluster"}]')
     actionQueue = MagicMock()
     self.controller.actionQueue = actionQueue
     updateComponents = Mock()
@@ -356,13 +356,13 @@ class TestController(unittest.TestCase):
 
     conMock.request.return_value = '{"valid_object": true}'
     actual = self.controller.sendRequest(url, data)
-    expected = json.loads('{"valid_object": true}')
+    expected = ambari_simplejson.loads('{"valid_object": true}')
     self.assertEqual(actual, expected)
     
     security_mock.CachedHTTPSConnection.assert_called_once_with(
       self.controller.config)
     requestMock.called_once_with(url, data,
-      {'Content-Type': 'application/json'})
+      {'Content-Type': 'application/ambari_simplejson'})
 
     conMock.request.return_value = '{invalid_object}'
 
@@ -385,7 +385,7 @@ class TestController(unittest.TestCase):
 
   @patch.object(threading._Event, "wait")
   @patch("time.sleep")
-  @patch("json.dumps")
+  @patch("ambari_simplejson.dumps")
   def test_heartbeatWithServer(self, dumpsMock, sleepMock, event_mock):
     out = StringIO.StringIO()
     sys.stdout = out
@@ -551,8 +551,8 @@ class TestController(unittest.TestCase):
 
   @patch("pprint.pformat")
   @patch("time.sleep")
-  @patch("json.loads")
-  @patch("json.dumps")
+  @patch("ambari_simplejson.loads")
+  @patch("ambari_simplejson.dumps")
   def test_certSigningFailed(self, dumpsMock, loadsMock, sleepMock, pformatMock):
     register = MagicMock()
     self.controller.register = register
@@ -599,7 +599,7 @@ class TestController(unittest.TestCase):
     self.assertEquals(LiveStatus_mock.COMPONENTS, components_expected)
 
   @patch("socket.gethostbyname")
-  @patch("json.dumps")
+  @patch("ambari_simplejson.dumps")
   @patch("time.sleep")
   @patch("pprint.pformat")
   @patch.object(Controller, "randint")
@@ -653,7 +653,7 @@ class TestController(unittest.TestCase):
 
   @patch.object(threading._Event, "wait")
   @patch("time.sleep")
-  @patch("json.dumps")
+  @patch("ambari_simplejson.dumps")
   def test_recoveryHbCmd(self, dumpsMock, sleepMock, event_mock):
 
     out = StringIO.StringIO()

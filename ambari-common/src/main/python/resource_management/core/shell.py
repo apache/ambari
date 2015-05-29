@@ -27,7 +27,6 @@ import select
 import sys
 import logging
 import string
-import inspect
 import subprocess
 import threading
 import traceback
@@ -48,7 +47,7 @@ PLACEHOLDERS_TO_STR = {
 
 def log_function_call(function):
   def inner(command, **kwargs):
-    caller_filename = inspect.getouterframes(inspect.currentframe())[1][1]
+    caller_filename = sys._getframe(1).f_code.co_filename
     # quiet = can be False/True or None -- which means undefined yet
     quiet = kwargs['quiet'] if 'quiet' in kwargs else None
     is_internal_call = RMF_FOLDER in caller_filename

@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from resource_management import Execute
 from tempfile import mkstemp
 import os
-import json
+import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
 FILE_TYPE_XML = 'XML'
 FILE_TYPE_PROPERTIES = 'PROPERTIES'

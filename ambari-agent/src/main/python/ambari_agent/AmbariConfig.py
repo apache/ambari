@@ -21,7 +21,7 @@ limitations under the License.
 import ConfigParser
 import StringIO
 import hostname
-import json
+import ambari_simplejson as json
 from NetUtil import NetUtil
 import os
 

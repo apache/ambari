@@ -19,7 +19,6 @@ limitations under the License.
 Ambari Agent
 
 """
-import json
 import re
 import os
 from resource_management.core.environment import Environment
@@ -33,6 +32,7 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions import namenode_ha_utils
 
+import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
 JSON_PATH = '/var/lib/ambari-agent/data/hdfs_resources.json'
 JAR_PATH = '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar'

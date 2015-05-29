@@ -23,7 +23,7 @@ from unittest import TestCase
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.AmbariConfig import AmbariConfig
-import os, errno, time, pprint, tempfile, threading, json
+import os, errno, time, pprint, tempfile, threading
 import StringIO
 import sys
 from threading import Thread

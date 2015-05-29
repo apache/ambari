@@ -20,3 +20,8 @@ Jinja2, the templating library used by resource management library:
 Copyright (c) 2009 by the Jinja Team, see AUTHORS for more details.
 Some rights reserved.
 
+This product includes Simplejson, library fast encoding and decoding of json. (https://github.com/simplejson/simplejson - MIT license)
+
+Copyright (c) 2006 Bob Ippolito.
+All rights reserved.
+

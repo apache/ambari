@@ -54,7 +54,7 @@ class TestClusterConfigurationCache(TestCase):
     self.assertEqual(None, cluster_configuration.get_configuration_value('INVALID', 'foo-site/foobar') )
 
 
-  @patch("json.dump")
+  @patch("ambari_simplejson.dump")
   def test_cluster_configuration_update(self, json_dump_mock):
     cluster_configuration = self.__get_cluster_configuration()
 

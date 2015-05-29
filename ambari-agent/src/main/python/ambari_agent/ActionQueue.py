@@ -24,7 +24,7 @@ import traceback
 import threading
 import pprint
 import os
-import json
+import ambari_simplejson as json
 import time
 
 from AgentException import AgentException

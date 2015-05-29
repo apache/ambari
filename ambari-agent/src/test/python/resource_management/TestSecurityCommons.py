@@ -235,10 +235,10 @@ class TestSecurityCommons(TestCase):
   @patch('os.path.exists')
   @patch('os.makedirs')
   @patch('os.path.isfile')
-  @patch('json.load')
+  @patch('ambari_simplejson.load')
   @patch('resource_management.libraries.functions.security_commons.new_cached_exec')
   @patch('__builtin__.open')
-  def test_cached_executor(self, open_file_mock, new_cached_exec_mock, json_load_mock,
+  def test_cached_executor(self, open_file_mock, new_cached_exec_mock, ambari_simplejson_load_mock,
                            os_isfile_mock, os_makedirs_mock, os_path_exists_mock):
 
     # Test that function works when is called with correct parameters
@@ -260,7 +260,7 @@ class TestSecurityCommons(TestCase):
     output[key] = {}
     output[key] = {"last_successful_execution": str(datetime.now())}
 
-    json_load_mock.return_value = output
+    ambari_simplejson_load_mock.return_value = output
 
     cached_kinit_executor(kinit_path, user, keytab_file, principal, hostname, temp_dir, expiration_time)
     os_path_exists_mock.assert_called_with(file_path)
@@ -275,8 +275,8 @@ class TestSecurityCommons(TestCase):
     output_error[key] = {}
     output_error[key] = {"last_successful_execution": str(last_successful_executation)}
 
-    json_load_mock.reset_mock()
-    json_load_mock.return_value = output_error
+    ambari_simplejson_load_mock.reset_mock()
+    ambari_simplejson_load_mock.return_value = output_error
 
     new_cached_exec_mock.return_value = output
 
@@ -292,11 +292,11 @@ class TestSecurityCommons(TestCase):
 
     os_makedirs_mock.assert_called_with(file_path)
 
-    # Test that the json throws an exception
+    # Test that the ambari_simplejson throws an exception
     os_path_exists_mock.return_value = True
 
-    json_load_mock.reset_mock()
-    json_load_mock.side_effect = Exception("Invalid file")
+    ambari_simplejson_load_mock.reset_mock()
+    ambari_simplejson_load_mock.side_effect = Exception("Invalid file")
 
     try:
       cached_kinit_executor(kinit_path, user, keytab_file, principal, hostname, temp_dir, expiration_time)
@@ -304,8 +304,8 @@ class TestSecurityCommons(TestCase):
       self.assertTrue(True)
 
     # Test that the new_cached_exec function is called if the output doesn't have data
-    json_load_mock.reset_mock()
-    json_load_mock.return_value = None
+    ambari_simplejson_load_mock.reset_mock()
+    ambari_simplejson_load_mock.return_value = None
 
     new_cached_exec_mock.return_value = output
 

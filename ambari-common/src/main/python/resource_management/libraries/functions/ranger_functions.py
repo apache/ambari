@@ -20,7 +20,7 @@ limitations under the License.
 import time
 import sys
 from StringIO import StringIO as BytesIO
-import json
+import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 from resource_management.core.logger import Logger
 import urllib2, base64, httplib
 from resource_management.core.exceptions import Fail

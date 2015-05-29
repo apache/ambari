@@ -21,7 +21,7 @@ limitations under the License.
 """
 http://apscheduler.readthedocs.org/en/v2.1.2
 """
-import json
+import ambari_simplejson as json
 import logging
 import os
 import sys
