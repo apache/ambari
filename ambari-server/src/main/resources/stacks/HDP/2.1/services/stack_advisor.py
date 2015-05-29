@@ -74,13 +74,19 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
       "HIVE": {"hive-site": self.validateHiveConfigurations},
       "TEZ": {"tez-site": self.validateTezConfigurations}
     }
-    parentValidators.update(childValidators)
+    self.mergeValidators(parentValidators, childValidators)
     return parentValidators
 
   def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'hive.tez.container.size', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.tez.container.size')},
                         {"config-name": 'hive.tez.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'hive.tez.java.opts')},
                         {"config-name": 'hive.auto.convert.join.noconditionaltask.size', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.auto.convert.join.noconditionaltask.size')} ]
+    yarnSiteProperties = getSiteProperties(configurations, "yarn-site")
+    if yarnSiteProperties:
+      yarnSchedulerMaximumAllocationMb = to_number(yarnSiteProperties["yarn.scheduler.maximum-allocation-mb"])
+      hiveTezContainerSize = to_number(properties['hive.tez.container.size'])
+      if hiveTezContainerSize is not None and yarnSchedulerMaximumAllocationMb is not None and hiveTezContainerSize > yarnSchedulerMaximumAllocationMb:
+        validationItems.append({"config-name": 'hive.tez.container.size', "item": self.getWarnItem("yarn.scheduler.maximum-allocation-mb is less than hive.tez.container.size")})
     return self.toConfigurationValidationProblems(validationItems, "hive-site")
 
   def validateTezConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):

@@ -573,7 +573,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
       "TEZ": {"tez-site": self.validateTezConfigurations}
     }
-    parentValidators.update(childValidators)
+    self.mergeValidators(parentValidators, childValidators)
     return parentValidators
 
   def validateTezConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -770,7 +770,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
 
   def validateHiveServer2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    super(HDP22StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hive_server2 = properties
     validationItems = [] 
     #Adding Ranger Plugin logic here 
@@ -826,7 +825,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "hive-env")
 
   def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    super(HDP22StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    parentValidationProblems = super(HDP22StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hive_site = properties
     validationItems = []
     #Adding Ranger Plugin logic here
@@ -866,7 +865,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                               "item": self.getWarnItem("Correct values are {0}".format(stripe_size_values))
                              }
       )
-    return self.toConfigurationValidationProblems(validationItems, "hive-site")
+    configurationValidationProblems = self.toConfigurationValidationProblems(validationItems, "hive-site")
+    configurationValidationProblems.extend(parentValidationProblems)
+    return configurationValidationProblems
 
   def validateHBASEConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hbase_site = properties

@@ -779,3 +779,41 @@ class TestHDP206StackAdvisor(TestCase):
     # unknown service
     unknown_component = self.stackAdvisor.getHostWithComponent("UNKNOWN", "NODEMANAGER", services, hosts)
     self.assertEquals(nodemanager, None)
+
+  def test_mergeValidators(self):
+    childValidators = {
+      "HDFS": {"hdfs-site": "validateHDFSConfigurations2.3"},
+      "HIVE": {"hiveserver2-site": "validateHiveServer2Configurations2.3"},
+      "HBASE": {"hbase-site": "validateHBASEConfigurations2.3",
+                "newconf": "new2.3"},
+      "NEWSERVICE" : {"newserviceconf": "abc2.3"}
+    }
+    parentValidators = {
+      "HDFS": {"hdfs-site": "validateHDFSConfigurations2.2",
+               "hadoop-env": "validateHDFSConfigurationsEnv2.2"},
+      "YARN": {"yarn-env": "validateYARNEnvConfigurations2.2"},
+      "HIVE": {"hiveserver2-site": "validateHiveServer2Configurations2.2",
+               "hive-site": "validateHiveConfigurations2.2",
+               "hive-env": "validateHiveConfigurationsEnv2.2"},
+      "HBASE": {"hbase-site": "validateHBASEConfigurations2.2",
+                "hbase-env": "validateHBASEEnvConfigurations2.2"},
+      "MAPREDUCE2": {"mapred-site": "validateMapReduce2Configurations2.2"},
+      "TEZ": {"tez-site": "validateTezConfigurations2.2"}
+    }
+    expected = {
+      "HDFS": {"hdfs-site": "validateHDFSConfigurations2.3",
+               "hadoop-env": "validateHDFSConfigurationsEnv2.2"},
+      "YARN": {"yarn-env": "validateYARNEnvConfigurations2.2"},
+      "HIVE": {"hiveserver2-site": "validateHiveServer2Configurations2.3",
+               "hive-site": "validateHiveConfigurations2.2",
+               "hive-env": "validateHiveConfigurationsEnv2.2"},
+      "HBASE": {"hbase-site": "validateHBASEConfigurations2.3",
+                "hbase-env": "validateHBASEEnvConfigurations2.2",
+                "newconf": "new2.3"},
+      "MAPREDUCE2": {"mapred-site": "validateMapReduce2Configurations2.2"},
+      "TEZ": {"tez-site": "validateTezConfigurations2.2"},
+      "NEWSERVICE" : {"newserviceconf": "abc2.3"}
+    }
+
+    self.stackAdvisor.mergeValidators(parentValidators, childValidators)
+    self.assertEquals(expected, parentValidators)

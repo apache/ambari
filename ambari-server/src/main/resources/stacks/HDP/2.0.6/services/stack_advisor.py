@@ -727,6 +727,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     return uid_min
 
+  def mergeValidators(self, parentValidators, childValidators):
+    for service, configsDict in childValidators.iteritems():
+      if service not in parentValidators:
+        parentValidators[service] = {}
+      parentValidators[service].update(configsDict)
 
 # Validation helper methods
 def getSiteProperties(configurations, siteName):

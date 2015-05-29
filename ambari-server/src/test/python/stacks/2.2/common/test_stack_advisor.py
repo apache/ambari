@@ -2323,7 +2323,14 @@ class TestHDP22StackAdvisor(TestCase):
     pass
 
   def test_validateHiveConfigurations(self):
-    properties = {"hive_security_authorization": "None", "hive.exec.orc.default.stripe.size": "8388608"}
+    properties = {"hive_security_authorization": "None",
+                  "hive.exec.orc.default.stripe.size": "8388608",
+                  'hive.tez.container.size': '2048',
+                  'hive.tez.java.opts': '-Xmx300m',
+                  'hive.auto.convert.join.noconditionaltask.size': '1100000000'}
+    recommendedDefaults = {'hive.tez.container.size': '1024',
+                           'hive.tez.java.opts': '-Xmx256m',
+                           'hive.auto.convert.join.noconditionaltask.size': '1000000000'}
     configurations = {
       "hive-site": {
         "properties": {"hive.security.authorization.enabled": "true"}
@@ -2338,7 +2345,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # Test for 'ranger-hive-plugin-properties' not being in configs
     res_expected = []
-    res = self.stackAdvisor.validateHiveConfigurations(properties, {}, configurations, services, {})
+    res = self.stackAdvisor.validateHiveConfigurations(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)
 
     pass

@@ -93,7 +93,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations},
         "HBASE": {"hbase-site": self.validateHBASEConfigurations}
       }
-      parentValidators.update(childValidators)
+      self.mergeValidators(parentValidators, childValidators)
       return parentValidators
 
   def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):

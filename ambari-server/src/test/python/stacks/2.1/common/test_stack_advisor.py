@@ -246,3 +246,30 @@ class TestHDP21StackAdvisor(TestCase):
 
     res = self.stackAdvisor.validateHDFSConfigurationsEnv(properties, recommendedDefaults, configurations, '', '')
     self.assertEquals(res, res_expected)
+
+  def test_validateHiveConfigurations(self):
+    configurations = {'yarn-site': {'properties': {'yarn.scheduler.maximum-allocation-mb': '4096'}}}
+
+    # 1) ok: hive.tez.container.size > recommended
+    recommendedDefaults = {'hive.tez.container.size': '1024',
+                           'hive.tez.java.opts': '-Xmx256m',
+                           'hive.auto.convert.join.noconditionaltask.size': '1000000000'}
+    properties = {'hive.tez.container.size': '2048',
+                  'hive.tez.java.opts': '-Xmx300m',
+                  'hive.auto.convert.join.noconditionaltask.size': '1100000000'}
+    res_expected = []
+
+    res = self.stackAdvisor.validateHiveConfigurations(properties, recommendedDefaults, configurations, '', '')
+    self.assertEquals(res, res_expected)
+
+    # 2) fail: yarn.scheduler.maximum-allocation-mb < hive.tez.container.size
+    configurations = {'yarn-site': {'properties': {'yarn.scheduler.maximum-allocation-mb': '256'}}}
+    res_expected = [{'config-type': 'hive-site',
+                     'message': 'yarn.scheduler.maximum-allocation-mb is less than hive.tez.container.size',
+                     'type': 'configuration',
+                     'config-name': 'hive.tez.container.size',
+                     'level': 'WARN'},
+                    ]
+
+    res = self.stackAdvisor.validateHiveConfigurations(properties, recommendedDefaults, configurations, '', '')
+    self.assertEquals(res, res_expected)
