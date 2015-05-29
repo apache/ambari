@@ -18,14 +18,23 @@ limitations under the License.
 Ambari Agent
 
 """
+import os
+import urlparse
 
-import sys
-from resource_management import *
+from ambari_commons import OSConst
+from ambari_commons.inet_utils import download_file
+from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_commons.os_utils import copy_file, extract_path_component
+
+from resource_management.core.exceptions import ClientComponentHasNoStatus
+from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions.get_hdp_version import get_hdp_version
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.script.script import Script
+
 from tez import tez
-from ambari_commons import OSConst
-from ambari_commons.os_family_impl import OsFamilyImpl
 
 class TezClient(Script):
   def configure(self, env):
@@ -56,12 +65,39 @@ class TezClientLinux(TezClient):
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class TezClientWindows(TezClient):
-
   def install(self, env):
     import params
     if params.tez_home_dir is None:
       self.install_packages(env)
+      params.refresh_tez_state_dependent_params()
+    env.set_params(params)
+    self._install_lzo_support_if_needed(params)
     self.configure(env)
+
+  def _install_lzo_support_if_needed(self, params):
+    hadoop_classpath_prefix = self._expand_hadoop_classpath_prefix(params.hadoop_classpath_prefix_template, params.config['configurations']['tez-site'])
+
+    hadoop_lzo_dest_path = extract_path_component(hadoop_classpath_prefix, "hadoop-lzo-")
+    if hadoop_lzo_dest_path:
+      hadoop_lzo_file = os.path.split(hadoop_lzo_dest_path)[1]
+
+      config = Script.get_config()
+      file_url = urlparse.urljoin(config['hostLevelParams']['jdk_location'], hadoop_lzo_file)
+      hadoop_lzo_dl_path = os.path.join(config["hostLevelParams"]["agentCacheDir"], hadoop_lzo_file)
+      download_file(file_url, hadoop_lzo_dl_path)
+      #This is for protection against configuration changes. It will infect every new destination with the lzo jar,
+      # but since the classpath points to the jar directly we're getting away with it.
+      if not os.path.exists(hadoop_lzo_dest_path):
+        copy_file(hadoop_lzo_dl_path, hadoop_lzo_dest_path)
+
+  def _expand_hadoop_classpath_prefix(self, hadoop_classpath_prefix_template, configurations):
+    import resource_management
+
+    hadoop_classpath_prefix_obj = InlineTemplate(hadoop_classpath_prefix_template, configurations_dict=configurations,
+                                                 extra_imports=[resource_management, resource_management.core,
+                                                                resource_management.core.source])
+    hadoop_classpath_prefix = hadoop_classpath_prefix_obj.get_content()
+    return hadoop_classpath_prefix
 
 if __name__ == "__main__":
   TezClient().execute()

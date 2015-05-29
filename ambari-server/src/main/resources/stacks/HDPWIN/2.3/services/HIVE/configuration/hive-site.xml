@@ -205,15 +205,6 @@ limitations under the License.
   </property>
 
   <property>
-    <name>hive.execution.engine</name>
-    <value>mr</value>
-    <description>
-      Expects one of [mr, tez].
-      Chooses execution engine. Options are: mr (Map reduce, default) or tez (hadoop 2 only)
-    </description>
-  </property>
-
-  <property>
     <name>hive.compute.query.using.stats</name>
     <value>true</value>
     <description>

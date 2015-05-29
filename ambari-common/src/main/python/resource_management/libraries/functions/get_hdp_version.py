@@ -19,15 +19,45 @@ limitations under the License.
 Ambari Agent
 
 """
-
 __all__ = ["get_hdp_version"]
+
 import os
 import re
+
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core import shell
 
+@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
+def get_hdp_version(package_name):
+  """
+  @param package_name, name of the package, from which, function will try to get hdp version
+  """
+  try:
+    component_home_dir = os.environ[package_name.upper() + "_HOME"]
+  except KeyError:
+    Logger.info('Skipping get_hdp_version since the component {0} is not yet available'.format(package_name))
+    return None # lazy fail
 
+  #As a rule, component_home_dir is of the form <hdp_root_dir>\[\]<component_versioned_subdir>[\]
+  home_dir_split = os.path.split(component_home_dir)
+  iSubdir = len(home_dir_split) - 1
+  while not home_dir_split[iSubdir]:
+    iSubdir -= 1
+
+  #The component subdir is expected to be of the form <package_name>-<package_version>.<hdp_stack_version>
+  # with package_version = #.#.# and hdp_stack_version=#.#.#.#-<build_number>
+  match = re.findall('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', home_dir_split[iSubdir])
+  if not match:
+    Logger.info('Failed to get extracted version for component {0}. Home dir not in expected format.'.format(package_name))
+    return None # lazy fail
+
+  return match[0]
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def get_hdp_version(package_name):
   """
   @param package_name, name of the package, from which, function will try to get hdp version

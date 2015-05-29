@@ -17,17 +17,35 @@ limitations under the License.
 
 """
 
-from resource_management import *
 import os
+
+from resource_management.libraries.functions.get_hdp_version import get_hdp_version
+from resource_management.libraries.script.script import Script
 
 config = Script.get_config()
 hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
+user_group = config["configurations"]["cluster-env"]["user_group"]
 tez_user = hadoop_user
 tez_home_dir = None
 tez_conf_dir = "conf"
 
+try:
+  hadoop_classpath_prefix_template = config["configurations"]["tez-site"]["tez.cluster.additional.classpath.prefix"]
+except KeyError:
+  hadoop_classpath_prefix_template = ""
+
+hdp_stack_version = ""
+
 hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
 
-if os.environ.has_key("TEZ_HOME"):
+
+def refresh_tez_state_dependent_params():
+  global tez_home_dir, tez_conf_dir, hdp_stack_version
   tez_home_dir = os.environ["TEZ_HOME"]
   tez_conf_dir = os.path.join(tez_home_dir, "conf")
+  # this is not available on INSTALL action because hdp-select is not available
+  hdp_stack_version = get_hdp_version("tez")
+
+
+if os.environ.has_key("TEZ_HOME"):
+  refresh_tez_state_dependent_params()

@@ -124,3 +124,22 @@ def find_in_path(file):
   if full_path is None:
     raise Exception("File {0} not found in PATH".format(file))
   return full_path
+
+def extract_path_component(path, path_fragment):
+  iFragment = path.find(path_fragment)
+  if iFragment != -1:
+    iComponentStart = 0
+    while iComponentStart < iFragment:
+      iComponentStartTemp = path.find(os.pathsep, iComponentStart)
+      if iComponentStartTemp == -1 or iComponentStartTemp > iFragment:
+        break
+      iComponentStart = iComponentStartTemp
+
+    iComponentEnd = path.find(os.pathsep, iFragment)
+    if iComponentEnd == -1:
+      iComponentEnd = len(path)
+
+    path_component = path[iComponentStart:iComponentEnd]
+    return path_component
+  else:
+    return None

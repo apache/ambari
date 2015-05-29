@@ -30,7 +30,6 @@
   <property>
     <name>content</name>
     <description>This is the jinja template for tez-env.cmd file</description>
-    <value>
-    </value>
+    <value></value>
   </property>
 </configuration>

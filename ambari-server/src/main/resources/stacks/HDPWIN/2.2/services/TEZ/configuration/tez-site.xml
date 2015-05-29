@@ -18,7 +18,6 @@
 -->
 
 <configuration supports_final="true" supports_do_not_extend="true">
-
   <property>
     <name>tez.lib.uris</name>
     <value>/hdp/apps/${hdp.version}/tez/tez.tar.gz</value>
@@ -47,12 +46,6 @@
   </property>
 
   <property>
-    <name>tez.staging-dir</name>
-    <value>/tmp/${user.name}/staging</value>
-    <description>The staging dir used while submitting DAGs</description>
-  </property>
-
-  <property>
     <name>tez.am.resource.memory.mb</name>
     <value>1536</value>
     <description>The amount of memory to be used by the AppMaster.
@@ -76,7 +69,7 @@
 
   <property>
     <name>tez.am.launch.env</name>
-    <value>LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-amd64-64</value>
+    <value>LD_LIBRARY_PATH=C:\hdp\hadoop\bin;C:\hdp\hadoop\share\hadoop\common\lib</value>
     <description>
         Additional execution environment entries for tez. This is not an additive property. You must preserve the original value if
         you want to have access to native libraries.
@@ -108,7 +101,7 @@
 
   <property>
     <name>tez.task.launch.env</name>
-    <value>LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-amd64-64</value>
+    <value>LD_LIBRARY_PATH=C:\hdp\hadoop\bin;C:\hdp\hadoop\share\hadoop\common\lib</value>
     <description>
       Additional execution environment entries for tez. This is not an additive property. You must preserve the original value if
       you want to have access to native libraries.
