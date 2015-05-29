@@ -104,12 +104,16 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
     var kdcType = this.get('content.kerberosOption');
     var configNames = ['ldap_url', 'container_dn', 'create_attributes_template'];
     var kerberosWizardController = this.controllers.get('kerberosWizardController');
+    var manageIdentitiesConfig = configs.findProperty('name', 'manage_identities');
 
     if (kdcType === Em.I18n.t('admin.kerberos.wizard.step1.option.manual')) {
       if (kerberosWizardController.get('skipClientInstall')) {
         kerberosWizardController.overrideVisibility(configs, false, kerberosWizardController.get('exceptionsOnSkipClient'));
       }
       return;
+    } else if (manageIdentitiesConfig) {
+      manageIdentitiesConfig.isVisible = false;
+      manageIdentitiesConfig.value = 'true';
     }
 
     configNames.forEach(function (_configName) {
