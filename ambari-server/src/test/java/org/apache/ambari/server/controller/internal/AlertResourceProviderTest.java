@@ -21,14 +21,16 @@ import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMOR
 import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMROY_DRIVER;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -46,7 +48,10 @@ import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AlertCurrentRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.spi.PageRequest;
+import org.apache.ambari.server.controller.spi.PageRequest.StartingPoint;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.QueryResponse;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
@@ -94,10 +99,10 @@ public class AlertResourceProviderTest {
   @Before
   @SuppressWarnings("boxing")
   public void before() throws Exception {
-    m_dao = createStrictMock(AlertsDAO.class);
+    m_dao = EasyMock.createNiceMock(AlertsDAO.class);
 
-    m_injector = Guice.createInjector(Modules.override(
-        new InMemoryDefaultTestModule()).with(new MockModule()));
+    m_injector = Guice.createInjector(Modules.override(new InMemoryDefaultTestModule()).with(
+        new MockModule()));
 
     m_amc = m_injector.getInstance(AmbariManagementController.class);
 
@@ -403,6 +408,44 @@ public class AlertResourceProviderTest {
     Resource summaryResource = summaryResources.getObject();
     List<Object> summaryList = (List<Object>) summaryResource.getPropertyValue("alerts_summary_grouped");
     Assert.assertEquals(4, summaryList.size());
+  }
+
+  /**
+   * @throws Exception
+   */
+  @Test
+  public void testResponseIsPaginated() throws Exception {
+    expect(m_dao.findAll(EasyMock.anyObject(AlertCurrentRequest.class))).andReturn(
+        getClusterMockEntities()).atLeastOnce();
+
+    expect(m_dao.getCount(EasyMock.anyObject(Predicate.class))).andReturn(0).atLeastOnce();
+
+    replay(m_dao);
+
+    Set<String> requestProperties = new HashSet<String>();
+    requestProperties.add(AlertResourceProvider.ALERT_ID);
+    requestProperties.add(AlertResourceProvider.ALERT_DEFINITION_NAME);
+
+    Request request = PropertyHelper.getReadRequest(requestProperties);
+
+    Predicate predicate = new PredicateBuilder().property(AlertResourceProvider.ALERT_CLUSTER_NAME).equals(
+        "c1").toPredicate();
+
+    AlertResourceProvider provider = createProvider();
+    QueryResponse response = provider.queryForResources(request, predicate);
+
+    // since the request didn't have paging, then this should be false
+    assertFalse(response.isPagedResponse());
+
+    // add a paged request
+    PageRequest pageRequest = new PageRequestImpl(StartingPoint.Beginning, 5, 10, predicate, null);
+    request = PropertyHelper.getReadRequest(requestProperties, null, null, pageRequest, null);
+    response = provider.queryForResources(request, predicate);
+
+    // now the request has paging
+    assertTrue(response.isPagedResponse());
+
+    verify(m_dao);
   }
 
   /**

@@ -89,7 +89,7 @@ public class DefaultProviderModule extends AbstractProviderModule {
       case AlertDefinition:
         return new AlertDefinitionResourceProvider(managementController);
       case AlertHistory:
-        return new AlertHistoryResourceProvider();
+        return new AlertHistoryResourceProvider(managementController);
       case AlertTarget:
         return new AlertTargetResourceProvider();
       case AlertGroup:

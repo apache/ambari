@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AlertHistoryRequest;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.ExtendedResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -49,7 +50,8 @@ import com.google.inject.Inject;
  * ResourceProvider for Alert History
  */
 @StaticallyInject
-public class AlertHistoryResourceProvider extends AbstractResourceProvider implements ExtendedResourceProvider{
+public class AlertHistoryResourceProvider extends ReadOnlyResourceProvider implements
+    ExtendedResourceProvider {
 
   public static final String ALERT_HISTORY_DEFINITION_ID = "AlertHistory/definition_id";
   public static final String ALERT_HISTORY_DEFINITION_NAME = "AlertHistory/definition_name";
@@ -109,8 +111,8 @@ public class AlertHistoryResourceProvider extends AbstractResourceProvider imple
   /**
    * Constructor.
    */
-  AlertHistoryResourceProvider() {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS);
+  AlertHistoryResourceProvider(AmbariManagementController controller) {
+    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
   /**

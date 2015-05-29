@@ -28,9 +28,11 @@ import java.util.Set;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AlertCurrentRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.spi.ExtendedResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.QueryResponse;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
@@ -46,7 +48,8 @@ import com.google.inject.Inject;
  * ResourceProvider for Alert instances
  */
 @StaticallyInject
-public class AlertResourceProvider extends ReadOnlyResourceProvider {
+public class AlertResourceProvider extends ReadOnlyResourceProvider implements
+    ExtendedResourceProvider {
 
   public static final String ALERT_ID = "Alert/id";
   public static final String ALERT_STATE = "Alert/state";
@@ -121,6 +124,18 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
     return pkPropertyIds;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public QueryResponse queryForResources(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException,
+      NoSuchParentResourceException {
+
+    return new QueryResponseImpl(getResources(request, predicate),
+        request.getSortRequest() != null, request.getPageRequest() != null,
+        alertsDAO.getCount(predicate));
+  }
 
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)

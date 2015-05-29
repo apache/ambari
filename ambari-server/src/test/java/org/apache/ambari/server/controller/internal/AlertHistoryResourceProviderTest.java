@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AlertHistoryRequest;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -50,6 +52,7 @@ import org.junit.Test;
 
 import com.google.inject.Binder;
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
@@ -62,6 +65,9 @@ public class AlertHistoryResourceProviderTest {
   private AlertsDAO m_dao = null;
   private Injector m_injector;
 
+  @Inject
+  private AmbariManagementController m_amc;
+
   @Before
   public void before() {
     m_dao = createStrictMock(AlertsDAO.class);
@@ -70,7 +76,7 @@ public class AlertHistoryResourceProviderTest {
     m_injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
 
-    Assert.assertNotNull(m_injector);
+    m_injector.injectMembers(this);
   }
 
   /**
@@ -173,7 +179,7 @@ public class AlertHistoryResourceProviderTest {
    * @return
    */
   private AlertHistoryResourceProvider createProvider() {
-    return new AlertHistoryResourceProvider();
+    return new AlertHistoryResourceProvider(m_amc);
   }
 
   /**
@@ -214,10 +220,9 @@ public class AlertHistoryResourceProviderTest {
     @Override
     public void configure(Binder binder) {
       binder.bind(AlertsDAO.class).toInstance(m_dao);
-      binder.bind(Clusters.class).toInstance(
-          EasyMock.createNiceMock(Clusters.class));
-      binder.bind(Cluster.class).toInstance(
-          EasyMock.createNiceMock(Cluster.class));
+      binder.bind(Clusters.class).toInstance(EasyMock.createNiceMock(Clusters.class));
+      binder.bind(Cluster.class).toInstance(EasyMock.createNiceMock(Cluster.class));
+      binder.bind(AmbariManagementController.class).toInstance(createMock(AmbariManagementController.class));
       binder.bind(ActionMetadata.class);
     }
   }
