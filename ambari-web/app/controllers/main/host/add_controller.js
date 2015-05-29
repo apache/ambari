@@ -122,7 +122,7 @@ App.AddHostController = App.WizardController.extend({
     this.set('content.services', App.StackService.find());
   },
 
-  /**
+ /**
    * Load slave component hosts data for using in required step controllers
    * TODO move to mixin
    */
@@ -264,15 +264,20 @@ App.AddHostController = App.WizardController.extend({
             var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', serviceName);
             var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name');
             var defaultGroupName = service.get('displayName') + ' Default';
+            var selectedService = selectedServices.findProperty('serviceId', serviceName);
             configGroupsNames.unshift(defaultGroupName);
-            selectedServices.push({
-              serviceId: serviceName,
-              displayName: service.get('displayName'),
-              hosts: slave.hosts.mapProperty('hostName'),
-              configGroupsNames: configGroupsNames,
-              configGroups: configGroups,
-              selectedConfigGroup: defaultGroupName
-            });
+            if (selectedService) {
+              Em.set(selectedService, 'hosts', Em.getWithDefault(selectedService, 'hosts', []).concat(slave.hosts.mapProperty('hostName')).uniq());
+            } else {
+              selectedServices.push({
+                serviceId: serviceName,
+                displayName: service.get('displayName'),
+                hosts: slave.hosts.mapProperty('hostName'),
+                configGroupsNames: configGroupsNames,
+                configGroups: configGroups,
+                selectedConfigGroup: defaultGroupName
+              });
+            }
           }
         }
       }, this);

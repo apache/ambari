@@ -912,15 +912,22 @@ describe('App.AddHostController', function () {
             {hostName: 'host1'}
           ],
           componentName: 'C1'
+        },
+        {
+          hosts: [
+            {hostName: 'host2'}
+          ],
+          componentName: 'C2'
         }
       ]);
       expect(controller.loadServiceConfigGroupsBySlaves(selectedServices)).to.be.true;
-      expect(selectedServices).to.eql([
+      expect(selectedServices.toArray()).to.eql([
         {
           "serviceId": "S1",
           "displayName": "s1",
           "hosts": [
-            "host1"
+            "host1",
+            "host2"
           ],
           "configGroupsNames": [
             "s1 Default",
