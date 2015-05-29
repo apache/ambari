@@ -625,7 +625,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
      */
     currentVersion: function() {
       var currentRepoVersion = this.get('content.stackVersions').findProperty('isCurrent') || this.get('content.stackVersions').objectAt(0);
-      return currentRepoVersion ? currentRepoVersion.get('displayName') + " (" + currentRepoVersion.get('displayStatus') + ")" : "";
+      return currentRepoVersion ? currentRepoVersion.get('displayName') : "";
     }.property('content.stackVersions'),
 
     /**

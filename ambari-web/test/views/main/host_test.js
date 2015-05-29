@@ -194,6 +194,60 @@ describe('App.MainHostView', function () {
 
     });
 
+    describe('#currentVersion', function () {
+
+      var cases = [
+        {
+          stackVersions: [
+            Em.Object.create({
+              displayName: 'HDP-2.2.0.0-2000'
+            }),
+            Em.Object.create({
+              displayName: 'HDP-2.2.0.0-1000',
+              isCurrent: true
+            })
+          ],
+          currentVersion: 'HDP-2.2.0.0-1000',
+          title: 'current version specified explicitly'
+        },
+        {
+          stackVersions: [
+            Em.Object.create({
+              displayName: 'HDP-2.2.0.0-2000'
+            }),
+            Em.Object.create({
+              displayName: 'HDP-2.3.0.0-1000'
+            })
+          ],
+          currentVersion: 'HDP-2.2.0.0-2000',
+          title: 'current version not specified explicitly'
+        },
+        {
+          stackVersions: [Em.Object.create()],
+          currentVersion: undefined,
+          title: 'version display name isn\'t defined'
+        },
+        {
+          stackVersions: [null],
+          currentVersion: '',
+          title: 'no version data available'
+        },
+        {
+          stackVersions: [],
+          currentVersion: '',
+          title: 'no versions available'
+        }
+      ];
+
+      cases.forEach(function (item) {
+        it(item.title, function () {
+          hostView.set('content.stackVersions', item.stackVersions);
+          expect(hostView.get('currentVersion')).to.equal(item.currentVersion);
+        });
+      });
+
+    });
+
   });
 
 });
