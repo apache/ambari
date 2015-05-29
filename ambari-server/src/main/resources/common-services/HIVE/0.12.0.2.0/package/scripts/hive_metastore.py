@@ -17,19 +17,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-import sys
-from resource_management import *
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute
+from resource_management.libraries.script import Script
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.security_commons import build_expectations, \
-  cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
-  FILE_TYPE_XML
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions.security_commons import build_expectations
+from resource_management.libraries.functions.security_commons import cached_kinit_executor
+from resource_management.libraries.functions.security_commons import get_params_from_filesystem
+from resource_management.libraries.functions.security_commons import validate_security_config_properties
+from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
+
 from hive import hive
 from hive_service import hive_service
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 
+# the legacy conf.server location in HDP 2.2
+LEGACY_HIVE_SERVER_CONF = "/etc/hive/conf.server"
 
 class HiveMetastore(Script):
   def install(self, env):
@@ -57,6 +65,7 @@ class HiveMetastore(Script):
 class HiveMetastoreWindows(HiveMetastore):
   def status(self, env):
     import status_params
+    from resource_management.libraries.functions import check_windows_service_status
     check_windows_service_status(status_params.hive_metastore_win_service_name)
 
 
@@ -67,6 +76,8 @@ class HiveMetastoreDefault(HiveMetastore):
 
   def status(self, env):
     import status_params
+    from resource_management.libraries.functions import check_process_status
+
     env.set_params(status_params)
     pid_file = format("{hive_pid_dir}/{hive_metastore_pid}")
     # Recursively check all existing gmetad pid files
@@ -150,8 +161,17 @@ class HiveMetastoreDefault(HiveMetastore):
 
     binary = format("/usr/hdp/{version}/hive/bin/schematool")
 
+    # the conf.server directory changed locations between HDP 2.2 and 2.3
+    # since the configurations have not been written out yet during an upgrade
+    # we need to choose the original legacy location
+    schematool_hive_server_conf_dir = params.hive_server_conf_dir
+    if params.current_version is not None:
+      current_version = format_hdp_stack_version(params.current_version)
+      if compare_versions(current_version, "2.3") < 0:
+        schematool_hive_server_conf_dir = LEGACY_HIVE_SERVER_CONF
+
     env_dict = {
-      'HIVE_CONF_DIR': params.hive_server_conf_dir
+      'HIVE_CONF_DIR': schematool_hive_server_conf_dir
     }
 
     command = format("{binary} -dbType {hive_metastore_db_type} -upgradeSchema")

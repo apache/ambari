@@ -35,8 +35,6 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 from resource_management.libraries import functions
 
-
-
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -57,6 +55,9 @@ hdp_stack_version = functions.get_hdp_version('hive-server2')
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
+
+# current host stack version
+current_version = default("/hostLevelParams/current_version", None)
 
 hadoop_bin_dir = "/usr/bin"
 hadoop_home = '/usr'

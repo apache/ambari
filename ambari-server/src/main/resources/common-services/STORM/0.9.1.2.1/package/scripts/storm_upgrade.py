@@ -49,7 +49,6 @@ class StormUpgrade(Script):
     """
     import params
 
-
     Logger.info('Clearing Storm data from ZooKeeper')
 
     storm_zookeeper_root_dir = params.storm_zookeeper_root_dir
@@ -81,7 +80,14 @@ class StormUpgrade(Script):
 
       # clean out ZK
       try:
-        Execute(command, user=params.storm_user, logoutput=True, tries=1)
+        # the ZK client requires Java to run; ensure it's on the path
+        env_map = {
+          'JAVA_HOME': params.java64_home
+        }
+
+        Execute(command, user=params.storm_user, environment=env_map,
+          logoutput=True, tries=1)
+
         zookeeper_data_cleared = True
         break
       except:
