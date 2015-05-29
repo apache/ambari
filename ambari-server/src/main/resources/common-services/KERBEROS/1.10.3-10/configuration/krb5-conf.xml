@@ -49,7 +49,7 @@
 [libdefaults]
   renew_lifetime = 7d
   forwardable = true
-  default_realm = {{realm|upper()}}
+  default_realm = {{realm}}
   ticket_lifetime = 24h
   dns_lookup_realm = false
   dns_lookup_kdc = false
@@ -59,7 +59,7 @@
 {% if domains %}
 [domain_realm]
 {% for domain in domains.split(',') %}
-  {{domain}} = {{realm|upper()}}
+  {{domain}} = {{realm}}
 {% endfor %}
 {% endif %}
 
