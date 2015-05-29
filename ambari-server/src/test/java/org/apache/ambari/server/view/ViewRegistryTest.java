@@ -809,13 +809,14 @@ public class ViewRegistryTest {
     ViewConfig config = ViewConfigTest.getConfig(xml_valid_instance);
     ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+    ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
 
-    expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(null);
-    expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", viewInstanceEntity.getInstanceName())).andReturn(viewInstanceEntity);
+    expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(viewInstanceEntity);
+    expect(resourceTypeDAO.findByName("MY_VIEW{1.0.0}")).andReturn(resourceTypeEntity);
 
     handlerList.addViewInstance(viewInstanceEntity);
 
-    replay(viewDAO, viewInstanceDAO, securityHelper, handlerList);
+    replay(viewDAO, viewInstanceDAO, resourceTypeDAO, securityHelper, handlerList);
 
     registry.addDefinition(viewEntity);
     registry.installViewInstance(viewInstanceEntity);
@@ -828,8 +829,9 @@ public class ViewRegistryTest {
     Assert.assertEquals("v2-1", instanceEntity.getProperty("p2").getValue() );
 
     Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
+    Assert.assertEquals(resourceTypeEntity, viewInstanceEntity.getResource().getResourceType());
 
-    verify(viewDAO, viewInstanceDAO, securityHelper, handlerList);
+    verify(viewDAO, viewInstanceDAO, resourceTypeDAO, securityHelper, handlerList);
   }
 
   @Test
@@ -876,8 +878,7 @@ public class ViewRegistryTest {
 
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
 
-    expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(null);
-    expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", viewInstanceEntity.getInstanceName())).andReturn(viewInstanceEntity);
+    expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(viewInstanceEntity);
 
     handlerList.addViewInstance(viewInstanceEntity);
 
@@ -1099,8 +1100,7 @@ public class ViewRegistryTest {
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
     ViewInstanceEntity updateInstance = getViewInstanceEntity(viewEntity, invalidConfig.getInstances().get(0));
 
-    expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(null);
-    expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", viewInstanceEntity.getInstanceName())).andReturn(viewInstanceEntity).anyTimes();
+    expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(viewInstanceEntity);
 
     replay(viewDAO, viewInstanceDAO, securityHelper);
 

@@ -501,7 +501,6 @@ public class ViewRegistry {
    *                                   does not exist
    * @throws SystemException           if the instance can not be installed
    */
-  @Transactional
   public void installViewInstance(ViewInstanceEntity instanceEntity)
       throws ValidationException, IllegalArgumentException, SystemException {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
@@ -520,18 +519,9 @@ public class ViewRegistry {
         instanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_CREATE);
 
         ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(ViewEntity.getViewName(viewName, version));
-        // create an admin resource to represent this view instance
-        instanceEntity.setResource(createViewInstanceResource(resourceTypeEntity));
 
-        instanceDAO.merge(instanceEntity);
+        ViewInstanceEntity persistedInstance = mergeViewInstance(instanceEntity, resourceTypeEntity);
 
-        ViewInstanceEntity persistedInstance = instanceDAO.findByName(ViewEntity.getViewName(viewName, version), instanceName);
-        if (persistedInstance == null) {
-          String message = "Instance  " + instanceEntity.getViewName() + " can not be found.";
-
-          LOG.error(message);
-          throw new IllegalStateException(message);
-        }
         instanceEntity.setViewInstanceId(persistedInstance.getViewInstanceId());
         instanceEntity.setResource(persistedInstance.getResource());
 
@@ -1368,6 +1358,15 @@ public class ViewRegistry {
     instance1.setData(instance2.getData());
     instance1.setEntities(instance2.getEntities());
     instance1.setProperties(instance2.getProperties());
+  }
+
+  // create an admin resource for the given view instance entity and merge it
+  @Transactional
+  private ViewInstanceEntity mergeViewInstance(ViewInstanceEntity instanceEntity, ResourceTypeEntity resourceTypeEntity) {
+    // create an admin resource to represent this view instance
+    instanceEntity.setResource(createViewInstanceResource(resourceTypeEntity));
+
+    return instanceDAO.merge(instanceEntity);
   }
 
   // create an admin resource to represent a view instance
