@@ -2325,7 +2325,8 @@ var urls = {
     'host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
     'Hosts/total_mem,stack_versions/HostStackVersions,stack_versions/repository_versions/RepositoryVersions/repository_version,' +
     'stack_versions/repository_versions/RepositoryVersions/id,' +
-    'host_components/HostRoles/stale_configs&minimal_response=true',
+    'host_components/HostRoles/stale_configs' +
+    'host_components/HostRoles/service_name&minimal_response=true',
     mock: '',
     format: function (data) {
       return {
