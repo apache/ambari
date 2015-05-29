@@ -34,10 +34,16 @@ App.PlainConfigTextField = Ember.View.extend(App.SupportsDependentConfigs, App.W
     return this.get('config.stackConfigProperty.displayName') || this.get('config.displayName') || this.get('config.name');
   }.property('config.name', 'config.displayName'),
 
+  /**
+   * @type {string|boolean}
+   */
   unit: function() {
     return Em.getWithDefault(this, 'config.stackConfigProperty.valueAttributes.unit', false);
   }.property('config.stackConfigProperty.valueAttributes.unit'),
 
+  /**
+   * @type {string}
+   */
   displayUnit: function() {
     var unit = this.get('unit');
     if ('milliseconds' == unit) {

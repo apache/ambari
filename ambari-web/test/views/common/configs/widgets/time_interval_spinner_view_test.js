@@ -26,13 +26,14 @@ describe('App.TimeIntervalSpinnerView', function () {
       controller: Em.Object.create({
         removeCurrentFromDependentList: Em.K
       }),
-      initPopover: Em.K,
-      setProperties: Em.K
+      initPopover: Em.K
     });
+    sinon.stub(Em.run, 'once', Em.K);
   });
 
   afterEach(function () {
     view.destroy();
+    Em.run.once.restore();
   });
 
   describe('#generateWidgetValue', function () {
@@ -251,10 +252,12 @@ describe('App.TimeIntervalSpinnerView', function () {
     var stackConfigProperty = null;
 
     beforeEach(function() {
-      view.set('config', {});
+      view.set('config', Em.Object.create({}));
       stackConfigProperty = App.StackConfigProperty.createRecord({name: 'p1', valueAttributes: {minimum: 1, maximum: 10, increment_step: 4, type: 'int'}});
       view.set('config.stackConfigProperty', stackConfigProperty);
       view.set('config.isValid', true);
+      view.set('maxValue', [{"value":10,"type":"hours","minValue":0,"maxValue":10,"incrementStep":1,"enabled":true},{"value":0,"type":"minutes","minValue":0,"maxValue":59,"incrementStep":1,"enabled":true}]);
+      view.set('minValue', [{"value":0,"type":"hours","minValue":0,"maxValue":23,"incrementStep":1,"enabled":true},{"value":10,"type":"minutes","minValue":0,"maxValue":59,"incrementStep":1,"enabled":true}]);
     });
 
     it ('fail by config validation', function() {
@@ -275,11 +278,15 @@ describe('App.TimeIntervalSpinnerView', function () {
     it ('fail: to large', function() {
       view.set('config.value', 12);
       expect(view.isValueCompatibleWithWidget()).to.be.false;
+      expect(view.get('warnMessage')).to.have.property('length').that.is.least(1);
+      expect(view.get('issueMessage')).to.have.property('length').that.is.least(1);
     });
 
     it ('fail: to small', function() {
       view.set('config.value', 0);
       expect(view.isValueCompatibleWithWidget()).to.be.false;
+      expect(view.get('warnMessage')).to.have.property('length').that.is.least(1);
+      expect(view.get('issueMessage')).to.have.property('length').that.is.least(1);
     });
 
     it ('fail: wrong step', function() {
@@ -291,6 +298,8 @@ describe('App.TimeIntervalSpinnerView', function () {
     it ('ok', function() {
       view.set('config.value', 4);
       expect(view.isValueCompatibleWithWidget()).to.be.true;
+      expect(view.get('warnMessage')).to.equal('');
+      expect(view.get('issueMessage')).to.equal('');
     });
   });
 

@@ -394,6 +394,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
 
   /**
    * check if config value can be converted to config widget value
+   * IMPORTANT! Each config-widget that override this method should use <code>updateWarningsForCompatibilityWithWidget</code>
    * @returns {boolean}
    */
   isValueCompatibleWithWidget: function() {
@@ -418,6 +419,21 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
       return true;
     }
     return this.isValueCompatibleWithWidget();
-  }.property('config.value', 'config.showAsTextBox')
+  }.property('config.value', 'config.showAsTextBox'),
+
+  /**
+   * Used in <code>isValueCompatibleWithWidget</code>
+   * Updates issue-parameters if config is in the raw-mode
+   * @param {string} message empty string if value compatible with widget, error-message if value isn't compatible with widget
+   * @method updateWarningsForCompatibilityWithWidget
+   */
+  updateWarningsForCompatibilityWithWidget: function (message) {
+    this.setProperties({
+      warnMessage: message,
+      issueMessage: message,
+      iconClass: message ? 'warning' : '',
+      configLabelClass: message ? 'text-warning' : ''
+    });
+  }
 
 });

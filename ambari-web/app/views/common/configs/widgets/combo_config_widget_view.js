@@ -142,7 +142,13 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   isValueCompatibleWithWidget: function() {
-    return this._super() && this.get('content.valuesList').someProperty('configValue', this.get('config.value'));
+    var res = this._super() && this.get('content.valuesList').someProperty('configValue', this.get('config.value'));
+    if (!res) {
+      this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.infoMessage.wrong.value.for.widget'));
+      return false;
+    }
+    this.updateWarningsForCompatibilityWithWidget('');
+    return true;
   }
 
 });

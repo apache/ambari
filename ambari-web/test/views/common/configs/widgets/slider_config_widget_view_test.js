@@ -404,14 +404,18 @@ describe('App.SliderConfigWidgetView', function () {
     it ('fail: to large', function() {
       viewInt.set('config.value', 12);
       expect(viewInt.isValueCompatibleWithWidget()).to.be.false;
+      expect(viewInt.get('warnMessage')).to.have.property('length').that.is.least(1);
+      expect(viewInt.get('issueMessage')).to.have.property('length').that.is.least(1);
     });
 
     it ('fail: to small', function() {
       viewInt.set('config.value', 0);
       expect(viewInt.isValueCompatibleWithWidget()).to.be.false;
+      expect(viewInt.get('warnMessage')).to.have.property('length').that.is.least(1);
+      expect(viewInt.get('issueMessage')).to.have.property('length').that.is.least(1);
     });
 
-    it ('ok for wrong step', function() {
+    it ('fail: for wrong step', function() {
       viewInt.set('config.stackConfigProperty', stackConfigProperty);
       viewInt.set('config.value', '3');
       expect(viewInt.isValueCompatibleWithWidget()).to.be.true;
@@ -420,6 +424,8 @@ describe('App.SliderConfigWidgetView', function () {
     it ('ok', function() {
       viewInt.set('config.value', 4);
       expect(viewInt.isValueCompatibleWithWidget()).to.be.true;
+      expect(viewInt.get('warnMessage')).to.equal('');
+      expect(viewInt.get('issueMessage')).to.equal('');
     });
   });
 

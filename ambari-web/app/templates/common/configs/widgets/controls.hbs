@@ -42,7 +42,7 @@
           </a>
         {{else}}
           <i class="icon-pencil widget-action widget-action-switch-view text-error"
-             data-toggle="tooltip" {{translateAttr data-original-title="config.infoMessage.wrong.value.for.widget"}}></i>
+             data-toggle="tooltip" {{bindAttr data-original-title="view.issueMessage"}}></i>
         {{/if}}
       {{/if}}
       {{#if view.config.recommendedValueExists}}

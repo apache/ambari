@@ -152,8 +152,14 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    */
   valueObserver: function() {
     if (!this.get('content') || isNaN(parseInt(this.get('config.value')))) return;
-    Em.run.once(this, 'valueObserverCallback');
-  }.observes('content.@each.value'),
+
+    if (this.get('config.showAsTextBox')) {
+      this.checkErrors(this.generateWidgetValue(this.get('config.value')));
+    }
+    else {
+      Em.run.once(this, 'valueObserverCallback');
+    }
+  }.observes('content.@each.value', 'config.value'),
 
   valueObserverCallback: function() {
     this.checkModified();
@@ -172,10 +178,12 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
 
   /**
    * Check for validation errors like minimum or maximum required value
+   * @param {*} [val]
    * @method checkErrors
    */
-  checkErrors: function() {
-    var convertedValue = this.configValueByWidget(this.get('content'));
+  checkErrors: function(val) {
+    val = val || this.get('content');
+    var convertedValue = this.configValueByWidget(val);
     var warnMessage = '';
     var warn = false;
     if (convertedValue < parseInt(this.get('config.stackConfigProperty.valueAttributes.minimum'))) {
@@ -242,17 +250,25 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
       if (isNaN(configValue)) return false;
       if (this.get('config.stackConfigProperty.valueAttributes.minimum')) {
         var min = parseInt(this.get('config.stackConfigProperty.valueAttributes.minimum'));
-        if (configValue < min) return false;
+        if (configValue < min) {
+          this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(this.dateToText(this.get('minValue'))));
+          return false;
+        }
       }
       if (this.get('config.stackConfigProperty.valueAttributes.maximum')) {
         var max = parseInt(this.get('config.stackConfigProperty.valueAttributes.maximum'));
-        if (configValue > max) return false;
+        if (configValue > max) {
+          this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(this.dateToText(this.get('maxValue'))));
+          return false;
+        }
       }
       if (this.get('config.stackConfigProperty.valueAttributes.increment_step')) {
         if (configValue % this.get('config.stackConfigProperty.valueAttributes.increment_step') != 0) return false;
       }
+      this.updateWarningsForCompatibilityWithWidget('');
       return true;
     }
     return false;
   }
+
 });

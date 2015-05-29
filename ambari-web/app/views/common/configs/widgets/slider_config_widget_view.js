@@ -502,12 +502,19 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       var configValue = this.get('parseFunction')(this.get('config.value'));
       if (this.get('config.stackConfigProperty.valueAttributes.minimum')) {
         var min = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.minimum'));
-        if (configValue < min) return false;
+        if (configValue < min) {
+          this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(min));
+          return false;
+        }
       }
       if (this.get('config.stackConfigProperty.valueAttributes.maximum')) {
         var max = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.maximum'));
-        if (configValue > max) return false;
+        if (configValue > max) {
+          this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(max));
+          return false;
+        }
       }
+      this.updateWarningsForCompatibilityWithWidget('');
       return true;
     }
     return false;

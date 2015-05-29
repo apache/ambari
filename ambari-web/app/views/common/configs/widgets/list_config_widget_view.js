@@ -277,7 +277,13 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   isValueCompatibleWithWidget: function() {
-    return this._super() && this.isOptionExist(this.get('config.value'));
+    var res = this._super() && this.isOptionExist(this.get('config.value'));
+    if (!res) {
+      this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.infoMessage.wrong.value.for.widget'));
+      return false;
+    }
+    this.updateWarningsForCompatibilityWithWidget('');
+    return true;
   },
 
   isOptionExist: function(value) {
