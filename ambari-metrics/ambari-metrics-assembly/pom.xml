@@ -136,49 +136,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.7</version>
-        <executions>
-          <execution>
-            <id>download-hadoop</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target name="Downloading Hadoop">
-                <mkdir dir="${project.build.directory}/embedded" />
-                <get
-                  src="${hadoop.tar}"
-                  dest="${project.build.directory}/embedded/hadoop.tar.gz"
-                  usetimestamp="true"
-                  />
-                <untar
-                  src="${project.build.directory}/embedded/hadoop.tar.gz"
-                  dest="${project.build.directory}/embedded"
-                  compression="gzip"
-                  />
-                <!-- Resolving symlinks-->
-                <move todir="${project.build.directory}/embedded/${hadoop.folder}/lib/native/">
-                  <fileset dir="${project.build.directory}/embedded/${hadoop.folder}/lib/native/"/>
-                  <mapper type="regexp" from="libsnappy.so.1.1.*" to="libsnappy.so.1"/>
-                </move>
-                <move
-                  file="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhdfs.so.0.0.0"
-                  tofile="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhdfs.so"
-                  />
-                <move
-                  file="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhadoop.so.1.0.0"
-                  tofile="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhadoop.so"
-                  />
-                <delete file="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libsnappy.so"/>
-              </target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 
@@ -870,6 +827,74 @@
       </build>
     </profile>
     <profile>
+      <id>linux</id>
+      <activation>
+        <os>
+          <family>unix</family>
+        </os>
+      </activation>
+      <properties>
+        <envClassifier>linux</envClassifier>
+        <dirsep>/</dirsep>
+        <pathsep>:</pathsep>
+        <executable.python>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable.python>
+        <executable.shell>sh</executable.shell>
+        <fileextension.shell>sh</fileextension.shell>
+        <fileextension.dot.shell-default></fileextension.dot.shell-default>
+        <assemblydescriptor.collector>src/main/assembly/collector.xml</assemblydescriptor.collector>
+        <assemblydescriptor.monitor>src/main/assembly/monitor.xml</assemblydescriptor.monitor>
+        <assemblydescriptor.sink>src/main/assembly/sink.xml</assemblydescriptor.sink>
+        <packagingFormat>jar</packagingFormat>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.7</version>
+            <executions>
+              <execution>
+                <id>download-hadoop</id>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target name="Downloading Hadoop">
+                    <mkdir dir="${project.build.directory}/embedded" />
+                    <get
+                      src="${hadoop.tar}"
+                      dest="${project.build.directory}/embedded/hadoop.tar.gz"
+                      usetimestamp="true"
+                      />
+                    <untar
+                      src="${project.build.directory}/embedded/hadoop.tar.gz"
+                      dest="${project.build.directory}/embedded"
+                      compression="gzip"
+                      />
+                    <!-- Resolving symlinks-->
+                    <move todir="${project.build.directory}/embedded/${hadoop.folder}/lib/native/">
+                      <fileset dir="${project.build.directory}/embedded/${hadoop.folder}/lib/native/"/>
+                      <mapper type="regexp" from="libsnappy.so.1.1.*" to="libsnappy.so.1"/>
+                    </move>
+                    <move
+                      file="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhdfs.so.0.0.0"
+                      tofile="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhdfs.so"
+                      />
+                    <move
+                      file="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhadoop.so.1.0.0"
+                      tofile="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhadoop.so"
+                      />
+                    <delete file="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libsnappy.so"/>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
       <id>windows</id>
       <activation>
         <os>
@@ -893,27 +918,38 @@
         <packagingFormat>jar</packagingFormat>
         <python.build.version>2.7</python.build.version>
       </properties>
-    </profile>
-    <profile>
-      <id>linux</id>
-      <activation>
-        <os>
-          <family>unix</family>
-        </os>
-      </activation>
-      <properties>
-        <envClassifier>linux</envClassifier>
-        <dirsep>/</dirsep>
-        <pathsep>:</pathsep>
-        <executable.python>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable.python>
-        <executable.shell>sh</executable.shell>
-        <fileextension.shell>sh</fileextension.shell>
-        <fileextension.dot.shell-default></fileextension.dot.shell-default>
-        <assemblydescriptor.collector>src/main/assembly/collector.xml</assemblydescriptor.collector>
-        <assemblydescriptor.monitor>src/main/assembly/monitor.xml</assemblydescriptor.monitor>
-        <assemblydescriptor.sink>src/main/assembly/sink.xml</assemblydescriptor.sink>
-        <packagingFormat>jar</packagingFormat>
-      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.7</version>
+            <executions>
+              <execution>
+                <id>download-hadoop</id>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target name="Downloading Hadoop">
+                    <mkdir dir="${project.build.directory}/embedded" />
+                    <get
+                      src="${hadoop.winpkg.zip}"
+                      dest="${project.build.directory}/embedded/hadoop.zip"
+                      usetimestamp="true"
+                      />
+                    <unzip
+                      src="${project.build.directory}/embedded/hadoop.zip"
+                      dest="${project.build.directory}/embedded/hadoop.temp"
+                      />
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
     <profile>
       <id>choco</id>

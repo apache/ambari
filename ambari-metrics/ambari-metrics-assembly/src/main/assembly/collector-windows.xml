@@ -79,6 +79,14 @@
         <include>*.json</include>
       </includes>
     </fileSet>
+    <fileSet>
+      <directory>${project.build.directory}/embedded/hadoop.temp/resources/${hadoop.folder}/bin</directory>
+      <outputDirectory>hbase/bin</outputDirectory>
+      <includes>
+        <include>*.dll</include>
+        <include>*.exe</include>
+      </includes>
+    </fileSet>
   </fileSets>
   <dependencySets>
     <dependencySet>

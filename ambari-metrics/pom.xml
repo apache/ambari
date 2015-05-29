@@ -42,6 +42,8 @@
       http://public-repo-1.hortonworks.com/HDP/centos6/2.x/GA/2.2.0.0/tars/hadoop-2.6.0.2.2.0.0-2041.tar.gz
     </hadoop.tar>
     <hadoop.folder>hadoop-2.6.0.2.2.0.0-2041</hadoop.folder>
+    <hbase.winpkg.zip>file:///c:/hbase_embedded/hbase-0.98.4.2.2.0.0-2041-hadoop2.winpkg.zip</hbase.winpkg.zip>
+    <hadoop.winpkg.zip>file:///c:/hbase_embedded/hadoop-2.6.0.2.2.0.0-2041.winpkg.zip</hadoop.winpkg.zip>
     <resmonitor.install.dir>
       /usr/lib/python2.6/site-packages/resource_monitoring
     </resmonitor.install.dir>
