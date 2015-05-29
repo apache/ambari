@@ -282,7 +282,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       config = this.get('config'),
       valueAttributes = config.get('stackConfigProperty.valueAttributes'),
       parseFunction = this.get('parseFunction'),
-      ticks = [this.get('minMirrorValue')],
+      ticks = [this.valueForTick(this.get('minMirrorValue'))],
       ticksLabels = [],
       recommendedValue = this.valueForTick(+this.get('widgetRecommendedValue')),
       range = this.get('maxMirrorValue') - this.get('minMirrorValue'),
@@ -298,11 +298,13 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       ticks.push(this.valueForTick(val));
     }
 
-    ticks.push(this.get('maxMirrorValue'));
+    ticks.push(this.valueForTick(this.get('maxMirrorValue')));
     ticks = ticks.uniq();
     ticks.forEach(function (tick, index, items) {
       ticksLabels.push((items.length < 5 || index % 2 === 0 || items.length - 1 == index) ? tick + ' ' + self.get('unitLabel') : '');
     });
+
+    ticks = ticks.uniq();
 
     // default marker should be added only if recommendedValue is in range [min, max]
     if (recommendedValue <= this.get('maxMirrorValue') && recommendedValue >= this.get('minMirrorValue') && recommendedValue != '') {
@@ -330,7 +332,8 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         ticks.insertAt(recommendedValueMirroredId, this.valueForTick((ticks[recommendedValueMirroredId] + ticks[recommendedValueMirroredId - 1]) / 2));
         // get new index for default value
         recommendedValueId = ticks.indexOf(recommendedValue);
-      } else {
+      }
+      else {
         recommendedValueId = ticks.indexOf(recommendedValue);
       }
     }
@@ -339,7 +342,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
      * Slider some times change config value while being created,
      * this may happens when slider recreating couple times during small period.
      * To cover this situation need to reset config value after slider initializing
-     * @type {Sting}
+     * @type {String}
      */
     var correctConfigValue = this.get('config.value');
 
@@ -406,7 +409,12 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    * @returns {Number}
    */
   valueForTick: function(val) {
-    return this.get('unitType') === 'int' ? Math.round(val) : parseFloat(val.toFixed(3));
+    if (this.get('unitType') === 'int') {
+      return Math.round(val);
+    }
+    var mirrorStep = this.get('mirrorStep');
+    var r = Math.round(val / mirrorStep);
+    return parseFloat((r * mirrorStep).toFixed(3));
   },
 
   /**
