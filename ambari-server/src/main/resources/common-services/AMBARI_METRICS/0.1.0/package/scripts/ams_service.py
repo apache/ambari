@@ -27,6 +27,7 @@ from hbase_service import hbase_service
 def ams_service(name, action):
   import params
   if name == 'collector':
+    Service(params.ams_embedded_hbase_win_service_name, action=action)
     Service(params.ams_collector_win_service_name, action=action)
   elif name == 'monitor':
     Service(params.ams_monitor_win_service_name, action=action)

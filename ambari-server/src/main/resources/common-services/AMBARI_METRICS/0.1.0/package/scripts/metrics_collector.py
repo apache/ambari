@@ -26,12 +26,12 @@ from ams import ams
 from ams_service import ams_service
 from hbase import hbase
 from status import check_service_status
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
 
 class AmsCollector(Script):
   def install(self, env):
     self.install_packages(env)
-    # self.configure(env) # for security
-
 
   def configure(self, env, action = None):
     import params
@@ -42,16 +42,13 @@ class AmsCollector(Script):
 
   def start(self, env):
     self.configure(env, action = 'start') # for security
-
     ams_service('collector', action = 'start')
 
   def stop(self, env):
     import params
     env.set_params(params)
-
     # Sometimes, stop() may be called before start(), in case restart() is initiated right after installation
     self.configure(env, action = 'stop') # for security
-
     ams_service('collector', action = 'stop')
 
   def status(self, env):
@@ -59,6 +56,9 @@ class AmsCollector(Script):
     env.set_params(status_params)
     check_service_status(name='collector')
 
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class AmsCollectorDefault(AmsCollector):
   def security_status(self, env):
     import status_params
 
@@ -71,7 +71,7 @@ class AmsCollector(Script):
                          "hbase.master.kerberos.principal",
                          "hbase.regionserver.keytab.file",
                          "hbase.regionserver.kerberos.principal"
-    ]
+                         ]
     props_read_check = ['hbase.master.keytab.file', 'hbase.regionserver.keytab.file']
     ams_hbase_site_expectations = build_expectations('hbase-site', props_value_check,
                                                      props_empty_check,
@@ -119,6 +119,13 @@ class AmsCollector(Script):
           cf, result_issues[cf]))
       self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
       self.put_structured_out({"securityState": "UNSECURED"})
+
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class AmsCollectorWindows(AmsCollector):
+  def install(self, env):
+    self.install_packages(env)
+    self.configure(env) # for security
 
 if __name__ == "__main__":
   AmsCollector().execute()

@@ -25,7 +25,7 @@ import sys
 from ambari_commons.ambari_service import AmbariService
 from ambari_commons.exceptions import FatalException
 from ambari_commons.os_utils import remove_file
-from ambari_commons.os_windows import SvcStatusCallback, WinServiceController
+from ambari_commons.os_windows import SvcStatusCallback, WinServiceController, SERVICE_STATUS_RUNNING
 from ambari_metrics_collector.serviceConfiguration import get_properties, get_value_from_properties, DEBUG_MODE_KEY, \
   SUSPEND_START_MODE_KEY, PID_OUT_FILE, SERVER_OUT_FILE_KEY, SERVER_OUT_FILE, SERVICE_USERNAME_KEY, SERVICE_PASSWORD_KEY, \
   DEFAULT_CONF_DIR, EMBEDDED_HBASE_MASTER_SERVICE
@@ -166,7 +166,6 @@ def init_service_debug(options):
 
 
 def ensure_hdp_service_soft_dependencies():
-  ret = WinServiceController.EnsureServiceIsStarted(EMBEDDED_HBASE_MASTER_SERVICE)
-  if ret != 0:
-    err = 'ERROR: Cannot start service "{0}". Error = {1}'.format(EMBEDDED_HBASE_MASTER_SERVICE, ret)
+  if SERVICE_STATUS_RUNNING != WinServiceController.QueryStatus(EMBEDDED_HBASE_MASTER_SERVICE):
+    err = 'ERROR: Service "{0}" was not started.'.format(EMBEDDED_HBASE_MASTER_SERVICE)
     raise FatalException(1, err)
