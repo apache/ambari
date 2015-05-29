@@ -634,6 +634,189 @@ describe('App.ServiceConfigRadioButtons', function () {
 
   });
 
+  describe('#handleDBConnectionProperty', function () {
+
+    var view,
+      cases = [
+        {
+          dbType: 'mysql',
+          serviceConfig: {
+            name: 'hive_database',
+            value: 'New MySQL Database',
+            serviceName: 'HIVE'
+          },
+          categoryConfigsAll: [
+            Em.Object.create({
+              name: 'javax.jdo.option.ConnectionURL',
+              displayName: 'Database URL'
+            }),
+            Em.Object.create({
+              name: 'hive_database',
+              displayName: 'Hive Database'
+            })
+          ],
+          currentStackVersion: 'HDP-2.2',
+          propertyAppendTo1: 'javax.jdo.option.ConnectionURL',
+          propertyAppendTo2: 'hive_database',
+          isAdditionalView1Null: true,
+          isAdditionalView2Null: true,
+          title: 'Hive, embedded database'
+        },
+        {
+          dbType: 'postgres',
+          serviceConfig: {
+            name: 'hive_database',
+            value: 'Existing PostgreSQL Database',
+            serviceName: 'HIVE'
+          },
+          categoryConfigsAll: [
+            Em.Object.create({
+              name: 'javax.jdo.option.ConnectionURL',
+              displayName: 'Database URL'
+            }),
+            Em.Object.create({
+              name: 'hive_database',
+              displayName: 'Hive Database'
+            })
+          ],
+          currentStackVersion: 'HDP-2.2',
+          propertyAppendTo1: 'javax.jdo.option.ConnectionURL',
+          propertyAppendTo2: 'hive_database',
+          isAdditionalView1Null: false,
+          isAdditionalView2Null: false,
+          title: 'Hive, external database'
+        },
+        {
+          dbType: 'derby',
+          serviceConfig: {
+            name: 'oozie_database',
+            value: 'New Derby Database',
+            serviceName: 'OOZIE'
+          },
+          categoryConfigsAll: [
+            Em.Object.create({
+              name: 'oozie.service.JPAService.jdbc.url',
+              displayName: 'Database URL'
+            }),
+            Em.Object.create({
+              name: 'oozie_database',
+              displayName: 'Oozie Database'
+            })
+          ],
+          currentStackVersion: 'HDP-2.2',
+          propertyAppendTo1: 'oozie.service.JPAService.jdbc.url',
+          propertyAppendTo2: 'oozie_database',
+          isAdditionalView1Null: true,
+          isAdditionalView2Null: true,
+          title: 'Oozie, embedded database'
+        },
+        {
+          dbType: 'oracle',
+          serviceConfig: {
+            name: 'oozie_database',
+            value: 'Existing Oracle Database',
+            serviceName: 'OOZIE'
+          },
+          categoryConfigsAll: [
+            Em.Object.create({
+              name: 'oozie.service.JPAService.jdbc.url',
+              displayName: 'Database URL'
+            }),
+            Em.Object.create({
+              name: 'oozie_database',
+              displayName: 'Oozie Database'
+            })
+          ],
+          currentStackVersion: 'HDP-2.2',
+          propertyAppendTo1: 'oozie.service.JPAService.jdbc.url',
+          propertyAppendTo2: 'oozie_database',
+          isAdditionalView1Null: false,
+          isAdditionalView2Null: false,
+          title: 'Oozie, external database'
+        },
+        {
+          dbType: 'mysql',
+          serviceConfig: {
+            name: 'DB_FLAVOR',
+            value: 'MYSQL',
+            serviceName: 'RANGER'
+          },
+          categoryConfigsAll: [
+            Em.Object.create({
+              name: 'ranger.jpa.jdbc.url'
+            }),
+            Em.Object.create({
+              name: 'DB_FLAVOR'
+            })
+          ],
+          currentStackVersion: 'HDP-2.2',
+          propertyAppendTo1: 'ranger.jpa.jdbc.url',
+          propertyAppendTo2: 'DB_FLAVOR',
+          isAdditionalView1Null: true,
+          isAdditionalView2Null: true,
+          title: 'Ranger, HDP 2.2, external database'
+        },
+        {
+          dbType: 'mssql',
+          serviceConfig: {
+            name: 'DB_FLAVOR',
+            value: 'MSSQL',
+            serviceName: 'RANGER'
+          },
+          categoryConfigsAll: [
+            Em.Object.create({
+              name: 'ranger.jpa.jdbc.url'
+            }),
+            Em.Object.create({
+              name: 'DB_FLAVOR'
+            })
+          ],
+          currentStackVersion: 'HDP-2.3',
+          propertyAppendTo1: 'ranger.jpa.jdbc.url',
+          propertyAppendTo2: 'DB_FLAVOR',
+          isAdditionalView1Null: false,
+          isAdditionalView2Null: false,
+          title: 'Ranger, HDP 2.3, external database'
+        }
+      ];
+
+    before(function () {
+      sinon.stub(Em.run, 'next', function (arg) {
+        arg();
+      });
+    });
+
+    beforeEach(function () {
+      view = App.ServiceConfigRadioButtons.create();
+    });
+
+    afterEach(function () {
+      App.get.restore();
+    });
+
+    after(function () {
+      Em.run.next.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        sinon.stub(App, 'get').withArgs('currentStackName').returns('HDP').withArgs('currentStackVersion').returns(item.currentStackVersion);
+        view.setProperties({
+          categoryConfigsAll: item.categoryConfigsAll,
+          serviceConfig: item.serviceConfig
+        });
+        var additionalView1 = view.get('categoryConfigsAll').findProperty('name', item.propertyAppendTo1).get('additionalView'),
+          additionalView2 = view.get('categoryConfigsAll').findProperty('name', item.propertyAppendTo2).get('additionalView');
+        expect(Em.isNone(additionalView1)).to.equal(item.isAdditionalView1Null);
+        expect(Em.isNone(additionalView2)).to.equal(item.isAdditionalView2Null);
+        if (!item.isAdditionalView2Null) {
+          expect(additionalView2.create().get('message')).to.equal(Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(item.dbType, item.dbType));
+        }
+      });
+    });
+
+  });
+
 });
 
 describe('App.ServiceConfigRadioButton', function () {
