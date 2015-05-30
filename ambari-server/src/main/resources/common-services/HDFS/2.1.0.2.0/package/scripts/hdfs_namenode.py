@@ -18,12 +18,24 @@ limitations under the License.
 """
 import os.path
 
-from resource_management import *
-from resource_management.core.logger import Logger
-from resource_management.core.exceptions import ComponentIsNotRunning
+
+from resource_management.core import shell
+from resource_management.core.source import Template
+from resource_management.core.resources.system import File, Execute, Directory
+from resource_management.core.resources.service import Service
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
+from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
-from ambari_commons import OSConst
+
+if OSCheck.is_windows_family():
+  from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
+
+from resource_management.core.shell import as_user
+from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
+
 from utils import service, safe_zkfc_op
 from setup_ranger_hdfs import setup_ranger_hdfs
 
@@ -77,24 +89,40 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
               user = params.hdfs_user)
 
+    is_namenode_safe_mode_off = format("hadoop dfsadmin -fs {namenode_address} -safemode get | grep 'Safe mode is OFF'")
+    is_active_namenode_cmd = as_user(format("hdfs --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
+
+    # During normal operations, if HA is enabled and it is in standby, then stay in current state, otherwise, leave safemode.
+    # During Rolling Upgrade, both namenodes must leave safemode.
+
+    # ___Scenario_________|_Expected safemode state___|_Wait for safemode OFF____|
+    # 1 (HA and active)   | ON -> OFF                 | Yes                      |
+    # 2 (HA and standby)  | no change (yes during RU) | no check (yes during RU) |
+    # 3 (no-HA)           | ON -> OFF                 | Yes                      |
+    leave_safe_mode = False
+    msg = ""
     if params.dfs_ha_enabled:
-      dfs_check_nn_status_cmd = as_user(format("hdfs --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
+      code, out = shell.call(is_active_namenode_cmd, logoutput=True) # If active NN, code will be 0
+      if code == 0: # active
+        leave_safe_mode = True
+        msg = "Must leave safemode since High Availability is enabled and this is the Active NameNode."
+      elif rolling_restart:
+        leave_safe_mode = True
+        msg = "Must leave safemode since High Availability is enabled during a Rolling Upgrade"
     else:
-      dfs_check_nn_status_cmd = None
+      msg = "Must leave safemode since High Availability is not enabled."
+      leave_safe_mode = True
 
-    namenode_safe_mode_off = format("hadoop dfsadmin -fs {namenode_address} -safemode get | grep 'Safe mode is OFF'")
-
-    # If HA is enabled and it is in standby, then stay in safemode, otherwise, leave safemode.
-    leave_safe_mode = True
-    if dfs_check_nn_status_cmd is not None:
-      code, out = shell.call(dfs_check_nn_status_cmd) # If active NN, code will be 0
-      if code != 0:
-        leave_safe_mode = False
+    if not msg:
+      msg = "Will remain in the current safemode state."
+    Logger.info(msg)
 
     if leave_safe_mode:
       # First check if Namenode is not in 'safemode OFF' (equivalent to safemode ON), if so, then leave it
-      code, out = shell.call(namenode_safe_mode_off, user=params.hdfs_user)
+      Logger.info("Checking the NameNode safemode status since may need to transition from ON to OFF.")
+      code, out = shell.call(is_namenode_safe_mode_off, user=params.hdfs_user)
       if code != 0:
+        Logger.info("Will need to leave safemode, state should be OFF.")
         leave_safe_mode_cmd = format("hdfs --config {hadoop_conf_dir} dfsadmin -fs {namenode_address} -safemode leave")
         Execute(leave_safe_mode_cmd,
                 tries=10,
@@ -103,15 +131,17 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
                 path=[params.hadoop_bin_dir],
         )
 
-    # Verify if Namenode should be in safemode OFF
-    Execute(namenode_safe_mode_off,
-            tries=40,
-            try_sleep=10,
-            path=[params.hadoop_bin_dir],
-            user=params.hdfs_user,
-            only_if=dfs_check_nn_status_cmd #skip when HA not active
-    )
-    create_hdfs_directories(dfs_check_nn_status_cmd)
+        Logger.info("Checking if safemode state is now OFF.")
+        # Verify if Namenode should be in safemode OFF
+        Execute(is_namenode_safe_mode_off,
+                tries=40,
+                try_sleep=10,
+                path=[params.hadoop_bin_dir],
+                user=params.hdfs_user
+        )
+
+      # Always run on this non-HA, or active NameNode during HA.
+      create_hdfs_directories(is_active_namenode_cmd)
   elif action == "stop":
     import params
     service(

@@ -19,27 +19,34 @@ limitations under the License.
 
 import sys
 import os
+import json
+import tempfile
+from datetime import datetime
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
-import  tempfile
-from resource_management import *
+
+from resource_management import Script
+from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
-from resource_management.libraries.functions.version import compare_versions, \
-  format_hdp_stack_version
-from resource_management.libraries.functions.format import format
+
 from resource_management.core.exceptions import Fail
-from datetime import datetime
+from resource_management.core.shell import as_user
+from resource_management.core.logger import Logger
+
+from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_commons import OSConst
 
 import namenode_upgrade
 from hdfs_namenode import namenode
 from hdfs import hdfs
 import hdfs_rebalance
 from utils import failover_namenode
-from ambari_commons.os_family_impl import OsFamilyImpl
-from ambari_commons import OSConst
+
 
 # hashlib is supplied as of Python 2.5 as the replacement interface for md5
 # and other secure hashes.  In 2.6, md5 is deprecated.  Import hashlib if

@@ -21,10 +21,14 @@ import re
 import urllib2
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
-from resource_management import *
+from resource_management.core.resources.system import Directory, File, Execute
 from resource_management.libraries.functions.format import format
-from resource_management.core.shell import call, checked_call
+from resource_management.libraries.functions import check_process_status
+from resource_management.libraries.functions.version import compare_versions
+from resource_management.core import shell
+from resource_management.core.shell import as_user, as_sudo
 from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.core.logger import Logger
 
 from zkfc_slave import ZkfcSlave
 
@@ -34,6 +38,7 @@ def safe_zkfc_op(action, env):
   :param action: start or stop
   :param env: environment
   """
+  Logger.info("Performing action {0} on zkfc.".format(action))
   zkfc = None
   if action == "start":
     try:
@@ -60,7 +65,7 @@ def failover_namenode():
   """
   import params
   check_service_cmd = format("hdfs haadmin -getServiceState {namenode_id}")
-  code, out = call(check_service_cmd, logoutput=True, user=params.hdfs_user)
+  code, out = shell.call(check_service_cmd, logoutput=True, user=params.hdfs_user)
 
   state = "unknown"
   if code == 0 and out:
@@ -78,22 +83,22 @@ def failover_namenode():
     check_standby_cmd = format("hdfs haadmin -getServiceState {namenode_id} | grep standby")
 
     # process may already be down.  try one time, then proceed
-    code, out = call(check_standby_cmd, user=params.hdfs_user, logoutput=True)
+    code, out = shell.call(check_standby_cmd, user=params.hdfs_user, logoutput=True)
     Logger.info(format("Rolling Upgrade - check for standby returned {code}"))
 
     if code == 255 and out:
-      Logger.info("Rolling Upgrade - namenode is already down")
+      Logger.info("Rolling Upgrade - namenode is already down.")
     else:
       if was_zkfc_killed:
         # Only mandate that this be the standby namenode if ZKFC was indeed killed to initiate a failover.
+        Logger.info("Waiting for this NameNode to become the standby one.")
         Execute(check_standby_cmd,
                 user=params.hdfs_user,
                 tries=50,
                 try_sleep=6,
                 logoutput=True)
-
   else:
-    Logger.info("Rolling Upgrade - Host %s is the standby namenode." % str(params.hostname))
+    Logger.info("Rolling Upgrade - Host %s is already the standby namenode." % str(params.hostname))
 
 
 def kill_zkfc(zkfc_user):
@@ -109,7 +114,7 @@ def kill_zkfc(zkfc_user):
     zkfc_pid_file = get_service_pid_file("zkfc", zkfc_user)
     if zkfc_pid_file:
       check_process = format("ls {zkfc_pid_file} > /dev/null 2>&1 && ps -p `cat {zkfc_pid_file}` > /dev/null 2>&1")
-      code, out = call(check_process)
+      code, out = shell.call(check_process)
       if code == 0:
         Logger.debug("ZKFC is running and will be killed to initiate namenode failover.")
         kill_command = format("{check_process} && kill -9 `cat {zkfc_pid_file}` > /dev/null 2>&1")
