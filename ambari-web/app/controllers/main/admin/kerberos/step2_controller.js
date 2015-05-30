@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var componentsUtils = require('utils/components');
 require('controllers/wizard/step7_controller');
 
 App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
@@ -136,7 +137,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
   createKerberosResources: function () {
     var self = this;
     this.createKerberosService().done(function () {
-      self.createKerberosComponent().done(function () {
+      componentsUtils.createServiceComponent('KERBEROS_CLIENT').done(function () {
         self.createKerberosHostComponents().done(function () {
           self.createConfigurations().done(function () {
             self.createKerberosAdminSession().done(function () {
@@ -169,17 +170,6 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
       data: {
         data: '{"ServiceInfo": { "service_name": "KERBEROS"}}',
         cluster: App.get('clusterName') || App.clusterStatus.get('clusterName')
-      }
-    });
-  },
-
-  createKerberosComponent: function () {
-    return App.ajax.send({
-      name: 'common.create_component',
-      sender: this,
-      data: {
-        serviceName: this.selectedServiceNames[0],
-        componentName: this.componentName
       }
     });
   },

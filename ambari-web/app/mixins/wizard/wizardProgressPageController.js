@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var componentsUtils = require('utils/components');
 
 /**
  * Mixin for wizard controller for showing command progress on wizard pages
@@ -515,19 +516,21 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
         }
       };
       if (!!hostsWithoutComponents.length) {
-        App.ajax.send({
-          name: 'wizard.step8.register_host_to_component',
-          sender: self,
-          data: {
-            data: JSON.stringify(requestData),
-            hostName: result.mapProperty('hostName'),
-            componentName: componentName,
-            serviceName: serviceName,
-            taskNum: taskNum,
-            cluster: App.get('clusterName')
-          },
-          success: 'onCreateComponent',
-          error: 'onCreateComponent'
+        componentsUtils.createServiceComponent(componentName).done(function () {
+          App.ajax.send({
+            name: 'wizard.step8.register_host_to_component',
+            sender: self,
+            data: {
+              data: JSON.stringify(requestData),
+              hostName: result.mapProperty('hostName'),
+              componentName: componentName,
+              serviceName: serviceName,
+              taskNum: taskNum,
+              cluster: App.get('clusterName')
+            },
+            success: 'onCreateComponent',
+            error: 'onCreateComponent'
+          });
         });
       } else {
         self.onCreateComponent(null, null, {

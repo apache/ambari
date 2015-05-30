@@ -45,10 +45,24 @@ describe('App.wizardProgressPageControllerMixin', function() {
         def.resolve(data[componentName]);
         return def.promise();
       });
+      sinon.stub(App.StackServiceComponent, 'find', function(){
+        return [
+          Em.Object.create({
+          componentName: 'ZOOKEEPER_CLIENT',
+          serviceName: 'ZOOKEEPER'
+        }),
+          Em.Object.create({
+          componentName: 'ZOOKEEPER_SERVER',
+          serviceName: 'ZOOKEEPER'
+        })
+        ];
+      });
+      App.serviceComponents = ['ZOOKEEPER_SERVER', 'ZOOKEEPER_CLIENT'];
     });
     
     afterEach(function() {
       App.ajax.send.restore();
+      App.StackServiceComponent.find.restore();
       mixedObjectInstance.onCreateComponent.restore();
       mixedObjectInstance.updateComponent.restore();
       mixedObjectInstance.checkInstalledComponents.restore();

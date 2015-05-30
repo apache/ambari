@@ -1069,14 +1069,42 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
 
       // Service must be specified in terms of a query for creating multiple components at the same time.
       // See AMBARI-1018.
-      this.addRequestToAjaxQueue({
-        name: 'wizard.step8.create_components',
-        data: {
-          data: JSON.stringify({"components": componentsData}),
-          serviceName: serviceName
-        }
-      });
+      this.addRequestToCreateComponent(componentsData, serviceName);
     }, this);
+
+    if (this.get('content.controllerName') === 'addHostController') {
+      this.get('content.slaveComponentHosts').forEach(function (component) {
+        if (component.componentName !== 'CLIENT' && !App.serviceComponents.contains(component.componentName)) {
+          this.addRequestToCreateComponent(
+              [{"ServiceComponentInfo": {"component_name": component.componentName}}],
+              App.StackServiceComponent.find().findProperty('componentName', component.componentName).get('serviceName')
+          );
+        }
+      }, this);
+      this.get('content.clients').forEach(function (component) {
+        if (!App.serviceComponents.contains(component.component_name)) {
+          this.addRequestToCreateComponent(
+              [{"ServiceComponentInfo": {"component_name": component.component_name}}],
+              App.StackServiceComponent.find().findProperty('componentName', component.component_name).get('serviceName')
+          );
+        }
+      }, this);
+    }
+  },
+
+  /**
+   * Add request to ajax queue to create service component
+   * @param componentsData
+   * @param serviceName
+   */
+  addRequestToCreateComponent: function (componentsData, serviceName) {
+    this.addRequestToAjaxQueue({
+      name: 'wizard.step8.create_components',
+      data: {
+        data: JSON.stringify({"components": componentsData}),
+        serviceName: serviceName
+      }
+    });
   },
 
   /**

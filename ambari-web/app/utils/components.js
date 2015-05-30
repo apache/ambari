@@ -19,33 +19,34 @@ var App = require('app');
 
 module.exports = {
   installHostComponent: function(hostName, component) {
-    var
-      self = this,
-      componentName = component.get('componentName'),
-      displayName = component.get('displayName');
-    App.ajax.send({
-      name: 'host.host_component.add_new_component',
-      sender: self,
-      data: {
-        hostName: hostName,
-        component: component,
-        data: JSON.stringify({
-          RequestInfo: {
-            "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
-          },
-          Body: {
-            host_components: [
-              {
-                HostRoles: {
-                  component_name: componentName
+    var self = this,
+        componentName = component.get('componentName'),
+        displayName = component.get('displayName');
+    this.createServiceComponent(componentName).done(function () {
+      App.ajax.send({
+        name: 'host.host_component.add_new_component',
+        sender: self,
+        data: {
+          hostName: hostName,
+          component: component,
+          data: JSON.stringify({
+            RequestInfo: {
+              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
+            },
+            Body: {
+              host_components: [
+                {
+                  HostRoles: {
+                    component_name: componentName
+                  }
                 }
-              }
-            ]
-          }
-        })
-      },
-      success: 'addNewComponentSuccessCallback',
-      error: 'ajaxErrorCallback'
+              ]
+            }
+          })
+        },
+        success: 'addNewComponentSuccessCallback',
+        error: 'ajaxErrorCallback'
+      });
     });
   },
 
@@ -170,6 +171,31 @@ module.exports = {
     return dependencies.filter(function(dependency) {
       return !installedComponents.contains(dependency.componentName);
     }).mapProperty('componentName');
+  },
+
+  /**
+   *
+   * @param componentName
+   * @returns {*}
+   */
+  createServiceComponent: function (componentName) {
+    var dfd = $.Deferred();
+    if (App.serviceComponents.contains(componentName)) {
+      dfd.resolve();
+    } else {
+      App.ajax.send({
+        name: 'common.create_component',
+        sender: this,
+        data: {
+          componentName: componentName,
+          serviceName: App.StackServiceComponent.find().findProperty('componentName', componentName).get('serviceName')
+        }
+      }).complete(function () {
+        dfd.resolve();
+        App.serviceComponents.push(componentName);
+      });
+    }
+    return dfd.promise();
   }
 
 };

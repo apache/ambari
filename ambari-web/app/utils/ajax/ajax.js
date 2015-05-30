@@ -1254,47 +1254,6 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
     'mock': ''
   },
-  'admin.high_availability.create_component': {
-    'real': '/clusters/{clusterName}/hosts?Hosts/host_name={hostName}',
-    'mock': '',
-    'type': 'POST',
-    'format': function (data) {
-      return {
-        data: JSON.stringify({
-          "host_components": [
-            {
-              "HostRoles": {
-                "component_name": data.componentName
-              }
-            }
-          ]
-        })
-      }
-    }
-  },
-  'admin.high_availability.create_journalnode': {
-    'real': '/clusters/{clusterName}/services?ServiceInfo/service_name=HDFS',
-    'mock': '',
-    'type': 'POST',
-    'format': function () {
-      return {
-        data: JSON.stringify({
-          "components": [
-            {
-              "ServiceComponentInfo": {
-                "component_name": "JOURNALNODE"
-              }
-            }
-          ]
-        })
-      }
-    }
-  },
-  'admin.high_availability.check_journalnode': {
-    'real': '/clusters/{clusterName}/services/HDFS/components/JOURNALNODE?fields=ServiceComponentInfo/state',
-    'mock': ''
-  },
-
   'common.create_component': {
     'real': '/clusters/{clusterName}/services?ServiceInfo/service_name={serviceName}',
     'mock': '',
@@ -1306,24 +1265,6 @@ var urls = {
             {
               "ServiceComponentInfo": {
                 "component_name": data.componentName
-              }
-            }
-          ]
-        })
-      }
-    }
-  },
-  'admin.high_availability.create_zkfc': {
-    'real': '/clusters/{clusterName}/services?ServiceInfo/service_name=HDFS',
-    'mock': '',
-    'type': 'POST',
-    'format': function () {
-      return {
-        data: JSON.stringify({
-          "components": [
-            {
-              "ServiceComponentInfo": {
-                "component_name": "ZKFC"
               }
             }
           ]
@@ -2580,6 +2521,11 @@ var urls = {
         data: JSON.stringify(data.data)
       };
     }
+  },
+
+  'service.components.load': {
+    real: '/clusters/{clusterName}/services?fields=components&minimal_response=true',
+    mock: ''
   }
 };
 /**

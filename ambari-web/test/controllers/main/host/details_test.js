@@ -547,6 +547,7 @@ describe('App.MainHostDetailsController', function () {
         componentName: 'COMP1',
         displayName: 'comp1'
       });
+      App.serviceComponents = ['COMP1'];
       controller.primary(component);
       expect(App.ajax.send.calledOnce).to.be.true;
     });
