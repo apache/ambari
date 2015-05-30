@@ -18,6 +18,7 @@
 package org.apache.ambari.server.events.listeners.alerts;
 
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
@@ -36,8 +37,8 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
@@ -57,7 +58,7 @@ public class AlertServiceStateListener {
   /**
    * Logger.
    */
-  private static Log LOG = LogFactory.getLog(AlertServiceStateListener.class);
+  private static Logger LOG = LoggerFactory.getLogger(AlertServiceStateListener.class);
 
   /**
    * Services metainfo; injected lazily as a {@link Provider} since JPA is not
@@ -84,7 +85,7 @@ public class AlertServiceStateListener {
 
   /**
    * Used when a service is installed to insert {@link AlertDefinitionEntity}
-   * into the database.
+   * into the database or when a service is removed to delete the definition.
    */
   @Inject
   private AlertDefinitionDAO m_definitionDao;
@@ -116,7 +117,7 @@ public class AlertServiceStateListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onAmbariEvent(ServiceInstalledEvent event) {
-    LOG.debug(event);
+    LOG.debug("{} received {}", AlertServiceStateListener.class, event);
 
     long clusterId = event.getClusterId();
     String stackName = event.getStackName();
@@ -129,7 +130,8 @@ public class AlertServiceStateListener {
     try {
       m_alertDispatchDao.createDefaultGroup(clusterId, serviceName);
     } catch (AmbariException ambariException) {
-      LOG.error(ambariException);
+      LOG.error("Unable to create a default alert group for {}", event.getServiceName(),
+          ambariException);
     }
 
     // populate alert definitions for the new service from the database, but
@@ -156,8 +158,7 @@ public class AlertServiceStateListener {
   }
 
   /**
-   * Removes any current alerts associated with the specified service and the
-   * service's default alert group.
+   * Removes all alert data associated with the removed serviced.
    *
    * @param event
    *          the published event being handled (not {@code null}).
@@ -165,17 +166,25 @@ public class AlertServiceStateListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onAmbariEvent(ServiceRemovedEvent event) {
-    LOG.debug(event);
+    LOG.debug("{} received {}", AlertServiceStateListener.class, event);
 
-    // remove any current alerts
-    m_alertsDao.removeCurrentByService(event.getServiceName());
+    List<AlertDefinitionEntity> definitions = m_definitionDao.findByService(event.getClusterId(),
+        event.getServiceName());
 
-    // remove the default group for the service
-    AlertGroupEntity group = m_alertDispatchDao.findGroupByName(
-        event.getClusterId(), event.getServiceName());
+    for (AlertDefinitionEntity definition : definitions) {
+      try {
+        m_definitionDao.remove(definition);
 
-    if (null != group && group.isDefault()) {
-      m_alertDispatchDao.remove(group);
+        // remove the default group for the service
+        AlertGroupEntity group = m_alertDispatchDao.findGroupByName(event.getClusterId(),
+            event.getServiceName());
+
+        if (null != group && group.isDefault()) {
+          m_alertDispatchDao.remove(group);
+        }
+      } catch (Exception exception) {
+        LOG.error("Unable to remove alert definition {}", definition.getDefinitionName(), exception);
+      }
     }
   }
 }

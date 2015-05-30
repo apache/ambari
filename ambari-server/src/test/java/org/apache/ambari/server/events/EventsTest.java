@@ -26,6 +26,8 @@ import junit.framework.Assert;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -67,6 +69,7 @@ public class EventsTest {
   private ServiceComponentHostFactory m_schFactory;
   private MockEventListener m_listener;
   private OrmTestHelper m_helper;
+  private AlertDefinitionDAO m_definitionDao;
 
   /**
    *
@@ -87,6 +90,7 @@ public class EventsTest {
     m_serviceFactory = m_injector.getInstance(ServiceFactory.class);
     m_componentFactory = m_injector.getInstance(ServiceComponentFactory.class);
     m_schFactory = m_injector.getInstance(ServiceComponentHostFactory.class);
+    m_definitionDao = m_injector.getInstance(AlertDefinitionDAO.class);
 
     m_clusterName = "foo";
     StackId stackId = new StackId("HDP", "2.0.6");
@@ -147,6 +151,42 @@ public class EventsTest {
     installHdfsService();
     m_cluster.deleteAllServices();
     Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
+  }
+
+  /**
+   * Tests that {@link ServiceRemovedEvent}s are fired correctly and alerts are
+   * removed.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testServiceRemovedEventForAlerts() throws Exception {
+    Class<? extends AmbariEvent> eventClass = ServiceRemovedEvent.class;
+    Assert.assertFalse(m_listener.isAmbariEventReceived(eventClass));
+    installHdfsService();
+
+    // check that there are alert definitions
+    Assert.assertTrue(m_definitionDao.findAll(m_cluster.getClusterId()).size() > 0);
+
+    // get all definitions for HDFS
+    List<AlertDefinitionEntity> hdfsDefinitions = m_definitionDao.findByService(
+        m_cluster.getClusterId(), "HDFS");
+
+    // make sure there are at least 1
+    Assert.assertTrue(hdfsDefinitions.size() > 0);
+
+    AlertDefinitionEntity definition = hdfsDefinitions.get(0);
+
+    // delete HDFS
+    m_cluster.getService("HDFS").delete();
+
+    // verify the event was received
+    Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
+
+    // verify that the definitions were removed
+    hdfsDefinitions = m_definitionDao.findByService(m_cluster.getClusterId(), "HDFS");
+
+    Assert.assertEquals(0, hdfsDefinitions.size());
   }
 
   /**
