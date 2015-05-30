@@ -120,7 +120,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     validationItems = []
     #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-hive-plugin-enabled']
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hive-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ##Add stack validations only if Ranger is enabled.
     if ("RANGER" in servicesList):
