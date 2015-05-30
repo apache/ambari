@@ -591,6 +591,7 @@ Em.I18n.translations = {
   'installer.step3.hostWarningsPopup.notice':'After manually resolving the issues, click <b>Rerun Checks</b>.'+
     '<br>To manually resolve issues on <b>each host</b> run the HostCleanup script (Python 2.6 or greater is required):'+
     '<br><div class="code-snippet">python /usr/lib/python2.6/site-packages/ambari_agent/HostCleanup.py --silent --skip=users</div>' +
+    '<div class="alert alert-warn"><b>Note</b>: Clean up of Firewall and Transparent Huge Page issues are not supported by the HostCleanup script.</div>' +
     '<div class="alert alert-warn"><b>Note</b>: To clean up in interactive mode, remove <b>--silent</b> option. To clean up all resources, including <i>users</i>, remove <b>--skip=users</b> option. Use <b>--help</b> for a list of available options.</div>',
   'installer.step3.hostWarningsPopup.summary':'{0} on {1}',
   'installer.step3.hostWarningsPopup.jdk':'JDK Issues',
