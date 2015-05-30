@@ -19,6 +19,7 @@ limitations under the License.
 """
 import os
 from resource_management import *
+from resource_management.libraries.providers.hdfs_resource import WebHDFSUtil
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 
@@ -69,9 +70,6 @@ def oozie_service(action = 'start', rolling_restart=False):
       db_connection_check_command = None
 
     if not rolling_restart:
-      cmd1 =  format("cd {oozie_tmp_dir} && {oozie_home}/bin/ooziedb.sh create -sqlfile oozie.sql -run")
-      cmd2 =  format("{kinit_if_needed} {put_shared_lib_to_hdfs_cmd} ; hadoop --config {hadoop_conf_dir} dfs -chmod -R 755 {oozie_hdfs_user_dir}/share")
-
       if not os.path.isfile(params.target) and params.jdbc_driver_name == "org.postgresql.Driver":
         print format("ERROR: jdbc file {target} is unavailable. Please, follow next steps:\n" \
           "1) Download postgresql-9.0-801.jdbc4.jar.\n2) Create needed directory: mkdir -p {oozie_home}/libserver/\n" \
@@ -83,13 +81,38 @@ def oozie_service(action = 'start', rolling_restart=False):
       if db_connection_check_command:
         Execute( db_connection_check_command, tries=5, try_sleep=10)
 
-      Execute( cmd1, user = params.oozie_user, not_if = no_op_test,
-        ignore_failures = True )
-
-      not_if_command = as_user(format("{kinit_if_needed} hadoop --config {hadoop_conf_dir} dfs -ls /user/oozie/share | awk 'BEGIN {{count=0;}} /share/ {{count++}} END {{if (count > 0) {{exit 0}} else {{exit 1}}}}'"),
-                               params.oozie_user)
-      Execute( cmd2, user = params.oozie_user, not_if = not_if_command,
-        path = params.execute_path )
+      Execute( format("cd {oozie_tmp_dir} && {oozie_home}/bin/ooziedb.sh create -sqlfile oozie.sql -run"), 
+               user = params.oozie_user, not_if = no_op_test,
+               ignore_failures = True 
+      )
+      
+      if params.security_enabled:
+        Execute(kinit_if_needed,
+                user = params.oozie_user,
+        )
+      
+      if WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
+        # check with webhdfs is much faster than executing hadoop fs -ls. 
+        util = WebHDFSUtil(params.hdfs_site, params.oozie_user, params.security_enabled)
+        list_status = util.run_command(params.hdfs_share_dir, 'GETFILESTATUS', method='GET', ignore_status_codes=['404'], assertable_result=False)
+        hdfs_share_dir_exists = ('FileStatus' in list_status)
+      else:
+        # have to do time expensive hadoop fs -ls check.
+        hdfs_share_dir_exists = shell.call(format("{kinit_if_needed} hadoop --config {hadoop_conf_dir} dfs -ls {hdfs_share_dir} | awk 'BEGIN {{count=0;}} /share/ {{count++}} END {{if (count > 0) {{exit 0}} else {{exit 1}}}}'"),
+                                 user=params.oozie_user)[0]
+                                 
+      if not hdfs_share_dir_exists:                      
+        Execute( params.put_shared_lib_to_hdfs_cmd, 
+                 user = params.oozie_user,
+                 path = params.execute_path 
+        )
+        params.HdfsResource(format("{oozie_hdfs_user_dir}/share"),
+                             type="directory",
+                             action="create_on_execute",
+                             mode=0755,
+                             recursive_chmod=True,
+        )
+        params.HdfsResource(None, action="execute")
 
     # start oozie
     Execute( start_cmd, environment=environment, user = params.oozie_user,

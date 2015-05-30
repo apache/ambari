@@ -174,7 +174,7 @@ class RMFTestCase(TestCase):
   
   def _ppformat(self, val):
     if isinstance(val, dict) and len(val) > MAX_SHOWN_DICT_LEN:
-      return "self.getConfig()['configurations']['hdfs-site']"
+      return "self.getConfig()['configurations']['?']"
     
     val = pprint.pformat(val)
     

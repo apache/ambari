@@ -119,11 +119,23 @@ class HdfsResourceJar:
     env.config['hdfs_files'] = []
 
 class WebHDFSUtil:
-  def __init__(self, address, run_user, logoutput, security_enabled):
-    self.address = address
+  def __init__(self, hdfs_site, run_user, security_enabled, logoutput=None):
+    https_nn_address = namenode_ha_utils.get_property_for_active_namenode(hdfs_site, 'dfs.namenode.https-address')
+    http_nn_address = namenode_ha_utils.get_property_for_active_namenode(hdfs_site, 'dfs.namenode.http-address')
+    is_https_enabled = hdfs_site['dfs.https.enabled'] if not is_empty(hdfs_site['dfs.https.enabled']) else False
+    
+    address = https_nn_address if is_https_enabled else http_nn_address
+    protocol = "https" if is_https_enabled else "http"
+    
+    self.address = format("{protocol}://{address}")
     self.run_user = run_user
-    self.logoutput = logoutput
     self.security_enabled = security_enabled
+    self.logoutput = logoutput
+    
+  @staticmethod
+  def is_webhdfs_available(is_webhdfs_enabled, default_fs):
+    # only hdfs seems to support webHDFS
+    return (is_webhdfs_enabled and default_fs.startswith("hdfs"))
     
   def parse_path(self, path):
     """
@@ -144,7 +156,7 @@ class WebHDFSUtil:
       
     return re.sub("[/]+", "/", path)
     
-  valid_status_codes = ["200", "201", "500"]
+  valid_status_codes = ["200", "201", ""]
   def run_command(self, target, operation, method='POST', assertable_result=True, file_to_put=None, ignore_status_codes=[], **kwargs):
     """
     assertable_result - some POST requests return '{"boolean":false}' or '{"boolean":true}'
@@ -176,7 +188,7 @@ class WebHDFSUtil:
     except ValueError:
       result_dict = out
           
-    if status_code not in WebHDFSUtil.valid_status_codes+ignore_status_codes or assertable_result and not result_dict['boolean']:
+    if status_code not in WebHDFSUtil.valid_status_codes+ignore_status_codes or assertable_result and result_dict and not result_dict['boolean']:
       formatted_output = json.dumps(result_dict, indent=2) if isinstance(result_dict, dict) else result_dict
       err_msg = "Execution of '%s' returned status_code=%s. %s" % (shell.string_cmd_from_args_list(cmd), status_code, formatted_output)
       raise Fail(err_msg)
@@ -215,12 +227,9 @@ class HdfsResourceWebHDFS:
     
     if main_resource.resource.security_enabled:
       main_resource.kinit()
-    
-    address = main_resource.https_nn_address if main_resource.is_https_enabled else main_resource.http_nn_address
-    protocol = "https" if main_resource.is_https_enabled else "http"
-    
-    self.util = WebHDFSUtil(format("{protocol}://{address}"), main_resource.resource.user, 
-                            main_resource.resource.logoutput, main_resource.resource.security_enabled)
+
+    self.util = WebHDFSUtil(main_resource.resource.hdfs_site, main_resource.resource.user, 
+                            main_resource.resource.security_enabled, main_resource.resource.logoutput)
     self.mode = oct(main_resource.resource.mode)[1:] if main_resource.resource.mode else main_resource.resource.mode
     self.mode_set = False
     self.main_resource = main_resource
@@ -364,9 +373,6 @@ class HdfsResourceProvider(Provider):
     self.assert_parameter_is_set('hdfs_site')
     
     self.webhdfs_enabled = self.resource.hdfs_site['dfs.webhdfs.enabled']
-    self.is_https_enabled = self.resource.hdfs_site['dfs.https.enabled'] if not is_empty(self.resource.hdfs_site['dfs.https.enabled']) else False
-    self.https_nn_address = namenode_ha_utils.get_property_for_active_namenode(self.resource.hdfs_site, 'dfs.namenode.https-address')
-    self.http_nn_address = namenode_ha_utils.get_property_for_active_namenode(self.resource.hdfs_site, 'dfs.namenode.http-address')
     
   def action_delayed(self, action_name):
     self.assert_parameter_is_set('type')
@@ -383,8 +389,7 @@ class HdfsResourceProvider(Provider):
     self.get_hdfs_resource_executor().action_execute(self)
 
   def get_hdfs_resource_executor(self):
-    # only hdfs seems to support webHDFS
-    if self.webhdfs_enabled and self.resource.default_fs.startswith("hdfs"):
+    if WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.resource.default_fs):
       return HdfsResourceWebHDFS()
     else:
       return HdfsResourceJar()

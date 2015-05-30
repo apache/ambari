@@ -25,7 +25,7 @@ import sys
 import logging
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 
-MESSAGE_MAX_LEN = 256
+MESSAGE_MAX_LEN = 512
 DICTIONARY_MAX_LEN = 5
 
 class Logger:

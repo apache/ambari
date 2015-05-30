@@ -142,6 +142,7 @@ if 'oozie.https.port' in config['configurations']['oozie-site'] or 'oozie.https.
 else:
   oozie_secure = ''
 
+hdfs_site = config['configurations']['hdfs-site']
 fs_root = config['configurations']['core-site']['fs.defaultFS']
 
 if Script.is_hdp_stack_greater_or_equal("2.0") and Script.is_hdp_stack_less_than("2.2"):
@@ -177,6 +178,7 @@ else:
   target = format("{oozie_libext_dir}/{jdbc_driver_jar}")
 
 
+hdfs_share_dir = "/user/oozie/share"
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 falcon_host = default("/clusterHostInfo/falcon_server_hosts", [])
 has_falcon_host = not len(falcon_host)  == 0
@@ -209,6 +211,8 @@ HdfsResource = functools.partial(
   hdfs_site = hdfs_site,
   default_fs = default_fs
 )
+
+is_webhdfs_enabled = config['configurations']['hdfs-site']['dfs.webhdfs.enabled']
 
 # The logic for LZO also exists in HDFS' params.py
 io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
