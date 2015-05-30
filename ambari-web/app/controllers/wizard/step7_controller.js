@@ -1421,5 +1421,17 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   toggleIssuesFilter: function () {
     this.get('filterColumns').findProperty('attributeName', 'hasIssues').toggleProperty('selected');
+
+    // if currently selected service does not have issue, jump to the first service with issue.
+    if (this.get('selectedService.errorCount') == 0 )
+    {
+      var errorServices = this.get('stepConfigs').filterProperty('errorCount');
+      if (errorServices.length > 0)
+      {
+        var service = errorServices[0];
+        this.set('selectedService', service);
+        $('a[href="#' + service.serviceName + '"]').tab('show');
+      }
+    }
   }
 });
