@@ -108,6 +108,9 @@ App.hostsMapper = App.QuickDataMapper.create({
           if (!newHostComponentsMap[serviceName]) {
             newHostComponentsMap[serviceName] = [];
           }
+          if (!currentServiceComponentsMap[serviceName]) {
+            currentServiceComponentsMap[serviceName] = [];
+          }
           if (!currentServiceComponentsMap[serviceName][component.id]) {
             newHostComponentsMap[serviceName].push(component.id);
           }
