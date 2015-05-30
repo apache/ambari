@@ -105,11 +105,24 @@
       {{#if controller.isCurrentSelected}}
         <span class="label label-success icon-ok label-current" data-toggle="tooltip" {{translateAttr title="common.current"}}></span>
       {{/if}}
+      {{#if view.config.supportsFinal}}
+        <i {{bindAttr class=":icon-lock view.config.isFinal::hidden" }}></i>
+      {{/if}}
     {{else}}
       <span class="label label-info">{{t common.default}}
         &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
     {{/if}}
   </div>
+{{else}}
+  {{#unless view.isBeingCompared}} {{! subview(ConfigWidgetComparisonView) will take care of config being compared}}
+    {{#unless view.canEdit}}
+      {{#if view.config.supportsFinal}}
+      <div class="widget-config-controls version-labels">
+        <i {{bindAttr class=":icon-lock view.config.isFinal::hidden" }}></i>
+      </div>
+      {{/if}}
+    {{/unless}}
+  {{/unless}}
 {{/if}}
 
 

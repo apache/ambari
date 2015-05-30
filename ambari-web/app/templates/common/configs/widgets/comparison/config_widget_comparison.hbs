@@ -19,7 +19,8 @@
 {{#each compareConfig in view.serviceConfigProperty.compareConfigs}}
   <div class="clearfix"></div>
   <div {{bindAttr class=":control-group :overrideField :widget-config-comparison"}}>
-    {{view view.serviceConfigProperty.widget canEditBinding="view.canEdit" configBinding="compareConfig" categoryConfigsAllBinding="view.parentView.categoryConfigsAll" isPopoverEnabled="false"}}
+    {{view view.serviceConfigProperty.widget canEditBinding="view.canEdit" configBinding="compareConfig"
+    isBeingComparedBinding="view.isBeingCompared" categoryConfigsAllBinding="view.parentView.categoryConfigsAll" isPopoverEnabled="false"}}
     <div class="widget-config-controls version-labels">
       <span class="label label-info">{{compareConfig.serviceVersion.versionText}}</span>
       {{#if compareConfig.serviceVersion.isCurrent}}
@@ -27,9 +28,7 @@
       {{/if}}
       {{#unless compareConfig.isMock}}
         {{#if compareConfig.supportsFinal}}
-          <a disabled="disabled" {{bindAttr class=":btn-small :btn-final compareConfig.isFinal:active compareConfig.hideFinalIcon:hidden" }}>
-            <i class="icon-lock"></i>
-          </a>
+            <i {{bindAttr class=":icon-lock compareConfig.isFinal::hidden" }}></i>
         {{/if}}
       {{/unless}}
     </div>

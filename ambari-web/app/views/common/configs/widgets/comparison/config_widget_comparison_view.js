@@ -18,7 +18,6 @@
 var App = require('app');
 
 App.ConfigWidgetComparisonView = App.ServiceConfigView.SCPComparisonRowsView.extend({
-
+  isBeingCompared: true,
   templateName: require('templates/common/configs/widgets/comparison/config_widget_comparison')
-
 });

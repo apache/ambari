@@ -658,7 +658,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       compareObject.serviceVersion = App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + compareConfig.service_config_version);
       compareObject = App.ServiceConfigProperty.create(compareObject);
       compareObject.setProperties({
-        isFinal: compareConfig.isFinal,
+        isFinal: !!compareConfig.isFinal,
         value: App.config.formatOverrideValue(serviceConfig, compareConfig.value),
         compareConfigs: null
       });
