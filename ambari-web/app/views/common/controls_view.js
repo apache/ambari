@@ -453,6 +453,8 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     return this.get('categoryConfigsAll').filterProperty('isObserved', true);
   }.property('categoryConfigsAll'),
 
+  ignoreRangerHostChange: false,
+  dbTypeChanged: false,
   serviceConfig: null,
   categoryConfigsAll: null,
 
@@ -609,8 +611,10 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
                 break;
             }
             this.get('categoryConfigsAll').findProperty('name', 'db_host').set('value', this.get('hostNameProperty.value'));
-            sqlConnectorJAR.set('value',sqlConnectorJARValue);
-            sqlConnectorJAR.set('recommendedValue',sqlConnectorJARValue);
+            if(!this.get('ignoreRangerHostChange')) {
+              sqlConnectorJAR.set('value',sqlConnectorJARValue);
+              sqlConnectorJAR.set('recommendedValue',sqlConnectorJARValue);
+            }
             break;
         }
         connectionUrl.set('value', connectionUrlValue);
@@ -638,6 +642,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
   }.property('databaseNameProperty.value'),
 
   hostNameProperty: function () {
+    this.set('dbTypeChanged', true);
     var value = this.get('serviceConfig.value');
     var returnValue;
     var hostname;
@@ -727,6 +732,8 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
   }.property('serviceConfig.serviceName', 'serviceConfig.value'),
 
   hostName: function () {
+    this.set('ignoreRangerHostChange', !this.get('dbTypeChanged'));
+    this.set('dbTypeChanged', false);
     return this.get('hostNameProperty.value');
   }.property('hostNameProperty.value'),
 
