@@ -58,6 +58,7 @@ import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -457,7 +458,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
           EnumSet.allOf(SourceType.class)));
     }
 
-    // !!! The AlertDefinition "Source" field is a nested JSON object;
+    // !!! The AlertDefinition "source" field is a nested JSON object;
     // build a JSON representation from the flat properties and then
     // serialize that JSON object as a string
     Map<String,JsonObject> jsonObjectMapping = new HashMap<String, JsonObject>();
@@ -480,14 +481,24 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       String propertyName = PropertyHelper.getPropertyName(propertyKey);
       Object entryValue = entry.getValue();
 
+      // determine if the object is a collection, a number, or a string
       if( entryValue instanceof Collection<?> ){
+        // add it as a tree (collection)
         JsonElement jsonElement = gson.toJsonTree(entryValue);
         jsonObject.add(propertyName, jsonElement);
+      } else if (entryValue instanceof Number) {
+        // add it as a number
+        jsonObject.addProperty(propertyName, (Number) entryValue);
       } else {
-        if (entryValue instanceof Number) {
-          jsonObject.addProperty(propertyName, (Number) entryValue);
+        // it's a string, but it could still be a Number since Ambari's higher
+        // level JSON processor converts all JSON bodies into Map<String,String>
+        // instead of Map<String,Object>
+        String value = entryValue.toString();
+        if (StringUtils.isNotEmpty(value) && NumberUtils.isNumber(value)) {
+          Number number = NumberUtils.createNumber(value);
+          jsonObject.addProperty(propertyName, number);
         } else {
-          jsonObject.addProperty(propertyName, entryValue.toString());
+          jsonObject.addProperty(propertyName, value);
         }
       }
     }

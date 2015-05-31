@@ -467,8 +467,7 @@ public class AlertDefinitionResourceProviderTest {
     requestProps.put("AlertDefinition/source/reporting/warning/value",
         source.getReporting().getWarning().getValue());
 
-    Request request = PropertyHelper.getCreateRequest(
-        Collections.singleton(requestProps), null);
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
 
     AlertDefinitionResourceProvider provider = createProvider(amc);
 
@@ -478,9 +477,8 @@ public class AlertDefinitionResourceProviderTest {
     AlertDefinitionEntity entity = entityCapture.getValue();
     Assert.assertNotNull(entity);
 
-    Predicate p = new PredicateBuilder().property(
-        AlertDefinitionResourceProvider.ALERT_DEF_ID).equals("1").and().property(
-            AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME).equals("c1").toPredicate();
+    Predicate p = new PredicateBuilder().property(AlertDefinitionResourceProvider.ALERT_DEF_ID).equals(
+        "1").and().property(AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME).equals("c1").toPredicate();
 
     // everything is mocked, there is no DB
     entity.setDefinitionId(Long.valueOf(1));
@@ -504,25 +502,22 @@ public class AlertDefinitionResourceProviderTest {
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_INTERVAL, "2");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_NAME, "my_def2");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_LABEL, "Label 2");
-    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_DESCRIPTION,"Description 2");
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_DESCRIPTION, "Description 2");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SERVICE_NAME, "HDFS");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE, "METRIC");
 
     // new URI
-    requestProps.put("AlertDefinition/source/uri/http",
-        source.getUri().getHttpUri() + "_foobarbaz");
-    requestProps.put("AlertDefinition/source/uri/https",
-        source.getUri().getHttpsUri() + "_foobarbaz");
+    requestProps.put("AlertDefinition/source/uri/http", source.getUri().getHttpUri() + "_foobarbaz");
+    requestProps.put("AlertDefinition/source/uri/https", source.getUri().getHttpsUri()
+        + "_foobarbaz");
     requestProps.put("AlertDefinition/source/uri/https_property",
         source.getUri().getHttpsProperty() + "_foobarbaz");
     requestProps.put("AlertDefinition/source/uri/https_property_value",
         source.getUri().getHttpsPropertyValue() + "_foobarbaz");
 
-    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_ENABLED,
-        Boolean.FALSE.toString());
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_ENABLED, Boolean.FALSE.toString());
 
-    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_IGNORE_HOST,
-        Boolean.TRUE.toString());
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_IGNORE_HOST, Boolean.TRUE.toString());
 
     request = PropertyHelper.getUpdateRequest(requestProps, null);
 
@@ -537,6 +532,63 @@ public class AlertDefinitionResourceProviderTest {
     Assert.assertFalse(oldSource.equals(entity.getSource()));
     Assert.assertTrue(entity.getSource().contains("_foobarbaz"));
 
+    verify(amc, clusters, cluster, dao);
+  }
+
+  /**
+   * @throws Exception
+   */
+  @Test
+  public void testUpdateResourcesWithNumbersAsStrings() throws Exception {
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+    expect(amc.getClusters()).andReturn(clusters).atLeastOnce();
+    expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
+    expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).atLeastOnce();
+
+    Capture<AlertDefinitionEntity> entityCapture = new Capture<AlertDefinitionEntity>();
+    dao.create(capture(entityCapture));
+    expectLastCall();
+
+    // updateing a single definition should invalidate hosts of the definition
+    expect(definitionHash.invalidateHosts(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
+        new HashSet<String>()).atLeastOnce();
+
+    replay(amc, clusters, cluster, dao, definitionHash);
+
+    MetricSource source = (MetricSource) getMockSource();
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME, "c1");
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_INTERVAL, "1");
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_NAME, "my_def");
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SERVICE_NAME, "HDFS");
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE, "METRIC");
+
+    // Ambari converts all request bodies into Map<String,String>, even they are
+    // numbers - this will ensure that we can convert a string to a number
+    // properly
+    requestProps.put("AlertDefinition/source/reporting/critical/text",
+        source.getReporting().getCritical().getText());
+
+    requestProps.put("AlertDefinition/source/reporting/critical/value", "1234.5");
+
+    Request request = PropertyHelper.getCreateRequest(
+        Collections.singleton(requestProps), null);
+
+    AlertDefinitionResourceProvider provider = createProvider(amc);
+    provider.createResources(request);
+
+    Assert.assertTrue(entityCapture.hasCaptured());
+    AlertDefinitionEntity entity = entityCapture.getValue();
+    Assert.assertNotNull(entity);
+
+    String sourceJson = entity.getSource();
+    Gson gson = new Gson();
+    source = gson.fromJson(sourceJson, MetricSource.class);
+
+    // ensure it's actually a double and NOT a string
+    assertEquals(new Double(1234.5d), source.getReporting().getCritical().getValue());
     verify(amc, clusters, cluster, dao);
   }
 
