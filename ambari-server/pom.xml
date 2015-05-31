@@ -1463,6 +1463,11 @@
       <artifactId>commons-csv</artifactId>
     </dependency>
     <dependency>
+      <groupId>uk.com.robust-it</groupId>
+      <artifactId>cloning</artifactId>
+      <version>1.9.2</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.inject.extensions</groupId>
       <artifactId>guice-assistedinject</artifactId>
     </dependency>

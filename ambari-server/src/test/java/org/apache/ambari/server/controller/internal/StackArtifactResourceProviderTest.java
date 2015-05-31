@@ -123,7 +123,7 @@ public class StackArtifactResourceProviderTest {
 
     Metric m1 = md.getMetrics().get("metrics/dfs/datanode/heartBeats_avg_time");
     Metric m2 = md.getMetrics().get("metrics/rpc/closeRegion_num_ops");
-    Assert.assertEquals(1630, md.getMetrics().size());
+    Assert.assertEquals(326, md.getMetrics().size());
     Assert.assertTrue(m1.isAmsHostMetric());
     Assert.assertEquals("unitless", m1.getUnit());
     Assert.assertFalse(m2.isAmsHostMetric());
