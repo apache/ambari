@@ -33,28 +33,26 @@ class AmsCollector(Script):
     # self.configure(env) # for security
 
 
-  def configure(self, env):
+  def configure(self, env, action = None):
     import params
     env.set_params(params)
-    hbase('master')
-    hbase('regionserver')
+    hbase('master', action)
+    hbase('regionserver', action)
     ams(name='collector')
 
   def start(self, env):
-    self.configure(env) # for security
+    self.configure(env, action = 'start') # for security
 
-    ams_service( 'collector',
-                   action = 'start'
-    )
+    ams_service('collector', action = 'start')
 
   def stop(self, env):
     import params
     env.set_params(params)
 
     # Sometimes, stop() may be called before start(), in case restart() is initiated right after installation
-    self.configure(env) # for security
+    self.configure(env, action = 'stop') # for security
 
-    ams_service( 'collector', action = 'stop')
+    ams_service('collector', action = 'stop')
 
   def status(self, env):
     import status_params

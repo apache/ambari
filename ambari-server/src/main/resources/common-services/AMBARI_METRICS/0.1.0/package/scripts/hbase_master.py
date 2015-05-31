@@ -30,16 +30,16 @@ class HbaseMaster(Script):
   def install(self, env):
     self.install_packages(env)
     
-  def configure(self, env):
+  def configure(self, env, action = None):
     import params
     env.set_params(params)
 
-    hbase(name='master')
+    hbase(name='master', action)
     
   def start(self, env):
     import params
     env.set_params(params)
-    self.configure(env) # for security
+    self.configure(env, action = 'start') # for security
 
     hbase_service( 'master',
       action = 'start'

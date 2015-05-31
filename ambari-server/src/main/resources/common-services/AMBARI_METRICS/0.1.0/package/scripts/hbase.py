@@ -23,7 +23,7 @@ from resource_management import *
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def hbase(name=None):
+def hbase(name=None, action = None):
   import params
   Directory(params.hbase_conf_dir,
             owner = params.hadoop_user,
@@ -82,7 +82,7 @@ def hbase(name=None):
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hbase(name=None # 'master' or 'regionserver' or 'client'
-              ):
+          , action=None):
   import params
 
   Directory(params.hbase_conf_dir,
@@ -170,22 +170,26 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
   if name == "master":
 
     if params.is_hbase_distributed:
+      # If executing Stop All, HDFS is probably down
+      if action != 'stop':
 
-      params.HdfsResource(params.hbase_root_dir,
-                           type="directory",
-                           action="create_on_execute",
-                           owner=params.hbase_user,
-                           mode=0775
-      )
+        params.HdfsResource(params.hbase_root_dir,
+                             type="directory",
+                             action="create_on_execute",
+                             owner=params.hbase_user,
+                             mode=0775
+        )
 
-      params.HdfsResource(params.hbase_staging_dir,
-                           type="directory",
-                           action="create_on_execute",
-                           owner=params.hbase_user,
-                           mode=0711
-      )
+        params.HdfsResource(params.hbase_staging_dir,
+                             type="directory",
+                             action="create_on_execute",
+                             owner=params.hbase_user,
+                             mode=0711
+        )
 
-      params.HdfsResource(None, action="execute")
+        params.HdfsResource(None, action="execute")
+
+      pass
 
     else:
 
