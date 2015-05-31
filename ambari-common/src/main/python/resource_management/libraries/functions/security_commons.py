@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 from datetime import datetime, timedelta
-from resource_management import Execute
+from resource_management import Execute, File
 from tempfile import mkstemp
 import os
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
@@ -201,33 +201,34 @@ def cached_kinit_executor(kinit_path, exec_user, keytab_file, principal, hostnam
       cache_file.write("{}")
 
   if (not output) or (key not in output) or ("last_successful_execution" not in output[key]):
-    new_cached_exec(key, file_path, kinit_path, exec_user, keytab_file, principal, hostname)
+    new_cached_exec(key, file_path, kinit_path, temp_dir, exec_user, keytab_file, principal, hostname)
   else:
     last_run_time = output[key]["last_successful_execution"]
     now = datetime.now()
-    if (now - datetime.strptime(last_run_time, "%Y-%m-%d %H:%M:%S.%f") > timedelta(
-      minutes=expiration_time)):
-      new_cached_exec(key, file_path, kinit_path, exec_user, keytab_file, principal, hostname)
+    if (now - datetime.strptime(last_run_time, "%Y-%m-%d %H:%M:%S.%f") > timedelta(minutes=expiration_time)):
+      new_cached_exec(key, file_path, kinit_path, temp_dir, exec_user, keytab_file, principal, hostname)
 
 
-def new_cached_exec(key, file_path, kinit_path, exec_user, keytab_file, principal, hostname):
+def new_cached_exec(key, file_path, kinit_path, temp_dir, exec_user, keytab_file, principal, hostname):
   """
   Entry point of an actual execution - triggered when timeout on the cache expired or on fresh execution
   """
   now = datetime.now()
-  _, temp_kinit_cache_file = mkstemp()
-  command = "su -s /bin/bash - %s -c '%s -c %s -kt %s %s'" % \
-            (exec_user, kinit_path, temp_kinit_cache_file, keytab_file,
+  temp_kinit_cache_fd, temp_kinit_cache_filename = mkstemp(dir=temp_dir)
+  command = "%s -c %s -kt %s %s" % \
+            (kinit_path, temp_kinit_cache_filename, keytab_file,
              principal.replace("_HOST", hostname))
 
+  os.close(temp_kinit_cache_fd)
+
   try:
-    Execute(command)
+    Execute(command, user=exec_user)
 
     with open(file_path, 'w+') as cache_file:
       result = {key: {"last_successful_execution": str(now)}}
       json.dump(result, cache_file)
   finally:
-    os.remove(temp_kinit_cache_file)
+    File(temp_kinit_cache_filename, action='delete')
 
 def get_value(values, property_path, default_value):
   names = property_path.split('/')
