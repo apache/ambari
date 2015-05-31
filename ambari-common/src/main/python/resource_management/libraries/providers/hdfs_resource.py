@@ -100,7 +100,7 @@ class HdfsResourceJar:
     json_path=JSON_PATH
 
     if security_enabled:
-      self.kinit()
+      main_resource.kinit()
 
     # Write json file to disk
     File(JSON_PATH,

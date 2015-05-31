@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 import os
+from resource_management.libraries.providers.hdfs_resource import WebHDFSUtil
 
 from resource_management import *
 
@@ -58,7 +59,15 @@ def setup_hadoop():
       tc_owner = "root"
     else:
       tc_owner = params.hdfs_user
-
+      
+    # if WebHDFS is not enabled we need this jar to create hadoop folders.
+    if not WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
+      # for source-code of jar goto contrib/fast-hdfs-resource
+      File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
+           mode=0644,
+           content=StaticFile("fast-hdfs-resource.jar")
+      )
+      
     if os.path.exists(params.hadoop_conf_dir):
       File(os.path.join(params.hadoop_conf_dir, 'commons-logging.properties'),
            owner=tc_owner,

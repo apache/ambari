@@ -176,6 +176,10 @@ refresh_topology = False
 command_params = config["commandParams"] if "commandParams" in config else None
 if command_params is not None:
   refresh_topology = bool(command_params["refresh_topology"]) if "refresh_topology" in command_params else False
+  
+ambari_libs_dir = "/var/lib/ambari-agent/lib"
+is_webhdfs_enabled = config['configurations']['hdfs-site']['dfs.webhdfs.enabled']
+default_fs = config['configurations']['core-site']['fs.defaultFS']
 
 #host info
 all_hosts = default("/clusterHostInfo/all_hosts", [])

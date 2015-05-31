@@ -205,10 +205,7 @@ class TestJournalnode(RMFTestCase):
                               content = Template('slaves.j2'),
                               owner = 'hdfs',
                               )
-    self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
-        content = StaticFile('fast-hdfs-resource.jar'),
-        mode = 0644,
-    )
+
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/grid/0/hdfs/journal',
@@ -259,10 +256,7 @@ class TestJournalnode(RMFTestCase):
                               content = Template('slaves.j2'),
                               owner = 'root',
                               )
-    self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
-        content = StaticFile('fast-hdfs-resource.jar'),
-        mode = 0644,
-    )
+
 
 
   @patch('time.sleep')
