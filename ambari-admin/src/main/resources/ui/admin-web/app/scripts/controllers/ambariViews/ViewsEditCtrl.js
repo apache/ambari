@@ -300,7 +300,7 @@ angular.module('ambariAdminConsole')
         //TODO: maybe the BackEnd should sanitize the string beforehand?
         errorMessage = errorMessage.substr(errorMessage.indexOf("\{"));
 
-        if (data.status >= 400) {
+        if (data.status >= 400 && !$scope.isLocalCluster) {
           try {
             var errorObject = JSON.parse(errorMessage);
             errorMessage = errorObject.detail;

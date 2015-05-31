@@ -128,7 +128,7 @@
     <div class="panel-body property-form" popover="{{clusterConfigurableErrorMsg}}" popover-trigger="mouseenter">
       <div class="checkbox create-checkbox-cluster">
         <label>
-          <input type="radio" ng-disabled="!clusterConfigurable || noClusterAvailible" ng-model="instance.isLocalCluster" ng-value="true" class="visibilityCheckbox"> Local Ambari Managed Cluster
+          <input type="radio" ng-disabled="!clusterConfigurable || noClusterAvailible" ng-model="instance.isLocalCluster" ng-change="enableLocalCluster()" ng-value="true" class="visibilityCheckbox"> Local Ambari Managed Cluster
         </label>
       </div>
 

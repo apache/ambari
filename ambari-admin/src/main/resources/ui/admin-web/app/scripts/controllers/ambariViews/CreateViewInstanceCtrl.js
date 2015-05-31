@@ -64,9 +64,24 @@ angular.module('ambariAdminConsole')
     }
   });
 
+  $scope.enableLocalCluster = function () {
+    if($scope.errorKeys.length > 0) {
+      $scope.errorKeys.forEach( function (key) {
+        try {
+          $scope.form.instanceCreateForm[key].validationError = false;
+          $scope.form.instanceCreateForm[key].validationMessage = '';
+        } catch (e) {
+          console.log('Unable to reset error message for prop:', key);
+        }
+      });
+      $scope.errorKeys = [];
+    }
+  };
+
   // $scope.view = viewVersion;
   $scope.isAdvancedClosed = true;
   $scope.instanceExists = false;
+  $scope.errorKeys = [];
 
   $scope.clusterConfigurable = false;
   $scope.clusterConfigurableErrorMsg = "";
@@ -120,7 +135,7 @@ angular.module('ambariAdminConsole')
           var errorMessage = data.message;
           var showGeneralError = true;
 
-          if (data.status >= 400) {
+          if (data.status >= 400 && !$scope.instance.isLocalCluster) {
             try {
               var errorObject = JSON.parse(errorMessage);
               errorMessage = errorObject.detail;
@@ -129,6 +144,7 @@ angular.module('ambariAdminConsole')
                 if (!item.valid) {
                   showGeneralError = false;
                   $scope.form.instanceCreateForm[key].validationMessage = item.detail;
+                  $scope.errorKeys.push(key);
                 }
               });
 

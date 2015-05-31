@@ -211,18 +211,18 @@
   <div class="panel-body edit-view-custom-wrap">
     <form name="propertiesForm" class="form-horizontal property-form" ng-hide="isConfigurationEmpty" novalidate>
       <fieldset>
-        <div class="form-group" ng-repeat="property in configurationMeta | filter:{clusterConfig:true}" ng-class="{'has-error' : (!editConfigurationDisabled && ((property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled) || propertiesForm[property.name].validationError))}">
+        <div class="form-group" ng-repeat="property in configurationMeta | filter:{clusterConfig:true}" ng-class="{'has-error' : (!editConfigurationDisabled && !isLocalCluster && ((property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled) || propertiesForm[property.name].validationError))}">
           <label for="" class="control-label col-sm-3" ng-class="{'not-required': !property.required}">{{property.label || property.displayName}}{{property.required ? '*' : ''}}</label>
           <div ng-switch="property.type">
             <div class="col-sm-9 checkbox" ng-switch-when="boolean">
               <input type="checkbox" class="propertie-input" ng-disabled="isLocalCluster || editConfigurationDisabled" name="{{property.name}}" ng-model="configuration[property.name]" ng-true-value="true" ng-false-value="false" popover="{{property.description}}" popover-title="{{property.name}}" popover-trigger="mouseenter">
             </div>
             <div class="col-sm-9" ng-switch-default>
-              <input type="{{property.masked ? 'password' : 'text'}}" class="form-control propertie-input" ng-required="property.required" ng-change="propertiesForm[property.name].validationError=''" ng-disabled="isLocalCluster || editConfigurationDisabled" name="{{property.name}}" ng-model="configuration[property.name]" popover="{{property.description}}" popover-title="{{property.name}}" popover-trigger="mouseenter" placeholder="{{property.placeholder}}">
-              <div class="alert alert-danger no-margin-bottom top-margin" ng-show='property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled'>
+              <input type="{{property.masked ? 'password' : 'text'}}" class="form-control propertie-input" ng-required="property.required && !isLocalCluster" ng-change="propertiesForm[property.name].validationError=''" ng-disabled="isLocalCluster || editConfigurationDisabled" name="{{property.name}}" ng-model="configuration[property.name]" popover="{{property.description}}" popover-title="{{property.name}}" popover-trigger="mouseenter" placeholder="{{property.placeholder}}">
+              <div class="alert alert-danger no-margin-bottom top-margin" ng-show='property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled && !isLocalCluster'>
                 This field is required.
               </div>
-              <div class="alert alert-danger no-margin-bottom top-margin" ng-show='property.required && propertiesForm[property.name].validationError && !editConfigurationDisabled'>
+              <div class="alert alert-danger no-margin-bottom top-margin" ng-show='property.required && propertiesForm[property.name].validationError && !editConfigurationDisabled && !isLocalCluster'>
                 {{propertiesForm[property.name].validationMessage}}
               </div>
             </div>
