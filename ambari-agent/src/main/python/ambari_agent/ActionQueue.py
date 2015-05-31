@@ -310,19 +310,28 @@ class ActionQueue(threading.Thread):
     else:
       roleResult['structuredOut'] = ''
 
-    # let ambari know that configuration tags were applied
+    # let recovery manager know the current state
     if status == self.COMPLETED_STATUS:
       if self.controller.recovery_manager.enabled() and command.has_key('roleCommand'):
         if command['roleCommand'] == self.ROLE_COMMAND_START:
           self.controller.recovery_manager.update_current_status(command['role'], LiveStatus.LIVE_STATUS)
+          self.controller.recovery_manager.update_config_staleness(command['role'], False)
+          logger.info("After EXECUTION_COMMAND (START), current state of " + command['role'] + " to " +
+                       self.controller.recovery_manager.get_current_status(command['role']) )
         elif command['roleCommand'] == self.ROLE_COMMAND_STOP or command['roleCommand'] == self.ROLE_COMMAND_INSTALL:
           self.controller.recovery_manager.update_current_status(command['role'], LiveStatus.DEAD_STATUS)
+          logger.info("After EXECUTION_COMMAND (STOP/INSTALL), current state of " + command['role'] + " to " +
+                       self.controller.recovery_manager.get_current_status(command['role']) )
         elif command['roleCommand'] == self.ROLE_COMMAND_CUSTOM_COMMAND:
           if command['hostLevelParams'].has_key('custom_command') and \
                   command['hostLevelParams']['custom_command'] == self.CUSTOM_COMMAND_RESTART:
             self.controller.recovery_manager.update_current_status(command['role'], LiveStatus.LIVE_STATUS)
+            self.controller.recovery_manager.update_config_staleness(command['role'], False)
+            logger.info("After EXECUTION_COMMAND (RESTART), current state of " + command['role'] + " to " +
+                         self.controller.recovery_manager.get_current_status(command['role']) )
       pass
 
+      # let ambari know that configuration tags were applied
       configHandler = ActualConfigHandler(self.config, self.configTags)
       #update
       if command.has_key('forceRefreshConfigTags') and len(command['forceRefreshConfigTags']) > 0  :

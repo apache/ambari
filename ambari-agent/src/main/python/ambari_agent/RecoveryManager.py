@@ -46,6 +46,7 @@ class RecoveryManager:
   HAS_STALE_CONFIG = "hasStaleConfigs"
   EXECUTION_COMMAND_DETAILS = "executionCommandDetails"
   ROLE_COMMAND = "roleCommand"
+  HOST_LEVEL_PARAMS = "hostLevelParams"
   PAYLOAD_LEVEL_DEFAULT = "DEFAULT"
   PAYLOAD_LEVEL_MINIMAL = "MINIMAL"
   PAYLOAD_LEVEL_EXECUTION_COMMAND = "EXECUTION_COMMAND"
@@ -117,6 +118,15 @@ class RecoveryManager:
   def enabled(self):
     return self.recovery_enabled
 
+  def get_current_status(self, component):
+    if component in self.statuses:
+      return self.statuses[component]["current"]
+    pass
+
+  def get_desired_status(self, component):
+    if component in self.statuses:
+      return self.statuses[component]["desired"]
+    pass
 
   def update_config_staleness(self, component, is_config_stale):
     """
@@ -528,8 +538,18 @@ class RecoveryManager:
           if self.ROLE in command:
             if command[self.ROLE_COMMAND] in (ActionQueue.ROLE_COMMAND_INSTALL, ActionQueue.ROLE_COMMAND_STOP):
               self.update_desired_status(command[self.ROLE], LiveStatus.DEAD_STATUS)
-            if command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_START:
+              logger.info("Received EXECUTION_COMMAND (STOP/INSTALL), desired state of " + command[self.ROLE] + " to " +
+                           self.get_desired_status(command[self.ROLE]) )
+            elif command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_START:
               self.update_desired_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
+              logger.info("Received EXECUTION_COMMAND (START), desired state of " + command[self.ROLE] + " to " +
+                           self.get_desired_status(command[self.ROLE]) )
+            elif command[self.HOST_LEVEL_PARAMS].has_key('custom_command') and \
+                    command[self.HOST_LEVEL_PARAMS]['custom_command'] == ActionQueue.CUSTOM_COMMAND_RESTART:
+              self.update_desired_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
+              logger.info("Received EXECUTION_COMMAND (RESTART), desired state of " + command[self.ROLE] + " to " +
+                           self.get_desired_status(command[self.ROLE]) )
+
     pass
 
 
@@ -615,7 +635,7 @@ class RecoveryManager:
         command[self.ROLE_COMMAND] = "CUSTOM_COMMAND"
         command[self.COMMAND_TYPE] = ActionQueue.AUTO_EXECUTION_COMMAND
         command[self.TASK_ID] = self.get_unique_task_id()
-        command['hostLevelParams']['custom_command'] = 'RESTART'
+        command[self.HOST_LEVEL_PARAMS]['custom_command'] = 'RESTART'
         return command
       else:
         logger.info("RESTART command cannot be computed as details are not received from Server.")
