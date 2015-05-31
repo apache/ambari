@@ -18,30 +18,12 @@
 
 package org.apache.ambari.server.upgrade;
 
-import static junit.framework.Assert.assertEquals;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -58,12 +40,28 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
+import javax.persistence.EntityManager;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static junit.framework.Assert.assertEquals;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog210} unit tests.
@@ -151,13 +149,15 @@ public class UpgradeCatalog210Test {
     Method initializeClusterAndServiceWidgets =
       UpgradeCatalog210.class.getDeclaredMethod("initializeClusterAndServiceWidgets");
 
-    Method addMissingConfigs =
-            UpgradeCatalog210.class.getDeclaredMethod("addMissingConfigs");
+    Method addMissingConfigs = UpgradeCatalog210.class.getDeclaredMethod("addMissingConfigs");
+
+    Method updateAlertDefinitions = UpgradeCatalog210.class.getDeclaredMethod("updateAlertDefinitions");
 
     UpgradeCatalog210 upgradeCatalog210 = createMockBuilder(UpgradeCatalog210.class)
       .addMockedMethod(addNewConfigurationsFromXml)
       .addMockedMethod(initializeClusterAndServiceWidgets)
-      .addMockedMethod(addMissingConfigs).createMock();
+      .addMockedMethod(addMissingConfigs)
+      .addMockedMethod(updateAlertDefinitions).createMock();
 
     upgradeCatalog210.addNewConfigurationsFromXml();
     expectLastCall().once();
@@ -166,6 +166,9 @@ public class UpgradeCatalog210Test {
     expectLastCall().once();
 
     upgradeCatalog210.addMissingConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog210.updateAlertDefinitions();
     expectLastCall().once();
 
     replay(upgradeCatalog210);

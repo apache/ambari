@@ -18,22 +18,21 @@
 
 package org.apache.ambari.server.upgrade;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -45,10 +44,15 @@ import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -887,6 +891,66 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     initializeClusterAndServiceWidgets();
 
     addMissingConfigs();
+    updateAlertDefinitions();
+  }
+
+  protected void updateAlertDefinitions() {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    List<String> metricAlerts = Arrays.asList("namenode_cpu", "namenode_hdfs_blocks_health",
+            "namenode_hdfs_capacity_utilization", "namenode_rpc_latency",
+            "namenode_directory_status", "datanode_health_summary", "datanode_storage");
+    List<String> mapredAlerts = Arrays.asList("mapreduce_history_server_cpu", "mapreduce_history_server_rpc_latency");
+    List<String> rmAlerts = Arrays.asList("yarn_resourcemanager_cpu", "yarn_resourcemanager_rpc_latency");
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+
+          for (String metricName : metricAlerts) {
+            AlertDefinitionEntity alertDefinitionEntity =  alertDefinitionDAO.findByName(cluster.getClusterId(),
+                    metricName);
+            String source = alertDefinitionEntity.getSource();
+            JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
+            rootJson.get("uri").getAsJsonObject().addProperty("kerberos_keytab",
+                    "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}");
+            rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
+                    "{{hdfs-site/dfs.web.authentication.kerberos.principal}}");
+            alertDefinitionEntity.setSource(rootJson.toString());
+            alertDefinitionDAO.merge(alertDefinitionEntity);
+          }
+
+          for (String metricName : mapredAlerts) {
+            AlertDefinitionEntity alertDefinitionEntity =  alertDefinitionDAO.findByName(cluster.getClusterId(),
+                    metricName);
+            String source = alertDefinitionEntity.getSource();
+            JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
+            rootJson.get("uri").getAsJsonObject().addProperty("kerberos_keytab",
+                    "{{mapred-site/mapreduce.jobhistory.webapp.spnego-keytab-file}}");
+            rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
+                    "{{mapred-site/mapreduce.jobhistory.webapp.spnego-principal}}");
+            alertDefinitionEntity.setSource(rootJson.toString());
+            alertDefinitionDAO.merge(alertDefinitionEntity);
+          }
+
+          for (String metricName : rmAlerts) {
+            AlertDefinitionEntity alertDefinitionEntity =  alertDefinitionDAO.findByName(cluster.getClusterId(),
+                    metricName);
+            String source = alertDefinitionEntity.getSource();
+            JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
+            rootJson.get("uri").getAsJsonObject().addProperty("kerberos_keytab",
+                    "{{yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file}}");
+            rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
+                    "{{yarn-site/yarn.resourcemanager.webapp.spnego-principal}}");
+            alertDefinitionEntity.setSource(rootJson.toString());
+            alertDefinitionDAO.merge(alertDefinitionEntity);
+          }
+        }
+      }
+    }
   }
 
   protected void addMissingConfigs() throws AmbariException {
