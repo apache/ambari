@@ -39,12 +39,6 @@
   </property>
 
   <property>
-    <name>ranger-hive-plugin-enabled</name>
-    <value>No</value>
-    <description>Enable ranger hive plugin ?</description>
-  </property>
-
-  <property>
     <name>REPOSITORY_CONFIG_USERNAME</name>
     <value>hive</value>
     <description>Used for repository creation on ranger admin</description>
