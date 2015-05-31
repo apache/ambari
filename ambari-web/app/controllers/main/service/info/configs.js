@@ -848,6 +848,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     this.checkOverrideProperty(selectedService);
     this.checkDatabaseProperties(selectedService);
     this.checkForSecureConfig(this.get('selectedService'));
+    if (!App.Service.find().someProperty('serviceName', 'RANGER')) {
+      App.config.removeRangerConfigs(this.get('stepConfigs'));
+    }
     this.getRecommendationsForDependencies(null, true, function() {
       self.setProperties({
         dataIsLoaded: true,
