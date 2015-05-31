@@ -52,6 +52,7 @@ angular.module('ambariAdminConsole')
         description: '',
         isLocalCluster: false
       };
+      loadClusters();
     });
   }
 
@@ -91,17 +92,21 @@ angular.module('ambariAdminConsole')
   $scope.numberOfClusterConfigs = 0;
   $scope.numberOfSettingConfigs = 0;
 
-  Cluster.getAllClusters().then(function (clusters) {
-    if(clusters.length >0){
-      clusters.forEach(function(cluster) {
-        $scope.clusters.push(cluster.Clusters.cluster_name)
-      });
-      $scope.noClusterAvailible = false;
-    }else{
-      $scope.clusters.push("No Clusters");
-    }
-    $scope.cluster = $scope.clusters[0];
-  });
+  function loadClusters () {
+    Cluster.getAllClusters().then(function (clusters) {
+      if(clusters.length >0){
+        clusters.forEach(function(cluster) {
+          $scope.clusters.push(cluster.Clusters.cluster_name)
+        });
+        $scope.noClusterAvailible = false;
+        $scope.instance.isLocalCluster = $scope.clusterConfigurable;
+      }else{
+        $scope.clusters.push("No Clusters");
+      }
+      $scope.cluster = $scope.clusters[0];
+    });
+  }
+
 
   $scope.versions = [];
   $scope.version = null;
