@@ -21,10 +21,8 @@ package org.apache.ambari.view.hive;
 import org.apache.ambari.view.ViewInstanceDefinition;
 import org.apache.ambari.view.validation.ValidationResult;
 import org.apache.ambari.view.validation.Validator;
+import org.apache.commons.validator.routines.RegexValidator;
 import org.apache.commons.validator.routines.UrlValidator;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 
 public class PropertyValidator implements Validator {
 
@@ -63,7 +61,7 @@ public class PropertyValidator implements Validator {
     // Cluster associated properties
     if (property.equals(WEBHDFS_URL)) {
       String webhdfsUrl = viewInstanceDefinition.getPropertyMap().get(WEBHDFS_URL);
-      if (!validateURL(webhdfsUrl)) {
+      if (!validateHdfsURL(webhdfsUrl)) {
         return new InvalidPropertyValidationResult(false, "Must be valid URL");
       }
     }
@@ -84,7 +82,9 @@ public class PropertyValidator implements Validator {
 
     if (property.equals(YARN_ATS_URL)) {
       String atsUrl = viewInstanceDefinition.getPropertyMap().get(YARN_ATS_URL);
-      if (!validateURL(atsUrl)) return new InvalidPropertyValidationResult(false, "Must be valid URL");
+      if (!validateHttpURL(atsUrl)) {
+        return new InvalidPropertyValidationResult(false, "Must be valid URL");
+      }
     }
 
     return ValidationResult.SUCCESS;
@@ -95,9 +95,19 @@ public class PropertyValidator implements Validator {
    * @param webhdfsUrl url
    * @return is url valid
    */
-  public boolean validateURL(String webhdfsUrl) {
+  private boolean validateHdfsURL(String webhdfsUrl) {
     String[] schemes = {"webhdfs", "hdfs", "s3", "file"};
-    UrlValidator urlValidator = new UrlValidator(schemes);
+    return validateURL(webhdfsUrl, schemes);
+  }
+
+  private boolean validateHttpURL(String webhdfsUrl) {
+    String[] schemes = {"http", "https"};
+    return validateURL(webhdfsUrl, schemes);
+  }
+
+  private boolean validateURL(String webhdfsUrl, String[] schemes) {
+    RegexValidator authority = new RegexValidator(".*");
+    UrlValidator urlValidator = new UrlValidator(schemes, authority, UrlValidator.ALLOW_LOCAL_URLS);
     return urlValidator.isValid(webhdfsUrl);
   }
 
