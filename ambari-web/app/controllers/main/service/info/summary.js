@@ -55,11 +55,6 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
       propertyName: 'ranger-hdfs-plugin-enabled'
     },
     {
-      serviceName: 'HIVE',
-      type: 'ranger-hive-plugin-properties',
-      propertyName: 'ranger-hive-plugin-enabled'
-    },
-    {
       serviceName: 'HBASE',
       type: 'ranger-hbase-plugin-properties',
       propertyName: 'ranger-hbase-plugin-enabled'

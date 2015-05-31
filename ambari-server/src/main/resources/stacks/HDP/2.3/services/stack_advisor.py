@@ -97,19 +97,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
-
     putHiveServerProperty = self.putProperty(configurations, "hiveserver2-site", services)
-
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if 'ranger-hive-plugin-properties' in services['configurations'] and ('ranger-hive-plugin-enabled' in services['configurations']['ranger-hive-plugin-properties']['properties']):
-      rangerPluginEnabled = services['configurations']['ranger-hive-plugin-properties']['properties']['ranger-hive-plugin-enabled']
-      if ("RANGER" in servicesList) :
-        if (rangerPluginEnabled.lower() == "Yes".lower()):
-          putHiveServerProperty("hive.security.authorization.manager", 'org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory')
-          putHiveServerProperty("hive.security.authenticator.manager", 'org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator')
-        elif (rangerPluginEnabled.lower() == "No".lower()):
-          putHiveServerProperty("hive.security.authorization.manager", 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory')
-          putHiveServerProperty("hive.security.authenticator.manager", 'org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator')
+    # hive_security_authorization == 'ranger'
+    if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "ranger":
+      putHiveServerProperty("hive.security.authorization.manager", "org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory")
 
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
@@ -166,12 +158,13 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     validationItems = []
     #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-hive-plugin-enabled'] if ranger_plugin_properties else 'No'
+    hive_env_properties = getSiteProperties(configurations, "hive-env")
+    ranger_plugin_enabled = 'hive_security_authorization' in hive_env_properties and hive_env_properties['hive_security_authorization'].lower() == 'ranger'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ##Add stack validations only if Ranger is enabled.
     if ("RANGER" in servicesList):
       ##Add stack validations for  Ranger plugin enabled.
-      if (ranger_plugin_enabled.lower() == 'Yes'.lower()):
+      if ranger_plugin_enabled:
         prop_name = 'hive.security.authorization.manager'
         prop_val = "org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory"
         if hive_server2[prop_name] != prop_val:
@@ -187,7 +180,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                                   "If Ranger Hive Plugin is enabled."\
                                   " {0} needs to be set to {1}".format(prop_name,prop_val))})
       ##Add stack validations for  Ranger plugin disabled.
-      elif (ranger_plugin_enabled.lower() == 'No'.lower()):
+      elif not ranger_plugin_enabled:
         prop_name = 'hive.security.authorization.manager'
         prop_val = "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory"
         if hive_server2[prop_name] != prop_val:

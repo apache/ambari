@@ -214,17 +214,6 @@ hdp22properties.push(
   },
   {
     "id": "site property",
-    "name": "ranger-hive-plugin-enabled",
-    "displayType": "checkbox",
-    "displayName": "Enable Ranger for HIVE",
-    "isOverridable": false,
-    "filename": "ranger-hive-plugin-properties.xml",
-    "category": "Advanced ranger-hive-plugin-properties",
-    "serviceName": "HIVE",
-    "index": 1
-  },
-  {
-    "id": "site property",
     "name": "policy_user",
     "value": "ambari-qa",
     "recommendedValue": "ambari-qa",

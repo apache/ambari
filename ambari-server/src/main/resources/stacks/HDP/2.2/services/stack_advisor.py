@@ -235,15 +235,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveSitePropertyAttribute = self.putPropertyAttribute(configurations, "hive-site")
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if 'ranger-hive-plugin-properties' in services['configurations'] and ('ranger-hive-plugin-enabled' in services['configurations']['ranger-hive-plugin-properties']['properties']):
-      rangerPluginEnabled = services['configurations']['ranger-hive-plugin-properties']['properties']['ranger-hive-plugin-enabled']
-      if ("RANGER" in servicesList) :
-        if (rangerPluginEnabled.lower() == "Yes".lower()):
-          putHiveServerProperty("hive.security.authorization.manager", 'com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory')
-          putHiveServerProperty("hive.security.authenticator.manager", 'org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator')
-        elif (rangerPluginEnabled.lower() == "No".lower()):
-          putHiveServerProperty("hive.security.authorization.manager", 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory')
-          putHiveServerProperty("hive.security.authenticator.manager", 'org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator')
 
     #  Storage
     putHiveEnvProperty("hive_exec_orc_storage_strategy", "SPEED")
@@ -346,49 +337,66 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveSiteProperty("hive.compute.query.using.stats", "true")
 
     # Interactive Query
-    putHiveServerProperty("hive.server2.tez.initialize.default.sessions", "false")
-    putHiveServerProperty("hive.server2.tez.sessions.per.default.queue", "1")
-    putHiveServerProperty("hive.server2.enable.doAs", "true")
+    putHiveSiteProperty("hive.server2.tez.initialize.default.sessions", "false")
+    putHiveSiteProperty("hive.server2.tez.sessions.per.default.queue", "1")
+    putHiveSiteProperty("hive.server2.enable.doAs", "true")
 
     yarn_queues = "default"
     if "capacity-scheduler" in configurations and \
       "yarn.scheduler.capacity.root.queues" in configurations["capacity-scheduler"]["properties"]:
       yarn_queues = str(configurations["capacity-scheduler"]["properties"]["yarn.scheduler.capacity.root.queues"])
-    putHiveServerProperty("hive.server2.tez.default.queues", yarn_queues)
+    putHiveSiteProperty("hive.server2.tez.default.queues", yarn_queues)
 
     # Interactive Queues property attributes
     putHiveServerPropertyAttribute = self.putPropertyAttribute(configurations, "hiveserver2-site")
     entries = []
     for queue in yarn_queues.split(","):
       entries.append({"label": str(queue) + " queue", "value": queue})
-    putHiveServerPropertyAttribute("hive.server2.tez.default.queues", "entries", entries)
+    putHiveSitePropertyAttribute("hive.server2.tez.default.queues", "entries", entries)
 
     # Security
     putHiveEnvProperty("hive_security_authorization", "None")
+    # hive_security_authorization == 'none'
     if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "none":
       putHiveSiteProperty("hive.security.authorization.enabled", "false")
+      putHiveSiteProperty("hive.security.authorization.manager", "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory")
+      putHiveServerPropertyAttribute("hive.security.authorization.manager", "delete", "true")
+      putHiveServerPropertyAttribute("hive.security.authorization.enabled", "delete", "true")
+      putHiveServerPropertyAttribute("hive.security.authenticator.manager", "delete", "true")
     else:
       putHiveSiteProperty("hive.security.authorization.enabled", "true")
 
     try:
       auth_manager_value = str(configurations["hive-env"]["properties"]["hive.security.metastore.authorization.manager"])
     except KeyError:
-      auth_manager_value = ''
+      auth_manager_value = 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider'
       pass
+    auth_manager_values = auth_manager_value.split(",")
     sqlstdauth_class = "org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
 
-    putHiveServerProperty("hive.server2.enable.doAs", "true")
+    putHiveSiteProperty("hive.server2.enable.doAs", "true")
 
+    # hive_security_authorization == 'sqlstdauth'
     if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "sqlstdauth":
-      putHiveServerProperty("hive.server2.enable.doAs", "false")
-      if sqlstdauth_class not in auth_manager_value:
-        putHiveSiteProperty("hive.security.metastore.authorization.manager", auth_manager_value + "," + sqlstdauth_class)
-    elif auth_manager_value != '':
+      putHiveSiteProperty("hive.server2.enable.doAs", "false")
+      putHiveServerProperty("hive.security.authorization.enabled", "true")
+      putHiveServerProperty("hive.security.authorization.manager", "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory")
+      putHiveServerProperty("hive.security.authenticator.manager", "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator")
+      putHiveSiteProperty("hive.security.authorization.manager", "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory")
+      if sqlstdauth_class not in auth_manager_values:
+        auth_manager_values.append(sqlstdauth_class)
+    elif sqlstdauth_class in auth_manager_values:
       #remove item from csv
-      auth_manager_values = auth_manager_value.split(",")
       auth_manager_values = [x for x in auth_manager_values if x != sqlstdauth_class]
-      putHiveSiteProperty("hive.security.metastore.authorization.manager", ",".join(auth_manager_values))
       pass
+    putHiveSiteProperty("hive.security.metastore.authorization.manager", ",".join(auth_manager_values))
+
+    # hive_security_authorization == 'ranger'
+    if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "ranger":
+      putHiveSiteProperty("hive.server2.enable.doAs", "false")
+      putHiveServerProperty("hive.security.authorization.enabled", "true")
+      putHiveServerProperty("hive.security.authorization.manager", "com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory")
+      putHiveServerProperty("hive.security.authenticator.manager", "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator")
 
     putHiveSiteProperty("hive.server2.use.SSL", "false")
 
@@ -816,12 +824,13 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     validationItems = [] 
     #Adding Ranger Plugin logic here 
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-hive-plugin-enabled'] if ranger_plugin_properties else 'No'
+    hive_env_properties = getSiteProperties(configurations, "hive-env")
+    ranger_plugin_enabled = 'hive_security_authorization' in hive_env_properties and hive_env_properties['hive_security_authorization'].lower() == 'ranger'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ##Add stack validations only if Ranger is enabled.
     if ("RANGER" in servicesList):
       ##Add stack validations for  Ranger plugin enabled.
-      if (ranger_plugin_enabled.lower() == 'Yes'.lower()):
+      if ranger_plugin_enabled:
         prop_name = 'hive.security.authorization.manager'
         prop_val = "com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory"
         if hive_server2[prop_name] != prop_val:
@@ -837,7 +846,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                   "If Ranger Hive Plugin is enabled."\
                                   " {0} needs to be set to {1}".format(prop_name,prop_val))})
       ##Add stack validations for  Ranger plugin disabled.
-      elif (ranger_plugin_enabled.lower() == 'No'.lower()):
+      elif not ranger_plugin_enabled:
         prop_name = 'hive.security.authorization.manager'
         prop_val = "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory"
         if hive_server2[prop_name] != prop_val:
@@ -872,12 +881,13 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     validationItems = []
     #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-hive-plugin-enabled'] if ranger_plugin_properties else 'No'
+    hive_env_properties = getSiteProperties(configurations, "hive-env")
+    ranger_plugin_enabled = 'hive_security_authorization' in hive_env_properties and hive_env_properties['hive_security_authorization'].lower() == 'ranger'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ##Add stack validations only if Ranger is enabled.
     if ("RANGER" in servicesList):
       ##Add stack validations for  Ranger plugin enabled.
-      if (ranger_plugin_enabled.lower() == 'Yes'.lower()):
+      if ranger_plugin_enabled:
         prop_name = 'hive.security.authorization.enabled'
         prop_val = 'true'
         if hive_site[prop_name] != prop_val:
