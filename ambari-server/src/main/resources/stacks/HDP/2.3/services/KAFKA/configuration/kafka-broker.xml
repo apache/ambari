@@ -124,4 +124,9 @@
     <description>Deprecated config in favor of listeners config.</description>
     <deleted>true</deleted>
   </property>
+  <property>
+    <name>authorizer.class.name</name>
+    <description></description>
+    <value>kafka.security.auth.SimpleAclAuthorizer</value>
+  </property>
 </configuration>
