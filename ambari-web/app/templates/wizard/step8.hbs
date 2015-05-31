@@ -72,5 +72,6 @@
     <a class="btn btn-success pull-right"
        id="spinner" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.deploy}} &rarr;</a>
     <a class="btn btn-info pull-right" {{action printReview target="view"}}>{{t common.print}}</a>
+    <a {{bindAttr class=":btn :btn-primary :pull-right :mrm controller.isManualKerberos::hide"}} {{action downloadCSV target="controller"}}>{{t admin.kerberos.wizard.step5.downloadCSV}}</a>
   </div>
 </div>

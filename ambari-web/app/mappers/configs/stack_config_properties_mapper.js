@@ -32,6 +32,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
     stack_name: 'StackConfigurations.stack_name',
     stack_version: 'StackConfigurations.stack_version',
     property_depended_by: 'StackConfigurations.property_depended_by',
+    property_depends_on: 'StackConfigurations.property_depends_on',
     value_attributes: 'StackConfigurations.property_value_attributes',
     is_final: 'default_is_final',
     recommended_is_final: 'default_is_final',

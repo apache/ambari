@@ -113,6 +113,8 @@ App.StackConfigProperty = DS.Model.extend({
    */
   propertyDependedBy: DS.attr('array', {defaultValue: []}),
 
+  propertyDependsOn: DS.attr('array', {defaultValue: []}),
+
   /**
    * info for displaying property
    * example:
@@ -180,4 +182,3 @@ App.StackConfigProperty = DS.Model.extend({
 
 
 App.StackConfigProperty.FIXTURES = [];
-

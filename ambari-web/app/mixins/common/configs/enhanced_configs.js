@@ -181,7 +181,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   setDependentServices: function(serviceName) {
     App.StackConfigProperty.find().forEach(function(stackProperty) {
       if (stackProperty.get('serviceName') === serviceName && stackProperty.get('propertyDependedBy.length') > 0) {
-        this._setDependentServicesAndFileNames(stackProperty);
+        this._setDependentServicesAndFileNames(stackProperty, 'propertyDependedBy');
+        this._setDependentServicesAndFileNames(stackProperty, 'propertyDependsOn');
       }
     }, this);
   },
@@ -197,7 +198,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
       return this.get('stepConfigs').findProperty('serviceName', serviceName).get('selectedConfigGroup');
     } else {
       if (this.get('content.serviceName') === serviceName) {
-        return this.get('selectedConfigGroup')
+        return this.get('selectedConfigGroup');
       } else {
         if (this.get('selectedConfigGroup.isDefault')) {
           return this.get('dependentConfigGroups').filterProperty('service.serviceName', serviceName).findProperty('isDefault');
@@ -376,9 +377,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @param {App.StackConfigProperty} stackProperty
    * @private
    */
-  _setDependentServicesAndFileNames: function(stackProperty) {
-    if (stackProperty.get('propertyDependedBy.length') > 0) {
-      stackProperty.get('propertyDependedBy').forEach(function(dependent) {
+  _setDependentServicesAndFileNames: function(stackProperty, key) {
+    key = key || 'propertyDependedBy';
+    if (stackProperty.get(key + '.length') > 0) {
+      stackProperty.get(key).forEach(function(dependent) {
         var tag = App.config.getConfigTagFromFileName(dependent.type);
         /** setting dependent fileNames (without '.xml') **/
         if (!this.get('dependentFileNames').contains(tag)) {
@@ -390,7 +392,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           if (dependentProperty.get('serviceName') && !this.get('dependentServiceNames').contains(dependentProperty.get('serviceName')) && dependentProperty.get('serviceName') !== this.get('content.serviceName')) {
             this.get('dependentServiceNames').push(dependentProperty.get('serviceName'));
           }
-          this._setDependentServicesAndFileNames(dependentProperty);
+          this._setDependentServicesAndFileNames(dependentProperty, key);
         }
       }, this);
     }

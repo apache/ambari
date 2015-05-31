@@ -178,4 +178,86 @@ describe('App.MainAdminKerberosController', function() {
       expect(App.ajax.send.args[0][0].data.withAutoRestart).to.be.false;
     });
   });
+
+  describe('#getSecurityTypeSuccess', function() {
+    var tests = [
+      {
+        data: { },
+        e: 'none'
+      },
+      {
+        data: {
+          items: []
+        },
+        e: 'none'
+      },
+      {
+        data: {
+          items: [
+            {
+              configurations: []
+            }
+          ]
+        },
+        e: 'none'
+      },
+      {
+        data: {
+          items: [
+            {
+              configurations: [
+                {
+                  type: 'krb-conf',
+                  properties: {
+                    'kdc_type': 'mit'
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        e: 'none'
+      },
+      {
+        data: {
+          items: [
+            {
+              configurations: [
+                {
+                  type: 'kerberos-env',
+                  properties: {
+                    'kdc_type': 'mit'
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        e: 'mit'
+      },
+      {
+        data: {
+          items: [
+            {
+              configurations: [
+                {
+                  type: 'kerberos-env',
+                  properties: {
+                    'kdc_type': 'none'
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        e: 'none'
+      }
+    ].forEach(function(test) {
+      it('json is ' + JSON.stringify(test.data) + ' kdc type should be ' + test.e, function() {
+        controller.set('isManualKerberos', undefined);
+        controller.getSecurityTypeSuccess(test.data, {}, {});
+        expect(controller.get('kdc_type')).to.eql(test.e);
+      });
+    });
+  });
 });

@@ -127,6 +127,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
    * Set property value observer.
    * Set realm property with value from previous configuration step.
    * Set appropriate category for all configs.
+   * Hide KDC related credentials properties if kerberos was manually enabled.
    *
    * @param {App.ServiceConfigProperty[]} configs
    * @returns {App.ServiceConfigProperty[]}
@@ -144,6 +145,12 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
         var property = storedServiceConfigs.filterProperty('filename', 'krb5-conf.xml').findProperty('name', item.name);
         if (!!property) {
           var _prop = App.ServiceConfigProperty.create($.extend({}, property, { name: item.name, value: '', recommendedValue: '', serviceName: 'Cluster', displayName: item.displayName}));
+          if (App.router.get('mainAdminKerberosController.isManualKerberos')) {
+            _prop.setProperties({
+              isRequired: false,
+              isVisible: false
+            });
+          }
           _prop.validate();
           adminProps.push(_prop);
         }

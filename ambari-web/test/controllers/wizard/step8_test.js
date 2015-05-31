@@ -271,7 +271,7 @@ describe('App.WizardStep8Controller', function () {
       installerStep8Controller.set('configs', Em.A([
         Em.Object.create({
           name: 'fs_glusterfs_default_name',
-          filename: 'core-site.xml', 
+          filename: 'core-site.xml',
           value: 'value',
           overrides: Em.A([
             Em.Object.create({
@@ -282,7 +282,7 @@ describe('App.WizardStep8Controller', function () {
         }),
         Em.Object.create({
           name: 'fs.defaultFS',
-          filename: 'core-site.xml', 
+          filename: 'core-site.xml',
           value: 'value',
           overrides: Em.A([
             Em.Object.create({
@@ -293,7 +293,7 @@ describe('App.WizardStep8Controller', function () {
         }),
         Em.Object.create({
           name: 'glusterfs_defaultFS_name',
-          filename: 'core-site.xml', 
+          filename: 'core-site.xml',
           value: 'value',
           overrides: Em.A([
             Em.Object.create({
@@ -483,7 +483,7 @@ describe('App.WizardStep8Controller', function () {
       var selectedServices = services.filterProperty('isSelected');
       var slaveComponentHosts = Em.A([
         Em.Object.create({
-          componentName: 'CLIENT', 
+          componentName: 'CLIENT',
           hostName: 'h1',
           hosts: Em.A([
             Em.Object.create({hostName: 'h1', isInstalled: true}),
@@ -538,12 +538,12 @@ describe('App.WizardStep8Controller', function () {
       installerStep8Controller.set('content', Em.Object.create({
         hosts: Em.Object.create({
           h1: Em.Object.create({
-            hostName: 'h1', 
+            hostName: 'h1',
             isInstalled: true,
             hostComponents: Em.A([Em.Object.create({HostRoles: Em.Object.create({component_name: "h1"})})])
           }),
           h2: Em.Object.create({
-            hostName: 'h2', 
+            hostName: 'h2',
             isInstalled: true,
             hostComponents: Em.A([Em.Object.create({HostRoles: Em.Object.create({component_name: "h2"})})])
           })
@@ -561,13 +561,13 @@ describe('App.WizardStep8Controller', function () {
         masterComponentHosts: Em.A([
           Em.Object.create({
             componentName: 'CLIENT',
-            component: 'HBASE_MASTER', 
+            component: 'HBASE_MASTER',
             hostName: 'h1'
           })
         ]),
         slaveComponentHosts: Em.A([
           Em.Object.create({
-            componentName: 'CLIENT', 
+            componentName: 'CLIENT',
             hostName: 'h1',
             hosts: Em.A([
               Em.Object.create({hostName: 'h1', isInstalled: true}),
@@ -575,12 +575,13 @@ describe('App.WizardStep8Controller', function () {
             ])
           }),
           Em.Object.create({
-            componentName: 'CLIENT1', 
+            componentName: 'CLIENT1',
             hostName: 'h1',
             hosts: Em.A([
               Em.Object.create({hostName: 'h1', isInstalled: true}),
               Em.Object.create({hostName: 'h2', isInstalled: false})
             ])
+
           })
         ]),
         clients: Em.A([
@@ -597,12 +598,12 @@ describe('App.WizardStep8Controller', function () {
         ]),
         hosts: Em.Object.create({
           h1: Em.Object.create({
-            hostName: 'h1', 
+            hostName: 'h1',
             isInstalled: true,
             hostComponents: Em.A([Em.Object.create({})])
           }),
           h2: Em.Object.create({
-            hostName: 'h2', 
+            hostName: 'h2',
             isInstalled: false,
             hostComponents: Em.A([Em.Object.create({})])
           })
@@ -622,13 +623,13 @@ describe('App.WizardStep8Controller', function () {
         masterComponentHosts: Em.A([
           Em.Object.create({
             componentName: 'CLIENT',
-            component: 'HBASE_MASTER', 
+            component: 'HBASE_MASTER',
             hostName: 'h1'
           })
         ]),
         slaveComponentHosts: Em.A([
           Em.Object.create({
-            componentName: 'CLIENT', 
+            componentName: 'CLIENT',
             hostName: 'h1',
             hosts: Em.A([
               Em.Object.create({hostName: 'h1', isInstalled: true}),
@@ -650,12 +651,12 @@ describe('App.WizardStep8Controller', function () {
         ]),
         hosts: Em.Object.create({
           h1: Em.Object.create({
-            hostName: 'h1', 
+            hostName: 'h1',
             isInstalled: true,
             hostComponents: Em.A([Em.Object.create({})])
           }),
           h2: Em.Object.create({
-            hostName: 'h2', 
+            hostName: 'h2',
             isInstalled: false,
             hostComponents: Em.A([Em.Object.create({})])
           })
@@ -699,7 +700,7 @@ describe('App.WizardStep8Controller', function () {
       installerStep8Controller.set('content', Em.Object.create({
         slaveComponentHosts:Em.A([
           Em.Object.create({
-            componentName: 'HBASE_MASTER', 
+            componentName: 'HBASE_MASTER',
             hostName: 'h1',
             hosts: [
               {hostName: 'h1'},
@@ -718,8 +719,8 @@ describe('App.WizardStep8Controller', function () {
         return Em.A([
           Em.Object.create({isSelected: false, hostName: 'h1'}),
           Em.Object.create({
-            isSelected: true, 
-            hostName: 'h2', 
+            isSelected: true,
+            hostName: 'h2',
             operatingSystems: Em.A([Em.Object.create({
               name:'windows',
               isSelected: true,
@@ -1408,19 +1409,31 @@ describe('App.WizardStep8Controller', function () {
     Em.A([
         {
           controllerName: 'addServiceController',
-          securityEnabled: true
+          securityEnabled: true,
+          isManualKerberos: true
         },
         {
           controllerName: 'addServiceController',
-          securityEnabled: false
+          securityEnabled: true,
+          isManualKerberos: false
+        },
+        {
+          controllerName: 'addServiceController',
+          securityEnabled: false,
+          isManualKerberos: false
         }
       ]).forEach(function (test) {
-        it(test.controllerName + ' ' + test.securityEnabled.toString(), function () {
-          installerStep8Controller.reopen({isSubmitDisabled: false, securityEnabled: test.securityEnabled, content: {controllerName: test.controllerName}});
+        it(test.controllerName + ' Kerberos enabled - ' + test.securityEnabled.toString() + ' manual kerberos - ' + test.isManualKerberos, function () {
+          installerStep8Controller.reopen({isSubmitDisabled: false, securityEnabled: test.securityEnabled, isManualKerberos: test.isManualKerberos, content: {controllerName: test.controllerName}});
           installerStep8Controller.submit();
           if (test.securityEnabled) {
-            expect(App.get('router.mainAdminKerberosController').getKDCSessionState.called).to.equal(true);
-            expect(installerStep8Controller.submitProceed.called).to.equal(false);
+            if (test.isManualKerberos) {
+              expect(App.get('router.mainAdminKerberosController').getKDCSessionState.called).to.equal(false);
+              expect(installerStep8Controller.submitProceed.called).to.equal(true);
+            } else {
+              expect(App.get('router.mainAdminKerberosController').getKDCSessionState.called).to.equal(true);
+              expect(installerStep8Controller.submitProceed.called).to.equal(false);
+            }
           } else {
             expect(App.get('router.mainAdminKerberosController').getKDCSessionState.called).to.equal(false);
             expect(installerStep8Controller.submitProceed.called).to.equal(true);

@@ -261,7 +261,9 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
         sender: this,
         success: 'getSecurityStatusSuccessCallback',
         error: 'errorCallback'
-      }).always(function() {
+      })
+      .always(this.getSecurityType.bind(this))
+      .always(function() {
         // check for kerberos descriptor artifact
         if (self.get('securityEnabled')) {
           self.loadClusterDescriptorConfigs().then(function() {
@@ -376,7 +378,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
 
   getSecurityType: function (callback) {
     if (this.get('securityEnabled')) {
-      App.ajax.send({
+      return App.ajax.send({
         name: 'admin.security.cluster_configs.kerberos',
         sender: this,
         data: {
@@ -384,15 +386,18 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
           additionalCallback: callback
         },
         success: 'getSecurityTypeSuccess'
-      })
+      });
     } else if (Em.typeOf(callback)=== 'function') {
       callback();
+    } else {
+      return $.Deferred().resolve().promise;
     }
   },
 
   getSecurityTypeSuccess: function (data, opt, params) {
-    this.set('kdc_type', data.items && Em.get(data.items[0], 'properties.kdc_type') ? Em.get(data.items[0], 'properties.kdc_type') : 'none' );
-
+    var kdcType = data.items && data.items[0] &&
+      Em.getWithDefault(Em.getWithDefault(data.items[0], 'configurations', {}).findProperty('type', 'kerberos-env') || {}, 'properties.kdc_type', 'none') || 'none';
+    this.set('kdc_type', kdcType);
     if (Em.typeOf(params.additionalCallback) === 'function') {
       params.additionalCallback();
     }

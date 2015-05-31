@@ -135,12 +135,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     return App.router.get('mainAdminKerberosController.securityEnabled');
   }.property('App.router.mainAdminKerberosController.securityEnabled'),
 
-  getSecurityType: function () {
-    if (this.get('securityEnabled')) {
-      App.router.mainAdminKerberosController.getSecurityType();
-    }
-  },
-
   /**
    * Selected config group
    * @type {Object}
@@ -235,7 +229,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     this.loadServices();
     this.set('isSubmitDisabled', false);
     this.set('isBackBtnDisabled', false);
-    this.getSecurityType();
   },
 
   /**
@@ -737,7 +730,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
-      if (this.get('content.controllerName') != 'installerController' && this.get('securityEnabled')) {
+      if (this.get('content.controllerName') != 'installerController' && this.get('securityEnabled') && !this.get('isManualKerberos')) {
         App.get('router.mainAdminKerberosController').getKDCSessionState(this.submitProceed.bind(this));
       } else {
         this.submitProceed();
@@ -953,9 +946,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * updates kerberosDescriptorConfigs
    * @method updateKerberosDescriptor
    */
-  updateKerberosDescriptor: function() {
+  updateKerberosDescriptor: function(instant) {
     var kerberosDescriptor = App.db.get('KerberosWizard', 'kerberosDescriptorConfigs');
-    this.addRequestToAjaxQueue({
+    var ajaxOpts = {
       name: 'admin.kerberos.cluster.artifact.update',
       data: {
         artifactName: 'kerberos_descriptor',
@@ -963,7 +956,13 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           artifact_data: kerberosDescriptor
         }
       }
-    });
+    };
+    if (instant) {
+      ajaxOpts.sender = this;
+      App.ajax.send(ajaxOpts);
+    } else {
+      this.addRequestToAjaxQueue(ajaxOpts);
+    }
   },
   /**
    * Start deploy process
@@ -974,7 +973,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     this.createSelectedServices();
     if (this.get('content.controllerName') !== 'addHostController') {
       if (this.get('content.controllerName') === 'addServiceController') {
-        if (this.get('securityEnabled')) {
+        // for manually enabled Kerberos descriptor was updated on transition to this step
+        if (this.get('securityEnabled') && !this.get('isManualKerberos')) {
           this.updateKerberosDescriptor();
         }
       }

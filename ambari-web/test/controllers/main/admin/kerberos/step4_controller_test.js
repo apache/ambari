@@ -70,12 +70,14 @@ describe('App.KerberosWizardStep4Controller', function() {
           displayType: 'multiLine'
         }
       ]);
+      sinon.stub(App.router, 'get').withArgs('mainAdminKerberosController.isManualKerberos').returns(false);
       this.result = controller.prepareConfigProperties(properties);
     });
 
     after(function() {
       App.Service.find.restore();
       App.config.get.restore();
+      App.router.get.restore();
     });
 
     var properties = Em.A([
@@ -172,7 +174,7 @@ describe('App.KerberosWizardStep4Controller', function() {
             serviceName: 'KERBEROS'
           })
         ]);
-        var controller = App.KerberosWizardStep4Controller.create({
+        this.controller = App.KerberosWizardStep4Controller.create({
           selectedServiceNames: ['FALCON', 'MAPREDUCE2'],
           installedServiceNames: ['HDFS', 'KERBEROS'],
           wizardController: Em.Object.create({
@@ -186,13 +188,17 @@ describe('App.KerberosWizardStep4Controller', function() {
             }
           })
         });
-        controller.setStepConfigs(properties);
-        this.result = controller.get('stepConfigs')[0].get('configs').concat(controller.get('stepConfigs')[1].get('configs'));
+        sinon.stub(App.router, 'get').withArgs('mainAdminKerberosController.isManualKerberos').returns(false);
+        this.controller.setStepConfigs(properties);
+        this.result = this.controller.get('stepConfigs')[0].get('configs').concat(this.controller.get('stepConfigs')[1].get('configs'));
       });
 
       after(function() {
+        this.controller.destroy();
+        this.controller = null;
         App.StackService.find.restore();
         App.Service.find.restore();
+        App.router.get.restore();
       });
 
       var properties = Em.A([

@@ -1308,7 +1308,7 @@ var urls = {
     }
   },
   'admin.security.cluster_configs.kerberos': {
-    'real': '/clusters/{clusterName}/configurations?type=kerberos-env&fields=properties/*',
+    'real': '/clusters/{clusterName}/configurations/service_config_versions?service_name=KERBEROS&is_current=true',
     'mock': '',
     'format': function () {
       return {
