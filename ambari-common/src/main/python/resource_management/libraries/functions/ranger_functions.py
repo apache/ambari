@@ -238,21 +238,21 @@ class Rangeradmin:
 
     typeOfPolicy = typeOfPolicy.lower()
     if typeOfPolicy == "hdfs":
-      policyObj['permMapList'] = [{'userList': [policy_user], 'permList': ['Read', 'Write', 'Execute', 'Admin']}]
+      policyObj['permMapList'] = [{'userList': [policy_user], 'permList': ['read', 'write', 'execute', 'admin']}]
     elif typeOfPolicy == "hive":
       policyObj['permMapList'] = [{'userList': [policy_user],
-                                   'permList': ['Select', 'Update', 'Create', 'Drop', 'Alter', 'Index', 'Lock', 'All',
-                                                'Admin']}]
+                                   'permList': ['select', 'update', 'create', 'drop', 'alter', 'index', 'lock', 'all',
+                                                'admin']}]
     elif typeOfPolicy == "hbase":
-      policyObj['permMapList'] = [{'userList': [policy_user], 'permList': ['Read', 'Write', 'Create', 'Admin']}]
+      policyObj['permMapList'] = [{'userList': [policy_user], 'permList': ['read', 'write', 'create', 'admin']}]
     elif typeOfPolicy == "knox":
-      policyObj['permMapList'] = [{'userList': [policy_user], 'permList': ['Allow', 'Admin']}]
+      policyObj['permMapList'] = [{'userList': [policy_user], 'permList': ['allow', 'admin']}]
     elif typeOfPolicy == "storm":
       policyObj['permMapList'] = [{'userList': [policy_user],
-                                   'permList': ['SubmitTopology', 'FileUpload', 'GetNimbusConf', 'GetClusterInfo',
-                                                'FileDownload', 'KillTopology', 'Rebalance', 'Activate', 'Deactivate',
-                                                'GetTopologyConf', 'GetTopology', 'GetUserTopology',
-                                                'GetTopologyInfo', 'UploadNewCredential', 'Admin']}]
+                                   'permList': ['submitTopology', 'fileUpload', 'getNimbusConf', 'getClusterInfo',
+                                                'fileDownload', 'killTopology', 'rebalance', 'activate', 'deactivate',
+                                                'getTopologyConf', 'getTopology', 'getUserTopology',
+                                                'getTopologyInfo', 'uploadNewCredential', 'admin']}]
     return policyObj
 
 
