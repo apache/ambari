@@ -38,6 +38,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
@@ -311,6 +312,10 @@ public class Stack {
       }
     }
     return configMap;
+  }
+
+  public Map<String, ConfigProperty> getConfigurationPropertiesWithMetadata(String service, String type) {
+    return serviceConfigurations.get(service).get(type);
   }
 
   /**
@@ -721,13 +726,16 @@ public class Stack {
     private Map<String, String> attributes;
     private Set<PropertyInfo.PropertyType> propertyTypes;
     private String type;
+    private Set<PropertyDependencyInfo> dependsOnProperties =
+      Collections.emptySet();
 
-    private ConfigProperty(StackConfigurationResponse config) {
+    ConfigProperty(StackConfigurationResponse config) {
       this.name = config.getPropertyName();
       this.value = config.getPropertyValue();
       this.attributes = config.getPropertyAttributes();
       this.propertyTypes = config.getPropertyType();
       this.type = normalizeType(config.getType());
+      this.dependsOnProperties = config.getDependsOnProperties();
     }
 
     public ConfigProperty(String type, String name, String value) {
@@ -766,6 +774,10 @@ public class Stack {
 
     public void setAttributes(Map<String, String> attributes) {
       this.attributes = attributes;
+    }
+
+    Set<PropertyDependencyInfo> getDependsOnProperties() {
+      return this.dependsOnProperties;
     }
 
     private String normalizeType(String type) {

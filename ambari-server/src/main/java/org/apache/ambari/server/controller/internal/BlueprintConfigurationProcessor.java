@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 
+import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.Configuration;
@@ -110,7 +111,26 @@ public class BlueprintConfigurationProcessor {
    * This will initially be used to filter out the Ranger Passwords, but
    * could be extended in the future for more generic purposes.
    */
-  private static final PropertyFilter[] propertyFilters = { new PasswordPropertyFilter() };
+  private static final PropertyFilter[] exportPropertyFilters = { new PasswordPropertyFilter() };
+
+  /**
+   * Statically-defined list of filters to apply on cluster config
+   * property updates.
+   *
+   * This will initially be used to filter out properties that do not
+   * need to be set, due to a given dependency property not having
+   * an expected value.
+   *
+   * The UI uses the Recommendations/StackAdvisor APIs to accomplish this, but
+   * Blueprints will use filters in the short-term, and hopefully move to a more
+   * unified approach in the next release.
+   *
+   * This filter approach will also be used to remove properties in a given component
+   * that are not valid in a High-Availability deployment (example: HDFS NameNode HA).
+   */
+  private static final PropertyFilter[] clusterUpdatePropertyFilters =
+    { new DependencyEqualsFilter("hbase.security.authorization", "hbase-site", "true"),
+      new DependencyNotEqualsFilter("hive.server2.authentication", "hive-site", "NONE") };
 
   /**
    * Configuration properties to be updated
@@ -166,6 +186,10 @@ public class BlueprintConfigurationProcessor {
     Configuration clusterConfig = clusterTopology.getConfiguration();
     Map<String, Map<String, String>> clusterProps = clusterConfig.getFullProperties();
     Map<String, HostGroupInfo> groupInfoMap = clusterTopology.getHostGroupInfo();
+
+    // filter out any properties that should not be included, based on the dependencies
+    // specified in the stacks, and the filters defined in this class
+    doFilterPriorToClusterUpdate(clusterProps);
 
     for (Map<String, Map<String, PropertyUpdater>> updaterMap : createCollectionOfUpdaters()) {
       for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaterMap.entrySet()) {
@@ -265,14 +289,34 @@ public class BlueprintConfigurationProcessor {
    *
    * @param properties config properties to process for filtering
    */
-  private static void doFilterPriorToExport(Map<String, Map<String, String>> properties) {
+  private void doFilterPriorToExport(Map<String, Map<String, String>> properties) {
     for (String configType : properties.keySet()) {
       Map<String, String> configPropertiesPerType =
         properties.get(configType);
 
       Set<String> propertiesToExclude = new HashSet<String>();
       for (String propertyName : configPropertiesPerType.keySet()) {
-        if (shouldPropertyBeExcluded(propertyName, configPropertiesPerType.get(propertyName))) {
+        if (shouldPropertyBeExcludedForBlueprintExport(propertyName, configPropertiesPerType.get(propertyName), configType, clusterTopology)) {
+          propertiesToExclude.add(propertyName);
+        }
+      }
+
+      if (!propertiesToExclude.isEmpty()) {
+        for (String propertyName : propertiesToExclude) {
+          configPropertiesPerType.remove(propertyName);
+        }
+      }
+    }
+  }
+
+  private void doFilterPriorToClusterUpdate(Map<String, Map<String, String>> properties) {
+    for (String configType : properties.keySet()) {
+      Map<String, String> configPropertiesPerType =
+        properties.get(configType);
+
+      Set<String> propertiesToExclude = new HashSet<String>();
+      for (String propertyName : configPropertiesPerType.keySet()) {
+        if (shouldPropertyBeExcludedForClusterUpdate(propertyName, configPropertiesPerType.get(propertyName), configType, this.clusterTopology)) {
           propertiesToExclude.add(propertyName);
         }
       }
@@ -647,12 +691,14 @@ public class BlueprintConfigurationProcessor {
    *
    * @param propertyName config property name
    * @param propertyValue config property value
+   * @param propertyType config type that contains this property
+   * @param topology cluster topology instance
    * @return true if the property should be excluded
    *         false if the property should not be excluded
    */
-  private static boolean shouldPropertyBeExcluded(String propertyName, String propertyValue) {
-    for(PropertyFilter filter : propertyFilters) {
-      if (!filter.isPropertyIncluded(propertyName, propertyValue)) {
+  private static boolean shouldPropertyBeExcludedForBlueprintExport(String propertyName, String propertyValue, String propertyType, ClusterTopology topology) {
+    for(PropertyFilter filter : exportPropertyFilters) {
+      if (!filter.isPropertyIncluded(propertyName, propertyValue, propertyType, topology)) {
         return true;
       }
     }
@@ -661,6 +707,31 @@ public class BlueprintConfigurationProcessor {
     // then allow it to be included in the property collection
     return false;
   }
+
+  /**
+   * Convenience method to iterate over the cluster update filters, and determine if a given property
+   * should be excluded from a collection.
+   *
+   * @param propertyName name of property to examine
+   * @param propertyValue value of the current property
+   * @param propertyType configuration type that contains this property
+   * @param topology the cluster topology instance
+   * @return true if the given property should be excluded
+   *         false if the given property should be included
+   */
+  private static boolean shouldPropertyBeExcludedForClusterUpdate(String propertyName, String propertyValue, String propertyType, ClusterTopology topology) {
+    for(PropertyFilter filter : clusterUpdatePropertyFilters) {
+      if (!filter.isPropertyIncluded(propertyName, propertyValue, propertyType, topology)) {
+        return true;
+      }
+    }
+
+    // if no filters require that the property be excluded,
+    // then allow it to be included in the property collection
+    return false;
+  }
+
+
 
   /**
    * Update single host topology configuration properties for blueprint export.
@@ -1997,10 +2068,12 @@ public class BlueprintConfigurationProcessor {
      *
      * @param propertyName property name
      * @param propertyValue property value
+     * @param configType config type that contains this property
+     * @param topology cluster topology instance
      * @return true if the property should be included
      *         false if the property should not be included
      */
-    boolean isPropertyIncluded(String propertyName, String propertyValue);
+    boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology);
   }
 
   /**
@@ -2027,14 +2100,194 @@ public class BlueprintConfigurationProcessor {
      *
      * @param propertyName property name
      * @param propertyValue property value
+     * @param configType config type that contains this property
+     * @param topology cluster topology instance
      *
      * @return true if the property should be included
      *         false if the property should not be included
      */
     @Override
-    public boolean isPropertyIncluded(String propertyName, String propertyValue) {
+    public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
       return !PASSWORD_NAME_REGEX.matcher(propertyName).matches();
     }
   }
+
+
+  /**
+   * Filter implementation that determines if a property should be included in
+   * a collection by inspecting the configuration dependencies included in the
+   * stack definitions for a given property.
+   *
+   * The DependencyFilter is initialized with a given property that is listed
+   * as a dependency of some properties in the stacks. If the dependency is found,
+   * it must match a given condition (implemented in concrete subclasses) in
+   * order to be included in a collection.
+   */
+  private static abstract class DependencyFilter implements PropertyFilter {
+
+    private final String dependsOnPropertyName;
+
+    private final String dependsOnConfigType;
+
+    DependencyFilter(String dependsOnPropertyName, String dependsOnConfigType) {
+      this.dependsOnPropertyName = dependsOnPropertyName;
+      this.dependsOnConfigType = dependsOnConfigType;
+    }
+
+
+    /**
+     * Inspects stack dependencies to determine if a given property
+     * should be included in a collection.
+     *
+     * @param propertyName property name
+     * @param propertyValue property value
+     * @param configType config type that contains this property
+     * @param topology cluster topology instance
+     *
+     * @return true if the property should be included
+     *         false if the property should not be included
+     */
+    @Override
+    public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
+      Stack stack = topology.getBlueprint().getStack();
+      Configuration configuration = topology.getConfiguration();
+
+      final String serviceName = stack.getServiceForConfigType(configType);
+      Map<String, Stack.ConfigProperty> typeProperties =
+        stack.getConfigurationPropertiesWithMetadata(serviceName, configType);
+
+      Stack.ConfigProperty configProperty = typeProperties.get(propertyName);
+      if (configProperty != null) {
+        Set<PropertyDependencyInfo> dependencyInfos = configProperty.getDependsOnProperties();
+        if (dependencyInfos != null) {
+          // iterate over the dependencies specified for this property in the stack
+          for (PropertyDependencyInfo propertyDependencyInfo : dependencyInfos) {
+            if (propertyDependencyInfo.getName().equals(dependsOnPropertyName) && (propertyDependencyInfo.getType().equals(dependsOnConfigType))) {
+              // this property depends upon one of the registered dependency properties
+              Map<String, Map<String, String>> clusterConfig = configuration.getFullProperties();
+              Map<String, String> configByType = clusterConfig.get(dependsOnConfigType);
+              return isConditionSatisfied(dependsOnPropertyName, configByType.get(dependsOnPropertyName), dependsOnConfigType);
+            }
+          }
+        }
+      }
+
+      // always include properties by default, unless a defined
+      // filter is found and the condition specified by the filter
+      // is not satisfied
+      return true;
+    }
+
+    /**
+     * Abstract method used to determine if the value of a given dependency property
+     * meets a given condition.
+     *
+     * @param propertyName name of property
+     * @param propertyValue value of property
+     * @param propertyType configuration type of contains this property
+     * @return  true if the condition is satisfied for this property
+     *          false if the condition is not satisfied for this property
+     */
+    public abstract boolean isConditionSatisfied(String propertyName, String propertyValue, String propertyType);
+
+  }
+
+  /**
+   * DependencyFilter subclass that requires that the specified
+   * dependency have a specific value in order for properties that
+   * depend on it to be included in a collection.
+   */
+  private static class DependencyEqualsFilter extends DependencyFilter {
+
+    private final String value;
+
+    DependencyEqualsFilter(String dependsOnPropertyName, String dependsOnConfigType, String value) {
+      super(dependsOnPropertyName, dependsOnConfigType);
+
+      this.value = value;
+    }
+
+    /**
+     *
+     * @param propertyName name of property
+     * @param propertyValue value of property
+     * @param propertyType configuration type of contains this property
+     * @return true if the property is equal to the expected value
+     *         false if the property does not equal the expected value
+     */
+    @Override
+    public boolean isConditionSatisfied(String propertyName, String propertyValue, String propertyType) {
+      return value.equals(propertyValue);
+    }
+  }
+
+  /**
+   * DependencyFilter subclass that requires that the specified
+   * dependency not have the specified value in order for properties that
+   * depend on it to be included in a collection.
+   */
+  private static class DependencyNotEqualsFilter extends DependencyFilter {
+
+    private final String value;
+
+    DependencyNotEqualsFilter(String dependsOnPropertyName, String dependsOnConfigType, String value) {
+      super(dependsOnPropertyName, dependsOnConfigType);
+
+      this.value = value;
+    }
+
+    /**
+     *
+     * @param propertyName name of property
+     * @param propertyValue value of property
+     * @param propertyType configuration type of contains this property
+     * @return true if the property is not equal to the expected value
+     *         false if the property is equal to the expected value
+     *
+     */
+    @Override
+    public boolean isConditionSatisfied(String propertyName, String propertyValue, String propertyType) {
+      return !value.equals(propertyValue);
+    }
+  }
+
+  /**
+   * Filter implementation that scans for HDFS NameNode properties that should be
+   * removed/ignored when HDFS NameNode HA is enabled.
+   */
+  private static class HDFSNameNodeHAFilter implements PropertyFilter {
+
+    /**
+     * Set of HDFS Property names that are only valid in a non-HA scenario.
+     * In an HA setup, the property names include the names of the nameservice and
+     * namenode.
+     */
+    private final Set<String> setOfHDFSPropertyNamesNonHA =
+      Collections.unmodifiableSet( new HashSet<String>(Arrays.asList("dfs.namenode.http-address", "dfs.namenode.https-address", "dfs.namenode.rpc-address")));
+
+
+    /**
+     *
+     * @param propertyName property name
+     * @param propertyValue property value
+     * @param configType config type that contains this property
+     * @param topology cluster topology instance
+     *
+     * @return true if the property should be included
+     *         false if the property should not be included
+     */
+    @Override
+    public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
+      if (topology.isNameNodeHAEnabled()) {
+        if (setOfHDFSPropertyNamesNonHA.contains(propertyName)) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+  }
+
+
 
 }

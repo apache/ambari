@@ -27,19 +27,23 @@ import org.apache.ambari.server.controller.StackServiceComponentRequest;
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
 import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.StackServiceResponse;
-import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.topology.Configuration;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.easymock.EasyMockSupport;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.powermock.api.easymock.PowerMock.createNiceMock;
 import static org.powermock.api.easymock.PowerMock.replay;
 
@@ -112,6 +116,33 @@ public class StackTest {
     assertEquals("test", stackComponentRequest.getStackName());
     assertEquals("1.0", stackComponentRequest.getStackVersion());
     assertNull(stackComponentRequest.getComponentName());
+  }
+
+  @Test
+  public void testConfigPropertyReadsInDependencies() throws Exception {
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    Set<PropertyDependencyInfo> setOfDependencyInfo = new HashSet<PropertyDependencyInfo>();
+
+    StackConfigurationResponse mockResponse = mockSupport.createMock(StackConfigurationResponse.class);
+    expect(mockResponse.getPropertyName()).andReturn("test-property-one");
+    expect(mockResponse.getPropertyValue()).andReturn("test-value-one");
+    expect(mockResponse.getPropertyAttributes()).andReturn(Collections.<String, String>emptyMap());
+    expect(mockResponse.getPropertyType()).andReturn(Collections.<PropertyInfo.PropertyType>emptySet());
+    expect(mockResponse.getType()).andReturn("test-type-one");
+    expect(mockResponse.getDependsOnProperties()).andReturn(setOfDependencyInfo);
+
+    mockSupport.replayAll();
+
+    Stack.ConfigProperty configProperty =
+      new Stack.ConfigProperty(mockResponse);
+
+    assertSame("DependencyInfo was not properly parsed from the stack response object",
+          setOfDependencyInfo, configProperty.getDependsOnProperties());
+
+
+    mockSupport.verifyAll();
+
   }
 
 }

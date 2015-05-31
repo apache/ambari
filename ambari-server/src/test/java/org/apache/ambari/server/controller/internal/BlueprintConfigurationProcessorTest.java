@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.Blueprint;
@@ -80,6 +81,7 @@ public class BlueprintConfigurationProcessorTest {
     expect(stack.getVersion()).andReturn("1").anyTimes();
     // return false for all components since for this test we don't care about the value
     expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    expect(stack.getConfigurationPropertiesWithMetadata(anyObject(String.class), anyObject(String.class))).andReturn(Collections.<String, Stack.ConfigProperty>emptyMap()).anyTimes();
 
     expect(serviceInfo.getRequiredProperties()).andReturn(
         Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
@@ -3382,6 +3384,283 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testHiveConfigClusterUpdatePropertiesFilterAuthenticationOff() throws Exception {
+    // reset the stack mock, since we need more than the default behavior for this test
+    reset(stack);
+
+    final String expectedHostGroupName = "host_group_1";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> hiveSiteProperties = new HashMap<String, String>();
+    properties.put("hive-site", hiveSiteProperties);
+
+    // setup properties for Hive to simulate the case of Hive Authentication being off
+    hiveSiteProperties.put("hive.server2.authentication", "NONE");
+    hiveSiteProperties.put("hive.server2.authentication.kerberos.keytab", " ");
+    hiveSiteProperties.put("hive.server2.authentication.kerberos.principal", " ");
+
+    Map<String, Stack.ConfigProperty> mapOfMetadata =
+      new HashMap<String, Stack.ConfigProperty>();
+
+    // simulate the stack dependencies for these Hive properties, that are dependent upon
+    // hive.server2.authorization being enabled
+    Stack.ConfigProperty configProperty1 =
+      new Stack.ConfigProperty("hive-site", "hive.server2.authentication.kerberos.keytab", " ") {
+        @Override
+        Set<PropertyDependencyInfo> getDependsOnProperties() {
+          PropertyDependencyInfo dependencyInfo = new PropertyDependencyInfo("hive-site", "hive.server2.authentication");
+          return Collections.singleton(dependencyInfo);
+        }
+      };
+
+    Stack.ConfigProperty configProperty2 =
+      new Stack.ConfigProperty("hive-site", "hive.server2.authentication.kerberos.principal", " ") {
+        @Override
+        Set<PropertyDependencyInfo> getDependsOnProperties() {
+          PropertyDependencyInfo dependencyInfo = new PropertyDependencyInfo("hive-site", "hive.server2.authentication");
+          return Collections.singleton(dependencyInfo);
+        }
+      };
+
+    mapOfMetadata.put("hive.server2.authentication.kerberos.keytab", configProperty1);
+    mapOfMetadata.put("hive.server2.authentication.kerberos.principal", configProperty2);
+
+    // defaults from init() method that we need
+    expect(stack.getName()).andReturn("testStack").anyTimes();
+    expect(stack.getVersion()).andReturn("1").anyTimes();
+    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+
+    // customized stack calls for this test only
+    expect(stack.getServiceForConfigType("hive-site")).andReturn("HIVE").atLeastOnce();
+    expect(stack.getConfigurationPropertiesWithMetadata("HIVE", "hive-site")).andReturn(mapOfMetadata).atLeastOnce();
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    List<String> hosts = new ArrayList<String>();
+    hosts.add("some-hose");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, hosts);
+
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    // call top-level cluster config update method
+    updater.doUpdateForClusterCreate();
+
+    assertFalse("hive.server2.authentication.kerberos.keytab should have been filtered out of configuration",
+      hiveSiteProperties.containsKey("hive.server2.authentication.kerberos.keytab"));
+    assertFalse("hive.server2.authentication.kerberos.principal should have been filtered out of configuration",
+      hiveSiteProperties.containsKey("hive.server2.authentication.kerberos.principal"));
+  }
+
+  @Test
+  public void testHiveConfigClusterUpdatePropertiesFilterAuthenticationOn() throws Exception {
+    // reset the stack mock, since we need more than the default behavior for this test
+    reset(stack);
+
+    final String expectedHostGroupName = "host_group_1";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> hiveSiteProperties = new HashMap<String, String>();
+    properties.put("hive-site", hiveSiteProperties);
+
+    // setup properties for Hive to simulate the case of Hive Authentication being on,
+    // and set to KERBEROS
+    hiveSiteProperties.put("hive.server2.authentication", "KERBEROS");
+    hiveSiteProperties.put("hive.server2.authentication.kerberos.keytab", " ");
+    hiveSiteProperties.put("hive.server2.authentication.kerberos.principal", " ");
+
+    Map<String, Stack.ConfigProperty> mapOfMetadata =
+      new HashMap<String, Stack.ConfigProperty>();
+
+    // simulate the stack dependencies for these Hive properties, that are dependent upon
+    // hive.server2.authorization being enabled
+    Stack.ConfigProperty configProperty1 =
+      new Stack.ConfigProperty("hive-site", "hive.server2.authentication.kerberos.keytab", " ") {
+        @Override
+        Set<PropertyDependencyInfo> getDependsOnProperties() {
+          PropertyDependencyInfo dependencyInfo = new PropertyDependencyInfo("hive-site", "hive.server2.authentication");
+          return Collections.singleton(dependencyInfo);
+        }
+      };
+
+    Stack.ConfigProperty configProperty2 =
+      new Stack.ConfigProperty("hive-site", "hive.server2.authentication.kerberos.principal", " ") {
+        @Override
+        Set<PropertyDependencyInfo> getDependsOnProperties() {
+          PropertyDependencyInfo dependencyInfo = new PropertyDependencyInfo("hive-site", "hive.server2.authentication");
+          return Collections.singleton(dependencyInfo);
+        }
+      };
+
+    mapOfMetadata.put("hive.server2.authentication.kerberos.keytab", configProperty1);
+    mapOfMetadata.put("hive.server2.authentication.kerberos.principal", configProperty2);
+
+    // defaults from init() method that we need
+    expect(stack.getName()).andReturn("testStack").anyTimes();
+    expect(stack.getVersion()).andReturn("1").anyTimes();
+    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+
+    // customized stack calls for this test only
+    expect(stack.getServiceForConfigType("hive-site")).andReturn("HIVE").atLeastOnce();
+    expect(stack.getConfigurationPropertiesWithMetadata("HIVE", "hive-site")).andReturn(mapOfMetadata).atLeastOnce();
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    List<String> hosts = new ArrayList<String>();
+    hosts.add("some-hose");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, hosts);
+
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    // call top-level cluster config update method
+    updater.doUpdateForClusterCreate();
+
+    assertTrue("hive.server2.authentication.kerberos.keytab should have been included in configuration",
+      hiveSiteProperties.containsKey("hive.server2.authentication.kerberos.keytab"));
+    assertTrue("hive.server2.authentication.kerberos.principal should have been included in configuration",
+      hiveSiteProperties.containsKey("hive.server2.authentication.kerberos.principal"));
+  }
+
+  @Test
+  public void testHBaseConfigClusterUpdatePropertiesFilterAuthorizationOff() throws Exception {
+    // reset the stack mock, since we need more than the default behavior for this test
+    reset(stack);
+
+    final String expectedHostGroupName = "host_group_1";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> hbaseSiteProperties = new HashMap<String, String>();
+    properties.put("hbase-site", hbaseSiteProperties);
+
+    // setup properties for HBase to simulate the case of authorization being off
+    hbaseSiteProperties.put("hbase.security.authorization", "false");
+    hbaseSiteProperties.put("hbase.coprocessor.regionserver.classes", " ");
+
+    Map<String, Stack.ConfigProperty> mapOfMetadata =
+      new HashMap<String, Stack.ConfigProperty>();
+
+    // simulate the stack dependencies for these Hive properties, that are dependent upon
+    // hive.server2.authorization being enabled
+    Stack.ConfigProperty configProperty1 =
+      new Stack.ConfigProperty("hbase-site", "hbase.coprocessor.regionserver.classes", " ") {
+        @Override
+        Set<PropertyDependencyInfo> getDependsOnProperties() {
+          PropertyDependencyInfo dependencyInfo = new PropertyDependencyInfo("hbase-site", "hbase.security.authorization");
+          return Collections.singleton(dependencyInfo);
+        }
+      };
+
+    mapOfMetadata.put("hbase.coprocessor.regionserver.classes", configProperty1);
+
+    // defaults from init() method that we need
+    expect(stack.getName()).andReturn("testStack").anyTimes();
+    expect(stack.getVersion()).andReturn("1").anyTimes();
+    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+
+    // customized stack calls for this test only
+    expect(stack.getServiceForConfigType("hbase-site")).andReturn("HBASE").atLeastOnce();
+    expect(stack.getConfigurationPropertiesWithMetadata("HBASE", "hbase-site")).andReturn(mapOfMetadata).atLeastOnce();
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    List<String> hosts = new ArrayList<String>();
+    hosts.add("some-hose");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, hosts);
+
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    // call top-level cluster config update method
+    updater.doUpdateForClusterCreate();
+
+    assertFalse("hbase.coprocessor.regionserver.classes should have been filtered out of configuration",
+      hbaseSiteProperties.containsKey("hbase.coprocessor.regionserver.classes"));
+
+  }
+
+  @Test
+  public void testHBaseConfigClusterUpdatePropertiesFilterAuthorizationOn() throws Exception {
+    // reset the stack mock, since we need more than the default behavior for this test
+    reset(stack);
+
+    final String expectedHostGroupName = "host_group_1";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> hbaseSiteProperties = new HashMap<String, String>();
+    properties.put("hbase-site", hbaseSiteProperties);
+
+    // setup properties for HBase to simulate the case of authorization being off
+    hbaseSiteProperties.put("hbase.security.authorization", "true");
+    hbaseSiteProperties.put("hbase.coprocessor.regionserver.classes", " ");
+
+    Map<String, Stack.ConfigProperty> mapOfMetadata =
+      new HashMap<String, Stack.ConfigProperty>();
+
+    // simulate the stack dependencies for these Hive properties, that are dependent upon
+    // hive.server2.authorization being enabled
+    Stack.ConfigProperty configProperty1 =
+      new Stack.ConfigProperty("hbase-site", "hbase.coprocessor.regionserver.classes", " ") {
+        @Override
+        Set<PropertyDependencyInfo> getDependsOnProperties() {
+          PropertyDependencyInfo dependencyInfo = new PropertyDependencyInfo("hbase-site", "hbase.security.authorization");
+          return Collections.singleton(dependencyInfo);
+        }
+      };
+
+    mapOfMetadata.put("hbase.coprocessor.regionserver.classes", configProperty1);
+
+    // defaults from init() method that we need
+    expect(stack.getName()).andReturn("testStack").anyTimes();
+    expect(stack.getVersion()).andReturn("1").anyTimes();
+    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+
+    // customized stack calls for this test only
+    expect(stack.getServiceForConfigType("hbase-site")).andReturn("HBASE").atLeastOnce();
+    expect(stack.getConfigurationPropertiesWithMetadata("HBASE", "hbase-site")).andReturn(mapOfMetadata).atLeastOnce();
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    List<String> hosts = new ArrayList<String>();
+    hosts.add("some-hose");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, hosts);
+
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    // call top-level cluster config update method
+    updater.doUpdateForClusterCreate();
+
+    assertTrue("hbase.coprocessor.regionserver.classes should have been included in configuration",
+      hbaseSiteProperties.containsKey("hbase.coprocessor.regionserver.classes"));
+
+  }
+
+  @Test
   public void testHiveConfigClusterUpdateDefaultValue() throws Exception {
     final String expectedHostGroupName = "host_group_1";
     final String expectedHostName = "c6401.ambari.apache.org";
@@ -3670,6 +3949,7 @@ public class BlueprintConfigurationProcessorTest {
 
     assertEquals("instance.volumes should not be modified by cluster update when NameNode HA is enabled.",
         "hdfs://" + expectedNameService + "/accumulo/test/instance/volumes", accumuloSiteProperties.get("instance.volumes"));
+
   }
 
   @Test
