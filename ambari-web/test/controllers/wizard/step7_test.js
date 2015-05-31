@@ -2107,4 +2107,54 @@ describe('App.InstallerStep7Controller', function () {
 
   });
 
+  describe('#_overrideConfigIsRequired', function () {
+    var controller;
+    beforeEach(function() {
+      controller = App.WizardStep7Controller.create({});
+      var configs = Em.A([
+        App.ServiceConfigProperty.create({ name: 'manage_identities', value: 'true', savedValue: 'true', category: 'KDC', serviceName: 'KERBEROS'}),
+        App.ServiceConfigProperty.create({ name: 'kdc_host', value: '', category: 'KDC', serviceName: 'KERBEROS'}),
+        App.ServiceConfigProperty.create({ name: 'admin_server_host', value: '', category: 'KDC', serviceName: 'KERBEROS'}),
+        App.ServiceConfigProperty.create({ name: 'admin_principal', value: '', category: 'KDC', serviceName: 'KERBEROS'}),
+        App.ServiceConfigProperty.create({ name: 'admin_password', value: '', category: 'KDC', serviceName: 'KERBEROS'})
+      ]);
+      configs.forEach(function(config) {
+        config.validate(); // make isRequired to trigger validation and to set every property's error flag to true
+      });
+      var serviceConfigs = Em.A([
+        App.ServiceConfig.create({
+          'serviceName': 'KERBEROS',
+          'configs': configs
+        })
+      ]);
+      controller.set('stepConfigs', serviceConfigs);
+    });
+
+
+    it('manage_identities = true should warn user that fields are required', function () {
+      controller._overrideConfigIsRequired("KERBEROS");
+
+      var allTrue = true;
+      controller.get('stepConfigs')[0].configs.forEach(function(p) {
+        allTrue = allTrue && !p.error;
+      });
+      // should have error
+      expect(allTrue).to.be.false;
+    });
+
+    it('manage_identities = false should NOT warn user that fields are required', function () {
+      // manage_identities = false
+      Em.set(controller.get('stepConfigs')[0].configs.findProperty('name','manage_identities'), 'savedValue', 'false');
+
+      controller._overrideConfigIsRequired("KERBEROS");
+
+      var allTrue = true;
+      controller.get('stepConfigs')[0].configs.forEach(function(p) {
+        allTrue = allTrue && !p.error;
+      });
+
+      expect(allTrue).to.be.true;
+    });
+  });
+
 });
