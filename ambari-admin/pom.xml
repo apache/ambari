@@ -122,6 +122,19 @@
               </arguments>
             </configuration>
           </execution>
+          <execution>
+            <id>set-ambari-version</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <!-- sets Ambari version to make it accessible from code -->
+              <executable>${executable.shell}</executable>
+              <workingDirectory>${basedir}</workingDirectory>
+              <commandlineArgs>${args.shell} ${basedir}${dirsep}set-ambari-version.${fileextension.shell} ${ambariVersion}</commandlineArgs>
+            </configuration>
+          </execution>
           <!--  @TODO: uncomment below execution for triggering ambar-admin UI unit tests from maven test phase.(AMBARI-7600)
           <execution>
             <id>unit test</id>
@@ -207,7 +220,6 @@
         <filtering>false</filtering>
         <includes>
           <include>META-INF/**/*</include>
-          <include>view.xml</include>
         </includes>
       </resource>
       <resource>
@@ -218,28 +230,36 @@
   </build>
     <profiles>
     <profile>
-        <id>windows</id>
-        <activation>
-            <os>
-                <family>win</family>
-            </os>
-        </activation>
-        <properties>
-            <envClassifier>win</envClassifier>
-            <executable.node>node.exe</executable.node>
-        </properties>
+      <id>windows</id>
+      <activation>
+        <os>
+          <family>win</family>
+        </os>
+      </activation>
+      <properties>
+        <envClassifier>win</envClassifier>
+        <executable.node>node.exe</executable.node>
+        <dirsep>\</dirsep>
+        <executable.shell>cmd</executable.shell>
+        <fileextension.shell>cmd</fileextension.shell>
+        <args.shell>/C</args.shell>
+      </properties>
     </profile>
     <profile>
-        <id>linux</id>
-        <activation>
-            <os>
-                <family>unix</family>
-            </os>
-        </activation>
-        <properties>
-            <envClassifier>linux</envClassifier>
-            <executable.node>node</executable.node>
-        </properties>
+      <id>linux</id>
+      <activation>
+        <os>
+          <family>unix</family>
+        </os>
+      </activation>
+      <properties>
+        <envClassifier>linux</envClassifier>
+        <executable.node>node</executable.node>
+        <dirsep>/</dirsep>
+        <executable.shell>sh</executable.shell>
+        <fileextension.shell>sh</fileextension.shell>
+        <args.shell></args.shell>
+      </properties>
     </profile>
   </profiles>
 </project>
