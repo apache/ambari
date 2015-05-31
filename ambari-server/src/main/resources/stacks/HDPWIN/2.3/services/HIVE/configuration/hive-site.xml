@@ -122,7 +122,7 @@ limitations under the License.
 
   <property>
     <name>hive.security.metastore.authorization.manager</name>
-    <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider,org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly</value>
+    <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider</value>
     <description>
       authorization manager class name to be used in the metastore for authorization.
       The user defined authorization class should implement interface

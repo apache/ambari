@@ -196,15 +196,15 @@
           "subsection-name": "optimization-row1-col3"
         },
         {
-          "config": "hiveserver2-site/hive.server2.tez.default.queues",
+          "config": "hive-site/hive.server2.tez.default.queues",
           "subsection-name": "interactive-query-row1-col1"
         },
         {
-          "config": "hiveserver2-site/hive.server2.tez.initialize.default.sessions",
+          "config": "hive-site/hive.server2.tez.initialize.default.sessions",
           "subsection-name": "interactive-query-row1-col1"
         },
         {
-          "config": "hiveserver2-site/hive.server2.tez.sessions.per.default.queue",
+          "config": "hive-site/hive.server2.tez.sessions.per.default.queue",
           "subsection-name": "interactive-query-row1-col1"
         },
         {
@@ -216,7 +216,7 @@
           "subsection-name": "security-row1-col1"
         },
         {
-          "config": "hiveserver2-site/hive.server2.enable.doAs",
+          "config": "hive-site/hive.server2.enable.doAs",
           "subsection-name": "security-row1-col1"
         },
         {
@@ -345,13 +345,13 @@
         }
       },
       {
-        "config": "hiveserver2-site/hive.server2.tez.initialize.default.sessions",
+        "config": "hive-site/hive.server2.tez.initialize.default.sessions",
         "widget": {
           "type": "toggle"
         }
       },
       {
-        "config": "hiveserver2-site/hive.server2.tez.sessions.per.default.queue",
+        "config": "hive-site/hive.server2.tez.sessions.per.default.queue",
         "widget": {
           "type": "slider",
           "units": [
@@ -362,7 +362,7 @@
         }
       },
       {
-        "config": "hiveserver2-site/hive.server2.enable.doAs",
+        "config": "hive-site/hive.server2.enable.doAs",
         "widget": {
           "type": "toggle"
         }
@@ -397,7 +397,7 @@
         }
       },
       {
-        "config": "hiveserver2-site/hive.server2.tez.default.queues",
+        "config": "hive-site/hive.server2.tez.default.queues",
         "widget": {
           "type": "list"
         }

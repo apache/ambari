@@ -92,6 +92,12 @@ limitations under the License.
       The Hive client authorization manager class name. The user defined authorization class should implement
       interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.
     </description>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_security_authorization</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -983,11 +989,17 @@ limitations under the License.
       hive client authenticator manager class name. The user defined authenticator should implement
       interface org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider.
     </description>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_security_authorization</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hive.security.metastore.authorization.manager</name>
     <display-name>Hive Authorization Manager</display-name>
-    <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider,org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly</value>
+    <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider</value>
     <description>
       authorization manager class name to be used in the metastore for authorization.
       The user defined authorization class should implement interface
@@ -1558,6 +1570,27 @@ limitations under the License.
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.default.queues</name>
+    <display-name>Default query queues</display-name>
+    <value>default</value>
+    <description>
+      A list of comma separated values corresponding to YARN queues of the same name.
+      When HiveServer2 is launched in Tez mode, this configuration needs to be set
+      for multiple Tez sessions to run in parallel on the cluster.
+    </description>
+    <value-attributes>
+      <type>combo</type>
+      <entries>
+        <entry>
+          <value>default</value>
+          <label>Default</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1+</selection-cardinality>
     </value-attributes>
   </property>
 
