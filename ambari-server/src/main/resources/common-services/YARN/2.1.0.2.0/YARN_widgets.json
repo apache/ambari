@@ -7,27 +7,29 @@
       "widgetLayoutInfo": [
         {
           "widget_name": "Memory Utilization",
-          "description": "Memory Utilization",
+          "description": "Percentage of total memory allocated to containers running in the cluster.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "yarn.QueueMetrics.Queue=root.AllocatedMB._sum",
-              "metric_path": "metrics/yarn/Queue/root/AllocatedMB._sum",
+              "name": "yarn.QueueMetrics.Queue=root.AllocatedMB",
+              "metric_path": "metrics/yarn/Queue/root/AllocatedMB",
               "service_name": "YARN",
-              "component_name": "RESOURCEMANAGER"
+              "component_name": "RESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             },
             {
-              "name": "yarn.QueueMetrics.Queue=root.AvailableMB._sum",
-              "metric_path": "metrics/yarn/Queue/root/AvailableMB._sum",
+              "name": "yarn.QueueMetrics.Queue=root.AvailableMB",
+              "metric_path": "metrics/yarn/Queue/root/AvailableMB",
               "service_name": "YARN",
-              "component_name": "RESOURCEMANAGER"
+              "component_name": "RESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             }
           ],
           "values": [
             {
               "name": "Memory Utilization",
-              "value": "${(yarn.QueueMetrics.Queue=root.AllocatedMB._sum / (yarn.QueueMetrics.Queue=root.AvailableMB._sum + yarn.QueueMetrics.Queue=root.AvailableMB._sum)) * 100}"
+              "value": "${(yarn.QueueMetrics.Queue=root.AllocatedMB / (yarn.QueueMetrics.Queue=root.AllocatedMB + yarn.QueueMetrics.Queue=root.AvailableMB)) * 100}"
             }
           ],
           "properties": {
@@ -38,27 +40,29 @@
         },
         {
           "widget_name": "CPU Utilization",
-          "description": "CPU Utilization",
+          "description": "Percentage of total virtual cores allocated to containers running in the cluster.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "yarn.QueueMetrics.Queue=root.default.AllocatedVCores._sum",
-              "metric_path": "metrics/yarn/Queue/root/AllocatedVCores._sum",
+              "name": "yarn.QueueMetrics.Queue=root.default.AllocatedVCores",
+              "metric_path": "metrics/yarn/Queue/root/AllocatedVCores",
               "service_name": "YARN",
-              "component_name": "RESOURCEMANAGER"
+              "component_name": "RESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             },
             {
-              "name": "yarn.QueueMetrics.Queue=root.default.AvailableVCores._sum",
-              "metric_path": "metrics/yarn/Queue/root/AvailableVCores._sum",
+              "name": "yarn.QueueMetrics.Queue=root.default.AvailableVCores",
+              "metric_path": "metrics/yarn/Queue/root/AvailableVCores",
               "service_name": "YARN",
-              "component_name": "RESOURCEMANAGER"
+              "component_name": "RESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             }
           ],
           "values": [
             {
               "name": "Total Allocatable CPU Utilized across NodeManager",
-              "value": "${(yarn.QueueMetrics.Queue=root.default.AllocatedVCores._sum / (yarn.QueueMetrics.Queue=root.default.AllocatedVCores._sum + yarn.QueueMetrics.Queue=root.default.AvailableVCores._sum)) * 100}"
+              "value": "${(yarn.QueueMetrics.Queue=root.default.AllocatedVCores / (yarn.QueueMetrics.Queue=root.default.AllocatedVCores + yarn.QueueMetrics.Queue=root.default.AvailableVCores)) * 100}"
             }
           ],
           "properties": {
@@ -69,7 +73,7 @@
         },
         {
           "widget_name": "Bad Local Disks",
-          "description": "Number of unhealthy local disks accross all NodeManagers",
+          "description": "Number of unhealthy local disks across all NodeManagers.",
           "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
@@ -98,7 +102,7 @@
         },
         {
           "widget_name": "Container Failures",
-          "description": "Container Failures",
+          "description": "Percentage of all containers failing in the cluster.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -153,7 +157,7 @@
         },
         {
           "widget_name": "App Failures",
-          "description": "App Failures",
+          "description": "Percentage of all launched applications failing in the cluster.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -161,37 +165,43 @@
               "name": "yarn.QueueMetrics.Queue=root.AppsFailed",
               "metric_path": "metrics/yarn/Queue/root/AppsFailed",
               "service_name": "YARN",
-              "component_name": "RESOURCEMANAGER"
+              "component_name": "RESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             },
             {
               "name": "yarn.QueueMetrics.Queue=root.AppsKilled",
               "metric_path": "metrics/yarn/Queue/root/AppsKilled",
               "service_name": "YARN",
-              "component_name": "RESOURCEMANAGER"
+              "component_name": "RESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             },
             {
               "name": "yarn.QueueMetrics.Queue=root.AppsPending",
               "metric_path": "metrics/yarn/Queue/root/AppsPending",
               "service_name": "YARN",
-              "component_name": "RESOURCEMANAGER"
+              "component_name": "RESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             },
             {
               "name": "yarn.QueueMetrics.Queue=root.AppsRunning",
               "metric_path": "metrics/yarn/Queue/root/AppsRunning",
               "service_name": "YARN",
-              "component_name": "RESOURCEMANAGER"
+              "component_name": "RESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             },
             {
               "name": "yarn.QueueMetrics.Queue=root.AppsSubmitted",
               "metric_path": "metrics/yarn/Queue/root/AppsSubmitted",
               "service_name": "YARN",
-              "component_name": "RESOURCEMANAGER"
+              "component_name": "RESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             },
             {
               "name": "yarn.QueueMetrics.Queue=root.AppsCompleted",
               "metric_path": "metrics/yarn/Queue/root/AppsCompleted",
               "service_name": "YARN",
-              "component_name": "RESOURCEMANAGER"
+              "component_name": "RESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             }
           ],
           "values": [
@@ -208,21 +218,22 @@
         },
         {
           "widget_name": "Pending Apps",
-          "description": "Applications in pending scheduling state for cluster",
+          "description": "Count of applications waiting for cluster resources to become available.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "yarn.QueueMetrics.Queue=root.AppsPending._sum",
-              "metric_path": "metrics/yarn/Queue/root/AppsPending._sum",
+              "name": "yarn.QueueMetrics.Queue=root.AppsPending",
+              "metric_path": "metrics/yarn/Queue/root/AppsPending",
               "service_name": "YARN",
-              "component_name": "RESOURCEMANAGER"
+              "component_name": "RESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             }
           ],
           "values": [
             {
               "name": "Pending Apps",
-              "value": "${yarn.QueueMetrics.Queue=root.AppsPending._sum}"
+              "value": "${yarn.QueueMetrics.Queue=root.AppsPending}"
             }
           ],
           "properties": {
@@ -233,7 +244,7 @@
         },
         {
           "widget_name": "Cluster Memory",
-          "description": "Memory utilization on NodeManager hosts",
+          "description": "Percentage of memory used across all NodeManager hosts.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -270,7 +281,7 @@
         },
         {
           "widget_name": "Cluster Disk",
-          "description": "NodeManager widget for Disk throughput",
+          "description": "Sum of disk throughput for all NodeManager hosts.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -305,7 +316,7 @@
         },
         {
           "widget_name": "Cluster Network",
-          "description": "NodeManager widget for network utilization",
+          "description": "Average of Network utilized across all NodeManager hosts.",
           "default_section_name": "YARN_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -340,7 +351,7 @@
         },
         {
           "widget_name": "Cluster CPU",
-          "description": "NodeManager widget for CPU utilization",
+          "description": "Percentage of CPU utilized across all NodeManager hosts.",
           "default_section_name": "YARN_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,

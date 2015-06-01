@@ -7,7 +7,7 @@
       "widgetLayoutInfo": [
         {
           "widget_name": "NameNode GC count",
-          "description": "This widget shows JVM Garbage collection statistics for Active NameNode",
+          "description": "Count of total garbage collections and count of major type garbage collections of the JVM.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -43,7 +43,7 @@
         },
         {
           "widget_name": "NameNode GC time",
-          "description": "This widget shows JVM Garbage collection time in major collection for Active NameNode",
+          "description": "Total time taken by major type garbage collections in milliseconds.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -69,7 +69,7 @@
         },
         {
           "widget_name": "NN Connection Load",
-          "description": "Number of open connections for Active NameNode.",
+          "description": "Number of open RPC connections being managed by NameNode.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -95,6 +95,7 @@
         },
         {
           "widget_name": "NameNode Heap",
+          "description": "Heap memory committed and Heap memory used with respect to time.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -131,6 +132,7 @@
         },
         {
           "widget_name": "NameNode Host Load",
+          "description": "Percentage of CPU and Memory resources being consumed on NameNode host.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -209,6 +211,7 @@
         },
         {
           "widget_name": "NameNode RPC",
+          "description": "Compares the average time spent for RPC request in a queue and RPC request being processed.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -245,6 +248,7 @@
         },
         {
           "widget_name": "NameNode Operations",
+          "description": "Total number of file operation over time.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -269,6 +273,7 @@
         },
         {
           "widget_name": "Failed disk volumes",
+          "description": "Number of Failed disk volumes across all DataNodes. Its indicative of HDFS bad health.",
           "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
@@ -291,6 +296,7 @@
         },
         {
           "widget_name": "Corrupted Blocks",
+          "description": "Number represents data blocks that have become corrupted or missing. Its indicative of HDFS bad health.",
           "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
@@ -314,6 +320,7 @@
         },
         {
           "widget_name": "Under Replicated Blocks",
+          "description": "Number represents file blocks that does not meet the replication factor criteria. Its indicative of HDFS bad health.",
           "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
@@ -337,6 +344,7 @@
         },
         {
           "widget_name": "HDFS Space Utilization",
+          "description": "Percentage of available space used in the DFS.",
           "widget_type": "GAUGE",
           "is_visible": true,
           "metrics": [

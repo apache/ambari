@@ -7,7 +7,7 @@
       "widgetLayoutInfo": [
         {
           "widget_name": "Reads and Writes",
-          "description": "This widget shows all the read requests and write requests on all regions for a RegionServer",
+          "description": "Count of read and write requests on all regions in the cluster.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -65,7 +65,7 @@
         },
         {
           "widget_name": "Read Latency",
-          "description": "Widget shows 95% Read Latency",
+          "description": "maximum of 95% read latency.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -100,7 +100,7 @@
         },
         {
           "widget_name": "Write Latency",
-          "description": "This widget shows 95th percentile of the write latency.",
+          "description": "maximum of 95% write latency.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -155,7 +155,7 @@
         },
         {
           "widget_name": "Open Connections",
-          "description": "This widget shows number of current open connections",
+          "description": "Count of open connections across all RegionServer. This is indicative of RegionServer load in the cluster.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -180,6 +180,7 @@
         },
         {
           "widget_name": "Request Handlers",
+          "description": "Count of Active handlers vs count of calls waiting in the general queue.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -213,7 +214,7 @@
         },
         {
           "widget_name": "Files Local",
-          "description": "This widget shows weighted average for local files.",
+          "description": "Average percentage of local files to RegionServer in the cluster.",
           "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
@@ -238,7 +239,7 @@
         },
         {
           "widget_name": "Blocked Updates",
-          "description": "Number of milliseconds updates have been blocked so the memstore can be flushed",
+          "description": "Number of milliseconds updates have been blocked so the memstore can be flushed.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -263,7 +264,7 @@
         },
         {
           "widget_name": "Cluster CPU",
-          "description": "RegionServer widget for CPU utilization",
+          "description": "Percentage of CPU utilized across all RegionServer hosts.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -312,7 +313,7 @@
         },
         {
           "widget_name": "Cluster Network",
-          "description": "RegionServer widget for network utilization",
+          "description": "Average of Network IO utilized across all RegionServer hosts.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -346,7 +347,7 @@
         },
         {
           "widget_name": "Cluster Disk",
-          "description": "RegionServer widget for Disk throughput.",
+          "description": "Sum of disk throughput for all RegionServer hosts.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
