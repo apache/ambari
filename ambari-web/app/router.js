@@ -54,6 +54,8 @@ App.Router = Em.Router.extend({
   enableLogging: true,
   isFwdNavigation: true,
   backBtnForHigherStep: false,
+  transitionInProgress: false,
+
 
   /**
    * Is true, if cluster.provisioning_state is equal to 'INSTALLED'

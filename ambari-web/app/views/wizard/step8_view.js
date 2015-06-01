@@ -25,6 +25,7 @@ App.WizardStep8View = Em.View.extend(App.wizardDeployProgressViewMixin, {
 
   didInsertElement: function () {
     this.get('controller').loadStep();
+    App.get('router').set('transitionInProgress', false);
   },
 
   /**

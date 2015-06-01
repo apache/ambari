@@ -25,6 +25,7 @@ App.WizardStep10View = Em.View.extend({
 
   didInsertElement: function () {
     this.get('controller').loadStep();
+    App.get('router').set('transitionInProgress', false);
   },
 
   serviceRestartText: function () {
