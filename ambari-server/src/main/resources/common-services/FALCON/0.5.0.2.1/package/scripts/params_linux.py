@@ -19,14 +19,12 @@ limitations under the License.
 import status_params
 
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
-
-
 
 config = Script.get_config()
 
@@ -40,7 +38,7 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 etc_prefix_dir = "/etc/falcon"
 
 # hadoop params
-hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
+hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
 
 if Script.is_hdp_stack_greater_or_equal("2.2"):
 

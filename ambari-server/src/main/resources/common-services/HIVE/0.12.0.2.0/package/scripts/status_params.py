@@ -21,6 +21,7 @@ limitations under the License.
 from ambari_commons import OSCheck
 
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -71,7 +72,7 @@ else:
 
   # default configuration directories
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-  hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
+  hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
   webhcat_conf_dir = '/etc/hive-webhcat/conf'
   hive_etc_dir_prefix = "/etc/hive"
   hive_conf_dir = "/etc/hive/conf"

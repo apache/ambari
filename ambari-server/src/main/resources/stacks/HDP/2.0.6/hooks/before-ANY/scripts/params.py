@@ -18,11 +18,20 @@ limitations under the License.
 """
 
 import collections
+import re
+
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+
+from resource_management.libraries.script import Script
+from resource_management.libraries.functions import default
+from resource_management.libraries.functions import format
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import format_jvm_option
+from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import compare_versions
 from ambari_commons.os_check import OSCheck
-from resource_management import *
+
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -72,18 +81,17 @@ def is_secure_port(port):
 
 # hadoop default params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-hadoop_home = "/usr/lib/hadoop"
+hadoop_home = hdp_select.get_hadoop_dir("home")
 hadoop_secure_dn_user = hdfs_user
 hadoop_dir = "/etc/hadoop"
 versioned_hdp_root = '/usr/hdp/current'
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
-hadoop_libexec_dir = conf_select.get_hadoop_dir("libexec")
+hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec")
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 
 # HDP 2.2+ params
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
-  hadoop_home = "/usr/hdp/current/hadoop-client"
 
   # not supported in HDP 2.2+
   hadoop_conf_empty_dir = None

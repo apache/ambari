@@ -18,12 +18,17 @@
 
 package org.apache.ambari.server.metadata;
 
-import com.google.inject.Singleton;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.state.Service;
 
-import java.util.*;
+import com.google.inject.Singleton;
 
 /**
  * Contains metadata about actions supported by services
@@ -36,13 +41,13 @@ public class ActionMetadata {
       new HashMap<String, String>();
   private final List<String> defaultHostComponentCommands = new ArrayList<String>();
   public final static String SERVICE_CHECK_POSTFIX = "_SERVICE_CHECK";
-  
+
   private static final Map<String, String> SERVICE_CHECKS;
   static {
       Map<String, String> serviceChecks = new HashMap<String, String>();
-      
+
       serviceChecks.put(Service.Type.ZOOKEEPER.toString(), "ZOOKEEPER_QUORUM_SERVICE_CHECK");
-      
+
       SERVICE_CHECKS = Collections.unmodifiableMap(serviceChecks);
   }
 
@@ -59,19 +64,20 @@ public class ActionMetadata {
   }
 
   private void fillServiceClients() {
-    serviceClients.put("hdfs"       , Role.HDFS_CLIENT.toString());
-    serviceClients.put("glusterfs"  , Role.GLUSTERFS_CLIENT.toString());
-    serviceClients.put("hbase"      , Role.HBASE_CLIENT.toString());
-    serviceClients.put("mapreduce"  , Role.MAPREDUCE_CLIENT.toString());
-    serviceClients.put("zookeeper"  , Role.ZOOKEEPER_CLIENT.toString());
-    serviceClients.put("hive"       , Role.HIVE_CLIENT.toString());
-    serviceClients.put("hcat"       , Role.HCAT.toString());
-    serviceClients.put("oozie"      , Role.OOZIE_CLIENT.toString());
-    serviceClients.put("pig"        , Role.PIG.toString());
-    serviceClients.put("mahout"     , Role.MAHOUT.toString());
-    serviceClients.put("sqoop"      , Role.SQOOP.toString());
-    serviceClients.put("yarn"       , Role.YARN_CLIENT.toString());
-    serviceClients.put("kerberos"   , Role.KERBEROS_CLIENT.toString());
+    serviceClients.put("hdfs", Role.HDFS_CLIENT.toString());
+    serviceClients.put("glusterfs", Role.GLUSTERFS_CLIENT.toString());
+    serviceClients.put("hbase", Role.HBASE_CLIENT.toString());
+    serviceClients.put("mapreduce", Role.MAPREDUCE_CLIENT.toString());
+    serviceClients.put("zookeeper", Role.ZOOKEEPER_CLIENT.toString());
+    serviceClients.put("hive", Role.HIVE_CLIENT.toString());
+    serviceClients.put("hcat", Role.HCAT.toString());
+    serviceClients.put("oozie", Role.OOZIE_CLIENT.toString());
+    serviceClients.put("pig", Role.PIG.toString());
+    serviceClients.put("mahout", Role.MAHOUT.toString());
+    serviceClients.put("sqoop", Role.SQOOP.toString());
+    serviceClients.put("yarn", Role.YARN_CLIENT.toString());
+    serviceClients.put("kerberos", Role.KERBEROS_CLIENT.toString());
+    serviceClients.put("accumulo", Role.ACCUMULO_CLIENT.toString());
   }
 
   public List<String> getActions(String serviceName) {
@@ -90,14 +96,14 @@ public class ActionMetadata {
   public String getServiceCheckAction(String serviceName) {
     return serviceCheckActions.get(serviceName.toLowerCase());
   }
-  
+
   public void addServiceCheckAction(String serviceName) {
     String actionName = serviceName + SERVICE_CHECK_POSTFIX;
-    
+
     if(SERVICE_CHECKS.containsKey(serviceName)) {
       actionName = SERVICE_CHECKS.get(serviceName);
     }
-    
+
     serviceCheckActions.put(serviceName.toLowerCase(), actionName);
     serviceActions.put(serviceName.toLowerCase(), Arrays.asList(actionName));
   }

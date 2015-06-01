@@ -20,13 +20,12 @@ Ambari Agent
 """
 from resource_management import *
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
-
-
 
 # server configurations
 config = Script.get_config()
@@ -47,8 +46,8 @@ mahout_conf_dir = "/usr/hdp/current/mahout-client/conf"
 mahout_user = config['configurations']['mahout-env']['mahout_user']
 
 #hadoop params
-hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
-hadoop_home = '/usr/hdp/current/hadoop-client'
+hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+hadoop_home = hdp_select.get_hadoop_dir("home")
 
 # the configuration direction for HDFS/YARN/MapR is the hadoop config
 # directory, which is symlinked by hadoop-client only
@@ -68,8 +67,6 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 java64_home = config['hostLevelParams']['java_home']
 
 log4j_props = config['configurations']['mahout-log4j']['content']
-
-
 
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']

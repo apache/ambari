@@ -26,13 +26,13 @@ from setup_spark import *
 from resource_management import *
 import resource_management.libraries.functions
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 
 from resource_management.libraries.script.script import Script
-
 
 # a map of the Ambari role to the component name
 # for use with /usr/hdp/current/<component>
@@ -63,10 +63,10 @@ version = default("/commandParams/version", None)
 
 spark_conf = '/etc/spark/conf'
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
+hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
 
 if Script.is_hdp_stack_greater_or_equal("2.2"):
-  hadoop_home = "/usr/hdp/current/hadoop-client"
+  hadoop_home = hdp_select.get_hadoop_dir("home")
   spark_conf = format("/usr/hdp/current/{component_directory}/conf")
   spark_log_dir = config['configurations']['spark-env']['spark_log_dir']
   spark_pid_dir = status_params.spark_pid_dir

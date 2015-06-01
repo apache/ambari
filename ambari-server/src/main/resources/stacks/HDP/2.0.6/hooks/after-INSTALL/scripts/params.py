@@ -18,9 +18,13 @@ limitations under the License.
 """
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from resource_management.libraries.script import Script
+from resource_management.libraries.functions import default
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from resource_management import *
+from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import format_jvm_option
+from resource_management.libraries.functions.version import format_hdp_stack_version
+
 from resource_management.core.system import System
 from ambari_commons.os_check import OSCheck
 
@@ -32,7 +36,7 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 # default hadoop params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-hadoop_libexec_dir = conf_select.get_hadoop_dir("libexec")
+hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 

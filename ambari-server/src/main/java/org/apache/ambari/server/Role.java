@@ -28,9 +28,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * similar mechanisms to an enum.
  */
 public class Role {
-  
+
   private static final Map<String, Role> roles = new ConcurrentHashMap<String, Role>();
-  
+
   /**
    * @param name the role name
    * @return a Role instance, never <code>null</code>
@@ -42,17 +42,17 @@ public class Role {
 
     Role role = new Role(name);
     roles.put(name, role);
-    return role;    
+    return role;
   }
-  
+
   /**
    * @return a collection of all defined Role instances
    */
   public static Collection<Role> values() {
     return Collections.unmodifiableCollection(roles.values());
-  }  
-  
-  public static final Role AMBARI_SERVER_ACTION = valueOf("AMBARI_SERVER_ACTION"); 
+  }
+
+  public static final Role AMBARI_SERVER_ACTION = valueOf("AMBARI_SERVER_ACTION");
   public static final Role DATANODE = valueOf("DATANODE");
   public static final Role FLUME_HANDLER = valueOf("FLUME_HANDLER");
   public static final Role FLUME_SERVICE_CHECK = valueOf("FLUME_SERVICE_CHECK");
@@ -112,13 +112,14 @@ public class Role {
   public static final Role METRICS_COLLECTOR = valueOf("METRICS_COLLECTOR");
   public static final Role METRICS_MONITOR = valueOf("METRICS_MONITOR");
   public static final Role AMS_SERVICE_CHECK = valueOf("AMBARI_METRICS_SERVICE_CHECK");
+  public static final Role ACCUMULO_CLIENT = valueOf("ACCUMULO_CLIENT");
 
   private String name = null;
-  
+
   private Role(String roleName) {
     name = roleName;
   }
-  
+
   /**
    * @return the name given to the role
    */
@@ -130,7 +131,7 @@ public class Role {
   public String toString() {
     return name;
   }
-  
+
   @Override
   public int hashCode() {
     return name.hashCode();
@@ -141,7 +142,7 @@ public class Role {
     if (null == o || !Role.class.equals(o.getClass())) {
       return false;
     }
-    
+
     return this == o || name.equals(((Role) o).name);
   }
 

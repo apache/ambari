@@ -26,6 +26,7 @@ import re
 from ambari_commons.os_check import OSCheck
 
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
@@ -64,18 +65,17 @@ secure_dn_ports_are_in_use = False
 
 # hadoop default parameters
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-hadoop_libexec_dir = conf_select.get_hadoop_dir("libexec")
-hadoop_bin = conf_select.get_hadoop_dir("sbin")
-hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
-hadoop_home = "/usr/lib/hadoop"
+hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec")
+hadoop_bin = hdp_select.get_hadoop_dir("sbin")
+hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+hadoop_home = hdp_select.get_hadoop_dir("home")
 hadoop_secure_dn_user = hdfs_user
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-hadoop_lib_home = conf_select.get_hadoop_dir("lib")
+hadoop_lib_home = hdp_select.get_hadoop_dir("lib")
 
 # hadoop parameters for 2.2+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
-  hadoop_home = "/usr/hdp/current/hadoop-client"
 
   if not security_enabled:
     hadoop_secure_dn_user = '""'

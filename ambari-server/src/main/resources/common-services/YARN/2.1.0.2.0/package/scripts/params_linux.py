@@ -23,6 +23,7 @@ import os
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.version import format_hdp_stack_version
@@ -63,9 +64,9 @@ version = default("/commandParams/version", None)
 hostname = config['hostname']
 
 # hadoop default parameters
-hadoop_libexec_dir = conf_select.get_hadoop_dir("libexec")
-hadoop_bin = conf_select.get_hadoop_dir("sbin")
-hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
+hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec")
+hadoop_bin = hdp_select.get_hadoop_dir("sbin")
+hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_yarn_home = '/usr/lib/hadoop-yarn'
 hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"

@@ -17,11 +17,17 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions import conf_select, default, format_jvm_option, format
+import os
+
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import default
+from resource_management.libraries.functions import format_jvm_option
+from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.script.script import Script
-import os
+
 
 config = Script.get_config()
 
@@ -31,9 +37,9 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 # hadoop default params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 
-hadoop_libexec_dir = conf_select.get_hadoop_dir("libexec")
-hadoop_lib_home = conf_select.get_hadoop_dir("lib")
-hadoop_bin = conf_select.get_hadoop_dir("sbin")
+hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec")
+hadoop_lib_home = hdp_select.get_hadoop_dir("lib")
+hadoop_bin = hdp_select.get_hadoop_dir("sbin")
 hadoop_home = '/usr'
 create_lib_snappy_symlinks = True
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
@@ -42,7 +48,7 @@ default_topology_script_file_path = "/etc/hadoop/conf/topology_script.py"
 # HDP 2.2+ params
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
-  hadoop_home = '/usr/hdp/current/hadoop-client'
+  hadoop_home = hdp_select.get_hadoop_dir("home")
   create_lib_snappy_symlinks = False
   
 current_service = config['serviceName']

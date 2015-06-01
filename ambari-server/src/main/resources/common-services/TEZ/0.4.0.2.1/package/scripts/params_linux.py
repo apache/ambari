@@ -21,12 +21,11 @@ import os
 
 from resource_management.libraries.resources import HdfsResource
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
-
-
 
 # server configurations
 config = Script.get_config()
@@ -43,7 +42,7 @@ version = default("/commandParams/version", None)
 
 # default hadoop parameters
 hadoop_home = '/usr'
-hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
+hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 tez_etc_dir = "/etc/tez"
 config_dir = "/etc/tez/conf"
