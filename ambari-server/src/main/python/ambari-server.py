@@ -224,7 +224,7 @@ def setup_security(args):
   try:
     actionDesc = actions[int(choice) - 1]
   except IndexError:
-    raise FatalException('Unknown option for setup-security command.')
+    raise FatalException(1, 'Unknown option for setup-security command.')
 
   action = actionDesc[1]
   action.execute()
