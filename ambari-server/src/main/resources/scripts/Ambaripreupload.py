@@ -17,15 +17,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
  
 """
-# Before running the script please add a proper pythopath, by executing:
-# export PYTHONPATH=/usr/lib/python2.6/site-packages 
+import os
+import sys
+os.environ["PATH"] += os.pathsep + "/var/lib/ambari-agent"
+sys.path.append("/usr/lib/python2.6/site-packages")
+
 import glob
 from logging import thread
-import sys
-import os
 import re
+import hashlib
 import tempfile
 import time
+import functools
 from xml.dom import minidom
 from xml.dom.minidom import parseString
  
@@ -37,12 +40,9 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.resources.copy_from_local import CopyFromLocal
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
 from resource_management import Script
- 
- 
-__all__ = ["copy_tarballs_to_hdfs", ]
  
 """
 This file provides helper methods needed for the versioning of RPMs. Specifically, it does dynamic variable
@@ -53,11 +53,37 @@ It assumes that {{ hdp_stack_version }} is constructed as ${major.minor.patch.re
 E.g., 998.2.2.1.0-998
 Please note that "-${build_number}" is optional.
 """
+
+def getPropertyValueFromConfigXMLFile(xmlfile, name, defaultValue=None):
+  xmldoc = minidom.parse(xmlfile)
+  propNodes = [node.parentNode for node in xmldoc.getElementsByTagName("name") if node.childNodes[0].nodeValue == name]
+  if len(propNodes) > 0:
+    for node in propNodes[-1].childNodes:
+      if node.nodeName == "value":
+        if len(node.childNodes) > 0:
+          return node.childNodes[0].nodeValue
+        else:
+          return ''
+  return defaultValue
+
+def get_fs_root(fsdefaultName=None):
+  return getPropertyValueFromConfigXMLFile("/etc/hadoop/conf/core-site.xml", "fs.defaultFS")
+  if fsdefaultName is None:
+    fsdefaultName = "fake"
+   
+  while (not fsdefaultName.startswith("wasb://")):
+    fsdefaultName =  getPropertyValueFromConfigXMLFile("/etc/hadoop/conf/core-site.xml", "fs.defaultFS")
+    if fsdefaultName is None:
+      fsdefaultName = "fake"
+    time.sleep(10)
+  
+  return fsdefaultName
  
 # These values must be the suffix of the properties in cluster-env.xml
 TAR_SOURCE_SUFFIX = "_tar_source"
 TAR_DESTINATION_FOLDER_SUFFIX = "_tar_destination_folder"
-class params():
+
+class params:
   hdfs_user = "hdfs"
   mapred_user ="mapred"
   hadoop_bin_dir="/usr/hdp/current/hadoop-client/bin"
@@ -66,30 +92,24 @@ class params():
   security_enabled = False
   oozie_user = "oozie"
   execute_path = "/usr/hdp/current/hadoop-client/bin"
- 
-params = params()
- 
- 
-class HdfsDirectory(Resource):
-  action = ForcedListArgument()
- 
-  dir_name = ResourceArgument(default=lambda obj: obj.name)
-  owner = ResourceArgument()
-  group = ResourceArgument()
-  mode = ResourceArgument()
-  recursive_chown = BooleanArgument(default=False)
-  recursive_chmod = BooleanArgument(default=False)
- 
-  conf_dir = ResourceArgument()
-  security_enabled = BooleanArgument(default=False)
-  keytab = ResourceArgument()
-  kinit_path_local = ResourceArgument()
-  hdfs_user = ResourceArgument()
-  bin_dir = ResourceArgument(default="")
- 
-  #action 'create' immediately creates all pending directory in efficient manner
-  #action 'create_delayed' add directory to list of pending directories
-  actions = Resource.actions + ["create","create_delayed"]
+  ambari_libs_dir = "/var/lib/ambari-agent/lib"
+  hdfs_site = ConfigDictionary({'dfs.webhdfs.enabled':False, 
+                                'dfs.namenode.http-address': getPropertyValueFromConfigXMLFile("/etc/hadoop/conf/hdfs-site.xml", "dfs.namenode.http-address")
+  })
+  fs_default = get_fs_root()
+  
+  HdfsResource = functools.partial(
+    HdfsResource,
+    user=hdfs_user,
+    security_enabled = False,
+    keytab = None,
+    kinit_path_local = None,
+    hadoop_bin_dir = hadoop_bin_dir,
+    hadoop_conf_dir = hadoop_conf_dir,
+    principal_name = None,
+    hdfs_site = hdfs_site,
+    default_fs = fs_default
+  )
  
 def _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed):
   """
@@ -103,34 +123,15 @@ def _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
   Must kinit before calling this function.
   """
  
-  return_value = 1
-  if source_and_dest_pairs and len(source_and_dest_pairs) > 0:
-    return_value = 0
-    for (source, destination) in source_and_dest_pairs:
-      try:
-        destination_dir = os.path.dirname(destination)
- 
-        HdfsDirectory(destination_dir,
-                      action="create",
-                      owner=file_owner,
-                      mode=0555,
-                      conf_dir=params.hadoop_conf_dir,
-                      hdfs_user=params.hdfs_user,
-        )
- 
-        CopyFromLocal(source,
-                      mode=0444,
-                      owner=file_owner,
-                      group=group_owner,
-                      dest_dir=destination_dir,
-                      kinnit_if_needed=kinit_if_needed,
-                      hdfs_user=params.hdfs_user,
-                      hadoop_bin_dir=params.hadoop_bin_dir,
-                      hadoop_conf_dir=params.hadoop_conf_dir
-        )
-      except:
-        return_value = 1
-  return return_value
+  for (source, destination) in source_and_dest_pairs:
+    params.HdfsResource(destination,
+                  action="create_on_execute",
+                  type = 'file',
+                  mode=0444,
+                  owner=file_owner,
+                  group=group_owner,
+                  source=source,
+    )
  
  
 def copy_tarballs_to_hdfs(source, dest, hdp_select_component_name, component_user, file_owner, group_owner):
@@ -187,37 +188,9 @@ def copy_tarballs_to_hdfs(source, dest, hdp_select_component_name, component_use
             user=component_user,
             path='/bin'
     )
-
-
-  does_hdfs_file_exist_cmd = "fs -ls %s" % destination_file
-  does_hdfs_file_exist = False
-  try:
-    ExecuteHadoop(does_hdfs_file_exist_cmd,
-                  user=component_user,
-                  logoutput=True,
-                  conf_dir=params.hadoop_conf_dir,
-                  bin_dir=params.hadoop_bin_dir
-    )
-    does_hdfs_file_exist = True
-  except Fail:
-    pass
  
-  if not does_hdfs_file_exist:
-    source_and_dest_pairs = [(component_tar_source_file, destination_file), ]
-    return _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
-  return 1
- 
-def getPropertyValueFromConfigXMLFile(xmlfile, name, defaultValue=None):
-  xmldoc = minidom.parse(xmlfile)
-  propNodes = [node.parentNode for node in xmldoc.getElementsByTagName("name") if node.childNodes[0].nodeValue == name]
-  if len(propNodes) > 0:
-    for node in propNodes[-1].childNodes:
-      if node.nodeName == "value":
-        if len(node.childNodes) > 0:
-          return node.childNodes[0].nodeValue
-        else:
-          return ''
-  return defaultValue
+  source_and_dest_pairs = [(component_tar_source_file, destination_file), ]
+  return _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
 
 # See if hdfs path prefix is provided on the command line. If yes, use that value, if no
 # use empty string as default.
@@ -226,63 +199,56 @@ if len(sys.argv) == 2:
     hdfs_path_prefix = sys.argv[1]
 
 hadoop_conf_dir = params.hadoop_conf_dir
-fsdefaultName =  getPropertyValueFromConfigXMLFile("/etc/hadoop/conf/core-site.xml", "fs.defaultFS")
-if fsdefaultName is None:
-  fsdefaultName = "fake"
- 
-while (not fsdefaultName.startswith("wasb://")):
-  fsdefaultName =  getPropertyValueFromConfigXMLFile("/etc/hadoop/conf/core-site.xml", "fs.defaultFS")
-  if fsdefaultName is None:
-    fsdefaultName = "fake"
-  time.sleep(10)
- 
-fs_root = fsdefaultName
  
 oozie_libext_dir = "/usr/hdp/current/oozie-server/libext"
 oozie_home="/usr/hdp/current/oozie-server"
+oozie_setup_sh="/usr/hdp/current/oozie-server/bin/oozie-setup.sh"
+oozie_tmp_dir = "/var/tmp/oozie"
 configure_cmds = []
 configure_cmds.append(('tar','-xvf', oozie_home + '/oozie-sharelib.tar.gz','-C', oozie_home))
 configure_cmds.append(('cp', "/usr/share/HDP-oozie/ext-2.2.zip", "/usr/hdp/current/oozie-server/libext"))
 configure_cmds.append(('chown', 'oozie:hadoop', oozie_libext_dir + "/ext-2.2.zip"))
  
 no_op_test = "ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1"
+
 with Environment() as env:
+  env.set_params(params)
+  
+  hashcode_file = format("{oozie_home}/.hashcode")
+  hashcode = hashlib.md5(format('{oozie_home}/oozie-sharelib.tar.gz')).hexdigest()
+  skip_recreate_sharelib = format("test -f {hashcode_file} && test -d {oozie_home}/share && [[ `cat {hashcode_file}` == '{hashcode}' ]]")
+
   Execute( configure_cmds,
-           not_if  = no_op_test,
+           not_if  = format("{no_op_test} || {skip_recreate_sharelib}"), 
            sudo = True,
            )
+  Execute(format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war"),
+    user = params.oozie_user,
+    not_if  = format("{no_op_test} || {skip_recreate_sharelib}")
+  )
+  File(hashcode_file,
+       content = hashcode,
+       mode = 0644,
+  )
 
   oozie_shared_lib = format("/usr/hdp/current/oozie-server/share")
   oozie_user = 'oozie'
   oozie_hdfs_user_dir = format("{hdfs_path_prefix}/user/{oozie_user}")
   kinit_if_needed = ''
 
-  #Ideally, we would want to run: put_shared_lib_to_hdfs_cmd = format("{oozie_setup_sh} sharelib create -fs {fs_root} -locallib {oozie_shared_lib}")
-  #However given that oozie_setup_sh does not support an arbitrary hdfs path prefix, we are simulating the same command below
-  put_shared_lib_to_hdfs_cmd = format("hadoop --config {hadoop_conf_dir} dfs -copyFromLocal {oozie_shared_lib}/lib/** {oozie_hdfs_user_dir}/share/lib/lib_20150212065327")
-
-  oozie_cmd = format("{put_shared_lib_to_hdfs_cmd} ; hadoop --config {hadoop_conf_dir} dfs -chmod -R 755 {oozie_hdfs_user_dir}/share")
-
-  #Check if destination folder already exists
-  does_hdfs_file_exist_cmd = "fs -ls %s" % format("{oozie_hdfs_user_dir}/share")
-  try:
-    ExecuteHadoop(does_hdfs_file_exist_cmd,
-                  user=oozie_user,
-                  logoutput=True,
-                  conf_dir=params.hadoop_conf_dir,
-                  bin_dir=params.hadoop_bin_dir
-    )
-  except Fail:
-    #If dir does not exist create it and put files there
-    HdfsDirectory(format("{oozie_hdfs_user_dir}/share/lib/lib_20150212065327"),
-                  action="create",
-                  owner=oozie_user,
-                  mode=0555,
-                  conf_dir=params.hadoop_conf_dir,
-                  hdfs_user=params.hdfs_user,
-                  )
-    Execute( oozie_cmd, user = params.oozie_user, not_if = None,
-             path = params.execute_path )
+  params.HdfsResource(format("{oozie_hdfs_user_dir}/share/"),
+    action="delete_on_execute",
+    type = 'directory'
+  )
+    
+  params.HdfsResource(format("{oozie_hdfs_user_dir}/share"),
+    action="create_on_execute",
+    type = 'directory',
+    mode=0755,
+    recursive_chmod = True,
+    owner=oozie_user,
+    source = oozie_shared_lib,
+  )
 
   copy_tarballs_to_hdfs("/usr/hdp/current/hadoop-client/mapreduce.tar.gz", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs("/usr/hdp/current/tez-client/lib/tez.tar.gz", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/tez/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
@@ -290,3 +256,16 @@ with Environment() as env:
   copy_tarballs_to_hdfs("/usr/hdp/current/pig-client/pig.tar.gz", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/pig/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs("/usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs("/usr/hdp/current/sqoop-client/sqoop.tar.gz", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/sqoop/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
+  
+  
+  # jar shouldn't be used before (read comment below)
+  File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
+       mode=0644,
+       content=StaticFile("/var/lib/ambari-agent/cache/stacks/HDP/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar")
+  )
+  # Create everything in one jar call (this is fast).
+  # (! Before everything should be executed with action="create_on_execute/delete_on_execute" for this time-optimization to work)
+  params.HdfsResource(None, 
+               logoutput=True,
+               action="execute"
+  )

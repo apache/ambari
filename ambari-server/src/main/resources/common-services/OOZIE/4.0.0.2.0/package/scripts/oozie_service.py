@@ -91,7 +91,11 @@ def oozie_service(action = 'start', rolling_restart=False):
                 user = params.oozie_user,
         )
       
-      if WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
+      
+      if params.host_sys_prepped:
+        print "Skipping creation of oozie sharelib as host is sys prepped"
+        hdfs_share_dir_exists = True # skip time-expensive hadoop fs -ls check
+      elif WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
         # check with webhdfs is much faster than executing hadoop fs -ls. 
         util = WebHDFSUtil(params.hdfs_site, params.oozie_user, params.security_enabled)
         list_status = util.run_command(params.hdfs_share_dir, 'GETFILESTATUS', method='GET', ignore_status_codes=['404'], assertable_result=False)
@@ -113,6 +117,7 @@ def oozie_service(action = 'start', rolling_restart=False):
                              recursive_chmod=True,
         )
         params.HdfsResource(None, action="execute")
+        
 
     # start oozie
     Execute( start_cmd, environment=environment, user = params.oozie_user,
