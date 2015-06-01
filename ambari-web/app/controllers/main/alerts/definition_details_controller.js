@@ -264,28 +264,6 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
   },
 
   /**
-   * Router transition to service page
-   * @param event
-   */
-  goToService: function (event) {
-    if (event && event.context) {
-      App.router.transitionTo('main.services.service.summary', event.context);
-    }
-  },
-
-  /**
-   * Router transition to host level alerts page
-   * @param {object} event
-   * @method goToHostAlerts
-   */
-  goToHostAlerts: function (event) {
-    if (event && event.context) {
-      App.router.get('mainHostDetailsController').set('referer', App.router.location.lastSetURL);
-      App.router.transitionTo('main.hosts.hostDetails.alerts', event.context);
-    }
-  },
-
-  /**
    * Define if label or configs are in edit mode
    * @type {Boolean}
    */

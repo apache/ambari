@@ -323,7 +323,7 @@ App.MainAlertInstancesController = Em.Controller.extend({
          * Router transition to service summary page
          * @param event
          */
-        gotoService: function (event) {
+        goToService: function (event) {
           if (event && event.context) {
             this.get('parentView').hide();
             App.router.transitionTo('main.services.service.summary', event.context);

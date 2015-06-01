@@ -31,15 +31,8 @@
             {{#each alertInstance in view.pageContent}}
               <div class="alert-list-wrap">
                 <div class="alert-list-line-cursor">
-                  <div class="service-text"><a href="#" {{action "gotoService" alertInstance.service target="view"}}>{{alertInstance.service.displayName}}</a>
-                    {{#if alertInstance.hostName}}
-                      {{#if alertInstance.service.displayName}}
-                        &nbsp;/&nbsp;
-                      {{/if}}
-                      <a {{action "goToHostAlerts" alertInstance.host target="view"}} href="#">
-                        {{alertInstance.hostName}}
-                      </a>
-                    {{/if}}
+                  <div class="service-text">
+                    {{view App.AlertInstanceServiceHostView instanceBinding="alertInstance"}}
                   </div>
                   <div class="name-text">
                     <div>

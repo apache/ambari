@@ -90,27 +90,6 @@ describe('App.MainAlertDefinitionDetailsController', function () {
     });
   });
 
-  describe("#goToHostAlerts()", function () {
-    beforeEach(function () {
-      sinon.stub(App.get('router'), 'transitionTo', Em.K);
-    });
-    afterEach(function () {
-      App.get('router').transitionTo.restore();
-    });
-    it("not route to host - no event", function () {
-      controller.goToHostAlerts(null);
-      expect(App.get('router').transitionTo.notCalled).to.be.true;
-    });
-    it("not route to host - no event context", function () {
-      controller.goToHostAlerts({});
-      expect(App.get('router').transitionTo.notCalled).to.be.true;
-    });
-    it("routes to host", function () {
-      controller.goToHostAlerts({"context": "hostname"});
-      expect(App.get('router').transitionTo.calledOnce).to.be.true;
-    });
-  });
-
   describe("#deleteAlertDefinition()", function () {
     beforeEach(function () {
       sinon.stub(App.get('router'), 'transitionTo', Em.K);
