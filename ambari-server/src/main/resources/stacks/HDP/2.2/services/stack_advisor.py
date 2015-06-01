@@ -521,6 +521,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         putHbaseProperty('hbase.coprocessor.region.classes', "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
         putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
     else:
+      putHbaseProperty('hbase.coprocessor.region.classes', "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
       putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
 
     # Authentication
