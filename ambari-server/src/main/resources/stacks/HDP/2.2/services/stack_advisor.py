@@ -531,8 +531,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     if hbase_security_authorization:
       if 'true' == hbase_security_authorization.lower():
         putHbaseProperty('hbase.coprocessor.master.classes', "org.apache.hadoop.hbase.security.access.AccessController")
-        putHbaseProperty('hbase.coprocessor.region.classes', "org.apache.hadoop.hbase.security.access.AccessController")
-        putHbaseProperty('hbase.coprocessor.regionserver.classes', "org.apache.hadoop.hbase.security.access.AccessController,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
+        putHbaseProperty('hbase.coprocessor.region.classes', "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController")
+        putHbaseProperty('hbase.coprocessor.regionserver.classes', "org.apache.hadoop.hbase.security.access.AccessController")
       else:
         putHbaseProperty('hbase.coprocessor.master.classes', "")
         putHbaseProperty('hbase.coprocessor.region.classes', "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
@@ -553,6 +553,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       else:
         coprocessorRegionClassList = []
       if 'kerberos' == services['configurations']['hbase-site']['properties']['hbase.security.authentication'].lower():
+        if 'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint' not in coprocessorRegionClassList:
+          coprocessorRegionClassList.append('org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint')
+          putHbaseProperty('hbase.coprocessor.region.classes', ','.join(coprocessorRegionClassList))
         if 'org.apache.hadoop.hbase.security.token.TokenProvider' not in coprocessorRegionClassList:
           coprocessorRegionClassList.append('org.apache.hadoop.hbase.security.token.TokenProvider')
           putHbaseProperty('hbase.coprocessor.region.classes', ','.join(coprocessorRegionClassList))
