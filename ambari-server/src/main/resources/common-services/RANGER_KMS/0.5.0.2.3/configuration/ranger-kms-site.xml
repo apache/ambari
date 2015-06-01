@@ -27,7 +27,12 @@
 
   <property>
     <name>ranger.service.http.port</name>
-    <value>9292</value>
+    <value>{{kms_port}}</value>
+  </property>
+
+  <property>
+    <name>ranger.service.https.port</name>
+    <value>9393</value>
   </property>
   
   <property>

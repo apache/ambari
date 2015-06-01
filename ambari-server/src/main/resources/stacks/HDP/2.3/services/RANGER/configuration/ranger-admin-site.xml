@@ -50,7 +50,7 @@
 
   <property>
     <name>ranger.service.https.attrib.clientAuth</name>
-    <value>false</value>
+    <value>want</value>
     <description></description>
   </property> 
 

@@ -791,6 +791,16 @@ hdp23properties.push({
   },
   {
     "id": "site property",
+    "name": "ranger.usersync.ldap.ldapbindpassword",
+    "displayName": "ranger.usersync.ldap.ldapbindpassword",
+    "displayType": "password",
+    "category": "Advanced ranger-ugsync-site",
+    "isRequired": false,
+    "serviceName": "RANGER",
+    "filename": "ranger-ugsync-site.xml"
+  },
+  {
+    "id": "site property",
     "name": "common.name.for.certificate",
     "displayName": "common.name.for.certificate",
     "category": "Advanced ranger-yarn-plugin-properties",

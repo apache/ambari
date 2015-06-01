@@ -29,21 +29,18 @@ class RangerServiceCheck(Script):
     import params
 
     env.set_params(params)
-    self.check_ranger_admin_service()
-    self.check_ranger_usersync_service()
+    self.check_ranger_admin_service(params.ranger_external_url)
+    if not params.is_ranger_ha_enabled:
+      self.check_ranger_usersync_service()
 
-  def check_ranger_admin_service(self):
-    cmd = 'ps -ef | grep proc_rangeradmin | grep -v grep'
-    code, output = shell.call(cmd, timeout=20)
-    if code == 0:
-      Logger.info('Ranger admin process up and running')
+  def check_ranger_admin_service(self, ranger_external_url):
+    if (self.is_ru_rangeradmin_in_progress()):
+      Logger.info('Ranger admin process not running - skipping as rolling upgrade is in progress')
     else:
-      if (self.is_ru_rangeradmin_in_progress()):
-        Logger.info('Ranger admin process not running - skipping as rolling upgrade is in progress')
-      else:
-        Logger.debug('Ranger admin process not running')
-        raise ComponentIsNotRunning()
-
+      Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {ranger_external_url}/login.jsp | grep 200"),
+        tries = 10,
+        try_sleep=3,
+        logoutput=True)              
 
   def check_ranger_usersync_service(self):
     cmd = 'ps -ef | grep proc_rangerusersync | grep -v grep'

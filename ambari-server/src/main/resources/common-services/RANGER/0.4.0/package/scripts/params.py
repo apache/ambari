@@ -142,3 +142,8 @@ if xml_configurations_supported:
   ranger_usersync_keystore_password = unicode(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.keystore.password"])
   ranger_usersync_ldap_ldapbindpassword = unicode(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.ldap.ldapbindpassword"])
   ranger_usersync_truststore_password = unicode(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.truststore.password"])
+  ranger_usersync_keystore_file = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.keystore.file"]
+  default_dn_name = 'cn=unixauthservice,ou=authenticator,o=mycompany,c=US'
+
+ranger_admin_hosts = config['clusterHostInfo']['ranger_admin_hosts']
+is_ranger_ha_enabled = True if len(ranger_admin_hosts) > 1 else False

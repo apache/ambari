@@ -98,8 +98,8 @@
 
   <property>
     <name>policymgr_external_url</name>
-    <value>http://localhost:6080</value>
-    <description>Policy Manager external url</description>
+    <value></value>
+    <description>Policy Manager external url eg: http://RANGER_HOST:6080</description>
   </property>
 
   <property>

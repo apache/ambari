@@ -63,6 +63,12 @@
   </property>
 
   <property>
+    <name>xasecure.audit.destination.db.batch.filespool.dir</name>
+    <value>/var/log/hadoop/hdfs/audit/db/spool</value>
+    <description></description>
+  </property>
+
+  <property>
     <name>xasecure.audit.destination.hdfs</name>
     <value>true</value>
     <description></description>
@@ -76,7 +82,7 @@
 
   <property>
     <name>xasecure.audit.destination.hdfs.batch.filespool.dir</name>
-    <value>/var/log/hadoop/audit/hdfs/spool</value>
+    <value>/var/log/hadoop/hdfs/audit/hdfs/spool</value>
     <description></description>
   </property>
 
@@ -100,7 +106,7 @@
 
   <property>
     <name>xasecure.audit.destination.solr.batch.filespool.dir</name>
-    <value>/var/log/hadoop/audit/solr/spool</value>
+    <value>/var/log/hadoop/hdfs/audit/solr/spool</value>
     <description></description>
   </property>
 

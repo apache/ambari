@@ -32,7 +32,7 @@
 
   <property>
     <name>ranger.usersync.keystore.file</name>
-    <value>./conf/cert/unixauthservice.jks</value>
+    <value>/usr/hdp/current/ranger-usersync/conf/unixauthservice.jks</value>
     <description></description>
   </property>
 
@@ -45,7 +45,7 @@
 
   <property>
     <name>ranger.usersync.truststore.file</name>
-    <value>./conf/cert/mytruststore.jks</value>
+    <value>/usr/hdp/current/ranger-usersync/conf/mytruststore.jks</value>
     <description></description>
   </property>
 
@@ -136,7 +136,8 @@
 
   <property>
     <name>ranger.usersync.ldap.ldapbindpassword</name>
-    <value>admin321</value>
+    <value></value>
+    <property-type>PASSWORD</property-type>
     <description></description>
   </property>
 
@@ -274,7 +275,7 @@
 
   <property>
     <name>ranger.usersync.credstore.filename</name>
-    <value>/etc/ranger/usersync/ugsync.jceks</value>
+    <value>/usr/hdp/current/ranger-usersync/conf/ugsync.jceks</value>
     <description></description>
   </property>                         
 

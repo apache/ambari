@@ -30,7 +30,7 @@ class TestRangerUsersync(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ranger_usersync.py",
                    classname = "RangerUsersync",
                    command = "configure",
-                   config_file="default.json",
+                   config_file="ranger-admin-default.json",
                    hdp_stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
@@ -41,7 +41,7 @@ class TestRangerUsersync(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ranger_usersync.py",
                    classname = "RangerUsersync",
                    command = "start",
-                   config_file="default.json",
+                   config_file="ranger-admin-default.json",
                    hdp_stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
@@ -57,7 +57,7 @@ class TestRangerUsersync(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ranger_usersync.py",
                    classname = "RangerUsersync",
                    command = "stop",
-                   config_file="default.json",
+                   config_file="ranger-admin-default.json",
                    hdp_stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
@@ -71,7 +71,7 @@ class TestRangerUsersync(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ranger_usersync.py",
                    classname = "RangerUsersync",
                    command = "configure",
-                   config_file="secured.json",
+                   config_file="ranger-admin-secured.json",
                    hdp_stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
@@ -82,7 +82,7 @@ class TestRangerUsersync(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ranger_usersync.py",
                    classname = "RangerUsersync",
                    command = "start",
-                   config_file="secured.json",
+                   config_file="ranger-admin-secured.json",
                    hdp_stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
@@ -98,7 +98,7 @@ class TestRangerUsersync(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ranger_usersync.py",
                    classname = "RangerUsersync",
                    command = "stop",
-                   config_file="secured.json",
+                   config_file="ranger-admin-secured.json",
                    hdp_stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )

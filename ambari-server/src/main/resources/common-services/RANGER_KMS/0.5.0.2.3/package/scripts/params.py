@@ -36,7 +36,7 @@ stack_is_hdp23_or_further = Script.is_hdp_stack_greater_or_equal("2.3")
 
 if stack_is_hdp23_or_further:
   kms_home = '/usr/hdp/current/ranger-kms'
-  kms_conf_dir = '/etc/ranger/kms/conf'
+  kms_conf_dir = '/usr/hdp/current/ranger-kms/conf'
   
 kms_log_dir = config['configurations']['kms-env']['kms_log_dir']
 java_home = config['hostLevelParams']['java_home']
@@ -65,7 +65,7 @@ masterkey_alias = config['configurations']['dbks-site']['ranger.ks.masterkey.cre
 repo_name = str(config['clusterName']) + '_kms'
 cred_lib_path = os.path.join(kms_home,"cred","lib","*")
 cred_setup_prefix = format('python {kms_home}/ranger_credential_helper.py -l "{cred_lib_path}"')
-credential_file = format('/etc/ranger/kms/{repo_name}/cred.jceks')
+credential_file = format('/etc/ranger/{repo_name}/cred.jceks')
 
 if has_ranger_admin:
   policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']

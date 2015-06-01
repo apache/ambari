@@ -63,6 +63,12 @@
   </property>
 
   <property>
+    <name>xasecure.audit.destination.db.batch.filespool.dir</name>
+    <value>/var/log/storm/audit/db/spool</value>
+    <description></description>
+  </property>  
+
+  <property>
     <name>xasecure.audit.destination.hdfs</name>
     <value>true</value>
     <description></description>
