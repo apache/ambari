@@ -23,12 +23,15 @@ from resource_management import *
 from hcat import hcat
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
+from atlas_plugin_utils import configure_for_plugin
 
 
 class HCatClient(Script):
   def install(self, env):
     import params
+    savedConfig = configure_for_plugin(self.command_data_file)
     self.install_packages(env, exclude_packages=params.hive_exclude_packages)
+    Script.config = savedConfig
     self.configure(env)
 
   def configure(self, env):

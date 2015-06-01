@@ -21,6 +21,7 @@ limitations under the License.
 import os
 import glob
 from urlparse import urlparse
+from resource_management import PropertiesFile
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
@@ -197,12 +198,19 @@ def hive(name=None):
 
   XmlConfig("hive-site.xml",
             conf_dir=params.hive_config_dir,
-            configurations=params.config['configurations']['hive-site'],
+            configurations=params.hive_site_config,
             configuration_attributes=params.config['configuration_attributes']['hive-site'],
             owner=params.hive_user,
             group=params.user_group,
             mode=0644)
-  
+
+  if params.atlas_hosts:
+      PropertiesFile(format('{hive_config_dir}/client.properties'),
+                     properties = params.atlas_client_props,
+                     owner = params.hive_user,
+                     group = params.user_group,
+                     mode = 0644)
+
   if params.hive_specific_configs_supported and name == 'hiveserver2':
     XmlConfig("hiveserver2-site.xml",
               conf_dir=params.hive_server_conf_dir,
