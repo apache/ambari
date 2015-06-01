@@ -59,7 +59,7 @@ if [ -e "/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar" ]; th
   export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/lib/*
 fi
 if [ -f /etc/kafka/conf/kafka-ranger-env.sh ]; then
-./etc/kafka/conf/kafka-ranger-env.sh
+. /etc/kafka/conf/kafka-ranger-env.sh
 fi
     </value>
   </property>
