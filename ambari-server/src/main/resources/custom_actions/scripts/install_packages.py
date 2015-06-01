@@ -65,7 +65,9 @@ class InstallPackages(Script):
 
     # Install/update repositories
     installed_repositories = []
-    current_repositories = ['base']  # Some our packages are installed from the base repo
+    # Some packages are installed from core repos
+    # rhui* is used for rhel, and base is for centos
+    current_repositories = ['rhui*','base']
     current_repo_files = set(['base'])
     old_versions = self.hdp_versions()
     
