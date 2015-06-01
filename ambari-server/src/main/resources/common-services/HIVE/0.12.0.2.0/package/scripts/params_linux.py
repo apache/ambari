@@ -115,7 +115,7 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   hive_tar_dest_file = "/hdp/apps/{0}/hive/hive.tar.gz".format(STACK_VERSION_PATTERN)
   pig_tar_dest_file = "/hdp/apps/{0}/pig/pig.tar.gz".format(STACK_VERSION_PATTERN)
 
-  hadoop_streaming_tar_source = "/usr/hdp/{0}/hadoop/hadoop-streaming.jar".format(STACK_VERSION_PATTERN)
+  hadoop_streaming_tar_source = "/usr/hdp/{0}/hadoop-mapreduce/hadoop-streaming.jar".format(STACK_VERSION_PATTERN)
   sqoop_tar_source = "/usr/hdp/{0}/sqoop/sqoop.tar.gz".format(STACK_VERSION_PATTERN)
   hadoop_streaming_tar_dest_dir = "/hdp/apps/{0}/mapreduce/".format(STACK_VERSION_PATTERN)
   sqoop_tar_dest_dir = "/hdp/apps/{0}/sqoop/".format(STACK_VERSION_PATTERN)

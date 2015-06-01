@@ -144,7 +144,7 @@ class TestFalconServer(RMFTestCase):
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
-        owner = 'hdfs',
+        owner = 'falcon',
         group='hadoop',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',

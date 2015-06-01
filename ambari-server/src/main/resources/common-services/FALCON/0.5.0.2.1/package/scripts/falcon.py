@@ -124,7 +124,7 @@ def falcon(type, action = None):
         params.HdfsResource(params.dfs_data_mirroring_dir,
                             type="directory",
                             action="create_on_execute",
-                            owner=params.hdfs_user,
+                            owner=params.falcon_user,
                             group=params.user_group,
                             recursive_chown = True,
                             recursive_chmod = True,

@@ -393,20 +393,20 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       dbAccessor.addColumn(tableName, new DBColumnInfo(HOST_ID_COL, Long.class, null, null, true));
 
       // The column name is different for one table
-      String hostNameColumnName = tableName == SERVICE_CONFIG_HOSTS_TABLE ? "hostname" : "host_name";
+      String hostNameColumnName = tableName.equals(SERVICE_CONFIG_HOSTS_TABLE) ? "hostname" : "host_name";
 
       if (dbAccessor.tableHasData(tableName)) {
         dbAccessor.executeQuery("UPDATE " + tableName + " t SET host_id = (SELECT host_id FROM hosts h WHERE h.host_name = t." + hostNameColumnName + ") WHERE t.host_id IS NULL AND t." + hostNameColumnName + " IS NOT NULL");
 
         // For legacy reasons, the hostrolecommand table will contain "none" for some records where the host_name was not important.
         // These records were populated during Finalize in Rolling Upgrade, so they must be updated to use a valid host_name.
-        if (tableName == HOST_ROLE_COMMAND_TABLE && StringUtils.isNotBlank(randomHostName)) {
+        if (tableName.equals(HOST_ROLE_COMMAND_TABLE) && StringUtils.isNotBlank(randomHostName)) {
           dbAccessor.executeQuery("UPDATE " + tableName + " t SET host_id = (SELECT host_id FROM hosts h WHERE h.host_name = '" + randomHostName + "') WHERE t.host_id IS NULL AND t.host_name = 'none'");
         }
       }
 
       // The one exception for setting NOT NULL is the requestoperationlevel table
-      if (tableName != REQUEST_OPERATION_LEVEL_TABLE) {
+      if (!tableName.equals(REQUEST_OPERATION_LEVEL_TABLE)) {
         if (databaseType == Configuration.DatabaseType.DERBY) {
           // This is a workaround for UpgradeTest.java unit test
           dbAccessor.executeQuery("ALTER TABLE " + tableName + " ALTER column " + HOST_ID_COL + " NOT NULL");
