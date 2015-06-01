@@ -1759,7 +1759,7 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendHbaseEnvConfigurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
 
-  def disabled_test_recommendHbaseSiteConfigurations(self):
+  def test_recommendHbaseSiteConfigurations(self):
     servicesList = ["HBASE"]
     configurations = {}
     components = []
@@ -1872,7 +1872,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # Test when hbase.security.authentication = kerberos
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
-    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.token.TokenProvider'
+    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
@@ -1886,16 +1886,17 @@ class TestHDP22StackAdvisor(TestCase):
     configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
     services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d'
-    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d,org.apache.hadoop.hbase.security.token.TokenProvider'
+    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d,org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
     # Test when hbase.security.authentication = kerberos AND authorization = true
     configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
+    services['configurations']['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
     services['configurations']['hbase-site']['properties']['hbase.security.authorization'] = 'true'
     expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = "org.apache.hadoop.hbase.security.access.AccessController"
-    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController,org.apache.hadoop.hbase.security.token.TokenProvider'
+    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController,org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
     expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = "org.apache.hadoop.hbase.security.access.AccessController"
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
