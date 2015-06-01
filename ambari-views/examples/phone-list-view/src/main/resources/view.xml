@@ -18,10 +18,33 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <name>PHONE_LIST</name>
   <label>The Phone List View</label>
   <version>1.0.0</version>
+  <parameter>
+    <name>data.store.enabled</name>
+    <description>
+      Determine whether or not to use the view persistence data store.
+      A value of false indicates that the view properties should be used instead of the data store.
+    </description>
+    <default-value>false</default-value>
+    <required>false</required>
+  </parameter>
+  <persistence>
+    <entity>
+      <class>org.apache.ambari.view.phonelist.PhoneUser</class>
+      <id-property>name</id-property>
+    </entity>
+  </persistence>
   <instance>
     <name>LIST_1</name>
+    <property>
+      <key>data.store.enabled</key>
+      <value>false</value>
+    </property>
   </instance>
   <instance>
     <name>LIST_2</name>
+    <property>
+      <key>data.store.enabled</key>
+      <value>true</value>
+    </property>
   </instance>
 </view>
