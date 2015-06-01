@@ -252,6 +252,7 @@ Em.I18n.translations = {
   'common.dismiss': "Dismiss",
   'common.stdout': "stdout",
   'common.stderr': "stderr",
+  'common.structuredOut': "structured_out",
   'common.fileName': 'File name',
   'common.days': "Days",
   'common.hours': "Hours",
@@ -266,6 +267,7 @@ Em.I18n.translations = {
   'common.scope': 'Scope',
   'common.clone': 'Clone',
   'common.removed': 'Removed',
+  'common.testing': 'Testing',
 
   'models.alert_instance.tiggered.verbose': "Occured on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occured on {0}",
@@ -1766,6 +1768,7 @@ Em.I18n.translations = {
   'services.service.config.database.connection.success': 'Connection OK',
   'services.service.config.database.connection.inProgress': 'Checking connectivity',
   'services.service.config.database.connection.failed': 'Connection Failed',
+  'services.service.config.connection.logsPopup.header': '{0} Connection: {1}',
   'services.service.config.connection.exitPopup.msg': 'Test connection is in progress. It\'s recommended to wait until it wil be complete. Are you sure you want to exit Enable Kerberos Wizard?',
   'services.service.config.database.btn.idle': 'Test Connection',
   'services.service.config.kdc.btn.idle': 'Test KDC Connection',

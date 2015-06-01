@@ -952,6 +952,134 @@ describe('App.CheckDBConnectionView', function () {
 
   });
 
+  describe('#setResponseStatus', function () {
+
+    var view,
+      cases = [
+        {
+          isSuccess: 'success',
+          logsPopupBefore: null,
+          logsPopup: null,
+          responseCaption: Em.I18n.t('services.service.config.database.connection.success'),
+          isConnectionSuccess: true,
+          title: 'success, no popup displayed'
+        },
+        {
+          isSuccess: 'success',
+          logsPopupBefore: {},
+          logsPopup: {
+            header: Em.I18n.t('services.service.config.connection.logsPopup.header').format('MySQL', Em.I18n.t('common.success'))
+          },
+          responseCaption: Em.I18n.t('services.service.config.database.connection.success'),
+          isConnectionSuccess: true,
+          title: 'success, popup is displayed'
+        },
+        {
+          isSuccess: 'error',
+          logsPopupBefore: {},
+          logsPopup: {
+            header: Em.I18n.t('services.service.config.connection.logsPopup.header').format('MySQL', Em.I18n.t('common.error'))
+          },
+          responseCaption: Em.I18n.t('services.service.config.database.connection.failed'),
+          isConnectionSuccess: false,
+          title: 'error, popup is displayed'
+        }
+      ];
+
+    beforeEach(function () {
+      view = App.CheckDBConnectionView.create({
+        databaseName: 'MySQL'
+      });
+      sinon.stub(view, 'setConnectingStatus', Em.K);
+    });
+
+    afterEach(function () {
+      view.setConnectingStatus.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        view.set('logsPopup', item.logsPopupBefore);
+        view.setResponseStatus(item.isSuccess);
+        expect(view.get('isRequestResolved')).to.be.true;
+        expect(view.setConnectingStatus.calledOnce).to.be.true;
+        expect(view.setConnectingStatus.calledWith(false)).to.be.true;
+        expect(view.get('responseCaption')).to.equal(item.responseCaption);
+        expect(view.get('isConnectionSuccess')).to.equal(item.isConnectionSuccess);
+        expect(view.get('logsPopup')).to.eql(item.logsPopup);
+      });
+    });
+
+  });
+
+  describe('#showLogsPopup', function () {
+
+    var view,
+      cases = [
+        {
+          isConnectionSuccess: true,
+          showAlertPopupCallCount: 0,
+          title: 'successful connection'
+        },
+        {
+          isConnectionSuccess: false,
+          isRequestResolved: true,
+          showAlertPopupCallCount: 1,
+          responseFromServer: 'fail',
+          header: Em.I18n.t('services.service.config.connection.logsPopup.header').format('MySQL', Em.I18n.t('common.error')),
+          popupMethodExecuted: 'onClose',
+          title: 'failed connection without output data, popup dismissed with Close button'
+        },
+        {
+          isConnectionSuccess: false,
+          isRequestResolved: false,
+          showAlertPopupCallCount: 1,
+          responseFromServer: {
+            stderr: 'stderr',
+            stdout: 'stdout',
+            structuredOut: 'structuredOut'
+          },
+          header: Em.I18n.t('services.service.config.connection.logsPopup.header').format('MySQL', Em.I18n.t('common.testing')),
+          popupMethodExecuted: 'onPrimary',
+          title: 'check in progress with output data, popup dismissed with OK button'
+        }
+      ];
+
+    beforeEach(function () {
+      view = App.CheckDBConnectionView.create({
+        databaseName: 'MySQL'
+      });
+      sinon.spy(App, 'showAlertPopup');
+    });
+
+    afterEach(function () {
+      App.showAlertPopup.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        view.setProperties({
+          isConnectionSuccess: item.isConnectionSuccess,
+          isRequestResolved: item.isRequestResolved,
+          responseFromServer: item.responseFromServer
+        });
+        view.showLogsPopup();
+        expect(App.showAlertPopup.callCount).to.equal(item.showAlertPopupCallCount);
+        if (!item.isConnectionSuccess) {
+          expect(view.get('logsPopup.header')).to.equal(item.header);
+          if (typeof item.responseFromServer == 'object') {
+            expect(view.get('logsPopup.bodyClass').create().get('openedTask')).to.eql(item.responseFromServer);
+          } else {
+            expect(view.get('logsPopup.body')).to.equal(item.responseFromServer);
+          }
+          view.get('logsPopup')[item.popupMethodExecuted]();
+          expect(view.get('logsPopup')).to.be.null;
+        }
+      });
+    });
+
+  });
+
 });
 
 describe('App.BaseUrlTextField', function () {

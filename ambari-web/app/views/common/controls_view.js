@@ -1195,6 +1195,8 @@ App.CheckDBConnectionView = Ember.View.extend({
   request: null,
   /** @property {Number} pollInterval - timeout interval for ajax polling **/
   pollInterval: 3000,
+  /** @property {Object} logsPopup - popup with DB connection check info **/
+  logsPopup: null,
   /** @property {string} hostNameProperty - host name property based on service and database names **/
   hostNameProperty: function() {
     if (!/wizard/i.test(this.get('controller.name')) && this.get('parentView.service.serviceName') === 'HIVE') {
@@ -1526,6 +1528,10 @@ App.CheckDBConnectionView = Ember.View.extend({
     this.set('responseCaption', isSuccess ? Em.I18n.t('services.service.config.database.connection.success') : Em.I18n.t('services.service.config.database.connection.failed'));
     this.set('isConnectionSuccess', isSuccess);
     this.set('isRequestResolved', true);
+    if (this.get('logsPopup')) {
+      var statusString = isSuccess ? 'common.success' : 'common.error';
+      this.set('logsPopup.header', Em.I18n.t('services.service.config.connection.logsPopup.header').format(this.get('databaseName'), Em.I18n.t(statusString)));
+    }
   },
   /**
    * Switch captions and statuses for active/non-active request.
@@ -1564,15 +1570,28 @@ App.CheckDBConnectionView = Ember.View.extend({
   showLogsPopup: function() {
     if (this.get('isConnectionSuccess')) return;
     var _this = this;
-    var popup = App.showAlertPopup('Error: {0} connection'.format(this.get('databaseName')));
+    var statusString = this.get('isRequestResolved') ? 'common.error' : 'common.testing';
+    var popup = App.showAlertPopup(Em.I18n.t('services.service.config.connection.logsPopup.header').format(this.get('databaseName'), Em.I18n.t(statusString)), null, function () {
+      _this.set('logsPopup', null);
+    });
+    popup.reopen({
+      onClose: function () {
+        this._super();
+        _this.set('logsPopup', null);
+      }
+    });
     if (typeof this.get('responseFromServer') == 'object') {
       popup.set('bodyClass', Em.View.extend({
+        checkDBConnectionView: _this,
         templateName: require('templates/common/error_log_body'),
-        openedTask: _this.get('responseFromServer')
+        openedTask: function () {
+          return this.get('checkDBConnectionView.responseFromServer');
+        }.property('checkDBConnectionView.responseFromServer.stderr', 'checkDBConnectionView.responseFromServer.stdout', 'checkDBConnectionView.responseFromServer.structuredOut')
       }));
     } else {
       popup.set('body', this.get('responseFromServer'));
     }
+    this.set('logsPopup', popup);
     return popup;
   }
 });
