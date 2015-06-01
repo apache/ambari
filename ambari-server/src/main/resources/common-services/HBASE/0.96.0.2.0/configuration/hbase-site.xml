@@ -375,7 +375,7 @@
 
   <property>
     <name>hbase.coprocessor.region.classes</name>
-    <value></value>
+    <value>org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint</value>
     <description>A comma-separated list of Coprocessors that are loaded by
     default on all tables. For any override coprocessor method, these classes
     will be called in order. After implementing your own Coprocessor, just put
