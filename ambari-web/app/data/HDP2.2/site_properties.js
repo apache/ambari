@@ -109,6 +109,26 @@ hdp22properties.push(
   },
   {
     "id": "site property",
+    "name": "hadoop.security.key.provider.path",
+    "displayName": "hadoop.security.key.provider.path",
+    "defaultValue": "",
+    "isRequired": false,
+    "category": "Advanced core-site",
+    "serviceName": "HDFS",
+    "filename": "core-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "dfs.encryption.key.provider.uri",
+    "displayName": "dfs.encryption.key.provider.uri",
+    "defaultValue": "",
+    "isRequired": false,
+    "category": "Advanced hdfs-site",
+    "serviceName": "HDFS",
+    "filename": "hdfs-site.xml"
+  },
+  {
+    "id": "site property",
     "name": "*.falcon.graph.blueprints.graph",
     "displayName": "*.falcon.graph.blueprints.graph",
     "category": "FalconStartupSite",
@@ -873,6 +893,26 @@ hdp22properties.push(
     "id": "site property",
     "name": "hbase.regionserver.global.memstore.size",
     "displayName": "hbase.regionserver.global.memstore.size",
+    "category": "Advanced hbase-site",
+    "serviceName": "HBASE",
+    "filename": "hbase-site.xml"
+  },
+  {
+  "id": "site property",
+    "name": "hbase.regionserver.rpc.scheduler.factory.class",
+    "displayName": "hbase.regionserver.rpc.scheduler.factory.class",
+    "defaultValue": "",
+    "isRequired": false,
+    "category": "Advanced hbase-site",
+    "serviceName": "HBASE",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.rpc.controllerfactory.class",
+    "displayName": "hbase.rpc.controllerfactory.class",
+    "defaultValue": "",
+    "isRequired": false,
     "category": "Advanced hbase-site",
     "serviceName": "HBASE",
     "filename": "hbase-site.xml"

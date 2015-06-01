@@ -19,6 +19,7 @@
             "yarn.timeline-service.enabled": "true",
             "yarn.timeline-service.http-authentication.type": "kerberos",
             "yarn.acl.enable": "true",
+            "yarn.admin.acl": " ",
             "yarn.timeline-service.http-authentication.signature.secret": "",
             "yarn.timeline-service.http-authentication.signature.secret.file": "",
             "yarn.timeline-service.http-authentication.signer.secret.provider": "",
