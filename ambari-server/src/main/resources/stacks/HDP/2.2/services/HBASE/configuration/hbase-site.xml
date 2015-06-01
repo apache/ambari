@@ -20,6 +20,13 @@
  */
 -->
 <configuration>
+  <property >
+    <name>hbase.bulkload.staging.dir</name>
+    <value>/apps/hbase/staging</value>
+    <description>A staging directory in default file system (HDFS)
+    for bulk loading.
+    </description>
+  </property>
   <property>
     <name>hbase.hstore.flush.retries.number</name>
     <value>120</value>
