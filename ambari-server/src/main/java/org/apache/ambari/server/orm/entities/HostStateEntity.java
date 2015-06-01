@@ -74,6 +74,14 @@ public class HostStateEntity {
   @JoinColumn(name = "host_id", referencedColumnName = "host_id", nullable = false)
   private HostEntity hostEntity;
 
+  public Long getHostId() {
+    return hostId;
+  }
+
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
+  }
+
   public Long getAvailableMem() {
     return availableMem;
   }

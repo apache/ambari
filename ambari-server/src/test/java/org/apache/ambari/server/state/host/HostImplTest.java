@@ -20,6 +20,7 @@ package org.apache.ambari.server.state.host;
 import com.google.gson.Gson;
 import com.google.inject.Injector;
 import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.HostStateDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.state.Clusters;
@@ -43,15 +44,20 @@ public class HostImplTest {
     HostStateEntity hostStateEntity = createNiceMock(HostStateEntity.class);
     HostDAO hostDAO  = createNiceMock(HostDAO.class);
     Injector injector = createNiceMock(Injector.class);
+    HostStateDAO hostStateDAO  = createNiceMock(HostStateDAO.class);
+
 
     Gson gson = new Gson();
 
     expect(injector.getInstance(Gson.class)).andReturn(gson).anyTimes();
     expect(injector.getInstance(HostDAO.class)).andReturn(hostDAO).anyTimes();
+    expect(injector.getInstance(HostStateDAO.class)).andReturn(hostStateDAO).anyTimes();
     expect(hostEntity.getHostAttributes()).andReturn("{\"foo\": \"aaa\", \"bar\":\"bbb\"}").anyTimes();
+    expect(hostEntity.getHostId()).andReturn(1L).anyTimes();
     expect(hostEntity.getHostName()).andReturn("host1").anyTimes();
     expect(hostEntity.getHostStateEntity()).andReturn(hostStateEntity).anyTimes();
-    expect(hostDAO.findByName("host1")).andReturn(hostEntity);
+    expect(hostDAO.findById(1L)).andReturn(hostEntity).once();
+    expect(hostStateDAO.findByHostId(1L)).andReturn(hostStateEntity).once();
 
     replay(hostEntity, hostStateEntity, injector, hostDAO);
     HostImpl host = new HostImpl(hostEntity, false, injector);
@@ -75,16 +81,20 @@ public class HostImplTest {
     HostEntity hostEntity = createNiceMock(HostEntity.class);
     HostStateEntity hostStateEntity = createNiceMock(HostStateEntity.class);
     HostDAO hostDAO  = createNiceMock(HostDAO.class);
+    HostStateDAO hostStateDAO  = createNiceMock(HostStateDAO.class);
     Injector injector = createNiceMock(Injector.class);
 
     Gson gson = new Gson();
 
     expect(injector.getInstance(Gson.class)).andReturn(gson).anyTimes();
     expect(injector.getInstance(HostDAO.class)).andReturn(hostDAO).anyTimes();
+    expect(injector.getInstance(HostStateDAO.class)).andReturn(hostStateDAO).anyTimes();
     expect(hostEntity.getHostAttributes()).andReturn("{\"foo\": \"aaa\", \"bar\":\"bbb\"}").anyTimes();
     expect(hostEntity.getHostName()).andReturn("host1").anyTimes();
+    expect(hostEntity.getHostId()).andReturn(1L).anyTimes();
     expect(hostEntity.getHostStateEntity()).andReturn(hostStateEntity).anyTimes();
-    expect(hostDAO.findByName("host1")).andReturn(hostEntity);
+    expect(hostDAO.findById(1L)).andReturn(hostEntity).anyTimes();
+    expect(hostStateDAO.findByHostId(1L)).andReturn(hostStateEntity).once();
 
     replay(hostEntity, hostStateEntity, injector, hostDAO);
     HostImpl host = new HostImpl(hostEntity, false, injector);

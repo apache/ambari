@@ -253,7 +253,7 @@ public class HostImpl implements Host {
       hostStateEntity = new HostStateEntity();
       hostStateEntity.setHostEntity(hostEntity);
       hostEntity.setHostStateEntity(hostStateEntity);
-      setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, ""));
+      hostStateEntity.setHealthStatus(gson.toJson(new HostHealthStatus(HealthStatus.UNKNOWN, "")));
       if (persisted) {
         persist();
       }
@@ -1429,7 +1429,7 @@ public class HostImpl implements Host {
   // Get the cached host entity or load it fresh through the DAO.
   public HostEntity getHostEntity() {
     if (isPersisted()) {
-      hostEntity = hostDAO.findByName(hostEntity.getHostName());
+      hostEntity = hostDAO.findById(hostEntity.getHostId());
     }
     return hostEntity;
   }
@@ -1437,7 +1437,7 @@ public class HostImpl implements Host {
   // Get the cached host state entity or load it fresh through the DAO.
   public HostStateEntity getHostStateEntity() {
     if (isPersisted()) {
-      hostStateEntity = getHostEntity().getHostStateEntity();
+      hostStateEntity = hostStateDAO.findByHostId(hostEntity.getHostId()) ;
     }
     return hostStateEntity;
   }

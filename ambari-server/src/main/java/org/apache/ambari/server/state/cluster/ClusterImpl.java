@@ -1290,36 +1290,37 @@ public class ClusterImpl implements Cluster {
       }
 
       // Part 2, check for transitions.
-      Set<Host> hostsWithoutHostVersion = new HashSet<Host>();
+      Set<String> hostsWithoutHostVersion = new HashSet<String>();
       Map<RepositoryVersionState, Set<String>> stateToHosts = new HashMap<RepositoryVersionState, Set<String>>();
-      for (Host host : hosts.values()) {
-        String hostName = host.getHostName();
-        HostVersionEntity hostVersion = hostVersionDAO.findByClusterStackVersionAndHost(
-            getClusterName(), stackId, repositoryVersion, hostName);
 
-        if (hostVersion == null) {
-          // This host either has not had a chance to heartbeat yet with its
-          // installed component, or it has components
-          // that do not advertise a version.
-          hostsWithoutHostVersion.add(host);
-          continue;
-        }
+      //hack until better hostversion integration into in-memory cluster structure
 
-        RepositoryVersionState hostState = hostVersion.getState();
+      List<HostVersionEntity> hostVersionEntities =
+              hostVersionDAO.findByClusterStackAndVersion(getClusterName(), stackId, repositoryVersion);
+
+      Set<String> hostsWithState = new HashSet<String>();
+      for (HostVersionEntity hostVersionEntity : hostVersionEntities) {
+        String hostname = hostVersionEntity.getHostEntity().getHostName();
+        hostsWithState.add(hostname);
+        RepositoryVersionState hostState = hostVersionEntity.getState();
+
         if (stateToHosts.containsKey(hostState)) {
-          stateToHosts.get(hostState).add(hostName);
+          stateToHosts.get(hostState).add(hostname);
         } else {
           Set<String> hostsInState = new HashSet<String>();
-          hostsInState.add(hostName);
+          hostsInState.add(hostname);
           stateToHosts.put(hostState, hostsInState);
         }
       }
 
+      hostsWithoutHostVersion.addAll(hosts.keySet());
+      hostsWithoutHostVersion.removeAll(hostsWithState);
+
       // Ensure that all of the hosts without a Host Version only have
       // Components that do not advertise a version.
       // Otherwise, operations are still in progress.
-      for (Host host : hostsWithoutHostVersion) {
-        HostEntity hostEntity = hostDAO.findByName(host.getHostName());
+      for (String hostname : hostsWithoutHostVersion) {
+        HostEntity hostEntity = hostDAO.findByName(hostname);
         final Collection<HostComponentStateEntity> allHostComponents = hostEntity.getHostComponentStateEntities();
 
         for (HostComponentStateEntity hostComponentStateEntity : allHostComponents) {
@@ -1334,7 +1335,7 @@ public class ClusterImpl implements Cluster {
 
             if (compInfo.isVersionAdvertised()) {
               LOG.debug("Skipping transitioning the cluster version because host "
-                  + host.getHostName() + " does not have a version yet.");
+                  + hostname + " does not have a version yet.");
               return;
             }
           }
