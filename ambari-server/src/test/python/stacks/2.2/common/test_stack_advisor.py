@@ -2183,6 +2183,44 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEqual("kms://http@myhost1:2222/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
 
+  def test_validateTezConfigurationsEnv(self):
+    configurations = {
+        "yarn-site": {
+            "properties": {
+                "yarn.scheduler.minimum-allocation-mb": "100",
+                "yarn.scheduler.maximum-allocation-mb": "2048"
+            }
+        }
+    }
+
+    recommendedDefaults = {'tez.task.resource.memory.mb': '1024',
+                           'tez.runtime.io.sort.mb' : '256',
+                           'tez.runtime.unordered.output.buffer.size-mb' : '256',
+                           'tez.am.resource.memory.mb' : '1024'}
+
+    properties = {'tez.task.resource.memory.mb': '2050',
+                  'tez.runtime.io.sort.mb' : '256',
+                  'tez.runtime.unordered.output.buffer.size-mb' : '256',
+                  'tez.am.resource.memory.mb' : '2050'}
+
+
+    res_expected = [{'config-name': 'tez.am.resource.memory.mb',
+                 'config-type': 'tez-site',
+                 'level': 'WARN',
+                 'message': "tez.am.resource.memory.mb should be less than YARN max allocation size (2048)",
+                 'type': 'configuration',
+                 'level': 'WARN'},
+                    {'config-name': 'tez.task.resource.memory.mb',
+                 'config-type': 'tez-site',
+                 'level': 'WARN',
+                 'message': "tez.task.resource.memory.mb should be less than YARN max allocation size (2048)",
+                 'type': 'configuration',
+                 'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateTezConfigurations(properties, recommendedDefaults, configurations, '', '')
+    self.assertEquals(res, res_expected)
+
+
   def test_validateHDFSConfigurationsEnv(self):
     configurations = {}
 
