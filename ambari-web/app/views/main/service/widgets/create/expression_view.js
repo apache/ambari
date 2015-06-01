@@ -393,8 +393,20 @@ App.AddMetricExpressionView = Em.View.extend({
       }));
     }
 
-    return result;
-  }.property('controller.filteredMetrics')
+    return this.putContextServiceOnTop(result);
+  }.property('controller.filteredMetrics'),
+
+  /**
+   * returns the input array with the context service (service from which widget browser is launched) as the first element of the array
+   * @param serviceComponentMap {Array}
+   * @return {Array}
+   */
+  putContextServiceOnTop: function(serviceComponentMap) {
+    var contextService = this.get('controller.content.widgetService');
+    var serviceIndex = serviceComponentMap.indexOf(serviceComponentMap.findProperty('serviceName', contextService));
+    return serviceComponentMap.slice(serviceIndex, serviceComponentMap.length).concat(serviceComponentMap.slice(0, serviceIndex));
+  }
+
 });
 
 App.InputCursorTextfieldView = Ember.TextField.extend({

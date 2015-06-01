@@ -89,6 +89,7 @@ App.WidgetEditController = App.WidgetWizardController.extend({
         type: 'sync',
         callback: function () {
           this.load('widgetType');
+          this.load('widgetService');
           this.load('widgetProperties', true);
           this.load('widgetValues', true);
           this.load('widgetMetrics', true);
