@@ -515,10 +515,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       if 'true' == hbase_security_authorization.lower():
         putHbaseProperty('hbase.coprocessor.master.classes', "org.apache.hadoop.hbase.security.access.AccessController")
         putHbaseProperty('hbase.coprocessor.region.classes', "org.apache.hadoop.hbase.security.access.AccessController")
-        putHbaseProperty('hbase.coprocessor.regionserver.classes', "org.apache.hadoop.hbase.security.access.AccessController")
+        putHbaseProperty('hbase.coprocessor.regionserver.classes', "org.apache.hadoop.hbase.security.access.AccessController,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
       else:
         putHbaseProperty('hbase.coprocessor.master.classes', "")
-        putHbaseProperty('hbase.coprocessor.region.classes', "")
+        putHbaseProperty('hbase.coprocessor.region.classes', "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
         putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
     else:
       putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
