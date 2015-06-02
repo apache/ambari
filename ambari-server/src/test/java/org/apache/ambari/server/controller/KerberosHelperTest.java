@@ -25,10 +25,12 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -2430,10 +2432,11 @@ public class KerberosHelperTest extends EasyMockSupport {
       Assert.assertNotNull(serviceCheckID);
 
       Assert.assertTrue(commandParamsStage.containsKey("principal_name"));
-      Assert.assertEquals("${cluster-env/smokeuser}_" + serviceCheckID + "@${realm}", commandParamsStage.get("principal_name"));
+      Assert.assertEquals("${kerberos-env/service_check_principal_name}@${realm}", commandParamsStage.get("principal_name"));
 
       Assert.assertTrue(commandParamsStage.containsKey("keytab_file"));
-      Assert.assertEquals("${keytab_dir}/kerberos.service_check." + serviceCheckID + ".keytab", commandParamsStage.get("keytab_file"));
+      Assert.assertEquals("${keytab_dir}/kerberos.service_check." + new SimpleDateFormat("MMddyy").format(new Date()) + ".keytab",
+          commandParamsStage.get("keytab_file"));
     }
   }
 

@@ -77,6 +77,13 @@
     <value/>
   </property>
 
+  <property>
+    <name>service_check_principal_name</name>
+    <description>
+      The principal name to use when executing the Kerberos service check
+    </description>
+    <value>${cluster_name}-${short_date}</value>
+  </property>
 
   <property require-input="true">
     <name>create_attributes_template</name>

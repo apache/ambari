@@ -3235,14 +3235,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     List<Stage> stages = rg.getStages();
 
     if (stages != null && !stages.isEmpty()) {
-      // If this is a Kerberos service check, set the service check stage(s) to be skip-able so that
-      // the clean up stages will still be triggered in the event of a failure.
-      if (kerberosServiceCheck) {
-        for (Stage s : stages) {
-          s.setSkippable(true);
-        }
-      }
-
       requestStageContainer.addStages(stages);
     }
 

@@ -103,9 +103,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1200,14 +1202,14 @@ public class KerberosHelperImpl implements KerberosHelper {
               put("principal",
                   new HashMap<String, Object>() {
                     {
-                      put("value", "${cluster-env/smokeuser}_${service_check_id}@${realm}");
+                      put("value", "${kerberos-env/service_check_principal_name}@${realm}");
                       put("type", "user");
                     }
                   });
               put("keytab",
                   new HashMap<String, Object>() {
                     {
-                      put("file", "${keytab_dir}/kerberos.service_check.${service_check_id}.keytab");
+                      put("file", "${keytab_dir}/kerberos.service_check.${short_date}.keytab");
 
                       put("owner", new HashMap<String, Object>() {{
                         put("name", "${cluster-env/smokeuser}");
@@ -1245,6 +1247,9 @@ public class KerberosHelperImpl implements KerberosHelper {
 
                 // Set the unique service check identifier
                 configurations.get("").put("service_check_id", serviceCheckId);
+
+                // Add a short date value
+                configurations.get("").put("short_date", new SimpleDateFormat("MMddyy").format(new Date()));
 
                 // Iterate over the components installed on the current host to get the service and
                 // component-level Kerberos descriptors in order to determine which principals,
