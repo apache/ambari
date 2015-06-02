@@ -35,6 +35,7 @@ from hive import hive
 from hive_service import hive_service
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
+from atlas_plugin_utils import configure_for_plugin
 
 # the legacy conf.server location in HDP 2.2
 LEGACY_HIVE_SERVER_CONF = "/etc/hive/conf.server"
@@ -58,6 +59,9 @@ class HiveMetastore(Script):
   def configure(self, env):
     import params
     env.set_params(params)
+    savedConfig = configure_for_plugin(self.command_data_file)
+    self.install_packages(env, exclude_packages = params.hive_exclude_packages)
+    Script.config = savedConfig
     hive(name = 'metastore')
 
 

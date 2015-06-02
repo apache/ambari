@@ -36,6 +36,7 @@ if OSCheck.is_windows_family():
   from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
 from setup_ranger_hive import setup_ranger_hive
 from ambari_commons.os_family_impl import OsFamilyImpl
+from atlas_plugin_utils import configure_for_plugin
 from resource_management.core.logger import Logger
 
 import hive_server_upgrade
@@ -51,6 +52,9 @@ class HiveServer(Script):
   def configure(self, env):
     import params
     env.set_params(params)
+    savedConfig = configure_for_plugin(self.command_data_file)
+    self.install_packages(env, exclude_packages=params.hive_exclude_packages)
+    Script.config = savedConfig
     hive(name='hiveserver2')
 
 
