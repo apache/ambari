@@ -525,7 +525,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     hbase_coprocessor_region_classes = None
     if 'hbase.coprocessor.region.classes' in configurations["hbase-site"]["properties"]:
       hbase_coprocessor_region_classes = configurations["hbase-site"]["properties"]["hbase.coprocessor.region.classes"].strip()
-    elif 'hbase.coprocessor.region.classes' in services['configurations']["hbase-site"]["properties"]:
+    elif 'hbase-site' in services['configurations'] and 'hbase.coprocessor.region.classes' in services['configurations']["hbase-site"]["properties"]:
       hbase_coprocessor_region_classes = services['configurations']["hbase-site"]["properties"]["hbase.coprocessor.region.classes"].strip()
     if hbase_coprocessor_region_classes:
       coprocessorRegionClassList = hbase_coprocessor_region_classes.split(',')

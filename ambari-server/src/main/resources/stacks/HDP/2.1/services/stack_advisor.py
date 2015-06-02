@@ -86,7 +86,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
       yarnSchedulerMaximumAllocationMb = to_number(yarnSiteProperties["yarn.scheduler.maximum-allocation-mb"])
       hiveTezContainerSize = to_number(properties['hive.tez.container.size'])
       if hiveTezContainerSize is not None and yarnSchedulerMaximumAllocationMb is not None and hiveTezContainerSize > yarnSchedulerMaximumAllocationMb:
-        validationItems.append({"config-name": 'hive.tez.container.size', "item": self.getWarnItem("yarn.scheduler.maximum-allocation-mb is less than hive.tez.container.size")})
+        validationItems.append({"config-name": 'hive.tez.container.size', "item": self.getWarnItem("hive.tez.container.size is greater than the maximum container size specified in yarn.scheduler.maximum-allocation-mb")})
     return self.toConfigurationValidationProblems(validationItems, "hive-site")
 
   def validateTezConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):

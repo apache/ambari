@@ -113,6 +113,11 @@ App.StackConfigProperty = DS.Model.extend({
    */
   propertyDependedBy: DS.attr('array', {defaultValue: []}),
 
+  /**
+   * this property contains list of file type and name of properties
+   * which values depends on current property
+   * @property {object[]}
+   */
   propertyDependsOn: DS.attr('array', {defaultValue: []}),
 
   /**

@@ -52,6 +52,12 @@ describe('App.stackConfigPropertiesMapper', function () {
               "stack_name" : "HDP",
               "stack_version" : "2.2",
               "type" : "site1.xml",
+              "property_depends_on": [
+                {
+                  "name": "p5",
+                  "type": "site5"
+                }
+              ],
               "property_value_attributes": {
                 "type": "int",
                 "minimum": "512",
@@ -187,6 +193,12 @@ describe('App.stackConfigPropertiesMapper', function () {
           "name": "p4"
         }
       ]);
+      expect(App.StackConfigProperty.find('p1_site1').get('propertyDependsOn')).to.eql([
+        {
+          "type": "site5",
+          "name": "p5"
+        }
+      ]);
       expect(App.StackConfigProperty.find('p1_site1').get('valueAttributes')).to.eql({
         "type": "int",
         "minimum": "512",
@@ -207,4 +219,3 @@ describe('App.stackConfigPropertiesMapper', function () {
   });
 
 });
-

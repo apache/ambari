@@ -180,7 +180,9 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    */
   setDependentServices: function(serviceName) {
     App.StackConfigProperty.find().forEach(function(stackProperty) {
-      if (stackProperty.get('serviceName') === serviceName && stackProperty.get('propertyDependedBy.length') > 0) {
+      if (stackProperty.get('serviceName') === serviceName &&
+        (stackProperty.get('propertyDependedBy.length') > 0 ||
+         stackProperty.get('propertyDependsOn.length') > 0)) {
         this._setDependentServicesAndFileNames(stackProperty, 'propertyDependedBy');
         this._setDependentServicesAndFileNames(stackProperty, 'propertyDependsOn');
       }
@@ -234,7 +236,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    */
   removeCurrentFromDependentList: function (config, saveRecommended) {
     var current = this.get('_dependentConfigValues').find(function(dependentConfig) {
-      return Em.get(dependentConfig, 'propertyName') == config.get('name') && Em.get(dependentConfig, 'fileName') == App.config.getConfigTagFromFileName(config.get('filename'))
+      return Em.get(dependentConfig, 'propertyName') == config.get('name') && Em.get(dependentConfig, 'fileName') == App.config.getConfigTagFromFileName(config.get('filename'));
     });
     if (current) {
       Em.setProperties(current, {
@@ -375,6 +377,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * defines file names for configs and set them to <code>dependentFileNames<code> and
    * defines service names for configs and set them to <code>dependentServiceNames<code>
    * @param {App.StackConfigProperty} stackProperty
+   * @param {String} [key='propertyDependedBy'] - attribute to check dependent configs
    * @private
    */
   _setDependentServicesAndFileNames: function(stackProperty, key) {
