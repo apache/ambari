@@ -2564,4 +2564,80 @@ describe('App.MainHostDetailsController', function () {
     });
 
   });
+
+  describe('#onLoadRangerConfigs()', function () {
+
+    var cases = [
+      {
+        'kmsHosts': ['host1'],
+        'kmsPort': 'port',
+        'title': 'single host',
+        'hostToInstall': undefined,
+        'result': [
+          {
+            properties: {
+              'core-site': {'hadoop.security.key.provider.path': 'kms://http@host1:port/kms'},
+              'hdfs-site': {'dfs.encryption.key.provider.uri': 'kms://http@host1:port/kms'}
+            },
+            properties_attributes: {
+              'core-site': undefined,
+              'hdfs-site': undefined
+            }
+          }
+        ]
+      },
+      {
+        'kmsHosts': ['host1', 'host2'],
+        'kmsPort': 'port',
+        'title': 'two hosts',
+        'hostToInstall': 'host2',
+        'result': [
+          {
+            properties: {
+              'core-site': {'hadoop.security.key.provider.path': 'kms://http@host1;host2:port/kms'},
+              'hdfs-site': {'dfs.encryption.key.provider.uri': 'kms://http@host1;host2:port/kms'}
+            },
+            properties_attributes: {
+              'core-site': undefined,
+              'hdfs-site': undefined
+            }
+          }
+        ]
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.spy(controller, 'saveConfigsBatch')
+    });
+
+    afterEach(function () {
+      controller.saveConfigsBatch.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        controller.set('rangerKMSServerHost', item.hostToInstall);
+        sinon.stub(controller, 'getRangerKMSServerHosts').returns(item.kmsHosts);
+        var data = {
+          items: [
+            {
+              type: 'kms-env',
+              properties: {'kms_port': item.kmsPort}
+            },
+            {
+              type: 'core-site',
+              properties: {}
+            },
+            {
+              type: 'hdfs-site',
+              properties: {}
+            }
+          ]
+        };
+        controller.onLoadRangerConfigs(data);
+        expect(controller.saveConfigsBatch.calledWith(item.result, 'RANGER_KMS_SERVER', item.hostToInstall)).to.be.true;
+      });
+    });
+
+  });
 });

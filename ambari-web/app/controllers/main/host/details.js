@@ -916,11 +916,8 @@ App.MainHostDetailsController = Em.Controller.extend({
       }
     ];
 
-    for (var i = 0; i < rkmsHosts.length; i++) {
-      rkmsHosts[i] = rkmsHosts[i] + ':' + rkmsPort;
-    }
-    coreSiteConfigs.properties['hadoop.security.key.provider.path'] = 'kms://http@' + rkmsHosts.join(',') + '/kms';
-    hdfsSiteConfigs.properties['dfs.encryption.key.provider.uri'] = 'kms://http@' + rkmsHosts.join(',') + '/kms';
+    coreSiteConfigs.properties['hadoop.security.key.provider.path'] = 'kms://http@' + rkmsHosts.join(';') + ':' + rkmsPort + '/kms';
+    hdfsSiteConfigs.properties['dfs.encryption.key.provider.uri'] = 'kms://http@' + rkmsHosts.join(';') + ':' + rkmsPort + '/kms';
     this.saveConfigsBatch(groups, 'RANGER_KMS_SERVER', hostToInstall);
   },
 
