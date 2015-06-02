@@ -59,6 +59,12 @@ public interface ServiceComponentHost {
   public String getHostName();
 
   /**
+   * Get the Host this object maps to
+   * @return Host Object
+   */
+  Host getHost();
+
+  /**
    * Send a ServiceComponentHostState event to the StateMachine
    * @param event Event to handle
    * @throws InvalidStateTransitionException

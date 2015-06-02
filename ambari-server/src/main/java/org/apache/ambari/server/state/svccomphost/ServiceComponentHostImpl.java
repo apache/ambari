@@ -940,6 +940,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     return host.getHostName();
   }
 
+  @Override
+  public Host getHost() {
+    return host;
+  }
+
   /**
    * @return the lastOpStartTime
    */

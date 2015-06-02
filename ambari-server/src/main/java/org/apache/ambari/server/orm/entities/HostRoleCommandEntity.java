@@ -196,6 +196,10 @@ public class HostRoleCommandEntity {
     return hostEntity != null ? hostEntity.getHostName() : null;
   }
 
+  public Long getHostId() {
+    return hostEntity != null ? hostEntity.getHostId() : null;
+  }
+
   public Role getRole() {
     return Role.valueOf(role);
   }

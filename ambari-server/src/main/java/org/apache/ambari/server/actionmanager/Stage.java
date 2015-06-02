@@ -37,7 +37,9 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.utils.StageUtils;
@@ -270,6 +272,19 @@ public class Stage {
 
     //used on stage creation only, no need to check if wrappers loaded
     HostRoleCommand hrc = hostRoleCommandFactory.create(hostName, role, event, command, retryAllowed);
+    return addGenericExecutionCommand(clusterName, hostName, role, command, event, hrc);
+  }
+
+  private ExecutionCommandWrapper addGenericExecutionCommand(
+      Cluster cluster, Host host, Role role,
+      RoleCommand command, ServiceComponentHostEvent event, boolean retryAllowed) {
+    HostRoleCommand hrc = hostRoleCommandFactory.create(host, role, event, command, retryAllowed);
+    return addGenericExecutionCommand(cluster.getClusterName(), host.getHostName(), role, command, event, hrc);
+
+  }
+
+  //TODO refactor method to use Host object (host_id support)
+  private ExecutionCommandWrapper addGenericExecutionCommand(String clusterName, String hostName, Role role, RoleCommand command, ServiceComponentHostEvent event, HostRoleCommand hrc) {
     ExecutionCommand cmd = new ExecutionCommand();
     ExecutionCommandWrapper wrapper = new ExecutionCommandWrapper(cmd);
     hrc.setExecutionCommandWrapper(wrapper);
@@ -320,6 +335,22 @@ public class Stage {
 
     ExecutionCommandWrapper commandWrapper =
         addGenericExecutionCommand(clusterName, host, role, command, event, retryAllowed);
+
+    commandWrapper.getExecutionCommand().setServiceName(serviceName);
+  }
+
+  /**
+   * A new host role command is created for execution.
+   * Creates both ExecutionCommand and HostRoleCommand objects and
+   * adds them to the Stage. This should be called only once for a host-role
+   * for a given stage.
+   */
+  public synchronized void addHostRoleExecutionCommand(Host host, Role role, RoleCommand command,
+                                                       ServiceComponentHostEvent event, Cluster cluster,
+                                                       String serviceName, boolean retryAllowed) {
+
+    ExecutionCommandWrapper commandWrapper =
+        addGenericExecutionCommand(cluster, host, role, command, event, retryAllowed);
 
     commandWrapper.getExecutionCommand().setServiceName(serviceName);
   }

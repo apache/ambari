@@ -26,6 +26,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 
 @Singleton
@@ -67,6 +68,22 @@ public class HostRoleCommandFactoryImpl implements HostRoleCommandFactory {
   public HostRoleCommand create(String hostName, Role role,
                                         ServiceComponentHostEvent event, RoleCommand command, boolean retryAllowed) {
     return new HostRoleCommand(hostName, role, event, command, retryAllowed,
+        this.injector.getInstance(HostDAO.class),
+        this.injector.getInstance(ExecutionCommandDAO.class));
+  }
+
+  /**
+   * Constructor via factory.
+   * @param host Host object
+   * @param role Action to run
+   * @param event Event on the host and component
+   * @param command Type of command
+   * @param retryAllowed Whether the command can be repeated
+   * @return An instance of a HostRoleCommand.
+   */
+  @Override
+  public HostRoleCommand create(Host host, Role role, ServiceComponentHostEvent event, RoleCommand command, boolean retryAllowed) {
+    return new HostRoleCommand(host, role, event, command, retryAllowed,
         this.injector.getInstance(HostDAO.class),
         this.injector.getInstance(ExecutionCommandDAO.class));
   }

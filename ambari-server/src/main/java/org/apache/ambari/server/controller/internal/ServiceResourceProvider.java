@@ -168,7 +168,6 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
   @Override
-  @Transactional
   public Set<Resource> getResources(Request request, Predicate predicate) throws
       SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
@@ -484,7 +483,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
   // Get services from the given request.
-  private synchronized Set<ServiceResponse> getServices(ServiceRequest request)
+  private Set<ServiceResponse> getServices(ServiceRequest request)
       throws AmbariException {
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {

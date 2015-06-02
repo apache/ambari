@@ -1774,9 +1774,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     String serviceName = scHost.getServiceName();
 
-    stage.addHostRoleExecutionCommand(scHost.getHostName(), Role.valueOf(scHost
+    stage.addHostRoleExecutionCommand(scHost.getHost(), Role.valueOf(scHost
       .getServiceComponentName()), roleCommand,
-      event, scHost.getClusterName(),
+      event, cluster,
       serviceName, false);
     String componentName = scHost.getServiceComponentName();
     String hostname = scHost.getHostName();

@@ -25,6 +25,7 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 
 import com.google.inject.Injector;
@@ -101,6 +102,19 @@ public class HostRoleCommand {
     this.roleCommand = command;
     this.retryAllowed = retryAllowed;
     this.hostEntity = this.hostDAO.findByName(hostName);
+  }
+
+  @AssistedInject
+  public HostRoleCommand(Host host, Role role, ServiceComponentHostEvent event, RoleCommand command,
+                         boolean retryAllowed, HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO) {
+    this.hostDAO = hostDAO;
+    this.executionCommandDAO = executionCommandDAO;
+
+    this.role = role;
+    this.event = new ServiceComponentHostEventWrapper(event);
+    this.roleCommand = command;
+    this.retryAllowed = retryAllowed;
+    this.hostEntity = hostDAO.findById(host.getHostId());
   }
 
   @AssistedInject

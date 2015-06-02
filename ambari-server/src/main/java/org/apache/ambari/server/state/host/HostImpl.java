@@ -599,6 +599,11 @@ public class HostImpl implements Host {
   }
 
   @Override
+  public Long getHostId() {
+    return hostEntity.getHostId();
+  }
+
+  @Override
   public void setHostName(String hostName) {
     try {
       writeLock.lock();

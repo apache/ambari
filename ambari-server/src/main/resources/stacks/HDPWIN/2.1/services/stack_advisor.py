@@ -209,8 +209,8 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
         putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.25)
         putAmsHbaseSiteProperty("phoenix.query.maxGlobalMemoryPercentage", 20)
         putTimelineServiceProperty("phoenix.query.maxGlobalMemoryPercentage", 30)
-        putAmsHbaseSiteProperty("hbase_master_xmn_size", "512m")
-        putAmsHbaseSiteProperty("regionserver_xmn_size", "512m")
+        putHbaseEnvProperty("hbase_master_xmn_size", "512m")
+        putHbaseEnvProperty("regionserver_xmn_size", "512m")
       elif totalHostsCount >= 100:
         putHbaseEnvProperty("hbase_regionserver_heapsize", "6144m")
         putAmsEnvProperty("metrics_collector_heapsize", "4096m")
@@ -218,18 +218,18 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
         putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
         putAmsHbaseSiteProperty("hbase.regionserver.maxlogs", 64)
         putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 268435456)
-        putAmsHbaseSiteProperty("hbase_master_xmn_size", "512m")
+        putHbaseEnvProperty("hbase_master_xmn_size", "512m")
       elif totalHostsCount >= 50:
         putHbaseEnvProperty("hbase_regionserver_heapsize", "2048m")
         putHbaseEnvProperty("hbase_master_heapsize", "512m")
         putAmsEnvProperty("metrics_collector_heapsize", "2048m")
-        putAmsHbaseSiteProperty("hbase_master_xmn_size", "256m")
+        putHbaseEnvProperty("hbase_master_xmn_size", "256m")
       else:
         # Embedded mode heap size : master + regionserver
         putHbaseEnvProperty("hbase_regionserver_heapsize", "512m")
         putHbaseEnvProperty("hbase_master_heapsize", "512m")
         putAmsEnvProperty("metrics_collector_heapsize", "512m")
-        putAmsHbaseSiteProperty("hbase_master_xmn_size", "128m")
+        putHbaseEnvProperty("hbase_master_xmn_size", "128m")
       pass
     pass
 

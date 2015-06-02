@@ -262,7 +262,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         HostRoleCommandEntity hostRoleCommandEntity = hostRoleCommand.constructNewPersistenceEntity();
         hostRoleCommandEntity.setStage(stageEntity);
 
-        HostEntity hostEntity = hostDAO.findByName(hostRoleCommandEntity.getHostName());
+        HostEntity hostEntity = hostDAO.findById(hostRoleCommandEntity.getHostId());
         if (hostEntity == null) {
           String msg = String.format("Host %s doesn't exist in database", hostRoleCommandEntity.getHostName());
           LOG.error(msg);

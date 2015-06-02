@@ -38,6 +38,11 @@ public interface Host {
   public String getHostName();
 
   /**
+   * @return host id
+   */
+  Long getHostId();
+
+  /**
    * @param hostName the hostName to set
    */
   public void setHostName(String hostName);
