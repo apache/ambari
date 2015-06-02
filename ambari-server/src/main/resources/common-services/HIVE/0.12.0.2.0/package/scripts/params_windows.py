@@ -50,6 +50,8 @@ hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.op
 
 hive_exclude_packages = []
 
+hive_execution_engine = config["configurations"]["hive-site"]["hive.execution.engine"]
+
 ######## Metastore Schema
 init_metastore_schema = not config['configurations']['hive-site']['datanucleus.autoCreateSchema']
 

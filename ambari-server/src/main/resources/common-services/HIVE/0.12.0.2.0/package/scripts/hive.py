@@ -87,6 +87,14 @@ def hive(name=None):
                 logoutput=True
         )
 
+  if name == "hiveserver2":
+    if params.hive_execution_engine == "tez":
+      # Init the tez app dir in hadoop
+      script_file = __file__.replace('/', os.sep)
+      cmd_file = os.path.normpath(os.path.join(os.path.dirname(script_file), "..", "files", "hiveTezSetup.cmd"))
+
+      Execute("cmd /c " + cmd_file, logoutput=True, user=params.hadoop_user)
+
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hive(name=None):
