@@ -503,14 +503,14 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       if (this.get('config.stackConfigProperty.valueAttributes.minimum')) {
         var min = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.minimum'));
         if (configValue < min) {
-          this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(min));
+          this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(min + this.get('unitLabel')));
           return false;
         }
       }
       if (this.get('config.stackConfigProperty.valueAttributes.maximum')) {
         var max = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.maximum'));
         if (configValue > max) {
-          this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(max));
+          this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(max + this.get('unitLabel')));
           return false;
         }
       }
