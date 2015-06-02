@@ -187,21 +187,21 @@ App.WidgetMixin = Ember.Mixin.create({
       case 'NAMENODE':
         if (request.host_component_criteria === 'host_components/metrics/dfs/FSNamesystem/HAState=active') {
           var hdfs = App.HDFSService.find().objectAt(0);
-          if (!hdfs.get('isNnHaEnabled')) {
-            return '';
+          if (hdfs.get('isNnHaEnabled')) {
+            return request.host_component_criteria.replace('host_components/', '&');
           }
         }
         break;
       case 'RESOURCEMANAGER':
         if (request.host_component_criteria === 'host_components/HostRoles/ha_state=ACTIVE') {
           var yarn = App.YARNService.find().objectAt(0);
-          if (!yarn.get('isRMHaEnabled')) {
-            return '';
+          if (yarn.get('isRMHaEnabled')) {
+            return request.host_component_criteria.replace('host_components/', '&');
           }
         }
         break;
     }
-    return request.host_component_criteria.replace('host_components/', '&');
+    return '';
   },
 
   /**

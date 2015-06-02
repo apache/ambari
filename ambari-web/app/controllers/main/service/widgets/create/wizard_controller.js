@@ -326,6 +326,7 @@ App.WidgetWizardController = App.WizardController.extend({
         metricObj.host_component_criteria = 'host_components/HostRoles/ha_state=ACTIVE';
         break;
       default:
+        metricObj.host_component_criteria = ' ';
     }
   },
 
