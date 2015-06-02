@@ -63,7 +63,7 @@ class ZookeeperServiceCheckWindows(ZookeeperServiceCheck):
 
     smoke_cmd = os.path.join(params.hdp_root,"Run-SmokeTests.cmd")
     service = "Zookeeper"
-    Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True)
+    Execute(format("cmd /C {smoke_cmd} {service}"), user=params.zk_user, logoutput=True)
 
 if __name__ == "__main__":
   ZookeeperServiceCheck().execute()
