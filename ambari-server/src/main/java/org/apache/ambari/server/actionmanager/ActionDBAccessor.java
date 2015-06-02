@@ -216,5 +216,12 @@ public interface ActionDBAccessor {
    */
   public List<Request> getRequests(Collection<Long> requestIds);
 
+  /**
+   * Resubmits a series of tasks
+   * @param taskIds
+   */
+  public void resubmitTasks(List<Long> taskIds);
+
+
 
 }

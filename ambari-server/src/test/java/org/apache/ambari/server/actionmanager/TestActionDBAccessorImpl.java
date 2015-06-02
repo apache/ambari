@@ -555,15 +555,32 @@ public class TestActionDBAccessorImpl {
     db.persistActions(request);
     db.abortOperation(requestId);
 
+    List<Long> aborted = new ArrayList<Long>();
+
     List<HostRoleCommand> commands = db.getRequestTasks(requestId);
     for(HostRoleCommand command : commands) {
       if(command.getHostName().equals(hostName)) {
         assertEquals(HostRoleStatus.COMPLETED, command.getStatus());
       } else {
         assertEquals(HostRoleStatus.ABORTED, command.getStatus());
+        aborted.add(command.getTaskId());
       }
     }
+
+    db.resubmitTasks(aborted);
+
+    commands = db.getRequestTasks(requestId);
+
+    for(HostRoleCommand command : commands) {
+      if(command.getHostName().equals(hostName)) {
+        assertEquals(HostRoleStatus.COMPLETED, command.getStatus());
+      } else {
+        assertEquals(HostRoleStatus.PENDING, command.getStatus());
+      }
+    }
+
   }
+
 
   private static class TestActionDBAccessorModule extends AbstractModule {
     @Override

@@ -247,7 +247,7 @@ public class UpgradeResourceProviderTest {
     List<StageEntity> stageEntities = stageDAO.findByRequestId(entity.getRequestId());
     Gson gson = new Gson();
     for (StageEntity se : stageEntities) {
-      Map<String, String> map = gson.fromJson(se.getCommandParamsStage(), Map.class);
+      Map<String, String> map = gson.<Map<String, String>>fromJson(se.getCommandParamsStage(), Map.class);
       assertTrue(map.containsKey("upgrade_direction"));
       assertEquals("upgrade", map.get("upgrade_direction"));
     }
@@ -270,7 +270,6 @@ public class UpgradeResourceProviderTest {
 
     assertEquals(1, requests.size());
     assertEquals(requests.get(0), entity.getRequestId());
-
 
     List<Stage> stages = am.getRequestStatus(requests.get(0).longValue());
 
@@ -523,8 +522,49 @@ public class UpgradeResourceProviderTest {
     // !!! make sure we can.  actual abort is tested elsewhere
     Request req = PropertyHelper.getUpdateRequest(requestProps, null);
     urp.updateResources(req, null);
-
   }
+
+  @Test
+  public void testRetry() throws Exception {
+    org.apache.ambari.server.controller.spi.RequestStatus status = testCreateResources();
+
+    Set<Resource> createdResources = status.getAssociatedResources();
+    assertEquals(1, createdResources.size());
+    Resource res = createdResources.iterator().next();
+    Long id = (Long) res.getPropertyValue("Upgrade/request_id");
+    assertNotNull(id);
+    assertEquals(Long.valueOf(1), id);
+
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "ABORTED");
+
+    UpgradeResourceProvider urp = createProvider(amc);
+
+    // !!! make sure we can.  actual abort is tested elsewhere
+    Request req = PropertyHelper.getUpdateRequest(requestProps, null);
+    urp.updateResources(req, null);
+
+    ActionManager am = injector.getInstance(ActionManager.class);
+
+    List<HostRoleCommand> commands = am.getRequestTasks(id);
+
+    HostRoleCommand cmd = commands.get(commands.size()-1);
+
+    HostRoleCommandDAO dao = injector.getInstance(HostRoleCommandDAO.class);
+    HostRoleCommandEntity entity = dao.findByPK(cmd.getTaskId());
+    entity.setStatus(HostRoleStatus.ABORTED);
+    dao.merge(entity);
+
+    requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "PENDING");
+
+    // !!! make sure we can.  actual reset is tested elsewhere
+    req = PropertyHelper.getUpdateRequest(requestProps, null);
+    urp.updateResources(req, null);
+  }
+
 
   @Test
   public void testDirectionUpgrade() throws Exception {

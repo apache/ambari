@@ -256,4 +256,9 @@ public class ActionManager {
   public static void setTopologyManager(TopologyManager topologyManager) {
     ActionManager.topologyManager = topologyManager;
   }
+
+  public void resubmitTasks(List<Long> taskIds) {
+    db.resubmitTasks(taskIds);
+  }
+
 }

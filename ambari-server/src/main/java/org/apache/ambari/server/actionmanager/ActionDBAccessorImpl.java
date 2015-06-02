@@ -645,4 +645,18 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     }
     return requests;
   }
+
+  @Override
+  public void resubmitTasks(List<Long> taskIds) {
+    hostRoleCommandCache.invalidateAll(taskIds);
+
+    List<HostRoleCommandEntity> tasks = hostRoleCommandDAO.findByPKs(taskIds);
+    for (HostRoleCommandEntity task : tasks) {
+      task.setStatus(HostRoleStatus.PENDING);
+      task.setStartTime(-1L);
+      task.setEndTime(-1L);
+    }
+
+    hostRoleCommandDAO.mergeAll(tasks);
+  }
 }

@@ -121,17 +121,18 @@ public class ConfigMergeHelper {
           oldPairs.keySet());
 
       for (String prop : common) {
-        String oldVal = oldPairs.get(prop);
-        String newVal = newPairs.get(prop);
+        String oldStackVal = oldPairs.get(prop);
+        String newStackVal = newPairs.get(prop);
         String savedVal = "";
         if (null != config) {
           savedVal = config.getProperties().get(prop);
         }
 
-        if (!oldVal.equals(newVal) || !oldVal.equals(savedVal)) {
+        if (!newStackVal.equals(savedVal) &&
+            (!oldStackVal.equals(newStackVal) || !oldStackVal.equals(savedVal))) {
           ThreeWayValue twv = new ThreeWayValue();
-          twv.oldStackValue = normalizeValue(savedVal, oldVal.trim());
-          twv.newStackValue = normalizeValue(savedVal, newVal.trim());
+          twv.oldStackValue = normalizeValue(savedVal, oldStackVal.trim());
+          twv.newStackValue = normalizeValue(savedVal, newStackVal.trim());
           twv.savedValue = (null == savedVal) ? null : savedVal.trim();
 
           if (!result.containsKey(entry.getKey())) {

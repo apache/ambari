@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -361,17 +362,19 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       throw new IllegalArgumentException(String.format("%s is required", UPGRADE_REQUEST_STATUS));
     }
 
+
     HostRoleStatus status = HostRoleStatus.valueOf(requestStatus);
-    if (status != HostRoleStatus.ABORTED) {
+    if (status != HostRoleStatus.ABORTED && status != HostRoleStatus.PENDING) {
       throw new IllegalArgumentException(
           String.format("Cannot set status %s, only %s is allowed",
-          status, HostRoleStatus.ABORTED));
+          status, EnumSet.of(HostRoleStatus.ABORTED, HostRoleStatus.PENDING)));
     }
 
     String reason = (String) propertyMap.get(UPGRADE_ABORT_REASON);
     if (null == reason) {
       reason = String.format(DEFAULT_REASON_TEMPLATE, requestId);
     }
+
 
     ActionManager actionManager = getManagementController().getActionManager();
     List<org.apache.ambari.server.actionmanager.Request> requests =
@@ -382,9 +385,28 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     HostRoleStatus internalStatus = CalculatedStatus.statusFromStages(
       internalRequest.getStages()).getStatus();
 
-    if (!internalStatus.isCompletedState()) {
-      actionManager.cancelRequest(internalRequest.getRequestId(), reason);
+    if (HostRoleStatus.PENDING == status && internalStatus != HostRoleStatus.ABORTED) {
+      throw new IllegalArgumentException(
+          String.format("Can only set status to %s when the upgrade is %s (currently %s)",
+          status, HostRoleStatus.ABORTED, internalStatus));
     }
+
+    if (HostRoleStatus.ABORTED == status) {
+      if (!internalStatus.isCompletedState()) {
+        actionManager.cancelRequest(internalRequest.getRequestId(), reason);
+      }
+    } else {
+      List<Long> taskIds = new ArrayList<Long>();
+
+      for (HostRoleCommand hrc : internalRequest.getCommands()) {
+        if (HostRoleStatus.ABORTED == hrc.getStatus()) {
+          taskIds.add(hrc.getTaskId());
+        }
+      }
+
+      actionManager.resubmitTasks(taskIds);
+    }
+
 
     return getRequestStatus(null);
   }
