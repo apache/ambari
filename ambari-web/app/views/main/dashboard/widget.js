@@ -172,7 +172,10 @@ App.DashboardWidgetView = Em.View.extend({
   }),
 
   didInsertElement: function () {
-    App.tooltip(this.$("[rel='ZoomInTooltip']"), {placement : 'left'});
+    App.tooltip(this.$("[rel='ZoomInTooltip']"), {
+      placement: 'left',
+      template: '<div class="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner graph-tooltip"></div></div>'
+    });
   },
 
   willDestroyElement : function() {

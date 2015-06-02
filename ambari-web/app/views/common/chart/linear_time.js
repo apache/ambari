@@ -153,6 +153,10 @@ App.ChartLinearTimeView = Ember.View.extend({
   didInsertElement: function () {
     this.loadData();
     this.registerGraph();
+    App.tooltip(this.$("[rel='ZoomInTooltip']"), {
+      placement: 'left',
+      template: '<div class="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner graph-tooltip"></div></div>'
+    });
   },
 
   registerGraph: function() {
@@ -212,15 +216,18 @@ App.ChartLinearTimeView = Ember.View.extend({
    * @param type  Can be any of 'warn', 'error', 'info', 'success'
    * @param title Bolded title for the message
    * @param message String representing the message
+   * @param tooltip Tooltip content
    * @type: Function
    */
-  _showMessage: function(type, title, message) {
+  _showMessage: function(type, title, message, tooltip) {
     var chartOverlay = '#' + this.get('id');
     var chartOverlayId = chartOverlay + '-chart';
     var chartOverlayY = chartOverlay + '-yaxis';
     var chartOverlayX = chartOverlay + '-xaxis';
     var chartOverlayLegend = chartOverlay + '-legend';
     var chartOverlayTimeline = chartOverlay + '-timeline';
+    var tooltipTitle = tooltip ? tooltip : Em.I18n.t('graphs.tooltip.title');
+    var chartContent = '';
     if (this.get('isPopup')) {
       chartOverlayId += this.get('popupSuffix');
       chartOverlayY += this.get('popupSuffix');
@@ -244,7 +251,13 @@ App.ChartLinearTimeView = Ember.View.extend({
         break;
     }
     $(chartOverlayId+', '+chartOverlayY+', '+chartOverlayX+', '+chartOverlayLegend+', '+chartOverlayTimeline).html('');
-    $(chartOverlayId).append('<div class=\"alert '+typeClass+'\"><strong>'+title+'</strong> '+message+'</div>');
+    chartContent += '<div class=\"alert ' + typeClass + '\">';
+    if (title) {
+      chartContent += '<strong>' + title + '</strong> ';
+    }
+    chartContent += message + '</div>';
+    $(chartOverlayId).append(chartContent);
+    $(chartOverlayId).parent().attr('data-original-title', tooltipTitle);
   },
 
   /**
@@ -369,17 +382,19 @@ App.ChartLinearTimeView = Ember.View.extend({
     if (this.checkSeries(seriesData)) {
       // Check container exists (may be not, if we go to another page and wait while graphs loading)
       if (graph_container.length) {
+        var container = $("#" + this.get('id') + "-container");
         this.draw(seriesData);
         this.set('hasData', true);
           //move yAxis value lower to make them fully visible
-        $("#" + this.get('id') + "-container").find('.y_axis text').attr('y',8);
+        container.find('.y_axis text').attr('y', 8);
+        container.attr('data-original-title', Em.I18n.t('graphs.tooltip.title'));
       }
     }
     else {
       this.set('isReady', true);
       //if Axis X time interval is default(60 minutes)
       if(this.get('timeUnitSeconds') === 3600){
-        this._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noData.message'));
+        this._showMessage('info', null, this.t('graphs.noData.message'), this.t('graphs.noData.tooltip.title'));
         this.set('hasData', false);
       }
       else {

@@ -96,6 +96,9 @@ App.WidgetSectionMixin = Ember.Mixin.create({
     return [];
   }.property('isWidgetsLoaded', 'activeWidgetLayout.widgets'),
 
+  isAmbariMetricsInstalled: function () {
+    return App.Service.find().someProperty('serviceName', 'AMBARI_METRICS');
+  }.property('App.router.mainServiceController.content.length'),
 
   /**
    * load widgets defined by user

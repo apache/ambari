@@ -284,7 +284,10 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
         if (self.get('isPreview')) {
           App.tooltip(this.$("[rel='ZoomInTooltip']"), 'disable');
         } else {
-          App.tooltip(this.$("[rel='ZoomInTooltip']"), {placement : 'left'});
+          App.tooltip(this.$("[rel='ZoomInTooltip']"), {
+            placement: 'left',
+            template: '<div class="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner graph-tooltip"></div></div>'
+          });
         }
       });
     }.observes('parentView.data')

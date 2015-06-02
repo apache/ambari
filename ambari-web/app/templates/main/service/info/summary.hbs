@@ -92,34 +92,36 @@
               </div>
             {{/if}}
             {{#if isServiceWithEnhancedWidgets}}
-              <div class="btn-group pull-right actions">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                  {{t common.actions}} &nbsp;<span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                  {{#each option in view.widgetActions}}
-                    <li {{bindAttr class="option.layouts:dropdown-submenu"}}>
-                      {{#if option.isAction}}
-                        <a href="#" {{action doWidgetAction option.action target="view"}}>
-                          <i {{bindAttr class="option.class"}}></i>
-                          {{option.label}}
-                        </a>
-                        {{#if option.layouts}}
-                          <ul class="dropdown-menu">
-                            {{#each layout in option.layouts}}
-                              <li>
-                                <a href="javascript:void(0);">
-                                  {{layout.layoutName}}
-                                </a>
-                              </li>
-                            {{/each}}
-                          </ul>
+              {{#if isAmbariMetricsInstalled}}
+                <div class="btn-group pull-right actions">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    {{t common.actions}} &nbsp;<span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    {{#each option in view.widgetActions}}
+                      <li {{bindAttr class="option.layouts:dropdown-submenu"}}>
+                        {{#if option.isAction}}
+                          <a href="#" {{action doWidgetAction option.action target="view"}}>
+                            <i {{bindAttr class="option.class"}}></i>
+                            {{option.label}}
+                          </a>
+                          {{#if option.layouts}}
+                            <ul class="dropdown-menu">
+                              {{#each layout in option.layouts}}
+                                <li>
+                                  <a href="javascript:void(0);">
+                                    {{layout.layoutName}}
+                                  </a>
+                                </li>
+                              {{/each}}
+                            </ul>
+                          {{/if}}
                         {{/if}}
-                      {{/if}}
-                    </li>
-                  {{/each}}
-                </ul>
-              </div>
+                      </li>
+                    {{/each}}
+                  </ul>
+                </div>
+              {{/if}}
             {{/if}}
           </div>
           <div>
@@ -130,11 +132,13 @@
                     {{view widget.viewClass contentBinding="widget" idBinding="widget.id"}}
                   </div>
                 {{/each}}
-                <div class="span2p4">
-                  <button id="add-widget-action-box" class="btn btn-default" {{action "goToWidgetsBrowser" controller.content target="controller"}}
-                          rel="add-widget-tooltip" {{translateAttr data-original-title="dashboard.widgets.addButton.tooltip"}}>
-                    <i class="icon-plus"></i></button>
-                </div>
+                {{#if isAmbariMetricsInstalled}}
+                  <div class="span2p4">
+                    <button id="add-widget-action-box" class="btn btn-default" {{action "goToWidgetsBrowser" controller.content target="controller"}}
+                            rel="add-widget-tooltip" {{translateAttr data-original-title="dashboard.widgets.addButton.tooltip"}}>
+                      <i class="icon-plus"></i></button>
+                  </div>
+                {{/if}}
               </div>
             {{/if}}
             <table class="graphs">

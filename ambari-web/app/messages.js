@@ -383,7 +383,8 @@ Em.I18n.translations = {
   'titlebar.alerts.noAlerts': 'No Alerts',
 
   'graphs.noData.title': 'No Data',
-  'graphs.noData.message': 'There was no data available. Possible reasons include inaccessible/unsupported metrics service.',
+  'graphs.noData.message': 'No Data Available',
+  'graphs.noData.tooltip.title': 'No Data Available. The Ambari Metrics service may be not installed or inaccessible',
   'graphs.noDataAtTime.message': 'No available data for the time period.',
   'graphs.error.title': 'Error',
   'graphs.error.message': 'There was a problem getting data for the chart ({0}: {1})',
@@ -395,6 +396,7 @@ Em.I18n.translations = {
   'graphs.timeRange.week': 'Last 1 week',
   'graphs.timeRange.month': 'Last 1 month',
   'graphs.timeRange.year': 'Last 1 year',
+  'graphs.tooltip.title': 'Click to zoom',
 
   'users.userName.validationFail': 'Only lowercase letters and numbers are recommended; must start with a letter',
   'host.spacesValidation': 'Cannot contain whitespace',
