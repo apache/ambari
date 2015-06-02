@@ -10036,6 +10036,28 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void testIsAttributeMapsEqual() {
+    AmbariManagementControllerImpl controllerImpl = null;
+    if (controller instanceof AmbariManagementControllerImpl){
+      controllerImpl = (AmbariManagementControllerImpl)controller;
+    }
+    Map<String, Map<String, String>> requestConfigAttributes = new HashMap<String, Map<String,String>>();
+    Map<String, Map<String, String>> clusterConfigAttributes = new HashMap<String, Map<String,String>>();
+    Assert.assertTrue(controllerImpl.isAttributeMapsEqual(requestConfigAttributes, clusterConfigAttributes));
+    requestConfigAttributes.put("final", new HashMap<String, String>());
+    requestConfigAttributes.get("final").put("c", "true");
+    clusterConfigAttributes.put("final", new HashMap<String, String>());
+    clusterConfigAttributes.get("final").put("c", "true");
+    Assert.assertTrue(controllerImpl.isAttributeMapsEqual(requestConfigAttributes, clusterConfigAttributes));
+    clusterConfigAttributes.put("final2", new HashMap<String, String>());
+    clusterConfigAttributes.get("final2").put("a", "true");
+    Assert.assertFalse(controllerImpl.isAttributeMapsEqual(requestConfigAttributes, clusterConfigAttributes));
+    requestConfigAttributes.put("final2", new HashMap<String, String>());
+    requestConfigAttributes.get("final2").put("a", "false"); 
+    Assert.assertFalse(controllerImpl.isAttributeMapsEqual(requestConfigAttributes, clusterConfigAttributes));
+  } 
+  
+  @Test
   public void testEmptyConfigs() throws Exception {
     String clusterName = "c1";
     createCluster(clusterName);

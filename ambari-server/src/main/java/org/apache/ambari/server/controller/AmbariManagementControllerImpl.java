@@ -1285,14 +1285,22 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (request.getDesiredConfig() != null) {
       for (ConfigurationRequest desiredConfig : request.getDesiredConfig()) {
         Map<String, String> requestConfigProperties = desiredConfig.getProperties();
+        Map<String,Map<String,String>> requestConfigAttributes = desiredConfig.getPropertiesAttributes();
         Config clusterConfig = cluster.getDesiredConfigByType(desiredConfig.getType());
         Map<String, String> clusterConfigProperties = null;
+        Map<String,Map<String,String>> clusterConfigAttributes = null;
         if (clusterConfig != null) {
           clusterConfigProperties = clusterConfig.getProperties();
+          clusterConfigAttributes = clusterConfig.getPropertiesAttributes();
+          if (!isAttributeMapsEqual(requestConfigAttributes, clusterConfigAttributes)){
+            isConfigurationCreationNeeded = true;
+            break;            
+          }
         } else {
           isConfigurationCreationNeeded = true;
           break;
         }
+        
         if (requestConfigProperties == null || requestConfigProperties.isEmpty()) {
           Config existingConfig = cluster.getConfig(desiredConfig.getType(), desiredConfig.getVersionTag());
           if (existingConfig != null) {
@@ -1490,6 +1498,47 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
+  /**
+   * Comparison of two attributes maps 
+   * @param requestConfigAttributes - attribute map sent from API
+   * @param clusterConfigAttributes - existed attribute map
+   * @return true if maps is equal (have the same attributes and their values) 
+   */
+  public boolean isAttributeMapsEqual(Map<String, Map<String, String>> requestConfigAttributes,
+          Map<String, Map<String, String>> clusterConfigAttributes) {
+    boolean isAttributesEqual = true;
+    if ((requestConfigAttributes != null && clusterConfigAttributes == null)
+            || (requestConfigAttributes == null && clusterConfigAttributes != null)
+            || (requestConfigAttributes != null && clusterConfigAttributes != null 
+            && !requestConfigAttributes.keySet().equals(clusterConfigAttributes.keySet()))) {
+      return false;
+    } else if (clusterConfigAttributes != null && requestConfigAttributes != null) {
+      for (Entry<String, Map<String, String>> ClusterEntrySet : clusterConfigAttributes.entrySet()) {
+        Map<String, String> clusterMapAttributes = ClusterEntrySet.getValue();
+        Map<String, String> requestMapAttributes = requestConfigAttributes.get(ClusterEntrySet.getKey());
+        if ((requestMapAttributes != null && clusterMapAttributes == null)
+                || (requestMapAttributes == null && clusterMapAttributes != null)
+                || (requestMapAttributes != null && clusterMapAttributes != null 
+                && !requestMapAttributes.keySet().equals(clusterMapAttributes.keySet()))) {
+          return false;
+        } else if (requestMapAttributes != null && clusterMapAttributes != null) {
+          for (Entry<String, String> requestPropertyEntrySet : requestMapAttributes.entrySet()) {
+            String requestPropertyValue = requestPropertyEntrySet.getValue();
+            String clusterPropertyValue = clusterMapAttributes.get(requestPropertyEntrySet.getKey());
+            if ((requestPropertyValue != null && clusterPropertyValue == null)
+                    || (requestPropertyValue == null && clusterPropertyValue != null)
+                    || (requestPropertyValue != null && clusterPropertyValue != null 
+                    && !requestPropertyValue.equals(clusterPropertyValue))) {
+              return false;
+            }
+          }
+        }
+
+      }
+    }
+    return isAttributesEqual;
+  } 
+  
   /**
    * Save cluster update results to retrieve later
    * @param clusterRequest   cluster request info
