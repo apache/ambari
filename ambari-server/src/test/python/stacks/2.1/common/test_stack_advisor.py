@@ -265,7 +265,7 @@ class TestHDP21StackAdvisor(TestCase):
     # 2) fail: yarn.scheduler.maximum-allocation-mb < hive.tez.container.size
     configurations = {'yarn-site': {'properties': {'yarn.scheduler.maximum-allocation-mb': '256'}}}
     res_expected = [{'config-type': 'hive-site',
-                     'message': 'yarn.scheduler.maximum-allocation-mb is less than hive.tez.container.size',
+                     'message': 'hive.tez.container.size is greater than the maximum container size specified in yarn.scheduler.maximum-allocation-mb',
                      'type': 'configuration',
                      'config-name': 'hive.tez.container.size',
                      'level': 'WARN'},
