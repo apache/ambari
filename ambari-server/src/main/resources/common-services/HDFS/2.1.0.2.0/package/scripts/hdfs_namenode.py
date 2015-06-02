@@ -335,7 +335,7 @@ def decommission():
       # need to execute each command scoped to a particular namenode
       nn_refresh_cmd = format('dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes')
     else:
-      nn_refresh_cmd = format('dfsadmin -refreshNodes')
+      nn_refresh_cmd = format('dfsadmin -fs {namenode_address} -refreshNodes')
     ExecuteHadoop(nn_refresh_cmd,
                   user=hdfs_user,
                   conf_dir=conf_dir,

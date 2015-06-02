@@ -780,7 +780,7 @@ class TestNamenode(RMFTestCase):
                               group = 'hadoop',
                               )
     self.assertResourceCalled('Execute', '', user = 'hdfs')
-    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -refreshNodes',
+    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
                               user = 'hdfs',
                               conf_dir = '/etc/hadoop/conf',
                               bin_dir = '/usr/bin',
@@ -841,7 +841,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/nn.service.keytab nn/c6401.ambari.apache.org@EXAMPLE.COM;',
         user = 'hdfs',
     )
-    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -refreshNodes',
+    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
         bin_dir = '/usr/bin',
         conf_dir = '/etc/hadoop/conf',
         kinit_override = True,
