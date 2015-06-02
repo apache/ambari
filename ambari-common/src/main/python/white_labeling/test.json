@@ -1,0 +1,61 @@
+{
+  "stackName": "PHD",
+  "baseStackName": "HDP",
+  "selectTool": "phd-select",
+  "confSelectTool": "phd-conf-select",
+  "versions": [
+    {
+      "version": "2.0.6",
+      "baseVersion": "2.0.6",
+      "active": "false",
+      "services": [
+        {
+          "name": "HDFS"
+        },
+        {
+          "name": "ZOOKEEPER"
+        }
+      ]
+    },
+    {
+      "version": "2.1",
+      "baseVersion": "2.1",
+      "active": "false",
+      "services": [
+        {
+          "name": "HDFS"
+        },
+        {
+          "name": "ZOOKEEPER"
+        }
+      ]
+    },
+    {
+      "version": "3.0",
+      "baseVersion": "2.2",
+      "active": "true",
+      "services": [
+        {
+          "name": "HDFS",
+          "version": "2.6.0.2.2.0.0"
+        },
+        {
+          "name": "ZOOKEEPER"
+        }
+      ]
+    },
+    {
+      "version": "3.1",
+      "baseVersion": "2.3",
+      "active": "true",
+      "services": [
+        {
+          "name": "HDFS"
+        },
+        {
+          "name": "ZOOKEEPER"
+        }
+      ]
+    }
+  ]
+}
