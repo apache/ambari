@@ -21,11 +21,13 @@ import json
 import socket
 import subprocess
 
+from stacks.utils.RMFTestCase import *
+
 from mock.mock import MagicMock, patch
 from resource_management.libraries.functions import version
 from resource_management.core import shell
 from resource_management.libraries.script.script import Script
-from stacks.utils.RMFTestCase import *
+from resource_management.libraries.functions import copy_tarball
 from resource_management.libraries import functions
 
 
@@ -37,8 +39,11 @@ class TestHiveServer(RMFTestCase):
   STACK_VERSION = "2.0.6"
   UPGRADE_STACK_VERSION = "2.2"
 
+
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
-  def test_configure_default(self):
+  def test_configure_default(self, copy_to_hdfs_mock):
+    copy_to_hdfs_mock.return_value = True
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "configure",
@@ -648,16 +653,17 @@ class TestHiveServer(RMFTestCase):
     except:
       self.assert_configure_default()
 
-
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=True))
-  @patch("atlas_plugin_utils.configure_for_plugin", new=MagicMock())
-  def test_stop_during_upgrade(self):
-    
+  def test_stop_during_upgrade(self, copy_to_hdfs_mock):
+    call_side_effects = [(0, "hive-server2 - 2.2.0.0-2041"), (0, "hive-server2 - 2.2.0.0-2041")] * 4
+    copy_to_hdfs_mock.return_value = True
+
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
      classname = "HiveServer", command = "restart", config_file = "hive-upgrade.json",
      hdp_stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
-     call_mocks = [(0,"hive-server2 - 2.2.0.0-2041"), (0,"hive-server2 - 2.2.0.0-2041")]
+     call_mocks = call_side_effects
     )
 
     self.assertResourceCalled('Execute', 'hive --config /usr/hdp/current/hive-server2/conf/conf.server --service hiveserver2 --deregister 2.2.0.0-2041',
@@ -665,8 +671,6 @@ class TestHiveServer(RMFTestCase):
       tries=1, user='hive')
 
     self.assertResourceCalled('Execute', 'hdp-select set hive-server2 2.2.1.0-2065',)
-
-
 
   def test_stop_during_upgrade_bad_hive_version(self):
     try:

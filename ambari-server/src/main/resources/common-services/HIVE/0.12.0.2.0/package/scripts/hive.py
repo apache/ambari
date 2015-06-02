@@ -131,6 +131,7 @@ def hive(name=None):
     # HDP 2.2 or higher, copy mapreduce.tar.gz to HDFS
     if params.hdp_stack_version_major != "" and compare_versions(params.hdp_stack_version_major, '2.2') >= 0:
       copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user)
+      copy_to_hdfs("tez", params.user_group, params.hdfs_user)
 
     # Always copy pig.tar.gz and hive.tar.gz using the appropriate mode.
     # This can use a different source and dest location to account for both HDP 2.1 and 2.2

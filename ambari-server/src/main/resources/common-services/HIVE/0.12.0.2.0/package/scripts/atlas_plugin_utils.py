@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 from resource_management import Script
-from resource_management.core import logger
+from resource_management.core import Logger
 
 
 def configure_for_plugin(command_data_file):
@@ -33,7 +33,7 @@ def configure_for_plugin(command_data_file):
                     "[{\"name\":\"atlas-metadata*-hive-plugin\"}]"
 
         except IOError:
-            logger.exception("Can not read json file with command parameters: ")
+            Logger.error("Can not read json file with command parameters: ")
 
     return savedConfig
 

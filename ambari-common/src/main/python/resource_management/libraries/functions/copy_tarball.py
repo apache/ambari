@@ -22,9 +22,13 @@ __all__ = ["copy_to_hdfs", ]
 
 import os
 import uuid
+import tempfile
+import re
 
+from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.default import default
+from resource_management.core import shell
 from resource_management.core.logger import Logger
 
 STACK_VERSION_PATTERN = "{{ stack_version }}"
@@ -51,6 +55,45 @@ TARBALL_MAP = {
   }
 }
 
+
+def _get_single_version_from_hdp_select():
+  """
+  Call "hdp-select versions" and return the version string if only one version is available.
+  :return: Returns a version string if successful, and None otherwise.
+  """
+  # Ubuntu returns: "stdin: is not a tty", as subprocess output, so must use a temporary file to store the output.
+  tmpfile = tempfile.NamedTemporaryFile()
+  tmp_dir = Script.get_tmp_dir()
+  tmp_file = os.path.join(tmp_dir, "copy_tarball_out.txt")
+  hdp_version = None
+
+  out = None
+  get_hdp_versions_cmd = "/usr/bin/hdp-select versions > {0}".format(tmp_file)
+  try:
+    code, stdoutdata = shell.call(get_hdp_versions_cmd, logoutput=True)
+    with open(tmp_file, 'r+') as file:
+      out = file.read()
+  except:
+    pass
+  finally:
+    try:
+      if os.path.exists(tmp_file):
+        os.remove(tmp_file)
+    except:
+      pass
+  if code != 0 or out is None or out == "":
+    Logger.error("Could not verify HDP version by calling '{0}'. Return Code: {1}, Output: {2}.".format(get_hdp_versions_cmd, str(code), str(out)))
+    return None
+
+  matches = re.findall(r"([\d\.]+\-\d+)", out)
+
+  if matches and len(matches) == 1:
+    hdp_version = matches[0]
+  elif matches and len(matches) > 1:
+    Logger.error("Found multiple matches for HDP version, cannot identify the correct one from: {0}".format(", ".join(matches)))
+
+  return hdp_version
+
 def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=None, custom_dest_file=None, force_execute=False):
   """
   :param name: Tarball name, e.g., tez, hive, pig, sqoop.
@@ -65,11 +108,11 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
   import params
 
   if params.stack_name is None or params.stack_name.upper() not in TARBALL_MAP:
-    Logger.error("Cannot copy %s tarball to HDFS because stack %s does not support this operation." % (str(name), str(params.stack_name)))
+    Logger.error("Cannot copy {0} tarball to HDFS because stack {1} does not support this operation.".format(str(name), str(params.stack_name)))
     return -1
 
   if name is None or name.lower() not in TARBALL_MAP[params.stack_name.upper()]:
-    Logger.warning("Cannot copy tarball to HDFS because %s is not supported in stack for this operation." % (str(name), str(params.stack_name)))
+    Logger.warning("Cannot copy tarball to HDFS because {0} is not supported in stack {1} for this operation.".format(str(name), str(params.stack_name)))
     return -1
 
   (source_file, dest_file) = TARBALL_MAP[params.stack_name.upper()][name.lower()]
@@ -86,17 +129,24 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
   if is_rolling_upgrade:
     # This is the version going to. In the case of a downgrade, it is the lower version.
     current_version = default("/commandParams/version", None)
+  elif current_version is None:
+    # During normal operation, the first installation of services won't yet know about the version, so must rely
+    # on hdp-select to get it.
+    hdp_version = _get_single_version_from_hdp_select()
+    if hdp_version:
+      Logger.info("Will use stack version {0}".format(hdp_version))
+      current_version = hdp_version
 
   if current_version is None:
     message_suffix = " during rolling %s" % str(upgrade_direction) if is_rolling_upgrade else ""
-    Logger.warning("Cannot copy %s tarball because unable to determine current version%s." % (str(name), message_suffix))
+    Logger.warning("Cannot copy {0} tarball because unable to determine current version{1}.".format(str(name), message_suffix))
     return False
 
   source_file = source_file.replace(STACK_VERSION_PATTERN, current_version)
   dest_file = dest_file.replace(STACK_VERSION_PATTERN, current_version)
 
   if not os.path.exists(source_file):
-    Logger.warning("WARNING. Cannot copy %s tarball because file does not exist: %s . It is possible that this component is not installed on this host." % (str(name), str(source_file)))
+    Logger.warning("WARNING. Cannot copy {0} tarball because file does not exist: {1} . It is possible that this component is not installed on this host.".format(str(name), str(source_file)))
     return False
 
   # Because CopyFromLocal does not guarantee synchronization, it's possible for two processes to first attempt to
@@ -131,7 +181,7 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
                       owner=owner,
                       mode=0444
   )
-  Logger.info("Will attempt to copy %s tarball from %s to DFS at %s." % (name, source_file, dest_file))
+  Logger.info("Will attempt to copy {0} tarball from {1} to DFS at {2}.".format(name, source_file, dest_file))
 
   # For improved performance, force_execute should be False so that it is delayed and combined with other calls.
   # If still want to run the command now, set force_execute to True
