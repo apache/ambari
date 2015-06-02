@@ -1209,13 +1209,13 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "mapred-site": {
         "properties": {
-          "mapreduce.map.memory.mb": "1500",
-          "mapreduce.reduce.memory.mb": "200",
+          "mapreduce.map.memory.mb": "1536",
+          "mapreduce.reduce.memory.mb": "1536",
           "yarn.app.mapreduce.am.command-opts": "-Xmx80m -Dhdp.version=${hdp.version}",
-          "mapreduce.reduce.java.opts": "-Xmx160m",
+          "mapreduce.reduce.java.opts": "-Xmx1228m",
           "yarn.app.mapreduce.am.resource.mb": "100",
-          "mapreduce.map.java.opts": "-Xmx1200m",
-          "mapreduce.task.io.sort.mb": "840"
+          "mapreduce.map.java.opts": "-Xmx1228m",
+          "mapreduce.task.io.sort.mb": "859"
         },
         "property_attributes": {
           'mapreduce.task.io.sort.mb': {'maximum': '2047'},
