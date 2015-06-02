@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 import os
-
+from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.core.resources.service import ServiceConfig
 from resource_management.libraries.functions.format import format
