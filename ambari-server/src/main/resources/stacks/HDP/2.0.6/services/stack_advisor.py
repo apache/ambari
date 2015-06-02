@@ -607,7 +607,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if value is None:
       return self.getErrorItem("Value can't be null or undefined")
     try:
-      valueInt = int(value.strip()[:-1])
+      valueInt = to_number(value)
       # TODO: generify for other use cases
       defaultValueInt = int(str(defaultValue).strip())
       if valueInt < defaultValueInt:
