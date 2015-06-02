@@ -87,7 +87,9 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     nameNodeCores = 4
     if namenodeHosts is not None and len(namenodeHosts):
       nameNodeCores = int(namenodeHosts[0]['Hosts']['cpu_count'])
-    putHdfsSiteProperty("dfs.namenode.handler.count", 25*nameNodeCores)
+    putHdfsSiteProperty("dfs.namenode.handler.count", 25 * nameNodeCores)
+    if 25 * nameNodeCores > 200:
+      putHdfsSitePropertyAttribute("dfs.namenode.handler.count", "maximum", 25 * nameNodeCores)
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if ('ranger-hdfs-plugin-properties' in services['configurations']) and ('ranger-hdfs-plugin-enabled' in services['configurations']['ranger-hdfs-plugin-properties']['properties']):

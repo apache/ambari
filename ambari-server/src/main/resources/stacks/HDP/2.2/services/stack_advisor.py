@@ -88,6 +88,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
+    putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
     putHdfsSiteProperty("dfs.datanode.max.transfer.threads", 16384 if clusterData["hBaseInstalled"] else 4096)
 
     dataDirsCount = 1
@@ -110,7 +111,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     nameNodeCores = 4
     if namenodeHosts is not None and len(namenodeHosts):
       nameNodeCores = int(namenodeHosts[0]['Hosts']['cpu_count'])
-    putHdfsSiteProperty("dfs.namenode.handler.count", 25*nameNodeCores)
+    putHdfsSiteProperty("dfs.namenode.handler.count", 25 * nameNodeCores)
+    if 25 * nameNodeCores > 200:
+      putHdfsSitePropertyAttribute("dfs.namenode.handler.count", "maximum", 25 * nameNodeCores)
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if ('ranger-hdfs-plugin-properties' in services['configurations']) and ('ranger-hdfs-plugin-enabled' in services['configurations']['ranger-hdfs-plugin-properties']['properties']):

@@ -2199,6 +2199,17 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEqual("kms://http@myhost1:2222/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
 
+    # Test 8 - Dynamic maximum for 'dfs.namenode.handler.count'
+    hosts['items'][1]['Hosts']['cpu_count'] = 9
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.assertEqual(str(9 * 25), configurations["hdfs-site"]["property_attributes"]["dfs.namenode.handler.count"]['maximum'])
+
+    # Test 9 - Dynamic maximum for 'dfs.namenode.handler.count'
+    configurations["hdfs-site"]["property_attributes"].pop("dfs.namenode.handler.count", None)
+    hosts['items'][1]['Hosts']['cpu_count'] = 4
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.assertTrue("dfs.namenode.handler.count" not in configurations["hdfs-site"]["property_attributes"])
+
   def test_validateTezConfigurationsEnv(self):
     configurations = {
         "yarn-site": {
