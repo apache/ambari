@@ -38,6 +38,7 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 etc_prefix_dir = "/etc/falcon"
 
 # hadoop params
+hadoop_home_dir = hdp_select.get_hadoop_dir("home")
 hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
 
 if Script.is_hdp_stack_greater_or_equal("2.2"):

@@ -19,13 +19,17 @@ limitations under the License.
 
 import falcon_server_upgrade
 
-from resource_management import *
+from resource_management.core.logger import Logger
+from resource_management.libraries.script import Script
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.version import *
-from resource_management.libraries.functions.security_commons import build_expectations, \
-  cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
-  FILE_TYPE_PROPERTIES
+from resource_management.libraries.functions import check_process_status
+from resource_management.libraries.functions.security_commons import build_expectations
+from resource_management.libraries.functions.security_commons import cached_kinit_executor
+from resource_management.libraries.functions.security_commons import get_params_from_filesystem
+from resource_management.libraries.functions.security_commons import validate_security_config_properties
+from resource_management.libraries.functions.security_commons import FILE_TYPE_PROPERTIES
+
 from falcon import falcon
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -46,6 +50,7 @@ class FalconServer(Script):
     import params
     env.set_params(params)
     falcon('server', action='stop')
+
     # if performing an upgrade, backup some directories after stopping falcon
     if rolling_restart:
       falcon_server_upgrade.post_stop_backup()
@@ -71,7 +76,7 @@ class FalconServerLinux(FalconServer):
 
     # this function should not execute if the version can't be determined or
     # is not at least HDP 2.2.0.0
-    if not params.version or compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') < 0:
+    if Script.is_hdp_stack_less_than("2.2"):
       return
 
     Logger.info("Executing Falcon Server Rolling Upgrade pre-restart")
@@ -144,11 +149,15 @@ class FalconServerWindows(FalconServer):
 
   def install(self, env):
     import params
+    from resource_management.libraries.functions.windows_service_utils import check_windows_service_exists
+
     if not check_windows_service_exists(params.falcon_win_service_name):
       self.install_packages(env)
 
   def status(self, env):
     import status_params
+    from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
+
     check_windows_service_status(status_params.falcon_win_service_name)
 
 if __name__ == "__main__":
