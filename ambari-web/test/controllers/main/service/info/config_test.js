@@ -1253,4 +1253,30 @@ describe("App.MainServiceInfoConfigsController", function () {
 
   });
 
+  describe('#_onLoadComplete', function () {
+
+    beforeEach(function () {
+      sinon.stub(Em.run, 'next', Em.K);
+      mainServiceInfoConfigsController.setProperties({
+        dataIsLoaded: false,
+        versionLoaded: false,
+        isInit: true
+      });
+    });
+
+    afterEach(function () {
+      Em.run.next.restore();
+    });
+
+    it('should update flags', function () {
+
+      mainServiceInfoConfigsController._onLoadComplete();
+      expect(mainServiceInfoConfigsController.get('dataIsLoaded')).to.be.true;
+      expect(mainServiceInfoConfigsController.get('versionLoaded')).to.be.true;
+      expect(mainServiceInfoConfigsController.get('isInit')).to.be.false;
+
+    });
+
+  });
+
 });

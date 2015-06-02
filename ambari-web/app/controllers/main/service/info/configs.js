@@ -135,7 +135,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @type {boolean}
    */
   canEdit: function () {
-    return this.get('isCurrentSelected') && !this.get('isCompareMode');
+    return this.get('isCurrentSelected') && !this.get('isCompareMode') && App.isAccessible('MANAGER');
   }.property('isCurrentSelected', 'isCompareMode'),
 
   serviceConfigs: function () {
@@ -851,15 +851,26 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     if (!App.Service.find().someProperty('serviceName', 'RANGER')) {
       App.config.removeRangerConfigs(this.get('stepConfigs'));
     }
-    this.getRecommendationsForDependencies(null, true, function() {
-      self.setProperties({
-        dataIsLoaded: true,
-        versionLoaded: true,
-        isInit: false
-      });
-      Em.run.next(function(){
-         self.set('hash', self.getHash())
-      });
+    if (App.isAccessible('MANAGER')) {
+      this.getRecommendationsForDependencies(null, true, self._onLoadComplete.bind(self));
+    }
+    else {
+      self._onLoadComplete();
+    }
+  },
+
+  /**
+   * @method _getRecommendationsForDependenciesCallback
+   */
+  _onLoadComplete: function () {
+    var self = this;
+    this.setProperties({
+      dataIsLoaded: true,
+      versionLoaded: true,
+      isInit: false
+    });
+    Em.run.next(function(){
+      self.set('hash', self.getHash());
     });
   },
 

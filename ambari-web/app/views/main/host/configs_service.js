@@ -18,13 +18,17 @@
 var App = require('app');
 
 App.MainHostServiceConfigsView = Em.View.extend({
+
   templateName: require('templates/main/host/configs_service'),
+
   didInsertElement: function () {
-    var controller = this.get('controller');
-    controller.loadStep();
+    this.get('controller').loadStep();
   },
+
   isConfigsEditable: false,
+
   content: function () {
     return App.router.get('mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content')
+
 });
