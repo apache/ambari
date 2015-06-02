@@ -271,6 +271,15 @@ public class AmbariAuthorizationFilterTest {
     performGeneralDoFilterTest(null, new int[0], urlTests, true);
   }
 
+  @Test
+  public void testDoFilter_stackAdvisorCalls() throws Exception {
+    final Table<String, String, Boolean> urlTests = HashBasedTable.create();
+    urlTests.put("/api/v1/stacks/HDP/versions/2.3/validations", "POST", true);
+    urlTests.put("/api/v1/stacks/HDP/versions/2.3/recommendations", "POST", true);
+    performGeneralDoFilterTest("user1", new int[] { PermissionEntity.CLUSTER_OPERATE_PERMISSION }, urlTests, false);
+    performGeneralDoFilterTest("admin", new int[] { PermissionEntity.AMBARI_ADMIN_PERMISSION }, urlTests, false);
+  }
+
   /**
    * Creates mocks with given permissions and performs all given url tests.
    *
