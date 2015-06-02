@@ -44,6 +44,8 @@ import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.MessageFormat;
@@ -910,9 +912,9 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
 
-          for (String metricName : metricAlerts) {
+          for (String alertName : metricAlerts) {
             AlertDefinitionEntity alertDefinitionEntity =  alertDefinitionDAO.findByName(cluster.getClusterId(),
-                    metricName);
+                    alertName);
             if (alertDefinitionEntity != null) {
               String source = alertDefinitionEntity.getSource();
               JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
@@ -920,14 +922,13 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                     "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}");
               rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
                     "{{hdfs-site/dfs.web.authentication.kerberos.principal}}");
-              alertDefinitionEntity.setSource(rootJson.toString());
-              alertDefinitionDAO.merge(alertDefinitionEntity);
+              updateAlertDefinitionEntitySource(alertName, rootJson.toString());
             }
           }
 
-          for (String metricName : mapredAlerts) {
+          for (String alertName : mapredAlerts) {
             AlertDefinitionEntity alertDefinitionEntity =  alertDefinitionDAO.findByName(cluster.getClusterId(),
-                    metricName);
+                    alertName);
             if (alertDefinitionEntity != null) {
               String source = alertDefinitionEntity.getSource();
               JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
@@ -935,14 +936,13 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                     "{{mapred-site/mapreduce.jobhistory.webapp.spnego-keytab-file}}");
               rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
                     "{{mapred-site/mapreduce.jobhistory.webapp.spnego-principal}}");
-              alertDefinitionEntity.setSource(rootJson.toString());
-              alertDefinitionDAO.merge(alertDefinitionEntity);
+              updateAlertDefinitionEntitySource(alertName, rootJson.toString());
             }
           }
 
-          for (String metricName : rmAlerts) {
+          for (String alertName : rmAlerts) {
             AlertDefinitionEntity alertDefinitionEntity =  alertDefinitionDAO.findByName(cluster.getClusterId(),
-                    metricName);
+                    alertName);
             if (alertDefinitionEntity != null) {
               String source = alertDefinitionEntity.getSource();
               JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
@@ -950,13 +950,26 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                     "{{yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file}}");
               rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
                     "{{yarn-site/yarn.resourcemanager.webapp.spnego-principal}}");
-              alertDefinitionEntity.setSource(rootJson.toString());
-              alertDefinitionDAO.merge(alertDefinitionEntity);
+              updateAlertDefinitionEntitySource(alertName, rootJson.toString());
             }
           }
         }
       }
     }
+  }
+
+  private void updateAlertDefinitionEntitySource(final String alertName, final String source) {
+    executeInTransaction(new Runnable() {
+      @Override
+      public void run() {
+        EntityManager em = getEntityManagerProvider().get();
+        Query nativeQuery = em.createNativeQuery("UPDATE alert_definition SET alert_source=?1 WHERE " +
+                "definition_name=?2");
+        nativeQuery.setParameter(1, source);
+        nativeQuery.setParameter(2, alertName);
+        nativeQuery.executeUpdate();
+      }
+    });
   }
 
   protected void addMissingConfigs() throws AmbariException {
