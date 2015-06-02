@@ -101,6 +101,28 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>spark-log4j.properties</fileName>
+              <dictionaryName>spark-log4j-properties</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>spark-env.sh</fileName>
+              <dictionaryName>spark-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>spark-metrics.properties</fileName>
+              <dictionaryName>spark-metrics-properties</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>properties</type>
+              <fileName>spark-defaults.conf</fileName>
+              <dictionaryName>spark-defaults</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
       </components>
 
