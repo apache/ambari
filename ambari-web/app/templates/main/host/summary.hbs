@@ -135,7 +135,11 @@
                           <dd class="summary-ipaddress-value">&nbsp;{{view.content.ip}}</dd>
 
                         <dt class="summary-rack-label">{{t common.rack}}:</dt>
-                        <dd class="summary-rack-value">&nbsp;{{view.content.rack}} <a class="set-rack-id" {{action setRackId view.content target="controller"}}><i class="icon-pencil"></i></a></dd>
+                        <dd class="summary-rack-value">&nbsp;{{view.content.rack}}
+                          {{#isAccessible MANAGER}}
+                            <a class="set-rack-id" {{action setRackId view.content target="controller"}}><i class="icon-pencil"></i></a>
+                          {{/isAccessible}}
+                        </dd>
 
                         <dt class="summary-os-label">{{t common.os}}:</dt>
                           <dd class="summary-os-value">&nbsp;{{view.content.osType}}&nbsp;({{view.content.osArch}})</dd>
