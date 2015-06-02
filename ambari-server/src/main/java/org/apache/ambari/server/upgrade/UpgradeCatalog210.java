@@ -913,40 +913,46 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           for (String metricName : metricAlerts) {
             AlertDefinitionEntity alertDefinitionEntity =  alertDefinitionDAO.findByName(cluster.getClusterId(),
                     metricName);
-            String source = alertDefinitionEntity.getSource();
-            JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
-            rootJson.get("uri").getAsJsonObject().addProperty("kerberos_keytab",
+            if (alertDefinitionEntity != null) {
+              String source = alertDefinitionEntity.getSource();
+              JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
+              rootJson.get("uri").getAsJsonObject().addProperty("kerberos_keytab",
                     "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}");
-            rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
+              rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
                     "{{hdfs-site/dfs.web.authentication.kerberos.principal}}");
-            alertDefinitionEntity.setSource(rootJson.toString());
-            alertDefinitionDAO.merge(alertDefinitionEntity);
+              alertDefinitionEntity.setSource(rootJson.toString());
+              alertDefinitionDAO.merge(alertDefinitionEntity);
+            }
           }
 
           for (String metricName : mapredAlerts) {
             AlertDefinitionEntity alertDefinitionEntity =  alertDefinitionDAO.findByName(cluster.getClusterId(),
                     metricName);
-            String source = alertDefinitionEntity.getSource();
-            JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
-            rootJson.get("uri").getAsJsonObject().addProperty("kerberos_keytab",
+            if (alertDefinitionEntity != null) {
+              String source = alertDefinitionEntity.getSource();
+              JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
+              rootJson.get("uri").getAsJsonObject().addProperty("kerberos_keytab",
                     "{{mapred-site/mapreduce.jobhistory.webapp.spnego-keytab-file}}");
-            rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
+              rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
                     "{{mapred-site/mapreduce.jobhistory.webapp.spnego-principal}}");
-            alertDefinitionEntity.setSource(rootJson.toString());
-            alertDefinitionDAO.merge(alertDefinitionEntity);
+              alertDefinitionEntity.setSource(rootJson.toString());
+              alertDefinitionDAO.merge(alertDefinitionEntity);
+            }
           }
 
           for (String metricName : rmAlerts) {
             AlertDefinitionEntity alertDefinitionEntity =  alertDefinitionDAO.findByName(cluster.getClusterId(),
                     metricName);
-            String source = alertDefinitionEntity.getSource();
-            JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
-            rootJson.get("uri").getAsJsonObject().addProperty("kerberos_keytab",
+            if (alertDefinitionEntity != null) {
+              String source = alertDefinitionEntity.getSource();
+              JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
+              rootJson.get("uri").getAsJsonObject().addProperty("kerberos_keytab",
                     "{{yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file}}");
-            rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
+              rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
                     "{{yarn-site/yarn.resourcemanager.webapp.spnego-principal}}");
-            alertDefinitionEntity.setSource(rootJson.toString());
-            alertDefinitionDAO.merge(alertDefinitionEntity);
+              alertDefinitionEntity.setSource(rootJson.toString());
+              alertDefinitionDAO.merge(alertDefinitionEntity);
+            }
           }
         }
       }
