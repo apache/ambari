@@ -120,8 +120,8 @@ public class ProxyServlet extends HttpServlet {
     }
 
     response.setStatus(responseCode);
-    PrintWriter writer = response.getWriter();
     if (result != null) {
+      PrintWriter writer = response.getWriter();
       writer.print(result);
     }
   }
