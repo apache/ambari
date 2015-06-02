@@ -497,24 +497,14 @@ App.ChartLinearTimeView = Ember.View.extend({
           }
         }
 
-        if (displayUnit) {
-          displayUnit = "&nbsp;" + (displayUnit.length > 3 ? displayUnit.substr(0, 3) + '...' : displayUnit);
-          series.name = string_utils.pad(series.name.length > 36 ? series.name.substr(0, 36) + '...' : series.name, 40, '&nbsp;', 2) + '|&nbsp;' +
-          string_utils.pad('min', 5, '&nbsp;', 3) +
-          string_utils.pad(self.get('yAxisFormatter')(min) + displayUnit, 12, '&nbsp;', 3) +
-          string_utils.pad('avg', 5, '&nbsp;', 3) +
-          string_utils.pad(self.get('yAxisFormatter')(avg/series.data.compact().length) + displayUnit, 12, '&nbsp;', 3) +
-          string_utils.pad('max', 12, '&nbsp;', 3) +
-          string_utils.pad(self.get('yAxisFormatter')(max) + displayUnit, 5, '&nbsp;', 3);
-        } else {
-          series.name = string_utils.pad(series.name.length > 36 ? series.name.substr(0, 36) + '...' : series.name, 40, '&nbsp;', 2) + '|&nbsp;' +
-          string_utils.pad('min', 5, '&nbsp;', 3) +
-          string_utils.pad(self.get('yAxisFormatter')(min), 12, '&nbsp;', 3) +
-          string_utils.pad('avg', 5, '&nbsp;', 3) +
-          string_utils.pad(self.get('yAxisFormatter')(avg/series.data.compact().length), 12, '&nbsp;', 3) +
-          string_utils.pad('max', 12, '&nbsp;', 3) +
-          string_utils.pad(self.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
-        }
+
+        series.name = string_utils.pad(series.name.length > 36 ? series.name.substr(0, 36) + '...' : series.name, 40, '&nbsp;', 2) + '|&nbsp;' +
+        string_utils.pad('min', 5, '&nbsp;', 3) +
+        string_utils.pad(self.get('yAxisFormatter')(min), 12, '&nbsp;', 3) +
+        string_utils.pad('avg', 5, '&nbsp;', 3) +
+        string_utils.pad(self.get('yAxisFormatter')(avg / series.data.compact().length), 12, '&nbsp;', 3) +
+        string_utils.pad('max', 12, '&nbsp;', 3) +
+        string_utils.pad(self.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
       }
       if (series.data.length < series_min_length) {
         series_min_length = series.data.length;
@@ -880,6 +870,20 @@ App.ChartLinearTimeView.PercentageFormatter = function (percentage) {
     value = '0 %';
   } else {
     value = value.toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + '%';
+  }
+  return value;
+};
+
+/**
+ * A formatter which will turn a number into percentage display like '42%'
+ *
+ * @type {Function}
+ */
+App.ChartLinearTimeView.DisplayUnitFormatter = function (value, displayUnit) {
+  if (!value || value.length === 0) {
+    value = '0 ' + displayUnit;
+  } else {
+    value = value.toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + " " + displayUnit;
   }
   return value;
 };

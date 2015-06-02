@@ -225,6 +225,14 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
     displayUnit: function () {
       return this.get('parentView.content.properties.display_unit');
     }.property('parentView.content.properties.display_unit'),
+    setYAxisFormatter: function () {
+      var self = this;
+      if (this.get('displayUnit')) {
+        this.set('yAxisFormatter',  function (value) {
+          return App.ChartLinearTimeView.DisplayUnitFormatter(value, self.get('displayUnit'));
+        });
+      }
+    }.observes('displayUnit'),
 
     /**
      * set custom time range for graph widget
@@ -278,6 +286,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
     },
 
     didInsertElement: function () {
+      this.setYAxisFormatter();
       this.loadData();
       var self = this;
       Em.run.next(function () {
