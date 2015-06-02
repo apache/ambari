@@ -827,39 +827,31 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    */
   loadAdvancedConfigs: function (dependentController) {
     var self = this;
-    var loadServiceConfigsFn = function(clusterProperties) {
+    var loadServiceConfigsFn = function (clusterProperties) {
       var stackServices = self.get('content.services').filter(function (service) {
         return service.get('isInstalled') || service.get('isSelected');
       });
-      var counter = stackServices.length;
       var loadAdvancedConfigResult = [];
       dependentController.set('isAdvancedConfigLoaded', false);
-      stackServices.forEach(function (service) {
-        var serviceName = service.get('serviceName');
-        App.config.loadAdvancedConfig(serviceName, function (properties) {
+
+      App.config.loadAdvancedConfigAll(stackServices.mapProperty('serviceName'), function (configMap) {
+        stackServices.forEach(function (service) {
+          var serviceName = service.get('serviceName');
+          var properties = configMap[serviceName];
           var supportsFinal = App.config.getConfigTypesInfoFromService(service).supportsFinal;
 
-          function shouldSupportFinal(filename) {
-            var matchingConfigType = supportsFinal.find(function (configType) {
-              return filename.startsWith(configType);
-            });
-            return !!matchingConfigType;
-          }
-
           properties.forEach(function (property) {
-            property.supportsFinal = shouldSupportFinal(property.filename);
+            property.supportsFinal = Boolean(supportsFinal.find(function (configType) {
+              return property.filename.startsWith(configType);
+            }));
           });
           loadAdvancedConfigResult.pushObjects(properties);
-          counter--;
-          //pass configs to controller after last call is completed
-          if (counter === 0) {
-            loadAdvancedConfigResult.pushObjects(clusterProperties);
-            self.set('content.advancedServiceConfig', loadAdvancedConfigResult);
-            self.setDBProperty('advancedServiceConfig', loadAdvancedConfigResult);
-            dependentController.set('isAdvancedConfigLoaded', true);
-          }
         });
-      }, this);
+        loadAdvancedConfigResult.pushObjects(clusterProperties);
+        self.set('content.advancedServiceConfig', loadAdvancedConfigResult);
+        self.setDBProperty('advancedServiceConfig', loadAdvancedConfigResult);
+        dependentController.set('isAdvancedConfigLoaded', true);
+      });
     };
     App.config.loadClusterConfig(loadServiceConfigsFn);
   },
@@ -1227,16 +1219,16 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * @method loadConfigThemes
    * @return {$.Deferred}
    */
-   loadConfigThemes: function() {
+  loadConfigThemes: function () {
     var self = this;
     var dfd = $.Deferred();
     if (App.get('isClusterSupportsEnhancedConfigs') && !this.get('stackConfigsLoaded')) {
-      var serviceNames = App.StackService.find().filter(function(s) {
+      var serviceNames = App.StackService.find().filter(function (s) {
         return s.get('isSelected') || s.get('isInstalled');
       }).mapProperty('serviceName');
       // Load stack configs before loading themes
-      App.config.loadConfigsFromStack(serviceNames).done(function() {
-        self.loadConfigThemeForServices(serviceNames).always(function() {
+      App.config.loadConfigsFromStack(serviceNames).done(function () {
+        self.loadConfigThemeForServices(serviceNames).always(function () {
           self.set('stackConfigsLoaded', true);
           App.themesMapper.generateAdvancedTabs(serviceNames);
           dfd.resolve();

@@ -909,6 +909,50 @@ App.config = Em.Object.create({
   },
 
   /**
+   * Generate serviceProperties save it to localDB
+   * called from stepController step6WizardController
+   *
+   * @method loadAdvancedConfig
+   * @param {Array} serviceNames
+   * @param callback
+   * @return {object|null}
+   */
+  loadAdvancedConfigAll: function (serviceNames, callback) {
+    return App.ajax.send({
+      name: 'config.advanced.multiple.services',
+      sender: this,
+      data: {
+        serviceNames: serviceNames.join(','),
+        stackVersionUrl: App.get('stackVersionURL'),
+        stackVersion: App.get('currentStackVersionNumber'),
+        callback: callback
+      },
+      success: 'loadAdvancedConfigAllSuccess',
+      error: 'loadAdvancedConfigAllError'
+    });
+  },
+
+  loadAdvancedConfigAllSuccess: function (data, opt, params, request) {
+    console.log("TRACE: In success function for the loadAdvancedConfig; url is ", opt.url);
+    var serviceConfigMap = {};
+    if (data.items.length) {
+      data.items.forEach(function (service) {
+        var properties = [];
+        service.configurations.forEach(function(item){
+          properties.push(this.createAdvancedPropertyObject(item.StackConfigurations));
+        }, this);
+        serviceConfigMap[service.StackServices.service_name] = properties;
+      }, this);
+    }
+    params.callback(serviceConfigMap, request);
+  },
+
+  loadAdvancedConfigAllError: function (request, ajaxOptions, error, opt, params) {
+    console.log('ERROR: failed to load stack configs for', params.serviceNames);
+    params.callback([], request);
+  },
+
+  /**
    * Load advanced configs by service names etc.
    * Use this method when you need to get configs for
    * particular services by single request

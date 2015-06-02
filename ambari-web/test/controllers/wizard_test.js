@@ -97,19 +97,21 @@ describe('App.WizardController', function () {
       sinon.stub(App.config, 'loadClusterConfig', function(callback){
         callback();
       });
-      sinon.stub(App.config, 'loadAdvancedConfig', function(val,callback) {
-        var properties = Em.A([
-          {
-            supportsFinal: '',
-            filename: 'name'
-          }
-        ]);
+      sinon.stub(App.config, 'loadAdvancedConfigAll', function(val,callback) {
+        var properties = {
+          "s1" : [
+            {
+              supportsFinal: '',
+              filename: 'name'
+            }
+          ]
+        };
         callback(properties);
       });
     });
     afterEach(function () {
       App.config.loadClusterConfig.restore();
-      App.config.loadAdvancedConfig.restore();
+      App.config.loadAdvancedConfigAll.restore();
     });
     it('Should load configs', function() {
       var data = Em.Object.create({
