@@ -62,18 +62,27 @@ def post_upgrade_check():
   _check_datanode_startup()
 
 
-@retry(times=12, sleep_time=10, err_class=Fail)
+@retry(times=24, sleep_time=5, err_class=Fail)
 def _check_datanode_shutdown():
   """
   Checks that a DataNode is down by running "hdfs dfsamin getDatanodeInfo"
   several times, pausing in between runs. Once the DataNode stops responding
   this method will return, otherwise it will raise a Fail(...) and retry
   automatically.
+  The stack defaults for retrying for HDFS are also way too slow for this
+  command; they are set to wait about 45 seconds between client retries. As
+  a result, a single execution of dfsadmin will take 45 seconds to retry and
+  the DataNode may be marked as dead, causing problems with HBase.
+  https://issues.apache.org/jira/browse/HDFS-8510 tracks reducing the
+  times for ipc.client.connect.retry.interval. In the meantime, override them
+  here, but only for RU.
   :return:
   """
   import params
 
-  command = format('hdfs dfsadmin -getDatanodeInfo {dfs_dn_ipc_address}')
+  # override stock retry timeouts since after 30 seconds, the datanode is
+  # marked as dead and can affect HBase during RU
+  command = format('hdfs dfsadmin -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo {dfs_dn_ipc_address}')
 
   try:
     Execute(command, user=params.hdfs_user, tries=1)

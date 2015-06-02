@@ -544,6 +544,33 @@ class TestDatanode(RMFTestCase):
       self.assertTrue(mocks_dict['call'].called)
       self.assertEqual(mocks_dict['call'].call_count,12)
 
+
+  @patch('time.sleep')
+  def test_stop_during_upgrade(self, time_mock):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    version = '2.2.1.0-3242'
+    json_content['commandParams']['version'] = version
+
+    try:
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
+        classname = "DataNode",
+        command = "stop",
+        config_dict = json_content,
+        hdp_stack_version = self.STACK_VERSION,
+        target = RMFTestCase.TARGET_COMMON_SERVICES,
+        command_args=[True])
+
+      raise Fail("Expected a fail since datanode didn't report a shutdown")
+    except:
+      pass
+
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -shutdownDatanode 0.0.0.0:8010 upgrade', user="hdfs", tries=1)
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo 0.0.0.0:8010', user="hdfs", tries=1)
+
+
   @patch("resource_management.libraries.functions.security_commons.build_expectations")
   @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")
   @patch("resource_management.libraries.functions.security_commons.validate_security_config_properties")
