@@ -30,6 +30,7 @@
           <displayName>Accumulo Master</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <timelineAppid>ACCUMULO</timelineAppid>
           <dependencies>
             <dependency>
@@ -60,6 +61,7 @@
           <displayName>Accumulo Monitor</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <timelineAppid>ACCUMULO</timelineAppid>
           <commandScript>
             <script>scripts/accumulo_monitor.py</script>
@@ -73,6 +75,7 @@
           <displayName>Accumulo GC</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <timelineAppid>ACCUMULO</timelineAppid>
           <commandScript>
             <script>scripts/accumulo_gc.py</script>
@@ -86,6 +89,7 @@
           <displayName>Accumulo Tracer</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <timelineAppid>ACCUMULO</timelineAppid>
           <commandScript>
             <script>scripts/accumulo_tracer.py</script>
@@ -99,6 +103,7 @@
           <displayName>Accumulo TServer</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <timelineAppid>ACCUMULO</timelineAppid>
           <commandScript>
             <script>scripts/accumulo_tserver.py</script>
@@ -111,6 +116,7 @@
           <displayName>Accumulo Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <timelineAppid>ACCUMULO</timelineAppid>
           <commandScript>
             <script>scripts/accumulo_client.py</script>

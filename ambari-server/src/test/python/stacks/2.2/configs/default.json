@@ -330,7 +330,52 @@
       },
       "ranger-hive-plugin-properties": {
             "ranger-hive-plugin-enabled":"yes"
-       }
+       },
+        "accumulo-env": {
+            "accumulo_user": "accumulo",
+            "accumulo_master_heapsize": "1024",
+            "accumulo_log_dir": "/var/log/accumulo",
+            "accumulo_gc_heapsize": "256",
+            "server_content": "\n#! /usr/bin/env bash\nexport HADOOP_PREFIX={{hadoop_prefix}}\nexport HADOOP_CONF_DIR={{hadoop_conf_dir}}\nexport JAVA_HOME={{java64_home}}\nexport ZOOKEEPER_HOME={{zookeeper_home}}\nexport ACCUMULO_PID_DIR={{pid_dir}}\nexport ACCUMULO_LOG_DIR={{log_dir}}\nexport ACCUMULO_CONF_DIR={{server_conf_dir}}\nexport ACCUMULO_TSERVER_OPTS=\"-Xmx{{accumulo_tserver_heapsize}}m -Xms{{accumulo_tserver_heapsize}}m\"\nexport ACCUMULO_MASTER_OPTS=\"-Xmx{{accumulo_master_heapsize}}m -Xms{{accumulo_master_heapsize}}m\"\nexport ACCUMULO_MONITOR_OPTS=\"-Xmx{{accumulo_monitor_heapsize}}m -Xms{{accumulo_monitor_heapsize}}m\"\nexport ACCUMULO_GC_OPTS=\"-Xmx{{accumulo_gc_heapsize}}m -Xms{{accumulo_gc_heapsize}}m\"\nexport ACCUMULO_GENERAL_OPTS=\"-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -Djava.net.preferIPv4Stack=true ${ACCUMULO_GENERAL_OPTS}\"\nexport ACCUMULO_OTHER_OPTS=\"-Xmx{{accumulo_other_heapsize}}m -Xms{{accumulo_other_heapsize}}m ${ACCUMULO_OTHER_OPTS}\"\nexport ACCUMULO_MONITOR_BIND_ALL={{monitor_bind_str}}\n# what do when the JVM runs out of heap memory\nexport ACCUMULO_KILL_CMD='kill -9 %p'",
+            "content": "\n#! /usr/bin/env bash\nexport HADOOP_PREFIX={{hadoop_prefix}}\nexport HADOOP_CONF_DIR={{hadoop_conf_dir}}\nexport JAVA_HOME={{java64_home}}\nexport ZOOKEEPER_HOME={{zookeeper_home}}\nexport ACCUMULO_LOG_DIR={{log_dir}}\nexport ACCUMULO_CONF_DIR={{conf_dir}}\nexport ACCUMULO_TSERVER_OPTS=\"-Xmx{{accumulo_tserver_heapsize}}m -Xms{{accumulo_tserver_heapsize}}m\"\nexport ACCUMULO_MASTER_OPTS=\"-Xmx{{accumulo_master_heapsize}}m -Xms{{accumulo_master_heapsize}}m\"\nexport ACCUMULO_MONITOR_OPTS=\"-Xmx{{accumulo_monitor_heapsize}}m -Xms{{accumulo_monitor_heapsize}}m\"\nexport ACCUMULO_GC_OPTS=\"-Xmx{{accumulo_gc_heapsize}}m -Xms{{accumulo_gc_heapsize}}m\"\nexport ACCUMULO_GENERAL_OPTS=\"-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -Djava.net.preferIPv4Stack=true ${ACCUMULO_GENERAL_OPTS}\"\nexport ACCUMULO_OTHER_OPTS=\"-Xmx{{accumulo_other_heapsize}}m -Xms{{accumulo_other_heapsize}}m ${ACCUMULO_OTHER_OPTS}\"\n# what do when the JVM runs out of heap memory\nexport ACCUMULO_KILL_CMD='kill -9 %p'",
+            "accumulo_instance_name": "hdp-accumulo-instance",
+            "instance_secret": "password",
+            "accumulo_root_password": "password",
+            "accumulo_pid_dir": "/var/run/accumulo",
+            "accumulo_monitor_bind_all": "false",
+            "trace_password": "password",
+            "accumulo_tserver_heapsize": "1536",
+            "accumulo_monitor_heapsize": "1024",
+            "accumulo_other_heapsize": "1024"
+        },
+        "accumulo-site": {
+            "instance.zookeeper.host": "c6402.ambari.apache.org:2181,c6401.ambari.apache.org:2181,c6403.ambari.apache.org:2181",
+            "tserver.port.client": "9997",
+            "trace.port.client": "12234",
+            "monitor.port.client": "50095",
+            "trace.user": "trace",
+            "tserver.cache.data.size": "128M",
+            "tserver.memory.maps.native.enabled": "true",
+            "general.classpaths": "\n$ACCUMULO_HOME/lib/accumulo-server.jar,\n$ACCUMULO_HOME/lib/accumulo-core.jar,\n$ACCUMULO_HOME/lib/accumulo-start.jar,\n$ACCUMULO_HOME/lib/accumulo-fate.jar,\n$ACCUMULO_HOME/lib/accumulo-proxy.jar,\n$ACCUMULO_HOME/lib/[^.].*.jar,\n$ZOOKEEPER_HOME/zookeeper[^.].*.jar,\n$HADOOP_CONF_DIR,\n/usr/hdp/current/hadoop-client/[^.].*.jar,\n/usr/hdp/current/hadoop-client/lib/(?!slf4j)[^.].*.jar,\n/usr/hdp/current/hadoop-hdfs-client/[^.].*.jar,\n/usr/hdp/current/hadoop-mapreduce-client/[^.].*.jar,\n/usr/hdp/current/hadoop-yarn-client/[^.].*.jar,\n/usr/hdp/current/hadoop-yarn-client/lib/jersey.*.jar,\n/usr/hdp/current/hive-client/lib/hive-accumulo-handler.jar,",
+            "monitor.port.log4j": "4560",
+            "gc.port.client": "50091",
+            "tserver.memory.maps.max": "1G",
+            "tserver.sort.buffer.size": "200M",
+            "tserver.cache.index.size": "256M",
+            "master.port.client": "9999",
+            "tserver.walog.max.size": "1G",
+            "instance.volumes": "hdfs://c1ha/apps/accumulo/data",
+            "instance.zookeeper.timeout": "30s"
+        },
+        "accumulo-log4j": {
+            "info_num_logs": "10",
+            "info_log_size": "1000M",
+            "debug_log_size": "1000M",
+            "content": "\n# Licensed to the Apache Software Foundation (ASF) under one or more\n# contributor license agreements.  See the NOTICE file distributed with\n# this work for additional information regarding copyright ownership.\n# The ASF licenses this file to You under the Apache License, Version 2.0\n# (the \"License\"); you may not use this file except in compliance with\n# the License.  You may obtain a copy of the License at\n#\n#     http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \"AS IS\" BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n\n# default logging properties:\n#  by default, log everything at INFO or higher to the console\nlog4j.rootLogger=INFO,A1\n\n# hide Jetty junk\nlog4j.logger.org.mortbay.log=WARN,A1\n\n# hide \"Got brand-new compressor\" messages\nlog4j.logger.org.apache.hadoop.io.compress=WARN,A1\nlog4j.logger.org.apache.accumulo.core.file.rfile.bcfile.Compression=WARN,A1\n\n# hide junk from TestRandomDeletes\nlog4j.logger.org.apache.accumulo.test.TestRandomDeletes=WARN,A1\n\n# hide junk from VFS\nlog4j.logger.org.apache.commons.vfs2.impl.DefaultFileSystemManager=WARN,A1\n\n# hide almost everything from zookeeper\nlog4j.logger.org.apache.zookeeper=ERROR,A1\n\n# hide AUDIT messages in the shell, alternatively you could send them to a different logger\nlog4j.logger.org.apache.accumulo.core.util.shell.Shell.audit=WARN,A1\n\n# Send most things to the console\nlog4j.appender.A1=org.apache.log4j.ConsoleAppender\nlog4j.appender.A1.layout.ConversionPattern=%d{ISO8601} [%-8c{2}] %-5p: %m%n\nlog4j.appender.A1.layout=org.apache.log4j.PatternLayout",
+            "audit_log_level": "OFF",
+            "monitor_forwarding_log_level": "WARN",
+            "debug_num_logs": "10"
+        }
     },
     "configuration_attributes": {
         "yarn-site": {

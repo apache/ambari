@@ -265,6 +265,18 @@
       </service>
     </group>
 
+    <group name="ACCUMULO" title="Accumulo">
+      <skippable>true</skippable>
+      <service name="ACCUMULO">
+        <component>ACCUMULO_MASTER</component>
+        <component>ACCUMULO_TSERVER</component>
+        <component>ACCUMULO_MONITOR</component>
+        <component>ACCUMULO_GC</component>
+        <component>ACCUMULO_TRACER</component>
+        <component>ACCUMULO_CLIENT</component>
+      </service>
+    </group>
+
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <skippable>true</skippable>
       <execute-stage title="Check Unhealthy Hosts" id="unhealthy-hosts">
@@ -1136,6 +1148,39 @@
 
     <service name="FLUME">
       <component name="FLUME_HANDLER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="ACCUMULO">
+      <component name="ACCUMULO_MASTER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="ACCUMULO_MONITOR">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="ACCUMULO_GC">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="ACCUMULO_TRACER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="ACCUMULO_TSERVER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="ACCUMULO_CLIENT">
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>

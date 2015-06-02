@@ -18,7 +18,11 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.core.logger import Logger
+from resource_management.core.exceptions import ClientComponentHasNoStatus
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.script.script import Script
 
 from accumulo_configuration import setup_conf_dir
 
@@ -27,9 +31,11 @@ class AccumuloClient(Script):
   def get_stack_to_component(self):
     return {"HDP": "accumulo-client"}
 
+
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
+
 
   def configure(self, env):
     import params
@@ -37,9 +43,23 @@ class AccumuloClient(Script):
 
     setup_conf_dir(name='client')
 
+
   def status(self, env):
     raise ClientComponentHasNoStatus()
 
+
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+
+    # this function should not execute if the version can't be determined or
+    # is not at least HDP 2.2.0.0
+    if Script.is_hdp_stack_less_than("2.2"):
+      return
+
+    Logger.info("Executing Accumulo Client Rolling Upgrade pre-restart")
+    conf_select.select(params.stack_name, "accumulo", params.version)
+    hdp_select.select("accumulo-client", params.version)
 
 if __name__ == "__main__":
   AccumuloClient().execute()
