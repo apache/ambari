@@ -102,8 +102,10 @@ if len(nimbus_hosts) > 1:
   actual_topology_min_replication_count = 2
 else:
   actual_topology_max_replication_wait_time_sec = default_topology_max_replication_wait_time_sec
-  actual_topology_min_replication_count = default_topology_min_replication_count  
-
+  actual_topology_min_replication_count = default_topology_min_replication_count 
+  
+del config['configurations']['storm-site']['topology.max.replication.wait.time.sec.default']
+del config['configurations']['storm-site']['topology.min.replication.count.default']
 rest_api_port = "8745"
 rest_api_admin_port = "8746"
 rest_api_conf_file = format("{conf_dir}/config.yaml")
