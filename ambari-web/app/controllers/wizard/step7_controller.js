@@ -684,7 +684,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       });
 
       var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
-      if (!rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
+      if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
         App.config.removeRangerConfigs(self.get('stepConfigs'));
       }
       self.updateDependentConfigs();

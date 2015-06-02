@@ -369,7 +369,7 @@ def get_conf_dir():
     return conf_dir
   except KeyError:
     default_conf_dir = configDefaults.DEFAULT_CONF_DIR
-    print AMBARI_CONF_VAR + " is not set, using default " + default_conf_dir
+    print_info_msg(AMBARI_CONF_VAR + " is not set, using default " + default_conf_dir)
     return default_conf_dir
 
 def find_properties_file():
