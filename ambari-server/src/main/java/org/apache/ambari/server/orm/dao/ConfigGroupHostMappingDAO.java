@@ -22,6 +22,7 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.cache.ConfigGroupHostMapping;
 import org.apache.ambari.server.orm.cache.ConfigGroupHostMappingImpl;
@@ -30,6 +31,7 @@ import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -45,7 +47,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.HashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -61,6 +63,8 @@ public class ConfigGroupHostMappingDAO {
   private ClusterFactory clusterFactory;
   @Inject
   private HostFactory hostFactory;
+  @Inject
+  Clusters clusters;
   
   private final ReadWriteLock gl = new ReentrantReadWriteLock();
   
@@ -74,33 +78,35 @@ public class ConfigGroupHostMappingDAO {
     if (!cacheLoaded) {
       gl.writeLock().lock();
       try {
-        if (configGroupHostMappingByHost == null) {
-          configGroupHostMappingByHost = new WeakHashMap<Long, Set<ConfigGroupHostMapping>>();
-          
-          TypedQuery<ConfigGroupHostMappingEntity> query = entityManagerProvider.get().createQuery(
-              "SELECT entity FROM ConfigGroupHostMappingEntity entity",
-              ConfigGroupHostMappingEntity.class);
+        if (!cacheLoaded) {
+          if (configGroupHostMappingByHost == null) {
+            configGroupHostMappingByHost = new HashMap<Long, Set<ConfigGroupHostMapping>>();
 
-          List<ConfigGroupHostMappingEntity> configGroupHostMappingEntities = daoUtils.selectList(query);
-          
-          for (ConfigGroupHostMappingEntity configGroupHostMappingEntity : configGroupHostMappingEntities) {
+            TypedQuery<ConfigGroupHostMappingEntity> query = entityManagerProvider.get().createQuery(
+                "SELECT entity FROM ConfigGroupHostMappingEntity entity",
+                ConfigGroupHostMappingEntity.class);
 
-            Set<ConfigGroupHostMapping> setByHost = configGroupHostMappingByHost.get((configGroupHostMappingEntity.getHostId()));
-              
-            if (setByHost == null) {
-              setByHost = new HashSet<ConfigGroupHostMapping>();
-              configGroupHostMappingByHost.put(configGroupHostMappingEntity.getHostId(), setByHost);
+            List<ConfigGroupHostMappingEntity> configGroupHostMappingEntities = daoUtils.selectList(query);
+
+            for (ConfigGroupHostMappingEntity configGroupHostMappingEntity : configGroupHostMappingEntities) {
+
+              Set<ConfigGroupHostMapping> setByHost = configGroupHostMappingByHost.get((configGroupHostMappingEntity.getHostId()));
+
+              if (setByHost == null) {
+                setByHost = new HashSet<ConfigGroupHostMapping>();
+                configGroupHostMappingByHost.put(configGroupHostMappingEntity.getHostId(), setByHost);
+              }
+
+              ConfigGroupHostMapping configGroupHostMapping = buildConfigGroupHostMapping(configGroupHostMappingEntity);
+              setByHost.add(configGroupHostMapping);
             }
-       
-            ConfigGroupHostMapping configGroupHostMapping = buildConfigGroupHostMapping(configGroupHostMappingEntity);
-            setByHost.add(configGroupHostMapping);
-          } 
+          }
+          cacheLoaded = true;
         }
       } finally {
         gl.writeLock().unlock();
       }
       
-      cacheLoaded = true;
 
     }
     
@@ -308,7 +314,12 @@ public class ConfigGroupHostMappingDAO {
   }
 
   private ConfigGroup buildConfigGroup(ConfigGroupEntity configGroupEntity) {
-    Cluster cluster = clusterFactory.create(configGroupEntity.getClusterEntity());
+    Cluster cluster = null;
+    try {
+      cluster = clusters.getClusterById(configGroupEntity.getClusterId());
+    } catch (AmbariException e) {
+      //almost impossible
+    }
     ConfigGroup configGroup = configGroupFactory.createExisting(cluster, configGroupEntity);
     
     return configGroup;

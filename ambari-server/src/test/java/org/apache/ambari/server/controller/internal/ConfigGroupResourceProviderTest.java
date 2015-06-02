@@ -275,10 +275,14 @@ public class ConfigGroupResourceProviderTest {
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(clusters.getHost("h1")).andReturn(h1);
     expect(clusters.getHost("h2")).andReturn(h2);
-    expect(hostDAO.findByName("h1")).andReturn(hostEntity1).atLeastOnce();
-    expect(hostDAO.findByName("h2")).andReturn(hostEntity2).atLeastOnce();
+    expect(hostDAO.findByName("h1")).andReturn(hostEntity1).anyTimes();
+    expect(hostDAO.findById(1L)).andReturn(hostEntity1).anyTimes();
+    expect(hostDAO.findByName("h2")).andReturn(hostEntity2).anyTimes();
+    expect(hostDAO.findById(2L)).andReturn(hostEntity2).anyTimes();
     expect(hostEntity1.getHostId()).andReturn(1L).atLeastOnce();
     expect(hostEntity2.getHostId()).andReturn(2L).atLeastOnce();
+    expect(h1.getHostId()).andReturn(1L).anyTimes();
+    expect(h2.getHostId()).andReturn(2L).anyTimes();
 
     expect(configGroup.getName()).andReturn("test-1").anyTimes();
     expect(configGroup.getId()).andReturn(25L).anyTimes();
@@ -301,7 +305,7 @@ public class ConfigGroupResourceProviderTest {
     expectLastCall().once();
 
     replay(managementController, clusters, cluster,
-      configGroup, response, configGroupResponse, configHelper, hostDAO, hostEntity1, hostEntity2);
+      configGroup, response, configGroupResponse, configHelper, hostDAO, hostEntity1, hostEntity2, h1, h2);
 
     ResourceProvider provider = getConfigGroupResourceProvider
       (managementController);
@@ -350,7 +354,7 @@ public class ConfigGroupResourceProviderTest {
     provider.updateResources(request, predicate);
 
     verify(managementController, clusters, cluster,
-      configGroup, response, configGroupResponse, configHelper, hostDAO, hostEntity1, hostEntity2);
+      configGroup, response, configGroupResponse, configHelper, hostDAO, hostEntity1, hostEntity2, h1, h2);
   }
 
   @SuppressWarnings("unchecked")

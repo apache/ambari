@@ -582,8 +582,8 @@ public class ConfigGroupResourceProvider extends
       if (request.getHosts() != null && !request.getHosts().isEmpty()) {
         for (String hostname : request.getHosts()) {
           Host host = clusters.getHost(hostname);
-          HostEntity hostEntity = hostDAO.findByName(hostname);
-          if (host == null || hostEntity == null) {
+          HostEntity hostEntity = hostDAO.findById(host.getHostId());
+          if (hostEntity == null) {
             throw new HostNotFoundException(hostname);
           }
           hosts.put(hostEntity.getHostId(), host);

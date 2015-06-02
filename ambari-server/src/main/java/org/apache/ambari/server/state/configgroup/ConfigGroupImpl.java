@@ -343,7 +343,7 @@ public class ConfigGroupImpl implements ConfigGroup {
    * @throws Exception
    */
   @Transactional
-  private void persistEntities() {
+  void persistEntities() {
     ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
     configGroupEntity.setClusterEntity(clusterEntity);
     configGroupEntity.setTimestamp(System.currentTimeMillis());
@@ -361,7 +361,7 @@ public class ConfigGroupImpl implements ConfigGroup {
    * @throws Exception
    */
   @Transactional
-  private void persistHostMapping() {
+  void persistHostMapping() {
     if (isPersisted) {
       // Delete existing mappings and create new ones
       configGroupHostMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
@@ -370,7 +370,7 @@ public class ConfigGroupImpl implements ConfigGroup {
 
     if (hosts != null && !hosts.isEmpty()) {
       for (Host host : hosts.values()) {
-        HostEntity hostEntity = hostDAO.findByName(host.getHostName());
+        HostEntity hostEntity = hostDAO.findById(host.getHostId());
         if (hostEntity != null) {
           ConfigGroupHostMappingEntity hostMappingEntity = new
             ConfigGroupHostMappingEntity();
@@ -398,7 +398,7 @@ public class ConfigGroupImpl implements ConfigGroup {
    * @throws Exception
    */
   @Transactional
-  private void persistConfigMapping(ClusterEntity clusterEntity) {
+  void persistConfigMapping(ClusterEntity clusterEntity) {
     if (isPersisted) {
       configGroupConfigMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
       configGroupEntity.getConfigGroupConfigMappingEntities().clear();
@@ -451,7 +451,7 @@ public class ConfigGroupImpl implements ConfigGroup {
   }
 
   @Transactional
-  private void saveIfPersisted() {
+  void saveIfPersisted() {
     ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
 
     if (isPersisted) {
