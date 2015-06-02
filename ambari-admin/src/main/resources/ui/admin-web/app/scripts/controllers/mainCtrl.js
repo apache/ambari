@@ -71,12 +71,20 @@ angular.module('ambariAdminConsole')
   loadAmbariVersion();
 
   $scope.viewInstances = [];
-  View.getAllVisibleInstance().then(function(instances) {
-    $scope.viewInstances = instances;
-  });
+
+  $scope.updateInstances = function () {
+    View.getAllVisibleInstance().then(function(instances) {
+      $scope.viewInstances = instances;
+    });
+  };
 
   $scope.gotoViewsDashboard =function() {
     window.location = '/#/main/views';
   };
 
+  $scope.$root.$on('instancesUpdate', function (event, data) {
+    $scope.updateInstances();
+  });
+
+  $scope.updateInstances();
 }]);

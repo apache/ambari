@@ -196,6 +196,7 @@ angular.module('ambariAdminConsole')
     $scope.cluster = $scope.clusters[0];
   });
 
+
   $scope.saveSettings = function(callback) {
     if( $scope.settingsForm.$valid ){
       var data = {
@@ -241,6 +242,7 @@ angular.module('ambariAdminConsole')
       };
       return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, data)
       .success(function() {
+        $scope.$root.$emit('instancesUpdate');
         if( callback ){
           callback();
         } else {

@@ -135,6 +135,7 @@ angular.module('ambariAdminConsole')
             $location.path('/views/' + $scope.instance.view_name + '/versions/' + $scope.instance.version + '/instances/' + $scope.instance.instance_name + '/edit');
           }
             $scope.form.instanceCreateForm.isSaving = false;
+            $scope.$root.$emit('instancesUpdate');
         })
         .catch(function (data) {
           var errorMessage = data.message;
@@ -154,7 +155,7 @@ angular.module('ambariAdminConsole')
               });
 
               if (showGeneralError) {
-                $scope.form.instanceCreateForm.generalValidationError = errorMessage;  
+                $scope.form.instanceCreateForm.generalValidationError = errorMessage;
               }
             } catch (e) {
               console.error('Unable to parse error message:', data.message);
