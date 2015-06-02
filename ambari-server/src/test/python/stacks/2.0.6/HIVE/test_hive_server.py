@@ -31,7 +31,6 @@ from resource_management.libraries import functions
 
 @patch.object(functions, "get_hdp_version", new = MagicMock(return_value="2.0.0.0-1234"))
 @patch("resource_management.libraries.functions.check_thrift_port_sasl", new=MagicMock())
-@patch("atlas_plugin_utils.configure_for_plugin", new=MagicMock())
 class TestHiveServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"

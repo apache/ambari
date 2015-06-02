@@ -29,9 +29,6 @@
             <package>
               <name>mysql-connector-java</name>
             </package>
-            <package>
-              <name>atlas-metadata*-hive-plugin</name>
-            </package>
           </packages>
         </osSpecific>
         <osSpecific>
