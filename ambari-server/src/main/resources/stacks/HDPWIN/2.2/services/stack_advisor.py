@@ -18,7 +18,9 @@ limitations under the License.
 """
 
 import math
+import os
 import re
+import sys
 from urlparse import urlparse
 
 def getSiteProperties(configurations, siteName):
@@ -262,6 +264,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     putHiveEnvProperty = self.putProperty(configurations, "hive-env", services)
     putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
     putHiveSitePropertyAttribute = self.putPropertyAttribute(configurations, "hive-site")
+    putWebhcatSiteProperty = self.putProperty(configurations, "webhcat-site", services)
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
@@ -462,6 +465,10 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
       putHiveSiteProperty("hive.server2.custom.authentication.class", "")
     else:
       putHiveSitePropertyAttribute("hive.server2.custom.authentication.class", "delete", "true")
+
+    #Webhcat uses by default PYTHON_CMD, which is not standard for Ambari. Substitute it with the actual path.
+    python_binary = os.environ['PYTHON_EXE'] if 'PYTHON_EXE' in os.environ else sys.executable
+    putWebhcatSiteProperty("templeton.python", python_binary)
 
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):

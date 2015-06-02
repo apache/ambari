@@ -24,24 +24,6 @@ limitations under the License.
 <configuration supports_final="true">
 
   <property>
-    <name>templeton.jar</name>
-    <value>/usr/hdp/current/hive-webhcat/share/webhcat/svr/lib/hive-webhcat-*.jar</value>
-    <description>The path to the Templeton jar file.</description>
-  </property>
-
-  <property>
-    <name>templeton.libjars</name>
-    <value>file:///c:/hdp/hive/lib/zookeeper.jar</value>
-    <description>Jars to add the the classpath.</description>
-  </property>
-
-  <property>
-    <name>templeton.hadoop</name>
-    <value>/usr/hdp/current/hadoop-client/bin/hadoop</value>
-    <description>The path to the Hadoop executable.</description>
-  </property>
-
-  <property>
     <name>templeton.pig.archive</name>
     <value>hdfs:///hdp/apps/${hdp.version}/pig/pig.tar.gz</value>
     <description>The path to the Pig archive in HDFS.</description>
@@ -51,12 +33,6 @@ limitations under the License.
     <name>templeton.pig.path</name>
     <value>pig.tar.gz/pig/bin/pig</value>
     <description>The path to the Pig executable.</description>
-  </property>
-
-  <property>
-    <name>templeton.hcat</name>
-    <value>/usr/hdp/current/hive-client/bin/hcat</value>
-    <description>The path to the hcatalog executable.</description>
   </property>
 
   <property>
@@ -75,6 +51,18 @@ limitations under the License.
     <name>templeton.hcat.home</name>
     <value>hive.tar.gz/hive/hcatalog</value>
     <description>The path to the HCat home within the tar. Has no effect if templeton.hive.archive is not set.</description>
+  </property>
+
+  <property>
+    <name>templeton.hadoop.conf.dir</name>
+    <value>${env.HADOOP_HOME}\etc\hadoop</value>
+    <description>The path to the Hadoop configuration.</description>
+  </property>
+
+  <property>
+    <name>templeton.python</name>
+    <value>C:\Python27\python.exe</value>
+    <description>The path to the Python executable.</description>
   </property>
 
   <property>
