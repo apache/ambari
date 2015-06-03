@@ -127,14 +127,16 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('action', 'showProgressPopup');
     } else if (status === 'INSTALLED' && !this.get('isUpgrading')) {
       if (stringUtils.compareVersions(this.get('content.repositoryVersion'), currentVersion.repository_version) === 1) {
+        var isDisabled = !App.isAccessible('ADMIN') || this.get('controller.requestInProgress') || isInstalling;
         element.set('isButtonGroup', true);
         element.set('text', Em.I18n.t('admin.stackVersions.version.performUpgrade'));
         element.set('action', 'confirmUpgrade');
         element.get('buttons').pushObject({
           text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-          action: 'installRepoVersionConfirmation'
+          action: 'installRepoVersionConfirmation',
+          isDisabled: isDisabled
         });
-        element.set('isDisabled', !App.isAccessible('ADMIN') || this.get('controller.requestInProgress') || isInstalling);
+        element.set('isDisabled', isDisabled);
       } else {
         element.set('iconClass', 'icon-ok');
         element.set('isLink', true);
@@ -173,7 +175,11 @@ App.UpgradeVersionBoxView = Em.View.extend({
    * run custom action of controller
    */
   runAction: function (event) {
-    var action = event && event.context || this.get('stateElement.action');
+    var target = event && event.target,
+      action = event && event.context || this.get('stateElement.action');
+    if (target && ($(target).hasClass('disabled') || $(target).parent().hasClass('disabled'))) {
+      return;
+    }
     if (action) {
       this.get('controller')[action](this.get('content'));
     }

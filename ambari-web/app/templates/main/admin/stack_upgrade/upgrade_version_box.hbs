@@ -42,15 +42,14 @@
         {{bindAttr disabled="view.stateElement.isDisabled"}}>
         {{view.stateElement.text}}
       </button>
-      <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+      <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown" {{bindAttr disabled="view.stateElement.isDisabled"}}>
         <span class="caret"></span>
       </button>
       <ul class="dropdown-menu">
         {{#each button in view.stateElement.buttons}}
-          <li>
-            <a {{action runAction button.action target="view"}}
-              {{bindAttr disabled="button.isDisabled"}}>
-            {{button.text}}
+          <li {{bindAttr class="button.isDisabled:disabled"}}>
+            <a {{action runAction button.action target="view"}}>
+              {{button.text}}
             </a>
           </li>
         {{/each}}

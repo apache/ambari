@@ -121,11 +121,17 @@ describe('App.UpgradeVersionBoxView', function () {
   });
 
   describe("#runAction()", function () {
+    var hasClass = function () {
+        return true;
+      },
+      jQueryMock;
     beforeEach(function () {
       sinon.stub(view.get('controller'), 'upgrade').returns(1);
+      jQueryMock = sinon.stub(window, '$');
     });
     afterEach(function () {
       view.get('controller').upgrade.restore();
+      jQueryMock.restore();
     });
     it("action = null", function () {
       view.set('stateElement.action', null);
@@ -144,6 +150,36 @@ describe('App.UpgradeVersionBoxView', function () {
       });
       view.runAction();
       expect(view.get('controller').upgrade.calledWith('content')).to.be.true;
+    });
+    it("link is disabled", function () {
+      jQueryMock.returns({
+        hasClass: hasClass,
+        parent: function () {
+          return {
+            hasClass: Em.K
+          };
+        }
+      });
+      view.runAction({
+        context: 'upgrade',
+        target: {}
+      });
+      expect(view.get('controller').upgrade.called).to.be.false;
+    });
+    it("link parent element is disabled", function () {
+      jQueryMock.returns({
+        hasClass: Em.K,
+        parent: function () {
+          return {
+            hasClass: hasClass
+          };
+        }
+      });
+      view.runAction({
+        context: 'upgrade',
+        target: {}
+      });
+      expect(view.get('controller').upgrade.called).to.be.false;
     });
   });
 
@@ -433,7 +469,8 @@ describe('App.UpgradeVersionBoxView', function () {
           buttons: [
             {
               text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-              action: 'installRepoVersionConfirmation'
+              action: 'installRepoVersionConfirmation',
+              isDisabled: true
             }
           ],
           isDisabled: true
@@ -468,7 +505,8 @@ describe('App.UpgradeVersionBoxView', function () {
           buttons: [
             {
               text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-              action: 'installRepoVersionConfirmation'
+              action: 'installRepoVersionConfirmation',
+              isDisabled: true
             }
           ],
           isDisabled: true
