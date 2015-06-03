@@ -545,7 +545,7 @@ var hdp2properties = [
   {
     "id": "site property",
     "name": "hive.server2.thrift.port",
-    "displayName": "Hive Server Port",
+    "displayName": "HiveServer2 Port",
     "description": "TCP port number to listen on, default 10000.",
     "recommendedValue": "10000",
     "displayType": "int",
