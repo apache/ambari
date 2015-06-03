@@ -225,16 +225,19 @@ class AmbariUserChecksWindows(AmbariUserChecks):
       self.user = user
       return 0
 
+    if get_silent():
+      password = self.password
+    else:
+      password = get_validated_string_input("Enter password for user {0}:".format(user), "", None, "Password", True, False)
+
     from ambari_commons.os_windows import UserHelper
 
     uh = UserHelper(user)
 
-    if not uh.find_user():
-      if get_silent():
-        password = self.password
-      else:
-        password = get_validated_string_input("Enter password for user {0}:".format(user), "", None, "Password", True, False)
-
+    if uh.find_user():
+      print_info_msg("User {0} already exists, make sure that you typed correct password for user, "
+                     "skipping user creation".format(user))
+    else:
       status, message = uh.create_user(password)
       if status == UserHelper.USER_EXISTS:
         print_info_msg("User {0} already exists, make sure that you typed correct password for user, "
@@ -244,7 +247,7 @@ class AmbariUserChecksWindows(AmbariUserChecks):
         print_warning_msg("Can't create user {0}. Failed with message {1}".format(user, message))
         return UserHelper.ACTION_FAILED
 
-      self.password = password
+    self.password = password
 
     # setting SeServiceLogonRight and SeBatchLogonRight to user
     #This is unconditional
