@@ -961,10 +961,6 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'hive-site': {
         'properties': {
-          'hive.server2.enable.doAs': 'true',
-          'hive.server2.tez.default.queues': "queue1,queue2",
-          'hive.server2.tez.initialize.default.sessions': 'false',
-          'hive.server2.tez.sessions.per.default.queue': '1',
           'hive.auto.convert.join.noconditionaltask.size': '268435456',
           'hive.cbo.enable': 'true',
           'hive.compactor.initiator.on': 'false',
@@ -996,9 +992,7 @@ class TestHDP22StackAdvisor(TestCase):
           'hive.tez.java.opts': '-server -Xmx615m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps',
           'hive.txn.manager': 'org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager',
           'hive.vectorized.execution.enabled': 'true',
-          'hive.vectorized.execution.reduce.enabled': 'false',
-          'hive.security.metastore.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider',
-          'hive.security.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory'
+          'hive.vectorized.execution.reduce.enabled': 'false'
         },
        'property_attributes': {
          'hive.auto.convert.join.noconditionaltask.size': {'maximum': '805306368'},
@@ -1007,22 +1001,23 @@ class TestHDP22StackAdvisor(TestCase):
          'hive.server2.authentication.ldap.baseDN': {'delete': 'true'}, 
          'hive.server2.authentication.kerberos.principal': {'delete': 'true'}, 
          'hive.server2.authentication.kerberos.keytab': {'delete': 'true'}, 
-         'hive.server2.authentication.ldap.url': {'delete': 'true'},
-         'hive.server2.tez.default.queues': {
-           'entries': [{'value': 'queue1', 'label': 'queue1 queue'}, {'value': 'queue2', 'label': 'queue2 queue'}]
-          }
+         'hive.server2.authentication.ldap.url': {'delete': 'true'}
         }
       },
       'hiveserver2-site': {
         'properties': {
+          'hive.server2.enable.doAs': 'true',
+          'hive.server2.tez.default.queues': "queue1,queue2",
+          'hive.server2.tez.initialize.default.sessions': 'false',
+          'hive.server2.tez.sessions.per.default.queue': '1',
           'tez.session.am.dag.submit.timeout.secs': '600'
         },
         'property_attributes': {
-         'hive.security.authorization.manager': {'delete': 'true'},
-         'hive.security.authorization.enabled': {'delete': 'true'},
-         'hive.security.authenticator.manager': {'delete': 'true'}
+          'hive.server2.tez.default.queues': {
+            'entries': [{'value': 'queue1', 'label': 'queue1 queue'}, {'value': 'queue2', 'label': 'queue2 queue'}]
+          }
         }
-      }
+      },
     }
     services = {
       "services": [
@@ -1153,12 +1148,9 @@ class TestHDP22StackAdvisor(TestCase):
     expected["hive-site"]["properties"]["hive.stats.fetch.partition.stats"]="false"
     expected["hive-site"]["properties"]["hive.stats.fetch.column.stats"]="false"
     expected["hive-site"]["properties"]["hive.security.authorization.enabled"]="true"
-    expected["hive-site"]["properties"]["hive.server2.enable.doAs"]="false"
+    expected["hiveserver2-site"]["properties"]["hive.server2.enable.doAs"]="false"
     expected["hive-site"]["properties"]["hive.security.metastore.authorization.manager"]=\
-      "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider,org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
-    expected["hiveserver2-site"]["properties"]["hive.security.authorization.enabled"]="true"
-    expected["hiveserver2-site"]["properties"]["hive.security.authorization.manager"]="org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory"
-    expected["hiveserver2-site"]["properties"]["hive.security.authenticator.manager"]="org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
+      ",org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
 
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
@@ -1168,9 +1160,7 @@ class TestHDP22StackAdvisor(TestCase):
     configurations["hive-env"]["properties"]["hive_security_authorization"] = "none"
     expected["hive-env"]["properties"]["hive_security_authorization"] = "none"
     expected["hive-site"]["properties"]["hive.security.authorization.enabled"]="false"
-    expected["hive-site"]["properties"]["hive.server2.enable.doAs"]="true"
-    expected["hive-site"]["properties"]["hive.security.metastore.authorization.manager"]=\
-      "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider"
+    expected["hiveserver2-site"]["properties"]["hive.server2.enable.doAs"]="true"
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
