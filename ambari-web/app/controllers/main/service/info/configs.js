@@ -187,12 +187,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * Determines if Save-button should be disabled
-   * Disabled if some configs have invalid values or save-process currently in progress
+   * Disabled if some configs have invalid values for selected service
+   * or save-process currently in progress
+   *
    * @type {boolean}
    */
   isSubmitDisabled: function () {
-    return (!(this.get('stepConfigs').everyProperty('errorCount', 0)) || this.get('saveInProgress'));
-  }.property('stepConfigs.@each.errorCount', 'saveInProgress'),
+    return this.get('selectedService').get('errorCount') !==  0 || this.get('saveInProgress');
+  }.property('selectedService.errorCount', 'saveInProgress'),
 
   /**
    * Determines if some config value is changed

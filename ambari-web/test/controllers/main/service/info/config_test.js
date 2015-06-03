@@ -115,15 +115,20 @@ describe("App.MainServiceInfoConfigsController", function () {
     ];
 
     beforeEach(function () {
+      sinon.stub(mainServiceInfoConfigsController, "get", function(key) {
+        return key == 'isSubmitDisabled' ?  false : Em.get(mainServiceInfoConfigsController, key);
+      });
       sinon.stub(mainServiceInfoConfigsController, "restartServicePopup", Em.K);
       sinon.stub(mainServiceInfoConfigsController, "getHash", function () {
         return "hash"
       });
-      App.router.route = Em.K;
+      sinon.stub(App.router, "route", Em.K);
     });
     afterEach(function () {
+      mainServiceInfoConfigsController.get.restore();
       mainServiceInfoConfigsController.restartServicePopup.restore();
       mainServiceInfoConfigsController.getHash.restore();
+      App.router.route.restore();
     });
 
     tests.forEach(function (t) {
