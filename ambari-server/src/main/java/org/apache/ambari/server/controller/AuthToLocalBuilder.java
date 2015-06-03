@@ -52,6 +52,7 @@ import java.util.regex.Pattern;
  *
  */
 public class AuthToLocalBuilder {
+  public static final ConcatenationType DEFAULT_CONCATENATION_TYPE = ConcatenationType.NEW_LINES;
 
   /**
    * Ordered set of rules which have been added to the builder.
@@ -116,33 +117,71 @@ public class AuthToLocalBuilder {
 
   /**
    * Generates the auth_to_local rules used by configuration settings such as core-site/auth_to_local.
+   * <p/>
+   * Each rule is concatenated using the default ConcatenationType, like calling
+   * {@link #generate(String, ConcatenationType)} with {@link #DEFAULT_CONCATENATION_TYPE}
    *
    * @param realm a string declaring the realm to use in rule set
-   *
+   * @return a string containing the generated auth-to-local rule set
    */
   public String generate(String realm) {
+    return generate(realm, null);
+  }
+
+  /**
+   * Generates the auth_to_local rules used by configuration settings such as core-site/auth_to_local.
+   * <p/>
+   * Each rule is concatenated using the specified
+   * {@link org.apache.ambari.server.controller.AuthToLocalBuilder.ConcatenationType}.
+   * If the concatenation type is <code>null</code>, the default concatenation type is assumed -
+   * see {@link #DEFAULT_CONCATENATION_TYPE}.
+   *
+   * @param realm             a string declaring the realm to use in rule set
+   * @param concatenationType the concatenation type to use to generate the rule set string
+   * @return a string containing the generated auth-to-local rule set
+   */
+  public String generate(String realm, ConcatenationType concatenationType) {
     StringBuilder builder = new StringBuilder();
     // ensure that a default rule is added for this realm
     setRules.add(createDefaultRealmRule(realm));
 
-    for (Rule rule : setRules) {
-      appendRule(builder, rule.toString());
+    if (concatenationType == null) {
+      concatenationType = DEFAULT_CONCATENATION_TYPE;
     }
 
-    appendRule(builder, "DEFAULT");
+    for (Rule rule : setRules) {
+      appendRule(builder, rule.toString(), concatenationType);
+    }
+
+    appendRule(builder, "DEFAULT", concatenationType);
     return builder.toString();
   }
 
   /**
    * Append a rule to the given string builder.
    *
-   * @param stringBuilder  string builder to which rule is added
-   * @param rule           rule to add
+   * @param stringBuilder     string builder to which rule is added
+   * @param rule              rule to add
+   * @param concatenationType the concatenation type to use to generate the rule set string
    */
-  private void appendRule(StringBuilder stringBuilder, String rule) {
+  private void appendRule(StringBuilder stringBuilder, String rule, ConcatenationType concatenationType) {
     if (stringBuilder.length() > 0) {
-      stringBuilder.append('\n');
+      switch (concatenationType) {
+        case NEW_LINES:
+          stringBuilder.append('\n');
+          break;
+        case NEW_LINES_ESCAPED:
+          stringBuilder.append("\\\n");
+          break;
+        case SPACES:
+          stringBuilder.append(" ");
+          break;
+        default:
+          throw new UnsupportedOperationException(String.format("The auth-to-local rule concatenation type is not supported: %s",
+              concatenationType.name()));
+      }
     }
+
     stringBuilder.append(rule);
   }
 
@@ -506,6 +545,44 @@ public class AuthToLocalBuilder {
       result = 31 * result + (realm != null ? realm.hashCode() : 0);
       result = 31 * result + components.hashCode();
       return result;
+    }
+  }
+
+  /**
+   * ConcatenationType is an enumeration of auth-to-local rule concatenation types.
+   */
+  public enum ConcatenationType {
+    /**
+     * Each rule is appended to the set of rules on a new line (<code>\n</code>)
+     */
+    NEW_LINES,
+    /**
+     * Each rule is appended to the set of rules on a new line, escaped using a \ (<code>\\n</code>)
+     */
+    NEW_LINES_ESCAPED,
+    /**
+     * Each rule is appended to the set of rules using a space - the ruleset exists on a single line
+     */
+    SPACES;
+
+    /**
+     * Translate a string declaring a concatenation type to the enumerated value.
+     * <p/>
+     * If the string value is <code>null</code> or empty, return the default type - {@link #NEW_LINES}.
+     *
+     * @param value a value to translate
+     * @return a ConcatenationType
+     */
+    public static ConcatenationType translate(String value) {
+      if(value != null) {
+        value = value.trim();
+
+        if(!value.isEmpty()) {
+          return valueOf(value.toUpperCase());
+        }
+      }
+
+      return DEFAULT_CONCATENATION_TYPE;
     }
   }
 }

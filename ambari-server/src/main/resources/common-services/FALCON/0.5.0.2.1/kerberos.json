@@ -23,7 +23,7 @@
         }
       ],
       "auth_to_local_properties" : [
-        "falcon-startup.properties/*.falcon.http.authentication.kerberos.name.rules"
+        "falcon-startup.properties/*.falcon.http.authentication.kerberos.name.rules|new_lines_escaped"
       ],
       "components": [
         {

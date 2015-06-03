@@ -115,6 +115,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Singleton
 public class KerberosHelperImpl implements KerberosHelper {
@@ -128,6 +130,17 @@ public class KerberosHelperImpl implements KerberosHelper {
    * destroying the (unique) service check identity.
    */
   private static final String SERVICE_CHECK_IDENTIFIER = "_kerberos_internal_service_check_identifier";
+
+  /**
+   * Regular expression pattern used to parse auth_to_local property specifications into the following
+   * parts:
+   * <ul>
+   * <li>configuration type (optional, if _global_)</li>
+   * <li>property name</li>
+   * <li>concatenation type (optional, if using the default behavior)</li>
+   * </ul>
+   */
+  private static final Pattern AUTH_TO_LOCAL_PROPERTY_SPECIFICATION_PATTERN = Pattern.compile("^(?:(.+?)/)?(.+?)(?:\\|(.+?))?$");
 
   @Inject
   private AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
@@ -393,12 +406,16 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       if (!authToLocalPropertiesToSet.isEmpty()) {
         for (String authToLocalProperty : authToLocalPropertiesToSet) {
-          String[] parts = authToLocalProperty.split("/");
+          Matcher m = AUTH_TO_LOCAL_PROPERTY_SPECIFICATION_PATTERN.matcher(authToLocalProperty);
 
-          if (parts.length == 2) {
+          if(m.matches()) {
             AuthToLocalBuilder builder = authToLocalBuilder.copy();
-            String configType = parts[0];
-            String propertyName = parts[1];
+            String configType = m.group(1);
+            String propertyName = m.group(2);
+
+            if(configType == null) {
+              configType = "";
+            }
 
             // Add existing auth_to_local configuration, if set
             Map<String, String> existingConfiguration = existingConfigurations.get(configType);
@@ -415,7 +432,8 @@ public class KerberosHelperImpl implements KerberosHelper {
               kerberosConfigurations.put(configType, kerberosConfiguration);
             }
 
-            kerberosConfiguration.put(propertyName, builder.generate(realm));
+            kerberosConfiguration.put(propertyName, builder.generate(realm,
+                AuthToLocalBuilder.ConcatenationType.translate(m.group(3))));
           }
         }
       }

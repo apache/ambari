@@ -19,9 +19,8 @@
 package org.apache.ambari.server.controller;
 
 import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -32,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1651,6 +1651,131 @@ public class KerberosHelperTest extends EasyMockSupport {
           }
         }
     ));
+  }
+
+  @Test
+  public void testSetAuthToLocalRules() throws Exception {
+    KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+
+    final KerberosPrincipalDescriptor principalDescriptor1 = createMock(KerberosPrincipalDescriptor.class);
+    expect(principalDescriptor1.getValue()).andReturn("principal1/host1@EXAMPLE.COM").times(1);
+    expect(principalDescriptor1.getLocalUsername()).andReturn("principal1_user").times(1);
+
+    final KerberosPrincipalDescriptor principalDescriptor2 = createMock(KerberosPrincipalDescriptor.class);
+    expect(principalDescriptor2.getValue()).andReturn("principal2/host2@EXAMPLE.COM").times(1);
+    expect(principalDescriptor2.getLocalUsername()).andReturn("principal2_user").times(1);
+
+    final KerberosPrincipalDescriptor principalDescriptor3 = createMock(KerberosPrincipalDescriptor.class);
+    expect(principalDescriptor3.getValue()).andReturn("principal3/host3@EXAMPLE.COM").times(1);
+    expect(principalDescriptor3.getLocalUsername()).andReturn("principal3_user").times(1);
+
+    final KerberosIdentityDescriptor identityDescriptor1 = createMock(KerberosIdentityDescriptor.class);
+    expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).times(1);
+//    expect(identityDescriptor1.getName()).andReturn("1").times(1);
+
+    final KerberosIdentityDescriptor identityDescriptor2 = createMock(KerberosIdentityDescriptor.class);
+    expect(identityDescriptor2.getPrincipalDescriptor()).andReturn(principalDescriptor2).times(1);
+//    expect(identityDescriptor2.getName()).andReturn("2").times(1);
+
+    final KerberosIdentityDescriptor identityDescriptor3 = createMock(KerberosIdentityDescriptor.class);
+    expect(identityDescriptor3.getPrincipalDescriptor()).andReturn(principalDescriptor3).times(1);
+//    expect(identityDescriptor3.getName()).andReturn("3").times(1);
+
+    final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
+    expect(serviceDescriptor1.getName()).andReturn("SERVICE1").times(1);
+    expect(serviceDescriptor1.getIdentities(true)).andReturn(Arrays.asList(
+        identityDescriptor1,
+        identityDescriptor2,
+        identityDescriptor3
+    )).times(1);
+    expect(serviceDescriptor1.getComponents()).andReturn(null).times(1);
+    expect(serviceDescriptor1.getAuthToLocalProperties()).andReturn(new HashSet<String>(Arrays.asList(
+        "default",
+        "explicit_multiple_lines|new_lines",
+        "explicit_multiple_lines_escaped|new_lines_escaped",
+        "explicit_single_line|spaces",
+        "service-site/default",
+        "service-site/explicit_multiple_lines|new_lines",
+        "service-site/explicit_multiple_lines_escaped|new_lines_escaped",
+        "service-site/explicit_single_line|spaces"
+    ))).times(1);
+
+    final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
+    expect(kerberosDescriptor.getIdentities()).andReturn(null).times(1);
+    expect(kerberosDescriptor.getAuthToLocalProperties()).andReturn(null).times(1);
+    expect(kerberosDescriptor.getServices()).andReturn(Collections.singletonMap("SERVICE1", serviceDescriptor1)).times(1);
+
+    final Service service1 = createNiceMock(Service.class);
+
+    final Cluster cluster = createNiceMock(Cluster.class);
+    expect(cluster.getServices()).andReturn(Collections.singletonMap("SERVICE1", service1)).times(1);
+
+    Map<String, Map<String, String>> kerberosConfigurations = new HashMap<String, Map<String, String>>();
+
+    replayAll();
+
+    // Needed by infrastructure
+    injector.getInstance(AmbariMetaInfo.class).init();
+
+    kerberosHelper.setAuthToLocalRules(kerberosDescriptor, cluster, "EXAMPLE.COM", new HashMap<String, Map<String, String>>(), kerberosConfigurations);
+
+    verifyAll();
+
+    Map<String, String> configs;
+
+    configs = kerberosConfigurations.get("");
+    assertNotNull(configs);
+    assertEquals("RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\n" +
+        "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/\n" +
+        "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/\n" +
+        "RULE:[2:$1@$0](principal3@EXAMPLE.COM)s/.*/principal3_user/\n" +
+        "DEFAULT",
+        configs.get("default"));
+    assertEquals("RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\n" +
+        "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/\n" +
+        "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/\n" +
+        "RULE:[2:$1@$0](principal3@EXAMPLE.COM)s/.*/principal3_user/\n" +
+        "DEFAULT",
+        configs.get("explicit_multiple_lines"));
+    assertEquals("RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\\\n" +
+        "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/\\\n" +
+        "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/\\\n" +
+        "RULE:[2:$1@$0](principal3@EXAMPLE.COM)s/.*/principal3_user/\\\n" +
+        "DEFAULT",
+        configs.get("explicit_multiple_lines_escaped"));
+    assertEquals("RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*// " +
+        "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/ " +
+        "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/ " +
+        "RULE:[2:$1@$0](principal3@EXAMPLE.COM)s/.*/principal3_user/ " +
+        "DEFAULT",
+        configs.get("explicit_single_line"));
+
+    configs = kerberosConfigurations.get("service-site");
+    assertNotNull(configs);
+    assertEquals("RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\n" +
+        "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/\n" +
+        "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/\n" +
+        "RULE:[2:$1@$0](principal3@EXAMPLE.COM)s/.*/principal3_user/\n" +
+        "DEFAULT",
+        configs.get("default"));
+    assertEquals("RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\n" +
+        "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/\n" +
+        "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/\n" +
+        "RULE:[2:$1@$0](principal3@EXAMPLE.COM)s/.*/principal3_user/\n" +
+        "DEFAULT",
+        configs.get("explicit_multiple_lines"));
+    assertEquals("RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\\\n" +
+        "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/\\\n" +
+        "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/\\\n" +
+        "RULE:[2:$1@$0](principal3@EXAMPLE.COM)s/.*/principal3_user/\\\n" +
+        "DEFAULT",
+        configs.get("explicit_multiple_lines_escaped"));
+    assertEquals("RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*// " +
+        "RULE:[2:$1@$0](principal1@EXAMPLE.COM)s/.*/principal1_user/ " +
+        "RULE:[2:$1@$0](principal2@EXAMPLE.COM)s/.*/principal2_user/ " +
+        "RULE:[2:$1@$0](principal3@EXAMPLE.COM)s/.*/principal3_user/ " +
+        "DEFAULT",
+        configs.get("explicit_single_line"));
   }
 
 
