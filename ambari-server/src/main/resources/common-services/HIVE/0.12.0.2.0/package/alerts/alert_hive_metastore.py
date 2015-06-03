@@ -25,6 +25,8 @@ import time
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.core.resources import Execute
+from ambari_commons.os_check import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 OK_MESSAGE = "Metastore OK - Hive command took {0:.3f}s"
 CRITICAL_MESSAGE = "Metastore on {0} failed ({1})"
@@ -56,7 +58,10 @@ HIVE_CONF_DIR_LEGACY = '/etc/hive/conf.server'
 HIVE_BIN_DIR = '/usr/hdp/current/hive-metastore/bin'
 HIVE_BIN_DIR_LEGACY = '/usr/lib/hive/bin'
 
+HADOOPUSER_KEY = '{{cluster-env/hadoop.user.name}}'
+HADOOPUSER_DEFAULT = 'hadoop'
 
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
@@ -65,7 +70,15 @@ def get_tokens():
   return (SECURITY_ENABLED_KEY,SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,
     HIVE_METASTORE_URIS_KEY, SMOKEUSER_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY)
 
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def get_tokens():
+  """
+  Returns a tuple of tokens in the format {{site/property}} that will be used
+  to build the dictionary passed into execute
+  """
+  return (HIVE_METASTORE_URIS_KEY, HADOOPUSER_KEY)
 
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def execute(configurations={}, parameters={}, host_name=None):
   """
   Returns a tuple containing the result code and a pre-formatted result label
@@ -168,6 +181,64 @@ def execute(configurations={}, parameters={}, host_name=None):
       result_code = 'CRITICAL'
       label = CRITICAL_MESSAGE.format(host_name, str(exception))
 
+  except Exception, e:
+    label = str(e)
+    result_code = 'UNKNOWN'
+
+  return ((result_code, [label]))
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def execute(configurations={}, parameters={}, host_name=None):
+  """
+  Returns a tuple containing the result code and a pre-formatted result label
+
+  Keyword arguments:
+  configurations (dictionary): a mapping of configuration key to value
+  parameters (dictionary): a mapping of script parameter key to value
+  host_name (string): the name of this host where the alert is running
+  """
+
+  from resource_management.libraries.functions import reload_windows_env
+  reload_windows_env()
+  hive_home = os.environ['HIVE_HOME']
+
+  if configurations is None:
+    return (('UNKNOWN', ['There were no configurations supplied to the script.']))
+  if not HIVE_METASTORE_URIS_KEY in configurations:
+    return (('UNKNOWN', ['Hive metastore uris were not supplied to the script.']))
+
+  metastore_uris = configurations[HIVE_METASTORE_URIS_KEY].split(',')
+
+  # defaults
+  hiveuser = HADOOPUSER_DEFAULT
+
+  if HADOOPUSER_KEY in configurations:
+    hiveuser = configurations[HADOOPUSER_KEY]
+
+  result_code = None
+  try:
+    if host_name is None:
+      host_name = socket.getfqdn()
+    for uri in metastore_uris:
+      if host_name in uri:
+        metastore_uri = uri
+
+    hive_cmd = os.path.join(hive_home, "bin", "hive.cmd")
+    cmd = format("cmd /c {hive_cmd} --hiveconf hive.metastore.uris={metastore_uri}\
+                 --hiveconf hive.metastore.client.connect.retry.delay=1s\
+                 --hiveconf hive.metastore.failure.retries=1\
+                 --hiveconf hive.metastore.connect.retries=1\
+                 --hiveconf hive.metastore.client.socket.timeout=14s\
+                 --hiveconf hive.execution.engine=mr -e 'show databases;'")
+    start_time = time.time()
+    try:
+      Execute(cmd, user=hiveuser, timeout=30)
+      total_time = time.time() - start_time
+      result_code = 'OK'
+      label = OK_MESSAGE.format(total_time)
+    except Exception, exception:
+      result_code = 'CRITICAL'
+      label = CRITICAL_MESSAGE.format(host_name, str(exception))
   except Exception, e:
     label = str(e)
     result_code = 'UNKNOWN'

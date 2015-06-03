@@ -18,11 +18,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
 import socket
 import time
 from resource_management.libraries.functions import hive_check
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
+from ambari_commons.os_check import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 OK_MESSAGE = "TCP OK - {0:.3f}s response on port {1}"
 CRITICAL_MESSAGE = "Connection failed on host {0}:{1} ({2})"
@@ -60,6 +63,10 @@ SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
 SMOKEUSER_SCRIPT_PARAM_KEY = 'default.smoke.user'
 SMOKEUSER_DEFAULT = 'ambari-qa'
 
+HADOOPUSER_KEY = '{{cluster-env/hadoop.user.name}}'
+HADOOPUSER_DEFAULT = 'hadoop'
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
@@ -71,7 +78,16 @@ def get_tokens():
           HIVE_SERVER_TRANSPORT_MODE_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY, HIVE_SSL,
           HIVE_SSL_KEYSTORE_PATH, HIVE_SSL_KEYSTORE_PASSWORD)
 
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def get_tokens():
+  """
+  Returns a tuple of tokens in the format {{site/property}} that will be used
+  to build the dictionary passed into execute
+  """
+  return (HIVE_SERVER_THRIFT_PORT_KEY, HIVE_SERVER_THRIFT_HTTP_PORT_KEY,
+          HIVE_SERVER_TRANSPORT_MODE_KEY, HADOOPUSER_KEY)
 
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def execute(configurations={}, parameters={}, host_name=None):
   """
   Returns a tuple containing the result code and a pre-formatted result label
@@ -177,6 +193,68 @@ def execute(configurations={}, parameters={}, host_name=None):
       result_code = 'CRITICAL'
       label = CRITICAL_MESSAGE.format(host_name, port, str(exception))
 
+  except Exception, e:
+    label = str(e)
+    result_code = 'UNKNOWN'
+
+  return (result_code, [label])
+
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def execute(configurations={}, parameters={}, host_name=None):
+  """
+  Returns a tuple containing the result code and a pre-formatted result label
+
+  Keyword arguments:
+  configurations (dictionary): a mapping of configuration key to value
+  parameters (dictionary): a mapping of script parameter key to value
+  host_name (string): the name of this host where the alert is running
+  """
+
+  from resource_management.libraries.functions import reload_windows_env
+  from resource_management.core.resources import Execute
+  reload_windows_env()
+  hive_home = os.environ['HIVE_HOME']
+
+  if configurations is None:
+    return ('UNKNOWN', ['There were no configurations supplied to the script.'])
+
+  transport_mode = HIVE_SERVER_TRANSPORT_MODE_DEFAULT
+  if HIVE_SERVER_TRANSPORT_MODE_KEY in configurations:
+    transport_mode = configurations[HIVE_SERVER_TRANSPORT_MODE_KEY]
+
+  port = THRIFT_PORT_DEFAULT
+  if transport_mode.lower() == 'binary' and HIVE_SERVER_THRIFT_PORT_KEY in configurations:
+    port = int(configurations[HIVE_SERVER_THRIFT_PORT_KEY])
+  elif transport_mode.lower() == 'http' and HIVE_SERVER_THRIFT_HTTP_PORT_KEY in configurations:
+    port = int(configurations[HIVE_SERVER_THRIFT_HTTP_PORT_KEY])
+
+  hiveuser = HADOOPUSER_DEFAULT
+  if HADOOPUSER_KEY in configurations:
+    hiveuser = configurations[HADOOPUSER_KEY]
+
+  result_code = None
+  try:
+    if host_name is None:
+      host_name = socket.getfqdn()
+
+    beeline_url = ['jdbc:hive2://{host_name}:{port}/', "transportMode={transport_mode}"]
+    # append url according to used transport
+    if transport_mode == "http":
+      beeline_url.append('httpPath=cliservice')
+    beeline_url_string = format(";".join(beeline_url))
+    beeline_cmd = os.path.join(hive_home, "bin", "beeline.cmd")
+    cmd = format("cmd /c {beeline_cmd} -u {beeline_url_string} -e '' 2>&1 | findstr Connected")
+
+    start_time = time.time()
+    try:
+      Execute(cmd, user=hiveuser, timeout=30)
+      total_time = time.time() - start_time
+      result_code = 'OK'
+      label = OK_MESSAGE.format(total_time, port)
+    except Exception, exception:
+      result_code = 'CRITICAL'
+      label = CRITICAL_MESSAGE.format(host_name, port, str(exception))
   except Exception, e:
     label = str(e)
     result_code = 'UNKNOWN'

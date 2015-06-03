@@ -65,7 +65,8 @@ def get_check_command(oozie_url, host_name, configurations):
   from resource_management.libraries.functions import reload_windows_env
   reload_windows_env()
   oozie_home = os.environ['OOZIE_HOME']
-  command = format("{oozie_home}\\bin\\oozie.cmd admin -oozie {oozie_url} -status")
+  oozie_cmd = os.path.join(oozie_home, 'bin', 'oozie.cmd')
+  command = format("cmd /c {oozie_cmd} admin -oozie {oozie_url} -status")
   return (command, None)
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
