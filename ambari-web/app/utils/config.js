@@ -1059,8 +1059,10 @@ App.config = Em.Object.create({
       'user_group': 'Hadoop Group',
       'mapred_user': 'MapReduce User',
       'zk_user': 'ZooKeeper User',
-      'ignore_groupsusers_create': 'Skip group modifications during install'
+      'ignore_groupsusers_create': 'Skip group modifications during install',
+      'override_hbase_uid': 'Have Ambari manage UIDs'
     };
+    var checkboxProperties = ['ignore_groupsusers_create', 'override_hbase_uid'];
     if (Em.isArray(config.property_type)) {
       if (config.property_type.contains('USER') || config.property_type.contains('ADDITIONAL_USER_PROPERTY') || config.property_type.contains('GROUP')) {
         propertyData.id = "puppet var";
@@ -1070,8 +1072,8 @@ App.config = Em.Object.create({
         propertyData.isOverridable = false;
         propertyData.isReconfigurable = false;
         propertyData.displayName = nameToDisplayNameMap[config.property_name] || App.format.normalizeName(config.property_name);
-        propertyData.displayType = config.property_name == 'ignore_groupsusers_create' ? 'checkbox' : 'user';
-        if (config.service_name) {
+        propertyData.displayType = checkboxProperties.contains(config.property_name) ? 'checkbox' : 'user';
+        if (config.service_name && !config.property_type.contains('ADDITIONAL_USER_PROPERTY')) {
           var propertyIndex = config.service_name == 'MISC' ? 30 : App.StackService.find().mapProperty('serviceName').indexOf(config.service_name);
           propertyData.belongsToService = [config.service_name];
           propertyData.index = propertyIndex;

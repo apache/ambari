@@ -89,7 +89,7 @@ def setup_users():
                recursive = True,
                cd_access="a",
     )
-    if not params.host_sys_prepped:
+    if not params.host_sys_prepped and params.override_hbase_uid:
       set_uid(params.hbase_user, params.hbase_user_dirs)
     else:
       print 'Skipping setting uid for hbase user as host is sys prepped'

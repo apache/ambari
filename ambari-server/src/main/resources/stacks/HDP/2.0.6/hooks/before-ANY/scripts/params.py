@@ -195,3 +195,4 @@ group_list = json.loads(config['hostLevelParams']['group_list'])
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 tez_am_view_acls = config['configurations']['tez-site']["tez.am.view-acls"]
+override_hbase_uid = config['configurations']['hbase-env']["override_hbase_uid"]

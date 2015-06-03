@@ -152,4 +152,11 @@ export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Xmn{{regionserver_xmn_
     </value>
   </property>
 
+  <property>
+    <name>override_hbase_uid</name>
+    <value>true</value>
+    <property-type>ADDITIONAL_USER_PROPERTY</property-type>
+    <description>Have Ambari manage UIDs</description>
+  </property>
+
 </configuration>

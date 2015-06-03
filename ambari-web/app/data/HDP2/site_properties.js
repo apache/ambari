@@ -4467,6 +4467,17 @@ var hdp2properties = [
   },
   {
     "id": "puppet var",
+    "name": "override_hbase_uid",
+    "displayName": "Have Ambari manage UIDs",
+    "displayType": "checkbox",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "filename": "hbase-env.xml",
+    "category": "Users and Groups"
+  },
+  {
+    "id": "puppet var",
     "name": "create_notification",
     "displayName": "Create Notification",
     "isRequired": true,
@@ -5079,7 +5090,8 @@ if (App.get('isHadoopWindowsStack')) {
     'knox_pid_dir',
     'ignore_groupsusers_create',
     'hive_database',
-    'oozie_database'
+    'oozie_database',
+    'override_hbase_uid'
   ];
 
   hdp2properties = hdp2properties.filter(function (item) {
