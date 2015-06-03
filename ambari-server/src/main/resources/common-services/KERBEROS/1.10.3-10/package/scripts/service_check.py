@@ -60,10 +60,13 @@ class KerberosServiceCheck(KerberosScript):
 
       try:
         # kinit
-        Execute(kinit_command)
+        Execute(kinit_command,
+                user=params.smoke_user
+        )
       finally:
-        if os.path.isfile(ccache_file_path): # Since kinit might fail to write to the cache file for various reasons, an existence check should be done before cleanup
-          os.remove(ccache_file_path)
+        File(ccache_file_path, # Since kinit might fail to write to the cache file for various reasons, an existence check should be done before cleanup
+             action = "delete",
+        )
     elif params.manage_identities:
       err_msg = Logger.filter_text("Failed to execute kinit test due to principal or keytab not found or available")
       raise Fail(err_msg)
