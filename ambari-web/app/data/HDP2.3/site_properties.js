@@ -395,6 +395,33 @@ hdp23properties.push({
   },
   {
     "id": "site property",
+    "name": "xasecure.audit.destination.db",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-kafka-audit.xml",
+    "category": "Advanced ranger-kafka-audit",
+    "serviceName": "KAFKA"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.hdfs",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-kafka-audit.xml",
+    "category": "Advanced ranger-kafka-audit",
+    "serviceName": "KAFKA"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.destination.solr",
+    "displayName": "Audit to SOLR",
+    "displayType": "checkbox",
+    "filename": "ranger-kafka-audit.xml",
+    "category": "Advanced ranger-kafka-audit",
+    "serviceName": "KAFKA"
+  },
+  {
+    "id": "site property",
     "name": "xasecure.audit.provider.summary.enabled",
     "displayName": "Audit provider summary enabled",
     "displayType": "checkbox",

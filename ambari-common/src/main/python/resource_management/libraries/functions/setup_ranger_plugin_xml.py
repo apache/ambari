@@ -120,7 +120,8 @@ def setup_ranger_plugin(component_select_name, service_name,
       group = component_group,
       mode=0744)
 
-    setup_ranger_plugin_jar_symblink(hdp_version, service_name, component_list)
+    #This should be done by rpm
+    #setup_ranger_plugin_jar_symblink(hdp_version, service_name, component_list)
 
     setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, hdp_version, credential_file,
               xa_audit_db_password, ssl_truststore_password, ssl_keystore_password,

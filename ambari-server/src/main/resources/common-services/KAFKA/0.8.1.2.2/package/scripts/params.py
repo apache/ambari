@@ -22,6 +22,7 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.libraries.functions.default import default
 from utils import get_bare_principal
+from resource_management.libraries.functions.get_hdp_version import get_hdp_version
 
 import status_params
 
@@ -198,10 +199,15 @@ if has_ranger_admin and is_supported_kafka_ranger:
   downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
   driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
-  driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+  driver_curl_target = format("{kafka_home}libs/{jdbc_jar_name}")
 
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
   xa_audit_db_is_enabled = config['configurations']['ranger-kafka-audit']['xasecure.audit.destination.db'] if xml_configurations_supported else None
   ssl_keystore_password = unicode(config['configurations']['ranger-kafka-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
   ssl_truststore_password = unicode(config['configurations']['ranger-kafka-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
   credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None
+
+  hdp_version = get_hdp_version('kafka-broker')
+  setup_ranger_env_sh_source = format('/usr/hdp/{hdp_version}/ranger-kafka-plugin/install/conf.templates/enable/kafka-ranger-env.sh')
+  setup_ranger_env_sh_target = format("{conf_dir}/kafka-ranger-env.sh")
+

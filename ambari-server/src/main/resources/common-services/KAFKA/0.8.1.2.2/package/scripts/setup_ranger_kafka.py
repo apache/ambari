@@ -15,13 +15,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from resource_management.core.logger import Logger
-from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
+from resource_management.core.resources import Execute
+from resource_management.libraries.functions.format import format
 
 def setup_ranger_kafka():
   import params
 
   if params.has_ranger_admin:
 
+    from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
     setup_ranger_plugin('kafka-broker', 'kafka', 
                         params.downloaded_custom_connector, params.driver_curl_source,
                         params.driver_curl_target, params.java64_home,
@@ -37,5 +39,11 @@ def setup_ranger_kafka():
                         credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password, 
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
                         api_version = 'v2')
+    
+    if params.enable_ranger_kafka: 
+      Execute(('cp', '--remove-destination', params.setup_ranger_env_sh_source, params.setup_ranger_env_sh_target),
+        not_if=format("test -f {setup_ranger_env_sh_target}"),
+        sudo=True
+      )
   else:
     Logger.info('Ranger admin not installed')

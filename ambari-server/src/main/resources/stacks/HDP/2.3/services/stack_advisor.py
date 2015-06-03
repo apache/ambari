@@ -25,7 +25,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "TEZ": self.recommendTezConfigurations,
       "HDFS": self.recommendHDFSConfigurations,
       "HIVE": self.recommendHIVEConfigurations,
-      "HBASE": self.recommendHBASEConfigurations
+      "HBASE": self.recommendHBASEConfigurations,
+      "KAFKA": self.recommendKAFKAConfigurations,
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -86,12 +87,22 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == 'Yes'.lower()):
         putHdfsSiteProperty("dfs.namenode.inode.attributes.provider.class",'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer')
 
+  def recommendKAFKAConfigurations(self, configurations, clusterData, services, hosts):
+    putKafkaBrokerProperty = self.putProperty(configurations, "kafka-broker", services)
+
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if 'ranger-kafka-plugin-properties' in services['configurations'] and ('ranger-kafka-plugin-enabled' in services['configurations']['ranger-kafka-plugin-properties']['properties']):
+      rangerPluginEnabled = services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled']
+      if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == "Yes".lower()):
+        putKafkaBrokerProperty("authorizer.class.name", 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer')
+
   def getServiceConfigurationValidators(self):
       parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
       childValidators = {
         "HDFS": {"hdfs-site": self.validateHDFSConfigurations},
         "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations},
-        "HBASE": {"hbase-site": self.validateHBASEConfigurations}
+        "HBASE": {"hbase-site": self.validateHBASEConfigurations},
+        "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations}        
       }
       self.mergeValidators(parentValidators, childValidators)
       return parentValidators
@@ -196,6 +207,25 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                                 " {0} needs to contain {1} instead of {2}".format(prop_name,prop_val,exclude_val))})
 
     return self.toConfigurationValidationProblems(validationItems, "hbase-site")
+
+  def validateKAFKAConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    kafka_broker = properties
+    validationItems = []
+
+    #Adding Ranger Plugin logic here
+    ranger_plugin_properties = getSiteProperties(configurations, "ranger-kafka-plugin-properties")
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-kafka-plugin-enabled']
+    prop_name = 'authorizer.class.name'
+    prop_val = "org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer"
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()):
+      if kafka_broker[prop_name] != prop_val:
+        validationItems.append({"config-name": prop_name,
+                                "item": self.getWarnItem(
+                                "If Ranger Kafka Plugin is enabled."\
+                                "{0} needs to be set to {1}".format(prop_name,prop_val))})
+
+    return self.toConfigurationValidationProblems(validationItems, "kafka-broker")
 
 
   def isComponentUsingCardinalityForLayout(self, componentName):

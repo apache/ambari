@@ -22,7 +22,7 @@
 <configuration>
   <property>
     <name>ranger.service.host</name>
-    <value>{{ranger_admin_hosts}}</value>
+    <value>{{kms_host}}</value>
   </property>
 
   <property>

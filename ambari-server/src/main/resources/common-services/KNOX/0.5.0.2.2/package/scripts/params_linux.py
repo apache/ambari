@@ -210,7 +210,7 @@ if has_ranger_admin:
   downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
   driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
-  driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+  driver_curl_target = format("/usr/hdp/current/knox-server/ext/{jdbc_jar_name}")
 
   knox_ranger_plugin_config = {
     'username': repo_config_username,
