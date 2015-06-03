@@ -96,7 +96,7 @@ class ScriptAlert(BaseAlert):
 
       # try to get basedir for scripts
       # it's needed for server side scripts to properly use resource management
-      matchObj = re.match( r'((.*)services\/(.*)\/package\/)', self.path_to_script)
+      matchObj = re.match( r'((.*)services(.*)package)', self.path_to_script)
       if matchObj:
         basedir = matchObj.group(1)
         Logger.logger = logging.getLogger('resource_management')
