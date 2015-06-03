@@ -503,6 +503,12 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
 
     for (Resource resource : resources) {
       String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
+      // If a resource is not part of a cluster, do not return metrics since
+      // we cannot decide which collector to reach
+      if (StringUtils.isEmpty(clusterName)) {
+        continue;
+      }
+
       Map<TemporalInfo, MetricsRequest> requests = requestMap.get(clusterName);
       if (requests == null) {
         requests = new HashMap<TemporalInfo, MetricsRequest>();
