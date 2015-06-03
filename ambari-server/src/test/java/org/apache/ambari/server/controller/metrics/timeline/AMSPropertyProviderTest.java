@@ -97,6 +97,7 @@ public class AMSPropertyProviderTest {
     );
 
     Resource resource = new ResourceImpl(Resource.Type.Host);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
     temporalInfoMap.put(PROPERTY_ID1, new TemporalInfoImpl(1416445244701L, 1416445244901L, 1L));
@@ -137,6 +138,7 @@ public class AMSPropertyProviderTest {
     );
 
     Resource resource = new ResourceImpl(Resource.Type.Host);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
     Map<String, TemporalInfo> temporalInfoMap = Collections.emptyMap();
     Request request = PropertyHelper.getReadRequest(Collections.singleton
@@ -179,6 +181,7 @@ public class AMSPropertyProviderTest {
     );
 
     Resource resource = new ResourceImpl(Resource.Type.Host);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
     Map<String, TemporalInfo> temporalInfoMap = Collections.emptyMap();
     Request request = PropertyHelper.getReadRequest(
@@ -224,6 +227,7 @@ public class AMSPropertyProviderTest {
     );
 
     Resource resource = new ResourceImpl(Resource.Type.Host);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
     temporalInfoMap.put(PROPERTY_ID1, new TemporalInfoImpl(1416445244701L, 1416445244901L, 1L));
@@ -284,6 +288,7 @@ public class AMSPropertyProviderTest {
 
     String propertyId1 = "metrics/yarn/Queue/root/AvailableMB";
     Resource resource = new ResourceImpl(Resource.Type.Component);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -327,6 +332,7 @@ public class AMSPropertyProviderTest {
 
     String propertyId = PropertyHelper.getPropertyId("metrics/rpc", "RpcQueueTime_avg_time");
     Resource resource = new ResourceImpl(Resource.Type.Component);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -392,6 +398,7 @@ public class AMSPropertyProviderTest {
 
     String propertyId = PropertyHelper.getPropertyId("metrics/hbase/regionserver", "requests");
     Resource resource = new ResourceImpl(Resource.Type.Component);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "METRICS_COLLECTOR");
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -458,6 +465,7 @@ public class AMSPropertyProviderTest {
 
     String propertyId = PropertyHelper.getPropertyId("metrics/rpc", "NumOpenConnections._sum");
     Resource resource = new ResourceImpl(Resource.Type.Component);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "HBASE_REGIONSERVER");
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
     temporalInfoMap.put(propertyId, new TemporalInfoImpl(1429824611300L, 1429825241400L, 1L));
@@ -526,6 +534,7 @@ public class AMSPropertyProviderTest {
     );
 
     Resource resource = new ResourceImpl(Resource.Type.Host);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
