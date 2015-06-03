@@ -27,6 +27,7 @@ import winerror
 from ambari_commons.os_windows import WinServiceController
 
 from resource_management.core.base import Fail
+from resource_management.core.logger import Logger
 from resource_management.core.providers import Provider
 
 
@@ -109,9 +110,18 @@ class ServiceProvider(Provider):
 
 
 class ServiceConfigProvider(Provider):
+  str_start_types = \
+  {
+    "auto" : win32service.SERVICE_AUTO_START,
+    "automatic" : win32service.SERVICE_AUTO_START,
+    "disabled" : win32service.SERVICE_DISABLED,
+    "manual" : win32service.SERVICE_DEMAND_START,
+  }
+
   def action_install(self):
     hSCM = safe_open_scmanager()
 
+    self._fix_start_type()
     self._fix_user_name()
 
     try:
@@ -146,20 +156,20 @@ class ServiceConfigProvider(Provider):
     try:
       hSvc = safe_open_service(hSCM, self.resource.service_name)
 
-      self._fix_user_name()
+      self._fix_start_type()
 
       try:
         win32service.ChangeServiceConfig(hSvc,
                                          win32service.SERVICE_NO_CHANGE,
-                                         self.resource.startType,
+                                         self.resource.start_type,
                                          win32service.SERVICE_NO_CHANGE,
                                          None,
                                          None,
                                          0,
                                          None,
-                                         self.resource.username,
-                                         self.resource.password,
-                                         self.resource.displayName)
+                                         None,
+                                         None,
+                                         self.resource.display_name)
         if self.resource.description:
           try:
             win32service.ChangeServiceConfig2(hSvc, win32service.SERVICE_CONFIG_DESCRIPTION, self.resource.description)
@@ -222,6 +232,17 @@ class ServiceConfigProvider(Provider):
         win32service.CloseServiceHandle(hSvc)
     finally:
       win32service.CloseServiceHandle(hSCM)
+
+  def _fix_start_type(self):
+    if self.resource.start_type in ServiceConfigProvider.str_start_types.keys():
+      self.resource.start_type = ServiceConfigProvider.str_start_types[self.resource.start_type]
+    elif (not self.resource.start_type or self.resource.start_type not in [
+        win32service.SERVICE_AUTO_START,
+        win32service.SERVICE_DISABLED,
+        win32service.SERVICE_DEMAND_START]):
+      Logger.warning("Invalid service start type specified: service='{0}', start type='{1}'. Ignoring.".format(
+        self.resource.service_name, str(self.resource.start_type)))
+      self.resource.start_type = win32service.SERVICE_NO_CHANGE
 
   def _fix_user_name(self):
     if self.resource.username.upper() == "NT AUTHORITY\\SYSTEM":

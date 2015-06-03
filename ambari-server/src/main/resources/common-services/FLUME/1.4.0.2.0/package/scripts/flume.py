@@ -35,6 +35,10 @@ def flume(action = None):
 
   if action == 'config':
     ServiceConfig(flume_win_service_name,
+                  action="configure",
+                  start_type="manual")
+
+    ServiceConfig(flume_win_service_name,
                   action="change_user",
                   username=params.flume_user,
                   password = Script.get_password(params.flume_user))
