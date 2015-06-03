@@ -122,10 +122,10 @@ class WebHDFSUtil:
   def __init__(self, hdfs_site, run_user, security_enabled, logoutput=None):
     https_nn_address = namenode_ha_utils.get_property_for_active_namenode(hdfs_site, 'dfs.namenode.https-address')
     http_nn_address = namenode_ha_utils.get_property_for_active_namenode(hdfs_site, 'dfs.namenode.http-address')
-    is_https_enabled = hdfs_site['dfs.https.enabled'] if not is_empty(hdfs_site['dfs.https.enabled']) else False
+    self.is_https_enabled = hdfs_site['dfs.https.enable'] if not is_empty(hdfs_site['dfs.https.enable']) else False
     
-    address = https_nn_address if is_https_enabled else http_nn_address
-    protocol = "https" if is_https_enabled else "http"
+    address = https_nn_address if self.is_https_enabled else http_nn_address
+    protocol = "https" if self.is_https_enabled else "http"
     
     self.address = format("{protocol}://{address}")
     self.run_user = run_user
@@ -177,6 +177,8 @@ class WebHDFSUtil:
       cmd += ["-T", file_to_put]
     if self.security_enabled:
       cmd += ["--negotiate", "-u", ":"]
+    if self.is_https_enabled:
+      cmd += ["-k"]
       
     cmd.append(url)
     _, out = shell.checked_call(cmd, user=self.run_user, logoutput=self.logoutput, quiet=False)
