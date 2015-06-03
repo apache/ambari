@@ -33,7 +33,7 @@ class HbaseRegionServer(Script):
     import params
     env.set_params(params)
 
-    hbase(name='regionserver')
+    hbase('regionserver', action)
       
   def start(self, env):
     import params

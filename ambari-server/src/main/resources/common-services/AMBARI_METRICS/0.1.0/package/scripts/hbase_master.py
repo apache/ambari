@@ -34,7 +34,7 @@ class HbaseMaster(Script):
     import params
     env.set_params(params)
 
-    hbase(name='master', action)
+    hbase('master', action)
     
   def start(self, env):
     import params
