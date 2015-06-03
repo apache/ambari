@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.WidgetMixin = Ember.Mixin.create({
 
@@ -494,7 +495,7 @@ App.WidgetMixin = Ember.Mixin.create({
       function () {
         self.postWidgetDefinition(true);
       },
-      Em.I18n.t('widget.clone.body').format(self.get('content.widgetName')),
+      Em.I18n.t('widget.clone.body').format(stringUtils.htmlEntities(self.get('content.widgetName'))),
       null,
       null,
       Em.I18n.t('common.clone')

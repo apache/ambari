@@ -204,5 +204,15 @@ module.exports = {
       return plural;
     }
     return singular;
+  },
+
+  /**
+   * decode html entities
+   * @param {string} string
+   * @returns {string}
+   */
+  htmlEntities: function (string) {
+    if (typeof string !== 'string') return "";
+    return $("<div/>").text(string).html();
   }
 };

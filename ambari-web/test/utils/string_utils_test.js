@@ -241,4 +241,18 @@ describe('string_utils', function () {
       });
     });
   });
+
+  describe("#htmlEntities()", function() {
+    var tests = [
+      {t: undefined, e: ''},
+      {t: '', e: ''},
+      {t: 'abc', e: 'abc'},
+      {t: 'abc<script>abc', e: 'abc&lt;script&gt;abc'}
+    ];
+    tests.forEach(function(test) {
+      it('Check ' + typeof test.t, function () {
+        expect(string_utils.htmlEntities(test.t)).to.equal(test.e);
+      });
+    });
+  });
 });
