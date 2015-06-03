@@ -652,6 +652,25 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                         {"config-name": 'mapreduce.reduce.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.reduce.memory.mb')},
                         {"config-name": 'yarn.app.mapreduce.am.resource.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.resource.mb')},
                         {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')}]
+
+    if checkXmxValueFormat(properties['mapreduce.map.java.opts']):
+      mapreduceMapJavaOpts = formatXmxSizeToBytes(getXmxSize(properties['mapreduce.map.java.opts'])) / (1024.0 * 1024)
+      mapreduceMapMemoryMb = to_number(properties['mapreduce.map.memory.mb'])
+      if mapreduceMapJavaOpts > mapreduceMapMemoryMb:
+        validationItems.append({"config-name": 'mapreduce.map.java.opts', "item": self.getWarnItem("mapreduce.map.java.opts Xmx should be less than mapreduce.map.memory.mb ({0})".format(mapreduceMapMemoryMb))})
+
+    if checkXmxValueFormat(properties['mapreduce.reduce.java.opts']):
+      mapreduceReduceJavaOpts = formatXmxSizeToBytes(getXmxSize(properties['mapreduce.reduce.java.opts'])) / (1024.0 * 1024)
+      mapreduceReduceMemoryMb = to_number(properties['mapreduce.reduce.memory.mb'])
+      if mapreduceReduceJavaOpts > mapreduceReduceMemoryMb:
+        validationItems.append({"config-name": 'mapreduce.reduce.java.opts', "item": self.getWarnItem("mapreduce.reduce.java.opts Xmx should be less than mapreduce.reduce.memory.mb ({0})".format(mapreduceReduceMemoryMb))})
+
+    if checkXmxValueFormat(properties['yarn.app.mapreduce.am.command-opts']):
+      yarnAppMapreduceAmCommandOpts = formatXmxSizeToBytes(getXmxSize(properties['yarn.app.mapreduce.am.command-opts'])) / (1024.0 * 1024)
+      yarnAppMapreduceAmResourceMb = to_number(properties['yarn.app.mapreduce.am.resource.mb'])
+      if yarnAppMapreduceAmCommandOpts > yarnAppMapreduceAmResourceMb:
+        validationItems.append({"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.getWarnItem("yarn.app.mapreduce.am.command-opts Xmx should be less than yarn.app.mapreduce.am.resource.mb ({0})".format(yarnAppMapreduceAmResourceMb))})
+
     return self.toConfigurationValidationProblems(validationItems, "mapred-site")
 
   def validateHDFSConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):

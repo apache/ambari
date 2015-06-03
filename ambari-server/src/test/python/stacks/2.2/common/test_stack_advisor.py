@@ -2343,6 +2343,11 @@ class TestHDP22StackAdvisor(TestCase):
                      'message': 'Value is less than the recommended default of -Xmx546m',
                      'type': 'configuration',
                      'config-name': 'yarn.app.mapreduce.am.command-opts',
+                     'level': 'WARN'},
+                    {'config-type': 'mapred-site',
+                     'message': 'yarn.app.mapreduce.am.command-opts Xmx should be less than yarn.app.mapreduce.am.resource.mb (410)',
+                     'type': 'configuration',
+                     'config-name': 'yarn.app.mapreduce.am.command-opts',
                      'level': 'WARN'}]
 
     res = self.stackAdvisor.validateMapReduce2Configurations(properties, recommendedDefaults, {}, '', '')
