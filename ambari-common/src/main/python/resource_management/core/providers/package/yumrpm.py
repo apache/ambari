@@ -26,7 +26,6 @@ from resource_management.core.shell import string_cmd_from_args_list
 from resource_management.core.logger import Logger
 from resource_management.core.utils import suppress_stdout
 import os
-import re
 
 INSTALL_CMD = {
   True: ['/usr/bin/yum', '-y', 'install'],
@@ -81,16 +80,8 @@ class YumProvider(PackageProvider):
     yum in inconsistant state (locked, used, having invalid repo). Once packages are installed
     we should not rely on that.
     """
-    import yum # Python Yum API is much faster then other check methods. (even then "import rpm")
-    yb = yum.YumBase()
-    name_regex = re.escape(name).replace("\\?", ".").replace("\\*", ".*") + '$'
-    regex = re.compile(name_regex)
+    if os.geteuid() == 0: 
+      return self.yum_check_package_available(name)
+    else:
+      return self.rpm_check_package_available(name)
     
-    with suppress_stdout():
-      package_list = yb.rpmdb.simplePkgList()
-    
-    for package in package_list:
-      if regex.match(package[0]):
-        return True
-    
-    return False

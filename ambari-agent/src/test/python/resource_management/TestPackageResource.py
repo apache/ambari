@@ -16,6 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import os
 import sys
 from unittest import TestCase
 from mock.mock import patch, MagicMock, call
@@ -27,6 +28,7 @@ from resource_management.core.resources import Package
 from resource_management.core import shell
 from resource_management.core.providers.package.apt import replace_underscores
 
+@patch.object(os, "geteuid", new=MagicMock(return_value=1234))
 class TestPackageResource(TestCase):
   @patch.object(shell, "call")
   @patch.object(shell, "checked_call")
@@ -87,23 +89,21 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
   def test_action_install_rhel(self, shell_mock):
-    sys.modules['yum'] = MagicMock()
-    sys.modules['yum'].YumBase.return_value = MagicMock()
-    sys.modules['yum'].YumBase.return_value.rpmdb = MagicMock()
-    sys.modules['yum'].YumBase.return_value.rpmdb.simplePkgList.return_value = [('some_packag',)]
+    sys.modules['rpm'] = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_packag'}]
     with Environment('/') as env:
       Package("some_package",
       )
-    self.assertTrue(sys.modules['yum'].YumBase.return_value.rpmdb.simplePkgList.called)
+    self.assertTrue(sys.modules['rpm'].TransactionSet.return_value.dbMatch.called)
     shell_mock.assert_called_with(['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install', 'some_package'], logoutput=False, sudo=True)
 
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
   def test_action_install_pattern_rhel(self, shell_mock):
-    sys.modules['yum'] = MagicMock()
-    sys.modules['yum'].YumBase.return_value = MagicMock()
-    sys.modules['yum'].YumBase.return_value.rpmdb = MagicMock()
-    sys.modules['yum'].YumBase.return_value.rpmdb.simplePkgList.return_value = [('some_packag',)]
+    sys.modules['rpm'] = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_packag'}]
     with Environment('/') as env:
       Package("some_package*",
       )
@@ -159,10 +159,9 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
   def test_action_install_existent_rhel(self, shell_mock):
-    sys.modules['yum'] = MagicMock()
-    sys.modules['yum'].YumBase.return_value = MagicMock()
-    sys.modules['yum'].YumBase.return_value.rpmdb = MagicMock()
-    sys.modules['yum'].YumBase.return_value.rpmdb.simplePkgList.return_value = [('some_package',)]
+    sys.modules['rpm'] = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_package'}]
     with Environment('/') as env:
       Package("some_package",
               )
@@ -196,10 +195,9 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
   def test_action_remove_rhel(self, shell_mock):
-    sys.modules['yum'] = MagicMock()
-    sys.modules['yum'].YumBase.return_value = MagicMock()
-    sys.modules['yum'].YumBase.return_value.rpmdb = MagicMock()
-    sys.modules['yum'].YumBase.return_value.rpmdb.simplePkgList.return_value = [('some_package',)]
+    sys.modules['rpm'] = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value = MagicMock()
+    sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_package'}]
     with Environment('/') as env:
       Package("some_package",
               action = "remove"

@@ -236,6 +236,10 @@ def as_user(command, user, env=None, auto_escape=True):
 def quote_bash_args(command):
   if not command:
     return "''"
+  
+  if not isinstance(command, basestring):
+    raise Fail("Command should be a list of strings, found '{0}' in command list elements".format(str(command)))
+  
   valid = set(string.ascii_letters + string.digits + '@%_-+=:,./')
   for char in command:
     if char not in valid:

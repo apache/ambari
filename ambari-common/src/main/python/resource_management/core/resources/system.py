@@ -57,6 +57,7 @@ class Directory(Resource):
   mode = ResourceArgument()
   owner = ResourceArgument()
   group = ResourceArgument()
+  follow = BooleanArgument(default=True) # follow links?
   recursive = BooleanArgument(default=False) # this work for 'create', 'delete' is anyway recursive
   recursive_permission = BooleanArgument(default=False) # sets given perms to all non-existent folders which are created recursively
   """

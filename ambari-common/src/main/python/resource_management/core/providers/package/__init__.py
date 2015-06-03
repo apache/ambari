@@ -20,11 +20,13 @@ Ambari Agent
 
 """
 
+import re
 import logging
 
 from resource_management.core.base import Fail
 from resource_management.core.providers import Provider
 from resource_management.core.logger import Logger
+from resource_management.core.utils import suppress_stdout
 
 
 class PackageProvider(Provider):
@@ -59,4 +61,34 @@ class PackageProvider(Provider):
   def get_logoutput(self):
     return self.resource.logoutput==True and Logger.logger.isEnabledFor(logging.INFO) or self.resource.logoutput==None and Logger.logger.isEnabledFor(logging.DEBUG)
     
+  def yum_check_package_available(self, name):
+    """
+    Does the same as rpm_check_package_avaiable, but faster.
+    However need root permissions.
+    """
+    import yum # Python Yum API is much faster then other check methods. (even then "import rpm")
+    yb = yum.YumBase()
+    name_regex = re.escape(name).replace("\\?", ".").replace("\\*", ".*") + '$'
+    regex = re.compile(name_regex)
     
+    with suppress_stdout():
+      package_list = yb.rpmdb.simplePkgList()
+    
+    for package in package_list:
+      if regex.match(package[0]):
+        return True
+    
+    return False
+  
+  def rpm_check_package_available(self, name):
+    import rpm # this is faster then calling 'rpm'-binary externally.
+    ts = rpm.TransactionSet()
+    packages = ts.dbMatch()
+    
+    name_regex = re.escape(name).replace("\\?", ".").replace("\\*", ".*") + '$'
+    regex = re.compile(name_regex)
+    
+    for package in packages:
+      if regex.match(package['name']):
+        return True
+    return False

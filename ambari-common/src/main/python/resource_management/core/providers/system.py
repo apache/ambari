@@ -131,9 +131,18 @@ class FileProvider(Provider):
 class DirectoryProvider(Provider):
   def action_create(self):
     path = self.resource.path
-
+    
     if not sudo.path_exists(path):
       Logger.info("Creating directory %s" % self.resource)
+      
+      # dead links should be followed, else we gonna have failures on trying to create directories on top of them.
+      if self.resource.follow:
+        while sudo.path_lexists(path):
+          path = sudo.readlink(path)
+          
+        if path != self.resource.path:
+          Logger.info("Following the link {0} to {1} to create the directory".format(self.resource.path, path))
+      
       if self.resource.recursive:
         if self.resource.recursive_permission:
           DirectoryProvider.makedirs_and_set_permission_recursively(path, self.resource.owner,

@@ -26,8 +26,6 @@ from resource_management.core.shell import string_cmd_from_args_list
 from resource_management.core.logger import Logger
 from resource_management.core.utils import suppress_stdout
 
-import re
-
 INSTALL_CMD = {
   True: ['/usr/bin/zypper', 'install', '--auto-agree-with-licenses', '--no-confirm'],
   False: ['/usr/bin/zypper', '--quiet', 'install', '--auto-agree-with-licenses', '--no-confirm'],
@@ -102,14 +100,4 @@ class ZypperProvider(PackageProvider):
     zypper in inconsistant state (locked, used, having invalid repo). Once packages are installed
     we should not rely on that.
     """
-    import rpm # this is faster then calling 'rpm'-binary externally.
-    ts = rpm.TransactionSet()
-    packages = ts.dbMatch()
-    
-    name_regex = re.escape(name).replace("\\?", ".").replace("\\*", ".*") + '$'
-    regex = re.compile(name_regex)
-    
-    for package in packages:
-      if regex.match(package['name']):
-        return True
-    return False
+    return self.rpm_check_package_available(name)
