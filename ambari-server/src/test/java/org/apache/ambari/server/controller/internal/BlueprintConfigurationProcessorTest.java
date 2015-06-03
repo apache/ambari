@@ -3459,6 +3459,82 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testHiveConfigClusterUpdatePropertiesFilterAuthenticationOffFilterThrowsError() throws Exception {
+    // reset the stack mock, since we need more than the default behavior for this test
+    reset(stack);
+
+    final String expectedHostGroupName = "host_group_1";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> hiveSiteProperties = new HashMap<String, String>();
+    properties.put("hive-site", hiveSiteProperties);
+
+    // setup properties for Hive to simulate the case of Hive Authentication being off
+    hiveSiteProperties.put("hive.server2.authentication", "NONE");
+    hiveSiteProperties.put("hive.server2.authentication.kerberos.keytab", " ");
+    hiveSiteProperties.put("hive.server2.authentication.kerberos.principal", " ");
+
+    Map<String, Stack.ConfigProperty> mapOfMetadata =
+      new HashMap<String, Stack.ConfigProperty>();
+
+    // simulate the stack dependencies for these Hive properties, that are dependent upon
+    // hive.server2.authorization being enabled
+    Stack.ConfigProperty configProperty1 =
+      new Stack.ConfigProperty("hive-site", "hive.server2.authentication.kerberos.keytab", " ") {
+        @Override
+        Set<PropertyDependencyInfo> getDependsOnProperties() {
+          PropertyDependencyInfo dependencyInfo = new PropertyDependencyInfo("hive-site", "hive.server2.authentication");
+          return Collections.singleton(dependencyInfo);
+        }
+      };
+
+    Stack.ConfigProperty configProperty2 =
+      new Stack.ConfigProperty("hive-site", "hive.server2.authentication.kerberos.principal", " ") {
+        @Override
+        Set<PropertyDependencyInfo> getDependsOnProperties() {
+          PropertyDependencyInfo dependencyInfo = new PropertyDependencyInfo("hive-site", "hive.server2.authentication");
+          return Collections.singleton(dependencyInfo);
+        }
+      };
+
+    mapOfMetadata.put("hive.server2.authentication.kerberos.keytab", configProperty1);
+    mapOfMetadata.put("hive.server2.authentication.kerberos.principal", configProperty2);
+
+    // defaults from init() method that we need
+    expect(stack.getName()).andReturn("testStack").anyTimes();
+    expect(stack.getVersion()).andReturn("1").anyTimes();
+    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+
+    // customized stack calls for this test only
+    // simulate the case of the stack object throwing a RuntimeException, to indicate a config error
+    expect(stack.getServiceForConfigType("hive-site")).andThrow(new RuntimeException("unexpected error!!"));
+    expect(stack.getConfigurationPropertiesWithMetadata("HIVE", "hive-site")).andReturn(mapOfMetadata).atLeastOnce();
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    List<String> hosts = new ArrayList<String>();
+    hosts.add("some-hose");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, hosts);
+
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    // call top-level cluster config update method
+    updater.doUpdateForClusterCreate();
+
+    assertTrue("hive.server2.authentication.kerberos.keytab should not have been filtered, due to error condition",
+      hiveSiteProperties.containsKey("hive.server2.authentication.kerberos.keytab"));
+    assertTrue("hive.server2.authentication.kerberos.principal should not have been filtered, due to error condition",
+      hiveSiteProperties.containsKey("hive.server2.authentication.kerberos.principal"));
+  }
+
+  @Test
   public void testHiveConfigClusterUpdatePropertiesFilterAuthenticationOn() throws Exception {
     // reset the stack mock, since we need more than the default behavior for this test
     reset(stack);

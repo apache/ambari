@@ -721,8 +721,13 @@ public class BlueprintConfigurationProcessor {
    */
   private static boolean shouldPropertyBeExcludedForClusterUpdate(String propertyName, String propertyValue, String propertyType, ClusterTopology topology) {
     for(PropertyFilter filter : clusterUpdatePropertyFilters) {
-      if (!filter.isPropertyIncluded(propertyName, propertyValue, propertyType, topology)) {
-        return true;
+      try {
+        if (!filter.isPropertyIncluded(propertyName, propertyValue, propertyType, topology)) {
+          return true;
+        }
+      } catch (Throwable throwable) {
+        // if any error occurs during a filter execution, just log it
+        LOG.warn("Error occurred while attempting to process the property '" + propertyName + "' with a filter.  This may indicate a config error.", throwable);
       }
     }
 
