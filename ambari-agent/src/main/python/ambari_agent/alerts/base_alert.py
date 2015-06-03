@@ -167,26 +167,59 @@ class BaseAlert(object):
   def _get_configuration_value(self, key):
     """
     Gets the value of the specified configuration key from the cache. The key
-    should be of the form {{foo-bar/baz}}. If the key is not a lookup key
+    should be of the form {{foo-bar/baz}}. If the key given is not a lookup key
     and is instead a constant, such as "foo" or "5", then the constant is
     returned.
-    :return:
+
+    If the key contains more than 1 parameter to lookup, then each match is
+    looked up and replaced.
+
+    If the value does not exist in the configs, then return None to indicate
+    that this key could not be found.
+
+    This should turn {{hdfs-site/value}}/whatever/{{hdfs-site/value2}}
+    into
+    value/whatever/value2
+
+    :return:  the resolved value or None if any of the placeholder parameters
+              does not exist in the configs
     """
     if key is None:
       return None
 
-    # parse {{foo-bar/baz}}
-    placeholder_keys = re.findall("{{([\S]+)}}", key)
+    # parse {{foo-bar/baz}}/whatever/{{foobar-site/blah}}
+    # into
+    # ['foo-bar/baz', 'foobar-site/blah']
+    placeholder_keys = re.findall("{{(\S+?)}}", key)
 
     # if none found, then return the original
-    if len(placeholder_keys) == 0:
+    if placeholder_keys is None or len(placeholder_keys) == 0:
       return key
 
-    # this is a lookup key, so transform it into a value from the config cache
-    placeholder_key = placeholder_keys[0]
+    # for every match, get its configuration value and replace it in the key
+    resolved_key = key
+    for placeholder_key in placeholder_keys:
+      value = self.cluster_configuration.get_configuration_value(
+        self.cluster_name, placeholder_key)
 
-    return self.cluster_configuration.get_configuration_value(
-      self.cluster_name, placeholder_key)
+      # if any of the placeholder keys is missing from the configuration, then
+      # return None as per the contract of this function
+      if value is None:
+        return None
+
+      # it's possible that a dictionary was request (ie {{hdfs-site}} instead
+      # of {{hdfs-site/foo}} - in which case, we should just return the
+      # dictionary as is
+      if isinstance(value, dict):
+        return value
+
+      # foo-site/bar -> r"{{(foo-site/bar)}}
+      replacement_match_regex = r"{{(%s)}}" % placeholder_key
+
+      # {{foo-bar/baz}}/whatever -> http://server/whatever
+      resolved_key = re.sub(replacement_match_regex, value, resolved_key)
+
+    return resolved_key
 
     
   def _lookup_uri_property_keys(self, uri_structure):

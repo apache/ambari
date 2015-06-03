@@ -969,6 +969,37 @@ class TestAlerts(TestCase):
     self.assertEquals(5.0, alert.connection_timeout)
 
 
+  def test_get_configuration_values(self):
+    """
+    Tests that we are able to extract parameters correctly from the cached
+    configuration.
+    :return:
+    """
+    configuration = { 'foo-site' :
+      { 'foo-key1' : 'value1',
+        'foo-key2' : 'value2'
+      }
+    }
+
+    collector = AlertCollector()
+    cluster_configuration = self.__get_cluster_configuration()
+    self.__update_cluster_configuration(cluster_configuration, configuration)
+
+    alert = MockAlert()
+    alert.set_helpers(collector, cluster_configuration)
+    alert.set_cluster("c1", "c6401.ambari.apache.org")
+
+    self.assertEquals("constant", alert._get_configuration_value("constant"))
+    self.assertEquals("value1", alert._get_configuration_value("{{foo-site/foo-key1}}"))
+    self.assertEquals("value2", alert._get_configuration_value("{{foo-site/foo-key2}}"))
+
+    # try a mix of parameter and constant
+    self.assertEquals("http://value1/servlet", alert._get_configuration_value("http://{{foo-site/foo-key1}}/servlet"))
+    self.assertEquals("http://value1/servlet/value2", alert._get_configuration_value("http://{{foo-site/foo-key1}}/servlet/{{foo-site/foo-key2}}"))
+
+    # try to request a dictionary object instead of a property
+    self.assertEquals(configuration["foo-site"], alert._get_configuration_value("{{foo-site}}"))
+
   def __get_cluster_configuration(self):
     """
     Gets an instance of the cluster cache where the file read and write
