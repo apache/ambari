@@ -45,14 +45,14 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "yarn.QueueMetrics.Queue=root.default.AllocatedVCores",
+              "name": "yarn.QueueMetrics.Queue=root.AllocatedVCores",
               "metric_path": "metrics/yarn/Queue/root/AllocatedVCores",
               "service_name": "YARN",
               "component_name": "RESOURCEMANAGER",
               "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
             },
             {
-              "name": "yarn.QueueMetrics.Queue=root.default.AvailableVCores",
+              "name": "yarn.QueueMetrics.Queue=root.AvailableVCores",
               "metric_path": "metrics/yarn/Queue/root/AvailableVCores",
               "service_name": "YARN",
               "component_name": "RESOURCEMANAGER",
@@ -62,7 +62,7 @@
           "values": [
             {
               "name": "Total Allocatable CPU Utilized across NodeManager",
-              "value": "${(yarn.QueueMetrics.Queue=root.default.AllocatedVCores / (yarn.QueueMetrics.Queue=root.default.AllocatedVCores + yarn.QueueMetrics.Queue=root.default.AvailableVCores)) * 100}"
+              "value": "${(yarn.QueueMetrics.Queue=root.AllocatedVCores / (yarn.QueueMetrics.Queue=root.AllocatedVCores + yarn.QueueMetrics.Queue=root.AvailableVCores)) * 100}"
             }
           ],
           "properties": {

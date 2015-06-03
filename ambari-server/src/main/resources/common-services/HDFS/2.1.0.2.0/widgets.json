@@ -250,7 +250,7 @@
           "widget_name": "NameNode Operations",
           "description": "Total number of file operation over time.",
           "widget_type": "GRAPH",
-          "is_visible": true,
+          "is_visible": false,
           "metrics": [
             {
               "name": "dfs.namenode.TotalFileOps",
