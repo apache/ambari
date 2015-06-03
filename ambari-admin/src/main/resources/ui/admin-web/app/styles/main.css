@@ -146,12 +146,8 @@
 }
 .add-item-input span:empty:before{
   content: 'New';
-  position: absolute;
   left: 0;
   color: #ddd;
-}
-.add-item-input span:focus:before{
-  display: none;
 }
 .typeahead-box{
   position: absolute;
