@@ -104,9 +104,9 @@ else:
   actual_topology_max_replication_wait_time_sec = default_topology_max_replication_wait_time_sec
   actual_topology_min_replication_count = default_topology_min_replication_count 
   
-if default_topology_max_replication_wait_time_sec:
+if 'topology.max.replication.wait.time.sec.default' in config['configurations']['storm-site']:
   del config['configurations']['storm-site']['topology.max.replication.wait.time.sec.default']
-if default_topology_min_replication_count:  
+if 'topology.min.replication.count.default' in config['configurations']['storm-site']:  
   del config['configurations']['storm-site']['topology.min.replication.count.default']
 
 rest_api_port = "8745"
