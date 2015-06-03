@@ -4098,6 +4098,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       LOG.debug("Creating cluster widget with: name = " +
         layoutInfo.getWidgetName() + ", type = " + layoutInfo.getType() + ", " +
         "cluster = " + clusterEntity.getClusterName());
+      // Persisting not visible widgets
+      // visible one will be cascaded on creation of layout
+      if (!layoutInfo.isVisible()) {
+        widgetDAO.create(widgetEntity);
+      }
       return widgetEntity;
     } else {
       LOG.warn("Skip creating widget from stack artifact since one or more " +
