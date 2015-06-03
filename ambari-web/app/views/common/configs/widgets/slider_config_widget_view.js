@@ -65,6 +65,12 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   changeBoundariesProperties: ['maxMirrorValue', 'widgetRecommendedValue','minMirrorValue', 'mirrorStep'],
 
   /**
+   * Flag to check if value should be changed to recommended or saved.
+   * @type {boolean}
+   */
+  isRestoring: false,
+
+  /**
    * max allowed value transformed form config unit to widget unit
    * @type {Number}
    */
@@ -367,11 +373,8 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
      */
     this.set('config.value', correctConfigValue);
 
-    slider.on('change', function (obj) {
-      var val = self.get('mirrorValueParseFunction')(obj.newValue);
-      self.set('config.value', '' + self.configValueByWidget(val));
-      self.set('mirrorValue', val);
-    }).on('slideStop', function() {
+    slider.on('change', this.onSliderChange.bind(this))
+    .on('slideStop', function() {
       /**
        * action to run sendRequestRorDependentConfigs when
        * we have changed config value within slider
@@ -401,6 +404,23 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   /**
+   * Callback function triggered on slider change event.
+   * Set config property and widget value with new one, or ignore changes in case value restoration executed by
+   * <code>restoreValue</code>, <code>setRecommendedValue</code>.
+   *
+   * @param {Object} e - object that contains <code>oldValue</code> and <code>newValue</code> attributes.
+   * @method onSliderChange
+   */
+  onSliderChange: function(e) {
+    if (!this.get('isRestoring')) {
+      var val = this.get('mirrorValueParseFunction')(e.newValue);
+      this.set('config.value', '' + this.configValueByWidget(val));
+      this.set('mirrorValue', val);
+    } else {
+      this.set('isRestoring', false);
+    }
+  },
+  /**
    * Convert value according to property attribute unit.
    *
    * @method valueForTick
@@ -424,6 +444,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   restoreValue: function () {
     this._super();
+    this.set('isRestoring', true);
     this.get('slider').setValue(this.get('widgetDefaultValue'));
   },
 
@@ -432,6 +453,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   setRecommendedValue: function () {
     this._super();
+    this.set('isRestoring', true);
     this.get('slider').setValue(this.get('widgetRecommendedValue'));
   },
 
