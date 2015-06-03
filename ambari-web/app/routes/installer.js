@@ -273,10 +273,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var controller = router.get('installerController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
       var wizardStep7Controller = router.get('wizardStep7Controller');
-      if(!router.transitionInProgress) {
-        router.set('transitionInProgress', true);
-        if (!wizardStep6Controller.get('submitDisabled')) {
-          wizardStep6Controller.showValidationIssuesAcceptBox(function () {
+      if (!wizardStep6Controller.get('submitDisabled')) {
+        wizardStep6Controller.showValidationIssuesAcceptBox(function () {
+          if (!router.transitionInProgress) {
+            router.set('transitionInProgress', true);
             controller.saveSlaveComponentHosts(wizardStep6Controller);
             controller.get('content').set('serviceConfigProperties', null);
             controller.setDBProperty('serviceConfigProperties', null);
@@ -287,8 +287,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             controller.loadAdvancedConfigs(wizardStep7Controller);
             wizardStep7Controller.set('isAdvancedConfigLoaded', false);
             router.transitionTo('step7');
-          });
-        }
+          }
+        });
       }
     }
   }),
