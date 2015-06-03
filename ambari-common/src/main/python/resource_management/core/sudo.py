@@ -88,6 +88,9 @@ if os.geteuid() == 0:
   def path_lexists(path):
     return os.path.lexists(path)
   
+  def readlink(path):
+    return os.readlink(path)
+  
   def path_isfile(path):
     return os.path.isfile(path)
 
@@ -186,6 +189,10 @@ else:
   # os.path.lexists
   def path_lexists(path):
     return (shell.call(["test", "-L", path], sudo=True)[0] == 0)
+  
+  # os.readlink
+  def readlink(path):
+    return shell.checked_call(["readlink", path], sudo=True)[1].strip()
   
   # os.path.isfile
   def path_isfile(path):
