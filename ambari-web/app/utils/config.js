@@ -1059,6 +1059,7 @@ App.config = Em.Object.create({
       'user_group': 'Hadoop Group',
       'mapred_user': 'MapReduce User',
       'zk_user': 'ZooKeeper User',
+      'metadata_user': 'Atlas User',
       'ignore_groupsusers_create': 'Skip group modifications during install',
       'override_hbase_uid': 'Have Ambari manage UIDs'
     };
@@ -1082,7 +1083,6 @@ App.config = Em.Object.create({
         }
         if (config.property_name == 'proxyuser_group') propertyData.belongsToService = proxyUserGroupServices;
       }
-
       if (config.property_type.contains('PASSWORD')) {
         propertyData.displayType = "password";
       }

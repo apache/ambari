@@ -844,6 +844,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
             property.supportsFinal = Boolean(supportsFinal.find(function (configType) {
               return property.filename.startsWith(configType);
             }));
+            if (property.serviceName == 'MISC' && property.name == 'yarn_user') {
+               property.supportsFinal = false;
+            }
           });
           loadAdvancedConfigResult.pushObjects(properties);
         });
