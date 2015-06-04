@@ -967,7 +967,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     # Validate bucket cache correct config
     prop_name = "hbase.bucketcache.ioengine"
     prop_val = "offheap"
-    if not (not hbase_site[prop_name] or hbase_site[prop_name] == prop_val):
+    if prop_name in hbase_site and not (not hbase_site[prop_name] or hbase_site[prop_name] == prop_val):
       validationItems.append({"config-name": prop_name,
                               "item": self.getWarnItem(
                                 "Recommended values of " \
@@ -977,11 +977,11 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     prop_name2 = "hbase.bucketcache.size"
     prop_name3 = "hbase.bucketcache.percentage.in.combinedcache"
 
-    if hbase_site[prop_name1] and not hbase_site[prop_name2]:
+    if prop_name1 in hbase_site and prop_name2 in hbase_site and hbase_site[prop_name1] and not hbase_site[prop_name2]:
       validationItems.append({"config-name": prop_name2,
                               "item": self.getWarnItem(
                                 "If bucketcache ioengine is enabled, {0} should be set".format(prop_name2))})
-    if hbase_site[prop_name1] and not hbase_site[prop_name3]:
+    if prop_name1 in hbase_site and prop_name3 in hbase_site and hbase_site[prop_name1] and not hbase_site[prop_name3]:
       validationItems.append({"config-name": prop_name3,
                               "item": self.getWarnItem(
                                 "If bucketcache ioengine is enabled, {0} should be set".format(prop_name3))})
@@ -1008,7 +1008,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     hbase_site_properties = getSiteProperties(configurations, "hbase-site")
     prop_name1 = "hbase.bucketcache.ioengine"
 
-    if hbase_site_properties[prop_name1] and hbase_site_properties[prop_name1] == "offheap" and not hbase_env[prop_name]:
+    if prop_name1 in hbase_site_properties and prop_name in hbase_env and hbase_site_properties[prop_name1] and hbase_site_properties[prop_name1] == "offheap" and not hbase_env[prop_name]:
       validationItems.append({"config-name": prop_name,
                               "item": self.getWarnItem(
                                 "If bucketcache ioengine is enabled, {0} should be set".format(prop_name))})
