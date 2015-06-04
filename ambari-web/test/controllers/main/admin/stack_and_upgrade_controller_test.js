@@ -279,7 +279,22 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         showClusterCheckPopupCalledCount: 0,
         showUpgradeConfigsMergePopupCalledCount: 1,
         upgradeCalledCount: 0,
-        title: 'warnings popup is displayed is configs merge conflicts are present'
+        title: 'warnings popup is displayed if configs merge conflicts are present'
+      },
+      {
+        check: {
+          "check": "Configuration Merge Check",
+          "status": "PASS",
+          "reason": "",
+          "failed_on": [],
+          "failed_detail": [],
+          "check_type": "CLUSTER",
+          "id": "CONFIG_MERGE"
+        },
+        showClusterCheckPopupCalledCount: 0,
+        showUpgradeConfigsMergePopupCalledCount: 0,
+        upgradeCalledCount: 1,
+        title: 'upgrade is started if configs merge conflicts are absent'
       },
       {
         check: {
