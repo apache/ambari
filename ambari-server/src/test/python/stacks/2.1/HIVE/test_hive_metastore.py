@@ -239,6 +239,7 @@ class TestHiveMetastore(RMFTestCase):
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
+        mode = 0644,
     )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
                               content = StaticFile('startMetastore.sh'),
@@ -334,6 +335,7 @@ class TestHiveMetastore(RMFTestCase):
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
+        mode = 0644,
     )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
                               content = StaticFile('startMetastore.sh'),
