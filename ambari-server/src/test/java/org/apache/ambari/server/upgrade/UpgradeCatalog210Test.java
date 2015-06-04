@@ -24,29 +24,14 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterStateDAO;
-import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
-import org.apache.ambari.server.orm.entities.ClusterStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
@@ -86,7 +71,6 @@ public class UpgradeCatalog210Test {
   private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
   private EntityManager entityManager = createNiceMock(EntityManager.class);
   private UpgradeCatalogHelper upgradeCatalogHelper;
-  private StackEntity desiredStackEntity;
 
   @Before
   public void init() {
@@ -97,11 +81,6 @@ public class UpgradeCatalog210Test {
     injector.getInstance(GuiceJpaInitializer.class);
 
     upgradeCatalogHelper = injector.getInstance(UpgradeCatalogHelper.class);
-    // inject AmbariMetaInfo to ensure that stacks get populated in the DB
-    injector.getInstance(AmbariMetaInfo.class);
-    // load the stack entity
-    StackDAO stackDAO = injector.getInstance(StackDAO.class);
-    desiredStackEntity = stackDAO.find("HDP", "2.2.0");
   }
 
   @After
@@ -235,66 +214,6 @@ public class UpgradeCatalog210Test {
 
     verify(controller, clusters, cluster);
   }
-
-  @Test
-  public void testDeleteStormRestApiServiceComponent() throws Exception {
-    ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(injector,
-      "c1", desiredStackEntity);
-    ClusterServiceEntity clusterServiceEntity = upgradeCatalogHelper.createService(
-      injector, clusterEntity, "STORM");
-    HostEntity hostEntity = upgradeCatalogHelper.createHost(injector,
-      clusterEntity, "h1");
-
-    // Set current stack version
-    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
-    ClusterStateDAO clusterStateDAO = injector.getInstance(ClusterStateDAO.class);
-    ClusterStateEntity clusterStateEntity = new ClusterStateEntity();
-    clusterStateEntity.setClusterId(clusterEntity.getClusterId());
-    clusterStateEntity.setClusterEntity(clusterEntity);
-    clusterStateEntity.setCurrentStack(desiredStackEntity);
-    clusterStateDAO.create(clusterStateEntity);
-    clusterEntity.setClusterStateEntity(clusterStateEntity);
-    clusterDAO.merge(clusterEntity);
-
-    ServiceComponentDesiredStateEntity componentDesiredStateEntity = new ServiceComponentDesiredStateEntity();
-    componentDesiredStateEntity.setClusterId(clusterEntity.getClusterId());
-    componentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
-    componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
-    componentDesiredStateEntity.setComponentName("STORM_REST_API");
-    componentDesiredStateEntity.setDesiredStack(desiredStackEntity);
-
-    HostComponentDesiredStateDAO hostComponentDesiredStateDAO =
-      injector.getInstance(HostComponentDesiredStateDAO.class);
-
-    HostComponentDesiredStateEntity hostComponentDesiredStateEntity = new HostComponentDesiredStateEntity();
-
-    hostComponentDesiredStateEntity.setClusterId(clusterEntity.getClusterId());
-    hostComponentDesiredStateEntity.setComponentName("STORM_REST_API");
-    hostComponentDesiredStateEntity.setAdminState(HostComponentAdminState.INSERVICE);
-    hostComponentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
-    hostComponentDesiredStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
-    hostComponentDesiredStateEntity.setHostEntity(hostEntity);
-    hostComponentDesiredStateEntity.setDesiredStack(desiredStackEntity);
-
-    hostComponentDesiredStateDAO.create(hostComponentDesiredStateEntity);
-
-    HostComponentDesiredStateEntity entity = hostComponentDesiredStateDAO.findAll().get(0);
-
-    Assert.assertEquals(HostComponentAdminState.INSERVICE.name(), entity.getAdminState().name());
-
-    UpgradeCatalog210 upgradeCatalog210 = injector.getInstance(UpgradeCatalog210.class);
-    upgradeCatalog210.removeStormRestApiServiceComponent();
-
-    ServiceComponentDesiredStateDAO componentDesiredStateDAO =
-      injector.getInstance(ServiceComponentDesiredStateDAO.class);
-
-    ServiceComponentDesiredStateEntityPK entityPK = new ServiceComponentDesiredStateEntityPK();
-    entityPK.setClusterId(clusterEntity.getClusterId());
-    entityPK.setServiceName("STORM");
-    entityPK.setComponentName("STORM_REST_API");
-    Assert.assertNull(componentDesiredStateDAO.findByPK(entityPK));
-  }
-
 
   /**
    * @param dbAccessor
