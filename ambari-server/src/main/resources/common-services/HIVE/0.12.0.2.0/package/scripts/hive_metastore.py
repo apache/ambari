@@ -17,6 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
+
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.script import Script
@@ -32,6 +34,7 @@ from resource_management.libraries.functions.security_commons import validate_se
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
 
 from hive import hive
+from hive import jdbc_connector
 from hive_service import hive_service
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
@@ -149,11 +152,16 @@ class HiveMetastoreDefault(HiveMetastore):
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
 
+
   def upgrade_schema(self, env):
     """
     Executes the schema upgrade binary.  This is its own function because it could
     be called as a standalone task from the upgrade pack, but is safe to run it for each
     metastore instance.
+
+    The metastore schema upgrade requires a database driver library for most
+    databases. During an upgrade, it's possible that the library is not present,
+    so this will also attempt to copy/download the appropriate driver.
     """
     Logger.info("Upgrading Hive Metastore")
     import params
@@ -163,6 +171,18 @@ class HiveMetastoreDefault(HiveMetastore):
       kinit_command=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
       Execute(kinit_command,user=params.smokeuser)
 
+    # ensure that the JDBC drive is present for the schema tool; if it's not
+    # present, then download it first
+    if params.hive_jdbc_driver in params.hive_jdbc_drivers_list and params.hive_use_existing_db:
+      target_directory = format("/usr/hdp/{version}/hive/lib")
+      if not os.path.exists(params.target):
+        # download it
+        jdbc_connector()
+
+      Execute(('cp', params.target, target_directory),
+        path=["/bin", "/usr/bin/"], sudo = True)
+
+    # build the schema tool command
     binary = format("/usr/hdp/{version}/hive/bin/schematool")
 
     # the conf.server directory changed locations between HDP 2.2 and 2.3

@@ -22,6 +22,7 @@ import os
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
+@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestHiveMetastore(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -525,3 +526,54 @@ class TestHiveMetastore(RMFTestCase):
     self.assertEquals(
       "conf-select set-conf-dir --package hive --stack-version 2.3.0.0-1234 --conf-version 0",
        mocks_dict['call'].call_args_list[1][0][0])
+
+
+  @patch("os.path.exists")
+  @patch("resource_management.core.shell.call")
+  @patch("resource_management.libraries.functions.get_hdp_version")
+  def test_upgrade_metastore_schema(self, get_hdp_version_mock, call_mock, os_path_exists_mock):
+
+    get_hdp_version_mock.return_value = '2.3.0.0-1234'
+
+    def side_effect(path):
+      if path == "/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar":
+        return True
+      return False
+
+    os_path_exists_mock.side_effect = side_effect
+
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
+
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    # must be HDP 2.3+
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['stack_version'] = "2.3"
+
+    # trigger the code to think it needs to copy the JAR
+    json_content['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName'] = "com.mysql.jdbc.Driver"
+    json_content['configurations']['hive-env']['hive_database'] = "Existing"
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
+      classname = "HiveMetastore",
+      command = "pre_rolling_restart",
+      config_dict = json_content,
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, None), (0, None)],
+      mocks_dict = mocks_dict)
+
+    self.assertResourceCalled('Execute',
+      ('cp', '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar', '/usr/hdp/2.3.0.0-1234/hive/lib'),
+      path = ['/bin', '/usr/bin/'], sudo = True)
+
+    self.assertResourceCalled('Execute', "/usr/hdp/2.3.0.0-1234/hive/bin/schematool -dbType mysql -upgradeSchema",
+     logoutput = True, environment = {'HIVE_CONF_DIR': '/usr/hdp/current/hive-server2/conf/conf.server'},
+      tries = 1, user = 'hive')
+
+    self.assertResourceCalled('Execute', 'hdp-select set hive-metastore %s' % version,)
+
+    self.assertNoMoreResources()
