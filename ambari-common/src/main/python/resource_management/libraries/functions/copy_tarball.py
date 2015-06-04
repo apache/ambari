@@ -74,7 +74,7 @@ def _get_single_version_from_hdp_select():
     with open(tmp_file, 'r+') as file:
       out = file.read()
   except:
-    pass
+    Logger.error("Could not parse output of {0}".format(str(tmp_file)))
   finally:
     try:
       if os.path.exists(tmp_file):
