@@ -29,7 +29,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.google.inject.persist.UnitOfWork;
+import junit.framework.Assert;
+
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
@@ -76,6 +77,7 @@ import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
 
 
 /**
@@ -415,11 +417,20 @@ public class AlertDataManagerTest {
 
     AlertAggregateListener listener = m_injector.getInstance(AlertAggregateListener.class);
     AlertDefinitionFactory factory = new AlertDefinitionFactory();
+
+    // get the aggregate cache and test it a little bit
     AggregateDefinitionMapping aggregateMapping = m_injector.getInstance(AggregateDefinitionMapping.class);
 
     AlertDefinition aggregateDefinition = factory.coerce(aggDef);
     aggregateMapping.registerAggregate(m_cluster.getClusterId(),
         aggregateDefinition );
+
+    // make sure the aggregate has the correct associations
+    Assert.assertEquals(aggregateDefinition,
+        aggregateMapping.getAggregateDefinitions(m_cluster.getClusterId()).get(0));
+
+    Assert.assertEquals(definition.getDefinitionName(),
+        aggregateMapping.getAlertsWithAggregates(m_cluster.getClusterId()).get(0));
 
     AggregateSource as = (AggregateSource) aggregateDefinition.getSource();
     AlertDefinition aggregatedDefinition = aggregateMapping.getAggregateDefinition(

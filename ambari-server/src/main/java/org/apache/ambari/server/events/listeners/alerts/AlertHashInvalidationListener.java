@@ -80,8 +80,7 @@ public class AlertHashInvalidationListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onAmbariEvent(AlertHashInvalidationEvent event) {
-    LOG.debug("An alert definition hash invalidation event was received: {}",
-        event);
+    LOG.debug("Received event {}", event);
 
     Collection<String> hosts = event.getHosts();
     long clusterId = event.getClusterId();
@@ -106,6 +105,8 @@ public class AlertHashInvalidationListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onEvent(ServiceComponentUninstalledEvent event) {
+    LOG.debug("Received event {}", event);
+
     long clusterId = event.getClusterId();
     String hostName = event.getHostName();
 

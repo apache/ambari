@@ -79,6 +79,8 @@ public class AlertMaintenanceModeListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onEvent(MaintenanceModeEvent event) {
+    LOG.debug("Received event {}", event);
+
     List<AlertCurrentEntity> currentAlerts = m_alertsDao.findCurrent();
 
     MaintenanceState newMaintenanceState = MaintenanceState.OFF;

@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
-import com.google.inject.persist.UnitOfWork;
 import org.apache.ambari.server.controller.AlertCurrentRequest;
 import org.apache.ambari.server.controller.AlertHistoryRequest;
 import org.apache.ambari.server.controller.internal.AlertHistoryResourceProvider;
@@ -72,6 +71,7 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
 
 /**
  * Tests {@link AlertsDAO}.
@@ -1289,11 +1289,11 @@ public class AlertsDAOTest {
     assertEquals(5, currentAlerts.size());
 
     // assert none removed for HDFS
-    m_dao.removeCurrentByService("HDFS");
+    m_dao.removeCurrentByService(m_cluster.getClusterId(), "HDFS");
     currentAlerts = m_dao.findCurrent();
     assertEquals(5, currentAlerts.size());
 
-    m_dao.removeCurrentByService("YARN");
+    m_dao.removeCurrentByService(m_cluster.getClusterId(), "YARN");
     currentAlerts = m_dao.findCurrent();
     assertEquals(0, currentAlerts.size());
   }
@@ -1326,7 +1326,7 @@ public class AlertsDAOTest {
 
     assertNotNull(entity);
 
-    m_dao.removeCurrentByServiceComponentHost(
+    m_dao.removeCurrentByServiceComponentHost(m_cluster.getClusterId(),
         entity.getAlertHistory().getServiceName(),
         entity.getAlertHistory().getComponentName(),
         entity.getAlertHistory().getHostName());

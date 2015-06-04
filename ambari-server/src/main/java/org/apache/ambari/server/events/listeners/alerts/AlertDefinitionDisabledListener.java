@@ -22,6 +22,8 @@ import org.apache.ambari.server.events.AlertDefinitionDisabledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
@@ -33,6 +35,11 @@ import com.google.inject.Inject;
  */
 @EagerSingleton
 public class AlertDefinitionDisabledListener {
+  /**
+   * Logger.
+   */
+  private final static Logger LOG = LoggerFactory.getLogger(AlertDefinitionDisabledListener.class);
+
   /**
    * Used for deleting the alert notices when a definition is disabled.
    */
@@ -57,6 +64,8 @@ public class AlertDefinitionDisabledListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onEvent(AlertDefinitionDisabledEvent event) {
+    LOG.debug("Received event {}", event);
+
     m_alertsDao.removeCurrentDisabledAlerts();
   }
 }

@@ -17,7 +17,10 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -107,5 +110,37 @@ public final class AggregateDefinitionMapping {
 
     Map<String, AlertDefinition> map = m_aggregateMap.get(id);
     map.remove(aggregatedDefinitonName);
+  }
+
+  /**
+   * Gets a copy of all of the aggregate definitions for the specified cluster.
+   *
+   * @param clusterId
+   *          the cluster ID
+   * @return the list of all aggregate definitions
+   */
+  public List<AlertDefinition> getAggregateDefinitions(long clusterId) {
+    if (!m_aggregateMap.containsKey(clusterId)) {
+      return Collections.emptyList();
+    }
+
+    Map<String, AlertDefinition> map = m_aggregateMap.get(clusterId);
+    return new ArrayList<AlertDefinition>(map.values());
+  }
+
+  /**
+   * Gets a copy of all of the alerts that have aggregates defined for them.
+   *
+   * @param clusterId
+   *          the cluster ID
+   * @return the list of all alerts with aggregate definitions
+   */
+  public List<String> getAlertsWithAggregates(long clusterId) {
+    if (!m_aggregateMap.containsKey(clusterId)) {
+      return Collections.emptyList();
+    }
+
+    Map<String, AlertDefinition> map = m_aggregateMap.get(clusterId);
+    return new ArrayList<String>(map.keySet());
   }
 }

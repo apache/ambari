@@ -22,6 +22,8 @@ import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
@@ -33,6 +35,10 @@ import com.google.inject.Inject;
  */
 @EagerSingleton
 public class AlertServiceComponentHostListener {
+  /**
+   * Logger.
+   */
+  private static Logger LOG = LoggerFactory.getLogger(AlertServiceComponentHostListener.class);
 
   /**
    * Used for deleting the alert notices when a definition is disabled.
@@ -57,11 +63,14 @@ public class AlertServiceComponentHostListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onEvent(ServiceComponentUninstalledEvent event) {
+    LOG.debug("Received event {}", event);
+
+    long clusterId = event.getClusterId();
     String serviceName = event.getServiceName();
     String componentName = event.getComponentName();
     String hostName = event.getHostName();
 
-    m_alertsDao.removeCurrentByServiceComponentHost(serviceName, componentName,
+    m_alertsDao.removeCurrentByServiceComponentHost(clusterId, serviceName, componentName,
         hostName);
   }
 }

@@ -103,6 +103,8 @@ public class AlertLifecycleListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onAmbariEvent(AlertDefinitionRegistrationEvent event) {
+    LOG.debug("Received event {}", event);
+
     AlertDefinition definition = event.getDefinition();
 
     LOG.debug("Registering alert definition {}", definition);
@@ -126,6 +128,8 @@ public class AlertLifecycleListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onAmbariEvent(AlertDefinitionChangedEvent event) {
+    LOG.debug("Received event {}", event);
+
     AlertDefinition definition = event.getDefinition();
 
     LOG.debug("Updating alert definition {}", definition);
@@ -161,6 +165,8 @@ public class AlertLifecycleListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onAmbariEvent(AlertDefinitionDeleteEvent event) {
+    LOG.debug("Received event {}", event);
+
     AlertDefinition definition = event.getDefinition();
 
     LOG.debug("Removing alert definition {}", definition);

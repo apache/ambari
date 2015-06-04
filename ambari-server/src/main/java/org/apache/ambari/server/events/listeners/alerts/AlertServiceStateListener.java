@@ -32,7 +32,6 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
-import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.state.alert.AlertDefinition;
@@ -91,12 +90,6 @@ public class AlertServiceStateListener {
   private AlertDefinitionDAO m_definitionDao;
 
   /**
-   * Used for removing current alerts when a service is removed.
-   */
-  @Inject
-  private AlertsDAO m_alertsDao;
-
-  /**
    * Constructor.
    *
    * @param publisher
@@ -117,7 +110,7 @@ public class AlertServiceStateListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onAmbariEvent(ServiceInstalledEvent event) {
-    LOG.debug("{} received {}", AlertServiceStateListener.class, event);
+    LOG.debug("Received event {}", event);
 
     long clusterId = event.getClusterId();
     String stackName = event.getStackName();
@@ -166,7 +159,7 @@ public class AlertServiceStateListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onAmbariEvent(ServiceRemovedEvent event) {
-    LOG.debug("{} received {}", AlertServiceStateListener.class, event);
+    LOG.debug("Received event {}", event);
 
     List<AlertDefinitionEntity> definitions = m_definitionDao.findByService(event.getClusterId(),
         event.getServiceName());
