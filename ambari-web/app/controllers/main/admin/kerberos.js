@@ -23,6 +23,7 @@ require('controllers/main/admin/kerberos/step4_controller');
 App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   name: 'mainAdminKerberosController',
   securityEnabled: false,
+  defaultKerberosLoaded: false,
   dataIsLoaded: false,
   isRecommendedLoaded: true,
   kdc_type: '',
@@ -269,10 +270,14 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
           self.loadClusterDescriptorConfigs().then(function() {
             dfd.resolve();
           }, function() {
-            // if kerberos descriptor doesn't exist in cluster artifacts we have to kerberize cluster.
-            // Show `Enable kerberos` button and set unsecure status.
-            self.set('securityEnabled', false);
-            dfd.resolve();
+            // if kerberos descriptor doesn't exist in cluster artifacts get the default descriptor
+            self.loadStackDescriptorConfigs().then(function() {
+              self.set('defaultKerberosLoaded', true);
+              dfd.resolve();
+            }, function() {
+              self.set('securityEnabled', false);
+              dfd.resolve();
+            });
           });
         } else {
           dfd.resolve();

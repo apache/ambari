@@ -664,7 +664,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
    * @method loadStackDescriptorConfigs
    */
   loadDescriptorConfigs: function() {
-    if (App.router.get('mainAdminKerberosController.securityEnabled')) {
+    if (App.router.get('mainAdminKerberosController.securityEnabled') && !App.router.get('mainAdminKerberosController.defaultKerberosLoaded')) {
       return this.loadClusterDescriptorConfigs();
     } else {
       return this.loadStackDescriptorConfigs();
