@@ -19,12 +19,14 @@ Ambari Agent
 
 """
 
+import time
 import os
 import tempfile
 import shutil
 import stat
 from resource_management.core import shell
 from resource_management.core.logger import Logger
+from resource_management.core.exceptions import Fail
 from ambari_commons.os_check import OSCheck
 
 if os.geteuid() == 0:
@@ -101,6 +103,10 @@ if os.geteuid() == 0:
         self.st_uid, self.st_gid, self.st_mode = stat_val.st_uid, stat_val.st_gid, stat_val.st_mode & 07777
     return Stat(path)
   
+  def kill(pid, signal):
+    os.kill(pid, signal)
+    
+    
 else:
 
   # os.chown replacement
@@ -143,28 +149,23 @@ else:
   def rmtree(path):
     shell.checked_call(["rm","-rf", path], sudo=True)
     
-  def stat(path):
-    class Stat:
-      def __init__(self, path):
-        stat_val = os.stat(path)
-        self.st_uid, self.st_gid, self.st_mode = stat_val.st_uid, stat_val.st_gid, stat_val.st_mode & 07777
-        
-    return Stat(path)
-    
   # fp.write replacement
   def create_file(filename, content, encoding=None):
     """
     if content is None, create empty file
     """
-    tmpf = tempfile.NamedTemporaryFile()
+    content = content if content else ""
+    content = content.encode(encoding) if encoding else content
     
-    if content:
-      content = content.encode(encoding) if encoding else content
-      with open(tmpf.name, "wb") as fp:
+    tmpf_name = tempfile.gettempdir() + os.sep + tempfile.template + str(time.time())
+    
+    try:
+      with open(tmpf_name, "wb") as fp:
         fp.write(content)
-    
-    with tmpf:    
-      shell.checked_call(["cp", "-f", tmpf.name, filename], sudo=True)
+        
+      shell.checked_call(["cp", "-f", tmpf_name, filename], sudo=True)
+    finally:
+      os.unlink(tmpf_name)
       
   # fp.read replacement
   def read_file(filename, encoding=None):
@@ -217,3 +218,10 @@ else:
           stat_val = os.stat(path)
           self.st_uid, self.st_gid, self.st_mode = stat_val.st_uid, stat_val.st_gid, stat_val.st_mode & 07777
     return Stat(path)
+  
+  # os.kill replacement
+  def kill(pid, signal):
+    try:
+      shell.checked_call(["kill", "-"+str(signal), str(pid)], sudo=True)
+    except Fail as ex:
+      raise OSError(str(ex))

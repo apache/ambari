@@ -25,6 +25,8 @@ import time
 
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions import check_process_status
+from resource_management.core.logger import Logger
+from resource_management.libraries.functions import format
 
 
 def get_flume_status(flume_conf_directory, flume_run_directory):
@@ -112,7 +114,7 @@ def get_live_status(pid_file, flume_conf_directory):
       res['sinks_count'] = meta['sinks_count']
       res['channels_count'] = meta['channels_count']
   except:
-    pass
+    Logger.logger.exception(format("Error reading {flume_agent_meta_file}: "))
 
   return res
 

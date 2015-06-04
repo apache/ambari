@@ -54,7 +54,7 @@ def check_process_status(pid_file):
     # If sig is 0, then no signal is sent, but error checking is still
     # performed; this can be used to check for the existence of a
     # process ID or process group ID.
-    os.kill(pid, 0)
+    sudo.kill(pid, 0)
   except OSError:
     Logger.info("Process with pid {0} is not running. Stale pid file"
               " at {1}".format(pid, pid_file))
