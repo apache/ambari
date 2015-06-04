@@ -84,6 +84,9 @@ public class Configuration {
   public static final String API_AUTHENTICATE = "api.authenticate";
   public static final String API_USE_SSL = "api.ssl";
   public static final String API_CSRF_PREVENTION_KEY = "api.csrfPrevention.enabled";
+  public static final String API_GZIP_COMPRESSION_ENABLED_KEY = "api.gzip.compression.enabled";
+  public static final String API_GZIP_MIN_COMPRESSION_SIZE_KEY = "api.gzip.compression.min.size";
+  public static final String AGENT_API_GZIP_COMPRESSION_ENABLED_KEY = "agent.api.gzip.compression.enabled";
   public static final String SRVR_TWO_WAY_SSL_KEY = "security.server.two_way_ssl";
   public static final String SRVR_TWO_WAY_SSL_PORT_KEY = "security.server.two_way_ssl.port";
   public static final String SRVR_ONE_WAY_SSL_PORT_KEY = "security.server.one_way_ssl.port";
@@ -293,6 +296,8 @@ public class Configuration {
   private static final String SRVR_TWO_WAY_SSL_DEFAULT = "false";
   private static final String SRVR_KSTR_DIR_DEFAULT = ".";
   private static final String API_CSRF_PREVENTION_DEFAULT = "true";
+  private static final String API_GZIP_COMPRESSION_ENABLED_DEFAULT = "true";
+  private static final String API_GZIP_MIN_COMPRESSION_SIZE_DEFAULT = "10240";
   private static final String SRVR_CRT_PASS_FILE_DEFAULT = "pass.txt";
   private static final String SRVR_CRT_PASS_LEN_DEFAULT = "50";
   private static final String SRVR_DISABLED_CIPHERS_DEFAULT = "";
@@ -892,7 +897,8 @@ public class Configuration {
    * @return int
    */
   public int getClientSSLApiPort() {
-    return Integer.parseInt(properties.getProperty(CLIENT_API_SSL_PORT_KEY, String.valueOf(CLIENT_API_SSL_PORT_DEFAULT)));
+    return Integer.parseInt(properties.getProperty(CLIENT_API_SSL_PORT_KEY,
+        String.valueOf(CLIENT_API_SSL_PORT_DEFAULT)));
   }
 
   /**
@@ -912,6 +918,37 @@ public class Configuration {
   public boolean getTwoWaySsl() {
     return ("true".equals(properties.getProperty(SRVR_TWO_WAY_SSL_KEY,
       SRVR_TWO_WAY_SSL_DEFAULT)));
+  }
+
+  /**
+   * Check to see if the API responses should be compressed via gzip or not
+   * @return false if not, true if gzip compression needs to be used.
+   */
+  public boolean isApiGzipped() {
+    return "true".equalsIgnoreCase(properties.getProperty(
+        API_GZIP_COMPRESSION_ENABLED_KEY,
+        API_GZIP_COMPRESSION_ENABLED_DEFAULT));
+  }
+
+  /**
+   * Check to see if the agent API responses should be compressed via gzip or not
+   * @return false if not, true if gzip compression needs to be used.
+   */
+  public boolean isAgentApiGzipped() {
+    return "true".equalsIgnoreCase(properties.getProperty(
+        AGENT_API_GZIP_COMPRESSION_ENABLED_KEY,
+        API_GZIP_COMPRESSION_ENABLED_DEFAULT));
+  }
+
+  /**
+   * Check to see if the API responses should be compressed via gzip or not
+   * Content will only be compressed if content length is either unknown or
+   * greater this value
+   * @return false if not, true if ssl needs to be used.
+   */
+  public String getApiGzipMinSize() {
+    return properties.getProperty(API_GZIP_MIN_COMPRESSION_SIZE_KEY,
+        API_GZIP_MIN_COMPRESSION_SIZE_DEFAULT);
   }
 
   /**

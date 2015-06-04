@@ -393,7 +393,8 @@ class Controller(threading.Thread):
     try:
       if self.cachedconnect is None: # Lazy initialization
         self.cachedconnect = security.CachedHTTPSConnection(self.config)
-      req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
+      req = urllib2.Request(url, data, {'Content-Type': 'application/json',
+                                        'Accept-encoding': 'gzip'})
       response = self.cachedconnect.request(req)
       return json.loads(response)
     except Exception, exception:

@@ -107,6 +107,7 @@ import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlets.GzipFilter;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -274,6 +275,9 @@ public class AmbariServer {
       // and does not use sessions.
       ServletContextHandler agentroot = new ServletContextHandler(
           serverForAgent, "/", ServletContextHandler.NO_SESSIONS);
+      if (configs.isAgentApiGzipped()) {
+        configureHandlerCompression(agentroot);
+      }
 
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitParameter("dirAllowed", "false");
@@ -529,18 +533,39 @@ public class AmbariServer {
   }
 
   /**
-   * Performs basic configuration of root handler with static values and values from
-   * configuration file.
+   * Performs basic configuration of root handler with static values and values
+   * from configuration file.
    *
    * @param root root handler
    */
   protected void configureRootHandler(ServletContextHandler root) {
+    configureHandlerCompression(root);
     root.setContextPath(CONTEXT_PATH);
     root.setErrorHandler(injector.getInstance(AmbariErrorHandler.class));
     root.setMaxFormContentSize(-1);
 
     /* Configure web app context */
     root.setResourceBase(configs.getWebAppDir());
+  }
+
+  /**
+   * Performs GZIP compression configuration of the context handler
+   * with static values and values from configuration file
+   *
+   * @param context handler
+   */
+  protected void configureHandlerCompression(ServletContextHandler context) {
+    if (configs.isApiGzipped()) {
+      FilterHolder gzipFilter = context.addFilter(GzipFilter.class, "/*",
+          EnumSet.of(DispatcherType.REQUEST));
+
+      gzipFilter.setInitParameter("methods","GET,POST,PUT,DELETE");
+      gzipFilter.setInitParameter("mimeTypes",
+          "text/html,text/plain,text/xml,text/css,application/x-javascript," +
+          "application/xml,application/x-www-form-urlencoded," +
+          "application/javascript,application/json");
+      gzipFilter.setInitParameter("minGzipSize", configs.getApiGzipMinSize());
+    }
   }
 
   /**

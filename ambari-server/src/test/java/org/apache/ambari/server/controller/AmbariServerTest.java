@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -26,6 +27,7 @@ import static org.easymock.EasyMock.verify;
 import java.net.Authenticator;
 import java.net.InetAddress;
 import java.net.PasswordAuthentication;
+import java.util.EnumSet;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
@@ -34,7 +36,9 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.velocity.app.Velocity;
 import org.easymock.EasyMock;
 import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlets.GzipFilter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,6 +47,7 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.SessionCookieConfig;
 
 public class AmbariServerTest {
@@ -119,13 +124,34 @@ public class AmbariServerTest {
 
   @Test
   public void testConfigureRootHandler() throws Exception {
-    final ServletContextHandler handler = EasyMock.createNiceMock(ServletContextHandler.class);
+    final ServletContextHandler handler =
+        EasyMock.createNiceMock(ServletContextHandler.class);
+    final FilterHolder filter = EasyMock.createNiceMock(FilterHolder.class);
 
     handler.setMaxFormContentSize(-1);
     EasyMock.expectLastCall().once();
-    replay(handler);
+    EasyMock.expect(handler.addFilter(GzipFilter.class, "/*",
+        EnumSet.of(DispatcherType.REQUEST))).andReturn(filter).once();
+    replay(handler, filter);
 
     injector.getInstance(AmbariServer.class).configureRootHandler(handler);
+
+    EasyMock.verify(handler);
+  }
+
+  @Test
+  public void testConfigureCompression() throws Exception {
+    final ServletContextHandler handler =
+        EasyMock.createNiceMock(ServletContextHandler.class);
+    final FilterHolder filter = EasyMock.createNiceMock(FilterHolder.class);
+
+    EasyMock.expect(handler.addFilter(GzipFilter.class, "/*",
+        EnumSet.of(DispatcherType.REQUEST))).andReturn(filter).once();
+    filter.setInitParameter(anyObject(String.class),anyObject(String.class));
+    EasyMock.expectLastCall().times(3);
+    replay(handler, filter);
+
+    injector.getInstance(AmbariServer.class).configureHandlerCompression(handler);
 
     EasyMock.verify(handler);
   }
