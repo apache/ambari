@@ -25,8 +25,11 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Singleton
 public class WidgetLayoutDAO {
@@ -89,6 +92,14 @@ public class WidgetLayoutDAO {
   @Transactional
   public WidgetLayoutEntity merge(WidgetLayoutEntity widgetLayoutEntity) {
     return entityManagerProvider.get().merge(widgetLayoutEntity);
+  }
+
+  @Transactional
+  public WidgetLayoutEntity mergeWithFlush(WidgetLayoutEntity widgetLayoutEntity) {
+    EntityManager entityManager = entityManagerProvider.get();
+    widgetLayoutEntity = entityManager.merge(widgetLayoutEntity);
+    entityManager.flush();
+    return widgetLayoutEntity;
   }
 
   @Transactional

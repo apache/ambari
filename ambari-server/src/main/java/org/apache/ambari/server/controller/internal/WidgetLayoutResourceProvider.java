@@ -50,6 +50,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Resource provider for widget layout resources.
@@ -78,6 +80,9 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
       add(WIDGETLAYOUT_ID_PROPERTY_ID);
     }
   };
+
+  @SuppressWarnings("serial")
+  private static ReadWriteLock lock = new ReentrantReadWriteLock();
 
   @SuppressWarnings("serial")
   public static Set<String> propertyIds = new HashSet<String>() {
@@ -267,55 +272,58 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
           } catch (Exception ex) {
             throw new AmbariException("WidgetLayout should have numerical id");
           }
-          final WidgetLayoutEntity entity = widgetLayoutDAO.findById(layoutId);
-          if (entity == null) {
-            throw new ObjectNotFoundException("There is no widget layout with id " + layoutId);
-          }
-          if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID)))) {
-            entity.setLayoutName(propertyMap.get(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID).toString());
-          }
-          if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID)))) {
-            entity.setSectionName(propertyMap.get(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID).toString());
-          }
-          if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID)))) {
-            entity.setDisplayName(propertyMap.get(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID).toString());
-          }
-          if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGETLAYOUT_SCOPE_PROPERTY_ID)))) {
-            entity.setScope(propertyMap.get(WIDGETLAYOUT_SCOPE_PROPERTY_ID).toString());
-          }
-
-          Set widgetsSet = (LinkedHashSet) propertyMap.get(WIDGETLAYOUT_WIDGETS_PROPERTY_ID);
-
-          //Remove old relations from widget entities
-          for (WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity : entity.getListWidgetLayoutUserWidgetEntity()) {
-            widgetLayoutUserWidgetEntity.getWidget().getListWidgetLayoutUserWidgetEntity()
-                    .remove(widgetLayoutUserWidgetEntity);
-            widgetDAO.merge(widgetLayoutUserWidgetEntity.getWidget());
-          }
-          entity.setListWidgetLayoutUserWidgetEntity(new LinkedList<WidgetLayoutUserWidgetEntity>());
-          widgetLayoutDAO.merge(entity);
-
-          List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
-          int order=0;
-          for (Object widgetObject : widgetsSet) {
-            HashMap<String, Object> widget = (HashMap) widgetObject;
-            long id = Integer.parseInt(widget.get("id").toString());
-            WidgetEntity widgetEntity = widgetDAO.findById(id);
-            if (widgetEntity == null) {
-              throw new AmbariException("Widget with id " + widget.get("id").toString() + " does not exists");
+          lock.writeLock().lock();
+          try {
+            final WidgetLayoutEntity entity = widgetLayoutDAO.findById(layoutId);
+            if (entity == null) {
+              throw new ObjectNotFoundException("There is no widget layout with id " + layoutId);
             }
-            WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity = new WidgetLayoutUserWidgetEntity();
+            if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID)))) {
+              entity.setLayoutName(propertyMap.get(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID).toString());
+            }
+            if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID)))) {
+              entity.setSectionName(propertyMap.get(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID).toString());
+            }
+            if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID)))) {
+              entity.setDisplayName(propertyMap.get(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID).toString());
+            }
+            if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGETLAYOUT_SCOPE_PROPERTY_ID)))) {
+              entity.setScope(propertyMap.get(WIDGETLAYOUT_SCOPE_PROPERTY_ID).toString());
+            }
 
-            widgetLayoutUserWidgetEntity.setWidget(widgetEntity);
-            widgetLayoutUserWidgetEntity.setWidgetOrder(order++);
-            widgetLayoutUserWidgetEntity.setWidgetLayout(entity);
-            widgetLayoutUserWidgetEntityList.add(widgetLayoutUserWidgetEntity);
-            widgetEntity.getListWidgetLayoutUserWidgetEntity().add(widgetLayoutUserWidgetEntity);
+            Set widgetsSet = (LinkedHashSet) propertyMap.get(WIDGETLAYOUT_WIDGETS_PROPERTY_ID);
+
+            //Remove old relations from widget entities
+            for (WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity : entity.getListWidgetLayoutUserWidgetEntity()) {
+              widgetLayoutUserWidgetEntity.getWidget().getListWidgetLayoutUserWidgetEntity()
+                      .remove(widgetLayoutUserWidgetEntity);
+            }
+            entity.setListWidgetLayoutUserWidgetEntity(new LinkedList<WidgetLayoutUserWidgetEntity>());
+
+            List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
+            int order = 0;
+            for (Object widgetObject : widgetsSet) {
+              HashMap<String, Object> widget = (HashMap) widgetObject;
+              long id = Integer.parseInt(widget.get("id").toString());
+              WidgetEntity widgetEntity = widgetDAO.findById(id);
+              if (widgetEntity == null) {
+                throw new AmbariException("Widget with id " + widget.get("id").toString() + " does not exists");
+              }
+              WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity = new WidgetLayoutUserWidgetEntity();
+
+              widgetLayoutUserWidgetEntity.setWidget(widgetEntity);
+              widgetLayoutUserWidgetEntity.setWidgetOrder(order++);
+              widgetLayoutUserWidgetEntity.setWidgetLayout(entity);
+              widgetLayoutUserWidgetEntityList.add(widgetLayoutUserWidgetEntity);
+              widgetEntity.getListWidgetLayoutUserWidgetEntity().add(widgetLayoutUserWidgetEntity);
+              entity.getListWidgetLayoutUserWidgetEntity().add(widgetLayoutUserWidgetEntity);
+            }
+
+
+            widgetLayoutDAO.mergeWithFlush(entity);
+          } finally {
+            lock.writeLock().unlock();
           }
-
-          entity.setListWidgetLayoutUserWidgetEntity(widgetLayoutUserWidgetEntityList);
-
-          widgetLayoutDAO.merge(entity);
         }
         return null;
       }
