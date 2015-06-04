@@ -161,7 +161,6 @@ limitations under the License.
     <description>Enable user impersonation for HiveServer2</description>
     <value>true</value>
   </property>
-
   <property>
     <name>hive.server2.authentication</name>
     <description>Authentication mode, default NONE. Options are NONE, NOSASL, KERBEROS, LDAP, PAM and CUSTOM</description>
@@ -384,6 +383,11 @@ limitations under the License.
   
   <!-- added this as required from 2.2 Hive site xml -->
   <property>
+    <name>hive.server2.authentication</name>
+    <description>Authentication mode, default NONE. Options are NONE, NOSASL, KERBEROS, LDAP, PAM and CUSTOM</description>
+    <value>NONE</value>
+  </property>
+  <property>
     <name>hive.server2.authentication.ldap.url</name>
     <value> </value>
     <depends-on>
@@ -395,7 +399,7 @@ limitations under the License.
   </property>
   <property>
     <name>hive.server2.authentication.ldap.baseDN</name>
-    <value>NONE</value>
+    <value></value>
     <depends-on>
       <property>
         <type>hive-site</type>
