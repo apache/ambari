@@ -101,6 +101,11 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.masterComponentHosts', masterComponentHosts);
   },
 
+  clearMasterComponentHosts: function() {
+    this.set('content.masterComponentHosts', null);
+    this.setDBProperty('masterComponentHosts', null);
+  },
+
   saveHdfsUser: function () {
     App.db.setHighAvailabilityWizardHdfsUser(this.get('content.hdfsUser'));
   },
