@@ -238,7 +238,7 @@ CREATE TABLE members (
   );
 
 CREATE TABLE execution_command (
-  command VARBINARY(8000),
+  command VARBINARY(MAX),
   task_id BIGINT NOT NULL,
   PRIMARY KEY CLUSTERED (task_id)
   );
@@ -287,9 +287,9 @@ CREATE TABLE stage (
   skippable SMALLINT DEFAULT 0 NOT NULL,
   log_info VARCHAR(255) NOT NULL,
   request_context VARCHAR(255),
-  cluster_host_info VARBINARY(8000) NOT NULL,
-  command_params VARBINARY(8000),
-  host_params VARBINARY(8000),
+  cluster_host_info VARBINARY(MAX) NOT NULL,
+  command_params VARBINARY(MAX),
+  host_params VARBINARY(MAX),
   PRIMARY KEY CLUSTERED (
     stage_id,
     request_id
@@ -303,7 +303,7 @@ CREATE TABLE request (
   create_time BIGINT NOT NULL,
   end_time BIGINT NOT NULL,
   exclusive_execution BIT NOT NULL DEFAULT 0,
-  inputs VARBINARY(8000),
+  inputs VARBINARY(MAX),
   request_context VARCHAR(255),
   request_type VARCHAR(255),
   request_schedule_id BIGINT,
@@ -317,7 +317,7 @@ CREATE TABLE requestresourcefilter (
   request_id BIGINT NOT NULL,
   service_name VARCHAR(255),
   component_name VARCHAR(255),
-  hosts VARBINARY(8000),
+  hosts VARBINARY(MAX),
   PRIMARY KEY CLUSTERED (filter_id)
   );
 
@@ -434,7 +434,7 @@ CREATE TABLE requestschedulebatchrequest (
   request_id BIGINT,
   request_type VARCHAR(255),
   request_uri VARCHAR(1024),
-  request_body VARBINARY(8000),
+  request_body VARBINARY(MAX),
   request_status VARCHAR(255),
   return_code SMALLINT,
   return_message TEXT,
