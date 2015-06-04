@@ -139,9 +139,12 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
                 path=[params.hadoop_bin_dir],
                 user=params.hdfs_user
         )
+        pass
+      pass
 
-      # Always run on this non-HA, or active NameNode during HA.
-      create_hdfs_directories(is_active_namenode_cmd)
+    # Always run this on non-HA, or active NameNode during HA.
+    create_hdfs_directories(is_active_namenode_cmd)
+
   elif action == "stop":
     import params
     service(
