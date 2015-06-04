@@ -30,6 +30,20 @@ switch ($($args[0])){
   }
 }
 
+# Handle spaces in command line arguments properly
+$quoted_args=@()
+
+ForEach ($arg in $args)
+{
+  if($arg.Contains(' '))
+  {
+    $arg = """" + $arg + """"
+  }
+  $quoted_args = $quoted_args + @($arg)
+}
+
+$args = $quoted_args
+
 $AMBARI_AGENT="ambari-agent"
 $AMBARI_SVC_NAME = "Ambari Agent"
 $current_directory = (Get-Item -Path ".\" -Verbose).FullName
