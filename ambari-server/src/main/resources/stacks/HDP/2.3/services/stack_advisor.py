@@ -50,6 +50,41 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     super(HDP23StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
     putHbaseSitePropertyAttributes = self.putPropertyAttribute(configurations, "hbase-site")
+    putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
+    putHbaseEnvPropertyAttributes = self.putPropertyAttribute(configurations, "hbase-env")
+
+    # bucket cache for 1.x is configured slightly differently, HBASE-11520
+    threshold = 23 # 2 Gb is reserved for other offheap memory
+    if (int(clusterData["hbaseRam"]) > threshold):
+      # To enable cache - calculate values
+      regionserver_total_ram = int(clusterData["hbaseRam"]) * 1024
+      regionserver_heap_size = 20480
+      regionserver_max_direct_memory_size = regionserver_total_ram - regionserver_heap_size
+      hfile_block_cache_size = '0.4'
+      block_cache_heap = 8192 # int(regionserver_heap_size * hfile_block_cache_size)
+      hbase_regionserver_global_memstore_size = '0.4'
+      reserved_offheap_memory = 2048
+      bucketcache_offheap_memory = regionserver_max_direct_memory_size - reserved_offheap_memory
+      hbase_bucketcache_size = bucketcache_offheap_memory
+
+      # Set values in hbase-site
+      putHbaseSiteProperty('hfile.block.cache.size', hfile_block_cache_size)
+      putHbaseSiteProperty('hbase.regionserver.global.memstore.size', hbase_regionserver_global_memstore_size)
+      putHbaseSiteProperty('hbase.bucketcache.ioengine', 'offheap')
+      putHbaseSiteProperty('hbase.bucketcache.size', hbase_bucketcache_size)
+      # 2.2 stack method was called earlier, unset
+      putHbaseSitePropertyAttributes('hbase.bucketcache.percentage.in.combinedcache', 'delete', 'true')
+
+      # Enable in hbase-env
+      putHbaseEnvProperty('hbase_max_direct_memory_size', regionserver_max_direct_memory_size)
+      putHbaseEnvProperty('hbase_regionserver_heapsize', regionserver_heap_size)
+    else:
+      # Disable
+      putHbaseSitePropertyAttributes('hbase.bucketcache.ioengine', 'delete', 'true')
+      putHbaseSitePropertyAttributes('hbase.bucketcache.size', 'delete', 'true')
+      putHbaseSitePropertyAttributes('hbase.bucketcache.percentage.in.combinedcache', 'delete', 'true')
+
+      putHbaseEnvPropertyAttributes('hbase_max_direct_memory_size', 'delete', 'true')
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if 'ranger-hbase-plugin-properties' in services['configurations'] and ('ranger-hbase-plugin-enabled' in services['configurations']['ranger-hbase-plugin-properties']['properties']):

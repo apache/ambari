@@ -486,12 +486,11 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       hbase_bucketcache_percentage_in_combinedcache_str = "{0:.4f}".format(math.ceil(hbase_bucketcache_percentage_in_combinedcache * 10000) / 10000.0)
 
       # Set values in hbase-site
-      putHbaseProperty = self.putProperty(configurations, "hbase-site", services)
-      putHbaseProperty('hfile.block.cache.size', hfile_block_cache_size)
-      putHbaseProperty('hbase.regionserver.global.memstore.size', hbase_regionserver_global_memstore_size)
-      putHbaseProperty('hbase.bucketcache.ioengine', 'offheap')
-      putHbaseProperty('hbase.bucketcache.size', hbase_bucketcache_size)
-      putHbaseProperty('hbase.bucketcache.percentage.in.combinedcache', hbase_bucketcache_percentage_in_combinedcache_str)
+      putHbaseSiteProperty('hfile.block.cache.size', hfile_block_cache_size)
+      putHbaseSiteProperty('hbase.regionserver.global.memstore.size', hbase_regionserver_global_memstore_size)
+      putHbaseSiteProperty('hbase.bucketcache.ioengine', 'offheap')
+      putHbaseSiteProperty('hbase.bucketcache.size', hbase_bucketcache_size)
+      putHbaseSiteProperty('hbase.bucketcache.percentage.in.combinedcache', hbase_bucketcache_percentage_in_combinedcache_str)
 
       # Enable in hbase-env
       putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
@@ -499,13 +498,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHbaseEnvProperty('hbase_regionserver_heapsize', regionserver_heap_size)
     else:
       # Disable
-      putHbaseProperty = self.putProperty(configurations, "hbase-site", services)
-      putHbaseProperty('hbase.bucketcache.ioengine', '')
-      putHbaseProperty('hbase.bucketcache.size', '')
-      putHbaseProperty('hbase.bucketcache.percentage.in.combinedcache', '')
-
-      putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
-      putHbaseEnvProperty('hbase_max_direct_memory_size', '')
+      putHbaseSitePropertyAttributes('hbase.bucketcache.ioengine', 'delete', 'true')
+      putHbaseSitePropertyAttributes('hbase.bucketcache.size', 'delete', 'true')
+      putHbaseSitePropertyAttributes('hbase.bucketcache.percentage.in.combinedcache', 'delete', 'true')
+      putHbaseEnvPropertyAttributes('hbase_max_direct_memory_size', 'delete', 'true')
 
     # Authorization
     hbase_coprocessor_region_classes = None
@@ -525,12 +521,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       hbase_security_authorization = services['configurations']['hbase-site']['properties']['hbase.security.authorization']
     if hbase_security_authorization:
       if 'true' == hbase_security_authorization.lower():
-        putHbaseProperty('hbase.coprocessor.master.classes', "org.apache.hadoop.hbase.security.access.AccessController")
+        putHbaseSiteProperty('hbase.coprocessor.master.classes', "org.apache.hadoop.hbase.security.access.AccessController")
         coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
         coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.AccessController")
-        putHbaseProperty('hbase.coprocessor.regionserver.classes', "org.apache.hadoop.hbase.security.access.AccessController")
+        putHbaseSiteProperty('hbase.coprocessor.regionserver.classes', "org.apache.hadoop.hbase.security.access.AccessController")
       else:
-        putHbaseProperty('hbase.coprocessor.master.classes', "")
+        putHbaseSiteProperty('hbase.coprocessor.master.classes', "")
         coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
         putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
     else:
@@ -551,7 +547,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     #Remove duplicates
     uniqueCoprocessorRegionClassList = []
     [uniqueCoprocessorRegionClassList.append(i) for i in coprocessorRegionClassList if not uniqueCoprocessorRegionClassList.count(i)]
-    putHbaseProperty('hbase.coprocessor.region.classes', ','.join(set(uniqueCoprocessorRegionClassList)))
+    putHbaseSiteProperty('hbase.coprocessor.region.classes', ','.join(set(uniqueCoprocessorRegionClassList)))
 
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
