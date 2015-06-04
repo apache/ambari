@@ -136,6 +136,10 @@ export OOZIE_ADMIN_PORT={{oozie_server_admin_port}}
 #
 # export OOZIE_BASE_URL="http://${OOZIE_HTTP_HOSTNAME}:${OOZIE_HTTP_PORT}/oozie"
 export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native/Linux-amd64-64
+
+# At least 1 minute of retry time to account for server downtime during
+# upgrade/downgrade
+export OOZIE_CLIENT_OPTS="${OOZIE_CLIENT_OPTS} -Doozie.connection.retry.count=5 "
     </value>
   </property>
 
