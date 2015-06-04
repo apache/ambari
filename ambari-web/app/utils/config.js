@@ -1434,8 +1434,12 @@ App.config = Em.Object.create({
       var savedIsFinal = fileConfigs.someProperty('savedIsFinal', true);
       var recommendedIsFinal = fileConfigs.someProperty('recommendedIsFinal', true);
       complexConfig.value = value;
-      complexConfig.savedValue = savedValue;
-      complexConfig.recommendedValue = recommendedValue;
+      if (savedValue) {
+        complexConfig.savedValue = savedValue;
+      }
+      if (recommendedValue) {
+        complexConfig.recommendedValue = recommendedValue;
+      }
       complexConfig.isFinal = isFinal;
       complexConfig.savedIsFinal = savedIsFinal;
       complexConfig.recommendedIsFinal = recommendedIsFinal;

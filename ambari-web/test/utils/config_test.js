@@ -122,7 +122,8 @@ describe('App.config', function () {
       var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename);
       expect(result.length).to.equal(1);
       expect(result[0].value).to.equal('');
-      expect(result[0].recommendedValue).to.equal('');
+      expect(Em.isNone(result[0].recommendedValue)).to.be.true;
+      expect(Em.isNone(result[0].savedValue)).to.be.true;
     });
     it("filename has configs that shouldn't be included in textarea", function () {
       var configs = [
