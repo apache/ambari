@@ -31,14 +31,20 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.slf4j.Logger;
@@ -46,6 +52,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
+import javax.persistence.criteria.Root;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.MessageFormat;
@@ -884,6 +893,69 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     addMissingConfigs();
     updateAlertDefinitions();
+    removeStormRestApiServiceComponent();
+  }
+
+  /**
+   * Delete STORM_REST_API component if HDP is upgraded past 2.2 and the
+   * Component still exists.
+   */
+  protected void removeStormRestApiServiceComponent() {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      for (final Cluster cluster : clusterMap.values()) {
+        StackId stackId = cluster.getCurrentStackVersion();
+        if (stackId != null && stackId.getStackName().equals("HDP") &&
+          VersionUtils.compareVersions(stackId.getStackVersion(), "2.2") >= 0) {
+
+          executeInTransaction(new Runnable() {
+            @Override
+            public void run() {
+              ServiceComponentDesiredStateDAO dao = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+              ServiceComponentDesiredStateEntityPK entityPK = new ServiceComponentDesiredStateEntityPK();
+              entityPK.setClusterId(cluster.getClusterId());
+              entityPK.setServiceName("STORM");
+              entityPK.setComponentName("STORM_REST_API");
+              ServiceComponentDesiredStateEntity entity = dao.findByPK(entityPK);
+              if (entity != null) {
+                EntityManager em = getEntityManagerProvider().get();
+                CriteriaBuilder cb = em.getCriteriaBuilder();
+
+                try {
+                  LOG.info("Deleting STORM_REST_API service component.");
+                  CriteriaDelete<HostComponentStateEntity> hcsDelete = cb.createCriteriaDelete(HostComponentStateEntity.class);
+                  CriteriaDelete<HostComponentDesiredStateEntity> hcdDelete = cb.createCriteriaDelete(HostComponentDesiredStateEntity.class);
+                  CriteriaDelete<ServiceComponentDesiredStateEntity> scdDelete = cb.createCriteriaDelete(ServiceComponentDesiredStateEntity.class);
+
+                  Root<HostComponentStateEntity> hcsRoot = hcsDelete.from(HostComponentStateEntity.class);
+                  Root<HostComponentDesiredStateEntity> hcdRoot = hcdDelete.from(HostComponentDesiredStateEntity.class);
+                  Root<ServiceComponentDesiredStateEntity> scdRoot = scdDelete.from(ServiceComponentDesiredStateEntity.class);
+
+                  hcsDelete.where(cb.equal(hcsRoot.get("componentName"), "STORM_REST_API"));
+                  hcdDelete.where(cb.equal(hcdRoot.get("componentName"), "STORM_REST_API"));
+                  scdDelete.where(cb.equal(scdRoot.get("componentName"), "STORM_REST_API"));
+
+                  em.createQuery(hcsDelete).executeUpdate();
+                  em.createQuery(hcdDelete).executeUpdate();
+                  em.createQuery(scdDelete).executeUpdate();
+                } catch (Exception e) {
+                  LOG.warn("Error deleting STORM_REST_API service component. " +
+                    "This could result in issue with ambari server start. " +
+                    "Please make sure the STORM_REST_API component is deleted " +
+                    "from the database by running following commands:\n" +
+                    "delete from hostcomponentdesiredstate where component_name='STORM_REST_API';\n" +
+                    "delete from hostcomponentstate where component_name='STORM_REST_API';\n" +
+                    "delete from servicecomponentdesiredstate where component_name='STORM_REST_API';\n", e);
+                }
+              }
+            }
+          });
+        }
+      }
+    }
   }
 
   protected void updateAlertDefinitions() {
