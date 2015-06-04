@@ -58,6 +58,7 @@ daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
 region_mover = "/usr/lib/hbase/bin/region_mover.rb"
 region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
 hbase_cmd = "/usr/lib/hbase/bin/hbase"
+hbase_max_direct_memory_size = None
 
 # hadoop parameters for 2.2+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
@@ -66,7 +67,7 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   region_drainer = format('/usr/hdp/current/hbase-client/bin/draining_servers.rb')
   hbase_cmd = format('/usr/hdp/current/hbase-client/bin/hbase')
 
-  hbase_max_direct_memory_size  = config['configurations']['hbase-env']['hbase_max_direct_memory_size']
+  hbase_max_direct_memory_size  = default('configurations/hbase-env/hbase_max_direct_memory_size', None)
 
   daemon_script=format("/usr/hdp/current/{component_directory}/bin/hbase-daemon.sh")
   region_mover = format("/usr/hdp/current/{component_directory}/bin/region_mover.rb")
