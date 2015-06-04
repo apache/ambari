@@ -511,7 +511,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           'yarn-site': {tag: 5},
           'oozie-site': {tag: 6},
           'webhcat-site': {tag: 7},
-          'yarn-env': {tag: 8}
+          'yarn-env': {tag: 8},
+          'accumulo-site': {tag: 9}
         }
       }
     };
@@ -544,6 +545,20 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         "(type=hbase-site&tag=3)"
       ]);
     });
+
+    it('get config of NAMENODE when ACCUMULO installed', function () {
+      services = [
+        {
+          serviceName: 'ACCUMULO'
+        }
+      ];
+      expect(controller.getConfigUrlParams('NAMENODE', data)).to.eql([
+        "(type=hdfs-site&tag=1)",
+        "(type=core-site&tag=2)",
+        "(type=accumulo-site&tag=9)"
+      ]);
+    });
+
   });
 
   describe('#onLoadConfigsTags()', function () {

@@ -506,6 +506,9 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         if (App.Service.find().someProperty('serviceName', 'HBASE')) {
           urlParams.push('(type=hbase-site&tag=' + data.Clusters.desired_configs['hbase-site'].tag + ')');
         }
+        if (App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
+          urlParams.push('(type=accumulo-site&tag=' + data.Clusters.desired_configs['accumulo-site'].tag + ')');
+        }
         break;
       case 'SECONDARY_NAMENODE':
         urlParams.push('(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')');
