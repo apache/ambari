@@ -381,4 +381,66 @@ limitations under the License.
       </entries>
     </value-attributes>
   </property>
+  
+  <!-- added this as required from 2.2 Hive site xml -->
+  <property>
+    <name>hive.server2.authentication.ldap.url</name>
+    <value> </value>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.server2.authentication.ldap.baseDN</name>
+    <value>NONE</value>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.server2.authentication.kerberos.keytab</name>
+    <value></value>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.server2.authentication.kerberos.principal</name>
+    <value></value>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.server2.authentication.pam.services</name>
+    <value></value>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.server2.custom.authentication.class</name>
+    <value></value>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+  </property>
 </configuration>
