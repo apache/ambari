@@ -205,8 +205,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     if "hadoop-env" in services["configurations"] and "keyserver_host" in services["configurations"]["hadoop-env"]["properties"] and "keyserver_port" in services["configurations"]["hadoop-env"]["properties"]:
       keyserverHostsString = services["configurations"]["hadoop-env"]["properties"]["keyserver_host"]
       keyserverPortString = services["configurations"]["hadoop-env"]["properties"]["keyserver_port"]
-
-    if keyserverHostsString is None:
+    if keyserverHostsString is None or len(keyserverHostsString.strip()) < 1 :
       # Caller did not specify any value - so we recommend where they are installed
       rangerKMSServerHosts = self.getHostsWithComponent("RANGER_KMS", "RANGER_KMS_SERVER", services, hosts)
       if rangerKMSServerHosts is not None and len(rangerKMSServerHosts) > 0:
