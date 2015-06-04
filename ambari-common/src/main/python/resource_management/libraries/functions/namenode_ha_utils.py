@@ -31,7 +31,7 @@ NAMENODE_HTTP_FRAGMENT = 'dfs.namenode.http-address.{0}.{1}'
 NAMENODE_HTTPS_FRAGMENT = 'dfs.namenode.https-address.{0}.{1}'
 JMX_URI_FRAGMENT = "http://{0}/jmx?qry=Hadoop:service=NameNode,name=NameNodeStatus"
   
-def get_namenode_states(hdfs_site):
+def get_namenode_states(hdfs_site, security_enabled, run_user):
   """
   return format [('nn1', 'hdfs://hostname1:port1'), ('nn2', 'hdfs://hostname2:port2')] , [....], [....]
   """
@@ -59,7 +59,7 @@ def get_namenode_states(hdfs_site):
       value = str(hdfs_site[key])
 
       jmx_uri = JMX_URI_FRAGMENT.format(value)
-      state = get_value_from_jmx(jmx_uri,'State')
+      state = get_value_from_jmx(jmx_uri, 'State', security_enabled, run_user, is_https_enabled)
       
       if state == HDFS_NN_STATE_ACTIVE:
         active_namenodes.append((nn_unique_id, value))
@@ -86,17 +86,17 @@ def is_ha_enabled(hdfs_site):
       
   return False
 
-def get_active_namenode(hdfs_site):
+def get_active_namenode(hdfs_site, security_enabled, run_user):
   """
   return format is nn_unique_id and it's address ('nn1', 'hdfs://hostname1:port1')
   """
-  active_namenodes = get_namenode_states(hdfs_site)[0]
+  active_namenodes = get_namenode_states(hdfs_site, security_enabled, run_user)[0]
   if active_namenodes:
     return active_namenodes[0]
   else:
     return UnknownConfiguration('fs_root')
   
-def get_property_for_active_namenode(hdfs_site, property_name):
+def get_property_for_active_namenode(hdfs_site, property_name, security_enabled, run_user):
   """
   For dfs.namenode.rpc-address:
     - In non-ha mode it will return hdfs_site[dfs.namenode.rpc-address]
@@ -104,7 +104,7 @@ def get_property_for_active_namenode(hdfs_site, property_name):
   """
   if is_ha_enabled(hdfs_site):
     name_service = hdfs_site['dfs.nameservices']
-    active_namenodes = get_namenode_states(hdfs_site)[0]
+    active_namenodes = get_namenode_states(hdfs_site, security_enabled, run_user)[0]
     
     if not len(active_namenodes):
       raise Fail("There is no active namenodes.")

@@ -19,13 +19,26 @@ limitations under the License.
 '''
 import urllib2
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+from resource_management.core import shell
+from resource_management.core.logger import Logger
 
-def get_value_from_jmx(qry, property):
+def get_value_from_jmx(qry, property, security_enabled, run_user, is_https_enabled):
   try:
-    response = urllib2.urlopen(qry)
-    data = response.read()
+    if security_enabled:
+      cmd = ['curl', '--negotiate', '-u', ':']
+    else:
+      cmd = ['curl']
+
+    if is_https_enabled:
+      cmd.append("-k")
+
+    cmd.append(qry)
+
+    _, data = shell.checked_call(cmd, user=run_user, quiet=False)
+
     if data:
       data_dict = json.loads(data)
       return data_dict["beans"][0][property]
   except:
+    Logger.exception("Getting jmx metrics from NN failed. URL: " + str(qry))
     return None

@@ -283,7 +283,7 @@ class TestJournalnode(RMFTestCase):
     namenode_status_standby = open(namenode_status_standby_file, 'r').read()
 
     url_stream_mock = MagicMock()
-    url_stream_mock.read.side_effect = [namenode_status_active, namenode_status_standby] + (num_journalnodes * [namenode_jmx, journalnode_jmx])
+    url_stream_mock.read.side_effect = (num_journalnodes * [namenode_jmx, journalnode_jmx])
 
     urlopen_mock.return_value = url_stream_mock
 
@@ -291,6 +291,7 @@ class TestJournalnode(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
       classname = "JournalNode", command = "post_rolling_restart",
       config_file = "journalnode-upgrade.json",
+      checked_call_mocks = [(0, str(namenode_status_active)), (0, str(namenode_status_standby))],
       hdp_stack_version = self.UPGRADE_STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES )
 
@@ -299,7 +300,7 @@ class TestJournalnode(RMFTestCase):
     urlopen_mock.assert_called_with("http://c6407.ambari.apache.org:8480/jmx")
 
     url_stream_mock.reset_mock()
-    url_stream_mock.read.side_effect = [namenode_status_active, namenode_status_standby] + (num_journalnodes * [namenode_jmx, journalnode_jmx])
+    url_stream_mock.read.side_effect = (num_journalnodes * [namenode_jmx, journalnode_jmx])
 
     urlopen_mock.return_value = url_stream_mock
 
@@ -307,6 +308,7 @@ class TestJournalnode(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
       classname = "JournalNode", command = "post_rolling_restart",
       config_file = "journalnode-upgrade-hdfs-secure.json",
+      checked_call_mocks = [(0, str(namenode_status_active)), (0, str(namenode_status_standby))],
       hdp_stack_version = self.UPGRADE_STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES )
 

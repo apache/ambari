@@ -37,6 +37,7 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
 from resource_management.libraries.functions.format_jvm_option import format_jvm_option
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
+from resource_management.libraries.functions.is_empty import is_empty
 
 
 config = Script.get_config()
@@ -383,6 +384,9 @@ policy_user = config['configurations']['ranger-hdfs-plugin-properties']['policy_
 #For curl command in ranger plugin to get db connector
 jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
+
+is_https_enabled = config['configurations']['hdfs-site']['dfs.https.enabled'] if \
+  not is_empty(config['configurations']['hdfs-site']['dfs.https.enabled']) else False
 
 if has_ranger_admin:
   enable_ranger_hdfs = (config['configurations']['ranger-hdfs-plugin-properties']['ranger-hdfs-plugin-enabled'].lower() == 'yes')
