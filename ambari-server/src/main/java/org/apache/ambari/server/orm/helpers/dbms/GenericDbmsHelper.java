@@ -24,6 +24,7 @@ import java.io.Writer;
 import java.util.List;
 
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.eclipse.persistence.internal.databaseaccess.Platform;
 import org.eclipse.persistence.internal.sessions.AbstractSession;
@@ -31,6 +32,7 @@ import org.eclipse.persistence.platform.database.DatabasePlatform;
 import org.eclipse.persistence.tools.schemaframework.FieldDefinition;
 import org.eclipse.persistence.tools.schemaframework.ForeignKeyConstraint;
 import org.eclipse.persistence.tools.schemaframework.TableDefinition;
+import org.eclipse.persistence.tools.schemaframework.UniqueKeyConstraint;
 
 public class GenericDbmsHelper implements DbmsHelper {
   protected final DatabasePlatform databasePlatform;
@@ -115,10 +117,35 @@ public class GenericDbmsHelper implements DbmsHelper {
     return builder;
   }
 
+  public String writeGetTableConstraints(String databaseName, String tableName){
+    throw new UnsupportedOperationException("List of table constraints is not supported for generic DB");
+  }
+
+  public StringBuilder writeAddPrimaryKeyString(StringBuilder builder, String constraintName, String... columnName){
+    builder.append("ADD CONSTRAINT ").append(constraintName).append(" PRIMARY KEY (").append(StringUtils.join(columnName, ",")).append(")");
+    return builder;
+  }
+
   public StringBuilder writeSetNullableString(StringBuilder builder,
       String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable) {
     throw new UnsupportedOperationException(
         "Column nullable modification not supported for generic DB");
+  }
+
+  public StringBuilder writeDropTableColumnStatement(StringBuilder builder, String columnName){
+    builder.append("DROP COLUMN ").append(columnName);
+    return builder;
+  }
+
+  public  StringBuilder writeDropPrimaryKeyStatement(StringBuilder builder, String constraintName){
+      // constraintName required only for postgres
+      return builder.append("DROP PRIMARY KEY");
+  }
+
+  @Override
+  public String getDropPrimaryKeyStatement(String tableName, String constraintName){
+      StringBuilder builder = writeAlterTableClause(new StringBuilder(), tableName);
+      return writeDropPrimaryKeyStatement(builder, constraintName).toString();
   }
 
   /**
@@ -175,6 +202,26 @@ public class GenericDbmsHelper implements DbmsHelper {
     return fieldDefinition;
   }
 
+  @Override
+  public String getDropUniqueConstraintStatement(String tableName, String constraintName){
+
+    UniqueKeyConstraint uniqueKeyConstraint = new UniqueKeyConstraint();
+    uniqueKeyConstraint.setName(constraintName);
+
+    Writer writer = new StringWriter();
+    TableDefinition tableDefinition = new TableDefinition();
+    tableDefinition.setName(tableName);
+    tableDefinition.buildUniqueConstraintDeletionWriter(createStubAbstractSessionFromPlatform(databasePlatform),
+                                                         uniqueKeyConstraint, writer);
+
+    return writer.toString();
+  }
+
+  @Override
+  public String getTableConstraintsStatement(String databaseName, String tablename){
+    return writeGetTableConstraints(databaseName, tablename);
+  }
+
   /**
    * get create index statement
    * @param indexName
@@ -190,6 +237,28 @@ public class GenericDbmsHelper implements DbmsHelper {
     return createIndex;
   }
 
+  @Override
+  public String getAddUniqueConstraintStatement(String tableName, String constraintName, String... columnNames){
+    UniqueKeyConstraint uniqueKeyConstraint = new UniqueKeyConstraint();
+    uniqueKeyConstraint.setName(constraintName);
+    for (String columnName: columnNames){
+      uniqueKeyConstraint.addSourceField(columnName);
+    }
+
+    TableDefinition tableDefinition = new TableDefinition();
+    tableDefinition.setName(tableName);
+    Writer writer = new StringWriter();
+    tableDefinition.buildUniqueConstraintCreationWriter(createStubAbstractSessionFromPlatform(databasePlatform),
+                                                               uniqueKeyConstraint, writer);
+    return writer.toString();
+  }
+
+  @Override
+  public String getAddPrimaryKeyConstraintStatement(String tableName, String constraintName, String... columnName){
+    StringBuilder builder = writeAlterTableClause(new StringBuilder(), tableName);
+    builder = writeAddPrimaryKeyString(builder, constraintName, columnName);
+    return builder.toString();
+  }
 
   @Override
   public String getAddForeignKeyStatement(String tableName, String constraintName,
@@ -222,9 +291,15 @@ public class GenericDbmsHelper implements DbmsHelper {
     TableDefinition tableDefinition = new TableDefinition();
     tableDefinition.setName(tableName);
     tableDefinition.buildAddFieldWriter(createStubAbstractSessionFromPlatform(databasePlatform),
-        convertToFieldDefinition(columnInfo), writer);
+                                               convertToFieldDefinition(columnInfo), writer);
 
     return writer.toString();
+  }
+
+  @Override
+  public String getDropTableColumnStatement(String tableName, String columnName){
+    StringBuilder builder = writeAlterTableClause(new StringBuilder(), tableName);
+    return writeDropTableColumnStatement(builder, columnName).toString();
   }
 
 
@@ -248,7 +323,7 @@ public class GenericDbmsHelper implements DbmsHelper {
   }
 
   @Override
-  public String getDropConstraintStatement(String tableName, String constraintName) {
+  public String getDropFKConstraintStatement(String tableName, String constraintName) {
     Writer writer = new StringWriter();
 
     ForeignKeyConstraint foreignKeyConstraint = new ForeignKeyConstraint();
@@ -277,6 +352,7 @@ public class GenericDbmsHelper implements DbmsHelper {
     }
     return defaultStmt;
   }
+
 
   public AbstractSession createStubAbstractSessionFromPlatform
       (final DatabasePlatform databasePlatform) {

@@ -52,4 +52,29 @@ public class PostgresHelper extends GenericDbmsHelper {
     builder.append(nullStatement);
     return builder;
   }
+
+  @Override
+  public String writeGetTableConstraints(String databaseName, String tableName) {
+    // pg_class: http://www.postgresql.org/docs/9.4/static/catalog-pg-class.html
+    // pg_constraint: http://www.postgresql.org/docs/9.4/static/catalog-pg-constraint.html
+    // pg_namespace: http://www.postgresql.org/docs/9.4/static/catalog-pg-namespace.html
+    StringBuilder statement = new StringBuilder()
+      .append("SELECT ")
+        .append("c.conname as CONSTRAINT_NAME,")
+        .append("c.contype as CONSTRAIN_TYPE ")
+      .append("FROM pg_catalog.pg_constraint as c ")
+      .append("JOIN pg_catalog.pg_namespace as namespace ")
+        .append("on namespace.oid = c.connamespace ")
+      .append("JOIN pg_catalog.pg_class as class ")
+        .append("on class.oid = c.conrelid ")
+      .append("where (namespace.nspname='").append(databaseName).append("' or namespace.nspname='public')")
+      .append("and class.relname='").append(tableName).append("'");
+
+    return statement.toString();
+  }
+
+  @Override
+  public  StringBuilder writeDropPrimaryKeyStatement(StringBuilder builder, String constraintName){
+      return builder.append("DROP CONSTRAINT ").append(constraintName);
+  }
 }

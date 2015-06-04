@@ -345,16 +345,16 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       || databaseType == DatabaseType.DERBY) {
 
       //recreate old constraints to sync with oracle
-      dbAccessor.dropConstraint("clusterconfigmapping", "FK_clusterconfigmapping_cluster_id");
-      dbAccessor.dropConstraint("hostcomponentdesiredstate", "FK_hostcomponentdesiredstate_host_name");
-      dbAccessor.dropConstraint("hostcomponentdesiredstate", "FK_hostcomponentdesiredstate_component_name");
-      dbAccessor.dropConstraint("hostcomponentstate", "FK_hostcomponentstate_component_name");
-      dbAccessor.dropConstraint("hostcomponentstate", "FK_hostcomponentstate_host_name");
-      dbAccessor.dropConstraint("servicecomponentdesiredstate", "FK_servicecomponentdesiredstate_service_name");
-      dbAccessor.dropConstraint("servicedesiredstate", "FK_servicedesiredstate_service_name");
-      dbAccessor.dropConstraint("role_success_criteria", "FK_role_success_criteria_stage_id");
-      dbAccessor.dropConstraint("ClusterHostMapping", "FK_ClusterHostMapping_host_name");
-      dbAccessor.dropConstraint("ClusterHostMapping", "FK_ClusterHostMapping_cluster_id");
+      dbAccessor.dropFKConstraint("clusterconfigmapping", "FK_clusterconfigmapping_cluster_id");
+      dbAccessor.dropFKConstraint("hostcomponentdesiredstate", "FK_hostcomponentdesiredstate_host_name");
+      dbAccessor.dropFKConstraint("hostcomponentdesiredstate", "FK_hostcomponentdesiredstate_component_name");
+      dbAccessor.dropFKConstraint("hostcomponentstate", "FK_hostcomponentstate_component_name");
+      dbAccessor.dropFKConstraint("hostcomponentstate", "FK_hostcomponentstate_host_name");
+      dbAccessor.dropFKConstraint("servicecomponentdesiredstate", "FK_servicecomponentdesiredstate_service_name");
+      dbAccessor.dropFKConstraint("servicedesiredstate", "FK_servicedesiredstate_service_name");
+      dbAccessor.dropFKConstraint("role_success_criteria", "FK_role_success_criteria_stage_id");
+      dbAccessor.dropFKConstraint("ClusterHostMapping", "FK_ClusterHostMapping_host_name");
+      dbAccessor.dropFKConstraint("ClusterHostMapping", "FK_ClusterHostMapping_cluster_id");
 
       dbAccessor.addFKConstraint("clusterconfigmapping", "clusterconfigmappingcluster_id", "cluster_id", "clusters", "cluster_id", false);
       dbAccessor.addFKConstraint("hostcomponentdesiredstate", "hstcmponentdesiredstatehstname", "host_name", "hosts", "host_name", false);
@@ -379,10 +379,10 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
 
       //drop new constraints with to sync with oracle
-      dbAccessor.dropConstraint("confgroupclusterconfigmapping", "FK_confgroupclusterconfigmapping_config_tag", true);
-      dbAccessor.dropConstraint("confgroupclusterconfigmapping", "FK_confgroupclusterconfigmapping_group_id", true);
-      dbAccessor.dropConstraint("configgrouphostmapping", "FK_configgrouphostmapping_configgroup_id", true);
-      dbAccessor.dropConstraint("configgrouphostmapping", "FK_configgrouphostmapping_host_name", true);
+      dbAccessor.dropFKConstraint("confgroupclusterconfigmapping", "FK_confgroupclusterconfigmapping_config_tag", true);
+      dbAccessor.dropFKConstraint("confgroupclusterconfigmapping", "FK_confgroupclusterconfigmapping_group_id", true);
+      dbAccessor.dropFKConstraint("configgrouphostmapping", "FK_configgrouphostmapping_configgroup_id", true);
+      dbAccessor.dropFKConstraint("configgrouphostmapping", "FK_configgrouphostmapping_host_name", true);
 
 
     }

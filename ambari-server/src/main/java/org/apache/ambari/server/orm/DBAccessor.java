@@ -51,7 +51,7 @@ public interface DBAccessor {
    * @param primaryKeyColumns
    * @throws SQLException
    */
-  public void createTable(String tableName, List<DBColumnInfo> columnInfo,
+  void createTable(String tableName, List<DBColumnInfo> columnInfo,
                           String... primaryKeyColumns) throws SQLException;
 
   /**
@@ -61,7 +61,7 @@ public interface DBAccessor {
    * @param columnNames
    * @throws SQLException
    */
-  public void createIndex(String indexName, String tableName,
+  void createIndex(String indexName, String tableName,
                           String... columnNames) throws SQLException;
 
   /**
@@ -72,7 +72,7 @@ public interface DBAccessor {
    * @param referenceColumn
    * @throws SQLException
    */
-  public void addFKConstraint(String tableName,
+  void addFKConstraint(String tableName,
                               String constraintName,
                               String keyColumn,
                               String referenceTableName,
@@ -90,7 +90,7 @@ public interface DBAccessor {
    * @param ignoreFailure
    * @throws SQLException
    */
-  public void addFKConstraint(String tableName,
+  void addFKConstraint(String tableName,
                               String constraintName,
                               String keyColumn,
                               String referenceTableName,
@@ -109,7 +109,7 @@ public interface DBAccessor {
    * @param ignoreFailure
    * @throws SQLException
    */
-  public void addFKConstraint(String tableName,
+  void addFKConstraint(String tableName,
                               String constraintName,
                               String[] keyColumns,
                               String referenceTableName,
@@ -127,7 +127,7 @@ public interface DBAccessor {
    * @param ignoreFailure
    * @throws SQLException
    */
-  public void addFKConstraint(String tableName,
+  void addFKConstraint(String tableName,
                               String constraintName,
                               String[] keyColumns,
                               String referenceTableName,
@@ -139,8 +139,37 @@ public interface DBAccessor {
    * @param columnInfo
    * @throws SQLException
    */
-  public void addColumn(String tableName,
+  void addColumn(String tableName,
                         DBColumnInfo columnInfo) throws SQLException;
+
+  /**
+   * Add unique table constraint
+   * @param constraintName name of the constraint
+   * @param tableName name of the table
+   * @param columnNames list of columns
+   * @throws SQLException
+   */
+  void addUniqueConstraint(String tableName, String constraintName, String... columnNames)
+    throws SQLException;
+
+  /**
+   *
+   * @param tableName name of the table
+   * @param constraintName name of the constraint
+   * @param columnName name of the column
+   * @param ignoreErrors true to ignore database errors
+   * @throws SQLException
+   */
+  void addPKConstraint(String tableName, String constraintName,boolean ignoreErrors, String... columnName) throws SQLException;
+
+  /**
+   *
+   * @param tableName name of the table
+   * @param constraintName name of the constraint
+   * @param columnName name of the column
+   * @throws SQLException
+   */
+  void addPKConstraint(String tableName, String constraintName, String... columnName) throws SQLException;
 
   /**
    * Rename existing column
@@ -163,7 +192,7 @@ public interface DBAccessor {
    * @param columnInfo
    * @throws SQLException
    */
-  public void alterColumn(String tableName,
+  void alterColumn(String tableName,
                           DBColumnInfo columnInfo) throws SQLException;
 
   /**
@@ -187,7 +216,7 @@ public interface DBAccessor {
    * @return
    * @throws SQLException
    */
-  public int updateTable(String tableName, String columnName, Object value,
+  int updateTable(String tableName, String columnName, Object value,
                          String whereClause) throws SQLException;
 
   /**
@@ -199,7 +228,7 @@ public interface DBAccessor {
    * @return
    * @throws SQLException
    */
-  public void updateTable(String tableName, DBColumnInfo columnNameSrc,
+  void updateTable(String tableName, DBColumnInfo columnNameSrc,
                          DBColumnInfo columnNameTgt) throws SQLException;
 
   /**
@@ -207,15 +236,23 @@ public interface DBAccessor {
    * @param filePath
    * @throws SQLException
    */
-  public void executeScript(String filePath) throws SQLException, IOException;
+  void executeScript(String filePath) throws SQLException, IOException;
 
+  /**
+   * Conditional ad-hoc query on DB
+   * @param query
+   * @param tableName
+   * @param hasColumnName
+   * @throws SQLException
+   */
+  void executeQuery(String query, String tableName, String hasColumnName) throws SQLException;
 
   /**
    * Execute ad-hoc query on DB.
    * @param query
    * @throws SQLException
    */
-  public void executeQuery(String query) throws SQLException;
+  void executeQuery(String query) throws SQLException;
 
   /**
    * Execute select query
@@ -248,14 +285,14 @@ public interface DBAccessor {
    * @param tableName
    * @throws SQLException
    */
-  public void dropTable(String tableName) throws SQLException;
+  void dropTable(String tableName) throws SQLException;
 
   /**
    * Delete all table data
    * @param tableName
    * @throws SQLException
    */
-  public void truncateTable(String tableName) throws SQLException;
+  void truncateTable(String tableName) throws SQLException;
 
   /**
    * Drop a column from table
@@ -263,38 +300,81 @@ public interface DBAccessor {
    * @param columnName
    * @throws SQLException
    */
-  public void dropColumn(String tableName, String columnName) throws SQLException;
+  void dropColumn(String tableName, String columnName) throws SQLException;
 
   /**
    * Drop sequence
    * @param sequenceName
    * @throws SQLException
    */
-  public void dropSequence(String sequenceName) throws SQLException;
+  void dropSequence(String sequenceName) throws SQLException;
 
   /**
-   * Drop a constraint from table
-   * @param tableName
-   * @param constraintName
+   * Drop a FK constraint from table
+   * @param tableName name of the table
+   * @param constraintName name of the constraint
    * @throws SQLException
    */
-  public void dropConstraint(String tableName, String constraintName) throws SQLException;
+  void dropFKConstraint(String tableName, String constraintName) throws SQLException;
 
   /**
-   * Drop a constraint from table
+   * Drop a PK constraint from table
    * @param tableName
-   * @param constraintName
+   * @param constraintName name of the constraint
+   * @param ignoreFailure
    * @throws SQLException
    */
-  void dropConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException;
+  void dropPKConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException;
+
+  /**
+   * Drop a PK constraint from table
+   * @param tableName name of the table
+   * @param constraintName name of the constraint
+   * @throws SQLException
+   */
+  void dropPKConstraint(String tableName, String constraintName) throws SQLException;
+
+  /**
+   * Drop a PK constraint from table
+   * @param tableName name of the table
+   * @param constraintName name of the constraint
+   * @param columnName name of the column from the pk constraint
+   * @throws SQLException
+   */
+  void dropPKConstraint(String tableName, String constraintName, String columnName) throws SQLException;
+
+  /**
+   * Drop a FK constraint from table
+   * @param tableName name of the table
+   * @param constraintName name of the constraint
+   * @throws SQLException
+   */
+  void dropFKConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException;
+
+  /**
+   * Drop a unique constraint from table
+   * @param tableName name of the table
+   * @param constraintName name of the constraint
+   * @param ignoreFailure
+   * @throws SQLException
+   */
+  void dropUniqueConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException;
+
+  /**
+   * Drop a unique constraint from table
+   * @param tableName name of the table
+   * @param constraintName name of the constraint
+   * @throws SQLException
+   */
+  void dropUniqueConstraint(String tableName, String constraintName) throws SQLException;
 
   /**
    * Verify if table exists by looking at metadata.
-   * @param tableName
+   * @param tableName name of the table
    * @return
    * @throws SQLException
    */
-  public boolean tableExists(String tableName) throws SQLException;
+  boolean tableExists(String tableName) throws SQLException;
 
   /**
    * Verify if table has any data
@@ -302,7 +382,7 @@ public interface DBAccessor {
    * @return
    * @throws SQLException
    */
-  public boolean tableHasData(String tableName) throws SQLException;
+  boolean tableHasData(String tableName) throws SQLException;
 
   /**
    * Verify if table already has a column defined.
@@ -311,7 +391,16 @@ public interface DBAccessor {
    * @return
    * @throws SQLException
    */
-  public boolean tableHasColumn(String tableName, String columnName) throws SQLException;
+  boolean tableHasColumn(String tableName, String columnName) throws SQLException;
+
+  /**
+   * Verify if table already has a column defined.
+   * @param tableName name of the table
+   * @param columnName name of the column to check
+   * @return false if one from passed column names not exists
+   * @throws SQLException
+   */
+  boolean tableHasColumn(String tableName, String... columnName) throws SQLException;
 
   /**
    * Verify if table has a FK constraint.
@@ -320,7 +409,7 @@ public interface DBAccessor {
    * @return true if FK with such name exists
    * @throws SQLException
    */
-  public boolean tableHasForeignKey(String tableName, String fkName) throws SQLException;
+  boolean tableHasForeignKey(String tableName, String fkName) throws SQLException;
 
   /**
    * Verify if table already has a FK constraint.
@@ -331,7 +420,7 @@ public interface DBAccessor {
    * @return true if described relation exists
    * @throws SQLException
    */
-  public boolean tableHasForeignKey(String tableName, String refTableName,
+  boolean tableHasForeignKey(String tableName, String refTableName,
              String columnName, String refColumnName) throws SQLException;
 
   /**
@@ -343,14 +432,47 @@ public interface DBAccessor {
    * @return true if described relation exists
    * @throws SQLException
    */
-  public boolean tableHasForeignKey(String tableName, String referenceTableName, String[] keyColumns,
+  boolean tableHasForeignKey(String tableName, String referenceTableName, String[] keyColumns,
                              String[] referenceColumns) throws SQLException;
 
   /**
    * Get a new DB session
    * @return
    */
-  public DatabaseSession getNewDatabaseSession();
+  DatabaseSession getNewDatabaseSession();
+
+
+  /**
+   * Table has primary key
+   * @param tableName name of the table
+   * @param columnName name of the constraint, could be {@code null}
+   * @return true if constraint exists
+   * @throws SQLException
+   */
+  boolean tableHasPrimaryKey(String tableName, String columnName) throws SQLException;
+
+  /**
+   * Gets list of index names from database metadata
+   * @param tableName
+   *            the name of the table (not {@code null}).
+   * @param unique
+   *            list only unique indexes (not {@code null}).
+   * @return the string list of index names
+   * @throws SQLException
+   */
+  //List<String> getIndexesList(String tableName, boolean unique) throws SQLException;
+
+  /**
+   * Check if index is already in scheme
+   * @param tableName
+   *            the name of the table (not {@code null}).
+   * @param unique
+   *            list only unique indexes (not {@code null}).
+   * @param indexName
+   *            name of the index to check
+   * @return true if index present in the schema
+   */
+  //boolean tableHasIndex(String tableName, boolean unique, String indexName) throws SQLException;
 
   /**
    * Gets the column's SQL type
@@ -363,8 +485,10 @@ public interface DBAccessor {
    * @throws SQLException
    * @see {@link Types}
    */
-  public int getColumnType(String tableName, String columnName)
+  int getColumnType(String tableName, String columnName)
       throws SQLException;
+
+  Class getColumnClass(String tableName, String columnName) throws SQLException, ClassNotFoundException;
 
   /**
    * Sets the specified column to either allow or prohibit {@code NULL}.
@@ -378,10 +502,13 @@ public interface DBAccessor {
    *          values, {@code false} otherwise.
    * @throws SQLException
    */
-  public void setNullable(String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable)
+  void setColumnNullable(String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable)
       throws SQLException;
 
-  public static enum DbType {
+  void setColumnNullable(String tableName, String columnName, boolean nullable)
+    throws SQLException;
+
+  enum DbType {
     ORACLE,
     MYSQL,
     POSTGRES,
@@ -393,12 +520,12 @@ public interface DBAccessor {
    * Get type of database platform
    * @return @DbType
    */
-  public DbType getDbType();
+  DbType getDbType();
 
   /**
    * Capture column type
    */
-  public class DBColumnInfo {
+  class DBColumnInfo {
     private String name;
     private Class type;
     private Integer length;
@@ -406,6 +533,10 @@ public interface DBAccessor {
     private boolean isNullable;
 
     private FieldTypeDefinition dbType = null;
+
+    public DBColumnInfo(String name, Class type) {
+      this(name, type, null, null, true);
+    }
 
     public DBColumnInfo(String name, Class type, Integer length) {
       this(name, type, length, null, true);

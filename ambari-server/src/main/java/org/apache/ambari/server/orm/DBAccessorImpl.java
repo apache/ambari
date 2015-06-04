@@ -26,6 +26,7 @@ import org.apache.ambari.server.orm.helpers.dbms.GenericDbmsHelper;
 import org.apache.ambari.server.orm.helpers.dbms.MySqlHelper;
 import org.apache.ambari.server.orm.helpers.dbms.OracleHelper;
 import org.apache.ambari.server.orm.helpers.dbms.PostgresHelper;
+import org.apache.ambari.server.utils.CustomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.persistence.internal.helper.DBPlatformHelper;
 import org.eclipse.persistence.internal.sessions.DatabaseSessionImpl;
@@ -225,7 +226,6 @@ public class DBAccessorImpl implements DBAccessor {
 
   @Override
   public boolean tableHasColumn(String tableName, String columnName) throws SQLException {
-    boolean result = false;
     DatabaseMetaData metaData = getDatabaseMetaData();
 
     ResultSet rs = metaData.getColumns(null, null, convertObjectName(tableName), convertObjectName(columnName));
@@ -241,7 +241,30 @@ public class DBAccessorImpl implements DBAccessor {
       }
     }
 
-    return result;
+    return false;
+  }
+
+  @Override
+  public boolean tableHasColumn(String tableName, String... columnName) throws SQLException{
+    List<String> columnsList = new ArrayList<String>(Arrays.asList(columnName));
+    DatabaseMetaData metaData = getDatabaseMetaData();
+
+    CustomStringUtils.toUpperCase(columnsList);
+    ResultSet rs = metaData.getColumns(null, null, convertObjectName(tableName), null);
+
+    if (rs != null) {
+      try {
+        while (rs.next()) {
+          if (rs.getString("COLUMN_NAME") != null) {
+            columnsList.remove(rs.getString("COLUMN_NAME").toUpperCase());
+          }
+        }
+      } finally {
+        rs.close();
+      }
+    }
+
+    return columnsList.size() == 0;
   }
 
   @Override
@@ -391,6 +414,53 @@ public class DBAccessorImpl implements DBAccessor {
     }
   }
 
+  public boolean tableHasConstraint(String tableName, String constraintName) throws SQLException{
+    // this kind of request is well lower level as we querying system tables, due that we need for some the name of catalog.
+    String query = dbmsHelper.getTableConstraintsStatement(connection.getCatalog(), tableName);
+    ResultSet rs = executeSelect(query);
+    if (rs != null){
+      while (rs.next()) {
+        if (rs.getString("CONSTRAINT_NAME").equalsIgnoreCase(constraintName)){
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public void addUniqueConstraint(String tableName, String constraintName, String... columnNames)
+    throws SQLException{
+    if (!tableHasConstraint(tableName, constraintName)) {
+      String query = dbmsHelper.getAddUniqueConstraintStatement(tableName, constraintName, columnNames);
+      try {
+        executeQuery(query);
+      } catch (SQLException e) {
+        LOG.warn("Add unique constraint failed, constraintName={},tableName={}", constraintName, tableName);
+        throw e;
+      }
+    } else {
+      LOG.info("Unique constraint {} already exists, skipping", constraintName);
+    }
+  }
+
+  @Override
+  public void addPKConstraint(String tableName, String constraintName, boolean ignoreErrors, String... columnName) throws SQLException{
+    if (!tableHasPrimaryKey(tableName, null) && tableHasColumn(tableName, columnName)) {
+      String query = dbmsHelper.getAddPrimaryKeyConstraintStatement(tableName, constraintName, columnName);
+
+      executeQuery(query, ignoreErrors);
+    } else {
+      LOG.warn("Primary constraint {} not altered to table {} as column {} not present or constraint already exists",
+        constraintName, tableName, columnName);
+    }
+  }
+
+  @Override
+  public void addPKConstraint(String tableName, String constraintName, String... columnName) throws SQLException{
+    addPKConstraint(tableName, constraintName, false, columnName);
+  }
+
   @Override
   public void renameColumn(String tableName, String oldColumnName,
                            DBColumnInfo columnInfo) throws SQLException {
@@ -422,7 +492,7 @@ public class DBAccessorImpl implements DBAccessor {
     //varchar extension only (derby limitation, but not too much for others),
     if (dbmsHelper.supportsColumnTypeChange()) {
       String statement = dbmsHelper.getAlterColumnStatement(tableName,
-          columnInfo);
+              columnInfo);
       executeQuery(statement);
     } else {
       //use addColumn: add_tmp-update-drop-rename for Derby
@@ -448,7 +518,7 @@ public class DBAccessorImpl implements DBAccessor {
     int typeFrom = getColumnType(tableName, columnNameFrom.getName());
     int typeTo = getColumnType(tableName, columnNameTo.getName());
     ResultSet rs = executeSelect(statement, ResultSet.TYPE_SCROLL_SENSITIVE,
-        ResultSet.CONCUR_UPDATABLE);
+            ResultSet.CONCUR_UPDATABLE);
 
     while (rs.next()) {
       convertUpdateData(rs, columnNameFrom, typeFrom, columnNameTo, typeTo);
@@ -541,6 +611,13 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
+  public void executeQuery(String query, String tableName, String hasColumnName) throws SQLException{
+    if (tableHasColumn(tableName, hasColumnName)){
+      executeQuery(query);
+    }
+  }
+
+  @Override
   public void executeQuery(String query) throws SQLException {
     executeQuery(query, false);
   }
@@ -588,7 +665,8 @@ public class DBAccessorImpl implements DBAccessor {
   @Override
   public void dropColumn(String tableName, String columnName) throws SQLException {
     if (tableHasColumn(tableName, columnName)) {
-      executeQuery("ALTER TABLE " + tableName + " DROP COLUMN " + columnName);
+      String query = dbmsHelper.getDropTableColumnStatement(tableName, columnName);
+      executeQuery(query);
     }
   }
 
@@ -598,19 +676,64 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
-  public void dropConstraint(String tableName, String constraintName) throws SQLException {
-    dropConstraint(tableName, constraintName, false);
+  public void dropFKConstraint(String tableName, String constraintName) throws SQLException {
+    dropFKConstraint(tableName, constraintName, false);
   }
 
   @Override
-  public void dropConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException {
-    if (tableHasForeignKey(tableName, constraintName)
-      //TODO check for unique constraints via getIndexInfo only, figure out if name of index and constraint differs
-      ) {
-      String query = dbmsHelper.getDropConstraintStatement(tableName, constraintName);
-
+  public void dropFKConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException {
+    // ToDo: figure out if name of index and constraint differs
+    if (tableHasForeignKey(convertObjectName(tableName), constraintName)) {
+      String query = dbmsHelper.getDropFKConstraintStatement(tableName, constraintName);
       executeQuery(query, ignoreFailure);
+    } else {
+      LOG.warn("Constraint {} from {} table not found, nothing to drop", constraintName, tableName);
     }
+  }
+
+  @Override
+  public void dropUniqueConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException{
+    if (tableHasConstraint(convertObjectName(tableName), convertObjectName(constraintName))){
+      String query = dbmsHelper.getDropUniqueConstraintStatement(tableName, constraintName);
+      executeQuery(query, ignoreFailure);
+    } else {
+      LOG.warn("Unique constraint {} from {} table not found, nothing to drop", constraintName, tableName);
+    }
+  }
+
+  @Override
+  public void dropUniqueConstraint(String tableName, String constraintName) throws SQLException{
+    dropUniqueConstraint(tableName, constraintName, false);
+  }
+
+  @Override
+  public void dropPKConstraint(String tableName, String constraintName, String columnName) throws SQLException{
+    if (tableHasPrimaryKey(tableName, columnName)){
+        String query = dbmsHelper.getDropPrimaryKeyStatement(convertObjectName(tableName), constraintName);
+        executeQuery(query, false);
+    } else{
+        LOG.warn("Primary key doesn't exists for {} table, skipping", tableName);
+    }
+  }
+
+  @Override
+  public void dropPKConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException{
+    /*
+     * Note, this is un-safe implementation as constraint name checking will work only for PostgresSQL,
+     * MySQL and Oracle doesn't use constraint name for drop primary key
+     * Consider to use implementation with column name checking for existed constraint.
+     */
+    if (tableHasPrimaryKey(tableName, null)) {
+      String query = dbmsHelper.getDropPrimaryKeyStatement(convertObjectName(tableName), constraintName);
+      executeQuery(query, ignoreFailure);
+    } else{
+      LOG.warn("Primary key doesn't exists for {} table, skipping", tableName);
+    }
+  }
+
+  @Override
+  public void dropPKConstraint(String tableName, String constraintName) throws SQLException{
+    dropPKConstraint(tableName, constraintName, false);
   }
 
   @Override
@@ -636,28 +759,62 @@ public class DBAccessorImpl implements DBAccessor {
     return new DatabaseSessionImpl(login);
   }
 
-  public int getColumnType(String tableName, String columnName)
-      throws SQLException {
-    String query = "SELECT " + columnName + " FROM " + tableName;
-    Statement statement = null;
-
-    try {
-      statement = getConnection().createStatement();
-      ResultSet rs = statement.executeQuery(query);
-
-      ResultSetMetaData rsmd = rs.getMetaData();
-      return rsmd.getColumnType(1);
-    } finally {
-      if (null != statement)
-        statement.close();
+  @Override
+  public boolean tableHasPrimaryKey(String tableName, String columnName) throws SQLException{
+    ResultSet rs = getDatabaseMetaData().getPrimaryKeys(null, null, convertObjectName(tableName));
+    if (rs != null && columnName != null){
+      while (rs.next()){
+        if (rs.getString("COLUMN_NAME").equalsIgnoreCase(columnName)) {
+          return true;
+        }
+      }
+    } else if (rs != null){
+      return rs.next();
     }
+
+    return false;
   }
 
   @Override
-  public void setNullable(String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable)
+  public int getColumnType(String tableName, String columnName)
+      throws SQLException {
+    // We doesn't require any actual result except metadata, so WHERE clause shouldn't match
+    String query = String.format("SELECT %s FROM %s WHERE 1=2", columnName, convertObjectName(tableName));
+    ResultSet rs = executeSelect(query);
+
+    ResultSetMetaData rsmd = rs.getMetaData();
+    return rsmd.getColumnType(1);
+  }
+
+  @Override
+  public Class getColumnClass(String tableName, String columnName)
+          throws SQLException, ClassNotFoundException{
+      // We doesn't require any actual result except metadata, so WHERE clause shouldn't match
+      String query = String.format("SELECT %s FROM %s WHERE 1=2", columnName, convertObjectName(tableName));
+      ResultSet rs = executeSelect(query);
+
+      ResultSetMetaData rsmd = rs.getMetaData();
+      return Class.forName(rsmd.getColumnClassName(1));
+  }
+
+  @Override
+  public void setColumnNullable(String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable)
       throws SQLException {
     String statement = dbmsHelper.getSetNullableStatement(tableName, columnInfo, nullable);
 
     executeQuery(statement);
   }
+
+  @Override
+  public void setColumnNullable(String tableName, String columnName, boolean nullable)
+          throws SQLException {
+    try {
+      Class columnClass = getColumnClass(tableName, columnName);
+      String query = dbmsHelper.getSetNullableStatement(tableName, new DBColumnInfo(columnName, columnClass), nullable);
+      executeQuery(query);
+    } catch (ClassNotFoundException e) {
+      LOG.error("Could not modify table=[], column={}, error={}", tableName, columnName, e.getMessage());
+    }
+  }
+
 }

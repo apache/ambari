@@ -319,7 +319,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
       dbAccessor.dropTable("serviceconfigmapping");
     }
 
-    dbAccessor.dropConstraint("confgroupclusterconfigmapping", "FK_confg");
+    dbAccessor.dropFKConstraint("confgroupclusterconfigmapping", "FK_confg");
 
     if (databaseType == DatabaseType.ORACLE
         || databaseType == DatabaseType.MYSQL
@@ -384,7 +384,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     populateConfigVersions();
 
-    dbAccessor.setNullable("clusterconfig", new DBColumnInfo("version", Long.class, null), false);
+    dbAccessor.setColumnNullable("clusterconfig", new DBColumnInfo("version", Long.class, null), false);
 
     dbAccessor.executeQuery("ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag)", true);
     dbAccessor.executeQuery("ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version)", true);

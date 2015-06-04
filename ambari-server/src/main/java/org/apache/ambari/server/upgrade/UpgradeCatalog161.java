@@ -126,10 +126,10 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn("viewinstancedata",
         new DBAccessor.DBColumnInfo("user_name", String.class, 255, " ", false));
 
-    dbAccessor.dropConstraint("viewinstancedata", "FK_viewinstdata_view_name");
-    dbAccessor.dropConstraint("viewinstanceproperty", "FK_viewinstprop_view_name");
-    dbAccessor.dropConstraint("viewentity", "FK_viewentity_view_name");
-    dbAccessor.dropConstraint("viewinstance", "FK_viewinst_view_name");
+    dbAccessor.dropFKConstraint("viewinstancedata", "FK_viewinstdata_view_name");
+    dbAccessor.dropFKConstraint("viewinstanceproperty", "FK_viewinstprop_view_name");
+    dbAccessor.dropFKConstraint("viewentity", "FK_viewentity_view_name");
+    dbAccessor.dropFKConstraint("viewinstance", "FK_viewinst_view_name");
 
     //modify primary key of viewinstancedata
     if (databaseType == DatabaseType.ORACLE
@@ -259,8 +259,8 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     // Clusters
     dbAccessor.addColumn("clusters", new DBColumnInfo("provisioning_state", String.class, 255, State.INIT.name(), false));
 
-    dbAccessor.dropConstraint("stage", "FK_stage_cluster_id", true);
-    dbAccessor.dropConstraint("request", "FK_request_cluster_id", true);
+    dbAccessor.dropFKConstraint("stage", "FK_stage_cluster_id", true);
+    dbAccessor.dropFKConstraint("request", "FK_request_cluster_id", true);
   }
 
 

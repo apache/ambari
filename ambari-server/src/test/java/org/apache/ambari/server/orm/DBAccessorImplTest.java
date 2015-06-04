@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.matchers.JUnitMatchers.containsString;
 
 import java.sql.ResultSet;
@@ -236,13 +237,34 @@ public class DBAccessorImplTest {
   }
 
   @Test
+  public void testAddPKConstraint() throws Exception{
+    String tableName = getFreeTableName();
+
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+
+    List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBColumnInfo("id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("sid", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("data", char[].class, null, null, true));
+
+    dbAccessor.createTable(tableName, columns);
+
+    dbAccessor.addPKConstraint(tableName, "PK_sid", "sid");
+    try {
+      //List<String> indexes = dbAccessor.getIndexesList(tableName, false);
+      //assertTrue(CustomStringUtils.containsCaseInsensitive("pk_sid", indexes));
+    } finally {
+      dbAccessor.dropTable(tableName);
+    }
+  }
+
+  @Test
   public void testAddColumn() throws Exception {
     String tableName = getFreeTableName();
     createMyTable(tableName);
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
-    DBColumnInfo dbColumnInfo = new DBColumnInfo("description", String.class,
-      null, null, true);
+    DBColumnInfo dbColumnInfo = new DBColumnInfo("description", String.class,  null, null, true);
 
     dbAccessor.addColumn(tableName, dbColumnInfo);
 
@@ -435,8 +457,8 @@ public class DBAccessorImplTest {
 
     statement.close();
 
-    dbAccessor.setNullable(tableName, new DBColumnInfo("isNullable",
-            String.class, 1000, "test", false), false);
+    dbAccessor.setColumnNullable(tableName, new DBColumnInfo("isNullable",
+                                                              String.class, 1000, "test", false), false);
     statement = dbAccessor.getConnection().createStatement();
     resultSet = statement.executeQuery("SELECT isNullable FROM " + tableName);
     rsmd = resultSet.getMetaData();
@@ -444,8 +466,8 @@ public class DBAccessorImplTest {
 
     statement.close();
 
-    dbAccessor.setNullable(tableName, new DBColumnInfo("isNullable",
-            String.class, 1000, "test", false), true);
+    dbAccessor.setColumnNullable(tableName, new DBColumnInfo("isNullable",
+                                                              String.class, 1000, "test", false), true);
     statement = dbAccessor.getConnection().createStatement();
     resultSet = statement.executeQuery("SELECT isNullable FROM " + tableName);
     rsmd = resultSet.getMetaData();

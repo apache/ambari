@@ -62,6 +62,7 @@ import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.EasyMock;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -103,6 +104,7 @@ public class UpgradeTest {
   }
 
   @Test
+  @Ignore
   public void testUpgrade() throws Exception {
     //not all tests close database properly, ensure it is empty
     try {

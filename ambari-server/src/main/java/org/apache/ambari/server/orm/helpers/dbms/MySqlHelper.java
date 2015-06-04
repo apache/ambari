@@ -61,4 +61,18 @@ public class MySqlHelper extends GenericDbmsHelper {
     builder.append(nullStatement);
     return builder;
   }
+
+  @Override
+  public String writeGetTableConstraints(String databaseName, String tableName) {
+    // https://dev.mysql.com/doc/refman/5.7/en/table-constraints-table.html
+    StringBuilder statement = new StringBuilder()
+                                .append("SELECT ")
+                                .append("constraints.CONSTRAINT_NAME as CONSTRAINT_NAME,")
+                                    .append("constraints.CONSTRAINT_TYPE as CONSTRAINT_TYPE ")
+                                .append("FROM information_schema.TABLE_CONSTRAINTS as constraints ")
+                                .append("WHERE ")
+                                    .append("constraints.TABLE_SCHEMA = \"").append(databaseName).append("\" ")
+                                    .append("AND constraints.TABLE_NAME = \"").append(tableName).append("\"");
+    return statement.toString();
+  }
 }

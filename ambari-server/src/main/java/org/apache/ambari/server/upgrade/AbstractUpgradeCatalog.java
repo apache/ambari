@@ -17,11 +17,13 @@
  */
 package org.apache.ambari.server.upgrade;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -63,6 +65,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   protected Injector injector;
 
   /**
+   * Override variable in child's if table name was changed
+   */
+  protected String ambariSequencesTable = "ambari_sequences";
+
+  /**
    * The user name to use as the authenticated user when perform authenticated tasks or operations
    * that require the name of the authenticated user
    */
@@ -85,6 +92,45 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
    */
   protected void registerCatalog(UpgradeCatalog upgradeCatalog) {
     upgradeCatalogMap.put(upgradeCatalog.getTargetVersion(), upgradeCatalog);
+  }
+
+  /**
+   * Add new sequence to <code>ambariSequencesTable</code>.
+   * @param seqName name of sequence to be inserted
+   * @param seqDefaultValue initial value for the sequence
+   * @param ignoreFailure true to ignore insert sql errors
+   * @throws SQLException
+   */
+   protected final void addSequence(String seqName, Long seqDefaultValue, boolean ignoreFailure) throws SQLException{
+    // check if sequence is already in the database
+    ResultSet rs = dbAccessor.executeSelect(String.format("SELECT COUNT(*) from %s where sequence_name='%s'", ambariSequencesTable, seqName));
+
+    if (rs != null) {
+      try {
+        if (rs.next() && rs.getInt(1) == 0) {
+          dbAccessor.executeQuery(String.format("INSERT INTO %s(sequence_name, sequence_value) VALUES('%s', %d)", ambariSequencesTable, seqName, seqDefaultValue), ignoreFailure);
+        } else {
+          LOG.warn("Sequence {} already exists, skipping", seqName);
+        }
+      } finally {
+        rs.close();
+      }
+    }
+  }
+
+  /**
+   * Add several new sequences to <code>ambariSequencesTable</code>.
+   * @param seqNames list of sequences to be inserted
+   * @param seqDefaultValue initial value for the sequence
+   * @param ignoreFailure true to ignore insert sql errors
+   * @throws SQLException
+   *
+   */
+  protected final void addSequences(List<String> seqNames, Long seqDefaultValue, boolean ignoreFailure) throws SQLException{
+    // ToDo: rewrite function to use one SQL call per select/insert for all items
+    for (String seqName: seqNames){
+      addSequence(seqName, seqDefaultValue, ignoreFailure);
+    }
   }
 
   @Override

@@ -230,13 +230,15 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint(TOPOLOGY_LOGICAL_TASK_TABLE, "FK_ltask_hrc_id", "physical_task_id", "host_role_command", "task_id", false, false);
 
     // Sequence updates
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_info_id_seq', 0)", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_request_id_seq', 0)", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_task_id_seq', 0)", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_request_id_seq', 0)", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_task_id_seq', 0)", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_request_id_seq', 0)", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_group_id_seq', 0)", false);
+    addSequences(Arrays.asList(
+      "topology_host_info_id_seq",
+      "topology_host_request_id_seq",
+      "topology_host_task_id_seq",
+      "topology_logical_request_id_seq",
+      "topology_logical_task_id_seq",
+      "topology_request_id_seq",
+      "topology_host_group_id_seq"
+    ), 0L, false);
   }
 
   /**
@@ -291,7 +293,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     }
 
     // Insert host id number into ambari_sequences
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences (sequence_name, sequence_value) VALUES ('host_id_seq', " + hostId + ")");
+    addSequence("host_id_seq", hostId, false);
 
     // Make the hosts id non-null after all the values are populated
     if (databaseType == Configuration.DatabaseType.DERBY) {
@@ -305,54 +307,54 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     // Drop the 8 FK constraints in the host-related tables. They will be recreated later after the PK is changed.
     // The only host-related table not being included is alert_history.
     if (databaseType == Configuration.DatabaseType.DERBY) {
-      dbAccessor.executeQuery("ALTER TABLE " + HOST_COMPONENT_STATE_TABLE + " DROP CONSTRAINT hostcomponentstate_host_name");
-      dbAccessor.executeQuery("ALTER TABLE " + HOST_COMPONENT_DESIRED_STATE_TABLE + " DROP CONSTRAINT hstcmponentdesiredstatehstname");
-      dbAccessor.executeQuery("ALTER TABLE " + HOST_ROLE_COMMAND_TABLE + " DROP CONSTRAINT FK_host_role_command_host_name");
-      dbAccessor.executeQuery("ALTER TABLE " + HOST_STATE_TABLE + " DROP CONSTRAINT FK_hoststate_host_name");
-      dbAccessor.executeQuery("ALTER TABLE " + HOST_VERSION_TABLE + " DROP CONSTRAINT FK_host_version_host_name");
-      dbAccessor.executeQuery("ALTER TABLE " + CONFIG_GROUP_HOST_MAPPING_TABLE + " DROP CONSTRAINT FK_cghm_hname");
+      dbAccessor.dropFKConstraint(HOST_COMPONENT_STATE_TABLE, "hostcomponentstate_host_name");
+      dbAccessor.dropFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "hstcmponentdesiredstatehstname");
+      dbAccessor.dropFKConstraint(HOST_ROLE_COMMAND_TABLE, "FK_host_role_command_host_name");
+      dbAccessor.dropFKConstraint(HOST_STATE_TABLE, "FK_hoststate_host_name");
+      dbAccessor.dropFKConstraint(HOST_VERSION_TABLE, "FK_host_version_host_name");
+      dbAccessor.dropFKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "FK_cghm_hname");
       // FK_krb_pr_host_hostname used to have a CASCADE DELETE, which is not needed.
-      dbAccessor.executeQuery("ALTER TABLE " + KERBEROS_PRINCIPAL_HOST_TABLE + " DROP CONSTRAINT FK_krb_pr_host_hostname");
+      dbAccessor.dropFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_hostname");
       // FK_krb_pr_host_principalname used to have a CASCADE DELETE, which is not needed, so it will be recreated without it.
-      dbAccessor.executeQuery("ALTER TABLE " + KERBEROS_PRINCIPAL_HOST_TABLE + " DROP CONSTRAINT FK_krb_pr_host_principalname");
+      dbAccessor.dropFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_principalname");
 
       // This FK name is actually different on Derby.
-      dbAccessor.executeQuery("ALTER TABLE " + HOST_CONFIG_MAPPING_TABLE + " DROP CONSTRAINT FK_hostconfigmapping_host_name");
+      dbAccessor.dropFKConstraint(HOST_CONFIG_MAPPING_TABLE, "FK_hostconfigmapping_host_name");
     } else {
-      dbAccessor.dropConstraint(HOST_COMPONENT_STATE_TABLE, "hostcomponentstate_host_name");
-      dbAccessor.dropConstraint(HOST_COMPONENT_STATE_TABLE, "fk_hostcomponentstate_host_name");
+      dbAccessor.dropFKConstraint(HOST_COMPONENT_STATE_TABLE, "hostcomponentstate_host_name");
+      dbAccessor.dropFKConstraint(HOST_COMPONENT_STATE_TABLE, "fk_hostcomponentstate_host_name");
 
-      dbAccessor.dropConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "hstcmponentdesiredstatehstname");
-      dbAccessor.dropConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "fk_hostcomponentdesiredstate_host_name");
+      dbAccessor.dropFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "hstcmponentdesiredstatehstname");
+      dbAccessor.dropFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "fk_hostcomponentdesiredstate_host_name");
 
-      dbAccessor.dropConstraint(HOST_ROLE_COMMAND_TABLE, "FK_host_role_command_host_name");
-      dbAccessor.dropConstraint(HOST_STATE_TABLE, "FK_hoststate_host_name");
-      dbAccessor.dropConstraint(HOST_VERSION_TABLE, "FK_host_version_host_name");
+      dbAccessor.dropFKConstraint(HOST_ROLE_COMMAND_TABLE, "FK_host_role_command_host_name");
+      dbAccessor.dropFKConstraint(HOST_STATE_TABLE, "FK_hoststate_host_name");
+      dbAccessor.dropFKConstraint(HOST_VERSION_TABLE, "FK_host_version_host_name");
 
-      dbAccessor.dropConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "FK_cghm_hname");
-      dbAccessor.dropConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "fk_configgrouphostmapping_host_name");
+      dbAccessor.dropFKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "FK_cghm_hname");
+      dbAccessor.dropFKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "fk_configgrouphostmapping_host_name");
 
       // FK_krb_pr_host_hostname used to have a CASCADE DELETE, which is not needed.
-      dbAccessor.dropConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_hostname");
-      dbAccessor.dropConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "fk_kerberos_principal_host_host_name");
+      dbAccessor.dropFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_hostname");
+      dbAccessor.dropFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "fk_kerberos_principal_host_host_name");
 
       // FK_krb_pr_host_principalname used to have a CASCADE DELETE, which is not needed, so it will be recreated without it.
-      dbAccessor.executeQuery("ALTER TABLE " + KERBEROS_PRINCIPAL_HOST_TABLE + " DROP CONSTRAINT FK_krb_pr_host_principalname");
+      dbAccessor.dropFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_principalname");
 
-      dbAccessor.dropConstraint(HOST_CONFIG_MAPPING_TABLE, "FK_hostconfmapping_host_name");
+      dbAccessor.dropFKConstraint(HOST_CONFIG_MAPPING_TABLE, "FK_hostconfmapping_host_name");
     }
 
     // In Ambari 2.0.0, there were discrepancies with the FK in the ClusterHostMapping table in the Postgres databases.
     // They were either swapped, or pointing to the wrong table. Ignore failures for both of these.
     try {
-      dbAccessor.dropConstraint(CLUSTER_HOST_MAPPING_TABLE, "ClusterHostMapping_host_name", true);
-      dbAccessor.dropConstraint(CLUSTER_HOST_MAPPING_TABLE, "fk_clusterhostmapping_host_name", true);
+      dbAccessor.dropFKConstraint(CLUSTER_HOST_MAPPING_TABLE, "ClusterHostMapping_host_name", true);
+      dbAccessor.dropFKConstraint(CLUSTER_HOST_MAPPING_TABLE, "fk_clusterhostmapping_host_name", true);
     } catch (Exception e) {
       LOG.warn("Performed best attempt at deleting FK ClusterHostMapping_host_name. " +
           "It is possible it did not exist or the deletion failed. " +  e.getMessage());
     }
     try {
-      dbAccessor.dropConstraint(CLUSTER_HOST_MAPPING_TABLE, "ClusterHostMapping_cluster_id", true);
+      dbAccessor.dropFKConstraint(CLUSTER_HOST_MAPPING_TABLE, "ClusterHostMapping_cluster_id", true);
     } catch (Exception e) {
       LOG.warn("Performed best attempt at deleting FK ClusterHostMapping_cluster_id. " +
           "It is possible it did not exist or the deletion failed. " +  e.getMessage());
@@ -370,10 +372,11 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " DROP CONSTRAINT " + constraintName);
       }
     } else {
-      dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " DROP CONSTRAINT hosts_pkey CASCADE");
+      dbAccessor.dropPKConstraint(HOSTS_TABLE, "hosts_pkey", "host_name");
     }
-    dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " ADD CONSTRAINT PK_hosts_id PRIMARY KEY (host_id)");
-    dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " ADD CONSTRAINT UQ_hosts_host_name UNIQUE (host_name)");
+
+    dbAccessor.addPKConstraint(HOSTS_TABLE, "PK_hosts_id", "host_id");
+    dbAccessor.addUniqueConstraint(HOSTS_TABLE, "UQ_hosts_host_name", "host_name");
 
 
     // Add host_id to the host-related tables, and populate the host_id, one table at a time.
@@ -397,7 +400,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       // The column name is different for one table
       String hostNameColumnName = tableName.equals(SERVICE_CONFIG_HOSTS_TABLE) ? "hostname" : "host_name";
 
-      if (dbAccessor.tableHasData(tableName)) {
+      if (dbAccessor.tableHasData(tableName) && dbAccessor.tableHasColumn(tableName,HOST_NAME_COL)) {
         dbAccessor.executeQuery("UPDATE " + tableName + " t SET host_id = (SELECT host_id FROM hosts h WHERE h.host_name = t." + hostNameColumnName + ") WHERE t.host_id IS NULL AND t." + hostNameColumnName + " IS NOT NULL");
 
         // For legacy reasons, the hostrolecommand table will contain "none" for some records where the host_name was not important.
@@ -409,12 +412,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
       // The one exception for setting NOT NULL is the requestoperationlevel table
       if (!tableName.equals(REQUEST_OPERATION_LEVEL_TABLE)) {
-        if (databaseType == Configuration.DatabaseType.DERBY) {
-          // This is a workaround for UpgradeTest.java unit test
-          dbAccessor.executeQuery("ALTER TABLE " + tableName + " ALTER column " + HOST_ID_COL + " NOT NULL");
-        } else {
-          dbAccessor.executeQuery("ALTER TABLE " + tableName + " ALTER column " + HOST_ID_COL + " SET NOT NULL");
-        }
+        dbAccessor.setColumnNullable(tableName, HOST_ID_COL, false);
       }
     }
 
@@ -461,31 +459,24 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         }
       }
     } else {
-      dbAccessor.executeQuery("ALTER TABLE " + CONFIG_GROUP_HOST_MAPPING_TABLE + " DROP CONSTRAINT configgrouphostmapping_pkey");
-      dbAccessor.executeQuery("ALTER TABLE " + CLUSTER_HOST_MAPPING_TABLE + " DROP CONSTRAINT clusterhostmapping_pkey");
-      dbAccessor.executeQuery("ALTER TABLE " + HOST_CONFIG_MAPPING_TABLE + " DROP CONSTRAINT hostconfigmapping_pkey");
-      dbAccessor.executeQuery("ALTER TABLE " + HOST_COMPONENT_STATE_TABLE + " DROP CONSTRAINT hostcomponentstate_pkey");
-      dbAccessor.executeQuery("ALTER TABLE " + HOST_COMPONENT_DESIRED_STATE_TABLE + " DROP CONSTRAINT hostcomponentdesiredstate_pkey");
-      dbAccessor.executeQuery("ALTER TABLE " + HOST_STATE_TABLE + " DROP CONSTRAINT hoststate_pkey");
-      dbAccessor.executeQuery("ALTER TABLE " + KERBEROS_PRINCIPAL_HOST_TABLE + " DROP CONSTRAINT kerberos_principal_host_pkey");
-      dbAccessor.executeQuery("ALTER TABLE " + SERVICE_CONFIG_HOSTS_TABLE + " DROP CONSTRAINT serviceconfighosts_pkey");
+      // drop constrain only if existed constraint contains required column
+      dbAccessor.dropPKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "configgrouphostmapping_pkey", HOST_NAME_COL);
+      dbAccessor.dropPKConstraint(CLUSTER_HOST_MAPPING_TABLE, "clusterhostmapping_pkey",HOST_NAME_COL);
+      dbAccessor.dropPKConstraint(HOST_CONFIG_MAPPING_TABLE, "hostconfigmapping_pkey", HOST_NAME_COL);
+      dbAccessor.dropPKConstraint(HOST_COMPONENT_STATE_TABLE, "hostcomponentstate_pkey", HOST_NAME_COL);
+      dbAccessor.dropPKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "hostcomponentdesiredstate_pkey", HOST_NAME_COL);
+      dbAccessor.dropPKConstraint(HOST_STATE_TABLE, "hoststate_pkey", HOST_NAME_COL);
+      dbAccessor.dropPKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "kerberos_principal_host_pkey", HOST_NAME_COL);
+      dbAccessor.dropPKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "serviceconfighosts_pkey", "hostname");
     }
-    dbAccessor.executeQuery("ALTER TABLE " + CONFIG_GROUP_HOST_MAPPING_TABLE +
-        " ADD CONSTRAINT configgrouphostmapping_pkey PRIMARY KEY (config_group_id, host_id)");
-    dbAccessor.executeQuery("ALTER TABLE " + CLUSTER_HOST_MAPPING_TABLE +
-        " ADD CONSTRAINT clusterhostmapping_pkey PRIMARY KEY (cluster_id, host_id)");
-    dbAccessor.executeQuery("ALTER TABLE " + HOST_CONFIG_MAPPING_TABLE +
-        " ADD CONSTRAINT hostconfigmapping_pkey PRIMARY KEY (cluster_id, host_id, type_name, create_timestamp)");
-    dbAccessor.executeQuery("ALTER TABLE " + HOST_COMPONENT_STATE_TABLE +
-        " ADD CONSTRAINT hostcomponentstate_pkey PRIMARY KEY (cluster_id, component_name, host_id, service_name)");
-    dbAccessor.executeQuery("ALTER TABLE " + HOST_COMPONENT_DESIRED_STATE_TABLE +
-        " ADD CONSTRAINT hostcomponentdesiredstate_pkey PRIMARY KEY (cluster_id, component_name, host_id, service_name)");
-    dbAccessor.executeQuery("ALTER TABLE " + HOST_STATE_TABLE +
-        " ADD CONSTRAINT hoststate_pkey PRIMARY KEY (host_id)");
-    dbAccessor.executeQuery("ALTER TABLE " + KERBEROS_PRINCIPAL_HOST_TABLE +
-        " ADD CONSTRAINT kerberos_principal_host_pkey PRIMARY KEY (principal_name, host_id)");
-    dbAccessor.executeQuery("ALTER TABLE " + SERVICE_CONFIG_HOSTS_TABLE +
-        " ADD CONSTRAINT serviceconfighosts_pkey PRIMARY KEY (service_config_id, host_id)");
+    dbAccessor.addPKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "configgrouphostmapping_pkey", "config_group_id", "host_id");
+    dbAccessor.addPKConstraint(CLUSTER_HOST_MAPPING_TABLE, "clusterhostmapping_pkey", "cluster_id", "host_id");
+    dbAccessor.addPKConstraint(HOST_CONFIG_MAPPING_TABLE, "hostconfigmapping_pkey", "cluster_id", "host_id", "type_name", "create_timestamp");
+    dbAccessor.addPKConstraint(HOST_COMPONENT_STATE_TABLE, "hostcomponentstate_pkey", "cluster_id", "component_name", "host_id", "service_name");
+    dbAccessor.addPKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "hostcomponentdesiredstate_pkey", "cluster_id", "component_name", "host_id", "service_name");
+    dbAccessor.addPKConstraint(HOST_STATE_TABLE, "hoststate_pkey", "host_id");
+    dbAccessor.addPKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "kerberos_principal_host_pkey", "principal_name", "host_id");
+    dbAccessor.addPKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "serviceconfighosts_pkey", "service_config_id", "host_id");
 
     // Finish by deleting the unnecessary host_name columns.
     dbAccessor.dropColumn(CONFIG_GROUP_HOST_MAPPING_TABLE, HOST_NAME_COL);
@@ -529,30 +520,30 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("widget_type", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("metrics", char[].class, null, null, true));
     columns.add(new DBColumnInfo("time_created", Long.class,  null,   null, false));
-    columns.add(new DBColumnInfo("author", String.class,  255,   null, true));
-    columns.add(new DBColumnInfo("description", String.class,  255,   null, true));
-    columns.add(new DBColumnInfo("default_section_name", String.class,  255,   null, true));
+    columns.add(new DBColumnInfo("author", String.class, 255, null, true));
+    columns.add(new DBColumnInfo("description", String.class, 255, null, true));
+    columns.add(new DBColumnInfo("default_section_name", String.class, 255, null, true));
     columns.add(new DBColumnInfo("scope", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("widget_values", char[].class, null, null, true));
     columns.add(new DBColumnInfo("properties", char[].class, null, null, true));
-    columns.add(new DBColumnInfo("cluster_id", Long.class,  null,   null, false));
+    columns.add(new DBColumnInfo("cluster_id", Long.class, null, null, false));
     dbAccessor.createTable(WIDGET_TABLE, columns, "id");
 
     columns = new ArrayList<DBColumnInfo>();
-    columns.add(new DBColumnInfo("id", Long.class,    null,  null, false));
-    columns.add(new DBColumnInfo("layout_name", String.class,  255,   null, false));
-    columns.add(new DBColumnInfo("section_name", String.class,  255,   null, false));
-    columns.add(new DBColumnInfo("cluster_id", Long.class,  null,   null, false));
+    columns.add(new DBColumnInfo("id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("layout_name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("section_name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("cluster_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("scope", String.class, 255, null, false));
-    columns.add(new DBColumnInfo("user_name", String.class,  255,   null, false));
-    columns.add(new DBColumnInfo("display_name", String.class,  255,   null, true));
+    columns.add(new DBColumnInfo("user_name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("display_name", String.class, 255, null, true));
 
     dbAccessor.createTable(WIDGET_LAYOUT_TABLE, columns, "id");
 
     columns = new ArrayList<DBColumnInfo>();
-    columns.add(new DBColumnInfo("widget_layout_id", Long.class,    null,  null, false));
-    columns.add(new DBColumnInfo("widget_id", Long.class,    null,  null, false));
-    columns.add(new DBColumnInfo("widget_order", Integer.class,    null,  null, false));
+    columns.add(new DBColumnInfo("widget_layout_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("widget_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("widget_order", Integer.class, null, null, false));
     dbAccessor.createTable(WIDGET_LAYOUT_USER_WIDGET_TABLE, columns, "widget_layout_id", "widget_id");
     dbAccessor.addFKConstraint(WIDGET_LAYOUT_USER_WIDGET_TABLE, "FK_widget_layout_id", "widget_layout_id", "widget_layout", "id", true, false);
     dbAccessor.addFKConstraint(WIDGET_LAYOUT_USER_WIDGET_TABLE, "FK_widget_id", "widget_id", "widget", "id", true, false);
@@ -561,8 +552,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn("users", new DBColumnInfo("active_widget_layouts", String.class, 1024, null, true));
 
     // Sequence updates
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_id_seq', 0)", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_layout_id_seq', 0)", false);
+    addSequences(Arrays.asList("widget_id_seq", "widget_layout_id_seq"), 0L, false);
   }
 
   /**
@@ -577,13 +567,9 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         false));
 
     dbAccessor.createTable(STACK_TABLE, columns, "stack_id");
+    dbAccessor.addUniqueConstraint(STACK_TABLE, "unq_stack", "stack_name", "stack_version");
 
-    dbAccessor.executeQuery("ALTER TABLE " + STACK_TABLE
-        + " ADD CONSTRAINT unq_stack UNIQUE (stack_name,stack_version)", false);
-
-    dbAccessor.executeQuery(
-        "INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('stack_id_seq', 0)",
-        false);
+    addSequence("stack_id_seq", 0L, false);
 
     // create the new stack ID columns NULLABLE for now since we need to insert
     // data into them later on (we'll change them to NOT NULL after that)
@@ -614,8 +600,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint(REPO_VERSION_TABLE, "fk_repoversion_stack_id", STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
 
     // drop the unique constraint for the old column and add the new one
-    dbAccessor.dropConstraint(REPO_VERSION_TABLE, "uq_repo_version_stack_version");
-    dbAccessor.executeQuery("ALTER TABLE repo_version ADD CONSTRAINT uq_repo_version_stack_id UNIQUE (stack_id, version)");
+    dbAccessor.dropUniqueConstraint(REPO_VERSION_TABLE, "uq_repo_version_stack_version");
+    dbAccessor.addUniqueConstraint("repo_version", "uq_repo_version_stack_id", "stack_id", "version");
   }
 
   /**
@@ -683,43 +669,47 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           REPO_VERSION_TABLE, STACK_ID_COLUMN_NAME, stackEntityId, "stack",
           outdatedRepoStack);
 
-      dbAccessor.executeQuery(clustersSQL);
-      dbAccessor.executeQuery(hostComponentDesiredStateSQL);
-      dbAccessor.executeQuery(serviceComponentDesiredStateSQL);
-      dbAccessor.executeQuery(serviceDesiredStateSQL);
-      dbAccessor.executeQuery(clusterStateSQL);
-      dbAccessor.executeQuery(hostComponentStateSQL);
-      dbAccessor.executeQuery(blueprintSQL);
-      dbAccessor.executeQuery(repoVersionSQL);
+        dbAccessor.executeQuery(clustersSQL, "clusters", DESIRED_STACK_VERSION_COLUMN_NAME);
+        dbAccessor.executeQuery(hostComponentDesiredStateSQL, "hostcomponentdesiredstate", DESIRED_STACK_VERSION_COLUMN_NAME);
+        dbAccessor.executeQuery(serviceComponentDesiredStateSQL, "servicecomponentdesiredstate", DESIRED_STACK_VERSION_COLUMN_NAME);
+        dbAccessor.executeQuery(serviceDesiredStateSQL, "servicedesiredstate", DESIRED_STACK_VERSION_COLUMN_NAME);
+        dbAccessor.executeQuery(clusterStateSQL, "clusterstate", CURRENT_STACK_VERSION_COLUMN_NAME);
+        dbAccessor.executeQuery(hostComponentStateSQL, "hostcomponentstate", CURRENT_STACK_VERSION_COLUMN_NAME);
+        dbAccessor.executeQuery(blueprintSQL, "blueprint", "stack_name");
+
+        dbAccessor.executeQuery(repoVersionSQL, REPO_VERSION_TABLE, "stack");
     }
 
     // for the tables with no prior stack, set these based on the cluster's
     // stack for each cluster defined
     String INSERT_STACK_ID_TEMPLATE = "UPDATE {0} SET {1} = {2} WHERE cluster_id = {3}";
-    ResultSet resultSet = dbAccessor.executeSelect("SELECT * FROM clusters");
-    try {
-      while (resultSet.next()) {
-        long clusterId = resultSet.getLong("cluster_id");
-        String stackJson = resultSet.getString(DESIRED_STACK_VERSION_COLUMN_NAME);
-        StackId stackId = gson.fromJson(stackJson, StackId.class);
+    // we should do the changes only if they are required
+    if (dbAccessor.tableHasColumn(CLUSTERS_TABLE,DESIRED_STACK_VERSION_COLUMN_NAME)) {
+      ResultSet resultSet = dbAccessor.executeSelect("SELECT * FROM " + CLUSTERS_TABLE);
+      try {
+        while (resultSet.next()) {
+          long clusterId = resultSet.getLong("cluster_id");
+          String stackJson = resultSet.getString(DESIRED_STACK_VERSION_COLUMN_NAME);
+          StackId stackId = gson.fromJson(stackJson, StackId.class);
 
-        StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
-            stackId.getStackVersion());
+          StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+                                                   stackId.getStackVersion());
 
-        String clusterConfigSQL = MessageFormat.format(
-            INSERT_STACK_ID_TEMPLATE, "clusterconfig", STACK_ID_COLUMN_NAME,
-            stackEntity.getStackId(), clusterId);
+          String clusterConfigSQL = MessageFormat.format(
+                                                          INSERT_STACK_ID_TEMPLATE, "clusterconfig", STACK_ID_COLUMN_NAME,
+                                                          stackEntity.getStackId(), clusterId);
 
-        String serviceConfigSQL = MessageFormat.format(
-            INSERT_STACK_ID_TEMPLATE, "serviceconfig", STACK_ID_COLUMN_NAME,
-            stackEntity.getStackId(), clusterId);
+          String serviceConfigSQL = MessageFormat.format(
+                                                          INSERT_STACK_ID_TEMPLATE, "serviceconfig", STACK_ID_COLUMN_NAME,
+                                                          stackEntity.getStackId(), clusterId);
 
-        dbAccessor.executeQuery(clusterConfigSQL);
-        dbAccessor.executeQuery(serviceConfigSQL);
-      }
-    } finally {
-      if (null != resultSet) {
-        resultSet.close();
+          dbAccessor.executeQuery(clusterConfigSQL);
+          dbAccessor.executeQuery(serviceConfigSQL);
+        }
+      } finally {
+        if (null != resultSet) {
+          resultSet.close();
+        }
       }
     }
   }

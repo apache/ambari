@@ -53,8 +53,29 @@ public interface DbmsHelper {
                                  List<DBAccessor.DBColumnInfo> columns,
                                  List<String> primaryKeyColumns);
 
+  String getTableConstraintsStatement(String databaseName, String tablename);
+
   String getCreateIndexStatement(String indexName, String tableName,
                                  String... columnNames);
+
+  /**
+   * Generate alter table statement to add unique constraint
+   * @param tableName name of the table
+   * @param constraintName name of the constraint
+   * @param columnNames name of the column
+   * @return alter table statement
+   */
+  String getAddUniqueConstraintStatement(String tableName, String constraintName, String... columnNames);
+
+  /**
+   * Generate alter table statement to add primary key index
+   * @param tableName name of the table
+   * @param constraintName name of the primary key
+   * @param columnName name of the column
+   * @return alter table statement
+   */
+  String getAddPrimaryKeyConstraintStatement(String tableName, String constraintName, String... columnName);
+
 
   String getAddForeignKeyStatement(String tableName, String constraintName,
                                    List<String> keyColumns,
@@ -64,14 +85,20 @@ public interface DbmsHelper {
 
   String getAddColumnStatement(String tableName, DBAccessor.DBColumnInfo columnInfo);
 
+  String getDropTableColumnStatement(String tableName, String columnName);
+
   String getRenameColumnStatement(String tableName, String oldColumnName,
                                   String newColumnName);
 
   String getDropTableStatement(String tableName);
 
-  String getDropConstraintStatement(String tableName, String constraintName);
+  String getDropFKConstraintStatement(String tableName, String constraintName);
+
+  String getDropUniqueConstraintStatement(String tableName, String constraintName);
 
   String getDropSequenceStatement(String sequenceName);
+
+  String getDropPrimaryKeyStatement(String tableName, String constraintName);
 
   /**
    * Gets the {@code SET NULL} or {@code SET NOT NULL} statement.
