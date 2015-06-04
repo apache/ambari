@@ -130,7 +130,8 @@ public class BlueprintConfigurationProcessor {
    */
   private static final PropertyFilter[] clusterUpdatePropertyFilters =
     { new DependencyEqualsFilter("hbase.security.authorization", "hbase-site", "true"),
-      new DependencyNotEqualsFilter("hive.server2.authentication", "hive-site", "NONE") };
+      new DependencyNotEqualsFilter("hive.server2.authentication", "hive-site", "NONE"),
+      new HDFSNameNodeHAFilter() };
 
   /**
    * Configuration properties to be updated

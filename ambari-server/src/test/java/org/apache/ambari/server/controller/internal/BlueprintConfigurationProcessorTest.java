@@ -3954,6 +3954,13 @@ public class BlueprintConfigurationProcessorTest {
     hdfsSiteProperties.put("dfs.secondary.http.address", "localhost:8080");
     hdfsSiteProperties.put("dfs.namenode.secondary.http-address", "localhost:8080");
 
+
+    // add properties that are used in non-HA HDFS NameNode settings
+    // to verify that these are eventually removed by the filter
+    hdfsSiteProperties.put("dfs.namenode.http-address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.https-address", "localhost:8081");
+    hdfsSiteProperties.put("dfs.namenode.rpc-address", "localhost:8082");
+
     // configure the defaultFS to use the nameservice URL
     coreSiteProperties.put("fs.defaultFS", "hdfs://" + expectedNameService);
 
@@ -4025,6 +4032,79 @@ public class BlueprintConfigurationProcessorTest {
 
     assertEquals("instance.volumes should not be modified by cluster update when NameNode HA is enabled.",
         "hdfs://" + expectedNameService + "/accumulo/test/instance/volumes", accumuloSiteProperties.get("instance.volumes"));
+
+    // verify that the non-HA properties are filtered out in HA mode
+    assertFalse("dfs.namenode.http-address should have been filtered out of this HA configuration",
+      hdfsSiteProperties.containsKey("dfs.namenode.http-address"));
+    assertFalse("dfs.namenode.https-address should have been filtered out of this HA configuration",
+      hdfsSiteProperties.containsKey("dfs.namenode.https-address"));
+    assertFalse("dfs.namenode.rpc-address should have been filtered out of this HA configuration",
+      hdfsSiteProperties.containsKey("dfs.namenode.rpc-address"));
+
+  }
+
+  @Test
+  public void testDoUpdateForClusterWithNameNodeHANotEnabled() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "serverTwo";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hdfsSiteProperties = new HashMap<String, String>();
+    Map<String, String> hbaseSiteProperties = new HashMap<String, String>();
+    Map<String, String> hadoopEnvProperties = new HashMap<String, String>();
+    Map<String, String> coreSiteProperties = new HashMap<String, String>();
+    Map<String, String> accumuloSiteProperties =new HashMap<String, String>();
+
+    properties.put("hdfs-site", hdfsSiteProperties);
+    properties.put("hadoop-env", hadoopEnvProperties);
+    properties.put("core-site", coreSiteProperties);
+    properties.put("hbase-site", hbaseSiteProperties);
+    properties.put("accumulo-site", accumuloSiteProperties);
+
+    // add properties that require the SECONDARY_NAMENODE, which
+    // is not included in this test
+    hdfsSiteProperties.put("dfs.secondary.http.address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.secondary.http-address", "localhost:8080");
+
+
+    // add properties that are used in non-HA HDFS NameNode settings
+    // to verify that these are eventually removed by the filter
+    hdfsSiteProperties.put("dfs.namenode.http-address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.https-address", "localhost:8081");
+    hdfsSiteProperties.put("dfs.namenode.rpc-address", "localhost:8082");
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    TestHostGroup group2 = new TestHostGroup("host-group-2", hgComponents2, Collections.singleton(expectedHostNameTwo));
+
+    Collection<TestHostGroup> hostGroups = new ArrayList<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).anyTimes();
+    expect(stack.getCardinality("SECONDARY_NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+
+    // verify that the non-HA properties are not filtered out in a non-HA cluster
+    assertTrue("dfs.namenode.http-address should have been included in this HA configuration",
+      hdfsSiteProperties.containsKey("dfs.namenode.http-address"));
+    assertTrue("dfs.namenode.https-address should have been included in this HA configuration",
+      hdfsSiteProperties.containsKey("dfs.namenode.https-address"));
+    assertTrue("dfs.namenode.rpc-address should have been included in this HA configuration",
+      hdfsSiteProperties.containsKey("dfs.namenode.rpc-address"));
 
   }
 
