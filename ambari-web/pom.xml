@@ -272,7 +272,7 @@
         <dirsep>\</dirsep>
         <executable.brunch>cmd</executable.brunch>
         <args.brunch>/C brunch</args.brunch>
-        <executable.gzip>gzip</executable.gzip>
+        <executable.gzip>gzip-content.cmd</executable.gzip>
         <executable.mkdir>cmd</executable.mkdir>
         <args.mkdir>/C mkdir</args.mkdir>
         <executable.npm>cmd</executable.npm>
