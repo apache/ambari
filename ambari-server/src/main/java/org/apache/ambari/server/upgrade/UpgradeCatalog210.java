@@ -31,14 +31,20 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.slf4j.Logger;
@@ -46,6 +52,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
+import javax.persistence.criteria.Root;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.MessageFormat;
@@ -471,21 +480,21 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       dbAccessor.executeQuery("ALTER TABLE " + SERVICE_CONFIG_HOSTS_TABLE + " DROP CONSTRAINT serviceconfighosts_pkey");
     }
     dbAccessor.executeQuery("ALTER TABLE " + CONFIG_GROUP_HOST_MAPPING_TABLE +
-        " ADD CONSTRAINT configgrouphostmapping_pkey PRIMARY KEY (config_group_id, host_id)");
+      " ADD CONSTRAINT configgrouphostmapping_pkey PRIMARY KEY (config_group_id, host_id)");
     dbAccessor.executeQuery("ALTER TABLE " + CLUSTER_HOST_MAPPING_TABLE +
-        " ADD CONSTRAINT clusterhostmapping_pkey PRIMARY KEY (cluster_id, host_id)");
+      " ADD CONSTRAINT clusterhostmapping_pkey PRIMARY KEY (cluster_id, host_id)");
     dbAccessor.executeQuery("ALTER TABLE " + HOST_CONFIG_MAPPING_TABLE +
-        " ADD CONSTRAINT hostconfigmapping_pkey PRIMARY KEY (cluster_id, host_id, type_name, create_timestamp)");
+      " ADD CONSTRAINT hostconfigmapping_pkey PRIMARY KEY (cluster_id, host_id, type_name, create_timestamp)");
     dbAccessor.executeQuery("ALTER TABLE " + HOST_COMPONENT_STATE_TABLE +
-        " ADD CONSTRAINT hostcomponentstate_pkey PRIMARY KEY (cluster_id, component_name, host_id, service_name)");
+      " ADD CONSTRAINT hostcomponentstate_pkey PRIMARY KEY (cluster_id, component_name, host_id, service_name)");
     dbAccessor.executeQuery("ALTER TABLE " + HOST_COMPONENT_DESIRED_STATE_TABLE +
-        " ADD CONSTRAINT hostcomponentdesiredstate_pkey PRIMARY KEY (cluster_id, component_name, host_id, service_name)");
+      " ADD CONSTRAINT hostcomponentdesiredstate_pkey PRIMARY KEY (cluster_id, component_name, host_id, service_name)");
     dbAccessor.executeQuery("ALTER TABLE " + HOST_STATE_TABLE +
-        " ADD CONSTRAINT hoststate_pkey PRIMARY KEY (host_id)");
+      " ADD CONSTRAINT hoststate_pkey PRIMARY KEY (host_id)");
     dbAccessor.executeQuery("ALTER TABLE " + KERBEROS_PRINCIPAL_HOST_TABLE +
-        " ADD CONSTRAINT kerberos_principal_host_pkey PRIMARY KEY (principal_name, host_id)");
+      " ADD CONSTRAINT kerberos_principal_host_pkey PRIMARY KEY (principal_name, host_id)");
     dbAccessor.executeQuery("ALTER TABLE " + SERVICE_CONFIG_HOSTS_TABLE +
-        " ADD CONSTRAINT serviceconfighosts_pkey PRIMARY KEY (service_config_id, host_id)");
+      " ADD CONSTRAINT serviceconfighosts_pkey PRIMARY KEY (service_config_id, host_id)");
 
     // Finish by deleting the unnecessary host_name columns.
     dbAccessor.dropColumn(CONFIG_GROUP_HOST_MAPPING_TABLE, HOST_NAME_COL);
@@ -579,11 +588,11 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     dbAccessor.createTable(STACK_TABLE, columns, "stack_id");
 
     dbAccessor.executeQuery("ALTER TABLE " + STACK_TABLE
-        + " ADD CONSTRAINT unq_stack UNIQUE (stack_name,stack_version)", false);
+      + " ADD CONSTRAINT unq_stack UNIQUE (stack_name,stack_version)", false);
 
     dbAccessor.executeQuery(
-        "INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('stack_id_seq', 0)",
-        false);
+      "INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('stack_id_seq', 0)",
+      false);
 
     // create the new stack ID columns NULLABLE for now since we need to insert
     // data into them later on (we'll change them to NOT NULL after that)
@@ -894,6 +903,69 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     addMissingConfigs();
     updateAlertDefinitions();
+    removeStormRestApiServiceComponent();
+  }
+
+  /**
+   * Delete STORM_REST_API component if HDP is upgraded past 2.2 and the
+   * Component still exists.
+   */
+  protected void removeStormRestApiServiceComponent() {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      for (final Cluster cluster : clusterMap.values()) {
+        StackId stackId = cluster.getCurrentStackVersion();
+        if (stackId != null && stackId.getStackName().equals("HDP") &&
+          VersionUtils.compareVersions(stackId.getStackVersion(), "2.2") >= 0) {
+
+          executeInTransaction(new Runnable() {
+            @Override
+            public void run() {
+              ServiceComponentDesiredStateDAO dao = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+              ServiceComponentDesiredStateEntityPK entityPK = new ServiceComponentDesiredStateEntityPK();
+              entityPK.setClusterId(cluster.getClusterId());
+              entityPK.setServiceName("STORM");
+              entityPK.setComponentName("STORM_REST_API");
+              ServiceComponentDesiredStateEntity entity = dao.findByPK(entityPK);
+              if (entity != null) {
+                EntityManager em = getEntityManagerProvider().get();
+                CriteriaBuilder cb = em.getCriteriaBuilder();
+
+                try {
+                  LOG.info("Deleting STORM_REST_API service component.");
+                  CriteriaDelete<HostComponentStateEntity> hcsDelete = cb.createCriteriaDelete(HostComponentStateEntity.class);
+                  CriteriaDelete<HostComponentDesiredStateEntity> hcdDelete = cb.createCriteriaDelete(HostComponentDesiredStateEntity.class);
+                  CriteriaDelete<ServiceComponentDesiredStateEntity> scdDelete = cb.createCriteriaDelete(ServiceComponentDesiredStateEntity.class);
+
+                  Root<HostComponentStateEntity> hcsRoot = hcsDelete.from(HostComponentStateEntity.class);
+                  Root<HostComponentDesiredStateEntity> hcdRoot = hcdDelete.from(HostComponentDesiredStateEntity.class);
+                  Root<ServiceComponentDesiredStateEntity> scdRoot = scdDelete.from(ServiceComponentDesiredStateEntity.class);
+
+                  hcsDelete.where(cb.equal(hcsRoot.get("componentName"), "STORM_REST_API"));
+                  hcdDelete.where(cb.equal(hcdRoot.get("componentName"), "STORM_REST_API"));
+                  scdDelete.where(cb.equal(scdRoot.get("componentName"), "STORM_REST_API"));
+
+                  em.createQuery(hcsDelete).executeUpdate();
+                  em.createQuery(hcdDelete).executeUpdate();
+                  em.createQuery(scdDelete).executeUpdate();
+                } catch (Exception e) {
+                  LOG.warn("Error deleting STORM_REST_API service component. " +
+                    "This could result in issue with ambari server start. " +
+                    "Please make sure the STORM_REST_API component is deleted " +
+                    "from the database by running following commands:\n" +
+                    "delete from hostcomponentdesiredstate where component_name='STORM_REST_API';\n" +
+                    "delete from hostcomponentstate where component_name='STORM_REST_API';\n" +
+                    "delete from servicecomponentdesiredstate where component_name='STORM_REST_API';\n", e);
+                }
+              }
+            }
+          });
+        }
+      }
+    }
   }
 
   protected void updateAlertDefinitions() {
