@@ -557,6 +557,17 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   },
 
   /**
+   * Return stack version for the repo object
+   * @param {Em.Object} repo
+   * */
+  getStackVersionNumber: function(repo){
+    var stackVersionNumber = repo.get('stackVersion');
+    if(null == stackVersionNumber)
+      stackVersionNumber = App.get('currentStackVersion');
+    return stackVersionNumber;
+  },
+  
+  /**
    * perform validation if <code>skip<code> is  false and run save if
    * validation successfull or run save without validation is <code>skip<code> is true
    * @param {Em.Object} repo
@@ -571,13 +582,15 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         deferred.resolve(data);
       } else {
         var repoVersion = self.prepareRepoForSaving(repo);
-
+        var stackVersionNumber = self.getStackVersionNumber(repo);
+        console.log("Repository stack version:"+stackVersionNumber);
+        
         App.ajax.send({
           name: 'admin.stack_versions.edit.repo',
           sender: this,
           data: {
             stackName: App.get('currentStackName'),
-            stackVersion: App.get('currentStackVersionNumber'),
+            stackVersion: stackVersionNumber,
             repoVersionId: repo.get('repoVersionId'),
             repoVersion: repoVersion
           }
@@ -588,7 +601,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     });
     return deferred.promise();
   },
-
+  
   /**
    * send request for validation for each repository
    * @param {Em.Object} repo
@@ -599,10 +612,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var deferred = $.Deferred(),
       totalCalls = 0,
       invalidUrls = [];
-
+    
     if (skip) {
       deferred.resolve(invalidUrls);
     } else {
+      var stackVersionNumber = this.getStackVersionNumber(repo);
       repo.get('operatingSystems').forEach(function (os) {
         if (os.get('isSelected')) {
           os.get('repositories').forEach(function (repo) {
@@ -616,7 +630,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
                 baseUrl: repo.get('baseUrl'),
                 osType: os.get('osType'),
                 stackName: App.get('currentStackName'),
-                stackVersion: App.get('currentStackVersionNumber')
+                stackVersion: stackVersionNumber
               }
             })
               .success(function () {
