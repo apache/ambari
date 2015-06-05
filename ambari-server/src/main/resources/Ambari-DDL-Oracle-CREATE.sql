@@ -768,7 +768,7 @@ CREATE TABLE alert_history (
   alert_timestamp NUMBER(19) NOT NULL,
   alert_label VARCHAR2(1024),
   alert_state VARCHAR2(255) NOT NULL,
-  alert_text VARCHAR2(4000),
+  alert_text CLOB,
   PRIMARY KEY (alert_id),
   FOREIGN KEY (alert_definition_id) REFERENCES alert_definition(definition_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id)
