@@ -19,11 +19,13 @@
   {{#if securityEnabled}}
     <div>
       <p class="text-success">{{t admin.security.enabled}}
-        <a class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isSubmitDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.kerberos.button.disable}} </a>
-        {{#unless isManualKerberos}}
-          <button class="btn btn-success"{{action regenerateKeytabs target="controller"}}><i class="icon-repeat"></i> {{t admin.kerberos.button.regenerateKeytabs}}</button>
-        {{/unless}}
-        <br/>
+        {{#isAccessible ADMIN}}
+          <a class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isSubmitDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.kerberos.button.disable}} </a>
+          {{#unless isManualKerberos}}
+            <button class="btn btn-success"{{action regenerateKeytabs target="controller"}}><i class="icon-repeat"></i> {{t admin.kerberos.button.regenerateKeytabs}}</button>
+          {{/unless}}
+          <br/>
+        {{/isAccessible}}
       </p>
     </div>
     <div id="serviceConfig">
@@ -32,8 +34,10 @@
   {{else}}
     <div>
       <p class="muted">{{t admin.security.disabled}}
-        <a class="btn btn-padding btn-success admin-enable-security-btn" {{action checkAndStartKerberosWizard target="controller"}}>{{t admin.kerberos.button.enable}} </a>
-        <br/>
+        {{#isAccessible ADMIN}}
+          <a class="btn btn-padding btn-success admin-enable-security-btn" {{action checkAndStartKerberosWizard target="controller"}}>{{t admin.kerberos.button.enable}} </a>
+          <br/>
+        {{/isAccessible}}
       </p>
     </div>
   {{/if}}
