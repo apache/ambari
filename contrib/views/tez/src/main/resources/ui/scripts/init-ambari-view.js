@@ -72,6 +72,11 @@ function getQueryString(object) {
 function redirectionCheck() {
   var href = window.location.href;
 
+  // Ember expects the url to have /#/
+  if(href.indexOf('?') != -1 && href.indexOf('/#/') == -1) {
+    href = href.replace('?', '/#/?');
+  }
+
   // If opened outside ambari, redirect
   if(window.parent == window) {
     var hrefParts = href.split('/#/'),
@@ -82,11 +87,17 @@ function redirectionCheck() {
           queryParams[PATH_PARAM_NAME] = '/#/' + pathParts[0];
         }
 
-    window.location = '%@?%@'.fmt(
+    href = '%@?%@'.fmt(
       hrefParts[0].replace('/views/', '/#/main/views/'),
       getQueryString(queryParams)
     );
+  }
 
+  // Normalize href
+  href = href.replace(/\/\//g, '/').replace(':/', '://');
+
+  if(href != window.location.href) {
+    window.location = href;
     return true;
   }
 }
@@ -213,18 +224,15 @@ function loadParams() {
 }
 
 function onPathChange() {
-
   var path = window.location.hash.substr(2).trim(),
       pathParts = path.split('?'),
 
       parentUrlParts = window.parent.location.href.split('?'),
-      parentQueryParam = getQueryObject(parentUrlParts[1]);
+      parentQueryParam = getQueryObject(pathParts[1]);
 
-      $.extend(parentQueryParam, getQueryObject(pathParts[1]));
-      delete parentQueryParam[PATH_PARAM_NAME];
-      if(pathParts[0]) {
-        parentQueryParam[PATH_PARAM_NAME] = '/#/' + pathParts[0];
-      }
+  if(pathParts[0]) {
+    parentQueryParam[PATH_PARAM_NAME] = '/#/' + pathParts[0];
+  }
 
   path = getQueryString(parentQueryParam);
   window.parent.history.replaceState(
@@ -234,12 +242,15 @@ function onPathChange() {
   );
 }
 
+function scheduleChangeHandler(arguments) {
+  setTimeout(onPathChange, 100);
+}
+
 if(!redirectionCheck()) {
   App.ApplicationRoute.reopen({
     actions: {
-      didTransition: function (arguments) {
-        setTimeout(onPathChange, 100);
-      }
+      didTransition: scheduleChangeHandler,
+      queryParamsDidChange: scheduleChangeHandler
     }
   });
 
