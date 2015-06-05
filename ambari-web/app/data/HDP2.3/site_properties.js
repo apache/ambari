@@ -422,6 +422,33 @@ hdp23properties.push({
   },
   {
     "id": "site property",
+    "name": "hadoop.rpc.protection",
+    "displayName": "hadoop.rpc.protection",
+    "isRequired": false,
+    "filename": "ranger-kafka-plugin-properties.xml",
+    "category": "Advanced ranger-kafka-plugin-properties",
+    "serviceName": "KAFKA"
+  },
+  {
+    "id": "site property",
+    "name": "common.name.for.certificate",
+    "displayName": "common.name.for.certificate",
+    "isRequired": false,
+    "filename": "ranger-kafka-plugin-properties.xml",
+    "category": "Advanced ranger-kafka-plugin-properties",
+    "serviceName": "KAFKA"
+  },
+  {
+    "id": "site property",
+    "name": "hadoop.rpc.protection",
+    "displayName": "hadoop.rpc.protection",
+    "isRequired": false,
+    "filename": "ranger-yarn-plugin-properties.xml",
+    "category": "Advanced ranger-yarn-plugin-properties",
+    "serviceName": "KAFKA"
+  },
+  {
+    "id": "site property",
     "name": "xasecure.audit.provider.summary.enabled",
     "displayName": "Audit provider summary enabled",
     "displayType": "checkbox",

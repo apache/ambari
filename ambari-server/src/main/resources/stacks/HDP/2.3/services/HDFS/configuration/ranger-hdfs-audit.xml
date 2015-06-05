@@ -47,6 +47,7 @@
   <property>
     <name>xasecure.audit.destination.db.password</name>
     <value>crypted</value>
+    <property-type>PASSWORD</property-type>
     <description></description>
   </property>
 

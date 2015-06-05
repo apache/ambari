@@ -56,19 +56,20 @@
 
   <property>
     <name>ranger.service.https.attrib.keystore.keyalias</name>
-    <value>mkey</value>
+    <value>rangeradmin</value>
     <description></description>
   </property>
 
   <property>
     <name>ranger.service.https.attrib.keystore.pass</name>
-    <value>ranger</value>
+    <value>xasecure</value>
+    <property-type>PASSWORD</property-type>
     <description></description>
   </property>
 
   <property>
     <name>ranger.https.attrib.keystore.file</name>
-    <value>/etc/ranger/admin/keys/server.jks</value>
+    <value>/etc/ranger/admin/conf/ranger-admin-keystore.jks</value>
     <description></description>
   </property>
 
@@ -251,6 +252,7 @@
   <property>
     <name>ranger.audit.solr.password</name>
     <value>NONE</value>
+    <property-type>PASSWORD</property-type>
     <description></description>
   </property> 
 

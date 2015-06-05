@@ -807,6 +807,15 @@ hdp22properties.push(
   },
   {
     "id": "site property",
+    "name": "hadoop.rpc.protection",
+    "displayName": "hadoop.rpc.protection",
+    "category": "Advanced ranger-hdfs-plugin-properties",
+    "isRequired": false,
+    "serviceName": "HDFS",
+    "filename": "ranger-hdfs-plugin-properties.xml"
+  },  
+  {
+    "id": "site property",
     "name": "common.name.for.certificate",
     "displayName": "common.name.for.certificate",
     "category": "Advanced ranger-hive-plugin-properties",

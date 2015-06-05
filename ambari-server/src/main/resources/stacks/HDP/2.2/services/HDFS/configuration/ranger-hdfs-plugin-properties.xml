@@ -21,7 +21,7 @@
 
 	<property>
 		<name>hadoop.rpc.protection</name>
-		<value>-</value>
+		<value></value>
 		<description>Used for repository creation on ranger admin
 		</description>
 	</property>

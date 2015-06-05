@@ -64,7 +64,7 @@
 
   <property>
     <name>xasecure.audit.destination.db.batch.filespool.dir</name>
-    <value>/var/log/kms/audit/db/spool</value>
+    <value>/var/log/ranger/kms/audit/db/spool</value>
     <description></description>
   </property>
 
@@ -82,7 +82,7 @@
 
   <property>
     <name>xasecure.audit.destination.hdfs.batch.filespool.dir</name>
-    <value>/var/log/kms/audit/hdfs/spool</value>
+    <value>/var/log/ranger/kms/audit/hdfs/spool</value>
     <description></description>
   </property>
 
@@ -106,7 +106,7 @@
 
   <property>
     <name>xasecure.audit.destination.solr.batch.filespool.dir</name>
-    <value>/var/log/kms/audit/solr/spool</value>
+    <value>/var/log/ranger/kms/audit/solr/spool</value>
     <description></description>
   </property>  
 

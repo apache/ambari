@@ -298,11 +298,16 @@ if has_ranger_admin:
     ranger_env = config['configurations']['ranger-env']
     ranger_plugin_properties = config['configurations']['ranger-yarn-plugin-properties']
     policy_user = config['configurations']['ranger-yarn-plugin-properties']['policy_user']
+    yarn_rest_url = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address']
+    yarn_http_policy = config['configurations']['yarn-site']['yarn.http.policy']
+    scheme = 'http'
+    if yarn_http_policy.upper() == 'HTTPS_ONLY':
+      scheme = 'https'    
 
     ranger_plugin_config = {
       'username' : config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
       'password' : unicode(config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']),
-      'yarn.url' : config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'],
+      'yarn.url' : format('{scheme}://{yarn_rest_url}'),
       'commonNameForCertificate' : config['configurations']['ranger-yarn-plugin-properties']['common.name.for.certificate']
     }
 

@@ -29,6 +29,7 @@
   <property>
     <name>xasecure.policymgr.clientssl.keystore.password</name>
     <value>myKeyFilePassword</value>
+    <property-type>PASSWORD</property-type>
     <description>password for keystore</description>
   </property>
 
@@ -41,6 +42,7 @@
   <property>
     <name>xasecure.policymgr.clientssl.truststore.password</name>
     <value>changeit</value>
+    <property-type>PASSWORD</property-type>
     <description>java  truststore password</description>
   </property>
 
