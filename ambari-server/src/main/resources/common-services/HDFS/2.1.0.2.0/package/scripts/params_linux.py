@@ -385,8 +385,8 @@ policy_user = config['configurations']['ranger-hdfs-plugin-properties']['policy_
 jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
 
-is_https_enabled = config['configurations']['hdfs-site']['dfs.https.enabled'] if \
-  not is_empty(config['configurations']['hdfs-site']['dfs.https.enabled']) else False
+is_https_enabled = config['configurations']['hdfs-site']['dfs.https.enable'] if \
+  not is_empty(config['configurations']['hdfs-site']['dfs.https.enable']) else False
 
 if has_ranger_admin:
   enable_ranger_hdfs = (config['configurations']['ranger-hdfs-plugin-properties']['ranger-hdfs-plugin-enabled'].lower() == 'yes')

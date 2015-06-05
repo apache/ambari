@@ -29,7 +29,7 @@ HDFS_NN_STATE_STANDBY = 'standby'
 
 NAMENODE_HTTP_FRAGMENT = 'dfs.namenode.http-address.{0}.{1}'
 NAMENODE_HTTPS_FRAGMENT = 'dfs.namenode.https-address.{0}.{1}'
-JMX_URI_FRAGMENT = "http://{0}/jmx?qry=Hadoop:service=NameNode,name=NameNodeStatus"
+JMX_URI_FRAGMENT = "{0}://{1}/jmx?qry=Hadoop:service=NameNode,name=NameNodeStatus"
   
 def get_namenode_states(hdfs_site, security_enabled, run_user):
   """
@@ -47,18 +47,21 @@ def get_namenode_states(hdfs_site, security_enabled, run_user):
   # ie dfs.namenode.http-address.hacluster.nn1
   nn_unique_ids = hdfs_site[nn_unique_ids_key].split(',')
   for nn_unique_id in nn_unique_ids:
-    is_https_enabled = hdfs_site['dfs.https.enabled'] if not is_empty(hdfs_site['dfs.https.enabled']) else False
+    is_https_enabled = hdfs_site['dfs.https.enable'] if not is_empty(hdfs_site['dfs.https.enable']) else False
     
     if not is_https_enabled:
       key = NAMENODE_HTTP_FRAGMENT.format(name_service,nn_unique_id)
+      protocol = "http"
     else:
-      key = "https://" + NAMENODE_HTTPS_FRAGMENT.format(name_service,nn_unique_id)
-
+      key = NAMENODE_HTTPS_FRAGMENT.format(name_service,nn_unique_id)
+      protocol = "https"
+    
     if key in hdfs_site:
       # use str() to ensure that unicode strings do not have the u' in them
       value = str(hdfs_site[key])
 
-      jmx_uri = JMX_URI_FRAGMENT.format(value)
+      jmx_uri = JMX_URI_FRAGMENT.format(protocol, value)
+      
       state = get_value_from_jmx(jmx_uri, 'State', security_enabled, run_user, is_https_enabled)
       
       if state == HDFS_NN_STATE_ACTIVE:
