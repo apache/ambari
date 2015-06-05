@@ -25,7 +25,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -69,8 +68,7 @@ public class AlertHistoryEntity {
   @Column(name = "alert_state", nullable = false, length = 255)
   private AlertState alertState;
 
-  @Lob
-  @Column(name = "alert_text")
+  @Column(name = "alert_text", length = 32672)
   private String alertText;
 
   @Column(name = "alert_timestamp", nullable = false)
