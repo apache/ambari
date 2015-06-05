@@ -381,7 +381,11 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       List<ServiceOsSpecific.Package> packagesForService = managementController.getPackagesForServiceHost(info,
               new HashMap<String, String>(), // Contents are ignored
               host.getOsFamily());
-      packages.addAll(packagesForService);
+      for (ServiceOsSpecific.Package aPackage : packagesForService) {
+        if (! aPackage.getSkipUpgrade()) {
+          packages.add(aPackage);
+        }
+      }
     }
     final String packageList = gson.toJson(packages);
     final String repoList = gson.toJson(repoInfo);

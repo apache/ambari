@@ -28,6 +28,7 @@
           <packages>
             <package>
               <name>mysql-connector-java</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>atlas-metadata*-hive-plugin</name>
@@ -48,6 +49,7 @@
             </package>
             <package>
               <name>mysql</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>
         </osSpecific>
@@ -70,6 +72,7 @@
           <packages>
             <package>
               <name>mysql-server</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>
         </osSpecific>
@@ -78,6 +81,7 @@
           <packages>
             <package>
               <name>mysql-client</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>
         </osSpecific>

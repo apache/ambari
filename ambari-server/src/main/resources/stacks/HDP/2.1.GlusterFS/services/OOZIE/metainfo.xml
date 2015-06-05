@@ -42,6 +42,7 @@
             </package>
             <package>
               <name>mysql-connector-java</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>
         </osSpecific>

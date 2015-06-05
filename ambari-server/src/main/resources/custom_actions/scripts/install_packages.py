@@ -93,8 +93,7 @@ class InstallPackages(Script):
         allInstalledPackages(packages_installed_before)
         packages_installed_before = [package[0] for package in packages_installed_before]
         packages_were_checked = True
-        filtered_package_list = self.filter_package_list(package_list)
-        for package in filtered_package_list:
+        for package in package_list:
           name = self.format_package_name(package['name'], repository_version)
           Package(name, use_repos=list(current_repo_files) if OSCheck.is_ubuntu_family() else current_repositories)
         package_install_result = True
@@ -195,43 +194,6 @@ class InstallPackages(Script):
     else:
       return []
 
-
-  def filter_package_list(self, package_list):
-    """
-    Here we filter packages that are managed with custom logic in package
-    scripts. Usually this packages come from system repositories, and either
-     are not available when we restrict repository list, or should not be
-    installed on host at all.
-    :param package_list: original list
-    :return: filtered package_list
-    """
-    filtered_package_list = []
-
-    # hadoop-lzo package is installed only if LZO compression is enabled
-    lzo_packages = ['hadoop-lzo', 'lzo', 'hadoop-lzo-native', 'liblzo2-2', 'hadooplzo']
-    has_lzo = False
-    io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
-    if io_compression_codecs:
-      has_lzo = "com.hadoop.compression.lzo" in io_compression_codecs.lower()
-
-    for package in package_list:
-      skip_package = False
-      # mysql* package logic is managed at HIVE scripts
-      if package['name'].startswith('mysql'):
-        skip_package = True
-      # Ambari metrics packages should not be upgraded during RU
-      if package['name'].startswith('ambari-metrics'):
-        skip_package = True
-
-      if not has_lzo:
-        for lzo_package in lzo_packages:
-          if package['name'].startswith(lzo_package):
-            skip_package = True
-            break
-
-      if not skip_package:
-        filtered_package_list.append(package)
-    return filtered_package_list
 
 if __name__ == "__main__":
   InstallPackages().execute()

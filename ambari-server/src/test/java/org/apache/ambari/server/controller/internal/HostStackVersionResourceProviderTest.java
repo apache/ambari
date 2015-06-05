@@ -27,6 +27,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -146,9 +147,16 @@ public class HostStackVersionResourceProviderTest {
     RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
     repoVersion.setOperatingSystems(operatingSystemsJson);
 
-    ServiceOsSpecific.Package hivePackage = new ServiceOsSpecific.Package();
+    final ServiceOsSpecific.Package hivePackage = new ServiceOsSpecific.Package();
     hivePackage.setName("hive");
-    List<ServiceOsSpecific.Package> packages = Collections.singletonList(hivePackage);
+    final ServiceOsSpecific.Package mysqlPackage = new ServiceOsSpecific.Package();
+    mysqlPackage.setName("mysql");
+    mysqlPackage.setSkipUpgrade(Boolean.TRUE);
+    List<ServiceOsSpecific.Package> packages = new ArrayList<ServiceOsSpecific.Package>() {{
+      add(hivePackage);
+      add(mysqlPackage);
+    }};
+
 
     ActionManager actionManager = createNiceMock(ActionManager.class);
 

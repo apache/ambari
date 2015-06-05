@@ -166,6 +166,13 @@ public class ServiceOsSpecific {
   public static class Package {
     private String name;
 
+    /**
+     * If true, package will not be attempted to be upgraded during RU.
+     * Typically, packages that are located outside of HDP* repositories,
+     * should be marked as true
+     */
+    private Boolean skipUpgrade = Boolean.FALSE;
+
     public String getName() {
       return name;
     }
@@ -174,24 +181,35 @@ public class ServiceOsSpecific {
       this.name = name;
     }
 
-    public Package() { }
+    public Boolean getSkipUpgrade() {
+      return skipUpgrade;
+    }
+
+    public void setSkipUpgrade(Boolean skipUpgrade) {
+      this.skipUpgrade = skipUpgrade;
+    }
+
+    public Package() {
+    }
 
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
 
-      Package that = (Package) o;
+      Package aPackage = (Package) o;
 
-      return name.equals(that.name);
+      if (!name.equals(aPackage.name)) return false;
+      return skipUpgrade.equals(aPackage.skipUpgrade);
+
     }
 
     @Override
     public int hashCode() {
-      return name.hashCode();
+      int result = name.hashCode();
+      result = 31 * result + skipUpgrade.hashCode();
+      return result;
     }
   }
-
-
 }
 

@@ -77,12 +77,15 @@
           <packages>
             <package>
               <name>krb5-server</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>krb5-libs</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>krb5-workstation</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>
         </osSpecific>
@@ -92,15 +95,19 @@
           <packages>
             <package>
               <name>krb5-kdc</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>krb5-admin-server</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>krb5-user</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>krb5-config</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>
         </osSpecific>
@@ -110,12 +117,15 @@
           <packages>
             <package>
               <name>krb5</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>krb5-client</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>krb5-server</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>
         </osSpecific>

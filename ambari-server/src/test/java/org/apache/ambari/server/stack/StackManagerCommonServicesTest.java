@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -172,7 +173,7 @@ public class StackManagerCommonServicesTest {
     assertEquals(1, configDependencies.size());
     assertEquals("global", configDependencies.get(0));
     assertEquals("global",
-        pigService.getConfigDependenciesWithComponents().get(0));
+            pigService.getConfigDependenciesWithComponents().get(0));
     ComponentInfo client = pigService.getClientComponent();
     assertNotNull(client);
     assertEquals("PIG", client.getName());
@@ -187,9 +188,14 @@ public class StackManagerCommonServicesTest {
     assertEquals("centos6", osSpecific.getOsFamily());
     assertNull(osSpecific.getRepo());
     List<ServiceOsSpecific.Package> packages = osSpecific.getPackages();
-    assertEquals(1, packages.size());
+    assertEquals(2, packages.size());
     ServiceOsSpecific.Package pkg = packages.get(0);
     assertEquals("pig", pkg.getName());
+    assertFalse(pkg.getSkipUpgrade());
+
+    ServiceOsSpecific.Package lzoPackage = packages.get(1);
+    assertEquals("lzo", lzoPackage.getName());
+    assertTrue(lzoPackage.getSkipUpgrade());
 
     assertEquals(pigService.getParent(), "common-services/PIG/1.0");
   }

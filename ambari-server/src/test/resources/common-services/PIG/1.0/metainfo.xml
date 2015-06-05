@@ -42,6 +42,11 @@
             <package>
               <name>pig</name>
             </package>
+
+            <package>
+              <name>lzo</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>

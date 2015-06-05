@@ -117,6 +117,7 @@
             </package>
             <package>
               <name>mysql-connector-java</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>extjs</name>

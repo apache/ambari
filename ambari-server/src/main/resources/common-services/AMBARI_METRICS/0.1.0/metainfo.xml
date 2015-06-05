@@ -70,12 +70,15 @@
           <packages>
             <package>
               <name>ambari-metrics-collector</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>ambari-metrics-monitor</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>ambari-metrics-hadoop-sink</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>gcc</name>
@@ -87,6 +90,7 @@
           <packages>
             <package>
               <name>ambari-metrics-assembly</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>gcc</name>
@@ -98,12 +102,15 @@
           <packages>
             <package>
               <name>ambari-metrics-collector</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>ambari-metrics-monitor</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>ambari-metrics-hadoop-sink</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>
         </osSpecific>
