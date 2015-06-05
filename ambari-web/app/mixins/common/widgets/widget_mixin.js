@@ -298,13 +298,13 @@ App.WidgetMixin = Ember.Mixin.create({
   },
 
   /**
-   * make GET call to get host component metrics accross
+   * make GET call to get metrics value for all host components
    * @param {object} request
    * @return {$.ajax}
    */
   getHostComponentsMetrics: function (request) {
     request.metric_paths.forEach(function (_metric, index) {
-      request.metric_paths[index] = "host_components/" + _metric;
+      request.metric_paths[index] = "host_components/" + _metric.metric_path;
     });
     return App.ajax.send({
       name: 'widgets.serviceComponent.metrics.get',
@@ -334,11 +334,12 @@ App.WidgetMixin = Ember.Mixin.create({
   },
 
   getHostsMetrics: function (request) {
+    var metricPaths = request.metric_paths.mapProperty('metric_path');
     return App.ajax.send({
       name: 'widgets.hosts.metrics.get',
       sender: this,
       data: {
-        metricPaths: request.metric_paths.join(',')
+        metricPaths: metricPaths.join(',')
       },
       success: 'getHostsMetricsSuccessCallback'
     });
