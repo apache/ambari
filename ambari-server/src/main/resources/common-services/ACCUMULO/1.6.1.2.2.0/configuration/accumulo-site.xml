@@ -104,7 +104,7 @@
 
   <property>
     <name>gc.port.client</name>
-    <value>50091</value>
+    <value>50092</value>
     <description>Port for monitoring the Accumulo garbage
       collector.</description>
   </property>

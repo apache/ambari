@@ -64,7 +64,7 @@
         "source": {
           "type": "PORT",
           "uri": "{{accumulo-site/gc.port.client}}",
-          "default_port": 50091,
+          "default_port": 50092,
           "reporting": {
             "ok": {
               "text": "TCP OK - {0:.3f}s response on port {1}"
