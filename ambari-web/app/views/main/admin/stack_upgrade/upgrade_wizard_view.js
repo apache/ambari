@@ -64,18 +64,6 @@ App.upgradeWizardView = Em.View.extend({
   outsideView: true,
 
   /**
-   * Determines if list of services with checks that failed and were skipped by user during the upgrade is loaded
-   * @type {boolean}
-   */
-  areSkippedServiceChecksLoaded: false,
-
-  /**
-   * List of services with checks that failed and were skipped by user during the upgrade
-   * @type {array}
-   */
-  skippedServiceChecks: [],
-
-  /**
    * Downgrade should be available only if target version higher than current, so we can't downgrade
    * when downgrade already started
    * @type {boolean}
@@ -251,18 +239,22 @@ App.upgradeWizardView = Em.View.extend({
   }.observes('App.clusterName'),
 
   getSkippedServiceChecks: function () {
-    if (this.get('isFinalizeItem') && !this.get('areSkippedServiceChecksLoaded')) {
-      var self = this;
-      App.ajax.send({
-        name: 'admin.upgrade.service_checks',
-        sender: this,
-        data: {
-          upgradeId: this.get('controller.upgradeId')
-        },
-        success: 'getSkippedServiceChecksSuccessCallback'
-      }).complete(function () {
-          self.set('areSkippedServiceChecksLoaded', true);
-        });
+    if (this.get('isFinalizeItem')) {
+      if (!this.get('controller.areSkippedServiceChecksLoaded')) {
+        var self = this;
+        App.ajax.send({
+          name: 'admin.upgrade.service_checks',
+          sender: this,
+          data: {
+            upgradeId: this.get('controller.upgradeId')
+          },
+          success: 'getSkippedServiceChecksSuccessCallback'
+        }).complete(function () {
+            self.set('controller.areSkippedServiceChecksLoaded', true);
+          });
+      }
+    } else {
+      this.set('controller.areSkippedServiceChecksLoaded', false);
     }
   }.observes('isFinalizeItem'),
 
@@ -282,7 +274,7 @@ App.upgradeWizardView = Em.View.extend({
           }
         });
         skippedServiceChecks = skippedServiceChecks.uniq();
-        this.set('skippedServiceChecks', skippedServiceChecks);
+        this.set('controller.skippedServiceChecks', skippedServiceChecks);
       }
     }
   },

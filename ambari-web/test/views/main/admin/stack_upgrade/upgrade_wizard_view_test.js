@@ -649,7 +649,7 @@ describe('App.upgradeWizardView', function () {
     var cases = [
       {
         isFinalizeItem: false,
-        areSkippedServiceChecksLoaded: false,
+        areSkippedServiceChecksLoaded: true,
         ajaxSendCallCount: 0,
         areSkippedServiceChecksLoadedResult: false,
         title: 'no ajax request should be sent away from Finalize step'
@@ -685,13 +685,13 @@ describe('App.upgradeWizardView', function () {
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        view.set('areSkippedServiceChecksLoaded', item.areSkippedServiceChecksLoaded);
+        view.set('controller.areSkippedServiceChecksLoaded', item.areSkippedServiceChecksLoaded);
         view.reopen({
           isFinalizeItem: item.isFinalizeItem
         });
         view.propertyDidChange('isFinalizeItem');
         expect(App.ajax.send.callCount).to.equal(item.ajaxSendCallCount);
-        expect(view.get('areSkippedServiceChecksLoaded')).to.equal(item.areSkippedServiceChecksLoadedResult);
+        expect(view.get('controller.areSkippedServiceChecksLoaded')).to.equal(item.areSkippedServiceChecksLoadedResult);
         if (item.ajaxSendCallCount) {
           expect(App.ajax.send.firstCall.args[0].data.upgradeId).to.equal(1);
         }
@@ -783,7 +783,7 @@ describe('App.upgradeWizardView', function () {
 
     it('should set an array of service names from tha latest service checks step', function () {
       view.getSkippedServiceChecksSuccessCallback(data);
-      expect(view.get('skippedServiceChecks')).to.eql(['ZooKeeper', 'YARN', 'Hive']);
+      expect(view.get('controller.skippedServiceChecks')).to.eql(['ZooKeeper', 'YARN', 'Hive']);
     });
 
   });
