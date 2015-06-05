@@ -30,7 +30,15 @@
         <i class="icon-edit"></i>
       </a>
     {{/isAccessible}}
-    <div class="content"> {{view view.chartView}}</div>
+    <div class="content">
+      {{#if view.isUnavailable}}
+        <div class="grey unavailable">
+          {{t common.na}}
+        </div>
+      {{else}}
+        {{view view.chartView}}
+      {{/if}}
+    </div>
     {{#if view.content.description}}
       <div class="hidden-description">
         {{view.content.description}}

@@ -32,6 +32,13 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
    */
   metrics: [],
 
+  /**
+   * @type {boolean}
+   */
+  isUnavailable: function () {
+    return isNaN(parseFloat(this.get('value')));
+  }.property('value'),
+
   chartView: App.ChartPieView.extend({
     stroke: '#D6DDDF',  //light grey
     innerR: 25,
