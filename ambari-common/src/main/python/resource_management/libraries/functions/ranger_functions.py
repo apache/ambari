@@ -87,15 +87,23 @@ class Rangeradmin:
       ambari_ranger_admin, ambari_ranger_password = self.create_ambari_admin_user(ambari_ranger_admin, ambari_ranger_password, format("{admin_uname}:{admin_password}"))
       ambari_username_password_for_ranger = ambari_ranger_admin + ':' + ambari_ranger_password
       if ambari_ranger_admin != '' and ambari_ranger_password != '':
-        repo = self.get_repository_by_name_urllib2(repo_name, component, 'true', ambari_username_password_for_ranger)
-        if repo and repo['name'] == repo_name:
-          Logger.info('{0} Repository exist'.format(component.title()))
-        else:
-          response = self.create_repository_urllib2(repo_data, ambari_username_password_for_ranger, policy_user)
-          if response is not None:
-            Logger.info('{0} Repository created in Ranger admin'.format(component.title()))
+        retryCount = 0
+        while retryCount <= 5:
+          repo = self.get_repository_by_name_urllib2(repo_name, component, 'true', ambari_username_password_for_ranger)
+          if repo and repo['name'] == repo_name:
+            Logger.info('{0} Repository exist'.format(component.title()))
+            break
           else:
-            raise Fail('{0} Repository creation failed in Ranger admin'.format(component.title()))
+            response = self.create_repository_urllib2(repo_data, ambari_username_password_for_ranger, policy_user)
+            if response is not None:
+              Logger.info('{0} Repository created in Ranger admin'.format(component.title()))
+              break
+            else:
+              if retryCount < 5:
+                Logger.info("Retry Repository Creation is being called")
+                retryCount += 1
+              else:
+                raise Fail('{0} Repository creation failed in Ranger admin'.format(component.title()))
       else:
         raise Fail('Ambari admin username and password are blank ')
           
