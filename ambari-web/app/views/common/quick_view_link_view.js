@@ -75,7 +75,7 @@ App.QuickViewLinks = Em.View.extend({
   /**
    * list of files that contains properties for enabling/disabling ssl
    */
-  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','storm-env', 'falcon-env', 'core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site', 'storm-site', 'spark-defaults', 'accumulo-site'],
+  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','storm-env', 'falcon-env', 'core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site', 'storm-site', 'spark-defaults', 'accumulo-site', 'application-properties'],
   /**
    * Get public host name by its host name.
    *
@@ -271,6 +271,9 @@ App.QuickViewLinks = Em.View.extend({
       case "ACCUMULO":
         hosts[0] = this.findComponentHost(response.items, "ACCUMULO_MONITOR");
         break;
+      case "ATLAS":
+        hosts[0] = this.findComponentHost(response.items, "ATLAS_SERVER");
+        break;
       default:
         var service = App.StackService.find().findProperty('serviceName', serviceName);
         if (service && service.get('hasMaster')) {
@@ -340,6 +343,17 @@ App.QuickViewLinks = Em.View.extend({
         }
         return "http";
         break;
+      case "ATLAS":
+        var atlasProperties = configProperties && configProperties.findProperty('type', 'application-properties');
+        if (atlasProperties && atlasProperties.properties) {
+          if (atlasProperties.properties['enableTLS'] == "true") {
+            return "https";
+          } else {
+            return "http";
+          }
+        }
+        return "http";
+        break;
       default:
         return this.get('servicesSupportsHttps').contains(service_id) && hadoopSslEnabled ? "https" : "http";
     }
@@ -386,6 +400,7 @@ App.QuickViewLinks = Em.View.extend({
       case "spark":
       case "falcon":
       case "accumulo":
+      case "atlas":
         return "_blank";
         break;
       default:
