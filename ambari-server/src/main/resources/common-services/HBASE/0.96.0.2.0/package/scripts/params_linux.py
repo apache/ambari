@@ -35,7 +35,6 @@ from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions import get_unique_id_and_date
 from resource_management.libraries.script.script import Script
 
-
 from resource_management.libraries.functions.substitute_vars import substitute_vars
 
 # server configurations
@@ -298,3 +297,5 @@ if security_enabled:
   else: # HDP Stack 2.2 and less / ranger plugin enabled
     hbase_coprocessor_master_classes = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
     hbase_coprocessor_region_classes = "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
+
+hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']

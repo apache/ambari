@@ -53,7 +53,7 @@
             "hbase.regionserver.global.memstore.upperLimit": "0.4", 
             "zookeeper.session.timeout": "30000", 
             "hbase.client.scanner.caching": "100", 
-            "hbase.tmp.dir": "/hadoop/hbase", 
+            "hbase.tmp.dir": "/tmp/hbase-hbase",
             "hfile.block.cache.size": "0.40", 
             "hbase.hregion.max.filesize": "10737418240", 
             "hbase.security.authentication": "simple", 

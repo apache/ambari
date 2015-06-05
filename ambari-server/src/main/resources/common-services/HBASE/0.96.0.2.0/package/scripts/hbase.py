@@ -56,25 +56,12 @@ def hbase(name=None):
       recursive = True
   )
 
-  Directory (params.tmp_dir,
+  Directory (InlineTemplate(params.hbase_tmp_dir).get_content()+"/local/jars",
              owner = params.hbase_user,
+             group = params.user_group,
              mode=0775,
              recursive = True,
              cd_access="a",
-  )
-
-  Directory (params.local_dir,
-             owner = params.hbase_user,
-             group = params.user_group,
-             mode=0775,
-             recursive = True
-  )
-
-  Directory (os.path.join(params.local_dir, "jars"),
-             owner = params.hbase_user,
-             group = params.user_group,
-             mode=0775,
-             recursive = True
   )
 
   XmlConfig( "hbase-site.xml",
