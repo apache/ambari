@@ -298,7 +298,7 @@
             "hbase.zookeeper.property.clientPort": "2181", 
             "hbase.regionserver.global.memstore.upperLimit": "0.4", 
             "zookeeper.session.timeout": "30000", 
-            "hbase.tmp.dir": "/tmp/hbase-hbase",
+            "hbase.tmp.dir": "/hadoop/hbase", 
             "hbase.local.dir": "${hbase.tmp.dir}/local", 
             "hbase.hregion.max.filesize": "10737418240", 
             "hfile.block.cache.size": "0.40", 

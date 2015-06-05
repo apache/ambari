@@ -355,7 +355,7 @@
             "hbase.bucketcache.ioengine": "", 
             "zookeeper.session.timeout": "90000", 
             "hbase.regionserver.global.memstore.size": "${hbase.regionserver.global.memstore.upperLimit}", 
-            "hbase.tmp.dir": "/tmp/hbase-hbase",
+            "hbase.tmp.dir": "/hadoop/hbase", 
             "hfile.block.cache.size": "0.40", 
             "hbase.regionserver.kerberos.principal": "hbase/_HOST@EXAMPLE.COM", 
             "phoenix.queryserver.kerberos.principal": "hbase/_HOST@EXAMPLE.COM", 

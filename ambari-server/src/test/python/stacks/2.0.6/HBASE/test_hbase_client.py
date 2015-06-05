@@ -46,12 +46,23 @@ class TestHBaseClient(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', self.TMP_PATH,
+      owner = 'hbase',
+      mode=0775,
+      recursive = True,
+      cd_access='a'
+    )
+    self.assertResourceCalled('Directory', self.TMP_PATH + '/local',
+      owner = 'hbase',
+      group = 'hadoop',
+      mode=0775,
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', self.TMP_PATH + '/local/jars',
       owner = 'hbase',
       group = 'hadoop',
       mode=0775,
       recursive = True,
-      cd_access='a'
     )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
       owner = 'hbase',
@@ -126,12 +137,23 @@ class TestHBaseClient(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', self.TMP_PATH,
+      owner = 'hbase',
+      mode=0775,
+      recursive = True,
+      cd_access='a'
+    )
+    self.assertResourceCalled('Directory', self.TMP_PATH + '/local',
+      owner = 'hbase',
+      group = 'hadoop',
+      mode=0775,
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', self.TMP_PATH + '/local/jars',
       owner = 'hbase',
       group = 'hadoop',
       mode=0775,
       recursive = True,
-      cd_access='a'
     )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
       owner = 'hbase',
