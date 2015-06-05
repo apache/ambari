@@ -44,3 +44,5 @@ hbase_cmd = "/usr/lib/ams-hbase/bin/hbase"
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hbase_conf_dir = "/etc/ams-hbase/conf"
+
+limits_conf_dir = "/etc/security/limits.d"

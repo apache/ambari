@@ -245,6 +245,21 @@ def ams(name=None):
          mode=0755
     )
 
+    # On some OS this folder could be not exists, so we will create it before pushing there files
+    Directory(params.limits_conf_dir,
+              recursive=True,
+              owner='root',
+              group='root'
+    )
+
+    # Setting up security limits
+    File(os.path.join(params.limits_conf_dir, 'ams.conf'),
+         owner='root',
+         group='root',
+         mode=0644,
+         content=Template("ams.conf.j2")
+    )
+
     # Phoenix spool file dir if not /tmp
     if not os.path.exists(params.phoenix_client_spool_dir):
       Directory(params.phoenix_client_spool_dir,
