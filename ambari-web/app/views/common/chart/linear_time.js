@@ -593,7 +593,8 @@ App.ChartLinearTimeView = Ember.View.extend({
 
     var legend = new Rickshaw.Graph.Legend({
       graph: _graph,
-      element: legendElement
+      element: legendElement,
+      description: self.get('description')
     });
 
     new Rickshaw.Graph.Behavior.Series.Toggle({

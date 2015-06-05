@@ -1445,6 +1445,7 @@ Rickshaw.Graph.Behavior.Series.Toggle = function(args) {
 	var self = this;
 
 	this.addAnchor = function(line) {
+    if (line.noAnchor) return;
 		var anchor = document.createElement('a');
 		anchor.innerHTML = '&#10004;';
 		anchor.classList.add('action');
@@ -1829,6 +1830,23 @@ Rickshaw.Graph.Legend = function(args) {
 		}
 		self.lines.push(_line);
 	};
+
+  this.addDescription = function (description) {
+    if (!description) return;
+    var line = document.createElement('div');
+    line.className = 'description-line';
+
+    var label = document.createElement('span');
+    label.innerHTML = description;
+
+    line.appendChild(label);
+    list.appendChild(line);
+
+    var _line = { element: line, noAnchor: true};
+    self.lines.push(_line);
+  };
+
+  self.addDescription(args.description);
 
 	series.forEach( function(s) {
 		self.addLine(s);
