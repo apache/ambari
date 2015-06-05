@@ -60,11 +60,6 @@ def accumulo_service( name,
                   timeout=30,
                   user=params.accumulo_user
           )
-        elif name != 'monitor':
-          Execute(format("{daemon_script} org.apache.accumulo.master.state.SetGoalState SAFE_MODE"),
-                  not_if=pid_exists,
-                  user=params.accumulo_user
-                  )
       except:
         pass
 
