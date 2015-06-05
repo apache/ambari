@@ -28,12 +28,28 @@ import java.util.Map;
  * Configuration for a topology entity such as a blueprint, hostgroup or cluster.
  */
 public class Configuration {
-
+  /**
+   * properties for this configuration instance
+   */
   private Map<String, Map<String, String>> properties;
+
+  /**
+   * attributes for this configuration instance
+   */
   private Map<String, Map<String, Map<String, String>>> attributes;
 
+  /**
+   * parent configuration
+   */
   private Configuration parentConfiguration;
 
+  /**
+   * Constructor.
+   *
+   * @param properties           properties
+   * @param attributes           attributes
+   * @param parentConfiguration  parent configuration
+   */
   public Configuration(Map<String, Map<String, String>> properties,
                        Map<String, Map<String, Map<String, String>>> attributes,
                        Configuration parentConfiguration) {
@@ -52,6 +68,12 @@ public class Configuration {
 //    }
   }
 
+  /**
+   * Configuration.
+   *
+   * @param properties  properties
+   * @param attributes  attributes
+   */
   public Configuration(Map<String, Map<String, String>> properties,
                        Map<String, Map<String, Map<String, String>>> attributes) {
 
@@ -59,17 +81,39 @@ public class Configuration {
     this.attributes = attributes;
   }
 
+  /**
+   * Get the properties for this instance only; parent properties are not included.
+   *
+   * @return map of properties for this configuration instance keyed by config type
+   */
   public Map<String, Map<String, String>> getProperties() {
     return properties;
   }
 
+  /**
+   * Get a complete merged map of properties including this instance and the entire parent hierarchy.
+   * Properties are merged so that children override the same property specified in it's parent hierarchy.
+   * This result is re-calculated for each request in case a parent value has changed so the result
+   * should be cached if possible.
+   *
+   * @return complete map of merged properties keyed by config type
+   */
   public Map<String, Map<String, String>> getFullProperties() {
     return getFullProperties(Integer.MAX_VALUE);
   }
 
-  //re-calculated each time in case parent properties changed
+  /**
+   * Get a merged map of properties including this instance and n levels of the parent hierarchy.
+   * Properties are merged so that children override the same property specified in it's parent hierarchy.
+   * This result is re-calculated for each request in case a parent value has changed so the result
+   * should be cached if possible.
+   *
+   * @param depthLimit  the number of parent levels to include in the results.  Specifying 0 is the same
+   *                    as calling {@link #getProperties()}
+   *
+   * @return map of merged properties keyed by config type
+   */
   public Map<String, Map<String, String>> getFullProperties(int depthLimit) {
-
     if (depthLimit == 0) {
       return new HashMap<String, Map<String, String>>(properties);
     }
@@ -80,7 +124,7 @@ public class Configuration {
 
     for (Map.Entry<String, Map<String, String>> entry : properties.entrySet()) {
       String configType = entry.getKey();
-      Map<String, String> typeProps = entry.getValue();
+      Map<String, String> typeProps = new HashMap<String, String>(entry.getValue());
 
       if (mergedProperties.containsKey(configType)) {
         mergedProperties.get(configType).putAll(typeProps);
@@ -91,12 +135,23 @@ public class Configuration {
     return mergedProperties;
   }
 
+  /**
+   * Get the attributes for this instance only; parent attributes aren't included.
+   *
+   * @return map of attributes {configType -> {attributeName -> {propName, attributeValue}}}
+   */
   public Map<String, Map<String, Map<String, String>>> getAttributes() {
     return attributes;
   }
 
-  //re-calculate each time in case parent properties changed
-  // attribute structure is very confusing.  {type -> {attributeName -> {propName, attributeValue}}}
+  /**
+   * Get a complete merged map of attributes including this instance and the entire parent hierarchy.
+   * Attributes are merged so that children override the same attribute specified in it's parent hierarchy.
+   * This result is re-calculated for each request in case a parent value has changed so the result
+   * should be cached if possible.
+   *
+   * @return complete map of merged attributes {configType -> {attributeName -> {propName, attributeValue}}}
+   */
   public Map<String, Map<String, Map<String, String>>> getFullAttributes() {
     Map<String, Map<String, Map<String, String>>> mergedAttributeMap = parentConfiguration == null ?
         new HashMap<String, Map<String, Map<String, String>>>() :
@@ -104,11 +159,14 @@ public class Configuration {
 
     for (Map.Entry<String, Map<String, Map<String, String>>> typeEntry : attributes.entrySet()) {
       String type = typeEntry.getKey();
+      Map<String, Map<String, String>> typeAttributes =
+          new HashMap<String, Map<String, String>>(typeEntry.getValue());
+
       if (! mergedAttributeMap.containsKey(type)) {
-        mergedAttributeMap.put(type, typeEntry.getValue());
+        mergedAttributeMap.put(type, typeAttributes);
       } else {
         Map<String, Map<String, String>> mergedAttributes = mergedAttributeMap.get(type);
-        for (Map.Entry<String, Map<String, String>> attributeEntry : typeEntry.getValue().entrySet()) {
+        for (Map.Entry<String, Map<String, String>> attributeEntry : typeAttributes.entrySet()) {
           String attribute = attributeEntry.getKey();
           if (! mergedAttributes.containsKey(attribute)) {
             mergedAttributes.put(attribute, attributeEntry.getValue());
@@ -121,12 +179,128 @@ public class Configuration {
         }
       }
     }
-
-    mergedAttributeMap.putAll(attributes);
-
     return mergedAttributeMap;
   }
 
+  /**
+   * Get the requested property value from the full merged set of properties.
+   *
+   * @param configType    configuration type
+   * @param propertyName  property name
+   *
+   * @return requested property value or null if property isn't set in configuration hierarchy
+   */
+  public String getPropertyValue(String configType, String propertyName) {
+    String value = null;
+    if (properties.containsKey(configType) && properties.get(configType).containsKey(propertyName)) {
+      value = properties.get(configType).get(propertyName);
+    } else if (parentConfiguration != null) {
+      value = parentConfiguration.getPropertyValue(configType, propertyName);
+    }
+
+    return value;
+  }
+
+  /**
+   * Get the requested attribute value from the full merged set of attributes.
+   *
+   * @param configType     configuration type
+   * @param propertyName   attribute property name
+   * @param attributeName  attribute name
+   *
+   * @return requested attribute value or null if the attribute isn't set in configuration hierarchy
+   */
+  public String getAttributeValue(String configType, String propertyName, String attributeName) {
+    String value = null;
+    if (attributes.containsKey(configType) &&
+        attributes.get(configType).containsKey(attributeName) &&
+        attributes.get(configType).get(attributeName).containsKey(propertyName)) {
+
+      value = attributes.get(configType).get(attributeName).get(propertyName);
+    } else if (parentConfiguration != null) {
+      value = parentConfiguration.getAttributeValue(configType, propertyName, attributeName);
+    }
+
+    return value;
+  }
+
+  /**
+   * Set a property on the configuration.
+   * The property will be set on this instance so it will override any value specified in
+   * the parent hierarchy.
+   *
+   * @param configType    configuration type
+   * @param propertyName  property name
+   * @param value         property value
+   *
+   * @return the previous value of the property or null if it didn't exist
+   */
+  public String setProperty(String configType, String propertyName, String value) {
+    String previousValue = getPropertyValue(configType, propertyName);
+    Map<String, String> typeProperties = properties.get(configType);
+    if (typeProperties == null) {
+      typeProperties = new HashMap<String, String>();
+      properties.put(configType, typeProperties);
+    }
+    typeProperties.put(propertyName, value);
+    return previousValue;
+  }
+
+  /**
+   * Remove a property from the configuration hierarchy.
+   *
+   * @param configType    configuration type
+   * @param propertyName  property name
+   *
+   * @return the previous value of the removed property or null if it didn't exist in the
+   *         configuration hierarchy
+   */
+  public String removeProperty(String configType, String propertyName) {
+    String previousValue = null;
+    if (properties.containsKey(configType) && properties.get(configType).containsKey(propertyName)) {
+      previousValue =  properties.get(configType).remove(propertyName);
+    } else if (parentConfiguration != null) {
+      previousValue =  parentConfiguration.removeProperty(configType, propertyName);
+    }
+    return previousValue;
+  }
+
+  /**
+   * Set an attribute on the hierarchy.
+   * The attribute will be set on this instance so it will override any value specified in
+   * the parent hierarchy.
+   *
+   * @param configType      configuration type
+   * @param propertyName    attribute property name
+   * @param attributeName   attribute name
+   * @param attributeValue  attribute property value
+   *
+   * @return the previous value of the attribute or null if it didn't exist
+   */
+  public String setAttribute(String configType, String propertyName, String attributeName, String attributeValue) {
+    String previousValue = getAttributeValue(configType, propertyName, attributeName);
+
+    Map<String, Map<String, String>> typeAttributes = attributes.get(configType);
+    if (typeAttributes == null) {
+      typeAttributes = new HashMap<String, Map<String, String>>();
+      attributes.put(configType, typeAttributes);
+    }
+
+    Map<String, String> attributes = typeAttributes.get(attributeName);
+    if (attributes == null) {
+      attributes = new HashMap<String, String>();
+      typeAttributes.put(attributeName, attributes);
+    }
+
+    attributes.put(propertyName, attributeValue);
+    return previousValue;
+  }
+
+  /**
+   * Get the complete set of configuration types represented in both full properties and full attributes.
+   *
+   * @return collection of all represented configuration types
+   */
   public Collection<String> getAllConfigTypes() {
     Collection<String> allTypes = new HashSet<String>();
     for (String type : getFullProperties().keySet()) {
@@ -140,48 +314,21 @@ public class Configuration {
     return allTypes;
   }
 
+  /**
+   * Get the parent configuration.
+   *
+   * @return the parent configuration or null if no parent is set
+   */
   public Configuration getParentConfiguration() {
     return parentConfiguration;
   }
 
+  /**
+   * Set the parent configuration.
+   *
+   * @param parent parent configuration to set
+   */
   public void setParentConfiguration(Configuration parent) {
     parentConfiguration = parent;
   }
-
-  public String getPropertyValue(String configType, String propertyName) {
-    return properties.containsKey(configType) ?
-        properties.get(configType).get(propertyName) : null;
-  }
-
-  public boolean containsProperty(String configType, String propertyName) {
-    return properties.containsKey(configType) && properties.get(configType).containsKey(propertyName);
-  }
-
-  public String setProperty(String configType, String propertyName, String value) {
-    Map<String, String> typeProperties = properties.get(configType);
-    if (typeProperties == null) {
-      typeProperties = new HashMap<String, String>();
-      properties.put(configType, typeProperties);
-    }
-
-    return typeProperties.put(propertyName, value);
-  }
-
-  // attribute structure is very confusing: {type -> {attributeName -> {propName, attributeValue}}}
-  public String setAttribute(String configType, String propertyName, String attributeName, String attributeValue) {
-    Map<String, Map<String, String>> typeAttributes = attributes.get(configType);
-    if (typeAttributes == null) {
-      typeAttributes = new HashMap<String, Map<String, String>>();
-      attributes.put(configType, typeAttributes);
-    }
-
-    Map<String, String> attributes = typeAttributes.get(attributeName);
-    if (attributes == null) {
-      attributes = new HashMap<String, String>();
-      typeAttributes.put(attributeName, attributes);
-    }
-
-    return attributes.put(propertyName, attributeValue);
-  }
-
 }

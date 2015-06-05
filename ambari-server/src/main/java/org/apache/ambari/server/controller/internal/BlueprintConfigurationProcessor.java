@@ -76,9 +76,9 @@ public class BlueprintConfigurationProcessor {
 
   /**
    * Updaters that preserve the original property value, functions
-   *   as a placeholder for DB-related properties that need to be
-   *   removed from export, but do not require an update during
-   *   cluster creation
+   * as a placeholder for DB-related properties that need to be
+   * removed from export, but do not require an update during
+   * cluster creation
    */
   private static Map<String, Map<String, PropertyUpdater>> removePropertyUpdaters =
     new HashMap<String, Map<String, PropertyUpdater>>();
@@ -133,11 +133,6 @@ public class BlueprintConfigurationProcessor {
       new DependencyNotEqualsFilter("hive.server2.authentication", "hive-site", "NONE"),
       new HDFSNameNodeHAFilter() };
 
-  /**
-   * Configuration properties to be updated
-   */
-  //private Map<String, Map<String, String>> properties;
-
   private ClusterTopology clusterTopology;
 
 
@@ -155,7 +150,7 @@ public class BlueprintConfigurationProcessor {
           String propertyName = updaterEntry.getKey();
           PropertyUpdater updater = updaterEntry.getValue();
 
-          // topo cluster scoped configuration which also includes all default and BP properties
+          // cluster scoped configuration which also includes all default and BP properties
           Map<String, Map<String, String>> clusterProps = clusterTopology.getConfiguration().getFullProperties();
           Map<String, String> typeMap = clusterProps.get(type);
           if (typeMap != null && typeMap.containsKey(propertyName)) {
@@ -178,20 +173,23 @@ public class BlueprintConfigurationProcessor {
     return requiredHostGroups;
   }
 
-
   /**
    * Update properties for cluster creation.  This involves updating topology related properties with
    * concrete topology information.
    */
   public void doUpdateForClusterCreate() throws ConfigurationTopologyException {
     Configuration clusterConfig = clusterTopology.getConfiguration();
-    Map<String, Map<String, String>> clusterProps = clusterConfig.getFullProperties();
     Map<String, HostGroupInfo> groupInfoMap = clusterTopology.getHostGroupInfo();
 
     // filter out any properties that should not be included, based on the dependencies
     // specified in the stacks, and the filters defined in this class
-    doFilterPriorToClusterUpdate(clusterProps);
+    doFilterPriorToClusterUpdate(clusterConfig);
 
+    // this needs to be called after doFilterPriorToClusterUpdate() to ensure that the returned
+    // set of properties (copy) doesn't include the removed properties.  If an updater
+    // removes a property other than the property it is registered for then we will
+    // have an issue as it won't be removed from the clusterProps map as it is a copy.
+    Map<String, Map<String, String>> clusterProps = clusterConfig.getFullProperties();
     for (Map<String, Map<String, PropertyUpdater>> updaterMap : createCollectionOfUpdaters()) {
       for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaterMap.entrySet()) {
         String type = entry.getKey();
@@ -209,7 +207,7 @@ public class BlueprintConfigurationProcessor {
           // host group configs
           for (HostGroupInfo groupInfo : groupInfoMap.values()) {
             Configuration hgConfig = groupInfo.getConfiguration();
-            Map<String, Map<String, String>> hgConfigProps = hgConfig.getProperties();
+            Map<String, Map<String, String>> hgConfigProps = hgConfig.getFullProperties(1);
             Map<String, String> hgTypeMap = hgConfigProps.get(type);
             if (hgTypeMap != null && hgTypeMap.containsKey(propertyName)) {
               hgConfig.setProperty(type, propertyName, updater.updateForClusterCreate(
@@ -237,16 +235,14 @@ public class BlueprintConfigurationProcessor {
         clusterConfig.setProperty("hadoop-env", "dfs_ha_initial_namenode_standby", nnHostIterator.next());
       }
     }
-    setMissingConfigurations(clusterProps);
+    setMissingConfigurations(clusterConfig);
   }
 
   /**
    * Update properties for blueprint export.
    * This involves converting concrete topology information to host groups.
    */
-  //todo: use cluster topology
   public void doUpdateForBlueprintExport() {
-
     // HA configs are only processed in cluster configuration, not HG configurations
     if (clusterTopology.isNameNodeHAEnabled()) {
       doNameNodeHAUpdate();
@@ -260,22 +256,26 @@ public class BlueprintConfigurationProcessor {
       doOozieServerHAUpdate();
     }
 
-    Collection<Map<String, Map<String, String>>> allConfigs = new ArrayList<Map<String, Map<String, String>>>();
-    allConfigs.add(clusterTopology.getConfiguration().getFullProperties());
+    Collection<Configuration> allConfigs = new ArrayList<Configuration>();
+    allConfigs.add(clusterTopology.getConfiguration());
     for (HostGroupInfo groupInfo : clusterTopology.getHostGroupInfo().values()) {
-      // don't use full properties, only the properties specified in the host group config
-      allConfigs.add(groupInfo.getConfiguration().getProperties());
+      Configuration hgConfiguration = groupInfo.getConfiguration();
+      if (! hgConfiguration.getFullProperties(1).isEmpty()) {
+        // create new configuration which only contains properties specified in host group and BP host group
+        allConfigs.add(new Configuration(hgConfiguration.getProperties(), null,
+            new Configuration(hgConfiguration.getParentConfiguration().getProperties(), null)));
+      }
     }
 
-    for (Map<String, Map<String, String>> properties : allConfigs) {
-      doSingleHostExportUpdate(singleHostTopologyUpdaters, properties);
-      doSingleHostExportUpdate(dbHostTopologyUpdaters, properties);
+    for (Configuration configuration : allConfigs) {
+      doSingleHostExportUpdate(singleHostTopologyUpdaters, configuration);
+      doSingleHostExportUpdate(dbHostTopologyUpdaters, configuration);
 
-      doMultiHostExportUpdate(multiHostTopologyUpdaters, properties);
+      doMultiHostExportUpdate(multiHostTopologyUpdaters, configuration);
 
-      doRemovePropertyExport(removePropertyUpdaters, properties);
+      doRemovePropertyExport(removePropertyUpdaters, configuration);
 
-      doFilterPriorToExport(properties);
+      doFilterPriorToExport(configuration);
     }
   }
 
@@ -287,44 +287,35 @@ public class BlueprintConfigurationProcessor {
    * not be included in a collection (a Blueprint export in this case),
    * then the property is removed prior to the export.
    *
-   *
-   * @param properties config properties to process for filtering
+   * @param configuration  configuration being processed
    */
-  private void doFilterPriorToExport(Map<String, Map<String, String>> properties) {
-    for (String configType : properties.keySet()) {
-      Map<String, String> configPropertiesPerType =
-        properties.get(configType);
+  private void doFilterPriorToExport(Configuration configuration) {
+    Map<String, Map<String, String>> properties = configuration.getFullProperties();
+    for (Map.Entry<String, Map<String, String>> configEntry : properties.entrySet()) {
+      String type = configEntry.getKey();
+      Map<String, String> typeProperties = configEntry.getValue();
 
-      Set<String> propertiesToExclude = new HashSet<String>();
-      for (String propertyName : configPropertiesPerType.keySet()) {
-        if (shouldPropertyBeExcludedForBlueprintExport(propertyName, configPropertiesPerType.get(propertyName), configType, clusterTopology)) {
-          propertiesToExclude.add(propertyName);
-        }
-      }
-
-      if (!propertiesToExclude.isEmpty()) {
-        for (String propertyName : propertiesToExclude) {
-          configPropertiesPerType.remove(propertyName);
+      for (Map.Entry<String, String> propertyEntry : typeProperties.entrySet()) {
+        String propertyName = propertyEntry.getKey();
+        String propertyValue = propertyEntry.getValue();
+        if (shouldPropertyBeExcludedForBlueprintExport(propertyName, propertyValue, type, clusterTopology)) {
+          configuration.removeProperty(type, propertyName);
         }
       }
     }
   }
 
-  private void doFilterPriorToClusterUpdate(Map<String, Map<String, String>> properties) {
-    for (String configType : properties.keySet()) {
-      Map<String, String> configPropertiesPerType =
-        properties.get(configType);
+  private void doFilterPriorToClusterUpdate(Configuration configuration) {
+    // getFullProperties returns a copy so changes to it are not reflected in config properties
+    Map<String, Map<String, String>> properties = configuration.getFullProperties();
+    for (Map.Entry<String, Map<String, String>> configEntry : properties.entrySet()) {
+      String configType = configEntry.getKey();
+      Map<String, String> configPropertiesPerType = configEntry.getValue();
 
-      Set<String> propertiesToExclude = new HashSet<String>();
-      for (String propertyName : configPropertiesPerType.keySet()) {
-        if (shouldPropertyBeExcludedForClusterUpdate(propertyName, configPropertiesPerType.get(propertyName), configType, this.clusterTopology)) {
-          propertiesToExclude.add(propertyName);
-        }
-      }
-
-      if (!propertiesToExclude.isEmpty()) {
-        for (String propertyName : propertiesToExclude) {
-          configPropertiesPerType.remove(propertyName);
+      for (Map.Entry<String, String> propertyEntry : configPropertiesPerType.entrySet()) {
+        String propName = propertyEntry.getKey();
+        if (shouldPropertyBeExcludedForClusterUpdate(propName, propertyEntry.getValue(), configType, clusterTopology)) {
+          configuration.removeProperty(configType, propName);
         }
       }
     }
@@ -449,18 +440,20 @@ public class BlueprintConfigurationProcessor {
    * be removed from the configuration that will be available in
    * the exported Blueprint.
    *
-   * @param updaters set of updaters for properties that should
-   *                 always be removed during a Blueprint export
+   * @param updaters       set of updaters for properties that should
+   *                       always be removed during a Blueprint export
+   * @param configuration  configuration being processed
    */
   private void doRemovePropertyExport(Map<String, Map<String, PropertyUpdater>> updaters,
-                                      Map<String, Map<String, String>> properties) {
+                                      Configuration configuration) {
 
+    Map<String, Map<String, String>> properties = configuration.getProperties();
     for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaters.entrySet()) {
       String type = entry.getKey();
       for (String propertyName : entry.getValue().keySet()) {
         Map<String, String> typeProperties = properties.get(type);
         if ( (typeProperties != null) && (typeProperties.containsKey(propertyName)) ) {
-          typeProperties.remove(propertyName);
+          configuration.removeProperty(type, propertyName);
         }
       }
     }
@@ -478,7 +471,7 @@ public class BlueprintConfigurationProcessor {
 
     // perform a single host update on these dynamically generated property names
     if (highAvailabilityUpdaters.get("hdfs-site").size() > 0) {
-      doSingleHostExportUpdate(highAvailabilityUpdaters, clusterTopology.getConfiguration().getFullProperties());
+      doSingleHostExportUpdate(highAvailabilityUpdaters, clusterTopology.getConfiguration());
     }
   }
 
@@ -494,7 +487,7 @@ public class BlueprintConfigurationProcessor {
 
     // perform a single host update on these dynamically generated property names
     if (highAvailabilityUpdaters.get("yarn-site").size() > 0) {
-      doSingleHostExportUpdate(highAvailabilityUpdaters, clusterTopology.getConfiguration().getFullProperties());
+      doSingleHostExportUpdate(highAvailabilityUpdaters, clusterTopology.getConfiguration());
     }
   }
 
@@ -508,7 +501,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = createMapOfOozieServerHAUpdaters();
 
     if (highAvailabilityUpdaters.get("oozie-site").size() > 0) {
-      doMultiHostExportUpdate(highAvailabilityUpdaters, clusterTopology.getConfiguration().getFullProperties());
+      doMultiHostExportUpdate(highAvailabilityUpdaters, clusterTopology.getConfiguration());
     }
   }
 
@@ -601,6 +594,7 @@ public class BlueprintConfigurationProcessor {
    * @return true if Oozie HA is enabled
    *         false if Oozie HA is not enabled
    */
+  //todo: pass in configuration
   static boolean isOozieServerHAEnabled(Map<String, Map<String, String>> configProperties) {
     return configProperties.containsKey("oozie-site") && configProperties.get("oozie-site").containsKey("oozie.services.ext")
       && configProperties.get("oozie-site").get("oozie.services.ext").contains("org.apache.oozie.service.ZKLocksService");
@@ -720,7 +714,11 @@ public class BlueprintConfigurationProcessor {
    * @return true if the given property should be excluded
    *         false if the given property should be included
    */
-  private static boolean shouldPropertyBeExcludedForClusterUpdate(String propertyName, String propertyValue, String propertyType, ClusterTopology topology) {
+  private static boolean shouldPropertyBeExcludedForClusterUpdate(String propertyName,
+                                                                  String propertyValue,
+                                                                  String propertyType,
+                                                                  ClusterTopology topology) {
+
     for(PropertyFilter filter : clusterUpdatePropertyFilters) {
       try {
         if (!filter.isPropertyIncluded(propertyName, propertyValue, propertyType, topology)) {
@@ -737,15 +735,14 @@ public class BlueprintConfigurationProcessor {
     return false;
   }
 
-
-
   /**
    * Update single host topology configuration properties for blueprint export.
    *
-   * @param updaters    registered updaters
+   * @param updaters       registered updaters
+   * @param configuration  configuration being processed
    */
-  private void doSingleHostExportUpdate(Map<String, Map<String, PropertyUpdater>> updaters, Map<String, Map<String, String>> properties) {
-
+  private void doSingleHostExportUpdate(Map<String, Map<String, PropertyUpdater>> updaters, Configuration configuration) {
+    Map<String, Map<String, String>> properties = configuration.getFullProperties();
     for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaters.entrySet()) {
       String type = entry.getKey();
       for (String propertyName : entry.getValue().keySet()) {
@@ -761,8 +758,8 @@ public class BlueprintConfigurationProcessor {
               //todo: need to use regular expression to avoid matching a host which is a superset.
               if (propValue.contains(host)) {
                 matchedHost = true;
-                typeProperties.put(propertyName, propValue.replace(
-                    host, "%HOSTGROUP::" + groupInfo.getHostGroupName() + "%"));
+                configuration.setProperty(type, propertyName,
+                    propValue.replace(host, "%HOSTGROUP::" + groupInfo.getHostGroupName() + "%"));
                 break;
               }
             }
@@ -780,7 +777,7 @@ public class BlueprintConfigurationProcessor {
               ! isSpecialNetworkAddress(propValue)  &&
               ! isUndefinedAddress(propValue)) {
 
-            typeProperties.remove(propertyName);
+            configuration.removeProperty(type, propertyName);
           }
         }
       }
@@ -829,9 +826,11 @@ public class BlueprintConfigurationProcessor {
   /**
    * Update multi host topology configuration properties for blueprint export.
    *
-   * @param updaters    registered updaters
+   * @param updaters       registered updaters
+   * @param configuration  configuration being processed
    */
-  private void doMultiHostExportUpdate(Map<String, Map<String, PropertyUpdater>> updaters, Map<String, Map<String, String>> properties) {
+  private void doMultiHostExportUpdate(Map<String, Map<String, PropertyUpdater>> updaters, Configuration configuration) {
+    Map<String, Map<String, String>> properties = configuration.getFullProperties();
     for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaters.entrySet()) {
       String type = entry.getKey();
       for (String propertyName : entry.getValue().keySet()) {
@@ -869,7 +868,7 @@ public class BlueprintConfigurationProcessor {
           if (inBrackets) {
             sb.append(']');
           }
-          typeProperties.put(propertyName, sb.toString());
+          configuration.setProperty(type, propertyName, sb.toString());
         }
       }
     }
@@ -1994,8 +1993,10 @@ public class BlueprintConfigurationProcessor {
 
   /**
    * Explicitly set any properties that are required but not currently provided in the stack definition.
+   *
+   * @param configuration  configuration where properties are to be added
    */
-  void setMissingConfigurations(Map<String, Map<String, String>> mapClusterConfigurations) {
+  void setMissingConfigurations(Configuration configuration) {
     // AMBARI-5206
     final Map<String , String> userProps = new HashMap<String , String>();
 
@@ -2019,18 +2020,18 @@ public class BlueprintConfigurationProcessor {
       userProps.put("falcon_user", "falcon-env");
     }
 
-
     String proxyUserHosts  = "hadoop.proxyuser.%s.hosts";
     String proxyUserGroups = "hadoop.proxyuser.%s.groups";
 
+    Map<String, Map<String, String>> existingProperties = configuration.getFullProperties();
     for (String property : userProps.keySet()) {
       String configType = userProps.get(property);
-      Map<String, String> configs = mapClusterConfigurations.get(configType);
+      Map<String, String> configs = existingProperties.get(configType);
       if (configs != null) {
         String user = configs.get(property);
         if (user != null && !user.isEmpty()) {
-          ensureProperty(mapClusterConfigurations, "core-site", String.format(proxyUserHosts, user), "*");
-          ensureProperty(mapClusterConfigurations, "core-site", String.format(proxyUserGroups, user), "users");
+          ensureProperty(configuration, "core-site", String.format(proxyUserHosts, user), "*");
+          ensureProperty(configuration, "core-site", String.format(proxyUserGroups, user), "users");
         }
       } else {
         LOG.debug("setMissingConfigurations: no user configuration found for type = " + configType +
@@ -2044,19 +2045,14 @@ public class BlueprintConfigurationProcessor {
    * Ensure that the specified property exists.
    * If not, set a default value.
    *
-   * @param type          config type
-   * @param property      property name
-   * @param defaultValue  default value
+   * @param configuration  configuration being processed
+   * @param type           config type
+   * @param property       property name
+   * @param defaultValue   default value
    */
-  private void ensureProperty(Map<String, Map<String, String>> mapClusterConfigurations, String type, String property, String defaultValue) {
-    Map<String, String> properties = mapClusterConfigurations.get(type);
-    if (properties == null) {
-      properties = new HashMap<String, String>();
-      mapClusterConfigurations.put(type, properties);
-    }
-
-    if (! properties.containsKey(property)) {
-      properties.put(property, defaultValue);
+  private void ensureProperty(Configuration configuration, String type, String property, String defaultValue) {
+    if (configuration.getPropertyValue(type, property) == null) {
+      configuration.setProperty(type, property, defaultValue);
     }
   }
 

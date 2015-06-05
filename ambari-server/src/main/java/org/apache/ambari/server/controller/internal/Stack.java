@@ -337,21 +337,27 @@ public class Stack {
   }
 
   /**
-   * Get required config properties for the specified service and configuration type.
+   * Get required config properties for the specified service which belong to the specified property type.
    *
-   * @param service  service name
-   * @param type     configuration type
+   * @param service       service name
+   * @param propertyType  property type
    *
-   * @return collection of required properties for the given service and type
+   * @return collection of required properties for the given service and property type
    */
-  //todo: change type to PropertyInfo.PropertyType
-  public Collection<ConfigProperty> getRequiredConfigurationProperties(String service, String type) {
-    Collection<ConfigProperty> requiredConfigs = new HashSet<ConfigProperty>();
-    Map<String, ConfigProperty> configProperties = requiredServiceConfigurations.get(service).get(type);
-    if (configProperties != null) {
-      requiredConfigs.addAll(configProperties.values());
+  public Collection<ConfigProperty> getRequiredConfigurationProperties(String service, PropertyInfo.PropertyType propertyType) {
+    Collection<ConfigProperty> matchingProperties = new HashSet<ConfigProperty>();
+    Map<String, Map<String, ConfigProperty>> requiredProperties = requiredServiceConfigurations.get(service);
+    if (requiredProperties != null) {
+      for (Map.Entry<String, Map<String, ConfigProperty>> typePropertiesEntry : requiredProperties.entrySet()) {
+        for (ConfigProperty configProperty : typePropertiesEntry.getValue().values()) {
+          if (configProperty.getPropertyTypes().contains(propertyType)) {
+            matchingProperties.add(configProperty);
+          }
+        }
+
+      }
     }
-    return requiredConfigs;
+    return matchingProperties;
   }
 
   public boolean isPasswordProperty(String service, String type, String propertyName) {

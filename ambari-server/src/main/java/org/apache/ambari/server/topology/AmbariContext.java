@@ -52,6 +52,7 @@ import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
+import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
@@ -76,6 +77,7 @@ public class AmbariContext {
 
   private static PersistedState persistedState = new PersistedStateImpl();
   private static AmbariManagementController controller;
+  private static ClusterController clusterController;
   //todo: task id's.  Use existing mechanism for getting next task id sequence
   private final static AtomicLong nextTaskId = new AtomicLong(10000);
 
@@ -260,11 +262,18 @@ public class AmbariContext {
     return getController().getActionManager().getNextRequestId();
   }
 
-  public synchronized AmbariManagementController getController() {
+  public synchronized static AmbariManagementController getController() {
     if (controller == null) {
       controller = AmbariServer.getController();
     }
     return controller;
+  }
+
+  public synchronized static ClusterController getClusterController() {
+    if (clusterController == null) {
+      clusterController = ClusterControllerHelper.getClusterController();
+    }
+    return clusterController;
   }
 
   public static void init(HostRoleCommandFactory factory) {
@@ -415,22 +424,23 @@ public class AmbariContext {
    * and the hosts associated with the host group are assigned to the config group.
    */
   private void createConfigGroupsAndRegisterHost(ClusterTopology topology, String groupName) {
-
-    //HostGroupEntity entity = hostGroup.getEntity();
     Map<String, Map<String, Config>> groupConfigs = new HashMap<String, Map<String, Config>>();
-
-    Stack stack = topology.getBlueprint().getHostGroup(groupName).getStack();
+    Stack stack = topology.getBlueprint().getStack();
 
     // get the host-group config with cluster creation template overrides
     Configuration topologyHostGroupConfig = topology.
         getHostGroupInfo().get(groupName).getConfiguration();
 
-    //handling backwards compatibility for group configs
-    //todo: doesn't belong here
-    convertGlobalProperties(topology, topologyHostGroupConfig.getProperties());
+    // only get user provided configuration for host group which includes only CCT/HG and BP/HG properties
+    Map<String, Map<String, String>> userProvidedGroupProperties =
+        topologyHostGroupConfig.getFullProperties(1);
 
-    // iterate over topo host group configs which were defined in CCT/HG and BP/HG only, no parent configs
-    for (Map.Entry<String, Map<String, String>> entry : topologyHostGroupConfig.getProperties().entrySet()) {
+    //todo: doesn't belong here.
+    //handling backwards compatibility for group configs
+    convertGlobalProperties(topology, userProvidedGroupProperties);
+
+    // iterate over topo host group configs which were defined in
+    for (Map.Entry<String, Map<String, String>> entry : userProvidedGroupProperties.entrySet()) {
       String type = entry.getKey();
       String service = stack.getServiceForConfigType(type);
       Config config = new ConfigImpl(type);
@@ -461,7 +471,7 @@ public class AmbariContext {
 
       // get the config group provider and create config group resource
       ConfigGroupResourceProvider configGroupProvider = (ConfigGroupResourceProvider)
-          ClusterControllerHelper.getClusterController().ensureResourceProvider(Resource.Type.ConfigGroup);
+          getClusterController().ensureResourceProvider(Resource.Type.ConfigGroup);
 
       try {
         configGroupProvider.createResources(Collections.singleton(request));

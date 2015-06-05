@@ -20,6 +20,7 @@
 package org.apache.ambari.server.topology;
 
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.state.PropertyInfo;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -44,16 +45,12 @@ public class RequiredPasswordValidator implements TopologyValidator {
    *                                  default is specified via 'default_password'
    */
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
-    String errStr = "Missing required password properties.  Specify a value for these " +
-          "properties in the cluster or host group configurations or include 'default_password' field in request. ";
-    if (topology == null) {
-      throw new InvalidTopologyException(errStr);
-    }
-    
     Map<String, Map<String, Collection<String>>> missingPasswords = validateRequiredPasswords(topology);
 
     if (! missingPasswords.isEmpty()) {
-      throw new InvalidTopologyException(errStr + missingPasswords);
+      throw new InvalidTopologyException("Missing required password properties.  Specify a value for these " +
+          "properties in the cluster or host group configurations or include 'default_password' field in request. " +
+          missingPasswords);
     }
   }
 
@@ -94,7 +91,7 @@ public class RequiredPasswordValidator implements TopologyValidator {
         if (processedServices.add(serviceName)) {
           //todo: do I need to subtract excluded configs?
           Collection<Stack.ConfigProperty> requiredProperties =
-              stack.getRequiredConfigurationProperties(serviceName, "PASSWORD");
+              stack.getRequiredConfigurationProperties(serviceName, PropertyInfo.PropertyType.PASSWORD);
 
           for (Stack.ConfigProperty property : requiredProperties) {
             String category = property.getType();
