@@ -18,7 +18,6 @@
 var App = require('app');
 
 require('mappers/alert_instances_mapper');
-var testHelpers = require('test/helpers');
 
 describe('App.alertInstanceMapper', function () {
 
@@ -29,123 +28,63 @@ describe('App.alertInstanceMapper', function () {
       {id: 4}
     ],
     json = {
-      "items" : [
+      "items": [
         {
-          "Alert" : {
-            "component_name" : "AMBARI_AGENT",
-            "host_name" : "c6401.ambari.apache.org",
-            "id" : 2,
-            "instance" : null,
-            "label" : "Ambari Agent Disk Usage",
-            "latest_timestamp" : 1415224354954,
-            "maintenance_state" : "OFF",
-            "name" : "ambari_agent_disk_usage",
-            "original_timestamp" : 1414695835400,
-            "scope" : "HOST",
-            "service_name" : "AMBARI",
-            "state" : "OK",
-            "text" : "Capacity Used: [1.26%, 6.6 GB], Capacity Total: [525.3 GB]"
+          "Alert": {
+            "component_name": "AMBARI_AGENT",
+            "host_name": "c6401.ambari.apache.org",
+            "id": 2,
+            "instance": null,
+            "label": "Ambari Agent Disk Usage",
+            "latest_timestamp": 1415224354954,
+            "maintenance_state": "OFF",
+            "name": "ambari_agent_disk_usage",
+            "original_timestamp": 1414695835400,
+            "scope": "HOST",
+            "service_name": "AMBARI",
+            "state": "OK",
+            "text": "Capacity Used: [1.26%, 6.6 GB], Capacity Total: [525.3 GB]"
           }
         },
         {
-          "Alert" : {
-            "component_name" : null,
-            "host_name" : null,
-            "id" : 3,
-            "instance" : null,
-            "label" : "Percent DataNodes Available",
-            "latest_timestamp" : 1415224362617,
-            "maintenance_state" : "OFF",
-            "name" : "datanode_process_percent",
-            "original_timestamp" : 1414695787466,
-            "scope" : "SERVICE",
-            "service_name" : "HDFS",
-            "state" : "CRITICAL",
-            "text" : "affected: [1], total: [1]"
+          "Alert": {
+            "component_name": null,
+            "host_name": null,
+            "id": 3,
+            "instance": null,
+            "label": "Percent DataNodes Available",
+            "latest_timestamp": 1415224362617,
+            "maintenance_state": "OFF",
+            "name": "datanode_process_percent",
+            "original_timestamp": 1414695787466,
+            "scope": "SERVICE",
+            "service_name": "HDFS",
+            "state": "CRITICAL",
+            "text": "affected: [1], total: [1]"
           }
         }
       ]
     };
 
-  beforeEach(function () {
+  it('load new records', function () {
+    App.alertInstanceMapper.map(json);
 
-    sinon.stub(App.alertInstanceMapper, 'deleteRecord', Em.K);
+    expect(App.AlertInstance.find().content.length).to.equal(2);
+  });
 
-    sinon.stub(App.store, 'loadMany', function (type, content) {
-      type.content = content;
+  it('delete inexistent record', function () {
+    App.alertInstanceMapper.map({
+      items: [
+        json.items[0]
+      ]
     });
 
-    App.alertInstanceMapper.model = {
-      find: function () {
-        if (arguments.length) {
-          return alertInstances.findProperty('id', arguments[0]);
-        }
-        return alertInstances;
-      }
-    };
-
+    expect(App.AlertInstance.find().content.length).to.equal(1);
   });
 
-  afterEach(function () {
+  it('model should be empty', function () {
+    App.alertInstanceMapper.map({items: []});
 
-    App.alertInstanceMapper.deleteRecord.restore();
-    App.alertInstanceMapper.model = App.AlertInstance;
-    App.store.loadMany.restore();
-
+    expect(App.AlertInstance.find().content).to.be.empty;
   });
-
-  it('should delete models', function () {
-
-    App.alertInstanceMapper.map(json);
-
-    expect(App.alertInstanceMapper.deleteRecord.called).to.be.true;
-
-  });
-
-  it('shouldn\'t delete not existing models', function () {
-
-    App.alertInstanceMapper.map(json, true);
-
-    expect(App.alertInstanceMapper.deleteRecord.called).to.be.false;
-
-  });
-
-  it('should map alert instances', function () {
-
-    var expected = [
-      {
-        "id": 2,
-        "label": "Ambari Agent Disk Usage",
-        "service_id": "AMBARI",
-        "component_name": "AMBARI_AGENT",
-        "host_id": "c6401.ambari.apache.org",
-        "scope": "HOST",
-        "original_timestamp": 1414695835400,
-        "latest_timestamp": 1415224354954,
-        "maintenance_state": "OFF",
-        "instance": null,
-        "state": "OK",
-        "text": "Capacity Used: [1.26%, 6.6 GB], Capacity Total: [525.3 GB]"
-      },
-      {
-        "id": 3,
-        "label": "Percent DataNodes Available",
-        "service_id": "HDFS",
-        "component_name": null,
-        "host_id": null,
-        "scope": "SERVICE",
-        "original_timestamp": 1414695787466,
-        "latest_timestamp": 1415224362617,
-        "maintenance_state": "OFF",
-        "instance": null,
-        "state": "CRITICAL",
-        "text": "affected: [1], total: [1]"
-      }
-    ];
-
-    App.alertInstanceMapper.map(json);
-    testHelpers.nestedExpect(expected, App.alertInstanceMapper.model.content);
-
-  });
-
 });
