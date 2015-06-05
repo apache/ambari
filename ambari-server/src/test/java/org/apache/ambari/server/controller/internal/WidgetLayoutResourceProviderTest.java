@@ -268,7 +268,7 @@ public class WidgetLayoutResourceProviderTest {
 
     resetToStrict(dao, widgetDAO);
     expect(dao.findById(1L)).andReturn(entity).anyTimes();
-    expect(dao.merge((WidgetLayoutEntity) anyObject())).andReturn(entity).anyTimes();
+    expect(dao.mergeWithFlush((WidgetLayoutEntity) anyObject())).andReturn(entity).anyTimes();
     expect(widgetDAO.merge(widgetEntity)).andReturn(widgetEntity).anyTimes();
     expect(widgetDAO.findById(2L)).andReturn(widgetEntity2).anyTimes();
     replay(dao, widgetDAO);
