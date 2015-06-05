@@ -1710,7 +1710,7 @@
               "temporal": false
             },
             "metrics/rpc/NumOpenConnections": {
-              "metric": "Hadoop:service=NameNode,name=RpcActivityForPort8020.NumOpenConnections",
+              "metric": "Hadoop:service=NameNode,name=RpcActivity.NumOpenConnections",
               "pointInTime": true,
               "temporal": false
             },
@@ -1921,12 +1921,12 @@
               "temporal": false
             },
             "metrics/rpc/RpcQueueTimeAvgTime": {
-              "metric": "Hadoop:service=NameNode,name=RpcActivityForPort8020.RpcQueueTimeAvgTime",
+              "metric": "Hadoop:service=NameNode,name=RpcActivity.RpcQueueTimeAvgTime",
               "pointInTime": true,
               "temporal": false
             },
             "metrics/rpc/RpcProcessingTimeAvgTime": {
-              "metric": "Hadoop:service=NameNode,name=RpcActivityForPort8020.RpcProcessingTimeAvgTime",
+              "metric": "Hadoop:service=NameNode,name=RpcActivity.RpcProcessingTimeAvgTime",
               "pointInTime": true,
               "temporal": false
             },
@@ -3449,7 +3449,7 @@
               "temporal": false
             },
             "metrics/rpc/RpcProcessingTime_avg_time": {
-              "metric": "Hadoop:service=NameNode,name=RpcActivityForPort8020.RpcProcessingTimeAvgTime",
+              "metric": "Hadoop:service=NameNode,name=RpcActivity.RpcProcessingTimeAvgTime",
               "pointInTime": true,
               "temporal": false
             },
@@ -3534,7 +3534,7 @@
               "temporal": false
             },
             "metrics/rpc/RpcQueueTime_avg_time": {
-              "metric": "Hadoop:service=NameNode,name=RpcActivityForPort8020.RpcQueueTimeAvgTime",
+              "metric": "Hadoop:service=NameNode,name=RpcActivity.RpcQueueTimeAvgTime",
               "pointInTime": true,
               "temporal": false
             },
@@ -3604,7 +3604,7 @@
               "temporal": false
             },
             "metrics/rpc/NumOpenConnections": {
-              "metric": "Hadoop:service=NameNode,name=RpcActivityForPort8020.NumOpenConnections",
+              "metric": "Hadoop:service=NameNode,name=RpcActivity.NumOpenConnections",
               "pointInTime": true,
               "temporal": false
             },
