@@ -324,5 +324,19 @@ App.QuickLinks.FIXTURES = [
     regex: '^(\\d+)$',
     default_http_port: 50095,
     default_https_port: 50095
+  },
+  {
+    id:36,
+    label:'Atlas Dashboard',
+    url:'%@://%@:%@/',
+    service_id: 'ATLAS',
+    template:'%@://%@:%@/',
+    http_config: 'metadata_port',
+    https_config: 'metadata_port',
+    site: 'metadata-env',
+    regex: '^(\\d+)$',
+    default_http_port: 21000,
+    default_https_port: 21443
   }
+
 ];
