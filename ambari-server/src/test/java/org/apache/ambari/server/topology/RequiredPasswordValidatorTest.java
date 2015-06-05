@@ -19,6 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -143,9 +144,9 @@ public class RequiredPasswordValidatorTest {
     expect(stack.getServiceForComponent("component3")).andReturn("service2").anyTimes();
     expect(stack.getServiceForComponent("component4")).andReturn("service3").anyTimes();
 
-    expect(stack.getRequiredConfigurationProperties("service1", "PASSWORD")).andReturn(service1RequiredPwdConfigs).anyTimes();
-    expect(stack.getRequiredConfigurationProperties("service2", "PASSWORD")).andReturn(service2RequiredPwdConfigs).anyTimes();
-    expect(stack.getRequiredConfigurationProperties("service3", "PASSWORD")).andReturn(service3RequiredPwdConfigs).anyTimes();
+    expect(stack.getRequiredConfigurationProperties("service1", PropertyInfo.PropertyType.PASSWORD)).andReturn(service1RequiredPwdConfigs).anyTimes();
+    expect(stack.getRequiredConfigurationProperties("service2", PropertyInfo.PropertyType.PASSWORD)).andReturn(service2RequiredPwdConfigs).anyTimes();
+    expect(stack.getRequiredConfigurationProperties("service3", PropertyInfo.PropertyType.PASSWORD)).andReturn(service3RequiredPwdConfigs).anyTimes();
 
     replay(topology, blueprint, stack, group1, group2);
   }

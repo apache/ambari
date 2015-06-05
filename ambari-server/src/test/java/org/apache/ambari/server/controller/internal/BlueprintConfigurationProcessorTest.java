@@ -67,7 +67,6 @@ public class BlueprintConfigurationProcessorTest {
   private final Map<String, Collection<String>> serviceComponents = new HashMap<String, Collection<String>>();
 
   private final Blueprint bp = createNiceMock(Blueprint.class);
-  //private final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
   private final ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
   private final Stack stack = createNiceMock(Stack.class);
   private final AmbariContext ambariConext = createNiceMock(AmbariContext.class);
@@ -114,6 +113,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<String> hiveComponents = new HashSet<String>();
     hiveComponents.add("MYSQL_SERVER");
     hiveComponents.add("HIVE_METASTORE");
+    hiveComponents.add("HIVE_SERVER");
     serviceComponents.put("HIVE", hiveComponents);
 
     Collection<String> falconComponents = new HashSet<String>();
@@ -138,6 +138,10 @@ public class BlueprintConfigurationProcessorTest {
     oozieComponents.add("OOZIE_SERVER");
     oozieComponents.add("OOZIE_CLIENT");
     serviceComponents.put("OOZIE", oozieComponents);
+
+    Collection<String> hbaseComponents = new HashSet<String>();
+    hbaseComponents.add("HBASE_MASTER");
+    serviceComponents.put("HBASE", hbaseComponents);
 
     for (Map.Entry<String, Collection<String>> entry : serviceComponents.entrySet()) {
       String service = entry.getKey();
@@ -185,6 +189,95 @@ public class BlueprintConfigurationProcessorTest {
 
     String updatedVal = properties.get("yarn-site").get("yarn.resourcemanager.hostname");
     assertEquals("%HOSTGROUP::group1%", updatedVal);
+  }
+
+  @Test
+  public void testDoUpdateForBlueprintExport_SingleHostProperty_specifiedInParentConfig() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> yarnSiteProps = new HashMap<String, String>();
+    yarnSiteProps.put("yarn.resourcemanager.hostname", "testhost");
+    properties.put("yarn-site", yarnSiteProps);
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Map<String, String> parentYarnSiteProps = new HashMap<String, String>();
+    parentYarnSiteProps.put("yarn.resourcemanager.resource-tracker.address", "testhost");
+    parentProperties.put("yarn-site", parentYarnSiteProps);
+
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Configuration clusterConfig = new Configuration(properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("RESOURCEMANAGER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton("testhost2"));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    configProcessor.doUpdateForBlueprintExport();
+
+    assertEquals("%HOSTGROUP::group1%", clusterConfig.getPropertyValue("yarn-site", "yarn.resourcemanager.hostname"));
+    assertEquals("%HOSTGROUP::group1%", clusterConfig.getPropertyValue("yarn-site", "yarn.resourcemanager.resource-tracker.address"));
+  }
+
+  @Test
+  public void testDoUpdateForBlueprintExport_SingleHostProperty_hostGroupConfiguration() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put("yarn.resourcemanager.hostname", "testhost");
+    properties.put("yarn-site", typeProps);
+
+    Configuration clusterConfig = new Configuration(properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("RESOURCEMANAGER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+
+    Map<String, Map<String, String>> group2Properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> group2YarnSiteProps = new HashMap<String, String>();
+    group2YarnSiteProps.put("yarn.resourcemanager.resource-tracker.address", "testhost");
+    group2Properties.put("yarn-site", group2YarnSiteProps);
+    // host group config -> BP config -> cluster scoped config
+    Configuration group2BPConfiguration = new Configuration(Collections.<String, Map<String, String>>emptyMap(),
+        Collections.<String, Map<String, Map<String, String>>>emptyMap(), clusterConfig);
+
+    Configuration group2Configuration = new Configuration(group2Properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap(), group2BPConfiguration);
+
+    // set config on hostgroup
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2,
+        Collections.singleton("testhost2"), group2Configuration);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    configProcessor.doUpdateForBlueprintExport();
+
+    assertEquals("%HOSTGROUP::group1%", properties.get("yarn-site").get("yarn.resourcemanager.hostname"));
+    assertEquals("%HOSTGROUP::group1%",
+        group2Configuration.getPropertyValue("yarn-site", "yarn.resourcemanager.resource-tracker.address"));
   }
 
   @Test
@@ -501,14 +594,14 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForBlueprintExport();
 
 
-    assertEquals("Exported properties map was not of the expected size",
-                 1,typeProps.size());
-    assertEquals("ranger-yarn-plugin-properties config type was not properly exported",
-                 1, properties.get("ranger-yarn-plugin-properties").size());
+    assertEquals("Exported properties map was not of the expected size", 1,
+        properties.get("custom-test-properties").size());
+    assertEquals("ranger-yarn-plugin-properties config type was not properly exported", 1,
+        properties.get("ranger-yarn-plugin-properties").size());
 
     // verify that the following password properties matching the "*_PASSWORD" rule have been excluded
     assertFalse("Password property should have been excluded",
-                properties.get("ranger-yarn-plugin-properties").containsKey("REPOSITORY_CONFIG_PASSWORD"));
+        properties.get("ranger-yarn-plugin-properties").containsKey("REPOSITORY_CONFIG_PASSWORD"));
     assertFalse("Password property should have been excluded",
                 properties.get("ranger-yarn-plugin-properties").containsKey("SSL_KEYSTORE_PASSWORD"));
     assertFalse("Password property should have been excluded",
@@ -1571,6 +1664,146 @@ public class BlueprintConfigurationProcessorTest {
     updater.doUpdateForClusterCreate();
     String updatedVal = properties.get("yarn-site").get("yarn.resourcemanager.hostname");
     assertEquals("testhost", updatedVal);
+  }
+
+  @Test
+  public void testDoUpdateForClusterCreate_SingleHostProperty__defaultValue_providedInParent() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> yarnSiteProps = new HashMap<String, String>();
+    yarnSiteProps.put("yarn.resourcemanager.hostname", "localhost");
+    properties.put("yarn-site", yarnSiteProps);
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Map<String, String> parentYarnSiteProps = new HashMap<String, String>();
+    parentYarnSiteProps.put("yarn.resourcemanager.resource-tracker.address", "localhost");
+    parentProperties.put("yarn-site", parentYarnSiteProps);
+
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Configuration clusterConfig = new Configuration(properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    Collection<String> group1Components = new HashSet<String>();
+    group1Components.add("NAMENODE");
+    group1Components.add("SECONDARY_NAMENODE");
+    group1Components.add("RESOURCEMANAGER");
+    TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"));
+
+    Collection<String> group2Components = new HashSet<String>();
+    group2Components.add("DATANODE");
+    group2Components.add("HDFS_CLIENT");
+    TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+
+    assertEquals("testhost", clusterConfig.getPropertyValue("yarn-site", "yarn.resourcemanager.hostname"));
+    assertEquals("testhost", clusterConfig.getPropertyValue("yarn-site", "yarn.resourcemanager.resource-tracker.address"));
+  }
+
+  @Test
+  public void testDoUpdateForClusterCreate_SingleHostProperty__defaultValue_hostGroupConfig() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> yarnSiteProps = new HashMap<String, String>();
+    yarnSiteProps.put("yarn.resourcemanager.hostname", "localhost");
+    properties.put("yarn-site", yarnSiteProps);
+
+    Configuration clusterConfig = new Configuration(properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> group1Components = new HashSet<String>();
+    group1Components.add("NAMENODE");
+    group1Components.add("SECONDARY_NAMENODE");
+    group1Components.add("RESOURCEMANAGER");
+    TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"));
+
+    Collection<String> group2Components = new HashSet<String>();
+    group2Components.add("DATANODE");
+    group2Components.add("HDFS_CLIENT");
+
+    Map<String, Map<String, String>> group2Properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> group2YarnSiteProperties = new HashMap<String, String>();
+    group2YarnSiteProperties.put("yarn.resourcemanager.resource-tracker.address", "localhost");
+    group2Properties.put("yarn-site", group2YarnSiteProperties);
+    // group 2 host group configuration
+    // HG config -> BP HG config -> cluster scoped config
+    Configuration group2BPConfig = new Configuration(Collections.<String, Map<String, String>>emptyMap(),
+        Collections.<String, Map<String, Map<String, String>>>emptyMap(), clusterConfig);
+
+    Configuration group2Config = new Configuration(group2Properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap(), group2BPConfig);
+    // set config on HG
+    TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"), group2Config);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+
+    assertEquals("testhost", clusterConfig.getPropertyValue("yarn-site", "yarn.resourcemanager.hostname"));
+    assertEquals("testhost", group2Config.getProperties().get("yarn-site").get("yarn.resourcemanager.resource-tracker.address"));
+  }
+
+  @Test
+  public void testDoUpdateForClusterCreate_SingleHostProperty__defaultValue_BPHostGroupConfig() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> yarnSiteProps = new HashMap<String, String>();
+    yarnSiteProps.put("yarn.resourcemanager.hostname", "localhost");
+    properties.put("yarn-site", yarnSiteProps);
+
+    Configuration clusterConfig = new Configuration(properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> group1Components = new HashSet<String>();
+    group1Components.add("NAMENODE");
+    group1Components.add("SECONDARY_NAMENODE");
+    group1Components.add("RESOURCEMANAGER");
+    TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"));
+
+    Collection<String> group2Components = new HashSet<String>();
+    group2Components.add("DATANODE");
+    group2Components.add("HDFS_CLIENT");
+
+    Map<String, Map<String, String>> group2BPProperties = new HashMap<String, Map<String, String>>();
+    Map<String, String> group2YarnSiteProperties = new HashMap<String, String>();
+    group2YarnSiteProperties.put("yarn.resourcemanager.resource-tracker.address", "localhost");
+    group2BPProperties.put("yarn-site", group2YarnSiteProperties);
+    // group 2 host group configuration
+    // HG config -> BP HG config -> cluster scoped config
+    Configuration group2BPConfig = new Configuration(group2BPProperties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap(), clusterConfig);
+
+    // can't set parent here because it is reset in cluster topology
+    Configuration group2Config = new Configuration(new HashMap<String, Map<String, String>>(),
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    // set config on HG
+    TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"), group2Config);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    // todo: set as BP hostgroup
+    topology.getHostGroupInfo().get("group2").getConfiguration().setParentConfiguration(group2BPConfig);
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+
+    assertEquals("testhost", clusterConfig.getPropertyValue("yarn-site", "yarn.resourcemanager.hostname"));
+    assertEquals("testhost", group2Config.getProperties().get("yarn-site").get("yarn.resourcemanager.resource-tracker.address"));
   }
 
   @Test
@@ -3507,7 +3740,7 @@ public class BlueprintConfigurationProcessorTest {
 
     // customized stack calls for this test only
     // simulate the case of the stack object throwing a RuntimeException, to indicate a config error
-    expect(stack.getServiceForConfigType("hive-site")).andThrow(new RuntimeException("unexpected error!!"));
+    expect(stack.getServiceForConfigType("hive-site")).andThrow(new RuntimeException("Expected Test Error")).atLeastOnce();
     expect(stack.getConfigurationPropertiesWithMetadata("HIVE", "hive-site")).andReturn(mapOfMetadata).atLeastOnce();
 
     Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
@@ -3605,9 +3838,9 @@ public class BlueprintConfigurationProcessorTest {
     updater.doUpdateForClusterCreate();
 
     assertTrue("hive.server2.authentication.kerberos.keytab should have been included in configuration",
-      hiveSiteProperties.containsKey("hive.server2.authentication.kerberos.keytab"));
+        hiveSiteProperties.containsKey("hive.server2.authentication.kerberos.keytab"));
     assertTrue("hive.server2.authentication.kerberos.principal should have been included in configuration",
-      hiveSiteProperties.containsKey("hive.server2.authentication.kerberos.principal"));
+        hiveSiteProperties.containsKey("hive.server2.authentication.kerberos.principal"));
   }
 
   @Test
@@ -3669,7 +3902,7 @@ public class BlueprintConfigurationProcessorTest {
     updater.doUpdateForClusterCreate();
 
     assertFalse("hbase.coprocessor.regionserver.classes should have been filtered out of configuration",
-      hbaseSiteProperties.containsKey("hbase.coprocessor.regionserver.classes"));
+        hbaseSiteProperties.containsKey("hbase.coprocessor.regionserver.classes"));
 
   }
 
@@ -3732,7 +3965,7 @@ public class BlueprintConfigurationProcessorTest {
     updater.doUpdateForClusterCreate();
 
     assertTrue("hbase.coprocessor.regionserver.classes should have been included in configuration",
-      hbaseSiteProperties.containsKey("hbase.coprocessor.regionserver.classes"));
+        hbaseSiteProperties.containsKey("hbase.coprocessor.regionserver.classes"));
 
   }
 
@@ -4449,6 +4682,188 @@ public class BlueprintConfigurationProcessorTest {
     assertTrue(requiredGroups.containsAll(Arrays.asList("group1", "group2")));
   }
 
+  @Test
+  public void testAllDefaultUserAndGroupProxyPropertiesSet() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> oozieEnvProperties = new HashMap<String, String>();
+    Map<String, String> hiveEnvProperties = new HashMap<String, String>();
+    Map<String, String> hbaseEnvProperties = new HashMap<String, String>();
+    Map<String, String> falconEnvProperties = new HashMap<String, String>();
+
+    properties.put("oozie-env", oozieEnvProperties);
+    properties.put("hive-env", hiveEnvProperties);
+    properties.put("hbase-env", hbaseEnvProperties);
+    properties.put("falcon-env", falconEnvProperties);
+
+    oozieEnvProperties.put("oozie_user", "test-oozie-user");
+
+    hiveEnvProperties.put("hive_user", "test-hive-user");
+    hiveEnvProperties.put("hcat_user", "test-hcat-user");
+
+    hbaseEnvProperties.put("hbase_user", "test-hbase-user");
+
+    falconEnvProperties.put("falcon_user", "test-falcon-user");
+
+    Configuration clusterConfig = new Configuration(properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("OOZIE_SERVER");
+    hgComponents1.add("HIVE_SERVER");
+    hgComponents1.add("HBASE_MASTER");
+    hgComponents1.add("FALCON_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-oozie-user.hosts"));
+    assertEquals("users", properties.get("core-site").get("hadoop.proxyuser.test-oozie-user.groups"));
+
+    assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-hive-user.hosts"));
+    assertEquals("users", properties.get("core-site").get("hadoop.proxyuser.test-hive-user.groups"));
+
+    assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-hcat-user.hosts"));
+    assertEquals("users", properties.get("core-site").get("hadoop.proxyuser.test-hcat-user.groups"));
+
+    assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-hbase-user.hosts"));
+    assertEquals("users", properties.get("core-site").get("hadoop.proxyuser.test-hbase-user.groups"));
+
+    assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-falcon-user.hosts"));
+    assertEquals("users", properties.get("core-site").get("hadoop.proxyuser.test-falcon-user.groups"));
+  }
+
+  @Test
+  public void testRelevantDefaultUserAndGroupProxyPropertiesSet() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> oozieEnvProperties = new HashMap<String, String>();
+    Map<String, String> falconEnvProperties = new HashMap<String, String>();
+
+    properties.put("oozie-env", oozieEnvProperties);
+    properties.put("falcon-env", falconEnvProperties);
+
+    oozieEnvProperties.put("oozie_user", "test-oozie-user");
+
+    falconEnvProperties.put("falcon_user", "test-falcon-user");
+
+    Configuration clusterConfig = new Configuration(properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("OOZIE_SERVER");
+    hgComponents1.add("FALCON_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    Map<String, String> coreSiteProperties = properties.get("core-site");
+    assertEquals(4, coreSiteProperties.size());
+
+    assertEquals("*", coreSiteProperties.get("hadoop.proxyuser.test-oozie-user.hosts"));
+    assertEquals("users", coreSiteProperties.get("hadoop.proxyuser.test-oozie-user.groups"));
+
+    assertEquals("*", coreSiteProperties.get("hadoop.proxyuser.test-falcon-user.hosts"));
+    assertEquals("users", coreSiteProperties.get("hadoop.proxyuser.test-falcon-user.groups"));
+  }
+
+  @Test
+  public void testDefaultUserAndGroupProxyPropertiesSetWhenNotProvided() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> coreSiteProperties = new HashMap<String, String>();
+    Map<String, String> oozieEnvProperties = new HashMap<String, String>();
+    Map<String, String> falconEnvProperties = new HashMap<String, String>();
+
+    properties.put("core-site", coreSiteProperties);
+    properties.put("oozie-env", oozieEnvProperties);
+    properties.put("falcon-env", falconEnvProperties);
+
+    coreSiteProperties.put("hadoop.proxyuser.test-oozie-user.hosts", "testOozieHostsVal");
+    coreSiteProperties.put("hadoop.proxyuser.test-oozie-user.groups", "testOozieGroupsVal");
+
+    oozieEnvProperties.put("oozie_user", "test-oozie-user");
+
+    falconEnvProperties.put("falcon_user", "test-falcon-user");
+
+    Configuration clusterConfig = new Configuration(properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("OOZIE_SERVER");
+    hgComponents1.add("FALCON_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    assertEquals(4, coreSiteProperties.size());
+
+    assertEquals("testOozieHostsVal", coreSiteProperties.get("hadoop.proxyuser.test-oozie-user.hosts"));
+    assertEquals("testOozieGroupsVal", coreSiteProperties.get("hadoop.proxyuser.test-oozie-user.groups"));
+
+    assertEquals("*", coreSiteProperties.get("hadoop.proxyuser.test-falcon-user.hosts"));
+    assertEquals("users", coreSiteProperties.get("hadoop.proxyuser.test-falcon-user.groups"));
+  }
+
+  @Test
+  public void testDefaultUserAndGroupProxyPropertiesSetWhenNotProvided2() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> falconEnvProperties = new HashMap<String, String>();
+    properties.put("falcon-env", falconEnvProperties);
+    falconEnvProperties.put("falcon_user", "test-falcon-user");
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Map<String, String> oozieEnvProperties = new HashMap<String, String>();
+    parentProperties.put("oozie-env", oozieEnvProperties);
+    oozieEnvProperties.put("oozie_user", "test-oozie-user");
+    Map<String, String> coreSiteProperties = new HashMap<String, String>();
+    parentProperties.put("core-site", coreSiteProperties);
+    coreSiteProperties.put("hadoop.proxyuser.test-oozie-user.hosts", "testOozieHostsVal");
+
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Configuration clusterConfig = new Configuration(properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("OOZIE_SERVER");
+    hgComponents1.add("FALCON_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    Map<String, String> leafConfigCoreSiteProps = properties.get("core-site");
+    // because "hadoop.proxyuser.test-oozie-user.hosts" is provided in the parent config, it shouldn't be added
+    assertEquals(3, leafConfigCoreSiteProps.size());
+
+    // ensure that explicitly set value is unchanged
+    assertEquals("testOozieHostsVal", clusterConfig.getPropertyValue("core-site", "hadoop.proxyuser.test-oozie-user.hosts"));
+
+    assertEquals("users", leafConfigCoreSiteProps.get("hadoop.proxyuser.test-oozie-user.groups"));
+
+    assertEquals("*", leafConfigCoreSiteProps.get("hadoop.proxyuser.test-falcon-user.hosts"));
+    assertEquals("users", leafConfigCoreSiteProps.get("hadoop.proxyuser.test-falcon-user.groups"));
+  }
+
+
   private static String createExportedAddress(String expectedPortNum, String expectedHostGroupName) {
     return createExportedHostName(expectedHostGroupName, expectedPortNum);
   }
@@ -4481,7 +4896,7 @@ public class BlueprintConfigurationProcessorTest {
       HostGroupInfo groupInfo = new HostGroupInfo(hostGroup.name);
       groupInfo.addHosts(hostGroup.hosts);
       //todo: HG configs
-      groupInfo.setConfiguration(EMPTY_CONFIG);
+      groupInfo.setConfiguration(hostGroup.configuration);
 
       //create host group which is set on topology
       allHostGroups.put(hostGroup.name, new HostGroupImpl(hostGroup.name, "test-bp", stack,
@@ -4515,11 +4930,21 @@ public class BlueprintConfigurationProcessorTest {
     private String name;
     private Collection<String> components;
     private Collection<String> hosts;
+    private Configuration configuration;
 
     public TestHostGroup(String name, Collection<String> components, Collection<String> hosts) {
       this.name = name;
       this.components = components;
       this.hosts = hosts;
+      this.configuration = new Configuration(Collections.<String, Map<String, String>>emptyMap(),
+          Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    }
+
+    public TestHostGroup(String name, Collection<String> components, Collection<String> hosts, Configuration configuration) {
+      this.name = name;
+      this.components = components;
+      this.hosts = hosts;
+      this.configuration = configuration;
     }
   }
 
