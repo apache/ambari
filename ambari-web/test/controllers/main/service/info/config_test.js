@@ -946,10 +946,10 @@ describe("App.MainServiceInfoConfigsController", function () {
       mainServiceInfoConfigsController.getMockComparisonConfig.restore();
       mainServiceInfoConfigsController.hasCompareDiffs.restore();
     });
-    it("expect that setCompareDefaultGroupConfig will not run anything", function() {
+    it("empty service config passed, expect that setCompareDefaultGroupConfig will not run anything", function() {
       expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({}).compareConfigs.length).to.equal(0);
     });
-    it("expect that setCompareDefaultGroupConfig will not run anything", function() {
+    it("empty service config and comparison passed, expect that setCompareDefaultGroupConfig will not run anything", function() {
       expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({},{}).compareConfigs.length).to.equal(0);
     });
     it("expect that serviceConfig.compareConfigs will be getMockComparisonConfig", function() {
@@ -964,7 +964,12 @@ describe("App.MainServiceInfoConfigsController", function () {
     it("expect that serviceConfig.compareConfigs will be getComparisonConfig", function() {
       expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({isReconfigurable: true, isMock: true}, {})).to.eql({compareConfigs: ["compConfig"], isReconfigurable: true, isMock: true, isComparison: true, hasCompareDiffs: true});
     });
-
+    it("property was created during upgrade and have no comparison, compare with 'Undefined' value should be created", function() {
+      expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({name: 'prop1', isUserProperty: false}, null)).to.eql({
+        name: 'prop1', isUserProperty: false, compareConfigs: ["mockConfig"],
+        isComparison: true, hasCompareDiffs: true
+      });
+    });
   });
 
   describe('#showSaveConfigsPopup', function () {

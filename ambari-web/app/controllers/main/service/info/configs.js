@@ -677,6 +677,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   setCompareDefaultGroupConfig: function (serviceConfig, compareConfig) {
     var compareObject = {};
+    var isEmptyProp = App.isEmptyObject(serviceConfig);
 
     serviceConfig.compareConfigs = [];
     serviceConfig.isComparison = true;
@@ -686,7 +687,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       compareObject = this.getComparisonConfig(serviceConfig, compareConfig);
       serviceConfig.hasCompareDiffs = serviceConfig.isMock || this.hasCompareDiffs(serviceConfig, compareObject);
       serviceConfig.compareConfigs.push(compareObject);
-    } else if (serviceConfig.isUserProperty) {
+    // user custom property or property that was added during upgrade
+    } else if (serviceConfig.isUserProperty || (!isEmptyProp && !compareConfig && Em.get(serviceConfig, 'isRequiredByAgent') !== false)) {
       serviceConfig.compareConfigs.push(this.getMockComparisonConfig(serviceConfig, this.get('compareServiceVersion.version')));
       serviceConfig.hasCompareDiffs = true;
     }
