@@ -18,12 +18,29 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
+import static junit.framework.Assert.assertEquals;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -54,27 +71,13 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import javax.persistence.EntityManager;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import static junit.framework.Assert.assertEquals;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
+
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog210} unit tests.
@@ -110,17 +113,18 @@ public class UpgradeCatalog210Test {
   @Test
   public void testExecuteDDLUpdates() throws Exception {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
-    Connection connection = createNiceMock(Connection.class);
     Configuration configuration = createNiceMock(Configuration.class);
     ResultSet resultSet = createNiceMock(ResultSet.class);
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
     // Create DDL sections with their own capture groups
+    AlertSectionDDL alertSectionDDL = new AlertSectionDDL();
     HostSectionDDL hostSectionDDL = new HostSectionDDL();
     WidgetSectionDDL widgetSectionDDL = new WidgetSectionDDL();
     ViewSectionDDL viewSectionDDL = new ViewSectionDDL();
 
     // Execute any DDL schema changes
+    alertSectionDDL.execute(dbAccessor);
     hostSectionDDL.execute(dbAccessor);
     widgetSectionDDL.execute(dbAccessor);
     viewSectionDDL.execute(dbAccessor);
@@ -138,6 +142,7 @@ public class UpgradeCatalog210Test {
     verify(dbAccessor, configuration, resultSet);
 
     // Verify sections
+    alertSectionDDL.verify(dbAccessor);
     hostSectionDDL.verify(dbAccessor);
     widgetSectionDDL.verify(dbAccessor);
     viewSectionDDL.verify(dbAccessor);
@@ -535,6 +540,57 @@ public class UpgradeCatalog210Test {
       DBColumnInfo clusterConfigColumn = viewParamColumnCapture.getValue();
       Assert.assertEquals(String.class, clusterConfigColumn.getType());
       Assert.assertEquals("cluster_config", clusterConfigColumn.getName());
+    }
+  }
+
+  /**
+   * Verify view changes
+   */
+  class AlertSectionDDL implements SectionDDL {
+
+    HashMap<String, Capture<DBColumnInfo>> captures;
+
+    public AlertSectionDDL() {
+      captures = new HashMap<String, Capture<DBColumnInfo>>();
+
+      Capture<DBAccessor.DBColumnInfo> alertCurrentColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> alertHistoryColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+
+      captures.put("alert_current", alertCurrentColumnCapture);
+      captures.put("alert_history", alertHistoryColumnCapture);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void execute(DBAccessor dbAccessor) throws SQLException {
+      Capture<DBColumnInfo> alertCurrentColumnCapture = captures.get("alert_current");
+      Capture<DBColumnInfo> alertHistoryColumnCapture = captures.get("alert_history");
+
+      dbAccessor.alterColumn(eq("alert_current"), capture(alertCurrentColumnCapture));
+      dbAccessor.alterColumn(eq("alert_history"), capture(alertHistoryColumnCapture));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void verify(DBAccessor dbAccessor) throws SQLException {
+      verifyAlertCurrent(captures.get("alert_current"));
+      verifyAlertHistory(captures.get("alert_history"));
+    }
+
+    private void verifyAlertCurrent(Capture<DBAccessor.DBColumnInfo> alertCurrentColumnCapture) {
+      DBColumnInfo latestTextColumn = alertCurrentColumnCapture.getValue();
+      Assert.assertEquals(Character[].class, latestTextColumn.getType());
+      Assert.assertEquals("latest_text", latestTextColumn.getName());
+    }
+
+    private void verifyAlertHistory(Capture<DBAccessor.DBColumnInfo> alertHistoryColumnCapture) {
+      DBColumnInfo alertTextColumn = alertHistoryColumnCapture.getValue();
+      Assert.assertEquals(Character[].class, alertTextColumn.getType());
+      Assert.assertEquals("alert_text", alertTextColumn.getName());
     }
   }
 }
