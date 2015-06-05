@@ -428,6 +428,7 @@ App.config = Em.Object.create({
       if (typeof(serviceConfigObj.get('value')) == 'string') {
         var value = serviceConfigObj.get('value').replace(/\[|]|'|&apos;/g, "").split(',');
         serviceConfigObj.set('value', value);
+        serviceConfigObj.set('savedValue', value);
       }
     }
   },
