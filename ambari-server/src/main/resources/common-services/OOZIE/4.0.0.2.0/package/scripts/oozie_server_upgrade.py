@@ -30,6 +30,7 @@ from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import compare_versions
 from resource_management.libraries.functions import format_hdp_stack_version
+from resource_management.libraries.functions import tar_archive
 from resource_management.core.resources import File
 from resource_management.core.source import DownloadSource
 
@@ -59,13 +60,8 @@ def backup_configuration():
     if os.path.exists(archive):
       os.remove(archive)
 
-    tarball = None
-    try:
-      tarball = tarfile.open(archive, "w")
-      tarball.add(directory, arcname=os.path.basename(directory))
-    finally:
-      if tarball:
-        tarball.close()
+    # backup the directory, following symlinks instead of including them
+    tar_archive.archive_directory_dereference(archive, directory)
 
 
 def restore_configuration():
