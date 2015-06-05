@@ -117,6 +117,18 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     return App.get('apiPrefix') + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=ClusterStackVersions/*';
   }.property('App.clusterName'),
 
+  /**
+   * Determines if list of services with checks that failed and were skipped by user during the upgrade is loaded
+   * @type {boolean}
+   */
+  areSkippedServiceChecksLoaded: false,
+
+  /**
+   * List of services with checks that failed and were skipped by user during the upgrade
+   * @type {array}
+   */
+  skippedServiceChecks: [],
+
   init: function () {
     this.initDBProperties();
   },

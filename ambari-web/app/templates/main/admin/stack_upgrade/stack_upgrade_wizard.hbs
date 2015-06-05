@@ -93,11 +93,11 @@
                 <p>{{t admin.stackUpgrade.finalize.message.upgrade}}</p>
               {{/if}}
 
-              {{#if view.areSkippedServiceChecksLoaded}}
-                {{#if view.skippedServiceChecks.length}}
+              {{#if areSkippedServiceChecksLoaded}}
+                {{#if skippedServiceChecks.length}}
                   <div>{{t admin.stackUpgrade.finalize.message.skippedServiceChecks}}</div>
                   <ul>
-                    {{#each serviceName in view.skippedServiceChecks}}
+                    {{#each serviceName in skippedServiceChecks}}
                       <li>{{serviceName}}</li>
                     {{/each}}
                   </ul>
