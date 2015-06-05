@@ -275,7 +275,9 @@ App.TotalCapacityComponent = Ember.Component.extend({
      * Returns true if total capacity of node labels in leaf are greater than 100.
      * @type {Boolean}
      */
-    warning:Em.computed.gt('capacityValue',100),
+    warning:Em.computed('capacityValue',function() {
+      return this.get('capacityValue') != 100;
+    }),
 
     // OBSERVABLES
 

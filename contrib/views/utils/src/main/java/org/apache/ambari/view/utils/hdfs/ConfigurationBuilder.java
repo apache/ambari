@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 
 /**
  * Builds the Configuration of HDFS based on ViewContext.
@@ -63,6 +64,8 @@ public class ConfigurationBuilder {
   private Configuration conf = new Configuration();
   private ViewContext context;
   private AmbariApi ambariApi = null;
+  private AuthConfigurationBuilder authParamsBuilder;
+  private Map<String, String> authParams;
 
   /**
    * Constructor of ConfigurationBuilder based on ViewContext
@@ -70,7 +73,8 @@ public class ConfigurationBuilder {
    */
   public ConfigurationBuilder(ViewContext context) {
     this.context = context;
-    ambariApi = new AmbariApi(context);
+    this.ambariApi = new AmbariApi(context);
+    this.authParamsBuilder = new AuthConfigurationBuilder(context);
   }
 
   private void parseProperties() throws HdfsApiException {
@@ -181,17 +185,41 @@ public class ConfigurationBuilder {
   }
 
   /**
+   * Set properties relevant to authentication parameters to HDFS Configuration
+   * @param authParams list of auth params of View
+   */
+  public void setAuthParams(Map<String, String> authParams) {
+    String auth = authParams.get("auth");
+    if (auth != null) {
+      conf.set("hadoop.security.authentication", auth);
+    }
+  }
+
+  /**
    * Build the HDFS configuration
    * @return configured HDFS Configuration object
    * @throws HdfsApiException if configuration parsing failed
    */
-  public Configuration build() throws HdfsApiException {
+  public Configuration buildConfig() throws HdfsApiException {
     parseProperties();
+    setAuthParams(buildAuthenticationConfig());
 
     conf.set("fs.hdfs.impl", DistributedFileSystem.class.getName());
     conf.set("fs.webhdfs.impl", WebHdfsFileSystem.class.getName());
     conf.set("fs.file.impl", LocalFileSystem.class.getName());
 
     return conf;
+  }
+
+  /**
+   * Builds the authentication configuration
+   * @return map of HDFS auth params for view
+   * @throws HdfsApiException
+   */
+  public Map<String, String> buildAuthenticationConfig() throws HdfsApiException {
+    if (authParams == null) {
+      authParams = authParamsBuilder.build();
+    }
+    return authParams;
   }
 }

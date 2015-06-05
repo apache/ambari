@@ -119,8 +119,11 @@ public class HdfsUtil {
     ConfigurationBuilder configurationBuilder = new ConfigurationBuilder(context);
     AuthConfigurationBuilder authConfigurationBuilder = new AuthConfigurationBuilder(context);
 
+    Map<String, String> authParams = authConfigurationBuilder.build();
+    configurationBuilder.setAuthParams(authParams);
+
     try {
-      api = new HdfsApi(configurationBuilder, getHdfsUsername(context), authConfigurationBuilder);
+      api = new HdfsApi(configurationBuilder, getHdfsUsername(context));
       LOG.info("HdfsApi connected OK");
     } catch (IOException e) {
       String message = "HDFS040 Couldn't open connection to HDFS";

@@ -65,7 +65,11 @@
           <div class="queue-capacity">
             {{#if label.isNotExist}}
               <span {{bind-attr class=":label label.overCapacity:label-danger:label-warning"}}>{{label.name}}</span>
-              <small>Label is not exist on cluster</small>
+              {{#if label.store.isRmOffline}}
+                <small>Unable to obtain information  about node label from the resource manager</small>
+              {{else}}
+                <small>Label is not exist on cluster</small>
+              {{/if}}
             {{else}}
               <span {{bind-attr class=":label label.overCapacity:label-danger:label-success"}}>{{label.name}}</span>
               <span {{bind-attr class=":label :label-default label.isDefault::hide"}}>default</span>

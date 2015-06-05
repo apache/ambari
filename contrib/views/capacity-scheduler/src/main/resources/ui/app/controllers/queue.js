@@ -142,7 +142,7 @@ App.QueueController = Ember.ObjectController.extend({
    * @return {App.Queue}
    */
   parentQueue: function () {
-    return this.store.getById('queue',this.get('content.parentPath'));
+    return this.store.getById('queue',this.get('content.parentPath').toLowerCase());
   }.property('content.parentPath'),
 
   /**

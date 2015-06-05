@@ -18,7 +18,6 @@
 
 package org.apache.ambari.view.utils.ambari;
 
-import org.apache.ambari.view.AmbariStreamProvider;
 import org.apache.ambari.view.URLStreamProvider;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.cluster.Cluster;
@@ -47,6 +46,8 @@ public class AmbariApi {
 
   private Cluster cluster;
   private ViewContext context;
+  private Services services;
+
   private String remoteUrlCluster;
   private String remoteUsername;
   private String remotePassword;
@@ -284,5 +285,16 @@ public class AmbariApi {
     }
     urlStreamProviderBasicAuth.setRequestedBy(requestedBy);
     return urlStreamProviderBasicAuth;
+  }
+
+  /**
+   * Provides access to service-specific utilities
+   * @return object with service-specific methods
+   */
+  public Services getServices() {
+    if (services == null) {
+      services = new Services(this, context);
+    }
+    return services;
   }
 }

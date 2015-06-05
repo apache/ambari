@@ -25,11 +25,18 @@ import org.apache.hadoop.fs.permission.FsPermission;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.PrivilegedExceptionAction;
 import java.util.*;
 
+import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.hdfs.web.WebHdfsFileSystem;
+import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.json.simple.JSONArray;
+
+import javax.security.auth.Subject;
 
 /**
  * Hdfs Business Delegate
@@ -44,15 +51,13 @@ private final Configuration conf;
   /**
    * Constructor
    * @param configurationBuilder hdfs configuration builder
-   * @param authParams map of parameters
    * @throws IOException
    * @throws InterruptedException
    */
-  public HdfsApi(ConfigurationBuilder configurationBuilder, String username, AuthConfigurationBuilder authParams) throws IOException,
+  public HdfsApi(ConfigurationBuilder configurationBuilder, String username) throws IOException,
       InterruptedException, HdfsApiException {
-    this.authParams = authParams.build();
-    conf = configurationBuilder.build();
-
+    this.authParams = configurationBuilder.buildAuthenticationConfig();
+    conf = configurationBuilder.buildConfig();
     ugi = UserGroupInformation.createProxyUser(username, getProxyUser());
 
     fs = ugi.doAs(new PrivilegedExceptionAction<FileSystem>() {

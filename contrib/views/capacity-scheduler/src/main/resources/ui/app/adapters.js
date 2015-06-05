@@ -207,12 +207,8 @@ App.QueueAdapter = DS.Adapter.extend({
           return {name:label};
         }));
       }, function(jqXHR) {
-        if (jqXHR.status === 404) {
-          Ember.run(null, resolve, []);
-        } else {
-          jqXHR.then = null;
-          Ember.run(null, reject, jqXHR);
-        }
+        jqXHR.then = null;
+        Ember.run(null, reject, jqXHR);
       });
     }.bind(this),'App: QueueAdapter#getNodeLabels');
   },
@@ -305,6 +301,9 @@ App.TagAdapter = App.QueueAdapter.extend({
   findAll: function(store, type) {
     var adapter = this;
     var uri = [_getCapacitySchedulerViewUri(this),'all'].join('/');
+
+    if (App.testMode)
+      uri = uri + ".json";
 
     return new Ember.RSVP.Promise(function(resolve, reject) {
       adapter.ajax(uri ,'GET').then(function(data) {

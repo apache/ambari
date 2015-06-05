@@ -38,22 +38,38 @@ App.QueuesController = Ember.ArrayController.extend({
       }
       name = name || '';
       var newQueue,
-          existed = this.get('store.deletedQueues').findBy('path',parentPath+'.'+name);
+          store = this.get('store'),
+          existed = store.get('deletedQueues').findBy('path',[parentPath,name].join('.')),
+          leafQueueNames = store.getById('queue',parentPath.toLowerCase()).get('queuesArray'),
+          newInLeaf = Em.isEmpty(leafQueueNames),
+          totalLeafCapacity,
+          freeLeafCapacity;
 
       if (existed) {
-        newQueue = this.store.createFromDeleted(existed);
+        newQueue = store.createFromDeleted(existed);
       } else {
-        newQueue = this.store.createRecord('queue', {
+
+        if (!newInLeaf) {
+          totalLeafCapacity = leafQueueNames.reduce(function (capacity,queueName) {
+            return store.getById('queue', [parentPath,queueName].join('.').toLowerCase()).get('capacity') + capacity;
+          },0);
+
+          freeLeafCapacity = (totalLeafCapacity < 100) ? 100 - totalLeafCapacity : 0;
+        }
+
+        newQueue = store.createRecord('queue', {
           name:name,
           parentPath: parentPath,
           depth: parentPath.split('.').length,
-          isNewQueue:true
+          isNewQueue:true,
+          capacity: (newInLeaf) ? 100 : freeLeafCapacity,
+          maximum_capacity: (newInLeaf) ? 100: freeLeafCapacity
         });
         this.set('newQueue',newQueue);
       }
 
       if (name) {
-        this.get('store').saveAndUpdateQueue(newQueue,existed)
+        store.saveAndUpdateQueue(newQueue,existed)
           .then(Em.run.bind(this,'transitionToRoute','queue'))
           .then(Em.run.bind(this,'set','newQueue',null));
       } else {
@@ -68,6 +84,9 @@ App.QueuesController = Ember.ArrayController.extend({
       this.get('store').saveAndUpdateQueue(record, updates);
     },
     delQ:function (record) {
+      if (record.get('isNew')) {
+        this.set('newQueue',null);
+      }
       if (record.isCurrent) {
         this.transitionToRoute('queue',record.get('parentPath').toLowerCase())
           .then(Em.run.schedule('afterRender', function () {
@@ -99,6 +118,10 @@ App.QueuesController = Ember.ArrayController.extend({
     },
     clearAlert:function () {
       this.set('alertMessage',null);
+    },
+    toggleProperty:function (property,target) {
+      target = target || this;
+      target.toggleProperty(property);
     }
   },
 
@@ -216,7 +239,7 @@ App.QueuesController = Ember.ArrayController.extend({
           return +queue.get('capacity') + prev;
         },0);
 
-      leaf.setEach('overCapacity',total>100);
+      leaf.setEach('overCapacity',total != 100);
     }.bind(this));
   }.observes('content.length','content.@each.capacity'),
 
@@ -305,7 +328,7 @@ App.QueuesController = Ember.ArrayController.extend({
    * check if can save configs
    * @type {bool}
    */
-  canNotSave: cmp.any('hasOverCapacity', 'hasUncompetedAddings','hasNotValid'),
+  canNotSave: cmp.any('hasOverCapacity', 'hasUncompetedAddings','hasNotValid','hasNotValidLabels'),
 
   /**
    * List of not valid queues.
@@ -318,6 +341,14 @@ App.QueuesController = Ember.ArrayController.extend({
    * @type {Boolean}
    */
   hasNotValid:cmp.notEmpty('notValid.[]'),
+
+  /**
+   * True if queues have not valid labels.
+   * @type {Boolean}
+   */
+  hasNotValidLabels:function(){
+    return this.get('content').anyBy('hasNotValidLabels',true);
+  }.property('content.@each.hasNotValidLabels'),
 
   /**
    * List of queues with excess of capacity

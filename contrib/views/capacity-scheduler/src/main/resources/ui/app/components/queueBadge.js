@@ -18,6 +18,18 @@
 
 var App = require('app');
 
+App.WarnBadgeComponent = Em.Component.extend({
+  layout:Em.Handlebars.compile('<i class="fa fa-exclamation"></i>'),
+  classNames:['label','label-warning'],
+  tagName:'span',
+  initTooltip: function(){
+    this.$().tooltip({
+      title:'No capacity',
+      placement:'bottom'
+    });
+  }.on('didInsertElement'),
+});
+
 App.QueueBadgeComponent = Em.Component.extend({
   layoutName:'components/queueBadge',
   tagName:'span',

@@ -89,7 +89,16 @@ function _fetchTagged(adapter, store, type, sinceToken) {
       store.didUpdateAll(type);
       return store.recordForId('scheduler','scheduler');
     }).then(function (scheduler) {
-      scheduler.setProperties(config.scheduler.objectAt(0));
+      var props = config.scheduler.objectAt(0);
+
+      scheduler.eachAttribute(function (attr,meta) {
+        if (meta.type === 'boolean') {
+          this.set(attr, (props[attr] === 'false' || !props[attr])?false:true);
+        } else {
+          this.set(attr, props[attr]);
+        }
+      },scheduler);
+
       scheduler.set('version',v);
     });
 
@@ -271,11 +280,24 @@ App.ApplicationStore = DS.Store.extend({
   },
 
   nodeLabels: function () {
-    var adapter = this.get('defaultAdapter');
+    var adapter = this.get('defaultAdapter'),
+        store = this,
+        promise = new Ember.RSVP.Promise(function(resolve, reject) {
+          adapter.getNodeLabels().then(function(data) {
+            store.set('isRmOffline',false);
+            resolve(data);
+          }, function() {
+            store.set('isRmOffline',true);
+            resolve([]);
+          });
+        });
+
     return Ember.ArrayProxy.extend(Ember.PromiseProxyMixin).create({
-      promise: adapter.getNodeLabels()
+      promise: promise
     });
   }.property(),
+
+  isRmOffline:false,
 
   isInitialized: Ember.computed.and('tag', 'clusterName'),
 

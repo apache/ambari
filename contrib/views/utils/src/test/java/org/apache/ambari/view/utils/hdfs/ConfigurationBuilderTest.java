@@ -20,8 +20,6 @@ package org.apache.ambari.view.utils.hdfs;
 
 import org.junit.Test;
 
-import java.net.URI;
-
 import static org.junit.Assert.*;
 
 public class ConfigurationBuilderTest {

@@ -31,7 +31,7 @@ Ember.Handlebars.registerHelper('timeAgo', function(property, options) {
       var value = Em._HandlebarsBoundView.prototype.normalizedValue.call(this);
 
       return function(value, options) {
-        return (value)?moment(value).fromNow(false):'';
+        return (moment.isMoment(value))?moment(value).fromNow(false):value;
       }.call(this, value, options);
     }
   });

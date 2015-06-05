@@ -106,7 +106,7 @@ App.SerializerMixin = Em.Mixin.create({
           ordering_policy:               props[base_path + ".ordering-policy"] || null,
           enable_size_based_weight:      props[base_path + ".ordering-policy.fair.enable-size-based-weight"] || null,
           default_node_label_expression: props[base_path + ".default-node-label-expression"] || null,
-          labelsEnabled: props.hasOwnProperty(labelsPath)
+          labelsEnabled:                 props.hasOwnProperty(labelsPath)
         };
 
     switch ((props.hasOwnProperty(labelsPath))?props[labelsPath]:'') {
@@ -141,10 +141,12 @@ App.SerializerMixin = Em.Mixin.create({
 
     var scheduler = [{
       id:                          'scheduler',
-      maximum_am_resource_percent: properties[this.PREFIX + ".maximum-am-resource-percent"]*100 || null, // convert to percent
-      maximum_applications:        properties[this.PREFIX + ".maximum-applications"] || null,
-      node_locality_delay:         properties[this.PREFIX + ".node-locality-delay"] || null,
-      resource_calculator:         properties[this.PREFIX + ".resource-calculator"] || null
+      maximum_am_resource_percent:    properties[this.PREFIX + ".maximum-am-resource-percent"]*100 || null, // convert to percent
+      maximum_applications:           properties[this.PREFIX + ".maximum-applications"] || null,
+      node_locality_delay:            properties[this.PREFIX + ".node-locality-delay"] || null,
+      resource_calculator:            properties[this.PREFIX + ".resource-calculator"] || null,
+      queue_mappings:                 properties[this.PREFIX + ".queue-mappings"] || null,
+      queue_mappings_override_enable: properties[this.PREFIX + ".queue-mappings-override.enable"] || null
     }];
     _recurseQueues(null, "root", 0, properties, queues, this.get('store'));
     this._setupLabels(properties,queues,labels,this.PREFIX);
@@ -185,6 +187,8 @@ App.SchedulerSerializer = DS.RESTSerializer.extend(App.SerializerMixin,{
     json[this.PREFIX + ".maximum-applications"] = record.get('maximum_applications');
     json[this.PREFIX + ".node-locality-delay"] = record.get('node_locality_delay');
     json[this.PREFIX + ".resource-calculator"] = record.get('resource_calculator');
+    json[this.PREFIX + ".queue-mappings"] = record.get('queue_mappings') || null;
+    json[this.PREFIX + ".queue-mappings-override.enable"] = record.get('queue_mappings_override_enable');
 
     return json;
   }
@@ -267,10 +271,8 @@ App.QueueSerializer = DS.RESTSerializer.extend(App.SerializerMixin,{
     }
 
     recordLabels.forEach(function (l) {
-      if (!record.get('store.nodeLabels').findBy('name',l.get('name')).notExist) {
         json[[accessible_node_labels_key, l.get('name'), 'capacity'].join('.')] = l.get('capacity');
         json[[accessible_node_labels_key, l.get('name'), 'maximum-capacity'].join('.')] = l.get('maximum_capacity');
-      }
     });
   }
 });

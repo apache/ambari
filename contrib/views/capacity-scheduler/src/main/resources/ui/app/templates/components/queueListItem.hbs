@@ -29,6 +29,10 @@
         <span class="label label-info">v{{queue.version}}</span>
     {{/if}}
 
+    {{#if queue.noCapacity}}
+      {{warn-badge}}
+    {{/if}}
+
     {{queue-badge q=queue class="badge pull-right"}}
 
     {{#if queue.isDeletedQueue}}

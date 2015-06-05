@@ -43,6 +43,8 @@ App.Scheduler = DS.Model.extend({
   maximum_applications: DS.attr('number', { defaultValue: 0 }),
   node_locality_delay: DS.attr('number', { defaultValue: 0 }),
   resource_calculator: DS.attr('string', { defaultValue: '' }),
+  queue_mappings: DS.attr('string'),
+  queue_mappings_override_enable: DS.attr('boolean'),
   isAnyDirty:Em.computed.alias('isDirty')
 });
 
@@ -57,7 +59,7 @@ App.Tag = DS.Model.extend({
     return this.get('tag') === this.get('store.current_tag');
   }.property('store.current_tag'),
   changed:function () {
-    return (this.get('tag').match(/version[1-9]+/))?moment(+this.get('tag').replace('version','')):'';
+    return (this.get('tag').match(/version[1-9][0-9][0-9]+/))?moment(+this.get('tag').replace('version','')):this.get('tag');
   }.property('tag')
 });
 
@@ -73,6 +75,10 @@ App.Queue = DS.Model.extend({
   sortBy:['name'],
   sortedLabels:Em.computed.sort('labels','sortBy'),
 
+  hasNotValidLabels: function(attribute){
+    return this.get('labels').anyBy('isValid',false);
+  }.property('labels.@each.isValid'),
+
   _accessAllLabels:DS.attr('boolean'),
   accessAllLabels:function (key,val) {
     var labels = this.get('store.nodeLabels').map(function(label) {
@@ -84,7 +90,7 @@ App.Queue = DS.Model.extend({
 
       if (this.get('_accessAllLabels')) {
           labels.forEach(function (lb) {
-            var containsByParent = (Em.isEmpty(this.get('parentPath')))?true:this.store.getById('queue',this.get('parentPath')).get('labels').findBy('name',lb.get('name'));
+            var containsByParent = (Em.isEmpty(this.get('parentPath')))?true:this.store.getById('queue',this.get('parentPath').toLowerCase()).get('labels').findBy('name',lb.get('name'));
             if (!this.get('labels').contains(lb) && !!containsByParent) {
               this.get('labels').pushObject(lb);
             }
@@ -156,6 +162,8 @@ App.Queue = DS.Model.extend({
       return element === cl[index];
     }));
   }.property('initialLabels', 'labels.[]', '_accessAllLabels'),
+
+  noCapacity:Em.computed.equal('capacity',0),
 
   name: DS.attr('string'),
   parentPath: DS.attr('string'),

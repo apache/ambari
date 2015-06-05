@@ -118,6 +118,69 @@
             </div>
           </div>
       {{/if}}
+      <div class="form-group">
+        {{tooltip-label
+          label='Queue Mappings'
+          class="col-xs-5 control-label"
+          message='This configuration specifies the mapping of user or group to aspecific queue. You can map a single user or a list of users to queues. Syntax: [u or g]:[name]:[queue_name][,next_mapping]*. Here, u or g indicates whether the mapping is for a user or group. The value is u for user and g for group. name indicates the user name or group name. To specify the user who has submitted the application, %user can be used. queue_name indicates the queue name for which the application has to be mapped. To specify queue name same as user name, %user can be used. To specify queue name same as the name of the primary group for which the user belongs to, %primary_group can be used.'
+        }}
+        {{#if isOperator}}
+          <div class="col-xs-7 control-value">
+            {{expandable-input value=scheduler.queue_mappings class="input-sm form-control input-expand"}}
+            {{#if schedulerDirtyFilelds.queue_mappings}}
+              <div class="btn-group btn-group-xs" >
+                  <a {{action 'rollbackProp' 'queue_mappings' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+              </div>
+            {{/if}}
+          </div>
+        {{else}}
+          <div class="col-xs-6">
+            {{#if scheduler.queue_mappings}}
+              <p class="form-control-static">{{scheduler.queue_mappings}}</p>
+            {{else}}
+              <p class="form-control-static">-</p>
+            {{/if}}
+          </div>
+        {{/if}}
+      </div>
+      <div class="form-group">
+        {{tooltip-label
+          class="col-xs-5 control-label"
+          label='Queue Mappings Override'
+          message='This function is used to specify whether the user specified queues can be overridden. This is a Boolean value and the default value is false.'
+        }}
+          {{#if isOperator}}
+          <div class="col-xs-7 control-value input-percent-wrap">
+            <div>
+              <div class="btn-group btn-group-sm pull-right">
+                <a href="#" {{action 'toggleProperty' 'queue_mappings_override_enable' scheduler}} class="btn btn-default">
+                  <i {{bind-attr class=":fa scheduler.queue_mappings_override_enable:fa-check-square-o:fa-square-o"}}></i>
+                  {{#if scheduler.queue_mappings_override_enable}}
+                    Enabled
+                  {{else}}
+                    Disabled
+                  {{/if}}
+                </a>
+              </div>
+            </div>
+            {{#if schedulerDirtyFilelds.queue_mappings_override_enable}}
+              <div class="btn-group btn-group-xs" >
+                <a {{action 'rollbackProp' 'queue_mappings_override_enable' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+              </div>
+            {{/if}}
+          </div>
+          {{else}}
+          <div class="col-xs-6">
+            <p class="form-control-static">
+            {{#if scheduler.queue_mappings_override_enable}}
+              Enabled
+            {{else}}
+              Disabled
+            {{/if}}
+            </p>
+          </div>
+          {{/if}}
+      </div>
     </form>
   </div>
 </div>

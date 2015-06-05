@@ -98,9 +98,8 @@ public class ConfigurationService {
   private static final String VERSION_TAG_URL = "?fields=Clusters/desired_configs/capacity-scheduler";
   private static final String CONFIGURATION_URL = "configurations?type=capacity-scheduler";
   private static final String CONFIGURATION_URL_BY_TAG = "configurations?type=capacity-scheduler&tag=%s";
-  private static final String RM_HOST_URL = "services/YARN/components/RESOURCEMANAGER?fields=host_components/host_name";
 
-  private static final String RM_GET_NODE_LABEL_URL = "http://%s:8088/ws/v1/cluster/get-node-labels";
+  private static final String RM_GET_NODE_LABEL_URL = "%s/ws/v1/cluster/get-node-labels";
 
   // ================================================================================
   // Privilege Reading
@@ -483,21 +482,7 @@ public class ConfigurationService {
   }
 
   private String getRMHost() {
-    String rmHost = null;
-    JSONObject rmData = readFromCluster(RM_HOST_URL);
-    if (rmData == null)
-      throw new ServiceFormattedException("Cannot retrieve ResourceManager host");
-    JSONArray components = (JSONArray) rmData.get("host_components");
-    for(Object component : components) {
-      JSONObject roles = (JSONObject) ((JSONObject) component).get("HostRoles");
-      if (roles.get("component_name").equals("RESOURCEMANAGER")) {
-        rmHost = (String) roles.get("host_name");
-        break;
-      }
-    }
-    if (rmHost == null)
-      throw new ServiceFormattedException("Can't find ResourceManager host");
-    return rmHost;
+    return ambariApi.getServices().getRMUrl();
   }
 
 } // end ConfigurationService

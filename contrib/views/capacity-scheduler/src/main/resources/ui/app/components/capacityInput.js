@@ -44,7 +44,12 @@ App.ExpandableInputComponent = Em.TextField.extend({
   },
   focusOut:function  (argument) {
     this.$().parent().removeClass('expanded').parent().removeClass('expanded-wrap');
-  }
+  },
+  checkBlank:function () {
+    if (Em.isBlank(this.get('value')) && !Em.isNone(this.get('value'))) {
+      this.set('value', null);
+    }
+  }.observes('value')
 });
 
 App.IntInputComponent = Ember.TextField.extend({

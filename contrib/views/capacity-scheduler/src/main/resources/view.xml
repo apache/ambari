@@ -17,7 +17,7 @@
 <view>
     <name>CAPACITY-SCHEDULER</name>
     <label>Capacity Scheduler</label>
-    <version>0.4.0</version>
+    <version>1.0.0</version>
 
     <min-ambari-version>2.1.*</min-ambari-version>
 
@@ -48,7 +48,7 @@
         <masked>true</masked>
     </parameter>
 
-    <resource>
+  <resource>
       <name>scheduler</name>
       <service-class>org.apache.ambari.view.capacityscheduler.CapacitySchedulerService</service-class>
     </resource>

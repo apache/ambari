@@ -43,14 +43,10 @@ public class PropertyValidator implements Validator {
 
     if (property.equals(AMBARI_SERVER_URL)) {
       String ambariServerUrl = viewInstanceDefinition.getPropertyMap().get(AMBARI_SERVER_URL);
-      URL url = null;
-      try {
-        url = new URL(ambariServerUrl);
-        url.toURI();
-      } catch (MalformedURLException e) {
-        return new InvalidPropertyValidationResult(false, "Must be valid URL");
-      } catch (URISyntaxException e) {
-        return new InvalidPropertyValidationResult(false, "Must be valid URL");
+
+      if (!ambariServerUrl.matches("^https?://[\\w\\d\\.]+:\\d+/api/v1/clusters/\\w+$")) {
+        return new InvalidPropertyValidationResult(false,
+            "URL should contain protocol, hostname, port, cluster name, e.g. http://ambari.server:8080/api/v1/clusters/MyCluster");
       }
     }
     return ValidationResult.SUCCESS;

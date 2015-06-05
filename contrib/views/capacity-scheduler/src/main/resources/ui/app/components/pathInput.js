@@ -24,15 +24,20 @@ App.PathInputComponent = Em.Component.extend({
     add:function () {
       var currentBasedir = this.get('currentBasedir'),
           path = this.get('path'),
-          basedir = path.substr(0,path.lastIndexOf('.')) || currentBasedir;
-      if (!path) {
-        return this.set('isError',true);
+          basedir = path.substr(0,path.lastIndexOf('.')) || currentBasedir,
+          queuePath = [basedir,path.substr(path.lastIndexOf('.')+1)].join('.'),
+          queueName = path.substr(path.lastIndexOf('.')+1),
+          alreadyExists = this.get('queues.firstObject.store').hasRecordForId('queue',queuePath.toLowerCase());
+
+      if (!path || !queueName) {
+        return this.setProperties({'isError':true,'errorMessage':'Enter queue name.'});
       }
-      if (this.get('pathMap').contains(path)) {
-        this.sendAction('action',path);
-        this.set('activeFlag',false);
-      } else if (this.get('pathMap').contains(basedir)) {
-        this.sendAction('action',basedir,path.substr(path.lastIndexOf('.')+1));
+      if (alreadyExists) {
+        return this.setProperties({'isError':true,'errorMessage':'Queue already exists.'});
+      }
+
+      if (this.get('pathMap').contains(basedir) && !alreadyExists) {
+        this.sendAction('action',basedir,queueName);
         this.set('activeFlag',false);
       }
     },
@@ -48,6 +53,7 @@ App.PathInputComponent = Em.Component.extend({
   }),
   path:'',
   isError:false,
+  errorMessage:'',
   didChangePath:function () {
     return this.set('isError',false);
   }.observes('path'),
@@ -69,11 +75,13 @@ App.PathInputComponent = Em.Component.extend({
     }.observes('pathSource').on('didInsertElement'),
     tooltipInit:function () {
       this.$().tooltip({
-        title:'Enter queue name.',
+        title:function() {
+          return this.get('parentView.errorMessage');
+        }.bind(this),
         placement:'bottom',
         trigger:'manual'
       });
-    }.on('didInsertElement'),
+    }.on('didInsertElement').observes('parentView.errorMessage'),
     tooltipToggle:function (e,o) {
       this.$().tooltip((e.get(o)?'show':'hide'));
     }.observes('parentView.isError'),
