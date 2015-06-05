@@ -763,6 +763,30 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
+  describe("#getStackVersionNumber()", function(){
+    it("get stack version number", function(){
+      var repo = Em.Object.create({
+        "stackVersionType": 'HDP',
+        "stackVersion": '2.3',
+        "repositoryVersion": '2.2.1'
+      });
+      
+      var stackVersion = controller.getStackVersionNumber(repo);
+      expect(stackVersion).to.equal('2.3');
+    });
+    
+    it("get default stack version number", function(){
+      App.set('currentStackVersion', '1.2.3');
+      var repo = Em.Object.create({
+        "stackVersionType": 'HDP',
+        "repositoryVersion": '2.2.1'
+      });
+      
+      var stackVersion = controller.getStackVersionNumber(repo);
+      expect(stackVersion).to.equal('1.2.3');
+    });
+  });
+  
   describe("#saveRepoOS()", function() {
     before(function(){
       this.mock = sinon.stub(controller, 'validateRepoVersions');

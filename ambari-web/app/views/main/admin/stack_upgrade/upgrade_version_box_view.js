@@ -186,6 +186,25 @@ App.UpgradeVersionBoxView = Em.View.extend({
   },
 
   /**
+   * @param App.RepositoryVersion
+   * */
+  getStackVersionNumber: function(repository){
+    var stackVersion = null; 
+    var systems = repository.get('operatingSystems');
+    
+    systems.forEach(function(os){
+      repos = os.get('repositories');
+      repos.forEach(function(repo){
+        stackVersion = repo.get('stackVersion');
+        if(null != stackVersion)
+          return stackVersion;
+      });
+    });
+
+    return stackVersion; 
+  },
+  
+  /**
    * show popup with repositories to edit
    * @return {App.ModalPopup}
    */
@@ -197,6 +216,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       repoVersionId: repoRecord.get('id'),
       displayName: repoRecord.get('displayName'),
       repositoryVersion: repoRecord.get('displayName'),
+      stackVersion: self.getStackVersionNumber(repoRecord),
       operatingSystems: repoRecord.get('operatingSystems').map(function (os) {
         return Em.Object.create({
           osType: os.get('osType'),

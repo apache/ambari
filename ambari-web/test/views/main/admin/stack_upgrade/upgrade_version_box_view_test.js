@@ -182,7 +182,35 @@ describe('App.UpgradeVersionBoxView', function () {
       expect(view.get('controller').upgrade.called).to.be.false;
     });
   });
-
+  
+  describe("#getStackVersionNumber()", function(){
+    it("get stack version number", function(){
+      var repoRecord = Em.Object.create({
+        operatingSystems: [
+          Em.Object.create({
+            osType: "redhat6",
+            repositories: [Em.Object.create({
+                "baseUrl": "111121",
+                "repoId": "HDP-2.3",
+                "repoName": "HDP",
+                "stackVersion": "2.3",
+                hasError: false
+            }), Em.Object.create({
+                "baseUrl": "1",
+                "repoId": "HDP-UTILS-1.1.0.20",
+                "repoName": "HDP-UTILS",
+                "stackVersion": "2.3",
+                hasError: false
+              })]
+           })
+        ]
+      });
+      
+      var stackVersionNumber = view.getStackVersionNumber(repoRecord);
+      expect(stackVersionNumber).to.equal('2.3');
+    });
+  });
+  
   describe("#editRepositories()", function () {
     beforeEach(function () {
       sinon.stub(App.RepositoryVersion, 'find').returns(Em.Object.create({
