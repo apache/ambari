@@ -18,12 +18,22 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
+import javax.persistence.criteria.Root;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -50,20 +60,12 @@ import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaDelete;
-import javax.persistence.criteria.Root;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 
 
 /**
@@ -118,7 +120,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
   @Inject
   private OsFamily osFamily;
-  
+
   /**
    * {@inheritDoc}
    */
@@ -163,7 +165,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
-    executeDDLFixes();
+    executeAlertDDLUpdates();
     executeHostsDDLUpdates();
     executeWidgetDDLUpdates();
     executeStackDDLUpdates();
@@ -258,13 +260,15 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     cleanupStackUpdates();
   }
 
-  private void executeDDLFixes() throws AmbariException, SQLException {
+  private void executeAlertDDLUpdates() throws AmbariException, SQLException {
     //Fix latest_text column type to match for all DBMS
     Configuration.DatabaseType databaseType = configuration.getDatabaseType();
     if (Configuration.DatabaseType.MYSQL == databaseType) {
       dbAccessor.alterColumn("alert_current", new DBColumnInfo("latest_text", new FieldTypeDefinition("TEXT"), null));
+      dbAccessor.alterColumn("alert_history", new DBColumnInfo("alert_text", new FieldTypeDefinition("TEXT"), null));
     } else {
       dbAccessor.alterColumn("alert_current", new DBColumnInfo("latest_text", Character[].class, null));
+      dbAccessor.alterColumn("alert_history", new DBColumnInfo("alert_text", Character[].class, null));
     }
 
   }
@@ -1038,7 +1042,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     updateHiveConfigs();
     updateHdfsConfigs();
   }
-  
+
   protected void updateHdfsConfigs() throws AmbariException {
     /***
      * Append -Dorg.mortbay.jetty.Request.maxFormContentSize=-1 to HADOOP_NAMENODE_OPTS from hadoop-env.sh
