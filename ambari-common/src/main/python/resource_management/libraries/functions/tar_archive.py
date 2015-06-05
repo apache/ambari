@@ -28,3 +28,29 @@ def archive_dir(output_filename, input_dir):
       tar.add(input_dir, arcname=os.path.basename("."))
     finally:
       tar.close()
+
+
+def archive_directory_dereference(archive, directory):
+  """
+  Creates an archive of the specified directory. This will ensure that
+  symlinks are not included, but instead are followed for recursive inclusion.
+  :param archive:   the name of the archive to create, including path
+  :param directory:   the directory to include
+  :return:  None
+  """
+  tarball = None
+  try:
+    # !!! dereference must be TRUE since the conf is a symlink and we want
+    # its contents instead of the actual symlink
+    tarball = tarfile.open(archive, mode="w", dereference=True)
+
+    # tar the files, chopping off everything in front of directory
+    # /foo/bar/conf/a, /foo/bar/conf/b, /foo/bar/conf/dir/c
+    # becomes
+    # a
+    # b
+    # dir/c
+    tarball.add(directory, arcname=os.path.relpath(directory, start=directory))
+  finally:
+    if tarball:
+      tarball.close()

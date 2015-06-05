@@ -212,6 +212,14 @@ class TestFalconServer(RMFTestCase):
     # 4 calls to tarfile.open (2 directories * read + write)
     self.assertTrue(tarfile_open_mock.called)
     self.assertEqual(tarfile_open_mock.call_count,4)
+
+    # check the call args for creation of the tarfile
+    call_args = tarfile_open_mock.call_args_list[0]
+    call_argument_tarfile = call_args[0][0]
+    call_kwargs = call_args[1]
+
+    self.assertTrue("falcon-upgrade-backup/falcon-conf-backup.tar" in call_argument_tarfile)
+    self.assertEquals(True, call_kwargs["dereference"])
     
   @patch("resource_management.libraries.functions.security_commons.build_expectations")
   @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")

@@ -929,6 +929,14 @@ class TestOozieServer(RMFTestCase):
     self.assertTrue(tarfile_open_mock.called)
     self.assertEqual(tarfile_open_mock.call_count,2)
 
+    # check the call args for creation of the tarfile
+    call_args = tarfile_open_mock.call_args_list[0]
+    call_argument_tarfile = call_args[0][0]
+    call_kwargs = call_args[1]
+
+    self.assertTrue("oozie-upgrade-backup/oozie-conf-backup.tar" in call_argument_tarfile)
+    self.assertEquals(True, call_kwargs["dereference"])
+
     self.assertTrue(chmod_mock.called)
     self.assertEqual(chmod_mock.call_count,1)
     chmod_mock.assert_called_once_with('/usr/hdp/current/oozie-server/libext-customer', 511)

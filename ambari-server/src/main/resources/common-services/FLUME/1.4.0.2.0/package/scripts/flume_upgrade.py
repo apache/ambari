@@ -23,6 +23,7 @@ import tempfile
 
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions import tar_archive
 
 BACKUP_TEMP_DIR = "flume-upgrade-backup"
 BACKUP_CONF_DIR_ARCHIVE = "flume-conf-backup.tar"
@@ -50,13 +51,9 @@ def post_stop_backup():
     if os.path.exists(archive):
       os.remove(archive)
 
-    tarball = None
-    try:
-      tarball = tarfile.open(archive, "w")
-      tarball.add(directory, arcname=os.path.basename(directory))
-    finally:
-      if tarball:
-        tarball.close()
+    # backup the directory, following symlinks instead of including them
+    tar_archive.archive_directory_dereference(archive, directory)
+
 
 def pre_start_restore():
   """
