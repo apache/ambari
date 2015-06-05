@@ -90,7 +90,10 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
               user = params.hdfs_user)
 
     is_namenode_safe_mode_off = format("hadoop dfsadmin -fs {namenode_address} -safemode get | grep 'Safe mode is OFF'")
-    is_active_namenode_cmd = as_user(format("hdfs --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
+    if params.dfs_ha_enabled:
+      is_active_namenode_cmd = as_user(format("hdfs --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
+    else:
+      is_active_namenode_cmd = None
 
     # During normal operations, if HA is enabled and it is in standby, then stay in current state, otherwise, leave safemode.
     # During Rolling Upgrade, both namenodes must leave safemode.
