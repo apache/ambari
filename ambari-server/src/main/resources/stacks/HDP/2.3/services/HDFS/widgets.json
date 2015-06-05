@@ -247,6 +247,54 @@
           }
         },
         {
+          "widget_name": "NameNode Operations",
+          "description": "Total number of file operation over time.",
+          "widget_type": "GRAPH",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "dfs.namenode.TotalFileOps",
+              "metric_path": "metrics/dfs/namenode/TotalFileOps",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "NameNode File Operations",
+              "value": "${dfs.namenode.TotalFileOps}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Failed disk volumes",
+          "description": "Number of Failed disk volumes across all DataNodes. Its indicative of HDFS bad health.",
+          "widget_type": "NUMBER",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.NumFailedVolumes._sum",
+              "metric_path": "metrics/dfs/datanode/NumFailedVolumes",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "Failed disk volumes",
+              "value": "${FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.NumFailedVolumes._sum}"
+            }
+          ],
+          "properties": {
+            "display_unit": ""
+          }
+        },
+        {
           "widget_name": "Corrupted Blocks",
           "description": "Number represents data blocks that have become corrupted or missing. Its indicative of HDFS bad health.",
           "widget_type": "NUMBER",
@@ -292,6 +340,36 @@
           "properties": {
             "warning_threshold": "0",
             "error_threshold": "50"
+          }
+        },
+        {
+          "widget_name": "HDFS Space Utilization",
+          "description": "Percentage of available space used in the DFS.",
+          "widget_type": "GAUGE",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.DfsUsed",
+              "metric_path": "metrics/dfs/datanode/DfsUsed",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity",
+              "metric_path": "metrics/dfs/datanode/Capacity",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "HDFS Space Utilization",
+              "value": "${FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.DfsUsed/FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity}"
+            }
+          ],
+          "properties": {
+            "warning_threshold": "0.75",
+            "error_threshold": "0.9"
           }
         }
       ]
@@ -420,6 +498,120 @@
           "properties": {
             "display_unit": "MB",
             "max_limit": "512"
+          }
+        },
+        {
+          "widget_name": "DataNode Process Disk I/O Utilization",
+          "default_section_name": "HDFS_HEATMAPS",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "dfs.datanode.BytesRead",
+              "metric_path": "metrics/dfs/datanode/bytes_read",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "dfs.datanode.BytesWritten",
+              "metric_path": "metrics/dfs/datanode/bytes_written",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "dfs.datanode.TotalReadTime",
+              "metric_path": "metrics/dfs/datanode/total_read_time",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "dfs.datanode.TotalWriteTime",
+              "metric_path": "metrics/dfs/datanode/total_write_time",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "DataNode Process Disk I/O Utilization",
+              "value": "${(((dfs.datanode.BytesRead/dfs.datanode.TotalReadTime)+(dfs.datanode.BytesWritten/dfs.datanode.TotalWriteTime))*50}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "DataNode Process Network I/O Utilization",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "dfs.datanode.RemoteBytesRead",
+              "metric_path": "metrics/dfs/datanode/remote_bytes_read",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "dfs.datanode.ReadsFromRemoteClient",
+              "metric_path": "metrics/dfs/datanode/reads_from_remote_client",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "dfs.datanode.RemoteBytesWritten",
+              "metric_path": "metrics/dfs/datanode/remote_bytes_written",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "dfs.datanode.WritesFromRemoteClient",
+              "metric_path": "metrics/dfs/datanode/writes_from_remote_client",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "DataNode Process Network I/O Utilization",
+              "value": "${((dfs.datanode.RemoteBytesRead/dfs.datanode.ReadsFromRemoteClient)+(dfs.datanode.RemoteBytesWritten/dfs.datanode.WritesFromRemoteClient))*50}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "HDFS Space Utilization",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.DfsUsed",
+              "metric_path": "metrics/dfs/datanode/DfsUsed",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity",
+              "metric_path": "metrics/dfs/datanode/Capacity",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "HDFS Space Utilization",
+              "value": "${(FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.DfsUsed/FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity) * 100}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
           }
         }
       ]

@@ -382,7 +382,7 @@
       "section_name": "HBASE_HEATMAPS",
       "widgetLayoutInfo": [
         {
-          "widget_name": "HBASE_COMPACTION_QUEUE_SIZE",
+          "widget_name": "HBase Compaction Queue Size",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": true,
@@ -406,7 +406,7 @@
           }
         },
         {
-          "widget_name": "HBASE_MEMSTORE_SIZES",
+          "widget_name": "HBase Memstore Sizes",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -430,7 +430,7 @@
           }
         },
         {
-          "widget_name": "HBASE_READ_REQUEST",
+          "widget_name": "HBase Read Request Count",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -453,7 +453,7 @@
           }
         },
         {
-          "widget_name": "HBASE_WRITE_REQUEST",
+          "widget_name": "HBase Write Request Count",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -476,7 +476,7 @@
           }
         },
         {
-          "widget_name": "HBASE_REGIONS",
+          "widget_name": "HBase Regions",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
