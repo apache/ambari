@@ -11,8 +11,7 @@
     "node": "~0.6.10 || 0.8 || 0.9"
   },
   "scripts": {
-    "start": "brunch watch --server",
-    "postinstall" : "bower --allow-root install"
+    "start": "brunch watch --server"
   },
   "dependencies": {
     "javascript-brunch": "^1.7.1",

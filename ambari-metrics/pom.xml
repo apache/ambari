@@ -154,7 +154,7 @@
               <name>package-release</name>
               <value>${project.version}</value>
               <regex>
-                ^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-)(([0-9]+)|(SNAPSHOT)).*
+                ^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-)((([a-zA-Z]+)?([0-9]+))|(SNAPSHOT)).*
               </regex>
               <replacement>$5</replacement>
               <failIfNoMatch>true</failIfNoMatch>
