@@ -69,6 +69,13 @@
         sum of master and regionserver heap sizes.
     </description>
   </property>
+  <property>
+    <name>max_open_files_limit</name>
+    <value>32768</value>
+    <description>
+        The maximum number of open file descriptors by process
+    </description>
+  </property>
 
   <!-- hbase-env.sh -->
   <property>

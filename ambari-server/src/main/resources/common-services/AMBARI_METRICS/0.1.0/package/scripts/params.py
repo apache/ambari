@@ -110,6 +110,8 @@ if not is_hbase_distributed:
 else:
   hbase_heapsize = master_heapsize
 
+max_open_files_limit = default("/configurations/ams-hbase-env/max_open_files_limit", "32768")
+
 zookeeper_quorum_hosts = ','.join(ams_collector_hosts) if is_hbase_distributed else 'localhost'
 
 ams_checkpoint_dir = config['configurations']['ams-site']['timeline.metrics.aggregator.checkpoint.dir']
