@@ -183,6 +183,22 @@
             </configuration>
           </execution>
           <execution>
+            <id>Bower install</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <workingDirectory>${ui.directory}</workingDirectory>
+              <executable>${ui.directory}/node/${node.executable}</executable>
+              <arguments>
+                <argument>${ui.directory}/node_modules/bower/bin/bower</argument>
+                <argument>install</argument>
+                <argument>--allow-root</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
             <id>Brunch build</id>
             <phase>generate-resources</phase>
             <goals>

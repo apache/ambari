@@ -13,8 +13,7 @@
   },
   "scripts": {
     "test": "node_modules/phantomjs/bin/phantomjs runner.js public/tests.html",
-    "start": "brunch watch --server",
-    "postinstall" : "bower --allow-root install"
+    "start": "brunch watch --server"
   },
   "dependencies": {
     "javascript-brunch": "^1.7.1",
