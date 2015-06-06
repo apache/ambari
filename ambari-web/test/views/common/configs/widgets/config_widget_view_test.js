@@ -230,4 +230,37 @@ describe('App.ConfigWidgetView', function () {
       expect(view.isValueCompatibleWithWidget()).to.be.false;
     });
   });
+
+  describe('#setRecommendedValue', function () {
+
+    beforeEach(function () {
+      sinon.stub(view, 'sendRequestRorDependentConfigs', function () {
+        return $.Deferred().resolve().promise();
+      });
+      sinon.stub(view, 'restoreDependentConfigs', Em.K);
+      view.set('config', Em.Object.create({
+        value: 1,
+        recommendedValue: 1,
+        savedValue: 1
+      }));
+    });
+
+    afterEach(function () {
+      view.sendRequestRorDependentConfigs.restore();
+      view.restoreDependentConfigs.restore();
+    });
+
+    it('should call restoreDependentConfigs if config.value is equal to config.savedValue', function () {
+      view.setRecommendedValue();
+      expect(view.restoreDependentConfigs.calledOnce).to.be.true;
+    });
+
+    it('should not call restoreDependentConfigs if config.value is not equal to config.savedValue', function () {
+      view.set('config.savedValue', 2);
+      view.setRecommendedValue();
+      expect(view.restoreDependentConfigs.called).to.be.false;
+    });
+
+  });
+
 });

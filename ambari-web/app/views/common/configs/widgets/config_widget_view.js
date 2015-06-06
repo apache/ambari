@@ -266,7 +266,9 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     var self = this;
     this.set('config.value', this.get('config.recommendedValue'));
     this.sendRequestRorDependentConfigs(this.get('config')).done(function() {
-      self.restoreDependentConfigs(self.get('config'));
+      if (self.get('config.value') === self.get('config.savedValue')) {
+        self.restoreDependentConfigs(self.get('config'));
+      }
     });
 
     if (this.get('config.supportsFinal')) {
