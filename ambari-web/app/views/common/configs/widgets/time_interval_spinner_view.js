@@ -56,7 +56,9 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    * @property maxValue
    * @type {Object[]}
    */
-  maxValue: null,
+  maxValue: function() {
+    return this.generateWidgetValue(this.get('config.stackConfigProperty.valueAttributes.maximum'));
+  }.property('config.stackConfigProperty.valueAttributes.maximum'),
 
   /**
    * Minimum property value in widget format.
@@ -64,7 +66,11 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    * @property minValue
    * @type {Object[]}
    */
-  minValue: null,
+  minValue: function() {
+    return this.generateWidgetValue(this.get('config.stackConfigProperty.valueAttributes.minimum'));
+  }.property('config.stackConfigProperty.valueAttributes.minimum'),
+
+  propertyUnitBinding: 'config.stackConfigProperty.valueAttributes.unit',
 
   /**
    * @TODO move it to unit conversion view mixin?
@@ -83,7 +89,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
 
   didInsertElement: function () {
     this._super();
-    Em.run.once(this, 'prepareContent');
+    this.prepareContent();
     this.toggleWidgetState();
     this.initPopover();
   },
@@ -91,19 +97,12 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
   /**
    * Content setter.
    * Affects to view attributes:
-   *  @see propertyUnit
    *  @see savedValue
-   *  @see minValue
-   *  @see maxValue
    *       content
    * @method prepareContent
    */
   prepareContent: function() {
     var property = this.get('config');
-
-    this.set('propertyUnit', property.get('stackConfigProperty.valueAttributes.unit'));
-    this.set('minValue', this.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.minimum')));
-    this.set('maxValue', this.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.maximum')));
     this.setValue(!isNaN(parseInt(property.get('value'))) ? property.get('value') : 0);
     this.parseIncrement();
   },
