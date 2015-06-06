@@ -2390,6 +2390,17 @@ var hdp2properties = [
   },
   {
     "id": "puppet var",
+    "name": "service_check_principal_name",
+    "displayName": "Test Kerberos Principal",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "KERBEROS",
+    "filename": "kerberos-env.xml",
+    "category": "Advanced kerberos-env",
+    "index" : 10
+  },
+  {
+    "id": "puppet var",
     "name": "create_attributes_template",
     "displayName": "Attribute template",
     "displayType": "content",
@@ -2398,7 +2409,7 @@ var hdp2properties = [
     "serviceName": "KERBEROS",
     "filename": "kerberos-env.xml",
     "category": "Advanced kerberos-env",
-    "index" : 10
+    "index" : 11
   },
   {
     "id": "puppet var",
