@@ -317,18 +317,23 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @Override
   public void persist() {
-    readWriteLock.writeLock().lock();
+    cluster.getClusterGlobalLock().writeLock().lock();
     try {
-      if (!isPersisted) {
-        persistEntities();
-        refresh();
-        cluster.refresh();
-        isPersisted = true;
-      } else {
-        saveIfPersisted();
+      readWriteLock.writeLock().lock();
+      try {
+        if (!isPersisted) {
+          persistEntities();
+          refresh();
+          cluster.refresh();
+          isPersisted = true;
+        } else {
+          saveIfPersisted();
+        }
+      } finally {
+        readWriteLock.writeLock().unlock();
       }
     } finally {
-      readWriteLock.writeLock().unlock();
+      cluster.getClusterGlobalLock().writeLock().unlock();
     }
   }
 
@@ -420,19 +425,11 @@ public class ConfigGroupImpl implements ConfigGroup {
             clusterConfigEntity.setAttributes(gson.toJson(config.getPropertiesAttributes()));
           }
           clusterConfigEntity.setTimestamp(System.currentTimeMillis());
-
-
-          // TODO: Is locking necessary and functional ?
-          cluster.getClusterGlobalLock().writeLock().lock();
-          try {
-            clusterDAO.createConfig(clusterConfigEntity);
-            clusterEntity.getClusterConfigEntities().add(clusterConfigEntity);
-            cluster.addConfig(config);
-            clusterDAO.merge(clusterEntity);
-            cluster.refresh();
-          } finally {
-            cluster.getClusterGlobalLock().writeLock().unlock();
-          }
+          clusterDAO.createConfig(clusterConfigEntity);
+          clusterEntity.getClusterConfigEntities().add(clusterConfigEntity);
+          cluster.addConfig(config);
+          clusterDAO.merge(clusterEntity);
+          cluster.refresh();
         }
 
         ConfigGroupConfigMappingEntity configMappingEntity =
@@ -467,15 +464,20 @@ public class ConfigGroupImpl implements ConfigGroup {
   @Override
   @Transactional
   public void delete() {
-    readWriteLock.writeLock().lock();
+    cluster.getClusterGlobalLock().writeLock().lock();
     try {
-      configGroupConfigMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
-      configGroupHostMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
-      configGroupDAO.removeByPK(configGroupEntity.getGroupId());
-      cluster.refresh();
-      isPersisted = false;
+      readWriteLock.writeLock().lock();
+      try {
+        configGroupConfigMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
+        configGroupHostMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
+        configGroupDAO.removeByPK(configGroupEntity.getGroupId());
+        cluster.refresh();
+        isPersisted = false;
+      } finally {
+        readWriteLock.writeLock().unlock();
+      }
     } finally {
-      readWriteLock.writeLock().unlock();
+      cluster.getClusterGlobalLock().writeLock().unlock();
     }
   }
 
@@ -523,35 +525,40 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @Override
   public ConfigGroupResponse convertToResponse() throws AmbariException {
-    readWriteLock.readLock().lock();
+    cluster.getClusterGlobalLock().readLock().lock();
     try {
-      Set<Map<String, Object>> hostnames = new HashSet<Map<String, Object>>();
-      for (Host host : hosts.values()) {
-        Map<String, Object> hostMap = new HashMap<String, Object>();
-        hostMap.put("host_name", host.getHostName());
-        hostnames.add(hostMap);
+      readWriteLock.readLock().lock();
+      try {
+        Set<Map<String, Object>> hostnames = new HashSet<Map<String, Object>>();
+        for (Host host : hosts.values()) {
+          Map<String, Object> hostMap = new HashMap<String, Object>();
+          hostMap.put("host_name", host.getHostName());
+          hostnames.add(hostMap);
+        }
+
+        Set<Map<String, Object>> configObjMap = new HashSet<Map<String,
+          Object>>();
+
+        for (Config config : configurations.values()) {
+          Map<String, Object> configMap = new HashMap<String, Object>();
+          configMap.put(ConfigurationResourceProvider
+            .CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, config.getType());
+          configMap.put(ConfigurationResourceProvider
+            .CONFIGURATION_CONFIG_TAG_PROPERTY_ID, config.getTag());
+          configObjMap.add(configMap);
+        }
+
+        ConfigGroupResponse configGroupResponse = new ConfigGroupResponse(
+          configGroupEntity.getGroupId(), cluster.getClusterName(),
+          configGroupEntity.getGroupName(), configGroupEntity.getTag(),
+          configGroupEntity.getDescription(),
+          hostnames, configObjMap);
+        return configGroupResponse;
+      } finally {
+        readWriteLock.readLock().unlock();
       }
-
-      Set<Map<String, Object>> configObjMap = new HashSet<Map<String,
-        Object>>();
-
-      for (Config config : configurations.values()) {
-        Map<String, Object> configMap = new HashMap<String, Object>();
-        configMap.put(ConfigurationResourceProvider
-          .CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, config.getType());
-        configMap.put(ConfigurationResourceProvider
-          .CONFIGURATION_CONFIG_TAG_PROPERTY_ID, config.getTag());
-        configObjMap.add(configMap);
-      }
-
-      ConfigGroupResponse configGroupResponse = new ConfigGroupResponse(
-        configGroupEntity.getGroupId(), cluster.getClusterName(),
-        configGroupEntity.getGroupName(), configGroupEntity.getTag(),
-        configGroupEntity.getDescription(),
-        hostnames, configObjMap);
-      return configGroupResponse;
     } finally {
-      readWriteLock.readLock().unlock();
+      cluster.getClusterGlobalLock().readLock().unlock();
     }
   }
 
