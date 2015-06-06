@@ -208,10 +208,6 @@
           "subsection-name": "interactive-query-row1-col1"
         },
         {
-          "config": "hiveserver2-site/tez.session.am.dag.submit.timeout.secs",
-          "subsection-name": "interactive-query-row1-col1"
-        },
-        {
           "config": "hive-env/hive_security_authorization",
           "subsection-name": "security-row1-col1"
         },
@@ -365,17 +361,6 @@
         "config": "hiveserver2-site/hive.server2.enable.doAs",
         "widget": {
           "type": "toggle"
-        }
-      },
-      {
-        "config": "hiveserver2-site/tez.session.am.dag.submit.timeout.secs",
-        "widget": {
-          "type": "time-interval-spinner",
-          "units": [
-            {
-              "unit-name": "hours,minutes"
-            }
-          ]
         }
       },
       {
