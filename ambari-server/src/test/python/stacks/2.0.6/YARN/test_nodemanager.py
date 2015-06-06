@@ -167,11 +167,15 @@ class TestNodeManager(RMFTestCase):
                               mode = 0775,
                               cd_access='a'
                               )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'yarn', u'/hadoop/yarn/local,/hadoop/yarn/local1'),
+    self.assertResourceCalled('Execute', ('chown', '-R', u'yarn', u'/hadoop/yarn/local/usercache/ambari-qa'),
                               sudo = True,
-                              only_if = 'test -d /hadoop/yarn/local,/hadoop/yarn/local1',
+                              only_if = 'test -d /hadoop/yarn/local/usercache/ambari-qa',
                               )
 
+    self.assertResourceCalled('Execute', ('chown', '-R', u'yarn', u'/hadoop/yarn/local1/usercache/ambari-qa'),
+                              sudo = True,
+                              only_if = 'test -d /hadoop/yarn/local1/usercache/ambari-qa',
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -336,10 +340,6 @@ class TestNodeManager(RMFTestCase):
                               ignore_failures = True,
                               mode = 0775,
                               cd_access='a'
-                              )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'yarn', u'/hadoop/yarn/local'),
-                              sudo = True,
-                              only_if = 'test -d /hadoop/yarn/local',
                               )
 
     self.assertResourceCalled('Execute', ('chown', '-R', u'ambari-qa', u'/hadoop/yarn/local/usercache/ambari-qa'),

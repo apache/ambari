@@ -101,14 +101,17 @@ def yarn(name = None):
               mode=0775
               )
 
-    Execute(('chown', '-R', params.yarn_user, params.nm_local_dirs),
-            only_if=format("test -d {nm_local_dirs}"),
+    smokeuser_directories = [os.path.join(dir, 'usercache' ,params.smokeuser)
+                             for dir in params.nm_local_dirs.split(',')]
+
+    if not params.security_enabled:
+      for directory in smokeuser_directories:
+        Execute(('chown', '-R', params.yarn_user, directory),
+            only_if=format("test -d {directory}"),
             sudo=True)
 
 
     if params.security_enabled:
-      smokeuser_directories = [os.path.join(dir, 'usercache' ,params.smokeuser)
-                               for dir in params.nm_local_dirs.split(',')]
       for directory in smokeuser_directories:
         Execute(('chown', '-R', params.smokeuser, directory),
                 only_if=format("test -d {directory}"),
