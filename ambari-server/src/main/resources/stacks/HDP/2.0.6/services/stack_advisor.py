@@ -359,12 +359,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
             hostComponents[hostName].append(component["StackServiceComponents"]["component_name"])
 
     for host in hosts["items"]:
-      # Not enough physical memory
-      requiredMemory = getMemorySizeRequired(hostComponents[host["Hosts"]["host_name"]], configurations)
-      if host["Hosts"]["total_mem"] * 1024 < requiredMemory:  # in bytes
-        failureMessage += "Not enough physical RAM on the host {0}. " \
-                          "At least {1} MB is recommended based on components assigned.\n" \
-          .format(host["Hosts"]["host_name"], requiredMemory/1048576)  # MB
+      if host["Hosts"]["host_name"] in hostComponents:
+        # Not enough physical memory
+        requiredMemory = getMemorySizeRequired(hostComponents[host["Hosts"]["host_name"]], configurations)
+        if host["Hosts"]["total_mem"] * 1024 < requiredMemory:  # in bytes
+          failureMessage += "Not enough physical RAM on the host {0}. " \
+                            "At least {1} MB is recommended based on components assigned.\n" \
+            .format(host["Hosts"]["host_name"], requiredMemory/1048576)  # MB
     if failureMessage:
       notEnoughMemoryItem = self.getWarnItem(failureMessage)
       validationItems.extend([{"config-name": "", "item": notEnoughMemoryItem}])
