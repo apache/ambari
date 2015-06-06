@@ -1223,6 +1223,18 @@ App.config = Em.Object.create({
       if (/\d+m$/.test(hostOverrideValue)) {
         return hostOverrideValue.slice(0, hostOverrideValue.length - 1);
       }
+    } else if (serviceConfig && 
+               serviceConfig.displayType === 'masterHosts' &&
+               typeof hostOverrideValue === 'string') {
+      try {
+        var value = JSON.parse(hostOverrideValue.replace(/'/g, "\""));
+        if (typeof value === 'object') { 
+          return value;
+        }
+      } catch(err) {
+        console.error(err);
+      }
+      
     }
     return hostOverrideValue;
   },
