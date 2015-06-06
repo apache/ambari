@@ -187,7 +187,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           var affected = self.get("newAffectedProperties").objectAt(0),
             changedProperty = self.get("controller.stepConfigs").findProperty("serviceName", affected.sourceServiceName)
               .get("configs").findProperty("name", affected.changedPropertyName);
-          changedProperty.set('value', changedProperty.get('savedValue'));
+          changedProperty.set('value', changedProperty.get('savedValue') || changedProperty.get('initialValue'));
           self.get("controller").set("miscModalVisible", false);
           this.hide();
         },
