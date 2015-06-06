@@ -638,7 +638,7 @@ class TestHiveServer(RMFTestCase):
     s.connect = MagicMock()    
     s.connect.side_effect = socket.error("")
     
-    time_mock.side_effect = [0, 1000, 2000, 3000, 4000]
+    time_mock.return_value = 1000
     
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",

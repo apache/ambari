@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.upgrade;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.MessageFormat;
@@ -53,6 +55,9 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
+import org.apache.ambari.server.state.alert.PortSource;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -66,8 +71,6 @@ import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 
 /**
@@ -964,13 +967,20 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     }
   }
 
+  /**
+   * Modifies the JSON of some of the alert definitions which have changed
+   * between Ambari versions.
+   */
   protected void updateAlertDefinitions() {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
     Clusters clusters = ambariManagementController.getClusters();
+    AlertDefinitionFactory alertDefinitionFactory = injector.getInstance(AlertDefinitionFactory.class);
+
     List<String> metricAlerts = Arrays.asList("namenode_cpu", "namenode_hdfs_blocks_health",
             "namenode_hdfs_capacity_utilization", "namenode_rpc_latency",
             "namenode_directory_status", "datanode_health_summary", "datanode_storage");
+
     List<String> mapredAlerts = Arrays.asList("mapreduce_history_server_cpu", "mapreduce_history_server_rpc_latency");
     List<String> rmAlerts = Arrays.asList("yarn_resourcemanager_cpu", "yarn_resourcemanager_rpc_latency");
 
@@ -979,47 +989,79 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-
+          // HDFS metric alerts
           for (String alertName : metricAlerts) {
-            AlertDefinitionEntity alertDefinitionEntity =  alertDefinitionDAO.findByName(cluster.getClusterId(),
-                    alertName);
+            AlertDefinitionEntity alertDefinitionEntity = alertDefinitionDAO.findByName(
+                cluster.getClusterId(), alertName);
+
             if (alertDefinitionEntity != null) {
               String source = alertDefinitionEntity.getSource();
               JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
+
               rootJson.get("uri").getAsJsonObject().addProperty("kerberos_keytab",
                     "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}");
+
               rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
                     "{{hdfs-site/dfs.web.authentication.kerberos.principal}}");
+
               updateAlertDefinitionEntitySource(alertName, rootJson.toString());
             }
           }
 
+          // MapR alerts update for kerberos
           for (String alertName : mapredAlerts) {
-            AlertDefinitionEntity alertDefinitionEntity =  alertDefinitionDAO.findByName(cluster.getClusterId(),
-                    alertName);
+            AlertDefinitionEntity alertDefinitionEntity = alertDefinitionDAO.findByName(
+                cluster.getClusterId(), alertName);
+
             if (alertDefinitionEntity != null) {
               String source = alertDefinitionEntity.getSource();
               JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
               rootJson.get("uri").getAsJsonObject().addProperty("kerberos_keytab",
                     "{{mapred-site/mapreduce.jobhistory.webapp.spnego-keytab-file}}");
+
               rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
                     "{{mapred-site/mapreduce.jobhistory.webapp.spnego-principal}}");
+
               updateAlertDefinitionEntitySource(alertName, rootJson.toString());
             }
           }
 
+          // YARN alerts
           for (String alertName : rmAlerts) {
-            AlertDefinitionEntity alertDefinitionEntity =  alertDefinitionDAO.findByName(cluster.getClusterId(),
-                    alertName);
+            AlertDefinitionEntity alertDefinitionEntity = alertDefinitionDAO.findByName(
+                cluster.getClusterId(), alertName);
+
             if (alertDefinitionEntity != null) {
               String source = alertDefinitionEntity.getSource();
               JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
+
               rootJson.get("uri").getAsJsonObject().addProperty("kerberos_keytab",
                     "{{yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file}}");
+
               rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
                     "{{yarn-site/yarn.resourcemanager.webapp.spnego-principal}}");
+
               updateAlertDefinitionEntitySource(alertName, rootJson.toString());
             }
+          }
+
+          // zookeeper failover conroller alert update for default port and uri
+          // to 8019 and dfs.ha.zkfc.port
+          AlertDefinitionEntity alertDefinitionEntity = alertDefinitionDAO.findByName(
+              cluster.getClusterId(), "hdfs_zookeeper_failover_controller_process");
+
+          if (alertDefinitionEntity != null) {
+            AlertDefinition zkfcAlertDefinition = alertDefinitionFactory.coerce(alertDefinitionEntity);
+            PortSource portSource = (PortSource) zkfcAlertDefinition.getSource();
+            portSource.setPort(8019);
+            portSource.setUri("{{hdfs-site/dfs.ha.zkfc.port}}");
+
+            // merge the definition back into the entity
+            alertDefinitionEntity = alertDefinitionFactory.merge(zkfcAlertDefinition,
+                alertDefinitionEntity);
+
+            // save the changes
+            alertDefinitionDAO.merge(alertDefinitionEntity);
           }
         }
       }
