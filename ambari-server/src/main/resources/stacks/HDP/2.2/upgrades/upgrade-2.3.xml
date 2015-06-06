@@ -901,6 +901,15 @@
               <keep-key>oozie.service.HadoopAccessorService.hadoop.configurations</keep-key>
               <keep-key>oozie.service.HadoopAccessorService.kerberos.enabled</keep-key>
               <keep-key>oozie.service.URIHandlerService.uri.handlers</keep-key>
+
+              <!-- required by Falcon and should be preserved -->
+              <keep-key>oozie.service.ELService.ext.functions.coord-job-submit-instances</keep-key>
+              <keep-key>oozie.service.ELService.ext.functions.coord-action-create-inst</keep-key>
+              <keep-key>oozie.service.ELService.ext.functions.coord-action-create</keep-key>
+              <keep-key>oozie.service.ELService.ext.functions.coord-job-submit-data</keep-key>
+              <keep-key>oozie.service.ELService.ext.functions.coord-action-start</keep-key>
+              <keep-key>oozie.service.ELService.ext.functions.coord-sla-submit</keep-key>
+              <keep-key>oozie.service.ELService.ext.functions.coord-sla-create</keep-key>
             </transfer>
           </task>
         </pre-upgrade>
@@ -917,18 +926,6 @@
 
     <service name="FALCON">
       <component name="FALCON_SERVER">
-        <pre-upgrade>
-          <task xsi:type="configure">
-            <type>oozie-site</type>
-            <transfer operation="copy" from-key="oozie.service.ELService.ext.functions.coord-job-submit-instances" to-key="oozie.service.ELService.ext.functions.coord-job-submit-instances"/>
-            <transfer operation="copy" from-key="oozie.service.ELService.ext.functions.coord-action-create-inst" to-key="oozie.service.ELService.ext.functions.coord-action-create-inst"/>
-            <transfer operation="copy" from-key="oozie.service.ELService.ext.functions.coord-action-create" to-key="oozie.service.ELService.ext.functions.coord-action-create"/>
-            <transfer operation="copy" from-key="oozie.service.ELService.ext.functions.coord-job-submit-data" to-key="oozie.service.ELService.ext.functions.coord-job-submit-data"/>
-            <transfer operation="copy" from-key="oozie.service.ELService.ext.functions.coord-action-start" to-key="oozie.service.ELService.ext.functions.coord-action-start"/>
-            <transfer operation="copy" from-key="oozie.service.ELService.ext.functions.coord-sla-submit" to-key="oozie.service.ELService.ext.functions.coord-sla-submit"/>
-            <transfer operation="copy" from-key="oozie.service.ELService.ext.functions.coord-sla-create" to-key="oozie.service.ELService.ext.functions.coord-sla-create"/>
-          </task>
-        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
