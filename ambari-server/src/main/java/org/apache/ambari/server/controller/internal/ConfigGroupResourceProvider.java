@@ -535,9 +535,7 @@ public class ConfigGroupResourceProvider extends
     return configGroupResponses;
   }
 
-  private synchronized void updateConfigGroups
-    (Set<ConfigGroupRequest> requests) throws AmbariException {
-
+  private synchronized void updateConfigGroups (Set<ConfigGroupRequest> requests) throws AmbariException {
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
       return;
