@@ -63,20 +63,21 @@ def getPropertyValueFromConfigXMLFile(xmlfile, name, defaultValue=None):
         if len(node.childNodes) > 0:
           return node.childNodes[0].nodeValue
         else:
-          return ''
+          return defaultValue
   return defaultValue
 
 def get_fs_root(fsdefaultName=None):
-  return getPropertyValueFromConfigXMLFile("/etc/hadoop/conf/core-site.xml", "fs.defaultFS")
-  if fsdefaultName is None:
-    fsdefaultName = "fake"
+  fsdefaultName = "fake"
    
   while (not fsdefaultName.startswith("wasb://")):
     fsdefaultName =  getPropertyValueFromConfigXMLFile("/etc/hadoop/conf/core-site.xml", "fs.defaultFS")
     if fsdefaultName is None:
       fsdefaultName = "fake"
+    print "Waiting to read appropriate value of fs.defaultFS from /etc/hadoop/conf/core-site.xml ..."
     time.sleep(10)
-  
+    pass
+
+  print "Returning fs.defaultFS -> " + fsdefaultName
   return fsdefaultName
  
 # These values must be the suffix of the properties in cluster-env.xml
@@ -94,9 +95,20 @@ class params:
   execute_path = "/usr/hdp/current/hadoop-client/bin"
   ambari_libs_dir = "/var/lib/ambari-agent/lib"
   hdfs_site = ConfigDictionary({'dfs.webhdfs.enabled':False, 
-                                'dfs.namenode.http-address': getPropertyValueFromConfigXMLFile("/etc/hadoop/conf/hdfs-site.xml", "dfs.namenode.http-address")
   })
   fs_default = get_fs_root()
+  oozie_env_sh_template = \
+'''
+#!/bin/bash
+
+export OOZIE_CONFIG=${OOZIE_CONFIG:-/usr/hdp/current/oozie/conf}
+export OOZIE_DATA=${OOZIE_DATA:-/var/lib/oozie/data}
+export OOZIE_LOG=${OOZIE_LOG:-/var/log/oozie}
+export CATALINA_BASE=${CATALINA_BASE:-/usr/hdp/current/oozie-server/oozie-server}
+export CATALINA_TMPDIR=${CATALINA_TMPDIR:-/var/tmp/oozie}
+export CATALINA_PID=${CATALINA_PID:-/var/run/oozie/oozie.pid}
+export OOZIE_CATALINA_HOME=/usr/lib/bigtop-tomcat
+'''
   
   HdfsResource = functools.partial(
     HdfsResource,
@@ -213,7 +225,12 @@ no_op_test = "ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run
 
 with Environment() as env:
   env.set_params(params)
-  
+
+  File("/etc/oozie/conf/oozie-env.sh",
+       owner=params.oozie_user,
+       content=params.oozie_env_sh_template
+  )
+
   hashcode_file = format("{oozie_home}/.hashcode")
   hashcode = hashlib.md5(format('{oozie_home}/oozie-sharelib.tar.gz')).hexdigest()
   skip_recreate_sharelib = format("test -f {hashcode_file} && test -d {oozie_home}/share && [[ `cat {hashcode_file}` == '{hashcode}' ]]")
@@ -250,13 +267,14 @@ with Environment() as env:
     source = oozie_shared_lib,
   )
 
+  print "Copying tarballs..."
   copy_tarballs_to_hdfs("/usr/hdp/current/hadoop-client/mapreduce.tar.gz", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs("/usr/hdp/current/tez-client/lib/tez.tar.gz", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/tez/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs("/usr/hdp/current/hive-client/hive.tar.gz", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/hive/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs("/usr/hdp/current/pig-client/pig.tar.gz", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/pig/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs("/usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs("/usr/hdp/current/sqoop-client/sqoop.tar.gz", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/sqoop/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-  
+
   
   # jar shouldn't be used before (read comment below)
   File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
@@ -269,3 +287,4 @@ with Environment() as env:
                logoutput=True,
                action="execute"
   )
+  print "Completed tarball copy. Ambari preupload script completed."
