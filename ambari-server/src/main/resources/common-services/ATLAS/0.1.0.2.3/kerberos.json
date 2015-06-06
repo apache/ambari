@@ -5,14 +5,14 @@
       "configurations": [
         {
           "application-properties": {
-            "metadata.authentication.method": "kerberos",
-            "metadata.http.authentication.enabled": "true",
-            "metadata.http.authentication.type": "kerberos"
+            "authentication_method": "kerberos",
+            "http_authentication_enabled": "true",
+            "http_authentication_type": "kerberos"
           }
         }
       ],
       "auth_to_local_properties" : [
-        "application-properties/metadata.http.authentication.kerberos.name.rules"
+        "application-properties/http_authentication_kerberos_name_rules"
       ],
       "components": [
         {
@@ -23,7 +23,7 @@
               "principal": {
                 "value": "atlas/_HOST@${realm}",
                 "type" : "service",
-                "configuration": "application-properties/metadata.authentication.principal",
+                "configuration": "application-properties/authentication_principal",
                 "local_username" : "${metadata-env/metadata_user}"
               },
               "keytab": {
@@ -36,7 +36,7 @@
                   "name": "${cluster-env/user_group}",
                   "access": ""
                 },
-                "configuration": "application-properties/metadata.authentication.keytab"
+                "configuration": "application-properties/authentication_keytab"
               }
             },
             {

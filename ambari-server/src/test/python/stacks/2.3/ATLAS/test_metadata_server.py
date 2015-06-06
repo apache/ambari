@@ -64,14 +64,11 @@ class TestMetadataServer(RMFTestCase):
                                 cd_access='a',
                                 mode=0644
       )
-      appprops =  dict(self.getConfig()['configurations'][
-          'application-properties'])
-      appprops['metadata.http.authentication.kerberos.name.rules'] = ' \\ \n'.join(appprops['metadata.http.authentication.kerberos.name.rules'].splitlines())
-      appprops['metadata.server.bind.address'] = 'c6401.ambari.apache.org'
-
-      self.assertResourceCalled('PropertiesFile',
+      self.assertResourceCalled('File',
                                 '/etc/atlas/conf/application.properties',
-                                properties=appprops,
+                                content=InlineTemplate(
+                                    self.getConfig()['configurations'][
+                                        'application-properties']['content']),
                                 owner='atlas',
                                 group='hadoop',
                                 mode=0644,
