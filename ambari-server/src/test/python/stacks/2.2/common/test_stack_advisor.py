@@ -89,7 +89,8 @@ class TestHDP22StackAdvisor(TestCase):
           "tez.am.resource.memory.mb": "4000",
           "tez.task.resource.memory.mb": "768",
           "tez.runtime.io.sort.mb": "307",
-          "tez.runtime.unordered.output.buffer.size-mb": "57"
+          "tez.runtime.unordered.output.buffer.size-mb": "57",
+          'tez.session.am.dag.submit.timeout.secs': '600'
         }
       },
       'yarn-site': {
@@ -124,7 +125,8 @@ class TestHDP22StackAdvisor(TestCase):
           "tez.am.resource.memory.mb": "3100",
           "tez.task.resource.memory.mb": "768",
           "tez.runtime.io.sort.mb": "307",
-          "tez.runtime.unordered.output.buffer.size-mb": "57"
+          "tez.runtime.unordered.output.buffer.size-mb": "57",
+          'tez.session.am.dag.submit.timeout.secs': '600'
         }
       },
       'yarn-site': {
@@ -159,7 +161,8 @@ class TestHDP22StackAdvisor(TestCase):
           "tez.am.resource.memory.mb": "4000",
           "tez.task.resource.memory.mb": "760",
           "tez.runtime.io.sort.mb": "304",
-          "tez.runtime.unordered.output.buffer.size-mb": "57"
+          "tez.runtime.unordered.output.buffer.size-mb": "57",
+          'tez.session.am.dag.submit.timeout.secs': '600'
         }
       },
       'yarn-site': {
@@ -1009,8 +1012,7 @@ class TestHDP22StackAdvisor(TestCase):
           'hive.server2.enable.doAs': 'true',
           'hive.server2.tez.default.queues': "queue1,queue2",
           'hive.server2.tez.initialize.default.sessions': 'false',
-          'hive.server2.tez.sessions.per.default.queue': '1',
-          'tez.session.am.dag.submit.timeout.secs': '600'
+          'hive.server2.tez.sessions.per.default.queue': '1'
         },
         'property_attributes': {
           'hive.server2.tez.default.queues': {

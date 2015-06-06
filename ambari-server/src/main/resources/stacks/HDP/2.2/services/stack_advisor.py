@@ -349,7 +349,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveServerProperty("hive.server2.tez.initialize.default.sessions", "false")
     putHiveServerProperty("hive.server2.tez.sessions.per.default.queue", "1")
     putHiveServerProperty("hive.server2.enable.doAs", "true")
-    putHiveServerProperty("tez.session.am.dag.submit.timeout.secs", "600")
 
     yarn_queues = "default"
     if "capacity-scheduler" in configurations and \
@@ -563,6 +562,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putTezProperty("tez.task.resource.memory.mb", taskResourceMemory)
     putTezProperty("tez.runtime.io.sort.mb", min(int(taskResourceMemory * 0.4), 2047))
     putTezProperty("tez.runtime.unordered.output.buffer.size-mb", int(taskResourceMemory * 0.075))
+    putTezProperty("tez.session.am.dag.submit.timeout.secs", "600")
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP22StackAdvisor, self).getServiceConfigurationValidators()

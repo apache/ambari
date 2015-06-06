@@ -33,20 +33,6 @@ limitations under the License.
   </property>
 
   <property>
-    <name>tez.session.am.dag.submit.timeout.secs</name>
-    <value>600</value>
-    <description></description>
-    <display-name>Max idle tez session length</display-name>
-    <value-attributes>
-      <type>int</type>
-      <minimum>600</minimum>
-      <maximum>86400</maximum>
-      <unit>seconds</unit>
-      <step-increment>600</step-increment>
-    </value-attributes>
-  </property>
-
-  <property>
     <name>hive.server2.enable.doAs</name>
     <value>true</value>
     <description>
