@@ -58,6 +58,7 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
 java_home = config['hostLevelParams']['java_home']
 flume_log_dir = '/var/log/flume'
 flume_run_dir = '/var/run/flume'
+ambari_state_file = format("{flume_run_dir}/ambari-state.txt")
 
 if (('flume-conf' in config['configurations']) and('content' in config['configurations']['flume-conf'])):
   flume_conf_content = config['configurations']['flume-conf']['content']
