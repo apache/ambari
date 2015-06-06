@@ -325,6 +325,9 @@ App.WidgetWizardController = App.WizardController.extend({
       case 'RESOURCEMANAGER':
         metricObj.host_component_criteria = 'host_components/HostRoles/ha_state=ACTIVE';
         break;
+      case 'HBASE_MASTER':
+        metricObj.host_component_criteria = 'host_components/metrics/hbase/master/IsActiveMaster=true';
+        break;
       default:
         metricObj.host_component_criteria = ' ';
     }
