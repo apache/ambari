@@ -66,16 +66,11 @@ metadata_port = config['configurations']['metadata-env']['metadata_port']
 metadata_host = config['hostname']
 
 # application properties
-application_properties = config['configurations']['application-properties']
-
-for key, value in application_properties.iteritems():
-    #  fix the multi-line property
-    if (key == 'http_authentication_kerberos_name_rules'):
-        value = ' \\ \n'.join(value.splitlines())
-    globals()[key] = value
+application_properties = dict(config['configurations']['application-properties'])
+application_properties['metadata.http.authentication.kerberos.name.rules'] = ' \\ \n'.join(application_properties['metadata.http.authentication.kerberos.name.rules'].splitlines())
+application_properties['metadata.server.bind.address'] = metadata_host
 
 metadata_env_content = config['configurations']['metadata-env']['content']
-application_properties_content = config['configurations']['application-properties']['content']
 
 metadata_opts = config['configurations']['metadata-env']['metadata_opts']
 metadata_classpath = config['configurations']['metadata-env']['metadata_classpath']
