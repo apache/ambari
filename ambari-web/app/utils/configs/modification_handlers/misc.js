@@ -53,11 +53,50 @@ module.exports = App.ServiceConfigModificationHandler.create({
           filename : 'hdfs-site.xml'
         });
       }
-    } else if (changedConfig.get("name") == "user_group") {
-      if (!(selectedServices.indexOf("YARN") >= 0)) {
-        return;
+    } else if (changedConfig.get("name") == "yarn_user") {
+      curConfigs = allConfigs.findProperty('serviceName', 'YARN').get('configs');
+      var currentUsers,
+          currentGroups;
+      var initialUser = changedConfig.get('initialValue');
+      var newUser = newValue;
+      var currentAclValue = curConfigs.findProperty("name", "yarn.admin.acl").get("value");
+      var currentAclValueSplits = $.trim(currentAclValue).split(/\s+/).filter(function(i) { return !Em.isEmpty(i); });
+      if (currentAclValueSplits.length == 2) {
+        currentUsers = currentAclValueSplits[0];
+        currentGroups = currentAclValueSplits[1];
+      } else {
+        currentUsers = currentAclValueSplits.length > 0 ? currentAclValueSplits.shift() : ''
+        currentGroups = currentAclValueSplits.join(" ");
       }
-      if (selectedServices.indexOf("MAPREDUCE2") >= 0) {
+      var currentUserList = currentUsers.split(',').filter(function(i) { return !Em.isEmpty(i); });
+      if (!currentUserList.contains(newUser)) {
+        var currentUserIndex = currentUserList.indexOf(initialUser);
+        if (currentUserIndex > -1) {
+          currentUserList.splice(currentUserIndex, 1);
+        }
+        if (!currentUserList.contains(newUser)) {
+          currentUserList.push(newUser);
+        }
+        var newAclValue = $.trim(currentUserList.join(',') + ' ' + currentGroups);
+        if (currentAclValue != newAclValue) {
+          affectedProperties.push({
+            serviceName : "YARN",
+            sourceServiceName : "MISC",
+            propertyName : "yarn.admin.acl",
+            propertyDisplayName : "yarn.admin.acl",
+            newValue : newAclValue,
+            curValue : currentAclValue,
+            changedPropertyName : "yarn_user",
+            remove : false,
+            filename : 'yarn-site.xml'
+          });
+        }
+      }
+    } else if (changedConfig.get("name") == "user_group") {
+      if (!selectedServices.contains('YARN')) {
+        return [];
+      }
+      if (selectedServices.contains("MAPREDUCE2")) {
         curConfigs = allConfigs.findProperty("serviceName", "MAPREDUCE2").get("configs");
         if ($.trim(newValue) != $.trim(curConfigs.findProperty("name", "mapreduce.cluster.administrators").get("value"))) {
           affectedProperties.push({
@@ -72,7 +111,7 @@ module.exports = App.ServiceConfigModificationHandler.create({
           });
         }
       }
-      if (selectedServices.indexOf("YARN") >= 0) {
+      if (selectedServices.contains("YARN")) {
         curConfigs = allConfigs.findProperty("serviceName", "YARN").get("configs");
         if (newValue != curConfigs.findProperty("name", "yarn.nodemanager.linux-container-executor.group").get("value")) {
           affectedProperties.push({
