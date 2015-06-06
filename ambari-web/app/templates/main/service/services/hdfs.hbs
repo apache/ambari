@@ -29,28 +29,18 @@
       {{t common.started}}
   </td>
 </tr>
-<!-- NFS Gateway -->
-{{#if view.isNfsInStack}}
-  <tr>
-    <td class="summary-label"><a href="#" {{action filterHosts view.nfsGatewayComponent}}>{{t dashboard.services.hdfs.nfsgateways}}</a></td>
-    <td>
-    <span>
-      {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nfsGatewaysStarted" totalComponentsBinding="view.service.nfsGatewaysTotal"}}
-        {{view.liveComponents}}/{{view.totalComponents}}
-      {{/view}}
-    </span>
-      {{t common.started}}
-    </td>
-  </tr>
-{{/if}}
 <!-- Data Node Counts -->
 <tr>
   <td class="summary-label">{{t dashboard.services.hdfs.datanodecounts}}</td>
-  <td>
-    <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.live" }} rel="tooltip">{{view.service.liveDataNodes.length}} {{t dashboard.services.hdfs.nodes.live}} </span> /
-    <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.dead" }} rel="tooltip">{{view.service.deadDataNodes.length}} {{t dashboard.services.hdfs.nodes.dead}} </span> /
-    <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.decommission" }} rel="tooltip">{{view.service.decommissionDataNodes.length}} {{t dashboard.services.hdfs.nodes.decom}}</span>
-  </td>
+  {{#if view.service.metricsNotAvailable}}
+    <td>{{t services.service.summary.notAvailable}}</td>
+  {{else}}
+    <td>
+      <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.live" }} rel="tooltip">{{view.service.liveDataNodes.length}} {{t dashboard.services.hdfs.nodes.live}} </span> /
+      <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.dead" }} rel="tooltip">{{view.service.deadDataNodes.length}} {{t dashboard.services.hdfs.nodes.dead}} </span> /
+      <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.decommission" }} rel="tooltip">{{view.service.decommissionDataNodes.length}} {{t dashboard.services.hdfs.nodes.decom}}</span>
+    </td>
+  {{/if}}
 </tr>
 <!-- JournalNodes -->
 {{#if view.showJournalNodes}}
@@ -64,6 +54,20 @@
         {{/view}}
       </span>
         {{t services.service.summary.JournalNodesLive}}
+    </td>
+  </tr>
+{{/if}}
+<!-- NFS Gateway -->
+{{#if view.isNfsInStack}}
+  <tr>
+    <td class="summary-label"><a href="#" {{action filterHosts view.nfsGatewayComponent}}>{{t dashboard.services.hdfs.nfsgateways}}</a></td>
+    <td>
+      <span>
+        {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nfsGatewaysStarted" totalComponentsBinding="view.service.nfsGatewaysTotal"}}
+          {{view.liveComponents}}/{{view.totalComponents}}
+        {{/view}}
+      </span>
+      {{t common.started}}
     </td>
   </tr>
 {{/if}}
