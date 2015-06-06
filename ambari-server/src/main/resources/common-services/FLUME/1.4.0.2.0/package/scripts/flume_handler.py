@@ -103,6 +103,7 @@ class FlumeHandler(Script):
     elif len(expected_agents) == 0 and 'INSTALLED' == get_desired_state():
       raise ComponentIsNotRunning()
 
+
   @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
   def status(self, env):
     import params

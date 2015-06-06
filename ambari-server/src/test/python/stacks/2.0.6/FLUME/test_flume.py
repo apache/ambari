@@ -65,10 +65,11 @@ class TestFlumeHandler(RMFTestCase):
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         wait_for_finish = False,
     )
-    self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45.*a1.* > /var/run/flume/a1.pid',
-      logoutput = True,
-      tries = 20,
-      try_sleep = 10)
+    self.assertResourceCalled('Execute', "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -o -u flume -f '^/usr/jdk64/jdk1.7.0_45.*a1.*' | ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E tee /var/run/flume/a1.pid  && test ${PIPESTATUS[0]} -eq 0",
+        logoutput = True,
+        tries = 20,
+        try_sleep = 10,
+    )
 
     self.assertNoMoreResources()
 
@@ -91,9 +92,6 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assertTrue(set_desired_mock.called)
     self.assertTrue(set_desired_mock.call_args[0][0] == 'INSTALLED')
-
-    self.assertResourceCalled('Execute', 'kill `cat /var/run/flume/a1.pid` > /dev/null 2>&1',
-      ignore_failures = True)
 
     self.assertResourceCalled('File', '/var/run/flume/a1.pid', action = ['delete'])
 
@@ -182,7 +180,6 @@ class TestFlumeHandler(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf',
                               owner='flume',
@@ -331,10 +328,11 @@ class TestFlumeHandler(RMFTestCase):
         wait_for_finish = False,
     )
 
-    self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45.*b1.* > /var/run/flume/b1.pid',
-      logoutput = True,
-      tries = 20,
-      try_sleep = 10)
+    self.assertResourceCalled('Execute', "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -o -u flume -f '^/usr/jdk64/jdk1.7.0_45.*b1.*' | ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E tee /var/run/flume/b1.pid  && test ${PIPESTATUS[0]} -eq 0",
+        logoutput = True,
+        tries = 20,
+        try_sleep = 10,
+    )
 
     self.assertNoMoreResources()
 
@@ -354,16 +352,12 @@ class TestFlumeHandler(RMFTestCase):
     self.assertTrue(glob_mock.called)
     await_flume_process_termination_mock.assert_called_with('/var/run/flume/b1.pid')
 
-    self.assertResourceCalled('Execute', 'kill `cat /var/run/flume/b1.pid` > /dev/null 2>&1',
-      ignore_failures = True)
-
     self.assertResourceCalled('File', '/var/run/flume/b1.pid', action = ['delete'])
 
     self.assertNoMoreResources()
 
   @patch("flume.find_expected_agent_names")
-  @patch("os.unlink")
-  def test_configure_with_existing(self, os_unlink_mock, expected_names_mock):
+  def test_configure_with_existing(self, expected_names_mock):
     expected_names_mock.return_value = ["x1"]
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/flume_handler.py",
@@ -372,10 +366,9 @@ class TestFlumeHandler(RMFTestCase):
                        config_file="default.json",
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
-
-    self.assertTrue(os_unlink_mock.called)
-    os_unlink_mock.assert_called_with('/etc/flume/conf/x1/ambari-meta.json')
-
+    self.assertResourceCalled('File', '/etc/flume/conf/x1/ambari-meta.json',
+        action = ['delete'],
+    )
     self.assert_configure_default()
     self.assertNoMoreResources()
 

@@ -24,6 +24,7 @@ from resource_management import *
 from resource_management.libraries.functions.flume_agent_helper import is_flume_process_live
 from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names
 from resource_management.libraries.functions.flume_agent_helper import await_flume_process_termination
+from resource_management.core import sudo
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
@@ -87,7 +88,9 @@ def flume(action = None):
   if action == 'config':
     # remove previously defined meta's
     for n in find_expected_agent_names(params.flume_conf_dir):
-      os.unlink(os.path.join(params.flume_conf_dir, n, 'ambari-meta.json'))
+      File(os.path.join(params.flume_conf_dir, n, 'ambari-meta.json'),
+        action = "delete",
+      )
 
     Directory(params.flume_conf_dir,
               recursive=True,
@@ -171,10 +174,9 @@ def flume(action = None):
           wait_for_finish=False,
           environment={'JAVA_HOME': params.java_home}
         )
-
         # sometimes startup spawns a couple of threads - so only the first line may count
-
-        pid_cmd = format('pgrep -o -u {flume_user} -f ^{java_home}.*{agent}.* > {flume_agent_pid_file}')
+        pid_cmd = as_sudo(('pgrep', '-o', '-u', params.flume_user, '-f', format('^{java_home}.*{agent}.*'))) + \
+        " | " + as_sudo(('tee', flume_agent_pid_file)) + "  && test ${PIPESTATUS[0]} -eq 0"
         Execute(pid_cmd,
                 logoutput=True,
                 tries=20,
@@ -195,11 +197,15 @@ def flume(action = None):
 
 
     for agent in agent_names:
-      pid_file = params.flume_run_dir + os.sep + agent + '.pid'
-      pid = format('`cat {pid_file}` > /dev/null 2>&1')
-      Execute(format('kill {pid}'), ignore_failures=True)
+      pid_file = format("{flume_run_dir}/{agent}.pid")
+      
+      if is_flume_process_live(pid_file):
+        pid = shell.checked_call(("cat", pid_file), sudo=True)[1].strip()
+        Execute(('kill', pid), sudo=True)
+      
       if not await_flume_process_termination(pid_file):
         raise Fail("Can't stop flume agent: {0}".format(agent))
+        
       File(pid_file, action = 'delete')
 
 
@@ -261,18 +267,14 @@ def cmd_target_names():
 
 def _set_desired_state(state):
   import params
-  filename = os.path.join(params.flume_run_dir, 'ambari-state.txt')
-  File(filename,
+  File(params.ambari_state_file,
     content = state,
   )
 
-
 def get_desired_state():
   import params
-
-  try:
-    with open(os.path.join(params.flume_run_dir, 'ambari-state.txt'), 'r') as fp:
-      return fp.read()
-  except:
+  if os.path.exists(params.ambari_state_file):
+    return sudo.read_file(params.ambari_state_file)
+  else:
     return 'INSTALLED'
   
