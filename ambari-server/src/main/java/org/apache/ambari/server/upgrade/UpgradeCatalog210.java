@@ -66,6 +66,8 @@ import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 
 /**
@@ -1044,9 +1046,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   }
 
   protected void updateHdfsConfigs() throws AmbariException {
-    /***
-     * Append -Dorg.mortbay.jetty.Request.maxFormContentSize=-1 to HADOOP_NAMENODE_OPTS from hadoop-env.sh
-     */
     AmbariManagementController ambariManagementController = injector.getInstance(
         AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -1058,6 +1057,9 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
+          /***
+           * Append -Dorg.mortbay.jetty.Request.maxFormContentSize=-1 to HADOOP_NAMENODE_OPTS from hadoop-env.sh
+           */
           content = null;
           if (cluster.getDesiredConfigByType("hadoop-env") != null) {
             content = cluster.getDesiredConfigByType(
@@ -1070,6 +1072,27 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             prop.put("content", content);
             updateConfigurationPropertiesForCluster(cluster, "hadoop-env",
                 prop, true, false);
+          }
+          /***
+           * Update dfs.namenode.rpc-address set hostname instead of localhost
+           */
+          if (cluster.getDesiredConfigByType("hdfs-site") != null && !cluster.getHosts("HDFS","NAMENODE").isEmpty()) {
+
+            URI nameNodeRpc = null;
+            String hostName = cluster.getHosts("HDFS","NAMENODE").iterator().next();
+            // Try to generate dfs.namenode.rpc-address
+            if (cluster.getDesiredConfigByType("core-site").getProperties() != null &&
+                      cluster.getDesiredConfigByType("core-site").getProperties().get("fs.defaultFS") != null) {
+              try {
+                nameNodeRpc = new URI(cluster.getDesiredConfigByType("core-site").getProperties().get("fs.defaultFS"));
+                Map<String, String> hdfsProp = new HashMap<String, String>();
+                hdfsProp.put("dfs.namenode.rpc-address", hostName + ":" + nameNodeRpc.getPort());
+                updateConfigurationPropertiesForCluster(cluster, "hdfs-site",
+                        hdfsProp, true, false);
+              } catch (URISyntaxException e) {
+                e.printStackTrace();
+              }
+            }
           }
         }
       }

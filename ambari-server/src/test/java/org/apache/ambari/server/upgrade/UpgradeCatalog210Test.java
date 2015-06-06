@@ -36,11 +36,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
 
+import com.google.inject.AbstractModule;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -63,10 +65,13 @@ import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityP
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -305,6 +310,56 @@ public class UpgradeCatalog210Test {
     Assert.assertNull(componentDesiredStateDAO.findByPK(entityPK));
   }
 
+
+  @Test
+  public void testUpdateClusterEnvConfiguration() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Config mockHdfsSite = easyMockSupport.createNiceMock(Config.class);
+    final Config mockCoreSite = easyMockSupport.createStrictMock(Config.class);
+
+    final Map<String, String> propertiesExpectedHdfs = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedCoreSite = new HashMap<String, String>();
+    propertiesExpectedCoreSite.put("fs.defaultFS", "hdfs://EXAMPLE.COM:8020");
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    // Expected operation
+    expect(mockClusterExpected.getDesiredConfigByType("hadoop-env")).andReturn(null).once();
+
+    // Expected operation
+    expect(mockClusterExpected.getDesiredConfigByType("hdfs-site")).andReturn(mockHdfsSite).atLeastOnce();
+    expect(mockClusterExpected.getHosts("HDFS", "NAMENODE")).andReturn( new HashSet<String>() {{
+      add("host1");
+    }}).atLeastOnce();
+    expect(mockHdfsSite.getProperties()).andReturn(propertiesExpectedHdfs).anyTimes();
+
+    expect(mockClusterExpected.getDesiredConfigByType("core-site")).andReturn(mockCoreSite).anyTimes();
+    expect(mockCoreSite.getProperties()).andReturn(propertiesExpectedCoreSite).anyTimes();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog210.class).updateHdfsConfigs();
+    easyMockSupport.verifyAll();
+  }
 
   /**
    * @param dbAccessor
