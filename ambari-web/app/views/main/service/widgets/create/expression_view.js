@@ -292,6 +292,12 @@ App.AddMetricExpressionView = Em.View.extend({
    */
   cancel: function () {
     $(".service-level-dropdown").parent().removeClass('open');
+    var id =  "#" + this.get('currentSelectedComponent.id');
+    var aggregatorId = "#" + this.get('currentSelectedComponent.aggregatorId');
+    $(id).val('').trigger("chosen:updated");
+    $(aggregatorId).val('').trigger("chosen:updated");
+    this.set('currentSelectedComponent.selectedAggregation', Em.I18n.t('dashboard.widgets.wizard.step2.aggregateFunction.scanOps'));
+    this.set('currentSelectedComponent.selectedMetric', null);
   },
 
 
