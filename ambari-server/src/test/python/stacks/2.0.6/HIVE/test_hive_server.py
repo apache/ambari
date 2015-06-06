@@ -29,16 +29,17 @@ from resource_management.core import shell
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import copy_tarball
 from resource_management.libraries import functions
-
+from resource_management.core.logger import Logger
 
 @patch.object(functions, "get_hdp_version", new = MagicMock(return_value="2.0.0.0-1234"))
 @patch("resource_management.libraries.functions.check_thrift_port_sasl", new=MagicMock())
-#@patch("atlas_plugin_utils.configure_for_plugin", new=MagicMock())
 class TestHiveServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"
   UPGRADE_STACK_VERSION = "2.2"
 
+  def setUp(self):
+    Logger.logger = MagicMock()
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
@@ -54,9 +55,11 @@ class TestHiveServer(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch("socket.socket")
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
-  def test_start_default(self, socket_mock):
+  def test_start_default(self, socket_mock, copy_to_hfds_mock):
+    copy_to_hfds_mock.return_value = None
     s = socket_mock.return_value
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname="HiveServer",
@@ -116,8 +119,10 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
-  def test_start_default_alt_tmp(self):
+  def test_start_default_alt_tmp(self, copy_to_hfds_mock):
+    copy_to_hfds_mock.return_value = None
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "start",
@@ -144,9 +149,10 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
-  def test_start_default_alt_nn_ha_tmp(self):
+  def test_start_default_alt_nn_ha_tmp(self, copy_to_hfds_mock):
+    copy_to_hfds_mock.return_value = None
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "start",
@@ -211,11 +217,13 @@ class TestHiveServer(RMFTestCase):
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch("hive_service.check_fs_root")
   @patch("socket.socket")
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
-  def test_start_secured(self, socket_mock, check_fs_root_mock):
+  def test_start_secured(self, socket_mock, check_fs_root_mock, copy_to_hfds_mock):
     s = socket_mock.return_value
+    copy_to_hfds_mock.return_value = None
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
@@ -301,6 +309,10 @@ class TestHiveServer(RMFTestCase):
         action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs='hdfs://c6401.ambari.apache.org:8020',
         mode = 0755,
     )
+
+    if self._testMethodName == "test_socket_timeout":
+      # This test will not call any more resources.
+      return
 
     self.assertResourceCalled('HdfsResource', '/apps/hive/warehouse',
         security_enabled = False,
@@ -630,10 +642,9 @@ class TestHiveServer(RMFTestCase):
                               cd_access='a',
     )
 
-  @patch("hive_service.check_fs_root")
   @patch("time.time")
   @patch("socket.socket")
-  def test_socket_timeout(self, socket_mock, time_mock, check_fs_root_mock):
+  def test_socket_timeout(self, socket_mock, time_mock):
     s = socket_mock.return_value
     s.connect = MagicMock()    
     s.connect.side_effect = socket.error("")

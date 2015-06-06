@@ -73,14 +73,15 @@ def _get_single_version_from_hdp_select():
     code, stdoutdata = shell.call(get_hdp_versions_cmd, logoutput=True)
     with open(tmp_file, 'r+') as file:
       out = file.read()
-  except:
-    Logger.error("Could not parse output of {0}".format(str(tmp_file)))
+  except Exception, e:
+    Logger.logger.exception("Could not parse output of {0}. Error: {1}".format(str(tmp_file), str(e)))
   finally:
     try:
       if os.path.exists(tmp_file):
         os.remove(tmp_file)
-    except:
-      pass
+    except Exception, e:
+      Logger.logger.exception("Could not remove file {0}. Error: {1}".format(str(tmp_file), str(e)))
+
   if code != 0 or out is None or out == "":
     Logger.error("Could not verify HDP version by calling '{0}'. Return Code: {1}, Output: {2}.".format(get_hdp_versions_cmd, str(code), str(out)))
     return None
