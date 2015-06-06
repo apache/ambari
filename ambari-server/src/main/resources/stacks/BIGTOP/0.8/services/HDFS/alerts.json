@@ -615,8 +615,8 @@
         "enabled": true,
         "source": {
           "type": "PORT",
-          "uri": "{{core-site/ha.zookeeper.quorum}}",
-          "default_port": 2181,
+          "uri": "{{hdfs-site/dfs.ha.zkfc.port}}",
+          "default_port": 8019,
           "reporting": {
             "ok": {
               "text": "TCP OK - {0:.3f}s response on port {1}"

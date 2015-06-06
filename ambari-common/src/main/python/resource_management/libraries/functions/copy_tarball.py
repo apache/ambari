@@ -138,8 +138,8 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
       current_version = hdp_version
 
   if current_version is None:
-    message_suffix = " during rolling %s" % str(upgrade_direction) if is_rolling_upgrade else ""
-    Logger.warning("Cannot copy {0} tarball because unable to determine current version{1}.".format(str(name), message_suffix))
+    message_suffix = "during rolling %s" % str(upgrade_direction) if is_rolling_upgrade else ""
+    Logger.warning("Cannot copy {0} tarball because unable to determine current version {1}.".format(name, message_suffix))
     return False
 
   source_file = source_file.replace(STACK_VERSION_PATTERN, current_version)
