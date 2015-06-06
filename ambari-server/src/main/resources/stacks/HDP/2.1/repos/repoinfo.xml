@@ -41,16 +41,4 @@
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
-  <os family="ubuntu12">
-    <repo>
-      <baseurl>REPLACE_WITH_UBUNTU12_URL</baseurl>
-      <repoid>HDP-2.1</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.19/repos/ubuntu12</baseurl>
-      <repoid>HDP-UTILS-1.1.0.19</repoid>
-      <reponame>HDP-UTILS</reponame>
-    </repo>
-  </os>
 </reposinfo>
