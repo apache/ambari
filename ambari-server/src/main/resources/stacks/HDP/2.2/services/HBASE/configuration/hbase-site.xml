@@ -126,7 +126,7 @@
     </depends-on>
   </property>
   <property>
-    <name>hbase.regionserver.rpc.scheduler.factory.class</name>
+    <name>hbase.region.server.rpc.scheduler.factory.class</name>
     <value></value>
     <depends-on>
       <property>

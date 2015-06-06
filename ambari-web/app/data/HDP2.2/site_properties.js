@@ -908,8 +908,8 @@ hdp22properties.push(
   },
   {
   "id": "site property",
-    "name": "hbase.regionserver.rpc.scheduler.factory.class",
-    "displayName": "hbase.regionserver.rpc.scheduler.factory.class",
+    "name": "hbase.region.server.rpc.scheduler.factory.class",
+    "displayName": "hbase.region.server.rpc.scheduler.factory.class",
     "defaultValue": "",
     "isRequired": false,
     "category": "Advanced hbase-site",
