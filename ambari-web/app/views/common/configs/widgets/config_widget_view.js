@@ -421,7 +421,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
       return true;
     }
     return this.isValueCompatibleWithWidget();
-  }.property('config.value', 'config.showAsTextBox'),
+  }.property('config.value', 'config.isFinal', 'config.showAsTextBox'),
 
   /**
    * Used in <code>isValueCompatibleWithWidget</code>
