@@ -79,7 +79,7 @@ class TestHDP21StackAdvisor(TestCase):
     expected = {
       "hive-site": {
         "properties": {
-          "hive.auto.convert.join.noconditionaltask.size": "718274560",
+          "hive.auto.convert.join.noconditionaltask.size": "718624085",
           "hive.tez.java.opts": "-server -Xmx1645m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps",
           "hive.tez.container.size": "2056"
         }
@@ -87,6 +87,7 @@ class TestHDP21StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData, None, None)
+    self.maxDiff = None
     self.assertEquals(configurations, expected)
 
   def test_recommendHiveConfigurations_mapMemoryMoreThan2048(self):
