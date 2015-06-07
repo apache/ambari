@@ -445,7 +445,7 @@ hdp23properties.push({
     "isRequired": false,
     "filename": "ranger-yarn-plugin-properties.xml",
     "category": "Advanced ranger-yarn-plugin-properties",
-    "serviceName": "KAFKA"
+    "serviceName": "YARN"
   },
   {
     "id": "site property",
