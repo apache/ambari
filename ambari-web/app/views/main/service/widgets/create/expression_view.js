@@ -234,6 +234,12 @@ App.AddMetricExpressionView = Em.View.extend({
           selectedMetric.hostComponentCriteria = self.get('currentSelectedComponent.hostComponentCriteria');
         }
         self.set('currentSelectedComponent.selectedMetric', selectedMetric);
+        if (self.get('currentSelectedComponent.selectedAggregation') == Em.I18n.t('dashboard.widgets.wizard.step2.aggregateFunction.scanOps')) {
+          var aggregatorId = "#" + self.get('currentSelectedComponent.aggregatorId');
+          var defaultAggregator = self.get('parentView.AGGREGATE_FUNCTIONS')[0];
+          $(aggregatorId).val(1).trigger("chosen:updated");
+          self.set('currentSelectedComponent.selectedAggregation', defaultAggregator);
+        }
       }
     })
   }.property(),
