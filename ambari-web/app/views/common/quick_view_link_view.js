@@ -346,7 +346,7 @@ App.QuickViewLinks = Em.View.extend({
       case "ATLAS":
         var atlasProperties = configProperties && configProperties.findProperty('type', 'application-properties');
         if (atlasProperties && atlasProperties.properties) {
-          if (atlasProperties.properties['enableTLS'] == "true") {
+          if (atlasProperties.properties['metadata.enableTLS'] == "true") {
             return "https";
           } else {
             return "http";
