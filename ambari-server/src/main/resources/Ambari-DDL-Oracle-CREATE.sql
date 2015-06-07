@@ -21,8 +21,7 @@ CREATE TABLE stack(
   stack_id NUMBER(19) NOT NULL,
   stack_name VARCHAR2(255) NOT NULL,
   stack_version VARCHAR2(255) NOT NULL,
-  PRIMARY KEY (stack_id),
-  CONSTRAINT unq_stack UNIQUE(stack_name,stack_version)
+  PRIMARY KEY (stack_id)
 );
 
 CREATE TABLE clusters (
@@ -34,8 +33,8 @@ CREATE TABLE clusters (
   security_type VARCHAR2(32) DEFAULT 'NONE' NOT NULL,
   desired_cluster_state VARCHAR2(255) NULL,
   desired_stack_id NUMBER(19) NOT NULL,
-  PRIMARY KEY (cluster_id),
-  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id));
+  PRIMARY KEY (cluster_id)
+);
 
 CREATE TABLE clusterconfig (
   config_id NUMBER(19) NOT NULL,
@@ -47,8 +46,8 @@ CREATE TABLE clusterconfig (
   config_data CLOB NOT NULL,
   config_attributes CLOB,
   create_timestamp NUMBER(19) NOT NULL,
-  PRIMARY KEY (config_id),
-  FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
+  PRIMARY KEY (config_id)
+);
 
 CREATE TABLE serviceconfig (
   service_config_id NUMBER(19) NOT NULL,
@@ -60,8 +59,8 @@ CREATE TABLE serviceconfig (
   user_name VARCHAR(255) DEFAULT '_db' NOT NULL,
   group_id NUMBER(19),
   note CLOB,
-  PRIMARY KEY (service_config_id),
-  FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
+  PRIMARY KEY (service_config_id)
+);
 
 CREATE TABLE serviceconfighosts (
   service_config_id NUMBER(19) NOT NULL,
@@ -83,8 +82,8 @@ CREATE TABLE clusterstate (
   cluster_id NUMBER(19) NOT NULL,
   current_cluster_state VARCHAR2(255) NULL,
   current_stack_id NUMBER(19) NULL,
-  PRIMARY KEY (cluster_id),
-  FOREIGN KEY (current_stack_id) REFERENCES stack(stack_id));
+  PRIMARY KEY (cluster_id)
+);
 
 CREATE TABLE cluster_version (
   id NUMBER(19) NULL,
@@ -107,8 +106,8 @@ CREATE TABLE hostcomponentdesiredstate (
   maintenance_state VARCHAR2(32) NOT NULL,
   security_state VARCHAR2(32) DEFAULT 'UNSECURED' NOT NULL,
   restart_required NUMBER(1) DEFAULT 0 NOT NULL,
-  PRIMARY KEY (cluster_id, component_name, host_id, service_name),
-  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id));
+  PRIMARY KEY (cluster_id, component_name, host_id, service_name)
+);
 
 CREATE TABLE hostcomponentstate (
   cluster_id NUMBER(19) NOT NULL,
@@ -120,8 +119,8 @@ CREATE TABLE hostcomponentstate (
   service_name VARCHAR2(255) NOT NULL,
   upgrade_state VARCHAR2(32) DEFAULT 'NONE' NOT NULL,
   security_state VARCHAR2(32) DEFAULT 'UNSECURED' NOT NULL,
-  PRIMARY KEY (cluster_id, component_name, host_id, service_name),
-  FOREIGN KEY (current_stack_id) REFERENCES stack(stack_id));
+  PRIMARY KEY (cluster_id, component_name, host_id, service_name)
+);
 
 CREATE TABLE hosts (
   host_id NUMBER(19) NOT NULL,
@@ -165,8 +164,8 @@ CREATE TABLE servicecomponentdesiredstate (
   desired_stack_id NUMBER(19) NOT NULL,
   desired_state VARCHAR2(255) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
-  PRIMARY KEY (component_name, cluster_id, service_name),
-  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id));
+  PRIMARY KEY (component_name, cluster_id, service_name)
+);
 
 CREATE TABLE servicedesiredstate (
   cluster_id NUMBER(19) NOT NULL,
@@ -176,8 +175,8 @@ CREATE TABLE servicedesiredstate (
   service_name VARCHAR2(255) NOT NULL,
   maintenance_state VARCHAR2(32) NOT NULL,
   security_state VARCHAR2(32) DEFAULT 'UNSECURED' NOT NULL,
-  PRIMARY KEY (cluster_id, service_name),
-  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id));
+  PRIMARY KEY (cluster_id, service_name)
+);
 
 CREATE TABLE users (
   user_id NUMBER(10) NOT NULL,
@@ -385,8 +384,8 @@ CREATE TABLE requestschedulebatchrequest (
 CREATE TABLE blueprint (
   blueprint_name VARCHAR2(255) NOT NULL,
   stack_id NUMBER(19) NOT NULL,
-  PRIMARY KEY(blueprint_name),
-  FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
+  PRIMARY KEY(blueprint_name)
+);
 
 CREATE TABLE hostgroup (
   blueprint_name VARCHAR2(255) NOT NULL,
@@ -527,8 +526,7 @@ CREATE TABLE repo_version (
   display_name VARCHAR2(128) NOT NULL,
   upgrade_package VARCHAR2(255) NOT NULL,
   repositories CLOB NOT NULL,
-  PRIMARY KEY(repo_version_id),
-  FOREIGN KEY (stack_id) REFERENCES stack(stack_id)
+  PRIMARY KEY(repo_version_id)
 );
 
 CREATE TABLE widget (
@@ -644,6 +642,7 @@ ALTER TABLE serviceconfig ADD CONSTRAINT UQ_scv_service_version UNIQUE (cluster_
 ALTER TABLE adminpermission ADD CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id);
 ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name);
 ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack_id, version);
+ALTER TABLE stack ADD CONSTRAINT unq_stack UNIQUE (stack_name, stack_version);
 
 --------altering tables by creating foreign keys----------
 -- Note, Oracle has a limitation of 32 chars in the FK name, and we should use the same FK name in all DB types.
@@ -717,6 +716,16 @@ ALTER TABLE topology_host_request ADD CONSTRAINT FK_hostreq_group_id FOREIGN KEY
 ALTER TABLE topology_host_task ADD CONSTRAINT FK_hosttask_req_id FOREIGN KEY (host_request_id) REFERENCES topology_host_request (id);
 ALTER TABLE topology_logical_task ADD CONSTRAINT FK_ltask_hosttask_id FOREIGN KEY (host_task_id) REFERENCES topology_host_task (id);
 ALTER TABLE topology_logical_task ADD CONSTRAINT FK_ltask_hrc_id FOREIGN KEY (physical_task_id) REFERENCES host_role_command (task_id);
+ALTER TABLE clusters ADD CONSTRAINT FK_clusters_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id);
+ALTER TABLE clusterconfig ADD CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id);
+ALTER TABLE serviceconfig ADD CONSTRAINT FK_serviceconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id);
+ALTER TABLE clusterstate ADD CONSTRAINT FK_cs_current_stack_id FOREIGN KEY (current_stack_id) REFERENCES stack(stack_id);
+ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT FK_hcds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id);
+ALTER TABLE hostcomponentstate ADD CONSTRAINT FK_hcs_current_stack_id FOREIGN KEY (current_stack_id) REFERENCES stack(stack_id);
+ALTER TABLE servicecomponentdesiredstate ADD CONSTRAINT FK_scds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id);
+ALTER TABLE servicedesiredstate ADD CONSTRAINT FK_sds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id);
+ALTER TABLE blueprint ADD CONSTRAINT FK_blueprint_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id);
+ALTER TABLE repo_version ADD CONSTRAINT FK_repoversion_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id);
 
 -- Kerberos
 CREATE TABLE kerberos_principal (

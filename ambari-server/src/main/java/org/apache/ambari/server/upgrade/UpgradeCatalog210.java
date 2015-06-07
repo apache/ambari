@@ -185,65 +185,65 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("action", String.class, 255, null, false));
     columns.add(new DBColumnInfo("cluster_name", String.class, 100, null, false));
     columns.add(new DBColumnInfo("bp_name", String.class, 100, null, false));
-    columns.add(new DBColumnInfo("cluster_properties", char[].class, null, null, false));
-    columns.add(new DBColumnInfo("cluster_attributes", char[].class, null, null, false));
-    columns.add(new DBColumnInfo("description", String.class, 1024, null, false));
+    columns.add(new DBColumnInfo("cluster_properties", char[].class, null, null, true));
+    columns.add(new DBColumnInfo("cluster_attributes", char[].class, null, null, true));
+    columns.add(new DBColumnInfo("description", String.class, 1024, null, true));
 
     dbAccessor.createTable(TOPOLOGY_REQUEST_TABLE, columns, "id");
 
     columns.clear();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("name", String.class, 255, null, false));
-    columns.add(new DBColumnInfo("group_properties", char[].class, null, null, false));
-    columns.add(new DBColumnInfo("group_attributes", char[].class, null, null, false));
+    columns.add(new DBColumnInfo("group_properties", char[].class, null, null, true));
+    columns.add(new DBColumnInfo("group_attributes", char[].class, null, null, true));
     columns.add(new DBColumnInfo("request_id", Long.class, null, null, false));
 
     dbAccessor.createTable(TOPOLOGY_HOST_GROUP_TABLE, columns, "id");
-    dbAccessor.addFKConstraint(TOPOLOGY_HOST_GROUP_TABLE, "FK_hostgroup_req_id", "request_id", TOPOLOGY_REQUEST_TABLE, "id", true, false);
+    dbAccessor.addFKConstraint(TOPOLOGY_HOST_GROUP_TABLE, "FK_hostgroup_req_id", "request_id", TOPOLOGY_REQUEST_TABLE, "id", false, false);
 
     columns.clear();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("request_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("group_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("fqdn", String.class, 255, null, true));
     columns.add(new DBColumnInfo("host_count", Integer.class, null, null, true));
     columns.add(new DBColumnInfo("predicate", String.class, 2048, null, true));
 
     dbAccessor.createTable(TOPOLOGY_HOST_INFO_TABLE, columns, "id");
-    dbAccessor.addFKConstraint(TOPOLOGY_HOST_INFO_TABLE, "FK_hostinfo_group_id", "group_id", TOPOLOGY_HOST_GROUP_TABLE, "id", true, false);
+    dbAccessor.addFKConstraint(TOPOLOGY_HOST_INFO_TABLE, "FK_hostinfo_group_id", "group_id", TOPOLOGY_HOST_GROUP_TABLE, "id", false, false);
 
     columns.clear();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("description", String.class, 1024, null, false));
+    columns.add(new DBColumnInfo("request_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("description", String.class, 1024, null, true));
 
     dbAccessor.createTable(TOPOLOGY_LOGICAL_REQUEST_TABLE, columns, "id");
-    dbAccessor.addFKConstraint(TOPOLOGY_HOST_GROUP_TABLE, "FK_logicalreq_req_id", "request_id", TOPOLOGY_REQUEST_TABLE, "id", true, false);
+    dbAccessor.addFKConstraint(TOPOLOGY_LOGICAL_REQUEST_TABLE, "FK_logicalreq_req_id", "request_id", TOPOLOGY_REQUEST_TABLE, "id", false, false);
 
     columns.clear();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("logical_request_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("group_id", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("stage_id", Integer.class, null, null, false));
+    columns.add(new DBColumnInfo("stage_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("host_name", String.class, 255, null, true));
 
     dbAccessor.createTable(TOPOLOGY_HOST_REQUEST_TABLE, columns, "id");
-    dbAccessor.addFKConstraint(TOPOLOGY_HOST_REQUEST_TABLE, "FK_hostreq_logicalreq_id", "logical_request_id", TOPOLOGY_LOGICAL_REQUEST_TABLE, "id", true, false);
-    dbAccessor.addFKConstraint(TOPOLOGY_HOST_REQUEST_TABLE, "FK_hostreq_group_id", "group_id", TOPOLOGY_HOST_GROUP_TABLE, "id", true, false);
+    dbAccessor.addFKConstraint(TOPOLOGY_HOST_REQUEST_TABLE, "FK_hostreq_logicalreq_id", "logical_request_id", TOPOLOGY_LOGICAL_REQUEST_TABLE, "id", false, false);
+    dbAccessor.addFKConstraint(TOPOLOGY_HOST_REQUEST_TABLE, "FK_hostreq_group_id", "group_id", TOPOLOGY_HOST_GROUP_TABLE, "id", false, false);
 
     columns.clear();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("host_request_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("type", String.class, 255, null, false));
     dbAccessor.createTable(TOPOLOGY_HOST_TASK_TABLE, columns, "id");
-    dbAccessor.addFKConstraint(TOPOLOGY_HOST_TASK_TABLE, "FK_hosttask_req_id", "host_request_id", TOPOLOGY_HOST_REQUEST_TABLE, "id", true, false);
+    dbAccessor.addFKConstraint(TOPOLOGY_HOST_TASK_TABLE, "FK_hosttask_req_id", "host_request_id", TOPOLOGY_HOST_REQUEST_TABLE, "id", false, false);
 
     columns.clear();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("host_task_id", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("physical_task_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("physical_task_id", Long.class, null, null, true));
     columns.add(new DBColumnInfo("component", String.class, 255, null, false));
     dbAccessor.createTable(TOPOLOGY_LOGICAL_TASK_TABLE, columns, "id");
-    dbAccessor.addFKConstraint(TOPOLOGY_LOGICAL_TASK_TABLE, "FK_ltask_hosttask_id", "host_task_id", TOPOLOGY_HOST_TASK_TABLE, "id", true, false);
+    dbAccessor.addFKConstraint(TOPOLOGY_LOGICAL_TASK_TABLE, "FK_ltask_hosttask_id", "host_task_id", TOPOLOGY_HOST_TASK_TABLE, "id", false, false);
     dbAccessor.addFKConstraint(TOPOLOGY_LOGICAL_TASK_TABLE, "FK_ltask_hrc_id", "physical_task_id", "host_role_command", "task_id", false, false);
 
     // Sequence updates
@@ -436,26 +436,17 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     }
 
     // These are the FKs that have already been corrected.
-    dbAccessor.addFKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "FK_cghm_host_id",
-        "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(CLUSTER_HOST_MAPPING_TABLE, "FK_clusterhostmapping_host_id",
-        "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(HOST_CONFIG_MAPPING_TABLE, "FK_hostconfmapping_host_id",
-        "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(HOST_COMPONENT_STATE_TABLE, "FK_hostcomponentstate_host_id",
-        "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "FK_hcdesiredstate_host_id",
-        "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(HOST_ROLE_COMMAND_TABLE, "FK_host_role_command_host_id",
-        "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(HOST_STATE_TABLE, "FK_hoststate_host_id",
-        "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_id",
-        "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_principalname",
-        "principal_name", KERBEROS_PRINCIPAL_TABLE, "principal_name", false);
-    dbAccessor.addFKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "FK_scvhosts_host_id",
-        "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "FK_cghm_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(CLUSTER_HOST_MAPPING_TABLE, "FK_clusterhostmapping_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(HOST_CONFIG_MAPPING_TABLE, "FK_hostconfmapping_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(HOST_COMPONENT_STATE_TABLE, "FK_hostcomponentstate_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "FK_hcdesiredstate_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(HOST_ROLE_COMMAND_TABLE, "FK_host_role_command_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(HOST_STATE_TABLE, "FK_hoststate_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(HOST_VERSION_TABLE, "FK_host_version_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_principalname", "principal_name", KERBEROS_PRINCIPAL_TABLE, "principal_name", false);
+    dbAccessor.addFKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "FK_scvhosts_host_id", "host_id", HOSTS_TABLE, "host_id", false);
 
 
     // For any tables where the host_name was part of the PK, need to drop the PK, and recreate it with the host_id
@@ -562,16 +553,16 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("widget_layout_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("widget_id", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("widget_order", Integer.class, null, null, false));
+    columns.add(new DBColumnInfo("widget_order", Short.class, null, null, true));
     dbAccessor.createTable(WIDGET_LAYOUT_USER_WIDGET_TABLE, columns, "widget_layout_id", "widget_id");
-    dbAccessor.addFKConstraint(WIDGET_LAYOUT_USER_WIDGET_TABLE, "FK_widget_layout_id", "widget_layout_id", "widget_layout", "id", true, false);
-    dbAccessor.addFKConstraint(WIDGET_LAYOUT_USER_WIDGET_TABLE, "FK_widget_id", "widget_id", "widget", "id", true, false);
+    dbAccessor.addFKConstraint(WIDGET_LAYOUT_USER_WIDGET_TABLE, "FK_widget_layout_id", "widget_layout_id", "widget_layout", "id", false, false);
+    dbAccessor.addFKConstraint(WIDGET_LAYOUT_USER_WIDGET_TABLE, "FK_widget_id", "widget_id", "widget", "id", false, false);
 
     //Alter users to store active widget layouts
     dbAccessor.addColumn("users", new DBColumnInfo("active_widget_layouts", String.class, 1024, null, true));
 
     // Sequence updates
-    addSequences(Arrays.asList("widget_id_seq", "widget_layout_id_seq"), 0L, false);
+      addSequences(Arrays.asList("widget_id_seq", "widget_layout_id_seq"), 0L, false);
   }
 
   /**
@@ -1196,18 +1187,18 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     STACK_ID_COLUMN.setNullable(false);
 
     // make all stack columns NOT NULL now that they are filled in
-    dbAccessor.alterColumn(CLUSTERS_TABLE, DESIRED_STACK_ID_COLUMN);
-    dbAccessor.alterColumn("hostcomponentdesiredstate", DESIRED_STACK_ID_COLUMN);
-    dbAccessor.alterColumn("servicecomponentdesiredstate", DESIRED_STACK_ID_COLUMN);
-    dbAccessor.alterColumn("servicedesiredstate", DESIRED_STACK_ID_COLUMN);
+    dbAccessor.setColumnNullable(CLUSTERS_TABLE, DESIRED_STACK_ID_COLUMN_NAME, false);
+    dbAccessor.setColumnNullable("hostcomponentdesiredstate", DESIRED_STACK_ID_COLUMN_NAME, false);
+    dbAccessor.setColumnNullable("servicecomponentdesiredstate", DESIRED_STACK_ID_COLUMN_NAME, false);
+    dbAccessor.setColumnNullable("servicedesiredstate", DESIRED_STACK_ID_COLUMN_NAME, false);
 
-    dbAccessor.alterColumn("clusterstate", CURRENT_STACK_ID_COLUMN);
-    dbAccessor.alterColumn("hostcomponentstate", CURRENT_STACK_ID_COLUMN);
+    dbAccessor.setColumnNullable("clusterstate", CURRENT_STACK_ID_COLUMN_NAME, false);
+    dbAccessor.setColumnNullable("hostcomponentstate", CURRENT_STACK_ID_COLUMN_NAME, false);
 
-    dbAccessor.alterColumn("clusterconfig", STACK_ID_COLUMN);
-    dbAccessor.alterColumn("serviceconfig", STACK_ID_COLUMN);
-    dbAccessor.alterColumn("blueprint", STACK_ID_COLUMN);
-    dbAccessor.alterColumn(REPO_VERSION_TABLE, STACK_ID_COLUMN);
+    dbAccessor.setColumnNullable("clusterconfig", STACK_ID_COLUMN_NAME, false);
+    dbAccessor.setColumnNullable("serviceconfig", STACK_ID_COLUMN_NAME, false);
+    dbAccessor.setColumnNullable("blueprint", STACK_ID_COLUMN_NAME, false);
+    dbAccessor.setColumnNullable(REPO_VERSION_TABLE, STACK_ID_COLUMN_NAME, false);
 
     // drop unused JSON columns
     dbAccessor.dropColumn(CLUSTERS_TABLE, DESIRED_STACK_VERSION_COLUMN_NAME);
