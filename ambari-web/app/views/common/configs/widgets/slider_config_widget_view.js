@@ -525,7 +525,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       if (this.get('config.stackConfigProperty.valueAttributes.minimum')) {
         var min = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.minimum'));
         if (configValue < min) {
-          min = this.widgetValueByConfigAttributes(min);
           this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(min + this.get('unitLabel')));
           return false;
         }
@@ -533,7 +532,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       if (this.get('config.stackConfigProperty.valueAttributes.maximum')) {
         var max = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.maximum'));
         if (configValue > max) {
-          max = this.widgetValueByConfigAttributes(max);
           this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(max + this.get('unitLabel')));
           return false;
         }
