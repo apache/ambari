@@ -253,7 +253,7 @@ limitations under the License.
     <value>1000000000</value>
     <description>If hive.auto.convert.join.noconditionaltask is off, this parameter does not take affect. However, if it
       is on, and the sum of size for n-1 of the tables/partitions for a n-way join is smaller than this size, the join is directly
-      converted to a mapjoin(there is no conditional task). The default is 10MB.
+      converted to a mapjoin(there is no conditional task).
     </description>
   </property>
 
