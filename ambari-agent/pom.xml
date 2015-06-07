@@ -192,8 +192,8 @@
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
           <requires>
-            <require>openssl
-%define _binaries_in_noarch_packages_terminate_build   0</require>
+            <require>openssl</require>
+            <require>rpm-python</require>
             <require>zlib</require>
             <require>${python.ver}</require>
           </requires>
