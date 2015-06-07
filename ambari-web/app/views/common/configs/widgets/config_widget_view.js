@@ -431,8 +431,9 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    */
   updateWarningsForCompatibilityWithWidget: function (message) {
     this.setProperties({
-      'config.warnMessage': message,
+      warnMessage: message,
       issueMessage: message,
+      iconClass: message ? 'warning' : '',
       configLabelClass: message ? 'text-warning' : ''
     });
   }
