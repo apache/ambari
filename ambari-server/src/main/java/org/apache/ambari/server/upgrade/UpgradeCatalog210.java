@@ -58,6 +58,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.alert.PortSource;
+import org.apache.ambari.server.state.alert.WebSource;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -1047,21 +1048,38 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
           // zookeeper failover conroller alert update for default port and uri
           // to 8019 and dfs.ha.zkfc.port
-          AlertDefinitionEntity alertDefinitionEntity = alertDefinitionDAO.findByName(
+          AlertDefinitionEntity zkFailoverDefinitionEntity = alertDefinitionDAO.findByName(
               cluster.getClusterId(), "hdfs_zookeeper_failover_controller_process");
 
-          if (alertDefinitionEntity != null) {
-            AlertDefinition zkfcAlertDefinition = alertDefinitionFactory.coerce(alertDefinitionEntity);
+          if (zkFailoverDefinitionEntity != null) {
+            AlertDefinition zkfcAlertDefinition = alertDefinitionFactory.coerce(zkFailoverDefinitionEntity);
             PortSource portSource = (PortSource) zkfcAlertDefinition.getSource();
             portSource.setPort(8019);
             portSource.setUri("{{hdfs-site/dfs.ha.zkfc.port}}");
 
             // merge the definition back into the entity
-            alertDefinitionEntity = alertDefinitionFactory.merge(zkfcAlertDefinition,
-                alertDefinitionEntity);
+            zkFailoverDefinitionEntity = alertDefinitionFactory.merge(zkfcAlertDefinition,
+                zkFailoverDefinitionEntity);
 
             // save the changes
-            alertDefinitionDAO.merge(alertDefinitionEntity);
+            alertDefinitionDAO.merge(zkFailoverDefinitionEntity);
+          }
+
+          // oozie web url changed
+          AlertDefinitionEntity oozieWebDefinitionEntity = alertDefinitionDAO.findByName(
+              cluster.getClusterId(), "oozie_server_webui");
+
+          if (oozieWebDefinitionEntity != null) {
+            AlertDefinition oozieAlertDefinition = alertDefinitionFactory.coerce(oozieWebDefinitionEntity);
+            WebSource webSource = (WebSource) oozieAlertDefinition.getSource();
+            webSource.getUri().setHttpUri("{{oozie-site/oozie.base.url}}/?user.name={{oozie-env/oozie_user}}");
+
+            // merge the definition back into the entity
+            oozieWebDefinitionEntity = alertDefinitionFactory.merge(oozieAlertDefinition,
+                oozieWebDefinitionEntity);
+
+            // save the changes
+            alertDefinitionDAO.merge(oozieWebDefinitionEntity);
           }
         }
       }

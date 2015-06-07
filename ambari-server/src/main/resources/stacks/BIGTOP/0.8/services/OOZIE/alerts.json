@@ -11,7 +11,7 @@
         "source": {
           "type": "WEB",
           "uri": {
-            "http": "{{oozie-site/oozie.base.url}}/oozie",
+            "http": "{{oozie-site/oozie.base.url}}",
             "connection_timeout": 5.0
           },
           "reporting": {

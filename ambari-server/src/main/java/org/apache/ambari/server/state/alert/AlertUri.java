@@ -100,6 +100,17 @@ public class AlertUri {
   }
 
   /**
+   * Sets the plaintext (HTTP) URI that can be used to retrieve alert
+   * information.
+   *
+   * @param httpUri
+   *          the plaintext URI or {@code null} for none.
+   */
+  public void setHttpUri(String httpUri) {
+    m_httpUri = httpUri;
+  }
+
+  /**
    * Gets the default port to use on the host running the alert if none of the
    * http properties are available.
    *
