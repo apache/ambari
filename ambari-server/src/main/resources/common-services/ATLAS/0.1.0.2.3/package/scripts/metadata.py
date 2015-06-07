@@ -20,7 +20,7 @@ limitations under the License.
 import os
 import shutil
 from resource_management import Directory, Fail, Logger, File, \
-    InlineTemplate, StaticFile
+    InlineTemplate, PropertiesFile, StaticFile
 from resource_management.libraries.functions import format
 
 
@@ -74,8 +74,8 @@ def metadata():
     Logger.info("Copying {0} to {1}".format(metadata_war_file, params.expanded_war_dir))
     shutil.copy2(metadata_war_file, params.expanded_war_dir)
 
-    File(format('{conf_dir}/application.properties'),
-         content=InlineTemplate(params.application_properties_content),
+    PropertiesFile(format('{conf_dir}/application.properties'),
+         properties = params.application_properties,
          mode=0644,
          owner=params.metadata_user,
          group=params.user_group

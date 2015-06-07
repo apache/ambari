@@ -363,7 +363,7 @@ else:
   atlas_config = config['configurations']['application-properties']
   metadata_port = config['configurations']['metadata-env']['metadata_port']
   metadata_host = atlas_hosts[0]
-  tls_enabled = config['configurations']['application-properties']['enableTLS']
+  tls_enabled = config['configurations']['application-properties']['metadata.enableTLS']
   if tls_enabled:
     scheme = "https"
   else:
