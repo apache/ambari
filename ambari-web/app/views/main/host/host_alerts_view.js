@@ -24,7 +24,27 @@ App.MainHostAlertsView = App.TableView.extend({
   templateName: require('templates/main/host/host_alerts'),
 
   content: function () {
-    return this.get('controller.content');
+    var criticalAlerts = [];
+    var warningAlerts = [];
+    var otherAlerts = [];
+    var content = this.get('controller.content');
+    if (content) {
+      content.forEach(function (alert) {
+        switch (alert.get('state')) {
+          case 'CRITICAL':
+            criticalAlerts.push(alert);
+            break;
+          case 'WARNING':
+            warningAlerts.push(alert);
+            break;
+          default:
+            otherAlerts.push(alert);
+        }
+      });
+      return [].concat(criticalAlerts, warningAlerts, otherAlerts);
+    } else {
+      return [];
+    }
   }.property('controller.content.@each'),
 
   willInsertElement: function () {
