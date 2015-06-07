@@ -59,6 +59,8 @@ class RangerAdmin(Script):
     import params
     env.set_params(params)
 
+    upgrade.prestart(env, "ranger-admin")
+
     if params.xml_configurations_supported:
       from setup_ranger_xml import ranger, setup_ranger_db, setup_java_patch
       ranger('ranger_admin', rolling_upgrade=True)
@@ -66,7 +68,6 @@ class RangerAdmin(Script):
       setup_java_patch(rolling_upgrade=True)
 
     self.set_ru_rangeradmin_in_progress()
-    upgrade.prestart(env, "ranger-admin")
 
   def post_rolling_restart(self,env):
      if os.path.isfile(RangerAdmin.upgrade_marker_file):
