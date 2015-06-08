@@ -540,10 +540,22 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     json.items.forEach(function (item) {
       item.configurations.forEach(function (configuration) {
         if (serviceName == 'YARN' && configuration.type == 'capacity-scheduler') {
+          var configsToSkip = this.get('advancedConfigs').filterProperty('filename', 'capacity-scheduler.xml').filterProperty('subSection').mapProperty('name');
           // put all properties in a single textarea for capacity-scheduler
           var value = '';
           for (var prop in configuration.properties) {
-            value += prop + '=' + configuration.properties[prop] + '\n';
+            if (configsToSkip.contains(prop)) {
+              serviceVersionMap[item.service_config_version][prop + '-' + configuration.type] = {
+                name: prop,
+                value: configuration.properties[prop],
+                type: configuration.type,
+                tag: configuration.tag,
+                version: configuration.version,
+                service_config_version: item.service_config_version
+              };
+            } else {
+              value += prop + '=' + configuration.properties[prop] + '\n';
+            }
           }
           serviceVersionMap[item.service_config_version][configuration.type + '-' + configuration.type] = {
             name: configuration.type,
