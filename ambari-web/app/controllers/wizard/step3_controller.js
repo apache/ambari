@@ -230,7 +230,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     var bootStrapData = JSON.stringify({
         'verbose': true,
         'sshKey': this.get('content.installOptions.sshKey'),
-        'hosts': Em.keys(this.get('content.hosts')),
+        'hosts': this.getBootstrapHosts(),
         'user': this.get('content.installOptions.sshUser'),
         'userRunAs': App.get('supports.customizeAgentUserAccount') ? this.get('content.installOptions.agentUser') : 'root'
     });
@@ -243,6 +243,20 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         self.startBootstrap();
       }
     });
+  },
+
+  getBootstrapHosts: function () {
+    var hosts = this.get('content.hosts');
+    var bootstrapHosts = [];
+    for (var host in hosts) {
+      if (hosts.hasOwnProperty(host)) {
+        if (!hosts[host].isInstalled) {
+          bootstrapHosts.push(host);
+        }
+      }
+    }
+
+    return bootstrapHosts;
   },
 
   /**
@@ -870,7 +884,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     });
   },
 
-  
+
   startHostcheck: function() {
     this.set('isWarningsLoaded', false);
     this.getHostNameResolution();
