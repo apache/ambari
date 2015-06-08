@@ -81,6 +81,7 @@ public class ViewClassLoader extends WebAppClassLoader {
     // add as system classes to avoid conflicts and linkage errors
     webAppContext.addSystemClass("org.slf4j.");
     webAppContext.addSystemClass("com.sun.jersey.");
+    webAppContext.addSystemClass("org.apache.velocity.");
 
     // set the class loader settings from the configuration
     if (viewConfig != null) {
