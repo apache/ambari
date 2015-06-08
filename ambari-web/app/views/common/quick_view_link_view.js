@@ -137,7 +137,7 @@ App.QuickViewLinks = Em.View.extend({
         var protocol = self.setProtocol(item.get('service_id'), self.get('configProperties'), self.ambariProperties());
         if (item.get('template')) {
           var port = item.get('http_config') && self.setPort(item, protocol);
-          if (['FALCON', 'OOZIE'].contains(item.get('service_id'))) {
+          if (['FALCON', 'OOZIE', 'ATLAS'].contains(item.get('service_id'))) {
             item.set('url', item.get('template').fmt(protocol, hosts[0], port, App.router.get('loginName')));
           } else {
             item.set('url', item.get('template').fmt(protocol, hosts[0], port));
