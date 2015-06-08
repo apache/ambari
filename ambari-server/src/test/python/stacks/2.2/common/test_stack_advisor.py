@@ -1801,7 +1801,6 @@ class TestHDP22StackAdvisor(TestCase):
       "hbase-site": {
         "properties": {
           "hbase.regionserver.wal.codec": "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec",
-          "hbase.region.server.rpc.scheduler.factory.class": "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory",
           "hbase.rpc.controllerfactory.class": "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory",
           "phoenix.functions.allowUserDefinedFunctions": "true",
           "hbase.regionserver.global.memstore.size": "0.4",
@@ -1848,7 +1847,6 @@ class TestHDP22StackAdvisor(TestCase):
     # Test when phoenix_sql_enabled = false
     services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'] = 'false'
     expected['hbase-site']['properties']['hbase.regionserver.wal.codec'] = 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec'
-    expected['hbase-site']['property_attributes']['hbase.region.server.rpc.scheduler.factory.class'] = {'delete': 'true'}
     expected['hbase-site']['property_attributes']['hbase.rpc.controllerfactory.class'] = {'delete': 'true'}
     expected['hbase-site']['property_attributes']['hbase.coprocessor.regionserver.classes'] = {'delete': 'true'}
     expected['hbase-site']['property_attributes']['phoenix.functions.allowUserDefinedFunctions'] = {'delete': 'true'}
@@ -1883,7 +1881,6 @@ class TestHDP22StackAdvisor(TestCase):
                         }]})
     services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'] = 'false'
     expected['hbase-site']['properties']['hbase.regionserver.wal.codec'] = 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec'
-    expected['hbase-site']['property_attributes']['hbase.region.server.rpc.scheduler.factory.class'] = {'delete': 'true'}
     expected['hbase-site']['property_attributes']['hbase.rpc.controllerfactory.class'] = {'delete': 'true'}
     expected['hbase-site']['property_attributes']['hbase.coprocessor.regionserver.classes'] = {'delete': 'true'}
     expected['hbase-site']['property_attributes']['phoenix.functions.allowUserDefinedFunctions'] = {'delete': 'true'}
