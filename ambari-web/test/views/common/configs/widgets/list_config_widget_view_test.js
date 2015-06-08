@@ -27,6 +27,7 @@ describe('App.ListConfigWidgetView', function () {
       initPopover: Em.K,
       config: Em.Object.create({
         _validateOverrides: App.ServiceConfigProperty.prototype._validateOverrides,
+        _getValueForCheck: App.ServiceConfigProperty.prototype._getValueForCheck,
         validate: App.ServiceConfigProperty.prototype.validate,
         name: 'a.b.c',
         savedValue: '2,1',
