@@ -27,8 +27,10 @@ import org.apache.ambari.view.pig.persistence.Storage;
 import org.apache.ambari.view.pig.resources.scripts.ScriptService;
 import org.apache.ambari.view.pig.persistence.utils.StorageUtil;
 import org.apache.ambari.view.pig.resources.scripts.models.PigScript;
-import org.apache.ambari.view.pig.utils.HdfsApi;
 import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
+import org.apache.ambari.view.utils.ViewUserLocal;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.json.simple.JSONObject;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
@@ -54,7 +56,7 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
   @AfterClass
   public static void shutDown() throws Exception {
     HDFSTest.shutDown(); // super
-    HdfsApi.dropAllConnections();
+    ViewUserLocal.dropAllConnections(HdfsApi.class);
   }
 
   @Override
@@ -63,7 +65,7 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
     super.setUp();
     handler = createNiceMock(ViewResourceHandler.class);
     context = createNiceMock(ViewContext.class);
-    HdfsApi.dropAllConnections();
+    ViewUserLocal.dropAllConnections(HdfsApi.class);
     StorageUtil.dropAllConnections();
   }
 
@@ -149,11 +151,11 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
     replay(context);
 
     // no webhdfs.username property
-    Assert.assertEquals("ambari-qa", HdfsApi.getHdfsUsername(context));
+    Assert.assertEquals("ambari-qa", HdfsUtil.getHdfsUsername(context));
 
     // with webhdfs.username property
     properties.put("webhdfs.username", "luke");
-    Assert.assertEquals("luke", HdfsApi.getHdfsUsername(context));
+    Assert.assertEquals("luke", HdfsUtil.getHdfsUsername(context));
   }
 
   private Response doCreateScript(String title, String path) {

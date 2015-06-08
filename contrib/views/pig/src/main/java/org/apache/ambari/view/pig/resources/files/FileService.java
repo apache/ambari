@@ -23,6 +23,8 @@ import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.pig.services.BaseService;
 import org.apache.ambari.view.pig.utils.*;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.FileStatus;
@@ -179,7 +181,7 @@ public class FileService extends BaseService {
    */
   public static void hdfsSmokeTest(ViewContext context) {
     try {
-      HdfsApi api = HdfsApi.connectToHDFSApi(context);
+      HdfsApi api = HdfsUtil.connectToHDFSApi(context);
       api.getStatus();
     } catch (WebApplicationException ex) {
       throw ex;

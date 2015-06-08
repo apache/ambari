@@ -18,7 +18,6 @@
 
 package org.apache.ambari.view.pig.templeton.client;
 
-import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
@@ -38,8 +37,6 @@ import java.util.Map;
  * Templeton Business Delegate
  */
 public class TempletonApi {
-  private final Gson gson = new Gson();
-
   protected final static Logger LOG =
       LoggerFactory.getLogger(TempletonApi.class);
 
@@ -49,7 +46,7 @@ public class TempletonApi {
 
   /**
    * TempletonApi constructor
-   * @param api webhcat.url
+   * @param api webhcat url
    * @param doAs doAs argument
    * @param context context with URLStreamProvider
    */

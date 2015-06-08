@@ -24,11 +24,12 @@ import org.apache.ambari.view.pig.persistence.utils.Indexed;
 import org.apache.ambari.view.pig.resources.PersonalCRUDResourceManager;
 import org.apache.ambari.view.pig.resources.jobs.models.PigJob;
 import org.apache.ambari.view.pig.resources.jobs.utils.JobPolling;
-import org.apache.ambari.view.pig.services.BaseService;
 import org.apache.ambari.view.pig.templeton.client.TempletonApi;
-import org.apache.ambari.view.pig.utils.HdfsApi;
+import org.apache.ambari.view.pig.templeton.client.TempletonApiFactory;
 import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
 import org.apache.ambari.view.pig.utils.ServiceFormattedException;
+import org.apache.ambari.view.pig.utils.UserLocalObjects;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,26 +59,8 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
    */
   public JobResourceManager(ViewContext context) {
     super(PigJob.class, context);
+
     setupPolling();
-  }
-
-  /**
-   * Get templeton api business delegate
-   * @return templeton api business delegate
-   */
-  public TempletonApi getTempletonApi() {
-    if (api == null) {
-      api = connectToTempletonApi(context);
-    }
-    return api;
-  }
-
-  /**
-   * Set templeton api business delegate
-   * @param api templeton api business delegate
-   */
-  public void setTempletonApi(TempletonApi api) {
-    this.api = api;
   }
 
   private void setupPolling() {
@@ -124,7 +107,7 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
 
     if (object.getJobId() != null) {
       try {
-        getTempletonApi().killJob(object.getJobId());
+        UserLocalObjects.getTempletonApi(context).killJob(object.getJobId());
       } catch (IOException e) {
         LOG.debug("Job kill FAILED");
         throw e;
@@ -153,6 +136,7 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
     String newSourceFilePath = storedir + "/source.pig";
     String newPythonScriptPath = storedir + "/udf.py";
     String templetonParamsFilePath = storedir + "/params";
+
     try {
       // additional file can be passed to copy into work directory
       if (job.getSourceFileContent() != null && !job.getSourceFileContent().isEmpty()) {
@@ -160,22 +144,22 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
         job.setSourceFileContent(null); // we should not store content in DB
         save(job);
 
-        FSDataOutputStream stream = HdfsApi.getInstance(context).create(newSourceFilePath, true);
+        FSDataOutputStream stream = UserLocalObjects.getHdfsApi(context).create(newSourceFilePath, true);
         stream.writeBytes(sourceFileContent);
         stream.close();
       } else {
         if (job.getSourceFile() != null && !job.getSourceFile().isEmpty()) {
           // otherwise, just copy original file
-          if (!HdfsApi.getInstance(context).copy(job.getSourceFile(), newSourceFilePath)) {
-            throw new ServiceFormattedException("Can't copy source file from " + job.getSourceFile() +
-                " to " + newPigScriptPath);
-          }
+          UserLocalObjects.getHdfsApi(context).copy(job.getSourceFile(), newSourceFilePath);
         }
       }
     } catch (IOException e) {
       throw new ServiceFormattedException("Can't create/copy source file: " + e.toString(), e);
     } catch (InterruptedException e) {
       throw new ServiceFormattedException("Can't create/copy source file: " + e.toString(), e);
+    } catch (HdfsApiException e) {
+      throw new ServiceFormattedException("Can't copy source file from " + job.getSourceFile() +
+          " to " + newPigScriptPath, e);
     }
 
     try {
@@ -188,16 +172,16 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
         job.setForcedContent(null); // we should not store content in DB
         save(job);
 
-        FSDataOutputStream stream = HdfsApi.getInstance(context).create(newPigScriptPath, true);
+        FSDataOutputStream stream = UserLocalObjects.getHdfsApi(context).create(newPigScriptPath, true);
         stream.writeBytes(forcedContent);
         stream.close();
       } else {
         // otherwise, just copy original file
-        if (!HdfsApi.getInstance(context).copy(job.getPigScript(), newPigScriptPath)) {
-          throw new ServiceFormattedException("Can't copy pig script file from " + job.getPigScript() +
-              " to " + newPigScriptPath);
-        }
+        UserLocalObjects.getHdfsApi(context).copy(job.getPigScript(), newPigScriptPath);
       }
+    } catch (HdfsApiException e) {
+      throw new ServiceFormattedException("Can't copy pig script file from " + job.getPigScript() +
+          " to " + newPigScriptPath, e);
     } catch (IOException e) {
       throw new ServiceFormattedException("Can't create/copy pig script file: " + e.toString(), e);
     } catch (InterruptedException e) {
@@ -206,10 +190,10 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
 
     if (job.getPythonScript() != null && !job.getPythonScript().isEmpty()) {
       try {
-        if (!HdfsApi.getInstance(context).copy(job.getPythonScript(), newPythonScriptPath)) {
-          throw new ServiceFormattedException("Can't copy python udf script file from " + job.getPythonScript() +
-              " to " + newPythonScriptPath);
-        }
+        UserLocalObjects.getHdfsApi(context).copy(job.getPythonScript(), newPythonScriptPath);
+      } catch (HdfsApiException e) {
+        throw new ServiceFormattedException("Can't copy python udf script file from " + job.getPythonScript() +
+            " to " + newPythonScriptPath);
       } catch (IOException e) {
         throw new ServiceFormattedException("Can't create/copy python udf file: " + e.toString(), e);
       } catch (InterruptedException e) {
@@ -218,7 +202,7 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
     }
 
     try {
-      FSDataOutputStream stream = HdfsApi.getInstance(context).create(templetonParamsFilePath, true);
+      FSDataOutputStream stream = UserLocalObjects.getHdfsApi(context).create(templetonParamsFilePath, true);
       if (job.getTempletonArguments() != null) {
         stream.writeBytes(job.getTempletonArguments());
       }
@@ -233,9 +217,9 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
     job.setStatusDir(statusdir);
     job.setDateStarted(System.currentTimeMillis() / 1000L);
 
-    TempletonApi.JobData data = null;
+    TempletonApi.JobData data;
     try {
-      data = getTempletonApi().runPigQuery(new File(job.getPigScript()), statusdir, job.getTempletonArguments());
+      data = UserLocalObjects.getTempletonApi(context).runPigQuery(new File(job.getPigScript()), statusdir, job.getTempletonArguments());
     } catch (IOException templetonBadResponse) {
       String msg = String.format("Templeton bad response: %s", templetonBadResponse.toString());
       LOG.debug(msg);
@@ -251,9 +235,9 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
    * @param job job object
    */
   public void retrieveJobStatus(PigJob job) {
-    TempletonApi.JobInfo info = null;
+    TempletonApi.JobInfo info;
     try {
-      info = getTempletonApi().checkJob(job.getJobId());
+      info = UserLocalObjects.getTempletonApi(context).checkJob(job.getJobId());
     } catch (IOException e) {
       LOG.warn(String.format("IO Exception: %s", e));
       return;
@@ -268,27 +252,27 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
       switch (runState) {
         case RUN_STATE_KILLED:
           LOG.debug(String.format("Job KILLED: %s", job.getJobId()));
-          isStatusChanged = job.getStatus() != PigJob.PIG_JOB_STATE_KILLED;
+          isStatusChanged = !job.getStatus().equals(PigJob.PIG_JOB_STATE_KILLED);
           job.setStatus(PigJob.PIG_JOB_STATE_KILLED);
           break;
         case RUN_STATE_FAILED:
           LOG.debug(String.format("Job FAILED: %s", job.getJobId()));
-          isStatusChanged = job.getStatus() != PigJob.PIG_JOB_STATE_FAILED;
+          isStatusChanged = !job.getStatus().equals(PigJob.PIG_JOB_STATE_FAILED);
           job.setStatus(PigJob.PIG_JOB_STATE_FAILED);
           break;
         case RUN_STATE_PREP:
         case RUN_STATE_RUNNING:
-          isStatusChanged = job.getStatus() != PigJob.PIG_JOB_STATE_RUNNING;
+          isStatusChanged = !job.getStatus().equals(PigJob.PIG_JOB_STATE_RUNNING);
           job.setStatus(PigJob.PIG_JOB_STATE_RUNNING);
           break;
         case RUN_STATE_SUCCEEDED:
           LOG.debug(String.format("Job COMPLETED: %s", job.getJobId()));
-          isStatusChanged = job.getStatus() != PigJob.PIG_JOB_STATE_COMPLETED;
+          isStatusChanged = !job.getStatus().equals(PigJob.PIG_JOB_STATE_COMPLETED);
           job.setStatus(PigJob.PIG_JOB_STATE_COMPLETED);
           break;
         default:
           LOG.debug(String.format("Job in unknown state: %s", job.getJobId()));
-          isStatusChanged = job.getStatus() != PigJob.PIG_JOB_STATE_UNKNOWN;
+          isStatusChanged = !job.getStatus().equals(PigJob.PIG_JOB_STATE_UNKNOWN);
           job.setStatus(PigJob.PIG_JOB_STATE_UNKNOWN);
           break;
       }
@@ -315,37 +299,14 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
    */
   public static void webhcatSmokeTest(ViewContext context) {
     try {
-      TempletonApi api = connectToTempletonApi(context);
+      TempletonApiFactory templetonApiFactory = new TempletonApiFactory(context);
+      TempletonApi api = templetonApiFactory.connectToTempletonApi();
       api.status();
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (Exception ex) {
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-  }
-
-  private static TempletonApi connectToTempletonApi(ViewContext context) {
-    String webhcatUrl = context.getProperties().get("webhcat.url");
-    if (webhcatUrl == null) {
-      String message = "webhcat.url is not configured!";
-      LOG.error(message);
-      throw new MisconfigurationFormattedException("webhcat.url");
-    }
-    return new TempletonApi(context.getProperties().get("webhcat.url"),
-        getTempletonUser(context), context);
-  }
-
-  /**
-   * Extension point to use different usernames in templeton
-   * requests instead of logged in user
-   * @return username in templeton
-   */
-  private static String getTempletonUser(ViewContext context) {
-    String username = context.getProperties().get("webhcat.username");
-    if (username == null || username.compareTo("null") == 0 || username.compareTo("") == 0) {
-      username = getUsername(context);
-    }
-    return username;
   }
 
   public static final int RUN_STATE_RUNNING = 1;

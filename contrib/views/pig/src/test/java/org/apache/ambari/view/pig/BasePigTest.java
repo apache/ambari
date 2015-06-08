@@ -65,7 +65,8 @@ public abstract class BasePigTest {
         .getAbsoluteFile();
 
     properties.put("dataworker.storagePath", pigStorageFile.toString());
-    properties.put("webhcat.url", "localhost:50111/templeton/v1");
+    properties.put("webhcat.hostname", "localhost/templeton/v1");
+    properties.put("webhcat.port", "50111");
     properties.put("webhcat.username", "admin");
     properties.put("scripts.dir", "/tmp/.pigscripts");
     properties.put("jobs.dir", "/tmp/.pigjobs");

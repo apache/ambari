@@ -22,10 +22,9 @@ import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.pig.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.pig.resources.PersonalCRUDResourceManager;
 import org.apache.ambari.view.pig.resources.scripts.models.PigScript;
-import org.apache.ambari.view.pig.services.BaseService;
-import org.apache.ambari.view.pig.utils.HdfsApi;
 import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
 import org.apache.ambari.view.pig.utils.ServiceFormattedException;
+import org.apache.ambari.view.pig.utils.UserLocalObjects;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.slf4j.Logger;
@@ -78,7 +77,7 @@ public class ScriptResourceManager extends PersonalCRUDResourceManager<PigScript
       LOG.debug("Trying to create new file " + newFilePath);
 
       try {
-        FSDataOutputStream stream = HdfsApi.getInstance(context).create(newFilePath, false);
+        FSDataOutputStream stream = UserLocalObjects.getHdfsApi(context).create(newFilePath, false);
         stream.close();
         fileCreated = true;
         LOG.debug("File created successfully!");

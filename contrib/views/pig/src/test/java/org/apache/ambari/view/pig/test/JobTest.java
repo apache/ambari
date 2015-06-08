@@ -24,10 +24,14 @@ import org.apache.ambari.view.pig.resources.jobs.JobService;
 import org.apache.ambari.view.pig.resources.jobs.models.PigJob;
 import org.apache.ambari.view.pig.templeton.client.TempletonApi;
 import org.apache.ambari.view.pig.utils.BadRequestFormattedException;
-import org.apache.ambari.view.pig.utils.HdfsApi;
 import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
 import org.apache.ambari.view.pig.utils.ServiceFormattedException;
+import org.apache.ambari.view.pig.utils.UserLocalObjects;
+import org.apache.ambari.view.utils.ViewUserLocal;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.easymock.EasyMock;
 import org.json.simple.JSONObject;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
@@ -68,8 +72,8 @@ public class JobTest extends BasePigTest {
   @After
   public void tearDown() throws Exception {
     super.tearDown();
-    jobService.getResourceManager().setTempletonApi(null);
-    HdfsApi.dropAllConnections();
+    ViewUserLocal.dropAllConnections(TempletonApi.class);
+    ViewUserLocal.dropAllConnections(HdfsApi.class);
   }
 
   public static Response doCreateJob(String title, String pigScript, String templetonArguments, JobService jobService) {
@@ -100,17 +104,17 @@ public class JobTest extends BasePigTest {
   @Test
   public void testSubmitJob() throws Exception {
     HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
-    expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(true);
+    hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"));
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    HdfsApi.setInstance(context, hdfsApi);
+    UserLocalObjects.setHdfsApi(hdfsApi, context);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
-    jobService.getResourceManager().setTempletonApi(api);
+    UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
@@ -134,17 +138,17 @@ public class JobTest extends BasePigTest {
   @Test
   public void testListJobs() throws Exception {
     HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
-    expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(true).anyTimes();
+    hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"));
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream).anyTimes();
     replay(hdfsApi);
-    HdfsApi.setInstance(context, hdfsApi);
+    UserLocalObjects.setHdfsApi(hdfsApi, context);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
-    jobService.getResourceManager().setTempletonApi(api);
+    UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
     expect(api.runPigQuery((File) anyObject(), anyString(), (String) isNull())).andReturn(data).anyTimes();
     replay(api);
@@ -174,17 +178,17 @@ public class JobTest extends BasePigTest {
   @Test
   public void testSubmitJobUsernameProvided() throws Exception {
     HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
-    expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(true);
+    hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"));
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    HdfsApi.setInstance(context, hdfsApi);
+    UserLocalObjects.setHdfsApi(hdfsApi, context);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
-    jobService.getResourceManager().setTempletonApi(api);
+    UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
@@ -199,17 +203,17 @@ public class JobTest extends BasePigTest {
   @Test
   public void testSubmitJobNoArguments() throws Exception {
     HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
-    expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(true);
+    hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"));
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    HdfsApi.setInstance(context, hdfsApi);
+    UserLocalObjects.setHdfsApi(hdfsApi, context);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
-    jobService.getResourceManager().setTempletonApi(api);
+    UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
     expect(api.runPigQuery((File) anyObject(), anyString(), (String) isNull())).andReturn(data);
     replay(api);
@@ -233,17 +237,17 @@ public class JobTest extends BasePigTest {
   @Test
   public void testSubmitJobNoFile() throws Exception {
     HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
-    expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(true);
+    hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"));
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    HdfsApi.setInstance(context, hdfsApi);
+    UserLocalObjects.setHdfsApi(hdfsApi, context);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
-    jobService.getResourceManager().setTempletonApi(api);
+    UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
@@ -264,10 +268,10 @@ public class JobTest extends BasePigTest {
     expect(hdfsApi.create(endsWith("script.pig"), eq(true))).andReturn(scriptStream);
     expect(hdfsApi.create(endsWith("params"), eq(true))).andReturn(templetonArgsStream);
     replay(hdfsApi);
-    HdfsApi.setInstance(context, hdfsApi);
+    UserLocalObjects.setHdfsApi(hdfsApi, context);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
-    jobService.getResourceManager().setTempletonApi(api);
+    UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
@@ -281,17 +285,17 @@ public class JobTest extends BasePigTest {
   @Test
   public void testSubmitJobNoTitle() throws Exception {
     HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
-    expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(true);
+    hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"));
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    HdfsApi.setInstance(context, hdfsApi);
+    UserLocalObjects.setHdfsApi(hdfsApi, context);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
-    jobService.getResourceManager().setTempletonApi(api);
+    UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
@@ -303,17 +307,18 @@ public class JobTest extends BasePigTest {
   @Test
   public void testSubmitJobFailed() throws Exception {
     HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
-    expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(false);
+    hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"));
+    EasyMock.expectLastCall().andThrow(new HdfsApiException("Copy failed"));
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    HdfsApi.setInstance(context, hdfsApi);
+    UserLocalObjects.setHdfsApi(hdfsApi, context);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
-    jobService.getResourceManager().setTempletonApi(api);
+    UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
@@ -325,17 +330,17 @@ public class JobTest extends BasePigTest {
   @Test
   public void testSubmitJobTempletonError() throws Exception {
     HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
-    expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(true);
+    hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"));
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    HdfsApi.setInstance(context, hdfsApi);
+    UserLocalObjects.setHdfsApi(hdfsApi, context);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
-    jobService.getResourceManager().setTempletonApi(api);
+    UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
     // Templeton returns 500 e.g.
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andThrow(new IOException());
@@ -348,17 +353,17 @@ public class JobTest extends BasePigTest {
   @Test
   public void testKillJobNoRemove() throws Exception {
     HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
-    expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(true);
+    hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"));
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    HdfsApi.setInstance(context, hdfsApi);
+    UserLocalObjects.setHdfsApi(hdfsApi, context);
 
     TempletonApi api = createStrictMock(TempletonApi.class);
-    jobService.getResourceManager().setTempletonApi(api);
+    UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
     data.id = "job_id_##";
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
@@ -383,17 +388,17 @@ public class JobTest extends BasePigTest {
   @Test
   public void testKillJobWithRemove() throws Exception {
     HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
-    expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(true);
+    hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"));
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    HdfsApi.setInstance(context, hdfsApi);
+    UserLocalObjects.setHdfsApi(hdfsApi, context);
 
     TempletonApi api = createStrictMock(TempletonApi.class);
-    jobService.getResourceManager().setTempletonApi(api);
+    UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
     data.id = "job_id_##";
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
@@ -418,17 +423,17 @@ public class JobTest extends BasePigTest {
   @Test
   public void testJobStatusFlow() throws Exception {
     HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
-    expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(true);
+    hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"));
 
     ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
 
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    HdfsApi.setInstance(context, hdfsApi);
+    UserLocalObjects.setHdfsApi(hdfsApi, context);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
-    jobService.getResourceManager().setTempletonApi(api);
+    UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
     data.id = "job_id_#";
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);

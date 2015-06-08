@@ -17,22 +17,83 @@
 <view>
     <name>PIG</name>
     <label>Pig</label>
-    <version>0.1.0</version>
+    <version>1.0.0</version>
+
     <min-ambari-version>2.0.*</min-ambari-version>
+
+    <validator-class>org.apache.ambari.view.pig.PropertyValidator</validator-class>
 
     <!-- HDFS Configs -->
     <parameter>
         <name>webhdfs.url</name>
-        <description>Enter the WebHDFS FileSystem URI. Typically this is the dfs.namenode.http-address property in the hdfs-site.xml configuration. URL must be accessible from Ambari Server.</description>
+        <description>Enter the WebHDFS FileSystem URI. Typically this is the dfs.namenode.http-address
+            property in the hdfs-site.xml configuration. URL must be accessible from Ambari Server.</description>
         <label>WebHDFS FileSystem URI</label>
         <placeholder>webhdfs://namenode:50070</placeholder>
         <required>true</required>
+        <cluster-config>core-site/fs.defaultFS</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.nameservices</name>
+        <description>Comma-separated list of nameservices. Value of hdfs-site/dfs.nameservices property</description>
+        <label>Logical name of the NameNode cluster</label>
+        <required>false</required>
+        <cluster-config>hdfs-site/dfs.nameservices</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenodes.list</name>
+        <description>Comma-separated list of namenodes for a given nameservice.
+            Value of hdfs-site/dfs.ha.namenodes.[nameservice] property</description>
+        <label>List of NameNodes</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.rpc-address.nn1</name>
+        <description>RPC address for first name node.
+            Value of hdfs-site/dfs.namenode.rpc-address.[nameservice].[namenode1] property</description>
+        <label>First NameNode RPC Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.rpc-address.nn2</name>
+        <description>RPC address for second name node.
+            Value of hdfs-site/dfs.namenode.rpc-address.[nameservice].[namenode2] property</description>
+        <label>Second NameNode RPC Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.http-address.nn1</name>
+        <description>WebHDFS address for first name node.
+            Value of hdfs-site/dfs.namenode.http-address.[nameservice].[namenode1] property</description>
+        <label>First NameNode HTTP (WebHDFS) Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.http-address.nn2</name>
+        <description>WebHDFS address for second name node.
+            Value of hdfs-site/dfs.namenode.http-address.[nameservice].[namenode2] property</description>
+        <label>Second NameNode HTTP (WebHDFS) Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.client.failover.proxy.provider</name>
+        <description>The Java class that HDFS clients use to contact the Active NameNode
+            Value of hdfs-site/dfs.client.failover.proxy.provider.[nameservice] property</description>
+        <label>Failover Proxy Provider</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
     </parameter>
 
     <parameter>
         <name>webhdfs.username</name>
         <description>User and doAs for proxy user for HDFS. By default, uses the currently logged-in Ambari user.</description>
         <label>WebHDFS Username</label>
+        <default-value>${username}</default-value>
         <required>false</required>
     </parameter>
 
@@ -40,15 +101,26 @@
         <name>webhdfs.auth</name>
         <description>Semicolon-separated authentication configs. Default: auth=SIMPLE</description>
         <label>WebHDFS Authentication</label>
+        <default-value>auth=SIMPLE</default-value>
         <required>false</required>
     </parameter>
 
     <!-- WebHCat Configs -->
     <parameter>
-        <name>webhcat.url</name>
-        <description>Enter the WebHCat URL for accessing WebHCat. URL must be accessible from Ambari Server.</description>
-        <label>WebHCat URL</label>
-        <placeholder>http://webhcat.host:50111/templeton/v1</placeholder>
+        <name>webhcat.hostname</name>
+        <description>Enter the WebHCat host name for accessing WebHCat. Host must be accessible from Ambari Server.</description>
+        <label>WebHCat Hostname</label>
+        <placeholder>webhcat-host.example.com</placeholder>
+        <cluster-config>fake</cluster-config>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>webhcat.port</name>
+        <description>Enter the WebHCat port for accessing WebHCat.</description>
+        <label>WebHCat Port</label>
+        <default-value>50111</default-value>
+        <cluster-config>webhcat-site/templeton.port</cluster-config>
         <required>true</required>
     </parameter>
 
@@ -60,13 +132,6 @@
     </parameter>
 
     <!-- General Configs -->
-    <parameter>
-        <name>dataworker.username</name>
-        <description>The dataworker username. By default, users the currently logged-in Ambari user.</description>
-        <label>Dataworker Username</label>
-        <required>false</required>
-    </parameter>
-
     <parameter>
         <name>scripts.dir</name>
         <description>HDFS directory to store Pig scripts.</description>

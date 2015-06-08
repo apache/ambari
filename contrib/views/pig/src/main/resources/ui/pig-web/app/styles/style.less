@@ -24,7 +24,7 @@
 @import './../../bower_components/bootstrap/less/bootstrap.less';
 
 .wrap {
-  padding: 0;
+  padding: 0px;
 }
 
 .moz-padding (@selector, @pre: ~'', @padding) {
@@ -125,7 +125,7 @@
       left: 102%;
       position: relative;
       height: 100%;
-      box-shadow: -2px 0 1px rgba(0, 0, 0, 0.20);
+      box-shadow: -2px 0px 1px rgba(0, 0, 0, 0.20);
       .base-transition( left 300ms linear;);
 
       .nav-script {
@@ -183,8 +183,9 @@
     }
   }
   .pig-nav-item {
-    word-wrap: break-word;
+    word-break: break-word;
     .rm {
+      top:2px;
       position: absolute;
       right: 5px;
       top: 5px;
@@ -207,9 +208,10 @@
     position: absolute;
     color: @brand-primary;
     top: 1px;
+    padding: 0px;
     background: transparent;
     right: 3px;
-    padding: 0 4px;
+    padding: 0px 4px;
   }
 }
 
@@ -345,7 +347,7 @@
       position: absolute;
       cursor: s-resize;
       color: #999999;
-      z-index: 2;
+      zndex: 2;
     }
     .table-results {
       .argument {
@@ -465,7 +467,7 @@
       .panel-heading {
         position: fixed;
         top: 0;
-        right: 0;
+        right: 0px;
         left: 0;
         z-index: 77;
         border-top: 1px solid #ddd;
@@ -475,7 +477,7 @@
       .panel-body {
         position: fixed;
         top: 55px;
-        right: 0;
+        right: 0px;
         left: 0;
         z-index: 76;
         border-right: 1px solid #ddd;
@@ -563,7 +565,7 @@
 }
 
 .main-content {
-    padding-left: 0;
+    padding-left: 0px;
 }
 
 .job-container {
@@ -624,7 +626,7 @@
       &.fullscreen {
         position: fixed;
         top: 0;
-        right: 0;
+        right: 0px;
         left: 0;
         z-index: 77;
         border-top: 1px solid #ddd;

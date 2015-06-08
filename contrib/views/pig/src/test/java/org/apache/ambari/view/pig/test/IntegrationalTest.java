@@ -24,7 +24,10 @@ import org.apache.ambari.view.pig.persistence.Storage;
 import org.apache.ambari.view.pig.persistence.utils.StorageUtil;
 import org.apache.ambari.view.pig.resources.jobs.JobService;
 import org.apache.ambari.view.pig.resources.scripts.ScriptService;
-import org.apache.ambari.view.pig.utils.HdfsApi;
+import org.apache.ambari.view.pig.templeton.client.TempletonApi;
+import org.apache.ambari.view.pig.utils.UserLocalObjects;
+import org.apache.ambari.view.utils.ViewUserLocal;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.junit.*;
 
 import static org.easymock.EasyMock.*;
@@ -39,34 +42,34 @@ public class IntegrationalTest extends HDFSTest {
 
   @BeforeClass
   public static void startUp() throws Exception {
-      HDFSTest.startUp(); // super
+    HDFSTest.startUp(); // super
   }
 
   @AfterClass
   public static void shutDown() throws Exception {
-      HDFSTest.shutDown(); // super
-      HdfsApi.dropAllConnections(); //cleanup API connection
+    HDFSTest.shutDown(); // super
+    ViewUserLocal.dropAllConnections(HdfsApi.class); //cleanup API connection
   }
 
   @Override
   @Before
   public void setUp() throws Exception {
-      super.setUp();
-      jobService = getService(JobService.class, handler, context);
-      scriptService = getService(ScriptService.class, handler, context);
+    super.setUp();
+    jobService = getService(JobService.class, handler, context);
+    scriptService = getService(ScriptService.class, handler, context);
   }
 
   @Override
   @After
   public void tearDown() throws Exception {
-      super.tearDown();
-      jobService.getResourceManager().setTempletonApi(null);
-      HdfsApi.dropAllConnections();
+    super.tearDown();
+    ViewUserLocal.dropAllConnections(TempletonApi.class);
+    ViewUserLocal.dropAllConnections(HdfsApi.class);
   }
 
   @Test
   public void testHdfsApiDependsOnInstance() throws Exception {
-    HdfsApi.dropAllConnections();
+    ViewUserLocal.dropAllConnections(HdfsApi.class); //cleanup API connection
 
     ViewContext context1 = createNiceMock(ViewContext.class);
     ViewContext context2 = createNiceMock(ViewContext.class);
@@ -85,16 +88,16 @@ public class IntegrationalTest extends HDFSTest {
 
     replay(context1, context2, context3);
 
-    HdfsApi hdfsApi1 = HdfsApi.getInstance(context1);
-    HdfsApi hdfsApi2 = HdfsApi.getInstance(context2);
+    HdfsApi hdfsApi1 = UserLocalObjects.getHdfsApi(context1);
+    HdfsApi hdfsApi2 = UserLocalObjects.getHdfsApi(context2);
     Assert.assertNotSame(hdfsApi1, hdfsApi2);
 
-    HdfsApi hdfsApi1_2 = HdfsApi.getInstance(context1);
-    HdfsApi hdfsApi2_2 = HdfsApi.getInstance(context1);
+    HdfsApi hdfsApi1_2 = UserLocalObjects.getHdfsApi(context1);
+    HdfsApi hdfsApi2_2 = UserLocalObjects.getHdfsApi(context1);
     Assert.assertSame(hdfsApi1_2, hdfsApi2_2);
 
-    HdfsApi hdfsApi1_3 = HdfsApi.getInstance(context1);
-    HdfsApi hdfsApi3_3 = HdfsApi.getInstance(context3);
+    HdfsApi hdfsApi1_3 = UserLocalObjects.getHdfsApi(context1);
+    HdfsApi hdfsApi3_3 = UserLocalObjects.getHdfsApi(context3);
     Assert.assertSame(hdfsApi1_3, hdfsApi3_3);
   }
 
