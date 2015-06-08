@@ -32,7 +32,7 @@ import com.google.inject.Singleton;
  * associated with them.
  */
 @Singleton
-public final class AggregateDefinitionMapping {
+public class AggregateDefinitionMapping {
   /**
    * In-memory mapping of cluster ID to definition name / aggregate definition.
    * This is used for fast lookups when receiving events.
