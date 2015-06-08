@@ -56,7 +56,7 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   flume_hcat_home = '/usr/hdp/current/hive-webhcat'
 
 java_home = config['hostLevelParams']['java_home']
-flume_log_dir = '/var/log/flume'
+flume_log_dir = config['configurations']['flume-env']['flume_log_dir']
 flume_run_dir = '/var/run/flume'
 ambari_state_file = format("{flume_run_dir}/ambari-state.txt")
 
