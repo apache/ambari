@@ -962,7 +962,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       componentConfig.get('configs').pushObject(serviceConfigProperty);
       serviceConfigProperty.validate();
     }, this);
-    componentConfig.set('initConfigsLength', componentConfig.get('configs.length'));
+    Em.run.next(function () {
+      componentConfig.set('initConfigsLength', componentConfig.get('configs.length'));
+    });
   },
 
   /**
