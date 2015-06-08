@@ -44,6 +44,7 @@ import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,17 +90,17 @@ public class DataStoreImpl implements DataStore {
   /**
    * Map of dynamic entity names keyed by view entity class.
    */
-  private final Map<Class, String> entityClassMap = new HashMap<Class, String>();
+  private final Map<Class, String> entityClassMap = new LinkedHashMap<Class, String>();
 
   /**
    * Map of entity primary key fields keyed by dynamic entity name.
    */
-  private final Map<String, ViewEntityEntity> entityMap = new HashMap<String, ViewEntityEntity>();
+  private final Map<String, ViewEntityEntity> entityMap = new LinkedHashMap<String, ViewEntityEntity>();
 
   /**
    * Map of dynamic entity type builders keyed by dynamic entity name.
    */
-  private final Map<String, JPADynamicTypeBuilder> typeBuilderMap = new HashMap<String, JPADynamicTypeBuilder>();
+  private final Map<String, JPADynamicTypeBuilder> typeBuilderMap = new LinkedHashMap<String, JPADynamicTypeBuilder>();
 
   /**
    * Indicates whether or not the data store has been initialized.
@@ -110,6 +111,11 @@ public class DataStoreImpl implements DataStore {
    * The logger.
    */
   protected final static Logger LOG = LoggerFactory.getLogger(DataStoreImpl.class);
+
+  /**
+   * Table / column name prefix.
+   */
+  private static final String NAME_PREFIX = "DS_";
 
 
   // ----- DataStore ---------------------------------------------------------
@@ -278,17 +284,20 @@ public class DataStoreImpl implements DataStore {
       Map<String, PropertyDescriptor> descriptorMap = getDescriptorMap(clazz);
 
       for (Map.Entry<String, PropertyDescriptor> descriptorEntry : descriptorMap.entrySet()) {
-        String             propertyName = descriptorEntry.getKey();
-        PropertyDescriptor descriptor   = descriptorEntry.getValue();
 
-        if (propertyName.equals(entityMap.get(entityName).getIdProperty())) {
-          typeBuilder.setPrimaryKeyFields(propertyName);
+        String fieldName     = descriptorEntry.getKey();
+        String attributeName = getAttributeName(fieldName);
+
+        PropertyDescriptor descriptor = descriptorEntry.getValue();
+
+        if (fieldName.equals(entityMap.get(entityName).getIdProperty())) {
+          typeBuilder.setPrimaryKeyFields(attributeName);
         }
 
         Class<?> propertyType = descriptor.getPropertyType();
 
         if (isDirectMappingType(propertyType)) {
-          typeBuilder.addDirectMapping(propertyName, propertyType, propertyName);
+          typeBuilder.addDirectMapping(attributeName, propertyType, attributeName);
         }
       }
     }
@@ -303,10 +312,13 @@ public class DataStoreImpl implements DataStore {
       Map<String, PropertyDescriptor> descriptorMap = getDescriptorMap(clazz);
 
       for (Map.Entry<String, PropertyDescriptor> descriptorEntry : descriptorMap.entrySet()) {
-        String propertyName = descriptorEntry.getKey();
+        String fieldName     = descriptorEntry.getKey();
+        String attributeName = getAttributeName(fieldName);
+
+
         PropertyDescriptor descriptor = descriptorEntry.getValue();
-        if (propertyName.equals(entityMap.get(entityName).getIdProperty())) {
-          typeBuilder.setPrimaryKeyFields(propertyName);
+        if (fieldName.equals(entityMap.get(entityName).getIdProperty())) {
+          typeBuilder.setPrimaryKeyFields(attributeName);
         }
 
         Class<?> propertyType = descriptor.getPropertyType();
@@ -315,23 +327,23 @@ public class DataStoreImpl implements DataStore {
         if (refEntityName == null) {
           if (Collection.class.isAssignableFrom(propertyType)) {
 
-            String tableName = getTableName(entityMap.get(entityName)) + "_" + propertyName;
+            String tableName = getTableName(entityMap.get(entityName)) + "_" + attributeName;
 
-            Class<?> parameterizedTypeClass = getParameterizedTypeClass(clazz, propertyName);
+            Class<?> parameterizedTypeClass = getParameterizedTypeClass(clazz, attributeName);
 
             refEntityName = entityClassMap.get(parameterizedTypeClass);
 
             if (refEntityName == null) {
-              typeBuilder.addDirectCollectionMapping(propertyName, tableName, propertyName,
+              typeBuilder.addDirectCollectionMapping(attributeName, tableName, attributeName,
                   parameterizedTypeClass, entityMap.get(entityName).getIdProperty());
             } else {
               DynamicType refType = typeBuilderMap.get(refEntityName).getType();
-              typeBuilder.addManyToManyMapping(propertyName, refType, tableName);
+              typeBuilder.addManyToManyMapping(attributeName, refType, tableName);
             }
           }
         } else {
           DynamicType refType = typeBuilderMap.get(refEntityName).getType();
-          typeBuilder.addOneToOneMapping(propertyName, refType, propertyName);
+          typeBuilder.addOneToOneMapping(attributeName, refType, attributeName);
         }
       }
     }
@@ -376,16 +388,19 @@ public class DataStoreImpl implements DataStore {
 
       persistSet.add(dynamicEntity);
 
-      for (String propertyName : type.getPropertiesNames()) {
-        if (properties.containsKey(propertyName)) {
-          Object value = properties.get(propertyName);
+      for (String attributeName : type.getPropertiesNames()) {
+
+        String fieldName = getFieldName(attributeName);
+
+        if (properties.containsKey(fieldName)) {
+          Object value = properties.get(fieldName);
           if (value != null) {
             Class<?> valueClass = value.getClass();
 
             if (Collection.class.isAssignableFrom(valueClass)) {
 
-              Class<?>           typeClass  = getParameterizedTypeClass(clazz, propertyName);
-              Collection<Object> collection = dynamicEntity.get(propertyName);
+              Class<?>           typeClass  = getParameterizedTypeClass(clazz, fieldName);
+              Collection<Object> collection = dynamicEntity.get(attributeName);
 
               collection.clear();
 
@@ -403,7 +418,7 @@ public class DataStoreImpl implements DataStore {
                 value = persistEntity(value, em, persistSet);
               }
               if (value != null) {
-                dynamicEntity.set(propertyName, value);
+                dynamicEntity.set(attributeName, value);
               }
             }
           }
@@ -425,8 +440,9 @@ public class DataStoreImpl implements DataStore {
 
     Map<String, Object> properties = new HashMap<String, Object>();
 
-    for (String propertyName : type.getPropertiesNames()) {
-      properties.put(propertyName, entity.get(propertyName));
+    for (String attributeName : type.getPropertiesNames()) {
+      String fieldName = getFieldName(attributeName);
+      properties.put(fieldName, entity.get(attributeName));
     }
     setEntityProperties(resource, properties);
 
@@ -453,7 +469,7 @@ public class DataStoreImpl implements DataStore {
         quoted = quoted ^ token.equals("\"");
 
         if (propertyNames.contains(token) && !quoted) {
-          stringBuilder.append(" e.").append(token);
+          stringBuilder.append(" e.").append(getAttributeName(token));
         } else {
           stringBuilder.append(token);
         }
@@ -584,20 +600,40 @@ public class DataStoreImpl implements DataStore {
   }
 
   // get a table name for the given view entity
-  private static String getTableName(ViewEntityEntity entity) {
+  private String getTableName(ViewEntityEntity entity) {
     return (getEntityName(entity)).toUpperCase();
   }
 
-  // get a dynamic entity name for the given view entity
-  private static String getEntityName(ViewEntityEntity entity) {
-    String   className = entity.getClassName();
-    String[] parts     = className.split("\\.");
+  // get the java class field name from the entity attribute name
+  private String getFieldName(String attributeName) {
+    return alterNames() ? attributeName.substring(NAME_PREFIX.length()) : attributeName;
+  }
 
-    return parts[parts.length - 1] + entity.getId();
+  // get the entity attribute name from the java class field name
+  private String getAttributeName(String fieldName) {
+    return alterNames() ? (NAME_PREFIX + fieldName) : fieldName;
+  }
+
+  // get a dynamic entity name for the given view entity
+  private String getEntityName(ViewEntityEntity entity) {
+    String   className     = entity.getClassName();
+    String[] parts         = className.split("\\.");
+    String simpleClassName = parts[parts.length - 1];
+
+    if (alterNames()) {
+      return NAME_PREFIX + simpleClassName + "_" + entity.getId();
+    }
+    return simpleClassName + entity.getId();
   }
 
   // get an entity manager
   private EntityManager getEntityManager() {
     return entityManagerFactory.createEntityManager();
+  }
+
+  // determine whether to alter the names of the dynamic entities /attributes to
+  // avoid db reserved word conflicts.  return false for backward compatibility.
+  private boolean alterNames() {
+    return viewInstanceEntity.alterNames();
   }
 }

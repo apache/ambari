@@ -145,6 +145,14 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   private char xmlDriven = 'N';
 
   /**
+   * Indicates whether or not to alter the names of the data store entities to
+   * avoid db reserved word conflicts.
+   */
+  @Column(name = "alter_names")
+  @Basic
+  private Integer alterNames;
+
+  /**
    * The instance properties.
    */
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "viewInstance")
@@ -224,6 +232,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.description = instanceConfig.getDescription();
     this.clusterHandle = null;
     this.visible = instanceConfig.isVisible() ? 'Y' : 'N';
+    this.alterNames = 1;
 
     String label = instanceConfig.getLabel();
     this.label = (label == null || label.length() == 0) ? view.getLabel() : label;
@@ -260,6 +269,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.description = null;
     this.clusterHandle = null;
     this.visible = 'Y';
+    this.alterNames = 1;
     this.label = label;
   }
 
@@ -469,6 +479,26 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    */
   public void setXmlDriven(boolean xmlDriven) {
     this.xmlDriven = (xmlDriven) ? 'Y' : 'N';
+  }
+
+  /**
+   * Determine whether or not to alter the names of the
+   * data store entities to avoid db reserved word conflicts.
+   *
+   * @return true if the view is a system view
+   */
+  public boolean alterNames() {
+    return alterNames == 1;
+  }
+
+  /**
+   * Set the flag which indicates whether or not to alter the names of the
+   * data store entities to avoid db reserved word conflicts.
+   *
+   * @param alterNames  the alterNames flag; true if the data store names should be altered
+   */
+  public void setAlterNames(boolean alterNames) {
+    this.alterNames = alterNames ? 1 : 0;
   }
 
   /**

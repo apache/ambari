@@ -520,10 +520,12 @@ public class ViewRegistry {
 
         ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(ViewEntity.getViewName(viewName, version));
 
+        setPersistenceEntities(instanceEntity);
+
         ViewInstanceEntity persistedInstance = mergeViewInstance(instanceEntity, resourceTypeEntity);
 
         instanceEntity.setViewInstanceId(persistedInstance.getViewInstanceId());
-        instanceEntity.setResource(persistedInstance.getResource());
+        syncViewInstance(instanceEntity, persistedInstance);
 
         try {
           // bind the view instance to a view
@@ -1111,6 +1113,9 @@ public class ViewRegistry {
       properties.put(propertyConfig.getKey(), propertyConfig.getValue());
     }
     setViewInstanceProperties(viewInstanceDefinition, properties, viewConfig, viewDefinition.getClassLoader());
+
+    setPersistenceEntities(viewInstanceDefinition);
+
     return viewInstanceDefinition;
   }
 
@@ -1147,9 +1152,6 @@ public class ViewRegistry {
             getProvider(resourceConfig.getProviderClass(cl), viewInstanceContext));
       }
     }
-
-    setPersistenceEntities(viewInstanceDefinition);
-
     viewDefinition.addInstanceDefinition(viewInstanceDefinition);
   }
 

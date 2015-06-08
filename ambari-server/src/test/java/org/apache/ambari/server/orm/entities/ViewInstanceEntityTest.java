@@ -250,6 +250,20 @@ public class ViewInstanceEntityTest {
   }
 
   @Test
+  public void testAlterNames() throws Exception {
+    InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs(xml_with_instance_label).get(0);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+    Assert.assertTrue(viewInstanceDefinition.alterNames());
+
+    viewInstanceDefinition.setAlterNames(false);
+    Assert.assertFalse(viewInstanceDefinition.alterNames());
+
+    viewInstanceDefinition.setAlterNames(true);
+    Assert.assertTrue(viewInstanceDefinition.alterNames());
+  }
+
+  @Test
   public void testGetIcon64() throws Exception {
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs(xml_with_instance_label).get(0);
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();

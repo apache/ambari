@@ -527,6 +527,7 @@ CREATE TABLE viewinstance (
   icon VARCHAR(255),
   icon64 VARCHAR(255),
   xml_driven CHAR(1),
+  alter_names BIT NOT NULL DEFAULT 1,
   cluster_handle VARCHAR(255),
   PRIMARY KEY CLUSTERED (view_instance_id)
   );

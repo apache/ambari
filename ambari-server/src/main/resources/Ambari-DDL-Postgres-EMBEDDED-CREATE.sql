@@ -507,6 +507,7 @@ CREATE TABLE ambari.viewinstance (
   icon VARCHAR(255),
   icon64 VARCHAR(255),
   xml_driven CHAR(1),
+  alter_names SMALLINT NOT NULL DEFAULT 1,
   cluster_handle VARCHAR(255),
   PRIMARY KEY(view_instance_id));
 

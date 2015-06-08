@@ -171,6 +171,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     executeWidgetDDLUpdates();
     executeStackDDLUpdates();
     executeTopologyDDLUpdates();
+    executeViewDDLUpdates();
   }
 
   private void executeTopologyDDLUpdates() throws AmbariException, SQLException {
@@ -272,6 +273,17 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       dbAccessor.alterColumn("alert_history", new DBColumnInfo("alert_text", Character[].class, null));
     }
 
+  }
+
+  private void executeViewDDLUpdates() throws AmbariException, SQLException {
+    // cluster association
+    dbAccessor.addColumn(VIEW_INSTANCE_TABLE, new DBColumnInfo("cluster_handle", String.class, 255, null, true));
+    // determine whether to alter the names of the dynamic entities / attributes to
+    // avoid db reserved word conflicts.  should be false for existing instances
+    // for backward compatibility.
+    dbAccessor.addColumn(VIEW_INSTANCE_TABLE, new DBColumnInfo("alter_names", Integer.class, null, 0, false));
+    // cluster configuration
+    dbAccessor.addColumn(VIEW_PARAMETER_TABLE, new DBColumnInfo("cluster_config", String.class, 255, null, true));
   }
 
   /**
@@ -497,10 +509,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     // Notice that the column name doesn't have an underscore here.
     dbAccessor.dropColumn(SERVICE_CONFIG_HOSTS_TABLE, "hostname");
-
-    // view columns for cluster association
-    dbAccessor.addColumn(VIEW_INSTANCE_TABLE, new DBColumnInfo("cluster_handle", String.class, 255, null, true));
-    dbAccessor.addColumn(VIEW_PARAMETER_TABLE, new DBColumnInfo("cluster_config", String.class, 255, null, true));
 
     // Update host names to be case insensitive
     String UPDATE_TEMPLATE = "UPDATE {0} SET {1} = lower({1})";
