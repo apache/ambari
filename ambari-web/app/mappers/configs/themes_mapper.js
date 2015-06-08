@@ -187,6 +187,8 @@ App.themesMapper = App.QuickDataMapper.create({
         service_name: serviceName
       });
     });
+    App.store.commit();
     App.store.loadMany(this.get("tabModel"), advancedTabs);
+    App.store.commit();
   }
 });
