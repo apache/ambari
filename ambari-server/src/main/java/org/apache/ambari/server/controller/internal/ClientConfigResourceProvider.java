@@ -273,7 +273,16 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
       serviceInfo = managementController.getAmbariMetaInfo().getService(stackId.getStackName(),
               stackId.getStackVersion(), serviceName);
-      clusterHostInfo = substituteHostIndexes(clusterHostInfo);
+      try {
+        clusterHostInfo = StageUtils.substituteHostIndexes(clusterHostInfo);
+      } catch (AmbariException e) {
+        // Before moving substituteHostIndexes to StageUtils, a SystemException was thrown in the
+        // event an index could not be mapped to a host.  After the move, this was changed to an
+        // AmbariException for consistency in the StageUtils class. To keep this method consistent
+        // with how it behaved in the past, if an AmbariException is thrown, it is caught and
+        // translated to a SystemException.
+        throw new SystemException(e.getMessage(), e);
+      }
       osFamily = clusters.getHost(hostName).getOsFamily();
 
       TreeMap<String, String> hostLevelParams = new TreeMap<String, String>();
@@ -400,58 +409,6 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
     Resource resource = new ResourceImpl(Resource.Type.ClientConfig);
     resources.add(resource);
     return resources;
-  }
-
-  private static Map<String, Set<String>> substituteHostIndexes(Map<String, Set<String>> clusterHostInfo) throws SystemException {
-    Set<String> keysToSkip = new HashSet<String>(Arrays.asList("all_hosts", "all_ping_ports",
-            "ambari_server_host", "all_racks", "all_ipv4_ips"));
-    String[] allHosts = {};
-    if (clusterHostInfo.get("all_hosts") != null) {
-      allHosts = clusterHostInfo.get("all_hosts").toArray(new String[clusterHostInfo.get("all_hosts").size()]);
-    }
-    Set<String> keys = clusterHostInfo.keySet();
-    for (String key : keys) {
-      if (keysToSkip.contains(key)) {
-        continue;
-      }
-      Set<String> hosts = new HashSet<String>();
-      Set<String> currentHostsIndexes = clusterHostInfo.get(key);
-      if (currentHostsIndexes == null) {
-        continue;
-      }
-      for (String hostIndexRange : currentHostsIndexes) {
-        for (Integer hostIndex : rangeToSet(hostIndexRange)) {
-          try {
-            hosts.add(allHosts[hostIndex]);
-          } catch (ArrayIndexOutOfBoundsException ex) {
-            throw new SystemException("Failed to fill cluster host info  ", ex);
-          }
-        }
-      }
-      clusterHostInfo.put(key, hosts);
-    }
-    return clusterHostInfo;
-  }
-
-  private static Set<Integer> rangeToSet(String range) {
-    Set<Integer> indexSet = new HashSet<Integer>();
-    int startIndex;
-    int endIndex;
-    if (range.contains("-")) {
-      startIndex = Integer.parseInt(range.split("-")[0]);
-      endIndex = Integer.parseInt(range.split("-")[1]);
-    }
-    else if (range.contains(",")) {
-      startIndex = Integer.parseInt(range.split(",")[0]);
-      endIndex = Integer.parseInt(range.split(",")[1]);
-    }
-    else {
-      startIndex = endIndex = Integer.parseInt(range);
-    }
-    for (int i=startIndex; i<=endIndex; i++) {
-      indexSet.add(i);
-    }
-    return  indexSet;
   }
 
   @Override

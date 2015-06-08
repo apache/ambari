@@ -24,6 +24,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -72,11 +73,11 @@ public class StageUtils {
   public static final String DEFAULT_IPV4_ADDRESS = "127.0.0.1";
 
   private static final Log LOG = LogFactory.getLog(StageUtils.class);
-  static final String AMBARI_SERVER_HOST = "ambari_server_host";
-  private static final String HOSTS_LIST = "all_hosts";
-  private static final String PORTS = "all_ping_ports";
-  private static final String RACKS = "all_racks";
-  private static final String IPV4_ADDRESSES = "all_ipv4_ips";
+  protected static final String AMBARI_SERVER_HOST = "ambari_server_host";
+  protected static final String HOSTS_LIST = "all_hosts";
+  protected static final String PORTS = "all_ping_ports";
+  protected static final String RACKS = "all_racks";
+  protected static final String IPV4_ADDRESSES = "all_ipv4_ips";
   private static Map<String, String> componentToClusterInfoKeyMap =
       new HashMap<String, String>();
   private static Map<String, String> decommissionedToClusterInfoKeyMap =
@@ -425,6 +426,49 @@ public class StageUtils {
   }
 
   /**
+   * Given a clusterHostInfo map, replaces host indexes with the mapped host names.
+   * <p/>
+   * If all_hosts was <code>["host1", "host2", "host3", "host4", "host5"]</code>, then a value of
+   * <code>["1-3", "5"]</code> for a given component would be converted to
+   * <code>["host1", "host2", "host3", "host5"]</code>.
+   * <p/>
+   * Operations are performed inplace, meaning a new clusterHostInfo map is not created and updated.
+   *
+   * @param clusterHostInfo the cluster host info map to perform the substitutions within
+   * @return the updated cluster host info map.
+   * @throws AmbariException if an index fails to map to a host name
+   */
+  public static Map<String, Set<String>> substituteHostIndexes(Map<String, Set<String>> clusterHostInfo) throws AmbariException {
+    Set<String> keysToSkip = new HashSet<String>(Arrays.asList(HOSTS_LIST, PORTS, AMBARI_SERVER_HOST, RACKS, IPV4_ADDRESSES));
+    String[] allHosts = {};
+    if (clusterHostInfo.get(HOSTS_LIST) != null) {
+      allHosts = clusterHostInfo.get(HOSTS_LIST).toArray(new String[clusterHostInfo.get(HOSTS_LIST).size()]);
+    }
+    Set<String> keys = clusterHostInfo.keySet();
+    for (String key : keys) {
+      if (keysToSkip.contains(key)) {
+        continue;
+      }
+      Set<String> hosts = new HashSet<String>();
+      Set<String> currentHostsIndexes = clusterHostInfo.get(key);
+      if (currentHostsIndexes == null) {
+        continue;
+      }
+      for (String hostIndexRange : currentHostsIndexes) {
+        for (Integer hostIndex : rangeToSet(hostIndexRange)) {
+          try {
+            hosts.add(allHosts[hostIndex]);
+          } catch (ArrayIndexOutOfBoundsException ex) {
+            throw new AmbariException("Failed to fill cluster host info  ", ex);
+          }
+        }
+      }
+      clusterHostInfo.put(key, hosts);
+    }
+    return clusterHostInfo;
+  }
+
+  /**
    * Finds ranges in sorted set and replaces ranges by compact notation
    * <p/>
    * <p>For example, suppose <tt>set</tt> comprises<tt> [1, 2, 3, 4, 7]</tt>.
@@ -495,6 +539,33 @@ public class StageUtils {
     }
 
     return result;
+  }
+
+  /**
+   * Splits a range to its explicit set of values.
+   * <p/>
+   * For example if the range is "1-5", the result will be [1, 2, 3, 4, 5]
+   *
+   * @param range the range to split
+   * @return a set of integers representing the original range
+   */
+  private static Set<Integer> rangeToSet(String range) {
+    Set<Integer> indexSet = new HashSet<Integer>();
+    int startIndex;
+    int endIndex;
+    if (range.contains("-")) {
+      startIndex = Integer.parseInt(range.split("-")[0]);
+      endIndex = Integer.parseInt(range.split("-")[1]);
+    } else if (range.contains(",")) {
+      startIndex = Integer.parseInt(range.split(",")[0]);
+      endIndex = Integer.parseInt(range.split(",")[1]);
+    } else {
+      startIndex = endIndex = Integer.parseInt(range);
+    }
+    for (int i = startIndex; i <= endIndex; i++) {
+      indexSet.add(i);
+    }
+    return indexSet;
   }
 
   private static String getRangedItem(Integer startOfRange, Integer endOfRange) {
