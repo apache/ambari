@@ -67,7 +67,7 @@ do_install(){
   # which causes failures when hadoop users try to access tmp_dir
   chmod a+x /var/lib/ambari-agent
   chmod a+x /var/lib/ambari-agent/data
-  chmod a+x /var/lib/ambari-agent/data/tmp
+  chmod 777 /var/lib/ambari-agent/data/tmp
 }
 
 do_remove(){
