@@ -26,6 +26,7 @@ App.ServiceConfig = Ember.Object.extend({
   restartRequiredMessage: '',
   restartRequiredHostsAndComponents: {},
   configGroups: [],
+  dependentServiceNames: [],
   initConfigsLength: 0, // configs length after initialization in order to watch changes
   errorCount: function () {
     var overrideErrors = 0,
@@ -67,7 +68,12 @@ App.ServiceConfig = Ember.Object.extend({
            requiredByAgent.someProperty('isNotDefaultValue') ||
            requiredByAgent.someProperty('isOverrideChanged') ||
            this.get('configs.length') !== this.get('initConfigsLength');
-  }.property('configs.@each.isNotDefaultValue', 'configs.@each.isOverrideChanged', 'configs.length', 'configs.@each.isNotSaved')
+  }.property('configs.@each.isNotDefaultValue', 'configs.@each.isOverrideChanged', 'configs.length', 'configs.@each.isNotSaved'),
+
+  init: function() {
+    this._super();
+    this.set('dependentServiceNames', App.StackService.find(this.get('serviceName')).get('dependentServiceNames') || []);
+  }
 });
 
 App.SlaveConfigs = Ember.Object.extend({

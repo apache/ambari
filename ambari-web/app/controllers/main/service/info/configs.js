@@ -337,9 +337,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   loadStep: function () {
     console.log("TRACE: Loading configure for service");
     var serviceName = this.get('content.serviceName');
+    this.set('dependentServiceNames', App.StackService.find(serviceName).get('dependentServiceNames'));
     this.clearStep();
     if (App.get('isClusterSupportsEnhancedConfigs')) {
-      this.setDependentServices(serviceName);
       this.loadConfigTheme(serviceName).always(function() {
         App.themesMapper.generateAdvancedTabs([serviceName]);
       });
@@ -830,6 +830,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var serviceNames = this.get('servicesToLoad');
     serviceNames.forEach(function(serviceName) {
       var serviceConfig = App.config.createServiceConfig(serviceName);
+      if (serviceName == this.get('content.serviceName')) {
+        serviceConfig.set('configGroups', this.get('configGroups'));
+      } else {
+        serviceConfig.set('configGroups', this.get('dependentConfigGroups').filterProperty('serviceName', serviceName));
+      }
       //Make SecondaryNameNode invisible on enabling namenode HA
       var configsByService = this.get('allConfigs').filterProperty('serviceName', serviceName);
       databaseUtils.bootstrapDatabaseProperties(configsByService, serviceName);

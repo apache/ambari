@@ -43,6 +43,13 @@ App.StackService = DS.Model.extend({
   configs: DS.attr('array'),
   requiredServices: DS.attr('array'),
 
+  /**
+   * contains array of serviceNames that have configs that
+   * depends on configs from current service
+   * @type {String[]}
+   */
+  dependentServiceNames: DS.attr('array', {defaultValue: []}),
+
   // Is the service a distributed filesystem
   isDFS: function () {
     var dfsServices = ['HDFS', 'GLUSTERFS'];

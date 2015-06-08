@@ -20,33 +20,88 @@ var App = require('app');
 
 /**
  * Show confirmation popup
- * * @param {String} serviceName
- * @param {String[]} groups
- * @param {Object} groupsToSave
+ * @param {string} selectedServiceName
+ * @param {App.ConfigGroup} selectedConfigGroup
+ * @param {App.ServiceConfig[]} dependentStepConfigs
  * @param {Object[]} configs
  * @return {App.ModalPopup}
  */
-App.showSelectGroupsPopup = function (serviceName, groups, groupsToSave, configs) {
+App.showSelectGroupsPopup = function (selectedServiceName, selectedConfigGroup, dependentStepConfigs, configs) {
   return App.ModalPopup.show({
     encodeBody: false,
     primary: Em.I18n.t('common.save'),
-    secondary: Em.I18n.t('common.cancel'),
     header: Em.I18n.t('popup.dependent.configs.select.config.group.header'),
-    groups: groups,
-    serviceName: serviceName,
-    groupsToSave: groupsToSave,
-    selectedGroup: '',
+    selectedServiceName: selectedServiceName,
+    selectedConfigGroup: selectedConfigGroup,
+    dependentStepConfigs: dependentStepConfigs,
+    selectedGroups: {},
     didInsertElement: function() {
-      this._super();
-      this.set('selectedGroup', this.get('groupsToSave')[this.get('serviceName')]);
+      this.set('selectedGroups', $.extend({},selectedConfigGroup.get('dependentConfigGroups')));
     },
-    bodyClass: Em.View.extend({
-      templateName: require('templates/common/modal_popups/select_groups_popup')
+    bodyClass: Em.CollectionView.extend({
+      content: dependentStepConfigs,
+      itemViewClass: Em.View.extend({
+        templateName: require('templates/common/modal_popups/select_groups_popup'),
+        didInsertElement: function() {
+          this.set('selectedGroup', this.get('parentView.parentView.selectedConfigGroup.dependentConfigGroups')[this.get('serviceName')]);
+        },
+        serviceName: function() {
+          return this.get('content').get('serviceName');
+        }.property('content'),
+        selectedGroup: null,
+        updateGroup: function() {
+          var dependentGroups = $.extend({},this.get('parentView.parentView.selectedConfigGroup.dependentConfigGroups'));
+          dependentGroups[this.get('serviceName')] = this.get('selectedGroup');
+          this.set('parentView.parentView.selectedConfigGroup.dependentConfigGroups', dependentGroups);
+        }.observes('selectedGroup'),
+        groups: function() {
+          return this.get('content').get('configGroups').filterProperty('isDefault', false).mapProperty('name');
+        }.property('content')
+      })
     }),
     onPrimary: function () {
       this._super();
-      this.get('groupsToSave')[this.get('serviceName')] = this.get('selectedGroup');
-      configs.setEach('configGroup', this.get('groupsToSave')[this.get('serviceName')]);
+      Object.keys(this.get('selectedConfigGroup.dependentConfigGroups')).forEach(function(serviceName) {
+        var selectedGroupName = this.get('selectedConfigGroup.dependentConfigGroups')[serviceName];
+        var currentGroupName = this.get('selectedGroups')[serviceName] || "";
+        var configGroup = this.get('dependentStepConfigs').findProperty('serviceName', serviceName).get('configGroups').findProperty('name', selectedGroupName);
+        if (selectedGroupName != currentGroupName) {
+          /** changing config group for _dependentConfigValues **/
+          configs.filterProperty('serviceName', serviceName).filterProperty('configGroup', selectedGroupName).forEach(function (c) {
+            if (configs.filterProperty('serviceName', serviceName).filterProperty('configGroup', currentGroupName)) {
+              configs.removeObject(c);
+            }
+          });
+          configs.filterProperty('serviceName', serviceName).filterProperty('configGroup', currentGroupName).setEach('configGroup', selectedGroupName);
+          /** danger part!!!! changing config group ***/
+          this.get('dependentStepConfigs').findProperty('serviceName', serviceName).get('configs').forEach(function(cp) {
+            var dependentConfig = configs.filterProperty('propertyName', cp.get('name')).filterProperty('fileName', App.config.getConfigTagFromFileName(cp.get('filename'))).findProperty('configGroup', selectedGroupName);
+            var recommendedValue = dependentConfig && Em.get(dependentConfig, 'recommendedValue');
+            if (cp.get('overrides')) {
+              var currentGroupOverride = cp.get('overrides').findProperty('group.name', currentGroupName);
+              if (currentGroupOverride && currentGroupOverride.get('initialValue') != currentGroupOverride.get('recommendedValue')) {
+                currentGroupOverride.set('group', configGroup);
+                currentGroupOverride.set('recommendedValue', recommendedValue);
+                currentGroupOverride.set('value', recommendedValue);
+              } else {
+                var selectedGroupOverride = cp.get('overrides').findProperty('group.name', configGroup.get('name'));
+                if (selectedGroupOverride) {
+                  selectedGroupOverride.set('recommendedValue', recommendedValue);
+                  selectedGroupOverride.set('value', recommendedValue);
+                } else {
+                  App.get('router.mainServiceInfoConfigsController').addOverrideProperty(cp, configGroup, recommendedValue);
+                }
+              }
+            } else {
+              App.get('router.mainServiceInfoConfigsController').addOverrideProperty(cp, configGroup, recommendedValue);
+            }
+          }, this)
+        }
+      }, this);
+    },
+    onSecondary: function() {
+      this._super();
+      this.get('selectedConfigGroup').set('dependentConfigGroups', this.get('selectedGroups'));
     }
   });
 };

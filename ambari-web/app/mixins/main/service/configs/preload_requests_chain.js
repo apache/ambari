@@ -45,6 +45,10 @@ App.PreloadRequestsChainMixin = Em.Mixin.create({
   isVersionDefault: Em.required(Function),
 
   /**
+   * temp stores dependent groups
+   */
+  dependentConfigGroups: [],
+  /**
    * load all tag versions of cluster-env site
    * @returns {$.ajax}
    * @method loadClusterEnvSite
@@ -296,6 +300,7 @@ App.PreloadRequestsChainMixin = Em.Mixin.create({
             description: item.description,
             isDefault: false,
             parentConfigGroup: null,
+            serviceName: item.tag,
             service: App.Service.find().findProperty('serviceName', item.tag),
             hosts: item.hosts.mapProperty('host_name')
           });

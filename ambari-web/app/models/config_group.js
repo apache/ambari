@@ -41,6 +41,13 @@ App.ConfigGroup = Ember.Object.extend({
   serviceName: null,
 
   /**
+   * list of group names that shows which config
+   * groups should be updated as dependent when current is changed
+   * @type { serviceName: {String} }
+   */
+  dependentConfigGroups: {},
+
+  /**
    * Parent configuration group for this group.
    * When {@link #isDefault} is true, this value is <code>null</code>
    * When {@link #isDefault} is false, this represents the configuration
