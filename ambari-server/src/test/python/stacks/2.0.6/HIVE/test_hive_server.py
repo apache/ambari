@@ -655,7 +655,10 @@ class TestHiveServer(RMFTestCase):
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=True))
+  @patch("os.path.exists", new = MagicMock(return_value=True))
+  @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
   def test_stop_during_upgrade(self, copy_to_hdfs_mock):
+
     call_side_effects = [(0, "hive-server2 - 2.2.0.0-2041"), (0, "hive-server2 - 2.2.0.0-2041")] * 4
     copy_to_hdfs_mock.return_value = True
 
@@ -667,6 +670,26 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', 'hive --config /usr/hdp/current/hive-server2/conf/conf.server --service hiveserver2 --deregister 2.2.0.0-2041',
+      path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
+      tries=1, user='hive')
+
+    self.assertResourceCalled('Execute', 'hdp-select set hive-server2 2.2.1.0-2065',)
+
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
+  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=True))
+  def test_stop_during_upgrade_with_default_conf_server(self, copy_to_hdfs_mock):
+
+    call_side_effects = [(0, "hive-server2 - 2.2.0.0-2041"), (0, "hive-server2 - 2.2.0.0-2041")] * 4
+    copy_to_hdfs_mock.return_value = True
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
+     classname = "HiveServer", command = "restart", config_file = "hive-upgrade.json",
+     hdp_stack_version = self.UPGRADE_STACK_VERSION,
+     target = RMFTestCase.TARGET_COMMON_SERVICES,
+     call_mocks = call_side_effects
+    )
+
+    self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 2.2.0.0-2041',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
 
