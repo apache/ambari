@@ -994,6 +994,11 @@ var urls = {
     'mock': '/data/services/metrics/ambari_metrics/regionserver_compaction_queue_size.json',
     'testInProduction': true
   },
+  'service.metrics.ambari_metrics.aggregated': {
+    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields={fields}',
+    'mock': '/data/services/metrics/ambari_metrics/master_average_load.json',
+    'testInProduction': true
+  },
   'service.metrics.hdfs.block_status': {
     'real': '/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/PendingReplicationBlocks[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/UnderReplicatedBlocks[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/hdfs/block_status.json',
@@ -1145,6 +1150,10 @@ var urls = {
     'real': '/clusters/{clusterName}/?fields=metrics/network/In._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/network/Out._avg[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/cluster_metrics/network_1hr.json',
     'testInProduction': true
+  },
+  'host.metrics.aggregated': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}?fields={fields}',
+    'mock': '/data/hosts/metrics/cpu.json'
   },
   'host.metrics.cpu': {
     'real': '/clusters/{clusterName}/hosts/{hostName}?fields=metrics/cpu/cpu_user[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_wio[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_nice[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_aidle[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_system[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_idle[{fromSeconds},{toSeconds},{stepSeconds}]',

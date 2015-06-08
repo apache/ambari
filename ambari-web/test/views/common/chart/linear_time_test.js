@@ -209,3 +209,121 @@ describe('App.ChartLinearTimeView', function () {
     });
   });
 });
+
+
+describe('App.ChartLinearTimeView.LoadAggregator', function () {
+  var aggregator = App.ChartLinearTimeView.LoadAggregator;
+
+  describe("#add()", function () {
+    beforeEach(function () {
+      sinon.stub(window, 'setTimeout').returns('timeId');
+    });
+    afterEach(function () {
+      window.setTimeout.restore();
+    });
+    it("timeout started", function () {
+      aggregator.set('timeoutId', 'timeId');
+      aggregator.get('requests').clear();
+      aggregator.add({}, {});
+      expect(aggregator.get('requests')).to.not.be.empty;
+      expect(window.setTimeout.called).to.be.false;
+    });
+    it("timeout started", function () {
+      aggregator.set('timeoutId', null);
+      aggregator.get('requests').clear();
+      aggregator.add({}, {});
+      expect(aggregator.get('requests')).to.not.be.empty;
+      expect(window.setTimeout.calledOnce).to.be.true;
+      expect(aggregator.get('timeoutId')).to.equal('timeId');
+    });
+  });
+
+  describe("#groupRequests()", function () {
+    it("", function () {
+      var requests = [
+        {
+          name: 'r1',
+          context: 'c1',
+          fields: ['f1']
+        },
+        {
+          name: 'r2',
+          context: 'c2',
+          fields: ['f2']
+        },
+        {
+          name: 'r2',
+          context: 'c3',
+          fields: ['f3', 'f4']
+        }
+      ];
+      var result = aggregator.groupRequests(requests);
+
+      expect(result['r1'].subRequests.length).to.equal(1);
+      expect(result['r1'].fields.length).to.equal(1);
+      expect(result['r2'].subRequests.length).to.equal(2);
+      expect(result['r2'].fields.length).to.equal(3);
+    });
+  });
+
+  describe("#runRequests()", function () {
+    beforeEach(function () {
+      sinon.stub(aggregator, 'groupRequests', function (requests) {
+        return requests;
+      });
+      sinon.stub(aggregator, 'formatRequestData', function(_request){
+        return _request.fields;
+      });
+      sinon.stub(App.ajax, 'send', function(){
+        return {
+          done: Em.K,
+          fail: Em.K
+        }
+      });
+    });
+    afterEach(function () {
+      aggregator.groupRequests.restore();
+      App.ajax.send.restore();
+      aggregator.formatRequestData.restore();
+    });
+    it("", function () {
+      var context = Em.Object.create({content: {hostName: 'host1'}});
+      var requests = {
+        'r1': {
+          name: 'r1',
+          context: context,
+          fields: ['f3', 'f4']
+        }
+      };
+      aggregator.runRequests(requests);
+      expect(App.ajax.send.getCall(0).args[0]).to.eql({
+        name: 'r1',
+        sender: context,
+        data: {
+          fields: ['f3', 'f4'],
+          hostName: 'host1'
+        }
+      });
+    });
+  });
+
+  describe("#formatRequestData()", function () {
+    beforeEach(function () {
+      sinon.stub(App, 'dateTime').returns(4000000);
+
+    });
+    afterEach(function () {
+      App.dateTime.restore();
+
+    });
+    it("", function () {
+      var context = Em.Object.create({timeUnitSeconds: 3600});
+      var request = {
+        name: 'r1',
+        context: context,
+        fields: ['f3', 'f4']
+      };
+      expect(aggregator.formatRequestData(request)).to.equal('f3[400,4000,15],f4[400,4000,15]');
+    });
+  });
+});

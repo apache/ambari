@@ -31,6 +31,11 @@ App.ChartServiceMetricsAMS_RegionServerCompactionQueueSize = App.ChartServiceMet
   title: Em.I18n.t('services.service.info.metrics.ambariMetrics.regionServer.compactionQueueSize'),
   ajaxIndex: 'service.metrics.ambari_metrics.region_server.compaction_queue_size',
 
+  loadGroup: {
+    name: 'service.metrics.ambari_metrics.aggregated',
+    fields: ['metrics/hbase/regionserver/compactionQueueSize']
+  },
+
   displayName: Em.I18n.t('services.service.info.metrics.ambariMetrics.regionServer.displayNames.compactionQueueSize'),
   regionServerName: 'compactionQueueSize'
 });

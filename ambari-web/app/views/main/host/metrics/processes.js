@@ -33,6 +33,11 @@ App.ChartHostMetricsProcesses = App.ChartLinearTimeView.extend({
 
   ajaxIndex: 'host.metrics.processes',
 
+  loadGroup: {
+    name: 'host.metrics.aggregated',
+    fields: ['metrics/process/proc_total', 'metrics/process/proc_run']
+  },
+
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.process) {

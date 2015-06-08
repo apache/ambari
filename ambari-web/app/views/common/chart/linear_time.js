@@ -169,13 +169,17 @@ App.ChartLinearTimeView = Ember.View.extend({
   },
 
   loadData: function() {
-    App.ajax.send({
-      name: this.get('ajaxIndex'),
-      sender: this,
-      data: this.getDataForAjaxRequest(),
-      success: '_refreshGraph',
-      error: 'loadDataErrorCallback'
-    });
+    if (this.get('loadGroup')) {
+      App.ChartLinearTimeView.LoadAggregator.add(this, this.get('loadGroup'));
+    } else {
+      App.ajax.send({
+        name: this.get('ajaxIndex'),
+        sender: this,
+        data: this.getDataForAjaxRequest(),
+        success: '_refreshGraph',
+        error: 'loadDataErrorCallback'
+      });
+    }
   },
 
   getDataForAjaxRequest: function() {
@@ -1031,3 +1035,139 @@ Rickshaw.Graph.Renderer.Stack.prototype.seriesPathFactory = function() {
     .defined(function(d) { return d.y!=null; })
     .interpolate(this.graph.interpolation).tension(this.tension);
 };
+
+
+/**
+ * aggregate requests to load metrics by component name
+ * requests can be added via add method
+ * input example:
+ * {
+ *   data: request,
+ *   context: this,
+ *   startCallName: this.getServiceComponentMetrics,
+ *   successCallback: this.getMetricsSuccessCallback,
+ *   completeCallback: function () {
+ *     requestCounter--;
+ *     if (requestCounter === 0) this.onMetricsLoaded();
+ *   }
+ * }
+ * @type {Em.Object}
+ */
+App.ChartLinearTimeView.LoadAggregator = Em.Object.create({
+  /**
+   * @type {Array}
+   */
+  requests: [],
+
+  /**
+   * @type {number|null}
+   */
+  timeoutId: null,
+
+  /**
+   * time interval within which calls get collected
+   * @type {number}
+   * @const
+   */
+  BULK_INTERVAL: 1000,
+
+  /**
+   * add request
+   * every {{BULK_INTERVAL}} requests get collected, aggregated and sent to server
+   *
+   * @param {object} context
+   * @param {object} requestData
+   */
+  add: function (context, requestData) {
+    var self = this;
+
+    requestData.context = context;
+    this.get('requests').push(requestData);
+    if (Em.isNone(this.get('timeoutId'))) {
+      this.set('timeoutId', window.setTimeout(function () {
+        self.runRequests(self.get('requests'));
+        self.get('requests').clear();
+        clearTimeout(self.get('timeoutId'));
+        self.set('timeoutId', null);
+      }, this.get('BULK_INTERVAL')));
+    }
+  },
+
+  /**
+   * return requests which grouped into bulks
+   * @param {Array} requests
+   * @returns {object} bulks
+   */
+  groupRequests: function (requests) {
+    var bulks = {};
+
+    requests.forEach(function (request) {
+      var id = request.name;
+
+      if (Em.isNone(bulks[id])) {
+        bulks[id] = {
+          name: request.name,
+          fields: request.fields,
+          context: request.context
+        };
+        bulks[id].subRequests = [{
+          context: request.context
+        }];
+      } else {
+        bulks[id].fields.pushObjects(request.fields);
+        bulks[id].subRequests.push({
+          context: request.context
+        });
+      }
+    }, this);
+    return bulks;
+  },
+
+  /**
+   * run aggregated requests
+   * @param {Array} requests
+   */
+  runRequests: function (requests) {
+    var bulks = this.groupRequests(requests);
+    var self = this;
+
+    for (var id in bulks) {
+      (function (_request) {
+        var fields = self.formatRequestData(_request);
+        var hostName = (_request.context.get('content')) ? _request.context.get('content.hostName') : "";
+
+        App.ajax.send({
+          name: _request.name,
+          sender: _request.context,
+          data: {
+            fields: fields,
+            hostName: hostName
+          }
+        }).done(function (response) {
+          _request.subRequests.forEach(function (subRequest) {
+            subRequest.context._refreshGraph.call(subRequest.context, response);
+          }, this);
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+          _request.subRequests.forEach(function (subRequest) {
+            subRequest.context.loadDataErrorCallback.call(subRequest.context, jqXHR, textStatus, errorThrown );
+          }, this);
+        });
+      })(bulks[id]);
+    }
+  },
+
+  /**
+   *
+   * @param {object} request
+   * @returns {number[]}
+   */
+  formatRequestData: function (request) {
+    var toSeconds = Math.round(App.dateTime() / 1000);
+    var timeUnit = request.context.get('timeUnitSeconds');
+    var fields = request.fields.uniq().map(function (field) {
+      return field + "[" + (toSeconds - timeUnit) + "," + toSeconds + "," + 15 + "]";
+    });
+
+    return fields.join(",");
+  }
+});

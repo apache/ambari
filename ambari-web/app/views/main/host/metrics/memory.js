@@ -34,6 +34,17 @@ App.ChartHostMetricsMemory = App.ChartLinearTimeView.extend({
 
   ajaxIndex: 'host.metrics.memory',
 
+  loadGroup: {
+    name: 'host.metrics.aggregated',
+    fields: [
+      'metrics/memory/swap_free',
+      'metrics/memory/mem_shared',
+      'metrics/memory/mem_free',
+      'metrics/memory/mem_cached',
+      'metrics/memory/mem_buffers'
+    ]
+  },
+
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     var KB = Math.pow(2, 10);

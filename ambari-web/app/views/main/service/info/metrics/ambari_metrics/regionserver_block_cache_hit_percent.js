@@ -33,6 +33,11 @@ App.ChartServiceMetricsAMS_RegionServerBlockCacheHitPercent = App.ChartServiceMe
   yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
   ajaxIndex: 'service.metrics.ambari_metrics.region_server.block_cache_hit_percent',
 
+  loadGroup: {
+    name: 'service.metrics.ambari_metrics.aggregated',
+    fields: ['metrics/hbase/regionserver/blockCacheHitPercent']
+  },
+
   displayName: Em.I18n.t('services.service.info.metrics.ambariMetrics.regionServer.displayNames.blockCacheHitPercent'),
   regionServerName: 'blockCacheHitPercent'
 });

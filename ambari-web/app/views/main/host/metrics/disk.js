@@ -34,6 +34,11 @@ App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
 
   ajaxIndex: 'host.metrics.disk',
 
+  loadGroup: {
+    name: 'host.metrics.aggregated',
+    fields: ['metrics/disk/disk_total']
+  },
+
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     var GB = Math.pow(2, 30);
