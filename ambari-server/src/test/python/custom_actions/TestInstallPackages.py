@@ -46,7 +46,7 @@ class TestInstallPackages(RMFTestCase):
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  def test_normal_flow(self, put_structured_out_mock, allInstalledPackages_mock, list_ambari_managed_repos_mock):
+  def test_normal_flow_rhel(self, put_structured_out_mock, allInstalledPackages_mock, list_ambari_managed_repos_mock):
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
     list_ambari_managed_repos_mock.return_value=[]
     self.executeScript("scripts/install_packages.py",
@@ -80,13 +80,61 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
     )
-    self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'snappy', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'snappy-devel', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'lzo', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_*', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['base', 'rhui*', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'snappy', use_repos=['base', 'rhui*', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'snappy-devel', use_repos=['base', 'rhui*', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'lzo', use_repos=['base', 'rhui*', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_*', use_repos=['base', 'rhui*', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs', use_repos=['base', 'rhui*', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['base', 'rhui*', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertNoMoreResources()
+
+  @patch("ambari_commons.os_check.OSCheck.is_suse_family")
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
+  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  def test_normal_flow_sles(self, put_structured_out_mock, allInstalledPackages_mock, list_ambari_managed_repos_mock, is_suse_family_mock):
+    is_suse_family_mock = True
+    allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
+    list_ambari_managed_repos_mock.return_value=[]
+    self.executeScript("scripts/install_packages.py",
+                       classname="InstallPackages",
+                       command="actionexecute",
+                       config_file="install_packages_config.json",
+                       target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
+                       os_type=('Suse', '11', 'SP1'),
+                       )
+    self.assertTrue(put_structured_out_mock.called)
+    self.assertEquals(put_structured_out_mock.call_args[0][0],
+                      {'package_installation_result': 'SUCCESS',
+                       'installed_repository_version': u'2.2.0.1-885',
+                       'stack_id': 'HDP-2.2',
+                       'ambari_repositories': []})
+    self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
+                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                              action=['create'],
+                              components=[u'HDP-UTILS', 'main'],
+                              repo_template='repo_suse_rhel.j2',
+                              repo_file_name=u'HDP-2.2.0.1-885',
+                              mirror_list=None,
+                              append_to_file=False,
+                              )
+    self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
+                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                              action=['create'],
+                              components=[u'HDP', 'main'],
+                              repo_template='repo_suse_rhel.j2',
+                              repo_file_name=u'HDP-2.2.0.1-885',
+                              mirror_list=None,
+                              append_to_file=True,
+                              )
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'snappy', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'snappy-devel', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'lzo', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*-libhdfs', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertNoMoreResources()
 
 
@@ -130,13 +178,13 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
     )
-    self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'snappy', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'snappy-devel', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'lzo', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_*', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['base', 'rhui*', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'snappy', use_repos=['base', 'rhui*', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'snappy-devel', use_repos=['base', 'rhui*', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'lzo', use_repos=['base', 'rhui*', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_*', use_repos=['base', 'rhui*', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs', use_repos=['base', 'rhui*', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['base', 'rhui*', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertNoMoreResources()
 
 
@@ -247,11 +295,11 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
                               )
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'snappy', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'snappy-devel', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'lzo', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885*', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*-libhdfs', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['rhui*', 'base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'snappy', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'snappy-devel', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'lzo', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*-libhdfs', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertNoMoreResources()
