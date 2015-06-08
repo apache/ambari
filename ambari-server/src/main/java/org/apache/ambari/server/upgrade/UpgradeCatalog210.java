@@ -18,24 +18,12 @@
 
 package org.apache.ambari.server.upgrade;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaDelete;
-import javax.persistence.criteria.Root;
-
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -55,10 +43,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
-import org.apache.ambari.server.state.alert.PortSource;
-import org.apache.ambari.server.state.alert.WebSource;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -66,12 +51,22 @@ import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
+import javax.persistence.criteria.Root;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -1043,34 +1038,29 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
               cluster.getClusterId(), "hdfs_zookeeper_failover_controller_process");
 
           if (zkFailoverDefinitionEntity != null) {
-            AlertDefinition zkfcAlertDefinition = alertDefinitionFactory.coerce(zkFailoverDefinitionEntity);
-            PortSource portSource = (PortSource) zkfcAlertDefinition.getSource();
-            portSource.setPort(8019);
-            portSource.setUri("{{hdfs-site/dfs.ha.zkfc.port}}");
-
-            // merge the definition back into the entity
-            zkFailoverDefinitionEntity = alertDefinitionFactory.merge(zkfcAlertDefinition,
-                zkFailoverDefinitionEntity);
+            String source = zkFailoverDefinitionEntity.getSource();
+            JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
+            rootJson.remove("uri");
+            rootJson.remove("default_port");
+            rootJson.addProperty("uri", "{{hdfs-site/dfs.ha.zkfc.port}}");
+            rootJson.addProperty("default_port", new Integer(8019));
 
             // save the changes
-            alertDefinitionDAO.merge(zkFailoverDefinitionEntity);
+            updateAlertDefinitionEntitySource("hdfs_zookeeper_failover_controller_process", rootJson.toString());
           }
 
-          // oozie web url changed
-          AlertDefinitionEntity oozieWebDefinitionEntity = alertDefinitionDAO.findByName(
-              cluster.getClusterId(), "oozie_server_webui");
+          // update oozie web ui alert
+          AlertDefinitionEntity oozieWebUIAlertDefinitionEntity =  alertDefinitionDAO.findByName(cluster.getClusterId(),
+                            "oozie_server_webui");
 
-          if (oozieWebDefinitionEntity != null) {
-            AlertDefinition oozieAlertDefinition = alertDefinitionFactory.coerce(oozieWebDefinitionEntity);
-            WebSource webSource = (WebSource) oozieAlertDefinition.getSource();
-            webSource.getUri().setHttpUri("{{oozie-site/oozie.base.url}}/?user.name={{oozie-env/oozie_user}}");
-
-            // merge the definition back into the entity
-            oozieWebDefinitionEntity = alertDefinitionFactory.merge(oozieAlertDefinition,
-                oozieWebDefinitionEntity);
+          if (oozieWebUIAlertDefinitionEntity != null) {
+            String source = oozieWebUIAlertDefinitionEntity.getSource();
+            JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
+            rootJson.get("uri").getAsJsonObject().remove("http");
+            rootJson.get("uri").getAsJsonObject().addProperty("http", "{{oozie-site/oozie.base.url}}/?user.name=oozie");
 
             // save the changes
-            alertDefinitionDAO.merge(oozieWebDefinitionEntity);
+            updateAlertDefinitionEntitySource("oozie_server_webui", rootJson.toString());
           }
         }
       }
