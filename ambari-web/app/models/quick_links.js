@@ -328,9 +328,9 @@ App.QuickLinks.FIXTURES = [
   {
     id:36,
     label:'Atlas Dashboard',
-    url:'%@://%@:%@/',
+    url:'%@://%@:%@/dashboard/index.html?user.name=%@',
     service_id: 'ATLAS',
-    template:'%@://%@:%@/',
+    template:'%@://%@:%@/dashboard/index.html?user.name=%@',
     http_config: 'metadata_port',
     https_config: 'metadata_port',
     site: 'metadata-env',
