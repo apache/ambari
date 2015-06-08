@@ -17,11 +17,6 @@
  */
 package org.apache.ambari.server.state.kerberos;
 
-import org.apache.ambari.server.AmbariException;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
