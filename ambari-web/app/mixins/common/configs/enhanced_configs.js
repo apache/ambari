@@ -107,7 +107,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   changedProperties: function() {
     return this.get('_dependentConfigValues').filter(function(dp) {
       return (this.get('selectedConfigGroup.isDefault') && Em.get(dp, 'configGroup').contains('Default'))
-        || [this.get('selectedConfigGroup.name'), this.get('selectedConfigGroup.dependentConfigGroups')[Em.get(dp, 'serviceName')]].contains(Em.get(dp, 'configGroup'));
+        || [this.get('selectedConfigGroup.name'), this.get('selectedConfigGroup.dependentConfigGroups') && this.get('selectedConfigGroup.dependentConfigGroups')[Em.get(dp, 'serviceName')]].contains(Em.get(dp, 'configGroup'));
     }, this);
   }.property('_dependentConfigValues.@each.saveRecommended', 'selectedConfigGroup'),
 
