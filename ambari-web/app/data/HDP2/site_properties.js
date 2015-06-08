@@ -5096,6 +5096,48 @@ var hdp2properties = [
     "category": "Ambari Principals",
     "filename": "hbase-env.xml",
     "index": 6
+  },
+  {
+    "name": "accumulo_principal_name",
+    "displayName": "Accumulo user principal",
+    "category": "Ambari Principals",
+    "filename": "accumulo-env.xml",
+    "index": 7
+  },
+  {
+    "name": "accumulo_user_keytab",
+    "displayName": "Accumulo user keytab",
+    "category": "Ambari Principals",
+    "filename": "accumulo-env.xml",
+    "index": 8
+  },
+  {
+    "name": "spark.history.kerberos.principal",
+    "displayName": "Spark user principal",
+    "category": "Ambari Principals",
+    "filename": "spark-env.xml",
+    "index": 9
+  },
+  {
+    "name": "spark.history.kerberos.keytab",
+    "displayName": "Spark user keytab",
+    "category": "Ambari Principals",
+    "filename": "spark-env.xml",
+    "index": 10
+  },
+  {
+    "name": "storm_principal_name",
+    "displayName": "Storm user principal",
+    "category": "Ambari Principals",
+    "filename": "storm-env.xml",
+    "index": 11
+  },
+  {
+    "name": "storm_keytab",
+    "displayName": "Storm user keytab",
+    "category": "Ambari Principals",
+    "filename": "storm-env.xml",
+    "index": 12
   }
 ];
 

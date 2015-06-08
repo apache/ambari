@@ -53,7 +53,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     // Identity configs related to user principal
     var clusterConfigs = configs.filterProperty('serviceName','Cluster');
     // storm user principal is not required for ambari operation
-    var userConfigs = configs.filterProperty('identityType','user').rejectProperty('serviceName','STORM');
+    var userConfigs = configs.filterProperty('identityType','user');
     var generalConfigs = clusterConfigs.concat(userConfigs).uniq('name');
     var advancedConfigs = configs.filter(function(element){
       return !generalConfigs.findProperty('name', element.get('name'));
@@ -183,7 +183,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
         property.set('category', property.get('serviceName'));
       }
       // All user identity except storm should be grouped under "Ambari Principals" category
-      if (property.get('identityType') == 'user' && property.get('serviceName') !== 'STORM') property.set('category', 'Ambari Principals');
+      if (property.get('identityType') == 'user') property.set('category', 'Ambari Principals');
       var siteProperty = siteProperties.findProperty('name', property.get('name'));
       if (siteProperty) {
         if (siteProperty.category === property.get('category')) {
