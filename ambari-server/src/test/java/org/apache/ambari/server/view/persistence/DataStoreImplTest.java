@@ -76,6 +76,10 @@ public class DataStoreImplTest {
       "        <class>org.apache.ambari.server.view.persistence.DataStoreImplTest$TestEntity</class>\n" +
       "        <id-property>id</id-property>\n" +
       "      </entity>\n" +
+      "      <entity>\n" +
+      "        <class>org.apache.ambari.server.view.persistence.DataStoreImplTest$TestSubEntity</class>\n" +
+      "        <id-property>name</id-property>\n" +
+      "      </entity>\n" +
       "    </persistence>" +
       "</view>";
 
@@ -92,15 +96,24 @@ public class DataStoreImplTest {
 
     // set expectations
     Capture<DynamicType> typeCapture = new Capture<DynamicType>();
-    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture));
+    Capture<DynamicType> typeCapture2 = new Capture<DynamicType>();
+    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture), capture(typeCapture2));
 
     expect(entityManagerFactory.createEntityManager()).andReturn(entityManager);
     expect(entityManager.getTransaction()).andReturn(transaction).anyTimes();
 
     Capture<Class> entityClassCapture = new Capture<Class>();
-    expect(entityManager.find(capture(entityClassCapture), eq(99))).andReturn(null);
+    expect(entityManager.find(capture(entityClassCapture), eq("bar"))).andReturn(null);
+
+    Capture<Class> entityClassCapture2 = new Capture<Class>();
+    expect(entityManager.find(capture(entityClassCapture2), eq(99))).andReturn(null);
+
     Capture<DynamicEntity> entityCapture = new Capture<DynamicEntity>();
     entityManager.persist(capture(entityCapture));
+
+    Capture<DynamicEntity> entityCapture2 = new Capture<DynamicEntity>();
+    entityManager.persist(capture(entityCapture2));
+
     entityManager.close();
 
     transaction.begin();
@@ -111,11 +124,15 @@ public class DataStoreImplTest {
 
     DataStoreImpl dataStore = getDataStore(entityManagerFactory, jpaDynamicHelper, classLoader, schemaManager);
 
-    dataStore.store(new TestEntity(99, "foo"));
+    dataStore.store(new TestEntity(99, "foo", new TestSubEntity("bar")));
 
     Assert.assertEquals(entityClassCapture.getValue(), typeCapture.getValue().getJavaClass());
-    Assert.assertEquals(99, entityCapture.getValue().get("id"));
-    Assert.assertEquals("foo", entityCapture.getValue().get("name"));
+    Assert.assertEquals(entityClassCapture2.getValue(), typeCapture2.getValue().getJavaClass());
+
+    Assert.assertEquals("bar", entityCapture.getValue().get("DS_name"));
+
+    Assert.assertEquals(99, entityCapture2.getValue().get("DS_id"));
+    Assert.assertEquals("foo", entityCapture2.getValue().get("DS_name"));
 
     // verify mocks
     verify(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager);
@@ -135,17 +152,28 @@ public class DataStoreImplTest {
 
     // set expectations
     Capture<DynamicType> typeCapture = new Capture<DynamicType>();
-    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture));
+    Capture<DynamicType> typeCapture2 = new Capture<DynamicType>();
+    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture), capture(typeCapture2));
 
     expect(entityManagerFactory.createEntityManager()).andReturn(entityManager);
     expect(entityManager.getTransaction()).andReturn(transaction).anyTimes();
 
     Capture<Class> entityClassCapture = new Capture<Class>();
-    expect(entityManager.find(capture(entityClassCapture), eq(99))).andReturn(dynamicEntity);
+    expect(entityManager.find(capture(entityClassCapture), eq("bar"))).andReturn(null);
+
+    Capture<Class> entityClassCapture2 = new Capture<Class>();
+    expect(entityManager.find(capture(entityClassCapture2), eq(99))).andReturn(dynamicEntity);
+
+    Capture<DynamicEntity> entityCapture = new Capture<DynamicEntity>();
+    entityManager.persist(capture(entityCapture));
+
     entityManager.close();
 
-    expect(dynamicEntity.set("id", 99)).andReturn(dynamicEntity);
-    expect(dynamicEntity.set("name", "foo")).andReturn(dynamicEntity);
+    expect(dynamicEntity.set("DS_id", 99)).andReturn(dynamicEntity);
+    expect(dynamicEntity.set("DS_name", "foo")).andReturn(dynamicEntity);
+
+    Capture<DynamicEntity> subEntityCapture = new Capture<DynamicEntity>();
+    expect(dynamicEntity.set(eq("DS_subEntity"), capture(subEntityCapture))).andReturn(dynamicEntity);
 
     transaction.begin();
     transaction.commit();
@@ -155,9 +183,10 @@ public class DataStoreImplTest {
 
     DataStoreImpl dataStore = getDataStore(entityManagerFactory, jpaDynamicHelper, classLoader, schemaManager);
 
-    dataStore.store(new TestEntity(99, "foo"));
+    dataStore.store(new TestEntity(99, "foo", new TestSubEntity("bar")));
 
     Assert.assertEquals(entityClassCapture.getValue(), typeCapture.getValue().getJavaClass());
+    Assert.assertEquals(entityClassCapture2.getValue(), typeCapture2.getValue().getJavaClass());
 
     // verify mocks
     verify(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager, dynamicEntity);
@@ -177,7 +206,8 @@ public class DataStoreImplTest {
 
     // set expectations
     Capture<DynamicType> typeCapture = new Capture<DynamicType>();
-    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture));
+    Capture<DynamicType> typeCapture2 = new Capture<DynamicType>();
+    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture), capture(typeCapture2));
 
     expect(entityManagerFactory.createEntityManager()).andReturn(entityManager);
     expect(entityManager.getTransaction()).andReturn(transaction).anyTimes();
@@ -194,9 +224,9 @@ public class DataStoreImplTest {
 
     DataStoreImpl dataStore = getDataStore(entityManagerFactory, jpaDynamicHelper, classLoader, schemaManager);
 
-    dataStore.remove(new TestEntity(99, "foo"));
+    dataStore.remove(new TestEntity(99, "foo", new TestSubEntity("bar")));
 
-    Assert.assertEquals(entityClassCapture.getValue(), typeCapture.getValue().getJavaClass());
+    Assert.assertEquals(entityClassCapture.getValue(), typeCapture2.getValue().getJavaClass());
 
     // verify mocks
     verify(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager, dynamicEntity);
@@ -215,15 +245,18 @@ public class DataStoreImplTest {
 
     // set expectations
     Capture<DynamicType> typeCapture = new Capture<DynamicType>();
-    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture));
+    Capture<DynamicType> typeCapture2 = new Capture<DynamicType>();
+    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture), capture(typeCapture2));
 
     expect(entityManagerFactory.createEntityManager()).andReturn(entityManager);
     Capture<Class> entityClassCapture = new Capture<Class>();
     expect(entityManager.find(capture(entityClassCapture), eq(99))).andReturn(dynamicEntity);
     entityManager.close();
 
-    expect(dynamicEntity.get("id")).andReturn(99);
-    expect(dynamicEntity.get("name")).andReturn("foo");
+    expect(dynamicEntity.get("DS_id")).andReturn(99);
+    expect(dynamicEntity.get("DS_name")).andReturn("foo");
+    TestSubEntity subEntity = new TestSubEntity("bar");
+    expect(dynamicEntity.get("DS_subEntity")).andReturn(subEntity);
 
     // replay mocks
     replay(entityManagerFactory, entityManager, jpaDynamicHelper, dynamicEntity, schemaManager);
@@ -232,7 +265,7 @@ public class DataStoreImplTest {
 
     TestEntity entity = dataStore.find(TestEntity.class, 99);
 
-    Assert.assertEquals(entityClassCapture.getValue(), typeCapture.getValue().getJavaClass());
+    Assert.assertEquals(entityClassCapture.getValue(), typeCapture2.getValue().getJavaClass());
     Assert.assertEquals(99, entity.getId());
     Assert.assertEquals("foo", entity.getName());
 
@@ -254,17 +287,20 @@ public class DataStoreImplTest {
 
     // set expectations
     Capture<DynamicType> typeCapture = new Capture<DynamicType>();
-    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture));
+    Capture<DynamicType> typeCapture2 = new Capture<DynamicType>();
+    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture), capture(typeCapture2));
 
     expect(entityManagerFactory.createEntityManager()).andReturn(entityManager);
     expect(entityManager.createQuery(
-        "SELECT e FROM DataStoreImplTest$TestEntity1 e WHERE e.id=99")).andReturn(query);
+        "SELECT e FROM DS_DataStoreImplTest$TestEntity_1 e WHERE e.DS_id=99")).andReturn(query);
     entityManager.close();
 
     expect(query.getResultList()).andReturn(Collections.singletonList(dynamicEntity));
 
-    expect(dynamicEntity.get("id")).andReturn(99);
-    expect(dynamicEntity.get("name")).andReturn("foo");
+    expect(dynamicEntity.get("DS_id")).andReturn(99);
+    expect(dynamicEntity.get("DS_name")).andReturn("foo");
+    TestSubEntity subEntity = new TestSubEntity("bar");
+    expect(dynamicEntity.get("DS_subEntity")).andReturn(subEntity);
 
     // replay mocks
     replay(entityManagerFactory, entityManager, jpaDynamicHelper, dynamicEntity, query, schemaManager);
@@ -300,11 +336,12 @@ public class DataStoreImplTest {
 
     // set expectations
     Capture<DynamicType> typeCapture = new Capture<DynamicType>();
-    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture));
+    Capture<DynamicType> typeCapture2 = new Capture<DynamicType>();
+    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture), capture(typeCapture2));
 
     expect(entityManagerFactory.createEntityManager()).andReturn(entityManager);
     expect(entityManager.createQuery(
-        "SELECT e FROM DataStoreImplTest$TestEntity1 e WHERE e.name='foo'")).andReturn(query);
+        "SELECT e FROM DS_DataStoreImplTest$TestEntity_1 e WHERE e.DS_name='foo'")).andReturn(query);
     entityManager.close();
 
     List<DynamicEntity> entityList = new LinkedList<DynamicEntity>();
@@ -314,14 +351,20 @@ public class DataStoreImplTest {
 
     expect(query.getResultList()).andReturn(entityList);
 
-    expect(dynamicEntity1.get("id")).andReturn(99);
-    expect(dynamicEntity1.get("name")).andReturn("foo");
+    expect(dynamicEntity1.get("DS_id")).andReturn(99);
+    expect(dynamicEntity1.get("DS_name")).andReturn("foo");
+    TestSubEntity subEntity1 = new TestSubEntity("bar");
+    expect(dynamicEntity1.get("DS_subEntity")).andReturn(subEntity1);
 
-    expect(dynamicEntity2.get("id")).andReturn(100);
-    expect(dynamicEntity2.get("name")).andReturn("foo");
+    expect(dynamicEntity2.get("DS_id")).andReturn(100);
+    expect(dynamicEntity2.get("DS_name")).andReturn("foo");
+    TestSubEntity subEntity2 = new TestSubEntity("bar");
+    expect(dynamicEntity2.get("DS_subEntity")).andReturn(subEntity2);
 
-    expect(dynamicEntity3.get("id")).andReturn(101);
-    expect(dynamicEntity3.get("name")).andReturn("foo");
+    expect(dynamicEntity3.get("DS_id")).andReturn(101);
+    expect(dynamicEntity3.get("DS_name")).andReturn("foo");
+    TestSubEntity subEntity3 = new TestSubEntity("bar");
+    expect(dynamicEntity3.get("DS_subEntity")).andReturn(subEntity3);
 
     // replay mocks
     replay(entityManagerFactory, entityManager, jpaDynamicHelper,
@@ -388,13 +431,15 @@ public class DataStoreImplTest {
     public TestEntity() {
     }
 
-    public TestEntity(int id, String name) {
+    public TestEntity(int id, String name, TestSubEntity subEntity) {
       this.id = id;
       this.name = name;
+      this.subEntity = subEntity;
     }
 
     int id;
     String name;
+    TestSubEntity subEntity;
 
     public int getId() {
       return id;
@@ -403,6 +448,34 @@ public class DataStoreImplTest {
     public void setId(int id) {
       this.id = id;
     }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public TestSubEntity getSubEntity() {
+      return subEntity;
+    }
+
+    public void setSubEntity(TestSubEntity subEntity) {
+      this.subEntity = subEntity;
+    }
+  }
+
+  public static class TestSubEntity {
+
+    public TestSubEntity() {
+    }
+
+    public TestSubEntity(String name) {
+      this.name = name;
+    }
+
+    String name;
 
     public String getName() {
       return name;

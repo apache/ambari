@@ -557,9 +557,11 @@ public class UpgradeCatalog210Test {
       captures = new HashMap<String, Capture<DBColumnInfo>>();
 
       Capture<DBAccessor.DBColumnInfo> viewInstanceColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> viewInstanceAlterNamesColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
       Capture<DBAccessor.DBColumnInfo> viewParamColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
 
       captures.put("viewinstance", viewInstanceColumnCapture);
+      captures.put("viewinstance_alter_names", viewInstanceAlterNamesColumnCapture);
       captures.put("viewparameter", viewParamColumnCapture);
     }
 
@@ -569,9 +571,11 @@ public class UpgradeCatalog210Test {
     @Override
     public void execute(DBAccessor dbAccessor) throws SQLException {
       Capture<DBColumnInfo> viewInstanceColumnCapture = captures.get("viewinstance");
+      Capture<DBColumnInfo> viewInstanceAlterNamesColumnCapture = captures.get("viewinstance_alter_names");
       Capture<DBColumnInfo> viewParamColumnCapture = captures.get("viewparameter");
 
       dbAccessor.addColumn(eq("viewinstance"), capture(viewInstanceColumnCapture));
+      dbAccessor.addColumn(eq("viewinstance"), capture(viewInstanceAlterNamesColumnCapture));
       dbAccessor.addColumn(eq("viewparameter"), capture(viewParamColumnCapture));
     }
 
@@ -581,6 +585,7 @@ public class UpgradeCatalog210Test {
     @Override
     public void verify(DBAccessor dbAccessor) throws SQLException {
       verifyViewInstance(captures.get("viewinstance"));
+      verifyViewInstanceAlterNames(captures.get("viewinstance_alter_names"));
       verifyViewParameter(captures.get("viewparameter"));
     }
 
@@ -590,6 +595,11 @@ public class UpgradeCatalog210Test {
       Assert.assertEquals("cluster_handle", clusterIdColumn.getName());
     }
 
+    private void verifyViewInstanceAlterNames(Capture<DBAccessor.DBColumnInfo> viewInstanceAlterNamesColumnCapture) {
+      DBColumnInfo clusterIdColumn = viewInstanceAlterNamesColumnCapture.getValue();
+      Assert.assertEquals(Integer.class, clusterIdColumn.getType());
+      Assert.assertEquals("alter_names", clusterIdColumn.getName());
+    }
 
     private void verifyViewParameter(Capture<DBAccessor.DBColumnInfo> viewParamColumnCapture) {
       DBColumnInfo clusterConfigColumn = viewParamColumnCapture.getValue();
@@ -599,7 +609,7 @@ public class UpgradeCatalog210Test {
   }
 
   /**
-   * Verify view changes
+   * Verify alert changes
    */
   class AlertSectionDDL implements SectionDDL {
 
