@@ -63,7 +63,7 @@ module.exports = [
   },
   {
     wizardControllerName: App.router.get('mainAdminStackAndUpgradeController.name'),
-    route: 'main.admin.stackAndUpgrade'
+    route: App.db.get('MainAdminStackAndUpgrade', 'upgradeState') == 'INIT' ? 'main.admin.stackAndUpgrade.index' : 'main.admin.stackAndUpgrade.versions'
   },
   {
     wizardControllerName: App.router.get('widgetWizardController.name'),
