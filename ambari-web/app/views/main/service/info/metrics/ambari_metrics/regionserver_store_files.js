@@ -31,6 +31,12 @@ App.ChartServiceMetricsAMS_RegionServerStoreFiles = App.ChartServiceMetricsAMS_R
   title: Em.I18n.t('services.service.info.metrics.ambariMetrics.regionServer.storeFiles'),
   renderer: 'line',
   ajaxIndex: 'service.metrics.ambari_metrics.region_server.store_files',
+
+  loadGroup: {
+    name: 'service.metrics.ambari_metrics.aggregated',
+    fields: ['metrics/hbase/regionserver/storefiles']
+  },
+
   regionServerName: 'storefiles',
   displayName: Em.I18n.t('services.service.info.metrics.ambariMetrics.regionServer.displayNames.storeFilesCount')
 });

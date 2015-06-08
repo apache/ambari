@@ -33,6 +33,11 @@ App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
 
   ajaxIndex: 'host.metrics.cpu',
 
+  loadGroup: {
+    name: 'host.metrics.aggregated',
+    fields: ['metrics/cpu/cpu_user', 'metrics/cpu/cpu_wio', 'metrics/cpu/cpu_nice', 'metrics/cpu/cpu_aidle', 'metrics/cpu/cpu_system', 'metrics/cpu/cpu_idle']
+  },
+
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData && jsonData.metrics && jsonData.metrics.cpu) {

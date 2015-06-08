@@ -31,6 +31,11 @@ App.ChartServiceMetricsAMS_RegionServerRequests = App.ChartServiceMetricsAMS_Reg
   title: Em.I18n.t('services.service.info.metrics.ambariMetrics.regionServer.requests'),
   ajaxIndex: 'service.metrics.ambari_metrics.region_server.request',
 
+  loadGroup: {
+    name: 'service.metrics.ambari_metrics.aggregated',
+    fields: ['metrics/hbase/regionserver/requests']
+  },
+
   displayName: Em.I18n.t('services.service.info.metrics.ambariMetrics.regionServer.displayNames.requestCount'),
   regionServerName: 'requests'
 });
