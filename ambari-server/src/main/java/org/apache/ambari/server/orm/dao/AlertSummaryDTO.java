@@ -78,4 +78,54 @@ public class AlertSummaryDTO {
   public int getMaintenanceCount() {
     return maintenanceCount;
   }
+
+  /**
+   * Sets the count of {@link AlertState#OK} states.
+   *
+   * @param okCount
+   *          the okCount to set
+   */
+  public void setOkCount(int okCount) {
+    this.okCount = okCount;
+  }
+
+  /**
+   * Sets the count of {@link AlertState#WARNING} states.
+   *
+   * @param warningCount
+   *          the warningCount to set
+   */
+  public void setWarningCount(int warningCount) {
+    this.warningCount = warningCount;
+  }
+
+  /**
+   * Sets the count of {@link AlertState#CRITICAL} states.
+   *
+   * @param criticalCount
+   *          the criticalCount to set
+   */
+  public void setCriticalCount(int criticalCount) {
+    this.criticalCount = criticalCount;
+  }
+
+  /**
+   * Sets the count of {@link AlertState#UNKNOWN} states.
+   *
+   * @param unknownCount
+   *          the unknownCount to set
+   */
+  public void setUnknownCount(int unknownCount) {
+    this.unknownCount = unknownCount;
+  }
+
+  /**
+   * Sets the count of alerts in maintenance state.
+   *
+   * @param maintenanceCount
+   *          the maintenanceCount to set
+   */
+  public void setMaintenanceCount(int maintenanceCount) {
+    this.maintenanceCount = maintenanceCount;
+  }
 }
