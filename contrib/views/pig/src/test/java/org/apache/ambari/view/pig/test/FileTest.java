@@ -22,6 +22,8 @@ import org.apache.ambari.view.pig.HDFSTest;
 import org.apache.ambari.view.pig.resources.files.FileResource;
 import org.apache.ambari.view.pig.resources.files.FileService;
 import org.apache.ambari.view.pig.utils.*;
+import org.apache.ambari.view.utils.ViewUserLocal;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.json.simple.JSONObject;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
@@ -58,7 +60,7 @@ public class FileTest extends HDFSTest {
   @AfterClass
   public static void shutDown() throws Exception {
     HDFSTest.shutDown(); // super
-    HdfsApi.dropAllConnections(); //cleanup API connection
+    ViewUserLocal.dropAllConnections(HdfsApi.class); //cleanup API connection
   }
 
   private Response doCreateFile() throws IOException, InterruptedException {

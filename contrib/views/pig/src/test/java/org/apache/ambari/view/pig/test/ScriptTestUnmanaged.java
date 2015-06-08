@@ -21,10 +21,10 @@ package org.apache.ambari.view.pig.test;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.pig.BasePigTest;
-import org.apache.ambari.view.pig.resources.files.FileService;
 import org.apache.ambari.view.pig.resources.scripts.ScriptService;
-import org.apache.ambari.view.pig.utils.HdfsApi;
-import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
+import org.apache.ambari.view.utils.ViewUserLocal;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 
@@ -46,7 +46,7 @@ public class ScriptTestUnmanaged extends BasePigTest {
 
   @AfterClass
   public static void shutDown() throws Exception {
-    HdfsApi.dropAllConnections(); //cleanup API connection
+    ViewUserLocal.dropAllConnections(HdfsApi.class);
   }
 
   @Before
@@ -76,7 +76,7 @@ public class ScriptTestUnmanaged extends BasePigTest {
     replay(handler, context);
     scriptService = getService(ScriptService.class, handler, context);
 
-    thrown.expect(MisconfigurationFormattedException.class);
+    thrown.expect(HdfsApiException.class);
     doCreateScript("Test", null);
   }
 }

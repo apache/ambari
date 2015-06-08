@@ -21,18 +21,11 @@ package org.apache.ambari.view.pig.services;
 import com.google.inject.Inject;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.pig.persistence.Storage;
-import org.apache.ambari.view.pig.utils.HdfsApi;
 import org.apache.ambari.view.pig.persistence.utils.StorageUtil;
-import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
-import org.apache.ambari.view.pig.utils.ServiceFormattedException;
-import org.json.simple.JSONObject;
+import org.apache.ambari.view.pig.utils.UserLocalObjects;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.util.HashMap;
 
 
 /**
@@ -58,12 +51,8 @@ public class BaseService {
     this.storage = storage;
   }
 
-  private HdfsApi hdfsApi = null;
-
   protected HdfsApi getHdfsApi()  {
-    if (hdfsApi == null)
-      hdfsApi = HdfsApi.getInstance(context);
-    return hdfsApi;
+    return UserLocalObjects.getHdfsApi(context);
   }
 
   /**
@@ -71,6 +60,6 @@ public class BaseService {
    * @param api HdfsApi instance
    */
   public void setHdfsApi(HdfsApi api)  {
-    hdfsApi = api;
+    UserLocalObjects.setHdfsApi(api, context);
   }
 }

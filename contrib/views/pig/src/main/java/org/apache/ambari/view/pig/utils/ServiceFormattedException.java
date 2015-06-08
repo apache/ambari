@@ -18,7 +18,6 @@
 
 package org.apache.ambari.view.pig.utils;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +25,18 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.security.AccessControlException;
 import java.util.HashMap;
 
 public class ServiceFormattedException extends WebApplicationException {
   private final static Logger LOG =
       LoggerFactory.getLogger(ServiceFormattedException.class);
+
+  public ServiceFormattedException(Throwable e) {
+    super(errorEntity(null, e, suggestStatus(e)));
+  }
 
   public ServiceFormattedException(String message) {
     super(errorEntity(message, null, suggestStatus(null)));
@@ -47,7 +52,9 @@ public class ServiceFormattedException extends WebApplicationException {
 
   private static int suggestStatus(Throwable exception) {
     int status = 500;
-    if (exception == null) return status;
+    if (exception == null) {
+      return status;
+    }
     if (exception instanceof AccessControlException) {
       status = 403;
     }
@@ -56,16 +63,39 @@ public class ServiceFormattedException extends WebApplicationException {
 
   protected static Response errorEntity(String message, Throwable e, int status) {
     HashMap<String, Object> response = new HashMap<String, Object>();
-    response.put("message", message);
+
     String trace = null;
-    if (e != null)
-      trace = ExceptionUtils.getStackTrace(e);
+
+    response.put("message", message);
+    if (e != null) {
+      trace = e.toString() + "\n\n";
+      StringWriter sw = new StringWriter();
+      e.printStackTrace(new PrintWriter(sw));
+      trace += sw.toString();
+
+      if (message == null) {
+        String innerMessage = e.getMessage();
+        String autoMessage;
+
+        if (innerMessage != null) {
+          autoMessage = String.format("%s [%s]", innerMessage, e.getClass().getSimpleName());
+        } else {
+          autoMessage = e.getClass().getSimpleName();
+        }
+        response.put("message", autoMessage);
+      }
+    }
     response.put("trace", trace);
     response.put("status", status);
 
-    if(message != null) LOG.error(message);
-    if(trace != null) LOG.debug(trace);
+    if(message != null) {
+      LOG.error(message);
+    }
+    if(trace != null) {
+      LOG.error(trace);
+    }
 
-    return Response.status(status).entity(new JSONObject(response)).type(MediaType.APPLICATION_JSON).build();
+    Response.ResponseBuilder responseBuilder = Response.status(status).entity(new JSONObject(response)).type(MediaType.APPLICATION_JSON);
+    return responseBuilder.build();
   }
 }

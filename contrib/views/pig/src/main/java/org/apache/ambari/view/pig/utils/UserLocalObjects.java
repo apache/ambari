@@ -1,0 +1,81 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.ambari.view.pig.utils;
+
+import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.pig.templeton.client.TempletonApi;
+import org.apache.ambari.view.pig.templeton.client.TempletonApiFactory;
+import org.apache.ambari.view.utils.ViewUserLocal;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
+import org.apache.ambari.view.utils.hdfs.HdfsUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class UserLocalObjects {
+  private final static Logger LOG =
+      LoggerFactory.getLogger(UserLocalObjects.class);
+
+  /**
+   * HdfsApi user-local instance
+   */
+  private static ViewUserLocal<HdfsApi> hdfsApi;
+
+  /**
+   * TempletonApi user-local instance
+   */
+  private static ViewUserLocal<TempletonApi> templetonApi;
+
+  static {
+    templetonApi = new ViewUserLocal<TempletonApi>(TempletonApi.class) {
+      @Override
+      protected synchronized TempletonApi initialValue(ViewContext context) {
+        TempletonApiFactory templetonApiFactory = new TempletonApiFactory(context);
+        return templetonApiFactory.connectToTempletonApi();
+      }
+    };
+
+    hdfsApi = new ViewUserLocal<HdfsApi>(HdfsApi.class) {
+      @Override
+      protected synchronized HdfsApi initialValue(ViewContext context) {
+        try {
+          return HdfsUtil.connectToHDFSApi(context);
+        } catch (HdfsApiException e) {
+          throw new ServiceFormattedException(e);
+        }
+      }
+    };
+  }
+
+  public static HdfsApi getHdfsApi(ViewContext context) {
+    return hdfsApi.get(context);
+  }
+
+  public static void setHdfsApi(HdfsApi api, ViewContext context) {
+    hdfsApi.set(api, context);
+  }
+
+  public static TempletonApi getTempletonApi(ViewContext context) {
+    return templetonApi.get(context);
+  }
+
+  public static void setTempletonApi(TempletonApi api, ViewContext context) {
+    templetonApi.set(api, context);
+  }
+}

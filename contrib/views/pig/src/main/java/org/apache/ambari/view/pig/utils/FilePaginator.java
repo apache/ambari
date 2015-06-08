@@ -19,7 +19,6 @@
 package org.apache.ambari.view.pig.utils;
 
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.pig.services.BaseService;
 import org.apache.hadoop.fs.FSDataInputStream;
 
 import java.io.IOException;
@@ -35,7 +34,7 @@ public class FilePaginator {
   private static int PAGE_SIZE = 1*1024*1024;  // 1MB
 
   private String filePath;
-  private HdfsApi hdfsApi;
+  private ViewContext context;
 
   /**
    * Constructor
@@ -44,7 +43,7 @@ public class FilePaginator {
    */
   public FilePaginator(String filePath, ViewContext context) {
     this.filePath = filePath;
-    hdfsApi = HdfsApi.getInstance(context);
+    this.context = context;
   }
 
   /**
@@ -63,7 +62,7 @@ public class FilePaginator {
    */
   public long pageCount() throws IOException, InterruptedException {
     return (long)
-        ceil( hdfsApi.getFileStatus(filePath).getLen() / ((double)PAGE_SIZE) );
+        ceil( UserLocalObjects.getHdfsApi(context).getFileStatus(filePath).getLen() / ((double)PAGE_SIZE) );
   }
 
   /**
@@ -74,7 +73,7 @@ public class FilePaginator {
    * @throws InterruptedException
    */
   public String readPage(long page) throws IOException, InterruptedException {
-    FSDataInputStream stream = hdfsApi.open(filePath);
+    FSDataInputStream stream = UserLocalObjects.getHdfsApi(context).open(filePath);
     try {
       stream.seek(page * PAGE_SIZE);
     } catch (IOException e) {

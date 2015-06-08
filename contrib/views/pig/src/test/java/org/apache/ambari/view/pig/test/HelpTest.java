@@ -19,9 +19,9 @@
 package org.apache.ambari.view.pig.test;
 
 import org.apache.ambari.view.pig.HDFSTest;
-import org.apache.ambari.view.pig.resources.files.FileService;
 import org.apache.ambari.view.pig.services.HelpService;
-import org.apache.ambari.view.pig.utils.HdfsApi;
+import org.apache.ambari.view.utils.ViewUserLocal;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.json.simple.JSONObject;
 import org.junit.*;
 
@@ -45,7 +45,7 @@ public class HelpTest extends HDFSTest {
   @AfterClass
   public static void shutDown() throws Exception {
     HDFSTest.shutDown(); // super
-    HdfsApi.dropAllConnections(); //cleanup API connection
+    ViewUserLocal.dropAllConnections(HdfsApi.class); //cleanup API connection
   }
 
   @Test
