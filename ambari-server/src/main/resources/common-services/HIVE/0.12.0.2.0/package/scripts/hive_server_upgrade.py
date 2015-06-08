@@ -17,6 +17,7 @@ limitations under the License.
 
 """
 
+import os
 import re
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
@@ -48,6 +49,11 @@ def pre_upgrade_deregister():
   current_hiveserver_version = _get_current_hiveserver_version()
   if current_hiveserver_version is None:
     raise Fail('Unable to determine the current HiveServer2 version to deregister.')
+
+  # fallback when upgrading because /usr/hdp/current/hive-server2/conf/conf.server may not exist
+  hive_server_conf_dir = params.hive_server_conf_dir
+  if not os.path.exists(hive_server_conf_dir):
+    hive_server_conf_dir = "/etc/hive/conf.server"
 
   # deregister
   command = format('hive --config {hive_server_conf_dir} --service hiveserver2 --deregister ' + current_hiveserver_version)
