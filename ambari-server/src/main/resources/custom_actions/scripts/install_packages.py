@@ -65,9 +65,11 @@ class InstallPackages(Script):
 
     # Install/update repositories
     installed_repositories = []
+    current_repositories = ['base']
     # Some packages are installed from core repos
-    # rhui* is used for rhel, and base is for centos
-    current_repositories = ['rhui*','base']
+    if OSCheck.is_redhat_family():
+      # rhui* is used for rhel, and base is for centos
+      current_repositories.append('rhui*')
     current_repo_files = set(['base'])
     old_versions = self.hdp_versions()
     
