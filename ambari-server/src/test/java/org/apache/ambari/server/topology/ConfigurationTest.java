@@ -26,6 +26,7 @@ import java.util.Map;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -104,7 +105,7 @@ public class ConfigurationTest {
 
   @Test
   public void testGetFullProperties_withParent() {
-    Configuration configuration = createConfigurationWithParentsPropsOnly();
+    Configuration configuration = createConfigurationWithParents_PropsOnly();
     // get prop maps prior to calling getFullProperties
     Map<String, Map<String, String>> leafProperties = configuration.getProperties();
     Map<String, Map<String, String>> parentProperties = configuration.getParentConfiguration().getProperties();
@@ -157,7 +158,7 @@ public class ConfigurationTest {
 
   @Test
   public void testGetFullProperties_withParent_specifyDepth() {
-    Configuration configuration = createConfigurationWithParentsPropsOnly();
+    Configuration configuration = createConfigurationWithParents_PropsOnly();
     // get prop maps prior to calling getFullProperties
     Map<String, Map<String, String>> leafProperties = configuration.getProperties();
     Map<String, Map<String, String>> parentProperties = configuration.getParentConfiguration().getProperties();
@@ -226,7 +227,7 @@ public class ConfigurationTest {
 
   @Test
   public void testGetFullAttributes_withParent() {
-    Configuration configuration = createConfigurationWithParentsAttributesOnly();
+    Configuration configuration = createConfigurationWithParents_AttributesOnly();
     Map<String, Map<String, Map<String, String>>> leafAttributes = configuration.getAttributes();
     Map<String, Map<String, Map<String, String>>> parentAttributes = configuration.getParentConfiguration().getAttributes();
     Map<String, Map<String, Map<String, String>>> parentParentAttributes = configuration.getParentConfiguration().getParentConfiguration().getAttributes();
@@ -296,7 +297,7 @@ public class ConfigurationTest {
 
   @Test
   public void testGetPropertyValue() {
-    Configuration configuration = createConfigurationWithParentsPropsOnly();
+    Configuration configuration = createConfigurationWithParents_PropsOnly();
 
     assertEquals("val1.3", configuration.getPropertyValue("type1", "prop1"));
     assertEquals("val2.2", configuration.getPropertyValue("type1", "prop2"));
@@ -306,13 +307,14 @@ public class ConfigurationTest {
     assertEquals("val6.2", configuration.getPropertyValue("type1", "prop6"));
     assertEquals("val7.3", configuration.getPropertyValue("type3", "prop7"));
     assertEquals("val8.2", configuration.getPropertyValue("type3", "prop8"));
+    assertEquals("val9.3", configuration.getPropertyValue("type1", "prop9"));
     assertEquals("val10.3", configuration.getPropertyValue("type4", "prop10"));
     assertEquals("val11.3", configuration.getPropertyValue("type4", "prop11"));
   }
 
   @Test
   public void testGetAttributeValue() {
-    Configuration configuration = createConfigurationWithParentsAttributesOnly();
+    Configuration configuration = createConfigurationWithParents_AttributesOnly();
 
     assertEquals("val1.3", configuration.getAttributeValue("type1", "prop1", "attribute1"));
     assertEquals("val2.2", configuration.getAttributeValue("type1", "prop2", "attribute1"));
@@ -329,7 +331,35 @@ public class ConfigurationTest {
     assertEquals("val101.1", configuration.getAttributeValue("type2", "prop101", "attribute101"));
   }
 
-  private Configuration createConfigurationWithParentsPropsOnly() {
+  @Test
+  public void testRemoveProperty() {
+    Configuration configuration = createConfigurationWithParents_PropsOnly();
+    // property only exists in root level config
+    assertEquals("val3.1", configuration.removeProperty("type1", "prop3"));
+    assertNull(configuration.getPropertyValue("type1", "prop3"));
+
+    // property only exists in configuration instance
+    assertEquals("val9.3", configuration.removeProperty("type1", "prop9"));
+    assertNull(configuration.getPropertyValue("type1", "prop9"));
+
+    // property at multiple levels
+    assertEquals("val1.3", configuration.removeProperty("type1", "prop1"));
+    assertNull(configuration.getPropertyValue("type1", "prop1"));
+
+    assertEquals("val4.3", configuration.removeProperty("type2", "prop4"));
+    assertNull(configuration.getPropertyValue("type2", "prop4"));
+
+    assertEquals("val2.2", configuration.removeProperty("type1", "prop2"));
+    assertNull(configuration.getPropertyValue("type1", "prop2"));
+
+    // type and property don't exist
+    assertNull(configuration.getPropertyValue("typeXXX", "XXXXX"));
+
+    // type exists but property doesn't
+    assertNull(configuration.getPropertyValue("type1", "XXXXX"));
+  }
+
+  private Configuration createConfigurationWithParents_PropsOnly() {
     // parents parent config properties
     Map<String, Map<String, String>> parentParentProperties = new HashMap<String, Map<String, String>>();
     Map<String, String> parentParentTypeProperties1 = new HashMap<String, String>();
@@ -378,7 +408,7 @@ public class ConfigurationTest {
     return new Configuration(properties, EMPTY_ATTRIBUTES, parentConfiguration);
   }
 
-  private Configuration createConfigurationWithParentsAttributesOnly() {
+  private Configuration createConfigurationWithParents_AttributesOnly() {
     // parents parent config attributes.
     Map<String, Map<String, Map<String, String>>> parentParentAttributes = new HashMap<String, Map<String, Map<String, String>>>();
     Map<String, Map<String, String>> parentParentTypeAttributes1 = new HashMap<String, Map<String, String>>();
