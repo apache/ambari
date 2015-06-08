@@ -35,6 +35,7 @@
       export YARN_PID_DIR={{yarn_pid_dir_prefix}}/$USER
       export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
       export JAVA_HOME={{java64_home}}
+      export YARN_ROOT_LOGGER=${YARN_ROOT_LOGGER:-INFO,EWMA,RFA}
 
       # User for YARN daemons
       export HADOOP_YARN_USER=${HADOOP_YARN_USER:-yarn}
