@@ -36,6 +36,11 @@
     <span>{{dependenciesMessage}}</span> <a href="#" {{action "showChangedDependentConfigs" target="controller"}}>{{t common.showDetails}}</a>
   </div>
 {{/if}}
+{{#if showSelectGroupsPopup}}
+  <div class="alert alert-warning">
+    <span>{{dependenciesGroupMessage}}</span> <a href="#" {{action "changedDependentGroup" target="controller"}}>{{t common.showDetails}}</a>
+  </div>
+{{/if}}
 {{view App.ServiceConfigContainerView}}
 {{#if controller.isRecommendedLoaded}}
     <p class="loading align-center"></p>

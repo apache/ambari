@@ -90,6 +90,11 @@
           <span>{{dependenciesMessage}}</span> <a
             href="#" {{action "showChangedDependentConfigs" target="controller"}}>{{t common.showDetails}}</a>
         </div>
+        {{#if showSelectGroupsPopup}}
+          <div class="alert alert-warning">
+            <span>{{dependenciesGroupMessage}}</span> <a href="#" {{action "changedDependentGroup" target="controller"}}>{{t common.showDetails}}</a>
+          </div>
+        {{/if}}
       </div>
     </div>
   {{/unless}}

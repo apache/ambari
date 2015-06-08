@@ -373,6 +373,8 @@ Em.I18n.translations = {
   'popup.dependent.configs.dependencies.service.singular': 'in {0} service',
   'popup.dependent.configs.dependencies.service.plural': 'in {0} services',
 
+  'popup.dependent.configs.dependencies.for.groups': 'You are changing not default group, please select config group to which you want to save dependent configs from other services',
+
   'login.header':'Sign in',
   'login.username':'Username',
   'login.loginButton':'Sign in',

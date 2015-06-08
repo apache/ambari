@@ -667,11 +667,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }
     }, this);
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
-    var self = this;
-    if (self.get('securityEnabled') && self.get('wizardController.name') == 'addServiceController') {
-      self.addKerberosDescriptorConfigs(configs, self.get('wizardController.kerberosDescriptorConfigs') || []);
+    if (this.get('securityEnabled') && self.get('wizardController.name') == 'addServiceController') {
+      this.addKerberosDescriptorConfigs(configs, self.get('wizardController.kerberosDescriptorConfigs') || []);
     }
-    self.setStepConfigs(configs, storedConfigs);
+    this.setStepConfigs(configs, storedConfigs);
+    this.checkHostOverrideInstaller();
+    this.activateSpecialConfigs();
+    this.selectProperService();
+    var self = this;
     this.loadServerSideConfigsRecommendations().always(function () {
       // format descriptor configs
       var serviceConfigProperties = (self.get('content.serviceConfigProperties') || []).mapProperty('name');
@@ -679,7 +682,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       recommendedToDelete.forEach(function (c) {
         var name = Em.get(c, 'propertyName');
         if (serviceConfigProperties.contains(name)) {
-          Em.set(self.get('_dependentConfigValues').findProperty('propertyName', name), 'toDelete', false);
+          Em.set(self.get('_dependentConfigValues').findProperty('propertyName', name).findProperty('fileName', serviceConfigProperties.get('filename')), 'toDelete', false);
         }
       });
 
@@ -688,9 +691,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         App.config.removeRangerConfigs(self.get('stepConfigs'));
       }
       self.updateDependentConfigs();
-      self.checkHostOverrideInstaller();
-      self.activateSpecialConfigs();
-      self.selectProperService();
       self.restoreRecommendedConfigs();
       self.clearDependentConfigsByService(App.StackService.find().filterProperty('isSelected').mapProperty('serviceName'));
       self.set('isRecommendedLoaded', true);
@@ -1177,20 +1177,26 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   /**
    * create overriden property and push it into Config group
+   * @param serviceConfigProperty
+   * @param group
+   * @param value
+   * @param isNotSaved
    * @param {App.ServiceConfigProperty} serviceConfigProperty
    * @return {App.ServiceConfigProperty}
    * @method addOverrideProperty
    */
-  addOverrideProperty: function (serviceConfigProperty) {
+  addOverrideProperty: function (serviceConfigProperty, group, value, isNotSaved) {
     var overrides = serviceConfigProperty.get('overrides') || [];
     var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
-    var group = this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name'));
+    group = group || this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name'));
     var valueForOverride = (serviceConfigProperty.get('widget') || serviceConfigProperty.get('displayType') == 'checkbox') ? serviceConfigProperty.get('value') : '';
     newSCP.set('group', group);
-    newSCP.set('value', valueForOverride);
+    newSCP.set('value', value || valueForOverride);
+    newSCP.set('recommendedValue', value || valueForOverride);
     newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
     newSCP.set('parentSCP', serviceConfigProperty);
     newSCP.set('isEditable', true);
+    newSCP.set('isNotSaved', isNotSaved);
     group.get('properties').pushObject(newSCP);
     overrides.pushObject(newSCP);
     newSCP.validate();

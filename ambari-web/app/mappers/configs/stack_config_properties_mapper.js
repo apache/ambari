@@ -75,6 +75,10 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
         }, this);
       }, this);
       App.store.loadMany(this.get('model'), configs);
+
+      App.StackService.find().filterProperty('id').forEach(function(service) {
+        this.setDependentServices(service);
+      }, this);
     }
     console.timeEnd('stackConfigMapper execution time');
   },
@@ -107,5 +111,41 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
    */
   getUIConfig: function(propertyName, siteName) {
     return App.config.get('preDefinedSiteProperties').filterProperty('filename', siteName).findProperty('name', propertyName);
+  },
+
+  /**
+   * runs <code>setDependentServicesAndFileNames<code>
+   * for stack properties for current service
+   * @method loadDependentConfigs
+   */
+  setDependentServices: function(service) {
+    App.StackConfigProperty.find().filterProperty('serviceName', service.get('serviceName')).forEach(function(stackProperty) {
+      if (stackProperty.get('propertyDependedBy.length')) {
+        this._setDependentServices(stackProperty, 'propertyDependedBy', service);
+      }
+    }, this);
+  },
+  /**
+   * defines service names for configs and set them to <code>dependentServiceNames<code>
+   * @param {App.StackConfigProperty} stackProperty
+   * @param {String} [key='propertyDependedBy'] - attribute to check dependent configs
+   * @param service
+   * @private
+   */
+  _setDependentServices: function(stackProperty, key, service) {
+    key = key || 'propertyDependedBy';
+    if (stackProperty.get(key + '.length') > 0) {
+      stackProperty.get(key).forEach(function(dependent) {
+        var tag = App.config.getConfigTagFromFileName(dependent.type);
+        /** setting dependent serviceNames (without current serviceName) **/
+        var dependentProperty = App.StackConfigProperty.find(dependent.name + "_" + tag);
+        if (dependentProperty) {
+          if (dependentProperty.get('serviceName') && dependentProperty.get('serviceName') != service.get('serviceName') && !service.get('dependentServiceNames').contains(dependentProperty.get('serviceName'))) {
+            service.set('dependentServiceNames', service.get('dependentServiceNames').concat([dependentProperty.get('serviceName')]));
+          }
+          this._setDependentServices(dependentProperty, key, service);
+        }
+      }, this);
+    }
   }
 });

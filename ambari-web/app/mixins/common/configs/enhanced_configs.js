@@ -40,8 +40,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @type {boolean}
    */
   hasChangedDependencies: function() {
-    return App.get('isClusterSupportsEnhancedConfigs') && this.get('isControllerSupportsEnhancedConfigs') && this.get('_dependentConfigValues.length') > 0;
-  }.property('_dependentConfigValues.length'),
+    return App.get('isClusterSupportsEnhancedConfigs') && this.get('isControllerSupportsEnhancedConfigs') && this.get('changedProperties.length') > 0;
+  }.property('changedProperties.length'),
 
   /**
    * defines is block with changed dependent configs should be shown
@@ -63,18 +63,18 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     return ['wizardStep7Controller'].contains(this.get('name')) && !App.Service.find().findProperty('serviceName', serviceName);
   },
 
-
+  dependenciesGroupMessage: Em.I18n.t('popup.dependent.configs.dependencies.for.groups'),
   /**
    * message fro alert box for dependent configs
    * @type {string}
    */
   dependenciesMessage: function() {
-    var changedServices = this.get('changedProperties').mapProperty('serviceName').uniq();
-    var cfgLen = this.get('changedProperties.length') === 1 ? 'singular' : 'plural';
+    var changedServices = this.get('changedProperties').filterProperty('saveRecommended', true).mapProperty('serviceName').uniq();
+    var cfgLen = this.get('changedProperties').filterProperty('saveRecommended', true).length === 1 ? 'singular' : 'plural';
     var sLen = changedServices.length === 1 ? 'singular' : 'plural';
     return Em.I18n.t('popup.dependent.configs.dependencies.config.' + cfgLen).format(this.get('changedProperties.length'))
       + Em.I18n.t('popup.dependent.configs.dependencies.service.' + sLen).format(changedServices.length);
-  }.property('changedProperties'),
+  }.property('changedProperties.length'),
 
   /**
    * values for dependent configs
@@ -105,34 +105,44 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @type {Object[]}
    */
   changedProperties: function() {
-    return this.get('_dependentConfigValues').filterProperty('saveRecommended', true);
-  }.property('_dependentConfigValues.@each.saveRecommended'),
-  /**
-   * dependent file names for configs
-   * @type {string[]}
-   */
-  dependentFileNames: [],
+    return this.get('_dependentConfigValues').filter(function(dp) {
+      return (this.get('selectedConfigGroup.isDefault') && Em.get(dp, 'configGroup').contains('Default'))
+        || [this.get('selectedConfigGroup.name'), this.get('selectedConfigGroup.dependentConfigGroups')[Em.get(dp, 'serviceName')]].contains(Em.get(dp, 'configGroup'));
+    }, this);
+  }.property('_dependentConfigValues.@each.saveRecommended', 'selectedConfigGroup'),
 
   /**
-   * dependent service names for configs
-   * @type {string[]}
+   * defines if change dependent group message should be shown
+   * @type {boolean}
    */
-  dependentServiceNames: [],
+  showSelectGroupsPopup: function() {
+    return !this.get('selectedConfigGroup.isDefault') && this.get('selectedService.dependentServiceNames.length');
+  }.property('selectedConfigGroup.isDefault'),
 
   /**
-   * config groups for dependent services
-   * @type {App.ConfigGroup[]}
+   * set default values for dependentGroups
+   * @method setDependentGroups
    */
-  dependentConfigGroups: [],
-
-  /**
-   * contains config group name that need to be saved
-   * {
-   *    serviceName: {String} configGroupName
-   * }
-   * @type {Object}
-   */
-  groupsToSave: {},
+  setDependentGroups: function () {
+    if (this.get('isControllerSupportsEnhancedConfigs') && !this.get('selectedConfigGroup.isDefault') && this.get('selectedService.dependentServiceNames.length')) {
+      this.get('selectedService.dependentServiceNames').forEach(function (serviceName) {
+        if (!this.get('selectedConfigGroup.dependentConfigGroups')[serviceName]) {
+          var stepConfig = this.get('stepConfigs').findProperty('serviceName', serviceName);
+          if (stepConfig) {
+            stepConfig.get('configGroups').filterProperty('isDefault', false).forEach(function (configGroup) {
+              this.get('selectedService.configGroups').filterProperty('isDefault', false).forEach(function (currentServiceGroup) {
+                if (currentServiceGroup.get('dependentConfigGroups')[serviceName] != configGroup.get('name')) {
+                  var dependentGroups = $.extend({},this.get('selectedConfigGroup.dependentConfigGroups'));
+                  dependentGroups[serviceName] = configGroup.get('name');
+                  this.set('selectedConfigGroup.dependentConfigGroups', dependentGroups);
+                }
+              }, this);
+            }, this);
+          }
+        }
+      }, this);
+    }
+  }.observes('selectedConfigGroup'),
 
   /******************************METHODS THAT WORKS WITH DEPENDENT CONFIGS *************************************/
 
@@ -143,7 +153,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    */
   clearDependentConfigs: function() {
     this.setProperties({
-      groupsToSave: {},
       _dependentConfigValues: []
     });
   },
@@ -160,73 +169,31 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     this.set('_dependentConfigValues', cleanDependencies);
   },
 
-  onConfigGroupChangeForEnhanced: function() {
-    if (this.get('name') === 'mainServiceInfoConfigsController') {
-      this.clearDependentConfigs();
-    } else {
-      this.set('groupsToSave', {});
-    }
-    this.get('dependentServiceNames').forEach(function(serviceName) {
-      var defaultGroup = this.get('dependentConfigGroups').filterProperty('service.serviceName', serviceName).findProperty('isDefault');
-      this.get('groupsToSave')[serviceName] = defaultGroup.get('name');
-    }, this);
-  }.observes('selectedConfigGroup'),
-
-
-  /**
-   * runs <code>setDependentServicesAndFileNames<code>
-   * for stack properties for current service
-   * @method loadDependentConfigs
-   */
-  setDependentServices: function(serviceName) {
-    App.StackConfigProperty.find().forEach(function(stackProperty) {
-      if (stackProperty.get('serviceName') === serviceName &&
-        (stackProperty.get('propertyDependedBy.length') > 0 ||
-         stackProperty.get('propertyDependsOn.length') > 0)) {
-        this._setDependentServicesAndFileNames(stackProperty, 'propertyDependedBy');
-        this._setDependentServicesAndFileNames(stackProperty, 'propertyDependsOn');
-      }
-    }, this);
-  },
-
   /**
    * get config group object for current service
    * @param serviceName
    * @returns {App.ConfigGroup|null}
    */
   getGroupForService: function(serviceName) {
-    if (this.get('stepConfigs.length') === 0) return null;
-    if (this.get('name') === 'wizardStep7Controller') {
-      return this.get('stepConfigs').findProperty('serviceName', serviceName).get('selectedConfigGroup');
+    if (!this.get('stepConfigs') || this.get('stepConfigs.length') === 0) {
+      return null;
+    }
+    if (this.get('selectedService.serviceName') === serviceName) {
+      return this.get('selectedConfigGroup');
     } else {
-      if (this.get('content.serviceName') === serviceName) {
-        return this.get('selectedConfigGroup');
-      } else {
+      var stepConfig = this.get('stepConfigs').findProperty('serviceName', serviceName);
+      if (stepConfig) {
+        var groups = stepConfig.get('configGroups');
         if (this.get('selectedConfigGroup.isDefault')) {
-          return this.get('dependentConfigGroups').filterProperty('service.serviceName', serviceName).findProperty('isDefault');
+          return groups.length ? groups.findProperty('isDefault', true) : null;
         } else {
-          return this.get('dependentConfigGroups').findProperty('name', this.get('groupsToSave')[serviceName]);
+          return groups.length ? groups.findProperty('name', this.get('selectedConfigGroup.dependentConfigGroups')[serviceName]) : null;
         }
+      } else {
+        return null;
       }
     }
   },
-
-  /**
-   * show popup to select config group for dependent services
-   * to which dependent configs will ve saved
-   * @method showSelectGroupsPopup
-   */
-  showSelectGroupPopup: function(event) {
-    var serviceName = event.context;
-    if (serviceName !== this.get('content.serviceName')) {
-      var groups = this.get('dependentConfigGroups').filterProperty('service.serviceName', serviceName).mapProperty('name').uniq();
-      if (groups.length) {
-        var configs = this.get('_dependentConfigValues').filterProperty('serviceName', serviceName);
-        App.showSelectGroupsPopup(serviceName, groups, this.get('groupsToSave'), configs);
-      }
-    }
-  },
-
 
   /**
    * disable saving recommended value for current config
@@ -347,7 +314,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   showChangedDependentConfigs: function(event, callback, secondary) {
     var self = this;
     if (this.get('_dependentConfigValues.length') > 0) {
-      App.showDependentConfigsPopup(this.get('_dependentConfigValues'), function() {
+      App.showDependentConfigsPopup(this.get('changedProperties'), function() {
         self.updateDependentConfigs();
         if (callback) {
           callback();
@@ -362,6 +329,18 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
 
   /**
    *
+   */
+  changedDependentGroup: function() {
+    var dependentServices = this.get('stepConfigs').filter(function(stepConfig) {
+      return this.get('selectedService.dependentServiceNames').contains(stepConfig.get('serviceName'));
+    }, this);
+    App.showSelectGroupsPopup(this.get('selectedService.serviceName'),
+      this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name')),
+      dependentServices, this.get('_dependentConfigValues'))
+  },
+
+  /**
+   *
    * @param jqXHR
    * @param ajaxOptions
    * @param error
@@ -371,36 +350,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     this.set('recommendationTimeStamp', (new Date).getTime());
     App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
   },
-
-
-  /**
-   * defines file names for configs and set them to <code>dependentFileNames<code> and
-   * defines service names for configs and set them to <code>dependentServiceNames<code>
-   * @param {App.StackConfigProperty} stackProperty
-   * @param {String} [key='propertyDependedBy'] - attribute to check dependent configs
-   * @private
-   */
-  _setDependentServicesAndFileNames: function(stackProperty, key) {
-    key = key || 'propertyDependedBy';
-    if (stackProperty.get(key + '.length') > 0) {
-      stackProperty.get(key).forEach(function(dependent) {
-        var tag = App.config.getConfigTagFromFileName(dependent.type);
-        /** setting dependent fileNames (without '.xml') **/
-        if (!this.get('dependentFileNames').contains(tag)) {
-          this.get('dependentFileNames').push(tag);
-        }
-        /** setting dependent serviceNames (without current serviceName) **/
-        var dependentProperty = App.StackConfigProperty.find(dependent.name + "_" + tag);
-        if (dependentProperty) {
-          if (dependentProperty.get('serviceName') && !this.get('dependentServiceNames').contains(dependentProperty.get('serviceName')) && dependentProperty.get('serviceName') !== this.get('content.serviceName')) {
-            this.get('dependentServiceNames').push(dependentProperty.get('serviceName'));
-          }
-          this._setDependentServicesAndFileNames(dependentProperty, key);
-        }
-      }, this);
-    }
-  },
-
 
   /**
    * saves values from response for dependent config properties to <code>_dependentConfigValues<code>
@@ -448,7 +397,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
 
         for (var propertyName in configObject[key].properties) {
 
-          var dependentProperty = this.get('_dependentConfigValues').filterProperty('propertyName', propertyName).findProperty('fileName', key);
+          var dependentProperty = this.get('_dependentConfigValues').filterProperty('propertyName', propertyName).filterProperty('fileName', key).findProperty('configGroup', group && Em.get(group,'name'));
           var cp = configProperties.findProperty('name', propertyName);
           var override = (notDefaultGroup && group && cp && cp.get('overrides')) ? cp.get('overrides').findProperty('group.name', group.get('name')) : null;
 
@@ -488,11 +437,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                 toAdd: isNewProperty,
                 fileName: key,
                 propertyName: propertyName,
-                configGroup: group ? group.get('name') : service.get('displayName') + " Default",
+                configGroup: group ? group.get('name') : "",
                 value: initialValue,
                 parentConfigs: parentPropertiesNames,
                 serviceName: serviceName,
-                allowChangeGroup: serviceName != this.get('content.serviceName') && !this.get('selectedConfigGroup.isDefault'),
+                allowChangeGroup: !this.get('selectedService.isDefault') && service.get('serviceName') != stepConfig.get('serviceName') && stepConfig.get('configGroups.length') > 1,
                 serviceDisplayName: service.get('displayName'),
                 recommendedValue: recommendedValue
               });
@@ -566,7 +515,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         Em.keys(attributes).forEach(function (attributeName) {
           if (attributeName == 'delete') {
             if (!updateOnlyBoundaries) {
-              var dependentProperty = self.get('_dependentConfigValues').filterProperty('propertyName', propertyName).findProperty('fileName', siteName);
+              var dependentProperty = self.get('_dependentConfigValues').filterProperty('propertyName', propertyName).filterProperty('fileName', siteName).findProperty('configGroup', group && Em.get(group,'name'));
               if (dependentProperty) {
                 Em.set(dependentProperty, 'toDelete', true);
                 Em.set(dependentProperty, 'toAdd', false);
@@ -581,10 +530,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                   isDeleted: true,
                   fileName: siteName,
                   propertyName: propertyName,
-                  configGroup: group ? group.get('name') : service.get('displayName') + " Default",
+                  configGroup: group ? group.get('name') : "",
                   parentConfigs: parentPropertiesNames,
                   serviceName: service.get('serviceName'),
-                  allowChangeGroup: service.get('serviceName') != self.get('content.serviceName') && !self.get('selectedConfigGroup.isDefault'),
+                  allowChangeGroup: !self.get('selectedService.isDefault') && service.get('serviceName') != stepConfig.get('serviceName') && stepConfig.get('configGroups.length') > 1,
                   serviceDisplayName: service.get('displayName'),
                   recommendedValue: null
                 });
@@ -617,12 +566,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     var self = this;
     this.get('stepConfigs').forEach(function(serviceConfigs) {
       var selectedGroup = self.getGroupForService(serviceConfigs.get('serviceName'));
+      if (selectedGroup) {
+        self._updateRecommendedValues(serviceConfigs, selectedGroup);
 
-      self._updateRecommendedValues(serviceConfigs, selectedGroup);
+        self._addRecommendedProperties(serviceConfigs, selectedGroup);
 
-      self._addRecommendedProperties(serviceConfigs, selectedGroup);
-
-      self._removeUnRecommendedProperties(serviceConfigs, selectedGroup);
+        self._removeUnRecommendedProperties(serviceConfigs, selectedGroup);
+      }
     });
     this.set('recommendationTimeStamp', (new Date).getTime());
   },
@@ -635,7 +585,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @private
    */
   _addRecommendedProperties: function(stepConfigs, selectedGroup) {
-    var propertiesToAdd = this.get('_dependentConfigValues').filterProperty('toAdd').filterProperty('serviceName', stepConfigs.get('serviceName'));
+    var propertiesToAdd = this.get('_dependentConfigValues').filterProperty('toAdd').filterProperty('serviceName', stepConfigs.get('serviceName')).filterProperty('configGroup', selectedGroup.get('name'));
     if (propertiesToAdd.length > 0) {
       propertiesToAdd.forEach(function(propertyToAdd) {
         if (!selectedGroup || selectedGroup.get('isDefault')) {
@@ -661,7 +611,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           if (Em.get(propertyToAdd, 'isDeleted')) {
             this.get('_dependentConfigValues').removeObject(propertyToAdd);
           }
-          this.addOverrideProperty(cp, selectedGroup, Em.get(propertyToAdd, 'recommendedValue'), !Em.get(propertyToAdd, 'isDeleted'));
+          var overriddenProperty = cp.get('overrides') && cp.get('overrides').findProperty('group.name', selectedGroup.get('name'));
+          if (overriddenProperty) {
+            overriddenProperty.set('value', Em.get(propertyToAdd, 'recommendedValue'));
+            overriddenProperty.set('recommendedValue', Em.get(propertyToAdd, 'recommendedValue'));
+          } else {
+            this.addOverrideProperty(cp, selectedGroup, Em.get(propertyToAdd, 'recommendedValue'), !Em.get(propertyToAdd, 'isDeleted'));
+          }
         }
         Em.setProperties(propertyToAdd, {
           isDeleted: Em.get(propertyToAdd, 'isDeleted'),
@@ -679,7 +635,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @private
    */
   _removeUnRecommendedProperties: function(stepConfigs, selectedGroup) {
-    var propertiesToDelete = this.get('_dependentConfigValues').filterProperty('toDelete').filterProperty('serviceName', stepConfigs.get('serviceName'));
+    var propertiesToDelete = this.get('_dependentConfigValues').filterProperty('toDelete').filterProperty('serviceName', stepConfigs.get('serviceName')).filterProperty('configGroup', selectedGroup.get('name'));
     if (propertiesToDelete.length > 0) {
 
       propertiesToDelete.forEach(function(propertyToDelete) {
@@ -724,7 +680,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    */
   _updateRecommendedValues: function(stepConfigs, selectedGroup) {
     var propertiesToUpdate = this.get('_dependentConfigValues').filter(function(p) {
-      return !Em.get(p, 'toDelete') && !Em.get(p, 'toAdd') && Em.get(p, 'serviceName') == stepConfigs.get('serviceName');
+      return !Em.get(p, 'toDelete') && !Em.get(p, 'toAdd') && Em.get(p, 'serviceName') == stepConfigs.get('serviceName') && Em.get(p, 'configGroup') == selectedGroup.get('name');
     });
     if (propertiesToUpdate.length > 0) {
       stepConfigs.get('configs').forEach(function (cp) {

@@ -18,9 +18,9 @@
 
 <form class="form-horizontal">
   <div class="form-group">
-    <label class="col-sm-2 control-label"><strong>{{view.parentView.serviceName}}&nbsp;</strong>&nbsp;</label>
+    <label class="col-sm-2 control-label"><strong>{{view.serviceName}}&nbsp;</strong>&nbsp;</label>
     <div class="col-sm-8">
-      {{view Ember.Select contentBinding="view.parentView.groups" valueBinding="view.parentView.selectedGroup"}}
+      {{view Ember.Select contentBinding="view.groups" valueBinding="view.selectedGroup"}}
     </div>
   </div>
 </form>
