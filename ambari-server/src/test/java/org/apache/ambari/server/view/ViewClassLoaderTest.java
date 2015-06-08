@@ -80,6 +80,7 @@ public class ViewClassLoaderTest {
     expect(parentClassLoader.loadClass("com.google.inject.AbstractModule")).andReturn(parentClass).once();
     expect(parentClassLoader.loadClass("org.slf4j.LoggerFactory")).andReturn(parentClass).once();
     expect(parentClassLoader.loadClass("com.sun.jersey.api.ConflictException")).andReturn(parentClass).once();
+    expect(parentClassLoader.loadClass("org.apache.velocity.VelocityContext")).andReturn(parentClass).once();
 
     replay(parentClassLoader, viewConfig);
 
@@ -122,6 +123,11 @@ public class ViewClassLoaderTest {
     Assert.assertSame(parentClass, clazz);
 
     clazz = classLoader.loadClass("com.sun.jersey.api.ConflictException");
+
+    Assert.assertNotNull(clazz);
+    Assert.assertSame(parentClass, clazz);
+
+    clazz = classLoader.loadClass("org.apache.velocity.VelocityContext");
 
     Assert.assertNotNull(clazz);
     Assert.assertSame(parentClass, clazz);
