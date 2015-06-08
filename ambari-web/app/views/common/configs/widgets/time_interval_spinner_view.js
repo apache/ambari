@@ -146,26 +146,27 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
   },
 
   /**
-   * Subscribe for value changes
-   * @method valueObserver
+   * Handle changes for widget value.
+   *  * Capture validation errors.
+   *  * Set original config value converted from widget format
+   *  * Send recommendations.
    */
-  valueObserver: function() {
-    if (!this.get('content') || isNaN(parseInt(this.get('config.value')))) return;
-
-    if (this.get('config.showAsTextBox')) {
-      this.checkErrors(this.generateWidgetValue(this.get('config.value')));
-    }
-    else {
-      Em.run.once(this, 'valueObserverCallback');
-    }
-  }.observes('content.@each.value', 'config.value'),
-
-  valueObserverCallback: function() {
+  widgetValueObserver: function() {
     this.checkModified();
     this.setConfigValue();
     this.checkErrors();
     this.sendRequestRorDependentConfigs(this.get('config'));
-  },
+  }.observes('content.@each.value'),
+
+  /**
+   * Handle config value changes in raw mode.
+   * Check specific validation errors regarding widget format value.
+   */
+  configValueObserver: function() {
+    if (this.get('config.showAsTextBox')) {
+      this.checkErrors();
+    }
+  }.observes('config.value', 'config.showAsTextBox'),
 
   /**
    * Check for property modification.
@@ -182,9 +183,14 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    */
   checkErrors: function(val) {
     val = val || this.get('content');
-    var convertedValue = this.configValueByWidget(val);
+    // in raw mode we should use config value instead of converted from widget
+    var convertedValue = this.get('config.showAsTextBox') ? parseInt(this.get('config.value'), 10) : this.configValueByWidget(val);
     var warnMessage = '';
     var warn = false;
+    // if not a number ignore check since it validation failed in config model as well.
+    if (isNaN(convertedValue)) {
+      return;
+    }
     if (convertedValue < parseInt(this.get('config.stackConfigProperty.valueAttributes.minimum'))) {
       warnMessage = Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(this.dateToText(this.get('minValue')));
       warn = true;
@@ -207,8 +213,20 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    * set appropriate attribute for configProperty model
    * @method setConfigValue
    */
-  setConfigValue: function() {
-    this.set('config.value', '' + this.configValueByWidget(this.get('content')));
+  setConfigValue: function(value) {
+    this.set('config.value', '' + (value || this.configValueByWidget(this.get('content'))));
+  },
+
+  setValue: function(value) {
+    if ((value && !isNaN(value)) || !isNaN(this.get('config.value'))) {
+      this.set('content', this.generateWidgetValue(value || this.get('config.value')));
+    }
+  },
+
+  setRecommendedValue: function() {
+    this._super();
+    this.setValue();
+    this.parseIncrement();
   },
 
   /**
@@ -235,12 +253,8 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    */
   restoreValue: function() {
     this._super();
-    this.set('content', this.generateWidgetValue(this.get('config.savedValue')));
+    this.setValue(this.get('config.savedValue'));
     this.parseIncrement();
-  },
-
-  setValue: function(value) {
-    this.set('content', this.generateWidgetValue(value));
   },
 
   isValueCompatibleWithWidget: function() {
