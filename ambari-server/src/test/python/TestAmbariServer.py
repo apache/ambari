@@ -2446,6 +2446,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(dbmsConfig.database_name, "ambari")
     self.assertEqual(dbmsConfig.database_username, "ambari")
     self.assertEqual(dbmsConfig.database_password, "bigdata")
+    self.assertEqual(dbmsConfig.sid_or_sname, "sid")
 
     dbmsConfig.configure_database(props)
 
@@ -2564,7 +2565,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     self.assertEqual(dbmsConfig.database_username, "ambari-server")
     self.assertEqual(dbmsConfig.database_password, "password")
-    self.assertEqual(dbmsConfig.sid_or_sname, "sname")
+    self.assertEqual(dbmsConfig.sid_or_sname, "sid")
     pass
 
   @not_for_platform(PLATFORM_WINDOWS)
