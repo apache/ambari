@@ -86,6 +86,12 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
       putHbaseEnvPropertyAttributes('hbase_max_direct_memory_size', 'delete', 'true')
 
+    if 'hbase-env' in services['configurations'] and 'phoenix_sql_enabled' in services['configurations']['hbase-env']['properties']:
+      if 'true' == services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'].lower():
+        putHbaseSiteProperty("hbase.region.server.rpc.scheduler.factory.class", "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory")
+      else:
+        putHbaseSitePropertyAttributes('hbase.region.server.rpc.scheduler.factory.class', 'delete', 'true')
+
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if 'ranger-hbase-plugin-properties' in services['configurations'] and ('ranger-hbase-plugin-enabled' in services['configurations']['ranger-hbase-plugin-properties']['properties']):
       rangerPluginEnabled = services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled']
