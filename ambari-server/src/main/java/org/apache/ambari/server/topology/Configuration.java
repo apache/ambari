@@ -248,6 +248,8 @@ public class Configuration {
 
   /**
    * Remove a property from the configuration hierarchy.
+   * All occurrences of the property are removed from the config hierarchy such that
+   * a subsequent call to getPropertyValue() for the removed property will return null.
    *
    * @param configType    configuration type
    * @param propertyName  property name
@@ -257,10 +259,15 @@ public class Configuration {
    */
   public String removeProperty(String configType, String propertyName) {
     String previousValue = null;
-    if (properties.containsKey(configType) && properties.get(configType).containsKey(propertyName)) {
-      previousValue =  properties.get(configType).remove(propertyName);
-    } else if (parentConfiguration != null) {
-      previousValue =  parentConfiguration.removeProperty(configType, propertyName);
+    if (properties.containsKey(configType)) {
+      previousValue = properties.get(configType).remove(propertyName);
+    }
+
+    if (parentConfiguration != null) {
+      String parentPreviousValue =  parentConfiguration.removeProperty(configType, propertyName);
+      if (previousValue == null) {
+        previousValue = parentPreviousValue;
+      }
     }
     return previousValue;
   }
