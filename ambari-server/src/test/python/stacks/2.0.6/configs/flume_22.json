@@ -512,7 +512,8 @@
         },
         "flume-env": {
              "content": "export JAVA_HOME={{java64_home}}\nexport HIVE_HOME={{flume_hive_home}}",
-             "flume_user": "flume"
+             "flume_user": "flume",
+             "flume_log_dir": "/var/log/flume"
         },
       "storm-env": {
             "content": "\n#!/bin/bash\n\n# Set Storm specific environment variables here.\n\n# The java implementation to use.\nexport JAVA_HOME={{java_home}}\n\n# export STORM_CONF_DIR=\"\"", 
