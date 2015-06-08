@@ -2824,6 +2824,14 @@ public class KerberosHelperTest extends EasyMockSupport {
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
         .anyTimes();
 
+    final Map<String, Host> hostMap = new HashMap<String, Host>() {
+      {
+        put("host1", host1);
+        put("host2", host2);
+      }
+    };
+    final Collection<Host> hosts = hostMap.values();
+
     final Cluster cluster = createMock(Cluster.class);
     expect(cluster.getSecurityType()).andReturn(clusterSecurityType).anyTimes();
     expect(cluster.getClusterName()).andReturn(clusterName).anyTimes();
@@ -2857,18 +2865,17 @@ public class KerberosHelperTest extends EasyMockSupport {
           }
         })
         .anyTimes();
+    expect(cluster.getHosts())
+        .andReturn(hosts)
+        .anyTimes();
+
 
     final Clusters clusters = injector.getInstance(Clusters.class);
     expect(clusters.getCluster(clusterName)).andReturn(cluster).times(1);
 
     if(hostName == null) {
       expect(clusters.getHostsForCluster(clusterName))
-          .andReturn(new HashMap<String, Host>() {
-            {
-              put("host1", host1);
-              put("host2", host2);
-            }
-          })
+          .andReturn(hostMap)
           .once();
     }
 

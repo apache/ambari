@@ -38,20 +38,20 @@
             },
             {
               "core-site": {
-                "hadoop.proxyuser.knox.groups": "${hadoop-env/proxyuser_group}",
-                "hadoop.proxyuser.knox.hosts": "${host}"
+                "hadoop.proxyuser.${knox-env/knox_user}.groups": "${hadoop-env/proxyuser_group}",
+                "hadoop.proxyuser.${knox-env/knox_user}.hosts": "${clusterHostInfo/knox_gateway_hosts}"
               }
             },
             {
               "webhcat-site": {
-                "webhcat.proxyuser.knox.groups": "${hadoop-env/proxyuser_group}",
-                "webhcat.proxyuser.knox.hosts": "${host}"
+                "webhcat.proxyuser.${knox-env/knox_user}.groups": "${hadoop-env/proxyuser_group}",
+                "webhcat.proxyuser.${knox-env/knox_user}.hosts": "${clusterHostInfo/knox_gateway_hosts}"
               }
             },
             {
               "oozie-site": {
-                "oozie.service.ProxyUserService.proxyuser.knox.groups": "${hadoop-env/proxyuser_group}",
-                "oozie.service.ProxyUserService.proxyuser.knox.hosts": "${host}"
+                "oozie.service.ProxyUserService.proxyuser.${knox-env/knox_user}.groups": "${hadoop-env/proxyuser_group}",
+                "oozie.service.ProxyUserService.proxyuser.${knox-env/knox_user}.hosts": "${clusterHostInfo/knox_gateway_hosts}"
               }
             }
           ]

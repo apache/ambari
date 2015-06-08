@@ -767,16 +767,19 @@ public class KerberosHelperImpl implements KerberosHelper {
     generalProperties.put("cluster_name", cluster.getClusterName());
 
     // add clusterHostInfo config
-    Map<String, String> componentHosts = new HashMap<String, String>();
-    for (Map.Entry<String, Service> service : cluster.getServices().entrySet()) {
-      for (Map.Entry<String, ServiceComponent> serviceComponent : service.getValue().getServiceComponents().entrySet()) {
-        if (StageUtils.getComponentToClusterInfoKeyMap().keySet().contains(serviceComponent.getValue().getName())) {
-          componentHosts.put(StageUtils.getComponentToClusterInfoKeyMap().get(serviceComponent.getValue().getName()),
-              StringUtils.join(serviceComponent.getValue().getServiceComponentHosts().keySet(), ","));
-        }
+    Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
+
+    if(clusterHostInfo != null) {
+      Map<String, String> componentHosts = new HashMap<String, String>();
+
+      clusterHostInfo = StageUtils.substituteHostIndexes(clusterHostInfo);
+
+      for (Map.Entry<String, Set<String>> entry : clusterHostInfo.entrySet()) {
+        componentHosts.put(entry.getKey(), StringUtils.join(entry.getValue(), ","));
       }
+
+      configurations.put("clusterHostInfo", componentHosts);
     }
-    configurations.put("clusterHostInfo", componentHosts);
 
     return configurations;
   }
