@@ -25,7 +25,6 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <description>The URL to the YARN Application Timeline Server, used to provide Tez information. Typically this is the yarn.timeline-service.webapp.address property in the yarn-site.xml configuration. Url must be accessible from Ambari server.</description>
     <label>YARN Timeline Server URL</label>
     <placeholder>yarn.timeline-service.hostname:8188</placeholder>
-    <default-value>localhost:8188</default-value>
     <cluster-config>yarn-site/yarn.timeline-service.webapp.address</cluster-config>
   </parameter>
   <parameter>
@@ -33,7 +32,6 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <description>The URL to the YARN ResourceManager, used to provide YARN Application data. Typically this is the yarn.resourcemanager.webapp.address property in the yarn-site.xml configuration. Url must be accessible from Ambari server.</description>
     <label>YARN ResourceManager URL</label>
     <placeholder>yarn.resourcemanager.hostname:8088</placeholder>
-    <default-value>localhost:8088</default-value>
     <cluster-config>yarn-site/yarn.resourcemanager.webapp.address</cluster-config>
   </parameter>
 
@@ -53,8 +51,8 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
 
   <auto-instance>
     <name>TEZ_CLUSTER_INSTANCE</name>
-    <label>Tez View: Cluster Instance</label>
-    <description>This view instance is auto created when the Tez service is added to a cluster.</description>
+    <label>Tez View</label>
+    <description>Monitor and debug all Tez jobs, submitted by Hive queries and Pig scripts (auto-created)</description>
     <stack-id>HDP-2.*</stack-id>
     <services>
       <service>TEZ</service>
