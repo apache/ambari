@@ -1638,7 +1638,11 @@ public class BlueprintConfigurationProcessorTest {
   public void testDoUpdateForClusterCreate_SingleHostProperty__defaultValue() throws Exception {
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
     Map<String, String> typeProps = new HashMap<String, String>();
+    Map<String, String> typeProps2 = new HashMap<String, String>();
     typeProps.put("yarn.resourcemanager.hostname", "localhost");
+    typeProps2.put("oozie_heapsize", "1024");
+    typeProps2.put("oozie_permsize", "128");
+    properties.put("oozie-env", typeProps2);
     properties.put("yarn-site", typeProps);
 
     Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
@@ -1664,6 +1668,10 @@ public class BlueprintConfigurationProcessorTest {
     updater.doUpdateForClusterCreate();
     String updatedVal = properties.get("yarn-site").get("yarn.resourcemanager.hostname");
     assertEquals("testhost", updatedVal);
+    String updatedVal1 = properties.get("oozie-env").get("oozie_heapsize");
+    assertEquals("1024m", updatedVal1);
+    String updatedVal2 = properties.get("oozie-env").get("oozie_permsize");
+    assertEquals("128m", updatedVal2);
   }
 
   @Test

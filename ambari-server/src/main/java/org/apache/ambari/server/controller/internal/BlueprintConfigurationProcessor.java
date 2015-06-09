@@ -1989,6 +1989,8 @@ public class BlueprintConfigurationProcessor {
     mapredEnvMap.put("jtnode_heapsize", new MPropertyUpdater());
     hbaseEnvMap.put("hbase_master_heapsize", new MPropertyUpdater());
     hbaseEnvMap.put("hbase_regionserver_heapsize", new MPropertyUpdater());
+    oozieEnvMap.put("oozie_heapsize", new MPropertyUpdater());
+    oozieEnvMap.put("oozie_permsize", new MPropertyUpdater());
   }
 
   /**
