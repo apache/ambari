@@ -667,8 +667,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }
     }, this);
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
-    if (this.get('securityEnabled') && self.get('wizardController.name') == 'addServiceController') {
-      this.addKerberosDescriptorConfigs(configs, self.get('wizardController.kerberosDescriptorConfigs') || []);
+    if (this.get('securityEnabled') && this.get('wizardController.name') == 'addServiceController') {
+      this.addKerberosDescriptorConfigs(configs, this.get('wizardController.kerberosDescriptorConfigs') || []);
     }
     this.setStepConfigs(configs, storedConfigs);
     this.checkHostOverrideInstaller();
