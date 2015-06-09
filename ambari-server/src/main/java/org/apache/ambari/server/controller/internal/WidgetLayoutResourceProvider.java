@@ -355,6 +355,13 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
     }
 
     for (WidgetLayoutEntity entity: entitiesToBeRemoved) {
+      if (entity.getListWidgetLayoutUserWidgetEntity() != null) {
+        for (WidgetLayoutUserWidgetEntity layoutUserWidgetEntity : entity.getListWidgetLayoutUserWidgetEntity()) {
+          if (layoutUserWidgetEntity.getWidget().getListWidgetLayoutUserWidgetEntity() != null) {
+            layoutUserWidgetEntity.getWidget().getListWidgetLayoutUserWidgetEntity().remove(layoutUserWidgetEntity);
+          }
+        }
+      }
       widgetLayoutDAO.remove(entity);
     }
 

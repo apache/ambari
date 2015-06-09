@@ -37,6 +37,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
+import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -346,6 +347,13 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
     }
 
     for (WidgetEntity entity: entitiesToBeRemoved) {
+      if (entity.getListWidgetLayoutUserWidgetEntity() != null) {
+        for (WidgetLayoutUserWidgetEntity layoutUserWidgetEntity : entity.getListWidgetLayoutUserWidgetEntity()) {
+          if (layoutUserWidgetEntity.getWidgetLayout().getListWidgetLayoutUserWidgetEntity() != null) {
+            layoutUserWidgetEntity.getWidgetLayout().getListWidgetLayoutUserWidgetEntity().remove(layoutUserWidgetEntity);
+          }
+        }
+      }
       widgetDAO.remove(entity);
     }
 
