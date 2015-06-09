@@ -74,10 +74,12 @@ public class WidgetLayoutResourceDefinition extends BaseResourceDefinition {
           ArrayList widgetsList = (ArrayList) node.getObject().getPropertiesMap().get("WidgetLayoutInfo").get("widgets");
           for (Object widgetObject : widgetsList) {
             HashMap<String, Object> widgetMap = (HashMap) widgetObject;
-            String widgetId = ((WidgetResponse) widgetMap.get("WidgetInfo")).getId().toString();
-            String widgetHref = href.substring(0, href.indexOf("/widget_layouts") + 1) +
-                    "widgets/" + widgetId;
-            widgetMap.put("href", widgetHref);
+            if (((WidgetResponse) widgetMap.get("WidgetInfo")).getId() != null) {
+              String widgetId = ((WidgetResponse) widgetMap.get("WidgetInfo")).getId().toString();
+              String widgetHref = href.substring(0, href.indexOf("/widget_layouts") + 1) +
+                      "widgets/" + widgetId;
+              widgetMap.put("href", widgetHref);
+            }
           }
         }
       }
