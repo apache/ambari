@@ -139,6 +139,7 @@
       
       <requiredServices>
         <service>HDFS</service>
+        <service>MAPREDUCE2</service>
       </requiredServices>
 
       <configuration-dependencies>
