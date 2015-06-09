@@ -19,8 +19,6 @@
 package org.apache.ambari.server.controller;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_ENABLED;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_MAX_ATTEMPT_COUNT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_COMMAND;
@@ -370,8 +368,6 @@ public class AmbariCustomCommandExecutionHelper {
         if (script != null) {
           commandParams.put(SCRIPT, script.getScript());
           commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
-          commandParams.put(COMMAND_RETRY_MAX_ATTEMPT_COUNT, Integer.toString(configs.commandRetryCount()));
-          commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(configs.isCommandRetryEnabled()));
           if (script.getTimeout() > 0) {
             commandTimeout = String.valueOf(script.getTimeout());
           }
@@ -569,8 +565,6 @@ public class AmbariCustomCommandExecutionHelper {
       if (script != null) {
         commandParams.put(SCRIPT, script.getScript());
         commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
-        commandParams.put(COMMAND_RETRY_MAX_ATTEMPT_COUNT, Integer.toString(configs.commandRetryCount()));
-        commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(configs.isCommandRetryEnabled()));
         if (script.getTimeout() > 0) {
           commandTimeout = String.valueOf(script.getTimeout());
         }
