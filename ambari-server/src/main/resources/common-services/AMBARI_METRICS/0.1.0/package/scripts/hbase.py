@@ -59,6 +59,12 @@ def hbase(name=None, action = None):
           owner = params.hadoop_user
     )
 
+  # Metrics properties
+  File(os.path.join(params.hbase_conf_dir, "hadoop-metrics2-hbase.properties"),
+       owner = params.hbase_user,
+       content=Template("hadoop-metrics2-hbase.properties.j2")
+  )
+
   hbase_TemplateConfig('regionservers', user=params.hadoop_user)
 
   if params.security_enabled:

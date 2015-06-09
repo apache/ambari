@@ -120,6 +120,18 @@ def ams(name=None):
                     action="change_user",
                     username = params.ams_user,
                     password = Script.get_password(params.ams_user))
+      # creating symbolic links on ams jars to make them available to services
+      links_pairs = [
+        ("%COLLECTOR_HOME%\\hbase\\lib\\ambari-metrics-hadoop-sink-with-common.jar",
+         "%SINK_HOME%\\hadoop-sink\\ambari-metrics-hadoop-sink-with-common-*.jar"),
+        ]
+      for link_pair in links_pairs:
+        link, target = link_pair
+        real_link = os.path.expandvars(link)
+        target = compress_backslashes(glob.glob(os.path.expandvars(target))[0])
+        if not os.path.exists(real_link):
+          #TODO check the symlink destination too. Broken in Python 2.x on Windows.
+          Execute('cmd /c mklink "{0}" "{1}"'.format(real_link, target))
     pass
 
   elif name == 'monitor':

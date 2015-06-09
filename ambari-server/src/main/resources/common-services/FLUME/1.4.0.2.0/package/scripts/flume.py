@@ -24,7 +24,6 @@ from resource_management import *
 from resource_management.libraries.functions.flume_agent_helper import is_flume_process_live
 from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names
 from resource_management.libraries.functions.flume_agent_helper import await_flume_process_termination
-from resource_management.core import sudo
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
@@ -273,6 +272,7 @@ def _set_desired_state(state):
 
 def get_desired_state():
   import params
+  from resource_management.core import sudo
   if os.path.exists(params.ambari_state_file):
     return sudo.read_file(params.ambari_state_file)
   else:
