@@ -365,9 +365,12 @@ public class KerberosHelperImpl implements KerberosHelper {
       Set<String> authToLocalProperties;
       Set<String> authToLocalPropertiesToSet = new HashSet<String>();
 
-      // Determine which properties need to be set
-      AuthToLocalBuilder authToLocalBuilder = new AuthToLocalBuilder();
+      // a flag to be used by the AuthToLocalBuilder marking whether the default realm rule should contain the //L option, indicating username case insensitive behaviour
+      // the 'kerberos-env' structure is expected to be available here as it was previously validated
+      boolean caseInsensitiveUser = Boolean.valueOf(existingConfigurations.get("kerberos-env").get("case_insensitive_username_rules"));
 
+      // Determine which properties need to be set
+      AuthToLocalBuilder authToLocalBuilder = new AuthToLocalBuilder(caseInsensitiveUser);
       addIdentities(authToLocalBuilder, kerberosDescriptor.getIdentities(), null, existingConfigurations);
 
       authToLocalProperties = kerberosDescriptor.getAuthToLocalProperties();

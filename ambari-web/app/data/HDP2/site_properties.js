@@ -2413,6 +2413,18 @@ var hdp2properties = [
   },
   {
     "id": "puppet var",
+    "name": "case_insensitive_username_rules",
+    "displayName": "Enable case insensitive username rules",
+    "displayType": "checkbox",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "KERBEROS",
+    "filename": "kerberos-env.xml",
+    "category": "Advanced kerberos-env",
+    "index" : 11
+  },
+  {
+    "id": "puppet var",
     "name": "domains",
     "displayName": "Domains",
     "isRequired": false,
