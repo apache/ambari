@@ -458,12 +458,12 @@
             <id>odiachenko</id>
             <name>Oleksandr Diachenko</name>
             <email>odiachenko@apache.org</email>
-            <timezone>+2</timezone>
+            <timezone>-8</timezone>
             <roles>
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks
+                Pivotal
             </organization>
         </developer>
         <developer>
