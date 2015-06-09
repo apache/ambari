@@ -19,7 +19,7 @@
 var App = require('app');
 require('controllers/wizard/step7_controller');
 
-App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecurityConfigs, {
+App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecurityConfigs, App.ToggleIsRequiredMixin, {
   name: 'kerberosWizardStep4Controller',
 
   adminPropertyNames: [{name: 'admin_principal', displayName: 'Admin principal'}, {name: 'admin_password', displayName: 'Admin password'}],
@@ -40,6 +40,9 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     this.getDescriptorConfigs().then(function(properties) {
       self.setStepConfigs(properties);
       self.set('isRecommendedLoaded', true);
+      self.get('stepConfigs').forEach(function(service) {
+        self.overrideConfigIsRequired(service);
+      })
     });
   },
 
