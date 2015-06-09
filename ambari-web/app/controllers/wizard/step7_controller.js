@@ -27,7 +27,7 @@ var App = require('app');
  *
  */
 
-App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, {
+App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, {
 
   name: 'wizardStep7Controller',
 
@@ -444,7 +444,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     service.set('selectedConfigGroup', this.get('preSelectedConfigGroup'));
     this.loadComponentConfigs(service.get('configs'), serviceConfig, service);
     // override if a property isRequired or not
-    this._overrideConfigIsRequired(serviceName);
+    this.overrideConfigIsRequired(service);
     service.set('configs', serviceConfig.get('configs'));
   },
 
@@ -1444,44 +1444,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         this.set('selectedService', service);
         $('a[href="#' + service.serviceName + '"]').tab('show');
       }
-    }
-  },
-
-  /**
-   * Override isRequired property of the configurations in given situation
-   * @param serviceName - make changes only for properties from this service
-   * @private
-   */
-  _overrideConfigIsRequired: function (serviceName) {
-    var excludeProperties = [
-      {
-        name: 'KERBEROS',                                                                // affected service
-        exclude: ['kdc_host', 'admin_server_host', 'admin_principal', 'admin_password'], // affected properties
-        condition: 'false',                                                              // check this condition
-        conditionalProperty: 'manage_identities'                                         // against this property
-      }
-    ];
-
-    var configs = this.get('stepConfigs'),
-      service = excludeProperties.findProperty('name', serviceName),
-      serviceConfigs = configs.findProperty('serviceName', serviceName);
-    if (service && !Em.isEmpty(serviceConfigs.configs)) {
-      var conditionProperty = serviceConfigs.configs.findProperty('name', service.conditionalProperty);
-      if (conditionProperty && conditionProperty.get('savedValue') === service.condition) {
-        service.exclude.forEach(function(property) {
-          var serviceProperty = serviceConfigs.configs.findProperty('name', property);
-          if (serviceProperty) {
-            Em.set(serviceProperty, "isRequired", false);
-            if (serviceProperty.get('value')==='') {
-              // clear validation errors because validation does not clear isRequired validations
-              Em.set(serviceProperty, "error", false);
-              Em.set(serviceProperty, "errorMessage", '');
-            }
-            // validate property
-            serviceProperty.validate();
-          }
-        })
-      };
     }
   }
 });

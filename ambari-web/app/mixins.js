@@ -45,6 +45,7 @@ require('mixins/wizard/wizard_menu_view');
 require('mixins/wizard/assign_master_components');
 require('mixins/common/configs/enhanced_configs');
 require('mixins/common/configs/configs_saver');
+require('mixins/common/configs/toggle_isrequired');
 require('mixins/common/widgets/widget_mixin');
 require('mixins/common/widgets/widget_section');
 require('mixins/unit_convert/base_unit_convert_mixin');
