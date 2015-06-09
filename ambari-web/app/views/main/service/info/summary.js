@@ -320,7 +320,9 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       if (graphNames) {
         graphNames.forEach(function(graphName) {
           graphObjects.push(App["ChartServiceMetrics" + graphName].extend({
-            currentTimeIndex : index
+            setCurrentTimeIndex: function () {
+              this.set('currentTimeIndex', this.get('parentView.currentTimeRangeIndex'));
+            }.observes('parentView.currentTimeRangeIndex')
           }));
         });
       }
