@@ -253,7 +253,7 @@ Em.I18n.translations = {
   'common.stdout': "stdout",
   'common.stderr': "stderr",
   'common.structuredOut': "structured_out",
-  'common.fileName': 'File name',
+  'common.fileName': 'File Name',
   'common.days': "Days",
   'common.hours': "Hours",
   'common.minutes': "Minutes",
@@ -360,10 +360,11 @@ Em.I18n.translations = {
   'popup.invalid.KDC.admin.password': 'Admin password',
 
   'popup.dependent.configs.header': 'Dependent Configurations',
-  'popup.dependent.configs.title': 'Configurations depending on changes made are show below. It is recommended to update these values. Properties that are not selected have user supplied value different than the recommendation',
+  'popup.dependent.configs.title': 'Based on your configuration changes, Ambari is recommending the following dependent configuration changes. <br/> Ambari will update all checked configuration changes to the <b>Recommended Value</b>. Uncheck any configuration to retain the <b>Current Value</b>.',
   'popup.dependent.configs.table.saveProperty': 'Save property',
   'popup.dependent.configs.table.initValue': 'Initial value',
-  'popup.dependent.configs.table.recommendedValue': 'Recommended value',
+  'popup.dependent.configs.table.currentValue': 'Current Value',
+  'popup.dependent.configs.table.recommendedValue': 'Recommended Value',
 
   'popup.dependent.configs.select.config.group.header': 'Select Config Group',
   'popup.dependent.configs.select.config.group': 'Please select to which config group would you like to save dependent properties',
