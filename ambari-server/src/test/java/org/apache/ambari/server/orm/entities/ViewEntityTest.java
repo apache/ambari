@@ -111,6 +111,12 @@ public class ViewEntityTest {
   }
 
   @Test
+  public void testGetBuild() throws Exception {
+    ViewEntity viewDefinition = getViewEntity();
+    Assert.assertEquals("99", viewDefinition.getBuild());
+  }
+
+  @Test
   public void testGetIcon() throws Exception {
     ViewEntity viewDefinition = getViewEntity();
     Assert.assertEquals("/this/is/the/icon/url/icon.png", viewDefinition.getIcon());

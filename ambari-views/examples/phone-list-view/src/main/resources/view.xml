@@ -18,6 +18,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <name>PHONE_LIST</name>
   <label>The Phone List View</label>
   <version>1.0.0</version>
+  <build>001</build>
   <parameter>
     <name>data.store.enabled</name>
     <description>

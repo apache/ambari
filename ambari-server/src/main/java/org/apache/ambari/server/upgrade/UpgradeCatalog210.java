@@ -90,6 +90,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final String WIDGET_TABLE = "widget";
   private static final String WIDGET_LAYOUT_TABLE = "widget_layout";
   private static final String WIDGET_LAYOUT_USER_WIDGET_TABLE = "widget_layout_user_widget";
+  private static final String VIEW_TABLE = "viewmain";
   private static final String VIEW_INSTANCE_TABLE = "viewinstance";
   private static final String VIEW_PARAMETER_TABLE = "viewparameter";
   private static final String STACK_TABLE = "stack";
@@ -284,6 +285,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn(VIEW_INSTANCE_TABLE, new DBColumnInfo("alter_names", Integer.class, null, 0, false));
     // cluster configuration
     dbAccessor.addColumn(VIEW_PARAMETER_TABLE, new DBColumnInfo("cluster_config", String.class, 255, null, true));
+    // view build number
+    dbAccessor.addColumn(VIEW_TABLE, new DBColumnInfo("build", String.class, 128, null, true));
   }
 
   /**

@@ -52,6 +52,13 @@ public interface ViewDefinition {
   public String getVersion();
 
   /**
+   * Get the view build number.
+   *
+   * @return the build number
+   */
+  public String getBuild();
+
+  /**
    * Get the mask class name.
    *
    * @return the mask class name.

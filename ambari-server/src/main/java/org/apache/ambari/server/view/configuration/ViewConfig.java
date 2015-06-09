@@ -60,6 +60,11 @@ public class ViewConfig {
   private String version;
 
   /**
+   * The view version.
+   */
+  private String build;
+
+  /**
    * The minimum Ambari version.
    */
   @XmlElement(name="min-ambari-version")
@@ -196,6 +201,15 @@ public class ViewConfig {
    */
   public String getVersion() {
     return version;
+  }
+
+  /**
+   * Get the view build number.
+   *
+   * @return the build number
+   */
+  public String getBuild() {
+    return build;
   }
 
   /**

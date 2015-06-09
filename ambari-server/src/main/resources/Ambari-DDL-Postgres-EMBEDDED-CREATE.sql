@@ -479,6 +479,7 @@ CREATE TABLE ambari.viewmain (
   label VARCHAR(255),
   description VARCHAR(2048),
   version VARCHAR(255),
+  build VARCHAR(128),
   resource_type_id INTEGER NOT NULL,
   icon VARCHAR(255),
   icon64 VARCHAR(255),
