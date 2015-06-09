@@ -4156,6 +4156,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
           layoutEntity.setListWidgetLayoutUserWidgetEntity(widgetLayoutUserWidgetEntityList);
           widgetLayoutDAO.create(layoutEntity);
+          widgetLayoutDAO.refresh(layoutEntity);
         } else {
           if (existingEntities.size() > 1) {
             LOG.warn("Skip updating layout since multiple widget layouts " +
@@ -4182,10 +4183,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                   widgetLayoutUserWidgetEntity.setWidgetOrder(order++);
                   widgetLayoutUserWidgetEntity.setWidgetLayout(existingLayoutEntity);
                   layoutUserWidgetEntities.add(widgetLayoutUserWidgetEntity);
+                  widgetEntity.getListWidgetLayoutUserWidgetEntity().add(widgetLayoutUserWidgetEntity);
                 }
               }
             }
-            widgetLayoutDAO.merge(existingLayoutEntity);
+            widgetLayoutDAO.mergeWithFlush(existingLayoutEntity);
+            widgetLayoutDAO.refresh(existingLayoutEntity);
           }
         }
       }
