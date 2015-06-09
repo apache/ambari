@@ -41,6 +41,14 @@ App.UpdateController = Em.Controller.extend({
 
   paginationKeys: ['page_size', 'from'],
 
+  /**
+   * map which track status of requests, whether it's running or completed
+   * @type {object}
+   */
+  requestsRunningStatus: {
+    "updateServiceMetric": false
+  },
+
   getUrl: function (testUrl, url) {
     return (App.get('testMode')) ? testUrl : App.apiPrefix + '/clusters/' + this.get('clusterName') + url;
   },
@@ -362,6 +370,7 @@ App.UpdateController = Em.Controller.extend({
     var isATSPresent = App.StackServiceComponent.find().findProperty('componentName','APP_TIMELINE_SERVER');
 
     var conditionalFields = this.getConditionalFields(),
+      requestsRunningStatus = this.get('requestsRunningStatus'),
       conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '',
       testUrl = '/data/dashboard/HDP2/master_components.json',
       isFlumeInstalled = App.cache['services'].mapProperty('ServiceInfo.service_name').contains('FLUME'),
@@ -405,12 +414,17 @@ App.UpdateController = Em.Controller.extend({
     callback = callback || function () {
       self.set('isUpdated', true);
     };
-    App.HttpClient.get(servicesUrl, App.serviceMetricsMapper, {
-      complete: function () {
-        App.set('router.mainServiceItemController.isServicesInfoLoaded', App.get('router.clusterController.isLoaded'));
-        callback();
-      }
-    });
+
+    if (!requestsRunningStatus["updateServiceMetric"]) {
+      requestsRunningStatus["updateServiceMetric"] = true;
+      App.HttpClient.get(servicesUrl, App.serviceMetricsMapper, {
+        complete: function () {
+          App.set('router.mainServiceItemController.isServicesInfoLoaded', App.get('router.clusterController.isLoaded'));
+          callback();
+          requestsRunningStatus["updateServiceMetric"] = false;
+        }
+      });
+    }
   },
   /**
    * construct conditional parameters of query, depending on which services are installed
