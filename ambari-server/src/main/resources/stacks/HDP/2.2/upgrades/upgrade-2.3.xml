@@ -354,13 +354,6 @@
             <transfer operation="copy" from-type="admin-properties" from-key="db_password" to-key="ranger.jpa.jdbc.password" default-value="" mask="true" />
             <transfer operation="copy" from-type="admin-properties" from-key="audit_db_user" to-key="ranger.jpa.audit.jdbc.user" default-value="" />
             <transfer operation="copy" from-type="admin-properties" from-key="audit_db_password" to-key="ranger.jpa.audit.jdbc.password" default-value="" mask="true" />
-
-            <set key="ranger.audit.solr.urls" value="" />
-            <set key="ranger.audit.solr.zookeepers" value="" />
-            <set key="ranger.audit.solr.username" value="" />
-            <set key="ranger.audit.solr.password" value="" />
-            <set key="ranger.audit.solr.authentication-method" value="" />
-            <set key="ranger.audit.source.type" value="" />
           </task>
           
           <task xsi:type="server_action" summary="Calculating Ranger Properties" class="org.apache.ambari.server.serveraction.upgrades.RangerConfigCalculation" />
