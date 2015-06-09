@@ -59,11 +59,11 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
     throw new UnsupportedOperationException();
   }
 
-  protected void processIdentities(Cluster cluster, KerberosDescriptor kerberosDescriptor, List<ServiceComponentHost> schToProcess,
-                                   Collection<String> identityFilter, String dataDirectory,
-                                   Map<String, Map<String, String>> kerberosConfigurations) throws AmbariException {
+  protected void processServiceComponentHosts(Cluster cluster, KerberosDescriptor kerberosDescriptor, List<ServiceComponentHost> schToProcess,
+                                              Collection<String> identityFilter, String dataDirectory,
+                                              Map<String, Map<String, String>> kerberosConfigurations) throws AmbariException {
 
-    actionLog.writeStdOut("Processing Kerberos Identities");
+    actionLog.writeStdOut("Processing Kerberos identities and configurations");
 
     if (!schToProcess.isEmpty()) {
       if(dataDirectory == null) {

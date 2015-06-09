@@ -112,7 +112,7 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
       actionLog.writeStdOut(String.format("Processing %d components", schCount));
     }
 
-    processIdentities(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory, kerberosConfigurations);
+    processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory, kerberosConfigurations);
 
     actionLog.writeStdOut("Determining configuration changes");
     // Ensure the cluster-env/security_enabled flag is set properly

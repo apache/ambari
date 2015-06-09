@@ -97,7 +97,7 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
       actionLog.writeStdOut(String.format("Processing %d components", schCount));
     }
 
-    processIdentities(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory, kerberosConfigurations);
+    processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory, kerberosConfigurations);
 
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());

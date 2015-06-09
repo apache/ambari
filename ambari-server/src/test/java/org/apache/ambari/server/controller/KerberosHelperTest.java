@@ -19,10 +19,8 @@
 package org.apache.ambari.server.controller;
 
 import static org.easymock.EasyMock.*;
-import static org.easymock.EasyMock.createStrictMock;
 import static org.junit.Assert.*;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -59,7 +57,6 @@ import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.serveraction.kerberos.KDCType;
-import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileWriter;
 import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileWriterFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosCredential;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
@@ -996,29 +993,9 @@ public class KerberosHelperTest extends EasyMockSupport {
         .andReturn(createMock(RoleCommandOrder.class))
         .once();
 
-    final KerberosIdentityDescriptor identityDescriptor1 = createMock(KerberosIdentityDescriptor.class);
-
-    final KerberosIdentityDescriptor identityDescriptor2 = createMock(KerberosIdentityDescriptor.class);
-
-    final KerberosComponentDescriptor componentDescriptor1 = createMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor1.getIdentities(false)).
-        andReturn(new ArrayList<KerberosIdentityDescriptor>() {{
-          add(identityDescriptor1);
-        }}).once();
-
-    final KerberosComponentDescriptor componentDescriptor2 = createMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor2.getIdentities(false)).
-        andReturn(new ArrayList<KerberosIdentityDescriptor>() {{
-          add(identityDescriptor2);
-        }}).once();
-
     final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).once();
-    expect(serviceDescriptor1.getIdentities(false)).andReturn(null).once();
 
     final KerberosServiceDescriptor serviceDescriptor2 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor2.getComponent("COMPONENT2")).andReturn(componentDescriptor2).once();
-    expect(serviceDescriptor2.getIdentities(false)).andReturn(null).once();
 
     final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
     expect(kerberosDescriptor.getService("KERBEROS")).andReturn(null).once();
@@ -1227,29 +1204,9 @@ public class KerberosHelperTest extends EasyMockSupport {
         .andReturn(createMock(RoleCommandOrder.class))
         .once();
 
-    final KerberosIdentityDescriptor identityDescriptor1 = createMock(KerberosIdentityDescriptor.class);
-
-    final KerberosIdentityDescriptor identityDescriptor2 = createMock(KerberosIdentityDescriptor.class);
-
-    final KerberosComponentDescriptor componentDescriptor1 = createMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor1.getIdentities(false)).
-        andReturn(new ArrayList<KerberosIdentityDescriptor>() {{
-          add(identityDescriptor1);
-        }}).once();
-
-    final KerberosComponentDescriptor componentDescriptor2 = createMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor2.getIdentities(false)).
-        andReturn(new ArrayList<KerberosIdentityDescriptor>() {{
-          add(identityDescriptor2);
-        }}).once();
-
     final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).once();
-    expect(serviceDescriptor1.getIdentities(false)).andReturn(null).times(1);
 
     final KerberosServiceDescriptor serviceDescriptor2 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor2.getComponent("COMPONENT2")).andReturn(componentDescriptor2).once();
-    expect(serviceDescriptor2.getIdentities(false)).andReturn(null).times(1);
 
     final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
     expect(kerberosDescriptor.getService("KERBEROS")).andReturn(null).once();
@@ -1472,29 +1429,9 @@ public class KerberosHelperTest extends EasyMockSupport {
         .andReturn(createMock(RoleCommandOrder.class))
         .once();
 
-    final KerberosIdentityDescriptor identityDescriptor1 = createMock(KerberosIdentityDescriptor.class);
-
-    final KerberosIdentityDescriptor identityDescriptor2 = createMock(KerberosIdentityDescriptor.class);
-
-    final KerberosComponentDescriptor componentDescriptor1 = createMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor1.getIdentities(false)).
-        andReturn(new ArrayList<KerberosIdentityDescriptor>() {{
-          add(identityDescriptor1);
-        }}).once();
-
-    final KerberosComponentDescriptor componentDescriptor2 = createMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor2.getIdentities(false)).
-        andReturn(new ArrayList<KerberosIdentityDescriptor>() {{
-          add(identityDescriptor2);
-        }}).once();
-
     final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).once();
-    expect(serviceDescriptor1.getIdentities(false)).andReturn(null).once();
 
     final KerberosServiceDescriptor serviceDescriptor2 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor2.getComponent("COMPONENT2")).andReturn(componentDescriptor2).once();
-    expect(serviceDescriptor2.getIdentities(false)).andReturn(null).once();
 
     final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
     expect(kerberosDescriptor.getService("KERBEROS")).andReturn(null).once();
@@ -2018,30 +1955,9 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(identityDescriptor3.getPrincipalDescriptor()).andReturn(principalDescriptor3).anyTimes();
     expect(identityDescriptor3.getKeytabDescriptor()).andReturn(keytabDescriptor3).anyTimes();
 
-    final ArrayList<KerberosIdentityDescriptor> identityDescriptors1 = new ArrayList<KerberosIdentityDescriptor>() {{
-      add(identityDescriptor1a);
-      add(identityDescriptor1b);
-    }};
-    final KerberosComponentDescriptor componentDescriptor1 = createStrictMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor1.getIdentities(false)).andReturn(identityDescriptors1).times(3);
-
-    final ArrayList<KerberosIdentityDescriptor> identityDescriptors3 = new ArrayList<KerberosIdentityDescriptor>() {{
-      add(identityDescriptor3);
-    }};
-    final KerberosComponentDescriptor componentDescriptor3 = createStrictMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor3.getIdentities(false)).andReturn(identityDescriptors3).times(1);
-
     final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor1.getIdentities(false)).andReturn(null).times(1);
-    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).times(1);
-    expect(serviceDescriptor1.getIdentities(false)).andReturn(null).times(1);
-    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).times(1);
-    expect(serviceDescriptor1.getIdentities(false)).andReturn(null).times(1);
-    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).times(1);
 
     final KerberosServiceDescriptor serviceDescriptor3 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor3.getIdentities(false)).andReturn(null).times(1);
-    expect(serviceDescriptor3.getComponent("COMPONENT3")).andReturn(componentDescriptor3).times(1);
 
     final KerberosDescriptor kerberosDescriptor = createStrictMock(KerberosDescriptor.class);
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).times(1);
@@ -2253,26 +2169,9 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(identityDescriptor3.getPrincipalDescriptor()).andReturn(principalDescriptor3).anyTimes();
     expect(identityDescriptor3.getKeytabDescriptor()).andReturn(keytabDescriptor3).anyTimes();
 
-    final ArrayList<KerberosIdentityDescriptor> identityDescriptors1 = new ArrayList<KerberosIdentityDescriptor>() {{
-      add(identityDescriptor1a);
-      add(identityDescriptor1b);
-    }};
-    final KerberosComponentDescriptor componentDescriptor1 = createStrictMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor1.getIdentities(false)).andReturn(identityDescriptors1).times(1);
-
-    final ArrayList<KerberosIdentityDescriptor> identityDescriptors3 = new ArrayList<KerberosIdentityDescriptor>() {{
-      add(identityDescriptor3);
-    }};
-    final KerberosComponentDescriptor componentDescriptor3 = createStrictMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor3.getIdentities(false)).andReturn(identityDescriptors3).times(1);
-
     final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor1.getIdentities(false)).andReturn(null).times(1);
-    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).times(1);
 
     final KerberosServiceDescriptor serviceDescriptor3 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor3.getIdentities(false)).andReturn(null).times(1);
-    expect(serviceDescriptor3.getComponent("COMPONENT3")).andReturn(componentDescriptor3).times(1);
 
     final KerberosDescriptor kerberosDescriptor = createStrictMock(KerberosDescriptor.class);
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).times(1);

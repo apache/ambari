@@ -480,22 +480,9 @@ public class KerberosHelperImpl implements KerberosHelper {
 
                 if (serviceDescriptor != null) {
                   // If there is no filter or the filter contains the current component name,
-                  // test to see if this component should be process by querying the handler...
+                  // test to see if this component should be processed by querying the handler...
                   if (((componentFilter == null) || componentFilter.contains(componentName)) && shouldProcessCommand.invoke(sch)) {
-                    KerberosComponentDescriptor componentDescriptor = serviceDescriptor.getComponent(componentName);
-                    int identities = 0;
-
-                    // Add service-level principals (and keytabs)
-                    identities += filteredIdentitiesCount(serviceDescriptor.getIdentities(false), identityFilter);
-
-                    if (componentDescriptor != null) {
-                      // Add component-level principals (and keytabs)
-                      identities += filteredIdentitiesCount(componentDescriptor.getIdentities(false), identityFilter);
-                    }
-
-                    if (identities > 0) {
-                      serviceComponentHostsToProcess.add(sch);
-                    }
+                    serviceComponentHostsToProcess.add(sch);
                   }
                 }
               }
