@@ -21,7 +21,7 @@
   <services>
     <service>
       <name>YARN</name>
-      <version>2.7.0.2.3</version>
+      <version>2.7.1.2.3</version>
 
       <osSpecifics>
         <osSpecific>
@@ -54,7 +54,7 @@
 
     <service>
       <name>MAPREDUCE2</name>
-      <version>2.7.0.2.3</version>
+      <version>2.7.1.2.3</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat7,redhat6,suse11</osFamily>
