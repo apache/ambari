@@ -26,7 +26,9 @@ class TestJobHistoryServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.0.2.2/package"
   STACK_VERSION = "2.2"
 
-  def test_configure_default(self):
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
+  def test_configure_default(self, copy_to_hdfs_mock):
+    copy_to_hdfs_mock = True
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
                    classname = "JobHistoryServer",
                    command = "configure",
@@ -36,8 +38,10 @@ class TestJobHistoryServer(RMFTestCase):
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
-    
-  def test_start_default(self):
+
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
+  def test_start_default(self, copy_to_hdfs_mock):
+    copy_to_hdfs_mock.return_value = True
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
                    classname = "JobHistoryServer",
                    command = "start",
@@ -46,6 +50,18 @@ class TestJobHistoryServer(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
+    self.assertResourceCalled('HdfsResource', None,
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        keytab = UnknownConfigurationMock(),
+        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+        hdfs_site = {u'a': u'b'},
+        kinit_path_local = '/usr/bin/kinit',
+        principal_name = UnknownConfigurationMock(),
+        user = 'hdfs',
+        action = ['execute'],
+        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+    )
     self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/start-history-server.sh',
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ls /var/run/spark/spark-spark-org.apache.spark.deploy.history.HistoryServer-1.pid >/dev/null 2>&1 && ps -p `cat /var/run/spark/spark-spark-org.apache.spark.deploy.history.HistoryServer-1.pid` >/dev/null 2>&1',
@@ -81,7 +97,9 @@ class TestJobHistoryServer(RMFTestCase):
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
-  def test_start_secured(self):
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
+  def test_start_secured(self, copy_to_hdfs_mock):
+    copy_to_hdfs_mock.return_value = True
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
                    classname = "JobHistoryServer",
                    command = "start",
@@ -92,6 +110,19 @@ class TestJobHistoryServer(RMFTestCase):
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/spark.service.keytab spark/localhost@EXAMPLE.COM; ',
         user = 'spark',
+    )
+
+    self.assertResourceCalled('HdfsResource', None,
+        action=['execute'],
+        default_fs= UnknownConfigurationMock(),
+        hadoop_bin_dir='/usr/hdp/current/hadoop-client/bin',
+        hadoop_conf_dir='/usr/hdp/current/hadoop-client/conf',
+        hdfs_site=UnknownConfigurationMock(),
+        keytab=UnknownConfigurationMock(),
+        kinit_path_local='/usr/bin/kinit',
+        principal_name=UnknownConfigurationMock(),
+        security_enabled=True,
+        user=UnknownConfigurationMock()
     )
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/start-history-server.sh',
