@@ -104,7 +104,7 @@ public class PrepareEnableKerberosServerAction extends AbstractPrepareKerberosSe
       actionLog.writeStdOut(String.format("Processing %d components", schCount));
     }
 
-    processIdentities(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory, kerberosConfigurations);
+    processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory, kerberosConfigurations);
 
     if (!schToProcess.isEmpty()) {
       actionLog.writeStdOut("Creating auth-to-local rules");
