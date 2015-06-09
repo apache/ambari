@@ -427,7 +427,7 @@
                 <role>Committer</role>
             </roles>
             <organization>
-                SequenceIQ
+                Hortonworks
             </organization>
         </developer>
         <developer>
@@ -762,7 +762,7 @@
         </contributor>
         <contributor>
           <name>Krisztian Horvath</name>
-          <organization>SequenceIQ</organization>
+          <organization>Hortonworks</organization>
         </contributor>
         <contributor>
           <name>Saurabh Jain</name>
