@@ -59,6 +59,7 @@ public class RangerConfigCalculation extends AbstractServerAction {
     String dbProp = "DB_FLAVOR";
     String dbHostProp = "db_host";
     String dbNameProp = "db_name";
+    String dbAuditNameProp = "audit_db_name";
 
     StringBuilder stdout = new StringBuilder();
 
@@ -79,9 +80,16 @@ public class RangerConfigCalculation extends AbstractServerAction {
 
     String dbHost = sourceConfig.getProperties().get(dbHostProp);
     String dbName = sourceConfig.getProperties().get(dbNameProp);
+    String auditDbName = sourceConfig.getProperties().get(dbAuditNameProp);
+
+    // !!! just in case it's not set
+    if (null == auditDbName) {
+      auditDbName = dbName;
+    }
 
     stdout.append(MessageFormat.format("Database host: {0}\n", dbHost));
     stdout.append(MessageFormat.format("Database name: {0}\n", dbName));
+    stdout.append(MessageFormat.format("Audit database name: {0}\n", auditDbName));
 
     if (null == dbHost) {
       stdout.append(MessageFormat.format("Hostname must be set using {0}/{1} , skipping", SOURCE_CONFIG_TYPE, dbHostProp));
@@ -92,6 +100,7 @@ public class RangerConfigCalculation extends AbstractServerAction {
     String driver = null;
     String url = null;
     String dialect = null;
+    String auditUrl = null;
 
     if ("mysql".equals(db)) {
       if (null == dbName) {
@@ -101,15 +110,18 @@ public class RangerConfigCalculation extends AbstractServerAction {
       }
       driver = "com.mysql.jdbc.Driver";
       url = MessageFormat.format("jdbc:mysql://{0}/{1}", dbHost, dbName);
+      auditUrl = MessageFormat.format("jdbc:mysql://{0}/{1}", dbHost, auditDbName);
       dialect = "org.eclipse.persistence.platform.database.MySQLPlatform";
     } else if ("oracle".equals(db)) {
       driver = "oracle.jdbc.OracleDriver";
       url = MessageFormat.format("jdbc:oracle:thin:@//{0}", dbHost);
+      auditUrl = MessageFormat.format("jdbc:oracle:thin:@//{0}", dbHost);
       dialect = "org.eclipse.persistence.platform.database.OraclePlatform";
     }
 
     stdout.append(MessageFormat.format("Database driver: {0}\n", driver));
     stdout.append(MessageFormat.format("Database url: {0}\n", url));
+    stdout.append(MessageFormat.format("Database audit url: {0}\n", auditUrl));
     stdout.append(MessageFormat.format("Database dialect: {0}", dialect));
 
     Config config = cluster.getDesiredConfigByType("ranger-admin-site");
@@ -119,7 +131,7 @@ public class RangerConfigCalculation extends AbstractServerAction {
     targetValues.put("ranger.jpa.jdbc.dialect", dialect);
 
     targetValues.put("ranger.jpa.audit.jdbc.driver", driver);
-    targetValues.put("ranger.jpa.audit.jdbc.url", url);
+    targetValues.put("ranger.jpa.audit.jdbc.url", auditUrl);
     targetValues.put("ranger.jpa.audit.jdbc.dialect", dialect);
 
     config.setProperties(targetValues);
@@ -127,6 +139,7 @@ public class RangerConfigCalculation extends AbstractServerAction {
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", stdout.toString(), "");
   }
+
 
 
 }

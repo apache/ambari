@@ -62,6 +62,7 @@ public class RangerConfigCalculationTest {
         put("DB_FLAVOR", "MYSQL");
         put("db_host", "host1");
         put("db_name", "ranger");
+        put("audit_db_name", "ranger_audit");
       }};
       @Override
       public Map<String, String> getProperties() {
@@ -140,7 +141,7 @@ public class RangerConfigCalculationTest {
     assertEquals("org.eclipse.persistence.platform.database.MySQLPlatform", map.get("ranger.jpa.jdbc.dialect"));
 
     assertEquals("com.mysql.jdbc.Driver", map.get("ranger.jpa.audit.jdbc.driver"));
-    assertEquals("jdbc:mysql://host1/ranger", map.get("ranger.jpa.audit.jdbc.url"));
+    assertEquals("jdbc:mysql://host1/ranger_audit", map.get("ranger.jpa.audit.jdbc.url"));
     assertEquals("org.eclipse.persistence.platform.database.MySQLPlatform", map.get("ranger.jpa.audit.jdbc.dialect"));
 
     config = c.getDesiredConfigByType("admin-properties");
