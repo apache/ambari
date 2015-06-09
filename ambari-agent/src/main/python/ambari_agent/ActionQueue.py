@@ -254,36 +254,50 @@ class ActionQueue(threading.Thread):
     self.commandStatuses.put_command_status(command, in_progress_status)
 
     numAttempts = 0
-    maxAttempts = 1
+    retryDuration = 0  # even with 0 allow one attempt
     retryAble = False
     delay = 1
     if 'commandParams' in command:
-      if 'command_retry_max_attempt_count' in command['commandParams']:
-        maxAttempts = int(command['commandParams']['command_retry_max_attempt_count'])
+      if 'max_duration_for_retries' in command['commandParams']:
+        retryDuration = int(command['commandParams']['max_duration_for_retries'])
       if 'command_retry_enabled' in command['commandParams']:
         retryAble = command['commandParams']['command_retry_enabled'] == "true"
     if isAutoExecuteCommand:
       retryAble = False
 
-    logger.debug("Command execution metadata - retry enabled = {retryAble}, max attempt count = {maxAttemptCount}".
-                 format(retryAble = retryAble, maxAttemptCount = maxAttempts))
-    while numAttempts < maxAttempts:
+    logger.debug("Command execution metadata - retry enabled = {retryAble}, max retry duration (sec) = {retryDuration}".
+                 format(retryAble=retryAble, retryDuration=retryDuration))
+    while retryDuration >= 0:
       numAttempts += 1
+      start = 0
+      if retryAble:
+        start = int(time.time())
       # running command
       commandresult = self.customServiceOrchestrator.runCommand(command,
-        in_progress_status['tmpout'], in_progress_status['tmperr'],
-        override_output_files=numAttempts == 1, retry=numAttempts > 1)
-
+                                                                in_progress_status['tmpout'],
+                                                                in_progress_status['tmperr'],
+                                                                override_output_files=numAttempts == 1,
+                                                                retry=numAttempts > 1)
+      end = 1
+      if retryAble:
+        end = int(time.time())
+      retryDuration -= (end - start)
 
       # dumping results
       if isCommandBackground:
         return
       else:
-        status = self.COMPLETED_STATUS if commandresult['exitcode'] == 0 else self.FAILED_STATUS
+        if commandresult['exitcode'] == 0:
+          status = self.COMPLETED_STATUS
+        else:
+          status = self.FAILED_STATUS
 
-      if status != self.COMPLETED_STATUS and retryAble == True and maxAttempts > numAttempts:
+      if status != self.COMPLETED_STATUS and retryAble == True and retryDuration > 0:
         delay = self.get_retry_delay(delay)
-        logger.info("Retrying command id {cid} after a wait of {delay}".format(cid = taskId, delay=delay))
+        if delay > retryDuration:
+          delay = retryDuration
+        retryDuration -= delay  # allow one last attempt
+        logger.info("Retrying command id {cid} after a wait of {delay}".format(cid=taskId, delay=delay))
         time.sleep(delay)
         continue
       else:

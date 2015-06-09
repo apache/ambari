@@ -76,6 +76,10 @@ public class ConfigHelper {
   public static final String HDFS_SITE = "hdfs-site";
   public static final String HIVE_SITE = "hive-site";
   public static final String YARN_SITE = "yarn-site";
+  public static final String CLUSTER_ENV = "cluster-env";
+  public static final String CLUSTER_ENV_RETRY_ENABLED = "command_retry_enabled";
+  public static final String CLUSTER_ENV_RETRY_COMMANDS = "commands_to_retry";
+  public static final String CLUSTER_ENV_RETRY_MAX_TIME_IN_SEC = "command_retry_max_time_in_sec";
 
   public static final String HTTP_ONLY = "HTTP_ONLY";
   public static final String HTTPS_ONLY = "HTTPS_ONLY";
@@ -551,12 +555,14 @@ public class ConfigHelper {
   public String getValueFromDesiredConfigurations(Cluster cluster, String configType, String propertyName) {
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     DesiredConfig desiredConfig = desiredConfigs.get(configType);
-    Config config = cluster.getConfig(configType, desiredConfig.getTag());
-    Map<String, String> configurationProperties = config.getProperties();
-    if (null != configurationProperties) {
-      String value = configurationProperties.get(propertyName);
-      if (null != value) {
-        return value;
+    if(desiredConfig != null) {
+      Config config = cluster.getConfig(configType, desiredConfig.getTag());
+      Map<String, String> configurationProperties = config.getProperties();
+      if (null != configurationProperties) {
+        String value = configurationProperties.get(propertyName);
+        if (null != value) {
+          return value;
+        }
       }
     }
     return null;

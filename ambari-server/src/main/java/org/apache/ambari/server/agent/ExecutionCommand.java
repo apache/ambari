@@ -330,7 +330,7 @@ public class ExecutionCommand extends AgentCommand {
     String VERSION = "version";
     String REFRESH_TOPOLOGY = "refresh_topology";
     String HOST_SYS_PREPPED = "host_sys_prepped";
-    String COMMAND_RETRY_MAX_ATTEMPT_COUNT = "command_retry_max_attempt_count";
+    String MAX_DURATION_OF_RETRIES = "max_duration_for_retries";
     String COMMAND_RETRY_ENABLED = "command_retry_enabled";
 
     String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standard command? maybe add it to RoleCommand enum?

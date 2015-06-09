@@ -35,7 +35,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_P
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_MAX_ATTEMPT_COUNT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MAX_DURATION_OF_RETRIES;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_ENABLED;
 
 import java.io.File;
@@ -1822,8 +1822,41 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       if (script != null) {
         commandParams.put(SCRIPT, script.getScript());
         commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
-        commandParams.put(COMMAND_RETRY_MAX_ATTEMPT_COUNT, Integer.toString(configs.commandRetryCount()));
-        commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(configs.isCommandRetryEnabled()));
+
+        String retryEnabledStr = configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.CLUSTER_ENV,
+                                                                                ConfigHelper.CLUSTER_ENV_RETRY_ENABLED);
+        String commandsStr = configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.CLUSTER_ENV,
+                                                                            ConfigHelper.CLUSTER_ENV_RETRY_COMMANDS);
+        String retryMaxTimeStr = configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.CLUSTER_ENV,
+                                                                            ConfigHelper.CLUSTER_ENV_RETRY_MAX_TIME_IN_SEC);
+
+        boolean retryEnabled = false;
+        if(StringUtils.isNotEmpty(retryEnabledStr)) {
+          retryEnabled = Boolean.TRUE.toString().equals(retryEnabledStr);
+        }
+
+        Integer retryMaxTime = 0;
+
+        if (retryEnabled) {
+          retryMaxTime = NumberUtils.toInt(retryMaxTimeStr, 0);
+          if(retryMaxTime < 0) {
+            retryMaxTime = 0;
+          }
+
+          if (StringUtils.isNotEmpty(commandsStr)) {
+            boolean commandMayBeRetried = false;
+            String[] commands = commandsStr.split(",");
+            for (String command : commands) {
+              if (roleCommand.toString().equals(command.trim())) {
+                commandMayBeRetried = true;
+              }
+            }
+            retryEnabled = commandMayBeRetried;
+          }
+        }
+
+        commandParams.put(MAX_DURATION_OF_RETRIES, Integer.toString(retryMaxTime));
+        commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(retryEnabled));
         ClusterVersionEntity currentClusterVersion = cluster.getCurrentClusterVersion();
         if (currentClusterVersion != null) {
          commandParams.put(VERSION, currentClusterVersion.getRepositoryVersion().getVersion());

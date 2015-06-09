@@ -193,7 +193,7 @@ class TestActionQueue(TestCase):
       'jdk_location' : '.',
       'service_package_folder' : '.',
       'command_retry_enabled' : 'true',
-      'command_retry_max_attempt_count' : '3'
+      'max_duration_for_retries' : '5'
     },
     'hostLevelParams' : {}
   }
@@ -816,12 +816,49 @@ class TestActionQueue(TestCase):
     self.assertTrue(runCommand_mock.called)
     self.assertEqual(3, runCommand_mock.call_count)
     self.assertEqual(2, sleep_mock.call_count)
-    sleep_mock.assert_has_calls([call(2), call(4)], False)
+    sleep_mock.assert_has_calls([call(2), call(3)], False)
     runCommand_mock.assert_has_calls([
       call(command, '/tmp/ambari-agent/output-19.txt', '/tmp/ambari-agent/errors-19.txt', override_output_files=True, retry=False),
       call(command, '/tmp/ambari-agent/output-19.txt', '/tmp/ambari-agent/errors-19.txt', override_output_files=False, retry=True),
       call(command, '/tmp/ambari-agent/output-19.txt', '/tmp/ambari-agent/errors-19.txt', override_output_files=False, retry=True)])
 
+
+  @patch("time.time")
+  @patch("time.sleep")
+  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
+  @patch.object(StackVersionsFileHandler, "read_stack_version")
+  @patch.object(CustomServiceOrchestrator, "__init__")
+  def test_execute_retryable_command_with_time_lapse(self, CustomServiceOrchestrator_mock,
+                                     read_stack_version_mock, sleep_mock, time_mock
+  ):
+    CustomServiceOrchestrator_mock.return_value = None
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(AmbariConfig(), dummy_controller)
+    python_execution_result_dict = {
+      'exitcode': 1,
+      'stdout': 'out',
+      'stderr': 'stderr',
+      'structuredOut': '',
+      'status': 'FAILED'
+    }
+    time_mock.side_effect = [4, 8, 10, 14, 18, 22]
+
+    def side_effect(command, tmpoutfile, tmperrfile, override_output_files=True, retry=False):
+      return python_execution_result_dict
+
+    command = copy.deepcopy(self.retryable_command)
+    with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
+      runCommand_mock.side_effect = side_effect
+      actionQueue.execute_command(command)
+
+    #assert that python executor start
+    self.assertTrue(runCommand_mock.called)
+    self.assertEqual(2, runCommand_mock.call_count)
+    self.assertEqual(1, sleep_mock.call_count)
+    sleep_mock.assert_has_calls([call(2)], False)
+    runCommand_mock.assert_has_calls([
+      call(command, '/tmp/ambari-agent/output-19.txt', '/tmp/ambari-agent/errors-19.txt', override_output_files=True, retry=False),
+      call(command, '/tmp/ambari-agent/output-19.txt', '/tmp/ambari-agent/errors-19.txt', override_output_files=False, retry=True)])
 
   #retryable_command
   @patch("time.sleep")

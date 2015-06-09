@@ -377,10 +377,6 @@ public class Configuration {
   private static final String DEFAULT_JDBC_POOL_MAX_AGE_SECONDS = "0";
   private static final String DEFAULT_JDBC_POOL_IDLE_TEST_INTERVAL = "7200";
 
-  private static final String IS_COMMAND_RETRY_ENABLED_KEY = "command.retry.enabled";
-  private static final String IS_COMMAND_RETRY_ENABLED_DEFAULT = "false";
-  private static final String COMMAND_RETRY_COUNT_KEY = "command.retry.count";
-  private static final String COMMAND_RETRY_COUNT_DEFAULT = "3";
   /**
    * The full path to the XML file that describes the different alert templates.
    */
@@ -1248,16 +1244,6 @@ public class Configuration {
     return Integer.parseInt(properties.getProperty(SRVR_TWO_WAY_SSL_PORT_KEY, String.valueOf(SRVR_TWO_WAY_SSL_PORT_DEFAULT)));
   }
 
-  /**
-   * Command retry configs
-   */
-  public boolean isCommandRetryEnabled() {
-    return Boolean.parseBoolean(properties.getProperty(IS_COMMAND_RETRY_ENABLED_KEY, IS_COMMAND_RETRY_ENABLED_DEFAULT));
-  }
-
-  public int commandRetryCount() {
-    return Integer.parseInt(properties.getProperty(COMMAND_RETRY_COUNT_KEY, COMMAND_RETRY_COUNT_DEFAULT));
-  }
   /**
    * @return custom properties for database connections
    */
