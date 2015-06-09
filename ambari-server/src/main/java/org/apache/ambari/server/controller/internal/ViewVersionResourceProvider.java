@@ -46,9 +46,9 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
    */
   public static final String VIEW_NAME_PROPERTY_ID          = "ViewVersionInfo/view_name";
   public static final String VIEW_VERSION_PROPERTY_ID       = "ViewVersionInfo/version";
+  public static final String VIEW_BUILD_PROPERTY_ID         = "ViewVersionInfo/build_number";
   public static final String LABEL_PROPERTY_ID              = "ViewVersionInfo/label";
   public static final String DESCRIPTION_PROPERTY_ID        = "ViewVersionInfo/description";
-  public static final String VERSION_PROPERTY_ID            = "ViewVersionInfo/version";
   public static final String MIN_AMBARI_VERSION_PROPERTY_ID = "ViewVersionInfo/min_ambari_version";
   public static final String MAX_AMBARI_VERSION_PROPERTY_ID = "ViewVersionInfo/max_ambari_version";
   public static final String PARAMETERS_PROPERTY_ID         = "ViewVersionInfo/parameters";
@@ -75,9 +75,9 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
   static {
     propertyIds.add(VIEW_NAME_PROPERTY_ID);
     propertyIds.add(VIEW_VERSION_PROPERTY_ID);
+    propertyIds.add(VIEW_BUILD_PROPERTY_ID);
     propertyIds.add(LABEL_PROPERTY_ID);
     propertyIds.add(DESCRIPTION_PROPERTY_ID);
-    propertyIds.add(VERSION_PROPERTY_ID);
     propertyIds.add(MIN_AMBARI_VERSION_PROPERTY_ID);
     propertyIds.add(MAX_AMBARI_VERSION_PROPERTY_ID);
     propertyIds.add(PARAMETERS_PROPERTY_ID);
@@ -134,9 +134,9 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
 
             setResourceProperty(resource, VIEW_NAME_PROPERTY_ID, viewDefinition.getCommonName(), requestedIds);
             setResourceProperty(resource, VIEW_VERSION_PROPERTY_ID, viewDefinition.getVersion(), requestedIds);
+            setResourceProperty(resource, VIEW_BUILD_PROPERTY_ID, viewDefinition.getBuild(), requestedIds);
             setResourceProperty(resource, LABEL_PROPERTY_ID, viewDefinition.getLabel(), requestedIds);
             setResourceProperty(resource, DESCRIPTION_PROPERTY_ID, viewDefinition.getDescription(), requestedIds);
-            setResourceProperty(resource, VERSION_PROPERTY_ID, viewDefinition.getVersion(), requestedIds);
             setResourceProperty(resource, MIN_AMBARI_VERSION_PROPERTY_ID,
                 viewDefinition.getConfiguration().getMinAmbariVersion(), requestedIds);
             setResourceProperty(resource, MAX_AMBARI_VERSION_PROPERTY_ID,

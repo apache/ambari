@@ -50,6 +50,7 @@ public class ViewConfigTest {
       "    <label>My View!</label>\n" +
       "    <description>Description</description>" +
       "    <version>1.0.0</version>\n" +
+      "    <build>99</build>\n" +
       "    <system>true</system>\n" +
       "    <icon64>/this/is/the/icon/url/icon64.png</icon64>\n" +
       "    <icon>/this/is/the/icon/url/icon.png</icon>\n" +
@@ -197,6 +198,12 @@ public class ViewConfigTest {
   public void testGetVersion() throws Exception {
     ViewConfig config = getConfig();
     Assert.assertEquals("1.0.0", config.getVersion());
+  }
+
+  @Test
+  public void testGetBuild() throws Exception {
+    ViewConfig config = getConfig();
+    Assert.assertEquals("99", config.getBuild());
   }
 
   @Test

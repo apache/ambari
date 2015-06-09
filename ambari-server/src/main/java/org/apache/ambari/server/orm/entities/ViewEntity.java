@@ -100,6 +100,13 @@ public class ViewEntity implements ViewDefinition {
   private String version;
 
   /**
+   * The view build number.
+   */
+  @Column
+  @Basic
+  private String build;
+
+  /**
    * The view archive.
    */
   @Column
@@ -271,6 +278,7 @@ public class ViewEntity implements ViewDefinition {
     this.label       = configuration.getLabel();
     this.description = configuration.getDescription();
     this.version     = version;
+    this.build       = configuration.getBuild();
 
     this.mask        = configuration.getMasker();
     this.icon        = configuration.getIcon();
@@ -302,6 +310,11 @@ public class ViewEntity implements ViewDefinition {
   @Override
   public String getVersion() {
     return version;
+  }
+
+  @Override
+  public String getBuild() {
+    return build;
   }
 
   @Override
@@ -374,6 +387,15 @@ public class ViewEntity implements ViewDefinition {
    */
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  /**
+   * Set the view build number.
+   *
+   * @param build the build
+   */
+  public void setBuild(String build) {
+    this.build = build;
   }
 
   /**

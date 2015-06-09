@@ -559,10 +559,12 @@ public class UpgradeCatalog210Test {
       Capture<DBAccessor.DBColumnInfo> viewInstanceColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
       Capture<DBAccessor.DBColumnInfo> viewInstanceAlterNamesColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
       Capture<DBAccessor.DBColumnInfo> viewParamColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> viewBuildColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
 
       captures.put("viewinstance", viewInstanceColumnCapture);
       captures.put("viewinstance_alter_names", viewInstanceAlterNamesColumnCapture);
       captures.put("viewparameter", viewParamColumnCapture);
+      captures.put("viewmain", viewBuildColumnCapture);
     }
 
     /**
@@ -573,10 +575,12 @@ public class UpgradeCatalog210Test {
       Capture<DBColumnInfo> viewInstanceColumnCapture = captures.get("viewinstance");
       Capture<DBColumnInfo> viewInstanceAlterNamesColumnCapture = captures.get("viewinstance_alter_names");
       Capture<DBColumnInfo> viewParamColumnCapture = captures.get("viewparameter");
+      Capture<DBColumnInfo> viewBuildColumnCapture = captures.get("viewmain");
 
       dbAccessor.addColumn(eq("viewinstance"), capture(viewInstanceColumnCapture));
       dbAccessor.addColumn(eq("viewinstance"), capture(viewInstanceAlterNamesColumnCapture));
       dbAccessor.addColumn(eq("viewparameter"), capture(viewParamColumnCapture));
+      dbAccessor.addColumn(eq("viewmain"), capture(viewBuildColumnCapture));
     }
 
     /**
@@ -587,6 +591,7 @@ public class UpgradeCatalog210Test {
       verifyViewInstance(captures.get("viewinstance"));
       verifyViewInstanceAlterNames(captures.get("viewinstance_alter_names"));
       verifyViewParameter(captures.get("viewparameter"));
+      verifyViewBuild(captures.get("viewmain"));
     }
 
     private void verifyViewInstance(Capture<DBAccessor.DBColumnInfo> viewInstanceColumnCapture) {
@@ -605,6 +610,12 @@ public class UpgradeCatalog210Test {
       DBColumnInfo clusterConfigColumn = viewParamColumnCapture.getValue();
       Assert.assertEquals(String.class, clusterConfigColumn.getType());
       Assert.assertEquals("cluster_config", clusterConfigColumn.getName());
+    }
+
+    private void verifyViewBuild(Capture<DBAccessor.DBColumnInfo> viewBuildColumnCapture) {
+      DBColumnInfo clusterConfigColumn = viewBuildColumnCapture.getValue();
+      Assert.assertEquals(String.class, clusterConfigColumn.getType());
+      Assert.assertEquals("build", clusterConfigColumn.getName());
     }
   }
 
