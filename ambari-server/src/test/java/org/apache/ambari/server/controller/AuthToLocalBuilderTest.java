@@ -54,6 +54,37 @@ public class AuthToLocalBuilderTest {
       builder.generate("EXAMPLE.COM"));
   }
 
+
+  @Test
+  public void testRuleGeneration_caseInsensitiveSupport() {
+    AuthToLocalBuilder builder = new AuthToLocalBuilder(true);
+
+    builder.addRule("nn/_HOST@EXAMPLE.COM", "hdfs");
+    // Duplicate principal for secondary namenode, should be filtered out...
+    builder.addRule("nn/_HOST@EXAMPLE.COM", "hdfs");
+    builder.addRule("dn/_HOST@EXAMPLE.COM", "hdfs");
+    builder.addRule("jn/_HOST@EXAMPLE.COM", "hdfs");
+    builder.addRule("rm/_HOST@EXAMPLE.COM", "yarn");
+    builder.addRule("jhs/_HOST@EXAMPLE.COM", "mapred");
+    builder.addRule("hm/_HOST@EXAMPLE.COM", "hbase");
+    builder.addRule("rs/_HOST@EXAMPLE.COM", "hbase");
+
+    builder.addRule("foobar@EXAMPLE.COM", "hdfs");
+
+    assertEquals(
+      "RULE:[1:$1@$0](foobar@EXAMPLE.COM)s/.*/hdfs/\n" +
+        "RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*///L\n" +
+        "RULE:[2:$1@$0](dn@EXAMPLE.COM)s/.*/hdfs/\n" +
+        "RULE:[2:$1@$0](hm@EXAMPLE.COM)s/.*/hbase/\n" +
+        "RULE:[2:$1@$0](jhs@EXAMPLE.COM)s/.*/mapred/\n" +
+        "RULE:[2:$1@$0](jn@EXAMPLE.COM)s/.*/hdfs/\n" +
+        "RULE:[2:$1@$0](nn@EXAMPLE.COM)s/.*/hdfs/\n" +
+        "RULE:[2:$1@$0](rm@EXAMPLE.COM)s/.*/yarn/\n" +
+        "RULE:[2:$1@$0](rs@EXAMPLE.COM)s/.*/hbase/\n" +
+        "DEFAULT",
+      builder.generate("EXAMPLE.COM"));
+  }
+
   @Test
   public void testRuleGeneration_ExistingRules() {
     AuthToLocalBuilder builder = new AuthToLocalBuilder();

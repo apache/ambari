@@ -61,6 +61,22 @@ public class AuthToLocalBuilder {
 
 
   /**
+   * A flag indicating whether case insensitive support to the local username has been requested. This will append an //L switch to the generic realm rule
+   */
+  private boolean caseInsensitiveUser;
+
+  /**
+   * Default constructor. Case insensitive support false by default
+   */
+  public AuthToLocalBuilder() {
+    this.caseInsensitiveUser = false;
+  }
+
+  public AuthToLocalBuilder(boolean caseInsensitiveUserSupport) {
+    this.caseInsensitiveUser = caseInsensitiveUserSupport;
+  }
+
+  /**
    * Add existing rules from the given authToLocal configuration property.
    * The rules are added verbatim.
    *
@@ -223,8 +239,10 @@ public class AuthToLocalBuilder {
    * @return  a new default realm rule
    */
   private Rule createDefaultRealmRule(String realm) {
+    String caseSensitivityRule = caseInsensitiveUser ? "/L" : "";
+
     return new Rule(new Principal(String.format(".*@%s", realm)),
-        1, 1, String.format("RULE:[1:$1@$0](.*@%s)s/@.*//", realm));
+      1, 1, String.format("RULE:[1:$1@$0](.*@%s)s/@.*//" + caseSensitivityRule, realm));
   }
 
   /**
@@ -250,6 +268,7 @@ public class AuthToLocalBuilder {
     for(Rule rule:setRules) {
       copy.setRules.add(rule);
     }
+    copy.caseInsensitiveUser = this.caseInsensitiveUser;
 
     return copy;
   }

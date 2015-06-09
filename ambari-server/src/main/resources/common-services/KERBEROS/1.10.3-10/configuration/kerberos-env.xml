@@ -160,6 +160,14 @@
     <value>${cluster_name}-${short_date}</value>
   </property>
 
+  <property>
+    <name>case_insensitive_username_rules</name>
+    <description>
+      Force principal names to resolve to lowercase local usernames in auth-to-local rules
+    </description>
+    <value>false</value>
+  </property>
+
   <property require-input="true">
     <name>create_attributes_template</name>
     <description>
