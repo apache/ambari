@@ -805,7 +805,6 @@ App.ChartLinearTimeView = Ember.View.extend({
       reloadGraphByTime: function(index) {
         this.set('currentTimeIndex', index);
         self.set('currentTimeIndex', index);
-        self.loadData();
       },
       currentTimeIndex: self.get('currentTimeIndex'),
       currentTimeState: function() {
@@ -817,6 +816,9 @@ App.ChartLinearTimeView = Ember.View.extend({
       self.set('isPopupReady', false);
     });
   },
+  reloadGraphByTime: function () {
+    this.loadData();
+  }.observes('timeUnitSeconds'),
   timeStates: [
     {name: Em.I18n.t('graphs.timeRange.hour'), seconds: 3600},
     {name: Em.I18n.t('graphs.timeRange.twoHours'), seconds: 7200},

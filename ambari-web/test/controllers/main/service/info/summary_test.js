@@ -201,7 +201,6 @@ describe('App.MainServiceInfoSummaryController', function () {
       it(item.title, function () {
         controller.set('isPreviousRangerConfigsCallFailed', item.isPreviousRangerConfigsCallFailed);
         controller.get('rangerPlugins').findProperty('serviceName', 'HDFS').tag = item.hdfsTag;
-        controller.get('rangerPlugins').findProperty('serviceName', 'HIVE').tag = item.hiveTag;
         controller.get('rangerPlugins').findProperty('serviceName', 'HBASE').tag = item.hbaseTag;
         controller.getRangerPluginsStatus(data);
         expect(App.ajax.send.calledOnce).to.equal(item.ajaxRequestSent);
@@ -224,12 +223,6 @@ describe('App.MainServiceInfoSummaryController', function () {
             }
           },
           {
-            'type': 'ranger-hive-plugin-properties',
-            'properties': {
-              'ranger-hive-plugin-enabled': 'No'
-            }
-          },
-          {
             'type': 'ranger-hbase-plugin-properties',
             'properties': {
               'ranger-hbase-plugin-enabled': ''
@@ -239,7 +232,6 @@ describe('App.MainServiceInfoSummaryController', function () {
       });
       expect(controller.get('isPreviousRangerConfigsCallFailed')).to.be.false;
       expect(controller.get('rangerPlugins').findProperty('serviceName', 'HDFS').status).to.equal(Em.I18n.t('alerts.table.state.enabled'));
-      expect(controller.get('rangerPlugins').findProperty('serviceName', 'HIVE').status).to.equal(Em.I18n.t('alerts.table.state.disabled'));
       expect(controller.get('rangerPlugins').findProperty('serviceName', 'HBASE').status).to.equal(Em.I18n.t('common.unknown'));
     });
   });

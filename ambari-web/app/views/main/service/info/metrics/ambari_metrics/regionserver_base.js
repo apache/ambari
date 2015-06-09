@@ -36,15 +36,11 @@ App.ChartServiceMetricsAMS_RegionServerBaseView = App.ChartLinearTimeView.extend
       for (var name in jsonData.metrics.hbase.regionserver) {
         var displayName,
             seriesData = jsonData.metrics.hbase.regionserver[name];
-        switch (name) {
-          case this.regionServerName:
-            displayName = this.displayName;
-            break;
-          default:
-            break;
-        }
-        if (seriesData) {
-          seriesArray.push(this.transformData(seriesData, displayName));
+        if (name === this.get('regionServerName')) {
+          displayName = this.get('displayName');
+          if (seriesData) {
+            seriesArray.push(this.transformData(seriesData, displayName));
+          }
         }
       }
     }
