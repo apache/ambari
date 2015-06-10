@@ -282,7 +282,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     // determine whether to alter the names of the dynamic entities / attributes to
     // avoid db reserved word conflicts.  should be false for existing instances
     // for backward compatibility.
-    dbAccessor.addColumn(VIEW_INSTANCE_TABLE, new DBColumnInfo("alter_names", Integer.class, null, 0, false));
+    dbAccessor.addColumn(VIEW_INSTANCE_TABLE, new DBColumnInfo("alter_names", Integer.class, 0, 0, false));
     // cluster configuration
     dbAccessor.addColumn(VIEW_PARAMETER_TABLE, new DBColumnInfo("cluster_config", String.class, 255, null, true));
     // view build number

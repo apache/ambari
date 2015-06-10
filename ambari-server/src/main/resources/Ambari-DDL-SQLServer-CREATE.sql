@@ -537,7 +537,7 @@ CREATE TABLE viewinstanceproperty (
   view_name VARCHAR(255) NOT NULL,
   view_instance_name VARCHAR(255) NOT NULL,
   NAME VARCHAR(255) NOT NULL,
-  value VARCHAR(2000) NOT NULL,
+  value VARCHAR(2000),
   PRIMARY KEY CLUSTERED (
     view_name,
     view_instance_name,
