@@ -52,11 +52,6 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
     });
   },
 
-  onKDCCancel: function() {
-    App.router.get(this.get('content.controllerName')).setStepsEnable();
-    this.get('tasks').objectAt(this.get('currentTaskId')).set('status', 'FAILED');
-  },
-
   getKerberosClientState: function() {
     return App.ajax.send({
       name: 'common.service_component.info',
@@ -70,12 +65,16 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
   },
 
   testKerberos: function() {
+    var self = this;
     App.ajax.send({
       'name': 'service.item.smoke',
       'sender': this,
       'success': 'startPolling',
       'error': 'onTestKerberosError',
-      'kdcCancelHandler': 'onKDCCancel',
+      'kdcCancelHandler': function() {
+        App.router.get(self.get('content.controllerName')).setStepsEnable();
+        self.get('tasks').objectAt(self.get('currentTaskId')).set('status', 'FAILED');
+      },
       'data': {
         'serviceName': this.serviceName,
         'displayName': App.format.role(this.serviceName),

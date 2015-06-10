@@ -2660,20 +2660,6 @@ var ajax = Em.Object.extend({
     opt.error = function (request, ajaxOptions, error) {
       var KDCErrorMsg = this.getKDCErrorMgs(request);
       if (!Em.isNone(KDCErrorMsg)) {
-        /**
-         * run this handler before show KDC error popup
-         */
-        if (config.kdcFailHandler) {
-          config.sender[config.kdcFailHandler](request, ajaxOptions, error, opt, params);
-        }
-        /**
-         * run this handler when click cancle on KDC error popup
-         */
-        if (config.kdcCancelHandler) {
-          opt.kdcCancelHandler = function() {
-            config.sender[config.kdcCancelHandler]();
-          };
-        }
         this.defaultErrorKDCHandler(opt, KDCErrorMsg);
       } else if (config.error) {
         config.sender[config.error](request, ajaxOptions, error, opt, params);
@@ -2686,6 +2672,14 @@ var ajax = Em.Object.extend({
         config.callback();
       }
     };
+
+    /**
+     * run this handler when click cancle on KDC error popup
+     */
+    if (config.kdcCancelHandler) {
+      opt.kdcCancelHandler = config.kdcCancelHandler;
+    }
+
     if ($.mocho) {
       opt.url = 'http://' + $.hostName + opt.url;
     }

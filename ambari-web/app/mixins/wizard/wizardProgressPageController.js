@@ -126,13 +126,18 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
   },
 
   submitRequest: function () {
+    var self = this;
     return App.ajax.send({
       name: this.get('request.ajaxName'),
       data: this.get('request.ajaxData'),
       sender: this,
       error: 'onSingleRequestError',
       success: 'submitRequestSuccess',
-      kdcCancelHandler: 'failTaskOnKdcCheck'
+      kdcCancelHandler: function() {
+        self.set('status', 'FAILED');
+        self.set('isLoaded', true);
+        self.set('showRetry', true);
+      }
     });
   },
 
@@ -148,12 +153,6 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
         this.set('isLoaded', true);
       }
     }
-  },
-
-  failTaskOnKdcCheck: function() {
-    this.set('status', 'FAILED');
-    this.set('isLoaded', true);
-    this.set('showRetry', true);
   },
 
   doPollingForPageRequest: function () {

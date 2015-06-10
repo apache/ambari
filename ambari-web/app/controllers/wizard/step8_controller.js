@@ -102,13 +102,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   isBackBtnDisabled: false,
 
   /**
-   * This flag when turned to true launches deploy progress bar
-   */
-  isDeployStarted: function() {
-    this.get('isSubmitDisabled');
-  }.property('isSubmitDisabled'),
-
-  /**
    * Is error appears while <code>ajaxQueue</code> executes
    * @type {bool}
    */
@@ -733,14 +726,28 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @return {void}
    */
   submit: function () {
+    var self = this;
+    var wizardController;
     if (!this.get('isSubmitDisabled')) {
+      wizardController = App.router.get(this.get('content.controllerName'));
+      this.set('isSubmitDisabled', true);
+      this.set('isBackBtnDisabled', true);
+      wizardController.setLowerStepsDisable(wizardController.get('currentStep'));
       if (this.get('content.controllerName') != 'installerController' && this.get('securityEnabled') && !this.get('isManualKerberos')) {
-        App.get('router.mainAdminKerberosController').getKDCSessionState(this.submitProceed.bind(this));
+        App.get('router.mainAdminKerberosController').getKDCSessionState(this.submitProceed.bind(this), function () {
+          self.set('isSubmitDisabled', false);
+          self.set('isBackBtnDisabled', false);
+          wizardController.setStepsEnable();
+          if (self.get('content.controllerName') === 'addServiceController') {
+            wizardController.setSkipSlavesStep(wizardController.getDBProperty('selectedServiceNames'), 3);
+          }
+        });
       } else {
         this.submitProceed();
       }
     }
   },
+
   /**
    * Update configurations for installed services.
    * Do separated PUT-request for each siteName for each service
@@ -772,11 +779,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   submitProceed: function () {
     var self = this;
-    this.setProperties({
-      isSubmitDisabled: true,
-      isBackBtnDisabled: true,
-      clusterDeleteRequestsCompleted: 0
-    });
+    this.set('clusterDeleteRequestsCompleted', 0);
     this.get('clusterDeleteErrorViews').clear();
     if (this.get('content.controllerName') == 'addHostController') {
       App.router.get('addHostController').setLowerStepsDisable(4);
@@ -1000,6 +1003,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
 
     this.set('ajaxQueueLength', this.get('ajaxRequestsQueue.queue.length'));
     this.get('ajaxRequestsQueue').start();
+    this.showLoadingIndicator();
   },
 
   /**
@@ -1833,6 +1837,62 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         urlParams: 'overwrite_existing=true',
         data: apiObject
       }
+    });
+  },
+
+  /**
+   * Should ajax-queue progress bar be displayed
+   * @method showLoadingIndicator
+   */
+  showLoadingIndicator: function () {
+    return App.ModalPopup.show({
+
+      header: '',
+
+      showFooter: false,
+
+      showCloseButton: false,
+
+      bodyClass: Em.View.extend({
+
+        templateName: require('templates/wizard/step8/step8_log_popup'),
+
+        controllerBinding: 'App.router.wizardStep8Controller',
+
+        /**
+         * Css-property for progress-bar
+         * @type {string}
+         */
+        barWidth: '',
+
+        /**
+         * Popup-message
+         * @type {string}
+         */
+        message: '',
+
+        /**
+         * Set progress bar width and popup message when ajax-queue requests are proccessed
+         * @method ajaxQueueChangeObs
+         */
+        ajaxQueueChangeObs: function () {
+          var length = this.get('controller.ajaxQueueLength');
+          var left = this.get('controller.ajaxRequestsQueue.queue.length');
+          this.set('barWidth', 'width: ' + ((length - left) / length * 100) + '%;');
+          this.set('message', Em.I18n.t('installer.step8.deployPopup.message').format((length - left), length));
+        }.observes('controller.ajaxQueueLength', 'controller.ajaxRequestsQueue.queue.length'),
+
+        /**
+         * Hide popup when ajax-queue is finished
+         * @method autoHide
+         */
+        autoHide: function () {
+          if (this.get('controller.servicesInstalled')) {
+            this.get('parentView').hide();
+          }
+        }.observes('controller.servicesInstalled')
+      })
+
     });
   }
 });

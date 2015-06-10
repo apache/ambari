@@ -210,7 +210,6 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
    * @param data {object}
    * @param opt {object}
    * @param params {object}
-   * @returns {App.ModalPopup|undefined}
    */
   runSecurityCheckSuccess: function (data, opt, params) {
     //TODO correct check
@@ -366,7 +365,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     return configProperties;
   },
 
-  getKDCSessionState: function(callback) {
+  getKDCSessionState: function(callback, kdcCancelHandler) {
     if (this.get('securityEnabled')) {
       App.ajax.send({
         name: 'kerberos.session.state',
@@ -374,7 +373,8 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
         data: {
           callback: callback
         },
-        success: 'checkState'
+        success: 'checkState',
+        kdcCancelHandler: kdcCancelHandler
       })
     } else {
       callback();
