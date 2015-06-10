@@ -2542,7 +2542,7 @@ var urls = {
 
   'service.components.load': {
     real: '/clusters/{clusterName}/services?fields=components&minimal_response=true',
-    mock: ''
+    mock: '/data/services/components.json'
   }
 };
 /**
