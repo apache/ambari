@@ -168,7 +168,8 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       toClearHosts: groupsToClearHosts,
       toDelete: groupsToDelete,
       toSetHosts: groupsToSetHosts,
-      toCreate: groupsToCreate
+      toCreate: groupsToCreate,
+      initialGroups: originalGroupsCopy
     };
   }.property('selectedConfigGroup.hosts.@each', 'selectedConfigGroup.hosts.length', 'selectedConfigGroup.description', 'configGroups', 'isLoaded'),
 
@@ -780,7 +781,8 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           if (!deleteQueriesRun && deleteQueriesCounter > 0) {
             deleteQueriesRun = true;
             modifiedConfigGroups.toClearHosts.forEach(function (cg) {
-              configsController.clearConfigurationGroupHosts(cg, finishFunction, finishFunction);
+              var initalGroupState = modifiedConfigGroups.initialGroups.findProperty('name', cg.get('name'));
+              configsController.clearConfigurationGroupHosts(cg, initalGroupState, finishFunction, finishFunction);
             }, this);
             modifiedConfigGroups.toDelete.forEach(function (cg) {
               configsController.deleteConfigurationGroup(cg, finishFunction, finishFunction);

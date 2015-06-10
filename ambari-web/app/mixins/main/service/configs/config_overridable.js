@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var arrayUtils = require('utils/array_utils');
 
 /**
  * Mixin with methods for config groups and overrides processing
@@ -358,17 +359,32 @@ App.ConfigOverridable = Em.Mixin.create({
   },
 
   /**
-   * Update config group's hosts list (clear it)
+   * Update config group's hosts list and leave only unmodified hosts in the group
    * Save updated config group on server
    * @param {App.ConfigGroup} configGroup
+   * @param {App.ConfigGroup} initalGroupState
    * @param {Function} successCallback
    * @param {Function} errorCallback
    * @method clearConfigurationGroupHosts
    */
-  clearConfigurationGroupHosts: function (configGroup, successCallback, errorCallback) {
+  clearConfigurationGroupHosts: function (configGroup, initalGroupState, successCallback, errorCallback) {
     configGroup = jQuery.extend({}, configGroup);
-    configGroup.set('hosts', []);
+    var unmodifiedHosts = this.getUnmodifiedHosts(configGroup, initalGroupState);
+    configGroup.set('hosts', unmodifiedHosts);
     this.updateConfigurationGroup(configGroup, successCallback, errorCallback);
+  },
+
+  /**
+   * Get the list of hosts that is not modified in the group
+   * @param configGroup - the new configuration of the group
+   * @param initialGroupState - the initial configuration of the group
+   * @returns {Array}
+   */
+  getUnmodifiedHosts: function (configGroup, initialGroupState) {
+    var currentHosts = configGroup.get('hosts');
+    var initialHosts = initialGroupState.get('hosts');
+
+    return arrayUtils.intersect(currentHosts, initialHosts);
   },
 
   /**
