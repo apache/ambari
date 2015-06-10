@@ -38,7 +38,6 @@
     <module>pig</module>
     <module>slider</module>
     <module>capacity-scheduler</module>
-    <module>hive</module>
     <module>tez</module>
     <module>utils</module>
   </modules>
@@ -146,6 +145,19 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>linux</id>
+      <activation>
+        <os>
+          <family>unix</family>
+        </os>
+      </activation>
+      <modules>
+        <module>hive</module>
+      </modules>
+    </profile>
+  </profiles>
   <dependencyManagement>
     <dependencies>
       <dependency>

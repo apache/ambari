@@ -480,7 +480,6 @@
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
-        <module>contrib/ambari-scom/metrics-sink</module>
         <module>ambari-metrics</module>
         <module>ambari-server</module>
         <module>ambari-agent</module>
