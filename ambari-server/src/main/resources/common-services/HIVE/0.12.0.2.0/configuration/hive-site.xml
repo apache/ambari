@@ -354,6 +354,13 @@ limitations under the License.
   </property>
 
   <property>
+      <name>mapreduce.input.fileinputformat.split.minsize</name>
+      <value>1000000</value>
+      <description>The minimum size chunk that map input should be split into.
+          Note that some file formats may have minimum split sizes that take priority over this setting.</description>
+  </property>
+
+  <property>
     <name>hive.default.fileformat</name>
     <value>TextFile</value>
     <description>Default file format for CREATE TABLE statement.</description>
