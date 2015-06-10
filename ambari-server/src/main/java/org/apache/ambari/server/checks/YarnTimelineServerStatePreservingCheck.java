@@ -20,6 +20,7 @@ package org.apache.ambari.server.checks;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
@@ -40,6 +41,7 @@ import com.google.inject.Singleton;
 public class YarnTimelineServerStatePreservingCheck extends AbstractCheckDescriptor {
 
   private final static String YARN_TIMELINE_STATE_RECOVERY_ENABLED_KEY = "yarn.timeline-service.recovery.enabled";
+  Configuration _configuration = null;
 
   /**
    * Constructor.
@@ -63,14 +65,19 @@ public class YarnTimelineServerStatePreservingCheck extends AbstractCheckDescrip
       return false;
     }
 
-    // not applicable if not HDP 2.2.4.2 or later
+    if(null == _configuration)
+      _configuration = new Configuration();
+    
+    String rollingUpgradeStack = _configuration.getRollingUpgradeStack(); 
+    // not applicable if not HDP 2.2.4.2 or later    
     String stackName = cluster.getCurrentStackVersion().getStackName();
-    if (!"HDP".equals(stackName)) {
+    if (!rollingUpgradeStack.equals(stackName)) {
       return false;
     }
 
+    String rollingUpgradeVersion = _configuration.getRollingUpgradeVersion();
     String currentClusterRepositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion().getVersion();
-    if (VersionUtils.compareVersions(currentClusterRepositoryVersion, "2.2.4.2") < 0) {
+    if (VersionUtils.compareVersions(currentClusterRepositoryVersion, rollingUpgradeVersion) < 0) {
       return false;
     }
 
