@@ -242,33 +242,16 @@ class ExecuteProvider(Provider):
         Logger.info("Skipping %s due to creates" % self.resource)
         return
       
-    env = self.resource.environment
-          
-    for i in range (0, self.resource.tries):
-      try:
-        shell.checked_call(self.resource.command, logoutput=self.resource.logoutput,
-                            cwd=self.resource.cwd, env=env,
-                            preexec_fn=_preexec_fn(self.resource), user=self.resource.user,
-                            wait_for_finish=self.resource.wait_for_finish,
-                            timeout=self.resource.timeout,
-                            path=self.resource.path,
-                            sudo=self.resource.sudo,
-                            on_new_line=self.resource.on_new_line)
-        break
-      except Fail as ex:
-        if i == self.resource.tries-1: # last try
-          raise ex
-        else:
-          Logger.info("Retrying after %d seconds. Reason: %s" % (self.resource.try_sleep, str(ex)))
-          time.sleep(self.resource.try_sleep)
-      except ExecuteTimeoutException:
-        err_msg = ("Execution of '%s' was killed due timeout after %d seconds") % (self.resource.command, self.resource.timeout)
-        
-        if self.resource.on_timeout:
-          Logger.info("Executing '%s'. Reason: %s" % (self.resource.on_timeout, err_msg))
-          shell.checked_call(self.resource.on_timeout)
-        else:
-          raise Fail(err_msg)
+    shell.checked_call(self.resource.command, logoutput=self.resource.logoutput,
+                        cwd=self.resource.cwd, env=self.resource.environment,
+                        preexec_fn=_preexec_fn(self.resource), user=self.resource.user,
+                        wait_for_finish=self.resource.wait_for_finish,
+                        timeout=self.resource.timeout,on_timeout=self.resource.on_timeout,
+                        path=self.resource.path,
+                        sudo=self.resource.sudo,
+                        on_new_line=self.resource.on_new_line,
+                        stdout=self.resource.stdout,stderr=self.resource.stderr,
+                        tries=self.resource.tries, try_sleep=self.resource.try_sleep)
        
 
 class ExecuteScriptProvider(Provider):

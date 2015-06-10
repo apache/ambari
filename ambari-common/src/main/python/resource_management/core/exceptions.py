@@ -25,7 +25,7 @@ __all__ = ["Fail", "ExecuteTimeoutException", "InvalidArgument", "ClientComponen
 class Fail(Exception):
   pass
 
-class ExecuteTimeoutException(Exception):
+class ExecuteTimeoutException(Fail):
   pass
 
 class InvalidArgument(Fail):

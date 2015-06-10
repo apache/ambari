@@ -22,6 +22,7 @@ import os
 import pty
 import socket
 import subprocess
+import select
 from resource_management import Script,ConfigDictionary
 from mock.mock import patch
 from mock.mock import MagicMock
@@ -33,9 +34,16 @@ from resource_management.core.resources.packaging import Package
 from resource_management.core.exceptions import Fail
 from ambari_commons.os_check import OSCheck
 
+subproc_mock = MagicMock()
+subproc_mock.return_value = MagicMock()
+subproc_stdout = MagicMock()
+subproc_mock.return_value.stdout = subproc_stdout
+
+@patch.object(os, "read", new=MagicMock(return_value=None))
+@patch.object(select, "select", new=MagicMock(return_value=([subproc_stdout], None, None)))
 @patch.object(pty, "openpty", new = MagicMock(return_value=(1,5)))
 @patch.object(os, "close", new=MagicMock())
-@patch.object(subprocess, "Popen", new=MagicMock())
+@patch.object(subprocess, "Popen", new=subproc_mock)
 class TestInstallPackages(RMFTestCase):
 
   @staticmethod

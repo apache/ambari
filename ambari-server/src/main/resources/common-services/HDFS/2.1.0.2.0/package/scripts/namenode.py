@@ -233,7 +233,10 @@ class NameNodeDefault(NameNode):
 
     parser = hdfs_rebalance.HdfsParser()
 
-    def handle_new_line(line):
+    def handle_new_line(line, is_stderr):
+      if is_stderr:
+        return
+      
       _print('[balancer] %s' % (line))
       pl = parser.parseLine(line)
       if pl:
