@@ -147,11 +147,11 @@ describe('App.UpdateController', function () {
           }
         ],
         result: ["host_components/metrics/yarn/Queue," +
-          "ServiceComponentInfo/rm_metrics/cluster/activeNMcount," +
-          "ServiceComponentInfo/rm_metrics/cluster/lostNMcount," +
-          "ServiceComponentInfo/rm_metrics/cluster/unhealthyNMcount," +
-          "ServiceComponentInfo/rm_metrics/cluster/rebootedNMcount," +
-          "ServiceComponentInfo/rm_metrics/cluster/decommissionedNMcount"]
+        "host_components/metrics/yarn/ClusterMetrics/NumActiveNMs," +
+        "host_components/metrics/yarn/ClusterMetrics/NumLostNMs," +
+        "host_components/metrics/yarn/ClusterMetrics/NumUnhealthyNMs," +
+        "host_components/metrics/yarn/ClusterMetrics/NumRebootedNMs," +
+        "host_components/metrics/yarn/ClusterMetrics/NumDecommissionedNMs"]
       },
       {
         title: 'HBASE service',
@@ -163,11 +163,10 @@ describe('App.UpdateController', function () {
           }
         ],
         result: ["host_components/metrics/hbase/master/IsActiveMaster," +
-          "ServiceComponentInfo/MasterStartTime," +
-          "ServiceComponentInfo/MasterActiveTime," +
-          "ServiceComponentInfo/AverageLoad," +
-          "ServiceComponentInfo/Revision," +
-          "ServiceComponentInfo/RegionsInTransition"]
+        "host_components/metrics/hbase/master/MasterStartTime," +
+        "host_components/metrics/hbase/master/MasterActiveTime," +
+        "host_components/metrics/hbase/master/AverageLoad," +
+        "host_components/metrics/master/AssignmentManger/ritCount"]
       },
       {
         title: 'STORM service',
