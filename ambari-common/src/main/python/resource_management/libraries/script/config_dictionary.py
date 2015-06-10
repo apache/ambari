@@ -19,27 +19,29 @@ limitations under the License.
 '''
 from resource_management.core.exceptions import Fail
 
+IMMUTABLE_MESSAGE = """Configuration dictionary is immutable!
+
+For adding dynamic properties to xml files please use {{varible_from_params}} substitutions.
+Lookup xml files for {{ for examples. 
+"""
+
 class ConfigDictionary(dict):
   """
   Immutable config dictionary
   """
   
-  def __init__(self, dictionary, allow_overwrite=False):
+  def __init__(self, dictionary):
     """
     Recursively turn dict to ConfigDictionary
     """
-    self.__allow_overwrite = allow_overwrite
     for k, v in dictionary.iteritems():
       if isinstance(v, dict):
-        dictionary[k] = ConfigDictionary(v, allow_overwrite=allow_overwrite)
+        dictionary[k] = ConfigDictionary(v)
         
     super(ConfigDictionary, self).__init__(dictionary)
 
   def __setitem__(self, name, value):
-    if self.__allow_overwrite:
-      super(ConfigDictionary, self).__setitem__(name, value)
-    else:
-      raise Fail("Configuration dictionary is immutable!")
+    raise Fail(IMMUTABLE_MESSAGE)
 
   def __getitem__(self, name):
     """

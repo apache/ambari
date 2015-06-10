@@ -198,25 +198,15 @@ else:
   # os.path.isfile
   def path_isfile(path):
     return (shell.call(["test", "-f", path], sudo=True)[0] == 0)
-  
+
   # os.stat
   def stat(path):
     class Stat:
-      RETRY_COUNT = 5
       def __init__(self, path):
-        # Sometimes (on heavy load) stat call returns an empty output with zero return code
-        for i in range(0, self.RETRY_COUNT):
-          out = shell.checked_call(["stat", "-c", "%u %g %a", path], sudo=True)[1]
-          values = out.split(' ')
-          if len(values) == 3:
-            uid_str, gid_str, mode_str = values
-            self.st_uid, self.st_gid, self.st_mode = int(uid_str), int(gid_str), int(mode_str, 8)
-            break
-        else:
-          warning_message = "Can not parse a sudo stat call output: \"{0}\"".format(out)
-          Logger.warning(warning_message)
-          stat_val = os.stat(path)
-          self.st_uid, self.st_gid, self.st_mode = stat_val.st_uid, stat_val.st_gid, stat_val.st_mode & 07777
+        out = shell.checked_call(["stat", "-c", "%u %g %a", path], sudo=True)[1]
+        uid_str, gid_str, mode_str = out.split(' ')
+        self.st_uid, self.st_gid, self.st_mode = int(uid_str), int(gid_str), int(mode_str, 8)
+  
     return Stat(path)
   
   # os.kill replacement

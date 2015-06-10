@@ -30,18 +30,23 @@ import os
 from resource_management import Fail
 import grp
 import pwd
+import select
 
 
 @patch.object(System, "os_family", new='redhat')
 class TestExecuteResource(TestCase):
+  @patch.object(os, "read")
+  @patch.object(select, "select")
   @patch.object(logging.Logger, "info")
   @patch.object(subprocess, "Popen")
-  def test_attribute_logoutput(self, popen_mock, info_mock):
+  def test_attribute_logoutput(self, popen_mock, info_mock, select_mock, os_read_mock):
     subproc_mock = MagicMock()
+    subproc_mock.wait.return_value = MagicMock()
+    subproc_mock.stdout = MagicMock()
     subproc_mock.returncode = 0
-    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
-    subproc_mock.communicate.side_effect = [["1"], ["2"]]
     popen_mock.return_value = subproc_mock
+    select_mock.return_value = ([subproc_mock.stdout], None, None)
+    os_read_mock.return_value = None
 
     with Environment("/") as env:
       Execute('echo "1"',
@@ -82,14 +87,18 @@ class TestExecuteResource(TestCase):
     exists_mock.assert_called_with("/must/be/created")
     self.assertEqual(subproc_mock.call_count, 0)
 
+  @patch.object(os, "read")
+  @patch.object(select, "select")
   @patch.object(subprocess, "Popen")
-  def test_attribute_path(self, popen_mock):
+  def test_attribute_path(self, popen_mock, select_mock, os_read_mock):
     subproc_mock = MagicMock()
+    subproc_mock.wait.return_value = MagicMock()
+    subproc_mock.stdout = MagicMock()
     subproc_mock.returncode = 0
-    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
-    subproc_mock.communicate.side_effect = [["1"]]
     popen_mock.return_value = subproc_mock
-
+    select_mock.return_value = ([subproc_mock.stdout], None, None)
+    os_read_mock.return_value = None
+    
     with Environment("/") as env:
       execute_resource = Execute('echo "1"',
                                  path=["/test/one", "test/two"]
@@ -97,17 +106,23 @@ class TestExecuteResource(TestCase):
     expected_command = ['/bin/bash', '--login', '--noprofile', '-c', 'echo "1"']
     self.assertEqual(popen_mock.call_args_list[0][0][0], expected_command)
 
+  @patch.object(os, "read")
+  @patch.object(select, "select")
   @patch('time.sleep')
   @patch.object(subprocess, "Popen")
-  def test_attribute_try_sleep_tries(self, popen_mock, time_mock):
+  def test_attribute_try_sleep_tries(self, popen_mock, time_mock, select_mock, os_read_mock):
     expected_call = "call('Retrying after %d seconds. Reason: %s', 1, 'Fail')"
-
+    
     subproc_mock_one = MagicMock()
     subproc_mock_one.returncode = 1
+    subproc_mock_one.stdout = MagicMock()
     subproc_mock_zero = MagicMock()
+    subproc_mock_zero.stdout = MagicMock()
     subproc_mock_zero.returncode = 0
     #subproc_mock.stdout.readline = MagicMock(side_effect = [Fail("Fail"), "OK"])
     popen_mock.side_effect = [subproc_mock_one, subproc_mock_zero]
+    select_mock.side_effect = [([subproc_mock_one.stdout], None, None),([subproc_mock_zero.stdout], None, None)]
+    os_read_mock.return_value = None
 
     with Environment("/") as env:
       Execute('echo "1"',
@@ -133,15 +148,19 @@ class TestExecuteResource(TestCase):
     except Fail as e:
       pass
 
+  @patch.object(os, "read")
+  @patch.object(select, "select")
   @patch.object(subprocess, "Popen")
-  def test_attribute_environment(self, popen_mock):
+  def test_attribute_environment(self, popen_mock, select_mock, os_read_mock):
     expected_dict = {"JAVA_HOME": "/test/java/home"}
 
     subproc_mock = MagicMock()
+    subproc_mock.wait.return_value = MagicMock()
+    subproc_mock.stdout = MagicMock()
     subproc_mock.returncode = 0
-    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
-    subproc_mock.communicate.side_effect = [["1"]]
     popen_mock.return_value = subproc_mock
+    select_mock.return_value = ([subproc_mock.stdout], None, None)
+    os_read_mock.return_value = None
 
     with Environment("/") as env:
       Execute('echo "1"',
@@ -151,15 +170,19 @@ class TestExecuteResource(TestCase):
     self.assertEqual(popen_mock.call_args_list[0][1]["env"], expected_dict)
     pass
 
+  @patch.object(os, "read")
+  @patch.object(select, "select")
   @patch.object(subprocess, "Popen")
-  def test_attribute_environment_non_root(self, popen_mock):
+  def test_attribute_environment_non_root(self, popen_mock, select_mock, os_read_mock):
     expected_user = 'test_user'
 
     subproc_mock = MagicMock()
+    subproc_mock.wait.return_value = MagicMock()
+    subproc_mock.stdout = MagicMock()
     subproc_mock.returncode = 0
-    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
-    subproc_mock.communicate.side_effect = [["1"]]
     popen_mock.return_value = subproc_mock
+    select_mock.return_value = ([subproc_mock.stdout], None, None)
+    os_read_mock.return_value = None
 
     with Environment("/") as env:
       execute_resource = Execute('echo "1"',
@@ -173,15 +196,19 @@ class TestExecuteResource(TestCase):
     self.assertEqual(popen_mock.call_args_list[0][0][0], expected_command)
 
 
+  @patch.object(os, "read")
+  @patch.object(select, "select")
   @patch.object(subprocess, "Popen")
-  def test_attribute_cwd(self, popen_mock):
+  def test_attribute_cwd(self, popen_mock, select_mock, os_read_mock):
     expected_cwd = "/test/work/directory"
 
     subproc_mock = MagicMock()
+    subproc_mock.wait.return_value = MagicMock()
+    subproc_mock.stdout = MagicMock()
     subproc_mock.returncode = 0
-    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
-    subproc_mock.communicate.side_effect = [["1"]]
     popen_mock.return_value = subproc_mock
+    select_mock.return_value = ([subproc_mock.stdout], None, None)
+    os_read_mock.return_value = None
 
     with Environment("/") as env:
       Execute('echo "1"',
@@ -190,8 +217,10 @@ class TestExecuteResource(TestCase):
 
     self.assertEqual(popen_mock.call_args_list[0][1]["cwd"], expected_cwd)
 
+  @patch.object(os, "read")
+  @patch.object(select, "select")
   @patch.object(subprocess, "Popen")
-  def test_attribute_command_escaping(self, popen_mock):
+  def test_attribute_command_escaping(self, popen_mock, select_mock, os_read_mock):
     expected_command0 = "arg1 arg2 'quoted arg'"
     expected_command1 = "arg1 arg2 'command \"arg\"'"
     expected_command2 = 'arg1 arg2 \'command \'"\'"\'arg\'"\'"\'\''
@@ -200,9 +229,12 @@ class TestExecuteResource(TestCase):
     expected_command5 = "arg1 arg2 '`ls /root`'"
 
     subproc_mock = MagicMock()
+    subproc_mock.wait.return_value = MagicMock()
+    subproc_mock.stdout = MagicMock()
     subproc_mock.returncode = 0
-    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
+    select_mock.return_value = ([subproc_mock.stdout], None, None)
+    os_read_mock.return_value = None
 
     with Environment("/") as env:
       Execute(('arg1', 'arg2', 'quoted arg'),
@@ -225,14 +257,19 @@ class TestExecuteResource(TestCase):
     self.assertEqual(popen_mock.call_args_list[4][0][0][4], expected_command4)
     self.assertEqual(popen_mock.call_args_list[5][0][0][4], expected_command5)
 
+  @patch.object(os, "read")
+  @patch.object(select, "select")
   @patch.object(subprocess, "Popen")
-  def test_attribute_command_one_line(self, popen_mock):
+  def test_attribute_command_one_line(self, popen_mock, select_mock, os_read_mock):
     expected_command = "rm -rf /somedir"
 
     subproc_mock = MagicMock()
+    subproc_mock.wait.return_value = MagicMock()
+    subproc_mock.stdout = MagicMock()
     subproc_mock.returncode = 0
-    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
+    select_mock.return_value = ([subproc_mock.stdout], None, None)
+    os_read_mock.return_value = None
 
     with Environment("/") as env:
       Execute(expected_command)
