@@ -86,7 +86,7 @@ class HiveServerDefault(HiveServer):
     env.set_params(params)
     self.configure(env) # FOR SECURITY
 
-    setup_ranger_hive()    
+    setup_ranger_hive(rolling_upgrade=rolling_restart)
     hive_service( 'hiveserver2', action = 'start', rolling_restart=rolling_restart)
 
   def stop(self, env, rolling_restart=False):

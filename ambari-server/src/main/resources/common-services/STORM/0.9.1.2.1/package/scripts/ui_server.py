@@ -84,7 +84,7 @@ class UiServerDefault(UiServer):
     import params
     env.set_params(params)
     self.configure(env)
-    setup_ranger_storm()    
+    setup_ranger_storm(rolling_upgrade=rolling_restart)
     service("ui", action="start")
 
   def stop(self, env, rolling_restart=False):

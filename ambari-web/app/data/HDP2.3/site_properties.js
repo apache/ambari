@@ -260,7 +260,7 @@ hdp23properties.push({
   },
   {
     "id": "site property",
-    "name": "xasecure.audit.db.is.enabled",
+    "name": "xasecure.audit.destination.db",
     "displayName": "Audit to DB",
     "displayType": "checkbox",
     "filename": "ranger-hbase-audit.xml",
