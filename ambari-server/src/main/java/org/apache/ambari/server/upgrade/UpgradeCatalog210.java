@@ -1068,7 +1068,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             String source = oozieWebUIAlertDefinitionEntity.getSource();
             JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
             rootJson.get("uri").getAsJsonObject().remove("http");
-            rootJson.get("uri").getAsJsonObject().addProperty("http", "{{oozie-site/oozie.base.url}}/?user.name=oozie");
+            rootJson.get("uri").getAsJsonObject().addProperty("http",
+                    "{{oozie-site/oozie.base.url}}/?user.name={{oozie-env/oozie_user}}");
 
             // save the changes
             updateAlertDefinitionEntitySource("oozie_server_webui", rootJson.toString());
