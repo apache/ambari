@@ -69,6 +69,8 @@ public class Configuration {
   public static final String VIEWS_DIR_DEFAULT = "/var/lib/ambari-server/resources/views";
   public static final String VIEWS_VALIDATE = "views.validate";
   public static final String VIEWS_VALIDATE_DEFAULT = "false";
+  public static final String VIEWS_REMOVE_UNDEPLOYED = "views.remove.undeployed";
+  public static final String VIEWS_REMOVE_UNDEPLOYED_DEFAULT = "false";
   public static final String WEBAPP_DIR = "webapp.dir";
   public static final String BOOTSTRAP_SCRIPT = "bootstrap.script";
   public static final String BOOTSTRAP_SCRIPT_DEFAULT = "/usr/bin/ambari_bootstrap";
@@ -730,9 +732,17 @@ public class Configuration {
    * @return true if view validation is enabled
    */
   public boolean isViewValidationEnabled() {
-    return "true".equalsIgnoreCase(properties.getProperty(VIEWS_VALIDATE, VIEWS_VALIDATE_DEFAULT));
+    return Boolean.parseBoolean(properties.getProperty(VIEWS_VALIDATE, VIEWS_VALIDATE_DEFAULT));
   }
 
+  /**
+   * Determine whether or not a view that has been undeployed (archive deleted) should be removed from the database.
+   *
+   * @return true if undeployed views should be removed
+   */
+  public boolean isViewRemoveUndeployedEnabled() {
+    return Boolean.parseBoolean(properties.getProperty(VIEWS_REMOVE_UNDEPLOYED, VIEWS_REMOVE_UNDEPLOYED_DEFAULT));
+  }
 
   /**
    * @return conventional Java version number, e.g. 7.

@@ -341,6 +341,25 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void testIsViewRemoveUndeployedEnabled() throws Exception {
+    final Properties ambariProperties = new Properties();
+    Configuration configuration = new Configuration(ambariProperties);
+    Assert.assertFalse(configuration.isViewRemoveUndeployedEnabled());
+
+    ambariProperties.setProperty(Configuration.VIEWS_REMOVE_UNDEPLOYED, "false");
+    configuration = new Configuration(ambariProperties);
+    Assert.assertFalse(configuration.isViewRemoveUndeployedEnabled());
+
+    ambariProperties.setProperty(Configuration.VIEWS_REMOVE_UNDEPLOYED, "true");
+    configuration = new Configuration(ambariProperties);
+    Assert.assertTrue(configuration.isViewRemoveUndeployedEnabled());
+
+    ambariProperties.setProperty(Configuration.VIEWS_REMOVE_UNDEPLOYED, Configuration.VIEWS_REMOVE_UNDEPLOYED_DEFAULT);
+    configuration = new Configuration(ambariProperties);
+    Assert.assertFalse(configuration.isViewRemoveUndeployedEnabled());
+  }
+
+  @Test
   public void testGetLdapServerProperties() throws Exception {
     final Properties ambariProperties = new Properties();
     final Configuration configuration = new Configuration(ambariProperties);

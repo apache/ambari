@@ -1510,7 +1510,7 @@ public class ViewRegistry {
             }
           }
 
-          if (removeUndeployed) {
+          if (configuration.isViewRemoveUndeployedEnabled()) {
             removeUndeployedViews();
           }
         }
