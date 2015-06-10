@@ -889,7 +889,6 @@
               <keep-key>oozie.authentication.type</keep-key>
               <keep-key>oozie.authentication.simple.anonymous.allowed</keep-key>
               <keep-key>oozie.authentication.kerberos.name.rules</keep-key>
-              <keep-key>oozie.credentials.credentialclasses</keep-key>
               <keep-key>oozie.service.AuthorizationService.authorization.enabled</keep-key>
               <keep-key>oozie.service.HadoopAccessorService.hadoop.configurations</keep-key>
               <keep-key>oozie.service.HadoopAccessorService.kerberos.enabled</keep-key>
@@ -904,6 +903,7 @@
               <keep-key>oozie.service.ELService.ext.functions.coord-sla-submit</keep-key>
               <keep-key>oozie.service.ELService.ext.functions.coord-sla-create</keep-key>
             </transfer>
+            <set key="oozie.credentials.credentialclasses" value="hcat=org.apache.oozie.action.hadoop.HCatCredentials,hive2=org.apache.oozie.action.hadoop.Hive2Credentials" />
           </task>
         </pre-upgrade>
         <upgrade>

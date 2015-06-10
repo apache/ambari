@@ -42,7 +42,7 @@
 
   <property>
     <name>oozie.credentials.credentialclasses</name>
-    <value>hcat=org.apache.oozie.action.hadoop.HCatCredentials</value>
+    <value>hcat=org.apache.oozie.action.hadoop.HCatCredentials,hive2=org.apache.oozie.action.hadoop.Hive2Credentials</value>
     <description>
       Credential Class to be used for HCat.
     </description>
