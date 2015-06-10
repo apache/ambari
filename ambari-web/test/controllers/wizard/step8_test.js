@@ -792,13 +792,6 @@ describe('App.WizardStep8Controller', function () {
     });
   });
 
-  describe('#isDeployStarted', function () {
-    it('should be undefined', function () {
-      installerStep8Controller.set('isSubmitDisabled',false);
-      expect(installerStep8Controller.get('isDeployStarted')).to.equal(undefined);
-    });
-  });
-
   describe('#configMapping', function () {
     it('should object with isOverridable', function () {
       var configMapping = [
@@ -2600,6 +2593,17 @@ describe('App.WizardStep8Controller', function () {
       it(item.title, function () {
         expect(installerStep8Controller.getClientsMap(item.flag)).to.eql(item.result);
       });
+    });
+
+  });
+
+  describe('#showLoadingIndicator', function() {
+    it('if popup doesn\'t exist should create another', function() {
+      installerStep8Controller.set('isSubmitDisabled', true);
+      sinon.spy(App.ModalPopup, 'show');
+      installerStep8Controller.showLoadingIndicator();
+      expect(App.ModalPopup.show.calledOnce).to.equal(true);
+      App.ModalPopup.show.restore();
     });
 
   });

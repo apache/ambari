@@ -19,7 +19,7 @@
 
 var App = require('app');
 
-App.WizardStep8View = Em.View.extend(App.wizardDeployProgressViewMixin, {
+App.WizardStep8View = Em.View.extend({
 
   templateName: require('templates/wizard/step8'),
 
@@ -35,12 +35,6 @@ App.WizardStep8View = Em.View.extend(App.wizardDeployProgressViewMixin, {
   printReview: function () {
     var o = $("#step8-info");
     o.jqprint();
-  },
-
-  /**
-   * Reference to modalPopup to make sure only one instance is created
-   * @type {App.ModalPopup|null}
-   */
-  modalPopup: null
+  }
 });
 
