@@ -22,7 +22,6 @@ Ambari Agent
 import re
 import os
 from resource_management.core.environment import Environment
-from resource_management.core import sudo
 from resource_management.core.base import Fail
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import File
@@ -37,7 +36,6 @@ from resource_management.libraries.functions import namenode_ha_utils
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import subprocess
 
-ERR_FILE = "hdfs_resource.err"
 JSON_PATH = '/var/lib/ambari-agent/data/hdfs_resources.json'
 JAR_PATH = '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar'
 
@@ -177,9 +175,7 @@ class WebHDFSUtil:
     if file_to_put and not os.path.exists(file_to_put):
       raise Fail(format("File {file_to_put} is not found."))
     
-    err_file = os.path.join(Script.get_tmp_dir(), ERR_FILE)
-    
-    cmd = ["curl", "-L", "-w", "%{http_code}", "-X", method]
+    cmd = ["curl", "-sS","-L", "-w", "%{http_code}", "-X", method]
     
     if file_to_put:
       cmd += ["-T", file_to_put]
@@ -189,7 +185,7 @@ class WebHDFSUtil:
       cmd += ["-k"]
       
     cmd.append(url)
-    _, out = shell.checked_call(cmd, user=self.run_user, logoutput=self.logoutput, quiet=False, stderr=err_file)
+    _, out, err = shell.checked_call(cmd, user=self.run_user, logoutput=self.logoutput, quiet=False, stderr=subprocess.PIPE)
     status_code = out[-3:]
     out = out[:-3] # remove last line from output which is status code
     
@@ -200,7 +196,7 @@ class WebHDFSUtil:
           
     if status_code not in WebHDFSUtil.valid_status_codes+ignore_status_codes or assertable_result and result_dict and not result_dict['boolean']:
       formatted_output = json.dumps(result_dict, indent=2) if isinstance(result_dict, dict) else result_dict
-      formatted_output = sudo.read_file(err_file) + formatted_output
+      formatted_output = err + "\n" + formatted_output
       err_msg = "Execution of '%s' returned status_code=%s. %s" % (shell.string_cmd_from_args_list(cmd), status_code, formatted_output)
       raise Fail(err_msg)
     
