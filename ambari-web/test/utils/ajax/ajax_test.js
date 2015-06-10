@@ -97,9 +97,13 @@ describe('App.ajax', function() {
   describe('Check "real" property for each url object', function() {
     var names = App.ajax.fakeGetUrlNames();
     names.forEach(function(name) {
-      it(name, function() {
+      it('`' + name + '`', function() {
         var url = App.ajax.fakeGetUrl(name);
         expect(url.real).to.be.a('string');
+      });
+      it('`' + name + '` should not contain spaces', function () {
+        var url = App.ajax.fakeGetUrl(name);
+        expect(url.real.contains(' ')).to.be.false;
       });
     });
   });

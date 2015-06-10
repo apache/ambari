@@ -1142,7 +1142,7 @@ var urls = {
     'testInProduction': true
   },
   'dashboard.cluster_metrics.memory': {
-    'real': '/clusters/{clusterName}/?fields=metrics/memory/Buffer._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/Cache._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/Share._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/Swap._avg[{fromSeconds},{toSeconds},{stepSeconds}], metrics/memory/Total._avg[{fromSeconds},{toSeconds},{stepSeconds}], metrics/memory/Use._avg[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/?fields=metrics/memory/Buffer._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/Cache._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/Share._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/Swap._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/Total._avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/memory/Use._avg[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/cluster_metrics/memory_1hr.json',
     'testInProduction': true
   },
