@@ -99,6 +99,7 @@ public class WidgetLayoutDAO {
     EntityManager entityManager = entityManagerProvider.get();
     widgetLayoutEntity = entityManager.merge(widgetLayoutEntity);
     entityManager.flush();
+    entityManager.refresh(widgetLayoutEntity);
     return widgetLayoutEntity;
   }
 
