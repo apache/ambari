@@ -32,5 +32,25 @@ module.exports = {
       }
     });
     return result;
+  },
+
+
+  /**
+   * intersect two arrays and return the common values
+   *
+   * @param  {Array} arr1 - first array
+   * @param  {Array} arr2 - second array
+   * @return {Array} intersection - the intersection of arr1 and arr2
+   */
+  intersect: function (arr1, arr2) {
+    var intersection = [];
+    var shortest = arr1.length >= arr2.length ? arr2 : arr1;
+    var longest = arr1.length >= arr2.length ? arr1 : arr2;
+
+    shortest.forEach(function (entry) {
+      longest.indexOf(entry) > -1 ? intersection.push(entry) : null;
+    });
+
+    return intersection;
   }
 };
