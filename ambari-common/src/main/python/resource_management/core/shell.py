@@ -232,6 +232,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
       proc.stdout: "",
       proc.stderr: ""
     }
+    all_output = ""
                   
     while read_set:
       ready, _, _ = select.select(read_set, [], [])
@@ -245,6 +246,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
             continue
           
           fd_to_string[out_fd] += line
+          all_output += line
             
           if on_new_line:
             try:
@@ -263,6 +265,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
       
   out = fd_to_string[proc.stdout].strip('\n')
   err = fd_to_string[proc.stderr].strip('\n')
+  all_output = all_output.strip('\n')
   
   if timeout: 
     if not timeout_event.is_set():
@@ -275,7 +278,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
   code = proc.returncode
   
   if throw_on_failure and code:
-    err_msg = Logger.filter_text(("Execution of '%s' returned %d. %s") % (command_alias, code, out))
+    err_msg = Logger.filter_text(("Execution of '%s' returned %d. %s") % (command_alias, code, all_output))
     raise Fail(err_msg)
   
   # if separate stderr is enabled (by default it's redirected to out)
