@@ -17,6 +17,11 @@
  */
 package org.apache.ambari.server.events.listeners.alerts;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
@@ -60,16 +65,16 @@ public class AlertReceivedListener {
   private static final Logger LOG = LoggerFactory.getLogger(AlertReceivedListener.class);
 
   @Inject
-  private AlertsDAO m_alertsDao;
+  AlertsDAO m_alertsDao;
 
   @Inject
-  private AlertDefinitionDAO m_definitionDao;
+  AlertDefinitionDAO m_definitionDao;
 
   /**
    * Used for looking up whether an alert has a valid service/component/host
    */
   @Inject
-  private Provider<Clusters> m_clusters;
+  Provider<Clusters> m_clusters;
 
   /**
    * Receives and publishes {@link AlertEvent} instances.
@@ -101,101 +106,174 @@ public class AlertReceivedListener {
       LOG.debug(event.toString());
     }
 
-    Alert alert = event.getAlert();
+    //play around too many commits
+    List<Alert> alerts = event.getAlerts();
 
-    // jobs that were running when a service/component/host was changed
-    // which invalidate the alert should not be reported
-    if (!isValid(alert)) {
-      return;
-    }
+    Map<Alert, AlertCurrentEntity> toCreate = new HashMap<Alert, AlertCurrentEntity>();
+    Map<Alert, AlertCurrentEntity> toMerge = new HashMap<Alert, AlertCurrentEntity>();
+    Map<Alert, AlertCurrentEntity> toCreateHistoryAndMerge = new HashMap<Alert, AlertCurrentEntity>();
+    Map<Alert, AlertState> oldStates = new HashMap<Alert, AlertState>();
 
-    long clusterId = event.getClusterId();
+    for (Alert alert : alerts) {
+      // jobs that were running when a service/component/host was changed
+      // which invalidate the alert should not be reported
+      if (!isValid(alert)) {
+        continue;
+      }
 
-    AlertDefinitionEntity definition = m_definitionDao.findByName(clusterId,
+      Long clusterId = getClusterIdByName(alert.getCluster());
+      if (clusterId == null) {
+        LOG.warn("Null cluster id is not supported for alerts as of now"); //based on listener implementation
+        continue;
+      }
+
+      AlertDefinitionEntity definition = m_definitionDao.findByName(clusterId,
         alert.getName());
 
-    if (null == definition) {
-      LOG.warn(
+      if (null == definition) {
+        LOG.warn(
           "Received an alert for {} which is a definition that does not exist anymore",
           alert.getName());
 
-      return;
-    }
+        continue;
+      }
 
-    // it's possible that a definition which is disabled will still have a
-    // running alert returned; this will ensure we don't record it
-    if (!definition.getEnabled()) {
-      LOG.debug(
+      // it's possible that a definition which is disabled will still have a
+      // running alert returned; this will ensure we don't record it
+      if (!definition.getEnabled()) {
+        LOG.debug(
           "Received an alert for {} which is disabled. No more alerts should be received for this definition.",
           alert.getName());
 
-      return;
-    }
+        continue;
+      }
 
-    AlertCurrentEntity current;
+      AlertCurrentEntity current;
 
-    if (StringUtils.isBlank(alert.getHostName()) || definition.isHostIgnored()) {
-      current = m_alertsDao.findCurrentByNameNoHost(clusterId, alert.getName());
-    } else {
-      current = m_alertsDao.findCurrentByHostAndName(clusterId, alert.getHostName(),
+      if (StringUtils.isBlank(alert.getHostName()) || definition.isHostIgnored()) {
+        current = m_alertsDao.findCurrentByNameNoHost(clusterId, alert.getName());
+      } else {
+        current = m_alertsDao.findCurrentByHostAndName(clusterId, alert.getHostName(),
           alert.getName());
-    }
+      }
 
-    if (null == current) {
-      AlertHistoryEntity history = createHistory(clusterId, definition, alert);
+      if (null == current) {
+        AlertHistoryEntity history = createHistory(clusterId, definition, alert);
 
-      current = new AlertCurrentEntity();
-      current.setMaintenanceState(MaintenanceState.OFF);
-      current.setAlertHistory(history);
-      current.setLatestTimestamp(alert.getTimestamp());
-      current.setOriginalTimestamp(alert.getTimestamp());
-      m_alertsDao.create(current);
+        current = new AlertCurrentEntity();
+        current.setMaintenanceState(MaintenanceState.OFF);
+        current.setAlertHistory(history);
+        current.setLatestTimestamp(alert.getTimestamp());
+        current.setOriginalTimestamp(alert.getTimestamp());
 
-      // broadcast the initial alert being received
-      InitialAlertEvent initialAlertEvent = new InitialAlertEvent(
-          event.getClusterId(), event.getAlert(), current);
+        toCreate.put(alert, current);
 
-      m_alertEventPublisher.publish(initialAlertEvent);
-    } else if (alert.getState() == current.getAlertHistory().getAlertState()) {
-      current.setLatestTimestamp(alert.getTimestamp());
-      current.setLatestText(alert.getText());
-      m_alertsDao.merge(current);
-    } else {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(
+      } else if (alert.getState() == current.getAlertHistory().getAlertState()) {
+        current.setLatestTimestamp(alert.getTimestamp());
+        current.setLatestText(alert.getText());
+        toMerge.put(alert, current);
+
+      } else {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
             "Alert State Changed: CurrentId {}, CurrentTimestamp {}, HistoryId {}, HistoryState {}",
             current.getAlertId(), current.getLatestTimestamp(),
             current.getAlertHistory().getAlertId(),
             current.getAlertHistory().getAlertState());
-      }
+        }
 
-      AlertHistoryEntity oldHistory = current.getAlertHistory();
-      AlertState oldState = oldHistory.getAlertState();
+        AlertHistoryEntity oldHistory = current.getAlertHistory();
+        AlertState oldState = oldHistory.getAlertState();
 
-      // insert history, update current
-      AlertHistoryEntity history = createHistory(clusterId,
+        // insert history, update current
+        AlertHistoryEntity history = createHistory(clusterId,
           oldHistory.getAlertDefinition(), alert);
 
-      current.setLatestTimestamp(alert.getTimestamp());
-      current.setOriginalTimestamp(alert.getTimestamp());
-      current.setLatestText(alert.getText());
+        current.setLatestTimestamp(alert.getTimestamp());
+        current.setOriginalTimestamp(alert.getTimestamp());
+        current.setLatestText(alert.getText());
 
-      current = m_alertsDao.mergeAlertCurrentWithAlertHistory(current, history);
+        current.setAlertHistory(history);
+
+        toCreateHistoryAndMerge.put(alert, current);
+        oldStates.put(alert, oldState);
+
+      }
+    }
+
+    saveEntities(toCreate, toMerge, toCreateHistoryAndMerge);
+
+    //broadcast events
+    for (Map.Entry<Alert, AlertCurrentEntity> entry : toCreate.entrySet()) {
+      Alert alert = entry.getKey();
+      AlertCurrentEntity entity = entry.getValue();
+      Long clusterId = getClusterIdByName(alert.getCluster());
+      if (clusterId == null) {
+        //super rare case, cluster was removed after isValid() check
+        LOG.error("Unable to process alert {} for an invalid cluster named {}",
+          alert.getName(), alert.getCluster());
+        continue;
+      }
+
+      InitialAlertEvent initialAlertEvent = new InitialAlertEvent(
+        clusterId, alert, entity);
+
+      m_alertEventPublisher.publish(initialAlertEvent);
+
+    }
+
+    for (Map.Entry<Alert, AlertCurrentEntity> entry : toCreateHistoryAndMerge.entrySet()) {
+      Alert alert = entry.getKey();
+      AlertCurrentEntity entity = entry.getValue();
+      Long clusterId = getClusterIdByName(alert.getCluster());
+      if (clusterId == null) {
+        //super rare case, cluster was removed after isValid() check
+        LOG.error("Unable to process alert {} for an invalid cluster named {}",
+          alert.getName(), alert.getCluster());
+        continue;
+      }
+
+      AlertStateChangeEvent alertChangedEvent = new AlertStateChangeEvent(clusterId, alert, entity,
+        oldStates.get(alert));
+
+      m_alertEventPublisher.publish(alertChangedEvent);
+    }
+
+  }
+
+  Long getClusterIdByName(String clusterName) {
+    try {
+      return m_clusters.get().getCluster(clusterName).getClusterId();
+    } catch (AmbariException e) {
+      LOG.warn("Cluster lookup failed for clusterName={}", clusterName);
+      return null;
+    }
+  }
+
+  @Transactional
+  void saveEntities(Map<Alert, AlertCurrentEntity> toCreate, Map<Alert, AlertCurrentEntity> toMerge,
+                    Map<Alert, AlertCurrentEntity> toCreateHistoryAndMerge) {
+    for (Map.Entry<Alert, AlertCurrentEntity> entry : toCreate.entrySet()) {
+      AlertCurrentEntity entity = entry.getValue();
+      m_alertsDao.create(entity);
+    }
+
+    for (AlertCurrentEntity entity : toMerge.values()) {
+      m_alertsDao.merge(entity);
+    }
+
+    for (Map.Entry<Alert, AlertCurrentEntity> entry : toCreateHistoryAndMerge.entrySet()) {
+      AlertCurrentEntity entity = entry.getValue();
+      m_alertsDao.create(entity.getAlertHistory());
+      m_alertsDao.merge(entity);
 
       if (LOG.isDebugEnabled()) {
         LOG.debug(
-            "Alert State Merged: CurrentId {}, CurrentTimestamp {}, HistoryId {}, HistoryState {}",
-            current.getAlertId(), current.getLatestTimestamp(),
-            current.getAlertHistory().getAlertId(),
-            current.getAlertHistory().getAlertState());
+          "Alert State Merged: CurrentId {}, CurrentTimestamp {}, HistoryId {}, HistoryState {}",
+          entity.getAlertId(), entity.getLatestTimestamp(),
+          entity.getAlertHistory().getAlertId(),
+          entity.getAlertHistory().getAlertState());
       }
-
-      // broadcast the alert changed event for other subscribers
-      AlertStateChangeEvent alertChangedEvent = new AlertStateChangeEvent(
-          event.getClusterId(), event.getAlert(), current,
-          oldState);
-
-      m_alertEventPublisher.publish(alertChangedEvent);
     }
   }
 

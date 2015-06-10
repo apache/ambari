@@ -19,6 +19,9 @@ package org.apache.ambari.server.events;
 
 import org.apache.ambari.server.state.Alert;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * The {@link AlertEvent} class is the base for all events related to alerts.
  */
@@ -26,6 +29,7 @@ public abstract class AlertEvent {
 
   protected long m_clusterId;
   protected Alert m_alert;
+  protected List<Alert> m_alerts;
 
   /**
    * Constructor.
@@ -36,6 +40,10 @@ public abstract class AlertEvent {
   public AlertEvent(long clusterId, Alert alert) {
     m_clusterId = clusterId;
     m_alert = alert;
+  }
+
+  public AlertEvent(List<Alert> m_alerts) {
+    this.m_alerts = m_alerts;
   }
 
   /**
@@ -54,5 +62,17 @@ public abstract class AlertEvent {
    */
   public Alert getAlert(){
     return m_alert;
+  }
+
+  /**
+   * Gets list of alerts this event was created for
+   * @return
+   */
+  public List<Alert> getAlerts() {
+    if (m_alerts != null) {
+      return m_alerts;
+    } else {
+      return Collections.singletonList(m_alert);
+    }
   }
 }

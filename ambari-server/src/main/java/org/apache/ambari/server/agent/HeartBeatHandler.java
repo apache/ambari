@@ -309,22 +309,9 @@ public class HeartBeatHandler {
     }
 
     if (null != heartbeat.getAlerts()) {
-      for (Alert alert : heartbeat.getAlerts()) {
-        if (null == alert.getHostName()) {
-          alert.setHostName(hostname);
-        }
+      AlertEvent event = new AlertReceivedEvent(heartbeat.getAlerts());
+      alertEventPublisher.publish(event);
 
-        try {
-          Cluster cluster = clusterFsm.getCluster(alert.getCluster());
-          AlertEvent event = new AlertReceivedEvent(cluster.getClusterId(),
-              alert);
-          alertEventPublisher.publish(event);
-        } catch (AmbariException ambariException) {
-          LOG.warn(
-              "Unable to process alerts because the cluster {} does not exist",
-              alert.getCluster());
-        }
-      }
     }
   }
 
