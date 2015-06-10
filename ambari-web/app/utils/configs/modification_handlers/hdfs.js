@@ -26,13 +26,13 @@ module.exports = App.ServiceConfigModificationHandler.create({
     var newValue = changedConfig.get("value");
     var rangerPluginEnabledName = "ranger-hdfs-plugin-enabled";
     var affectedPropertyName = changedConfig.get("name");
-    if (affectedPropertyName == rangerPluginEnabledName) {
+    if (App.get('isHadoop23Stack') && affectedPropertyName == rangerPluginEnabledName) {
       var configDfsPermissionsEnabled = this.getConfig(allConfigs, 'dfs.permissions.enabled', 'hdfs-site.xml', 'HDFS');
       var configAttributesProviderClass = this.getConfig(allConfigs, 'dfs.namenode.inode.attributes.provider.class', 'hdfs-site.xml', 'HDFS');
       var isAttributesProviderClassSet = typeof configAttributesProviderClass !== 'undefined';
 
       var rangerPluginEnabled = newValue == "Yes";
-      var newDfsPermissionsEnabled = rangerPluginEnabled ? "true" : "true";
+      var newDfsPermissionsEnabled = rangerPluginEnabled ? "true" : "false";
       var newAttributesProviderClass = 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer';
 
       // Add HDFS-Ranger configs

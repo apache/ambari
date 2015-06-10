@@ -65,7 +65,7 @@ module.exports = App.ServiceConfigModificationHandler.create({
         currentUsers = currentAclValueSplits[0];
         currentGroups = currentAclValueSplits[1];
       } else {
-        currentUsers = currentAclValueSplits.length > 0 ? currentAclValueSplits.shift() : ''
+        currentUsers = currentAclValueSplits.length > 0 ? currentAclValueSplits.shift() : '';
         currentGroups = currentAclValueSplits.join(" ");
       }
       var currentUserList = currentUsers.split(',').filter(function(i) { return !Em.isEmpty(i); });
