@@ -148,7 +148,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * Indicates whether or not to alter the names of the data store entities to
    * avoid db reserved word conflicts.
    */
-  @Column(name = "alter_names")
+  @Column(name = "alter_names", nullable = false)
   @Basic
   private Integer alterNames;
 
@@ -216,6 +216,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
 
   public ViewInstanceEntity() {
     instanceConfig = null;
+    this.alterNames = 1;
   }
 
   /**
