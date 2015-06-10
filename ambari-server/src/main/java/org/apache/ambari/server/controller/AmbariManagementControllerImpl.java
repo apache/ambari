@@ -4221,7 +4221,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               }
             }
             widgetLayoutDAO.mergeWithFlush(existingLayoutEntity);
-            widgetLayoutDAO.refresh(existingLayoutEntity);
           }
         }
       }
