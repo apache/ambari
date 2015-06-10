@@ -90,17 +90,17 @@ storm_zookeeper_port = config['configurations']['storm-site']['storm.zookeeper.p
 nimbus_seeds_supported = default('/configurations/storm-env/nimbus_seeds_supported', False)
 nimbus_host = default('/configurations/storm-site/nimbus.host', None)
 nimbus_seeds = default('/configurations/storm-site/nimbus.seeds', None)
-default_topology_max_replication_wait_time_sec = default('/configurations/storm-site/topology.max.replication.wait.time.sec.default', None)
-actual_topology_max_replication_wait_time_sec = default('/configurations/storm-site/topology.max.replication.wait.time.sec', None)
+default_topology_max_replication_wait_time_sec = default('/configurations/storm-site/topology.max.replication.wait.time.sec.default', -1)
 nimbus_hosts = default("/clusterHostInfo/nimbus_hosts", [])
-actual_topology_min_replication_count = default('/configurations/storm-site/topology.min.replication.count', None)
-default_topology_min_replication_count = default('/configurations/storm-site/topology.min.replication.count.default', None)
+default_topology_min_replication_count = default('/configurations/storm-site/topology.min.replication.count.default', 1)
 
 #Calculate topology.max.replication.wait.time.sec and topology.min.replication.count
 if len(nimbus_hosts) > 1:
+  # for HA Nimbus
   actual_topology_max_replication_wait_time_sec = -1
   actual_topology_min_replication_count = 2
 else:
+  # for non-HA Nimbus
   actual_topology_max_replication_wait_time_sec = default_topology_max_replication_wait_time_sec
   actual_topology_min_replication_count = default_topology_min_replication_count 
   

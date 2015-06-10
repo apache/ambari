@@ -27,7 +27,7 @@
   <property>
     <name>topology.min.replication.count.default</name>
     <value>1</value>
-    <description>Dafault minimum number of nimbus hosts where the code must be replicated before leader nimbus can mark the topology as active and create assignments. </description>
+    <description>Default minimum number of nimbus hosts where the code must be replicated before leader nimbus can mark the topology as active and create assignments. </description>
   </property>
   <property>
     <name>topology.min.replication.count</name>
