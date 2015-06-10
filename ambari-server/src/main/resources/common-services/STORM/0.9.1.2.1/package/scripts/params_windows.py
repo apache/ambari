@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 from status_params import *
+from resource_management.libraries.functions.default import default
 
 # server configurations
 config = Script.get_config()
@@ -32,17 +33,17 @@ hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
 storm_user = hadoop_user
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-default_topology_max_replication_wait_time_sec = default('/configurations/storm-site/topology.max.replication.wait.time.sec.default', None)
-actual_topology_max_replication_wait_time_sec = default('/configurations/storm-site/topology.max.replication.wait.time.sec', None)
+default_topology_max_replication_wait_time_sec = default('/configurations/storm-site/topology.max.replication.wait.time.sec.default', -1)
 nimbus_hosts = default("/clusterHostInfo/nimbus_hosts", [])
-actual_topology_min_replication_count = default('/configurations/storm-site/topology.min.replication.count', None)
-default_topology_min_replication_count = default('/configurations/storm-site/topology.min.replication.count.default', None)
+default_topology_min_replication_count = default('/configurations/storm-site/topology.min.replication.count.default', 1)
 
 #Calculate topology.max.replication.wait.time.sec and topology.min.replication.count
 if len(nimbus_hosts) > 1:
+  # for HA Nimbus
   actual_topology_max_replication_wait_time_sec = -1
   actual_topology_min_replication_count = 2
 else:
+  # for non-HA Nimbus
   actual_topology_max_replication_wait_time_sec = default_topology_max_replication_wait_time_sec
   actual_topology_min_replication_count = default_topology_min_replication_count
 
