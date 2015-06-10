@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.ws.rs.WebApplicationException;
 
@@ -210,6 +211,27 @@ public class StackAdvisorCommandTest {
     Iterator<JsonNode> stackVersionsElements = stackVersions.getElements();
     assertEquals("0.9", stackVersionsElements.next().asText());
     assertEquals("0.8", stackVersionsElements.next().asText());
+  }
+
+  @Test
+  public void testPopulateAmbariServerProperties() throws Exception {
+    File file = mock(File.class);
+    StackAdvisorRunner stackAdvisorRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo ambariMetaInfo = mock(AmbariMetaInfo.class);
+    StackAdvisorCommand<TestResource> cmd = new TestStackAdvisorCommand(file, "test", 1,
+      stackAdvisorRunner, ambariMetaInfo);
+    ObjectNode objectNode = (ObjectNode) cmd.mapper.readTree("{\"Versions\": " +
+      "{\"stack_name\": \"stack\", \"stack_version\":\"1.0.0\"}}");
+
+    Map<String, String> props = Collections.singletonMap("a", "b");
+
+    doReturn(props).when(ambariMetaInfo).getAmbariServerProperties();
+
+    cmd.populateAmbariServerInfo(objectNode);
+
+    JsonNode serverProperties = objectNode.get("ambari-server-properties");
+    assertNotNull(serverProperties);
+    assertEquals("b", serverProperties.iterator().next().getTextValue());
   }
 
   @Test

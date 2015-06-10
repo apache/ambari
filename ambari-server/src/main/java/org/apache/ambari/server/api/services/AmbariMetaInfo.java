@@ -206,6 +206,8 @@ public class AmbariMetaInfo {
    */
   private StackManager stackManager;
 
+  private Configuration conf;
+
   /**
    * Ambari Meta Info Object
    *
@@ -214,6 +216,7 @@ public class AmbariMetaInfo {
    */
   @Inject
   public AmbariMetaInfo(Configuration conf) throws Exception {
+    this.conf = conf;
     String stackPath = conf.getMetadataPath();
     stackRoot = new File(stackPath);
 
@@ -1283,4 +1286,10 @@ public class AmbariMetaInfo {
     return kerberosServiceDescriptors;
   }
 
+  /* Return ambari.properties from configuration API. This is to avoid
+  changing interface impls that do not use injection or use partial
+  injection like Stack Advisor Commands */
+  public Map<String, String> getAmbariServerProperties() {
+    return conf.getAmbariProperties();
+  }
 }

@@ -16,6 +16,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import os
+import fnmatch
+import socket
 
 class HDP23StackAdvisor(HDP22StackAdvisor):
 
@@ -45,6 +48,39 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       if services["configurations"]["tez-site"]["properties"]["tez.runtime.sorter.class"] == "LEGACY":
         putTezAttribute = self.putPropertyAttribute(configurations, "tez-site")
         putTezAttribute("tez.runtime.io.sort.mb", "maximum", 2047)
+    pass
+
+    serverProperties = services["ambari-server-properties"]
+    latest_tez_jar_version = None
+
+    server_host = socket.getfqdn()
+    server_port = '8080'
+    views_dir = '/var/lib/ambari-server/resources/views/'
+
+    if serverProperties:
+      if 'client.api.port' in serverProperties:
+        server_port = serverProperties['client.api.port']
+      if 'views.dir' in serverProperties:
+        views_dir = serverProperties['views.dir']
+
+      if os.path.exists(views_dir) and os.path.isdir(views_dir):
+        last_version = '0.0.0'
+        for file in os.listdir(views_dir):
+          if fnmatch.fnmatch(file, 'tez-view*.jar'):
+            current_version = file.lstrip("tez-view-")[:-4] # E.g.: tez-view-2.1.0.2043.jar
+            if self.versionCompare(current_version, last_version) >= 0:
+              latest_tez_jar_version = current_version
+              last_version = current_version
+            pass
+        pass
+      pass
+    pass
+
+
+    if latest_tez_jar_version:
+      tez_url = 'http://{0}:{1}/views/TEZ/{2}/TEZ_CLUSTER_INSTANCE'.format(server_host, server_port, latest_tez_jar_version)
+      putTezProperty("tez.tez-ui.history-url.base", tez_url)
+    pass
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
