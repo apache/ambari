@@ -65,7 +65,7 @@ class NimbusDefault(Nimbus):
     import params
     env.set_params(params)
     self.configure(env)
-    setup_ranger_storm()    
+    setup_ranger_storm(rolling_upgrade=rolling_restart)
     service("nimbus", action="start")
 
 

@@ -150,7 +150,7 @@ class KnoxGatewayDefault(KnoxGateway):
     self.configure(env)
     daemon_cmd = format('{knox_bin} start')
     no_op_test = format('ls {knox_pid_file} >/dev/null 2>&1 && ps -p `cat {knox_pid_file}` >/dev/null 2>&1')
-    setup_ranger_knox()
+    setup_ranger_knox(rolling_upgrade=rolling_restart)
     # Used to setup symlink, needed to update the knox managed symlink, in case of custom locations
     if os.path.islink(params.knox_managed_pid_symlink) and os.path.realpath(params.knox_managed_pid_symlink) != params.knox_pid_dir:
       os.unlink(params.knox_managed_pid_symlink)

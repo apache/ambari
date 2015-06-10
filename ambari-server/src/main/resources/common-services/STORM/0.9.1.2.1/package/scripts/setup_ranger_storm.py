@@ -19,7 +19,7 @@ limitations under the License.
 """
 from resource_management.core.logger import Logger
 
-def setup_ranger_storm():
+def setup_ranger_storm(rolling_upgrade = False):
   import params
 
   if params.has_ranger_admin and params.security_enabled:
@@ -29,6 +29,10 @@ def setup_ranger_storm():
     else:
       from resource_management.libraries.functions.setup_ranger_plugin import setup_ranger_plugin
     
+    hdp_version = None
+    if rolling_upgrade:
+      hdp_version = params.version
+
     setup_ranger_plugin('storm-nimbus', 'storm',
                         params.downloaded_custom_connector, params.driver_curl_source,
                         params.driver_curl_target, params.java64_home,
@@ -42,7 +46,7 @@ def setup_ranger_storm():
                         plugin_policymgr_ssl_properties=params.config['configurations']['ranger-storm-policymgr-ssl'], plugin_policymgr_ssl_attributes=params.config['configuration_attributes']['ranger-storm-policymgr-ssl'],
                         component_list=['storm-client', 'storm-nimbus'], audit_db_is_enabled=params.xa_audit_db_is_enabled,
                         credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password, 
-                        ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password
-    )
+                        ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
+                        hdp_version_override = hdp_version)
   else:
     Logger.info('Ranger admin not installed')
