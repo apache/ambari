@@ -478,7 +478,9 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
               }
             } else {
               cp.set('value', initialValue);
-              cp.set('savedValue', initialValue);
+              if (!this.useInitialValue(serviceName)) {
+                cp.set('savedValue', initialValue);
+              }
               if (dependentProperty) {
                 this.get('_dependentConfigValues').removeObject(dependentProperty);
               }
