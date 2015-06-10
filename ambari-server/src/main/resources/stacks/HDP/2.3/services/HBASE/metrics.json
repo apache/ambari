@@ -372,17 +372,17 @@
               "temporal": true
             },
             "metrics/hbase/ipc/IPC/numOpenConnections": {
-              "metric": "ipc.IPC.numOpenConnections",
+              "metric": "regionserver.RegionServer.numOpenConnections",
               "pointInTime": false,
               "temporal": true
             },
             "metrics/hbase/ipc/IPC/numActiveHandler": {
-              "metric": "ipc.IPC.numActiveHandler",
+              "metric": "regionserver.RegionServer.numActiveHandler",
               "pointInTime": false,
               "temporal": true
             },
             "metrics/hbase/ipc/IPC/numCallsInGeneralQueue": {
-              "metric": "ipc.IPC.numCallsInGeneralQueue",
+              "metric": "regionserver.RegionServer.numCallsInGeneralQueue",
               "pointInTime": false,
               "temporal": true
             },
