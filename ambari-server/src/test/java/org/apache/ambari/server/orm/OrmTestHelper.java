@@ -34,6 +34,7 @@ import java.util.UUID;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -391,6 +392,14 @@ public class OrmTestHelper {
     host.persist();
 
     clusters.mapHostToCluster(hostName, cluster.getClusterName());
+  }
+
+  public void addHostComponent(Cluster cluster, String hostName, String serviceName, String componentName) throws AmbariException {
+    Service service = cluster.getService(serviceName);
+    ServiceComponent serviceComponent = service.getServiceComponent(componentName);
+    ServiceComponentHost serviceComponentHost = serviceComponent.addServiceComponentHost(hostName);
+    serviceComponentHost.setDesiredState(State.INSTALLED);
+    serviceComponentHost.persist();
   }
 
   /**

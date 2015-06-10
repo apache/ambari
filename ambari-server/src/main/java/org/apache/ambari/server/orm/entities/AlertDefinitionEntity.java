@@ -22,27 +22,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import javax.persistence.Basic;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.PreRemove;
-import javax.persistence.Table;
-import javax.persistence.TableGenerator;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
@@ -54,17 +34,22 @@ import org.apache.ambari.server.state.alert.SourceType;
  */
 @Entity
 @Table(name = "alert_definition", uniqueConstraints = @UniqueConstraint(columnNames = {
-    "cluster_id", "definition_name" }))
+  "cluster_id", "definition_name"}))
 @TableGenerator(name = "alert_definition_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_definition_id_seq", initialValue = 0)
 @NamedQueries({
-    @NamedQuery(name = "AlertDefinitionEntity.findAll", query = "SELECT ad FROM AlertDefinitionEntity ad"),
-    @NamedQuery(name = "AlertDefinitionEntity.findAllInCluster", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.clusterId = :clusterId"),
-    @NamedQuery(name = "AlertDefinitionEntity.findAllEnabledInCluster", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.clusterId = :clusterId AND ad.enabled = 1"),
-    @NamedQuery(name = "AlertDefinitionEntity.findByName", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.definitionName = :definitionName AND ad.clusterId = :clusterId"),
-    @NamedQuery(name = "AlertDefinitionEntity.findByService", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.serviceName = :serviceName AND ad.clusterId = :clusterId"),
-    @NamedQuery(name = "AlertDefinitionEntity.findByServiceAndComponent", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.serviceName = :serviceName AND ad.componentName = :componentName AND ad.clusterId = :clusterId"),
-    @NamedQuery(name = "AlertDefinitionEntity.findByServiceMaster", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.serviceName IN :services AND ad.scope = :scope AND ad.clusterId = :clusterId AND ad.componentName IS NULL"),
-    @NamedQuery(name = "AlertDefinitionEntity.findByIds", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.definitionId IN :definitionIds") })
+  @NamedQuery(name = "AlertDefinitionEntity.findAll", query = "SELECT ad FROM AlertDefinitionEntity ad"),
+  @NamedQuery(name = "AlertDefinitionEntity.findAllInCluster", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.clusterId = :clusterId"),
+  @NamedQuery(name = "AlertDefinitionEntity.findAllEnabledInCluster", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.clusterId = :clusterId AND ad.enabled = 1"),
+  @NamedQuery(name = "AlertDefinitionEntity.findByName", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.definitionName = :definitionName AND ad.clusterId = :clusterId",
+    hints = {
+      @QueryHint(name = "eclipselink.query-results-cache", value = "true"),
+      @QueryHint(name = "eclipselink.query-results-cache.size", value = "5000")
+    }),
+  @NamedQuery(name = "AlertDefinitionEntity.findByService", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.serviceName = :serviceName AND ad.clusterId = :clusterId"),
+  @NamedQuery(name = "AlertDefinitionEntity.findByServiceAndComponent", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.serviceName = :serviceName AND ad.componentName = :componentName AND ad.clusterId = :clusterId"),
+  @NamedQuery(name = "AlertDefinitionEntity.findByServiceMaster", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.serviceName IN :services AND ad.scope = :scope AND ad.clusterId = :clusterId AND ad.componentName IS NULL"),
+  @NamedQuery(name = "AlertDefinitionEntity.findByIds", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.definitionId IN :definitionIds")})
+
 public class AlertDefinitionEntity {
 
   @Id
@@ -124,8 +109,8 @@ public class AlertDefinitionEntity {
   /**
    * Bi-directional many-to-many association to {@link AlertGroupEntity}
    */
-  @ManyToMany(mappedBy = "alertDefinitions", cascade = { CascadeType.PERSIST,
-      CascadeType.MERGE, CascadeType.REFRESH })
+  @ManyToMany(mappedBy = "alertDefinitions", cascade = {CascadeType.PERSIST,
+    CascadeType.MERGE, CascadeType.REFRESH})
   private Set<AlertGroupEntity> alertGroups;
 
   /**
@@ -146,8 +131,7 @@ public class AlertDefinitionEntity {
   /**
    * Sets the unique identifier for this alert definition.
    *
-   * @param definitionId
-   *          the ID (not {@code null}).
+   * @param definitionId the ID (not {@code null}).
    */
   public void setDefinitionId(Long definitionId) {
     this.definitionId = definitionId;
@@ -168,8 +152,7 @@ public class AlertDefinitionEntity {
    * Sets the source of the alert, typically in JSON, that defines the type of
    * the alert and its properties.
    *
-   * @param alertSource
-   *          the alert source (not {@code null}).
+   * @param alertSource the alert source (not {@code null}).
    */
   public void setSource(String alertSource) {
     source = alertSource;
@@ -191,8 +174,7 @@ public class AlertDefinitionEntity {
    * cluster has their own set of alert definitions that are not shared with any
    * other cluster.
    *
-   * @param clusterId
-   *          the ID of the cluster (not {@code null}).
+   * @param clusterId the ID of the cluster (not {@code null}).
    */
   public void setClusterId(Long clusterId) {
     this.clusterId = clusterId;
@@ -230,8 +212,7 @@ public class AlertDefinitionEntity {
    * Sets the component name that this alert is associated with, if any. Some
    * alerts are scoped at the service level and will not have a component name.
    *
-   * @param componentName
-   *          the component name or {@code null} if none.
+   * @param componentName the component name or {@code null} if none.
    */
   public void setComponentName(String componentName) {
     this.componentName = componentName;
@@ -251,8 +232,7 @@ public class AlertDefinitionEntity {
    * Sets the scope of the alert definition. The scope is defined as either
    * being for a {@link Scope#SERVICE} or {@link Scope#HOST}.
    *
-   * @param scope
-   *          the scope to set, or {@code null} for none.
+   * @param scope the scope to set, or {@code null} for none.
    */
   public void setScope(Scope scope) {
     this.scope = scope;
@@ -272,8 +252,7 @@ public class AlertDefinitionEntity {
    * Sets the name of this alert definition. Alert definition names are unique
    * within a cluster.
    *
-   * @param definitionName
-   *          the name of the alert definition (not {@code null}).
+   * @param definitionName the name of the alert definition (not {@code null}).
    */
   public void setDefinitionName(String definitionName) {
     this.definitionName = definitionName;
@@ -285,7 +264,7 @@ public class AlertDefinitionEntity {
    * be triggered and no alert data will be collected.
    *
    * @return {@code true} if this alert definition is enabled, {@code false}
-   *         otherwise.
+   * otherwise.
    */
   public boolean getEnabled() {
     return enabled == Integer.valueOf(0) ? false : true;
@@ -294,9 +273,8 @@ public class AlertDefinitionEntity {
   /**
    * Sets whether this alert definition is enabled.
    *
-   * @param enabled
-   *          {@code true} if this alert definition is enabled, {@code false}
-   *          otherwise.
+   * @param enabled {@code true} if this alert definition is enabled, {@code false}
+   *                otherwise.
    */
   public void setEnabled(boolean enabled) {
     this.enabled = enabled ? Integer.valueOf(1) : Integer.valueOf(0);
@@ -307,8 +285,8 @@ public class AlertDefinitionEntity {
    * alert and combine them all into a single alert entry.
    *
    * @return {@code true} if this alert definition is to ignore hosts and
-   *         combine all alert instances into a single entry, {@code false}
-   *         otherwise.
+   * combine all alert instances into a single entry, {@code false}
+   * otherwise.
    */
   public boolean isHostIgnored() {
     return ignoreHost == Integer.valueOf(0) ? false : true;
@@ -318,10 +296,9 @@ public class AlertDefinitionEntity {
    * Sets whether this alert definition will ignore the hosts reporting the
    * alert and combine them all into a single alert entry.
    *
-   * @param ignoreHost
-   *          {@code true} if this alert definition is to ignore hosts and
-   *          combine all alert instances into a single entry, {@code false}
-   *          otherwise.
+   * @param ignoreHost {@code true} if this alert definition is to ignore hosts and
+   *                   combine all alert instances into a single entry, {@code false}
+   *                   otherwise.
    */
   public void setHostIgnored(boolean ignoreHost) {
     this.ignoreHost = ignoreHost ? Integer.valueOf(1) : Integer.valueOf(0);
@@ -341,8 +318,7 @@ public class AlertDefinitionEntity {
    * Gets the unique hash for the current state of this definition. If a
    * property of this definition changes, a new hash is calculated.
    *
-   * @param hash
-   *          the unique hash to set or {@code null} for none.
+   * @param hash the unique hash to set or {@code null} for none.
    */
   public void setHash(String hash) {
     this.hash = hash;
@@ -360,8 +336,7 @@ public class AlertDefinitionEntity {
   /**
    * Sets the alert trigger interval, in seconds.
    *
-   * @param scheduleInterval
-   *          the interval, in seconds.
+   * @param scheduleInterval the interval, in seconds.
    */
   public void setScheduleInterval(Integer scheduleInterval) {
     this.scheduleInterval = scheduleInterval;
@@ -381,8 +356,7 @@ public class AlertDefinitionEntity {
    * Gets the name of the service that this alert definition is associated with.
    * Every alert definition is associated with exactly one service.
    *
-   * @param serviceName
-   *          the name of the service (not {@code null}).
+   * @param serviceName the name of the service (not {@code null}).
    */
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
@@ -414,8 +388,7 @@ public class AlertDefinitionEntity {
   /**
    * Sets the alert groups that this alert definition is associated with.
    *
-   * @param alertGroups
-   *          the groups, or {@code null} for none.
+   * @param alertGroups the groups, or {@code null} for none.
    */
   public void setAlertGroups(Set<AlertGroupEntity> alertGroups) {
     this.alertGroups = alertGroups;
@@ -424,8 +397,7 @@ public class AlertDefinitionEntity {
   /**
    * Sets a human readable label for this alert definition.
    *
-   * @param label
-   *          the label or {@code null} if none.
+   * @param label the label or {@code null} if none.
    */
   public void setLabel(String label) {
     this.label = label;
@@ -452,8 +424,7 @@ public class AlertDefinitionEntity {
   /**
    * Gets the optional description for this alert definition.
    *
-   * @param description
-   *          the description to set or {@code null} for none.
+   * @param description the description to set or {@code null} for none.
    */
   public void setDescription(String description) {
     this.description = description;
@@ -522,7 +493,7 @@ public class AlertDefinitionEntity {
     AlertDefinitionEntity that = (AlertDefinitionEntity) object;
 
     if (definitionId != null ? !definitionId.equals(that.definitionId)
-        : that.definitionId != null) {
+      : that.definitionId != null) {
       return false;
     }
 

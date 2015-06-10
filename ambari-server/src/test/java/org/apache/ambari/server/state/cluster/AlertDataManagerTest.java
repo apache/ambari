@@ -87,7 +87,7 @@ public class AlertDataManagerTest {
 
   private static final String ALERT_DEFINITION = "Alert Definition 1";
   private static final String SERVICE = "HDFS";
-  private static final String COMPONENT = "component1";
+  private static final String COMPONENT = "DATANODE";
   private static final String HOST1 = "h1";
   private static final String HOST2 = "h2";
   private static final String ALERT_LABEL = "My Label";
@@ -125,6 +125,7 @@ public class AlertDataManagerTest {
         m_componentFactory, m_schFactory, HOST1);
 
     m_helper.addHost(m_clusters, m_cluster, HOST2);
+    m_helper.addHostComponent(m_cluster, HOST2, SERVICE, COMPONENT);
 
     // create 5 definitions
     for (int i = 0; i < 5; i++) {
@@ -157,11 +158,14 @@ public class AlertDataManagerTest {
     alert1.setLabel(ALERT_LABEL);
     alert1.setText("Component component1 is OK");
     alert1.setTimestamp(1L);
+    alert1.setCluster(m_cluster.getClusterName());
 
     Alert alert2 = new Alert(ALERT_DEFINITION, null, SERVICE, COMPONENT, HOST2,
         AlertState.CRITICAL);
     alert2.setLabel(ALERT_LABEL);
     alert2.setText("Component component2 is not OK");
+    alert2.setCluster(m_cluster.getClusterName());
+
 
     AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
 
@@ -203,6 +207,7 @@ public class AlertDataManagerTest {
     alert3.setLabel(ALERT_LABEL);
     alert3.setText("Component component1 is OK");
     alert3.setTimestamp(2L);
+    alert3.setCluster(m_cluster.getClusterName());
 
     AlertReceivedEvent event3 = new AlertReceivedEvent(
         m_cluster.getClusterId(),
@@ -235,6 +240,8 @@ public class AlertDataManagerTest {
     alert4.setLabel(ALERT_LABEL);
     alert4.setText("Component component1 is about to go down");
     alert4.setTimestamp(3L);
+    alert4.setCluster(m_cluster.getClusterName());
+
 
     AlertReceivedEvent event4 = new AlertReceivedEvent(
         m_cluster.getClusterId(),

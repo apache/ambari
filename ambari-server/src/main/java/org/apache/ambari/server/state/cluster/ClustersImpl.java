@@ -256,7 +256,10 @@ public class ClustersImpl implements Clusters {
       throws AmbariException {
     checkLoaded();
 
-    Cluster cluster = clusters.get(clusterName);
+    Cluster cluster = null;
+    if (clusterName != null) {
+      cluster = clusters.get(clusterName);
+    }
     if (null == cluster) {
       throw new ClusterNotFoundException(clusterName);
     }

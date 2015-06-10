@@ -19,6 +19,8 @@ package org.apache.ambari.server.events;
 
 import org.apache.ambari.server.state.Alert;
 
+import java.util.List;
+
 /**
  * The {@link AlertReceivedEvent} is fired when an {@link Alert} is received or
  * generated.
@@ -35,6 +37,10 @@ public final class AlertReceivedEvent extends AlertEvent {
     super(clusterId, alert);
   }
 
+  public AlertReceivedEvent(List<Alert> alerts) {
+    super(alerts);
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -42,8 +48,7 @@ public final class AlertReceivedEvent extends AlertEvent {
   public String toString() {
     StringBuilder buffer = new StringBuilder("AlertReceivedEvent{ ");
     buffer.append("cluserId=").append(m_clusterId);
-    buffer.append(", alert=").append(m_alert);
-
+    buffer.append(", alerts=").append(getAlerts());
     buffer.append("}");
     return buffer.toString();
   }
