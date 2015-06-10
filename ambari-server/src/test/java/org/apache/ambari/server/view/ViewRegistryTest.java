@@ -227,18 +227,22 @@ public class ViewRegistryTest {
         clusters);
   }
 
-
   @Test
   public void testReadViewArchives() throws Exception {
-    testReadViewArchives(false);
+    testReadViewArchives(false, false);
+  }
+
+  @Test
+  public void testReadViewArchives_removeUndeployed() throws Exception {
+    testReadViewArchives(false, true);
   }
 
   @Test
   public void testReadViewArchives_badArchive() throws Exception {
-    testReadViewArchives(true);
+    testReadViewArchives(true, false);
   }
 
-  private void testReadViewArchives(boolean badArchive) throws Exception {
+  private void testReadViewArchives(boolean badArchive, boolean removeUndeployed) throws Exception {
 
     File viewDir = createNiceMock(File.class);
     File extractedArchiveDir = createNiceMock(File.class);
@@ -380,7 +384,10 @@ public class ViewRegistryTest {
     expect(libDir.listFiles()).andReturn(new File[]{fileEntry}).anyTimes();
     expect(fileEntry.toURI()).andReturn(new URI("file:./")).anyTimes();
 
-    expect(viewDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
+    expect(configuration.isViewRemoveUndeployedEnabled()).andReturn(removeUndeployed).anyTimes();
+    if (removeUndeployed) {
+      expect(viewDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
+    }
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
@@ -553,7 +560,6 @@ public class ViewRegistryTest {
     expect(libDir.listFiles()).andReturn(new File[]{fileEntry});
     expect(fileEntry.toURI()).andReturn(new URI("file:./"));
 
-    expect(viewDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
     expect(viewDAO.findByName("MY_VIEW{1.0.0}")).andThrow(new IllegalArgumentException("Expected exception."));
 
     // replay mocks
