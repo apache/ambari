@@ -54,6 +54,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
                    "-server -Xmx" + str(int(0.8 * clusterData["amMemory"]))
                    + "m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC")
 
+
   def getNotPreferableOnServerComponents(self):
     return ['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS', 'GANGLIA_SERVER']
 

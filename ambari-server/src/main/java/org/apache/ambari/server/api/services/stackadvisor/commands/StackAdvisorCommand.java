@@ -46,6 +46,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.JsonNode;
@@ -87,6 +88,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private static final String COMPONENT_HOSTNAMES_PROPERTY = "hostnames";
   private static final String CONFIGURATIONS_PROPERTY = "configurations";
   private static final String CHANGED_CONFIGURATIONS_PROPERTY = "changed-configurations";
+  private static final String AMBARI_SERVER_CONFIGURATIONS_PROPERTY = "ambari-server-properties";
 
   private File recommendationsDir;
   private String stackAdvisorScript;
@@ -148,6 +150,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       populateComponentHostsMap(root, request.getComponentHostsMap());
       populateConfigurations(root, request);
       populateConfigGroups(root, request);
+      populateAmbariServerInfo(root);
       data.servicesJSON = mapper.writeValueAsString(root);
     } catch (Exception e) {
       // should not happen
@@ -157,6 +160,15 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     }
 
     return data;
+  }
+
+  protected void populateAmbariServerInfo(ObjectNode root) throws StackAdvisorException {
+    Map<String, String> serverProperties = metaInfo.getAmbariServerProperties();
+
+    if (serverProperties != null && !serverProperties.isEmpty()) {
+      JsonNode serverPropertiesNode = mapper.convertValue(serverProperties, JsonNode.class);
+      root.put(AMBARI_SERVER_CONFIGURATIONS_PROPERTY, serverPropertiesNode);
+    }
   }
 
   private void populateConfigurations(ObjectNode root,

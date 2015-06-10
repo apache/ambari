@@ -20,7 +20,6 @@ limitations under the License.
 import socket
 import re
 
-
 class StackAdvisor(object):
   """
   Abstract class implemented by all stack advisors. Stack advisors advise on stack specific questions. 
@@ -756,3 +755,9 @@ class DefaultStackAdvisor(StackAdvisor):
               dependencies.append(dependency)
 
     return  dependencies
+
+  def versionCompare(self, version1, version2):
+    def normalize(v):
+      return [int(x) for x in re.sub(r'(\.0+)*$','', v).split(".")]
+    return cmp(normalize(version1), normalize(version2))
+  pass
