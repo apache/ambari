@@ -134,6 +134,15 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     return new BlueprintPostProcessor(request);
   }
 
+  @Override
+  public boolean requiresPropertyProviderInput() {
+    // the Blueprint-based renderer does not require property provider input
+    // this method will help to filter out the un-necessary calls to the AMS
+    // and Alerts Property providers, since they are not included in the
+    // exported Blueprint
+    return false;
+  }
+
   // ----- private instance methods ------------------------------------------
 
   /**
