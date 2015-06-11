@@ -32,112 +32,48 @@ describe('App.serviceMetricsMapper', function () {
         {
           components: [
             {
-              ServiceComponentInfo: {
-                component_name: "HBASE_MASTER",
-                RegionsInTransition : [ ]
-              },
-              host_components: [
-                {
-                  metrics:{
-                    hbase: {
-                      master: {
-                        IsActiveMaster: 'true',
-                        AverageLoad: 1.23456789
-                      }
-                    },
-                    master: {
-                      AssignmentManger: {
-                        ritCount: 0
-                      }
-                    }
-                  }
+                ServiceComponentInfo: {
+                  AverageLoad: 1.23456789,
+                  component_name: "HBASE_MASTER",
+                  RegionsInTransition : [ ]
                 }
-              ]
-            }
+              }
           ],
           e: '1.23'
         },
         {
           components: [
             {
-              ServiceComponentInfo: {
-                component_name: "HBASE_MASTER",
-                RegionsInTransition : [ ]
-              },
-              host_components: [
-                {
-                  metrics:{
-                    hbase: {
-                      master: {
-                        IsActiveMaster: 'true',
-                        AverageLoad: 1.00
-                      }
-                    },
-                    master: {
-                      AssignmentManger: {
-                        ritCount: 0
-                      }
-                    }
-                  }
+                ServiceComponentInfo: {
+                  AverageLoad: 1.00,
+                  component_name: "HBASE_MASTER",
+                  RegionsInTransition : [ ]
                 }
-              ]
-            }
+              }
           ],
           e: '1.00'
         },
         {
           components: [
             {
-              ServiceComponentInfo: {
-                component_name: "HBASE_MASTER",
-                RegionsInTransition : [ ]
-              },
-              host_components: [
-                {
-                  metrics:{
-                    hbase: {
-                      master: {
-                        IsActiveMaster: 'true',
-                        AverageLoad: 1
-                      }
-                    },
-                    master: {
-                      AssignmentManger: {
-                        ritCount: 0
-                      }
-                    }
-                  }
+                ServiceComponentInfo: {
+                  AverageLoad: 1,
+                  component_name: "HBASE_MASTER",
+                  RegionsInTransition : [ ]
                 }
-              ]
-            }
+              }
           ],
           e: '1.00'
         },
         {
           components: [
             {
-              ServiceComponentInfo: {
-                component_name: "HBASE_MASTER",
-                RegionsInTransition : [ ]
-              },
-              host_components: [
-                {
-                  metrics:{
-                    hbase: {
-                      master: {
-                        IsActiveMaster: 'true',
-                        AverageLoad: 1.2
-                      }
-                    },
-                    master: {
-                      AssignmentManger: {
-                        ritCount: 0
-                      }
-                    }
-                  }
+                ServiceComponentInfo: {
+                  AverageLoad: 1.2,
+                  component_name: "HBASE_MASTER",
+                  RegionsInTransition : [ ]
                 }
-              ]
-            }
+              }
           ],
           e: '1.20'
         }
