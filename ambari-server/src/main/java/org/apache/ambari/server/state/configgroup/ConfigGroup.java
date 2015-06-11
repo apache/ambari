@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.state.configgroup;
 
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ConfigGroupResponse;
 import org.apache.ambari.server.state.Config;
@@ -96,8 +95,12 @@ public interface ConfigGroup {
    * Persist the Config group along with the related host and config mapping
    * entities to the persistence store
    */
-  @Transactional
   void persist();
+
+  /**
+   * Persist the host mapping entity to the persistence store
+   */
+  void persistHostMapping();
 
   /**
    * Delete config group and the related host and config mapping
@@ -130,7 +133,6 @@ public interface ConfigGroup {
   /**
    * Refresh Config group and the host and config mappings for the group
    */
-  @Transactional
   public void refresh();
 
   /**

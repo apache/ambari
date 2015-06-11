@@ -405,13 +405,17 @@ public class AmbariContext {
     for (ConfigGroup group : configGroups.values()) {
       if (group.getName().equals(qualifiedGroupName)) {
         try {
-          group.addHost(clusters.getHost(hostName));
-          group.persist();
+          Host host = clusters.getHost(hostName);
           addedHost = true;
+          if (! group.getHosts().containsKey(host.getHostId())) {
+            group.addHost(host);
+            group.persistHostMapping();
+          }
+
         } catch (AmbariException e) {
           // shouldn't occur, this host was just added to the cluster
           throw new RuntimeException(String.format(
-              "Unable to obtain newly created host '%s' from cluster '%s'", hostName, topology.getClusterName()));
+              "An error occurred while registering host '%s' with config group '%s' ", hostName, group.getName()), e);
         }
       }
     }
