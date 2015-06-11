@@ -22,7 +22,7 @@
   </button>
 {{else}}
   <div class="input-group input-group-sm pull-right mkdir-area">
-    {{input class="form-control mkdir-input" valueBinding='newDirName' placeholder="Enter Directory Name"}}
+    {{input class="form-control mkdir-input" valueBinding='newDirName' placeholder="Enter Directory Name" enter='create'}}
     <div class="input-group-btn">
       <button  type="button" {{action 'cancel'}} {{bind-attr class=":btn :btn-danger :btn-sm :btn-mkdir-cancel"}} >
         <i class="fa fa-times"></i> Cancel

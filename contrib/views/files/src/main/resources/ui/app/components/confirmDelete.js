@@ -33,7 +33,9 @@ App.DropdownWrapComponent = Em.Component.extend({
 App.ConfirmDeleteComponent = Em.Component.extend({
   layoutName:'components/deleteBulk',
   tagName:'li',
+  classNameBindings:['access::disabled'],
   deleteForever:false,
+  access:false,
   isRemoving:false,
   cancelRemoving:function () {
     this.set('isRemoving',false);
@@ -45,15 +47,19 @@ App.ConfirmDeleteComponent = Em.Component.extend({
   },
   actions:{
     ask:function () {
-      this.get('parentView').trigger('resetConfirm');
-      this.set('isRemoving',true);
+      if (this.get('access')) {
+        this.get('parentView').trigger('resetConfirm');
+        this.set('isRemoving',true);
+      }
       return false;
     },
     cancel:function () {
       this.cancelRemoving();
     },
     confirm:function () {
-      this.sendAction('confirm',this.get('deleteForever'));
+      if (this.get('access')) {
+        this.sendAction('confirm',this.get('deleteForever'));
+      }
     }
   }
 });

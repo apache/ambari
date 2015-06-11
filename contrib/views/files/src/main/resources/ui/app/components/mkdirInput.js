@@ -41,5 +41,10 @@ App.MkdirInputComponent = Em.Component.extend({
     cancel:function () {
       this.setProperties({'newDirName':'','isMkdir':false});
     }
-  }
+  },
+  focusOnInput: function () {
+    Em.run.next(this,function() {
+      this.$('.mkdir-input').focus();
+    });
+  }.observes('isMkdir'),
 });

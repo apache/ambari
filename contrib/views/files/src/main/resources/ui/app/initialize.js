@@ -78,6 +78,7 @@ require('components/toggleContext');
 /////////////////////////////////
 
 require('views/file');
+require('views/files');
 require('views/filesAlert');
 require('views/modalChmod');
 

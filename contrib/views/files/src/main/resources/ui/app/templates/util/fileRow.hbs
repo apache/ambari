@@ -67,7 +67,9 @@
         <li>
           <a href="#" {{action 'moveFile' 'cut' this.content}} data-toggle="tooltip" data-placement="bottom" title="Move"><i class="fa fa-level-down fa-rotate-270 fa-fw fa-lg"></i></a>
         </li>
-        <li>{{popover-delete confirm="deleteFile"}}</li>
+        {{#if dirInfo.writeAccess}}
+          <li>{{popover-delete confirm="deleteFile"}}</li>
+        {{/if}}
       </ul>
     {{/unless}}
   </td>

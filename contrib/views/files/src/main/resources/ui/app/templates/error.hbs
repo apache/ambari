@@ -17,21 +17,16 @@
 }}
 
 <div class="container">
-    <div class="alert alert-danger collapse-group">
-        <strong>{{content.status}}</strong> {{publicMessage}}
-    </div>
+  <div class="alert alert-danger collapse-group">
+    <strong>{{content.status}}</strong> {{publicMessage}}
+  </div>
   {{#if stackTrace}}
       <a href="#" {{action "toggleStackTrace" post}}>
-        {{#if isExpanded}}
-            <span class="glyphicon glyphicon-collapse-down"></span> Collapse Stack Trace
-        {{else}}
-            <span class="glyphicon glyphicon-expand"></span> Expand Stack Trace
-        {{/if}}
+        <i {{bind-attr class=":fa isExpanded:fa-toggle-down:fa-toggle-right"}}></i>
+        {{#if isExpanded}} Collapse Stack Trace {{else}} Expand Stack Trace {{/if}}
       </a>
     {{#if isExpanded}}
-        <pre class="prettyprint">
-{{stackTrace}}
-        </pre>
+        <pre class="prettyprint">{{stackTrace}}</pre>
     {{/if}}
   {{/if}}
 </div>
