@@ -18,15 +18,16 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import com.google.inject.persist.UnitOfWork;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
@@ -77,6 +78,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
 
 /**
  * Tests upgrade-related server side actions
@@ -469,6 +471,16 @@ public class UpgradeActionTest {
 
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
 
+
+    HostVersionDAO dao = m_injector.getInstance(HostVersionDAO.class);
+
+    List<HostVersionEntity> hosts = dao.findByClusterStackAndVersion(
+        "c1", HDP_22_STACK, HDP_2_2_1_0);
+    assertFalse(hosts.isEmpty());
+    for (HostVersionEntity hve : hosts) {
+      assertFalse(hve.getState() == RepositoryVersionState.INSTALLED);
+    }
+
     FinalizeUpgradeAction action = m_injector.getInstance(FinalizeUpgradeAction.class);
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
@@ -489,6 +501,16 @@ public class UpgradeActionTest {
     cluster = clusters.getCluster("c1");
     configs = cluster.getAllConfigs();
     assertEquals(3, configs.size());
+
+    hosts = dao.findByClusterStackAndVersion(
+        "c1", HDP_22_STACK, HDP_2_2_1_0);
+
+    hosts = dao.findByClusterStackAndVersion("c1", HDP_22_STACK, HDP_2_2_1_0);
+    assertFalse(hosts.isEmpty());
+    for (HostVersionEntity hve : hosts) {
+      assertTrue(hve.getState() == RepositoryVersionState.INSTALLED);
+    }
+
   }
 
   private ServiceComponentHost createNewServiceComponentHost(Cluster cluster, String svc,

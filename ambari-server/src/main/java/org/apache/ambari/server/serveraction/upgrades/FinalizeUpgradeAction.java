@@ -266,7 +266,6 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
     try {
       Cluster cluster = clusters.getCluster(clusterName);
-      StackId desiredClusterStackId = cluster.getDesiredStackVersion();
       StackId currentClusterStackId = cluster.getCurrentStackVersion();
 
       // this was a cross-stack upgrade, meaning that configurations were
@@ -321,7 +320,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       Set<String> badHosts = new HashSet<String>();
       for (String badVersion : badVersions) {
         List<HostVersionEntity> hostVersions = hostVersionDAO.findByClusterStackAndVersion(
-            clusterName, desiredClusterStackId, badVersion);
+            clusterName, targetStackId, badVersion);
 
         for (HostVersionEntity hostVersion : hostVersions) {
           badHosts.add(hostVersion.getHostName());
