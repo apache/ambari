@@ -2077,6 +2077,68 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testDoUpdateForClusterVerifyRetrySettingsDefault() throws Exception {
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    HashMap<String, String> clusterEnvProperties = new HashMap<String, String>();
+    configProperties.put("cluster-env", clusterEnvProperties);
+
+    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    TestHostGroup testHostGroup = new TestHostGroup("test-host-group-one", Collections.<String>emptySet(), Collections.<String>emptySet());
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, Collections.singleton(testHostGroup));
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+
+    // after update, verify that the retry properties for commands and installs are set as expected
+    assertEquals("Incorrect number of properties added to cluster-env for retry",
+      3, clusterEnvProperties.size());
+    assertEquals("command_retry_enabled was not set to the expected default",
+      "true", clusterEnvProperties.get("command_retry_enabled"));
+    assertEquals("commands_to_retry was not set to the expected default",
+      "INSTALL,START", clusterEnvProperties.get("commands_to_retry"));
+    assertEquals("command_retry_max_time_in_sec was not set to the expected default",
+      "600", clusterEnvProperties.get("command_retry_max_time_in_sec"));
+  }
+
+  @Test
+  public void testDoUpdateForClusterVerifyRetrySettingsCustomized() throws Exception {
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    HashMap<String, String> clusterEnvProperties = new HashMap<String, String>();
+    configProperties.put("cluster-env", clusterEnvProperties);
+
+    clusterEnvProperties.put("command_retry_enabled", "false");
+    clusterEnvProperties.put("commands_to_retry", "TEST");
+    clusterEnvProperties.put("command_retry_max_time_in_sec", "1");
+
+
+    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    TestHostGroup testHostGroup = new TestHostGroup("test-host-group-one", Collections.<String>emptySet(), Collections.<String>emptySet());
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, Collections.singleton(testHostGroup));
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+
+    // after update, verify that the retry properties for commands and installs are set as expected
+    // in this case, the customer-provided overrides should be honored, rather than the retry defaults
+    assertEquals("Incorrect number of properties added to cluster-env for retry",
+      3, clusterEnvProperties.size());
+    assertEquals("command_retry_enabled was not set to the expected default",
+      "false", clusterEnvProperties.get("command_retry_enabled"));
+    assertEquals("commands_to_retry was not set to the expected default",
+      "TEST", clusterEnvProperties.get("commands_to_retry"));
+    assertEquals("command_retry_max_time_in_sec was not set to the expected default",
+      "1", clusterEnvProperties.get("command_retry_max_time_in_sec"));
+  }
+
+  @Test
   public void testDoUpdateForClusterWithNameNodeHAEnabledSpecifyingHostNamesDirectly() throws Exception {
     final String expectedNameService = "mynameservice";
     final String expectedHostName = "c6401.apache.ambari.org";
