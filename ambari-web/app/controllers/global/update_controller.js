@@ -380,6 +380,10 @@ App.UpdateController = Em.Controller.extend({
       haComponents = App.get('isHaEnabled') ? 'ServiceComponentInfo/component_name=JOURNALNODE|ServiceComponentInfo/component_name=ZKFC|' : '',
       realUrl = '/components/?' + flumeHandlerParam + atsHandlerParam + haComponents +
         'ServiceComponentInfo/category=MASTER&fields=' +
+        'ServiceComponentInfo/Version,' +
+        'ServiceComponentInfo/StartTime,' +
+        'ServiceComponentInfo/HeapMemoryUsed,' +
+        'ServiceComponentInfo/HeapMemoryMax,' +
         'ServiceComponentInfo/service_name,' +
         'host_components/HostRoles/host_name,' +
         'host_components/HostRoles/state,' +
@@ -431,16 +435,17 @@ App.UpdateController = Em.Controller.extend({
     var serviceSpecificParams = {
       'FLUME': "host_components/processes/HostComponentProcess",
       'YARN': "host_components/metrics/yarn/Queue," +
-        "host_components/metrics/yarn/ClusterMetrics/NumActiveNMs," +
-        "host_components/metrics/yarn/ClusterMetrics/NumLostNMs," +
-        "host_components/metrics/yarn/ClusterMetrics/NumUnhealthyNMs," +
-        "host_components/metrics/yarn/ClusterMetrics/NumRebootedNMs," +
-        "host_components/metrics/yarn/ClusterMetrics/NumDecommissionedNMs",
+        "ServiceComponentInfo/rm_metrics/cluster/activeNMcount," +
+        "ServiceComponentInfo/rm_metrics/cluster/lostNMcount," +
+        "ServiceComponentInfo/rm_metrics/cluster/unhealthyNMcount," +
+        "ServiceComponentInfo/rm_metrics/cluster/rebootedNMcount," +
+        "ServiceComponentInfo/rm_metrics/cluster/decommissionedNMcount",
       'HBASE': "host_components/metrics/hbase/master/IsActiveMaster," +
-        "host_components/metrics/hbase/master/MasterStartTime," +
-        "host_components/metrics/hbase/master/MasterActiveTime," +
-        "host_components/metrics/hbase/master/AverageLoad," +
-        "host_components/metrics/master/AssignmentManger/ritCount",
+        "ServiceComponentInfo/MasterStartTime," +
+        "ServiceComponentInfo/MasterActiveTime," +
+        "ServiceComponentInfo/AverageLoad," +
+        "ServiceComponentInfo/Revision," +
+        "ServiceComponentInfo/RegionsInTransition",
       'STORM': /^2.1/.test(App.get('currentStackVersionNumber')) ? 'metrics/api/cluster/summary' : 'metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary'
     };
     var services = App.cache['services'];

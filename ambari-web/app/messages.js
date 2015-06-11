@@ -2474,6 +2474,7 @@ Em.I18n.translations = {
   'dashboard.services.hbase.phoenixServers':'Phoenix Query Servers',
   'dashboard.services.hbase.phoenixServersSummary':'{0} live / {1} total',
   'dashboard.services.hbase.chart.label':'Request Count',
+  'dashboard.services.hbase.version':'Version',
   'dashboard.services.hbase.masterWebUI':'Master Web UI',
   'dashboard.services.hbase.regions.transition':'Regions In Transition',
   'dashboard.services.hbase.masterStarted':'Master Started',
