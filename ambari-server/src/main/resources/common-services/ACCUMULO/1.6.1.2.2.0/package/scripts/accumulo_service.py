@@ -47,23 +47,6 @@ def accumulo_service( name,
 
     elif action == 'stop':
       no_pid_exists = format("! ({pid_exists})")
-      try:
-        if name == 'master':
-          Execute(format("{daemon_script} admin stopMaster"),
-                  not_if=no_pid_exists,
-                  timeout=30,
-                  user=params.accumulo_user
-          )
-        elif name == 'tserver':
-          Execute(format("{daemon_script} admin stop {hostname}"),
-                  not_if=no_pid_exists,
-                  timeout=30,
-                  user=params.accumulo_user
-          )
-      except:
-        pass
-
-      time.sleep(5)
 
       pid = format("`cat {pid_file}` >/dev/null 2>&1")
       Execute(format("kill {pid}"),
