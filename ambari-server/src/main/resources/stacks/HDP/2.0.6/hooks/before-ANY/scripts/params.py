@@ -150,6 +150,7 @@ gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
 gmond_user = config['configurations']['ganglia-env']["gmond_user"]
 tez_user = config['configurations']['tez-env']["tez_user"]
 oozie_user = config['configurations']['oozie-env']["oozie_user"]
+falcon_user = config['configurations']['falcon-env']["falcon_user"]
 
 user_group = config['configurations']['cluster-env']['user_group']
 
@@ -157,12 +158,14 @@ ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 namenode_host = default("/clusterHostInfo/namenode_host", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
+falcon_server_hosts = default("/clusterHostInfo/falcon_server_hosts", [])
 
 has_namenode = not len(namenode_host) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_tez = 'tez-site' in config['configurations']
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_oozie_server = not len(oozie_servers) == 0
+has_falcon_server_hosts = not len(falcon_server_hosts) == 0
 
 hbase_tmp_dir = "/tmp/hbase-hbase"
 
@@ -187,6 +190,8 @@ if has_tez:
   user_to_groups_dict[tez_user] = [proxyuser_group]
 if has_oozie_server:
   user_to_groups_dict[oozie_user] = [proxyuser_group]
+if has_falcon_server_hosts:
+  user_to_groups_dict[falcon_user] = [proxyuser_group]
 
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
