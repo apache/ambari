@@ -194,6 +194,9 @@ public class AmbariContextTest {
     expect(clusters.getHost(HOST1)).andReturn(host1).anyTimes();
     expect(clusters.getHost(HOST2)).andReturn(host2).anyTimes();
 
+    expect(host1.getHostId()).andReturn(1L).anyTimes();
+    expect(host2.getHostId()).andReturn(2L).anyTimes();
+
     expect(group1Info.getConfiguration()).andReturn(group1Configuration).anyTimes();
     expect(group1Info.getHostNames()).andReturn(group1Hosts).anyTimes();
 
@@ -353,8 +356,24 @@ public class AmbariContextTest {
     // test specific expectations
     expect(cluster.getConfigGroups()).andReturn(configGroups).once();
 
+    expect(configGroup1.getHosts()).andReturn(Collections.singletonMap(2L, host2)).once();
     configGroup1.addHost(host1);
-    configGroup1.persist();
+    configGroup1.persistHostMapping();
+
+    // replay all mocks
+    replayAll();
+
+    // test
+    context.registerHostWithConfigGroup(HOST1, topology, HOST_GROUP_1);
+  }
+
+  @Test
+  public void testRegisterHostWithConfigGroup_registerWithExistingConfigGroup_hostAlreadyRegistered() throws Exception {
+    // test specific expectations
+    expect(cluster.getConfigGroups()).andReturn(configGroups).once();
+
+    expect(configGroup1.getHosts()).andReturn(Collections.singletonMap(1L, host1)).once();
+    // addHost and persistHostMapping shouldn't be called since host is already registerd with group
 
     // replay all mocks
     replayAll();

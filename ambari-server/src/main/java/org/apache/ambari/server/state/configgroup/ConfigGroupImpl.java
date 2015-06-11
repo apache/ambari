@@ -361,7 +361,7 @@ public class ConfigGroupImpl implements ConfigGroup {
    * @throws Exception
    */
   @Transactional
-  void persistHostMapping() {
+  public void persistHostMapping() {
     if (isPersisted) {
       // Delete existing mappings and create new ones
       configGroupHostMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
