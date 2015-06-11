@@ -140,10 +140,12 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
         var isHAWizardStarted = App.isAccessible('ADMIN') && !App.isEmptyObject(response.localdb.HighAvailabilityWizard);
         if (params.data.overrideLocaldb || isHAWizardStarted) {
           var localdbTables = (App.db.data.app && App.db.data.app.tables) ? App.db.data.app.tables : {};
+          var authenticated = Em.get(App, 'db.data.app.authenticated') || false;
           App.db.data = response.localdb;
           App.db.setLocalStorage();
           App.db.setUser(params.data.user);
           App.db.setLoginName(params.data.login);
+          App.db.setAuthenticated(authenticated);
           App.db.data.app.tables = localdbTables;
         }
       }
@@ -223,12 +225,15 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
           delete newValue.localdb.app.loginName;
         if (newValue.localdb.app && newValue.localdb.app.tables)
           delete newValue.localdb.app.tables;
+        if (newValue.localdb.app && newValue.localdb.app.authenticated)
+          delete newValue.localdb.app.authenticated;
         this.set('localdb', newValue.localdb);
         val.localdb = newValue.localdb;
       } else {
         delete App.db.data.app.user;
         delete App.db.data.app.loginName;
         delete App.db.data.app.tables;
+        delete App.db.data.app.authenticated;
         val.localdb = App.db.data;
         App.db.setUser(user);
         App.db.setLoginName(login);
