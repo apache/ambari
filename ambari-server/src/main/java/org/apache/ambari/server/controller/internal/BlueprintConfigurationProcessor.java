@@ -50,6 +50,20 @@ public class BlueprintConfigurationProcessor {
 
   protected final static Logger LOG = LoggerFactory.getLogger(BlueprintConfigurationProcessor.class);
 
+  private final static String COMMAND_RETRY_ENABLED_PROPERTY_NAME = "command_retry_enabled";
+
+  private final static String COMMANDS_TO_RETRY_PROPERTY_NAME = "commands_to_retry";
+
+  private final static String COMMAND_RETRY_MAX_TIME_IN_SEC_PROPERTY_NAME = "command_retry_max_time_in_sec";
+
+  private final static String COMMAND_RETRY_ENABLED_DEFAULT = "true";
+
+  private final static String COMMANDS_TO_RETRY_DEFAULT = "INSTALL,START";
+
+  private final static String COMMAND_RETRY_MAX_TIME_IN_SEC_DEFAULT = "600";
+
+  private final static String CLUSTER_ENV_CONFIG_TYPE_NAME = "cluster-env";
+
   /**
    * Single host topology updaters
    */
@@ -2002,6 +2016,8 @@ public class BlueprintConfigurationProcessor {
     // AMBARI-5206
     final Map<String , String> userProps = new HashMap<String , String>();
 
+    setRetryConfiguration(configuration);
+
     Collection<String> services = clusterTopology.getBlueprint().getServices();
     // only add user properties to the map for
     // services actually included in the blueprint definition
@@ -2042,6 +2058,33 @@ public class BlueprintConfigurationProcessor {
 
     }
   }
+
+  /**
+   * This method ensures that Ambari command retry is enabled if not explicitly overridden in
+   * cluster-env by the Blueprint or Cluster Creation template.  The new dynamic provisioning model
+   * requires that retry be enabled for most multi-node clusters, to this method sets reasonable defaults
+   * in order to preserve backwards compatibility and to simplify Blueprint creation.
+   *
+   * If the retry-specific properties in cluster-env are not set, then the config processor
+   * will set these values to defaults in cluster-env.
+   *
+   * @param configuration cluster configuration
+   */
+  private static void setRetryConfiguration(Configuration configuration) {
+
+    if (configuration.getPropertyValue(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMAND_RETRY_ENABLED_PROPERTY_NAME) == null) {
+      configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMAND_RETRY_ENABLED_PROPERTY_NAME, COMMAND_RETRY_ENABLED_DEFAULT);
+    }
+
+    if (configuration.getPropertyValue(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMANDS_TO_RETRY_PROPERTY_NAME) == null) {
+      configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMANDS_TO_RETRY_PROPERTY_NAME, COMMANDS_TO_RETRY_DEFAULT);
+    }
+
+    if (configuration.getPropertyValue(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMAND_RETRY_MAX_TIME_IN_SEC_PROPERTY_NAME) == null) {
+      configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMAND_RETRY_MAX_TIME_IN_SEC_PROPERTY_NAME, COMMAND_RETRY_MAX_TIME_IN_SEC_DEFAULT);
+    }
+  }
+
 
   /**
    * Ensure that the specified property exists.
