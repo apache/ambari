@@ -28,60 +28,22 @@ public class RMParserFactory {
   protected final static Logger LOG =
       LoggerFactory.getLogger(RMParserFactory.class);
 
-  public static final String HTTPS_ONLY = "HTTPS_ONLY";
-  public static final String HTTP_ONLY = "HTTP_ONLY";
-  public static final String YARN_SITE = "yarn-site";
-  public static final String YARN_HTTP_POLICY = "yarn.http.policy";
-
-  private ViewContext context;
+  private final ViewContext context;
+  private final AmbariApi ambariApi;
 
   public RMParserFactory(ViewContext context) {
     this.context = context;
+    this.ambariApi = new AmbariApi(context);
   }
 
   public RMParser getRMParser() {
-    RMRequestsDelegate delegate = new RMRequestsDelegateImpl(context, getRMUrl());
+    String rmUrl = getRMUrl();
+
+    RMRequestsDelegate delegate = new RMRequestsDelegateImpl(context, rmUrl);
     return new RMParser(delegate);
   }
 
   public String getRMUrl() {
-    String url;
-
-    AmbariApi ambariApi = new AmbariApi(context);
-
-    if (ambariApi.isClusterAssociated()) {
-      String httpPolicy = ambariApi.getCluster().getConfigurationValue("yarn-site", "yarn.http.policy");
-      if (httpPolicy.equals(HTTPS_ONLY)) {
-        url = ambariApi.getCluster().getConfigurationValue("yarn-site", "yarn.resourcemanager.webapp.https.address");
-      } else {
-        url = ambariApi.getCluster().getConfigurationValue("yarn-site", "yarn.resourcemanager.webapp.address");
-        if (!httpPolicy.equals(HTTP_ONLY))
-          LOG.error(String.format("R040 Unknown value %s of yarn-site/yarn.http.policy. HTTP_ONLY assumed.", httpPolicy));
-      }
-
-    } else {
-      url = context.getProperties().get("yarn.resourcemanager.url");
-    }
-    return addProtocolIfMissing(url);
-  }
-
-  public String addProtocolIfMissing(String url) {
-    if (!url.matches("^[^:]+://.*$")) {
-      AmbariApi ambariApi = new AmbariApi(context);
-      if (!ambariApi.isClusterAssociated()) {
-        throw new ServiceFormattedException(
-            "R030 View is not cluster associated. Resource Manager URL should contain protocol.");
-      }
-
-      String httpPolicy = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_HTTP_POLICY);
-      if (httpPolicy.equals(HTTPS_ONLY)) {
-        url = "https://" + url;
-      } else {
-        url = "http://" + url;
-        if (!httpPolicy.equals(HTTP_ONLY))
-          LOG.error(String.format("R050 Unknown value %s of yarn-site/yarn.http.policy. HTTP_ONLY assumed.", httpPolicy));
-      }
-    }
-    return url;
+    return ambariApi.getServices().getRMUrl();
   }
 }

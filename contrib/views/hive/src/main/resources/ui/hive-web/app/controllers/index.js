@@ -1,5 +1,4 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
+/** * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
@@ -21,8 +20,11 @@ import constants from 'hive/utils/constants';
 import utils from 'hive/utils/functions';
 
 export default Ember.Controller.extend({
+  jobService: Ember.inject.service(constants.namingConventions.job),
+  databaseService: Ember.inject.service(constants.namingConventions.database),
+  notifyService: Ember.inject.service(constants.namingConventions.notify),
+
   needs: [ constants.namingConventions.openQueries,
-           constants.namingConventions.databases,
            constants.namingConventions.udfs,
            constants.namingConventions.jobLogs,
            constants.namingConventions.jobResults,
@@ -34,7 +36,6 @@ export default Ember.Controller.extend({
   ],
 
   openQueries: Ember.computed.alias('controllers.' + constants.namingConventions.openQueries),
-  databases: Ember.computed.alias('controllers.' + constants.namingConventions.databases),
   udfs: Ember.computed.alias('controllers.' + constants.namingConventions.udfs + '.udfs'),
   logs: Ember.computed.alias('controllers.' + constants.namingConventions.jobLogs),
   results: Ember.computed.alias('controllers.' + constants.namingConventions.jobResults),
@@ -43,6 +44,8 @@ export default Ember.Controller.extend({
   visualExplain: Ember.computed.alias('controllers.' + constants.namingConventions.visualExplain),
   tezUI: Ember.computed.alias('controllers.' + constants.namingConventions.tezUI),
   jobProgress: Ember.computed.alias('controllers.' + constants.namingConventions.jobProgress),
+
+  selectedDatabase: Ember.computed.alias('databaseService.selectedDatabase'),
 
   isDatabaseExplorerVisible: true,
 
@@ -125,7 +128,7 @@ export default Ember.Controller.extend({
     job = this.store.createRecord(constants.namingConventions.job, {
       title: originalModel.get('title'),
       sessionTag: originalModel.get('sessionTag'),
-      dataBase: this.get('databases.selectedDatabase.name'),
+      dataBase: this.get('selectedDatabase.name'),
       referrer: referrer
     });
 
@@ -152,9 +155,7 @@ export default Ember.Controller.extend({
     if (!query) {
       originalModel.set('isRunning', false);
       defer.reject({
-        responseJSON: {
-          message: 'Running multiple queries is not supported.'
-        }
+        message: 'Running multiple queries is not supported.'
       });
 
       return defer.promise;
@@ -196,6 +197,7 @@ export default Ember.Controller.extend({
         openQueries = this.get('openQueries');
 
     var handleError = function (err) {
+      self.set('jobSaveSucceeded');
       originalModel.set('isRunning', undefined);
       defer.reject(err);
     };
@@ -203,6 +205,8 @@ export default Ember.Controller.extend({
     job.save().then(function () {
       //convert tab for current model since the execution will create a new job, and navigate to the new job route.
       openQueries.convertTabToJob(originalModel, job).then(function () {
+        self.set('jobSaveSucceeded', true);
+
         //reset flag on the original model
         originalModel.set('isRunning', undefined);
 
@@ -258,20 +262,11 @@ export default Ember.Controller.extend({
     }
 
     queries = queryComponents.queryString.split(';');
-    queries = queries.map(function (s) {
-      return s.trim();
-    });
     queries = queries.filter(Boolean);
-
-    // return false if multiple queries are selected
-    // @FIXME: Remove this to support multiple queries
-    // if (queries.length > 1) {
-    //   return false;
-    // }
 
     queries = queries.map(function (query) {
       if (shouldExplain) {
-        query = query.replace(/explain|formatted/gi, '').trim();
+        query = query.replace(/explain formatted|explain/gi, '');
 
         if (shouldGetVisualExplain) {
           return constants.namingConventions.explainFormattedPrefix + query;
@@ -279,7 +274,7 @@ export default Ember.Controller.extend({
           return constants.namingConventions.explainPrefix + query;
         }
       } else {
-        return query.replace(/explain|formatted/gi, '').trim();
+        return query.replace(/explain formatted|explain/gi, '');
       }
     });
 
@@ -293,7 +288,7 @@ export default Ember.Controller.extend({
 
     finalQuery += queries.join(";");
     finalQuery += ";";
-    return finalQuery;
+    return finalQuery.trim();
   },
 
   bindQueryParams: function (query) {
@@ -312,18 +307,24 @@ export default Ember.Controller.extend({
 
   displayJobTabs: function () {
     return this.get('content.constructor.typeKey') === constants.namingConventions.job &&
-           utils.isInteger(this.get('content.id'));
-  }.property('content'),
+           utils.isInteger(this.get('content.id')) &&
+           this.get('jobSaveSucceeded');
+  }.property('content', 'jobSaveSucceeded'),
+
+  databasesOrModelChanged: function () {
+    this.get('databaseService').setDatabaseByName(this.get('content.dataBase'));
+  }.observes('databaseService.databases', 'content'),
+
+  selectedDatabaseChanged: function () {
+    this.set('content.dataBase', this.get('selectedDatabase.name'));
+  }.observes('selectedDatabase'),
 
   modelChanged: function () {
     var self = this;
     var content = this.get('content');
     var openQueries = this.get('openQueries');
-    var database = this.get('databases').findBy('name', this.get('content.dataBase'));
 
-    if (database) {
-      this.set('databases.selectedDatabase', database);
-    }
+    this.set('jobSaveSucceeded', true);
 
     //update open queries list when current query model changes
     openQueries.update(content).then(function (isExplainedQuery) {
@@ -349,10 +350,6 @@ export default Ember.Controller.extend({
       }
     });
   }.observes('content'),
-
-  selectedDatabaseChanged: function () {
-    this.set('content.dataBase', this.get('databases.selectedDatabase.name'));
-  }.observes('databases.selectedDatabase'),
 
   csvUrl: function () {
     if (this.get('content.constructor.typeKey') !== constants.namingConventions.job) {
@@ -425,8 +422,8 @@ export default Ember.Controller.extend({
         file: file
     }).then(function (response) {
       self.pollSaveToHDFS(response);
-    }, function (response) {
-      self.notify.error(response.responseJSON.message, response.responseJSON.trace);
+    }, function (error) {
+      self.get('notifyService').error(error);
     });
   },
 
@@ -442,8 +439,8 @@ export default Ember.Controller.extend({
         } else {
           self.set('content.isRunning', false);
         }
-      }, function (response) {
-        self.notify.error(response.responseJSON.message, response.responseJSON.trace);
+      }, function (error) {
+        self.get('notifyService').error(error);
       });
     }, 2000);
   },
@@ -461,6 +458,10 @@ export default Ember.Controller.extend({
   }.property('content.status'),
 
   actions: {
+    stopCurrentJob: function () {
+      this.get('jobService').stopJob(this.get('model'));
+    },
+
     saveToHDFS: function () {
       var self = this,
           defer = Ember.RSVP.defer();
@@ -530,7 +531,7 @@ export default Ember.Controller.extend({
 
       return function (workSheetName) {
         var model = this.store.createRecord(constants.namingConventions.savedQuery, {
-          dataBase: this.get('databases.selectedDatabase.name'),
+          dataBase: this.get('selectedDatabase.name'),
           title: workSheetName ? workSheetName : Ember.I18n.t('titles.query.tab'),
           queryFile: '',
           id: 'fixture_' + idCounter
@@ -556,7 +557,7 @@ export default Ember.Controller.extend({
           defer = Ember.RSVP.defer(),
           currentQuery = this.get('openQueries.currentQuery');
 
-      this.set('model.dataBase', this.get('databases.selectedDatabase.name'));
+      this.set('model.dataBase', this.get('selectedDatabase.name'));
 
       this.send('openModal', 'modal-save-query', {
         heading: 'modals.save.heading',
@@ -567,16 +568,19 @@ export default Ember.Controller.extend({
       });
 
       defer.promise.then(function (result) {
-        currentQuery.set('fileContent', self.prependQuerySettings(currentQuery.get('fileContent')));
         // we need to update the original model
         // because when this is executed
         // it sets the title from the original model
         self.set('model.title', result.get('text'));
 
         if (result.get('overwrite')) {
-          self.get('openQueries').save(self.get('content'), null, true, result.get('text'));
+          self.get('openQueries').save(self.get('content'), null, true, result.get('text')).then(function () {
+            self.get('notifyService').success(Ember.I18n.t('alerts.success.query.update'));
+          });
         } else {
           self.get('openQueries').save(self.get('content'), null, false, result.get('text')).then(function (newId) {
+            self.get('notifyService').success(Ember.I18n.t('alerts.success.query.save'));
+
             if (self.get('model.constructor.typeKey') !== constants.namingConventions.job) {
               self.transitionToRoute(constants.namingConventions.subroutes.savedQuery, newId);
             }
@@ -585,9 +589,13 @@ export default Ember.Controller.extend({
       });
     },
 
-    executeQuery: function (referrer) {
+    executeQuery: function (referrer, query) {
       var self = this;
       var subroute;
+
+      if (query) {
+        this.set('openQueries.currentQuery.fileContent', query);
+      }
 
       referrer = referrer || constants.jobReferrer.job;
 
@@ -599,11 +607,10 @@ export default Ember.Controller.extend({
         }
 
         self.get('openQueries').updateTabSubroute(job, subroute);
-
+        self.get('notifyService').success(Ember.I18n.t('alerts.success.query.execution'));
         self.transitionToRoute(constants.namingConventions.subroutes.historyQuery, job.get('id'));
-      }, function (err) {
-        var errorBody = err.responseJSON.trace ? err.responseJSON.trace : false;
-        self.notify.error(err.responseJSON.message, errorBody);
+      }, function (error) {
+        self.get('notifyService').error(error);
       });
     },
 
@@ -614,8 +621,8 @@ export default Ember.Controller.extend({
         self.get('openQueries').updateTabSubroute(job, constants.namingConventions.subroutes.jobExplain);
 
         self.transitionToRoute(constants.namingConventions.subroutes.historyQuery, job.get('id'));
-      }, function (err) {
-        self.notify.error(err.responseJSON.message, err.responseJSON.trace);
+      }, function (error) {
+        self.get('notifyService').error(error);
       });
     },
 

@@ -47,7 +47,21 @@ export default Ember.Service.extend({
     this.add(this.types.WARN, message, body);
   },
 
-  error: function (message, body) {
+  error: function (error) {
+    var message,
+        body;
+
+    if (error.responseJSON) {
+      message = error.responseJSON.message;
+      body = error.responseJSON.trace;
+    } else if (error.errorThrown) {
+      message = error.errorThrown;
+    } else if (error.message) {
+      message = error.message;
+    } else {
+      message = error;
+    }
+
     this.add(this.types.ERROR, message, body);
   },
 
@@ -84,7 +98,7 @@ export default Ember.Service.extend({
   },
 
   removeAllMessages: function () {
-    this.messages.removeAt(0, this.messages.get('length'));
+    this.messages.clear();
   },
 
   markMessagesAsSeen: function () {

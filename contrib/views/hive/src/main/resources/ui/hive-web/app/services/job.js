@@ -17,22 +17,25 @@
  */
 
 import Ember from 'ember';
-import constants from 'hive/utils/constants';
 
-export default Ember.View.extend({
-  title: constants.appTitle,
+export default Ember.Service.extend({
+  stopJob: function (job) {
+    var self = this;
+    var id = job.get('id');
+    var url = this.container.lookup('adapter:application').buildURL();
+    url +=  "/jobs/" + id;
 
-  items: Ember.A([
-    Ember.Object.create({text: 'menus.query',
-                         path: constants.namingConventions.routes.index}),
+    job.set('isCancelling', true);
 
-    Ember.Object.create({text: 'menus.savedQueries',
-                         path: constants.namingConventions.routes.queries}),
-
-    Ember.Object.create({text: 'menus.history',
-                         path: constants.namingConventions.routes.history}),
-
-    Ember.Object.create({text: 'menus.udfs',
-                         path: constants.namingConventions.routes.udfs})
-  ])
+    Ember.$.ajax({
+       url: url,
+       type: 'DELETE',
+       headers: {
+        'X-Requested-By': 'ambari',
+       },
+       success: function () {
+         job.reload();
+       }
+    });
+  }
 });

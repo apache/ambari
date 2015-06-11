@@ -89,7 +89,7 @@ test('renders an li tag for each item in the items collection.', function () {
   expect(2);
 
   var component = this.subject();
-  var $component = this.render();
+  var $component = this.$();
 
   equal($component.find('li').length, 0, 'items collection is not set. No li tags are rendered.');
 
@@ -111,7 +111,7 @@ test('if no selected item nor defaultLabel set the selected value with first ite
   ];
 
   var component = this.subject({ items: items });
-  var $component = this.render();
+  var $component = this.$();
 
   equal(component.get('selectedValue'), 'item1', 'selectedValue is set to first item')
 });
@@ -140,7 +140,7 @@ test('component actions', function() {
     targetObject: targetObject
   });
 
-  var $component = this.render();
+  var $component = this.$();
 
   equal(component.get('selectedValue'), 'item', 'selectedValue is set to first item');
 

@@ -52,27 +52,29 @@ export default Ember.ObjectController.extend({
       url += '?first=true';
     }
 
-    Ember.$.getJSON(url).then(function (data) {
-      var explainSet;
+    this.get('content').reload().then(function () {
+      Ember.$.getJSON(url).then(function (data) {
+        var explainSet;
 
-      //if rows from a previous page read exist, prepend them
-      if (rows) {
-        data.rows.unshiftObjects(rows);
-      }
+        //if rows from a previous page read exist, prepend them
+        if (rows) {
+          data.rows.unshiftObjects(rows);
+        }
 
-      if (!data.hasNext) {
-        explainSet = self.get('cachedExplains').pushObject(Ember.Object.create({
-          id: self.get('content.id'),
-          explain: data
-        }));
+        if (!data.hasNext) {
+          explainSet = self.get('cachedExplains').pushObject(Ember.Object.create({
+            id: self.get('content.id'),
+            explain: data
+          }));
 
-        self.set('content.explain', explainSet);
+          self.set('content.explain', explainSet);
 
-        self.formatExplainResults(explainSet);
-      } else {
-        self.getExplain(false, data.rows);
-      }
-    });
+          self.formatExplainResults(explainSet);
+        } else {
+          self.getExplain(false, data.rows);
+        }
+      });
+    })
   },
 
   formatExplainResults: function (explainSet) {

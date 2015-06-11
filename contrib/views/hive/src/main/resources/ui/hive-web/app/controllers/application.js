@@ -18,31 +18,9 @@
 
 import Ember from 'ember';
 import constants from 'hive/utils/constants';
-import utils from 'hive/utils/functions';
 
-export default Ember.ObjectController.extend({
-  needs: [ constants.namingConventions.history, constants.namingConventions.loadedFiles ],
+export default Ember.Controller.extend({
+  notifyService: Ember.inject.service(constants.namingConventions.notify),
 
-  files: Ember.computed.alias('controllers.' + constants.namingConventions.loadedFiles),
-
-  canStop: function () {
-    return utils.insensitiveCompare(this.get('status'), constants.statuses.running, constants.statuses.initialized, constants.statuses.pending);
-  }.property('status'),
-
-  actions: {
-    loadFile: function () {
-      var self = this;
-      if (!this.get('file')) {
-        this.get('files').loadFile(this.get('model.queryFile')).then(function (file) {
-          self.set('file', file);
-        });
-      }
-
-      this.set('expanded', !this.get('expanded'));
-    },
-
-    stop: function () {
-      this.send('interruptJob', this.get('model'));
-    }
-  }
+  notifications: Ember.computed.alias('notifyService.notifications'),
 });

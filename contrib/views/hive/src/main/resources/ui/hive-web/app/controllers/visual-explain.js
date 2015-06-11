@@ -20,6 +20,8 @@ import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
 export default Ember.Controller.extend({
+  notifyService: Ember.inject.service(constants.namingConventions.notify),
+
   needs: [ constants.namingConventions.index,
            constants.namingConventions.openQueries,
            constants.namingConventions.jobProgress ],
@@ -53,8 +55,8 @@ export default Ember.Controller.extend({
         if (json['STAGE PLANS']['Stage-1']) {
           self.set('json', json);
         }
-      }, function (err) {
-        self.notify.error(err.responseJSON.message, err.responseJSON.trace);
+      }, function (error) {
+        self.get('notifyService').error(error);
       });
     }
   }

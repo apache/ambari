@@ -22,7 +22,7 @@ export default function() {
   var baseUrl = applicationAdapter.create().buildURL();
   var databases = ['db1', 'db2', 'db3'];
 
-  this.get(baseUrl + '/resources/ddl/database', function(req) {
+  this.get(baseUrl + '/resources/ddl/database', function (req) {
     var db = {
       databases: databases
     };
@@ -67,7 +67,7 @@ export default function() {
     return [200, {"Content-Type": "application/json"}, JSON.stringify(columns)];
   });
 
-  this.get(baseUrl + '/udfs', function(req) {
+  this.get(baseUrl + '/udfs', function (req) {
     var udf = {
       "udfs": [{
         "name": "TestColumn",
@@ -88,7 +88,7 @@ export default function() {
     return [200, {"Content-Type": "application/json"}, JSON.stringify(udf)];
   });
 
-  this.post(baseUrl + '/jobs', function(req) {
+  this.post(baseUrl + '/jobs', function (req) {
     var job = {
       "job": {
         "status":"Finished",
@@ -112,7 +112,7 @@ export default function() {
     return [200, {"Content-Type": "application/json"}, JSON.stringify(job)];
   });
 
-  this.get(baseUrl + '/resources/file/job1.hql', function(req) {
+  this.get(baseUrl + '/resources/file/job1.hql', function (req) {
     var file = {
       "file": {
         "filePath": "job1.hql",
@@ -148,7 +148,15 @@ export default function() {
     return [200, {"Content-Type": "application/json"}, JSON.stringify(savedQueries)];
   });
 
-  this.get(baseUrl + '/resources/file/saved1.hql', function(req) {
+  this.get(baseUrl + '/savedQueries/defaultSettings', function (req) {
+    var defaultSettings = {
+      "defaultSettings" : []
+    };
+
+    return [200, {"Content-Type": "application/json"}, JSON.stringify(defaultSettings)];
+  });
+
+  this.get(baseUrl + '/resources/file/saved1.hql', function (req) {
     var file = {
       "file": {
         "filePath": "saved1.hql",
@@ -162,7 +170,7 @@ export default function() {
     return [200, {"Content-Type": "application/json"}, JSON.stringify(file)];
   });
 
-  this.get(baseUrl + '/jobs', function(req) {
+  this.get(baseUrl + '/jobs', function (req) {
     var jobs = {
       "jobs": [
         {
@@ -223,7 +231,7 @@ export default function() {
     return [200, {"Content-Type": "application/json"}, JSON.stringify(jobs)];
   });
 
-  this.get(baseUrl + '/fileResources', function(req) {
+  this.get(baseUrl + '/fileResources', function (req) {
     var files = {
       "fileResources": [
         {
@@ -238,7 +246,7 @@ export default function() {
     return [200, {"Content-Type": "application/json"}, JSON.stringify(files)];
   });
 
-  this.get(baseUrl + '/fileResources/1', function(req) {
+  this.get(baseUrl + '/fileResources/1', function (req) {
     var files = {
       "fileResources": [
         {
@@ -251,5 +259,32 @@ export default function() {
     };
 
     return [200, {"Content-Type": "application/json"}, JSON.stringify(files)];
+  });
+
+  this.get(baseUrl + '/api/v1/views/TEZ', function (req) {
+    var data = {
+      versions: [
+        {
+          href: baseUrl + '/api/v1/view/TEZ/instanceURL'
+        }
+      ]
+    };
+
+    return [200, {"Content-Type": "application/json"}, JSON.stringify(data)];
+  });
+
+  this.get(baseUrl + '/api/v1/views/TEZ/instanceURL', function (req) {
+    var data = {
+      instances: [
+        {
+          ViewInstanceInfo: {
+            instance_name: 'tez',
+            version: 1
+          }
+        }
+      ]
+    };
+
+    return [200, {"Content-Type": "application/json"}, JSON.stringify(data)];
   });
 }

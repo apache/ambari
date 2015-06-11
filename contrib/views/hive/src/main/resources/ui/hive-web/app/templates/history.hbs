@@ -40,38 +40,24 @@
     </tr>
   </thead>
   <tbody>
-    {{#each item in this}}
-      <tr class="main-row" {{action "loadFile"}}>
-        <td>
-        {{#link-to "index.historyQuery" item}}
-          {{item.title}}
-        {{/link-to}}
-        </td>
-        <td {{bind-attr class=item.uppercaseStatus}}>{{all-uppercase item.status}}</td>
-        <td>{{date-binding item "dateSubmittedTimestamp"}}</td>
-        <td>{{item.duration}}</td>
-        <td>
-          <a class="fa fa-expand pull-right"></a>
-        </td>
-      </tr>
-      {{#if controller.expanded}}
-        <tr class="secondary-row">
-          <td {{bind-attr colspan=view.colspan}}>
-            {{code-helper controller.file.fileContent}}
-
-            {{#if controller.canStop}}
-              <button type="button" class="btn btn-danger btn-sm pull-right" {{action "stop"}}>
-                {{#if item.isCancelling}}
-                  {{t "buttons.stoppingJob"}}
-                  <div class="spinner small inline-spinner"></div>
-                {{else}}
-                  {{t "buttons.stopJob"}}
-                {{/if}}
-              </button>
-            {{/if}}
+    {{#if history.length}}
+      {{#if model.length}}
+        {{#each item in model}}
+          {{job-tr-view job=item onStopJob="interruptJob" onFileRequested="loadFile"}}
+        {{/each}}
+      {{else}}
+        <tr>
+          <td colspan="5">
+            <h4 class="empty-list">{{t "emptyList.history.noMatches"}}</h4>
           </td>
         </tr>
       {{/if}}
-    {{/each}}
+    {{else}}
+      <tr>
+        <td colspan="5">
+          <h4 class="empty-list">{{t "emptyList.history.noItems"}}</h4>
+        </td>
+      </tr>
+    {{/if}}
   </tbody>
 </table>

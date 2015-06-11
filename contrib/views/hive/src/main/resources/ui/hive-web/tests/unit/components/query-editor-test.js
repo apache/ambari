@@ -19,7 +19,9 @@
 import Ember from 'ember';
 import { moduleForComponent, test } from 'ember-qunit';
 
-moduleForComponent('query-editor', 'QueryEditorComponent');
+moduleForComponent('query-editor', 'QueryEditorComponent', {
+  unit: true
+});
 
 test('initEditor sets the editor on didInsertElement', function () {
   expect(2);
@@ -28,7 +30,7 @@ test('initEditor sets the editor on didInsertElement', function () {
 
   equal(component.get('editor'), undefined, 'element not rendered. Editor not set.');
 
-  this.render();
+  this.$();
 
   ok(component.get('editor'), 'element rendered. Editor set.');
 });
@@ -40,7 +42,7 @@ test('updateValue sets the query value on the editor.', function () {
 
   var query = 'select something';
 
-  this.render();
+  this.$();
 
   Ember.run(function () {
     component.set(('query'), query);

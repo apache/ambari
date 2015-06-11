@@ -26,6 +26,36 @@ a {
   word-wrap: break-word;
 }
 
+@keyframes flash {
+  0% {
+    background-color: transparent;
+  }
+
+  25% {
+    background-color: #428bca;
+    color: #fff;
+  }
+
+  50% {
+    background-color: transparent;
+    color: #333;
+  }
+
+  75% {
+    background-color: #428bca;
+    color: #fff;
+  }
+
+  100% {
+    background-color: transparent;
+    color: #333;
+  }
+}
+
+.flash {
+  animation: flash 1s;
+}
+
 @-webkit-keyframes fadeIn {
   0% {opacity: 0;}
   100% {opacity: 1;}
@@ -54,6 +84,10 @@ a {
 .fadeOut {
   -webkit-animation-name: fadeOut;
           animation-name: fadeOut;
+}
+
+.empty-list {
+  text-align: center;
 }
 
 #content {
@@ -112,7 +146,7 @@ aside  {
 .toolbox {
   margin: 15px 15px 0 0;
 
-  insert-udfs {
+  .insert-udfs {
     display: inline-block;
   }
 }
@@ -231,8 +265,7 @@ dropdown .fa-remove {
 }
 
 .main-content {
-  width: 90%;
-  flex-grow: 1;
+  width: 100%;
 }
 
 .queries-icon {

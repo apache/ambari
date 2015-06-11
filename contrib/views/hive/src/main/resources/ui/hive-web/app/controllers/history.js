@@ -21,7 +21,8 @@ import FilterableMixin from 'hive/mixins/filterable';
 import constants from 'hive/utils/constants';
 
 export default Ember.ArrayController.extend(FilterableMixin, {
-  itemController: constants.namingConventions.job,
+  jobService: Ember.inject.service('job'),
+  fileService: Ember.inject.service('file'),
 
   sortAscending: false,
   sortProperties: ['dateSubmittedTimestamp'],
@@ -76,13 +77,12 @@ export default Ember.ArrayController.extend(FilterableMixin, {
         return column.get('caption') === 'columns.duration';
       });
 
-      minDuration = Math.min.apply(Math, this.get('history').map(function (item) {
+      var items = this.get('history').map(function (item) {
         return item.get(durationColumn.get('property'));
-      }));
+      });
 
-      maxDuration = Math.max.apply(Math, this.get('history').map(function (item) {
-        return item.get(durationColumn.get('property'));
-      }));
+      minDuration = items.length ? Math.min.apply(Math, items) : 0;
+      maxDuration = items.length ? Math.max.apply(Math, items) : 0;
 
       durationColumn.set('numberRange.min', minDuration);
       durationColumn.set('numberRange.max', maxDuration);
@@ -99,13 +99,12 @@ export default Ember.ArrayController.extend(FilterableMixin, {
         return column.get('caption') === 'columns.date';
       });
 
-      minDate = Math.min.apply(Math, this.get('history').map(function (item) {
+      var items = this.get('history').map(function (item) {
         return item.get(dateColumn.get('property'));
-      }));
+      });
 
-      maxDate = Math.max.apply(Math, this.get('history').map(function (item) {
-        return item.get(dateColumn.get('property'));
-      }));
+      minDate = items.length ? Math.min.apply(Math, items) : new Date();
+      maxDate = items.length ? Math.max.apply(Math, items) : new Date();
 
       dateColumn.set('dateRange.min', minDate);
       dateColumn.set('dateRange.max', maxDate);
@@ -136,22 +135,12 @@ export default Ember.ArrayController.extend(FilterableMixin, {
     },
 
     interruptJob: function (job) {
-      var self = this;
-      var id = job.get('id');
-      var url = this.container.lookup('adapter:application').buildURL();
-      url +=  "/jobs/" + id;
+      this.get('jobService').stopJob(job);
+    },
 
-      job.set('isCancelling', true);
-
-      Ember.$.ajax({
-         url: url,
-         type: 'DELETE',
-         headers: {
-          'X-Requested-By': 'ambari',
-         },
-         success: function () {
-           job.reload();
-         }
+    loadFile: function (job) {
+      this.get('fileService').loadFile(job.get('queryFile')).then(function (file) {
+        job.set('file', file);
       });
     },
 

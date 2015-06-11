@@ -54,10 +54,10 @@ export default Ember.Object.create({
     var args = Array.prototype.slice.call(arguments, 1);
 
     if (!sourceString) {
-      return;
+      return false;
     }
 
-    return args.find(function (arg) {
+    return !!args.find(function (arg) {
       return sourceString.match(new RegExp('^' + arg + '$', 'i'));
     });
   },

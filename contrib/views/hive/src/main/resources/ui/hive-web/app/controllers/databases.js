@@ -19,48 +19,48 @@
 import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
-export default Ember.ArrayController.extend({
+export default Ember.Controller.extend({
+  databaseService: Ember.inject.service(constants.namingConventions.database),
+  notifyService: Ember.inject.service(constants.namingConventions.notify),
+
   pageCount: 10,
 
-  needs: [ constants.namingConventions.tables,
-           constants.namingConventions.columns,
-           constants.namingConventions.openQueries ],
+  selectedDatabase: Ember.computed.alias('databaseService.selectedDatabase'),
+  databases: Ember.computed.alias('databaseService.databases'),
 
-  openQueries: Ember.computed.alias('controllers.' + constants.namingConventions.openQueries),
-  dbTables: Ember.computed.alias('controllers.' + constants.namingConventions.tables),
-  dbColumns: Ember.computed.alias('controllers.' + constants.namingConventions.columns),
+  tableSearchResults: Ember.Object.create(),
 
-  _handleTablesError: function (error) {
-    this.notify.error(error.responseJSON.message, error.responseJSON.trace);
+  tableControls: [
+    {
+      icon: 'fa-list',
+      action: 'loadSampleData',
+      tooltip: Ember.I18n.t('tooltips.loadSample')
+    }
+  ],
+
+  panelIconActions: [
+    {
+      icon: 'fa-refresh',
+      action: 'refreshDatabaseExplorer',
+      tooltip: Ember.I18n.t('tooltips.refresh')
+    }
+  ],
+
+  tabs: [
+    Ember.Object.create({
+      name: Ember.I18n.t('titles.explorer'),
+      visible: true,
+      view: constants.namingConventions.databaseTree
+    }),
+    Ember.Object.create({
+      name: Ember.I18n.t('titles.results'),
+      view: constants.namingConventions.databaseSearch
+    })
+  ],
+
+  _handleError: function (error) {
+    this.get('notifyService').error(error);
     this.set('isLoading', false);
-  },
-
-  _handleColumnsError: function (error) {
-    this.notify.error(error.responseJSON.message, error.responseJSON.trace);
-    this.set('isLoading', false);
-  },
-
-  init: function () {
-    this._super();
-
-    var databaseAdapter = this.container.lookup('adapter:database');
-    var baseUrl = databaseAdapter.buildURL() + '/' +
-                  databaseAdapter.pathForType(constants.namingConventions.database) + '/';
-
-    this.set('baseUrl', baseUrl);
-    this.set('tableSearchResults', Ember.Object.create());
-
-    this.set('tabs', Ember.ArrayProxy.create({ content: Ember.A([
-      Ember.Object.create({
-        name: Ember.I18n.t('titles.explorer'),
-        visible: true,
-        view: constants.namingConventions.databaseTree
-      }),
-      Ember.Object.create({
-        name: Ember.I18n.t('titles.results'),
-        view: constants.namingConventions.databaseSearch
-      })
-    ])}));
   },
 
   setTablePageAvailability: function (database) {
@@ -90,31 +90,14 @@ export default Ember.ArrayController.extend({
   },
 
   selectedDatabaseChanged: function () {
-    var self = this,
-        database = this.get('selectedDatabase');
-
-    //if no selected database or database has already fully loaded tables
-    if (!database || (database.tables && !database.get('hasNext'))) {
-      return;
-    }
+    var self = this;
 
     this.set('isLoading', true);
 
-    this.get('dbTables').getTables(database.get('name')).then(function (tables) {
-      var mappedTables = {};
-
-      //don't use Ember.Object.set since it can be very expensive for large collections (e.g. 15000 tables),
-      //thus we should not do any bindings directly on the 'tables' collection.
-      database.tables = tables;
-
-      tables.forEach(function (table) {
-        mappedTables[table.name] = [];
-      });
-
-      self.set('openQueries.selectedTables', mappedTables);
+    this.get('databaseService').getAllTables().then(function () {
       self.set('isLoading', false);
     }, function (err) {
-      self._handleTablesError(err);
+      self._handleError(err);
     });
   }.observes('selectedDatabase'),
 
@@ -128,7 +111,7 @@ export default Ember.ArrayController.extend({
       table.set('visibleColumns', []);
     }
 
-    this.get('dbColumns').getColumnsPage(database.get('name'), table).then(function (result) {
+    this.get('databaseService').getColumnsPage(database.get('name'), table).then(function (result) {
       table.columns.pushObjects(result.columns);
       table.get('visibleColumns').pushObjects(result.columns);
       table.set('hasNext', result.hasNext);
@@ -136,7 +119,7 @@ export default Ember.ArrayController.extend({
       self.setColumnPageAvailability(table);
       self.set('isLoading', false);
     }, function (err) {
-      self._handleColumnsError(err);
+      self._handleError(err);
     });
   },
 
@@ -150,7 +133,7 @@ export default Ember.ArrayController.extend({
       database.set('visibleTables', []);
     }
 
-    this.get('dbTables').getTablesPage(database).then(function (result) {
+    this.get('databaseService').getTablesPage(database).then(function (result) {
       database.tables.pushObjects(result.tables);
       database.get('visibleTables').pushObjects(result.tables);
       database.set('hasNext', result.hasNext);
@@ -158,86 +141,26 @@ export default Ember.ArrayController.extend({
       self.setTablePageAvailability(database);
       self.set('isLoading', false);
     }, function (err) {
-      self._handleTablesError(err);
+      self._handleError(err);
     });
   },
 
-  getAllColumns: function (tableName) {
-    var defer = Ember.RSVP.defer();
+  getDatabases: function () {
     var self = this;
-    var database = this.get('selectedDatabase');
-    var table = database.get('tables').findBy('name', tableName);
+    var selectedDatabase = this.get('selectedDatabase');
 
-    //if all the columns were already loaded for this table, do not get them again.
-    if (!table || (table.columns && !table.get('hasNext'))) {
-      defer.resolve();
-    } else {
-      this.set('isLoading', true);
+    this.set('isLoading', true);
 
-      this.get('dbColumns').getColumns(database.get('name'), tableName).then(function (columns) {
-        table.columns = columns;
-        table.set('hasNext', false);
-
-        self.get('openQueries.selectedTables')[tableName] = columns.mapProperty('name');
-        self.set('isLoading', false);
-
-        defer.resolve();
-      }, function (err) {
-        self._handleColumnsError(err);
-        defer.reject(err);
-      });
-    }
-
-    return defer.promise;
-  },
-
-  tableControls: Ember.A([
-    Ember.Object.create({
-      icon: 'fa-list',
-      action: 'loadSampleData',
-      tooltip: Ember.I18n.t('tooltips.loadSample')
-    })
-  ]),
-
-  panelIconActions: function () {
-    return [
-      Ember.Object.create({
-        icon: 'fa-refresh',
-        action: 'refreshDatabaseExplorer',
-        tooltip: Ember.I18n.t('tooltips.refresh')
-      })
-    ];
-  }.property(),
+    this.get('databaseService').getDatabases().then(function (databases) {
+      self.set('isLoading');
+    }).catch(function (error) {
+      self._handleError(error);
+    });
+  }.on('init'),
 
   actions: {
     refreshDatabaseExplorer: function () {
-      var self = this;
-      var selectedDatabase = this.get('selectedDatabase');
-
-      this.set('isLoading', true);
-
-      this.store.unloadAll('database');
-      this.store.fetchAll('database').then(function (databases) {
-        var database;
-
-        self.set('model', databases);
-
-        //if a database was previously selected, check if it still exists
-        if (selectedDatabase) {
-          database = databases.findBy('id', selectedDatabase.get('id'));
-
-          if (!database) {
-            self.set('selectedDatabase', databases.objectAt(0));
-          }
-        } else if (self.get('model.length')) {
-          self.set('selectedDatabase', databases.objectAt(0));
-        }
-
-        self.set('isLoading');
-      }).catch(function (response) {
-        self.notify.error(response.responseJSON.message, response.responseJSON.trace);
-        self.set('isLoading');
-      });
+      this.getDatabases();
     },
 
     loadSampleData: function (tableName, database) {
@@ -248,15 +171,12 @@ export default Ember.ArrayController.extend({
         var query = constants.sampleDataQuery.fmt(tableName);
 
         self.set('selectedDatabase', database);
-        self.get('openQueries.currentQuery')
-          .set('fileContent', query);
-
-        self.send('executeQuery', constants.jobReferrer.sample);
+        self.send('executeQuery', constants.jobReferrer.sample, query);
       });
     },
 
     getTables: function (dbName) {
-      var database = this.findBy('name', dbName),
+      var database = this.get('databases').findBy('name', dbName),
           tables = database.tables,
           pageCount = this.get('pageCount');
 
@@ -328,13 +248,13 @@ export default Ember.ArrayController.extend({
       this.set('columnSearchTerm', '');
       this.set('isLoading', true);
 
-      this.get('dbTables').getTablesPage(this.get('selectedDatabase'), searchTerm, true).then(function (result) {
+      this.get('databaseService').getTablesPage(this.get('selectedDatabase'), searchTerm, true).then(function (result) {
         tableSearchResults.set('tables', result.tables);
         tableSearchResults.set('hasNext', result.hasNext);
 
         self.set('isLoading', false);
       }, function (err) {
-        self._handleTablesError(err);
+        self._handleError(err);
       });
     },
 
@@ -351,7 +271,7 @@ export default Ember.ArrayController.extend({
       this.set('isLoading', true);
 
       tables.forEach(function (table) {
-        self.get('dbColumns').getColumnsPage(database.get('name'), table, searchTerm, true).then(function (result) {
+        self.get('databaseService').getColumnsPage(database.get('name'), table, searchTerm, true).then(function (result) {
           table.set('columns', result.columns);
           table.set('hasNext', result.hasNext);
 
@@ -359,7 +279,7 @@ export default Ember.ArrayController.extend({
             self.set('isLoading', false);
           }
         }, function (err) {
-          self._handleColumnsError(err);
+          self._handleError(err);
         });
       });
     },
@@ -372,7 +292,7 @@ export default Ember.ArrayController.extend({
 
       this.set('isLoading', true);
 
-      this.get('dbTables').getTablesPage(database, searchTerm).then(function (tablesResult) {
+      this.get('databaseService').getTablesPage(database, searchTerm).then(function (tablesResult) {
         var tables = tableSearchResults.get('tables');
         var shouldGetColumns = tables.any(function (table) {
           return table.get('columns.length') > 0;
@@ -385,7 +305,7 @@ export default Ember.ArrayController.extend({
         //load the columns search results for the newly loaded tables.
         if (shouldGetColumns) {
           tablesResult.tables.forEach(function (table) {
-            self.get('dbColumns').getColumnsPage(database.get('name'), table, self.get('columnSearchTerm'), true).then(function (result) {
+            self.get('databaseService').getColumnsPage(database.get('name'), table, self.get('columnSearchTerm'), true).then(function (result) {
               table.set('columns', result.columns);
               table.set('hasNext', result.hasNext);
 
@@ -393,14 +313,14 @@ export default Ember.ArrayController.extend({
                 self.set('isLoading', false);
               }
             }, function (err) {
-              self._handleColumnsError(err);
+              self._handleError(err);
             });
           });
         } else {
           self.set('isLoading', false);
         }
       }, function (err) {
-        self._handleTablesError(err);
+        self._handleError(err);
       });
     },
 
@@ -409,13 +329,13 @@ export default Ember.ArrayController.extend({
 
       this.set('isLoading', true);
 
-      this.get('dbColumns').getColumnsPage(this.get('selectedDatabase.name'), table, this.get('columnSearchTerm')).then(function (result) {
+      this.get('databaseService').getColumnsPage(this.get('selectedDatabase.name'), table, this.get('columnSearchTerm')).then(function (result) {
         table.get('columns').pushObjects(result.columns);
         table.set('hasNext', result.hasNext);
 
         self.set('isLoading', false);
       }, function (err) {
-        self._handleColumnsError(err);
+        self._handleError(err);
       });
     }
   }

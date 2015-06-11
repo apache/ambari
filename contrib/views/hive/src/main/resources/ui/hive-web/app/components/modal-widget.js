@@ -20,9 +20,11 @@ import Ember from 'ember';
 
 export default Ember.Component.extend(Ember.I18n.TranslateableProperties, {
   show: function () {
+    var self = this;
+
     this.$('.modal').modal().on('hidden.bs.modal', function () {
-      this.sendAction('close');
-    }.bind(this));
+      self.sendAction('close');
+    });
   }.on('didInsertElement'),
 
   keyPress: function (e) {

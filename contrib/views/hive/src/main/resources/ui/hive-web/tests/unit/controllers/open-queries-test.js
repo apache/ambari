@@ -20,13 +20,12 @@ import Ember from 'ember';
 import { moduleFor, test } from 'ember-qunit';
 
 moduleFor('controller:open-queries', 'OpenQueriesController', {
-  needs: [ 'controller:databases',
-           'controller:loaded-files',
-           'controller:index/history-query/results',
+  needs: [ 'controller:index/history-query/results',
            'controller:index/history-query/explain',
            'controller:index',
-           'controller:columns',
-           'controller:settings'
+           'controller:settings',
+           'service:file',
+           'service:database'
          ]
 });
 

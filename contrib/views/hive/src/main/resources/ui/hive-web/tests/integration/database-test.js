@@ -36,8 +36,8 @@ module('Integration: Databases', {
   }
 });
 
-test('Database Explorer is displayed and populated with databases from server.', function() {
-  expect(2);
+test('Database Explorer is displayed and populated with databases from server.', function (assert) {
+  assert.expect(2);
 
   visit('/');
 

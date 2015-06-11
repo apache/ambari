@@ -17,16 +17,37 @@
  */
 
 import Ember from 'ember';
+import constants from 'hive/utils/constants';
 import { moduleFor, test } from 'ember-qunit';
 
-moduleFor('controller:tables', 'TablesController', {
-  needs: ['adapter:database']
+moduleFor('controller:messages', 'MessagesController', {
 });
 
-test('controller is initialized properly.', function () {
-  expect(1);
-
+test('Controller is initialized', function() {
   var controller = this.subject();
 
-  ok(controller.get('baseUrl'), 'baseUrl was set to a truthy value.');
+  ok(controller, 'Controller is initialized');
+});
+
+test('Controller action', function() {
+  var controller = this.subject({
+    notifyService: Ember.Object.create({
+      removeMessage: function(message) {
+        ok(1, 'removeMessage action called');
+      },
+      removeAllMessages: function() {
+        ok(1, 'removeAllMessages action called');
+      },
+      markMessagesAsSeen: function(message) {
+        ok(1, 'markMessagesAsSeen action called');
+      }
+    })
+  });
+
+  Ember.run(function() {
+    controller.send('removeMessage');
+    controller.send('removeAllMessages');
+    controller.send('markMessagesAsSeen');
+  });
+
 });

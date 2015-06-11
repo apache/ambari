@@ -35,7 +35,7 @@ test('Component is initialized correctly', function() {
   });
 
   var component = this.subject({ numberRange: numberRange });
-  var $component = this.render();
+  var $component = this.$();
 
   equal(component.get('numberRange.from'), numberRange.get('min'), 'from is set to min');
   equal(component.get('numberRange.to'), numberRange.get('max'), 'to is set to max');
@@ -62,7 +62,7 @@ test('external change action is called', function() {
     rangeChanged: 'rangeChanged'
   });
 
-  var $component = this.render();
+  var $component = this.$();
 
   Ember.run(function() {
     $component.find('.slider').slider('value', 1);

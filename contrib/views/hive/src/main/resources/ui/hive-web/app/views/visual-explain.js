@@ -22,9 +22,10 @@ import Ember from 'ember';
 import dagRules from '../utils/dag-rules';
 
 export default Ember.View.extend({
+  verticesGroups: [],
+  edges: [],
+
   willInsertElement: function () {
-    this.set('verticesGroups', []);
-    this.set('edges', []);
     this.set('graph', new dagre.graphlib.Graph());
   },
 
@@ -111,12 +112,7 @@ export default Ember.View.extend({
       angle = 180 + angle;
     }
 
-    var style = "left: %@px; top: %@px; width: %@px;" +
-                "-moz-transform:rotate(%@4deg);" +
-                "-webkit-transform:rotate(%@4deg);" +
-                "-ms-transform:rotate(%@4deg);" +
-                "-transform:rotate(%@4deg);";
-
+    var style = "left: %@px; top: %@px; width: %@px; transform:rotate(%@4deg);";
     style = style.fmt(cx, cy, length, angle);
 
     var edgeType;
@@ -417,12 +413,15 @@ export default Ember.View.extend({
 
     Ember.run.later(function () {
       g.edges().forEach(function (value) {
-        var firstNode = self.$("[title='" + value.v + "']")[0];
-        var secondNode = self.$("[title='" + value.w + "']")[0];
+        var firstNode = self.$("[title='" + value.v + "']");
+        var secondNode = self.$("[title='" + value.w + "']");
 
-        self.addEdge(firstNode, secondNode, 2, g.edge(value).type);
+        if (firstNode && secondNode) {
+          self.addEdge(firstNode[0], secondNode[0], 2, g.edge(value).type);
+        }
+
       });
-    }, 200);
+    }, 400);
   },
 
   renderDag: function () {

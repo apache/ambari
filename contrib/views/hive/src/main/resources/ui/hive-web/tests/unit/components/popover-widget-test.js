@@ -19,7 +19,9 @@
 import Ember from 'ember';
 import { moduleForComponent, test } from 'ember-qunit';
 
-moduleForComponent('popover-widget', 'PopoverWidgetComponent');
+moduleForComponent('popover-widget', 'PopoverWidgetComponent', {
+  unit: true
+});
 
 test('Component initializes correctly', function () {
   expect(2);
@@ -27,7 +29,7 @@ test('Component initializes correctly', function () {
   var component = this.subject({
     template: Ember.Handlebars.compile("test")
   });
-  var $component = this.render();
+  var $component = this.$();
 
   ok($component, "Popover element is initialized");
   equal($component.attr('data-content').trim(), "test", "data-content is populated");

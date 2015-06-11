@@ -81,7 +81,7 @@ export default Ember.Controller.extend({
   },
 
   setTezViewURL: function (instance) {
-    var url = "%@/%@/%@".fmt(
+    var url = "%@/%@/%@/".fmt(
       this.get('tezURLPrefix'),
       instance.version,
       instance.instance_name

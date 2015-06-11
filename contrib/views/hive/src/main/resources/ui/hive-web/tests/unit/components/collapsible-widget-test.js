@@ -18,7 +18,9 @@
 import Ember from 'ember';
 import { moduleForComponent, test } from 'ember-qunit';
 
-moduleForComponent('collapsible-widget', 'CollapsibleWidgetComponent');
+moduleForComponent('collapsible-widget', 'CollapsibleWidgetComponent', {
+  unit: true
+});
 
 test('Component expand/collapse toggle action', function () {
   expect(1);

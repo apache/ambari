@@ -20,10 +20,6 @@ import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
 export default Ember.Controller.extend({
-  needs: [ constants.namingConventions.index],
-
-  index: Ember.computed.alias('controllers' + constants.namingConventions.index),
-
   tabClassNames : "fa queries-icon query-context-tab",
 
   tabs: [
@@ -146,6 +142,15 @@ export default Ember.Controller.extend({
       activeTab.set('active', false);
       this.set('activeTab', defaultTab);
     }
+  },
+
+  flashSettings: function() {
+    var settingsTab = this.get('tabs').findBy('id', 'settings-icon');
+    settingsTab.set('flash', true);
+
+    Ember.run.later(function() {
+      settingsTab.set('flash', false);
+    }, 1000);
   },
 
   actions: {

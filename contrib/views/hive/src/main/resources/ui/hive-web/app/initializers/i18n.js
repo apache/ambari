@@ -63,10 +63,15 @@ TRANSLATIONS = {
     },
     success: {
       sessions: {
-        deleted: 'Session invalidated'
+        deleted: 'Session invalidated.'
       },
       settings: {
         saved: 'Settings have been saved.'
+      },
+      query: {
+        execution: 'Query has been submitted.',
+        save: 'The query has been saved.',
+        update: 'The query has been updated.'
       }
     }
   },
@@ -222,6 +227,21 @@ TRANSLATIONS = {
       'no.instance': "No instance of Tez View found.",
       'no.dag': "No DAG available"
     }
+  },
+
+  emptyList: {
+    history: {
+      noItems: "No queries were run.",
+      noMatches: "No jobs match your filtering criteria",
+    },
+    savedQueries: {
+      noItems: "No queries were saved.",
+      noMatches: "No queries match your filtering criteria"
+    }
+  },
+
+  settings: {
+    parsed: "Query settings added"
   },
 
   generalError: 'Unexpected error'

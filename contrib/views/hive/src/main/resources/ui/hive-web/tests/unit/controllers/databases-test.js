@@ -19,21 +19,37 @@
 import Ember from 'ember';
 import { moduleFor, test } from 'ember-qunit';
 
+var controller;
+
 moduleFor('controller:databases', 'DatabasesController', {
-  needs: ['component:select-widget',
-          'component:expander-widget',
-          'adapter:database',
-          'controller:tables',
-          'controller:columns',
-          'controller:open-queries'  ]
+  needs: [ 'adapter:database',
+           'service:database',
+           'service:notify',
+           'model:database' ],
+
+  setup: function () {
+    //mock getDatabases which is called on controller init
+    this.container.lookup('service:database').getDatabases = function () {
+      var defer = Ember.RSVP.defer();
+
+      defer.resolve();
+
+      return defer.promise;
+    }
+
+    controller = this.subject();
+  },
+
+  teardown: function () {
+    Ember.run(controller, controller.destroy);
+  }
 });
 
 test('controller is initialized properly.', function () {
-  expect(6);
+  expect(5);
 
   var controller = this.subject();
 
-  ok(controller.get('baseUrl'), 'baseUrl was set to a truthy value.');
   ok(controller.get('tableSearchResults'), 'table search results collection was initialized.');
   ok(controller.get('tabs'), 'tabs collection was initialized.');
   equal(controller.get('tabs.length'), 2, 'tabs collection contains two tabs');
@@ -44,8 +60,6 @@ test('controller is initialized properly.', function () {
 test('setTablePageAvailability sets canGetNextPage true if given database hasNext flag is true.', function () {
   expect(1);
 
-  var controller = this.subject();
-
   var database = Ember.Object.create( { hasNext: true } );
 
   controller.setTablePageAvailability(database);
@@ -55,8 +69,6 @@ test('setTablePageAvailability sets canGetNextPage true if given database hasNex
 
 test('setTablePageAvailability sets canGetNextPage true if given database has more loaded tables than the visible ones.', function () {
   expect(1);
-
-  var controller = this.subject();
 
   var database = Ember.Object.create({
     tables: [1],
@@ -71,8 +83,6 @@ test('setTablePageAvailability sets canGetNextPage true if given database has mo
 test('setTablePageAvailability sets canGetNextPage falsy if given database hasNext flag is falsy and all loaded tables are visible.', function () {
   expect(1);
 
-  var controller = this.subject();
-
   var database = Ember.Object.create({
     tables: [1],
     visibleTables: [1]
@@ -86,8 +96,6 @@ test('setTablePageAvailability sets canGetNextPage falsy if given database hasNe
 test('setColumnPageAvailability sets canGetNextPage true if given table hasNext flag is true.', function () {
   expect(1);
 
-  var controller = this.subject();
-
   var table = Ember.Object.create( { hasNext: true } );
 
   controller.setColumnPageAvailability(table);
@@ -97,8 +105,6 @@ test('setColumnPageAvailability sets canGetNextPage true if given table hasNext 
 
 test('setColumnPageAvailability sets canGetNextPage true if given table has more loaded columns than the visible ones.', function () {
   expect(1);
-
-  var controller = this.subject();
 
   var table = Ember.Object.create({
     columns: [1],
@@ -113,8 +119,6 @@ test('setColumnPageAvailability sets canGetNextPage true if given table has more
 test('setColumnPageAvailability sets canGetNextPage true if given database hasNext flag is falsy and all loaded columns are visible.', function () {
   expect(1);
 
-  var controller = this.subject();
-
   var table = Ember.Object.create({
     columns: [1],
     visibleColumns: [1]
@@ -128,14 +132,12 @@ test('setColumnPageAvailability sets canGetNextPage true if given database hasNe
 test('getTables sets the visibleTables as the first page of tables if they are already loaded', function () {
   expect(2);
 
-  var controller = this.subject();
-
   var database = Ember.Object.create({
     name: 'test_db',
     tables: [1, 2, 3]
   });
 
-  controller.pushObject(database);
+  controller.get('databases').pushObject(database);
   controller.set('pageCount', 2);
 
   controller.send('getTables', 'test_db');
@@ -146,8 +148,6 @@ test('getTables sets the visibleTables as the first page of tables if they are a
 
 test('getColumns sets the visibleColumns as the first page of columns if they are already loaded.', function () {
   expect(2);
-
-  var controller = this.subject();
 
   var table = Ember.Object.create({
     name: 'test_table',
@@ -171,15 +171,13 @@ test('getColumns sets the visibleColumns as the first page of columns if they ar
 test('showMoreTables pushes more tables to visibleTables if there are still hidden tables loaded.', function () {
   expect(2);
 
-  var controller = this.subject();
-
   var database = Ember.Object.create({
     name: 'test_db',
     tables: [1, 2, 3],
     visibleTables: [1]
   });
 
-  controller.pushObject(database);
+  controller.get('databases').pushObject(database);
   controller.set('pageCount', 1);
 
   controller.send('showMoreTables', database);
@@ -190,8 +188,6 @@ test('showMoreTables pushes more tables to visibleTables if there are still hidd
 
 test('showMoreColumns pushes more columns to visibleColumns if there are still hidden columns loaded.', function () {
   expect(2);
-
-  var controller = this.subject();
 
   var table = Ember.Object.create({
     name: 'test_table',

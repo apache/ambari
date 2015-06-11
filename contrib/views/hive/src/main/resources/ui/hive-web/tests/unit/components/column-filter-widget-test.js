@@ -45,7 +45,7 @@ test('if a filterValue is set when the element is inserted, an action is being s
   component.set('columnFiltered', 'externalAction');
   component.set('targetObject', targetObject);
 
-  var $component = this.render();
+  var $component = this.$();
 });
 
 test('isSorted returns true if the table is sorted by this column property', function () {

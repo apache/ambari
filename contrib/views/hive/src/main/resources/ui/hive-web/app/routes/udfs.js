@@ -20,13 +20,17 @@ import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
 export default Ember.Route.extend({
-  setupController: function () {
+  notifyService: Ember.inject.service(constants.namingConventions.notify),
+
+  setupController: function (controller, model) {
+    this._super();
+
     var self = this;
 
     this.store.find(constants.namingConventions.fileResource).then(function (fileResources) {
-      self.controllerFor(constants.namingConventions.fileResources).set('model', fileResources);
-    }).catch(function (err) {
-      self.notify.error(err.responseJSON.message, err.responseJSON.trace);
+      controller.set('fileResources', fileResources);
+    }).catch(function (error) {
+      self.get('notifyService').error(error);
     });;
   }
 });

@@ -21,25 +21,24 @@ import constants from 'hive/utils/constants';
 import utils from 'hive/utils/functions';
 
 export default Ember.ObjectController.extend({
+  fileService: Ember.inject.service(constants.namingConventions.file),
+  notifyService: Ember.inject.service(constants.namingConventions.notify),
+
   needs: [ constants.namingConventions.queryTabs,
-           constants.namingConventions.loadedFiles ],
+           constants.namingConventions.index,
+           constants.namingConventions.openQueries ],
 
   queryTabs: Ember.computed.alias('controllers.' + constants.namingConventions.queryTabs),
-  files: Ember.computed.alias('controllers.' + constants.namingConventions.loadedFiles),
+  index: Ember.computed.alias('controllers.' + constants.namingConventions.index),
+  openQueries: Ember.computed.alias('controllers.' + constants.namingConventions.openQueries),
 
   reloadJobLogs: function (job) {
-    var self = this,
-        defer = Ember.RSVP.defer(),
-        handleError = function (error) {
-          job.set('isRunning', false);
+    var self = this;
+    var handleError = function (error) {
+      job.set('isRunning', false);
 
-          if (typeof error === "string") {
-            self.notify.error(error);
-          } else {
-            self.notify.error(error.responseJSON.message, error.responseJSON.trace);
-          }
-          defer.reject();
-        };
+      self.get('notifyService').error(error);
+    };
 
     job.reload().then(function () {
       if (utils.insensitiveCompare(job.get('status'), constants.statuses.error) ||
@@ -47,46 +46,40 @@ export default Ember.ObjectController.extend({
         handleError(job.get('statusMessage'));
       }
 
-      self.get('files').reload(job.get('logFile')).then(function (file) {
+      self.get('fileService').reloadFile(job.get('logFile')).then(function (file) {
         var fileContent = file.get('fileContent');
+        var stillRunning = self.isJobRunning(job);
+        var currentIndexModelId = self.get('index.model.id');
+        var currentActiveTab = self.get('queryTabs.activeTab.name');
 
         if (fileContent) {
           job.set('log', fileContent);
         }
 
-        defer.resolve();
+        //if the current model is the same with the one displayed, continue reloading job
+        if (stillRunning) {
+          Ember.run.later(self, function () {
+            this.reloadJobLogs(job);
+          }, 10000);
+        } else if (!stillRunning) {
+          job.set('isRunning', undefined);
+          job.set('retrievingLogs', false);
+
+          if (utils.insensitiveCompare(job.get('status'), constants.statuses.succeeded)) {
+            self.get('openQueries').updateTabSubroute(job, constants.namingConventions.subroutes.jobResults);
+
+            if (job.get('id') === currentIndexModelId && currentActiveTab === constants.namingConventions.index) {
+              self.transitionToRoute(constants.namingConventions.subroutes.historyQuery, job.get('id'));
+            }
+          }
+        }
+
       },function (err) {
         handleError(err);
       });
     }, function (err) {
       handleError(err);
     });
-
-    return defer.promise;
-  },
-
-  listenForUpdates: function (job) {
-    Ember.run.later(this, function () {
-      var self = this;
-
-      this.reloadJobLogs(job).then(function () {
-        var stillRunning = self.isJobRunning(job);
-        var currentContentId = self.get('content.id');
-        var currentActiveTab = self.get('queryTabs.activeTab.name');
-
-        //if the current model is the same with the one displayed, continue reloading job
-        if (stillRunning && job.get('id') === currentContentId) {
-          self.listenForUpdates(job);
-        } else if (!stillRunning) {
-          job.set('isRunning', undefined);
-
-          if (job.get('id') === currentContentId &&
-              currentActiveTab === constants.namingConventions.index) {
-            self.transitionToRoute(constants.namingConventions.subroutes.jobResults);
-          }
-        }
-      });
-    }, 10000);
   },
 
   isJobRunning: function (job) {
@@ -98,14 +91,18 @@ export default Ember.ObjectController.extend({
   },
 
   getLogs: function () {
-    var self = this,
-        job = this.get('content');
+    var job = this.get('content');
 
     if (this.isJobRunning(job)) {
-      job.set('isRunning', true);
-      this.reloadJobLogs(job).then(function () {
-        self.listenForUpdates(job);
-      });
+      if (!job.get('retrievingLogs')) {
+        job.set('retrievingLogs', true);
+        job.set('isRunning', true);
+        this.reloadJobLogs(job);
+      }
+    } else if (utils.insensitiveCompare(job.get('status'), constants.statuses.succeeded) && !job.get('dagId')) {
+      //if a job that never polled for logs is succeeded, jump straight to results tab.
+      this.get('openQueries').updateTabSubroute(job, constants.namingConventions.subroutes.jobResults);
+      this.transitionToRoute(constants.namingConventions.subroutes.historyQuery, job.get('id'));
     }
   }.observes('content')
 });

@@ -22,71 +22,108 @@ import constants from 'hive/utils/constants';
 export default Ember.Controller.extend({
   needs: [ constants.namingConventions.index ],
 
+  jobs: [],
+
   index: Ember.computed.alias('controllers.' + constants.namingConventions.index),
 
-  listenForProgress: function () {
-    var self = this;
-    var url = this.container.lookup('adapter:application').buildURL();
-    var stages = [];
-    var job = this.get('index.model');
+  modelChanged: function () {
+    var model = this.get('index.model');
+    var job;
 
-    var reloadProgress = function () {
-      Ember.run.later(function () {
-        Ember.$.getJSON(url).then(function (data) {
-          var total = 0;
-          var length = Object.keys(data.vertexProgresses).length;
-
-          if (!self.get('stages.length')) {
-            data.vertexProgresses.forEach(function (vertexProgress) {
-              var progress = vertexProgress.progress * 100;
-
-              stages.pushObject(Ember.Object.create({
-                name: vertexProgress.name,
-                value: progress
-              }));
-
-              total += progress;
-            });
-
-            self.set('stages', stages);
-          } else {
-            data.vertexProgresses.forEach(function (vertexProgress) {
-              var progress = vertexProgress.progress * 100;
-
-              self.get('stages').findBy('name', vertexProgress.name).set('value', progress);
-
-              total += progress;
-            });
-          }
-
-          total /= length;
-
-          self.set('totalProgress', total);
-
-          if (job.get('isRunning') && total < 100) {
-            reloadProgress();
-          }
-
-        }, function (err) {
-          reloadProgress();
-        });
-      }, 1000);
-    };
-
-    //reset stages
-    this.set('stages', []);
-    this.set('totalProgress', 0);
-
-    if (!job.get('dagId')) {
+    if (!this.isJob(model)) {
       return;
     }
 
-    url += '/' + constants.namingConventions.jobs + '/' + job.get('id') + '/progress';
+    job = this.jobs.findBy('model', model);
 
-    reloadProgress();
-  }.observes('index.model', 'index.model.dagId'),
+    if (!job) {
+      job = this.jobs.pushObject(Ember.Object.create({
+        model: model,
+        stages: [],
+        totalProgress: 0,
+        retrievingProgress: false,
+      }));
+    }
 
-  displayProgress: function () {
-    return this.get('index.model.constructor.typeKey') === constants.namingConventions.job;
-  }.property('index.model')
+    this.set('currentJob', job);
+  }.observes('index.model'),
+
+  updateProgress: function () {
+    var job = this.get('currentJob');
+
+    if (!job.get('model.dagId')) {
+      return;
+    }
+
+    if (this.get('totalProgress') < 100 && !job.get('retrievingProgress')) {
+      this.reloadProgress(job);
+    }
+  }.observes('currentJob.model.dagId'),
+
+  totalProgress: function () {
+    if (!this.isJob(this.get('index.model'))) {
+      return;
+    }
+
+    return this.get('currentJob.totalProgress');
+  }.property('index.model', 'currentJob.totalProgress'),
+
+  stages: function () {
+    if (!this.isJob(this.get('index.model'))) {
+      return;
+    }
+
+    return this.get('currentJob.stages');
+  }.property('index.model', 'currentJob.stages.@each.value'),
+
+  reloadProgress: function (job) {
+    var self = this;
+    var url = '%@/%@/%@/progress'.fmt(this.container.lookup('adapter:application').buildURL(),
+                                         constants.namingConventions.jobs,
+                                         job.get('model.id'));
+
+    job.set('retrievingProgress', true);
+
+    Ember.$.getJSON(url).then(function (data) {
+      var total = 0;
+      var length = Object.keys(data.vertexProgresses).length;
+
+      if (!job.get('stages.length')) {
+        data.vertexProgresses.forEach(function (vertexProgress) {
+          var progress = vertexProgress.progress * 100;
+
+          job.get('stages').pushObject(Ember.Object.create({
+            name: vertexProgress.name,
+            value: progress
+          }));
+
+          total += progress;
+        });
+      } else {
+        data.vertexProgresses.forEach(function (vertexProgress) {
+          var progress = vertexProgress.progress * 100;
+
+          job.get('stages').findBy('name', vertexProgress.name).set('value', progress);
+
+          total += progress;
+        });
+      }
+
+      total /= length;
+
+      job.set('totalProgress', total);
+
+      if (job.get('model.isRunning') && total < 100) {
+        Ember.run.later(function () {
+          self.reloadProgress(job);
+        }, 1000);
+      } else {
+        job.set('retrievingProgress');
+      }
+    });
+  },
+
+  isJob: function (model) {
+    return model.get('constructor.typeKey') === constants.namingConventions.job;
+  }
 });
