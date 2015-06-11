@@ -148,7 +148,7 @@ class TestFalconServer(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
         owner = 'falcon',
-        group='hadoop',
+        group='users',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         recursive_chown = True,
