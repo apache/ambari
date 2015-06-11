@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state.cluster;
 
+import org.apache.ambari.server.testing.DeadlockWarningThread;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -143,7 +144,7 @@ public class ClusterDeadlockTest {
    *
    * @throws Exception
    */
-  @Test(timeout = 30000)
+  @Test()
   public void testDeadlockBetweenImplementations() throws Exception {
     Service service = cluster.getService("HDFS");
     ServiceComponent nameNodeComponent = service.getServiceComponent("NAMENODE");
@@ -168,8 +169,17 @@ public class ClusterDeadlockTest {
       threads.add(thread);
     }
 
-    for (Thread thread : threads) {
-      thread.join();
+    DeadlockWarningThread wt = new DeadlockWarningThread(threads);
+    
+    while (true) {
+      if(!wt.isAlive()) {
+          break;
+      }
+    }
+    if (wt.isDeadlocked()){
+      Assert.assertFalse(wt.getErrorMessages().toString(), wt.isDeadlocked());
+    } else {
+      Assert.assertFalse(wt.isDeadlocked());
     }
   }
 
@@ -179,7 +189,7 @@ public class ClusterDeadlockTest {
    *
    * @throws Exception
    */
-  @Test(timeout = 35000)
+  @Test()
   public void testAddingHostComponentsWhileReading() throws Exception {
     Service service = cluster.getService("HDFS");
     ServiceComponent nameNodeComponent = service.getServiceComponent("NAMENODE");
@@ -194,8 +204,17 @@ public class ClusterDeadlockTest {
       threads.add(thread);
     }
 
-    for (Thread thread : threads) {
-      thread.join();
+    DeadlockWarningThread wt = new DeadlockWarningThread(threads);
+    
+    while (true) {
+      if(!wt.isAlive()) {
+          break;
+      }
+    }
+    if (wt.isDeadlocked()){
+      Assert.assertFalse(wt.getErrorMessages().toString(), wt.isDeadlocked());
+    } else {
+      Assert.assertFalse(wt.isDeadlocked());
     }
   }
 
@@ -205,7 +224,7 @@ public class ClusterDeadlockTest {
    *
    * @throws Exception
    */
-  @Test(timeout = 75000)
+  @Test()
   public void testDeadlockWhileRestartingComponents() throws Exception {
     // for each host, install both components
     List<ServiceComponentHost> serviceComponentHosts = new ArrayList<ServiceComponentHost>();
@@ -236,9 +255,18 @@ public class ClusterDeadlockTest {
       clusterWriterThread.start();
       schWriterThread.start();
     }
-
-    for (Thread thread : threads) {
-      thread.join();
+    
+    DeadlockWarningThread wt = new DeadlockWarningThread(threads);
+    
+    while (true) {
+      if(!wt.isAlive()) {
+          break;
+      }
+    }
+    if (wt.isDeadlocked()){
+      Assert.assertFalse(wt.getErrorMessages().toString(), wt.isDeadlocked());
+    } else {
+      Assert.assertFalse(wt.isDeadlocked());
     }
   }
 
