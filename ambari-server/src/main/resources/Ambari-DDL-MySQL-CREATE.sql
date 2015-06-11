@@ -587,8 +587,8 @@ CREATE TABLE topology_request (
   action VARCHAR(255) NOT NULL,
   cluster_name VARCHAR(100) NOT NULL,
   bp_name VARCHAR(100) NOT NULL,
-  cluster_properties TEXT,
-  cluster_attributes TEXT,
+  cluster_properties LONGTEXT,
+  cluster_attributes LONGTEXT,
   description VARCHAR(1024),
   PRIMARY KEY (id)
 );
@@ -596,8 +596,8 @@ CREATE TABLE topology_request (
 CREATE TABLE topology_hostgroup (
   id BIGINT NOT NULL,
   name VARCHAR(255) NOT NULL,
-  group_properties TEXT,
-  group_attributes TEXT,
+  group_properties LONGTEXT,
+  group_attributes LONGTEXT,
   request_id BIGINT NOT NULL,
   PRIMARY KEY (id)
 );
@@ -654,7 +654,7 @@ ALTER TABLE viewinstance ADD CONSTRAINT UQ_viewinstance_name_id UNIQUE (view_ins
 ALTER TABLE serviceconfig ADD CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_name, version);
 ALTER TABLE adminpermission ADD CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id);
 ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name);
-ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack_id, version);
+ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_id UNIQUE (stack_id, version);
 ALTER TABLE stack ADD CONSTRAINT unq_stack UNIQUE (stack_name, stack_version);
 
 -- altering tables by creating foreign keys----------

@@ -729,7 +729,7 @@ ALTER TABLE ambari.viewinstance ADD CONSTRAINT UQ_viewinstance_name_id UNIQUE (v
 ALTER TABLE ambari.serviceconfig ADD CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_name, version);
 ALTER TABLE ambari.adminpermission ADD CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id);
 ALTER TABLE ambari.repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name);
-ALTER TABLE ambari.repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack_id, version);
+ALTER TABLE ambari.repo_version ADD CONSTRAINT UQ_repo_version_stack_id UNIQUE (stack_id, version);
 ALTER TABLE ambari.stack ADD CONSTRAINT unq_stack UNIQUE (stack_name, stack_version);
 
 --------altering tables by creating foreign keys----------
