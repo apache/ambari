@@ -42,6 +42,7 @@ App.QueueController = Ember.ObjectController.extend({
           store = this.get('store'),
           queuesController = this.get('controllers.queues'),
           parentPath = queue.get('parentPath'),
+          skeletons = [],
           name, renamedQueueBackup;
 
       if (opt == 'ask') {
@@ -65,16 +66,28 @@ App.QueueController = Ember.ObjectController.extend({
 
         if (queue.get('isNewQueue')) {
           renamedQueueBackup = this.get('store').buildDeletedQueue(queue);
+
+          if (!Em.isEmpty(queue.get('queuesArray'))) {
+            this.recurceCreateChildrenSkeletons(queue,skeletons);
+          }
         }
 
         store.recurceRemoveQueue(queue).then(function (queue) {
           return (queue.get('isNewQueue')) ? renamedQueueBackup : store.get('deletedQueues').findBy('path',queue.get('path'));
-        }).then(function (deletedQueue) {
-          var targetDeleted =  store.get('deletedQueues').findBy('path',[parentPath,name].join('.')),
-              queuePrototype = (targetDeleted) ? store.createFromDeleted(targetDeleted) : store.copyFromDeleted(deletedQueue,parentPath,name);
+        })
+        .then(function (skeleton) {
+          return this.createQueueFromSkeleton(parentPath,name,skeleton);
+        }.bind(this))
+        .then(function (queue) {
+          this.transitionToRoute('queue',queue);
+          return queue;
+        }.bind(this))
+        .then(function (newParent) {
+          skeletons.forEach(function (skeleton) {
+            this.createQueueFromSkeleton(skeleton.parentPath.split('.').replace(newParent.get('depth'),1,newParent.get('name')).join('.'),skeleton.name,skeleton);
+          }.bind(this));
+        }.bind(this));
 
-          return store.saveAndUpdateQueue(queuePrototype,deletedQueue);
-        }).then(Em.run.bind(this,'transitionToRoute','queue'));
       }
 
     },
@@ -82,6 +95,30 @@ App.QueueController = Ember.ObjectController.extend({
       target = target || this;
       target.toggleProperty(property);
     }
+  },
+
+  createQueueFromSkeleton: function(parentPath,name,skeleton){
+    var targetDeleted =  this.store.get('deletedQueues').findBy('path',[parentPath,name].join('.')),
+        queueToSave = (targetDeleted) ? this.store.createFromDeleted(targetDeleted) : this.store.copyFromDeleted(skeleton,parentPath,name);
+
+    return this.store.saveAndUpdateQueue(queueToSave,skeleton);
+  },
+
+  recurceCreateChildrenSkeletons: function(queue,skeletonArray) {
+    if (!skeletonArray) {
+      return;
+    }
+    var childrenNames = queue.get('queuesArray');
+
+    childrenNames.forEach(function (childName) {
+      var queueRecord = queue.store.getById('queue',[queue.get('id'),childName.toLowerCase()].join('.'));
+
+      skeletonArray.push(queue.store.buildDeletedQueue(queueRecord));
+
+      if (!Em.isEmpty(queueRecord.get('queuesArray'))) {
+        this.recurceCreateChildrenSkeletons(queueRecord,skeletonArray);
+      }
+    }.bind(this));
   },
 
   /**

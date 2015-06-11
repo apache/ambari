@@ -150,12 +150,14 @@ App.ApplicationStore = DS.Store.extend({
   recurceRemoveQueue: function (queue) {
     if (Em.isEmpty(queue)) {
       return;
-    } else if (!queue.get('isNewQueue') && !queue.get('isNew')) {
+    } else {
       queue.get('queuesArray').forEach(function (queueName) {
         this.recurceRemoveQueue(this.getById('queue',[queue.get('path'),queueName].join('.').toLowerCase()));
       }.bind(this));
 
-      this.get('deletedQueues').pushObject(this.buildDeletedQueue(queue));
+      if (!queue.get('isNewQueue')){
+        this.get('deletedQueues').pushObject(this.buildDeletedQueue(queue));
+      }
 
     }
     this.all('queue').findBy('path',queue.get('parentPath')).set('queuesArray',{'exclude':queue.get('name')});
@@ -315,7 +317,8 @@ App.ApplicationStore = DS.Store.extend({
         notLabel = false,
         isDeleteOperation = false;
 
-    if (pending.length == 1) {
+
+    if (pending.length == 1 || pending.isEvery('firstObject.isNew',true)) {
       this._super();
       return;
     }
