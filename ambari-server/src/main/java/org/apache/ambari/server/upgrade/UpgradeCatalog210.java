@@ -83,9 +83,12 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
   private static final String HOST_CONFIG_MAPPING_TABLE = "hostconfigmapping";
   private static final String CONFIG_GROUP_HOST_MAPPING_TABLE = "configgrouphostmapping";
+  private static final String CONFIG_GROUP_TABLE = "configgroup";
   private static final String KERBEROS_PRINCIPAL_HOST_TABLE = "kerberos_principal_host";
   private static final String KERBEROS_PRINCIPAL_TABLE = "kerberos_principal";
   private static final String REQUEST_OPERATION_LEVEL_TABLE = "requestoperationlevel";
+  private static final String SERVICE_COMPONENT_DESIRED_STATE_TABLE = "servicecomponentdesiredstate";
+  private static final String SERVICE_CONFIG_TABLE = "serviceconfig";
   private static final String SERVICE_CONFIG_HOSTS_TABLE = "serviceconfighosts";
   private static final String WIDGET_TABLE = "widget";
   private static final String WIDGET_LAYOUT_TABLE = "widget_layout";
@@ -445,19 +448,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       }
     }
 
-    // These are the FKs that have already been corrected.
-    dbAccessor.addFKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "FK_cghm_host_id", "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(CLUSTER_HOST_MAPPING_TABLE, "FK_clusterhostmapping_host_id", "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(HOST_CONFIG_MAPPING_TABLE, "FK_hostconfmapping_host_id", "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(HOST_COMPONENT_STATE_TABLE, "FK_hostcomponentstate_host_id", "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "FK_hcdesiredstate_host_id", "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(HOST_ROLE_COMMAND_TABLE, "FK_host_role_command_host_id", "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(HOST_STATE_TABLE, "FK_hoststate_host_id", "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(HOST_VERSION_TABLE, "FK_host_version_host_id", "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_id", "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_principalname", "principal_name", KERBEROS_PRINCIPAL_TABLE, "principal_name", false);
-    dbAccessor.addFKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "FK_scvhosts_host_id", "host_id", HOSTS_TABLE, "host_id", false);
-
 
     // For any tables where the host_name was part of the PK, need to drop the PK, and recreate it with the host_id
     String[] tablesWithHostNameInPK =  new String[] {
@@ -470,6 +460,15 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         KERBEROS_PRINCIPAL_HOST_TABLE,
         SERVICE_CONFIG_HOSTS_TABLE
     };
+
+    // We can't drop PK, if a one of PK columns is a part of foreign key. We should drop FK and re-create him after dropping PK
+    dbAccessor.dropFKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "FK_cghm_cgid");
+    dbAccessor.dropFKConstraint(CLUSTER_HOST_MAPPING_TABLE, "FK_clhostmapping_cluster_id");
+
+    dbAccessor.dropFKConstraint(HOST_CONFIG_MAPPING_TABLE, "FK_hostconfmapping_cluster_id");
+    dbAccessor.dropFKConstraint(HOST_COMPONENT_STATE_TABLE, "hstcomponentstatecomponentname");
+    dbAccessor.dropFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "hstcmpnntdesiredstatecmpnntnme");
+    dbAccessor.dropFKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "FK_scvhosts_scv");
 
     if (databaseType == Configuration.DatabaseType.DERBY) {
       for (String tableName : tablesWithHostNameInPK) {
@@ -489,14 +488,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       dbAccessor.dropPKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "kerberos_principal_host_pkey", HOST_NAME_COL);
       dbAccessor.dropPKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "serviceconfighosts_pkey", "hostname");
     }
-    dbAccessor.addPKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "configgrouphostmapping_pkey", "config_group_id", "host_id");
-    dbAccessor.addPKConstraint(CLUSTER_HOST_MAPPING_TABLE, "clusterhostmapping_pkey", "cluster_id", "host_id");
-    dbAccessor.addPKConstraint(HOST_CONFIG_MAPPING_TABLE, "hostconfigmapping_pkey", "cluster_id", "host_id", "type_name", "create_timestamp");
-    dbAccessor.addPKConstraint(HOST_COMPONENT_STATE_TABLE, "hostcomponentstate_pkey", "cluster_id", "component_name", "host_id", "service_name");
-    dbAccessor.addPKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "hostcomponentdesiredstate_pkey", "cluster_id", "component_name", "host_id", "service_name");
-    dbAccessor.addPKConstraint(HOST_STATE_TABLE, "hoststate_pkey", "host_id");
-    dbAccessor.addPKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "kerberos_principal_host_pkey", "principal_name", "host_id");
-    dbAccessor.addPKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "serviceconfighosts_pkey", "service_config_id", "host_id");
 
     // Finish by deleting the unnecessary host_name columns.
     dbAccessor.dropColumn(CONFIG_GROUP_HOST_MAPPING_TABLE, HOST_NAME_COL);
@@ -512,6 +503,38 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     // Notice that the column name doesn't have an underscore here.
     dbAccessor.dropColumn(SERVICE_CONFIG_HOSTS_TABLE, "hostname");
+
+    dbAccessor.addPKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "configgrouphostmapping_pkey", "config_group_id", "host_id");
+    dbAccessor.addPKConstraint(CLUSTER_HOST_MAPPING_TABLE, "clusterhostmapping_pkey", "cluster_id", "host_id");
+    dbAccessor.addPKConstraint(HOST_CONFIG_MAPPING_TABLE, "hostconfigmapping_pkey", "create_timestamp", "host_id", "cluster_id", "type_name");
+    dbAccessor.addPKConstraint(HOST_COMPONENT_STATE_TABLE, "hostcomponentstate_pkey", "cluster_id", "component_name", "host_id", "service_name");
+    dbAccessor.addPKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "hostcomponentdesiredstate_pkey", "cluster_id", "component_name", "host_id", "service_name");
+    dbAccessor.addPKConstraint(HOST_STATE_TABLE, "hoststate_pkey", "host_id");
+    dbAccessor.addPKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "kerberos_principal_host_pkey", "principal_name", "host_id");
+    dbAccessor.addPKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "serviceconfighosts_pkey", "service_config_id", "host_id");
+
+    // re-create FK constraints
+    dbAccessor.addFKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "FK_cghm_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(CLUSTER_HOST_MAPPING_TABLE, "FK_clusterhostmapping_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(HOST_CONFIG_MAPPING_TABLE, "FK_hostconfmapping_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(HOST_COMPONENT_STATE_TABLE, "FK_hostcomponentstate_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "FK_hcdesiredstate_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(HOST_ROLE_COMMAND_TABLE, "FK_host_role_command_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(HOST_STATE_TABLE, "FK_hoststate_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(HOST_VERSION_TABLE, "FK_host_version_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_principalname", "principal_name", KERBEROS_PRINCIPAL_TABLE, "principal_name", false);
+    dbAccessor.addFKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "FK_scvhosts_host_id", "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "FK_cghm_cgid", "config_group_id", CONFIG_GROUP_TABLE, "group_id", false);
+    dbAccessor.addFKConstraint(CLUSTER_HOST_MAPPING_TABLE, "FK_clhostmapping_cluster_id", "cluster_id", CLUSTERS_TABLE, "cluster_id", false);
+    dbAccessor.addFKConstraint(HOST_CONFIG_MAPPING_TABLE, "FK_hostconfmapping_cluster_id", "cluster_id", CLUSTERS_TABLE, "cluster_id", false);
+    dbAccessor.addFKConstraint(HOST_COMPONENT_STATE_TABLE, "hstcomponentstatecomponentname",
+                                  new String[]{"component_name", "cluster_id", "service_name"}, SERVICE_COMPONENT_DESIRED_STATE_TABLE,
+                                  new String[]{"component_name", "cluster_id", "service_name"}, false);
+    dbAccessor.addFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "hstcmpnntdesiredstatecmpnntnme",
+                                  new String[]{"component_name", "cluster_id", "service_name"}, SERVICE_COMPONENT_DESIRED_STATE_TABLE,
+                                  new String[]{"component_name", "cluster_id", "service_name"}, false);
+    dbAccessor.addFKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "FK_scvhosts_scv", "service_config_id", SERVICE_CONFIG_TABLE, "service_config_id", false);
 
     // Update host names to be case insensitive
     String UPDATE_TEMPLATE = "UPDATE {0} SET {1} = lower({1})";
@@ -591,12 +614,12 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     // data into them later on (we'll change them to NOT NULL after that)
     dbAccessor.addColumn(CLUSTERS_TABLE, DESIRED_STACK_ID_COLUMN);
     dbAccessor.addColumn("hostcomponentdesiredstate", DESIRED_STACK_ID_COLUMN);
-    dbAccessor.addColumn("servicecomponentdesiredstate", DESIRED_STACK_ID_COLUMN);
+    dbAccessor.addColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE, DESIRED_STACK_ID_COLUMN);
     dbAccessor.addColumn("servicedesiredstate", DESIRED_STACK_ID_COLUMN);
 
     dbAccessor.addFKConstraint(CLUSTERS_TABLE, "fk_clusters_desired_stack_id", DESIRED_STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
     dbAccessor.addFKConstraint("hostcomponentdesiredstate", "fk_hcds_desired_stack_id", DESIRED_STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
-    dbAccessor.addFKConstraint("servicecomponentdesiredstate", "fk_scds_desired_stack_id", DESIRED_STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
+    dbAccessor.addFKConstraint(SERVICE_COMPONENT_DESIRED_STATE_TABLE, "fk_scds_desired_stack_id", DESIRED_STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
     dbAccessor.addFKConstraint("servicedesiredstate", "fk_sds_desired_stack_id", DESIRED_STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
 
     dbAccessor.addColumn("clusterstate", CURRENT_STACK_ID_COLUMN);
@@ -660,7 +683,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           DESIRED_STACK_VERSION_COLUMN_NAME, outdatedJson);
 
       String serviceComponentDesiredStateSQL = MessageFormat.format(
-          UPDATE_TEMPLATE, "servicecomponentdesiredstate",
+          UPDATE_TEMPLATE, SERVICE_COMPONENT_DESIRED_STATE_TABLE,
           DESIRED_STACK_ID_COLUMN_NAME, stackEntityId,
           DESIRED_STACK_VERSION_COLUMN_NAME, outdatedJson);
 
@@ -687,7 +710,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
         dbAccessor.executeQuery(clustersSQL, "clusters", DESIRED_STACK_VERSION_COLUMN_NAME);
         dbAccessor.executeQuery(hostComponentDesiredStateSQL, "hostcomponentdesiredstate", DESIRED_STACK_VERSION_COLUMN_NAME);
-        dbAccessor.executeQuery(serviceComponentDesiredStateSQL, "servicecomponentdesiredstate", DESIRED_STACK_VERSION_COLUMN_NAME);
+        dbAccessor.executeQuery(serviceComponentDesiredStateSQL, SERVICE_COMPONENT_DESIRED_STATE_TABLE, DESIRED_STACK_VERSION_COLUMN_NAME);
         dbAccessor.executeQuery(serviceDesiredStateSQL, "servicedesiredstate", DESIRED_STACK_VERSION_COLUMN_NAME);
         dbAccessor.executeQuery(clusterStateSQL, "clusterstate", CURRENT_STACK_VERSION_COLUMN_NAME);
         dbAccessor.executeQuery(hostComponentStateSQL, "hostcomponentstate", CURRENT_STACK_VERSION_COLUMN_NAME);
@@ -1191,7 +1214,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     // make all stack columns NOT NULL now that they are filled in
     dbAccessor.setColumnNullable(CLUSTERS_TABLE, DESIRED_STACK_ID_COLUMN_NAME, false);
     dbAccessor.setColumnNullable("hostcomponentdesiredstate", DESIRED_STACK_ID_COLUMN_NAME, false);
-    dbAccessor.setColumnNullable("servicecomponentdesiredstate", DESIRED_STACK_ID_COLUMN_NAME, false);
+    dbAccessor.setColumnNullable(SERVICE_COMPONENT_DESIRED_STATE_TABLE, DESIRED_STACK_ID_COLUMN_NAME, false);
     dbAccessor.setColumnNullable("servicedesiredstate", DESIRED_STACK_ID_COLUMN_NAME, false);
 
     dbAccessor.setColumnNullable("clusterstate", CURRENT_STACK_ID_COLUMN_NAME, false);
@@ -1205,7 +1228,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     // drop unused JSON columns
     dbAccessor.dropColumn(CLUSTERS_TABLE, DESIRED_STACK_VERSION_COLUMN_NAME);
     dbAccessor.dropColumn("hostcomponentdesiredstate", DESIRED_STACK_VERSION_COLUMN_NAME);
-    dbAccessor.dropColumn("servicecomponentdesiredstate", DESIRED_STACK_VERSION_COLUMN_NAME);
+    dbAccessor.dropColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE, DESIRED_STACK_VERSION_COLUMN_NAME);
     dbAccessor.dropColumn("servicedesiredstate", DESIRED_STACK_VERSION_COLUMN_NAME);
 
     dbAccessor.dropColumn("clusterstate", CURRENT_STACK_VERSION_COLUMN_NAME);
