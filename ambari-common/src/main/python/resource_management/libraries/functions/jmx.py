@@ -25,9 +25,9 @@ from resource_management.core.logger import Logger
 def get_value_from_jmx(qry, property, security_enabled, run_user, is_https_enabled):
   try:
     if security_enabled:
-      cmd = ['curl', '--negotiate', '-u', ':']
+      cmd = ['curl', '--negotiate', '-u', ':', '-s']
     else:
-      cmd = ['curl']
+      cmd = ['curl', '-s']
 
     if is_https_enabled:
       cmd.append("-k")
@@ -40,5 +40,5 @@ def get_value_from_jmx(qry, property, security_enabled, run_user, is_https_enabl
       data_dict = json.loads(data)
       return data_dict["beans"][0][property]
   except:
-    Logger.exception("Getting jmx metrics from NN failed. URL: " + str(qry))
+    Logger.logger.exception("Getting jmx metrics from NN failed. URL: " + str(qry))
     return None
