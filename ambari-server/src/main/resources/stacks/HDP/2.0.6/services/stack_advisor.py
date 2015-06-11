@@ -628,6 +628,9 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       return self.getErrorItem("Config's default value can't be null or undefined")
     if not checkXmxValueFormat(value):
       return self.getErrorItem('Invalid value format')
+    if not checkXmxValueFormat(defaultValue):
+      # if default value does not contain Xmx, then there is no point in validating existing value
+      return None
     valueInt = formatXmxSizeToBytes(getXmxSize(value))
     defaultValueXmx = getXmxSize(defaultValue)
     defaultValueInt = formatXmxSizeToBytes(defaultValueXmx)
