@@ -538,7 +538,7 @@ CREATE TABLE widget (
   metrics CLOB,
   time_created NUMBER(19) NOT NULL,
   author VARCHAR2(255),
-  description VARCHAR2(255),
+  description VARCHAR2(2048),
   default_section_name VARCHAR2(255),
   scope VARCHAR2(255),
   widget_values CLOB,

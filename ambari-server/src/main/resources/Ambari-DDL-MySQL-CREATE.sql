@@ -549,7 +549,7 @@ CREATE TABLE widget (
   metrics LONGTEXT,
   time_created BIGINT NOT NULL,
   author VARCHAR(255),
-  description VARCHAR(255),
+  description VARCHAR(2048),
   default_section_name VARCHAR(255),
   scope VARCHAR(255),
   widget_values LONGTEXT,

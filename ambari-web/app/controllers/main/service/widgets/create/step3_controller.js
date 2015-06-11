@@ -77,8 +77,23 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
    * @type {boolean}
    */
   isSubmitDisabled: function () {
-    return this.get('widgetName') ? !Boolean(this.get('widgetName').trim()) : true;
+    var widgetNameEmpty = this.get('widgetName') ? !Boolean(this.get('widgetName').trim()) : true;
+    return widgetNameEmpty || this.get('isNameInvalid') || this.get('isDescriptionInvalid');
+  }.property('widgetName', 'isNameInvalid', 'isDescriptionInvalid'),
+
+  /**
+   * @type {boolean}
+   */
+  isNameInvalid: function () {
+    return this.get('widgetName') ? this.get('widgetName').length >= 129 : false;
   }.property('widgetName'),
+
+  /**
+   * @type {boolean}
+   */
+  isDescriptionInvalid: function () {
+    return this.get('widgetDescription') ? this.get('widgetDescription').length >= 2049 : false;
+  }.property('widgetDescription'),
 
   /**
    * restore widget data set on 2nd step
