@@ -19,6 +19,7 @@
 var App = require('app');
 
 App.FileController = Ember.ObjectController.extend({
+  needs:['files'],
   actions:{
     download:function (option) {
       if (this.get('content.readAccess')) {
@@ -58,9 +59,13 @@ App.FileController = Ember.ObjectController.extend({
       }
     },
     deleteFile:function (deleteForever) {
-      this.store
-        .remove(this.get('content'),!deleteForever)
-        .then(null,Em.run.bind(this,this.deleteErrorCallback,this.get('content')));
+      if (this.get('dirInfo.writeAccess')) {
+        this.store
+          .remove(this.get('content'),!deleteForever)
+          .then(null,Em.run.bind(this,this.deleteErrorCallback,this.get('content')));
+      } else {
+        this.send('showAlert',{message:'Permission denied'});
+      }
     }
   },
   selected:false,
@@ -87,6 +92,8 @@ App.FileController = Ember.ObjectController.extend({
     record.rollback();
     this.sendAlert(error);
   },
+
+  dirInfo: Em.computed.alias('controllers.files.content.meta'),
 
   deleteErrorCallback:function (record,error) {
     this.get('parentController.model').pushRecord(record);

@@ -99,5 +99,12 @@ App.FilesRoute = Em.Route.extend({
         });
       });
     }
+  },
+  afterModel: function (model) {
+    this.store.all('file').forEach(function (file) {
+      if (!model.contains(file)) {
+        file.unloadRecord();
+      }
+    });
   }
 });

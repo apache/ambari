@@ -110,8 +110,8 @@
                   <i class="fa fa-chevron-left fa-gr fa-fw"></i> Delete
                 </a>
                 <ul class="dropdown-menu left-submenu">
-                  {{confirm-delete confirm="deleteFile" deleteForever=true selector='bulkDropdown'}}
-                  {{confirm-delete confirm="deleteFile" deleteForever=false selector='bulkDropdown'}}
+                  {{confirm-delete confirm="deleteFile" deleteForever=true selector='bulkDropdown' access=content.meta.writeAccess}}
+                  {{confirm-delete confirm="deleteFile" deleteForever=false selector='bulkDropdown' access=content.meta.writeAccess}}
                 </ul>
               </li>
             </ul>

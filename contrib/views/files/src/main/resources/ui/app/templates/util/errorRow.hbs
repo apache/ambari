@@ -18,20 +18,15 @@
 
 <div>
   <button {{action 'removeAlert'}} type="button" class="close" aria-hidden="true">&times;</button>
-  <div class="text-center"><strong>{{content.status}} </strong> {{publicMessage}}
-    {{#if stackTrace}}<a href="#" {{action "toggleStackTrace" post}}>
-        {{#if isExpanded}}
-            <span class="glyphicon glyphicon-collapse-down"></span> Collapse Stack Trace
-        {{else}}
-            <span class="glyphicon glyphicon-expand"></span> Expand Stack Trace
-        {{/if}}
+  <div class="text-center"><strong>{{content.status}} </strong> {{output}}
+    {{#if stackTrace}}
+      <a href="#" {{action "toggleStackTrace" post}}>
+        <i {{bind-attr class=":fa isExpanded:fa-toggle-down:fa-toggle-right"}}></i>
+        {{#if isExpanded}} Collapse Stack Trace {{else}} Expand Stack Trace {{/if}}
       </a>
-    </div>
-    {{#if isExpanded}}
-        <pre class="prettyprint">
-{{publicMessage}}
-{{stackTrace}}
-        </pre>
+      {{#if isExpanded}}
+          <pre class="prettyprint">{{stackTrace}}</pre>
+      {{/if}}
     {{/if}}
-  {{/if}}
+  </div>
 </div>

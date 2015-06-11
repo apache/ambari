@@ -65,6 +65,7 @@ App.ToggleContextComponent = Em.Component.extend({
   willClearRender:function () {
     var fileRow = this.$().parents('tr');
     fileRow.off('click');
+    fileRow.data('context').closemenu();
     fileRow.data('context').destroy();
   }
 });

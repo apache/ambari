@@ -34,8 +34,8 @@
         <i class="fa fa-chevron-right pull-right fa-right"></i>
       </a>
       <ul class="dropdown-menu">
-        {{confirm-delete confirm="removeFile" deleteForever=true }}
-        {{confirm-delete confirm="moveToTrash" deleteForever=false }}
+        {{confirm-delete confirm="removeFile" deleteForever=true access=target.dirInfo.writeAccess}}
+        {{confirm-delete confirm="moveToTrash" deleteForever=false access=target.dirInfo.writeAccess}}
       </ul>
     </li>
   </ul>
