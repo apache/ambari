@@ -139,11 +139,24 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
+    putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
     putHiveServerProperty = self.putProperty(configurations, "hiveserver2-site", services)
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     # hive_security_authorization == 'ranger'
     if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "ranger":
       putHiveServerProperty("hive.security.authorization.manager", "org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory")
+
+    # TEZ JVM options
+    jvmGCParams = "-XX:+UseParallelGC"
+    if "ambari-server-properties" in services and "java.home" in services["ambari-server-properties"]:
+      # JDK8 needs different parameters
+      match = re.match(".*\/jdk(1\.\d+)[\-\_\.][^/]*$", services["ambari-server-properties"]["java.home"])
+      if match and len(match.groups()) > 0:
+        # Is version >= 1.8
+        versionSplits = re.split("\.", match.group(1))
+        if versionSplits and len(versionSplits)>1 and int(versionSplits[0])>0 and int(versionSplits[1])>7:
+          jvmGCParams = "-XX:+UseG1GC -XX:+ResizeTLAB"
+    putHiveSiteProperty('hive.tez.java.opts', "-server -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA " + jvmGCParams + " -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps")
 
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
