@@ -19,9 +19,7 @@
 import Ember from 'ember';
 import { moduleFor, test } from 'ember-qunit';
 
-moduleFor('controller:udf', 'UdfController', {
-  needs: [ 'controller:udfs', 'controller:file-resources' ]
-});
+moduleFor('controller:udf', 'UdfController', {});
 
 test('controller is initialized', function() {
   expect(2);

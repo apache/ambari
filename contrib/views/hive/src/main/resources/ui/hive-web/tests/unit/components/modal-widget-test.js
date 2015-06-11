@@ -17,28 +17,53 @@
  */
 
 import Ember from 'ember';
+import constants from 'hive/utils/constants';
 import { moduleForComponent, test } from 'ember-qunit';
 
-moduleForComponent('no-bubbling', 'NoBubblingWidgetComponent', {
-  unit: true
+moduleForComponent('modal-widget', 'ModalWidgetComponent', {
+  needs: ['helper:tb-helper']
 });
 
+test('It send ok action on keyPress enter', function(assert) {
+  assert.expect(1);
 
-test('External actions', function() {
-  expect(2);
+  Ember.run.debounce = function(target, func) {
+    func.call(target);
+  };
 
   var component = this.subject({
+    ok: 'ok',
     targetObject: {
-      click: function(data) {
-        ok(true, 'External click action called');
-        equal(data, 'data', 'Data is sent with the action');
+      ok: function() {
+        assert.ok(1, 'OK action sent');
       }
-    },
-    click: 'click',
-    data: 'data'
+    }
   });
 
   var $component = this.$();
 
-  $component.trigger('click');
+  component.keyPress({ which: 13 });
+  Ember.$('.modal-backdrop').remove(); // remove overlay
+});
+
+test('It send close action on keyPress escape', function(assert) {
+  assert.expect(1);
+
+  Ember.run.debounce = function(target, func) {
+    func.call(target);
+  };
+
+  var component = this.subject({
+    close: 'close',
+    targetObject: {
+      close: function() {
+        assert.ok(1, 'Close action sent');
+      }
+    }
+  });
+
+  var $component = this.$();
+
+  component.keyPress({ which: 27 });
+  Ember.$('.modal-backdrop').remove(); // remove overlay
 });

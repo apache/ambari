@@ -131,24 +131,26 @@ public class ATSParser implements IATSParser {
     parsedJob.duration = lastEventTimestamp - parsedJob.starttime;
 
     JSONObject otherinfo = (JSONObject) job.get("otherinfo");
-    JSONObject query = (JSONObject) JSONValue.parse((String) otherinfo.get("QUERY"));
+    if (otherinfo.get("QUERY") != null) {  // workaround for HIVE-10829
+      JSONObject query = (JSONObject) JSONValue.parse((String) otherinfo.get("QUERY"));
 
-    parsedJob.query = (String) query.get("queryText");
-    JSONObject stages = (JSONObject) ((JSONObject) query.get("queryPlan")).get("STAGE PLANS");
+      parsedJob.query = (String) query.get("queryText");
+      JSONObject stages = (JSONObject) ((JSONObject) query.get("queryPlan")).get("STAGE PLANS");
 
-    List<String> dagIds = new LinkedList<String>();
-    List<JSONObject> stagesList = new LinkedList<JSONObject>();
+      List<String> dagIds = new LinkedList<String>();
+      List<JSONObject> stagesList = new LinkedList<JSONObject>();
 
-    for (Object key : stages.keySet()) {
-      JSONObject stage = (JSONObject) stages.get(key);
-      if (stage.get("Tez") != null) {
-        String dagId = (String) ((JSONObject) stage.get("Tez")).get("DagName:");
-        dagIds.add(dagId);
+      for (Object key : stages.keySet()) {
+        JSONObject stage = (JSONObject) stages.get(key);
+        if (stage.get("Tez") != null) {
+          String dagId = (String) ((JSONObject) stage.get("Tez")).get("DagName:");
+          dagIds.add(dagId);
+        }
+        stagesList.add(stage);
       }
-      stagesList.add(stage);
+      parsedJob.dagNames = dagIds;
+      parsedJob.stages = stagesList;
     }
-    parsedJob.dagNames = dagIds;
-    parsedJob.stages = stagesList;
     return parsedJob;
   }
 

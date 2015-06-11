@@ -15,23 +15,27 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
 import Ember from 'ember';
+import constants from 'hive/utils/constants';
 
 export default Ember.Controller.extend({
-  messages: Ember.computed.alias('notify.messages'),
-  count: Ember.computed.alias('notify.unseenMessages.length'),
+  notifyService: Ember.inject.service(constants.namingConventions.notify),
+
+  messages: Ember.computed.alias('notifyService.messages'),
+  count: Ember.computed.alias('notifyService.unseenMessages.length'),
 
   actions: {
     removeMessage: function (message) {
-      this.notify.removeMessage(message);
+      this.get('notifyService').removeMessage(message);
     },
 
     removeAllMessages: function () {
-      this.notify.removeAllMessages();
+      this.get('notifyService').removeAllMessages();
     },
 
     markMessagesAsSeen: function () {
-      this.notify.markMessagesAsSeen();
+      this.get('notifyService').markMessagesAsSeen();
     }
   }
 });

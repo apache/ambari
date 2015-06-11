@@ -21,13 +21,18 @@ import constants from 'hive/utils/constants';
 import utils from 'hive/utils/functions';
 
 export default Ember.ArrayController.extend({
+  notifyService: Ember.inject.service(constants.namingConventions.notify),
+
   needs: [
     constants.namingConventions.index,
-    constants.namingConventions.openQueries
+    constants.namingConventions.openQueries,
+    constants.namingConventions.queryTabs
   ],
 
   index: Ember.computed.alias('controllers.' + constants.namingConventions.index),
   openQueries: Ember.computed.alias('controllers.' + constants.namingConventions.openQueries),
+  queryTabs: Ember.computed.alias('controllers.' + constants.namingConventions.queryTabs),
+
   sessionTag: Ember.computed.alias('index.model.sessionTag'),
   sessionActive: Ember.computed.alias('index.model.sessionActive'),
 
@@ -53,7 +58,7 @@ export default Ember.ArrayController.extend({
         self.createDefaultsSettings(response.settings);
       })
       .catch(function(error) {
-        self.notify.error(error.responseJSON.message, error.responseJSON.trace);
+        self.get('notifyService').error(error);
       });
   }.on('init'),
 
@@ -91,7 +96,7 @@ export default Ember.ArrayController.extend({
     var currentId = this.get('index.model.id');
     var targetSettings = this.findBy('id', currentId);
 
-   if (!targetSettings && currentId) {
+   if (!targetSettings) {
       targetSettings = this.pushObject(Ember.Object.create({
         id: currentId,
         settings: []
@@ -99,7 +104,7 @@ export default Ember.ArrayController.extend({
     }
 
     return targetSettings;
-  }.property('openQueries.currentQuery'),
+  }.property('index.model.id'),
 
   settingsSets: [
     Ember.Object.create({ name: 'Set 1' }),
@@ -170,7 +175,7 @@ export default Ember.ArrayController.extend({
     return setting;
   },
 
-  parseQuerySettings: function () {
+  parseQuerySettings: function(notify) {
     var self           = this;
     var query          = this.get('openQueries.currentQuery');
     var content        = query.get('fileContent');
@@ -201,8 +206,27 @@ export default Ember.ArrayController.extend({
       parsedSettings.push(self.createSetting(name, value));
     });
 
+    if (notify) {
+      this.get('notifyService').info(Ember.I18n.t('settings.parsed'));
+      this.get('queryTabs').flashSettings();
+    }
+
     query.set('fileContent', content.replace(regex, '').trim());
     targetSettings.set('settings', parsedSettings);
+  },
+
+  parseQuerySettingsObserver: function () {
+    var query;
+
+    Ember.run(this, function () {
+      query = this.get('openQueries.currentQuery');
+    });
+
+    if (query.get('blockSettingsParser')) {
+      return;
+    }
+
+    this.parseQuerySettings(true);
   }.observes('openQueries.currentQuery', 'openQueries.currentQuery.fileContent', 'openQueries.tabUpdated'),
 
   validate: function () {
@@ -306,9 +330,9 @@ export default Ember.ArrayController.extend({
       adapter.ajax(url, 'DELETE').catch(function (response) {
         if ([200, 404].contains(response.status)) {
           model.set('sessionActive', false);
-          self.notify.success(Ember.I18n.t('alerts.success.sessions.deleted'));
+          self.get('notifyService').success(Ember.I18n.t('alerts.success.sessions.deleted'));
         } else {
-          self.notify.error(response.responseJSON.message, response.responseJSON.trace);
+          self.get('notifyService').error(response);
         }
       });
     },
@@ -349,9 +373,9 @@ export default Ember.ArrayController.extend({
       })
         .then(function(response) {
           if (response && response.settings) {
-            self.notify.success(Ember.I18n.t('alerts.success.settings.saved'));
+            self.get('notifyService').success(Ember.I18n.t('alerts.success.settings.saved'));
           } else {
-            self.notify.error(response.responseJSON.message, response.responseJSON.trace);
+            self.get('notifyService').error(response);
           }
         });
     }

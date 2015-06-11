@@ -17,7 +17,7 @@
 }}
 
 <div class="databases">
-  {{#each database in content}}
+  {{#each database in databases}}
     {{#collapsible-widget heading=database.name isExpanded=database.isExpanded iconClass="fa-database" expanded="getTables" toggledParam=database}}
       {{#if database.isExpanded}}
         <div class="tables">

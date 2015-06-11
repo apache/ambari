@@ -19,26 +19,20 @@
 import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
-export default Ember.ArrayController.extend({
-  contains: function (obj) {
-    if (typeof obj === 'string') {
-      return this.findBy('id', obj);
-    }
-
-    return this._super(obj);
-  },
+export default Ember.Service.extend({
+  files: [],
+  store: Ember.inject.service(),
 
   loadFile: function (path) {
     var self = this;
     var defer = Ember.RSVP.defer();
-    var file = this.contains(path);
+    var file = this.files.findBy('id', path);
 
     if (file) {
       defer.resolve(file);
     } else {
-      this.store.find(constants.namingConventions.file, path).then(function (file) {
-        self.pushObject(file);
-        defer.resolve(file);
+      this.get('store').find(constants.namingConventions.file, path).then(function (file) {
+        defer.resolve(self.files.pushObject(file));
       }, function (err) {
         defer.reject(err);
       });
@@ -47,10 +41,10 @@ export default Ember.ArrayController.extend({
     return defer.promise;
   },
 
-  reload: function (path) {
+  reloadFile: function (path) {
     var defer = Ember.RSVP.defer();
 
-    this.store.find(constants.namingConventions.file, path).then(function (file) {
+    this.get('store').find(constants.namingConventions.file, path).then(function (file) {
       file.reload().then(function (reloadedFile) {
         defer.resolve(reloadedFile);
       }, function (err) {

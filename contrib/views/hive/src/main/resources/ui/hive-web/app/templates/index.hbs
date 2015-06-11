@@ -27,14 +27,22 @@
         {{render 'open-queries'}}
 
         <div class="toolbox">
-          <button type="button"
-                  {{bind-attr class=":btn :btn-sm :btn-success :execute-query canExecute::disabled"}}
-                  {{action "executeQuery"}}>
-            {{t "buttons.execute"}}
-          </button>
-          <button type="button"
-                  {{bind-attr class=":btn :btn-sm :btn-default canExecute::disabled"}}
-                  {{action "explainQuery"}}>
+          {{#if canExecute}}
+            <button type="button" class="btn btn-sm btn-success execute-query" {{action "executeQuery"}}>
+              {{t "buttons.execute"}}
+            </button>
+          {{else}}
+            <button type="button" {{bind-attr class=":btn :btn-sm :btn-warning model.isCancelling:disabled"}} {{action "stopCurrentJob"}}>
+              {{#if model.isCancelling}}
+                {{t "buttons.stoppingJob"}}
+                <div class="spinner small inline-spinner"></div>
+              {{else}}
+                {{t "buttons.stopJob"}}
+              {{/if}}
+            </button>
+          {{/if}}
+
+          <button type="button" {{bind-attr class=":btn :btn-sm :btn-default canExecute::disabled"}} {{action "explainQuery"}}>
             {{t "buttons.explain"}}
           </button>
 
@@ -46,9 +54,11 @@
         </div>
       {{/panel-widget}}
 
-      {{#if jobProgress.stages}}
-        {{#progress-widget value=jobProgress.totalProgress}}
-        {{/progress-widget}}
+      {{#if displayJobTabs}}
+        {{#if jobProgress.stages.length}}
+          {{#progress-widget value=jobProgress.totalProgress}}
+          {{/progress-widget}}
+        {{/if}}
       {{/if}}
 
       {{#if queryParams}}

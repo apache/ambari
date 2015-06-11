@@ -17,7 +17,7 @@
 }}
 
 {{#each tab in tabs}}
-    <span {{action tab.action tab}} {{bind-attr class=":query-menu-tab tabClassNames tab.iconClass tab.active:active" title="tab.tooltip" id="tab.id"}}>
+    <span {{action tab.action tab}} {{bind-attr class=":query-menu-tab tabClassNames tab.iconClass tab.active:active tab.flash:flash" title="tab.tooltip" id="tab.id"}}>
       {{#if tab.badge}}
         <span class="badge">{{tab.badge}}</span>
       {{/if}}

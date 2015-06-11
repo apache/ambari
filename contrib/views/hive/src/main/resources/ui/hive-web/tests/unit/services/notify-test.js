@@ -19,12 +19,14 @@
 import Ember from 'ember';
 import { moduleFor, test } from 'ember-qunit';
 
-moduleFor('service:notify', 'NotifyService', {});
+moduleFor('service:notify', 'NotifyService');
 
 test('Service initialized correctly', function () {
   expect(3);
 
   var service = this.subject();
+  service.removeAllMessages();
+  service.markMessagesAsSeen();
 
   equal(service.get('messages.length'), 0, 'No messages');
   equal(service.get('notifications.length'), 0, 'No notifications');

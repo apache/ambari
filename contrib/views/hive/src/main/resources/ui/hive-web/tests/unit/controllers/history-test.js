@@ -20,7 +20,7 @@ import Ember from 'ember';
 import { moduleFor, test } from 'ember-qunit';
 
 moduleFor('controller:history', 'HistoryController', {
-  needs: ['controller:job', 'controller:loaded-files']
+  needs: [ 'service:file', 'service:job' ]
 });
 
 test('controller is initialized correctly', function () {

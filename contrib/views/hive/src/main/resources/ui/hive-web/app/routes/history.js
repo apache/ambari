@@ -20,11 +20,13 @@ import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
 export default Ember.Route.extend({
+  notifyService: Ember.inject.service(constants.namingConventions.notify),
+
   model: function () {
     var self = this;
 
-    return this.store.find(constants.namingConventions.job).catch(function (err) {
-      self.notify.error(err.responseJSON.message, err.responseJSON.trace);
+    return this.store.find(constants.namingConventions.job).catch(function (error) {
+      self.get('notifyService').error(error);
     });
   },
 
@@ -35,8 +37,8 @@ export default Ember.Route.extend({
 
     var filteredModel = model.filter(function (job) {
        //filter out jobs with referrer type of sample, explain and visual explain
-       return !job.get('referrer') ||
-              job.get('referrer') === constants.jobReferrer.job;
+       return (!job.get('referrer') || job.get('referrer') === constants.jobReferrer.job) &&
+              !!job.get('id');
     });
 
     controller.set('history', filteredModel);

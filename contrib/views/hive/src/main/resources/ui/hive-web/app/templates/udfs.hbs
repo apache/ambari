@@ -58,7 +58,7 @@
                                placeholderTranslation="placeholders.fileResource.path"
                                value=udf.fileResource.path}}
             {{else}}
-              {{select-widget items=controller.fileResources
+              {{select-widget items=fileResources
                               selectedValue=udf.fileResource
                               labelPath="name"
                               defaultLabelTranslation="placeholders.select.file"
@@ -74,7 +74,7 @@
             {{/if}}
           {{/if}}
         </td>
-        {{#each column in controller.columns}}
+        {{#each column in columns}}
           <td>
             {{#if udf.isEditing}}
               {{extended-input type="text"
@@ -99,7 +99,7 @@
                 <a class="fa fa-gear"></a>
               </span>
               <ul class="dropdown-menu" role="menu">
-                {{#each link in controller.links}}
+                {{#each link in links}}
                   <li {{action 'executeAction' link}}><a>{{tb-helper link}}</a></li>
                 {{/each}}
               </ul>

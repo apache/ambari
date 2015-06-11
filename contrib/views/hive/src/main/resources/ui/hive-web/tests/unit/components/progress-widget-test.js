@@ -19,27 +19,22 @@
 import Ember from 'ember';
 import { moduleForComponent, test } from 'ember-qunit';
 
-moduleForComponent('progress-widget_', 'ProgressWidgetComponent');
+moduleForComponent('progress-widget', 'ProgressWidgetComponent', {
+  unit: true
+});
 
-test('Setting progress attributes', function () {
-  expect(3);
-
+test('Percentage is updated on value change', function() {
   var component = this.subject({
-    stages: [
-      Ember.Object.create({ className: 'progress-bar-success', name: 'Execution', value: 10 }),
-      Ember.Object.create({ className: 'progress-bar-danger', name: 'Queued', value: 30 }),
-      Ember.Object.create({ className: 'progress-bar-warning', name: 'Compile', value: 30 })
-    ],
-    formattedStages: Ember.ArrayProxy.create({ content: [] })
+    value: 0
   });
 
-  var $component = this.render();
+  this.$();
+
+  equal(component.get('percentage'), '0%', 'Progress is at 0%');
 
   Ember.run(function() {
-    component.formatStages();
-
-    equal(component.get('stages').get('firstObject').get('className'), 'progress-bar-success', 'ClassName was set correctly');
-    equal(component.get('stages').get('firstObject').get('name'), 'Execution', 'Name was set correctly');
-    equal(component.get('stages').get('firstObject').get('value'), 10, 'Value was set correctly');
+    component.set('value', 50);
   });
+
+  equal(component.get('percentage'), '50%', 'Progress is at 50%');
 });

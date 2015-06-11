@@ -17,7 +17,33 @@
  */
 
 import Ember from 'ember';
+import { test } from 'ember-qunit';
+import startApp from '../helpers/start-app';
+import api from '../helpers/api-mock';
 
-export default Ember.View.extend({
-  tagName: 'insert-udfs'
+var App;
+var server;
+
+module('Integration: Tez UI', {
+  setup: function() {
+    App = startApp();
+    /* global Pretender: true */
+    server = new Pretender(api);
+  },
+
+  teardown: function() {
+    Ember.run(App, App.destroy);
+    server.shutdown();
+  }
+});
+
+test('An error is show when there is no dag', function() {
+  expect(1);
+
+  visit("/");
+  click('#tez-icon');
+
+  andThen(function() {
+    ok(find('.panel .alert .alert-danger'), 'Error is visible');
+  });
 });

@@ -19,7 +19,9 @@
 import Ember from 'ember';
 import { moduleForComponent, test } from 'ember-qunit';
 
-moduleForComponent('extended-input', 'ExtendedInputComponent');
+moduleForComponent('extended-input', 'ExtendedInputComponent', {
+  unit: true
+});
 
 test('Component has dynamicValue and dynamicContext', function () {
   expect(1);
@@ -29,7 +31,7 @@ test('Component has dynamicValue and dynamicContext', function () {
     dynamicContext: Ember.Object.create({ 'dynamicValue' : 'test' })
   });
 
-  var $component = this.render();
+  var $component = this.$();
 
   equal(component.get('value'), 'test', 'Value is set to dynamicValue value');
 });
@@ -39,7 +41,7 @@ test('Component has no dynamicValue and dynamicContext', function () {
   expect(1);
 
   var component = this.subject();
-  var $component = this.render();
+  var $component = this.$();
 
   ok(!component.get('value'), 'Value is not set as dynamicValue value');
 });
@@ -52,7 +54,7 @@ test("Component's dynamicValue is set", function () {
     dynamicContext: Ember.Object.create({ 'dynamicValue' : 'test' })
   });
 
-  var $component = this.render();
+  var $component = this.$();
 
   Ember.run(function() {
     component.sendValueChanged();
@@ -69,7 +71,7 @@ test("Component's dynamicValue is not set", function () {
     dynamicContext: Ember.Object.create({ })
   });
 
-  var $component = this.render();
+  var $component = this.$();
 
   Ember.run(function() {
     component.sendValueChanged();

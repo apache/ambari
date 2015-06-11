@@ -20,19 +20,15 @@ import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
 export default Ember.Route.extend({
-  setupController: function () {
-    var self = this;
+  notifyService: Ember.inject.service(constants.namingConventions.notify),
 
-    this.store.find(constants.namingConventions.database).then(function (databases) {
-      self.controllerFor(constants.namingConventions.databases).set('model', databases);
-    }, function (err) {
-      self.notify.error(err.responseJSON.message, err.responseJSON.trace);
-    });
+  setupController: function (controller, model) {
+    var self = this;
 
     this.store.find(constants.namingConventions.udf).then(function (udfs) {
       self.controllerFor(constants.namingConventions.udfs).set('udfs', udfs);
-    }, function (err) {
-      self.notify.error(err.responseJSON.message, err.responseJSON.trace);
+    }, function (error) {
+      self.get('notifyService').error(error);
     });
   },
 
@@ -74,7 +70,7 @@ export default Ember.Route.extend({
     },
 
     removeNotification: function (notification) {
-      this.notify.removeNotification(notification);
+      this.get('notifyService').removeNotification(notification);
     },
 
     willTransition: function(transition) {

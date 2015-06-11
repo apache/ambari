@@ -44,5 +44,5 @@ test('buildUrl returns an url with default values for version and instance param
 
   var url = adapter.buildURL();
 
-  equal(url, constants.adapter.apiPrefix + '0.2.0' + constants.adapter.instancePrefix + 'Hive');
+  equal(url, constants.adapter.apiPrefix + constants.adapter.version + constants.adapter.instancePrefix + 'Hive');
 });

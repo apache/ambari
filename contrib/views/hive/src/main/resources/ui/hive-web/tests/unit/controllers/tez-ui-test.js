@@ -16,18 +16,81 @@
  * limitations under the License.
  */
 
-import {
-  moduleFor,
-  test
-} from 'ember-qunit';
+import Ember from 'ember';
+import DS from 'ember-data';
+import { moduleFor, test } from 'ember-qunit';
 
-moduleFor('controller:tez-ui', 'TezUiController', {
-  // Specify the other units that are required for this test.
-  needs: ['controller:index']
+var container;
+
+moduleFor('controller:tez-ui', 'TezUIController', {
+  needs: [
+    'controller:index',
+    'service:job',
+    'service:file',
+    'controller:open-queries',
+    'controller:databases',
+    'controller:udfs',
+    'controller:index/history-query/logs',
+    'controller:index/history-query/results',
+    'controller:index/history-query/explain',
+    'controller:settings',
+    'controller:visual-explain',
+    'controller:job-progress',
+    'adapter:database',
+    'service:database',
+    'service:notify'
+  ],
+
+  setup: function() {
+    container = new Ember.Container();
+    container.register('store:main', Ember.Object.extend({
+      find: Ember.K
+    }));
+  }
 });
 
-// Replace this with your real tests.
-test('it exists', function() {
+test('controller is initialized properly.', function () {
+  expect(1);
+
   var controller = this.subject();
+
   ok(controller);
+});
+
+test('dagId returns false if there is  no tez view available', function() {
+  var controller = this.subject();
+
+  ok(!controller.get('dagId'), 'dagId is false without a tez view available');
+});
+
+// test('dagId returns the id if there is view available', function() {
+//   var controller = this.subject({
+//   });
+
+//   Ember.run(function() {
+//     controller.set('index.model', Ember.Object.create({
+//       id: 2,
+//       dagId: 3
+//     }));
+
+//     controller.set('isTezViewAvailable', true);
+//   });
+
+//   equal(controller.get('dagId'), 3, 'dagId is truthy');
+// });
+
+test('dagURL returns false if no dag id is available', function() {
+  var controller = this.subject();
+
+  ok(!controller.get('dagURL'), 'dagURL is false');
+});
+
+test('dagURL returns the url if dag id is available', function() {
+  var controller = this.subject({
+    tezViewURL: '1',
+    tezDagPath: '2',
+    dagId: '3'
+  });
+
+  equal(controller.get('dagURL'), '123');
 });

@@ -20,12 +20,6 @@ import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
 export default Ember.ObjectController.extend({
-  needs: [ constants.namingConventions.udfs, constants.namingConventions.fileResources ],
-
-  columns: Ember.computed.alias('controllers.' + constants.namingConventions.udfs + '.columns'),
-  links: Ember.computed.alias('controllers.' + constants.namingConventions.udfs + '.links'),
-  fileResources: Ember.computed.alias('controllers.' + constants.namingConventions.fileResources),
-
   init: function () {
     this._super();
 

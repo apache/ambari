@@ -18,45 +18,45 @@
 
 import Ember from 'ember';
 import constants from 'hive/utils/constants';
-import { moduleFor, test } from 'ember-qunit';
+import { moduleForComponent, test } from 'ember-qunit';
 
-moduleFor('controller:job', 'JobController', {
-  needs: ['controller:history', 'controller:loaded-files']
+moduleForComponent('job-tr-view', 'JobTrViewComponent', {
+  unit: true
 });
 
-test('Statuses are computed correctly', function () {
-  expect(5);
+test('Statuses are computed correctly', function (assert) {
+  assert.expect(5);
 
   var component = this.subject();
 
   Ember.run(function() {
-    component.set('content', Ember.Object.create());
-    component.set('content.status', constants.statuses.running);
+    component.set('job', Ember.Object.create());
+    component.set('job.status', constants.statuses.running);
   });
 
-  ok(component.get('canStop'), 'Status is running canStop returns true');
+  assert.equal(component.get('canStop'), true, 'Status is running canStop returns true');
 
   Ember.run(function() {
-    component.set('content.status', constants.statuses.initialized);
+    component.set('job.status', constants.statuses.initialized);
   });
 
-  ok(component.get('canStop'), 'Status is initialized canStop returns true');
+  assert.equal(component.get('canStop'), true, 'Status is initialized canStop returns true');
 
   Ember.run(function() {
-    component.set('content.status', constants.statuses.pending);
+    component.set('job.status', constants.statuses.pending);
   });
 
-  ok(component.get('canStop'), 'Status is pending canStop returns true');
+  assert.equal(component.get('canStop'), true, 'Status is pending canStop returns true');
 
   Ember.run(function() {
-    component.set('content.status', constants.statuses.canceled);
+    component.set('job.status', constants.statuses.canceled);
   });
 
-  ok(!component.get('canStop'), 'Status is canceled canStop returns false');
+  assert.equal(component.get('canStop'), false, 'Status is canceled canStop returns false');
 
   Ember.run(function() {
-    component.set('content.status', constants.statuses.unknown);
+    component.set('job.status', constants.statuses.unknown);
   });
 
-  ok(!component.get('canStop'), 'Status is unknown canStop returns false');
+  assert.equal(component.get('canStop'), false, 'Status is unknown canStop returns false');
 });

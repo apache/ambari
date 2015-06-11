@@ -20,7 +20,7 @@ import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
 export default Ember.ArrayController.extend({
-  needs: [ constants.namingConventions.udfs, constants.namingConventions.fileResources ],
+  needs: [ constants.namingConventions.udfs ],
 
   model: Ember.A(),
 

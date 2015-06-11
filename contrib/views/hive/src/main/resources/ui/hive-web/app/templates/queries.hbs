@@ -40,41 +40,57 @@
     </tr>
   </thead>
   <tbody>
-    {{#each query in this}}
-      {{#unless query.isNew}}
+    {{#if queries.length}}
+      {{#if model.length}}
+        {{#each query in model}}
+          {{#unless query.isNew}}
+            <tr>
+              <td>
+                {{#link-to "index.savedQuery" query}}
+                  {{query.shortQuery}}
+                {{/link-to}}
+              </td>
+
+              <td>
+                {{#link-to "index.savedQuery" query}}
+                  {{query.title}}
+                {{/link-to}}
+              </td>
+
+              <td>{{query.dataBase}}</td>
+
+              <td>{{query.owner}}</td>
+
+              <td>
+                {{#unless query.isNew}}
+                  <div class="btn-group pull-right">
+                    <span data-toggle="dropdown">
+                      <a class="fa fa-gear"></a>
+                    </span>
+                    <ul class="dropdown-menu" role="menu">
+                      {{#each link in controller.links}}
+                        <li {{action 'executeAction' link query}}><a>{{tb-helper link}}</a></li>
+                      {{/each}}
+                    </ul>
+                  </div>
+                {{/unless}}
+              </td>
+            </tr>
+          {{/unless}}
+        {{/each}}
+      {{else}}
         <tr>
-          <td>
-            {{#link-to "index.savedQuery" query}}
-              {{query.shortQuery}}
-            {{/link-to}}
-          </td>
-
-          <td>
-            {{#link-to "index.savedQuery" query}}
-              {{query.title}}
-            {{/link-to}}
-          </td>
-
-          <td>{{query.dataBase}}</td>
-
-          <td>{{query.owner}}</td>
-
-          <td>
-            {{#unless query.isNew}}
-              <div class="btn-group pull-right">
-                <span data-toggle="dropdown">
-                  <a class="fa fa-gear"></a>
-                </span>
-                <ul class="dropdown-menu" role="menu">
-                  {{#each link in controller.links}}
-                    <li {{action 'executeAction' link query}}><a>{{tb-helper link}}</a></li>
-                  {{/each}}
-                </ul>
-              </div>
-            {{/unless}}
+          <td colspan="5">
+            <h4 class="empty-list">{{t "emptyList.savedQueries.noMatches"}}</h4>
           </td>
         </tr>
-      {{/unless}}
-    {{/each}}
+      {{/if}}
+    {{else}}
+      <tr>
+        <td colspan="5">
+          <h4 class="empty-list">{{t "emptyList.savedQueries.noItems"}}</h4>
+        </td>
+      </tr>
+    {{/if}}
   </tbody>
 </table>

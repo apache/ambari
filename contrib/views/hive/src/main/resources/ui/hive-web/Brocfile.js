@@ -21,6 +21,9 @@
 var EmberApp = require('ember-cli/lib/broccoli/ember-app');
 
 var app = new EmberApp({
+  autoprefixer: {
+    browsers: ['last 3 version']
+  },
   'ember-cli-selectize': {
     //valid values are `default`, `bootstrap2`, `bootstrap3` or false
     'theme': 'bootstrap3'

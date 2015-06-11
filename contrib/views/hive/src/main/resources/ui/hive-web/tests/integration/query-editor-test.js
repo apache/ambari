@@ -47,19 +47,38 @@ test('Query Editor is visible', function() {
   });
 });
 
-test('Can execute query', function() {
-  expect(1);
+test('Can execute query either with full or partial selection', function() {
+  expect(3);
+
+  var query1 = "select count(*) from table1;",
+      query2 = "select color from z;",
+      query3 = "select fruit from z;",
+      query4 = query2 + "\n" + query3,
+      editor;
 
   visit("/");
 
   Ember.run(function() {
-    find('.CodeMirror').get(0).CodeMirror.setValue('select count(*) from table1');
+    editor = find('.CodeMirror').get(0).CodeMirror;
+    editor.setValue(query1);
   });
 
   click('.execute-query');
 
   andThen(function() {
     equal(find('.query-process-results-panel').length, 1, 'Job tabs are visible.');
+  });
+
+  Ember.run(function() {
+    editor.setValue(query4);
+    editor.setSelection({ line: 1, ch: 0 }, { line: 1, ch: 20 });
+  });
+
+  click('.execute-query');
+
+  andThen(function() {
+    equal(editor.getValue(), query4, 'Editor value didn\'t change');
+    equal(editor.getSelection(), query3, 'Query 3 is selected');
   });
 });
 
@@ -76,33 +95,12 @@ test('Can save query', function() {
   Ember.run(function() {
     find('.CodeMirror').get(0).CodeMirror.setValue('select count(*) from table1');
   });
+
   click('.save-query-as');
 
   andThen(function() {
     equal(find('.modal-dialog').length, 1, 'Modal dialog is shown');
   });
 
-  click('.modal-dialog .modal-footer .btn-danger');
-});
-
-test('Can execute selection', function() {
-  expect(2);
-  visit('/');
-
-  var query1 = "select color from z;",
-      query2 = "select fruit from z;",
-      query = query1 + "\n" + query2,
-      editor;
-
-  Ember.run(function() {
-    editor = find('.CodeMirror').get(0).CodeMirror;
-    editor.setValue(query);
-    editor.setSelection({ line: 1, ch: 0 }, { line: 1, ch: 20 });
-  });
-  click('.execute-query');
-
-  andThen(function() {
-    equal(editor.getValue(), query, 'Editor value didn\'t change');
-    equal(editor.getSelection(), query2, 'Query 2 is selected');
-  });
+  click('.modal-footer .btn-danger');
 });

@@ -17,10 +17,10 @@
 }}
 
 {{#panel-widget headingTranslation="titles.database" isLoading=isLoading classNames="database-explorer" iconActions=panelIconActions}}
-  {{#if model}}
+  {{#if databases}}
 
     {{typeahead-widget
-        content=model
+        content=databases
         optionValuePath="id"
         optionLabelPath="name"
         selection=selectedDatabase

@@ -22,29 +22,26 @@ import constants from 'hive/utils/constants';
 
 export default Ember.ArrayController.extend(FilterableMixin, {
   itemController: constants.namingConventions.udf,
+  fileResources: [],
 
   sortAscending: true,
   sortProperties: [],
-
-  init: function () {
-    this._super();
-
-    this.set('columns', Ember.ArrayProxy.create({ content: Ember.A([
-      Ember.Object.create({
-        caption: 'placeholders.udfs.name',
-        property: 'name'
-      }),
-      Ember.Object.create({
-        caption: 'placeholders.udfs.className',
-        property: 'classname'
-      })
-    ])}));
-  },
 
   //row buttons
   links: [
       'buttons.edit',
       'buttons.delete'
+  ],
+
+  columns: [
+    Ember.Object.create({
+      caption: 'placeholders.udfs.name',
+      property: 'name'
+    }),
+    Ember.Object.create({
+      caption: 'placeholders.udfs.className',
+      property: 'classname'
+    })
   ],
 
   model: function () {

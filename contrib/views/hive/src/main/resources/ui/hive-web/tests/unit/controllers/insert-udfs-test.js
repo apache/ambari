@@ -20,7 +20,7 @@ import Ember from 'ember';
 import { moduleFor, test } from 'ember-qunit';
 
 moduleFor('controller:insert-udfs', 'InsertUdfsController', {
-  needs: ['controller:udf', 'controller:udfs', 'controller:file-resources']
+  needs: ['controller:udf', 'controller:udfs' ]
 });
 
 test('controller is initialized correctly', function () {

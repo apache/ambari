@@ -16,18 +16,26 @@
  * limitations under the License.
  */
 
-import {
-  moduleFor,
-  test
-} from 'ember-qunit';
+import Ember from 'ember';
+import constants from 'hive/utils/constants';
+import utils from 'hive/utils/functions';
 
-moduleFor('controller:visual-explain', 'VisualExplainController', {
-  // Specify the other units that are required for this test.
-  needs: ['controller:index']
-});
+export default Ember.Component.extend({
+  tagName: '',
 
-// Replace this with your real tests.
-test('it exists', function() {
-  var controller = this.subject();
-  ok(controller);
+  canStop: function () {
+    return utils.insensitiveCompare(this.get('job.status'), constants.statuses.running, constants.statuses.initialized, constants.statuses.pending);
+  }.property('job.status'),
+
+  actions: {
+    requestFile: function () {
+      this.toggleProperty('expanded');
+
+      this.sendAction('onFileRequested', this.get('job'));
+    },
+
+    stopJob: function () {
+      this.sendAction('onStopJob', this.get('job'));
+    }
+  }
 });
