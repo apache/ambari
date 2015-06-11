@@ -403,7 +403,10 @@ public class QueryImpl implements Query, ResourceInstance {
     queryResults.put(null, new QueryResult(
       request, queryPredicate, userPredicate, getKeyValueMap(), queryResponse));
 
-    clusterController.populateResources(resourceType, providerResourceSet, request, queryPredicate);
+    if (renderer.requiresPropertyProviderInput()) {
+      clusterController.populateResources(resourceType, providerResourceSet, request, queryPredicate);
+    }
+
     queryForSubResources();
   }
 
@@ -445,7 +448,11 @@ public class QueryImpl implements Query, ResourceInstance {
             new QueryResult(request, queryPredicate, subResourcePredicate, map, new QueryResponseImpl(resourceSet)));
         }
       }
-      clusterController.populateResources(resourceType, providerResourceSet, request, subResourcePredicate);
+
+      if (renderer.requiresPropertyProviderInput()) {
+        clusterController.populateResources(resourceType, providerResourceSet, request, subResourcePredicate);
+      }
+
       subResource.queryForSubResources();
     }
   }

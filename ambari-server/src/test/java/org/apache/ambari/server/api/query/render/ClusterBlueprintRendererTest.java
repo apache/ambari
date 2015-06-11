@@ -58,6 +58,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 /**
  * ClusterBlueprintRenderer unit tests.
@@ -373,6 +374,15 @@ public class ClusterBlueprintRendererTest {
     assertEquals("Attribute value is not correct",
         "true", finalMap.get("propertyOne"));
 
+  }
+
+  @Test
+  public void testClusterRendererDefaults() throws Exception {
+    Renderer clusterBlueprintRenderer =
+      new ClusterBlueprintRenderer();
+
+    assertFalse("ClusterBlueprintRenderer should not require property provider input",
+      clusterBlueprintRenderer.requiresPropertyProviderInput());
   }
 
   //todo: collection resource

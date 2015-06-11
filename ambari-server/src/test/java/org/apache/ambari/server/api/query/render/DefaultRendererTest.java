@@ -341,4 +341,13 @@ public class DefaultRendererTest {
 
     assertSame(result, renderer.finalizeResult(result));
   }
+
+  @Test
+  public void testRequiresInputDefault() throws Exception {
+    Renderer defaultRenderer =
+      new DefaultRenderer();
+
+    assertTrue("Default renderer for cluster resources must require property provider input",
+      defaultRenderer.requiresPropertyProviderInput());
+  }
 }

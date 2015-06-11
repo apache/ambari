@@ -80,4 +80,14 @@ public interface Renderer {
    * @return associated post processor
    */
   public ResultPostProcessor getResultPostProcessor(Request request);
+
+
+  /**
+   * Obtains the property provider requirements of the given
+   * renderer implementation.
+   *
+   * @return true if property provider support is required
+   *         false if property provider support is not required
+   */
+  public boolean requiresPropertyProviderInput();
 }

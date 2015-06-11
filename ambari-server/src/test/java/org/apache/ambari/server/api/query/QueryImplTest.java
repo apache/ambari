@@ -27,6 +27,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertFalse;
@@ -60,13 +61,16 @@ import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.QueryResponse;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Schema;
+import org.apache.ambari.server.controller.spi.SchemaFactory;
 import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.easymock.Capture;
+import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -840,6 +844,165 @@ public class QueryImplTest {
     Assert.assertNotNull(hostNode.getObject().getPropertyValue("c1/p1"));
     Assert.assertNotNull(hostNode.getObject().getPropertyValue("c1/p2"));
     Assert.assertNotNull(hostNode.getObject().getPropertyValue("c1/p3"));
+  }
+
+  @Test
+  public void testExecute_RendererDoesNotRequirePropertyProviderInput() throws Exception {
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    ResourceDefinition mockResourceDefinition =
+      mockSupport.createMock(ResourceDefinition.class);
+
+    SubResourceDefinition mockSubResourceDefinition =
+      mockSupport.createMock(SubResourceDefinition.class);
+
+    // need to use a default mock here, to verify
+    // that certain methods are called or not called
+    ClusterController mockClusterController =
+      mockSupport.createMock(ClusterController.class);
+
+    Renderer mockRenderer =
+      mockSupport.createMock(Renderer.class);
+
+    QueryResponse mockQueryResponse =
+      mockSupport.createMock(QueryResponse.class);
+
+    QueryResponse mockSubQueryResponse =
+      mockSupport.createMock(QueryResponse.class);
+
+    Resource mockResource =
+      mockSupport.createMock(Resource.class);
+
+    Schema mockSchema =
+      mockSupport.createMock(Schema.class);
+
+    expect(mockResourceDefinition.getType()).andReturn(Resource.Type.Host).atLeastOnce();
+    expect(mockResourceDefinition.getSubResourceDefinitions()).andReturn(Collections.singleton(mockSubResourceDefinition)).atLeastOnce();
+
+    expect(mockSubResourceDefinition.getType()).andReturn(Resource.Type.Configuration).atLeastOnce();
+    expect(mockSubResourceDefinition.isCollection()).andReturn(false).atLeastOnce();
+
+    expect(mockSchema.getKeyPropertyId(isA(Resource.Type.class))).andReturn("test-value").anyTimes();
+    expect(mockSchema.getKeyTypes()).andReturn(Collections.<Resource.Type>emptySet()).anyTimes();
+
+    mockRenderer.init(isA(SchemaFactory.class));
+    // the mock renderer should return false for requiresPropertyProviderInput, to
+    // simulate the case of a renderer that does not need the property providers to execute
+    // this method should be called twice: once each resource (1 resource, 1 sub-resource in this test)
+    expect(mockRenderer.requiresPropertyProviderInput()).andReturn(false).times(2);
+    expect(mockRenderer.finalizeProperties(isA(TreeNode.class), eq(true))).andReturn(new TreeNodeImpl<Set<String>>(null, Collections.<String>emptySet(), "test-node"));
+    expect(mockRenderer.finalizeResult(isA(Result.class))).andReturn(null);
+
+    // note: the expectations for the ClusterController mock are significant to this test.
+    //       the ClusterController.populateResources() method should not be called, and so
+    //       is not expected here.
+    expect(mockClusterController.getSchema(Resource.Type.Host)).andReturn(mockSchema).anyTimes();
+    expect(mockClusterController.getSchema(Resource.Type.Configuration)).andReturn(mockSchema).anyTimes();
+    expect(mockClusterController.getResources(eq(Resource.Type.Host), isA(Request.class), (Predicate)eq(null))).andReturn(mockQueryResponse).atLeastOnce();
+    expect(mockClusterController.getResources(eq(Resource.Type.Configuration), isA(Request.class), (Predicate)eq(null))).andReturn(mockSubQueryResponse).atLeastOnce();
+    expect(mockClusterController.getIterable(eq(Resource.Type.Host), isA(QueryResponse.class), isA(Request.class),(Predicate)eq(null), (PageRequest)eq(null), (SortRequest)eq(null))).andReturn(Collections.singleton(mockResource)).atLeastOnce();
+    expect(mockClusterController.getIterable(eq(Resource.Type.Configuration), isA(QueryResponse.class), isA(Request.class),(Predicate)eq(null), (PageRequest)eq(null), (SortRequest)eq(null))).andReturn(Collections.singleton(mockResource)).atLeastOnce();
+
+    expect(mockQueryResponse.getResources()).andReturn(Collections.singleton(mockResource)).atLeastOnce();
+    expect(mockSubQueryResponse.getResources()).andReturn(Collections.singleton(mockResource)).atLeastOnce();
+
+    expect(mockResource.getType()).andReturn(Resource.Type.Host).atLeastOnce();
+
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+
+    mockSupport.replayAll();
+
+    QueryImpl instance = new QueryImpl(mapIds, mockResourceDefinition, mockClusterController);
+    instance.setRenderer(mockRenderer);
+
+    // call these methods to setup sub resources
+    instance.ensureSubResources();
+    instance.addProperty("*", null);
+
+    instance.execute();
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testExecute_RendererRequiresPropertyProviderInput() throws Exception {
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    ResourceDefinition mockResourceDefinition =
+      mockSupport.createMock(ResourceDefinition.class);
+
+    SubResourceDefinition mockSubResourceDefinition =
+      mockSupport.createMock(SubResourceDefinition.class);
+
+    // need to use a default mock here, to verify
+    // that certain methods are called or not called
+    ClusterController mockClusterController =
+      mockSupport.createMock(ClusterController.class);
+
+    Renderer mockRenderer =
+      mockSupport.createMock(Renderer.class);
+
+    QueryResponse mockQueryResponse =
+      mockSupport.createMock(QueryResponse.class);
+
+    QueryResponse mockSubQueryResponse =
+      mockSupport.createMock(QueryResponse.class);
+
+    Resource mockResource =
+      mockSupport.createMock(Resource.class);
+
+    Schema mockSchema =
+      mockSupport.createMock(Schema.class);
+
+    expect(mockResourceDefinition.getType()).andReturn(Resource.Type.Host).atLeastOnce();
+    expect(mockResourceDefinition.getSubResourceDefinitions()).andReturn(Collections.singleton(mockSubResourceDefinition)).atLeastOnce();
+
+    expect(mockSubResourceDefinition.getType()).andReturn(Resource.Type.Configuration).atLeastOnce();
+    expect(mockSubResourceDefinition.isCollection()).andReturn(false).atLeastOnce();
+
+    expect(mockSchema.getKeyPropertyId(isA(Resource.Type.class))).andReturn("test-value").anyTimes();
+    expect(mockSchema.getKeyTypes()).andReturn(Collections.<Resource.Type>emptySet()).anyTimes();
+
+    mockRenderer.init(isA(SchemaFactory.class));
+    // simulate the case of a renderer that requires the property providers to execute
+    // this method should be called twice: once for each resource (1 resource, 1 sub-resource in this test)
+    expect(mockRenderer.requiresPropertyProviderInput()).andReturn(true).times(2);
+    expect(mockRenderer.finalizeProperties(isA(TreeNode.class), eq(true))).andReturn(new TreeNodeImpl<Set<String>>(null, Collections.<String>emptySet(), "test-node"));
+    expect(mockRenderer.finalizeResult(isA(Result.class))).andReturn(null);
+
+    // note: the expectations for the ClusterController mock are significant to this test.
+    expect(mockClusterController.getSchema(Resource.Type.Host)).andReturn(mockSchema).anyTimes();
+    expect(mockClusterController.getSchema(Resource.Type.Configuration)).andReturn(mockSchema).anyTimes();
+    expect(mockClusterController.getResources(eq(Resource.Type.Host), isA(Request.class), (Predicate)eq(null))).andReturn(mockQueryResponse).atLeastOnce();
+    expect(mockClusterController.getResources(eq(Resource.Type.Configuration), isA(Request.class), (Predicate)eq(null))).andReturn(mockSubQueryResponse).atLeastOnce();
+    expect(mockClusterController.getIterable(eq(Resource.Type.Host), isA(QueryResponse.class), isA(Request.class),(Predicate)eq(null), (PageRequest)eq(null), (SortRequest)eq(null))).andReturn(Collections.singleton(mockResource)).atLeastOnce();
+    expect(mockClusterController.getIterable(eq(Resource.Type.Configuration), isA(QueryResponse.class), isA(Request.class),(Predicate)eq(null), (PageRequest)eq(null), (SortRequest)eq(null))).andReturn(Collections.singleton(mockResource)).atLeastOnce();
+    // expect call to activate property providers for Host resource
+    expect(mockClusterController.populateResources(eq(Resource.Type.Host), eq(Collections.singleton(mockResource)), isA(Request.class), (Predicate)eq(null))).andReturn(Collections.<Resource>emptySet()).times(1);
+    // expect call to activate property providers for Configuration sub-resource
+    expect(mockClusterController.populateResources(eq(Resource.Type.Configuration), eq(Collections.singleton(mockResource)), isA(Request.class), (Predicate)eq(null))).andReturn(Collections.<Resource>emptySet()).times(1);
+
+    expect(mockQueryResponse.getResources()).andReturn(Collections.singleton(mockResource)).atLeastOnce();
+    expect(mockSubQueryResponse.getResources()).andReturn(Collections.singleton(mockResource)).atLeastOnce();
+
+    expect(mockResource.getType()).andReturn(Resource.Type.Host).atLeastOnce();
+
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+
+    mockSupport.replayAll();
+
+    QueryImpl instance = new QueryImpl(mapIds, mockResourceDefinition, mockClusterController);
+    instance.setRenderer(mockRenderer);
+
+    // call these methods to setup sub resources
+    instance.ensureSubResources();
+    instance.addProperty("*", null);
+
+    instance.execute();
+
+    mockSupport.verifyAll();
+
   }
 
   public static class TestQuery extends QueryImpl {

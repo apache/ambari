@@ -46,6 +46,12 @@ public abstract class BaseRenderer implements Renderer {
     m_schemaFactory = schemaFactory;
   }
 
+  @Override
+  public boolean requiresPropertyProviderInput() {
+    // most renderers require the property provider input support
+    return true;
+  }
+
   /**
    * Obtain a schema instance based on resource type.
    *
