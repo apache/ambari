@@ -353,6 +353,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
   showPopup: function(){
     // load the checkbox on footer first, then show popup.
     var self = this;
+    this.set('operationsCount', 10);
     App.router.get('applicationController').dataLoading().done(function (initValue) {
       App.updater.immediateRun('requestMostRecent');
       if(self.get('popupView') && App.HostPopup.get('isBackgroundOperations')){
