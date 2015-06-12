@@ -626,7 +626,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     defaultValue = recommendedDefaults[propertyName]
     if defaultValue is None:
       return self.getErrorItem("Config's default value can't be null or undefined")
-    if not checkXmxValueFormat(value):
+    if not checkXmxValueFormat(value) and checkXmxValueFormat(defaultValue):
+      # Xmx is in the default-value but not the value, should be an error
       return self.getErrorItem('Invalid value format')
     if not checkXmxValueFormat(defaultValue):
       # if default value does not contain Xmx, then there is no point in validating existing value
