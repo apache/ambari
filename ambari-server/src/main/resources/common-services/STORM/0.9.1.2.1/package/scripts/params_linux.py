@@ -69,9 +69,9 @@ storm_lib_dir = "/usr/lib/storm/lib/"
 
 # hadoop parameters for 2.2+
 if stack_is_hdp22_or_further:
-  rest_lib_dir = '/usr/hdp/current/storm-client/contrib/storm-rest'
-  storm_bin_dir = "/usr/hdp/current/storm-client/bin"
-  storm_lib_dir = "/usr/hdp/current/storm-client/lib"
+  rest_lib_dir = format("{storm_component_home_dir}/contrib/storm-rest")
+  storm_bin_dir = format("{storm_component_home_dir}/bin")
+  storm_lib_dir = format("{storm_component_home_dir}/lib")
 
 
 storm_user = config['configurations']['storm-env']['storm_user']
