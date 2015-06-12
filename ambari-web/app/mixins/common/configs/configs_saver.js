@@ -652,6 +652,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
 
   /**
    * On save configs handler. Open save configs popup with appropriate message
+   * and clear config dependencies list.
    * @private
    * @method onDoPUTClusterConfigurations
    */
@@ -693,6 +694,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       App.QuickViewLinks.proto().loadTags();
     }
     this.showSaveConfigsPopup(header, flag, message, messageClass, value, status, urlParams);
+    this.clearDependentConfigs();
   },
 
   /**
