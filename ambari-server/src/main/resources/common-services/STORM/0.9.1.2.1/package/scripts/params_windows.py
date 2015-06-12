@@ -41,7 +41,7 @@ default_topology_min_replication_count = default('/configurations/storm-site/top
 if len(nimbus_hosts) > 1:
   # for HA Nimbus
   actual_topology_max_replication_wait_time_sec = -1
-  actual_topology_min_replication_count = 2
+  actual_topology_min_replication_count = len(nimbus_hosts) / 2 + 1
 else:
   # for non-HA Nimbus
   actual_topology_max_replication_wait_time_sec = default_topology_max_replication_wait_time_sec

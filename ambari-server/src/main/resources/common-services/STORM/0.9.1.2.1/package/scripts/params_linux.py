@@ -28,6 +28,7 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.script import Script
 
+
 def get_bare_principal(normalized_principal_name):
   """
   Given a normalized principal name (nimbus/c6501.ambari.apache.org@EXAMPLE.COM) returns just the
@@ -98,7 +99,7 @@ default_topology_min_replication_count = default('/configurations/storm-site/top
 if len(nimbus_hosts) > 1:
   # for HA Nimbus
   actual_topology_max_replication_wait_time_sec = -1
-  actual_topology_min_replication_count = 2
+  actual_topology_min_replication_count = len(nimbus_hosts) / 2 + 1
 else:
   # for non-HA Nimbus
   actual_topology_max_replication_wait_time_sec = default_topology_max_replication_wait_time_sec
