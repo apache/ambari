@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>OOZIE</name>
-      <extends>common-services/OOZIE/5.0.0.2.3</extends>
+      <extends>common-services/OOZIE/4.2.0.2.3</extends>
     </service>
   </services>
 </metainfo>
