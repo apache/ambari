@@ -60,6 +60,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Pre Upgrade Ranger KMS">
+        <task xsi:type="manual">
+          <message>Before continuing, please backup Ranger KMS database</message>
+        </task>
+      </execute-stage>
+
     </group>
 
     <group name="ZOOKEEPER" title="ZooKeeper">

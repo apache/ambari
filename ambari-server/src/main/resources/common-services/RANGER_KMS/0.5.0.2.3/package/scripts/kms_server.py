@@ -25,6 +25,7 @@ from resource_management.core.logger import Logger
 from resource_management.core import shell
 from kms import kms, setup_kms_db, setup_java_patch, enable_kms_plugin
 from kms_service import kms_service
+import upgrade
 
 class KmsServer(Script):
 
@@ -63,7 +64,11 @@ class KmsServer(Script):
   def pre_rolling_restart(self, env):
     import params
     env.set_params(params)
-    upgrade.prestart(env, "ranger-kms-server")
+
+    upgrade.prestart(env, "ranger-kms")
+    setup_kms_db()
+    kms()
+    setup_java_patch()
 
 if __name__ == "__main__":
   KmsServer().execute()
