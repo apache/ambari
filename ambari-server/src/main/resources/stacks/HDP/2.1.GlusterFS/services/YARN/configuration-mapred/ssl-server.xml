@@ -55,4 +55,10 @@
         <property-type>PASSWORD</property-type>
         <description>Password to open the keystore file.</description>
     </property>
+    <property>
+        <name>ssl.server.keystore.keypassword</name>
+        <value>bigdata</value>
+        <property-type>PASSWORD</property-type>
+        <description>Password for private key in keystore file.</description>
+    </property>
 </configuration>
