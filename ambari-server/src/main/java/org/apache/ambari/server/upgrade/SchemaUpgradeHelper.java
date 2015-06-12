@@ -17,8 +17,19 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import java.io.File;
-import java.io.IOException;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.multibindings.Multibinder;
+import com.google.inject.persist.PersistService;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.utils.VersionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -26,23 +37,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.ControllerModule;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.utils.VersionUtils;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.multibindings.Multibinder;
-import com.google.inject.persist.PersistService;
 
 public class SchemaUpgradeHelper {
   private static final Logger LOG = LoggerFactory.getLogger
@@ -253,6 +247,15 @@ public class SchemaUpgradeHelper {
    */
   public static void main(String[] args) throws Exception {
     try {
+      // check java version to be higher then 1.6
+      String[] splittedJavaVersion = System.getProperty("java.version").split("\\.");
+      float javaVersion = Float.parseFloat(splittedJavaVersion[0] + "." + splittedJavaVersion[1]);
+      if (javaVersion < Configuration.JDK_MIN_VERSION) {
+        LOG.error(String.format("Oracle JDK version is lower then %.1f It can cause problems during upgrade process. Please," +
+                " use 'ambari-server setup' command to upgrade JDK!", Configuration.JDK_MIN_VERSION));
+        System.exit(1);
+      }
+
       Injector injector = Guice.createInjector(new UpgradeHelperModule());
       SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
 
