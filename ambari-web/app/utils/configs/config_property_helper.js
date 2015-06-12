@@ -247,7 +247,9 @@ module.exports = {
         }
         break;
       case 'yarn.resourcemanager.zk-address':
-        var value = masterComponentHostsInDB.findProperty('component', 'ZOOKEEPER_SERVER').hostName + ':' + dependencies.clientPort;
+        var value = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').map(function (component) {
+          return component.hostName + ':' + dependencies.clientPort
+        }).join(',');
         configProperty.setProperties({
           value: value,
           recommendedValue: value
