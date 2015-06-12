@@ -371,6 +371,11 @@ public class ClusterTest {
       clusters.mapHostToCluster(hostName, clusterName);
     }
 
+    // Transition all hosts to HEALTHY state
+    for (Host host : cluster.getHosts()) {
+      host.setState(HostState.HEALTHY);
+    }
+
     // Add Services
     Service s1 = serviceFactory.createNew(cluster, "HDFS");
     Service s2 = serviceFactory.createNew(cluster, "ZOOKEEPER");
@@ -1820,6 +1825,69 @@ public class ClusterTest {
         Assert.assertEquals(hve.getState(), RepositoryVersionState.INSTALLED);
       } else {
         Assert.assertEquals(hve.getState(), RepositoryVersionState.UPGRADED);
+      }
+    }
+  }
+
+  @Test
+  public void testBootstrapHostVersion() throws Exception {
+    String clusterName = "c1";
+    String v1 = "2.2.0-123";
+    StackId stackId = new StackId("HDP-2.2.0");
+
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "5.9");
+
+    Cluster cluster = createClusterForRU(clusterName, stackId, hostAttributes);
+
+    // Make one host unhealthy
+    Host deadHost = cluster.getHosts().iterator().next();
+    deadHost.setState(HostState.UNHEALTHY);
+
+    // Begin bootstrap by starting to advertise versions
+    // Set the version for the HostComponentState objects
+    int versionedComponentCount = 0;
+    List<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findAll();
+    for(int i = 0; i < hostComponentStates.size(); i++) {
+      HostComponentStateEntity hce = hostComponentStates.get(i);
+      ComponentInfo compInfo = metaInfo.getComponent(
+              stackId.getStackName(), stackId.getStackVersion(),
+              hce.getServiceName(),
+              hce.getComponentName());
+
+      if (hce.getHostName().equals(deadHost.getHostName())) {
+        continue; // Skip setting version
+      }
+
+      if (compInfo.isVersionAdvertised()) {
+        hce.setVersion(v1);
+        hostComponentStateDAO.merge(hce);
+        versionedComponentCount++;
+      }
+
+      // Simulate the StackVersionListener during the installation of the first Stack Version
+      Service svc = cluster.getService(hce.getServiceName());
+      ServiceComponent svcComp = svc.getServiceComponent(hce.getComponentName());
+      ServiceComponentHost scHost = svcComp.getServiceComponentHost(hce.getHostName());
+
+      scHost.recalculateHostVersionState();
+      cluster.recalculateClusterVersionState(cluster.getDesiredStackVersion(),
+              v1);
+
+      Collection<ClusterVersionEntity> clusterVersions = cluster.getAllClusterVersions();
+
+      if (versionedComponentCount > 0) {
+        // On the first component with a version, a RepoVersion should have been created
+        RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stackId, v1);
+        Assert.assertNotNull(repositoryVersion);
+        Assert.assertTrue(clusterVersions != null && clusterVersions.size() == 1);
+
+        // Since host 2 is dead, and host 3 contains only components that dont report a version,
+        // cluster version transitions to CURRENT after first component on host 1 reports it's version
+        if (versionedComponentCount == 1 && i < (hostComponentStates.size() - 1)) {
+          Assert.assertEquals(clusterVersions.iterator().next().getState(), RepositoryVersionState.CURRENT);
+        }
       }
     }
   }

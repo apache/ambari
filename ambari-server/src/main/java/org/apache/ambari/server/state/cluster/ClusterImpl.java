@@ -96,6 +96,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
@@ -1249,6 +1250,7 @@ public class ClusterImpl implements Cluster {
       ClusterVersionEntity clusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(
           getClusterName(), stackId, repositoryVersion);
 
+      boolean performingInitialBootstrap = false;
       if (clusterVersion == null) {
         if (clusterVersionDAO.findByCluster(getClusterName()).isEmpty()) {
           // During an Ambari Upgrade from 1.7.0 -> 2.0.0, the Cluster Version
@@ -1256,6 +1258,7 @@ public class ClusterImpl implements Cluster {
           // This can still fail if the Repository Version has not yet been created,
           // which can happen if the first HostComponentState to trigger this method
           // cannot advertise a version.
+          performingInitialBootstrap = true;
           createClusterVersionInternal(
               stackId,
               repositoryVersion,
@@ -1321,6 +1324,14 @@ public class ClusterImpl implements Cluster {
       // Otherwise, operations are still in progress.
       for (String hostname : hostsWithoutHostVersion) {
         HostEntity hostEntity = hostDAO.findByName(hostname);
+
+        // During initial bootstrap, unhealthy hosts are ignored
+        // so we boostrap the CURRENT version anyway
+        if (performingInitialBootstrap &&
+                hostEntity.getHostStateEntity().getCurrentState() != HostState.HEALTHY) {
+          continue;
+        }
+
         final Collection<HostComponentStateEntity> allHostComponents = hostEntity.getHostComponentStateEntities();
 
         for (HostComponentStateEntity hostComponentStateEntity : allHostComponents) {
@@ -1379,7 +1390,12 @@ public class ClusterImpl implements Cluster {
     hostTransitionStateWriteLock.lock();
     try {
       // Create one if it doesn't already exist. It will be possible to make further transitions below.
+      boolean performingInitialBootstrap = false;
       if (hostVersionEntity == null) {
+        if (hostVersionDAO.findByClusterAndHost(getClusterName(), host.getHostName()).isEmpty()) {
+          // That is an initial bootstrap
+          performingInitialBootstrap = true;
+        }
         hostVersionEntity = new HostVersionEntity(host, repositoryVersion, RepositoryVersionState.UPGRADING);
         hostVersionDAO.create(hostVersionEntity);
       }
@@ -1390,7 +1406,8 @@ public class ClusterImpl implements Cluster {
 
       if (!isCurrentPresent) {
         // Transition from UPGRADING -> CURRENT. This is allowed because Host Version Entity is bootstrapped in an UPGRADING state.
-        if (hostSummary.isUpgradeFinished() && hostVersionEntity.getState().equals(RepositoryVersionState.UPGRADING)) {
+        // Alternatively, transition to CURRENT during initial bootstrap if at least one host component advertised a version
+        if (hostSummary.isUpgradeFinished() && hostVersionEntity.getState().equals(RepositoryVersionState.UPGRADING) || performingInitialBootstrap) {
           hostVersionEntity.setState(RepositoryVersionState.CURRENT);
           hostVersionDAO.merge(hostVersionEntity);
         }
