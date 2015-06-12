@@ -3711,7 +3711,7 @@
             },
             "metrics/master/AssignmentManger/ritCount": {
               "metric":"master.AssignmentManger.ritCount",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/master/AssignmentManger/ritCountOverThreshold": {
@@ -5163,6 +5163,11 @@
             },
             "metrics/hbase/master/RegionsInTransition": {
               "metric": "hadoop:service=Master,name=Master.RegionsInTransition",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/master/AssignmentManger/ritCount": {
+              "metric": "Hadoop:service=HBase,name=Master,sub=AssignmentManger.ritCount",
               "pointInTime": true,
               "temporal": false
             },
@@ -7689,6 +7694,11 @@
             },
             "metrics/hbase/master/MasterActiveTime": {
               "metric": "Hadoop:service=HBase,name=Master,sub=Server.masterActiveTime",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/master/AssignmentManger/ritCount": {
+              "metric": "Hadoop:service=HBase,name=Master,sub=AssignmentManger.ritCount",
               "pointInTime": true,
               "temporal": false
             },

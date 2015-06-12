@@ -3916,11 +3916,6 @@
                           "temporal" : false,
                           "name" : "hadoop:service=HBase,name=RPCStatistics.deleteTableNumOps"
                         },
-                        "ServiceComponentInfo/Revision" : {
-                          "pointInTime" : true,
-                          "temporal" : false,
-                          "name" : "hadoop:service=HBase,name=Info.revision"
-                        },
                         "metrics/rpc/splitRegionAvgTime" : {
                           "pointInTime" : true,
                           "temporal" : false,
@@ -4130,11 +4125,6 @@
                           "pointInTime" : true,
                           "temporal" : false,
                           "name" : "hadoop:service=HBase,name=RPCStatistics.multiMinTime"
-                        },
-                        "metrics/hbase/master/revision" : {
-                          "pointInTime" : true,
-                          "temporal" : false,
-                          "name" : "hadoop:service=HBase,name=Info.revision"
                         },
                         "metrics/rpc/modifyColumnMaxTime" : {
                           "pointInTime" : true,
@@ -7278,11 +7268,6 @@
                           "pointInTime" : true,
                           "temporal" : false,
                           "name" : "hadoop:service=HBase,name=RPCStatistics.multiMinTime"
-                        },
-                        "metrics/hbase/master/revision" : {
-                          "pointInTime" : true,
-                          "temporal" : false,
-                          "name" : "hadoop:service=HBase,name=Info.revision"
                         },
                         "metrics/rpc/modifyColumnMaxTime" : {
                           "pointInTime" : true,

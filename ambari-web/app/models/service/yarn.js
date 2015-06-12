@@ -19,7 +19,6 @@ var App = require('app');
 var objectUtils = require('utils/object_utils');
 
 App.YARNService = App.Service.extend({
-  version: DS.attr('string'),
   resourceManager: function() {
     return this.get('hostComponents').findProperty('componentName', 'RESOURCEMANAGER');
   }.property('hostComponents'),

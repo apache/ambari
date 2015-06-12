@@ -1842,11 +1842,6 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/jvm/startTime": {
-              "metric": "java.lang:type=Runtime.StartTime",
-              "pointInTime": true,
-              "temporal": false
-            },
             "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/ActiveApplications": {
               "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).ActiveApplications",
               "pointInTime": true,
@@ -2530,6 +2525,11 @@
           "default": {
             "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsFailed": {
               "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppsFailed",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/runtime/StartTime": {
+              "metric": "java.lang:type=Runtime.StartTime",
               "pointInTime": true,
               "temporal": false
             },
