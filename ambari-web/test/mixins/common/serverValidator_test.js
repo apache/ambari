@@ -130,5 +130,50 @@ describe('App.ServerValidatorMixin', function() {
       });
     });
   });
+
+  describe('#loadServerSideConfigsRecommendations', function() {
+    describe('Request on recommendations for only specified controllers', function() {
+      beforeEach(function() {
+        sinon.stub(App.ajax, 'send', function(args) { return args; });
+      });
+
+      afterEach(function() {
+        App.ajax.send.restore();
+      });
+
+      [
+        {
+          controllerName: '',
+          injectEnhancedConfigsMixin: false,
+          e: false
+        },
+        {
+          controllerName: 'wizardStep7Controller',
+          injectEnhancedConfigsMixin: true,
+          e: true
+        },
+        {
+          controllerName: 'kerberosWizardStep2Controller',
+          injectEnhancedConfigsMixin: true,
+          e: false
+        }
+      ].forEach(function(test) {
+        it('controller "name": {0} using "EnhancedConfigsMixin": {1} recommendations called: {2}'.format(test.controllerName, test.injectEnhancedConfigsMixin, test.e), function() {
+          var mixed;
+          if (test.injectEnhancedConfigsMixin) {
+            mixed = Em.Object.extend(App.EnhancedConfigsMixin, App.ServerValidatorMixin);
+          } else {
+            mixed = Em.Object.extend(App.ServerValidatorMixin);
+          }
+          // mock controller name in mixed object directly
+          mixed.create({name: test.controllerName}).loadServerSideConfigsRecommendations();
+          expect(App.ajax.send.calledOnce).to.be.eql(test.e);
+          if (test.e) {
+            expect(App.ajax.send.args[0][0].name).to.be.eql('config.recommendations');
+          }
+        });
+      });
+    });
+  });
 });
 

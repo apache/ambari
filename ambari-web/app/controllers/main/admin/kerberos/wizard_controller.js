@@ -180,7 +180,7 @@ App.KerberosWizardController = App.WizardController.extend({
    * @param newValue
    */
   overrideVisibility: function (itemsArray, newValue, exceptions) {
-    newValue = newValue || false
+    newValue = newValue || false;
 
     for (var i = 0, len = itemsArray.length; i < len; i += 1) {
       if (!Ember.$.isEmptyObject(itemsArray[i])) {

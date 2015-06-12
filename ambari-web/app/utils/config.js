@@ -523,7 +523,7 @@ App.config = Em.Object.create({
           if (_preDefinedConfig.serviceName != 'MISC' && _preDefinedConfig.filename && !configTypes.contains(self.getConfigTagFromFileName(_preDefinedConfig.filename))) {
             return;
           }
-          preDefinedCfgs.push(_preDefinedConfig);
+          preDefinedCfgs.push($.extend(true, {}, _preDefinedConfig));
         }
       }, this);
 
