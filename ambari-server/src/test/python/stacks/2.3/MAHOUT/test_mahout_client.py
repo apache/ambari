@@ -17,92 +17,102 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
-from mock.mock import patch
-from stacks.utils.RMFTestCase import *
+import itertools
 import json
+
+from stacks.utils.RMFTestCase import *
 
 class TestMahoutClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "MAHOUT/1.0.0.2.3/package"
   STACK_VERSION = "2.3"
 
   def test_configure_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mahout_client.py",
-                       classname = "MahoutClient",
-                       command = "configure",
-                       config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
-    )
+    self.executeScript(
+      self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mahout_client.py",
+      classname = "MahoutClient",
+      command = "configure",
+      config_file = "default.json",
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Directory', '/usr/hdp/current/mahout-client/conf',
-                              owner = 'mahout',
-                              group = 'hadoop',
-                              recursive = True,
-                              )
-    self.assertResourceCalled('File', '/usr/hdp/current/mahout-client/conf/log4j.properties',
-                              content = self.getConfig()['configurations']['mahout-log4j']['content'],
-                              owner = 'mahout',
-                              group = 'hadoop',
-                              mode = 0644,
-                              )
+    self.assertResourceCalled('Directory',
+      '/usr/hdp/current/mahout-client/conf',
+      owner = 'mahout',
+      group = 'hadoop',
+      recursive = True)
+
+    self.assertResourceCalled('File',
+      '/usr/hdp/current/mahout-client/conf/log4j.properties',
+      content = self.getConfig()['configurations']['mahout-log4j']['content'],
+      owner = 'mahout',
+      group = 'hadoop',
+      mode = 0644 )
+
     self.assertNoMoreResources()
 
   def test_pre_rolling_restart(self):
-    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/default.json"
+    config_file = self.get_src_folder() + "/test/python/stacks/2.2/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
     version = '2.2.1.0-3242'
     json_content['commandParams']['version'] = version
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mahout_client.py",
-                       classname = "MahoutClient",
-                       command = "pre_rolling_restart",
-                       config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES)
-    self.assertResourceCalled('Execute',
-                              ('hdp-select', 'set', 'mahout-client', version), sudo = True)
+    self.executeScript(
+      self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mahout_client.py",
+      classname = "MahoutClient",
+      command = "pre_rolling_restart",
+      config_dict = json_content,
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    self.assertResourceCalled('Execute', "hdp-select set mahout-client 2.2.1.0-3242")
     self.assertNoMoreResources()
 
-  @patch("resource_management.core.shell.call")
-  def test_pre_rolling_restart_23(self, call_mock):
-    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/default.json"
+  def test_pre_rolling_restart_23(self):
+    config_file = self.get_src_folder() + "/test/python/stacks/2.2/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
+
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
+
     # test to make sure conf_select is working correctly
     json_content['commandParams']['upgrade_direction'] = 'upgrade'
     json_content['hostLevelParams']['stack_name'] = 'HDP'
     json_content['hostLevelParams']['stack_version'] = '2.3'
 
     mocks_dict = {}
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mahout_client.py",
-                       classname = "MahoutClient",
-                       command = "pre_rolling_restart",
-                       config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None), (0, None), (0, None), (0, None)],
-                       mocks_dict = mocks_dict)
+    self.executeScript(
+      self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mahout_client.py",
+      classname = "MahoutClient",
+      command = "pre_rolling_restart",
+      config_dict = json_content,
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = itertools.cycle([(0, None)]),
+      mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute',
-                              ('hdp-select', 'set', 'mahout-client', version), sudo = True)
+    self.assertResourceCalled('Execute', "hdp-select set mahout-client 2.3.0.0-1234")
     self.assertNoMoreResources()
 
     import sys
-    self.assertEquals("/usr/hdp/2.3.0.0-1234/hadoop/conf", sys.modules["params"].hadoop_conf_dir)
 
-    self.assertEquals(4, mocks_dict['call'].call_count)
+    self.assertEquals("/usr/hdp/2.3.0.0-1234/hadoop/conf",
+      sys.modules["params"].hadoop_conf_dir)
+
+    self.assertEquals(6, mocks_dict['call'].call_count)
+
     self.assertEquals(
       "conf-select create-conf-dir --package hadoop --stack-version 2.3.0.0-1234 --conf-version 0",
-       mocks_dict['call'].call_args_list[0][0][0])
+      mocks_dict['call'].call_args_list[0][0][0])
+
     self.assertEquals(
       "conf-select set-conf-dir --package hadoop --stack-version 2.3.0.0-1234 --conf-version 0",
-       mocks_dict['call'].call_args_list[1][0][0])
+      mocks_dict['call'].call_args_list[1][0][0])
+
     self.assertEquals(
       "conf-select create-conf-dir --package mahout --stack-version 2.3.0.0-1234 --conf-version 0",
-       mocks_dict['call'].call_args_list[2][0][0])
+      mocks_dict['call'].call_args_list[2][0][0])
+
     self.assertEquals(
       "conf-select set-conf-dir --package mahout --stack-version 2.3.0.0-1234 --conf-version 0",
-       mocks_dict['call'].call_args_list[3][0][0])
+      mocks_dict['call'].call_args_list[3][0][0])

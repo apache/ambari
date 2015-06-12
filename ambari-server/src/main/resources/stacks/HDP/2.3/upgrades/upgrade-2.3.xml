@@ -133,6 +133,7 @@
       
       <service name="HBASE">
         <component>HBASE_REGIONSERVER</component>
+        <component>PHOENIX_QUERY_SERVER</component>
       </service>
 
       <service name="YARN">
@@ -225,6 +226,10 @@
         <component>SQOOP</component>
       </service>
 
+      <service name="MAHOUT">
+        <component>MAHOUT</component>
+      </service>
+
       <service name="HIVE">
         <component>HIVE_CLIENT</component>
         <component>HCAT</component>
@@ -283,6 +288,17 @@
       </service>
     </group>
 
+    <group name="ACCUMULO" title="Accumulo">
+      <skippable>true</skippable>
+      <service name="ACCUMULO">
+        <component>ACCUMULO_MASTER</component>
+        <component>ACCUMULO_TSERVER</component>
+        <component>ACCUMULO_MONITOR</component>
+        <component>ACCUMULO_GC</component>
+        <component>ACCUMULO_TRACER</component>
+        <component>ACCUMULO_CLIENT</component>
+      </service>
+    </group>
 
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <skippable>true</skippable>
@@ -414,6 +430,7 @@
         </upgrade>
       </component>
     </service>
+
     <service name="HBASE">
       <component name="HBASE_MASTER">
         <upgrade>
@@ -428,6 +445,12 @@
       </component>
 
       <component name="HBASE_CLIENT">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+
+      <component name="PHOENIX_QUERY_SERVER">
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
@@ -452,6 +475,14 @@
 
     <service name="SQOOP">
       <component name="SQOOP">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="MAHOUT">
+      <component name="MAHOUT">
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
@@ -623,6 +654,39 @@
 
     <service name="FLUME">
       <component name="FLUME_HANDLER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="ACCUMULO">
+      <component name="ACCUMULO_MASTER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="ACCUMULO_MONITOR">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="ACCUMULO_GC">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="ACCUMULO_TRACER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="ACCUMULO_TSERVER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="ACCUMULO_CLIENT">
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>

@@ -17,124 +17,145 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import json
+
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 from unittest import skip
 
-@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
-@patch("os.path.exists", new = MagicMock(return_value=True))
+
+@patch("platform.linux_distribution", new = MagicMock(return_value = "Linux"))
+@patch("os.path.exists", new = MagicMock(return_value = True))
 class TestPhoenixQueryServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HBASE/0.96.0.2.0/package"
   STACK_VERSION = "2.3"
   TMP_PATH = "/tmp/hbase-hbase"
 
   def test_configure_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
-                   classname = "PhoenixQueryServer",
-                   command = "configure",
-                   config_file="hbase_default.json",
-                   hdp_stack_version = self.STACK_VERSION,
-                   target = RMFTestCase.TARGET_COMMON_SERVICES
+    self.executeScript(
+      self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
+      classname = "PhoenixQueryServer",
+      command = "configure",
+      config_file = "hbase_default.json",
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assert_configure_default()
     self.assertNoMoreResources()
-    
+
   def test_start_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
-                   classname = "PhoenixQueryServer",
-                   command = "start",
-                   config_file="hbase_default.json",
-                   hdp_stack_version = self.STACK_VERSION,
-                   target = RMFTestCase.TARGET_COMMON_SERVICES
+    self.executeScript(
+      self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
+      classname = "PhoenixQueryServer",
+      command = "start",
+      config_file = "hbase_default.json",
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
-    self.assertResourceCalled('Execute', '/usr/hdp/current/phoenix-server/bin/queryserver.py start',
-                            environment = {'JAVA_HOME': '/usr/jdk64/jdk1.8.0_40', 'HBASE_CONF_DIR': '/usr/hdp/current/hbase-regionserver/conf'},
-                            user = 'hbase'
+    self.assertResourceCalled('Execute',
+      '/usr/hdp/current/phoenix-server/bin/queryserver.py start',
+      environment = {'JAVA_HOME':'/usr/jdk64/jdk1.8.0_40',
+      'HBASE_CONF_DIR':'/usr/hdp/current/hbase-regionserver/conf'},
+      user = 'hbase'
     )
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
-                   classname = "PhoenixQueryServer",
-                   command = "stop",
-                   config_file="hbase_default.json",
-                   hdp_stack_version = self.STACK_VERSION,
-                   target = RMFTestCase.TARGET_COMMON_SERVICES
+    self.executeScript(
+      self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
+      classname = "PhoenixQueryServer",
+      command = "stop",
+      config_file = "hbase_default.json",
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    
-    self.assertResourceCalled('Execute', '/usr/hdp/current/phoenix-server/bin/queryserver.py stop',
-        on_timeout = '! ( ls /var/run/hbase/phoenix-hbase-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/phoenix-hbase-server.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/phoenix-hbase-server.pid`',
-        timeout = 30,
-        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.8.0_40', 'HBASE_CONF_DIR': '/usr/hdp/current/hbase-regionserver/conf'},
-        user = 'hbase'
+
+    self.assertResourceCalled('Execute',
+      '/usr/hdp/current/phoenix-server/bin/queryserver.py stop',
+      on_timeout = '! ( ls /var/run/hbase/phoenix-hbase-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/phoenix-hbase-server.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/phoenix-hbase-server.pid`',
+      timeout = 30,
+      environment = {'JAVA_HOME':'/usr/jdk64/jdk1.8.0_40',
+      'HBASE_CONF_DIR':'/usr/hdp/current/hbase-regionserver/conf'},
+      user = 'hbase'
     )
-    
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hbase/phoenix-hbase-server.pid',
+
+    self.assertResourceCalled('Execute',
+      'rm -f /var/run/hbase/phoenix-hbase-server.pid',
     )
     self.assertNoMoreResources()
-    
+
   def test_configure_secured(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
-                   classname = "PhoenixQueryServer",
-                   command = "configure",
-                   config_file="hbase_secure.json",
-                   hdp_stack_version = self.STACK_VERSION,
-                   target = RMFTestCase.TARGET_COMMON_SERVICES
+    self.executeScript(
+      self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
+      classname = "PhoenixQueryServer",
+      command = "configure",
+      config_file = "hbase_secure.json",
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assert_configure_secured()
     self.assertNoMoreResources()
-    
+
   def test_start_secured(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
-                   classname = "PhoenixQueryServer",
-                   command = "start",
-                   config_file="hbase_secure.json",
-                   hdp_stack_version = self.STACK_VERSION,
-                   target = RMFTestCase.TARGET_COMMON_SERVICES
+    self.executeScript(
+      self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
+      classname = "PhoenixQueryServer",
+      command = "start",
+      config_file = "hbase_secure.json",
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
-    self.assertResourceCalled('Execute', '/usr/hdp/current/phoenix-server/bin/queryserver.py start',
-                          environment = {'JAVA_HOME': '/usr/jdk64/jdk1.8.0_40', 'HBASE_CONF_DIR': '/usr/hdp/current/hbase-regionserver/conf'},
-                          user = 'hbase'
+    self.assertResourceCalled('Execute',
+      '/usr/hdp/current/phoenix-server/bin/queryserver.py start',
+      environment = {'JAVA_HOME':'/usr/jdk64/jdk1.8.0_40',
+      'HBASE_CONF_DIR':'/usr/hdp/current/hbase-regionserver/conf'},
+      user = 'hbase'
     )
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
-                   classname = "PhoenixQueryServer",
-                   command = "stop",
-                   config_file="hbase_secure.json",
-                   hdp_stack_version = self.STACK_VERSION,
-                   target = RMFTestCase.TARGET_COMMON_SERVICES
+    self.executeScript(
+      self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
+      classname = "PhoenixQueryServer",
+      command = "stop",
+      config_file = "hbase_secure.json",
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Execute', '/usr/hdp/current/phoenix-server/bin/queryserver.py stop',
-        on_timeout = '! ( ls /var/run/hbase/phoenix-hbase-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/phoenix-hbase-server.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/phoenix-hbase-server.pid`',
-        timeout = 30,
-        environment = {'JAVA_HOME': '/usr/jdk64/jdk1.8.0_40', 'HBASE_CONF_DIR': '/usr/hdp/current/hbase-regionserver/conf'},
-        user = 'hbase'
+    self.assertResourceCalled('Execute',
+      '/usr/hdp/current/phoenix-server/bin/queryserver.py stop',
+      on_timeout = '! ( ls /var/run/hbase/phoenix-hbase-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/phoenix-hbase-server.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/phoenix-hbase-server.pid`',
+      timeout = 30,
+      environment = {'JAVA_HOME':'/usr/jdk64/jdk1.8.0_40',
+      'HBASE_CONF_DIR':'/usr/hdp/current/hbase-regionserver/conf'},
+      user = 'hbase'
     )
-    
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hbase/phoenix-hbase-server.pid',
+
+    self.assertResourceCalled('Execute',
+      'rm -f /var/run/hbase/phoenix-hbase-server.pid',
     )
     self.assertNoMoreResources()
 
   @skip("there's nothing to upgrade to yet")
   def test_start_default_24(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
-                   classname = "PhoenixQueryServer",
-                   command = "start",
-                   config_file="hbase-rs-2.4.json",
-                   hdp_stack_version = self.STACK_VERSION,
-                   target = RMFTestCase.TARGET_COMMON_SERVICES)
-    
+    self.executeScript(
+      self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
+      classname = "PhoenixQueryServer",
+      command = "start",
+      config_file = "hbase-rs-2.4.json",
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES)
+
     self.assertResourceCalled('Directory', '/etc/hbase',
       mode = 0755)
 
-    self.assertResourceCalled('Directory', '/usr/hdp/current/hbase-regionserver/conf',
+    self.assertResourceCalled('Directory',
+      '/usr/hdp/current/hbase-regionserver/conf',
       owner = 'hbase',
       group = 'hadoop',
       recursive = True)
@@ -144,17 +165,21 @@ class TestPhoenixQueryServer(RMFTestCase):
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
       configurations = self.getConfig()['configurations']['hbase-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hbase-site'])
+      configuration_attributes = self.getConfig()['configuration_attributes'][
+        'hbase-site'])
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
-                              configurations = self.getConfig()['configurations']['core-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
-    )
-    self.assertResourceCalled('File', '/usr/hdp/current/hbase-regionserver/conf/hbase-env.sh',
       owner = 'hbase',
-      content = InlineTemplate(self.getConfig()['configurations']['hbase-env']['content']))
+      group = 'hadoop',
+      conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
+      configurations = self.getConfig()['configurations']['core-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes'][
+        'core-site']
+    )
+    self.assertResourceCalled('File',
+      '/usr/hdp/current/hbase-regionserver/conf/hbase-env.sh',
+      owner = 'hbase',
+      content = InlineTemplate(
+        self.getConfig()['configurations']['hbase-env']['content']))
 
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
@@ -165,14 +190,14 @@ class TestPhoenixQueryServer(RMFTestCase):
       recursive = True)
 
     self.assertResourceCalled('File',
-                              '/usr/lib/phoenix/bin/log4j.properties',
-                              mode=0644,
-                              group='hadoop',
-                              owner='hbase',
-                              content='log4jproperties\nline2')
+      '/usr/lib/phoenix/bin/log4j.properties',
+      mode = 0644,
+      group = 'hadoop',
+      owner = 'hbase',
+      content = 'log4jproperties\nline2')
 
-
-    self.assertResourceCalled('Execute', '/usr/hdp/current/phoenix-server/bin/queryserver.py start',
+    self.assertResourceCalled('Execute',
+      '/usr/hdp/current/phoenix-server/bin/queryserver.py start',
       not_if = 'ls /var/run/hbase/phoenix-hbase-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/phoenix-hbase-server.pid` >/dev/null 2>&1',
       user = 'hbase')
 
@@ -180,184 +205,224 @@ class TestPhoenixQueryServer(RMFTestCase):
 
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/etc/hbase',
-                              mode = 0755
+      mode = 0755
     )
-    self.assertResourceCalled('Directory', '/usr/hdp/current/hbase-regionserver/conf',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              recursive = True,
-                              )
+    self.assertResourceCalled('Directory',
+      '/usr/hdp/current/hbase-regionserver/conf',
+      owner = 'hbase',
+      group = 'hadoop',
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', self.TMP_PATH,
-                              owner = 'hbase',
-                              mode=0775,
-                              recursive = True,
-                              cd_access='a'
+      owner = 'hbase',
+      mode = 0775,
+      recursive = True,
+      cd_access = 'a'
     )
     self.assertResourceCalled('Directory', self.TMP_PATH + '/local',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              mode=0775,
-                              recursive = True,
-                              )
+      owner = 'hbase',
+      group = 'hadoop',
+      mode = 0775,
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', self.TMP_PATH + '/local/jars',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              mode=0775,
-                              recursive = True,
-                              )
+      owner = 'hbase',
+      group = 'hadoop',
+      mode = 0775,
+      recursive = True,
+    )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
-                              configurations = self.getConfig()['configurations']['hbase-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hbase-site']
+      owner = 'hbase',
+      group = 'hadoop',
+      conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
+      configurations = self.getConfig()['configurations']['hbase-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes'][
+        'hbase-site']
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
-                              configurations = self.getConfig()['configurations']['core-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
+      owner = 'hbase',
+      group = 'hadoop',
+      conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
+      configurations = self.getConfig()['configurations']['core-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes'][
+        'core-site']
     )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
-                              configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+      owner = 'hbase',
+      group = 'hadoop',
+      conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
+      configurations = self.getConfig()['configurations']['hdfs-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes'][
+        'hdfs-site']
     )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
-                              configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+      owner = 'hdfs',
+      group = 'hadoop',
+      conf_dir = '/usr/hdp/current/hadoop-client/conf',
+      configurations = self.getConfig()['configurations']['hdfs-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes'][
+        'hdfs-site']
     )
     self.assertResourceCalled('XmlConfig', 'hbase-policy.xml',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
-                              configurations = self.getConfig()['configurations']['hbase-policy'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hbase-policy']
-                              )
-    self.assertResourceCalled('File', '/usr/hdp/current/hbase-regionserver/conf/hbase-env.sh',
-                              owner = 'hbase',
-                              content = InlineTemplate(self.getConfig()['configurations']['hbase-env']['content']),
-                              )
-    self.assertResourceCalled('TemplateConfig', '/usr/hdp/current/hbase-regionserver/conf/hadoop-metrics2-hbase.properties',
-                              owner = 'hbase',
-                              template_tag = 'GANGLIA-RS',
-                              )
-    self.assertResourceCalled('TemplateConfig', '/usr/hdp/current/hbase-regionserver/conf/regionservers',
-                              owner = 'hbase',
-                              template_tag = None,
-                              )
-    self.assertResourceCalled('Directory', '/var/run/hbase',
-                              owner = 'hbase',
-                              recursive = True,
-                              )
-    self.assertResourceCalled('Directory', '/var/log/hbase',
-                              owner = 'hbase',
-                              recursive = True,
-                              )
+      owner = 'hbase',
+      group = 'hadoop',
+      conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
+      configurations = self.getConfig()['configurations']['hbase-policy'],
+      configuration_attributes = self.getConfig()['configuration_attributes'][
+        'hbase-policy']
+    )
     self.assertResourceCalled('File',
-                              '/usr/hdp/current/hbase-regionserver/conf/log4j.properties',
-                              mode=0644,
-                              group='hadoop',
-                              owner='hbase',
-                              content='log4jproperties\nline2'
+      '/usr/hdp/current/hbase-regionserver/conf/hbase-env.sh',
+      owner = 'hbase',
+      content = InlineTemplate(
+        self.getConfig()['configurations']['hbase-env']['content']),
+    )
+    self.assertResourceCalled('TemplateConfig',
+      '/usr/hdp/current/hbase-regionserver/conf/hadoop-metrics2-hbase.properties',
+      owner = 'hbase',
+      template_tag = 'GANGLIA-RS',
+    )
+    self.assertResourceCalled('TemplateConfig',
+      '/usr/hdp/current/hbase-regionserver/conf/regionservers',
+      owner = 'hbase',
+      template_tag = None,
+    )
+    self.assertResourceCalled('Directory', '/var/run/hbase',
+      owner = 'hbase',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/hbase',
+      owner = 'hbase',
+      recursive = True,
+    )
+    self.assertResourceCalled('File',
+      '/usr/hdp/current/hbase-regionserver/conf/log4j.properties',
+      mode = 0644,
+      group = 'hadoop',
+      owner = 'hbase',
+      content = 'log4jproperties\nline2'
     )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/etc/hbase',
-                              mode = 0755
+      mode = 0755
     )
-    self.assertResourceCalled('Directory', '/usr/hdp/current/hbase-regionserver/conf',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              recursive = True,
-                              )
+    self.assertResourceCalled('Directory',
+      '/usr/hdp/current/hbase-regionserver/conf',
+      owner = 'hbase',
+      group = 'hadoop',
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', self.TMP_PATH,
-                              owner = 'hbase',
-                              mode=0775,
-                              recursive = True,
-                              cd_access='a'
+      owner = 'hbase',
+      mode = 0775,
+      recursive = True,
+      cd_access = 'a'
     )
     self.assertResourceCalled('Directory', self.TMP_PATH + '/local',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              mode=0775,
-                              recursive = True,
-                              )
+      owner = 'hbase',
+      group = 'hadoop',
+      mode = 0775,
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', self.TMP_PATH + '/local/jars',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              mode=0775,
-                              recursive = True,
-                              )
+      owner = 'hbase',
+      group = 'hadoop',
+      mode = 0775,
+      recursive = True,
+    )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
-                              configurations = self.getConfig()['configurations']['hbase-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hbase-site']
+      owner = 'hbase',
+      group = 'hadoop',
+      conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
+      configurations = self.getConfig()['configurations']['hbase-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes'][
+        'hbase-site']
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
-                              configurations = self.getConfig()['configurations']['core-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
+      owner = 'hbase',
+      group = 'hadoop',
+      conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
+      configurations = self.getConfig()['configurations']['core-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes'][
+        'core-site']
     )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
-                              configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+      owner = 'hbase',
+      group = 'hadoop',
+      conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
+      configurations = self.getConfig()['configurations']['hdfs-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes'][
+        'hdfs-site']
     )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
-                              configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+      owner = 'hdfs',
+      group = 'hadoop',
+      conf_dir = '/usr/hdp/current/hadoop-client/conf',
+      configurations = self.getConfig()['configurations']['hdfs-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes'][
+        'hdfs-site']
     )
     self.assertResourceCalled('XmlConfig', 'hbase-policy.xml',
-                              owner = 'hbase',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
-                              configurations = self.getConfig()['configurations']['hbase-policy'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hbase-policy']
+      owner = 'hbase',
+      group = 'hadoop',
+      conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
+      configurations = self.getConfig()['configurations']['hbase-policy'],
+      configuration_attributes = self.getConfig()['configuration_attributes'][
+        'hbase-policy']
     )
-    self.assertResourceCalled('File', '/usr/hdp/current/hbase-regionserver/conf/hbase-env.sh',
-                              owner = 'hbase',
-                              content = InlineTemplate(self.getConfig()['configurations']['hbase-env']['content']),
-                              )
-    self.assertResourceCalled('TemplateConfig', '/usr/hdp/current/hbase-regionserver/conf/hadoop-metrics2-hbase.properties',
-                              owner = 'hbase',
-                              template_tag = 'GANGLIA-RS',
-                              )
-    self.assertResourceCalled('TemplateConfig', '/usr/hdp/current/hbase-regionserver/conf/regionservers',
-                              owner = 'hbase',
-                              template_tag = None,
-                              )
-    self.assertResourceCalled('TemplateConfig', '/usr/hdp/current/hbase-regionserver/conf/hbase_queryserver_jaas.conf',
-                              owner = 'hbase',
-                              template_tag = None,
-                              )
-    self.assertResourceCalled('Directory', '/var/run/hbase',
-                              owner = 'hbase',
-                              recursive = True,
-                              )
-    self.assertResourceCalled('Directory', '/var/log/hbase',
-                              owner = 'hbase',
-                              recursive = True,
-                              )
     self.assertResourceCalled('File',
-                              '/usr/hdp/current/hbase-regionserver/conf/log4j.properties',
-                              mode=0644,
-                              group='hadoop',
-                              owner='hbase',
-                              content='log4jproperties\nline2'
+      '/usr/hdp/current/hbase-regionserver/conf/hbase-env.sh',
+      owner = 'hbase',
+      content = InlineTemplate(
+        self.getConfig()['configurations']['hbase-env']['content']),
     )
+    self.assertResourceCalled('TemplateConfig',
+      '/usr/hdp/current/hbase-regionserver/conf/hadoop-metrics2-hbase.properties',
+      owner = 'hbase',
+      template_tag = 'GANGLIA-RS',
+    )
+    self.assertResourceCalled('TemplateConfig',
+      '/usr/hdp/current/hbase-regionserver/conf/regionservers',
+      owner = 'hbase',
+      template_tag = None,
+    )
+    self.assertResourceCalled('TemplateConfig',
+      '/usr/hdp/current/hbase-regionserver/conf/hbase_queryserver_jaas.conf',
+      owner = 'hbase',
+      template_tag = None,
+    )
+    self.assertResourceCalled('Directory', '/var/run/hbase',
+      owner = 'hbase',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/hbase',
+      owner = 'hbase',
+      recursive = True,
+    )
+    self.assertResourceCalled('File',
+      '/usr/hdp/current/hbase-regionserver/conf/log4j.properties',
+      mode = 0644,
+      group = 'hadoop',
+      owner = 'hbase',
+      content = 'log4jproperties\nline2'
+    )
+
+  def test_upgrade_restart(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.3/configs/hbase_default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    json_content['commandParams']['version'] = '2.3.0.0-1234'
+
+    self.executeScript(
+      self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
+      classname = "PhoenixQueryServer",
+      command = "pre_rolling_restart",
+      config_dict = json_content,
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    self.assertResourceCalled('Execute', 'hdp-select set phoenix-server 2.3.0.0-1234')
+
+    self.assertNoMoreResources()

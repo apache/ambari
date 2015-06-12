@@ -70,7 +70,8 @@ SERVICE_CHECK_DIRECTORY_MAP = {
   "HDFS_SERVICE_CHECK" : "hadoop-client",
   "TEZ_SERVICE_CHECK" : "hadoop-client",
   "PIG_SERVICE_CHECK" : "hadoop-client",
-  "HIVE_SERVICE_CHECK" : "hadoop-client"
+  "HIVE_SERVICE_CHECK" : "hadoop-client",
+  "MAHOUT_SERVICE_CHECK" : "mahout-client"
 }
 
 # /usr/hdp/current/hadoop-client/[bin|sbin|libexec|lib]
