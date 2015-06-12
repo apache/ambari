@@ -36,6 +36,7 @@ from NetUtil import NetUtil
 from PingPortListener import PingPortListener
 import hostname
 from DataCleaner import DataCleaner
+from ExitHelper import ExitHelper
 import socket
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.shell import shellRunner
@@ -278,6 +279,7 @@ def main(heartbeat_stop_callback=None):
     controller.start()
     controller.join()
   if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
+    ExitHelper.execute_cleanup()
     stop_agent()
   logger.info("finished")
 

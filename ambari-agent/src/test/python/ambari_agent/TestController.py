@@ -35,6 +35,7 @@ from ambari_agent import hostname
 from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
 from ambari_commons import OSCheck
 from ambari_agent.Hardware import Hardware
+from ambari_agent.ExitHelper import ExitHelper
 import ambari_commons
 
 OPERATING_SYSTEM_DISTRO = ('Suse','11','Final')
@@ -334,12 +335,12 @@ class TestController(unittest.TestCase):
     self.assertTrue(sendRequestMock.call_count > 5)
 
 
-  @patch("sys.exit")
-  def test_restartAgent(self, sys_exit_mock):
+  @patch.object(ExitHelper, "exit")
+  def test_restartAgent(self, exit_mock):
 
     self.controller.restartAgent()
-    self.assertTrue(sys_exit_mock.called)
-    self.assertTrue(sys_exit_mock.call_args[0][0] == AGENT_AUTO_RESTART_EXIT_CODE)
+    self.assertTrue(exit_mock.called)
+    self.assertTrue(exit_mock.call_args[0][0] == AGENT_AUTO_RESTART_EXIT_CODE)
 
 
   @patch("urllib2.Request")

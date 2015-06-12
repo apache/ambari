@@ -45,7 +45,7 @@ with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_
   from ambari_agent.DataCleaner import DataCleaner
   import ambari_agent.HeartbeatHandlers as HeartbeatHandlers
   from ambari_commons.os_check import OSConst, OSCheck
-
+  from ambari_agent.ExitHelper import ExitHelper
   if get_platform() != PLATFORM_WINDOWS:
     from ambari_commons.shell import shellRunnerLinux
 
@@ -306,7 +306,8 @@ class TestMain(unittest.TestCase):
   @patch.object(DataCleaner,"__init__")
   @patch.object(PingPortListener,"start")
   @patch.object(PingPortListener,"__init__")
-  def test_main(self, ping_port_init_mock, ping_port_start_mock, data_clean_init_mock,data_clean_start_mock,
+  @patch.object(ExitHelper,"execute_cleanup")
+  def test_main(self, cleanup_mock, ping_port_init_mock, ping_port_start_mock, data_clean_init_mock,data_clean_start_mock,
                 parse_args_mock, join_mock, start_mock, Controller_init_mock, try_to_connect_mock,
                 update_log_level_mock, daemonize_mock, perform_prestart_checks_mock,
                 ambari_config_mock,
@@ -339,7 +340,7 @@ class TestMain(unittest.TestCase):
     self.assertTrue(data_clean_start_mock.called)
     self.assertTrue(ping_port_init_mock.called)
     self.assertTrue(ping_port_start_mock.called)
-
+    self.assertTrue(cleanup_mock.called)
     perform_prestart_checks_mock.reset_mock()
 
     # Testing call with --expected-hostname parameter
