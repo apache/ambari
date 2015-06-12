@@ -1281,7 +1281,7 @@ Em.I18n.translations = {
   'admin.rm_highAvailability.wizard.step3.configs_changes': '<b>Review Configuration Changes.</b></br>' +
   '<i>policymgr_external_url</i> in admin-properties.xml will be changed by the Wizard to enable Ranger Admin HA',
   'admin.ra_highAvailability.wizard.step4.header': 'Install, Start and Test',
-  'admin.ra_highAvailability.wizard.step4.task0.title': 'Stop Required Services',
+  'admin.ra_highAvailability.wizard.step4.task0.title': 'Stop All Services',
   'admin.ra_highAvailability.wizard.step4.task1.title': 'Install Additional Ranger Admin',
   'admin.ra_highAvailability.wizard.step4.task2.title': 'Reconfigure Ranger',
   'admin.ra_highAvailability.wizard.step4.task3.title': 'Start All Services',

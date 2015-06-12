@@ -24,12 +24,12 @@ App.RAHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   clusterDeployState: 'RA_HIGH_AVAILABILITY_DEPLOY',
 
-  commands: ['stopRequiredServices', 'installRangerAdmin', 'reconfigureRanger', 'startAllServices'],
+  commands: ['stopAllServices', 'installRangerAdmin', 'reconfigureRanger', 'startAllServices'],
 
   tasksMessagesPrefix: 'admin.ra_highAvailability.wizard.step',
 
-  stopRequiredServices: function () {
-    this.stopServices(['HDFS']);
+  stopAllServices: function () {
+    this.stopServices();
   },
 
   installRangerAdmin: function () {
