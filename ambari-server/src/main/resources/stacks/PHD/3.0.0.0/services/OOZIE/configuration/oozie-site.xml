@@ -142,11 +142,11 @@
   <property>
     <name>oozie.authentication.kerberos.name.rules</name>
     <value>
-      RULE:[2:$1@$0]([jt]t@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-MAPREDUSER/
-      RULE:[2:$1@$0]([nd]n@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HDFSUSER/
-      RULE:[2:$1@$0](hm@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/
-      RULE:[2:$1@$0](rs@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/
-      DEFAULT
+
+
+
+
+
     </value>
     <description>The mapping from kerberos principal names to local OS user names.</description>
   </property>
