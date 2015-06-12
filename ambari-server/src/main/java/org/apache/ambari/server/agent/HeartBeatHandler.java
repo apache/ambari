@@ -520,7 +520,7 @@ public class HeartBeatHandler {
         }
       }
 
-      //pass custom STAR, STOP and RESTART
+      //pass custom START, STOP and RESTART
       if (RoleCommand.ACTIONEXECUTE.toString().equals(report.getRoleCommand()) ||
          (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
          !("RESTART".equals(report.getCustomCommand()) ||
