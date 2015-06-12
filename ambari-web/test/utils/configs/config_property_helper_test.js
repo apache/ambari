@@ -301,7 +301,7 @@ describe('configPropertyHelper', function () {
           clientPort: '2182'
         },
         recommendedValue: 'localhost:2181',
-        value: 'h0:2182',
+        value: 'h0:2182,h1:2182',
         title: 'should add ZK host and port dynamically'
       },
       'oozieserver_host': {
