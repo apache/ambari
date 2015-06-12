@@ -18,10 +18,10 @@ limitations under the License.
 Ambari Agent
 
 """
-
-import sys
-from resource_management import *
+from resource_management.core.exceptions import ClientComponentHasNoStatus
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.script import Script
 from mahout import mahout
 
 
@@ -30,22 +30,25 @@ class MahoutClient(Script):
   def get_stack_to_component(self):
     return {"HDP": "mahout-client"}
 
+
   def pre_rolling_restart(self, env):
     import params
     env.set_params(params)
 
     conf_select.select(params.stack_name, "mahout", params.version)
-    Execute(('hdp-select', 'set', 'mahout-client', params.version),
-            sudo = True)
+    hdp_select.select("mahout-client", params.version )
+
 
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
 
+
   def configure(self, env):
     import params
     env.set_params(params)
     mahout()
+
 
   def status(self, env):
     raise ClientComponentHasNoStatus()

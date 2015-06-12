@@ -16,61 +16,63 @@
    limitations under the License.
 -->
 <metainfo>
-    <schemaVersion>2.0</schemaVersion>
-    <services>
-        <service>
-            <name>MAHOUT</name>
-            <displayName>Mahout</displayName>
-            <comment>Project of the Apache Software Foundation to produce free implementations of distributed or
-                otherwise scalable machine learning algorithms focused primarily in the areas of collaborative
-                filtering, clustering and classification</comment>
-            <version>1.0.0.2.3</version>
-            <components>
-                <component>
-                    <name>MAHOUT</name>
-                    <displayName>Mahout</displayName>
-                    <category>CLIENT</category>
-                    <cardinality>0+</cardinality>
-                    <versionAdvertised>true</versionAdvertised>
-                    <commandScript>
-                        <script>scripts/mahout_client.py</script>
-                        <scriptType>PYTHON</scriptType>
-                        <timeout>1200</timeout>
-                    </commandScript>
-                    <configFiles>
-                        <configFile>
-                            <type>env</type>
-                            <fileName>log4j.properties</fileName>
-                            <dictionaryName>mahout-log4j</dictionaryName>
-                        </configFile>
-                    </configFiles>
-                </component>
-            </components>
-            <osSpecifics>
-                <osSpecific>
-                    <osFamily>any</osFamily>
-                    <packages>
-                        <package>
-                            <name>mahout</name>
-                        </package>
-                    </packages>
-                </osSpecific>
-            </osSpecifics>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>MAHOUT</name>
+      <displayName>Mahout</displayName>
+      <comment>
+        Project of the Apache Software Foundation to produce free implementations of distributed or
+        otherwise scalable machine learning algorithms focused primarily in the areas of collaborative
+        filtering, clustering and classification
+      </comment>
+      <version>1.0.0.2.3</version>
+      <components>
+        <component>
+          <name>MAHOUT</name>
+          <displayName>Mahout</displayName>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/mahout_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>log4j.properties</fileName>
+              <dictionaryName>mahout-log4j</dictionaryName>
+            </configFile>
+          </configFiles>
+        </component>
+      </components>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>mahout</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
 
-            <commandScript>
-                <script>scripts/service_check.py</script>
-                <scriptType>PYTHON</scriptType>
-                <timeout>300</timeout>
-            </commandScript>
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
 
-            <requiredServices>
-                <service>YARN</service>
-            </requiredServices>
+      <requiredServices>
+        <service>YARN</service>
+      </requiredServices>
 
-            <configuration-dependencies>
-                <config-type>mahout-log4j</config-type>
-            </configuration-dependencies>
+      <configuration-dependencies>
+        <config-type>mahout-log4j</config-type>
+      </configuration-dependencies>
 
-        </service>
-    </services>
+    </service>
+  </services>
 </metainfo>

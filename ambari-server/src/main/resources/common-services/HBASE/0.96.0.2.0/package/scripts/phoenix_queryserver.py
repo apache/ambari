@@ -17,7 +17,8 @@ limitations under the License.
 
 """
 
-import sys
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.script import Script
 from phoenix_service import phoenix_service
 from hbase import hbase
@@ -28,13 +29,16 @@ class PhoenixQueryServer(Script):
   def install(self, env):
     self.install_packages(env)
 
+
   def get_stack_to_component(self):
     return {"HDP": "phoenix-server"}
+
 
   def configure(self, env):
     import params
     env.set_params(params)
     hbase(name='queryserver')
+
 
   def start(self, env, rolling_restart=False):
     import params
@@ -42,15 +46,27 @@ class PhoenixQueryServer(Script):
     self.configure(env)
     phoenix_service('start')
 
+
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     phoenix_service('stop')
 
+
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+
+    if Script.is_hdp_stack_greater_or_equal("2.3"):
+      conf_select.select(params.stack_name, "phoenix", params.version)
+      hdp_select.select("phoenix-server", params.version)
+
+
   def status(self, env):
     import status_params
     env.set_params(status_params)
     phoenix_service('status')
+
 
   def security_status(self, env):
     self.put_structured_out({"securityState": "UNSECURED"})
