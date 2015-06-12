@@ -44,7 +44,7 @@ from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.ClusterConfiguration import  ClusterConfiguration
 from ambari_agent.RecoveryManager import  RecoveryManager
 from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
-
+from ambari_agent.ExitHelper import ExitHelper
 logger = logging.getLogger(__name__)
 
 AGENT_AUTO_RESTART_EXIT_CODE = 77
@@ -384,7 +384,7 @@ class Controller(threading.Thread):
         self.heartbeatWithServer()
 
   def restartAgent(self):
-    sys.exit(AGENT_AUTO_RESTART_EXIT_CODE)
+    ExitHelper().exit(AGENT_AUTO_RESTART_EXIT_CODE)
 
 
   def sendRequest(self, url, data):

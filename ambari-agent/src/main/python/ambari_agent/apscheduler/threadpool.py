@@ -7,7 +7,7 @@ ThreadPool!
 from threading import Thread, Lock, currentThread
 from weakref import ref
 import logging
-import atexit
+from ambari_agent.ExitHelper import ExitHelper
 
 try:
     from queue import Queue, Empty
@@ -27,7 +27,7 @@ def _shutdown_all():
         if pool:
             pool.shutdown()
 
-atexit.register(_shutdown_all)
+ExitHelper().register(_shutdown_all)
 
 
 class ThreadPool(object):

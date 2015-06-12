@@ -26,7 +26,6 @@ import logging
 import os
 import sys
 import time
-import atexit
 
 from apscheduler.scheduler import Scheduler
 from alerts.collector import AlertCollector
@@ -34,7 +33,7 @@ from alerts.metric_alert import MetricAlert
 from alerts.port_alert import PortAlert
 from alerts.script_alert import ScriptAlert
 from alerts.web_alert import WebAlert
-
+from ambari_agent.ExitHelper import ExitHelper
 logger = logging.getLogger(__name__)
 
 class AlertSchedulerHandler():
@@ -72,7 +71,7 @@ class AlertSchedulerHandler():
     self.config = config
 
     # register python exit handler
-    atexit.register(self.exit_handler)
+    ExitHelper().register(self.exit_handler)
 
 
   def exit_handler(self):
