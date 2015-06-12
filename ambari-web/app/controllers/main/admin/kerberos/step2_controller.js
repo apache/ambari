@@ -67,6 +67,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
 
   clearStep: function () {
     this._super();
+    this.set('configs', []);
     this.get('serviceConfigTags').clear();
     this.set('servicesInstalled', false);
   },
@@ -78,9 +79,10 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
    */
   loadStep: function () {
     console.log("TRACE: Loading step7: Configure Services");
+    if (!App.StackService.find().someProperty('serviceName', 'KERBEROS') || !this.get('isConfigsLoaded')) {
+      return;
+    }
     this.clearStep();
-    var kerberosStackService = App.StackService.find().findProperty('serviceName', 'KERBEROS');
-    if (!kerberosStackService) return;
     //STEP 1: Load advanced configs
     var advancedConfigs = this.get('content.advancedServiceConfig');
     //STEP 2: Load on-site configs by service from local DB
