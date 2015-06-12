@@ -251,7 +251,7 @@ public class SchemaUpgradeHelper {
       String[] splittedJavaVersion = System.getProperty("java.version").split("\\.");
       float javaVersion = Float.parseFloat(splittedJavaVersion[0] + "." + splittedJavaVersion[1]);
       if (javaVersion < Configuration.JDK_MIN_VERSION) {
-        LOG.error(String.format("Oracle JDK version is lower then %.1f It can cause problems during upgrade process. Please," +
+        LOG.error(String.format("Oracle JDK version is lower than %.1f It can cause problems during upgrade process. Please," +
                 " use 'ambari-server setup' command to upgrade JDK!", Configuration.JDK_MIN_VERSION));
         System.exit(1);
       }
