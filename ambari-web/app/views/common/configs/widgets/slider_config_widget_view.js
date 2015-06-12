@@ -290,8 +290,11 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       parseFunction = this.get('parseFunction'),
       ticks = [this.valueForTick(this.get('minMirrorValue'))],
       ticksLabels = [],
+      maxMirrorValue = this.get('maxMirrorValue'),
+      minMirrorValue = this.get('minMirrorValue'),
+      mirrorStep = this.get('mirrorStep'),
       recommendedValue = this.valueForTick(+this.get('widgetRecommendedValue')),
-      range = this.get('maxMirrorValue') - this.get('minMirrorValue'),
+      range = Math.floor((maxMirrorValue - minMirrorValue) / mirrorStep) * mirrorStep,
       // for little odd numbers in range 4..23 and widget type 'int' use always 4 ticks
       isSmallInt = this.get('unitType') == 'int' && range > 4 && range < 23 && range % 2 == 1,
       recommendedValueMirroredId,
@@ -299,12 +302,12 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
 
     // ticks and labels
     for (var i = 1; i <= 3; i++) {
-      var val = this.get('minMirrorValue') + range * (i / (isSmallInt ? 3 : 4));
+      var val = minMirrorValue + this.valueForTickProportionalToStep(range * (i / (isSmallInt ? 3 : 4)));
       // if value's type is float, ticks may be float too
-      ticks.push(this.valueForTick(val));
+      ticks.push(val);
     }
 
-    ticks.push(this.valueForTick(this.get('maxMirrorValue')));
+    ticks.push(this.valueForTick(maxMirrorValue));
     ticks = ticks.uniq();
     ticks.forEach(function (tick, index, items) {
       ticksLabels.push((items.length < 5 || index % 2 === 0 || items.length - 1 == index) ? tick + ' ' + self.get('unitLabel') : '');
@@ -313,7 +316,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     ticks = ticks.uniq();
 
     // default marker should be added only if recommendedValue is in range [min, max]
-    if (recommendedValue <= this.get('maxMirrorValue') && recommendedValue >= this.get('minMirrorValue') && recommendedValue != '') {
+    if (recommendedValue <= maxMirrorValue && recommendedValue >= minMirrorValue && recommendedValue != '') {
       // process additional tick for default value if it not defined in previous computation
       if (!ticks.contains(recommendedValue)) {
         // push default value
@@ -357,7 +360,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       ticks: ticks,
       tooltip: 'always',
       ticks_labels: ticksLabels,
-      step: this.get('mirrorStep'),
+      step: mirrorStep,
       formatter: function(val) {
         if (Em.isArray(val)) {
           return val[0] + self.get('unitLabel');
@@ -429,6 +432,18 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    * @returns {Number}
    */
   valueForTick: function(val) {
+    return this.get('unitType') === 'int' ? Math.round(val) : parseFloat(val.toFixed(3));
+  },
+
+  /**
+   * Convert value according to property attribute unit
+   * Also returned value is proportional to the <code>mirrorStep</code>
+   *
+   * @param {Number} val
+   * @private
+   * @returns {Number}
+   */
+  valueForTickProportionalToStep: function (val) {
     if (this.get('unitType') === 'int') {
       return Math.round(val);
     }
