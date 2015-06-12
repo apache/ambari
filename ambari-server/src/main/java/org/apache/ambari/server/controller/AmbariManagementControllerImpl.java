@@ -4188,8 +4188,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
           }
           layoutEntity.setListWidgetLayoutUserWidgetEntity(widgetLayoutUserWidgetEntityList);
-          widgetLayoutDAO.create(layoutEntity);
-          widgetLayoutDAO.refresh(layoutEntity);
+          widgetLayoutDAO.createWithFlush(layoutEntity);
         } else {
           if (existingEntities.size() > 1) {
             LOG.warn("Skip updating layout since multiple widget layouts " +
