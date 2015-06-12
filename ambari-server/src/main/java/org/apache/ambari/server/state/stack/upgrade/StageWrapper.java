@@ -92,6 +92,13 @@ public class StageWrapper {
   }
 
   /**
+   * @param text the new text for the stage
+   */
+  public void setText(String newText) {
+    text = newText;
+  }
+
+  /**
    * Gets the type of stage.  All tasks defined for the stage execute this type.
    * @return the type
    */
