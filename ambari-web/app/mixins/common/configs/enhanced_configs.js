@@ -362,8 +362,9 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   _saveRecommendedValues: function(data, updateOnlyBoundaries, changedConfigs, selectedConfigGroup) {
     Em.assert('invalid data - `data.resources[0].recommendations.blueprint.configurations` not defined ', data && data.resources[0] && Em.get(data.resources[0], 'recommendations.blueprint.configurations'));
     var configObject = data.resources[0].recommendations.blueprint.configurations;
-    this.parseConfigsByTag(configObject, updateOnlyBoundaries, changedConfigs, selectedConfigGroup);
-    if (!this.get('selectedConfigGroup.isDefault') && data.resources[0].recommendations['config-groups']) {
+    if (!selectedConfigGroup) {
+      this.parseConfigsByTag(configObject, updateOnlyBoundaries, changedConfigs, selectedConfigGroup);
+    } else if (data.resources[0].recommendations['config-groups']){
       var configFroGroup = data.resources[0].recommendations['config-groups'][0];
       this.parseConfigsByTag(configFroGroup.configurations, updateOnlyBoundaries, changedConfigs, selectedConfigGroup);
       this.parseConfigsByTag(configFroGroup.dependent_configurations, updateOnlyBoundaries, changedConfigs, selectedConfigGroup);
@@ -426,7 +427,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
               Em.set(dependentProperty, 'value', initialValue);
               Em.set(dependentProperty, 'recommendedValue', recommendedValue);
               Em.set(dependentProperty, 'toDelete', false);
-              Em.set(dependentProperty, 'toAdd', isNewProperty);
+              Em.set(dependentProperty, 'toAdd', false);
               Em.set(dependentProperty, 'parentConfigs', dependentProperty.parentConfigs.concat(parentPropertiesNames).uniq());
             } else {
               this.get('_dependentConfigValues').pushObject({
@@ -695,12 +696,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             }
             cp.set('recommendedValue', propertyToUpdate.recommendedValue);
           } else {
-            if (stepConfigs.get('serviceName') !== this.get('content.serviceName')) {
-              if (propertyToUpdate.saveRecommended || cp.get('value') == propertyToUpdate.recommendedValue) {
-                cp.set('value', this.useInitialValue(stepConfigs.get('serviceName')) ? cp.get('initialValue') : cp.get('savedValue'));
-              }
-              cp.set('recommendedValue', propertyToUpdate.recommendedValue);
-            }
             var overriddenConfig = cp.get('overrides') && cp.get('overrides').findProperty('group.name', selectedGroup.get('name'));
             if (overriddenConfig) {
               if (propertyToUpdate.saveRecommended || overriddenConfig.get('value') == propertyToUpdate.recommendedValue) {
