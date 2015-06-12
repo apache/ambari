@@ -90,6 +90,14 @@ public class WidgetLayoutDAO {
   }
 
   @Transactional
+  public void createWithFlush(WidgetLayoutEntity widgetLayoutEntity) {
+    EntityManager entityManager = entityManagerProvider.get();
+    entityManager.persist(widgetLayoutEntity);
+    entityManager.flush();
+    entityManager.refresh(widgetLayoutEntity);
+  }
+
+  @Transactional
   public WidgetLayoutEntity merge(WidgetLayoutEntity widgetLayoutEntity) {
     return entityManagerProvider.get().merge(widgetLayoutEntity);
   }
