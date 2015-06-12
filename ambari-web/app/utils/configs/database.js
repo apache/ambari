@@ -17,6 +17,7 @@
  */
 
 var validators = require('utils/validator');
+var stringUtils = require('utils/string_utils');
 /**
  * Helper methods to process database values and properties
  * @module utils/configs/database
@@ -53,7 +54,7 @@ module.exports = {
     mssql: 'jdbc:sqlserver://{0};databaseName={1}',
     postgres: 'jdbc:postgresql://{0}:5432/{1}',
     derby: 'jdbc:derby:{0}/{1}',
-    oracle: 'jdbc:oracle:thin:@//{0}:1521/{1}'
+    oracle: 'jdbc:oracle:thin:@(?:\/?\/?){0}:1521(\:|\/){1}'
   },
 
   /**
@@ -180,7 +181,7 @@ module.exports = {
 
     result.location = this.getDBLocationFromJDBC(jdbcUrl);
     if (!jdbcUrl.endsWith('{1}')) {
-      dbName = jdbcUrl.replace(this.DB_JDBC_PATTERNS[result.dbType].format(result.location,''), '');
+      dbName = jdbcUrl.replace(new RegExp(this.DB_JDBC_PATTERNS[result.dbType].format(stringUtils.escapeRegExp(result.location),'')), '');
       if (dbName) {
         result.databaseName = dbName.split(/[;|?]/)[0];
       }

@@ -47,6 +47,10 @@ describe('Database Utils', function() {
         e: 'localhost.com'
       },
       {
+        jdbcUrl: 'jdbc:oracle:thin:@ec2-52-5-27-33.compute-1.amazonaws.com:1521:ORCL',
+        e: 'ec2-52-5-27-33.compute-1.amazonaws.com'
+      },
+      {
         jdbcUrl: 'jdbc:oracle:thin:@//{0}:1521/{1}',
         e: null
       }
@@ -109,6 +113,14 @@ describe('Database Utils', function() {
       },
       {
         jdbcUrl: 'jdbc:oracle:thin:@//localhost.com:1521/someDb',
+        e: {
+          dbType: 'oracle',
+          location: 'localhost.com',
+          databaseName: 'someDb'
+        }
+      },
+      {
+        jdbcUrl: 'jdbc:oracle:thin:@localhost.com:1521:someDb',
         e: {
           dbType: 'oracle',
           location: 'localhost.com',

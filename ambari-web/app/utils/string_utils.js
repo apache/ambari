@@ -214,5 +214,15 @@ module.exports = {
   htmlEntities: function (string) {
     if (typeof string !== 'string') return "";
     return $("<div/>").text(string).html();
+  },
+
+  /**
+   * Escaping user input to be treated as a literal string within a regular expression
+   * get from https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/Regular_Expressions
+   * @param {string} str
+   * @returns {*}
+   */
+  escapeRegExp: function (str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 };
