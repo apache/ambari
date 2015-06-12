@@ -31,7 +31,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     passive_state: 'ServiceInfo.passive_state',
     critical_alerts_count: 'ServiceInfo.critical_alerts_count',
     $rand: Math.random(),
-    $alerts: [ 1, 2, 3 ],
+    $alerts: [1, 2, 3],
     host_components: 'host_components',
     tool_tip_content: 'tool_tip_content',
     installed_clients: 'installed_clients',
@@ -72,8 +72,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     nfs_gateways_total: 'nfs_gateways_total'
   },
   yarnConfig: {
-    version: 'resourceManagerComponent.ServiceComponentInfo.Version',
-    resource_manager_start_time: 'resourceManagerComponent.ServiceComponentInfo.StartTime',
+    resource_manager_start_time: 'resourceManagerComponent.host_components[0].metrics.runtime.StartTime',
     jvm_memory_heap_used: 'resourceManagerComponent.host_components[0].metrics.jvm.HeapMemoryUsed',
     jvm_memory_heap_max: 'resourceManagerComponent.host_components[0].metrics.jvm.HeapMemoryMax',
     containers_allocated: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AllocatedContainers',
@@ -85,11 +84,11 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     apps_completed: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AppsCompleted',
     apps_killed: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AppsKilled',
     apps_failed: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AppsFailed',
-    node_managers_count_active: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.activeNMcount',
-    node_managers_count_lost: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.lostNMcount',
-    node_managers_count_unhealthy: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.unhealthyNMcount',
-    node_managers_count_rebooted: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.rebootedNMcount',
-    node_managers_count_decommissioned: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.decommissionedNMcount',
+    node_managers_count_active: 'resourceManagerComponent.host_components[0].metrics.yarn.ClusterMetrics.NumActiveNMs',
+    node_managers_count_lost: 'resourceManagerComponent.host_components[0].metrics.yarn.ClusterMetrics.NumLostNMs',
+    node_managers_count_unhealthy: 'resourceManagerComponent.host_components[0].metrics.yarn.ClusterMetrics.NumUnhealthyNMs',
+    node_managers_count_rebooted: 'resourceManagerComponent.host_components[0].metrics.yarn.ClusterMetrics.NumRebootedNMs',
+    node_managers_count_decommissioned: 'resourceManagerComponent.host_components[0].metrics.yarn.ClusterMetrics.NumDecommissionedNMs',
     allocated_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AllocatedMB',
     available_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AvailableMB',
     reserved_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.ReservedMB',
@@ -99,18 +98,15 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     node_managers_total: 'node_managers_total'
   },
   mapReduce2Config: {
-    version: 'jobHistoryServerComponent.ServiceComponentInfo.Version',
     map_reduce2_clients: 'map_reduce2_clients'
   },
   hbaseConfig: {
-    version: 'masterComponent.ServiceComponentInfo.Version',
-    master_start_time: 'masterComponent.ServiceComponentInfo.MasterStartTime',
-    master_active_time: 'masterComponent.ServiceComponentInfo.MasterActiveTime',
-    average_load: 'masterComponent.ServiceComponentInfo.AverageLoad',
+    master_start_time: 'masterComponent.host_components[0].metrics.hbase.master.MasterStartTime',
+    master_active_time: 'masterComponent.host_components[0].metrics.hbase.master.MasterActiveTime',
+    average_load: 'masterComponent.host_components[0].metrics.hbase.master.AverageLoad',
+    heap_memory_used: 'masterComponent.host_components[0].metrics.jvm.HeapMemoryUsed',
+    heap_memory_max: 'masterComponent.host_components[0].metrics.jvm.HeapMemoryMax',
     regions_in_transition: 'regions_in_transition',
-    revision: 'masterComponent.ServiceComponentInfo.Revision',
-    heap_memory_used: 'masterComponent.ServiceComponentInfo.HeapMemoryUsed',
-    heap_memory_max: 'masterComponent.ServiceComponentInfo.HeapMemoryMax',
     region_servers_started: 'region_servers_started',
     region_servers_installed: 'region_servers_installed',
     region_servers_total: 'region_servers_total',
@@ -147,7 +143,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   config3: {
     id: 'id',
     work_status: 'HostRoles.state',
-    passive_state:'HostRoles.maintenance_state',
+    passive_state: 'HostRoles.maintenance_state',
     desired_status: 'HostRoles.desired_state',
     component_name: 'HostRoles.component_name',
     host_id: 'HostRoles.host_name',
@@ -173,11 +169,11 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
        * services contains constructed service-components structure from components array
        */
 
-      services.forEach(function(service) {
+      services.forEach(function (service) {
         service.host_components = [];
         service.components = [];
       });
-      
+
       json.items.forEach(function (component) {
         var serviceName = component.ServiceComponentInfo.service_name;
         var service = services.findProperty('ServiceInfo.service_name', serviceName);
@@ -266,23 +262,23 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       //load services to model
       App.store.loadMany(this.get('model'), result);
       /*if (previousResponse.length !== result.length) {
-        App.store.loadMany(this.get('model'), result);
-      } else {
-        result.forEach(function (serviceJson) {
-          var fields = ['passive_state','work_status', 'rand', 'alerts', 'quick_links', 'host_components', 'tool_tip_content', 'critical_alerts_count'];
-          var service = this.get('model').find(serviceJson.id);
-          var modifiedData = this.getDiscrepancies(serviceJson, previousResponse.findProperty('id', serviceJson.id), fields);
-          if (modifiedData.isLoadNeeded) {
-            App.store.load(this.get('model'), serviceJson);
-          } else {
-            for (var property in modifiedData) {
-              service.set(stringUtils.underScoreToCamelCase(property), modifiedData[property]);
-            }
-          }
-        }, this)
-      }
+       App.store.loadMany(this.get('model'), result);
+       } else {
+       result.forEach(function (serviceJson) {
+       var fields = ['passive_state','work_status', 'rand', 'alerts', 'quick_links', 'host_components', 'tool_tip_content', 'critical_alerts_count'];
+       var service = this.get('model').find(serviceJson.id);
+       var modifiedData = this.getDiscrepancies(serviceJson, previousResponse.findProperty('id', serviceJson.id), fields);
+       if (modifiedData.isLoadNeeded) {
+       App.store.load(this.get('model'), serviceJson);
+       } else {
+       for (var property in modifiedData) {
+       service.set(stringUtils.underScoreToCamelCase(property), modifiedData[property]);
+       }
+       }
+       }, this)
+       }
 
-      previousResponse = result;*/
+       previousResponse = result;*/
     }
     console.timeEnd('App.serviceMetricsMapper execution time');
   },
@@ -298,7 +294,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     services.setEach('tool_tip_content', '');
     // set tooltip for client-only services
     var clientOnlyServiceNames = App.get('services.clientOnly');
-    clientOnlyServiceNames.forEach(function(serviceName) {
+    clientOnlyServiceNames.forEach(function (serviceName) {
       var service = services.findProperty('ServiceInfo.service_name', serviceName);
       if (service) {
         service.tool_tip_content = Em.I18n.t('services.service.summary.clientOnlyService.ToolTip');
@@ -357,8 +353,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
    * @param finalJson
    * @param item
    */
-  mapQuickLinks: function (finalJson, item){
-    if(!(item && item.ServiceInfo)) return;
+  mapQuickLinks: function (finalJson, item) {
+    if (!(item && item.ServiceInfo)) return;
     var quickLinks = {
       OOZIE: [19],
       GANGLIA: [20],
@@ -377,10 +373,11 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     var finalConfig = jQuery.extend({}, this.config);
     // Change the JSON so that it is easy to map
     var hdfsConfig = this.hdfsConfig;
+    var self = this;
     item.components.forEach(function (component) {
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "NAMENODE") {
         //enabled HA
-        if ( component.host_components.length == 2) {
+        if (component.host_components.length == 2) {
           var haState1;
           var haState2;
           if (component.host_components[1].metrics && component.host_components[1].metrics.dfs) {
@@ -424,12 +421,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
               item.standby_name_node2_id = 'NAMENODE' + '_' + standby_name_nodes[1];
               break;
           }
-          // important: active nameNode always at host_components[0]; if no active, then any nameNode could work.
-          if (haState2 == "active") { // change places for all model bind with host_component[0]
-            var tmp = component.host_components[1];
-            component.host_components[1] = component.host_components[0];
-            component.host_components[0] = tmp;
-          }
+          var activeHostComponentIndex = haState2 == "active" ? 1 : 0;
+          self.setActiveAsFirstHostComponent(component, activeHostComponentIndex);
         }
         item.nameNodeComponent = component;
         finalConfig = jQuery.extend(finalConfig, hdfsConfig);
@@ -446,13 +439,13 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         item.dead_data_nodes = [];
         item.live_data_nodes = [];
         for (var host in decommissionNodesJson) {
-          item.decommission_data_nodes.push('DATANODE'+ '_' + host);
+          item.decommission_data_nodes.push('DATANODE' + '_' + host);
         }
         for (var host in deadNodesJson) {
-          item.dead_data_nodes.push('DATANODE'+ '_' + host);
+          item.dead_data_nodes.push('DATANODE' + '_' + host);
         }
         for (var host in liveNodesJson) {
-          item.live_data_nodes.push('DATANODE'+ '_' + host);
+          item.live_data_nodes.push('DATANODE' + '_' + host);
         }
       }
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "JOURNALNODE") {
@@ -472,6 +465,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
 
     return finalJson;
   },
+
   yarnMapper: function (item) {
     var result = [];
     var self = this;
@@ -485,11 +479,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         // if YARN has two host components, ACTIVE one should be first in component.host_components array for proper metrics mapping
         if (component.host_components.length === 2) {
           var activeRM = component.host_components.findProperty('HostRoles.ha_state', 'ACTIVE');
-          // if "second" RM isn't STARTED his ha_status is null (not STANDBY)
-          var standbyRM = component.host_components.filter(function(host_component) {return host_component.HostRoles.ha_state !== 'ACTIVE';})[0];
-          if (activeRM && standbyRM) {
-            component.host_components = [activeRM, standbyRM];
-          }
+          var activeHostComponentIndex = component.host_components.indexOf(activeRM);
+          self.setActiveAsFirstHostComponent(component, activeHostComponentIndex);
         }
 
         if (component.host_components[0].metrics && component.host_components[0].metrics.yarn) {
@@ -504,11 +495,11 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     });
     // Map
     var finalJson = this.parseIt(item, finalConfig);
-    finalJson.quick_links = [ 23, 24, 25, 26 ];
+    finalJson.quick_links = [23, 24, 25, 26];
     return finalJson;
   },
 
-  parseObject: function(obj) {
+  parseObject: function (obj) {
     var res = {};
     for (var p in obj) {
       if (obj.hasOwnProperty(p)) {
@@ -538,6 +529,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     return finalJson;
   },
   hbaseMapper: function (item) {
+    var self = this;
     // Change the JSON so that it is easy to map
     var finalConfig = jQuery.extend({}, this.config);
     var hbaseConfig = this.hbaseConfig;
@@ -545,12 +537,20 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "HBASE_MASTER") {
         item.masterComponent = component;
         finalConfig = jQuery.extend(finalConfig, hbaseConfig);
-        var regionsArray = App.parseJSON(component.ServiceComponentInfo.RegionsInTransition);
-        //regions_in_transition can have various type of value: null, array or int
-        if (Array.isArray(regionsArray)) {
-          item.regions_in_transition = regionsArray.length;
-        } else {
-          item.regions_in_transition = regionsArray == null ? 0 : regionsArray;
+        if (component.host_components.length) {
+          var activeMaster = component.host_components.findProperty('metrics.hbase.master.IsActiveMaster', 'true');
+          var activeHostComponentIndex = component.host_components.indexOf(activeMaster);
+          self.setActiveAsFirstHostComponent(component, activeHostComponentIndex);
+          var regionsArray = null;
+          if (!Em.none(Em.get(component.host_components[0], 'metrics.master.AssignmentManger.ritCount'))) {
+            regionsArray = App.parseJSON(component.host_components[0].metrics.master.AssignmentManger.ritCount);
+          }
+          //regions_in_transition can have various type of value: null, array or int
+          if (Array.isArray(regionsArray)) {
+            item.regions_in_transition = regionsArray.length;
+          } else {
+            item.regions_in_transition = regionsArray == null ? 0 : regionsArray;
+          }
         }
       }
     });
@@ -560,7 +560,22 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     finalJson.quick_links = [13, 14, 15, 16, 17, 18];
     return finalJson;
   },
-  
+
+  /**
+   * Sets the active host component as the first host component
+   * @param component {Object}
+   * @param activeHostComponentIndex {Number}
+   */
+  setActiveAsFirstHostComponent: function (component, activeHostComponentIndex) {
+    // important: active component always at host_components[0];
+    if (activeHostComponentIndex && activeHostComponentIndex !== -1) {
+      var tmp = component.host_components[activeHostComponentIndex];
+      component.host_components[activeHostComponentIndex] = component.host_components[0];
+      component.host_components[0] = tmp;
+    }
+  }
+  ,
+
   /**
    * Flume is different from other services, in that the important
    * data is in customizable channels. Hence we directly transfer
@@ -576,9 +591,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     flumeHandlers = flumeHandlers ? flumeHandlers.host_components : [];
     finalJson.agents = [];
     finalJson.agentJsons = [];
-    flumeHandlers.forEach(function(flumeHandler){
+    flumeHandlers.forEach(function (flumeHandler) {
       var hostName = flumeHandler.HostRoles.host_name;
-      flumeHandler.processes.forEach(function(process){
+      flumeHandler.processes.forEach(function (process) {
         var agentJson = self.parseIt(process, self.flumeAgentConfig);
         var agentId = agentJson.name + "-" + hostName;
         finalJson.agents.push(agentId);
@@ -587,12 +602,13 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       });
     });
     return finalJson;
-  },
+  }
+  ,
 
   /**
    * Storm mapper
    */
-  stormMapper: function(item) {
+  stormMapper: function (item) {
     var finalConfig = jQuery.extend({}, this.config);
     var stormConfig = this.stormConfig;
     var metricsInfoComponent = /^2.1/.test(App.get('currentStackVersionNumber')) ? 'STORM_REST_API' : 'STORM_UI_SERVER';
@@ -601,7 +617,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       STORM_UI_SERVER: 'metrics.api.v1.cluster.summary'
     }[metricsInfoComponent];
 
-    item.components.forEach(function(component) {
+    item.components.forEach(function (component) {
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == metricsInfoComponent) {
         if (Em.get(component, metricsPath)) {
           item.restApiComponent = App.keysDottedToCamelCase(Em.get(component, metricsPath));
@@ -616,4 +632,5 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     });
     return this.parseIt(item, finalConfig);
   }
-});
+})
+;
