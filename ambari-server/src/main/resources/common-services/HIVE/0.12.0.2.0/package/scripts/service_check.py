@@ -83,7 +83,7 @@ class HiveServiceCheckDefault(HiveServiceCheck):
         time.sleep(5)
         
       i += 1
-      if i == len(address_list)-1:
+      if i == len(address_list):
         i = 0
           
     elapsed_time = time.time() - start_time
