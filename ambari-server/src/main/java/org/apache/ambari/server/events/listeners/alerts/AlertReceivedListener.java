@@ -250,6 +250,12 @@ public class AlertReceivedListener {
     }
   }
 
+  /**
+   * Saves alert and alert history entities in single transaction
+   * @param toCreate - new alerts, create alert and history
+   * @param toMerge - merge alert only
+   * @param toCreateHistoryAndMerge - create new history, merge alert
+   */
   @Transactional
   void saveEntities(Map<Alert, AlertCurrentEntity> toCreate, Map<Alert, AlertCurrentEntity> toMerge,
                     Map<Alert, AlertCurrentEntity> toCreateHistoryAndMerge) {
@@ -269,10 +275,10 @@ public class AlertReceivedListener {
 
       if (LOG.isDebugEnabled()) {
         LOG.debug(
-          "Alert State Merged: CurrentId {}, CurrentTimestamp {}, HistoryId {}, HistoryState {}",
-          entity.getAlertId(), entity.getLatestTimestamp(),
-          entity.getAlertHistory().getAlertId(),
-          entity.getAlertHistory().getAlertState());
+            "Alert State Merged: CurrentId {}, CurrentTimestamp {}, HistoryId {}, HistoryState {}",
+            entity.getAlertId(), entity.getLatestTimestamp(),
+            entity.getAlertHistory().getAlertId(),
+            entity.getAlertHistory().getAlertState());
       }
     }
   }
