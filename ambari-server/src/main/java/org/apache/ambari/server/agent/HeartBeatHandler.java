@@ -310,6 +310,11 @@ public class HeartBeatHandler {
 
     if (null != heartbeat.getAlerts()) {
       AlertEvent event = new AlertReceivedEvent(heartbeat.getAlerts());
+      for (Alert alert : event.getAlerts()) {
+        if (alert.getHostName() == null) {
+          alert.setHostName(hostname);
+        }
+      }
       alertEventPublisher.publish(event);
 
     }
