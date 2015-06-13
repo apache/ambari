@@ -26,9 +26,9 @@ from resource_management.libraries.functions.default import default
 config = Script.get_config()
 
 conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
-pid_dir = config['configurations']['metadata-env']['metadata_pid_dir']
-pid_file = format("{pid_dir}/metadata.pid")
-metadata_user = config['configurations']['metadata-env']['metadata_user']
+pid_dir = config['configurations']['atlas-env']['metadata_pid_dir']
+pid_file = format("{pid_dir}/atlas.pid")
+metadata_user = config['configurations']['atlas-env']['metadata_user']
 
 # Security related/required params
 hostname = config['hostname']

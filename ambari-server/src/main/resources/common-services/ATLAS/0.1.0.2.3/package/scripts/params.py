@@ -38,11 +38,11 @@ metadata_home = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.env
 metadata_bin = format("{metadata_home}/bin")
 
 python_binary = os.environ['PYTHON_EXE'] if 'PYTHON_EXE' in os.environ else sys.executable
-metadata_start_script = format("{metadata_bin}/metadata_start.py")
-metadata_stop_script = format("{metadata_bin}/metadata_stop.py")
+metadata_start_script = format("{metadata_bin}/atlas_start.py")
+metadata_stop_script = format("{metadata_bin}/atlas_stop.py")
 
 # metadata local directory structure
-log_dir = config['configurations']['metadata-env']['metadata_log_dir']
+log_dir = config['configurations']['atlas-env']['metadata_log_dir']
 conf_dir = status_params.conf_dir # "/etc/metadata/conf"
 
 # service locations
@@ -52,29 +52,29 @@ hadoop_conf_dir = os.path.join(os.environ["HADOOP_HOME"], "conf") if 'HADOOP_HOM
 metadata_user = status_params.metadata_user
 user_group = config['configurations']['cluster-env']['user_group']
 pid_dir = status_params.pid_dir
-pid_file = format("{pid_dir}/metadata.pid")
+pid_file = format("{pid_dir}/atlas.pid")
 
 # metadata env
 java64_home = config['hostLevelParams']['java_home']
-env_sh_template = config['configurations']['metadata-env']['content']
+env_sh_template = config['configurations']['atlas-env']['content']
 
 # credential provider
 credential_provider = format( "jceks://file@{conf_dir}/atlas-site.jceks")
 
 # command line args
-metadata_port = config['configurations']['metadata-env']['metadata_port']
+metadata_port = config['configurations']['atlas-env']['metadata_port']
 metadata_host = config['hostname']
 
 # application properties
 application_properties = dict(config['configurations']['application-properties'])
-application_properties['metadata.http.authentication.kerberos.name.rules'] = ' \\ \n'.join(application_properties['metadata.http.authentication.kerberos.name.rules'].splitlines())
-application_properties['metadata.server.bind.address'] = metadata_host
+application_properties['atlas.http.authentication.kerberos.name.rules'] = ' \\ \n'.join(application_properties['atlas.http.authentication.kerberos.name.rules'].splitlines())
+application_properties['atlas.server.bind.address'] = metadata_host
 
-metadata_env_content = config['configurations']['metadata-env']['content']
+metadata_env_content = config['configurations']['atlas-env']['content']
 
-metadata_opts = config['configurations']['metadata-env']['metadata_opts']
-metadata_classpath = config['configurations']['metadata-env']['metadata_classpath']
-data_dir = config['configurations']['metadata-env']['metadata_data_dir']
+metadata_opts = config['configurations']['atlas-env']['metadata_opts']
+metadata_classpath = config['configurations']['atlas-env']['metadata_classpath']
+data_dir = config['configurations']['atlas-env']['metadata_data_dir']
 expanded_war_dir = os.environ['METADATA_EXPANDED_WEBAPP_DIR'] if 'METADATA_EXPANDED_WEBAPP_DIR' in os.environ else '/var/lib/atlas/server/webapp'
 
 # smoke test

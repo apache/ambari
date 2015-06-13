@@ -67,7 +67,7 @@ def metadata():
               recursive=True
     )
 
-    metadata_war_file = format('{params.metadata_home}/server/webapp/metadata.war')
+    metadata_war_file = format('{params.metadata_home}/server/webapp/atlas.war')
     if not os.path.isfile(metadata_war_file):
         raise Fail("Unable to copy {0} because it does not exist".format(metadata_war_file))
 
@@ -81,7 +81,7 @@ def metadata():
          group=params.user_group
     )
 
-    File(format("{conf_dir}/metadata-env.sh"),
+    File(format("{conf_dir}/atlas-env.sh"),
          owner=params.metadata_user,
          group=params.user_group,
          mode=0755,

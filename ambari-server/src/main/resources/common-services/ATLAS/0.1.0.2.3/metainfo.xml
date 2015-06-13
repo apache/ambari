@@ -44,8 +44,8 @@
           </configFile>
           <configFile>
             <type>env</type>
-            <fileName>metadata_env.sh</fileName>
-            <dictionaryName>metadata-env</dictionaryName>
+            <fileName>atlas-env.sh</fileName>
+            <dictionaryName>atlas-env</dictionaryName>
           </configFile>
         </component>
       </components>
@@ -70,7 +70,7 @@
 
       <configuration-dependencies>
         <config-type>application-properties</config-type>
-        <config-type>metadata-env</config-type>
+        <config-type>atlas-env</config-type>
       </configuration-dependencies>
 
 
