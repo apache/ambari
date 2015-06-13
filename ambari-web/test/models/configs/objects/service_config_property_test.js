@@ -581,6 +581,19 @@ describe('App.ServiceConfigProperty', function () {
             value: "/hadoop/hdfs/data\n"
           })
         }
+      },
+      {
+        m: '`directories`-config with almost equal value (2)',
+        e: true,
+        c: {
+          value: "/hadoop/hdfs/data",
+          displayType: 'directories',
+          supportsFinal: false,
+          isOriginalSCP: false,
+          parentSCP: App.ServiceConfigProperty.create({
+            value: "/hadoop/hdfs/data\n"
+          })
+        }
       }
     ]).forEach(function (test) {
       it(test.m, function () {
@@ -643,11 +656,11 @@ describe('App.ServiceConfigProperty', function () {
     });
 
     it('should trim value', function () {
-      expect(serviceConfigProperty._getValueForCheck(serviceConfigProperty.get('value'))).to.equal('/hadoop/hdfs/data\n');
+      expect(serviceConfigProperty._getValueForCheck(serviceConfigProperty.get('value'))).to.equal('/hadoop/hdfs/data');
     });
 
     it('should trim value 2', function () {
-      expect(serviceConfigProperty._getValueForCheck(serviceConfigProperty.get('overrides.0.value'))).to.equal('/hadoop/hdfs/data\n');
+      expect(serviceConfigProperty._getValueForCheck(serviceConfigProperty.get('overrides.0.value'))).to.equal('/hadoop/hdfs/data');
     });
 
   });

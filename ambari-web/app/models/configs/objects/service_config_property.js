@@ -538,7 +538,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     value = '' + value;
     switch(this.get('displayType')) {
       case 'directories':
-        return value.replace(/(\n\r?)+/g, '\n');
+        return value.replace(/(\n\r?)+/g, '\n').trim();
         break;
       default:
         return value;
