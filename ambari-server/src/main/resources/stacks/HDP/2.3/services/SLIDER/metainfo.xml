@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>SLIDER</name>
-      <version>0.72.0.2.3</version>
+      <version>0.80.0.2.3</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat7,redhat6,suse11</osFamily>
