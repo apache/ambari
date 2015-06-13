@@ -52,6 +52,10 @@ class HiveServiceCheckDefault(HiveServiceCheck):
     env.set_params(params)
 
     address_list = params.hive_server_hosts
+
+    if not address_list:
+      raise Fail("Can not find any Hive Server host. Please check configuration.")
+
     port = int(format("{hive_server_port}"))
     print "Test connectivity to hive server"
     if params.security_enabled:
