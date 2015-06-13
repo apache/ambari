@@ -465,19 +465,38 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @returns {App.ModalPopup|undefined}
    */
   runPreUpgradeCheckSuccess: function (data, opt, params) {
-    if (data.items.someProperty('UpgradeChecks.status', "FAIL")) {
+    var self = this;
+    if (data.items.someProperty('UpgradeChecks.status', 'FAIL') || data.items.someProperty('UpgradeChecks.status', 'WARNING')) {
       this.set('requestInProgress', false);
-      var header = Em.I18n.t('popup.clusterCheck.Upgrade.header').format(params.label);
-      var title = Em.I18n.t('popup.clusterCheck.Upgrade.title');
-      var alert = Em.I18n.t('popup.clusterCheck.Upgrade.alert');
-      App.showClusterCheckPopup(data, header, title, alert);
-    } else if (data.items.someProperty('UpgradeChecks.id', "CONFIG_MERGE") && Em.get(data.items.findProperty('UpgradeChecks.id', "CONFIG_MERGE"), 'UpgradeChecks.status') == 'WARNING') {
-      var self = this,
-        configsMergeCheckData = Em.get(data.items.findProperty('UpgradeChecks.id', "CONFIG_MERGE"), 'UpgradeChecks.failed_detail');
-      this.set('requestInProgress', false);
-      App.showUpgradeConfigsMergePopup(configsMergeCheckData, params.label, function () {
+      var header = Em.I18n.t('popup.clusterCheck.Upgrade.header').format(params.label),
+        failTitle = Em.I18n.t('popup.clusterCheck.Upgrade.fail.title'),
+        failAlert = new Em.Handlebars.SafeString(Em.I18n.t('popup.clusterCheck.Upgrade.fail.alert')),
+        warningTitle = Em.I18n.t('popup.clusterCheck.Upgrade.warning.title'),
+        warningAlert = new Em.Handlebars.SafeString(Em.I18n.t('popup.clusterCheck.Upgrade.warning.alert')),
+        configsMergeWarning = data.items.findProperty('UpgradeChecks.id', "CONFIG_MERGE"),
+        configs = [];
+      if (configsMergeWarning && Em.get(configsMergeWarning, 'UpgradeChecks.status') === 'WARNING') {
+        data.items = data.items.rejectProperty('UpgradeChecks.id', 'CONFIG_MERGE');
+        var configsMergeCheckData = Em.get(configsMergeWarning, 'UpgradeChecks.failed_detail');
+        if (configsMergeCheckData) {
+          configs = configsMergeCheckData.map(function (item) {
+            var isDeprecated = Em.isNone(item.new_stack_value),
+              willBeRemoved = Em.isNone(item.result_value);
+            return {
+              type: item.type,
+              name: item.property,
+              currentValue: item.current,
+              recommendedValue: isDeprecated ? Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated') : item.new_stack_value,
+              isDeprecated: isDeprecated,
+              resultingValue: willBeRemoved ? Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.willBeRemoved') : item.result_value,
+              willBeRemoved: willBeRemoved
+            };
+          });
+        }
+      }
+      App.showClusterCheckPopup(data, header, failTitle, failAlert, warningTitle, warningAlert, function () {
         self.upgrade(params);
-      });
+      }, configs, params.label);
     } else {
       this.upgrade(params);
     }

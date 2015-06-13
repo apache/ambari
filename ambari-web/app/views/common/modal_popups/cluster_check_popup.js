@@ -23,20 +23,51 @@ var App = require('app');
  * for current action
  * @param data
  * @param header
- * @param title
- * @param alert
+ * @param failTitle
+ * @param failAlert
+ * @param warningTitle
+ * @param warningAlert
+ * @param callback
+ * @param configs
+ * @param upgradeVersion
  * @returns {*|void}
  */
-App.showClusterCheckPopup = function (data, header, title, alert) {
-  return App.ModalPopup.show({
-    primary: Em.I18n.t('common.dismiss'),
-    secondary: false,
-    header: header,
-    bodyClass: Em.View.extend({
-      title: title,
-      alert: alert,
+App.showClusterCheckPopup = function (data, header, failTitle, failAlert, warningTitle, warningAlert, callback, configs, upgradeVersion) {
+  var fails = data.items.filterProperty('UpgradeChecks.status', 'FAIL'),
+    warnings = data.items.filterProperty('UpgradeChecks.status', 'WARNING'),
+    hasConfigsMergeConflicts = !!(configs && configs.length),
+    popupBody = {
+      failTitle: failTitle,
+      failAlert: failAlert,
+      warningTitle: warningTitle,
+      warningAlert: warningAlert,
       templateName: require('templates/common/modal_popups/cluster_check_dialog'),
-      checks: data.items.filterProperty('UpgradeChecks.status', "FAIL")
-    })
+      fails: fails,
+      warnings: warnings,
+      hasConfigsMergeConflicts: hasConfigsMergeConflicts
+    };
+  if (hasConfigsMergeConflicts) {
+    popupBody.configsMergeTable = Em.View.extend({
+      templateName: require('templates/main/admin/stack_upgrade/upgrade_configs_merge_table'),
+      configs: configs,
+      didInsertElement: function () {
+        App.tooltip($('.recommended-value'), {
+          title: upgradeVersion
+        });
+      }
+    });
+  }
+  return App.ModalPopup.show({
+    primary: fails.length ? Em.I18n.t('common.dismiss') : Em.I18n.t('common.proceedAnyway'),
+    secondary: fails.length ? false : Em.I18n.t('common.cancel'),
+    header: header,
+    classNames: hasConfigsMergeConflicts ? ['configs-merge-warnings'] : [],
+    bodyClass: Em.View.extend(popupBody),
+    onPrimary: function () {
+      if (!fails.length && callback) {
+        callback();
+      }
+      this._super();
+    }
   });
 };
