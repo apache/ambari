@@ -361,9 +361,9 @@ else:
   # hive-site
   hive_site_config['hive.cluster.name'] = config['clusterName']
   atlas_config = config['configurations']['application-properties']
-  metadata_port = config['configurations']['metadata-env']['metadata_port']
+  metadata_port = config['configurations']['atlas-env']['metadata_port']
   metadata_host = atlas_hosts[0]
-  tls_enabled = config['configurations']['application-properties']['metadata.enableTLS']
+  tls_enabled = config['configurations']['application-properties']['atlas.enableTLS']
   if tls_enabled:
     scheme = "https"
   else:
@@ -371,18 +371,18 @@ else:
   hive_site_config['hive.hook.dgi.url'] = format('{scheme}://{metadata_host}:{metadata_port}')
 
   if not 'hive.exec.post.hooks' in hive_site_config:
-    hive_site_config['hive.exec.post.hooks'] = 'org.apache.hadoop.metadata.hive.hook.HiveHook'
+    hive_site_config['hive.exec.post.hooks'] = 'org.apache.atlas.hive.hook.HiveHook'
   else:
     current_hook = hive_site_config['hive.exec.post.hooks']
-    hive_site_config['hive.exec.post.hooks'] =  format('{current_hook}, org.apache.hadoop.metadata.hive.hook.HiveHook')
+    hive_site_config['hive.exec.post.hooks'] =  format('{current_hook}, org.apache.atlas.hive.hook.HiveHook')
 
   # client.properties
   atlas_client_props = {}
   auth_enabled = config['configurations']['application-properties'].get(
-    'metadata.http.authentication.enabled', False)
-  atlas_client_props['metadata.http.authentication.enabled'] = auth_enabled
+    'atlas.http.authentication.enabled', False)
+  atlas_client_props['atlas.http.authentication.enabled'] = auth_enabled
   if auth_enabled:
-    atlas_client_props['metadata.http.authentication.type'] = config['configurations']['application-properties'].get('metadata.http.authentication.type', 'simple')
+    atlas_client_props['atlas.http.authentication.type'] = config['configurations']['application-properties'].get('atlas.http.authentication.type', 'simple')
 
 ########################################################
 ########### WebHCat related params #####################

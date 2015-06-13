@@ -66,8 +66,8 @@ class TestMetadataServer(RMFTestCase):
       )
       appprops =  dict(self.getConfig()['configurations'][
           'application-properties'])
-      appprops['metadata.http.authentication.kerberos.name.rules'] = ' \\ \n'.join(appprops['metadata.http.authentication.kerberos.name.rules'].splitlines())
-      appprops['metadata.server.bind.address'] = 'c6401.ambari.apache.org'
+      appprops['atlas.http.authentication.kerberos.name.rules'] = ' \\ \n'.join(appprops['atlas.http.authentication.kerberos.name.rules'].splitlines())
+      appprops['atlas.server.bind.address'] = 'c6401.ambari.apache.org'
 
       self.assertResourceCalled('PropertiesFile',
                                 '/etc/atlas/conf/application.properties',
@@ -76,10 +76,10 @@ class TestMetadataServer(RMFTestCase):
                                 group='hadoop',
                                 mode=0644,
       )
-      self.assertResourceCalled('File', '/etc/atlas/conf/metadata-env.sh',
+      self.assertResourceCalled('File', '/etc/atlas/conf/atlas-env.sh',
                                 content=InlineTemplate(
                                     self.getConfig()['configurations'][
-                                        'metadata-env']['content']),
+                                        'atlas-env']['content']),
                                 owner='atlas',
                                 group='hadoop',
                                 mode=0755,
@@ -120,8 +120,8 @@ class TestMetadataServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.configureResourcesCalled()
-    self.assertResourceCalled('Execute', 'source /etc/atlas/conf/metadata-env.sh ; /usr/hdp/current/atlas-server/bin/metadata_start.py --port 21000',
-                              not_if = 'ls /var/run/atlas/metadata.pid >/dev/null 2>&1 && ps -p `cat /var/run/atlas/metadata.pid` >/dev/null 2>&1',
+    self.assertResourceCalled('Execute', 'source /etc/atlas/conf/atlas-env.sh ; /usr/hdp/current/atlas-server/bin/atlas_start.py --port 21000',
+                              not_if = 'ls /var/run/atlas/atlas.pid >/dev/null 2>&1 && ps -p `cat /var/run/atlas/atlas.pid` >/dev/null 2>&1',
                               user = 'atlas',
     )
 
@@ -133,8 +133,8 @@ class TestMetadataServer(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute', 'source /etc/atlas/conf/metadata-env.sh; /usr/hdp/current/atlas-server/bin/metadata_stop.py',
+    self.assertResourceCalled('Execute', 'source /etc/atlas/conf/atlas-env.sh; /usr/hdp/current/atlas-server/bin/atlas_stop.py',
                               user = 'atlas',
     )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/atlas/metadata.pid',
+    self.assertResourceCalled('Execute', 'rm -f /var/run/atlas/atlas.pid',
     )

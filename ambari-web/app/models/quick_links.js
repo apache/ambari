@@ -333,7 +333,7 @@ App.QuickLinks.FIXTURES = [
     template:'%@://%@:%@/dashboard/index.html?user.name=%@',
     http_config: 'metadata_port',
     https_config: 'metadata_port',
-    site: 'metadata-env',
+    site: 'atlas-env',
     regex: '^(\\d+)$',
     default_http_port: 21000,
     default_https_port: 21443

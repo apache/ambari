@@ -46,7 +46,7 @@ class MetadataServer(Script):
     env.set_params(params)
     self.configure(env)
 
-    daemon_cmd = format('source {params.conf_dir}/metadata-env.sh ; {params.metadata_start_script} --port {params.metadata_port}')
+    daemon_cmd = format('source {params.conf_dir}/atlas-env.sh ; {params.metadata_start_script} --port {params.metadata_port}')
     no_op_test = format('ls {params.pid_file} >/dev/null 2>&1 && ps -p `cat {params.pid_file}` >/dev/null 2>&1')
     Execute(daemon_cmd,
             user=params.metadata_user,
@@ -56,7 +56,7 @@ class MetadataServer(Script):
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-    daemon_cmd = format('source {params.conf_dir}/metadata-env.sh; {params.metadata_stop_script}')
+    daemon_cmd = format('source {params.conf_dir}/atlas-env.sh; {params.metadata_stop_script}')
     Execute(daemon_cmd,
             user=params.metadata_user,
     )
@@ -73,15 +73,15 @@ class MetadataServer(Script):
 
     env.set_params(status_params)
 
-    props_value_check = {'metadata.authentication.method': 'kerberos',
-                         'metadata.http.authentication.enabled': 'true',
-                         'metadata.http.authentication.type': 'kerberos'}
-    props_empty_check = ['metadata.authentication.principal',
-                         'metadata.authentication.keytab',
-                         'metadata.http.authentication.kerberos.principal',
-                         'metadata.http.authentication.kerberos.keytab']
-    props_read_check = ['metadata.authentication.keytab',
-                        'metadata.http.authentication.kerberos.keytab']
+    props_value_check = {'atlas.authentication.method': 'kerberos',
+                         'atlas.http.authentication.enabled': 'true',
+                         'atlas.http.authentication.type': 'kerberos'}
+    props_empty_check = ['atlas.authentication.principal',
+                         'atlas.authentication.keytab',
+                         'atlas.http.authentication.kerberos.principal',
+                         'atlas.http.authentication.kerberos.keytab']
+    props_read_check = ['atlas.authentication.keytab',
+                        'atlas.http.authentication.kerberos.keytab']
     atlas_site_expectations = build_expectations('application-properties',
                                                     props_value_check,
                                                     props_empty_check,
@@ -97,16 +97,16 @@ class MetadataServer(Script):
       try:
         # Double check the dict before calling execute
         if ( 'application-properties' not in security_params
-             or 'metadata.authentication.keytab' not in security_params['application-properties']
-             or 'metadata.authentication.principal' not in security_params['application-properties']):
+             or 'atlas.authentication.keytab' not in security_params['application-properties']
+             or 'atlas.authentication.principal' not in security_params['application-properties']):
           self.put_structured_out({"securityState": "UNSECURED"})
           self.put_structured_out(
             {"securityIssuesFound": "Atlas service keytab file or principal are not set property."})
           return
 
         if ( 'application-properties' not in security_params
-             or 'metadata.http.authentication.kerberos.keytab' not in security_params['application-properties']
-             or 'metadata.http.authentication.kerberos.principal' not in security_params['application-properties']):
+             or 'atlas.http.authentication.kerberos.keytab' not in security_params['application-properties']
+             or 'atlas.http.authentication.kerberos.principal' not in security_params['application-properties']):
           self.put_structured_out({"securityState": "UNSECURED"})
           self.put_structured_out(
             {"securityIssuesFound": "HTTP Authentication keytab file or principal are not set property."})
