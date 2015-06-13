@@ -677,12 +677,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var self = this;
     this.loadServerSideConfigsRecommendations().always(function () {
       // format descriptor configs
-      var serviceConfigProperties = (self.get('content.serviceConfigProperties') || []).mapProperty('name');
-      var recommendedToDelete = self.get('_dependentConfigValues').filterProperty('toDelete');
+      var serviceConfigPropertiesNames = (self.get('content.serviceConfigProperties') || []).mapProperty('name'),
+       serviceConfigPropertiesFileNames = (self.get('content.serviceConfigProperties') || []).mapProperty('filename'),
+       recommendedToDelete = self.get('_dependentConfigValues').filterProperty('toDelete');
       recommendedToDelete.forEach(function (c) {
-        var name = Em.get(c, 'propertyName');
-        if (serviceConfigProperties.contains(name)) {
-          Em.set(self.get('_dependentConfigValues').findProperty('propertyName', name).findProperty('fileName', serviceConfigProperties.get('filename')), 'toDelete', false);
+        var name = Em.get(c, 'propertyName'),
+         filename = Em.get(c, 'fileName');
+        if (serviceConfigPropertiesNames.contains(name) && serviceConfigPropertiesFileNames.contains(filename)) {
+          Em.set(c, 'toDelete', false);
         }
       });
 
