@@ -1833,6 +1833,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> hbaseEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hiveEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieEnvMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> oozieEnvHeapSizeMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieEnvOriginalValueMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiWebhcatSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiHbaseSiteMap = new HashMap<String, PropertyUpdater>();
@@ -1865,6 +1866,7 @@ public class BlueprintConfigurationProcessor {
     mPropertyUpdaters.put("hadoop-env", hadoopEnvMap);
     mPropertyUpdaters.put("hbase-env", hbaseEnvMap);
     mPropertyUpdaters.put("mapred-env", mapredEnvMap);
+    mPropertyUpdaters.put("oozie-env", oozieEnvHeapSizeMap);
 
     multiHostTopologyUpdaters.put("webhcat-site", multiWebhcatSiteMap);
     multiHostTopologyUpdaters.put("hbase-site", multiHbaseSiteMap);
@@ -2003,8 +2005,8 @@ public class BlueprintConfigurationProcessor {
     mapredEnvMap.put("jtnode_heapsize", new MPropertyUpdater());
     hbaseEnvMap.put("hbase_master_heapsize", new MPropertyUpdater());
     hbaseEnvMap.put("hbase_regionserver_heapsize", new MPropertyUpdater());
-    oozieEnvMap.put("oozie_heapsize", new MPropertyUpdater());
-    oozieEnvMap.put("oozie_permsize", new MPropertyUpdater());
+    oozieEnvHeapSizeMap.put("oozie_heapsize", new MPropertyUpdater());
+    oozieEnvHeapSizeMap.put("oozie_permsize", new MPropertyUpdater());
   }
 
   /**
