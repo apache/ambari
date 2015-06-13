@@ -652,4 +652,10 @@ describe('App.ServiceConfigProperty', function () {
 
   });
 
+  describe('#overrideIsFinalValues', function () {
+    it('should be defined as empty array', function () {
+      expect(serviceConfigProperty.get('overrideIsFinalValues')).to.eql([]);
+    });
+  })
+
 });
