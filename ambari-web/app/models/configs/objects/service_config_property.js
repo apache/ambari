@@ -115,6 +115,14 @@ App.ServiceConfigProperty = Em.Object.extend({
   warn: false,
 
   /**
+   * List of <code>isFinal</code>-values for overrides
+   * Set in the controller
+   * Should be empty array by default!
+   * @type {boolean[]}
+   */
+  overrideIsFinalValues: [],
+
+  /**
    * true if property has warning or error
    * @type {boolean}
    */
@@ -183,7 +191,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     if (Em.isNone(this.get('overrides')) && this.get('overrideValues.length') === 0) return false;
     return JSON.stringify(this.get('overrides').mapProperty('isFinal')) !== JSON.stringify(this.get('overrideIsFinalValues'))
       || JSON.stringify(this.get('overrides').mapProperty('value')) !== JSON.stringify(this.get('overrideValues'));
-  }.property('isOverridden', 'overrides.@each.isNotDefaultValue'),
+  }.property('isOverridden', 'overrides.@each.isNotDefaultValue', 'overrideValues.length'),
 
   isRemovable: function() {
     var isOriginalSCP = this.get('isOriginalSCP');
