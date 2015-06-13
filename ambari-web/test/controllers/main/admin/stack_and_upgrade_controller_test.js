@@ -262,9 +262,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           "check_type": "SERVICE"
         },
         showClusterCheckPopupCalledCount: 1,
-        showUpgradeConfigsMergePopupCalledCount: 0,
         upgradeCalledCount: 0,
-        title: 'error popup is displayed is errors are present'
+        title: 'popup is displayed if fails are present'
       },
       {
         check: {
@@ -272,29 +271,64 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           "status": "WARNING",
           "reason": "Conflict",
           "failed_on": [],
-          "failed_detail": [],
+          "failed_detail": [
+            {
+              type: 't0',
+              property: 'p0',
+              current: 'c0',
+              new_stack_value: 'n0',
+              result_value: 'n0'
+            },
+            {
+              type: 't1',
+              property: 'p1',
+              current: 'c1',
+              new_stack_value: null,
+              result_value: 'c1'
+            },
+            {
+              type: 't2',
+              property: 'p2',
+              current: 'c2',
+              new_stack_value: null,
+              result_value: null
+            }
+          ],
           "check_type": "CLUSTER",
           "id": "CONFIG_MERGE"
         },
-        showClusterCheckPopupCalledCount: 0,
-        showUpgradeConfigsMergePopupCalledCount: 1,
+        showClusterCheckPopupCalledCount: 1,
         upgradeCalledCount: 0,
-        title: 'warnings popup is displayed if configs merge conflicts are present'
-      },
-      {
-        check: {
-          "check": "Configuration Merge Check",
-          "status": "PASS",
-          "reason": "",
-          "failed_on": [],
-          "failed_detail": [],
-          "check_type": "CLUSTER",
-          "id": "CONFIG_MERGE"
-        },
-        showClusterCheckPopupCalledCount: 0,
-        showUpgradeConfigsMergePopupCalledCount: 0,
-        upgradeCalledCount: 1,
-        title: 'upgrade is started if configs merge conflicts are absent'
+        configs: [
+          {
+            type: 't0',
+            name: 'p0',
+            currentValue: 'c0',
+            recommendedValue: 'n0',
+            resultingValue: 'n0',
+            isDeprecated: false,
+            willBeRemoved: false
+          },
+          {
+            type: 't1',
+            name: 'p1',
+            currentValue: 'c1',
+            recommendedValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated'),
+            resultingValue: 'c1',
+            isDeprecated: true,
+            willBeRemoved: false
+          },
+          {
+            type: 't2',
+            name: 'p2',
+            currentValue: 'c2',
+            recommendedValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated'),
+            resultingValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.willBeRemoved'),
+            isDeprecated: true,
+            willBeRemoved: true
+          }
+        ],
+        title: 'popup is displayed if warnings are present; configs merge conflicts'
       },
       {
         check: {
@@ -305,19 +339,16 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           "check_type": "SERVICE"
         },
         showClusterCheckPopupCalledCount: 0,
-        showUpgradeConfigsMergePopupCalledCount: 0,
         upgradeCalledCount: 1,
-        title: 'upgrade is started if errors and configs merge conflicts are absent'
+        title: 'upgrade is started if fails and warnings are absent'
       }
     ];
     beforeEach(function () {
       sinon.stub(App, 'showClusterCheckPopup', Em.K);
-      sinon.stub(App, 'showUpgradeConfigsMergePopup', Em.K);
       sinon.stub(controller, 'upgrade', Em.K);
     });
     afterEach(function () {
       App.showClusterCheckPopup.restore();
-      App.showUpgradeConfigsMergePopup.restore();
       controller.upgrade.restore();
     });
     cases.forEach(function (item) {
@@ -335,7 +366,9 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         );
         expect(controller.upgrade.callCount).to.equal(item.upgradeCalledCount);
         expect(App.showClusterCheckPopup.callCount).to.equal(item.showClusterCheckPopupCalledCount);
-        expect(App.showUpgradeConfigsMergePopup.callCount).to.equal(item.showUpgradeConfigsMergePopupCalledCount);
+        if (item.check.id == 'CONFIG_MERGE') {
+          expect(App.showClusterCheckPopup.firstCall.args[7]).to.eql(item.configs);
+        }
       });
     });
   });

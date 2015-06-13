@@ -16,14 +16,31 @@
 * limitations under the License.
 }}
 <div id="pre-upgrade-check">
-  <h4>{{view.title}}</h4>
-  <div class="alert alert-warning">
-    {{view.alert}}
-  </div>
-  <div class="limited-height-2">
-    {{#each item in view.checks}}
+  {{#if view.fails.length}}
+    <h4>{{view.failTitle}}</h4>
+    <div class="alert alert-warning">
+      {{view.failAlert}}
+    </div>
+    <div class="limited-height-2">
+      {{#each item in view.fails}}
         <i class="icon-remove"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
         <pre>{{t popup.clusterCheck.reason}}{{item.UpgradeChecks.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.UpgradeChecks.failed_on}}</pre>
-    {{/each}}
-  </div>
+      {{/each}}
+    </div>
+  {{/if}}
+  {{#if view.warnings.length}}
+    <h4>{{view.warningTitle}}</h4>
+    <div class="alert alert-warning">
+      {{view.warningAlert}}
+    </div>
+    <div class="limited-height-2">
+      {{#each item in view.warnings}}
+        <i class="icon-warning-sign"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
+        <pre>{{t popup.clusterCheck.reason}}{{item.UpgradeChecks.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.UpgradeChecks.failed_on}}</pre>
+      {{/each}}
+    </div>
+  {{/if}}
+  {{#if view.hasConfigsMergeConflicts}}
+    {{view view.configsMergeTable}}
+  {{/if}}
 </div>
