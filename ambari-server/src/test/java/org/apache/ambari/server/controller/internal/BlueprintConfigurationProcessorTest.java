@@ -1345,6 +1345,8 @@ public class BlueprintConfigurationProcessorTest {
 
     oozieEnvProperties.put("oozie_hostname", expectedHostName);
     oozieEnvProperties.put("oozie_existing_mysql_host", expectedExternalHost);
+    oozieEnvProperties.put("oozie_heapsize", "1024m");
+    oozieEnvProperties.put("oozie_permsize", "2048m");
 
     coreSiteProperties.put("hadoop.proxyuser.oozie.hosts", expectedHostName + "," + expectedHostNameTwo);
 
@@ -1394,6 +1396,13 @@ public class BlueprintConfigurationProcessorTest {
         oozieEnvProperties.containsKey("oozie_existing_mysql_host"));
     assertFalse("oozie.service.JPAService.jdbc.url should not have been present in the exported configuration",
         oozieSiteProperties.containsKey("oozie.service.JPAService.jdbc.url"));
+
+    // verify that oozie-env heapsize properties are not removed from the configuration
+    assertEquals("oozie_heapsize should have been included in exported configuration",
+      "1024m", oozieEnvProperties.get("oozie_heapsize"));
+    assertEquals("oozie_permsize should have been included in exported configuration",
+      "2048m", oozieEnvProperties.get("oozie_permsize"));
+
   }
 
   @Test
