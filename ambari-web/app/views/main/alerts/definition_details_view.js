@@ -100,7 +100,11 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
     tagName: 'tr',
     didInsertElement: function () {
       App.tooltip($("[rel=tooltip]"));
-    },
+      App.tooltip($(".alert-text"), {
+        placement: 'left',
+        delay: { "show": 0, "hide": 1500 },
+        template: '<div class="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner alert-def-detail-tooltip"></div></div>'
+      });    },
 
     /**
      * Router transition to service page
