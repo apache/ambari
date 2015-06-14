@@ -239,6 +239,23 @@ public interface DBAccessor {
   void executeScript(String filePath) throws SQLException, IOException;
 
   /**
+   *
+   * @param query update query
+   * @return same like {@code java.sql.Statement}
+   * @throws SQLException
+   */
+  int executeUpdate(String query) throws SQLException;
+
+  /**
+   *
+   * @param query update query
+   * @param ignoreErrors true to ignore errors
+   * @return same like {@code java.sql.Statement}
+   * @throws SQLException
+   */
+  int executeUpdate(String query, boolean ignoreErrors) throws SQLException;
+
+  /**
    * Conditional ad-hoc query on DB
    * @param query
    * @param tableName
@@ -488,7 +505,24 @@ public interface DBAccessor {
   int getColumnType(String tableName, String columnName)
       throws SQLException;
 
+  /**
+   * Get type class of the column
+   * @param tableName name of the table
+   * @param columnName name of the column
+   * @return
+   * @throws SQLException
+   * @throws ClassNotFoundException
+   */
   Class getColumnClass(String tableName, String columnName) throws SQLException, ClassNotFoundException;
+
+  /**
+   * Check if column could be nullable
+   * @param tableName name of the table
+   * @param columnName name of the column
+   * @return true if column could be nullable
+   * @throws SQLException
+   */
+  boolean isColumnNullable(String tableName, String columnName) throws SQLException;
 
   /**
    * Sets the specified column to either allow or prohibit {@code NULL}.
@@ -507,6 +541,16 @@ public interface DBAccessor {
 
   void setColumnNullable(String tableName, String columnName, boolean nullable)
     throws SQLException;
+
+  /**
+   * Alter column wrapper, which handle DB specific type conversion
+   * @param tableName name of the table
+   * @param columnName name of the column
+   * @param fromType previous type
+   * @param toType new desired type
+   * @throws SQLException
+   */
+  void changeColumnType(String tableName, String columnName, Class fromType, Class toType) throws SQLException;
 
   enum DbType {
     ORACLE,

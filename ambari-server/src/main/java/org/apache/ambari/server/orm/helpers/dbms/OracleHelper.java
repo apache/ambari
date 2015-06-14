@@ -52,4 +52,15 @@ public class OracleHelper extends GenericDbmsHelper {
     builder.append(nullStatement);
     return builder;
   }
+
+  @Override
+  public String writeGetTableConstraints(String databaseName, String tableName) {
+    StringBuilder statement = new StringBuilder()
+                                .append("SELECT CONSTRAINT_NAME as constraint_name, CONSTRAINT_TYPE as constraint_type ")
+                                .append("FROM USER_CONSTRAINTS ")
+                                .append("WHERE ")
+                                .append("USER_CONSTRAINTS.TABLE_NAME='").append(tableName.toUpperCase()).append("'");
+    return statement.toString();
+  }
+
 }
