@@ -456,7 +456,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     if 'hbase-env' in services['configurations'] and 'phoenix_sql_enabled' in services['configurations']['hbase-env']['properties']:
       if 'true' == services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'].lower():
-        putHbaseSiteProperty("hbase.rpc.controllerfactory.class", "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory")
         putHbaseSiteProperty("hbase.regionserver.wal.codec", 'org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec')
         putHbaseSiteProperty("phoenix.functions.allowUserDefinedFunctions", 'true')
       else:

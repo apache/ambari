@@ -1801,7 +1801,6 @@ class TestHDP22StackAdvisor(TestCase):
       "hbase-site": {
         "properties": {
           "hbase.regionserver.wal.codec": "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec",
-          "hbase.rpc.controllerfactory.class": "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory",
           "phoenix.functions.allowUserDefinedFunctions": "true",
           "hbase.regionserver.global.memstore.size": "0.4",
           "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint"
