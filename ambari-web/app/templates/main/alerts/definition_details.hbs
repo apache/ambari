@@ -191,12 +191,13 @@
                     {{view App.AlertInstanceServiceHostView instanceBinding="instance"}}
                   </td>
                   <td>{{{instance.status}}}
-                    <time class="timeago"
-                          rel="tooltip"  {{bindAttr data-original-title="instance.statusChangedAndLastCheckedFormatted"}}>{{instance.lastTriggeredForFormatted}}</time>
+                    <time class="timeago" rel="tooltip" {{bindAttr data-original-title="instance.statusChangedAndLastCheckedFormatted"}}>
+                      {{instance.lastTriggeredForFormatted}}
+                    </time>
                   </td>
                   <td>{{view view.parentView.lastDayCount hostNameBinding="instance.hostName"}}</td>
-                  <td><span class="alert-text" rel="tooltip" {{bindAttr data-original-title="instance.text"}}
-                            class="alert-text">{{instance.text}}</span></td>
+                  <td>
+                    <span class="alert-text" {{bindAttr data-original-title="instance.text"}}>{{instance.text}}</span></td>
                 {{/view}}
               {{/each}}
             {{else}}
