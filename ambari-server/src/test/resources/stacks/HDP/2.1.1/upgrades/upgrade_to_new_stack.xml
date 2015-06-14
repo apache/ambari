@@ -97,18 +97,27 @@
               {{host-detail-list}}</message>
         </task>
       </execute-stage>
+      
       <execute-stage title="Confirm Finalize">
         <task xsi:type="manual">
           <message>Please confirm you are ready to finalize</message>
         </task>
       </execute-stage>
+      
       <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
         <task xsi:type="execute">
           <command>ls</command>
         </task>
       </execute-stage>
+      
       <execute-stage title="Save Cluster State" service="" component="">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
+        </task>
+      </execute-stage>
+      
+      <execute-stage title="Run On All {{version}}">
+        <task xsi:type="execute">
+          <command>ls</command>
         </task>
       </execute-stage>
     </group>

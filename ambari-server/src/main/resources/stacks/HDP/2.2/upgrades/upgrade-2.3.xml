@@ -23,6 +23,7 @@
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Backups">
       <direction>UPGRADE</direction>
+      
       <execute-stage service="HDFS" component="NAMENODE" title="Pre Upgrade HDFS">
         <task xsi:type="execute" hosts="master">
           <script>scripts/namenode.py</script>
@@ -299,10 +300,17 @@
         </task>
       </execute-stage>
 
-      <execute-stage title="Save Cluster State" service="" component="">
-        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
+      <execute-stage title="Update remaining HDP stack to {{version}}">
+        <task xsi:type="execute">
+          <script>scripts/ru_set_all.py</script>
+          <function>actionexecute</function>
         </task>
       </execute-stage>
+
+      <execute-stage title="Save Cluster State" service="" component="">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction" />
+      </execute-stage>
+
     </group>
   </order>
 
@@ -323,6 +331,7 @@
 
     <service name="RANGER">
       <component name="RANGER_ADMIN">
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure">
             <type>ranger-env</type>
@@ -435,6 +444,7 @@
 
     <service name="HDFS">
       <component name="NAMENODE">
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure">
             <condition type="ranger-hdfs-plugin-properties" key="ranger-hdfs-plugin-enabled" value="true">
@@ -532,6 +542,7 @@
 
     <service name="MAPREDUCE2">
       <component name="HISTORYSERVER">
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure">
             <type>mapred-site</type>
@@ -555,6 +566,7 @@
 
     <service name="YARN">
       <component name="APP_TIMELINE_SERVER">
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure">
             <type>yarn-site</type>
@@ -570,6 +582,7 @@
       </component>
 
       <component name="RESOURCEMANAGER">
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure">
             <type>yarn-site</type>
@@ -618,6 +631,7 @@
 
     <service name="HBASE">
       <component name="HBASE_MASTER">
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" summary="Transitioning Ranger HBase Policy">
             <type>ranger-hbase-policymgr-ssl</type>
@@ -893,6 +907,7 @@
 
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure">
             <summary>Updating oozie-site to remove redundant configurations</summary>
@@ -960,6 +975,7 @@
 
     <service name="KNOX">
       <component name="KNOX_GATEWAY">
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" summary="Configuring Ranger Knox Policy">
             <type>ranger-knox-policymgr-ssl</type>
@@ -1024,6 +1040,22 @@
 
     <service name="STORM">
       <component name="NIMBUS">
+        <pre-downgrade>
+          <task xsi:type="manual">
+            <message>Before continuing, please deactivate and kill any currently running topologies.</message>
+          </task>
+        
+          <task xsi:type="execute" summary="Removing Storm data from ZooKeeper">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_zookeeper_data</function>
+          </task>
+
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-downgrade>
+      
         <pre-upgrade>
           <task xsi:type="manual">
             <message>Before continuing, please deactivate and kill any currently running topologies.</message>

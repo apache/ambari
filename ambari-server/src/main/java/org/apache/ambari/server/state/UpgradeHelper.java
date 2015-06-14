@@ -305,8 +305,17 @@ public class UpgradeHelper {
     holder.title = tokenReplace(ctx, holder.title, null, null);
 
     for (StageWrapper stageWrapper : holder.items) {
+      if (null != stageWrapper.getText()) {
+        stageWrapper.setText(tokenReplace(ctx, stageWrapper.getText(),
+            null, null));
+      }
+
       for (TaskWrapper taskWrapper : stageWrapper.getTasks()) {
         for (Task task : taskWrapper.getTasks()) {
+          if (null != task.summary) {
+            task.summary = tokenReplace(ctx, task.summary, null, null);
+          }
+
           if (task.getType() == Type.MANUAL) {
             ManualTask mt = (ManualTask) task;
             if (null != mt.message) {

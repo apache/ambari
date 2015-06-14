@@ -595,6 +595,84 @@ public class UpgradeHelperTest {
         manualTask.message);
   }
 
+  @Test
+  public void testUpgradeOrchestrationFullTask() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+
+    ServiceInfo si = ambariMetaInfo.getService("HDP", "2.1.1", "ZOOKEEPER");
+    si.setDisplayName("Zk");
+    ComponentInfo ci = si.getComponentByName("ZOOKEEPER_SERVER");
+    ci.setDisplayName("ZooKeeper1 Server2");
+
+    assertTrue(upgrades.containsKey("upgrade_to_new_stack"));
+    UpgradePack upgrade = upgrades.get("upgrade_to_new_stack");
+    assertNotNull(upgrade);
+
+    makeCluster();
+
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_21, UPGRADE_VERSION, Direction.UPGRADE);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+
+    assertEquals(6, groups.size());
+
+    assertEquals("PRE_CLUSTER", groups.get(0).name);
+    assertEquals("ZOOKEEPER", groups.get(1).name);
+    assertEquals("CORE_MASTER", groups.get(2).name);
+    assertEquals("CORE_SLAVES", groups.get(3).name);
+    assertEquals("HIVE", groups.get(4).name);
+
+    UpgradeGroupHolder holder = groups.get(2);
+    boolean found = false;
+    for (StageWrapper sw : holder.items) {
+      if (sw.getTasksJson().contains("Upgrading your database")) {
+        found = true;
+      }
+    }
+    assertTrue("Expected to find replaced text for Upgrading", found);
+
+    UpgradeGroupHolder group = groups.get(1);
+    // check that the display name is being used
+    assertTrue(group.items.get(1).getText().contains("ZooKeeper1 Server2"));
+    assertEquals(group.items.get(5).getText(), "Service Check Zk");
+
+    group = groups.get(3);
+    assertEquals(8, group.items.size());
+    StageWrapper sw = group.items.get(3);
+    assertEquals("Validate Partial Upgrade", sw.getText());
+    assertEquals(1, sw.getTasks().size());
+    assertEquals(1, sw.getTasks().get(0).getTasks().size());
+    Task t = sw.getTasks().get(0).getTasks().get(0);
+    assertEquals(ManualTask.class, t.getClass());
+    ManualTask mt = (ManualTask) t;
+    assertTrue(mt.message.contains("DataNode and NodeManager"));
+    assertNotNull(mt.structuredOut);
+    assertTrue(mt.structuredOut.contains("DATANODE"));
+    assertTrue(mt.structuredOut.contains("NODEMANAGER"));
+
+    UpgradeGroupHolder postGroup = groups.get(5);
+    assertEquals(postGroup.name, "POST_CLUSTER");
+    assertEquals(postGroup.title, "Finalize Upgrade");
+    assertEquals(4, postGroup.items.size());
+    assertEquals("Confirm Finalize", postGroup.items.get(0).getText());
+    assertEquals("Execute HDFS Finalize", postGroup.items.get(1).getText());
+    assertEquals("Save Cluster State", postGroup.items.get(2).getText());
+    assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(2).getType());
+    assertEquals("Run On All 2.2.1.0-1234", postGroup.items.get(3).getText());
+
+    assertEquals(1, postGroup.items.get(3).getTasks().size());
+    Set<String> hosts = postGroup.items.get(3).getTasks().get(0).getHosts();
+    assertNotNull(hosts);
+    assertEquals(4, hosts.size());
+
+    assertEquals(4, groups.get(0).items.size());
+    assertEquals(6, groups.get(1).items.size());
+    assertEquals(8, groups.get(2).items.size());
+    assertEquals(8, groups.get(3).items.size());
+  }
+
+
   private Cluster makeCluster() throws AmbariException {
     return makeCluster(true);
   }
@@ -726,6 +804,8 @@ public class UpgradeHelperTest {
 
     return c;
   }
+
+
 
   /**
    *

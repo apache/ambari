@@ -399,7 +399,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       List<Long> taskIds = new ArrayList<Long>();
 
       for (HostRoleCommand hrc : internalRequest.getCommands()) {
-        if (HostRoleStatus.ABORTED == hrc.getStatus()) {
+        if (HostRoleStatus.ABORTED == hrc.getStatus() || HostRoleStatus.TIMEDOUT == hrc.getStatus()) {
           taskIds.add(hrc.getTaskId());
         }
       }
@@ -556,7 +556,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     StackId sourceStackId = null;
     StackId targetStackId = null;
 
-    switch( direction ){
+    switch (direction) {
       case UPGRADE:
         sourceStackId = cluster.getCurrentStackVersion();
 
@@ -850,12 +850,15 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // service_package_folder and hooks_folder params.
     AmbariMetaInfo ambariMetaInfo = s_metaProvider.get();
     StackId stackId = cluster.getDesiredStackVersion();
+
+
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
-    if (wrapper.getTasks() != null && wrapper.getTasks().size() > 0) {
+    if (wrapper.getTasks() != null &&
+        wrapper.getTasks().size() > 0 &&
+        wrapper.getTasks().get(0).getService() != null) {
       String serviceName = wrapper.getTasks().get(0).getService();
       ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(), stackId.getStackVersion(), serviceName);
-      params.put(SERVICE_PACKAGE_FOLDER,
-          serviceInfo.getServicePackageFolder());
+      params.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
       params.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
     }
 
