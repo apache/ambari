@@ -41,6 +41,8 @@ import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityP
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
@@ -109,6 +111,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final String TOPOLOGY_HOST_REQUEST_TABLE = "topology_host_request";
   private static final String TOPOLOGY_HOST_TASK_TABLE = "topology_host_task";
   private static final String TOPOLOGY_LOGICAL_TASK_TABLE = "topology_logical_task";
+  private static final String CONFIGURATION_TYPE_HIVE_SITE = "hive-site";
+  private static final String PROPERTY_HIVE_SERVER2_AUTHENTICATION = "hive.server2.authentication";
 
   // constants for stack table changes
   private static final String STACK_ID_COLUMN_NAME = "stack_id";
@@ -119,6 +123,11 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final DBColumnInfo DESIRED_STACK_ID_COLUMN = new DBColumnInfo(DESIRED_STACK_ID_COLUMN_NAME, Long.class, null, null, true);
   private static final DBColumnInfo CURRENT_STACK_ID_COLUMN = new DBColumnInfo(CURRENT_STACK_ID_COLUMN_NAME, Long.class, null, null, true);
   private static final DBColumnInfo STACK_ID_COLUMN = new DBColumnInfo(STACK_ID_COLUMN_NAME, Long.class, null, null, true);
+
+  // map and list with constants, for filtration like in stack advisor
+  Map<String,List<String>> hiveAuthPropertyValueDependencies = new HashMap<String, List<String>>();
+  List<String> allHiveAuthPropertyValueDependecies = new ArrayList<String>();
+
 
   @Inject
   DaoUtils daoUtils;
@@ -161,6 +170,17 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     daoUtils = injector.getInstance(DaoUtils.class);
     osFamily = injector.getInstance(OsFamily.class);
+
+    hiveAuthPropertyValueDependencies.put("ldap", Arrays.asList("hive.server2.authentication.ldap.url",
+            "hive.server2.authentication.ldap.baseDN"));
+    hiveAuthPropertyValueDependencies.put("kerberos", Arrays.asList("hive.server2.authentication.kerberos.keytab",
+            "hive.server2.authentication.kerberos.principal"));
+    hiveAuthPropertyValueDependencies.put("pam", Arrays.asList("hive.server2.authentication.pam.services"));
+    hiveAuthPropertyValueDependencies.put("custom", Arrays.asList("hive.server2.custom.authentication.class"));
+
+    for (List<String> dependencies : hiveAuthPropertyValueDependencies.values()) {
+      allHiveAuthPropertyValueDependecies.addAll(dependencies);
+    }
   }
 
   // ----- AbstractUpgradeCatalog --------------------------------------------
@@ -926,6 +946,24 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     addMissingConfigs();
     updateAlertDefinitions();
     removeStormRestApiServiceComponent();
+  }
+
+  @Override
+  protected boolean checkAccordingToStackAdvisor(PropertyInfo property, Cluster cluster) {
+    if (allHiveAuthPropertyValueDependecies.contains(property.getName())) {
+      Config hiveSite = cluster.getDesiredConfigByType(CONFIGURATION_TYPE_HIVE_SITE);
+      if (hiveSite != null) {
+        String hiveAuthValue = hiveSite.getProperties().get(PROPERTY_HIVE_SERVER2_AUTHENTICATION);
+        if (hiveAuthValue != null) {
+          List<String> dependencies = hiveAuthPropertyValueDependencies.get(hiveAuthValue.toLowerCase());
+          if (dependencies != null) {
+            return dependencies.contains(property.getName());
+          }
+        }
+      }
+      return false;
+    }
+    return true;
   }
 
   /**
