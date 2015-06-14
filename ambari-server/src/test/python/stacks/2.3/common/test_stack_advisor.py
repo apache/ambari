@@ -77,7 +77,12 @@ class TestHDP23StackAdvisor(TestCase):
                 "yarn.scheduler.minimum-allocation-mb": "256",
                 "yarn.scheduler.maximum-allocation-mb": "2048",
                 },
-            }
+            },
+        "hbase-env": {
+          "properties": {
+            "phoenix_sql_enabled" : "true"
+          },
+        }
     }
     clusterData = {
       "totalAvailableRam": 2048,
@@ -93,7 +98,11 @@ class TestHDP23StackAdvisor(TestCase):
           "hbase.regionserver.global.memstore.size": "0.4",
           "hfile.block.cache.size": "0.4",
           "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint",
-          "hbase.bucketcache.ioengine": "offheap"
+          "hbase.rpc.controllerfactory.class": "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory",
+          "hbase.region.server.rpc.scheduler.factory.class": "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory",
+          'hbase.regionserver.wal.codec': 'org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec',
+          "hbase.bucketcache.ioengine": "offheap",
+          "phoenix.functions.allowUserDefinedFunctions": "true"
         },
         "property_attributes": {
           "hbase.coprocessor.regionserver.classes": {
@@ -107,8 +116,9 @@ class TestHDP23StackAdvisor(TestCase):
       "hbase-env": {
         "properties": {
           "hbase_master_heapsize": "114688",
+          "hbase_max_direct_memory_size": "94208",
           "hbase_regionserver_heapsize": "20480",
-          "hbase_max_direct_memory_size": "94208"
+          "phoenix_sql_enabled" : "true"
         }
       },
       "yarn-site": {
