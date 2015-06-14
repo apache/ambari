@@ -623,17 +623,27 @@ public class UpgradeCatalog210Test {
    * Verify alert changes
    */
   class AlertSectionDDL implements SectionDDL {
+    HashMap<String, Capture<String>> stringCaptures;
+    HashMap<String, Capture<Class>> classCaptures;
 
-    HashMap<String, Capture<DBColumnInfo>> captures;
 
     public AlertSectionDDL() {
-      captures = new HashMap<String, Capture<DBColumnInfo>>();
+      stringCaptures = new HashMap<String, Capture<String>>();
+      classCaptures = new HashMap<String, Capture<Class>>();
 
-      Capture<DBAccessor.DBColumnInfo> alertCurrentColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> alertHistoryColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<String> textCaptureC = new Capture<String>();
+      Capture<String> textCaptureH = new Capture<String>();
+      Capture<Class>  classFromC = new Capture<Class>();
+      Capture<Class>  classFromH = new Capture<Class>();
+      Capture<Class>  classToC = new Capture<Class>();
+      Capture<Class>  classToH = new Capture<Class>();
 
-      captures.put("alert_current", alertCurrentColumnCapture);
-      captures.put("alert_history", alertHistoryColumnCapture);
+      stringCaptures.put("textCaptureC", textCaptureC);
+      stringCaptures.put("textCaptureH", textCaptureH);
+      classCaptures.put("classFromC", classFromC);
+      classCaptures.put("classFromH", classFromH);
+      classCaptures.put("classToC", classToC);
+      classCaptures.put("classToH", classToH);
     }
 
     /**
@@ -641,11 +651,15 @@ public class UpgradeCatalog210Test {
      */
     @Override
     public void execute(DBAccessor dbAccessor) throws SQLException {
-      Capture<DBColumnInfo> alertCurrentColumnCapture = captures.get("alert_current");
-      Capture<DBColumnInfo> alertHistoryColumnCapture = captures.get("alert_history");
+      Capture<String> textCaptureC = stringCaptures.get("textCaptureC");
+      Capture<String> textCaptureH = stringCaptures.get("textCaptureH");
+      Capture<Class>  classFromC = classCaptures.get("classFromC");
+      Capture<Class>  classFromH = classCaptures.get("classFromH");
+      Capture<Class>  classToC = classCaptures.get("classToC");
+      Capture<Class>  classToH = classCaptures.get("classToH");
 
-      dbAccessor.alterColumn(eq("alert_current"), capture(alertCurrentColumnCapture));
-      dbAccessor.alterColumn(eq("alert_history"), capture(alertHistoryColumnCapture));
+      dbAccessor.changeColumnType(eq("alert_current"), capture(textCaptureC), capture(classFromC), capture(classToC));
+      dbAccessor.changeColumnType(eq("alert_history"), capture(textCaptureH), capture(classFromH), capture(classToH));
     }
 
     /**
@@ -653,20 +667,20 @@ public class UpgradeCatalog210Test {
      */
     @Override
     public void verify(DBAccessor dbAccessor) throws SQLException {
-      verifyAlertCurrent(captures.get("alert_current"));
-      verifyAlertHistory(captures.get("alert_history"));
-    }
+      Capture<String> textCaptureC = stringCaptures.get("textCaptureC");
+      Capture<String> textCaptureH = stringCaptures.get("textCaptureH");
+      Capture<Class>  classFromC = classCaptures.get("classFromC");
+      Capture<Class>  classFromH = classCaptures.get("classFromH");
+      Capture<Class>  classToC = classCaptures.get("classToC");
+      Capture<Class>  classToH = classCaptures.get("classToH");
 
-    private void verifyAlertCurrent(Capture<DBAccessor.DBColumnInfo> alertCurrentColumnCapture) {
-      DBColumnInfo latestTextColumn = alertCurrentColumnCapture.getValue();
-      Assert.assertEquals(Character[].class, latestTextColumn.getType());
-      Assert.assertEquals("latest_text", latestTextColumn.getName());
-    }
+      Assert.assertEquals("latest_text", textCaptureC.getValue());
+      Assert.assertEquals(String.class, classFromC.getValue());
+      Assert.assertEquals(char[].class, classToC.getValue());
 
-    private void verifyAlertHistory(Capture<DBAccessor.DBColumnInfo> alertHistoryColumnCapture) {
-      DBColumnInfo alertTextColumn = alertHistoryColumnCapture.getValue();
-      Assert.assertEquals(Character[].class, alertTextColumn.getType());
-      Assert.assertEquals("alert_text", alertTextColumn.getName());
+      Assert.assertEquals("alert_text", textCaptureH.getValue());
+      Assert.assertEquals(String.class, classFromH.getValue());
+      Assert.assertEquals(char[].class, classToH.getValue());
     }
   }
 }

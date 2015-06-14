@@ -611,6 +611,26 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
+  public int executeUpdate(String query) throws SQLException{
+    return  executeUpdate(query, false);
+  }
+
+  @Override
+  public int executeUpdate(String query, boolean ignoreErrors) throws SQLException{
+    Statement statement = getConnection().createStatement();
+    try {
+      return statement.executeUpdate(query);
+    } catch (SQLException e){
+      LOG.warn("Error executing query: " + query + ", " +
+                 "errorCode = " + e.getErrorCode() + ", message = " + e.getMessage());
+      if (!ignoreErrors){
+        throw e;
+      }
+    }
+    return 0;  // If error appears and ignoreError is set, return 0 (no changes was made)
+  }
+
+  @Override
   public void executeQuery(String query, String tableName, String hasColumnName) throws SQLException{
     if (tableHasColumn(tableName, hasColumnName)){
       executeQuery(query);
@@ -755,7 +775,6 @@ public class DBAccessorImpl implements DBAccessor {
     login.setDatabaseURL(configuration.getDatabaseUrl());
     login.setDriverClassName(configuration.getDatabaseDriver());
 
-
     return new DatabaseSessionImpl(login);
   }
 
@@ -771,7 +790,6 @@ public class DBAccessorImpl implements DBAccessor {
     } else if (rs != null){
       return rs.next();
     }
-
     return false;
   }
 
@@ -781,27 +799,35 @@ public class DBAccessorImpl implements DBAccessor {
     // We doesn't require any actual result except metadata, so WHERE clause shouldn't match
     String query = String.format("SELECT %s FROM %s WHERE 1=2", columnName, convertObjectName(tableName));
     ResultSet rs = executeSelect(query);
-
     ResultSetMetaData rsmd = rs.getMetaData();
     return rsmd.getColumnType(1);
+  }
+
+  private ResultSetMetaData getColumnMetadata(String tableName, String columnName) throws SQLException{
+    // We doesn't require any actual result except metadata, so WHERE clause shouldn't match
+    String query = String.format("SELECT %s FROM %s WHERE 1=2", convertObjectName(columnName), convertObjectName(tableName));
+    ResultSet rs = executeSelect(query);
+    return rs.getMetaData();
   }
 
   @Override
   public Class getColumnClass(String tableName, String columnName)
           throws SQLException, ClassNotFoundException{
-      // We doesn't require any actual result except metadata, so WHERE clause shouldn't match
-      String query = String.format("SELECT %s FROM %s WHERE 1=2", columnName, convertObjectName(tableName));
-      ResultSet rs = executeSelect(query);
-
-      ResultSetMetaData rsmd = rs.getMetaData();
+      ResultSetMetaData rsmd = getColumnMetadata(tableName, columnName);
       return Class.forName(rsmd.getColumnClassName(1));
+  }
+
+  @Override
+  public boolean isColumnNullable(String tableName, String columnName) throws SQLException{
+    ResultSetMetaData rsmd = getColumnMetadata(tableName, columnName);
+    return !(rsmd.isNullable(1) == ResultSetMetaData.columnNoNulls);
   }
 
   @Override
   public void setColumnNullable(String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable)
       throws SQLException {
-    String statement = dbmsHelper.getSetNullableStatement(tableName, columnInfo, nullable);
 
+    String statement = dbmsHelper.getSetNullableStatement(tableName, columnInfo, nullable);
     executeQuery(statement);
   }
 
@@ -809,12 +835,46 @@ public class DBAccessorImpl implements DBAccessor {
   public void setColumnNullable(String tableName, String columnName, boolean nullable)
           throws SQLException {
     try {
-      Class columnClass = getColumnClass(tableName, columnName);
-      String query = dbmsHelper.getSetNullableStatement(tableName, new DBColumnInfo(columnName, columnClass), nullable);
-      executeQuery(query);
+      // if column is already in nullable state, we shouldn't do anything. This is important for Oracle
+      if (isColumnNullable(tableName, columnName) != nullable) {
+        Class columnClass = getColumnClass(tableName, columnName);
+        String query = dbmsHelper.getSetNullableStatement(tableName, new DBColumnInfo(columnName, columnClass), nullable);
+        executeQuery(query);
+      } else {
+        LOG.info("Column nullability property is not changed due to {} column from {} table is already in {} state, skipping",
+                   columnName, tableName, (nullable)?"nullable":"not nullable");
+      }
     } catch (ClassNotFoundException e) {
       LOG.error("Could not modify table=[], column={}, error={}", tableName, columnName, e.getMessage());
     }
   }
+
+  @Override
+  public void changeColumnType(String tableName, String columnName, Class fromType, Class toType) throws SQLException {
+    // ToDo: create column with more random name
+    String tempColumnName = columnName + "_temp";
+
+    switch (configuration.getDatabaseType()){
+      case ORACLE:
+        // ToDo: add check, if target column is a part of constraint.
+        // oracle doesn't support direct type change from varchar2 -> clob
+        if (String.class.equals(fromType) && (Character[].class.equals(toType) || char[].class.equals(toType))){
+          addColumn(tableName, new DBColumnInfo(tempColumnName, toType));
+          executeUpdate(String.format("UPDATE %s SET %s = %s", convertObjectName(tableName),
+                                       convertObjectName(tempColumnName), convertObjectName(columnName)));
+          dropColumn(tableName, columnName);
+          renameColumn(tableName,tempColumnName, new DBColumnInfo(columnName, toType));
+          return;
+        }
+    }
+
+    alterColumn(tableName, new DBColumnInfo(columnName, toType, null));
+  }
+
+
+
+
+
+
 
 }

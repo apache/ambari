@@ -269,12 +269,14 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private void executeAlertDDLUpdates() throws AmbariException, SQLException {
     //Fix latest_text column type to match for all DBMS
     Configuration.DatabaseType databaseType = configuration.getDatabaseType();
+
+    // MySQL columns are already TEXT, but we need to be sure in that, since LONGTEXT will really slowdown database when querying the alerts too often
     if (Configuration.DatabaseType.MYSQL == databaseType) {
       dbAccessor.alterColumn("alert_current", new DBColumnInfo("latest_text", new FieldTypeDefinition("TEXT"), null));
       dbAccessor.alterColumn("alert_history", new DBColumnInfo("alert_text", new FieldTypeDefinition("TEXT"), null));
     } else {
-      dbAccessor.alterColumn("alert_current", new DBColumnInfo("latest_text", Character[].class, null));
-      dbAccessor.alterColumn("alert_history", new DBColumnInfo("alert_text", Character[].class, null));
+      dbAccessor.changeColumnType("alert_current", "latest_text", String.class, char[].class);
+      dbAccessor.changeColumnType("alert_history", "alert_text", String.class, char[].class);
     }
 
   }
