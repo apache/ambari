@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>FALCON</name>
-      <version>0.7.0.2.3</version>
+      <version>0.6.1</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat7,redhat6,suse11</osFamily>
