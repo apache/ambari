@@ -25,10 +25,6 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -162,6 +158,31 @@ public class PhoenixTransactSQL {
     "METRIC_COUNT, " +
     "METRICS " +
     "FROM %s";
+
+  /**
+   * Get latest metrics for a number of hosts
+   */
+  public static final String GET_LATEST_METRIC_SQL = "SELECT " +
+      "E.METRIC_NAME AS METRIC_NAME, E.HOSTNAME AS HOSTNAME, " +
+      "E.APP_ID AS APP_ID, E.INSTANCE_ID AS INSTANCE_ID, " +
+      "E.SERVER_TIME AS SERVER_TIME, E.START_TIME AS START_TIME, " +
+      "E.UNITS AS UNITS, E.METRIC_SUM AS METRIC_SUM, " +
+      "E.METRIC_MAX AS METRIC_MAX, E.METRIC_MIN AS METRIC_MIN, " +
+      "E.METRIC_COUNT AS METRIC_COUNT, E.METRICS AS METRICS " +
+      "FROM %s AS E " +
+      "INNER JOIN " +
+      "(SELECT METRIC_NAME, HOSTNAME, MAX(SERVER_TIME) AS MAX_SERVER_TIME, " +
+      "APP_ID, INSTANCE_ID " +
+      "FROM %s " +
+      "WHERE " +
+      "%s " +
+      "GROUP BY METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID) " +
+      "AS I " +
+      "ON E.METRIC_NAME=I.METRIC_NAME " +
+      "AND E.HOSTNAME=I.HOSTNAME " +
+      "AND E.SERVER_TIME=I.MAX_SERVER_TIME " +
+      "AND E.APP_ID=I.APP_ID " +
+      "AND E.INSTANCE_ID=I.INSTANCE_ID";
 
   public static final String GET_METRIC_AGGREGATE_ONLY_SQL = "SELECT %s " +
     "METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, SERVER_TIME, " +
@@ -307,11 +328,13 @@ public class PhoenixTransactSQL {
         stmt.setString(pos, condition.getMetricNames().get(pos - 1));
       }
     }
-    if (condition.getHostname() != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting pos: " + pos + ", value: " + condition.getHostname());
+    if (condition.getHostnames() != null) {
+      for (String hostname: condition.getHostnames()) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Setting pos: " + pos + ", value: " + hostname);
+        }
+        stmt.setString(pos++, hostname);
       }
-      stmt.setString(pos++, condition.getHostname());
     }
     if (condition.getAppId() != null) {
       if (LOG.isDebugEnabled()) {
@@ -390,27 +413,33 @@ public class PhoenixTransactSQL {
     if (condition.getStatement() != null) {
       stmtStr = condition.getStatement();
     } else {
-      stmtStr = String.format(GET_METRIC_SQL,
-        "",
-        METRICS_RECORD_TABLE_NAME);
+      //if not a single metric for a single host
+      if (condition.getHostnames().size() > 1
+        && condition.getMetricNames().size() > 1) {
+        stmtStr = String.format(GET_LATEST_METRIC_SQL,
+          METRICS_RECORD_TABLE_NAME,
+          METRICS_RECORD_TABLE_NAME,
+          condition.getConditionClause());
+      } else {
+        StringBuilder sb = new StringBuilder(String.format(GET_METRIC_SQL,
+          "",
+          METRICS_RECORD_TABLE_NAME));
+        sb.append(" WHERE ");
+        sb.append(condition.getConditionClause());
+        String orderByClause = condition.getOrderByClause(false);
+        if (orderByClause != null) {
+          sb.append(orderByClause);
+        } else {
+          sb.append(" ORDER BY METRIC_NAME DESC, HOSTNAME DESC, SERVER_TIME DESC ");
+        }
+        stmtStr = sb.toString();
+      }
     }
-
-    StringBuilder sb = new StringBuilder(stmtStr);
-    sb.append(" WHERE ");
-    sb.append(condition.getConditionClause());
-    String orderByClause = condition.getOrderByClause(false);
-    if (orderByClause != null) {
-      sb.append(orderByClause);
-    } else {
-      sb.append(" ORDER BY METRIC_NAME DESC, HOSTNAME DESC, SERVER_TIME DESC ");
-    }
-
-    sb.append(" LIMIT ").append(condition.getMetricNames().size());
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("SQL: " + sb.toString() + ", condition: " + condition);
+      LOG.debug("SQL: " + stmtStr + ", condition: " + condition);
     }
-    PreparedStatement stmt = connection.prepareStatement(sb.toString());
+    PreparedStatement stmt = connection.prepareStatement(stmtStr);
     int pos = 1;
     if (condition.getMetricNames() != null) {
       //IGNORE condition limit, set one based on number of metric names
@@ -421,11 +450,13 @@ public class PhoenixTransactSQL {
         stmt.setString(pos, condition.getMetricNames().get(pos - 1));
       }
     }
-    if (condition.getHostname() != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting pos: " + pos + ", value: " + condition.getHostname());
+    if (condition.getHostnames() != null) {
+      for (String hostname: condition.getHostnames()) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Setting pos: " + pos + ", value: " + hostname);
+        }
+        stmt.setString(pos++, hostname);
       }
-      stmt.setString(pos++, condition.getHostname());
     }
     if (condition.getAppId() != null) {
       if (LOG.isDebugEnabled()) {
@@ -437,7 +468,7 @@ public class PhoenixTransactSQL {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Setting pos: " + pos + ", value: " + condition.getInstanceId());
       }
-      stmt.setString(pos++, condition.getInstanceId());
+      stmt.setString(pos, condition.getInstanceId());
     }
 
     if (condition.getFetchSize() != null) {
@@ -571,7 +602,7 @@ public class PhoenixTransactSQL {
       stmt.setString(pos++, condition.getAppId());
     }
     if (condition.getInstanceId() != null) {
-      stmt.setString(pos++, condition.getInstanceId());
+      stmt.setString(pos, condition.getInstanceId());
     }
 
     return stmt;

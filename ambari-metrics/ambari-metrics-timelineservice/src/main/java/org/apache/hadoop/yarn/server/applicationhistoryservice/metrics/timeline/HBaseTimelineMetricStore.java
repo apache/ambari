@@ -123,7 +123,7 @@ public class HBaseTimelineMetricStore extends AbstractService
 
   @Override
   public TimelineMetrics getTimelineMetrics(List<String> metricNames,
-      String hostname, String applicationId, String instanceId,
+      List<String> hostnames, String applicationId, String instanceId,
       Long startTime, Long endTime, Precision precision, Integer limit,
       boolean groupedByHosts) throws SQLException, IOException {
 
@@ -142,18 +142,18 @@ public class HBaseTimelineMetricStore extends AbstractService
 
     Condition condition = new DefaultCondition(
       new ArrayList<String>(metricFunctions.keySet()),
-      hostname, applicationId, instanceId, startTime, endTime,
+      hostnames, applicationId, instanceId, startTime, endTime,
       precision, limit, groupedByHosts);
 
-    if (hostname == null) {
-      TimelineMetrics metrics = hBaseAccessor.getAggregateMetricRecords
-        (condition,  metricFunctions);
+    TimelineMetrics metrics;
 
-      return postProcessMetrics(metrics);
+    if (hostnames == null || hostnames.isEmpty()) {
+      metrics = hBaseAccessor.getAggregateMetricRecords(condition,
+          metricFunctions);
+    } else {
+      metrics = hBaseAccessor.getMetricRecords(condition, metricFunctions);
     }
-
-    return postProcessMetrics(
-      hBaseAccessor.getMetricRecords(condition, metricFunctions));
+    return postProcessMetrics(metrics);
   }
 
   private TimelineMetrics postProcessMetrics(TimelineMetrics metrics) {
@@ -227,7 +227,7 @@ public class HBaseTimelineMetricStore extends AbstractService
   }
 
   @Override
-  public TimelineMetric getTimelineMetric(String metricName, String hostname,
+  public TimelineMetric getTimelineMetric(String metricName, List<String> hostnames,
       String applicationId, String instanceId, Long startTime,
       Long endTime, Precision precision, Integer limit)
       throws SQLException, IOException {
@@ -247,7 +247,7 @@ public class HBaseTimelineMetricStore extends AbstractService
       parseMetricNamesToAggregationFunctions(Collections.singletonList(metricName));
 
     Condition condition = new DefaultCondition(
-      new ArrayList<String>(metricFunctions.keySet()), hostname, applicationId,
+      new ArrayList<String>(metricFunctions.keySet()), hostnames, applicationId,
       instanceId, startTime, endTime, precision, limit, true);
     TimelineMetrics metrics = hBaseAccessor.getMetricRecords(condition,
       metricFunctions);

@@ -63,17 +63,12 @@ import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider
 import static org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
-  static final Map<String, String> TIMELINE_APPID_MAP = new HashMap<String, String>();
   private static ObjectMapper mapper;
   private final static ObjectReader timelineObjectReader;
   private static final String METRIC_REGEXP_PATTERN = "\\([^)]*\\)";
   private static final int COLLECTOR_DEFAULT_PORT = 6188;
 
   static {
-    TIMELINE_APPID_MAP.put(HBASE_MASTER.name(), "HBASE");
-    TIMELINE_APPID_MAP.put(HBASE_REGIONSERVER.name(), "HBASE");
-    TIMELINE_APPID_MAP.put(METRICS_COLLECTOR.name(), "AMS-HBASE");
-
     mapper = new ObjectMapper();
     AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
     mapper.setAnnotationIntrospector(introspector);
@@ -128,24 +123,27 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     private final Map<String, Set<Resource>> resources = new HashMap<String, Set<Resource>>();
     private final Map<String, Set<String>> metrics = new HashMap<String, Set<String>>();
     private final URIBuilder uriBuilder;
-    private final String dummyHostName = "__SummaryInfo__";
     // Metrics with amsHostMetric = true
     // Basically a host metric to be returned for a hostcomponent
     private final Set<String> hostComponentHostMetrics = new HashSet<String>();
+    private String clusterName;
 
-    private MetricsRequest(TemporalInfo temporalInfo, URIBuilder uriBuilder) {
+    private MetricsRequest(TemporalInfo temporalInfo, URIBuilder uriBuilder,
+                           String clusterName) {
       this.temporalInfo = temporalInfo;
       this.uriBuilder = uriBuilder;
+      this.clusterName = clusterName;
     }
 
-    public void putResource(String hostname, Resource resource) {
-      if (hostname == null) {
-        hostname = dummyHostName;
-      }
-      Set<Resource> resourceSet = resources.get(hostname);
+    public String getClusterName() {
+      return clusterName;
+    }
+
+    public void putResource(String componentName, Resource resource) {
+      Set<Resource> resourceSet = resources.get(componentName);
       if (resourceSet == null) {
         resourceSet = new HashSet<Resource>();
-        resources.put(hostname, resourceSet);
+        resources.put(componentName, resourceSet);
       }
       resourceSet.add(resource);
     }
@@ -220,34 +218,17 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       }
 
       for (Map.Entry<String, Set<Resource>> resourceEntry : resources.entrySet()) {
-        String hostname = resourceEntry.getKey();
+        String componentName = resourceEntry.getKey();
         Set<Resource> resourceSet = resourceEntry.getValue();
-
-        for (Resource resource : resourceSet) {
-          String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
-
-          // Check liveliness of host
-          if (!hostProvider.isCollectorHostLive(clusterName, TIMELINE_METRICS)) {
-            LOG.info("METRICS_COLLECTOR host is not live. Skip populating " +
-              "resources with metrics.");
-            return Collections.emptySet();
-          }
-
-          // Check liveliness of Collector
-          if (!hostProvider.isCollectorComponentLive(clusterName, TIMELINE_METRICS)) {
-            LOG.info("METRICS_COLLECTOR is not live. Skip populating resources" +
-              " with metrics.");
-            return Collections.emptySet();
-          }
 
           TimelineMetrics timelineMetrics;
           // Allow for multiple requests since host metrics for a
           // hostcomponent need the HOST appId
-          if (hostComponentHostMetrics.isEmpty()) {
-            String spec = getSpec(hostname, resource);
+          if (hostComponentHostMetrics.isEmpty()) { //HOST
+            String spec = getSpec(componentName);
             timelineMetrics = getTimelineMetricsForSpec(spec);
           } else {
-            Set<String> specs = getSpecsForHostComponentMetrics(hostname, resource);
+            Set<String> specs = getSpecsForHostComponentMetrics(componentName);
             timelineMetrics = new TimelineMetrics();
             for (String spec : specs) {
               if (!StringUtils.isEmpty(spec)) {
@@ -258,14 +239,24 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
               }
             }
           }
-
-          Set<String> patterns = createPatterns(metrics.keySet());
-
-          if (timelineMetrics != null) {
-            for (TimelineMetric metric : timelineMetrics.getMetrics()) {
-              if (metric.getMetricName() != null
-                  && metric.getMetricValues() != null
-                  && checkMetricName(patterns, metric.getMetricName())) {
+        Map<String, Set<TimelineMetric>> metricsMap = new HashMap<String, Set<TimelineMetric>>();
+        Set<String> patterns = createPatterns(metrics.keySet());
+        if (timelineMetrics != null) {
+          for (TimelineMetric metric : timelineMetrics.getMetrics()) {
+            if (metric.getMetricName() != null
+                && metric.getMetricValues() != null
+                && checkMetricName(patterns, metric.getMetricName())) {
+              String hostname = metric.getHostName();
+              if (!metricsMap.containsKey(hostname)) {
+                metricsMap.put(hostname, new HashSet<TimelineMetric>());
+              }
+              metricsMap.get(hostname).add(metric);
+            }
+          }
+          for (Resource resource : resourceSet) {
+            String hostname = getHostName(resource);
+            if (metricsMap.containsKey(hostname)) {
+              for (TimelineMetric metric : metricsMap.get(hostname)) {
                 // Pad zeros or nulls if needed
                 metricsPaddingMethod.applyPaddingStrategy(metric, temporalInfo);
                 populateResource(resource, metric);
@@ -283,28 +274,28 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
      * host metrics.
      * @return @Set Urls
      */
-    private Set<String> getSpecsForHostComponentMetrics(String hostname, Resource resource) {
+    private Set<String> getSpecsForHostComponentMetrics(String componentName) {
       Set<String> nonHostComponentMetrics = new HashSet<String>(metrics.keySet());
       nonHostComponentMetrics.removeAll(hostComponentHostMetrics);
 
       Set<String> specs = new HashSet<String>();
+      String hostnames = getHostnames(resources.get(componentName));
       if (!hostComponentHostMetrics.isEmpty()) {
         String hostComponentHostMetricParams = getSetString(processRegexps(hostComponentHostMetrics), -1);
-        setQueryParams(resource, hostComponentHostMetricParams, hostname, "HOST");
+        setQueryParams(hostComponentHostMetricParams, hostnames, true, componentName);
         specs.add(uriBuilder.toString());
       }
 
       if (!nonHostComponentMetrics.isEmpty()) {
         String nonHostComponentHostMetricParams = getSetString(processRegexps(nonHostComponentMetrics), -1);
-        setQueryParams(resource, nonHostComponentHostMetricParams, hostname, null);
+        setQueryParams(nonHostComponentHostMetricParams, hostnames, false, componentName);
         specs.add(uriBuilder.toString());
       }
-
       return specs;
     }
 
-    private void setQueryParams(Resource resource, String metricsParam,
-                                String hostname, String appId) {
+    private void setQueryParams(String metricsParam,
+                                String hostname, boolean isHostMetric, String componentName) {
       // Reuse uriBuilder
       uriBuilder.removeQuery();
 
@@ -312,16 +303,15 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         uriBuilder.setParameter("metricNames", metricsParam);
       }
 
-      if (hostname != null && !hostname.isEmpty() && !hostname.equals(dummyHostName)) {
+      if (hostname != null && !hostname.isEmpty()) {
         uriBuilder.setParameter("hostname", hostname);
       }
 
-      if (appId != null) {
-        uriBuilder.setParameter("appId", appId);
+      if (isHostMetric) {
+        uriBuilder.setParameter("appId", "HOST");
       } else {
-        String componentName = getComponentName(resource);
-        if (componentName != null && !componentName.isEmpty()) {
-          String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
+        if (componentName != null && !componentName.isEmpty()
+          && !componentName.equalsIgnoreCase("HOST")) {
           StackId stackId;
           try {
             AmbariManagementController managementController = AmbariServer.getController();
@@ -339,8 +329,8 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
           } catch (Exception e) {
             e.printStackTrace();
           }
-          uriBuilder.setParameter("appId", componentName);
         }
+        uriBuilder.setParameter("appId", componentName);
       }
 
       if (temporalInfo != null) {
@@ -356,10 +346,10 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       }
     }
 
-    private String getSpec(String hostname, Resource resource) {
+    private String getSpec(String componentName) {
       String metricsParam = getSetString(processRegexps(metrics.keySet()), -1);
-
-      setQueryParams(resource, metricsParam, hostname, null);
+      String hostnames = getHostnames(resources.get(componentName));
+      setQueryParams(metricsParam, hostnames, false, componentName);
 
       return uriBuilder.toString();
     }
@@ -445,6 +435,21 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     }
   }
 
+  private String getHostnames(Set<Resource> resources) {
+    StringBuilder hostnames = new StringBuilder();
+    for (Resource resource: resources) {
+      String hostname = getHostName(resource);
+      if (hostname == null) {
+        break;
+      }
+      if (hostnames.length() > 0) {
+        hostnames.append(',');
+      }
+      hostnames.append(hostname);
+    }
+    return hostnames.toString();
+  }
+
   @Override
   public Set<Resource> populateResourcesWithProperties(Set<Resource> resources,
                Request request, Set<String> propertyIds) throws SystemException {
@@ -509,6 +514,20 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         continue;
       }
 
+      // Check liveliness of host
+      if (!hostProvider.isCollectorHostLive(clusterName, TIMELINE_METRICS)) {
+        LOG.info("METRICS_COLLECTOR host is not live. Skip populating " +
+            "resources with metrics.");
+        continue;
+      }
+
+      // Check liveliness of Collector
+      if (!hostProvider.isCollectorComponentLive(clusterName, TIMELINE_METRICS)) {
+        LOG.info("METRICS_COLLECTOR is not live. Skip populating resources" +
+            " with metrics.");
+        continue;
+      }
+
       Map<TemporalInfo, MetricsRequest> requests = requestMap.get(clusterName);
       if (requests == null) {
         requests = new HashMap<TemporalInfo, MetricsRequest>();
@@ -549,10 +568,11 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
             if (metricsRequest == null) {
               metricsRequest = new MetricsRequest(temporalInfo,
                 getAMSUriBuilder(collectorHostName,
-                  collectorPort != null ? Integer.parseInt(collectorPort) : COLLECTOR_DEFAULT_PORT));
+                  collectorPort != null ? Integer.parseInt(collectorPort) : COLLECTOR_DEFAULT_PORT),
+                 (String) resource.getPropertyValue(clusterNamePropertyId));
               requests.put(temporalInfo, metricsRequest);
             }
-            metricsRequest.putResource(getHostName(resource), resource);
+            metricsRequest.putResource(getComponentName(resource), resource);
             metricsRequest.putPropertyId(propertyInfo.getPropertyId(), propertyId);
             // If request is for a host metric we need to create multiple requests
             if (propertyInfo.isAmsHostMetric()) {

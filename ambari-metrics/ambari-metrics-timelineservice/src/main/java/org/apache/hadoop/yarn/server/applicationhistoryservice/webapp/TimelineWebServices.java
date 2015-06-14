@@ -24,7 +24,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Public;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
-import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEntities;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEntity;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEvents;
@@ -61,7 +60,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -309,9 +307,10 @@ public class TimelineWebServices {
           "endTime: " + endTime);
       }
 
-      return timelineMetricStore.getTimelineMetric(metricName, hostname,
-        appId, instanceId, parseLongStr(startTime), parseLongStr(endTime),
-        Precision.getPrecision(precision), parseIntStr(limit));
+      return timelineMetricStore.getTimelineMetric(metricName,
+        parseListStr(hostname, ","), appId, instanceId, parseLongStr(startTime),
+        parseLongStr(endTime), Precision.getPrecision(precision),
+        parseIntStr(limit));
     } catch (NumberFormatException ne) {
       throw new BadRequestException("startTime, endTime and limit should be " +
         "numeric values");
@@ -371,7 +370,7 @@ public class TimelineWebServices {
       }
 
       return timelineMetricStore.getTimelineMetrics(
-        parseListStr(metricNames, ","), hostname, appId, instanceId,
+        parseListStr(metricNames, ","), parseListStr(hostname, ","), appId, instanceId,
         parseLongStr(startTime), parseLongStr(endTime),
         Precision.getPrecision(precision), parseIntStr(limit),
         parseBoolean(grouped));

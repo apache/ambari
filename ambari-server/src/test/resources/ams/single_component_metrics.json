@@ -4,7 +4,6 @@
         "type": "Double",
         "metricname": "rpc.rpc.RpcQueueTimeAvgTime",
         "appid": "namenode",
-        "hostname": "h1",
         "starttime": 1416528759233,
         "metrics": {
             "1416528759233": 10.333333333333332,

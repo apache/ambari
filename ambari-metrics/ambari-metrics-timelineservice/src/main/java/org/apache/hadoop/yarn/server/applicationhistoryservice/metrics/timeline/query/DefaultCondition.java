@@ -25,7 +25,7 @@ import java.util.Set;
 
 public class DefaultCondition implements Condition {
   List<String> metricNames;
-  String hostname;
+  List<String> hostnames;
   String appId;
   String instanceId;
   Long startTime;
@@ -38,11 +38,11 @@ public class DefaultCondition implements Condition {
   String statement;
   Set<String> orderByColumns = new LinkedHashSet<String>();
 
-  public DefaultCondition(List<String> metricNames, String hostname, String appId,
+  public DefaultCondition(List<String> metricNames, List<String> hostnames, String appId,
                    String instanceId, Long startTime, Long endTime, Precision precision,
                    Integer limit, boolean grouped) {
     this.metricNames = metricNames;
-    this.hostname = hostname;
+    this.hostnames = hostnames;
     this.appId = appId;
     this.instanceId = instanceId;
     this.startTime = startTime;
@@ -107,7 +107,21 @@ public class DefaultCondition implements Condition {
       }
     }
 
-    appendConjunction = append(sb, appendConjunction, getHostname(), " HOSTNAME = ?");
+    if (hostnames != null && getHostnames().size() > 1) {
+      StringBuilder hostnamesCondition = new StringBuilder();
+      for (String hostname: getHostnames()) {
+        if (hostnamesCondition.length() > 0) {
+          hostnamesCondition.append(" ,");
+        } else {
+          hostnamesCondition.append(" HOSTNAME IN (");
+        }
+        hostnamesCondition.append('?');
+      }
+      hostnamesCondition.append(')');
+      appendConjunction = append(sb, appendConjunction, getHostnames(), hostnamesCondition.toString());
+    } else {
+      appendConjunction = append(sb, appendConjunction, getHostnames(), " HOSTNAME = ?");
+    }
     appendConjunction = append(sb, appendConjunction, getAppId(), " APP_ID = ?");
     appendConjunction = append(sb, appendConjunction, getInstanceId(), " INSTANCE_ID = ?");
     appendConjunction = append(sb, appendConjunction, getStartTime(), " SERVER_TIME >= ?");
@@ -130,8 +144,8 @@ public class DefaultCondition implements Condition {
     return appendConjunction;
   }
 
-  public String getHostname() {
-    return hostname == null || hostname.isEmpty() ? null : hostname;
+  public List<String> getHostnames() {
+    return hostnames;
   }
 
   public Precision getPrecision() {
@@ -202,7 +216,7 @@ public class DefaultCondition implements Condition {
 
   public boolean isEmpty() {
     return (metricNames == null || metricNames.isEmpty())
-      && (hostname == null || hostname.isEmpty())
+      && (hostnames == null || hostnames.isEmpty())
       && (appId == null || appId.isEmpty())
       && (instanceId == null || instanceId.isEmpty())
       && startTime == null
@@ -244,7 +258,7 @@ public class DefaultCondition implements Condition {
   public String toString() {
     return "Condition{" +
       "metricNames=" + metricNames +
-      ", hostname='" + hostname + '\'' +
+      ", hostnames='" + hostnames + '\'' +
       ", appId='" + appId + '\'' +
       ", instanceId='" + instanceId + '\'' +
       ", startTime=" + startTime +

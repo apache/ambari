@@ -116,6 +116,7 @@ public class AMSPropertyProviderTest {
     uriBuilder.addParameter("endTime", "1416445244901");
     Assert.assertEquals(uriBuilder.toString(), streamProvider.getLastSpec());
     Number[][] val = (Number[][]) res.getPropertyValue(PROPERTY_ID1);
+    Assert.assertNotNull("No value for property " + PROPERTY_ID1, val);
     Assert.assertEquals(111, val.length);
   }
 
@@ -204,8 +205,10 @@ public class AMSPropertyProviderTest {
     Assert.assertTrue(uriBuilder.toString().equals(streamProvider.getLastSpec())
         || uriBuilder2.toString().equals(streamProvider.getLastSpec()));
     Double val1 = (Double) res.getPropertyValue(PROPERTY_ID1);
+    Assert.assertNotNull("No value for property " + PROPERTY_ID1, val1);
     Assert.assertEquals(41.088, val1, 0.001);
     Double val2 = (Double)res.getPropertyValue(PROPERTY_ID2);
+    Assert.assertNotNull("No value for property " + PROPERTY_ID2, val2);
     Assert.assertEquals(2.47025664E8, val2, 0.1);
   }
 
@@ -289,7 +292,7 @@ public class AMSPropertyProviderTest {
     String propertyId1 = "metrics/yarn/Queue/root/AvailableMB";
     Resource resource = new ResourceImpl(Resource.Type.Component);
     resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
-    resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
+    resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");// should be set?
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
     temporalInfoMap.put(propertyId1, new TemporalInfoImpl(1416528819369L, 1416528819569L, 1L));
@@ -308,6 +311,7 @@ public class AMSPropertyProviderTest {
     uriBuilder.addParameter("endTime", "1416528819569");
     Assert.assertEquals(uriBuilder.toString(), streamProvider.getLastSpec());
     Number[][] val = (Number[][]) res.getPropertyValue("metrics/yarn/Queue/root/AvailableMB");
+    Assert.assertNotNull("No value for property metrics/yarn/Queue/root/AvailableMB", val);
     Assert.assertEquals(238, val.length);
   }
 
@@ -352,6 +356,7 @@ public class AMSPropertyProviderTest {
     uriBuilder.addParameter("endTime", "1416528819569");
     Assert.assertEquals(uriBuilder.toString(), streamProvider.getLastSpec());
     Number[][] val = (Number[][]) res.getPropertyValue(propertyId);
+    Assert.assertNotNull("No value for property " + propertyId, val);
     Assert.assertEquals(238, val.length);
   }
 
@@ -583,6 +588,7 @@ public class AMSPropertyProviderTest {
     Number[][] val = (Number[][]) res.getPropertyValue(PROPERTY_ID1);
     Assert.assertEquals(111, val.length);
     val = (Number[][]) res.getPropertyValue(PROPERTY_ID3);
+    Assert.assertNotNull("No value for property " + PROPERTY_ID3, val);
     Assert.assertEquals(8, val.length);
   }
 

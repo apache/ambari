@@ -29,7 +29,7 @@ import java.util.List;
 public class TestTimelineMetricStore implements TimelineMetricStore {
   @Override
   public TimelineMetrics getTimelineMetrics(List<String> metricNames,
-      String hostname, String applicationId, String instanceId, Long startTime,
+      List<String> hostnames, String applicationId, String instanceId, Long startTime,
       Long endTime, Precision precision, Integer limit, boolean groupedByHost) throws SQLException,
     IOException {
     TimelineMetrics timelineMetrics = new TimelineMetrics();
@@ -65,7 +65,7 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
   }
 
   @Override
-  public TimelineMetric getTimelineMetric(String metricName, String hostname,
+  public TimelineMetric getTimelineMetric(String metricName, List<String> hostname,
       String applicationId, String instanceId, Long startTime, Long endTime,
       Precision precision, Integer limit) throws SQLException, IOException {
 

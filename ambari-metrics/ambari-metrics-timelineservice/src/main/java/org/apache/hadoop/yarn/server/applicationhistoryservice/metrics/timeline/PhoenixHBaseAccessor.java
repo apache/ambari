@@ -471,28 +471,23 @@ public class PhoenixHBaseAccessor {
 
     validateConditionIsNotEmpty(condition);
 
-    PreparedStatement stmt = null;
-    SplitByMetricNamesCondition splitCondition =
-      new SplitByMetricNamesCondition(condition);
+    PreparedStatement stmt;
 
-    for (String metricName: splitCondition.getOriginalMetricNames()) {
-      splitCondition.setCurrentMetric(metricName);
-      stmt = PhoenixTransactSQL.prepareGetLatestMetricSqlStmt(conn,
-        splitCondition);
-      ResultSet rs = null;
-      try {
-        rs = stmt.executeQuery();
-        while (rs.next()) {
-          TimelineMetric metric = getLastTimelineMetricFromResultSet(rs);
-          metrics.getMetrics().add(metric);
-        }
-      } finally {
-        if (rs != null) {
-          try {
-            rs.close();
-          } catch (SQLException e) {
-            // Ignore
-          }
+    stmt = PhoenixTransactSQL.prepareGetLatestMetricSqlStmt(conn,
+        condition);
+    ResultSet rs = null;
+    try {
+      rs = stmt.executeQuery();
+      while (rs.next()) {
+        TimelineMetric metric = getLastTimelineMetricFromResultSet(rs);
+        metrics.getMetrics().add(metric);
+      }
+    } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          // Ignore
         }
       }
     }

@@ -98,8 +98,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     // WHEN
     long endTime = ctime + minute;
     Condition condition = new DefaultCondition(
-      Collections.singletonList("disk_free"), "local1", null, null, startTime,
-      endTime, Precision.SECONDS, null, true);
+      Collections.singletonList("disk_free"), Collections.singletonList("local1"),
+      null, null, startTime, endTime, Precision.SECONDS, null, true);
     TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition,
       singletonValueFunctionMap("disk_free"));
 
@@ -133,8 +133,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
     // WHEN
     Condition condition = new DefaultCondition(
-        Collections.singletonList("disk_free"), "local1", null, null, startTime,
-        endTime, Precision.MINUTES, null, false);
+      Collections.singletonList("disk_free"), Collections.singletonList("local1"),
+      null, null, startTime, endTime, Precision.MINUTES, null, false);
     TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition,
       singletonValueFunctionMap("disk_free"));
 
@@ -184,8 +184,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
     // WHEN
     Condition condition = new DefaultCondition(
-        Collections.singletonList("disk_used"), "test_host", "test_app", null,
-        startTime, endTime, Precision.HOURS, null, true);
+      Collections.singletonList("disk_used"), Collections.singletonList("test_host"),
+      "test_app", null, startTime, endTime, Precision.HOURS, null, true);
     TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition,
       singletonValueFunctionMap("disk_used"));
 

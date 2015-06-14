@@ -28,7 +28,7 @@ public interface Condition {
   boolean isPointInTime();
   boolean isGrouped();
   void setStatement(String statement);
-  String getHostname();
+  List<String> getHostnames();
   Precision getPrecision();
   void setPrecision(Precision precision);
   String getAppId();

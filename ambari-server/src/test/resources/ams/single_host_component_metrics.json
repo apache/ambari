@@ -5,7 +5,7 @@
     "type": "Long",
     "metricname": "dfs.datanode.BlocksReplicated",
     "appid": "datanode",
-    "hostname": "c6402.ambari.apache.org",
+    "hostname": "h1",
     "starttime": 1416445244801,
     "metrics": {
       "1416445244801": 0.0,

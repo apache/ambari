@@ -52,7 +52,7 @@ public class MetricsSenderWorker implements Callable<String> {
     AppMetrics hostMetrics = hmg.createMetrics();
 
     try {
-      String request = new Json().serialize(hostMetrics);
+      String request = new Json().serialize(hostMetrics); //inject?
       String response = sender.pushMetrics(request);
 
       return response;
