@@ -21,7 +21,6 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
  * Is used to determine metrics aggregate table.
  *
  * @see org.apache.hadoop.yarn.server.applicationhistoryservice.webapp.TimelineWebServices#getTimelineMetric
- * @see org.apache.hadoop.yarn.server.applicationhistoryservice.webapp.TimelineWebServices#getTimelineMetrics
  */
 public enum Precision {
   SECONDS,

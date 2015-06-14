@@ -29,7 +29,7 @@ public interface TimelineMetricStore {
    * This method retrieves metrics stored byu the Timeline store.
    *
    * @param metricNames Names of the metric, e.g.: cpu_user
-   * @param hostname Name of the host where the metric originated from
+   * @param hostnames Names of the host where the metric originated from
    * @param applicationId Id of the application to which this metric belongs
    * @param instanceId Application instance id.
    * @param startTime Start timestamp
@@ -42,7 +42,7 @@ public interface TimelineMetricStore {
    * @return {@link TimelineMetric}
    * @throws java.sql.SQLException
    */
-  TimelineMetrics getTimelineMetrics(List<String> metricNames, String hostname,
+  TimelineMetrics getTimelineMetrics(List<String> metricNames, List<String> hostnames,
       String applicationId, String instanceId, Long startTime,
       Long endTime, Precision precision, Integer limit, boolean groupedByHosts)
     throws SQLException, IOException;
@@ -52,7 +52,7 @@ public interface TimelineMetricStore {
    * Return all records for a single metric satisfying the filter criteria.
    * @return {@link TimelineMetric}
    */
-  TimelineMetric getTimelineMetric(String metricName, String hostname,
+  TimelineMetric getTimelineMetric(String metricName, List<String> hostname,
       String applicationId, String instanceId, Long startTime,
       Long endTime, Precision precision, Integer limit)
       throws SQLException, IOException;

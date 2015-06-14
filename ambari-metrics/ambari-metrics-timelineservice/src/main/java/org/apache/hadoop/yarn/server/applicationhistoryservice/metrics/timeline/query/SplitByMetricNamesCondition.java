@@ -21,7 +21,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 
 import java.util.Collections;
 import java.util.List;
-
+// TODO get rid of this class
 public class SplitByMetricNamesCondition implements Condition {
   private final Condition adaptee;
   private String currentMetric;
@@ -56,8 +56,8 @@ public class SplitByMetricNamesCondition implements Condition {
   }
 
   @Override
-  public String getHostname() {
-    return adaptee.getHostname();
+  public List<String> getHostnames() {
+    return adaptee.getHostnames();
   }
 
   @Override
@@ -95,9 +95,22 @@ public class SplitByMetricNamesCondition implements Condition {
 
       appendConjunction = true;
     }
-
-    appendConjunction = DefaultCondition.append(sb, appendConjunction,
-      getHostname(), " HOSTNAME = ?");
+    // TODO prevent user from using this method with multiple hostnames and SQL LIMIT clause
+    if (getHostnames() != null && getHostnames().size() > 1) {
+      StringBuilder hostnamesCondition = new StringBuilder();
+      for (String hostname: getHostnames()) {
+        if (hostnamesCondition.length() > 0) {
+          hostnamesCondition.append(" ,");
+        } else {
+          hostnamesCondition.append(" HOSTNAME IN (");
+        }
+        hostnamesCondition.append('?');
+      }
+      hostnamesCondition.append(')');
+      appendConjunction = DefaultCondition.append(sb, appendConjunction, getHostnames(), hostnamesCondition.toString());
+    } else {
+      appendConjunction = DefaultCondition.append(sb, appendConjunction, getHostnames(), " HOSTNAME = ?");
+    }
     appendConjunction = DefaultCondition.append(sb, appendConjunction,
       getAppId(), " APP_ID = ?");
     appendConjunction = DefaultCondition.append(sb, appendConjunction,

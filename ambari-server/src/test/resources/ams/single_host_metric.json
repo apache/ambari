@@ -4,7 +4,7 @@
     "timestamp": 1416445244801,
     "metricname": "cpu_user",
     "appid": "HOST",
-    "hostname": "c6402.ambari.apache.org",
+    "hostname": "h1",
     "starttime": 1416445244801,
     "metrics": {
       "1416445244801": 4006.085,

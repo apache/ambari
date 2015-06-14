@@ -3,6 +3,7 @@
         "timestamp": 1416445244801,
         "metricname": "cpu_user",
         "appid": "HOST",
+        "hostname":"h1",
         "starttime": 1416445244801,
         "metrics": {
           "1416445244801": 4006.085,
@@ -123,6 +124,7 @@
         "timestamp": 1416445244801,
         "metricname": "mem_free",
         "appid": "HOST",
+        "hostname":"h1",
         "starttime": 1416445244801,
         "metrics": {
           "1416445244801": "2.46272E8",

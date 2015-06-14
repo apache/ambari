@@ -4,7 +4,6 @@
         "type": "Double",
         "metricname": "yarn.QueueMetrics.Queue=root.PendingMB",
         "appid": "resourcemanager",
-        "hostname": "h1",
         "starttime": 1416528759233,
         "metrics": {
             "1416528759233": 10.333333333333332,
@@ -252,7 +251,6 @@
         "type": "Double",
         "metricname": "yarn.QueueMetrics.Queue=root.AvailableMB",
         "appid": "resourcemanager",
-        "hostname": "h1",
         "starttime": 1416528759233,
         "metrics": {
             "1416528759233": 10.333333333333332,

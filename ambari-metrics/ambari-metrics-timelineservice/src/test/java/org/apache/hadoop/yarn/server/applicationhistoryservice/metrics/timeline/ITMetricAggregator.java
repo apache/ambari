@@ -36,6 +36,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,8 +90,9 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     TimelineMetrics metricsSent = prepareTimelineMetrics(startTime, "local");
     hdb.insertMetricRecords(metricsSent);
 
-    Condition queryCondition = new DefaultCondition(null, "local", null, null,
-      startTime, startTime + (15 * 60 * 1000), null, null, false);
+    Condition queryCondition = new DefaultCondition(null,
+        Collections.singletonList("local"), null, null, startTime,
+        startTime + (15 * 60 * 1000), null, null, false);
     TimelineMetrics recordRead = hdb.getMetricRecords(queryCondition, null);
 
     // THEN

@@ -31,8 +31,6 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
   .loadsimulator.net.RestMetricsSender;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .loadsimulator.net.StdOutMetricsSender;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
   .loadsimulator.util.TimeStampProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
