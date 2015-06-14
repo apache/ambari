@@ -142,7 +142,7 @@ def _call_wrapper(command, **kwargs):
       except ExecuteTimeoutException as ex:     
         if on_timeout:
           Logger.info("Executing '%s'. Reason: %s" % (on_timeout, str(ex)))
-          checked_call(on_timeout)
+          result = checked_call(on_timeout)
         else:
           raise
     except Fail as ex:
@@ -212,9 +212,9 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
                             preexec_fn=preexec_fn)
     
     if timeout:
-      timeout_event = threading.Event()
-      t = threading.Timer( timeout, _on_timeout, [proc, timeout_event] )
-      t.start()
+      timeout_happened=False
+      start = time.time()
+      end = start+timeout
       
     if not wait_for_finish:
       return proc
@@ -235,6 +235,10 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
     all_output = ""
                   
     while read_set:
+      if timeout and time.time()> end:
+        timeout_happened=True
+        proc.kill()
+        break
       ready, _, _ = select.select(read_set, [], [])
       for out_fd in read_set:
         if out_fd in ready:
@@ -258,7 +262,14 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
           if logoutput:
             _print(line)    
   
-    proc.wait()
+    # Wait for process to terminate
+    while proc.poll() == None:
+      if timeout and time.time()> end:
+        timeout_happened=True
+        proc.kill()
+        break
+      time.sleep(1)
+
   finally:
     for fp in files_to_close:
       fp.close()
@@ -268,10 +279,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
   all_output = all_output.strip('\n')
   
   if timeout: 
-    if not timeout_event.is_set():
-      t.cancel()
-    # timeout occurred
-    else:
+    if timeout_happened:
       err_msg = ("Execution of '%s' was killed due timeout after %d seconds") % (command, timeout)
       raise ExecuteTimeoutException(err_msg)
    
@@ -350,14 +358,6 @@ def string_cmd_from_args_list(command, auto_escape=True):
   escape_func = lambda x:quote_bash_args(x) if auto_escape else lambda x:x
   return ' '.join(escape_func(x) for x in command)
 
-def _on_timeout(proc, timeout_event):
-  timeout_event.set()
-  if proc.poll() == None:
-    try:
-      proc.terminate()
-    except:
-      pass
-    
 def _print(line):
   sys.stdout.write(line)
   sys.stdout.flush()
