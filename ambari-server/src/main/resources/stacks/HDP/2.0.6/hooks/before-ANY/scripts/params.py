@@ -151,6 +151,7 @@ gmond_user = config['configurations']['ganglia-env']["gmond_user"]
 tez_user = config['configurations']['tez-env']["tez_user"]
 oozie_user = config['configurations']['oozie-env']["oozie_user"]
 falcon_user = config['configurations']['falcon-env']["falcon_user"]
+ranger_user = config['configurations']['ranger-env']["ranger_user"]
 
 user_group = config['configurations']['cluster-env']['user_group']
 
@@ -159,6 +160,7 @@ namenode_host = default("/clusterHostInfo/namenode_host", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 falcon_server_hosts = default("/clusterHostInfo/falcon_server_hosts", [])
+ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 
 has_namenode = not len(namenode_host) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
@@ -166,10 +168,12 @@ has_tez = 'tez-site' in config['configurations']
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_oozie_server = not len(oozie_servers) == 0
 has_falcon_server_hosts = not len(falcon_server_hosts) == 0
+has_ranger_admin = not len(ranger_admin_hosts) == 0
 
 hbase_tmp_dir = "/tmp/hbase-hbase"
 
-proxyuser_group = default("/configurations/hadoop-env/proxyuser_group","users")
+proxyuser_group = config['configurations']['hadoop-env']['proxyuser_group']
+ranger_group = config['configurations']['ranger-env']['ranger_group']
 dfs_cluster_administrators_group = config['configurations']['hdfs-site']["dfs.cluster.administrators"]
 
 ignore_groupsusers_create = default("/configurations/cluster-env/ignore_groupsusers_create", False)
@@ -192,6 +196,8 @@ if has_oozie_server:
   user_to_groups_dict[oozie_user] = [proxyuser_group]
 if has_falcon_server_hosts:
   user_to_groups_dict[falcon_user] = [proxyuser_group]
+if has_ranger_admin:
+  user_to_groups_dict[ranger_user] = [ranger_group]
 
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
