@@ -17,19 +17,11 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.persistence.EntityManager;
-
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
@@ -48,11 +40,17 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Provider;
-import com.google.inject.persist.Transactional;
+import javax.persistence.EntityManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   @Inject
@@ -249,6 +247,10 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
             String configType = ConfigHelper.fileNameToConfigType(property.getFilename());
             Config clusterConfigs = cluster.getDesiredConfigByType(configType);
             if(clusterConfigs == null || !clusterConfigs.getProperties().containsKey(property.getName())) {
+              if (!checkAccordingToStackAdvisor(property, cluster)) {
+                continue;
+              }
+
               LOG.info("Config " + property.getName() + " from " + configType + " from xml configurations" +
                   " is not found on the cluster. Adding it...");
 
@@ -267,6 +269,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         }
       }
     }
+  }
+
+  protected boolean checkAccordingToStackAdvisor(PropertyInfo property, Cluster cluster) {
+    //TODO: in future, we can add here general filters
+    return true;
   }
 
   /**
