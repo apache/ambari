@@ -211,7 +211,7 @@ App.InstallerController = App.WizardController.extend({
           diskInfo: host.disk_info,
           diskTotal: disksOverallCapacity / (1024 * 1024),
           diskFree: diskFree / (1024 * 1024),
-          hostComponents: host.hostComponents
+          hostComponents: host.hostComponents || []
         }
       ))
     }
