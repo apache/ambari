@@ -2216,6 +2216,11 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEqual("kms://http@myhost1:2222/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
 
+    # Test - 'https' in KMS URL
+    configurations["ranger-kms-site"] = {"properties": {"ranger.service.https.attrib.ssl.enabled": "true"}}
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.assertEqual("kms://https@myhost1:2222/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
+
     # Test 8 - Dynamic maximum for 'dfs.namenode.handler.count'
     hosts['items'][1]['Hosts']['cpu_count'] = 9
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)

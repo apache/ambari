@@ -217,12 +217,18 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           keyserverPortString = services["configurations"]["kms-env"]["properties"]["kms_port"]
 
     if keyserverHostsString is not None and len(keyserverHostsString.strip()) > 0:
+      urlScheme = "http"
+      if "ranger-kms-site" in services["configurations"] and \
+          "ranger.service.https.attrib.ssl.enabled" in services["configurations"]["ranger-kms-site"]["properties"] and \
+          services["configurations"]["ranger-kms-site"]["properties"]["ranger.service.https.attrib.ssl.enabled"].lower() == "true":
+        urlScheme = "https"
+
       if keyserverPortString is None or len(keyserverPortString.strip()) < 1:
         keyserverPortString = ":9292"
       else:
         keyserverPortString = ":" + keyserverPortString.strip()
       putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
-      kmsPath = "kms://http@" + keyserverHostsString.strip() + keyserverPortString + "/kms"
+      kmsPath = "kms://" + urlScheme + "@" + keyserverHostsString.strip() + keyserverPortString + "/kms"
       putCoreSiteProperty("hadoop.security.key.provider.path", kmsPath)
       putHdfsSiteProperty("dfs.encryption.key.provider.uri", kmsPath)
 

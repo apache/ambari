@@ -123,6 +123,9 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
       if (stackProperty.get('propertyDependedBy.length')) {
         this._setDependentServices(stackProperty, 'propertyDependedBy', service);
       }
+      if (stackProperty.get('propertyDependsOn.length')) {
+        this._setDependentServices(stackProperty, 'propertyDependsOn', service);
+      }
     }, this);
   },
   /**
