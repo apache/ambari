@@ -18,6 +18,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <name>TEZ</name>
   <label>Tez View</label>
   <version>${tez.view.version}</version>
+  <build>${env.BUILD_NUMBER}</build>
   <description>Ambari view for Apache Tez</description>
 
   <parameter>
