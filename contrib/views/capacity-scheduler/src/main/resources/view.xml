@@ -18,6 +18,7 @@
     <name>CAPACITY-SCHEDULER</name>
     <label>Capacity Scheduler</label>
     <version>1.0.0</version>
+    <build>${env.BUILD_NUMBER}</build>
 
     <min-ambari-version>2.1.*</min-ambari-version>
 
