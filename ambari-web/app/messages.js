@@ -1451,6 +1451,7 @@ Em.I18n.translations = {
   'admin.stackUpgrade.finalize.message.testServices': "You are strongly recommended to test these services before finalizing upgrade.",
   'admin.stackUpgrade.doThisLater': "Do This Later",
   'admin.stackUpgrade.pauseUpgrade': "Pause Upgrade",
+  'admin.stackUpgrade.pauseDowngrade': "Pause Downgrade",  
   'admin.stackUpgrade.downgrade.proceed': "Proceed with Downgrade",
   'admin.stackUpgrade.downgrade.body': "Are you sure you wish to abort the upgrade process and downgrade to <b>{0}</b>?",
   'admin.stackUpgrade.upgrade.confirm.body': "You are about to perform an upgrade to {0}.",
