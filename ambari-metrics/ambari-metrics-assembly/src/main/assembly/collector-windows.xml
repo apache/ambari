@@ -27,7 +27,7 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${collector.dir}/target/embedded/${hbase.folder}</directory>
+      <directory>${collector.dir}/target/embedded/${hbase.winpkg.folder}</directory>
       <outputDirectory>hbase</outputDirectory>
     </fileSet>
     <fileSet>
@@ -80,7 +80,7 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>${project.build.directory}/embedded/hadoop.temp/resources/${hadoop.folder}/bin</directory>
+      <directory>${project.build.directory}/embedded/hadoop.temp/resources/${hadoop.winpkg.folder}/bin</directory>
       <outputDirectory>hbase/bin</outputDirectory>
       <includes>
         <include>*.dll</include>
