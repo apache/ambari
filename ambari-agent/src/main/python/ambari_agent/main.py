@@ -30,6 +30,7 @@ import time
 import platform
 import ConfigParser
 import ProcessHelper
+from logging.handlers import SysLogHandler
 from Controller import Controller
 import AmbariConfig
 from NetUtil import NetUtil
@@ -52,6 +53,9 @@ config = AmbariConfig.AmbariConfig()
 configFile = config.getConfigFile()
 two_way_ssl_property = config.TWO_WAY_SSL_PROPERTY
 
+IS_LINUX = platform.system() == "Linux"
+SYSLOG_FORMAT_STRING = ' ambari_agent - %(filename)s - [%(process)d] - %(name)s - %(levelname)s - %(message)s'
+SYSLOG_FORMATTER = logging.Formatter(SYSLOG_FORMAT_STRING)
 
 
 def setup_logging(verbose):
@@ -59,7 +63,7 @@ def setup_logging(verbose):
   rotateLog = logging.handlers.RotatingFileHandler(AmbariConfig.AmbariConfig.getLogFile(), "a", 10000000, 25)
   rotateLog.setFormatter(formatter)
   logger.addHandler(rotateLog)
-
+      
   if verbose:
     logging.basicConfig(format=formatstr, level=logging.DEBUG, filename=AmbariConfig.AmbariConfig.getLogFile())
     logger.setLevel(logging.DEBUG)
@@ -69,7 +73,19 @@ def setup_logging(verbose):
     logger.setLevel(logging.INFO)
     logger.info("loglevel=logging.INFO")
 
-
+def add_syslog_handler(logger):
+    
+  syslog_enabled = config.has_option("logging","syslog_enabled") and (int(config.get("logging","syslog_enabled")) == 1)
+      
+  #add syslog handler if we are on linux and syslog is enabled in ambari config
+  if syslog_enabled and IS_LINUX:
+    logger.info("Adding syslog handler to ambari agent logger")
+    syslog_handler = SysLogHandler(address="/dev/log",
+                                   facility=SysLogHandler.LOG_LOCAL1)
+        
+    syslog_handler.setFormatter(SYSLOG_FORMATTER)
+    logger.addHandler(syslog_handler)
+    
 def update_log_level(config):
   # Setting loglevel based on config file
   global logger
@@ -234,6 +250,9 @@ def main(heartbeat_stop_callback=None):
 
   # Check for ambari configuration file.
   resolve_ambari_config()
+  
+  # Add syslog hanlder based on ambari config file
+  add_syslog_handler(logger)
 
   # Starting data cleanup daemon
   data_cleaner = None
