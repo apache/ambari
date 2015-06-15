@@ -52,6 +52,10 @@
         <type>hadoop-env</type>
         <name>keyserver_port</name>
       </property>
+      <property>
+        <type>ranger-kms-site</type>
+        <name>ranger.service.https.attrib.ssl.enabled</name>
+      </property>
     </depends-on>
   </property>
 

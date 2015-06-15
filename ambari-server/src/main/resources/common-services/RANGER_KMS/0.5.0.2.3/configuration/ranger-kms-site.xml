@@ -49,4 +49,11 @@
     <name>xa.webapp.dir</name>
     <value>./webapp</value>
   </property> 
+  
+  <property>
+    <name>ranger.service.https.attrib.ssl.enabled</name>
+    <value>false</value>
+    <description></description>
+  </property>
+
 </configuration>
