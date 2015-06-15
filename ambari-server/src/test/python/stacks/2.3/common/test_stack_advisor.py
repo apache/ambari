@@ -340,7 +340,6 @@ class TestHDP23StackAdvisor(TestCase):
         },
         'property_attributes': {
          'hive.security.authorization.manager': {'delete': 'true'},
-         'hive.security.authorization.enabled': {'delete': 'true'},
          'hive.security.authenticator.manager': {'delete': 'true'}
         }
       }

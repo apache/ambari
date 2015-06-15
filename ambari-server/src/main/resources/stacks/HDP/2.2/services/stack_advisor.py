@@ -363,12 +363,13 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     # Security
     putHiveEnvProperty("hive_security_authorization", "None")
     # hive_security_authorization == 'none'
+    # this property is unrelated to Kerberos
     if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "none":
-      putHiveSiteProperty("hive.security.authorization.enabled", "false")
       putHiveSiteProperty("hive.security.authorization.manager", "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory")
       putHiveServerPropertyAttribute("hive.security.authorization.manager", "delete", "true")
-      putHiveServerPropertyAttribute("hive.security.authorization.enabled", "delete", "true")
       putHiveServerPropertyAttribute("hive.security.authenticator.manager", "delete", "true")
+      if "KERBEROS" not in servicesList: # Kerberos security depends on this property
+        putHiveSiteProperty("hive.security.authorization.enabled", "false")
     else:
       putHiveSiteProperty("hive.security.authorization.enabled", "true")
 
@@ -423,7 +424,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     if hive_server2_auth == "kerberos":
       putHiveSiteProperty("hive.server2.authentication.kerberos.keytab", "")
       putHiveSiteProperty("hive.server2.authentication.kerberos.principal", "")
-    else:
+    elif "KERBEROS" not in servicesList: # Since 'hive_server2_auth' cannot be relied on within the default, empty recommendations request
       putHiveSitePropertyAttribute("hive.server2.authentication.kerberos.keytab", "delete", "true")
       putHiveSitePropertyAttribute("hive.server2.authentication.kerberos.principal", "delete", "true")
 
