@@ -19,6 +19,7 @@
 package org.apache.ambari.server.events.listeners.upgrade;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -222,6 +223,47 @@ public class HostVersionOutOfSyncListenerTest {
     }
 
     assertTrue(atLeastOneOutOfSync);
+  }
+
+
+  /**
+   * When a service with components that don't advertise their versions
+   * is added to a cluster, all non-CURRENT host versions on
+   * all affected hosts (where host new components are installed)
+   * should NOT transition to OUT_OF_SYNC state
+   */
+  @Test
+  public void testOnServiceEvent_component_does_not_advertise_version() throws AmbariException {
+    String INSTALLED_VERSION = "1.0-1000";
+    StackId stackId = new StackId(this.stackId);
+
+    createClusterAndHosts(INSTALLED_VERSION, stackId);
+
+    //Add Ganglia service
+    List<String> hostList = new ArrayList<String>();
+    hostList.add("h1");
+    hostList.add("h2");
+    hostList.add("h3");
+    Map<String, List<Integer>> hdfsTopology = new HashMap<String, List<Integer>>();
+    hdfsTopology.put("GANGLIA_SERVER", Collections.singletonList(0));
+    List<Integer> monitorHosts = Arrays.asList(0, 1);
+    hdfsTopology.put("GANGLIA_MONITOR", new ArrayList<Integer>(monitorHosts));
+    addService(c1, hostList, hdfsTopology, "GANGLIA");
+
+    // Check result
+    Set<String> changedHosts = new HashSet<String>();
+    changedHosts.add("h1");
+    changedHosts.add("h2");
+
+    List<HostVersionEntity> hostVersions = hostVersionDAO.findAll();
+
+    // Host version should not transition to OUT_OF_SYNC state
+    checkStackVersionState(stackId.getStackId(), INSTALLED_VERSION, RepositoryVersionState.INSTALLED);
+    for (HostVersionEntity hostVersionEntity : hostVersions) {
+      if (hostVersionEntity.getRepositoryVersion().getVersion().equals(INSTALLED_VERSION)) {
+        assertEquals(hostVersionEntity.getState(), RepositoryVersionState.INSTALLED);
+      }
+    }
   }
 
   /**
