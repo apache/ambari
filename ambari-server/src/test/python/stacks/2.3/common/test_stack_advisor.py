@@ -475,10 +475,195 @@ class TestHDP23StackAdvisor(TestCase):
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
-    # Test JDK1.8
+    # Test JDK1.9
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.9.2_44'}
     expected['hive-site']['properties']['hive.tez.java.opts'] = "-server -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps"
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendTezConfigurations(self):
+    self.maxDiff = None
+    configurations = {
+      "yarn-site": {
+        "properties": {
+          "yarn.scheduler.minimum-allocation-mb": "256",
+          "yarn.scheduler.maximum-allocation-mb": "8192",
+        },
+      },
+      "capacity-scheduler": {
+        "properties": {
+          "yarn.scheduler.capacity.root.queues": "queue1,queue2"
+        }
+      }
+    }
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 3000,
+      "amMemory": 2000,
+      "reduceMemory": 2056,
+      "containers": 3,
+      "ramPerContainer": 256
+    }
+    expected = {
+      "capacity-scheduler": {
+        "properties": {
+          "yarn.scheduler.capacity.root.queues": "queue1,queue2"
+        }
+      },
+      "tez-site": {
+        "properties": {
+          "tez.task.resource.memory.mb": "768",
+          "tez.am.launch.cmd-opts": "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC",
+          "tez.task.launch.cmd-opts": "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC",
+          "tez.runtime.io.sort.mb": "307",
+          "tez.session.am.dag.submit.timeout.secs": "600",
+          "tez.runtime.unordered.output.buffer.size-mb": "57",
+          "tez.am.resource.memory.mb": "4000"
+        }
+      },
+      "yarn-site": {
+        "properties": {
+          "yarn.scheduler.minimum-allocation-mb": "256",
+          "yarn.scheduler.maximum-allocation-mb": "8192"
+        }
+      }
+    }
+    services = {
+      "services": [
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/YARN",
+          "StackServices": {
+            "service_name": "YARN",
+            "service_version": "2.6.0.2.2",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1",
+                "component_category": "MASTER",
+                "component_name": "APP_TIMELINE_SERVER",
+                "display_name": "App Timeline Server",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": []
+              },
+              "dependencies": []
+            },
+            {
+              "StackServiceComponents": {
+                "advertise_version": "true",
+                "cardinality": "1+",
+                "component_category": "SLAVE",
+                "component_name": "NODEMANAGER",
+                "display_name": "NodeManager",
+                "is_client": "false",
+                "is_master": "false",
+                "hostnames": [
+                  "c6403.ambari.apache.org"
+                ]
+              },
+              "dependencies": []
+            },
+            {
+              "StackServiceComponents": {
+                "advertise_version": "true",
+                "cardinality": "1-2",
+                "component_category": "MASTER",
+                "component_name": "RESOURCEMANAGER",
+                "display_name": "ResourceManager",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": []
+              },
+              "dependencies": []
+            },
+            {
+              "StackServiceComponents": {
+                "advertise_version": "true",
+                "cardinality": "1+",
+                "component_category": "CLIENT",
+                "component_name": "YARN_CLIENT",
+                "display_name": "YARN Client",
+                "is_client": "true",
+                "is_master": "false",
+                "hostnames": []
+              },
+              "dependencies": []
+            }
+          ]
+        },
+      ],
+      "configurations": configurations,
+      "changed-configurations": [ ],
+      "ambari-server-properties": {}
+    }
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6401.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6401.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        },
+        {
+          "href" : "/api/v1/hosts/c6402.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6402.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6402.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        },
+        {
+          "href" : "/api/v1/hosts/c6403.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6403.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6403.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }
+      ]
+    }
+
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+    # Test JDK1.7
+    services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+    # Test JDK1.8
+    services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.8_44'}
+    expected['tez-site']['properties']['tez.am.launch.cmd-opts'] = "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB"
+    expected['tez-site']['properties']['tez.task.launch.cmd-opts'] = "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB"
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+    # Test JDK1.9
+    services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.9.2_44'}
+    expected['tez-site']['properties']['tez.am.launch.cmd-opts'] = "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB"
+    expected['tez-site']['properties']['tez.task.launch.cmd-opts'] = "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB"
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
   def test_validateHiveConfigurations(self):

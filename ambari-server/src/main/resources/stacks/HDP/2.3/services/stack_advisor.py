@@ -76,11 +76,24 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       pass
     pass
 
-
     if latest_tez_jar_version:
       tez_url = 'http://{0}:{1}/views/TEZ/{2}/TEZ_CLUSTER_INSTANCE'.format(server_host, server_port, latest_tez_jar_version)
       putTezProperty("tez.tez-ui.history-url.base", tez_url)
     pass
+
+    # TEZ JVM options
+    jvmGCParams = "-XX:+UseParallelGC"
+    if "ambari-server-properties" in services and "java.home" in services["ambari-server-properties"]:
+      # JDK8 needs different parameters
+      match = re.match(".*\/jdk(1\.\d+)[\-\_\.][^/]*$", services["ambari-server-properties"]["java.home"])
+      if match and len(match.groups()) > 0:
+        # Is version >= 1.8
+        versionSplits = re.split("\.", match.group(1))
+        if versionSplits and len(versionSplits) > 1 and int(versionSplits[0]) > 0 and int(versionSplits[1]) > 7:
+          jvmGCParams = "-XX:+UseG1GC -XX:+ResizeTLAB"
+    putTezProperty('tez.am.launch.cmd-opts', "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA " + jvmGCParams)
+    putTezProperty('tez.task.launch.cmd-opts', "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA " + jvmGCParams)
+
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
@@ -155,7 +168,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       if match and len(match.groups()) > 0:
         # Is version >= 1.8
         versionSplits = re.split("\.", match.group(1))
-        if versionSplits and len(versionSplits)>1 and int(versionSplits[0])>0 and int(versionSplits[1])>7:
+        if versionSplits and len(versionSplits) > 1 and int(versionSplits[0]) > 0 and int(versionSplits[1]) > 7:
           jvmGCParams = "-XX:+UseG1GC -XX:+ResizeTLAB"
     putHiveSiteProperty('hive.tez.java.opts', "-server -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA " + jvmGCParams + " -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps")
 
