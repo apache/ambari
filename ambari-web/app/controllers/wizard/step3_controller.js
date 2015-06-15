@@ -265,10 +265,19 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   loadStep: function () {
     console.log("TRACE: Loading step3: Confirm Hosts");
-    this.disablePreviousSteps();
-    this.clearStep();
-    App.router.get('clusterController').loadAmbariProperties();
-    this.loadHosts();
+    var wizardController = this.get('wizardController');
+    var previousStep = wizardController && wizardController.get('previousStep');
+    var currentStep = wizardController && wizardController.get('currentStep');
+    var isHostsLoaded = this.get('hosts').length !== 0;
+    var isPrevAndCurrStepsSetted = previousStep && currentStep;
+    var isPrevStepSmallerThenCurrent = previousStep < currentStep;
+    if (!isHostsLoaded || isPrevStepSmallerThenCurrent || 
+        !wizardController || !isPrevAndCurrStepsSetted) {
+      this.disablePreviousSteps();
+      this.clearStep();
+      App.router.get('clusterController').loadAmbariProperties();
+      this.loadHosts();
+    }
   },
 
   /**

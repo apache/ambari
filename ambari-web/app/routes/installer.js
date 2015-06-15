@@ -217,7 +217,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var wizardStep4Controller = router.get('wizardStep4Controller');
       controller.saveServices(wizardStep4Controller);
       controller.saveClients(wizardStep4Controller);
-
       router.get('wizardStep5Controller').clearRecommendations(); // Force reload recommendation between steps 4 and 5
       controller.setDBProperty('recommendations', undefined);
       controller.setDBProperty('masterComponentHosts', undefined);
@@ -417,7 +416,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         var installerController = router.get('installerController');
         var wizardStep9Controller = router.get('wizardStep9Controller');
         installerController.saveInstalledHosts(wizardStep9Controller);
-
         installerController.saveClusterState('CLUSTER_INSTALLED_4');
         router.transitionTo('step10');
       }

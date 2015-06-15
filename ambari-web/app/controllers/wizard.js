@@ -24,6 +24,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   isStepDisabled: null,
 
+  previousStep: 0,
   /**
    * map of actions which load data required by which step
    * used by <code>loadAllPriorSteps</code>
@@ -146,6 +147,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * @param completed
    */
   setCurrentStep: function (currentStep, completed) {
+    this.set('previousStep', this.get('currentStep'));
     App.db.setWizardCurrentStep(this.get('name').substr(0, this.get('name').length - 10), currentStep, completed);
     this.set('currentStep', currentStep);
   },
