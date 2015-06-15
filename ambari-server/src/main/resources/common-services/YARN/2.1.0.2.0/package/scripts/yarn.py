@@ -302,6 +302,21 @@ def yarn(name = None):
               group=params.user_group
     )
 
+    Directory(params.hadoop_conf_secure_dir,
+              recursive=True,
+              owner='root',
+              group=params.user_group,
+              cd_access='a',
+              )
+
+    XmlConfig("ssl-client.xml",
+              conf_dir=params.hadoop_conf_secure_dir,
+              configurations=params.config['configurations']['ssl-client'],
+              configuration_attributes=params.config['configuration_attributes']['ssl-client'],
+              owner=params.hdfs_user,
+              group=params.user_group
+    )
+
   if "ssl-server" in params.config['configurations']:
     XmlConfig("ssl-server.xml",
               conf_dir=params.hadoop_conf_dir,
