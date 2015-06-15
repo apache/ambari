@@ -24,12 +24,12 @@
                 "value": "atlas/_HOST@${realm}",
                 "type" : "service",
                 "configuration": "application-properties/atlas.authentication.principal",
-                "local_username" : "${metadata-env/metadata_user}"
+                "local_username" : "${atlas-env/metadata_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/atlas.service.keytab",
                 "owner": {
-                  "name": "${metadata-env/metadata_user}",
+                  "name": "${atlas-env/metadata_user}",
                   "access": "r"
                 },
                 "group": {
