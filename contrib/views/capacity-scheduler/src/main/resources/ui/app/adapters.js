@@ -83,18 +83,12 @@ App.QueueAdapter = DS.Adapter.extend({
   saveMark:'',
 
   updateRecord:function (store,type,record) {
-    var adapter = this;
-    var saveMark = this.get('saveMark'),
+    var adapter = this,
         uri = _getCapacitySchedulerViewUri(this),
         serializer = store.serializerFor('queue'),
         props = serializer.serializeConfig(record),
         new_tag = 'version' + Math.floor(+moment()),
-        postSaveUri,data;
-
-    if (saveMark) {
-      postSaveUri = [_getCapacitySchedulerViewUri(this),saveMark].join('/');
-      this.set('saveMark','');
-    }
+        data;
 
     data = JSON.stringify({'Clusters':
       {'desired_config':
@@ -114,16 +108,21 @@ App.QueueAdapter = DS.Adapter.extend({
       }, function(jqXHR) {
         jqXHR.then = null;
         Ember.run(null, reject, jqXHR);
-      }).then(function () {
-        if (postSaveUri) {
-          adapter.postSave(postSaveUri);
-        }
       });
     },'App: QueueAdapter#updateRecord save config woth ' + new_tag + ' tag');
   },
 
-  postSave:function(uri){
-    this.ajax(uri,'PUT',{contentType:'application/json; charset=utf-8',data:JSON.stringify({save:true})});
+  relaunchCapSched: function (opt) {
+    if (!opt) return;
+    var uri = [_getCapacitySchedulerViewUri(this),opt].join('/');
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      this.ajax(uri,'PUT',{contentType:'application/json; charset=utf-8',data:JSON.stringify({save:true})})
+      .then(function (data) {
+        resolve(data);
+      },function (error) {
+        reject(error);
+      });
+    }.bind(this),'App: QueueAdapter#relaunchCapSched ' + opt + ' capacity-scheduler');
   },
 
   /**
