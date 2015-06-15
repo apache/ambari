@@ -586,12 +586,12 @@
                       dest="${project.build.directory}/embedded/hbase.temp"
                       />
                     <unzip
-                      src="${project.build.directory}/embedded/hbase.temp/resources/${hbase.folder}.zip"
+                      src="${project.build.directory}/embedded/hbase.temp/resources/${hbase.winpkg.folder}.zip"
                       dest="${project.build.directory}/embedded"
                       />
                     <copy
                       file="${project.build.directory}/embedded/hbase.temp/resources/servicehost.exe"
-                      tofile="${project.build.directory}/embedded/${hbase.folder}/bin/ams_hbase_master.exe"
+                      tofile="${project.build.directory}/embedded/${hbase.winpkg.folder}/bin/ams_hbase_master.exe"
                       />
                   </target>
                 </configuration>
