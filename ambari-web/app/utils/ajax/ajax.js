@@ -1532,6 +1532,7 @@ var urls = {
             "downgrade": "true"
           },
           "Upgrade": {
+            "from_version": data.from,
             "repository_version": data.value
           }
         })
