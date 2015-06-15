@@ -931,6 +931,11 @@ class TestHDP22StackAdvisor(TestCase):
         "properties": {
           "yarn.scheduler.capacity.root.queues": "queue1,queue2"
         }
+      },
+      "hive-site": {
+        "properties": {
+          "hive.server2.authentication": "none"
+        }
       }
     }
     clusterData = {
@@ -1001,7 +1006,8 @@ class TestHDP22StackAdvisor(TestCase):
           'hive.vectorized.execution.enabled': 'true',
           'hive.vectorized.execution.reduce.enabled': 'false',
           'hive.security.metastore.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider',
-          'hive.security.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory'
+          'hive.security.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory',
+          "hive.server2.authentication": "none"
         },
        'property_attributes': {
          'hive.auto.convert.join.noconditionaltask.size': {'maximum': '805306368'},
@@ -1021,7 +1027,6 @@ class TestHDP22StackAdvisor(TestCase):
         },
         'property_attributes': {
          'hive.security.authorization.manager': {'delete': 'true'},
-         'hive.security.authorization.enabled': {'delete': 'true'},
          'hive.security.authenticator.manager': {'delete': 'true'}
         }
       }
