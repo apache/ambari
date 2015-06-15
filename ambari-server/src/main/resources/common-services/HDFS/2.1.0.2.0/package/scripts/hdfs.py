@@ -20,7 +20,6 @@ Ambari Agent
 """
 
 from resource_management import *
-import sys
 import os
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -65,6 +64,21 @@ def hdfs(name=None):
   if "ssl-client" in params.config['configurations']:
     XmlConfig("ssl-client.xml",
               conf_dir=params.hadoop_conf_dir,
+              configurations=params.config['configurations']['ssl-client'],
+              configuration_attributes=params.config['configuration_attributes']['ssl-client'],
+              owner=params.hdfs_user,
+              group=params.user_group
+    )
+
+    Directory(params.hadoop_conf_secure_dir,
+              recursive=True,
+              owner='root',
+              group=params.user_group,
+              cd_access='a',
+              )
+
+    XmlConfig("ssl-client.xml",
+              conf_dir=params.hadoop_conf_secure_dir,
               configurations=params.config['configurations']['ssl-client'],
               configuration_attributes=params.config['configuration_attributes']['ssl-client'],
               owner=params.hdfs_user,

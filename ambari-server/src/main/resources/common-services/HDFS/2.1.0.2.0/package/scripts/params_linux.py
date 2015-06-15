@@ -72,6 +72,7 @@ hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
 hadoop_home = hdp_select.get_hadoop_dir("home")
 hadoop_secure_dn_user = hdfs_user
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 hadoop_lib_home = hdp_select.get_hadoop_dir("lib")
 
 # hadoop parameters for 2.2+
