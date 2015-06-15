@@ -21,7 +21,7 @@
   <services>
     <service>
       <name>STORM</name>
-      <version>0.9.3.2.3</version>
+      <version>0.10.0</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat7,redhat6,suse11</osFamily>
