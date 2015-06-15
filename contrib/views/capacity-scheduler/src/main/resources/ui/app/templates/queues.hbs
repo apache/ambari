@@ -57,6 +57,18 @@
         </div>
       {{/if}}
   </div>
+  {{!-- ALERT --}}
+  {{#if alertMessage}}
+  <div class="alert alert-danger">
+    <button {{action 'clearAlert'}}type="button" class="close" aria-hidden="true">&times;</button>
+    <strong> {{alertMessage.status}} </strong> {{alertMessage.simpleMessage}}
+    <div>
+      <small>{{alertMessage.message}}</small>
+    </div>
+    <br>
+    {{#link-to 'trace' class="alert-link"}}Trace{{/link-to}}
+  </div>
+  {{/if}}
   {{!-- QUEUE LIST --}}
   <div class="list-group queue-list">
     {{recurce-queues depth=0}}
@@ -97,16 +109,6 @@
       </div>
     </div>
   </div>
-
-  {{!-- ALERT --}}
-  {{#if alertMessage}}
-  <div class="alert alert-danger">
-    <button {{action 'clearAlert'}}type="button" class="close" aria-hidden="true">&times;</button>
-    <strong> {{alertMessage.status}} </strong> {{alertMessage.message}}
-    <br>
-    {{#link-to 'trace' class="alert-link"}}Trace{{/link-to}}
-  </div>
-  {{/if}}
 </div>
 
 {{!-- QUEUE --}}

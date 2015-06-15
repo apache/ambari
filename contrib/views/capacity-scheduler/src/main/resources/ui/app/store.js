@@ -303,12 +303,8 @@ App.ApplicationStore = DS.Store.extend({
 
   isInitialized: Ember.computed.and('tag', 'clusterName'),
 
-  markForRefresh:function () {
-    this.set('defaultAdapter.saveMark','saveAndRefresh');
-  },
-
-  markForRestart:function () {
-    this.set('defaultAdapter.saveMark','saveAndRestart');
+  relaunchCapSched: function (opt) {
+    return this.get('defaultAdapter').relaunchCapSched(opt);
   },
 
   flushPendingSave: function() {

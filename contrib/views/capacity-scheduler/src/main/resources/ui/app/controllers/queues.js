@@ -97,23 +97,30 @@ App.QueuesController = Ember.ArrayController.extend({
       }
     },
     saveConfig:function (mark) {
-      if (mark == 'restart') {
-        this.get('store').markForRestart();
-      } else if (mark == 'refresh') {
-        this.get('store').markForRefresh();
-      }
       var collectedLabels = this.get('model').reduce(function (prev,q) {
         return prev.pushObjects(q.get('labels.content'));
       },[]);
 
       var scheduler = this.get('scheduler').save(),
           model = this.get('model').save(),
-          labels = DS.ManyArray.create({content:collectedLabels}).save();
+          labels = DS.ManyArray.create({content:collectedLabels}).save(),
+          opt = '';
+
+      if (mark == 'restart') {
+        opt = 'saveAndRestart';
+      } else if (mark == 'refresh') {
+        opt = 'saveAndRefresh';
+      }
 
       Em.RSVP.Promise.all([labels,model,scheduler]).then(
         Em.run.bind(this,'saveSuccess'),
-        Em.run.bind(this,'saveError')
-      );
+        Em.run.bind(this,'saveConfigError','save')
+      ).then(function () {
+        if (opt) {
+          return this.get('store').relaunchCapSched(opt);
+        }
+      }.bind(this))
+      .catch(Em.run.bind(this,'saveConfigError',mark));
 
     },
     clearAlert:function () {
@@ -194,8 +201,9 @@ App.QueuesController = Ember.ArrayController.extend({
     this.set('store.deletedQueues',[]);
   },
 
-  saveError:function (error) {
-    var response = JSON.parse(error.responseText);
+  saveConfigError:function (operation, error) {
+    var response = error.responseJSON;
+    response.simpleMessage = operation.capitalize() + ' failed!';
     this.set('alertMessage',response);
   },
 

@@ -23,7 +23,6 @@ import org.apache.ambari.view.capacityscheduler.utils.MisconfigurationFormattedE
 import org.apache.ambari.view.capacityscheduler.utils.ServiceFormattedException;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
 import org.apache.commons.io.IOUtils;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.slf4j.Logger;
@@ -240,7 +239,7 @@ public class ConfigurationService {
     Response response;
 
     try {
-      String url = String.format(RM_GET_NODE_LABEL_URL, getRMHost());
+      String url = String.format(RM_GET_NODE_LABEL_URL, getRMUrl());
 
       InputStream rmResponse = context.getURLStreamProvider().readFrom(
           url, "GET", (String) null, new HashMap<String, String>());
@@ -434,8 +433,8 @@ public class ConfigurationService {
         return Response.status(401).build();
       }
 
-      String rmHost = getRMHost();
-      JSONObject data = getJsonObject(String.format(REFRESH_RM_REQUEST_DATA, rmHost));
+      String rmHosts = getRMHosts();
+      JSONObject data = getJsonObject(String.format(REFRESH_RM_REQUEST_DATA, rmHosts));
 
       Map<String, String> headers = new HashMap<String, String>();
       headers.put("Content-Type", "application/x-www-form-urlencoded");
@@ -465,9 +464,9 @@ public class ConfigurationService {
         return Response.status(401).build();
       }
 
-      String rmHost = getRMHost();
+      String rmHosts = getRMHosts();
       JSONObject data = getJsonObject(String.format(RESTART_RM_REQUEST_DATA,
-          ambariApi.getCluster().getName(), rmHost, rmHost));
+          ambariApi.getCluster().getName(), rmHosts, rmHosts));
 
       Map<String, String> headers = new HashMap<String, String>();
       headers.put("Content-Type", "application/x-www-form-urlencoded");
@@ -481,8 +480,20 @@ public class ConfigurationService {
     return readLatestConfiguration();
   }
 
-  private String getRMHost() {
+  private String getRMUrl() {
     return ambariApi.getServices().getRMUrl();
   }
 
+  private String getRMHosts() {
+    StringBuilder hosts = new StringBuilder();
+    boolean first = true;
+    for (String host : ambariApi.getHostsWithComponent("RESOURCEMANAGER")) {
+      if (!first) {
+        hosts.append(",");
+      }
+      hosts.append(host);
+      first = false;
+    }
+    return hosts.toString();
+  }
 } // end ConfigurationService
