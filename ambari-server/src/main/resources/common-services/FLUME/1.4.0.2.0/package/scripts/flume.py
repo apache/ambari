@@ -58,7 +58,8 @@ def flume(action = None):
       flume_agent_log4j_file = os.path.join(flume_agent_conf_dir, 'log4j.properties')
       flume_agent_env_file = os.path.join(flume_agent_conf_dir, 'flume-env.ps1')
 
-      Directory(flume_agent_conf_dir)
+      Directory(flume_agent_conf_dir
+      )
 
       PropertiesFile(flume_agent_conf_file,
                      properties=flume_agents[agent])
@@ -90,6 +91,9 @@ def flume(action = None):
       File(os.path.join(params.flume_conf_dir, n, 'ambari-meta.json'),
         action = "delete",
       )
+      
+    Directory(params.flume_run_dir,
+    )
 
     Directory(params.flume_conf_dir,
               recursive=True,
