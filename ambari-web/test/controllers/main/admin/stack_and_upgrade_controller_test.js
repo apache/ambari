@@ -638,18 +638,31 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     before(function () {
       sinon.stub(App.ajax, 'send', Em.K);
       sinon.stub(controller, 'abortUpgrade');
+      sinon.stub(App.RepositoryVersion, 'find').returns([
+        Em.Object.create({
+          displayName: 'HDP-2.3',
+          repositoryVersion: '2.3'
+        })
+      ]);
     });
     after(function () {
       App.ajax.send.restore();
       controller.abortUpgrade.restore();
+      App.RepositoryVersion.find.restore();
     });
     it("make ajax call", function() {
+      controller.set('upgradeVersion', 'HDP-2.3');
       controller.downgrade(Em.Object.create({
         repository_version: '2.2',
         repository_name: 'HDP-2.2'
       }), {context: 'context'});
       expect(controller.abortUpgrade.calledOnce).to.be.true;
-      expect(App.ajax.send.getCall(0).args[0].data).to.eql({"value": '2.2', "label": 'HDP-2.2', isDowngrade: true});
+      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+        value: '2.2',
+        label: 'HDP-2.2',
+        from: '2.3',
+        isDowngrade: true
+      });
       expect(App.ajax.send.getCall(0).args[0].name).to.eql('admin.downgrade.start');
       expect(App.ajax.send.getCall(0).args[0].sender).to.eql(controller);
       expect(App.ajax.send.getCall(0).args[0].success).to.eql('upgradeSuccessCallback');

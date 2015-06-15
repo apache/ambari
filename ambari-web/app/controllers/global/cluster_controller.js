@@ -334,7 +334,7 @@ App.ClusterController = Em.Controller.extend({
         upgradeController.setDBProperty('upgradeId', lastUpgradeData.Upgrade.request_id);
         upgradeController.setDBProperty('isDowngrade', lastUpgradeData.Upgrade.direction === 'DOWNGRADE');
         upgradeController.setDBProperty('upgradeState', lastUpgradeData.Upgrade.request_status);
-        upgradeController.setDBProperty('upgradeVersion', lastUpgradeData.Upgrade.to_version);
+        upgradeController.setDBProperty('upgradeVersion', App.get('currentStackName') + '-' + lastUpgradeData.Upgrade.to_version);
       }
 
       var dbUpgradeState = App.db.get('MainAdminStackAndUpgrade', 'upgradeState');
