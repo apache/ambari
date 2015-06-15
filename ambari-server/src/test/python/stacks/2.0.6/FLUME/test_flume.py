@@ -180,6 +180,7 @@ class TestFlumeHandler(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
+    self.assertResourceCalled('Directory', '/var/run/flume',)
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf',
                               owner='flume',
@@ -218,7 +219,7 @@ class TestFlumeHandler(RMFTestCase):
     )
 
   def assert_configure_many(self):
-
+    self.assertResourceCalled('Directory', '/var/run/flume')
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf',
                               owner='flume',
@@ -381,6 +382,7 @@ class TestFlumeHandler(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
+    self.assertResourceCalled('Directory', '/var/run/flume',)
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf',
                               owner='flume',
@@ -429,6 +431,7 @@ class TestFlumeHandler(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
+    self.assertResourceCalled('Directory', '/var/run/flume',)
     self.assertResourceCalled('Directory',
                               '/usr/hdp/current/flume-server/conf',
                               owner='flume',

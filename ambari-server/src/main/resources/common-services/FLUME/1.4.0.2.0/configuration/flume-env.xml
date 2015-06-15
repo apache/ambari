@@ -32,6 +32,11 @@
     <description>Location to save log files</description>
   </property>
   <property>
+    <name>flume_run_dir</name>
+    <value>/var/run/flume</value>
+    <description>Location to save information about running agents</description>
+  </property>
+  <property>
     <name>flume_user</name>
     <value>flume</value>
     <property-type>USER</property-type>
