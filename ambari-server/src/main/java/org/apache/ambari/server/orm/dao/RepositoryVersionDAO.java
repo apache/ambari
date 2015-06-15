@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.persistence.TypedQuery;
 
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -77,7 +78,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
   /**
    * Retrieves repository version by stack.
    *
-   * @param stack stack
+   * @param stackEntity Stack entity
    * @param version version
    * @return null if there is no suitable repository version
    */
@@ -126,7 +127,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
   /**
    * Retrieves repository version by stack.
    *
-   * @param stack
+   * @param stackId stack id
    *          stack with major version (like HDP-2.2)
    * @return null if there is no suitable repository version
    */
@@ -140,7 +141,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
 
   /**
    * Validates and creates an object.
-   * @param stack Stack name, e.g., HDP or HDP-2.2
+   * @param stackEntity Stack entity
    * @param version Stack version, e.g., 2.2 or 2.2.0.1-885
    * @param displayName Unique display name
    * @param upgradePack Optional upgrade pack, e.g, upgrade-2.2
@@ -148,6 +149,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
    * @return Returns the object created if successful, and throws an exception otherwise.
    * @throws AmbariException
    */
+  @Transactional
   public RepositoryVersionEntity create(StackEntity stackEntity,
       String version, String displayName, String upgradePack,
       String operatingSystems) throws AmbariException {
@@ -183,6 +185,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
    * @param version the version to find
    * @return the matching repo version entity
    */
+  @RequiresSession
   public RepositoryVersionEntity findMaxByVersion(String version) {
     List<RepositoryVersionEntity> list = findByVersion(version);
     if (null == list || 0 == list.size()) {
