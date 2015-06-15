@@ -432,6 +432,8 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
           });
         })
       );
+    } else {
+      this.set("mineWidgets", []);
     }
     this.set('isMineWidgetsLoaded', true);
   },
