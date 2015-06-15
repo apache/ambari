@@ -52,7 +52,7 @@ App.NumberWidgetView = Em.View.extend(App.WidgetMixin, {
 
     if (isNaN(value)) {
       return 'grey';
-    } else if (isNaN(threshold1) || (isNaN(threshold2) && value <= threshold1) || (!isNaN(threshold2) && (threshold1 > threshold2) && (value > threshold1)) || (!isNaN(threshold2) && (threshold1 < threshold2) && (value <= threshold1))) {
+    } else if ((isNaN(threshold1) && isNaN(threshold2)) || (isNaN(threshold1) && value <= threshold2) || (isNaN(threshold2) && value <= threshold1) || (!isNaN(threshold2) && (threshold1 > threshold2) && (value > threshold1)) || (!isNaN(threshold2) && (threshold1 < threshold2) && (value <= threshold1))) {
       return 'green';
     } else if ((!isNaN(threshold2) && value.isInRange(threshold1, threshold2)) || ((isNaN(threshold2) && value > threshold1))) {
       return 'orange';

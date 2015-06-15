@@ -91,12 +91,12 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
       var color_green = App.healthStatusGreen;
       var color_red = App.healthStatusRed;
       var color_orange = App.healthStatusOrange;
-      if (isNaN(threshold1) || (isNaN(threshold2) && used <= threshold1) || (!isNaN(threshold2) && (threshold1 > threshold2) && (used > threshold1)) || (!isNaN(threshold2) && (threshold1 < threshold2) && (used <= threshold1))) {
+      if ((isNaN(threshold1) && isNaN(threshold2)) || (isNaN(threshold1) && used <= threshold2) || (isNaN(threshold2) && used <= threshold1) || (!isNaN(threshold2) && (threshold1 > threshold2) && (used > threshold1)) || (!isNaN(threshold2) && (threshold1 < threshold2) && (used <= threshold1))) {
         this.set('palette', new Rickshaw.Color.Palette({
           scheme: [ '#FFFFFF', color_green  ].reverse()
         }));
         return color_green;
-      } else if ((!isNaN(threshold2) && used.isInRange(threshold1, threshold2)) || (isNaN(threshold2) && used > threshold1) ) {
+      } else if ((!isNaN(threshold2) && used.isInRange(threshold1, threshold2)) || (isNaN(threshold2) && used > threshold1)) {
         this.set('palette', new Rickshaw.Color.Palette({
           scheme: [ '#FFFFFF', color_orange  ].reverse()
         }));
