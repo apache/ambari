@@ -144,7 +144,7 @@ public interface ActionDBAccessor {
   /**
    * Bulk abort commands
    */
-  void bulkAbortHostRole(Stage s, List<ExecutionCommand> commands);
+  void bulkAbortHostRole(Stage s, Map<ExecutionCommand, String> commands);
 
   /**
    * Updates scheduled stage.

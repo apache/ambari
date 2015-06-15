@@ -335,13 +335,12 @@ class ActionScheduler implements Runnable {
 
         //Multimap is analog of Map<Object, List<Object>> but allows to avoid nested loop
         ListMultimap<String, ServiceComponentHostEvent> eventMap = formEventMap(stage, commandsToStart);
-        List<ExecutionCommand> commandsToAbort = new ArrayList<ExecutionCommand>();
+        Map<ExecutionCommand, String> commandsToAbort = new HashMap<ExecutionCommand, String>();
         if (!eventMap.isEmpty()) {
           LOG.debug("==> processing {} serviceComponentHostEvents...", eventMap.size());
           Cluster cluster = fsmObject.getCluster(stage.getClusterName());
           if (cluster != null) {
-            List<ServiceComponentHostEvent> failedEvents =
-              cluster.processServiceComponentHostEvents(eventMap);
+            Map<ServiceComponentHostEvent, String> failedEvents = cluster.processServiceComponentHostEvents(eventMap);
 
             if (failedEvents.size() > 0) {
               LOG.error("==> {} events failed.", failedEvents.size());
@@ -349,11 +348,11 @@ class ActionScheduler implements Runnable {
 
             for (Iterator<ExecutionCommand> iterator = commandsToUpdate.iterator(); iterator.hasNext(); ) {
               ExecutionCommand cmd = iterator.next();
-              for (ServiceComponentHostEvent event : failedEvents) {
+              for (ServiceComponentHostEvent event : failedEvents.keySet()) {
                 if (StringUtils.equals(event.getHostName(), cmd.getHostname()) &&
                   StringUtils.equals(event.getServiceComponentName(), cmd.getRole())) {
                   iterator.remove();
-                  commandsToAbort.add(cmd);
+                  commandsToAbort.put(cmd, failedEvents.get(event));
                   break;
                 }
               }
@@ -370,7 +369,7 @@ class ActionScheduler implements Runnable {
           LOG.debug("==> Aborting {} tasks...", commandsToAbort.size());
           // Build a list of HostRoleCommands
           List<Long> taskIds = new ArrayList<Long>();
-          for (ExecutionCommand command : commandsToAbort) {
+          for (ExecutionCommand command : commandsToAbort.keySet()) {
             taskIds.add(command.getTaskId());
           }
           Collection<HostRoleCommand> hostRoleCommands = db.getTasks(taskIds);

@@ -501,9 +501,9 @@ public interface Cluster {
    * Bulk handle service component host events
    *
    * @param eventMap serviceName - event mapping
-   * @return list of failed events
+   * @return map of failed events where key is event and value is short message
    */
-  List<ServiceComponentHostEvent> processServiceComponentHostEvents(ListMultimap<String, ServiceComponentHostEvent> eventMap);
+  Map<ServiceComponentHostEvent, String> processServiceComponentHostEvents(ListMultimap<String, ServiceComponentHostEvent> eventMap);
 
   /**
    * Determine whether or not access to this cluster resource should be allowed based
