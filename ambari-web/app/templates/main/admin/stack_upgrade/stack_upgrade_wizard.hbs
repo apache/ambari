@@ -153,6 +153,31 @@
             </div>
           </div>
         {{/if}}
+        {{#if App.upgradeAborted}}
+          {{#unless requestInProgress}}
+            <div class="box details-box">
+              <label class="message">
+                {{#if view.isDowngradeAvailable}}
+                  {{t admin.stackUpgrade.dialog.aborted}}
+                {{else}}
+                  {{t admin.stackUpgrade.dialog.downgrade.aborted}}
+                {{/if}}
+              </label>
+              <div class="button-row">
+                {{#if view.isDowngradeAvailable}}
+                  <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
+                {{/if}}
+                <button class="btn btn-success" {{action retryUpgrade target="controller"}}>
+                  {{#if view.isDowngradeAvailable}}
+                    {{t common.reUpgrade}}
+                  {{else}}
+                    {{t common.reDowngrade}}
+                  {{/if}}
+                </button>
+              </div>
+            </div>
+          {{/unless}}
+        {{/if}}
       </div>
       {{#each group in view.upgradeGroups}}
         {{#if group.isVisible}}

@@ -181,6 +181,23 @@ footer {
         animation-iteration-count: infinite;
       }
 
+      .upgrade-aborted {
+        text-shadow: none;
+        background-color: @health-status-red;
+        -webkit-animation-name: redPulse;
+        -webkit-animation-duration: 1s;
+        -webkit-animation-iteration-count: infinite;
+        -moz-animation-name: redPulse;
+        -moz-animation-duration: 1s;
+        -moz-animation-iteration-count: infinite;
+        animation-name: redPulse;
+        animation-duration: 1s;
+        animation-iteration-count: infinite;
+        .icon-remove {
+          color: #fff;
+        }
+      }
+
     }
     @media (max-width: 1200px) {
       ul.top-nav-menu.nav {

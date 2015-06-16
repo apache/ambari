@@ -1553,6 +1553,20 @@ var urls = {
       }
     }
   },
+  'admin.upgrade.retry': {
+    'real': '/clusters/{clusterName}/upgrades/{upgradeId}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "Upgrade": {
+            "request_status": "PENDING"
+          }
+        })
+      }
+    }
+  },
   'admin.upgrade.upgradeItem.setState': {
     'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups/{groupId}/upgrade_items/{itemId}',
     'mock': '',

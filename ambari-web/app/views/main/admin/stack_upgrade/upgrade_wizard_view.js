@@ -122,7 +122,7 @@ App.upgradeWizardView = Em.View.extend({
    */
   noActiveItem: function () {
     return (Em.isNone(this.get('failedItem')) && Em.isNone(this.get('runningItem')) && Em.isNone(this.get('manualItem'))) &&
-      !['INIT', 'COMPLETED'].contains(App.get('upgradeState'));
+      !['INIT', 'COMPLETED', 'ABORTED'].contains(App.get('upgradeState'));
   }.property('failedItem', 'runningItem', 'manualItem', 'App.upgradeState'),
 
   /**
@@ -193,6 +193,8 @@ App.upgradeWizardView = Em.View.extend({
         labelKey = 'admin.stackUpgrade.state.completed';
         break;
       case 'ABORTED':
+        labelKey = 'admin.stackUpgrade.state.aborted';
+        break;
       case 'TIMEDOUT':
       case 'FAILED':
       case 'HOLDING_FAILED':

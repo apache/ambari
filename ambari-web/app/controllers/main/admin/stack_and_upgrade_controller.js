@@ -69,6 +69,10 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   requestInProgress: false,
   /**
+   * @type {boolean} true while no updated upgrade info is loaded after retry
+   */
+  isRetryPending: false,
+  /**
    * properties that stored to localStorage to resume wizard progress
    */
   wizardStorageProperties: ['upgradeId', 'upgradeVersion', 'currentVersion', 'isDowngrade'],
@@ -206,6 +210,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.setDBProperty('upgradeState', data.Upgrade.request_status);
     if (data.upgrade_groups) {
       this.updateUpgradeData(data);
+    }
+    if (this.get('isRetryPending') && data.Upgrade.request_status != 'ABORTED') {
+      this.setProperties({
+        requestInProgress: false,
+        isRetryPending: false
+      });
     }
   },
 
@@ -375,6 +385,20 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     });
   },
 
+  retryUpgrade: function () {
+    this.setProperties({
+      requestInProgress: true,
+      isRetryPending: true
+    });
+    return App.ajax.send({
+      name: 'admin.upgrade.retry',
+      sender: this,
+      data: {
+        upgradeId: this.get('upgradeId')
+      }
+    });
+  },
+
   /**
    * make call to start upgrade process and show popup with current progress
    * @param {object} version
@@ -505,6 +529,32 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
   runPreUpgradeCheckError: function() {
     this.set('requestInProgress', false);
+  },
+
+  confirmRetryUpgrade: function (version) {
+    var self = this;
+    return App.showConfirmationPopup(
+      function () {
+        self.retryUpgrade();
+      },
+      Em.I18n.t('admin.stackUpgrade.upgrade.retry.confirm.body').format(version.get('displayName')),
+      null,
+      Em.I18n.t('admin.stackUpgrade.dialog.header').format(version.get('displayName'))
+    );
+  },
+
+  confirmRetryDowngrade: function () {
+    var self = this,
+      currentVersion = this.get('currentVersion');
+    return App.showConfirmationPopup(
+      function() {
+        self.retryUpgrade();
+      },
+      Em.I18n.t('admin.stackUpgrade.downgrade.retry.body').format(currentVersion.repository_name),
+      null,
+      Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(currentVersion.repository_name),
+      Em.I18n.t('admin.stackUpgrade.downgrade.proceed')
+    );
   },
 
   /**
