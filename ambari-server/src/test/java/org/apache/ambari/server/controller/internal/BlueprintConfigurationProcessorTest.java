@@ -679,6 +679,42 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testTezConfigExport() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostGroupName = "host_group_1";
+
+    Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
+    Map<String, String> tezSiteProperties = new HashMap<String, String>();
+    configProperties.put("tez-site", tezSiteProperties);
+
+    // set the UI property, to simulate the case of a UI-created cluster with TEZ
+    tezSiteProperties.put("tez.tez-ui.history-url.base", "http://host:port/TEZ/TEZ_VIEW");
+
+    Configuration clusterConfig = new Configuration(configProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    // note: test hostgroups may not accurately reflect the required components for the config properties
+    // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
+    // are not validated
+    Collection<String> groupComponents = new HashSet<String>();
+    groupComponents.add("TEZ_CLIENT");
+    Collection<String> hosts = new ArrayList<String>();
+    hosts.add(expectedHostName);
+    hosts.add("serverTwo");
+    TestHostGroup group = new TestHostGroup(expectedHostGroupName, groupComponents, hosts);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    configProcessor.doUpdateForBlueprintExport();
+
+    assertFalse("tez.tez-ui.history-url.base should not be present in exported blueprint in tez-site",
+      tezSiteProperties.containsKey("tez.tez-ui.history-url.base"));
+  }
+
+  @Test
   public void testDoNameNodeHighAvailabilityExportWithHAEnabled() throws Exception {
     final String expectedNameService = "mynameservice";
     final String expectedHostName = "c6401.apache.ambari.org";

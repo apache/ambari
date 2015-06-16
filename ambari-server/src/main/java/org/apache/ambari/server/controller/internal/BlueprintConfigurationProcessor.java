@@ -125,7 +125,9 @@ public class BlueprintConfigurationProcessor {
    * This will initially be used to filter out the Ranger Passwords, but
    * could be extended in the future for more generic purposes.
    */
-  private static final PropertyFilter[] exportPropertyFilters = { new PasswordPropertyFilter() };
+  private static final PropertyFilter[] exportPropertyFilters =
+    { new PasswordPropertyFilter(),
+      new SimplePropertyNameExportFilter("tez.tez-ui.history-url.base", "tez-site")};
 
   /**
    * Statically-defined list of filters to apply on cluster config
@@ -2158,6 +2160,30 @@ public class BlueprintConfigurationProcessor {
     @Override
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
       return !PASSWORD_NAME_REGEX.matcher(propertyName).matches();
+    }
+  }
+
+  /**
+   * Simple filter implementation used to remove named properties from
+   * a Blueprint export.  Some properties with hostname information set
+   * by the UI do not have straightforward mappings to hosts, so these properties
+   * cannot be exported via the default HOSTGROUP mechanism.
+   */
+  private static class SimplePropertyNameExportFilter implements PropertyFilter {
+
+    private final String propertyName;
+
+    private final String propertyConfigType;
+
+    SimplePropertyNameExportFilter(String propertyName, String propertyConfigType) {
+      this.propertyName = propertyName;
+      this.propertyConfigType = propertyConfigType;
+    }
+
+    @Override
+    public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
+      return !(this.propertyConfigType.equals(configType) &&
+             this.propertyName.equals(propertyName));
     }
   }
 
