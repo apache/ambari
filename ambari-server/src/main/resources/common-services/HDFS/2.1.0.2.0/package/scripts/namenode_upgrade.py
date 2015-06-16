@@ -91,7 +91,8 @@ def prepare_rolling_upgrade():
   Logger.info(format("Performing a(n) {params.upgrade_direction} of HDFS"))
 
   if params.security_enabled:
-    Execute(format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}"))
+    kinit_command = format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}") 
+    Execute(kinit_command, user=params.hdfs_user, logoutput=True)
 
 
   if params.upgrade_direction == Direction.UPGRADE:
@@ -118,7 +119,8 @@ def finalize_rolling_upgrade():
   import params
 
   if params.security_enabled:
-    Execute(format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}"))
+    kinit_command = format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}") 
+    Execute(kinit_command, user=params.hdfs_user, logoutput=True)
 
   finalize_cmd = "hdfs dfsadmin -rollingUpgrade finalize"
   query_cmd = "hdfs dfsadmin -rollingUpgrade query"
