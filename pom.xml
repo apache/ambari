@@ -265,6 +265,9 @@
             <exclude>version</exclude>
             <!--IDE and GIT files-->
             <exclude>**/.idea/</exclude>
+            <exclude>**/.classpath/</exclude>
+            <exclude>**/.project/</exclude>
+            <exclude>**/.settings/</exclude>
             <exclude>.git/</exclude>
             <exclude>.pydevproject</exclude>
             <exclude>**/.gitignore</exclude>
@@ -272,12 +275,9 @@
             <exclude>**/.gitkeep</exclude>
             <exclude>**/.jshintrc</exclude>
             <exclude>**/.editorconfig</exclude>
-              <!--gitignore content-->
+            <!--gitignore content-->
             <exclude>.DS_Store</exclude>
             <exclude>**/*.iml</exclude>
-            <exclude>.classpath</exclude>
-            <exclude>.project</exclude>
-            <exclude>.settings</exclude>
             <exclude>*.pyc</exclude>
             <exclude>*.py~</exclude>
             <exclude>.hg</exclude>
