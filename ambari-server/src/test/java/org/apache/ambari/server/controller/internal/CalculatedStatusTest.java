@@ -27,22 +27,22 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * CalculatedStatus tests.
@@ -95,8 +95,6 @@ public class CalculatedStatusTest {
 
   @Test
   public void testStatusFromTaskEntities() throws Exception {
-
-
     // Pending stage
     Collection<HostRoleCommandEntity> tasks =
         getTaskEntities(HostRoleStatus.PENDING, HostRoleStatus.PENDING, HostRoleStatus.PENDING, HostRoleStatus.PENDING);
@@ -116,8 +114,8 @@ public class CalculatedStatusTest {
     assertEquals(100.0, status.getPercent(), 0.1);
 
     // failed skippable stage
-    tasks = getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.FAILED, HostRoleStatus.ABORTED,
-        HostRoleStatus.ABORTED, HostRoleStatus.ABORTED);
+    tasks = getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.FAILED, HostRoleStatus.FAILED,
+        HostRoleStatus.FAILED, HostRoleStatus.FAILED);
 
     status = CalculatedStatus.statusFromTaskEntities(tasks, true);
 
@@ -125,17 +123,17 @@ public class CalculatedStatusTest {
     assertEquals(100.0, status.getPercent(), 0.1);
 
     // timed out stage
-    tasks = getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.TIMEDOUT, HostRoleStatus.ABORTED,
-        HostRoleStatus.ABORTED, HostRoleStatus.ABORTED);
+    tasks = getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.TIMEDOUT,
+        HostRoleStatus.TIMEDOUT, HostRoleStatus.TIMEDOUT, HostRoleStatus.TIMEDOUT);
 
     status = CalculatedStatus.statusFromTaskEntities(tasks, false);
 
-    assertEquals(HostRoleStatus.ABORTED, status.getStatus());
+    assertEquals(HostRoleStatus.TIMEDOUT, status.getStatus());
     assertEquals(100.0, status.getPercent(), 0.1);
 
     // timed out skippable stage
-    tasks = getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.TIMEDOUT, HostRoleStatus.ABORTED,
-        HostRoleStatus.ABORTED, HostRoleStatus.ABORTED);
+    tasks = getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.TIMEDOUT,
+        HostRoleStatus.FAILED, HostRoleStatus.TIMEDOUT, HostRoleStatus.TIMEDOUT);
 
     status = CalculatedStatus.statusFromTaskEntities(tasks, true);
 
@@ -151,13 +149,13 @@ public class CalculatedStatusTest {
     assertEquals(HostRoleStatus.ABORTED, status.getStatus());
     assertEquals(100.0, status.getPercent(), 0.1);
 
-    // aborted skippable stage
+    // aborted skippable stage (same as non-skippable)
     tasks = getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.ABORTED, HostRoleStatus.ABORTED,
         HostRoleStatus.ABORTED, HostRoleStatus.ABORTED);
 
     status = CalculatedStatus.statusFromTaskEntities(tasks, true);
 
-    assertEquals(HostRoleStatus.COMPLETED, status.getStatus());
+    assertEquals(HostRoleStatus.ABORTED, status.getStatus());
     assertEquals(100.0, status.getPercent(), 0.1);
 
     // in progress stage
@@ -204,6 +202,37 @@ public class CalculatedStatusTest {
 
     assertEquals(HostRoleStatus.HOLDING_TIMEDOUT, status.getStatus());
     assertEquals(54.0, status.getPercent(), 0.1);
+  }
+
+  /**
+   * Tests that aborted states calculate correctly. This is needed for upgrades
+   * where the upgrade can be ABORTED and must not be calculated as COMPLETED.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAbortedCalculation() throws Exception {
+    // a single task that is aborted
+    Collection<HostRoleCommandEntity> tasks = getTaskEntities(HostRoleStatus.ABORTED);
+    CalculatedStatus status = CalculatedStatus.statusFromTaskEntities(tasks, false);
+    assertEquals(HostRoleStatus.ABORTED, status.getStatus());
+    assertEquals(100.0, status.getPercent(), 0.1);
+
+    // skippable
+    status = CalculatedStatus.statusFromTaskEntities(tasks, true);
+    assertEquals(HostRoleStatus.ABORTED, status.getStatus());
+    assertEquals(100.0, status.getPercent(), 0.1);
+
+    // a completed task and an aborted one
+    tasks = getTaskEntities(HostRoleStatus.COMPLETED, HostRoleStatus.ABORTED);
+    status = CalculatedStatus.statusFromTaskEntities(tasks, false);
+    assertEquals(HostRoleStatus.ABORTED, status.getStatus());
+    assertEquals(100.0, status.getPercent(), 0.1);
+
+    // skippable
+    status = CalculatedStatus.statusFromTaskEntities(tasks, true);
+    assertEquals(HostRoleStatus.ABORTED, status.getStatus());
+    assertEquals(100.0, status.getPercent(), 0.1);
   }
 
   @Test

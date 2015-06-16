@@ -337,15 +337,13 @@ public class CalculatedStatus {
    * @return summary request status based on statuses of tasks in different states.
    */
   private static HostRoleStatus calculateSummaryStatus(Map<HostRoleStatus, Integer> counters,
-                                                      int total,
-                                                      boolean skippable) {
-
+      int total, boolean skippable) {
     return counters.get(HostRoleStatus.PENDING) == total ? HostRoleStatus.PENDING :
         counters.get(HostRoleStatus.HOLDING) > 0 ? HostRoleStatus.HOLDING :
         counters.get(HostRoleStatus.HOLDING_FAILED) > 0 ? HostRoleStatus.HOLDING_FAILED :
         counters.get(HostRoleStatus.HOLDING_TIMEDOUT) > 0 ? HostRoleStatus.HOLDING_TIMEDOUT :
         counters.get(HostRoleStatus.FAILED) > 0 && !skippable ? HostRoleStatus.FAILED :
-        counters.get(HostRoleStatus.ABORTED) > 0 && !skippable ? HostRoleStatus.ABORTED :
+        counters.get(HostRoleStatus.ABORTED) > 0 ? HostRoleStatus.ABORTED:
         counters.get(HostRoleStatus.TIMEDOUT) > 0 && !skippable ? HostRoleStatus.TIMEDOUT :
         counters.get(HostRoleStatus.COMPLETED) == total ? HostRoleStatus.COMPLETED : HostRoleStatus.IN_PROGRESS;
   }
