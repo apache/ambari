@@ -25,12 +25,18 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import get_klist_path
 from ambari_commons.os_check import OSConst, OSCheck
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-import os
 from urlparse import urlparse
+import os
+import re
 
 RESULT_CODE_OK = 'OK'
 RESULT_CODE_CRITICAL = 'CRITICAL'
 RESULT_CODE_UNKNOWN = 'UNKNOWN'
+
+if OSCheck.is_windows_family():
+  OOZIE_ENV_HTTPS_RE = r"set\s+OOZIE_HTTPS_PORT=(\d+)"
+else:
+  OOZIE_ENV_HTTPS_RE = r"export\s+OOZIE_HTTPS_PORT=(\d+)"
 
 # The configured Kerberos executable search paths, if any
 KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
@@ -42,6 +48,8 @@ OOZIE_KEYTAB = '{{oozie-site/oozie.authentication.kerberos.keytab}}'
 OOZIE_USER = '{{oozie-env/oozie_user}}'
 OOZIE_CONF_DIR = '/usr/hdp/current/oozie-server/conf'
 OOZIE_CONF_DIR_LEGACY = '/etc/oozie/conf'
+OOZIE_HTTPS_PORT = '{{oozie-site/oozie.https.port}}'
+OOZIE_ENV_CONTENT = '{{oozie-env/content}}'
 
 class KerberosPropertiesNotFound(Exception): pass
 
@@ -59,7 +67,8 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (OOZIE_URL_KEY, OOZIE_PRINCIPAL, SECURITY_ENABLED, OOZIE_KEYTAB, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY, OOZIE_USER)
+  return (OOZIE_URL_KEY, OOZIE_PRINCIPAL, SECURITY_ENABLED, OOZIE_KEYTAB, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY,
+          OOZIE_USER, OOZIE_HTTPS_PORT, OOZIE_ENV_CONTENT)
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def get_check_command(oozie_url, host_name, configurations):
@@ -150,8 +159,30 @@ def execute(configurations={}, parameters={}, host_name=None):
   # interfaces, which doesn't work on Windows
   localhost_address = 'localhost' if OSCheck.get_os_family() == OSConst.WINSRV_FAMILY else '0.0.0.0'
 
+  https_port = None
+  # try to get https port form oozie-env content
+  if OOZIE_ENV_CONTENT in configurations:
+    for line in configurations[OOZIE_ENV_CONTENT].splitlines():
+      result = re.match(OOZIE_ENV_HTTPS_RE, line)
+
+      if result is not None:
+        https_port = result.group(1)
+  # or from oozie-site.xml
+  if https_port is None and OOZIE_HTTPS_PORT in configurations:
+    https_port = configurations[OOZIE_HTTPS_PORT]
+
   oozie_url = configurations[OOZIE_URL_KEY]
-  oozie_url = oozie_url.replace(urlparse(oozie_url).hostname,localhost_address)
+
+  # construct proper url for https
+  if https_port is not None:
+    parsed_url = urlparse(oozie_url)
+    oozie_url = oozie_url.replace(parsed_url.scheme, "https")
+    if parsed_url.port is None:
+      oozie_url.replace(parsed_url.hostname, ":".join([parsed_url.hostname, https_port]))
+    else:
+      oozie_url = oozie_url.replace(str(parsed_url.port), https_port)
+
+  oozie_url = oozie_url.replace(urlparse(oozie_url).hostname, localhost_address)
 
   try:
     command, env, oozie_user = get_check_command(oozie_url, host_name, configurations)
