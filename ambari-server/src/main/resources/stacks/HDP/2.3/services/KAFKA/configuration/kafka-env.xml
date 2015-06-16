@@ -23,6 +23,6 @@
 <configuration>
   <property>
     <name>is_supported_kafka_ranger</name>
-    <value>True</value>
+    <value>true</value>
   </property>
 </configuration>

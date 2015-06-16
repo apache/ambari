@@ -65,6 +65,6 @@ fi
   </property>
   <property>
     <name>is_supported_kafka_ranger</name>
-    <value>False</value>
+    <value>false</value>
   </property>
 </configuration>
