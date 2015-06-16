@@ -111,7 +111,10 @@ class HdfsClientDefault(HdfsClient):
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HdfsClientWindows(HdfsClient):
-  pass
+  def install(self, env):
+    import install_params
+    self.install_packages(env, install_params.exclude_packages)
+    self.configure(env)
 
 if __name__ == "__main__":
   HdfsClient().execute()

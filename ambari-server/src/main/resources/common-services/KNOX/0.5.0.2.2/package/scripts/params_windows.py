@@ -25,17 +25,32 @@ from status_params import *
 # server configurations
 config = Script.get_config()
 
-hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
-knox_home = os.environ['KNOX_HOME']
-knox_conf_dir = os.environ['KNOX_CONF_DIR']
-knox_logs_dir = os.environ['KNOX_LOG_DIR']
-knox_bin = os.path.join(knox_home, 'bin', 'gateway.exe')
-ldap_bin = os.path.join(knox_home, 'bin', 'ldap.exe')
-knox_client_bin = os.path.join(knox_home, 'bin', 'knoxcli.cmd')
-knox_data_dir = os.path.join(knox_home, 'data')
+hdp_root = None
+knox_home = None
+knox_conf_dir = None
+knox_logs_dir = None
+knox_bin = None
+ldap_bin = None
+knox_client_bin = None
+knox_data_dir = None
 
-knox_master_secret_path = os.path.join(knox_data_dir, 'security', 'master')
-knox_cert_store_path = os.path.join(knox_data_dir, 'security', 'keystores', 'gateway.jks')
+knox_master_secret_path = None
+knox_cert_store_path = None
+
+try:
+  hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
+  knox_home = os.environ['KNOX_HOME']
+  knox_conf_dir = os.environ['KNOX_CONF_DIR']
+  knox_logs_dir = os.environ['KNOX_LOG_DIR']
+  knox_bin = os.path.join(knox_home, 'bin', 'gateway.exe')
+  ldap_bin = os.path.join(knox_home, 'bin', 'ldap.exe')
+  knox_client_bin = os.path.join(knox_home, 'bin', 'knoxcli.cmd')
+  knox_data_dir = os.path.join(knox_home, 'data')
+
+  knox_master_secret_path = os.path.join(knox_data_dir, 'security', 'master')
+  knox_cert_store_path = os.path.join(knox_data_dir, 'security', 'keystores', 'gateway.jks')
+except:
+  pass
 
 knox_host_port = config['configurations']['gateway-site']['gateway.port']
 knox_host_name = config['clusterHostInfo']['knox_gateway_hosts'][0]

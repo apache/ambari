@@ -22,9 +22,17 @@ from resource_management import *
 
 # server configurations
 config = Script.get_config()
-hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
-pig_home = os.environ['PIG_HOME']
-pig_conf_dir = os.path.join(pig_home,'conf')
+
+hdp_root = None
+pig_home = None
+pig_conf_dir = None
+try:
+  hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
+  pig_home = os.environ['PIG_HOME']
+  pig_conf_dir = os.path.join(pig_home,'conf')
+except:
+  pass
+
 pig_properties = config['configurations']['pig-properties']['content']
 
 if (('pig-log4j' in config['configurations']) and ('content' in config['configurations']['pig-log4j'])):
