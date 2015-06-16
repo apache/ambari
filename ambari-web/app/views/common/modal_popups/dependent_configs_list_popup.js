@@ -37,15 +37,21 @@ App.showDependentConfigsPopup = function (configs, primary, secondary) {
 
       toggleAll: Em.Checkbox.extend({
         didInsertElement: function () {
-          this.set('checked', !this.get('parentView.parentView.configs').someProperty('saveRecommended', false));
+          this.updateCheckbox();
         },
         click: function () {
-          this.get('parentView.parentView.configs').setEach('saveRecommended', this.get('checked'));
+          Em.run.next(this, 'updateSaveRecommended');
         },
-        updateCheckbox: function () {
-          console.log('should update its status');
+        updateCheckboxObserver: function () {
+          Em.run.once(this, 'updateCheckbox');
+        }.observes('parentView.parentView.configs.@each.saveRecommended'),
+
+        updateCheckbox: function() {
           this.set('checked', !this.get('parentView.parentView.configs').someProperty('saveRecommended', false));
-        }.observes('parentView.parentView.configs.@each.saveRecommended')
+        },
+        updateSaveRecommended: function() {
+          this.get('parentView.parentView.configs').setEach('saveRecommended', this.get('checked'));
+        }
       })
     }),
     onPrimary: function () {
