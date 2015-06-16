@@ -61,7 +61,7 @@ class TestFlumeHandler(RMFTestCase):
     self.assertTrue(set_desired_mock.call_args[0][0] == 'STARTED')
 
 
-    self.assertResourceCalled('Execute', "ambari-sudo.sh su flume -l -s /bin/bash -c 'export  PATH=/bin JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/bin/flume-ng agent --name a1 --conf /etc/flume/conf/a1 --conf-file /etc/flume/conf/a1/flume.conf -Dflume.monitoring.type=ganglia -Dflume.monitoring.hosts=c6401.ambari.apache.org:8655 > /var/log/flume/a1.out 2>&1' &",
+    self.assertResourceCalled('Execute', "ambari-sudo.sh su flume -l -s /bin/bash -c 'export  PATH=/bin JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/bin/flume-ng agent --name a1 --conf /etc/flume/conf/a1 --conf-file /etc/flume/conf/a1/flume.conf -Dflume.monitoring.type=org.apache.hadoop.metrics2.sink.flume.FlumeTimelineMetricsSink -Dflume.monitoring.node=c6401.ambari.apache.org:6188 > /var/log/flume/a1.out 2>&1' &",
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         wait_for_finish = False,
     )
@@ -216,6 +216,10 @@ class TestFlumeHandler(RMFTestCase):
     self.assertResourceCalled('File', "/etc/flume/conf/a1/flume-env.sh",
                               owner="flume",
                               content=InlineTemplate(self.getConfig()['configurations']['flume-env']['content'])
+    )
+    self.assertResourceCalled('File', "/etc/flume/conf/a1/flume-metrics2.properties",
+                              owner="flume",
+                              content=Template("flume-metrics2.properties.j2")
     )
 
   def assert_configure_many(self):

@@ -732,10 +732,129 @@
             "SSL_TRUSTSTORE_FILE_PATH": "/etc/hadoop/conf/ranger-plugin-truststore.jks", 
             "REPOSITORY_CONFIG_PASSWORD": "hadoop", 
             "XAAUDIT.SOLR.MAX_QUEUE_SIZE": "1"
+        },
+        "ams-hbase-env": {
+            "hbase_pid_dir": "/var/run/ambari-metrics-collector/",
+            "regionserver_xmn_size": "256m",
+            "max_open_files_limit": "32768",
+            "hbase_master_maxperm_size": "128m",
+            "hbase_regionserver_xmn_ratio": "0.2",
+            "hbase_master_heapsize": "512m",
+            "hbase_regionserver_heapsize": "512m",
+            "hbase_log_dir": "/var/log/ambari-metrics-collector",
+            "hbase_master_xmn_size": "256m",
+            "content": "\n"
+        },
+        "ams-log4j": {
+            "content": "\n"
+        },
+        "ams-hbase-site": {
+            "hbase.master.info.bindAddress": "0.0.0.0",
+            "hbase.zookeeper.property.dataDir": "${hbase.tmp.dir}/zookeeper",
+            "hbase.master.wait.on.regionservers.mintostart": "1",
+            "hbase.replication": "false",
+            "hbase.regionserver.global.memstore.lowerLimit": "0.3",
+            "hbase.hregion.memstore.block.multiplier": "4",
+            "hbase.hregion.memstore.flush.size": "134217728",
+            "hbase.rootdir": "hdfs://localhost:8020/apps/hbase/data",
+            "hbase.zookeeper.property.clientPort": "61181",
+            "phoenix.spool.directory": "${hbase.tmp.dir}/phoenix-spool",
+            "hbase.client.scanner.timeout.period": "900000",
+            "phoenix.groupby.maxCacheSize": "307200000",
+            "hbase.snapshot.enabled": "false",
+            "hbase.regionserver.global.memstore.upperLimit": "0.35",
+            "hbase_master_xmn_size": "128m",
+            "phoenix.query.spoolThresholdBytes": "12582912",
+            "zookeeper.session.timeout": "120000",
+            "hbase.tmp.dir": "hdfs://localhost:8020/apps/hbase/data/tmp",
+            "hfile.block.cache.size": "0.3",
+            "hbase.regionserver.port": "61320",
+            "hbase.regionserver.thread.compaction.small": "3",
+            "hbase.master.info.port": "61310",
+            "hbase.hregion.majorcompaction": "0",
+            "phoenix.query.maxGlobalMemoryPercentage": "15",
+            "hbase.zookeeper.quorum": "{{zookeeper_quorum_hosts}}",
+            "hbase.regionserver.info.port": "61330",
+            "hbase.hstore.blockingStoreFiles": "200",
+            "hbase.master.port": "61300",
+            "hbase.zookeeper.leaderport": "61388",
+            "hbase.regionserver.thread.compaction.large": "2",
+            "phoenix.query.timeoutMs": "1200000",
+            "hbase.local.dir": "${hbase.tmp.dir}/local",
+            "hbase.cluster.distributed": "false",
+            "zookeeper.session.timeout.localHBaseCluster": "20000",
+            "hbase.client.scanner.caching": "10000",
+            "phoenix.sequence.saltBuckets": "2",
+            "hbase.hstore.flusher.count": "2",
+            "hbase.zookeeper.peerport": "61288"
+        },
+        "ams-env": {
+            "ambari_metrics_user": "ams",
+            "metrics_monitor_log_dir": "/var/log/ambari-metrics-monitor",
+            "metrics_collector_log_dir": "/var/log/ambari-metrics-collector",
+            "metrics_monitor_pid_dir": "/var/run/ambari-metrics-monitor",
+            "content": "\n",
+            "metrics_collector_pid_dir": "/var/run/ambari-metrics-collector",
+            "metrics_collector_heapsize": "512m"
+        },
+        "ams-hbase-policy": {
+            "security.masterregion.protocol.acl": "*",
+            "security.admin.protocol.acl": "*",
+            "security.client.protocol.acl": "*"
+        },
+        "ams-hbase-log4j": {
+            "content": "\n"
+        },
+        "ams-site": {
+            "timeline.metrics.host.aggregator.minute.ttl": "604800",
+            "timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier": "1",
+            "timeline.metrics.cluster.aggregator.daily.ttl": "63072000",
+            "timeline.metrics.cluster.aggregator.minute.timeslice.interval": "30",
+            "timeline.metrics.service.resultset.fetchSize": "2000",
+            "timeline.metrics.service.checkpointDelay": "60",
+            "timeline.metrics.host.aggregator.hourly.disabled": "false",
+            "timeline.metrics.cluster.aggregator.daily.interval": "86400",
+            "timeline.metrics.cluster.aggregator.hourly.ttl": "31536000",
+            "timeline.metrics.host.aggregator.daily.disabled": "false",
+            "timeline.metrics.hbase.compression.scheme": "SNAPPY",
+            "timeline.metrics.cluster.aggregator.hourly.interval": "3600",
+            "phoenix.spool.directory": "/tmp",
+            "timeline.metrics.host.aggregator.ttl": "86400",
+            "timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier": "2",
+            "timeline.metrics.service.cluster.aggregator.appIds": "datanode,nodemanager,hbase",
+            "timeline.metrics.service.webapp.address": "0.0.0.0:6188",
+            "timeline.metrics.cluster.aggregator.hourly.disabled": "false",
+            "timeline.metrics.aggregator.checkpoint.dir": "/var/lib/ambari-metrics-collector/checkpoint",
+            "timeline.metrics.hbase.data.block.encoding": "FAST_DIFF",
+            "timeline.metrics.cluster.aggregator.minute.ttl": "2592000",
+            "timeline.metrics.host.aggregator.minute.disabled": "false",
+            "phoenix.query.maxGlobalMemoryPercentage": "25",
+            "timeline.metrics.service.operation.mode": "distributed",
+            "timeline.metrics.host.aggregator.minute.checkpointCutOffMultiplier": "2",
+            "timeline.metrics.cluster.aggregator.minute.checkpointCutOffMultiplier": "2",
+            "timeline.metrics.host.aggregator.hourly.checkpointCutOffMultiplier": "2",
+            "timeline.metrics.cluster.aggregator.daily.disabled": "false",
+            "timeline.metrics.service.rpc.address": "0.0.0.0:60200",
+            "timeline.metrics.cluster.aggregator.minute.disabled": "false",
+            "timeline.metrics.host.aggregator.hourly.ttl": "2592000",
+            "timeline.metrics.host.aggregator.minute.interval": "120",
+            "timeline.metrics.service.default.result.limit": "5760",
+            "timeline.metrics.host.aggregator.daily.ttl": "31536000",
+            "timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier": "1",
+            "timeline.metrics.daily.aggregator.minute.interval": "86400",
+            "timeline.metrics.cluster.aggregator.minute.interval": "120",
+            "timeline.metrics.host.aggregator.hourly.interval": "3600"
         }
     },
     "configuration_attributes": {
-      "yarn-site": {
+        "ams-hbase-env": {},
+        "ams-hbase-security-site": {},
+        "ams-log4j": {},
+        "ams-hbase-site": {},
+        "ams-hbase-policy": {},
+        "ams-hbase-log4j": {},
+        "ams-site": {},
+        "yarn-site": {
         "final": {
           "yarn.nodemanager.disk-health-checker.min-healthy-disks": "true",
           "yarn.nodemanager.container-executor.class": "true",
@@ -801,6 +920,30 @@
       }
     },
     "configurationTags": {
+        "ams-hbase-env": {
+            "tag": "version1"
+        },
+        "ams-hbase-security-site": {
+            "tag": "version1"
+        },
+        "ams-hbase-site": {
+            "tag": "version1"
+        },
+        "ams-env": {
+            "tag": "version1"
+        },
+        "ams-site": {
+            "tag": "version1"
+        },
+        "ams-hbase-policy": {
+            "tag": "version1"
+        },
+        "ams-log4j": {
+            "tag": "version1"
+        },
+        "ams-hbase-log4j": {
+            "tag": "version1"
+        },
         "capacity-scheduler": {
             "tag": "version1"
         }, 
@@ -951,6 +1094,9 @@
         ],
         "falcon_server_hosts": [
             "c6402.ambari.apache.org"
+        ],
+        "metrics_collector_hosts": [
+            "c6401.ambari.apache.org"
         ]
     }
 }

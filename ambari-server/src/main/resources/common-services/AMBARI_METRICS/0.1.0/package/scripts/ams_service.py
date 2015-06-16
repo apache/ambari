@@ -50,6 +50,10 @@ def ams_service(name, action):
       cmd = format("{cmd} --distributed")
 
     if action == 'start':
+      if not params.hbase_tmp_dir.startswith('hdfs'):
+        Execute(format('{sudo} rm -f {hbase_tmp_dir}/*.tmp')
+        )
+
       daemon_cmd = format("{cmd} start")
       Execute(daemon_cmd,
               user=params.ams_user
