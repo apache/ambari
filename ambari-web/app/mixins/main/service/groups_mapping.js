@@ -28,10 +28,11 @@ App.GroupsMappingMixin = Em.Mixin.create({
   /**
    * Load config groups
    * @param {String[]} serviceNames
+   * @param skipDefault
    * @returns {$.Deferred()}
    * @method loadConfigGroups
    */
-  loadConfigGroups: function (serviceNames) {
+  loadConfigGroups: function (serviceNames, skipDefault) {
     var dfd = $.Deferred();
     if (!serviceNames || serviceNames.length === 0) {
       dfd.resolve();
@@ -40,7 +41,8 @@ App.GroupsMappingMixin = Em.Mixin.create({
         name: 'configs.config_groups.load.services',
         sender: this,
         data: {
-          serviceList: serviceNames.join(','),
+          serviceNames: serviceNames.join(','),
+          skipDefault: skipDefault,
           dfd: dfd
         },
         success: 'saveConfigGroupsToModel'
@@ -57,7 +59,7 @@ App.GroupsMappingMixin = Em.Mixin.create({
    * @method saveConfigGroupsToModel
    */
   saveConfigGroupsToModel: function (data, opt, params) {
-    App.configGroupsMapper.map(data, params.serviceList.split(','));
+    App.configGroupsMapper.map(data, false, params.serviceNames.split(','), params.skipDefault);
     params.dfd.resolve();
   }
 

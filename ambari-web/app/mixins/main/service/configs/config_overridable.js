@@ -126,6 +126,7 @@ App.ConfigOverridable = Em.Mixin.create({
         if (this.get('optionSelectConfigGroup')) {
           var selectedConfigGroup = this.get('selectedConfigGroup');
           this.hide();
+          App.get('router.mainServiceInfoConfigsController').loadSelectedVersion(null, this.get('selectedConfigGroup'));
           callback(selectedConfigGroup);
         } else {
           var newConfigGroupName = this.get('newConfigGroupName').trim();
@@ -442,6 +443,17 @@ App.ConfigOverridable = Em.Mixin.create({
       bodyClass: Em.View.extend({
         templateName: require('templates/common/configs/saveConfigGroup')
       }),
+      onPrimary:function() {
+        if (self.get('controller.name') == 'mainServiceInfoConfigsController') {
+          self.get('controller').loadConfigGroups([self.get('content.serviceName')], true).done(function() {
+            var group = App.ServiceConfigGroup.find().find(function(g) {
+              return g.get('serviceName') == self.get('content.serviceName') && g.get('name') == groupName;
+            });
+            self.get('controller').loadSelectedVersion(null, group);
+          });
+        }
+        this._super();
+      },
       onSecondary: function () {
         App.router.get('manageConfigGroupsController').manageConfigurationGroups(null, self.get('content'));
         this.hide();

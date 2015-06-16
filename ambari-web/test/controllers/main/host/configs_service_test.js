@@ -129,12 +129,10 @@ describe('App.MainHostServiceConfigsController', function () {
 
     beforeEach(function() {
       sinon.stub(controller, 'launchSwitchConfigGroupOfHostDialog', Em.K);
-      sinon.stub(controller, 'onConfigGroupChange', Em.K);
-    });
+      });
 
     afterEach(function () {
       controller.launchSwitchConfigGroupOfHostDialog.restore();
-      controller.onConfigGroupChange.restore();
     });
 
 		it("should call launchSwitchConfigGroupOfHostDialog", function () {

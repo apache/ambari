@@ -276,6 +276,87 @@ App.config = Em.Object.create({
     });
   },
 
+
+  mergePredefinedWithSaved: function (configCategories, advancedConfigs, serviceName) {
+    var configs = [];
+    var contentProperties = this.createContentProperties(advancedConfigs);
+    var preDefinedConfigs = this.get('preDefinedSiteProperties').concat(contentProperties);
+    var filenameExceptions = this.get('filenameExceptions');
+    configCategories.forEach(function (siteConfig) {
+      var service = this.getServiceByConfigType(siteConfig.type);
+      if (service) {
+        serviceName = service.get('serviceName');
+      }
+      var filename = App.config.getOriginalFileName(siteConfig.type);
+      var attributes = siteConfig['properties_attributes'] || {};
+      var finalAttributes = attributes.final || {};
+      var properties = siteConfig.properties || {};
+
+      for (var index in properties) {
+        var configsPropertyDef = preDefinedConfigs.filterProperty('name', index).findProperty('filename', filename);
+        var advancedConfig = advancedConfigs.filterProperty('name', index).findProperty('filename', filename);
+        var isAdvanced = Boolean(advancedConfig);
+        if (!configsPropertyDef) {
+          configsPropertyDef = advancedConfig;
+        }
+        var value = this.parseValue(properties[index], configsPropertyDef, advancedConfig);
+        var serviceConfigObj = App.ServiceConfig.create({
+          name: index,
+          value: value,
+          savedValue: value,
+          recommendedValue: advancedConfig ? Em.get(advancedConfig, 'recommendedValue') : null,
+          filename: filename,
+          isUserProperty: !advancedConfig,
+          isVisible: !!service,
+          isOverridable: true,
+          isReconfigurable: true,
+          isRequired: isAdvanced,
+          isFinal: finalAttributes[index] === "true",
+          savedIsFinal: finalAttributes[index] === "true",
+          recommendedIsFinal: advancedConfig ? Em.get(advancedConfig, 'recommendedIsFinal') : null,
+          showLabel: true,
+          serviceName: serviceName,
+          belongsToService: [],
+          supportsFinal: advancedConfig ? Em.get(advancedConfig, 'supportsFinal') : this.shouldSupportFinal(serviceName, siteConfig.type)
+        });
+        if (configsPropertyDef) {
+          this.setServiceConfigUiAttributes(serviceConfigObj, configsPropertyDef);
+          // check if defined UI config present in config list obtained from server.
+          // in case when config is absent on server and defined UI config is required
+          // by server, this config should be ignored
+          var serverProperty = properties[serviceConfigObj.get('name')];
+          if (Em.isNone(serverProperty) && serviceConfigObj.get('isRequiredByAgent')) {
+            continue;
+          }
+        }
+
+        this.tweakConfigVisibility(serviceConfigObj, properties);
+        if (!this.getBySiteName(serviceConfigObj.get('filename')).someProperty('name', index)) {
+          if (configsPropertyDef) {
+            if (Em.get(configsPropertyDef, 'isRequiredByAgent') === false) {
+              configs.push(serviceConfigObj);
+              continue;
+            }
+            this.handleSpecialProperties(serviceConfigObj);
+          } else {
+            serviceConfigObj.set('displayType', stringUtils.isSingleLine(serviceConfigObj.get('value')) ? 'advanced' : 'multiLine');
+          }
+          serviceConfigObj.setProperties({
+            'id': 'site property',
+            'displayName': configsPropertyDef && Em.get(configsPropertyDef, 'displayName') ? Em.get(configsPropertyDef, 'displayName') : index,
+            'options': configsPropertyDef ? Em.get(configsPropertyDef, 'options') : null,
+            'radioName': configsPropertyDef ? Em.get(configsPropertyDef, 'radioName') : null,
+            'serviceName': configsPropertyDef && Em.get(configsPropertyDef, 'serviceName') ? Em.get(configsPropertyDef, 'serviceName') : serviceName,
+            'belongsToService': configsPropertyDef && Em.get(configsPropertyDef, 'belongsToService') ? Em.get(configsPropertyDef, 'belongsToService') : []
+          });
+          this.calculateConfigProperties(serviceConfigObj, isAdvanced, advancedConfig);
+          this.setValueByDisplayType(serviceConfigObj);
+          configs.push(serviceConfigObj);
+        }
+      }
+    }, this);
+    return configs;
+  },
   /**
    * return:
    *   configs,
@@ -461,13 +542,11 @@ App.config = Em.Object.create({
    * synchronize order of config properties with order, that on UI side
    *
    * @method syncOrderWithPredefined
-   * @param configSet {object}
-   * @return {Object}
+   * @param {Object[]} siteConfigs
+   * @return {Object[]}
    */
-  syncOrderWithPredefined: function (configSet) {
-    var siteConfigs = configSet.configs,
-      siteStart = [];
-
+  syncOrderWithPredefined: function (siteConfigs) {
+    var siteStart = [];
     var preDefinedSiteProperties = this.get('preDefinedSiteProperties').mapProperty('name');
     var contentProperties = this.createContentProperties(siteConfigs).mapProperty('name');
     var siteProperties = preDefinedSiteProperties.concat(contentProperties);
@@ -484,10 +563,7 @@ App.config = Em.Object.create({
       }
     }, this);
 
-    return {
-      configs: siteStart.concat(siteConfigs.sortProperty('name')),
-      mappingConfigs: configSet.mappingConfigs
-    };
+    return siteStart.concat(siteConfigs.sortProperty('name'))
   },
 
   /**
@@ -1223,18 +1299,18 @@ App.config = Em.Object.create({
       if (/\d+m$/.test(hostOverrideValue)) {
         return hostOverrideValue.slice(0, hostOverrideValue.length - 1);
       }
-    } else if (serviceConfig && 
+    } else if (serviceConfig &&
                serviceConfig.displayType === 'masterHosts' &&
                typeof hostOverrideValue === 'string') {
       try {
         var value = JSON.parse(hostOverrideValue.replace(/'/g, "\""));
-        if (typeof value === 'object') { 
+        if (typeof value === 'object') {
           return value;
         }
       } catch(err) {
         console.error(err);
       }
-      
+
     }
     return hostOverrideValue;
   },

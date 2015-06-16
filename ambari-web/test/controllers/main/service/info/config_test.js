@@ -354,10 +354,6 @@ describe("App.MainServiceInfoConfigsController", function () {
     afterEach(function () {
       Em.run.once.restore();
     });
-    it("trigger onConfigGroupChange", function () {
-      mainServiceInfoConfigsController.doCancel();
-      expect(Em.run.once.calledWith(mainServiceInfoConfigsController, "onConfigGroupChange")).to.equal(true);
-    });
 
     it("should clear dependent configs", function() {
       mainServiceInfoConfigsController.set('groupsToSave', { HDFS: 'my cool group'});

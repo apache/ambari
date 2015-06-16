@@ -30,11 +30,24 @@ App.configGroupsMapper = App.QuickDataMapper.create({
     name: 'ConfigGroup.group_name',
     service_name: 'ConfigGroup.tag',
     description: 'ConfigGroup.description',
-    host_names: 'host_names',
+    host_names: 'hosts',
     service_id: 'ConfigGroup.tag'
   },
 
-  map: function (json, serviceNames) {
+  /**
+   * using this config when saving group from config_version api
+   */
+  config2: {
+    id: 'id',
+    config_group_id: 'group_id',
+    name: 'group_name',
+    service_name: 'service_name',
+    host_names: 'hosts',
+    service_id: 'service_name'
+  },
+
+
+  map: function (json, mapFromVersions, serviceNames, skipDefault) {
     if (serviceNames && serviceNames.length > 0) {
       var configGroups = [];
 
@@ -48,35 +61,49 @@ App.configGroupsMapper = App.QuickDataMapper.create({
       var hostNamesForService = {};
 
       if (json && json.items) {
-        json.items.forEach(function(configroup) {
-          configroup.id = configroup.ConfigGroup.tag + configroup.ConfigGroup.id;
-          configroup.host_names = configroup.ConfigGroup.hosts.mapProperty('host_name');
+        json.items.forEach(function(configGroup) {
+          if (configGroup.group_name != 'default') {
+            if (mapFromVersions) {
+              configGroup.id = configGroup.service_name + configGroup.group_id;
+            } else {
+              configGroup.id = configGroup.ConfigGroup.tag + configGroup.ConfigGroup.id;
+              configGroup.hosts = configGroup.ConfigGroup.hosts.mapProperty('host_name');
+              configGroup.service_name = configGroup.ConfigGroup.tag;
+            }
 
-          /**
-           * creating (if not exists) field in <code>hostNamesForService<code> with host names for default group
-           */
-          if (!hostNamesForService[configroup.ConfigGroup.tag]) {
-            hostNamesForService[configroup.ConfigGroup.tag] = $.merge([], App.get('allHostNames'));
+            if (!skipDefault) {
+              /**
+               * creating (if not exists) field in <code>hostNamesForService<code> with host names for default group
+               */
+              if (!hostNamesForService[configGroup.service_name]) {
+                hostNamesForService[configGroup.service_name] = $.merge([], App.get('allHostNames'));
+              }
+
+              /**
+               * excluding host names that belongs for current config group from default group
+               */
+              configGroup.hosts.forEach(function(host) {
+                hostNamesForService[configGroup.service_name].splice(hostNamesForService[configGroup.service_name].indexOf(host), 1);
+              });
+            }
+
+            var template = mapFromVersions ? this.get('config2') : this.get('config');
+            configGroups.push(this.parseIt(configGroup, template));
           }
-
-          /**
-           * excluding host names that belongs for current config group from default group
-           */
-          configroup.host_names.forEach(function(host) {
-            hostNamesForService[configroup.ConfigGroup.tag].splice(hostNamesForService[configroup.ConfigGroup.tag].indexOf(host), 1);
-          });
-
-          configGroups.push(this.parseIt(configroup, this.get('config')));
+        }, this);
+      }
+      if (!skipDefault) {
+        /**
+         * generating default config groups
+         */
+        serviceNames.forEach(function(serviceName) {
+          configGroups.push(this.generateDefaultGroup(serviceName, hostNamesForService[serviceName]));
         }, this);
       }
 
-      /**
-       * generating default config groups
-       */
-      serviceNames.forEach(function(serviceName) {
-        configGroups.push(this.generateDefaultGroup(serviceName, hostNamesForService[serviceName]));
-      }, this);
-
+      configGroups.sort(function (configGroupA, configGroupB) {
+        return configGroupA.config_group_id == -1 || (configGroupA.name > configGroupB.name);
+      });
       App.store.loadMany(this.get('model'), configGroups);
     }
   },
@@ -88,12 +115,13 @@ App.configGroupsMapper = App.QuickDataMapper.create({
    * @returns {{id: string, config_group_id: string, name: string, service_name: string, description: string, host_names: [string], service_id: string}}
    */
   generateDefaultGroup: function(serviceName, hostNames) {
+    var displayName = App.StackService.find(serviceName).get('displayName');
     return {
       id: serviceName + '0',
       config_group_id: '-1',
-      name: serviceName + ' Default',
+      name: displayName + ' Default',
       service_name: serviceName,
-      description: 'Default cluster level '+ serviceName +' configuration',
+      description: 'Default cluster level '+ displayName +' configuration',
       host_names: hostNames ? hostNames : App.get('allHostNames'),
       service_id: serviceName
     }

@@ -23,7 +23,7 @@ require('mappers/stack_mapper');
 require('mappers/stack_version_mapper');
 require('mappers/configs/themes_mapper');
 require('mappers/configs/stack_config_properties_mapper');
-//require('mappers/configs/config_groups_mapper');
+require('mappers/configs/config_groups_mapper');
 require('mappers/configs/config_versions_mapper');
 require('mappers/repository_version_mapper');
 require('mappers/hosts_mapper');

@@ -826,7 +826,8 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
         var managedConfigGroups = configsController.get('configGroups');
         if (!controller) {
           controller = App.router.get('mainServiceInfoConfigsController');
-          controller.set('configGroups', managedConfigGroups);
+          //controller.set('configGroups', managedConfigGroups);
+          controller.loadConfigGroups([controller.get('content.serviceName')]);
         } else {
           controller.set('selectedService.configGroups', managedConfigGroups);
         }

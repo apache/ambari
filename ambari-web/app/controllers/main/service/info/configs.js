@@ -21,7 +21,7 @@ require('controllers/wizard/slave_component_groups_controller');
 var batchUtils = require('utils/batch_scheduled_requests');
 var databaseUtils = require('utils/configs/database');
 
-App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.PreloadRequestsChainMixin, App.ThemesMappingMixin, App.VersionsMappingMixin, App.ConfigsSaverMixin, {
+App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ThemesMappingMixin, App.VersionsMappingMixin, App.ConfigsSaverMixin, {
 
   name: 'mainServiceInfoConfigsController',
 
@@ -43,19 +43,24 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   requestInProgress: null,
 
-  selectedServiceConfigTypes: [],
-
-  selectedServiceSupportsFinal: [],
+  groupsStore: App.ServiceConfigGroup.find(),
 
   /**
    * config groups for current service
    * @type {App.ConfigGroup[]}
    */
-  configGroups: [],
+  configGroups: function() {
+    return this.get('groupsStore').filterProperty('serviceName', this.get('content.serviceName'));
+  }.property('content.serviceName', 'groupsStore.length', 'groupStore.@each.name'),
+
+  dependentConfigGroups: function() {
+    if (this.get('dependentServiceNames.length') === 0) return [];
+    return this.get('groupsStore').filter(function(group) {
+      return this.get('dependentServiceNames').contains(group.get('serviceName'));
+    }, this);
+  }.property('content.serviceName', 'dependentServiceNames', 'groupsStore.length', 'groupStore.@each.name'),
 
   allConfigs: [],
-
-  uiConfigs: [],
 
   /**
    * Determines if save configs is in progress
@@ -93,12 +98,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   versionLoaded: false,
 
   /**
-   * current cluster-env version
-   * @type {string}
-   */
-  clusterEnvTagVersion: '',
-
-  /**
    * defines which service configs need to be loaded to stepConfigs
    * @type {string[]}
    */
@@ -129,13 +128,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   isCurrentSelected: function () {
     return App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + this.get('selectedVersion')).get('isCurrent');
-  }.property('selectedVersion', 'content.serviceName', 'dataIsLoaded'),
+  }.property('selectedVersion', 'content.serviceName', 'dataIsLoaded', 'versionLoaded'),
 
   /**
    * @type {boolean}
    */
   canEdit: function () {
-    return this.get('isCurrentSelected') && !this.get('isCompareMode') && App.isAccessible('MANAGER');
+    return this.get('isCurrentSelected') && !this.get('isCompareMode') && App.isAccessible('MANAGER') && !this.get('isHostsConfigsPage');
   }.property('isCurrentSelected', 'isCompareMode'),
 
   serviceConfigs: function () {
@@ -153,25 +152,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   secureConfigs: require('data/HDP2/secure_mapping'),
 
   showConfigHistoryFeature: true,
-
-  /**
-   * Map, which contains relation between group and site
-   * to upload overridden properties
-   * @type {object}
-   */
-  loadedGroupToOverrideSiteToTagMap: {},
-
-  /**
-   * During page load time the cluster level site to tag
-   * mapping is stored here.
-   *
-   * Example:
-   * {
-   *  'hdfs-site': 'version1',
-   *  'core-site': 'version1'
-   * }
-   */
-  loadedClusterSiteToTagMap: {},
 
   /**
    * Number of errors in the configs in the selected service (only for AdvancedTab if App supports Enhanced Configs)
@@ -289,7 +269,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       this.get('requestInProgress').abort();
       this.set('requestInProgress', null);
     }
+    this.clearLoadInfo();
     this.clearSaveInfo();
+    this.clearDependentConfigs();
     this.setProperties({
       saveInProgress: false,
       isInit: true,
@@ -298,13 +280,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       dataIsLoaded: false,
       versionLoaded: false,
       filter: '',
-      loadedGroupToOverrideSiteToTagMap: {},
       serviceConfigVersionNote: ''
     });
     this.get('filterColumns').setEach('selected', false);
     this.get('stepConfigs').clear();
     this.get('allConfigs').clear();
-    this.get('uiConfigs').clear();
     if (this.get('serviceConfigTags')) {
       this.set('serviceConfigTags', null);
     }
@@ -344,7 +324,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         App.themesMapper.generateAdvancedTabs([serviceName]);
       });
     }
-    this.loadClusterEnvSite();
+    this.loadServiceConfigVersions();
   },
 
   /**
@@ -370,74 +350,56 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     return JSON.stringify(hash);
   },
 
-  /**
-   * Update configs on the page after <code>selectedConfigGroup</code> is changed
-   * @method onConfigGroupChange
-   */
-  onConfigGroupChange: function () {
+  parseConfigData: function(data) {
+    this.prepareConfigObjects(data, this.get('content.serviceName'));
     var self = this;
-    this.get('stepConfigs').clear();
-    var selectedConfigGroup = this.get('selectedConfigGroup');
-    var serviceName = this.get('content.serviceName');
-    //STEP 1: handle tags from JSON data for host overrides
-    var configGroupsWithOverrides = selectedConfigGroup.get('isDefault') && !this.get('isHostsConfigsPage') ? this.get('configGroupsToLoad') : [selectedConfigGroup].concat(this.get('dependentConfigGroups'));
-    configGroupsWithOverrides.forEach(function (item) {
-      var groupName = item.get('name');
-      if (Em.isNone(this.loadedGroupToOverrideSiteToTagMap[groupName])) {
-        this.loadedGroupToOverrideSiteToTagMap[groupName] = {};
-        item.get('configSiteTags').forEach(function (siteTag) {
-          var site = siteTag.get('site');
-          this.loadedGroupToOverrideSiteToTagMap[groupName][site] = siteTag.get('tag');
-        }, this);
-      }
-    }, this);
-    //STEP 2: Create an array of objects defining tag names to be polled and new tag names to be set after submit
-    this.setServiceConfigTags(this.loadedClusterSiteToTagMap);
-    //STEP 4: Load on-site config by service from server
-    App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function(configGroups){
-      //Merge on-site configs with pre-defined
-      var configSet = App.config.mergePreDefinedWithLoaded(configGroups, self.get('advancedConfigs'), self.get('serviceConfigTags'), serviceName);
-      configSet = App.config.syncOrderWithPredefined(configSet);
-
-      var configs = configSet.configs;
-
-      /**
-       * if property defined in stack but somehow it missed from cluster properties (can be after stack upgrade)
-       * ui should add this properties to step configs
-       */
-      configs = self.mergeWithStackProperties(configs);
-
-      //put properties from capacity-scheduler.xml into one config with textarea view
-      if (self.get('content.serviceName') === 'YARN') {
-        var configsToSkip = self.get('advancedConfigs').filterProperty('filename', 'capacity-scheduler.xml').filterProperty('subSection');
-        configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', configsToSkip);
-      }
-
-      if (self.get('content.serviceName') === 'KERBEROS') {
-        var kdc_type = configs.findProperty('name', 'kdc_type');
-        if (kdc_type.get('value') === 'none') {
-          configs.findProperty('name', 'kdc_host').set('isRequired', false).set('isVisible', false);
-          configs.findProperty('name', 'admin_server_host').set('isRequired', false).set('isVisible', false);
-          configs.findProperty('name', 'domains').set('isRequired', false).set('isVisible', false);
-        }
-
-        kdc_type.set('value', App.router.get('mainAdminKerberosController.kdcTypesValues')[kdc_type.get('value')]);
-      }
-
-      self.set('allConfigs', configs);
-      //add configs as names of host components
-      self.addHostNamesToConfig();
-      //load configs of version being compared against
-      self.loadCompareVersionConfigs(self.get('allConfigs')).done(function (isComparison) {
-        //Load and add overridden configs of group
-        if (!isComparison && (!self.get('selectedConfigGroup').get('isDefault') || self.get('isCurrentSelected'))) {
-          App.config.loadServiceConfigGroupOverrides(self.get('allConfigs'), self.get('loadedGroupToOverrideSiteToTagMap'), self.get('configGroupsToLoad'), self.onLoadOverrides, self);
-        } else {
-          self.onLoadOverrides(self.get('allConfigs'));
-        }
-      });
+    this.loadCompareVersionConfigs(this.get('allConfigs')).done(function() {
+      self.addOverrides(data, self.get('allConfigs'));
+      self.onLoadOverrides(self.get('allConfigs'));
     });
-  }.observes('selectedConfigGroup'),
+  },
+
+  prepareConfigObjects: function(data, serviceName) {
+    this.get('stepConfigs').clear();
+
+    var configGroups = [];
+    data.items.forEach(function (v) {
+      if (v.group_name == 'default') {
+        v.configurations.forEach(function (c) {
+          configGroups.pushObject(c);
+        });
+      }
+    });
+
+    var configs = App.config.mergePredefinedWithSaved(configGroups, this.get('advancedConfigs'), serviceName);
+    configs = App.config.syncOrderWithPredefined(configs);
+    /**
+     * if property defined in stack but somehow it missed from cluster properties (can be after stack upgrade)
+     * ui should add this properties to step configs
+     */
+    configs = this.mergeWithStackProperties(configs);
+
+    //put properties from capacity-scheduler.xml into one config with textarea view
+    if (this.get('content.serviceName') === 'YARN') {
+      var configsToSkip = this.get('advancedConfigs').filterProperty('filename', 'capacity-scheduler.xml').filterProperty('subSection');
+      configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', configsToSkip);
+    }
+
+    if (this.get('content.serviceName') === 'KERBEROS') {
+      var kdc_type = configs.findProperty('name', 'kdc_type');
+      if (kdc_type.get('value') === 'none') {
+        configs.findProperty('name', 'kdc_host').set('isRequired', false).set('isVisible', false);
+        configs.findProperty('name', 'admin_server_host').set('isRequired', false).set('isVisible', false);
+        configs.findProperty('name', 'domains').set('isRequired', false).set('isVisible', false);
+      }
+
+      kdc_type.set('value', App.router.get('mainAdminKerberosController.kdcTypesValues')[kdc_type.get('value')]);
+    }
+
+    this.set('allConfigs', configs);
+    //add configs as names of host components
+    this.addHostNamesToConfig();
+  },
 
   /**
    * adds properties form stack that doesn't belong to cluster
@@ -476,6 +438,28 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     return configs;
   },
 
+  addOverrides: function(data, allConfigs) {
+    data.items.forEach(function(group) {
+      if (group.group_name != 'default') {
+        var configGroup = App.ServiceConfigGroup.find().filterProperty('serviceName', group.service_name).findProperty('name', group.group_name);
+        group.configurations.forEach(function(config) {
+          for (var prop in config.properties) {
+            var fileName = App.config.getOriginalFileName(config.type);
+            var serviceConfig = allConfigs.filterProperty('name', prop).findProperty('filename', fileName);
+            var hostOverrideValue = App.config.formatOverrideValue(serviceConfig, config.properties[prop]);
+            var hostOverrideIsFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
+            if (serviceConfig) {
+              // Value of this property is different for this host.
+              if (!Em.get(serviceConfig, 'overrides')) Em.set(serviceConfig, 'overrides', []);
+              serviceConfig.overrides.pushObject({value: hostOverrideValue, group: configGroup, isFinal: hostOverrideIsFinal});
+            } else {
+              allConfigs.push(App.config.createCustomGroupConfig(prop, config, configGroup));
+            }
+          }
+        });
+      }
+    });
+  },
   /**
    * load version configs for comparison
    * @param allConfigs
@@ -838,9 +822,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method onLoadOverrides
    */
   onLoadOverrides: function (allConfigs) {
-    var self = this;
-    var serviceNames = this.get('servicesToLoad');
-    serviceNames.forEach(function(serviceName) {
+    this.get('servicesToLoad').forEach(function(serviceName) {
       var serviceConfig = App.config.createServiceConfig(serviceName);
       if (serviceName == this.get('content.serviceName')) {
         serviceConfig.set('configGroups', this.get('configGroups'));
@@ -872,11 +854,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     if (!App.Service.find().someProperty('serviceName', 'RANGER')) {
       App.config.removeRangerConfigs(this.get('stepConfigs'));
     }
+    this._onLoadComplete();
     if (App.isAccessible('MANAGER')) {
-      this.getRecommendationsForDependencies(null, true, self._onLoadComplete.bind(self));
-    }
-    else {
-      self._onLoadComplete();
+      this.getRecommendationsForDependencies(null, true, Em.K);
     }
   },
 
@@ -1294,13 +1274,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
-   * Trigger loadStep
-   * @method loadStep
+   * Trigger loadSelectedVersion
+   * @method doCancel
    */
   doCancel: function () {
     this.set('preSelectedConfigVersion', null);
     this.clearDependentConfigs();
-    Em.run.once(this, 'onConfigGroupChange');
+    this.loadSelectedVersion(this.get('selectedConfigVersion'), this.get('selectedConfigGroup'));
   },
 
   /**
@@ -1459,11 +1439,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method selectConfigGroup
    */
   doSelectConfigGroup: function (event) {
-    //clean when switch config group
-    this.loadedGroupToOverrideSiteToTagMap = {};
-    var configGroupVersions = App.ServiceConfigVersion.find().filterProperty('groupId', event.context.get('id'));
+    var configGroupVersions = App.ServiceConfigVersion.find().filterProperty('groupId', event.context.get('configGroupId'));
     //check whether config group has config versions
-    if (configGroupVersions.length > 0) {
+    if (event.context.get('configGroupId') == -1) {
+      this.loadCurrentVersions();
+    } else if (configGroupVersions.length > 0) {
       this.loadSelectedVersion(configGroupVersions.findProperty('isCurrent').get('version'), event.context);
     } else {
       this.loadSelectedVersion(null, event.context);
