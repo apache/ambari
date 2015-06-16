@@ -87,12 +87,12 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix, krb_exe
   error_msg = None
   try:
     if return_only_http_code:
-      curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
+      curl = subprocess.Popen(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
                              '%{http_code}', url, '--connect-timeout', str(CONNECTION_TIMEOUT),'-o', '/dev/null'],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kerberos_env)
     else:
       # returns response body
-      curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
+      curl = subprocess.Popen(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
                              url, '--connect-timeout', str(CONNECTION_TIMEOUT)],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kerberos_env)
 
