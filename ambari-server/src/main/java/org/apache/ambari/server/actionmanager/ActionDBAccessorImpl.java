@@ -458,13 +458,12 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Override
   public void abortHostRole(String host, long requestId, long stageId, String role) {
-    String reason = "Host Role in invalid state";
+    String reason = String.format("On host %s role %s in invalid state.", host, role);
     abortHostRole(host, requestId, stageId, role, reason);
   }
 
   @Override
-  public void abortHostRole(String host, long requestId, long stageId,
-                            String role, String reason) {
+  public void abortHostRole(String host, long requestId, long stageId, String role, String reason) {
     CommandReport report = new CommandReport();
     report.setExitCode(999);
     report.setStdErr(reason);
@@ -489,9 +488,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Override
   @Transactional
-  public void bulkAbortHostRole(Stage s, List<ExecutionCommand> commands) {
-    for (ExecutionCommand command : commands) {
-      abortHostRole(command.getHostname(), s.getRequestId(), s.getStageId(), command.getRole());
+  public void bulkAbortHostRole(Stage s, Map<ExecutionCommand, String> commands) {
+    for (ExecutionCommand command : commands.keySet()) {
+      String reason = String.format("On host %s role %s in invalid state.\n%s",
+              command.getHostname(), command.getRole(), commands.get(command));
+      abortHostRole(command.getHostname(), s.getRequestId(), s.getStageId(), command.getRole(), reason);
     }
   }
 

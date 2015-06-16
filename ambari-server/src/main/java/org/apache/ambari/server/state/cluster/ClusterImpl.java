@@ -2480,8 +2480,8 @@ public class ClusterImpl implements Cluster {
 
   @Transactional
   @Override
-  public List<ServiceComponentHostEvent> processServiceComponentHostEvents(ListMultimap<String, ServiceComponentHostEvent> eventMap) {
-    List<ServiceComponentHostEvent> failedEvents = new ArrayList<ServiceComponentHostEvent>();
+  public Map<ServiceComponentHostEvent, String> processServiceComponentHostEvents(ListMultimap<String, ServiceComponentHostEvent> eventMap) {
+    Map<ServiceComponentHostEvent, String> failedEvents = new HashMap<ServiceComponentHostEvent, String>();
 
     clusterGlobalLock.readLock().lock();
     try {
@@ -2494,24 +2494,28 @@ public class ClusterImpl implements Cluster {
           ServiceComponentHost serviceComponentHost = serviceComponent.getServiceComponentHost(event.getHostName());
           serviceComponentHost.handleEvent(event);
         } catch (ServiceNotFoundException e) {
-          LOG.error(String.format("ServiceComponentHost lookup exception. Service not found for Service: %s. Error: %s",
-              serviceName, e.getMessage()));
+          String message = String.format("ServiceComponentHost lookup exception. Service not found for Service: %s. Error: %s",
+                  serviceName, e.getMessage());
+          LOG.error(message);
           e.printStackTrace();
-          failedEvents.add(event);
+          failedEvents.put(event, message);
         } catch (ServiceComponentNotFoundException e) {
-          LOG.error(String.format("ServiceComponentHost lookup exception. Service Component not found for Service: %s, Component: %s. Error: %s",
-              serviceName, event.getServiceComponentName(), e.getMessage()));
+          String message = String.format("ServiceComponentHost lookup exception. Service Component not found for Service: %s, Component: %s. Error: %s",
+                  serviceName, event.getServiceComponentName(), e.getMessage());
+          LOG.error(message);
           e.printStackTrace();
-          failedEvents.add(event);
+          failedEvents.put(event, message);
         } catch (ServiceComponentHostNotFoundException e) {
-          LOG.error(String.format("ServiceComponentHost lookup exception. Service Component Host not found for Service: %s, Component: %s, Host: %s. Error: %s",
-              serviceName, event.getServiceComponentName(), event.getHostName(), e.getMessage()));
+          String message = String.format("ServiceComponentHost lookup exception. Service Component Host not found for Service: %s, Component: %s, Host: %s. Error: %s",
+                  serviceName, event.getServiceComponentName(), event.getHostName(), e.getMessage());
+          LOG.error(message);
           e.printStackTrace();
-          failedEvents.add(event);
+          failedEvents.put(event, message);
         } catch (AmbariException e) {
-          LOG.error("ServiceComponentHost lookup exception ", e.getMessage());
+          String message = String.format("ServiceComponentHost lookup exception %s", e.getMessage());
+          LOG.error(message);
           e.printStackTrace();
-          failedEvents.add(event);
+          failedEvents.put(event, message);
         } catch (InvalidStateTransitionException e) {
           LOG.error("Invalid transition ", e);
           if ((e.getEvent() == ServiceComponentHostEventType.HOST_SVCCOMP_START) &&
@@ -2519,7 +2523,7 @@ public class ClusterImpl implements Cluster {
             LOG.warn("Component request for component = " + event.getServiceComponentName() + " to start is invalid, since component is already started. Ignoring this request.");
             // skip adding this as a failed event, to work around stack ordering issues with Hive
           } else {
-            failedEvents.add(event);
+            failedEvents.put(event, String.format("Invalid transition. %s", e.getMessage()));
           }
         }
       }
