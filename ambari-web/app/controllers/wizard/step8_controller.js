@@ -384,13 +384,22 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var dependentConfig = $.extend(true, [], configMapping.filterProperty('foreignKey'));
     dependentConfig.forEach(function (_config) {
       App.config.setConfigValue(uiConfig, this.get('content.serviceConfigProperties'), _config);
-      if(!_config.noMatchSoSkipThisConfig)
+      // generated config name using template for example `hadoop.proxyuser.hive.hosts`
+      var configName = _config._name || _config.name;
+      // property from <code>content.serviceConfigProperties</code>. This property can be added in custom-site.xml
+      // with the same name as propety from defined config mapping. In this case property from config mapping
+      // object should be ignored.
+      var isPropertyDefined = this.get('content.serviceConfigProperties')
+            .filterProperty('filename', _config.filename).someProperty('name', configName);
+      // ignore config mapping property if no matches for template was found or property already added by user
+      if(!_config.noMatchSoSkipThisConfig && !isPropertyDefined) {
         uiConfig.pushObject({
           "id": "site property",
-          "name": _config._name || _config.name,
+          "name": configName,
           "value": _config.value,
           "filename": _config.filename
         });
+      }
     }, this);
     return uiConfig;
   },

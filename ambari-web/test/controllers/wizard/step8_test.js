@@ -1765,9 +1765,13 @@ describe('App.WizardStep8Controller', function () {
   describe('#loadUiSideConfigs', function() {
     beforeEach(function() {
       sinon.stub(App.config, 'setConfigValue', Em.K);
+      sinon.stub(installerStep8Controller, 'get').withArgs('content.serviceConfigProperties').returns([
+        { name: 'c9', filename: 'f3'}
+      ]);
     });
     afterEach(function() {
       App.config.setConfigValue.restore();
+      installerStep8Controller.get.restore();
     });
 
     it('configs with foreignKey', function() {
@@ -1775,10 +1779,13 @@ describe('App.WizardStep8Controller', function () {
         {foreignKey: 'fk1', templateName: 't5', value: 'v5', name: 'c5', filename: 'f1'},
         {foreignKey: 'fk2', templateName: 't6', value: 'v6', name: 'c6', filename: 'f1'},
         {foreignKey: 'fk3', templateName: 't7', value: 'v7', name: 'c7', filename: 'f2'},
-        {foreignKey: 'fk4', templateName: 't8', value: 'v8', name: 'c8', filename: 'f2'}
+        {foreignKey: 'fk4', templateName: 't8', value: 'v8', name: 'c8', filename: 'f2'},
+        {foreignKey: 'fk5', templateName: 't9', value: 'v9', name: 'c9', filename: 'f3'}
       ];
       var uiConfigs = installerStep8Controller.loadUiSideConfigs(configMapping);
-      expect(uiConfigs.length).to.equal(configMapping.length);
+      // should ignore one config that was saved in contentServiceConfigProperties
+      expect(uiConfigs.length).to.equal(configMapping.length - 1);
+      expect(uiConfigs.findProperty('name', 'c9')).to.be.undefined;
       expect(uiConfigs.everyProperty('id', 'site property')).to.be.true;
       uiConfigs.forEach(function(c, index) {
         if (Em.isNone(configMapping[index].foreignKey))
