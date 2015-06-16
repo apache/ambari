@@ -340,27 +340,6 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
 
   def validateClusterConfigurations(self, configurations, services, hosts):
     validationItems = []
-    hostComponents = {}
-    failureMessage = ""
-
-    for service in services["services"]:
-      for component in service["components"]:
-        if component["StackServiceComponents"]["hostnames"] is not None:
-          for hostName in component["StackServiceComponents"]["hostnames"]:
-            if hostName not in hostComponents.keys():
-              hostComponents[hostName] = []
-            hostComponents[hostName].append(component["StackServiceComponents"]["component_name"])
-
-    for host in hosts["items"]:
-      # Not enough physical memory
-      requiredMemory = getMemorySizeRequired(hostComponents[host["Hosts"]["host_name"]], configurations)
-      if host["Hosts"]["total_mem"] * 1024 < requiredMemory:  # in bytes
-        failureMessage += "Not enough physical RAM on the host {0}. " \
-                          "At least {1} MB is recommended based on components assigned.\n" \
-          .format(host["Hosts"]["host_name"], requiredMemory/1048576)  # MB
-    if failureMessage:
-      notEnoughMemoryItem = self.getWarnItem(failureMessage)
-      validationItems.extend([{"config-name": "", "item": notEnoughMemoryItem}])
 
     return self.toConfigurationValidationProblems(validationItems, "")
 
