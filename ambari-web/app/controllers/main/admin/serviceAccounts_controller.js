@@ -81,6 +81,15 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
 
     miscConfigs = App.config.miscConfigVisibleProperty(miscConfigs, App.Service.find().mapProperty('serviceName').concat('MISC'));
 
+    // load specific users along the wizards which called <code>loadUsers</code> method
+    var wizardContentProperties = [
+      {key: 'group', configName: 'user_group'},
+      {key: 'smokeuser', configName: 'smokeuser'},
+      {key: 'hdfsUser', configName: 'hdfs_user'}
+    ];
+    wizardContentProperties.forEach(function(item) {
+      this.setContentProperty(item.key, item.configName, miscConfigs);
+    }, this);
     this.set('users', miscConfigs.filterProperty('isVisible'));
     this.set('dataIsLoaded', true);
   },
