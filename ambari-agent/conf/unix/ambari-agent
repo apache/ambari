@@ -48,10 +48,10 @@ AMBARI_AGENT_PY_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/AmbariAgent
 OK=1
 NOTOK=0
 
-current_user=`awk -v val=$EUID -F ":" '$3==val{print $1}' /etc/passwd`
+current_user=`id -u -n`
 echo "" | sudo -S -l > /dev/null 2>&1
-if [ "$?" != "0" ] && [ "$current_user" != "root" ] ; then
- echo "You can't perform this operation as non-sudoer user. Please, re-login as one"
+if [ "$?" != "0" ] && [ "$EUID" -ne 0 ] ; then
+ echo "You can't perform this operation as non-sudoer user. Please, re-login or configure sudo access for this user."
  exit 0
 fi
 
