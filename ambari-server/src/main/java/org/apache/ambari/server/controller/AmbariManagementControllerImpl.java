@@ -181,6 +181,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    */
   private static final String REQUEST_CONTEXT_PROPERTY = "context";
 
+  private static final String CLUSTER_PHASE_PROPERTY = "phase";
+  private static final String CLUSTER_PHASE_INITIAL_INSTALL = "INITIAL_INSTALL";
+  private static final String CLUSTER_PHASE_INITIAL_START = "INITIAL_START";
+
   private static final String BASE_LOG_DIR = "/tmp/ambari";
 
   private final Clusters clusters;
@@ -1767,7 +1771,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                 Map<String, Map<String, Map<String, String>>> configurationAttributes,
                                 Map<String, Map<String, String>> configTags,
                                 RoleCommand roleCommand,
-                                Map<String, String> commandParams,
+                                Map<String, String> commandParamsInp,
                                 ServiceComponentHostEvent event
                                 )
                                 throws AmbariException {
@@ -1807,8 +1811,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     execCmd.setConfigurations(configurations);
     execCmd.setConfigurationAttributes(configurationAttributes);
     execCmd.setConfigurationTags(configTags);
-    if (commandParams == null) { // if not defined
-      commandParams = new TreeMap<String, String>();
+    // Create a local copy for each command
+    Map<String, String> commandParams = new TreeMap<String, String>();
+    if (commandParamsInp != null) { // if not defined
+      commandParams.putAll(commandParamsInp);
     }
     boolean isInstallCommand = roleCommand.equals(RoleCommand.INSTALL);
     String agentDefaultCommandTimeout = configs.getDefaultAgentTaskTimeout(isInstallCommand);
@@ -1823,38 +1829,43 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         commandParams.put(SCRIPT, script.getScript());
         commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
 
-        String retryEnabledStr = configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.CLUSTER_ENV,
-                                                                                ConfigHelper.CLUSTER_ENV_RETRY_ENABLED);
-        String commandsStr = configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.CLUSTER_ENV,
-                                                                            ConfigHelper.CLUSTER_ENV_RETRY_COMMANDS);
-        String retryMaxTimeStr = configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.CLUSTER_ENV,
-                                                                            ConfigHelper.CLUSTER_ENV_RETRY_MAX_TIME_IN_SEC);
-
         boolean retryEnabled = false;
-        if(StringUtils.isNotEmpty(retryEnabledStr)) {
-          retryEnabled = Boolean.TRUE.toString().equals(retryEnabledStr);
-        }
-
         Integer retryMaxTime = 0;
-
-        if (retryEnabled) {
-          retryMaxTime = NumberUtils.toInt(retryMaxTimeStr, 0);
-          if(retryMaxTime < 0) {
-            retryMaxTime = 0;
+        if (commandParams.containsKey(CLUSTER_PHASE_PROPERTY) &&
+            (commandParams.get(CLUSTER_PHASE_PROPERTY).equals(CLUSTER_PHASE_INITIAL_INSTALL) ||
+            commandParams.get(CLUSTER_PHASE_PROPERTY).equals(CLUSTER_PHASE_INITIAL_START))) {
+          String retryEnabledStr =
+              configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.CLUSTER_ENV,
+                                                             ConfigHelper.CLUSTER_ENV_RETRY_ENABLED);
+          String commandsStr =
+              configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.CLUSTER_ENV,
+                                                             ConfigHelper.CLUSTER_ENV_RETRY_COMMANDS);
+          String retryMaxTimeStr =
+              configHelper.getValueFromDesiredConfigurations(cluster,
+                                                             ConfigHelper.CLUSTER_ENV,
+                                                             ConfigHelper.CLUSTER_ENV_RETRY_MAX_TIME_IN_SEC);
+          if (StringUtils.isNotEmpty(retryEnabledStr)) {
+            retryEnabled = Boolean.TRUE.toString().equals(retryEnabledStr);
           }
 
-          if (StringUtils.isNotEmpty(commandsStr)) {
-            boolean commandMayBeRetried = false;
-            String[] commands = commandsStr.split(",");
-            for (String command : commands) {
-              if (roleCommand.toString().equals(command.trim())) {
-                commandMayBeRetried = true;
-              }
+          if (retryEnabled) {
+            retryMaxTime = NumberUtils.toInt(retryMaxTimeStr, 0);
+            if (retryMaxTime < 0) {
+              retryMaxTime = 0;
             }
-            retryEnabled = commandMayBeRetried;
+
+            if (StringUtils.isNotEmpty(commandsStr)) {
+              boolean commandMayBeRetried = false;
+              String[] commands = commandsStr.split(",");
+              for (String command : commands) {
+                if (roleCommand.toString().equals(command.trim())) {
+                  commandMayBeRetried = true;
+                }
+              }
+              retryEnabled = commandMayBeRetried;
+            }
           }
         }
-
         commandParams.put(MAX_DURATION_OF_RETRIES, Integer.toString(retryMaxTime));
         commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(retryEnabled));
         ClusterVersionEntity currentClusterVersion = cluster.getCurrentClusterVersion();
@@ -2287,6 +2298,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               requestParameters.put(keyName, requestProperties.get(keyName));
             }
 
+            if (requestProperties.containsKey(CLUSTER_PHASE_PROPERTY)) {
+              if (null == requestParameters) {
+                requestParameters = new HashMap<String, String>();
+              }
+              requestParameters.put(CLUSTER_PHASE_PROPERTY, requestProperties.get(CLUSTER_PHASE_PROPERTY));
+            }
+
             Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
             Map<String, Map<String, Map<String, String>>>
                 configurationAttributes =
@@ -2304,7 +2322,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                     Configuration.RCA_ENABLED_PROPERTY, "false", false);
               }
             }
-
 
             createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
                              roleCommand, requestParameters, event);

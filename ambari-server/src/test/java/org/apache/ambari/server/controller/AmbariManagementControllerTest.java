@@ -471,7 +471,14 @@ public class AmbariManagementControllerTest {
   private long installService(String clusterName, String serviceName,
                               boolean runSmokeTests, boolean reconfigureClients)
           throws AmbariException {
-    return installService(clusterName, serviceName, runSmokeTests, reconfigureClients, null);
+    return installService(clusterName, serviceName, runSmokeTests, reconfigureClients, null, null);
+  }
+
+  private long installService(String clusterName, String serviceName,
+                              boolean runSmokeTests, boolean reconfigureClients,
+                              Map<String, String> mapRequestPropsInput)
+      throws AmbariException {
+    return installService(clusterName, serviceName, runSmokeTests, reconfigureClients, null, mapRequestPropsInput);
   }
 
 
@@ -481,7 +488,8 @@ public class AmbariManagementControllerTest {
    */
   private long installService(String clusterName, String serviceName,
                               boolean runSmokeTests, boolean reconfigureClients,
-                              MaintenanceStateHelper maintenanceStateHelper)
+                              MaintenanceStateHelper maintenanceStateHelper,
+                              Map<String, String> mapRequestPropsInput)
           throws AmbariException {
     ServiceRequest r = new ServiceRequest(clusterName, serviceName,
         State.INSTALLED.toString());
@@ -489,6 +497,9 @@ public class AmbariManagementControllerTest {
     requests.add(r);
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
+    if(mapRequestPropsInput != null) {
+      mapRequestProps.putAll(mapRequestPropsInput);
+    }
     RequestStatusResponse resp = ServiceResourceProviderTest.updateServices(controller, requests,
         mapRequestProps, runSmokeTests, reconfigureClients, maintenanceStateHelper);
 
@@ -1000,158 +1011,166 @@ public class AmbariManagementControllerTest {
 
   }
 
+
   @Test
   public void testGetExecutionCommandWithClusterEnvForRetry() throws Exception {
-    testCreateServiceComponentHostSimple();
-
     String clusterName = "foo1";
-    String serviceName = "HDFS";
-
+    createCluster(clusterName);
     Cluster cluster = clusters.getCluster(clusterName);
-    Service s1 = cluster.getService(serviceName);
+    clusters.getCluster(clusterName)
+        .setDesiredStackVersion(new StackId("HDP-0.1"));
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+    createServiceComponent(clusterName, serviceName, componentName1,
+                           State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+                           State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3,
+                           State.INIT);
 
-    // Create and attach config
+    String host1 = "h1";
+    String host2 = "h2";
+
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
+
     Map<String, String> configs = new HashMap<String, String>();
     configs.put("a", "b");
     configs.put("command_retry_enabled", "true");
     configs.put("command_retry_max_time_in_sec", "5");
-    configs.put("commands_to_retry", "START");
+    configs.put("commands_to_retry", "INSTALL");
 
-    ConfigurationRequest cr1,cr2;
-    cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
-                                   configs, null);
-    cr2 = new ConfigurationRequest(clusterName, "cluster-env","version1",
+    ConfigurationRequest cr1;
+    cr1 = new ConfigurationRequest(clusterName, "cluster-env","version1",
                                    configs, null);
 
     ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
-    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
-    crReq.setDesiredConfig(Collections.singletonList(cr2));
-    controller.updateClusters(Collections.singleton(crReq), null);
 
-    // Install
-    installService(clusterName, serviceName, false, false);
-    ExecutionCommand ec =
-        controller.getExecutionCommand(cluster,
-                                       s1.getServiceComponent("NAMENODE").getServiceComponentHost("h1"),
-                                       RoleCommand.START);
-    assertEquals("1-0", ec.getCommandId());
-    assertEquals("foo1", ec.getClusterName());
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+                               host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+                               host2, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+                               host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+                               host2, null);
+
+    // issue an install command, expect retry is enabled
+    ServiceComponentHostRequest
+        schr =
+        new ServiceComponentHostRequest(clusterName, "HDFS", "DATANODE", host2, "INSTALLED");
+    Map<String, String> requestProps = new HashMap<String, String>();
+    requestProps.put("phase", "INITIAL_INSTALL");
+    RequestStatusResponse rsr = updateHostComponents(Collections.singleton(schr), requestProps, false);
+
+    List<Stage> stages = actionDB.getAllStages(rsr.getRequestId());
+    Assert.assertEquals(1, stages.size());
+    Stage stage = stages.iterator().next();
+    List<ExecutionCommandWrapper> execWrappers = stage.getExecutionCommands(host2);
+    Assert.assertEquals(1, execWrappers.size());
+    ExecutionCommandWrapper execWrapper = execWrappers.iterator().next();
+    ExecutionCommand ec = execWrapper.getExecutionCommand();
     Map<String, Map<String, String>> configurations = ec.getConfigurations();
     assertNotNull(configurations);
-    assertEquals(2, configurations.size());
-    assertTrue(configurations.containsKey("core-site"));
-    assertTrue(ec.getConfigurationAttributes().containsKey("core-site"));
+    assertEquals(1, configurations.size());
+    assertTrue(configurations.containsKey("cluster-env"));
     assertTrue(ec.getCommandParams().containsKey("max_duration_for_retries"));
     assertEquals("5", ec.getCommandParams().get("max_duration_for_retries"));
     assertTrue(ec.getCommandParams().containsKey("command_retry_enabled"));
     assertEquals("true", ec.getCommandParams().get("command_retry_enabled"));
-    Map<String, Set<String>> chInfo = ec.getClusterHostInfo();
-    assertTrue(chInfo.containsKey("namenode_host"));
-  }
 
-  @Test
-  public void testGetExecutionCommandWithClusterEnvForRetryOnlyInstall() throws Exception {
-    testCreateServiceComponentHostSimple();
+    for (ServiceComponentHost sch : clusters.getCluster(clusterName).getServiceComponentHosts(host2)) {
+      sch.setState(State.INSTALLED);
+    }
 
-    String clusterName = "foo1";
-    String serviceName = "HDFS";
-
-    Cluster cluster = clusters.getCluster(clusterName);
-    Service s1 = cluster.getService(serviceName);
-
-    // Create and attach config
-    Map<String, String> configs = new HashMap<String, String>();
-    configs.put("a", "b");
-    configs.put("command_retry_enabled", "true");
-    configs.put("max_duration_for_retries", "1");
-    configs.put("commands_to_retry", "INSTALL");
-
-    ConfigurationRequest cr1,cr2;
-    cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
-                                   configs, null);
-    cr2 = new ConfigurationRequest(clusterName, "cluster-env","version1",
-                                   configs, null);
-
-    ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
-    crReq.setDesiredConfig(Collections.singletonList(cr1));
-    controller.updateClusters(Collections.singleton(crReq), null);
-    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
-    crReq.setDesiredConfig(Collections.singletonList(cr2));
-    controller.updateClusters(Collections.singleton(crReq), null);
-
-    // Install
-    installService(clusterName, serviceName, false, false);
-    ExecutionCommand ec =
-        controller.getExecutionCommand(cluster,
-                                       s1.getServiceComponent("NAMENODE").getServiceComponentHost("h1"),
-                                       RoleCommand.START);
-    assertEquals("1-0", ec.getCommandId());
-    assertEquals("foo1", ec.getClusterName());
-    Map<String, Map<String, String>> configurations = ec.getConfigurations();
+    // issue an start command but no retry as phase is only INITIAL_INSTALL
+    schr = new ServiceComponentHostRequest(clusterName, "HDFS", "DATANODE", host2, "STARTED");
+    rsr = updateHostComponents(Collections.singleton(schr), requestProps, false);
+    stages = actionDB.getAllStages(rsr.getRequestId());
+    Assert.assertEquals(1, stages.size());
+    stage = stages.iterator().next();
+    execWrappers = stage.getExecutionCommands(host2);
+    Assert.assertEquals(1, execWrappers.size());
+    execWrapper = execWrappers.iterator().next();
+    ec = execWrapper.getExecutionCommand();
+    configurations = ec.getConfigurations();
     assertNotNull(configurations);
-    assertEquals(2, configurations.size());
-    assertTrue(configurations.containsKey("core-site"));
-    assertTrue(ec.getConfigurationAttributes().containsKey("core-site"));
+    assertEquals(1, configurations.size());
+    assertTrue(configurations.containsKey("cluster-env"));
     assertTrue(ec.getCommandParams().containsKey("max_duration_for_retries"));
-    assertEquals("0", ec.getCommandParams().get("max_duration_for_retries"));
+    assertEquals("5", ec.getCommandParams().get("max_duration_for_retries"));
     assertTrue(ec.getCommandParams().containsKey("command_retry_enabled"));
     assertEquals("false", ec.getCommandParams().get("command_retry_enabled"));
-    Map<String, Set<String>> chInfo = ec.getClusterHostInfo();
-    assertTrue(chInfo.containsKey("namenode_host"));
-  }
 
-  @Test
-  public void testGetExecutionCommandWithBadClusterEnvForRetry() throws Exception {
-    testCreateServiceComponentHostSimple();
+    configs.put("command_retry_enabled", "true");
+    configs.put("command_retry_max_time_in_sec", "12");
+    configs.put("commands_to_retry", "START");
 
-    String clusterName = "foo1";
-    String serviceName = "HDFS";
+    cr1 = new ConfigurationRequest(clusterName, "cluster-env","version2",
+                                   configs, null);
+    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
+    controller.updateClusters(Collections.singleton(crReq), null);
 
-    Cluster cluster = clusters.getCluster(clusterName);
-    Service s1 = cluster.getService(serviceName);
+    // issue an start command and retry is expected
+    requestProps.put("phase", "INITIAL_START");
+    schr = new ServiceComponentHostRequest(clusterName, "HDFS", "DATANODE", host2, "STARTED");
+    rsr = updateHostComponents(Collections.singleton(schr), requestProps, false);
+    stages = actionDB.getAllStages(rsr.getRequestId());
+    Assert.assertEquals(1, stages.size());
+    stage = stages.iterator().next();
+    execWrappers = stage.getExecutionCommands(host2);
+    Assert.assertEquals(1, execWrappers.size());
+    execWrapper = execWrappers.iterator().next();
+    ec = execWrapper.getExecutionCommand();
+    configurations = ec.getConfigurations();
+    assertNotNull(configurations);
+    assertEquals(1, configurations.size());
+    assertTrue(configurations.containsKey("cluster-env"));
+    assertTrue(ec.getCommandParams().containsKey("max_duration_for_retries"));
+    assertEquals("12", ec.getCommandParams().get("max_duration_for_retries"));
+    assertTrue(ec.getCommandParams().containsKey("command_retry_enabled"));
+    assertEquals("true", ec.getCommandParams().get("command_retry_enabled"));
 
-    // Create and attach config
-    Map<String, String> configs = new HashMap<String, String>();
-    configs.put("a", "b");
+    // issue an start command and retry is expected but bad cluster-env
     configs.put("command_retry_enabled", "asdf");
     configs.put("command_retry_max_time_in_sec", "-5");
     configs.put("commands_to_retry2", "START");
 
-    ConfigurationRequest cr1,cr2;
-    cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
+    cr1 = new ConfigurationRequest(clusterName, "cluster-env","version3",
                                    configs, null);
-    cr2 = new ConfigurationRequest(clusterName, "cluster-env","version1",
-                                   configs, null);
-
-    ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
+    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
-    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
-    crReq.setDesiredConfig(Collections.singletonList(cr2));
-    controller.updateClusters(Collections.singleton(crReq), null);
 
-    // Install
-    installService(clusterName, serviceName, false, false);
-    ExecutionCommand ec =
-        controller.getExecutionCommand(cluster,
-                                       s1.getServiceComponent("NAMENODE").getServiceComponentHost("h1"),
-                                       RoleCommand.START);
-    assertEquals("1-0", ec.getCommandId());
-    assertEquals("foo1", ec.getClusterName());
-    Map<String, Map<String, String>> configurations = ec.getConfigurations();
+    requestProps.put("phase", "INITIAL_START");
+    schr = new ServiceComponentHostRequest(clusterName, "HDFS", "DATANODE", host2, "STARTED");
+    rsr = updateHostComponents(Collections.singleton(schr), requestProps, false);
+    stages = actionDB.getAllStages(rsr.getRequestId());
+    Assert.assertEquals(1, stages.size());
+    stage = stages.iterator().next();
+    execWrappers = stage.getExecutionCommands(host2);
+    Assert.assertEquals(1, execWrappers.size());
+    execWrapper = execWrappers.iterator().next();
+    ec = execWrapper.getExecutionCommand();
+    configurations = ec.getConfigurations();
     assertNotNull(configurations);
-    assertEquals(2, configurations.size());
-    assertTrue(configurations.containsKey("core-site"));
-    assertTrue(ec.getConfigurationAttributes().containsKey("core-site"));
+    assertEquals(1, configurations.size());
+    assertTrue(configurations.containsKey("cluster-env"));
     assertTrue(ec.getCommandParams().containsKey("max_duration_for_retries"));
     assertEquals("0", ec.getCommandParams().get("max_duration_for_retries"));
     assertTrue(ec.getCommandParams().containsKey("command_retry_enabled"));
     assertEquals("false", ec.getCommandParams().get("command_retry_enabled"));
-    Map<String, Set<String>> chInfo = ec.getClusterHostInfo();
-    assertTrue(chInfo.containsKey("namenode_host"));
   }
+
 
   @Test
   public void testGetExecutionCommand() throws Exception {
@@ -10041,7 +10060,7 @@ public class AmbariManagementControllerTest {
     }
 
     long id1 = installService(clusterName, serviceName, false, false,
-        maintenanceStateHelper);
+        maintenanceStateHelper, null);
 
     List<HostRoleCommand> hdfsCmds = actionDB.getRequestTasks(id1);
     Assert.assertNotNull(hdfsCmds);
@@ -10114,8 +10133,8 @@ public class AmbariManagementControllerTest {
     MaintenanceStateHelper maintenanceStateHelper =
             MaintenanceStateHelperTest.getMaintenanceStateHelperInstance(clusters);
 
-    installService(clusterName, serviceName1, false, false, maintenanceStateHelper);
-    installService(clusterName, serviceName2, false, false, maintenanceStateHelper);
+    installService(clusterName, serviceName1, false, false, maintenanceStateHelper, null);
+    installService(clusterName, serviceName2, false, false, maintenanceStateHelper, null);
 
     startService(clusterName, serviceName1, false, false, maintenanceStateHelper);
     startService(clusterName, serviceName2, false, false, maintenanceStateHelper);

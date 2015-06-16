@@ -358,6 +358,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     installProperties.put(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, "INSTALLED");
     Map<String, String> requestInfo = new HashMap<String, String>();
     requestInfo.put("context", String.format("Install components on host %s", hostname));
+    requestInfo.put("phase", "INITIAL_INSTALL");
     Request installRequest = PropertyHelper.getUpdateRequest(installProperties, requestInfo);
 
     Predicate statePredicate = new EqualsPredicate<String>(HOST_COMPONENT_STATE_PROPERTY_ID, "INIT");
@@ -390,6 +391,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     Map<String, String> requestInfo = new HashMap<String, String>();
     requestInfo.put("context", String.format("Start components on host %s", hostName));
+    requestInfo.put("phase", "INITIAL_START");
 
     Predicate clusterPredicate = new EqualsPredicate<String>(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, cluster);
     Predicate hostPredicate = new EqualsPredicate<String>(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, hostName);
