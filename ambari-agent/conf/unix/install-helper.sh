@@ -31,7 +31,6 @@ SIMPLEJSON_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_simplejson"
 
 PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
 PYTHON_WRAPER_SOURCE="/var/lib/ambari-agent/ambari-python-wrap"
-SUDOERS_FILE="/etc/sudoers.d/ambari-agent"
 
 do_install(){
   # setting ambari_commons shared resource
@@ -54,13 +53,6 @@ do_install(){
   # setting python-wrapper script
   if [ ! -f "$PYTHON_WRAPER_TARGET" ]; then
     ln -s "$PYTHON_WRAPER_SOURCE" "$PYTHON_WRAPER_TARGET"
-  fi
-  
-  chmod 440 "$SUDOERS_FILE"
-  
-  grep '^#includedir /etc/sudoers.d$' /etc/sudoers > /dev/null
-  if [ $? -ne 0 ] ; then
-    echo '#includedir /etc/sudoers.d' >> /etc/sudoers
   fi
   
   # on nano Ubuntu, when umask=027 those folders are created without 'x' bit for 'others'.

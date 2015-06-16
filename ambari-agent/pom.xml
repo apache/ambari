@@ -51,7 +51,6 @@
     <target.cache.dir>${project.build.directory}/cache/</target.cache.dir>
     <resource.keeper.script>${ambari.server.module}/src/main/python/ambari_server/resourceFilesKeeper.py</resource.keeper.script>
     <init.d.dir>/etc/rc.d/init.d</init.d.dir>
-    <sudoers.d.dir>/etc/sudoers.d</sudoers.d.dir>
   </properties>
   <build>
     <plugins>
@@ -417,17 +416,6 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>${sudoers.d.dir}</directory>
-              <username>root</username>
-              <groupname>root</groupname>
-              <directoryIncluded>false</directoryIncluded>
-              <sources>
-                <source>
-                  <location>etc/sudoers.d</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
               <directory>/var/lib/${project.artifactId}/data</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -539,16 +527,6 @@
                   <user>root</user>
                   <group>root</group>
                   <filemode>755</filemode>
-              </mapper>
-            </data>            
-           <data>
-              <src>etc/sudoers.d/ambari-agent</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>${sudoers.d.dir}</prefix>
-                  <user>root</user>
-                  <group>root</group>
               </mapper>
             </data>
             <data>
@@ -765,7 +743,6 @@
             <exclude>src/test/python/ambari_agent/dummy*.txt</exclude>
             <exclude>src/main/python/ambari_agent/imports.txt</exclude>
             <exclude>src/main/python/ambari_agent/apscheduler/**</exclude>
-            <exclude>etc/sudoers.d/ambari-agent</exclude>
             <exclude>**/*.erb</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.pydevproject</exclude>
