@@ -396,7 +396,7 @@ public class PhoenixHBaseAccessor {
     try {
       //get latest
       if(condition.isPointInTime()){
-        stmt = getLatestMetricRecords(condition, conn, metrics);
+        getLatestMetricRecords(condition, conn, metrics);
       } else {
         stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
         rs = stmt.executeQuery();
@@ -465,7 +465,7 @@ public class PhoenixHBaseAccessor {
     }
   }
 
-  private PreparedStatement getLatestMetricRecords(
+  private void getLatestMetricRecords(
     Condition condition, Connection conn, TimelineMetrics metrics)
     throws SQLException, IOException {
 
@@ -490,9 +490,10 @@ public class PhoenixHBaseAccessor {
           // Ignore
         }
       }
+      if (stmt != null) {
+        stmt.close();
+      }
     }
-
-    return stmt;
   }
 
   /**
@@ -515,7 +516,7 @@ public class PhoenixHBaseAccessor {
     try {
       //get latest
       if(condition.isPointInTime()) {
-        stmt = getLatestAggregateMetricRecords(condition, conn, metrics, metricFunctions);
+        getLatestAggregateMetricRecords(condition, conn, metrics, metricFunctions);
       } else {
         stmt = PhoenixTransactSQL.prepareGetAggregateSqlStmt(conn, condition);
 
@@ -577,7 +578,7 @@ public class PhoenixHBaseAccessor {
     }
   }
 
-  private PreparedStatement getLatestAggregateMetricRecords(Condition condition,
+  private void getLatestAggregateMetricRecords(Condition condition,
       Connection conn, TimelineMetrics metrics,
       Map<String, List<Function>> metricFunctions) throws SQLException {
 
@@ -619,10 +620,11 @@ public class PhoenixHBaseAccessor {
             // Ignore
           }
         }
+        if (stmt != null) {
+          stmt.close();
+        }        
       }
     }
-
-    return stmt;
   }
 
   private SingleValuedTimelineMetric getAggregateTimelineMetricFromResultSet(ResultSet rs,
