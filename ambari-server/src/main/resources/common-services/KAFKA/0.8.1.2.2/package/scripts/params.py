@@ -23,6 +23,7 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.libraries.functions.default import default
 from utils import get_bare_principal
 from resource_management.libraries.functions.get_hdp_version import get_hdp_version
+from resource_management.libraries.functions.is_empty import is_empty
 
 import status_params
 
@@ -133,7 +134,7 @@ is_supported_kafka_ranger = config['configurations']['kafka-env']['is_supported_
 if has_ranger_admin and is_supported_kafka_ranger:
 
   enable_ranger_kafka = config['configurations']['ranger-kafka-plugin-properties']['ranger-kafka-plugin-enabled']
-  enable_ranger_kafka = enable_ranger_kafka is not None and enable_ranger_kafka.lower() == 'yes'
+  enable_ranger_kafka = not is_empty(enable_ranger_kafka) and enable_ranger_kafka.lower() == 'yes'
   policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
   sql_connector_jar = config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
   xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
