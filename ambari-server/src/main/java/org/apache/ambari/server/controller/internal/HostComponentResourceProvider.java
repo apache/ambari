@@ -205,7 +205,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-      requests.add(changeRequest(propertyMap));
+      requests.add(getRequest(propertyMap));
     }
 
     return findResources(request, predicate, requests);
