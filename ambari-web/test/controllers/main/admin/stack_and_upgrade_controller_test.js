@@ -151,6 +151,36 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   });
 
   describe("#loadUpgradeDataSuccessCallback()", function() {
+    var retryCases = [
+      {
+        isRetryPendingInitial: true,
+        status: 'ABORTED',
+        isRetryPending: true,
+        requestInProgress: true,
+        title: 'retry request not yet applied'
+      },
+      {
+        isRetryPendingInitial: true,
+        status: 'UPGRADING',
+        isRetryPending: false,
+        requestInProgress: false,
+        title: 'retry request applied'
+      },
+      {
+        isRetryPendingInitial: false,
+        status: 'ABORTED',
+        isRetryPending: false,
+        requestInProgress: true,
+        title: 'no retry request sent'
+      },
+      {
+        isRetryPendingInitial: false,
+        status: 'UPGRADING',
+        isRetryPending: false,
+        requestInProgress: true,
+        title: 'upgrade wasn\'t aborted'
+      }
+    ];
     beforeEach(function () {
       sinon.stub(controller, 'updateUpgradeData', Em.K);
       sinon.stub(controller, 'setDBProperty', Em.K);
@@ -182,6 +212,24 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.loadUpgradeDataSuccessCallback(data);
       expect(controller.updateUpgradeData.called).to.be.false;
       expect(controller.setDBProperty.called).to.be.false;
+    });
+    retryCases.forEach(function (item) {
+      it(item.title, function () {
+        var data = {
+          "Upgrade": {
+            "request_status": item.status
+          }
+        };
+        controller.setProperties({
+          isRetryPending: item.isRetryPendingInitial,
+          requestInProgress: true
+        });
+        controller.loadUpgradeDataSuccessCallback(data);
+        expect(controller.getProperties(['isRetryPending', 'requestInProgress'])).to.eql({
+          isRetryPending: item.isRetryPending,
+          requestInProgress: item.requestInProgress
+        });
+      });
     });
   });
 

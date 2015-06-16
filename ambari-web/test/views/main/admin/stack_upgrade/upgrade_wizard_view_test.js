@@ -292,6 +292,15 @@ describe('App.upgradeWizardView', function () {
           failedItem: null,
           runningItem: null,
           manualItem: null,
+          upgradeState: 'ABORTED'
+        },
+        result: false
+      },
+      {
+        data: {
+          failedItem: null,
+          runningItem: null,
+          manualItem: null,
           upgradeState: 'IN_PROGRESS'
         },
         result: true
@@ -472,7 +481,7 @@ describe('App.upgradeWizardView', function () {
           status: 'ABORTED',
           isDowngrade: false
         },
-        result: Em.I18n.t('admin.stackUpgrade.state.paused')
+        result: Em.I18n.t('admin.stackUpgrade.state.aborted')
       },
       {
         data: {
@@ -549,7 +558,7 @@ describe('App.upgradeWizardView', function () {
           status: 'ABORTED',
           isDowngrade: true
         },
-        result: Em.I18n.t('admin.stackUpgrade.state.paused.downgrade')
+        result: Em.I18n.t('admin.stackUpgrade.state.aborted.downgrade')
       },
       {
         data: {

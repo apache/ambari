@@ -115,6 +115,25 @@
   100% { color: #118fff; }
 }
 
+@-webkit-keyframes redPulse {
+  from { background-color: #ff3333; }
+  50% { background-color: #ff0000; }
+  to { background-color: #ff3333; }
+}
+
+@-moz-keyframes redPulse {
+  from { background-color: #ff3333; }
+  50% { background-color: #ff0000; }
+  to { background-color: #ff3333; }
+}
+
+@keyframes redPulse
+{
+  0% { background-color: #ff3333; }
+  50% { background-color: #ff0000; }
+  100% { background-color: #ff3333; }
+}
+
 .gradient(@color: #FAFAFA, @start: #FFFFFF, @stop: #F2F2F2) {
   background: @color;
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0, @start), color-stop(1, @stop));

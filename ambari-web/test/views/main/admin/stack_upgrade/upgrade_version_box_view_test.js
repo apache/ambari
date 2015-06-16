@@ -699,6 +699,46 @@ describe('App.UpgradeVersionBoxView', function () {
           text: Em.I18n.t('admin.stackVersions.version.downgrade.pause')
         },
         title: 'downgrading, holding finished on timeout'
+      },
+      {
+        inputData: {
+          'content.status': 'UPGRADING',
+          'isUpgrading': true,
+          'controller.isDowngrade': false,
+          'controller.requestInProgress': false,
+          'parentView.repoVersions': []
+        },
+        setup: function () {
+          this.getMock.withArgs('upgradeState').returns('ABORTED');
+        },
+        expected: {
+          status: 'UPGRADING',
+          isButton: true,
+          action: 'confirmRetryUpgrade',
+          text: Em.I18n.t('common.reUpgrade'),
+          isDisabled: false
+        },
+        title: 'upgrade aborted'
+      },
+      {
+        inputData: {
+          'content.status': 'UPGRADE_FAILED',
+          'isUpgrading': true,
+          'controller.isDowngrade': true,
+          'controller.requestInProgress': true,
+          'parentView.repoVersions': []
+        },
+        setup: function () {
+          this.getMock.withArgs('upgradeState').returns('ABORTED');
+        },
+        expected: {
+          status: 'UPGRADE_FAILED',
+          isButton: true,
+          action: 'confirmRetryDowngrade',
+          text: Em.I18n.t('common.reDowngrade'),
+          isDisabled: true
+        },
+        title: 'downgrade aborted, request in progress'
       }
     ];
 

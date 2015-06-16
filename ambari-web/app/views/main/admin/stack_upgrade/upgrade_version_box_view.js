@@ -110,6 +110,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       isDisabled: false
     });
     var isInstalling = this.get('parentView.repoVersions').someProperty('status', 'INSTALLING');
+    var isAborted = App.get('upgradeState') === 'ABORTED';
 
     if (status === 'CURRENT') {
       element.set('isLabel', true);
@@ -143,7 +144,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
         element.set('text', Em.I18n.t('common.installed'));
         element.set('action', null);
       }
-    } else if (['UPGRADING', 'UPGRADE_FAILED', 'UPGRADED'].contains(status) || this.get('isUpgrading')) {
+    } else if ((['UPGRADING', 'UPGRADE_FAILED', 'UPGRADED'].contains(status) || this.get('isUpgrading')) && !isAborted) {
       element.set('isLink', true);
       element.set('action', 'openUpgradeDialog');
       if (['HOLDING', 'HOLDING_FAILED', 'HOLDING_TIMEDOUT'].contains(App.get('upgradeState'))) {
@@ -161,6 +162,11 @@ App.UpgradeVersionBoxView = Em.View.extend({
           element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.running'));
         }
       }
+    } else if (isAborted) {
+      element.set('isButton', true);
+      element.set('text', this.get('controller.isDowngrade') ? Em.I18n.t('common.reDowngrade') : Em.I18n.t('common.reUpgrade'));
+      element.set('action', this.get('controller.isDowngrade') ? 'confirmRetryDowngrade' : 'confirmRetryUpgrade');
+      element.set('isDisabled', this.get('controller.requestInProgress'));
     }
     return element;
   }.property('content.status', 'controller.isDowngrade', 'isUpgrading', 'controller.requestInProgress', 'parentView.repoVersions.@each.status'),

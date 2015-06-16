@@ -95,7 +95,7 @@
   </div>
   <div class="container main-container">
     <div id="content">
-      {{#if App.upgradeIsRunning}}
+      {{#if App.upgradeIsNotFinished}}
         <div class="ru-badge span12">
           <div class="navbar navbar-static-top clearfix">
             <div class="span4 offset4">
@@ -121,6 +121,17 @@
                       <span
                           class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
                           <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.upgrade.pause}}</span>
+                    {{/if}}
+                  {{/if}}
+                  {{#if App.upgradeAborted}}
+                    {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
+                      <span
+                          class="label upgrade-aborted" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                          <i class="icon-remove"></i>&nbsp;{{t admin.stackVersions.version.downgrade.aborted}}</span>
+                    {{else}}
+                      <span
+                        class="label upgrade-aborted" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                          <i class="icon-remove"></i>&nbsp;{{t admin.stackVersions.version.upgrade.aborted}}</span>
                     {{/if}}
                   {{/if}}
                 </a>

@@ -556,4 +556,60 @@ describe('App', function () {
 
   });
 
+  describe('#upgradeAborted', function () {
+
+    var cases = [
+      {
+        upgradeState: 'INIT',
+        upgradeAborted: false
+      },
+      {
+        upgradeState: 'ABORTED',
+        upgradeAborted: true
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.upgradeState, function () {
+        App.set('upgradeState', item.upgradeState);
+        expect(App.get('upgradeAborted')).to.equal(item.upgradeAborted);
+      });
+    });
+
+  });
+
+  describe('#upgradeIsNotFinished', function () {
+
+    var cases = [
+      {
+        upgradeState: 'INIT',
+        upgradeIsNotFinished: false
+      },
+      {
+        upgradeState: 'IN_PROGRESS',
+        upgradeIsNotFinished: true
+      },
+      {
+        upgradeState: 'HOLDING',
+        upgradeIsNotFinished: true
+      },
+      {
+        upgradeState: 'HOLDING_TIMEDOUT',
+        upgradeIsNotFinished: true
+      },
+      {
+        upgradeState: 'ABORTED',
+        upgradeIsNotFinished: true
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.upgradeState, function () {
+        App.set('upgradeState', item.upgradeState);
+        expect(App.get('upgradeIsNotFinished')).to.equal(item.upgradeIsNotFinished);
+      });
+    });
+
+  });
+
 });
