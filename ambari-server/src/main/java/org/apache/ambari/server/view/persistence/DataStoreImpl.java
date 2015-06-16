@@ -25,14 +25,17 @@ import org.apache.ambari.view.PersistenceException;
 import org.eclipse.persistence.dynamic.DynamicClassLoader;
 import org.eclipse.persistence.dynamic.DynamicEntity;
 import org.eclipse.persistence.dynamic.DynamicType;
+import org.eclipse.persistence.internal.helper.DatabaseField;
 import org.eclipse.persistence.jpa.dynamic.JPADynamicHelper;
 import org.eclipse.persistence.jpa.dynamic.JPADynamicTypeBuilder;
+import org.eclipse.persistence.mappings.DirectToFieldMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -41,6 +44,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.sql.Clob;
+import java.sql.Types;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -131,9 +136,7 @@ public class DataStoreImpl implements DataStore {
         persistEntity(entity, em, new HashSet<DynamicEntity>());
         em.getTransaction().commit();
       } catch (Exception e) {
-        if (em.getTransaction()!= null) {
-          em.getTransaction().rollback();
-        }
+        rollbackTransaction(em.getTransaction());
         throwPersistenceException("Caught exception trying to store view entity " + entity, e);
       }
     } finally {
@@ -162,9 +165,7 @@ public class DataStoreImpl implements DataStore {
               em.remove(dynamicEntity);
               em.getTransaction().commit();
             } catch (Exception e) {
-              if (em.getTransaction()!= null) {
-                em.getTransaction().rollback();
-              }
+              rollbackTransaction(em.getTransaction());
               throwPersistenceException("Caught exception trying to remove view entity " + entity, e);
             }
           }
@@ -297,7 +298,15 @@ public class DataStoreImpl implements DataStore {
         Class<?> propertyType = descriptor.getPropertyType();
 
         if (isDirectMappingType(propertyType)) {
-          typeBuilder.addDirectMapping(attributeName, propertyType, attributeName);
+          DirectToFieldMapping mapping = typeBuilder.addDirectMapping(attributeName, propertyType, attributeName);
+
+          // explicitly set the type of string fields
+          if (String.class.isAssignableFrom(propertyType)) {
+            DatabaseField field = mapping.getField();
+
+            field.setSqlType(Types.CLOB);
+            field.setType(Clob.class);
+          }
         }
       }
     }
@@ -591,6 +600,13 @@ public class DataStoreImpl implements DataStore {
     Field field = clazz.getDeclaredField(fieldName);
     ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
     return (Class<?>) parameterizedType.getActualTypeArguments()[0];
+  }
+
+  // rollback the given transaction if it is active
+  private static void rollbackTransaction(EntityTransaction transaction) {
+    if (transaction != null && transaction.isActive()) {
+      transaction.rollback();
+    }
   }
 
   // throw a new persistence exception and log the error
