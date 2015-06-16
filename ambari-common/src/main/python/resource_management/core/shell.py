@@ -212,9 +212,9 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
                             preexec_fn=preexec_fn)
     
     if timeout:
-      timeout_happened=False
-      start = time.time()
-      end = start+timeout
+      timeout_event = threading.Event()
+      t = threading.Timer( timeout, _on_timeout, [proc, timeout_event] )
+      t.start()
       
     if not wait_for_finish:
       return proc
@@ -235,11 +235,13 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
     all_output = ""
                   
     while read_set:
-      if timeout and time.time()> end:
-        timeout_happened=True
-        proc.kill()
+
+      is_proccess_running = (proc.poll() == None)
+      ready, _, _ = select.select(read_set, [], [], 1)
+
+      if not is_proccess_running and not ready:
         break
-      ready, _, _ = select.select(read_set, [], [])
+
       for out_fd in read_set:
         if out_fd in ready:
           line = os.read(out_fd.fileno(), 1024)
@@ -247,6 +249,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
           if not line:
             read_set = copy.copy(read_set)
             read_set.remove(out_fd)
+            out_fd.close()
             continue
           
           fd_to_string[out_fd] += line
@@ -263,12 +266,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
             _print(line)    
   
     # Wait for process to terminate
-    while proc.poll() == None:
-      if timeout and time.time()> end:
-        timeout_happened=True
-        proc.kill()
-        break
-      time.sleep(1)
+    proc.wait()
 
   finally:
     for fp in files_to_close:
@@ -279,7 +277,10 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
   all_output = all_output.strip('\n')
   
   if timeout: 
-    if timeout_happened:
+    if not timeout_event.is_set():
+      t.cancel()
+    # timeout occurred
+    else:
       err_msg = ("Execution of '%s' was killed due timeout after %d seconds") % (command, timeout)
       raise ExecuteTimeoutException(err_msg)
    
@@ -361,3 +362,14 @@ def string_cmd_from_args_list(command, auto_escape=True):
 def _print(line):
   sys.stdout.write(line)
   sys.stdout.flush()
+
+def _on_timeout(proc, timeout_event):
+  timeout_event.set()
+  if proc.poll() == None:
+    try:
+      proc.terminate()
+      proc.wait()
+    # catch race condition if proc already dead
+    except OSError:
+      pass
+
