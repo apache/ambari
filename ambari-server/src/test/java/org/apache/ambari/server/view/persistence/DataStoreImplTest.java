@@ -139,6 +139,67 @@ public class DataStoreImplTest {
   }
 
   @Test
+  public void testStore_create_longStringValue() throws Exception {
+    DynamicClassLoader classLoader = new DynamicClassLoader(DataStoreImplTest.class.getClassLoader());
+
+    // create mocks
+    EntityManagerFactory entityManagerFactory = createMock(EntityManagerFactory.class);
+    EntityManager entityManager = createMock(EntityManager.class);
+    JPADynamicHelper jpaDynamicHelper = createNiceMock(JPADynamicHelper.class);
+    SchemaManager schemaManager = createNiceMock(SchemaManager.class);
+    EntityTransaction transaction = createMock(EntityTransaction.class);
+
+    // set expectations
+    Capture<DynamicType> typeCapture = new Capture<DynamicType>();
+    Capture<DynamicType> typeCapture2 = new Capture<DynamicType>();
+    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture), capture(typeCapture2));
+
+    expect(entityManagerFactory.createEntityManager()).andReturn(entityManager);
+    expect(entityManager.getTransaction()).andReturn(transaction).anyTimes();
+
+    Capture<Class> entityClassCapture = new Capture<Class>();
+    expect(entityManager.find(capture(entityClassCapture), eq("bar"))).andReturn(null);
+
+    Capture<Class> entityClassCapture2 = new Capture<Class>();
+    expect(entityManager.find(capture(entityClassCapture2), eq(99))).andReturn(null);
+
+    Capture<DynamicEntity> entityCapture = new Capture<DynamicEntity>();
+    entityManager.persist(capture(entityCapture));
+
+    Capture<DynamicEntity> entityCapture2 = new Capture<DynamicEntity>();
+    entityManager.persist(capture(entityCapture2));
+
+    entityManager.close();
+
+    transaction.begin();
+    transaction.commit();
+
+    // replay mocks
+    replay(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager);
+
+    DataStoreImpl dataStore = getDataStore(entityManagerFactory, jpaDynamicHelper, classLoader, schemaManager);
+
+    StringBuffer sb = new StringBuffer();
+    for (int i = 0; i < 5000; ++i) {
+      sb.append("A");
+    }
+    String longString = sb.toString();
+
+    dataStore.store(new TestEntity(99, longString, new TestSubEntity("bar")));
+
+    Assert.assertEquals(entityClassCapture.getValue(), typeCapture.getValue().getJavaClass());
+    Assert.assertEquals(entityClassCapture2.getValue(), typeCapture2.getValue().getJavaClass());
+
+    Assert.assertEquals("bar", entityCapture.getValue().get("DS_name"));
+
+    Assert.assertEquals(99, entityCapture2.getValue().get("DS_id"));
+    Assert.assertEquals(longString, entityCapture2.getValue().get("DS_name"));
+
+    // verify mocks
+    verify(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager);
+  }
+
+  @Test
   public void testStore_update() throws Exception {
     DynamicClassLoader classLoader = new DynamicClassLoader(DataStoreImplTest.class.getClassLoader());
 
@@ -184,6 +245,66 @@ public class DataStoreImplTest {
     DataStoreImpl dataStore = getDataStore(entityManagerFactory, jpaDynamicHelper, classLoader, schemaManager);
 
     dataStore.store(new TestEntity(99, "foo", new TestSubEntity("bar")));
+
+    Assert.assertEquals(entityClassCapture.getValue(), typeCapture.getValue().getJavaClass());
+    Assert.assertEquals(entityClassCapture2.getValue(), typeCapture2.getValue().getJavaClass());
+
+    // verify mocks
+    verify(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager, dynamicEntity);
+  }
+
+  @Test
+  public void testStore_update_longStringValue() throws Exception {
+    DynamicClassLoader classLoader = new DynamicClassLoader(DataStoreImplTest.class.getClassLoader());
+
+    // create mocks
+    EntityManagerFactory entityManagerFactory = createMock(EntityManagerFactory.class);
+    EntityManager entityManager = createMock(EntityManager.class);
+    JPADynamicHelper jpaDynamicHelper = createNiceMock(JPADynamicHelper.class);
+    SchemaManager schemaManager = createNiceMock(SchemaManager.class);
+    EntityTransaction transaction = createMock(EntityTransaction.class);
+    DynamicEntity dynamicEntity = createMock(DynamicEntity.class);
+
+    // set expectations
+    Capture<DynamicType> typeCapture = new Capture<DynamicType>();
+    Capture<DynamicType> typeCapture2 = new Capture<DynamicType>();
+    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture), capture(typeCapture2));
+
+    expect(entityManagerFactory.createEntityManager()).andReturn(entityManager);
+    expect(entityManager.getTransaction()).andReturn(transaction).anyTimes();
+
+    Capture<Class> entityClassCapture = new Capture<Class>();
+    expect(entityManager.find(capture(entityClassCapture), eq("bar"))).andReturn(null);
+
+    Capture<Class> entityClassCapture2 = new Capture<Class>();
+    expect(entityManager.find(capture(entityClassCapture2), eq(99))).andReturn(dynamicEntity);
+
+    Capture<DynamicEntity> entityCapture = new Capture<DynamicEntity>();
+    entityManager.persist(capture(entityCapture));
+
+    entityManager.close();
+
+    StringBuffer sb = new StringBuffer();
+    for (int i = 0; i < 5000; ++i) {
+      sb.append("A");
+    }
+    String longString = sb.toString();
+
+    expect(dynamicEntity.set("DS_id", 99)).andReturn(dynamicEntity);
+    expect(dynamicEntity.set("DS_name", longString)).andReturn(dynamicEntity);
+
+    Capture<DynamicEntity> subEntityCapture = new Capture<DynamicEntity>();
+    expect(dynamicEntity.set(eq("DS_subEntity"), capture(subEntityCapture))).andReturn(dynamicEntity);
+
+    transaction.begin();
+    transaction.commit();
+
+    // replay mocks
+    replay(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager, dynamicEntity);
+
+    DataStoreImpl dataStore = getDataStore(entityManagerFactory, jpaDynamicHelper, classLoader, schemaManager);
+
+    dataStore.store(new TestEntity(99, longString, new TestSubEntity("bar")));
 
     Assert.assertEquals(entityClassCapture.getValue(), typeCapture.getValue().getJavaClass());
     Assert.assertEquals(entityClassCapture2.getValue(), typeCapture2.getValue().getJavaClass());
