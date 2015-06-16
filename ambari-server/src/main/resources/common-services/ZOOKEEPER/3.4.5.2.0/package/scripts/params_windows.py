@@ -25,9 +25,15 @@ import status_params
 # server configurations
 config = Script.get_config()
 
-# notused zookeeper_home_dir = os.environ["ZOOKEEPER_HOME"]
-config_dir = os.environ["ZOOKEEPER_CONF_DIR"]
-hdp_root = os.environ["HADOOP_NODE_INSTALL_ROOT"]
+config_dir = None
+hdp_root = None
+try:
+  # not used zookeeper_home_dir = os.environ["ZOOKEEPER_HOME"]
+  config_dir = os.environ["ZOOKEEPER_CONF_DIR"]
+  hdp_root = os.environ["HADOOP_NODE_INSTALL_ROOT"]
+except:
+  pass
+
 hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
 zk_user = hadoop_user
 

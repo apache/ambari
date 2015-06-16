@@ -143,7 +143,9 @@ class DataNodeDefault(DataNode):
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class DataNodeWindows(DataNode):
-  pass
+  def install(self, env):
+    import install_params
+    self.install_packages(env, install_params.exclude_packages)
 
 if __name__ == "__main__":
   DataNode().execute()

@@ -28,14 +28,28 @@ config = Script.get_config()
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
-hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
-hive_conf_dir = os.environ["HIVE_CONF_DIR"]
-hive_home = os.environ["HIVE_HOME"]
-hive_lib_dir = os.environ["HIVE_LIB_DIR"]
-hive_log_dir = os.environ["HIVE_LOG_DIR"]
-hive_opts = os.environ["HIVE_OPTS"]
-hcat_home = os.environ["HCAT_HOME"]
-hcat_config_dir = os.environ["WEBHCAT_CONF_DIR"]
+hdp_root = None
+hive_conf_dir = None
+hive_home = None
+hive_lib_dir = None
+hive_log_dir = None
+hive_opts = None
+hcat_home = None
+hcat_config_dir = None
+hive_bin = None
+
+try:
+  hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
+  hive_conf_dir = os.environ["HIVE_CONF_DIR"]
+  hive_home = os.environ["HIVE_HOME"]
+  hive_lib_dir = os.environ["HIVE_LIB_DIR"]
+  hive_log_dir = os.environ["HIVE_LOG_DIR"]
+  hive_opts = os.environ["HIVE_OPTS"]
+  hcat_home = os.environ["HCAT_HOME"]
+  hcat_config_dir = os.environ["WEBHCAT_CONF_DIR"]
+  hive_bin = os.path.join(hive_home, "bin")
+except:
+  pass
 
 hive_env_sh_template = config['configurations']['hive-env']['content']
 hive_warehouse_dir = config['configurations']['hive-site']['hive.metastore.warehouse.dir']
@@ -43,7 +57,6 @@ hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
 hive_user = hadoop_user
 hcat_user = hadoop_user
 
-hive_bin = os.path.join(hive_home, "bin")
 hive_metastore_db_type = config['configurations']['hive-env']['hive_database_type']
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
 hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']

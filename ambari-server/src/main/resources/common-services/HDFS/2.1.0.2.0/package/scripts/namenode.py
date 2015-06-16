@@ -260,6 +260,11 @@ class NameNodeDefault(NameNode):
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class NameNodeWindows(NameNode):
+  def install(self, env):
+    import install_params
+    self.install_packages(env, install_params.exclude_packages)
+    #TODO we need this for HA because of manual steps
+    self.configure(env)
 
   def rebalancehdfs(self, env):
     from ambari_commons.os_windows import UserHelper, run_os_command_impersonated

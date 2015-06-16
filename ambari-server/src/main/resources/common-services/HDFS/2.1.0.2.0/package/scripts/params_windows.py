@@ -17,8 +17,10 @@ limitations under the License.
 
 """
 
-from resource_management import *
 import os
+
+#Used in subsequent imports from params
+from install_params import exclude_packages
 from status_params import *
 
 config = Script.get_config()
@@ -64,7 +66,6 @@ hdfs_user = hadoop_user
 grep_exe = "findstr"
 
 name_node_params = default("/commandParams/namenode", None)
-exclude_packages = []
 
 service_map = {
   "datanode" : datanode_win_service_name,

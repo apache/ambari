@@ -36,8 +36,11 @@ except KeyError:
 
 hdp_stack_version = ""
 
-hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
-
+hdp_root = None
+try:
+  hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
+except:
+  pass
 
 def refresh_tez_state_dependent_params():
   global tez_home_dir, tez_conf_dir, hdp_stack_version
