@@ -398,7 +398,6 @@
             <transfer operation="delete" delete-key="HTTPS_SERVICE_PORT" />
             <transfer operation="delete" delete-key="HTTP_ENABLED" />
             <transfer operation="delete" delete-key="HTTP_SERVICE_PORT" />
-            <transfer operation="delete" delete-key="" />
           </task>
 
           <task xsi:type="configure">
@@ -420,13 +419,11 @@
             <transfer operation="delete" delete-key="logdir" />
             <transfer operation="delete" delete-key="SYNC_SOURCE" />
             <transfer operation="delete" delete-key="POLICY_MGR_URL" />
-            <transfer operation="delete" delete-key="" />
           </task>
 
           <task xsi:type="configure">
             <type>ranger-env</type>
             <transfer operation="delete" delete-key="oracle_home" />
-            <transfer operation="delete" delete-key="" />
           </task>
         </pre-upgrade>
       
