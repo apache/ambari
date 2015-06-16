@@ -23,18 +23,13 @@
       <version>0.15.0.2.3</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
-          <packages>
-            <package>
-              <name>datafu</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
           <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>pig_2_3_*</name>
+            </package>
+            <package>
+              <name>datafu_2_3_*</name>
             </package>
           </packages>
         </osSpecific>
@@ -43,6 +38,9 @@
           <packages>
             <package>
               <name>pig-2-3-.*</name>
+            </package>
+            <package>
+              <name>datafu-2-3-.*</name>
             </package>
           </packages>
         </osSpecific>
