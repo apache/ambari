@@ -802,6 +802,7 @@ public class ViewEntity implements ViewDefinition {
    *
    * @return the mask class name.
    */
+  @Override
   public String getMask() {
     return mask;
   }
