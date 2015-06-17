@@ -1004,28 +1004,37 @@ class TestAmbariServer(TestCase):
   @patch("os.path.exists")
   @patch("ambari_server.setupSecurity.set_file_permissions")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.get_resources_location")
   @patch("ambari_server.setupSecurity.get_value_from_properties")
   @patch("os.mkdir")
   @patch("shutil.rmtree")
-  def test_adjust_directory_permissions(self, rmtree_mock, mkdir_mock,
-                                        get_value_from_properties_mock, get_ambari_properties_mock,
-                                        set_file_permissions_mock, exists_mock):
+  @patch("ambari_commons.os_utils.print_info_msg")
+  @patch("ambari_server.setupSecurity.change_owner")
+  def test_adjust_directory_permissions(self, change_owner_mock, print_info_msg_mock, rmtree_mock, mkdir_mock,
+                                        get_value_from_properties_mock, get_resources_location_mock,
+                                        get_ambari_properties_mock, set_file_permissions_mock, exists_mock):
     # Testing boostrap dir wipe
     properties_mock = MagicMock()
     get_value_from_properties_mock.return_value = "dummy_bootstrap_dir"
+    get_resources_location_mock.return_value = "dummy_resources_dir"
     exists_mock.return_value = False
     adjust_directory_permissions("user")
     self.assertEquals(rmtree_mock.call_args_list[0][0][0], os.path.join(os.getcwd(), "dummy_bootstrap_dir"))
     self.assertTrue(mkdir_mock.called)
 
     set_file_permissions_mock.reset_mock()
+    change_owner_mock.reset_mock()
     # Test recursive calls
-    old_list = configDefaults.NR_ADJUST_OWNERSHIP_LIST
-
+    old_adjust_owner_list = configDefaults.NR_ADJUST_OWNERSHIP_LIST
+    old_change_owner_list = configDefaults.NR_CHANGE_OWNERSHIP_LIST
     try:
       configDefaults.NR_ADJUST_OWNERSHIP_LIST = [
         ( "/etc/ambari-server/conf", "755", "{0}", True ),
         ( "/etc/ambari-server/conf/ambari.properties", "644", "{0}", False )
+      ]
+
+      configDefaults.NR_CHANGE_OWNERSHIP_LIST = [
+        ( "/etc/ambari-server", "{0}", True )
       ]
 
       adjust_directory_permissions("user")
@@ -1033,8 +1042,12 @@ class TestAmbariServer(TestCase):
                       len(configDefaults.NR_ADJUST_OWNERSHIP_LIST))
       self.assertEquals(set_file_permissions_mock.call_args_list[0][0][3], True)
       self.assertEquals(set_file_permissions_mock.call_args_list[1][0][3], False)
+      self.assertTrue(len(change_owner_mock.call_args_list) ==
+                      len(configDefaults.NR_CHANGE_OWNERSHIP_LIST))
+      self.assertEquals(change_owner_mock.call_args_list[0][0][2], True)
     finally:
-      configDefaults.NR_ADJUST_OWNERSHIP_LIST = old_list
+      configDefaults.NR_ADJUST_OWNERSHIP_LIST = old_adjust_owner_list
+      configDefaults.NR_CHANGE_OWNERSHIP_LIST = old_change_owner_list
     pass
 
   @not_for_platform(PLATFORM_WINDOWS)

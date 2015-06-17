@@ -109,8 +109,8 @@ def is_root():
   return os_is_root()
 
 # Proxy to the os implementation
-def change_owner(filePath, user):
-  os_change_owner(filePath, user)
+def change_owner(filePath, user, recursive):
+  os_change_owner(filePath, user, recursive)
 
 # Proxy to the os implementation
 def set_open_files_limit(maxOpenFiles):

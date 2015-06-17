@@ -364,8 +364,10 @@ def run_powershell_script(script_content):
   os.remove(script_file.name)
   return result
 
-def os_change_owner(filePath, user):
+def os_change_owner(filePath, user, recursive):
   cmd = ['icacls', filePath, '/setowner', user]
+  if recursive:
+    cmd = ['icacls', filePath, '/t', '/setowner', user]
   retcode, outdata, errdata = os_run_os_command(cmd)
   return retcode
 

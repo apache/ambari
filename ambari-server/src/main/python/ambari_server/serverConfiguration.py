@@ -189,6 +189,7 @@ class ServerConfigDefaults(object):
     # Rules are executed in the same order as they are listed
     # {0} in user/group will be replaced by customized ambari-server username
     self.NR_ADJUST_OWNERSHIP_LIST = []
+    self.NR_CHANGE_OWNERSHIP_LIST = []
     self.NR_USERADD_CMD = ""
 
     self.MASTER_KEY_FILE_PERMISSIONS = "600"
@@ -297,6 +298,7 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
       ("/var/lib/ambari-server/keys/db", "700", "{0}", False),
       ("/var/lib/ambari-server/keys/db/newcerts", "700", "{0}", False),
       ("/var/lib/ambari-server/keys/.ssh", "700", "{0}", False),
+      ("/var/lib/ambari-server/resources/common-services/", "755", "{0}", True),
       ("/var/lib/ambari-server/resources/stacks/", "755", "{0}", True),
       ("/var/lib/ambari-server/resources/custom_actions/", "755", "{0}", True),
       ("/var/lib/ambari-server/resources/host_scripts/", "755", "{0}", True),
@@ -310,12 +312,21 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
       ("/etc/ambari-server/conf/ldap-password.dat", "640", "{0}", False),
       ("/var/run/ambari-server/stack-recommendations/", "744", "{0}", True),
       ("/var/run/ambari-server/stack-recommendations/", "755", "{0}", False),
+      ("/var/lib/ambari-server/resources/data/", "644", "{0}", False),
+      ("/var/lib/ambari-server/resources/data/", "755", "{0}", False),
       ("/var/lib/ambari-server/data/tmp/", "644", "{0}", True),
       ("/var/lib/ambari-server/data/tmp/", "755", "{0}", False),
       ("/var/lib/ambari-server/data/cache/", "600", "{0}", True),
       ("/var/lib/ambari-server/data/cache/", "700", "{0}", False),
       # Also, /etc/ambari-server/conf/password.dat
       # is generated later at store_password_file
+    ]
+    self.NR_CHANGE_OWNERSHIP_LIST = [
+      ("/var/lib/ambari-server", "{0}", True),
+      ("/usr/lib/ambari-server", "{0}", True),
+      ("/var/log/ambari-server", "{0}", True),
+      ("/var/run/ambari-server", "{0}", True),
+      ("/etc/ambari-server", "{0}", True),
     ]
     self.NR_USERADD_CMD = 'useradd -M --comment "{1}" ' \
                  '--shell %s -d /var/lib/ambari-server/keys/ {0}' % locate_file('nologin', '/sbin')
