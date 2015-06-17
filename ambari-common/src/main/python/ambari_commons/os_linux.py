@@ -29,6 +29,7 @@ from ambari_commons.logging_utils import print_info_msg, print_warning_msg
 
 NR_CHMOD_CMD = 'chmod {0} {1} {2}'
 NR_CHOWN_CMD = 'chown {0} {1} {2}'
+WARN_MSG = "Command {0} returned exit code {1} with message: {2}"
 
 ULIMIT_CMD = "ulimit -n"
 
@@ -48,10 +49,15 @@ def os_run_os_command(cmd, env=None, shell=False, cwd=None):
   (stdoutdata, stderrdata) = process.communicate()
   return process.returncode, stdoutdata, stderrdata
 
-def os_change_owner(filePath, user):
-  uid = pwd.getpwnam(user).pw_uid
-  gid = pwd.getpwnam(user).pw_gid
-  os.chown(filePath, uid, gid)
+def os_change_owner(filePath, user, recursive):
+  if recursive:
+    params = " -R "
+  else:
+    params = ""
+  command = NR_CHOWN_CMD.format(params, user, filePath)
+  retcode, out, err = os_run_os_command(command)
+  if retcode != 0:
+    print_warning_msg(WARN_MSG.format(command, filePath, err))
 
 def os_is_root():
   '''
@@ -61,7 +67,6 @@ def os_is_root():
   return os.geteuid() == 0
 
 def os_set_file_permissions(file, mod, recursive, user):
-  WARN_MSG = "Command {0} returned exit code {1} with message: {2}"
   if recursive:
     params = " -R "
   else:
@@ -70,15 +75,11 @@ def os_set_file_permissions(file, mod, recursive, user):
   retcode, out, err = os_run_os_command(command)
   if retcode != 0:
     print_warning_msg(WARN_MSG.format(command, file, err))
-  command = NR_CHOWN_CMD.format(params, user, file)
-  retcode, out, err = os_run_os_command(command)
-  if retcode != 0:
-    print_warning_msg(WARN_MSG.format(command, file, err))
+  os_change_owner(file, user, recursive)
 
 def os_set_open_files_limit(maxOpenFiles):
   command = "%s %s" % (ULIMIT_CMD, str(maxOpenFiles))
   os_run_os_command(command)
-
 
 def os_getpass(prompt):
   return getpass.unix_getpass(prompt)
