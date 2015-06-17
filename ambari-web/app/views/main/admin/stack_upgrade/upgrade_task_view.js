@@ -119,9 +119,12 @@ App.upgradeTaskView = Em.View.extend({
    * @param {string} log
    */
   openLogWindow: function(log) {
-    var newWindow = window.open();
-    var newDocument = newWindow.document;
-    newDocument.write(log);
+    var newWindow = window.open(),
+      newDocument = newWindow.document,
+      outputWrapper = newDocument.createElement('pre'),
+      output = newDocument.createTextNode(log);
+    outputWrapper.appendChild(output);
+    newDocument.body.appendChild(outputWrapper);
     newDocument.close();
   }
 });
