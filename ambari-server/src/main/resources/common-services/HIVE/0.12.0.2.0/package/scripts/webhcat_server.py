@@ -26,9 +26,9 @@ from resource_management.libraries.functions.security_commons import build_expec
   FILE_TYPE_XML
 from webhcat import webhcat
 from webhcat_service import webhcat_service
+from setup_atlas_hive import setup_atlas_hive
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
-from atlas_plugin_utils import configure_for_plugin
 
 
 class WebHCatServer(Script):
@@ -50,10 +50,8 @@ class WebHCatServer(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    savedConfig = configure_for_plugin(self.command_data_file)
-    self.install_packages(env, exclude_packages=params.hive_exclude_packages)
-    Script.config = savedConfig
     webhcat()
+    setup_atlas_hive()
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
