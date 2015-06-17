@@ -40,7 +40,7 @@ var configOption = Em.Object.extend({
  * @type {App.ConfigWidgetView}
  */
 App.ListConfigWidgetView = App.ConfigWidgetView.extend({
-
+  classNames: ['widget-config', 'list-widget'],
   supportSwitchToCheckBox: true,
 
   /**
