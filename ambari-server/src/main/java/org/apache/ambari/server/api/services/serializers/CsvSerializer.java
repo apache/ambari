@@ -32,8 +32,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * CSV serializer used to generate a CSV-formatted document from a result.
@@ -79,7 +77,7 @@ public class CsvSerializer implements ResultSerializer {
     if (result.getStatus().isErrorState()) {
       return serializeError(result.getStatus());
     } else {
-      CSVPrinter csvPrinter = null;
+
       try {
         // A StringBuffer to store the CSV-formatted document while building it.  It may be
         // necessary to use file-based storage if the data set is expected to be really large.
@@ -88,7 +86,7 @@ public class CsvSerializer implements ResultSerializer {
         TreeNode<Resource> root = result.getResultTree();
 
         if (root != null) {
-          csvPrinter = new CSVPrinter(buffer, CSVFormat.DEFAULT);
+          CSVPrinter csvPrinter = new CSVPrinter(buffer, CSVFormat.DEFAULT);
 
           // TODO: recursively handle tree structure, for now only handle single level of detail
           if ("true".equalsIgnoreCase(root.getStringProperty("isCollection"))) {
@@ -109,23 +107,15 @@ public class CsvSerializer implements ResultSerializer {
       } catch (IOException e) {
         //todo: exception handling.  Create ResultStatus 500 and call serializeError
         throw new RuntimeException("Unable to serialize to csv: " + e, e);
-      } finally {
-        if (csvPrinter != null) {
-          try {
-            csvPrinter.close();
-          } catch (IOException ex) {
-          }
-        }
       }
     }
   }
 
   @Override
   public Object serializeError(ResultStatus error) {
-    CSVPrinter csvPrinter = null;
     try {
       StringBuffer buffer = new StringBuffer();
-      csvPrinter = new CSVPrinter(buffer, CSVFormat.DEFAULT);
+      CSVPrinter csvPrinter = new CSVPrinter(buffer, CSVFormat.DEFAULT);
 
       csvPrinter.printRecord(Arrays.asList("status", "message"));
       csvPrinter.printRecord(Arrays.asList(error.getStatus().getStatus(), error.getMessage()));
@@ -134,13 +124,6 @@ public class CsvSerializer implements ResultSerializer {
     } catch (IOException e) {
       //todo: exception handling.  Create ResultStatus 500 and call serializeError
       throw new RuntimeException("Unable to serialize to csv: " + e, e);
-    } finally {
-      if (csvPrinter != null) {
-        try {
-          csvPrinter.close();
-        } catch (IOException ex) {
-        }
-      }
     }
   }
 

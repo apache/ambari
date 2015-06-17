@@ -98,10 +98,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import java.beans.IntrospectionException;
-import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
-import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -114,7 +111,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 /**
  * Registry for view and view instance definitions.
@@ -1537,31 +1533,28 @@ public class ViewRegistry {
     String extractedArchiveDirPath = extractedArchiveDirFile.getAbsolutePath();
 
     LOG.info("Reading view archive " + archiveFile + ".");
-    ClassLoader cl = null;
+
     try {
       // extract the archive and get the class loader
-      cl = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
+      ClassLoader cl = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
 
       ViewConfig viewConfig = archiveUtility.getViewConfigFromExtractedArchive(extractedArchiveDirPath,
           configuration.isViewValidationEnabled());
 
       if (viewConfig == null) {
         setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, "View configuration not found");
-      } else {
-        viewDefinition.setConfiguration(viewConfig);
-      }
+      } 
+      viewDefinition.setConfiguration(viewConfig);
 
       if (checkViewVersions(viewDefinition, serverVersion)) {
         setupViewDefinition(viewDefinition, cl);
 
         Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
-        List<InstanceConfig> instanceConfigs = viewConfig.getInstances();
-        if (instanceConfigs != null) {
-          for (InstanceConfig instanceConfig : instanceConfigs) {
-            ViewInstanceEntity instanceEntity = createViewInstanceDefinition(viewConfig, viewDefinition, instanceConfig);
-            instanceEntity.setXmlDriven(true);
-            instanceDefinitions.add(instanceEntity);
-          }
+
+        for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
+          ViewInstanceEntity instanceEntity = createViewInstanceDefinition(viewConfig, viewDefinition, instanceConfig);
+          instanceEntity.setXmlDriven(true);
+          instanceDefinitions.add(instanceEntity);
         }
         persistView(viewDefinition, instanceDefinitions);
 
@@ -1574,14 +1567,6 @@ public class ViewRegistry {
 
       setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, msg + " : " + e.getMessage());
       LOG.error(msg, e);
-    } finally {
-      if (cl instanceof Closeable) {
-        try {
-          ((URLClassLoader)cl).close();
-        } catch (IOException ex) {
-        }
-      }
-      
     }
   }
 

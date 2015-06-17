@@ -1125,12 +1125,7 @@ public class HeartBeatHandler {
                   keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_ACCESS, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_ACCESS));
 
                   BufferedInputStream bufferedIn = new BufferedInputStream(new FileInputStream(keytabFile));
-                  byte[] keytabContent = null;
-                  try {
-                    keytabContent = IOUtils.toByteArray(bufferedIn);
-                  } finally {
-                    bufferedIn.close();
-                  }
+                  byte[] keytabContent = IOUtils.toByteArray(bufferedIn);
                   String keytabContentBase64 = Base64.encodeBase64String(keytabContent);
                   keytabMap.put(KerberosServerAction.KEYTAB_CONTENT_BASE64, keytabContentBase64);
 
