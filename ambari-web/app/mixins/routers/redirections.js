@@ -49,15 +49,7 @@ App.RouterRedirections = Em.Mixin.create({
     var path = isOnInstaller ? '' : 'installer.';
     switch (currentClusterStatus.clusterState) {
       case 'CLUSTER_NOT_CREATED_1' :
-        var localDb = currentClusterStatus.localdb;
-        if (localDb && localDb.Installer && localDb.Installer.currentStep) {
-          App.db.data = currentClusterStatus.localdb;
-          App.get('router').setAuthenticated(true);
-          var controllerName = installerController.get('name');
-          var suffixLength = 10;
-          var currentStep = App.get('router').getWizardCurrentStep(controllerName.substr(0, controllerName.length - suffixLength));
-          installerController.setCurrentStep(currentStep);
-        }
+        App.get('router').setAuthenticated(true);
         router.transitionTo(path + 'step' + installerController.get('currentStep'));
         break;
       case 'CLUSTER_DEPLOY_PREP_2' :

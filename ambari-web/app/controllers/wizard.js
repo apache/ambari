@@ -207,7 +207,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         clusterName: this.get('clusterName'),
         clusterState: 'CLUSTER_NOT_CREATED_1',
         wizardControllerName: 'installerController',
-        localdb: App.db.data
+        localdb: {}
       });
     }
     if ((this.get('currentStep') - step) > 1 && !disableNaviWarning) {

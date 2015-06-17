@@ -134,7 +134,7 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
       if (response.wizardControllerName) {
         this.set('wizardControllerName', response.wizardControllerName);
       }
-      if (response.localdb) {
+      if (response.localdb && !$.isEmptyObject(response.localdb)) {
         this.set('localdb', response.localdb);
         // restore HAWizard data if process was started
         var isHAWizardStarted = App.isAccessible('ADMIN') && !App.isEmptyObject(response.localdb.HighAvailabilityWizard);
