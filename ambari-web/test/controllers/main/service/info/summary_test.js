@@ -63,6 +63,9 @@ describe('App.MainServiceInfoSummaryController', function () {
         }),
         Em.Object.create({
           serviceName: 'YARN'
+        }),
+        Em.Object.create({
+          serviceName: 'HIVE'
         })
       ]);
       sinon.stub(App.StackService, 'find').returns([
@@ -77,7 +80,7 @@ describe('App.MainServiceInfoSummaryController', function () {
           serviceName: 'HIVE',
           displayName: 'Hive',
           configTypes: {
-            'ranger-hive-plugin-properties': {}
+            'hive-env': {}
           }
         }),
         Em.Object.create({
@@ -119,7 +122,7 @@ describe('App.MainServiceInfoSummaryController', function () {
         controller.set('isRangerPluginsArraySet', item.isRangerPluginsArraySet);
         App.set('router.clusterController.isLoaded', item.isLoaded);
         expect(controller.get('isRangerPluginsArraySet')).to.equal(item.expectedIsRangerPluginsArraySet);
-        expect(controller.get('rangerPlugins').filterProperty('isDisplayed').mapProperty('serviceName').sort()).to.eql(['HDFS']);
+        expect(controller.get('rangerPlugins').filterProperty('isDisplayed').mapProperty('serviceName').sort()).to.eql(['HDFS', 'HIVE']);
       });
     });
 
@@ -133,7 +136,7 @@ describe('App.MainServiceInfoSummaryController', function () {
             'ranger-hdfs-plugin-properties': {
               'tag': 'version1'
             },
-            'ranger-hive-plugin-properties': {
+            'hive-env': {
               'tag': 'version2'
             },
             'ranger-hbase-plugin-properties': {
@@ -223,6 +226,12 @@ describe('App.MainServiceInfoSummaryController', function () {
             }
           },
           {
+            'type': 'hive-env',
+            'properties': {
+              'hive_security_authorization': 'Ranger'
+            }
+          },
+          {
             'type': 'ranger-hbase-plugin-properties',
             'properties': {
               'ranger-hbase-plugin-enabled': ''
@@ -232,6 +241,7 @@ describe('App.MainServiceInfoSummaryController', function () {
       });
       expect(controller.get('isPreviousRangerConfigsCallFailed')).to.be.false;
       expect(controller.get('rangerPlugins').findProperty('serviceName', 'HDFS').status).to.equal(Em.I18n.t('alerts.table.state.enabled'));
+      expect(controller.get('rangerPlugins').findProperty('serviceName', 'HIVE').status).to.equal(Em.I18n.t('alerts.table.state.enabled'));
       expect(controller.get('rangerPlugins').findProperty('serviceName', 'HBASE').status).to.equal(Em.I18n.t('common.unknown'));
     });
   });

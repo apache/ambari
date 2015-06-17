@@ -52,27 +52,38 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
     {
       serviceName: 'HDFS',
       type: 'ranger-hdfs-plugin-properties',
-      propertyName: 'ranger-hdfs-plugin-enabled'
+      propertyName: 'ranger-hdfs-plugin-enabled',
+      valueForEnable: 'Yes'
     },
     {
       serviceName: 'HBASE',
       type: 'ranger-hbase-plugin-properties',
-      propertyName: 'ranger-hbase-plugin-enabled'
+      propertyName: 'ranger-hbase-plugin-enabled',
+      valueForEnable: 'Yes'
+    },
+    {
+      serviceName: 'HIVE',
+      type: 'hive-env',
+      propertyName: 'hive_security_authorization',
+      valueForEnable: 'Ranger'
     },
     {
       serviceName: 'KNOX',
       type: 'ranger-knox-plugin-properties',
-      propertyName: 'ranger-knox-plugin-enabled'
+      propertyName: 'ranger-knox-plugin-enabled',
+      valueForEnable: 'Yes'
     },
     {
       serviceName: 'STORM',
       type: 'ranger-storm-plugin-properties',
-      propertyName: 'ranger-storm-plugin-enabled'
+      propertyName: 'ranger-storm-plugin-enabled',
+      valueForEnable: 'Yes'
     },
     {
       serviceName: 'YARN',
       type: 'ranger-yarn-plugin-properties',
-      propertyName: 'ranger-yarn-plugin-enabled'
+      propertyName: 'ranger-yarn-plugin-enabled',
+      valueForEnable: 'Yes'
     }
   ],
 
@@ -163,11 +174,15 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
     data.items.forEach(function (item) {
       var serviceName = this.get('rangerPlugins').findProperty('type', item.type).serviceName;
       var propertyName = this.get('rangerPlugins').findProperty('type', item.type).propertyName;
-      var statusMap = {
-        Yes: 'alerts.table.state.enabled',
-        No: 'alerts.table.state.disabled'
-      };
-      var statusString = statusMap[item.properties[propertyName]] || 'common.unknown';
+      var propertyValue = this.get('rangerPlugins').findProperty('type', item.type).valueForEnable;
+      var statusString;
+
+      if (item.properties[propertyName]) {
+        statusString = item.properties[propertyName] == propertyValue ? 'alerts.table.state.enabled' : 'alerts.table.state.disabled';
+      }
+      else {
+        statusString = 'common.unknown';
+      }
       Em.set(this.get('rangerPlugins').findProperty('serviceName', serviceName), 'status', Em.I18n.t(statusString));
     }, this);
   },
