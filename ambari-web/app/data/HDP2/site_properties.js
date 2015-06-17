@@ -852,6 +852,15 @@ var hdp2properties = [
   },
   {
     "id": "site property",
+    "name": "hbase.coprocessor.regionserver.classes",
+    "displayName": "hbase.coprocessor.regionserver.classes",
+    "category": "Advanced hbase-site",
+    "isRequired": false,
+    "serviceName": "HBASE",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "id": "site property",
     "name": "hbase.zookeeper.quorum",
     "displayName": "hbase.zookeeper.quorum",
     "displayType": "multiLine",

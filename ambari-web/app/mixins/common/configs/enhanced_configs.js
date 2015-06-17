@@ -595,6 +595,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           if (Em.get(propertyToAdd, 'isDeleted')) {
             this.get('_dependentConfigValues').removeObject(propertyToAdd);
           }
+          var originalFileName = App.config.getOriginalFileName(Em.get(propertyToAdd, 'fileName'));
+          var predefinedProperty = App.config.get('preDefinedSiteProperties')
+                .filterProperty('filename', originalFileName)
+                .findProperty('name', Em.get(propertyToAdd, 'propertyName'));
           var addedProperty = App.ServiceConfigProperty.create({
             name: Em.get(propertyToAdd, 'propertyName'),
             displayName: Em.get(propertyToAdd, 'propertyName'),
@@ -603,9 +607,9 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             savedValue: null,
             category: 'Advanced ' + Em.get(propertyToAdd, 'fileName'),
             serviceName: stepConfigs.get('serviceName'),
-            filename: App.config.getOriginalFileName(Em.get(propertyToAdd, 'fileName')),
+            filename: originalFileName,
             isNotSaved: !Em.get(propertyToAdd, 'isDeleted'),
-            isRequired: true
+            isRequired:  predefinedProperty ? Em.getWithDefault(predefinedProperty, 'isRequired', true) : true
           });
           stepConfigs.get('configs').pushObject(addedProperty);
           addedProperty.validate();
