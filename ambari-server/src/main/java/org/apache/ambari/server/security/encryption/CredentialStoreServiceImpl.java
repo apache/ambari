@@ -33,7 +33,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.logging.Level;
 
 public class CredentialStoreServiceImpl implements CredentialStoreService {
   private static final String CREDENTIALS_SUFFIX = "credentials.jceks";
@@ -132,9 +131,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
   }
 
   private void createKeystore(String filename, String keystoreType) {
-    FileOutputStream out = null;
     try {
-      out = new FileOutputStream(filename);
+      FileOutputStream out = new FileOutputStream(filename);
       KeyStore ks = KeyStore.getInstance(keystoreType);
       ks.load(null, null);
       ks.store(out, masterService.getMasterSecret());
@@ -148,11 +146,6 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
       e.printStackTrace();
     } catch (IOException e) {
       e.printStackTrace();
-    } finally {
-      try {
-        out.close();
-      } catch (IOException ex) {
-      }
     }
   }
 

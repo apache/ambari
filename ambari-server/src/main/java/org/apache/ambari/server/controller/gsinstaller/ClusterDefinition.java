@@ -228,9 +228,8 @@ public class ClusterDefinition {
    * Read the gsInstaller cluster definition file.
    */
   private void readClusterDefinition() {
-    InputStream is = null;
     try {
-      is = this.getClass().getClassLoader().getResourceAsStream(CLUSTER_DEFINITION_FILE);
+      InputStream    is = this.getClass().getClassLoader().getResourceAsStream(CLUSTER_DEFINITION_FILE);
       BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
       String line;
@@ -281,13 +280,6 @@ public class ClusterDefinition {
     } catch (IOException e) {
       String msg = "Caught exception reading " + CLUSTER_DEFINITION_FILE + ".";
       throw new IllegalStateException(msg, e);
-    } finally {
-      if (is != null) {
-        try {
-          is.close();
-        } catch (IOException ex) {
-        }
-      }
     }
   }
 

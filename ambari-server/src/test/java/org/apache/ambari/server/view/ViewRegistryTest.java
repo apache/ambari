@@ -108,19 +108,19 @@ import org.springframework.security.core.GrantedAuthority;
  */
 public class ViewRegistryTest {
 
-  private static final String view_xml1 = "<view>\n" +
+  private static String view_xml1 = "<view>\n" +
       "    <name>MY_VIEW</name>\n" +
       "    <label>My View!</label>\n" +
       "    <version>1.0.0</version>\n" +
       "</view>";
 
-  private static final String view_xml2 = "<view>\n" +
+  private static String view_xml2 = "<view>\n" +
       "    <name>MY_VIEW</name>\n" +
       "    <label>My View!</label>\n" +
       "    <version>2.0.0</version>\n" +
       "</view>";
 
-  private static final String xml_valid_instance = "<view>\n" +
+  private static String xml_valid_instance = "<view>\n" +
       "    <name>MY_VIEW</name>\n" +
       "    <label>My View!</label>\n" +
       "    <version>1.0.0</version>\n" +
@@ -149,7 +149,7 @@ public class ViewRegistryTest {
       "    </instance>\n" +
       "</view>";
 
-  private static final String xml_invalid_instance = "<view>\n" +
+  private static String xml_invalid_instance = "<view>\n" +
       "    <name>MY_VIEW</name>\n" +
       "    <label>My View!</label>\n" +
       "    <version>1.0.0</version>\n" +
@@ -169,7 +169,7 @@ public class ViewRegistryTest {
       "    </instance>\n" +
       "</view>";
 
-  private static final String AUTO_VIEW_XML = "<view>\n" +
+  private static String AUTO_VIEW_XML = "<view>\n" +
       "    <name>MY_VIEW</name>\n" +
       "    <label>My View!</label>\n" +
       "    <version>1.0.0</version>\n" +
@@ -180,7 +180,7 @@ public class ViewRegistryTest {
       "    </auto-instance>\n" +
       "</view>";
 
-  private static final String AUTO_VIEW_WILD_STACK_XML = "<view>\n" +
+  private static String AUTO_VIEW_WILD_STACK_XML = "<view>\n" +
       "    <name>MY_VIEW</name>\n" +
       "    <label>My View!</label>\n" +
       "    <version>1.0.0</version>\n" +
@@ -191,7 +191,7 @@ public class ViewRegistryTest {
       "    </auto-instance>\n" +
       "</view>";
 
-  private static final String AUTO_VIEW_BAD_STACK_XML = "<view>\n" +
+  private static String AUTO_VIEW_BAD_STACK_XML = "<view>\n" +
       "    <name>MY_VIEW</name>\n" +
       "    <label>My View!</label>\n" +
       "    <version>1.0.0</version>\n" +

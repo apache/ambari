@@ -416,9 +416,8 @@ public class JDBCResourceProvider extends BaseProvider implements ResourceProvid
             this.importedKeys.put(table, importedKeys);
 
             DatabaseMetaData metaData = connection.getMetaData();
-            ResultSet rs = null;
-            try {
-            rs = metaData.getImportedKeys(connection.getCatalog(), null, table);
+
+            ResultSet rs = metaData.getImportedKeys(connection.getCatalog(), null, table);
 
             while (rs.next()) {
 
@@ -429,11 +428,6 @@ public class JDBCResourceProvider extends BaseProvider implements ResourceProvid
                     rs.getString("FKTABLE_NAME"), rs.getString("FKCOLUMN_NAME"));
 
                 importedKeys.put(pkPropertyId, fkPropertyId);
-            }
-            } finally {
-              if (rs != null) {
-                rs.close();
-              }
             }
         }
     }

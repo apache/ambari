@@ -736,9 +736,7 @@ public class AmbariMetaInfo {
     if (!versionFile.exists()) {
       throw new AmbariException("Server version file does not exist.");
     }
-    Scanner scanner = new Scanner(versionFile);
-    serverVersion = scanner.useDelimiter("\\Z").next();
-    scanner.close();
+    serverVersion = new Scanner(versionFile).useDelimiter("\\Z").next();
   }
 
   private void getCustomActionDefinitions(File customActionDefinitionRoot) throws JAXBException, AmbariException {

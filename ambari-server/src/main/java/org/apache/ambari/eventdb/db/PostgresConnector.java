@@ -164,12 +164,8 @@ public class PostgresConnector implements DBConnector {
       throw new IOException(e);
     } finally {
       try {
-        if (rs != null){
+        if (rs != null)
           rs.close();
-        }
-        if (ps != null) {
-          ps.close();
-        }
       } catch (SQLException e) {
         LOG.error("Exception while closing ResultSet", e);
       }
@@ -197,12 +193,8 @@ public class PostgresConnector implements DBConnector {
       throw new IOException(e);
     } finally {
       try {
-        if (rs != null) {
+        if (rs != null)
           rs.close();
-        }
-        if (ps != null) {
-          ps.close();
-        }        
       } catch (SQLException e) {
         LOG.error("Exception while closing ResultSet", e);
       }
