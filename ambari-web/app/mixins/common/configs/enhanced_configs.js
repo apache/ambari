@@ -124,7 +124,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @method setDependentGroups
    */
   setDependentGroups: function () {
-    if (this.get('isControllerSupportsEnhancedConfigs') && !this.get('selectedConfigGroup.isDefault') && this.get('selectedService.dependentServiceNames.length')) {
+    if (this.get('selectedConfigGroup') && this.get('isControllerSupportsEnhancedConfigs') && !this.get('selectedConfigGroup.isDefault') && this.get('selectedService.dependentServiceNames.length')) {
       this.get('selectedService.dependentServiceNames').forEach(function (serviceName) {
         if (!this.get('selectedConfigGroup.dependentConfigGroups')[serviceName]) {
           var stepConfig = this.get('stepConfigs').findProperty('serviceName', serviceName);

@@ -326,7 +326,11 @@ App.ConfigHistoryFlowView = Em.View.extend({
   compare: function (event) {
     this.set('controller.compareServiceVersion', event.context);
     this.set('compareServiceVersion', event.context);
-    this.get('controller').onConfigGroupChange();
+    var controller = this.get('controller');
+    controller.get('stepConfigs').clear();
+    controller.loadCompareVersionConfigs(controller.get('allConfigs')).done(function() {
+      controller.onLoadOverrides(controller.get('allConfigs'));
+    });
   },
   removeCompareVersionBar: function () {
     var displayedVersion = this.get('displayedServiceVersion.version');

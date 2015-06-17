@@ -81,6 +81,16 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
           defVer.hosts = defaultHostNames;
         }
       });
+
+      result.forEach(function(v) {
+        if (v.is_current) {
+          var formerCurrent = App.ServiceConfigVersion.find().filterProperty('isCurrent').filterProperty('serviceName', v.service_name).findProperty('groupName', v.group_name);
+          if (formerCurrent) {
+            formerCurrent.set('isCurrent', false);
+          }
+        }
+      });
+
       App.store.commit();
       App.store.loadMany(this.get('model'), result);
     }

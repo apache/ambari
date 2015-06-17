@@ -1,0 +1,157 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var App = require('app');
+
+App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
+
+  /**
+   * the highest version number that is stored in <code>App.ServiceConfigVersion<code>
+   * @type {number}
+   */
+  lastLoadedVersion: 0,
+
+  /**
+   * this method should be used in clear step method
+   * @method clearLoadInfo
+   */
+  clearLoadInfo: function() {
+    this.set('lastLoadedVersion', 0);
+  },
+
+  /**
+   * loads all versions that is not saved on UI for current moment
+   * @returns {$.ajax}
+   */
+  loadServiceConfigVersions: function () {
+    App.ServiceConfigVersion.find().forEach(function (v) {
+      if (v.get('isCurrent') && v.get('serviceName') == this.get('content.serviceName') && v.get('version') > this.get('lastLoadedVersion')) {
+        this.set('lastLoadedVersion', v.get('version'));
+      }
+    }, this);
+    return App.ajax.send({
+      name: 'service.serviceConfigVersions.get.not.loaded',
+      data: {
+        serviceName: this.get('content.serviceName'),
+        lastSavedVersion: this.get('lastLoadedVersion').toString()
+      },
+      sender: this,
+      success: 'loadServiceConfigVersionsSuccess'
+    })
+  },
+
+  /**
+   * success handler for <code>loadServiceConfigVersions<code>
+   * @param data
+   */
+  loadServiceConfigVersionsSuccess: function (data) {
+    if (Em.get(data, 'items.length')) {
+      App.serviceConfigVersionsMapper.map(data);
+      var currentDefault = data.items.filterProperty('group_id', -1).findProperty('is_current');
+      if (currentDefault) {
+        this.set('currentDefaultVersion', currentDefault.service_config_version);
+      }
+    } else {
+      this.set('currentDefaultVersion', App.ServiceConfigVersion.find().find(function(v) {
+        return v.get('isCurrent') && v.get('isDefault') && v.get('serviceName') == this.get('content.serviceName');
+      }, this).get('version'));
+    }
+    if (this.get('preSelectedConfigVersion')) {
+      /** handling redirecting from config history page **/
+      var self = this;
+      this.loadConfigGroups(this.get('servicesToLoad'), false).done(function() {
+        var selectedGroup = App.ServiceConfigGroup.find().find(function(g) {
+          return g.get('serviceName') == self.get('preSelectedConfigVersion.serviceName')
+            && (g.get('name') == self.get('preSelectedConfigVersion.groupName') || (self.get('preSelectedConfigVersion.groupName') == 'default' && g.get('isDefault')));
+        });
+        self.set('selectedConfigGroup', selectedGroup);
+        self.loadSelectedVersion(self.get('preSelectedConfigVersion.version'), selectedGroup);
+        self.set('preSelectedConfigVersion', null);
+      });
+    } else {
+      this.loadCurrentVersions();
+    }
+  },
+
+  /**
+   * loads current versions of current and dependent services
+   * and all current version for config groups
+   * @method loadCurrentVersions
+   */
+  loadCurrentVersions: function() {
+    this.set('versionLoaded', false);
+    this.set('selectedVersion', this.get('currentDefaultVersion'));
+    this.trackRequest(App.ajax.send({
+      name: 'service.serviceConfigVersions.get.current',
+      sender: this,
+      data: {
+        serviceNames: this.get('servicesToLoad').join(',')
+      },
+      success: 'loadCurrentVersionsSuccess'
+    }));
+  },
+
+  /**
+   * success handler for <code>loadCurrentVersions<code>
+   * @param data
+   * @param opt
+   * @param params
+   */
+  loadCurrentVersionsSuccess: function(data, opt, params) {
+    App.configGroupsMapper.map(data, true, params.serviceNames.split(','));
+    this.set('selectedConfigGroup', App.ServiceConfigGroup.find().filterProperty('serviceName', this.get('content.serviceName')).findProperty('isDefault'));
+    this.parseConfigData(data);
+    this.loadConfigGroups(params.serviceNames.split(','), true);
+  },
+
+  /**
+   * loads selected versions of current service
+   * @method loadSelectedVersion
+   */
+  loadSelectedVersion: function (version, switchToGroup) {
+    this.set('versionLoaded', false);
+    version = version || this.get('currentDefaultVersion');
+    //version of non-default group require properties from current version of default group to correctly display page
+    var versions = (this.isVersionDefault(version)) ? [version] : [this.get('currentDefaultVersion'), version];
+    switchToGroup = (this.isVersionDefault(version) && !switchToGroup) ? this.get('configGroups').findProperty('isDefault') : switchToGroup;
+
+    if (this.get('dataIsLoaded') && switchToGroup) {
+      this.set('selectedConfigGroup', switchToGroup);
+    }
+    var selectedVersion = versions.length > 1 ? versions[1] : versions[0];
+    this.set('selectedVersion', selectedVersion);
+    this.trackRequest(App.ajax.send({
+      name: 'service.serviceConfigVersions.get.multiple',
+      sender: this,
+      data: {
+        serviceName: this.get('content.serviceName'),
+        serviceConfigVersions: versions,
+        additionalParams: App.get('isClusterSupportsEnhancedConfigs') && this.get('dependentServiceNames.length') ? '|service_name.in(' +  this.get('dependentServiceNames') + ')&is_current=true' : ''
+      },
+      success: 'loadSelectedVersionsSuccess'
+    }));
+  },
+
+  /**
+   * success handler for <code>loadSelectedVersionsSuccess<code>
+   * @param data
+   */
+  loadSelectedVersionsSuccess: function(data) {
+    this.parseConfigData(data);
+  }
+});

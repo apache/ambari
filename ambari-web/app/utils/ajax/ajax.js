@@ -634,7 +634,7 @@ var urls = {
   },
 
   'configs.config_groups.load.services': {
-    'real': '/clusters/{clusterName}/config_groups?ConfigGroup/tag.in({serviceList})&fields=*',
+    'real': '/clusters/{clusterName}/config_groups?ConfigGroup/tag.in({serviceNames})&fields=*',
     'mock': '/data/configurations/config_groups.json'
   },
 
@@ -2317,9 +2317,13 @@ var urls = {
     real: '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&fields=service_config_version,user,hosts,group_id,group_name,is_current,createtime,service_name,service_config_version_note,stack_id,is_cluster_compatible&minimal_response=true',
     mock: '/data/configurations/service_versions.json'
   },
+  'service.serviceConfigVersions.get.not.loaded': {
+    real: '/clusters/{clusterName}/configurations/service_config_versions?service_config_version>{lastSavedVersion}&service_name={serviceName}&fields=service_config_version,user,hosts,group_id,group_name,is_current,createtime,service_name,service_config_version_note,stack_id,is_cluster_compatible&minimal_response=true',
+    mock: '/data/configurations/service_versions_total.json'
+  },
   'service.serviceConfigVersions.get.current': {
-    real: '/clusters/{clusterName}?fields=Clusters/desired_service_config_versions&minimal_response=true',
-    mock: ''
+    real: '/clusters/{clusterName}/configurations/service_config_versions?service_name.in({serviceNames})&is_current=true&fields=*',
+    mock: '/data/configurations/service_versions.json'
   },
   'service.serviceConfigVersions.get.total': {
     real: '/clusters/{clusterName}/configurations/service_config_versions?page_size=1&minimal_response=true',

@@ -78,6 +78,24 @@ App.ConfigsSaverMixin = Em.Mixin.create({
   },
 
   /**
+   * get config group object for current service
+   * @param serviceName
+   * @returns {App.ConfigGroup}
+   */
+  getGroupFromModel: function(serviceName) {
+    if (this.get('selectedService.serviceName') === serviceName) {
+      return this.get('selectedConfigGroup');
+    } else {
+      var groups = App.ServiceConfigGroup.find().filterProperty('serviceName', serviceName);
+      if (this.get('selectedConfigGroup.isDefault')) {
+        return groups.length ? groups.findProperty('isDefault', true) : null;
+      } else {
+        return groups.length ? groups.findProperty('name', this.get('selectedConfigGroup.dependentConfigGroups')[serviceName]) : null;
+      }
+    }
+  },
+
+  /**
    * Save changed configs and config groups
    * @method saveConfigs
    */
@@ -106,22 +124,23 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       this.get('stepConfigs').forEach(function(stepConfig) {
         var serviceName = stepConfig.get('serviceName');
         var configs = stepConfig.get('configs');
-        var configGroup = this.getGroupForService(serviceName);
+        var configGroup = this.getGroupFromModel(serviceName);
+        if (configGroup) {
+          if (configGroup.get('isDefault')) {
 
-        if (configGroup.get('isDefault')) {
+            var configsToSave = this.getServiceConfigToSave(serviceName, configs);
 
-          var configsToSave = this.getServiceConfigToSave(serviceName, configs);
+            if (configsToSave) {
+              this.putChangedConfigurations([configsToSave], false);
+            }
 
-          if (configsToSave) {
-            this.putChangedConfigurations([configsToSave], false);
-          }
+          } else {
 
-        } else {
+            var overridenConfigs = this.getConfigsForGroup(configs, configGroup.get('name'));
 
-          var overridenConfigs = this.getConfigsForGroup(configs, configGroup.get('name'));
-
-          if (Em.isArray(overridenConfigs)) {
-            this.saveGroup(overridenConfigs, configGroup, this.get('content.serviceName') === serviceName);
+            if (Em.isArray(overridenConfigs)) {
+              this.saveGroup(overridenConfigs, configGroup, this.get('content.serviceName') === serviceName);
+            }
           }
         }
       }, this);
@@ -565,7 +584,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     });
     this.putConfigGroupChanges({
       ConfigGroup: {
-        "id": selectedConfigGroup.get('id'),
+        "id": selectedConfigGroup.get('configGroupId'),
         "cluster_name": App.get('clusterName'),
         "group_name": selectedConfigGroup.get('name'),
         "tag": selectedConfigGroup.get('service.id'),

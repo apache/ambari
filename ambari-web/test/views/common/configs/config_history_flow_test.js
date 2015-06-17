@@ -25,7 +25,6 @@ describe.skip('App.ConfigHistoryFlowView', function () {
   var view = App.ConfigHistoryFlowView.create({
     controller: Em.Object.create({
       loadSelectedVersion: Em.K,
-      onConfigGroupChange: Em.K,
       loadStep: Em.K
     }),
     displayedServiceVersion: Em.Object.create(),
@@ -509,12 +508,9 @@ describe.skip('App.ConfigHistoryFlowView', function () {
 
   describe('#compare()', function () {
     it('should set compareServiceVersion', function () {
-      sinon.spy(view.get('controller'), 'onConfigGroupChange');
       view.compare({context: Em.Object.create({version: 1})});
 
       expect(view.get('controller.compareServiceVersion')).to.eql(Em.Object.create({version: 1}));
-      expect(view.get('controller').onConfigGroupChange.calledOnce).to.be.true;
-      view.get('controller').onConfigGroupChange.restore();
     });
   });
 
