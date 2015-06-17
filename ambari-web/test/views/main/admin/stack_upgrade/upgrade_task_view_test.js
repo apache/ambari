@@ -119,26 +119,41 @@ describe('App.upgradeTaskView', function () {
   });
 
   describe("#openLogWindow()", function () {
-    var mockWindow = {
-      document: {
-        write: Em.K,
-        close: Em.K
-      }
-    };
+    var mockAppendChild = {
+        appendChild: Em.K
+      },
+      mockWindow = {
+        document: {
+          write: Em.K,
+          close: Em.K,
+          createElement: function () {
+            return mockAppendChild;
+          },
+          createTextNode: Em.K,
+          body: mockAppendChild
+        }
+      };
     before(function () {
       sinon.stub(window, 'open').returns(mockWindow);
       sinon.spy(mockWindow.document, 'write');
       sinon.spy(mockWindow.document, 'close');
+      sinon.spy(mockWindow.document, 'createElement');
+      sinon.spy(mockWindow.document, 'createTextNode');
+      sinon.spy(mockAppendChild, 'appendChild');
     });
     after(function () {
       window.open.restore();
       mockWindow.document.write.restore();
       mockWindow.document.close.restore();
+      mockWindow.document.createElement.restore();
+      mockWindow.document.createTextNode.restore();
     });
     it("", function () {
       view.openLogWindow('log');
       expect(window.open.calledOnce).to.be.true;
-      expect(mockWindow.document.write.calledWith('log')).to.be.true;
+      expect(mockWindow.document.createElement.calledWith('pre')).to.be.true;
+      expect(mockWindow.document.createTextNode.calledWith('log')).to.be.true;
+      expect(mockAppendChild.appendChild.calledTwice).to.be.true;
       expect(mockWindow.document.close.calledOnce).to.be.true;
     });
   });
