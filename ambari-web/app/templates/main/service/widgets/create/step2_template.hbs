@@ -22,9 +22,12 @@
   {{t widget.create.wizard.step2.body.template}}
 </div>
 
-<div class="template">
+<div {{bindAttr class=":template isTemplateInvalid:error"}}>
   <h5>{{t widget.create.wizard.step2.template.header}}</h5>
   {{view Ember.TextArea valueBinding="templateValue" placeholderBinding="view.templatePlaceholder"}}
+    {{#if isTemplateInvalid}}
+      <div>{{t widget.create.wizard.step2.body.template.invalid.msg}}</div>
+    {{/if}}
 </div>
 
 <div class="alert alert-info">

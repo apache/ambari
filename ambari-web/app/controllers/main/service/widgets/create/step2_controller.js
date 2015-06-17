@@ -111,13 +111,13 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       case "GRAPH":
         return !this.isGraphDataComplete(this.get('dataSets'));
       case "TEMPLATE":
-        return !this.isTemplateDataComplete(this.get('expressions'), this.get('templateValue'));
+        return this.get('isTemplateInvalid') || !this.isTemplateDataComplete(this.get('expressions'), this.get('templateValue'));
     }
     return false;
   }.property(
     'widgetPropertiesViews.@each.isValid',
     'dataSets.@each.label',
-    'templateValue'
+    'templateValue', 'isTemplateInvalid'
   ),
 
   /**
@@ -313,6 +313,23 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   parseTemplateExpression: function (templateValue, expressions) {
     var metrics = [];
     var self = this;
+
+    // check if there is invalid expression name eg. {{myExpre}}
+    var isTemplateInvalid = false;
+    var validExpressionName = /\{\{(Expression[\d])\}\}/g;
+    var expressionName = /\{\{((?!}}).)*\}\}/g;
+    if (templateValue) {
+      var expressionNames = templateValue.match(expressionName);
+      if (expressionNames) {
+        expressionNames.forEach(function(name) {
+          if (!name.match(validExpressionName)) {
+            isTemplateInvalid = true;
+          }
+        });
+      }
+    }
+    this.set('isTemplateInvalid', isTemplateInvalid);
+
     var expression = templateValue.replace(/\{\{Expression[\d]\}\}/g, function (exp) {
       var result;
       if (expressions.someProperty('alias', exp)) {
