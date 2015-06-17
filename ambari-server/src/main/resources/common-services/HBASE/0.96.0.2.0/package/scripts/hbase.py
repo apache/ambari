@@ -55,27 +55,17 @@ def hbase(name=None):
       group = params.user_group,
       recursive = True
   )
-
-  Directory (params.tmp_dir,
-             owner = params.hbase_user,
-             mode=0775,
-             recursive = True,
-             cd_access="a",
-  )
-
-  Directory (params.local_dir,
-             owner = params.hbase_user,
-             group = params.user_group,
-             mode=0775,
-             recursive = True
-  )
-
-  Directory (os.path.join(params.local_dir, "jars"),
-             owner = params.hbase_user,
-             group = params.user_group,
-             mode=0775,
-             recursive = True
-  )
+  
+  parent_dir = os.path.dirname(params.tmp_dir)
+  # In case if we have several placeholders in path
+  while ("${" in parent_dir):
+    parent_dir = os.path.dirname(parent_dir)
+  if parent_dir != os.path.abspath(os.sep) :
+    Directory (parent_dir,
+          recursive = True,
+          cd_access="a",
+    )
+    Execute(("chmod", "1777", parent_dir), sudo=True)
 
   XmlConfig( "hbase-site.xml",
             conf_dir = params.hbase_conf_dir,
