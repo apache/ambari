@@ -21,33 +21,47 @@ import utils from 'hive/utils/functions';
 
 export default Ember.Controller.extend({
   jobService: Ember.inject.service(constants.namingConventions.job),
+  jobProgressService: Ember.inject.service(constants.namingConventions.jobProgress),
   databaseService: Ember.inject.service(constants.namingConventions.database),
   notifyService: Ember.inject.service(constants.namingConventions.notify),
+  session: Ember.inject.service(constants.namingConventions.session),
+  settingsService: Ember.inject.service(constants.namingConventions.settings),
 
-  needs: [ constants.namingConventions.openQueries,
-           constants.namingConventions.udfs,
-           constants.namingConventions.jobLogs,
-           constants.namingConventions.jobResults,
-           constants.namingConventions.jobExplain,
-           constants.namingConventions.settings,
-           constants.namingConventions.visualExplain,
-           constants.namingConventions.tezUI,
-           constants.namingConventions.jobProgress,
-  ],
-
-  openQueries: Ember.computed.alias('controllers.' + constants.namingConventions.openQueries),
-  udfs: Ember.computed.alias('controllers.' + constants.namingConventions.udfs + '.udfs'),
-  logs: Ember.computed.alias('controllers.' + constants.namingConventions.jobLogs),
-  results: Ember.computed.alias('controllers.' + constants.namingConventions.jobResults),
-  explain: Ember.computed.alias('controllers.' + constants.namingConventions.jobExplain),
-  settings: Ember.computed.alias('controllers.' + constants.namingConventions.settings),
-  visualExplain: Ember.computed.alias('controllers.' + constants.namingConventions.visualExplain),
-  tezUI: Ember.computed.alias('controllers.' + constants.namingConventions.tezUI),
-  jobProgress: Ember.computed.alias('controllers.' + constants.namingConventions.jobProgress),
+  openQueries   : Ember.inject.controller(constants.namingConventions.openQueries),
+  udfs          : Ember.inject.controller(constants.namingConventions.udfs),
+  logs          : Ember.inject.controller(constants.namingConventions.jobLogs),
+  results       : Ember.inject.controller(constants.namingConventions.jobResults),
+  explain       : Ember.inject.controller(constants.namingConventions.jobExplain),
+  settings      : Ember.inject.controller(constants.namingConventions.settings),
+  visualExplain : Ember.inject.controller(constants.namingConventions.visualExplain),
+  tezUI         : Ember.inject.controller(constants.namingConventions.tezUI),
 
   selectedDatabase: Ember.computed.alias('databaseService.selectedDatabase'),
-
   isDatabaseExplorerVisible: true,
+  canKillSession: Ember.computed.and('model.sessionTag', 'model.sessionActive'),
+
+  queryProcessTabs: [
+    Ember.Object.create({
+      name: Ember.I18n.t('menus.logs'),
+      path: constants.namingConventions.subroutes.jobLogs
+    }),
+    Ember.Object.create({
+      name: Ember.I18n.t('menus.results'),
+      path: constants.namingConventions.subroutes.jobResults
+    }),
+    Ember.Object.create({
+      name: Ember.I18n.t('menus.explain'),
+      path: constants.namingConventions.subroutes.jobExplain
+    })
+  ],
+
+  queryPanelActions: [
+    Ember.Object.create({
+      icon: 'fa-expand',
+      action: 'toggleDatabaseExplorerVisibility',
+      tooltip: Ember.I18n.t('tooltips.expand')
+    })
+  ],
 
   init: function () {
     this._super();
@@ -163,7 +177,7 @@ export default Ember.Controller.extend({
 
     finalQuery = query;
     finalQuery = this.bindQueryParams(finalQuery);
-    finalQuery = this.prependQuerySettings(finalQuery);
+    finalQuery = this.prependGlobalSettings(finalQuery, job);
 
     job.set('forcedContent', finalQuery);
 
@@ -171,7 +185,7 @@ export default Ember.Controller.extend({
       return this.getVisualExplainJson(job, originalModel);
     }
 
-    return this.saveQuery(job, originalModel);
+    return this.createJob(job, originalModel);
   },
 
   getVisualExplainJson: function (job, originalModel) {
@@ -191,7 +205,7 @@ export default Ember.Controller.extend({
     return defer.promise;
   },
 
-  saveQuery: function (job, originalModel) {
+  createJob: function (job, originalModel) {
     var defer = Ember.RSVP.defer(),
         self = this,
         openQueries = this.get('openQueries');
@@ -205,6 +219,7 @@ export default Ember.Controller.extend({
     job.save().then(function () {
       //convert tab for current model since the execution will create a new job, and navigate to the new job route.
       openQueries.convertTabToJob(originalModel, job).then(function () {
+        self.get('jobProgressService').setupProgress(job);
         self.set('jobSaveSucceeded', true);
 
         //reset flag on the original model
@@ -214,8 +229,6 @@ export default Ember.Controller.extend({
       }, function (err) {
         handleError(err);
       });
-
-      self.get('settings').updateSettingsId(originalModel.get('id'), job.get('id'));
     }, function (err) {
       handleError(err);
     });
@@ -223,28 +236,17 @@ export default Ember.Controller.extend({
     return defer.promise;
   },
 
-  prependQuerySettings: function (query) {
-    var validSettings = this.get('settings').getCurrentValidSettings();
-    var regex = new RegExp(utils.regexes.setSetting);
-    var existingSettings = query.match(regex);
+  prependGlobalSettings: function (query, job) {
+    var jobGlobalSettings = job.get('globalSettings');
+    var currentGlobalSettings = this.get('settingsService').getSettings();
 
-    //clear previously added settings
-    if (existingSettings) {
-      existingSettings.forEach(function (setting) {
-        query = query.replace(setting, '');
-      });
+    // remove old globals
+    if (jobGlobalSettings) {
+      query.replace(jobGlobalSettings, '');
     }
 
-    query = query.trim();
-
-    //update with the current settings
-    if (validSettings.get('length')) {
-      query = '\n' + query;
-
-      validSettings.forEach(function (setting) {
-        query = setting + '\n' + query;
-      });
-    }
+    job.set('globalSettings', currentGlobalSettings);
+    query = currentGlobalSettings + query;
 
     return query;
   },
@@ -457,6 +459,10 @@ export default Ember.Controller.extend({
     return Ember.I18n.t('titles.query.process') + ' (' + Ember.I18n.t('titles.query.status') + this.get('content.status') + ')';
   }.property('content.status'),
 
+  updateSessionStatus: function() {
+    this.get('session').updateSessionStatus(this.get('model'));
+  }.observes('model', 'model.status'),
+
   actions: {
     stopCurrentJob: function () {
       this.get('jobService').stopJob(this.get('model'));
@@ -628,6 +634,21 @@ export default Ember.Controller.extend({
 
     toggleDatabaseExplorerVisibility: function () {
       this.toggleProperty('isDatabaseExplorerVisible');
+    },
+
+    killSession: function() {
+      var self = this;
+      var model = this.get('model');
+
+      this.get('session').killSession(model)
+        .catch(function (response) {
+          if ([200, 404].contains(response.status)) {
+            model.set('sessionActive', false);
+            self.notify.success(Ember.I18n.t('alerts.success.sessions.deleted'));
+          } else {
+            self.notify.error(response);
+          }
+        });
     }
   }
 });

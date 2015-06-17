@@ -24,8 +24,9 @@ export default Ember.Controller.extend({
 
   tabs: [
     Ember.Object.create({
-      iconClass: 'fa-code',
+      iconClass: 'text-icon',
       id: 'query-icon',
+      text: 'SQL',
       action: 'setDefaultActive',
       name: constants.namingConventions.index,
       tooltip: Ember.I18n.t('tooltips.query')
@@ -142,15 +143,6 @@ export default Ember.Controller.extend({
       activeTab.set('active', false);
       this.set('activeTab', defaultTab);
     }
-  },
-
-  flashSettings: function() {
-    var settingsTab = this.get('tabs').findBy('id', 'settings-icon');
-    settingsTab.set('flash', true);
-
-    Ember.run.later(function() {
-      settingsTab.set('flash', false);
-    }, 1000);
   },
 
   actions: {

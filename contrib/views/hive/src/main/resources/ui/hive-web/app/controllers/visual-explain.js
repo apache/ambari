@@ -20,19 +20,13 @@ import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
 export default Ember.Controller.extend({
+  jobProgressService: Ember.inject.service(constants.namingConventions.jobProgress),
   notifyService: Ember.inject.service(constants.namingConventions.notify),
 
-  needs: [ constants.namingConventions.index,
-           constants.namingConventions.openQueries,
-           constants.namingConventions.jobProgress ],
+  index: Ember.inject.controller(),
+  openQueries: Ember.inject.controller(),
 
-  index: Ember.computed.alias('controllers.' + constants.namingConventions.index),
-  jobProgress: Ember.computed.alias('controllers.' + constants.namingConventions.jobProgress),
-  openQueries: Ember.computed.alias('controllers.' + constants.namingConventions.openQueries),
-
-  updateProgress: function () {
-    this.set('verticesProgress', this.get('jobProgress.stages'));
-  }.observes('jobProgress.stages', 'jobProgress.stages.@each.value'),
+  verticesProgress: Ember.computed.alias('jobProgressService.currentJob.stages'),
 
   observeCurrentQuery: function () {
     this.set('shouldChangeGraph', true);

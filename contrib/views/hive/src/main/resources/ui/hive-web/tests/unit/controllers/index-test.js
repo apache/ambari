@@ -23,29 +23,22 @@ moduleFor('controller:index', 'IndexController', {
   needs: [
           'controller:open-queries',
           'controller:udfs',
-          // 'controller:insert-udfs',
           'controller:index/history-query/logs',
           'controller:index/history-query/results',
           'controller:index/history-query/explain',
           'controller:settings',
-          'controller:job-progress',
           'controller:visual-explain',
           'controller:tez-ui',
           'service:job',
           'service:file',
           'service:database',
           'service:notify',
+          'service:job-progress',
+          'service:session',
+          'service:settings',
           'adapter:application',
           'adapter:database'
         ]
-});
-
-test('when initialized, controller sets the queryProcessTabs.', function () {
-  expect(1);
-
-  var controller = this.subject();
-
-  ok(controller.get('queryProcessTabs', 'queryProcessTabs is initialized.'));
 });
 
 test('modelChanged calls update on the open-queries cotnroller.', function () {

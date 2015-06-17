@@ -440,6 +440,8 @@ export default Ember.View.extend({
       return array;
     };
 
+    this.set('edges', []);
+
     // Create a new directed graph
     var g = this.get('graph');
 

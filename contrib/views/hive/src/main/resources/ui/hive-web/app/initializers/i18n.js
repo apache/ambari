@@ -198,7 +198,8 @@ TRANSLATIONS = {
     loadMore: 'Load more...',
     saveHdfs: 'Save to HDFS',
     saveCsv: 'Download as CSV',
-    runOnTez: 'Run on Tez'
+    runOnTez: 'Run on Tez',
+    killSession: 'Kill Session'
   },
 
   labels: {

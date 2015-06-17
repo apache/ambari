@@ -20,18 +20,11 @@ import Ember from 'ember';
 import FilterableMixin from 'hive/mixins/filterable';
 import constants from 'hive/utils/constants';
 
-export default Ember.ArrayController.extend(FilterableMixin, {
-  itemController: constants.namingConventions.udf,
+export default Ember.Controller.extend(FilterableMixin, {
   fileResources: [],
 
   sortAscending: true,
   sortProperties: [],
-
-  //row buttons
-  links: [
-      'buttons.edit',
-      'buttons.delete'
-  ],
 
   columns: [
     Ember.Object.create({
@@ -49,6 +42,73 @@ export default Ember.ArrayController.extend(FilterableMixin, {
   }.property('udfs', 'filters.@each'),
 
   actions: {
+    handleAddFileResource: function (udf) {
+      var file = this.store.createRecord(constants.namingConventions.fileResource);
+      udf.set('fileResource', file);
+      udf.set('isEditingResource', true);
+    },
+
+    handleDeleteFileResource: function (file) {
+      var defer = Ember.RSVP.defer();
+
+      this.send('openModal',
+                'modal-delete',
+                 {
+                    heading: 'modals.delete.heading',
+                    text: 'modals.delete.message',
+                    defer: defer
+                 });
+
+      defer.promise.then(function () {
+        file.destroyRecord();
+      });
+    },
+
+    handleSaveUdf: function (udf) {
+      var self = this,
+          saveUdf = function () {
+            udf.save().then(function () {
+              udf.set('isEditing', false);
+              udf.set('isEditingResource', false);
+            });
+          };
+
+      //replace with a validation system if needed.
+      if (!udf.get('name') || !udf.get('classname')) {
+        return;
+      }
+
+      udf.get('fileResource').then(function (file) {
+        if (file) {
+          if (!file.get('name') || !file.get('path')) {
+            return;
+          }
+
+          file.save().then(function () {
+            saveUdf();
+          });
+        } else {
+          saveUdf();
+        }
+      });
+    },
+
+    handleDeleteUdf: function (udf) {
+      var defer = Ember.RSVP.defer();
+
+      this.send('openModal',
+                'modal-delete',
+                 {
+                    heading: 'modals.delete.heading',
+                    text: 'modals.delete.message',
+                    defer: defer
+                 });
+
+      defer.promise.then(function () {
+        udf.destroyRecord();
+      });
+    },
+
     sort: function (property) {
       //if same column has been selected, toggle flag, else default it to true
       if (this.get('sortProperties').objectAt(0) === property) {

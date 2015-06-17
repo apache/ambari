@@ -26,14 +26,12 @@ export default Ember.ArrayController.extend({
 
   needs: [ constants.namingConventions.jobResults,
            constants.namingConventions.jobExplain,
-           constants.namingConventions.index,
-           constants.namingConventions.settings
+           constants.namingConventions.index
          ],
 
   jobResults: Ember.computed.alias('controllers.' + constants.namingConventions.jobResults),
   jobExplain: Ember.computed.alias('controllers.' + constants.namingConventions.jobExplain),
   index: Ember.computed.alias('controllers.' + constants.namingConventions.index),
-  settings: Ember.computed.alias('controllers.' + constants.namingConventions.settings),
 
   selectedTables: Ember.computed.alias('databaseService.selectedTables'),
   selectedDatabase: Ember.computed.alias('databaseService.selectedDatabase'),
@@ -155,8 +153,7 @@ export default Ember.ArrayController.extend({
         self = this,
         wasNew,
         defer = Ember.RSVP.defer(),
-        jobModel = model,
-        originalId = model.get('id');
+        jobModel = model;
 
     if (!query) {
       query = this.getQueryForModel(model);
@@ -203,11 +200,9 @@ export default Ember.ArrayController.extend({
 
       //update query tab path with saved model id if its a new record
       if (wasNew) {
-        self.get('settings').updateSettingsId(originalId, updatedModel.get('id'));
         tab.set('id', updatedModel.get('id'));
 
         self.get('fileService').loadFile(updatedModel.get('queryFile')).then(function (file) {
-          file.set('blockSettingsParser', true);
           file.set('fileContent', content);
           file.save().then(function (updatedFile) {
             self.removeObject(query);
@@ -215,8 +210,6 @@ export default Ember.ArrayController.extend({
             self.set('currentQuery', updatedFile);
 
             defer.resolve(updatedModel.get('id'));
-            self.get('settings').parseQuerySettings(false);
-            query.set('blockSettingsParser', false);
           }, function (err) {
             defer.reject(err);
           });
@@ -224,14 +217,11 @@ export default Ember.ArrayController.extend({
           defer.reject(err);
         });
       } else {
-        query.set('blockSettingsParser', true);
         query.set('fileContent', content);
         query.save().then(function () {
           self.toggleProperty('tabUpdated');
           defer.resolve(updatedModel.get('id'));
 
-          self.get('settings').parseQuerySettings(false);
-          query.set('blockSettingsParser', false);
         }, function (err) {
           defer.reject(err);
         });
@@ -271,14 +261,11 @@ export default Ember.ArrayController.extend({
     return defer.promise;
   },
 
-  keepOriginalQuery: function (jobId) {
+  keepOriginalQuery: function () {
     var selected = this.get('highlightedText');
     var hasQueryParams = this.get('index.queryParams.length');
-    var hasSettings = this.get('settings').hasSettings(jobId);
 
-    return selected && selected[0] !== "" ||
-         hasQueryParams ||
-         hasSettings;
+    return selected && selected[0] !== "" || hasQueryParams;
   },
 
   isDirty: function (model) {
