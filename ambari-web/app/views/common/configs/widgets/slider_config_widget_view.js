@@ -46,6 +46,12 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   mirrorValue: 0,
 
   /**
+   * Previous mirrorValue
+   * @type {number}
+   */
+  prevMirrorValue: 0,
+
+  /**
    * Determines if used-input <code>mirrorValue</code> is valid
    * Calculated on the <code>mirrorValueObs</code>
    * @type {boolean}
@@ -264,6 +270,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     var parseFunction = this.get('parseFunction');
     value = value || parseFunction(this.get('config.value'));
     this.set('mirrorValue', this.widgetValueByConfigAttributes(value));
+    this.set('prevMirrorValue', this.get('mirrorValue'));
   },
 
   /**
@@ -382,7 +389,9 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
        * action to run sendRequestRorDependentConfigs when
        * we have changed config value within slider
        */
-      self.sendRequestRorDependentConfigs(self.get('config'));
+      if (self.get('prevMirrorValue') != self.get('mirrorValue')) {        
+        self.sendRequestRorDependentConfigs(self.get('config'));
+      }
     });
     this.set('slider', slider);
     var sliderTicks = this.$('.ui-slider-wrapper:eq(0) .slider-tick');
