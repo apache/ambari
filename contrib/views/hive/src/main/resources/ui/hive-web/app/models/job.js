@@ -38,6 +38,7 @@ export default DS.Model.extend({
   applicationId: DS.attr(),
   referrer: DS.attr('string'),
   confFile: DS.attr('string'),
+  globalSettings: DS.attr('string'),
 
   dateSubmittedTimestamp: function () {
     var date = this.get('dateSubmitted');

@@ -78,10 +78,9 @@ export default Ember.Object.create({
     databaseTree: 'databases-tree',
     databaseSearch: 'databases-search-results',
     settings: 'settings',
-    settingsQuery: 'settings-query',
-    settingsGlobal: 'settings-global',
     jobProgress: 'job-progress',
-    queryTabs: 'query-tabs'
+    queryTabs: 'query-tabs',
+    session: 'session'
   },
 
   hiveParameters: [
@@ -190,16 +189,13 @@ export default Ember.Object.create({
 
   //this can be replaced by a string.format implementation
   adapter: {
-    version: '0.4.0',
+    version: '1.0.0',
     instance: 'Hive',
     apiPrefix: '/api/v1/views/HIVE/versions/',
     instancePrefix: '/instances/',
     resourcePrefix: 'resources/'
   },
 
-  settings: {
-    executionEngine: 'hive.execution.engine'
-  },
   sampleDataQuery: 'SELECT * FROM %@ LIMIT 100;',
 
   notify: {
@@ -219,5 +215,9 @@ export default Ember.Object.create({
       typeClass : 'alert-info',
       typeIcon  : 'fa-info'
     }
+  },
+
+  globalSettings: {
+    comment: "--Global Settings--\n\n"
   }
 });

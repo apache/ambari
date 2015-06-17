@@ -118,6 +118,21 @@ public class AmbariApi {
   }
 
   /**
+   * Returns first host with requested component installed
+   * @param requestComponent name of component
+   * @return any hostname of node that contains the component
+   * @throws AmbariApiException
+   */
+  public String getAnyHostWithComponent(String requestComponent) throws AmbariApiException {
+    List<String> foundHosts = getHostsWithComponent(requestComponent);
+
+    if (foundHosts.size() == 0) {
+      throw new AmbariApiException("RA100 Host with component " + requestComponent + " not found");
+    }
+    return foundHosts.get(0);
+  }
+
+  /**
    * Shortcut for GET method
    * @param path REST API path
    * @return response

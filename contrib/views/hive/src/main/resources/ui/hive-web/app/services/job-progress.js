@@ -19,26 +19,15 @@
 import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
-export default Ember.Controller.extend({
-  needs: [ constants.namingConventions.index ],
-
+export default Ember.Service.extend({
   jobs: [],
 
-  index: Ember.computed.alias('controllers.' + constants.namingConventions.index),
-
-  modelChanged: function () {
-    var model = this.get('index.model');
-    var job;
-
-    if (!this.isJob(model)) {
-      return;
-    }
-
-    job = this.jobs.findBy('model', model);
+  setupProgress: function (currentModel) {
+    var job = this.jobs.findBy('model', currentModel);
 
     if (!job) {
       job = this.jobs.pushObject(Ember.Object.create({
-        model: model,
+        model: currentModel,
         stages: [],
         totalProgress: 0,
         retrievingProgress: false,
@@ -46,7 +35,7 @@ export default Ember.Controller.extend({
     }
 
     this.set('currentJob', job);
-  }.observes('index.model'),
+  },
 
   updateProgress: function () {
     var job = this.get('currentJob');
@@ -55,26 +44,10 @@ export default Ember.Controller.extend({
       return;
     }
 
-    if (this.get('totalProgress') < 100 && !job.get('retrievingProgress')) {
+    if (job.get('totalProgress') < 100 && !job.get('retrievingProgress')) {
       this.reloadProgress(job);
     }
   }.observes('currentJob.model.dagId'),
-
-  totalProgress: function () {
-    if (!this.isJob(this.get('index.model'))) {
-      return;
-    }
-
-    return this.get('currentJob.totalProgress');
-  }.property('index.model', 'currentJob.totalProgress'),
-
-  stages: function () {
-    if (!this.isJob(this.get('index.model'))) {
-      return;
-    }
-
-    return this.get('currentJob.stages');
-  }.property('index.model', 'currentJob.stages.@each.value'),
 
   reloadProgress: function (job) {
     var self = this;

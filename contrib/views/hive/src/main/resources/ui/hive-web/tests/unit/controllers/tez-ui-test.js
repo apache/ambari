@@ -35,10 +35,12 @@ moduleFor('controller:tez-ui', 'TezUIController', {
     'controller:index/history-query/explain',
     'controller:settings',
     'controller:visual-explain',
-    'controller:job-progress',
     'adapter:database',
     'service:database',
-    'service:notify'
+    'service:notify',
+    'service:job-progress',
+    'service:session',
+    'service:settings'
   ],
 
   setup: function() {

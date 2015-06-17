@@ -407,9 +407,6 @@ body {
   cursor: pointer;
 }
 
-.settings-container {
-}
-
 .settings-container .close-settings {
   float: right;
   font-size: 18px;
@@ -434,40 +431,20 @@ body {
   }
 }
 
-.setting .remove, .setting .makeGlobal {
+.setting .remove {
   line-height: 30px;
   font-size: 18px;
   cursor: pointer;
-  // position: absolute;
-  // right: -5px;
-  // top: -10px;
-}
-
-.setting .makeGlobal.overwriteGlobal {
-  color: #ff3322;
 }
 
 .setting .setting-input-value {
-  width: calc(100% - 50px);
+  width: calc(100% - 30px);
   display: inline-block;
 }
 .setting .global-setting-value {
   width: calc(100% - 25px);
 }
 
-.setting .makeGlobal {
-  top: 30px;
-}
-
-.settings-set {
-  margin: 10px 0;
-}
-.settings-set h3 {
-  display: inline-block;
-  margin: 0 10px 0 0;
-  vertical-align: top;
-  line-height: 35px;
-}
 .settings-set .settings-set-selector {
   display: inline-block;
   width: 300px;

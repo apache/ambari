@@ -22,7 +22,13 @@ import org.apache.ambari.view.ViewContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Utilities for specific Hadoop services and util functions for them
@@ -32,6 +38,7 @@ public class Services {
   public static final String HTTP_ONLY = "HTTP_ONLY";
   public static final String YARN_SITE = "yarn-site";
   public static final String YARN_HTTP_POLICY = "yarn.http.policy";
+  public static final String YARN_RESOURCEMANAGER_HA_ENABLED = "yarn.resourcemanager.ha.enabled";
 
   private final AmbariApi ambariApi;
   private ViewContext context;
@@ -55,6 +62,7 @@ public class Services {
     if (ambariApi.isClusterAssociated()) {
       String protocol;
 
+      String haEnabled = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_RESOURCEMANAGER_HA_ENABLED);
       String httpPolicy = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_HTTP_POLICY);
       if (httpPolicy.equals(HTTPS_ONLY)) {
         protocol = "https";
@@ -68,6 +76,10 @@ public class Services {
       }
 
       url = addProtocolIfMissing(url, protocol);
+
+      if (haEnabled != null && haEnabled.equals("true")) {
+        url = getActiveRMUrl(url);
+      }
     } else {
       url = context.getProperties().get("yarn.resourcemanager.url");
       if (!hasProtocol(url)) {
@@ -75,7 +87,40 @@ public class Services {
             "RA070 View is not cluster associated. Resource Manager URL should contain protocol.");
       }
     }
+    return removeTrailingSlash(url);
+  }
+
+  private String removeTrailingSlash(String url) {
+    if (url.endsWith("/")) {
+      url = url.substring(0, url.length() - 1);
+    }
     return url;
+  }
+
+  public final Pattern refreshHeaderUrlPattern = Pattern.compile("^\\d+;\\s*url=(.*)$");
+
+  /**
+   * Returns active RM URL. Makes a request to RM passed as argument.
+   * If response contains Refresh header then passed url was standby RM.
+   * @param url url of random RM
+   * @return url of active RM
+   */
+  private String getActiveRMUrl(String url) {
+    String activeRMUrl = url;
+    try {
+      HttpURLConnection httpURLConnection = context.getURLConnectionProvider().
+          getConnection(url, "GET", (String) null, new HashMap<String, String>());
+      String refreshHeader = httpURLConnection.getHeaderField("Refresh");
+      if (refreshHeader != null) { // we hit standby RM
+        Matcher matcher = refreshHeaderUrlPattern.matcher(refreshHeader);
+        if (matcher.find()) {
+          activeRMUrl = matcher.group(1);
+        }
+      }
+    } catch (IOException e) {
+      throw new AmbariApiException("RA110 ResourceManager is not accessible");
+    }
+    return activeRMUrl;
   }
 
   /**

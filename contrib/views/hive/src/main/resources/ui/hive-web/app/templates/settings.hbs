@@ -17,7 +17,50 @@
 }}
 
 <div class="editor-overlay settings-container fadeIn">
-  {{#tabs-widget tabs=settingsTabs selectedTab=selectedTab}}
-    {{partial selectedTab.view}}
-  {{/tabs-widget}}
+  <div class='settings-controls'>
+    <button class="btn btn-success btn-xs" {{action 'add'}}><i class="fa fa-plus"></i> Add</button>
+
+    {{#if settings.length}}
+      <button class="btn btn-danger btn-xs" {{action 'removeAll'}}><i class="fa fa-minus"></i> Remove All</button>
+    {{/if}}
+
+    <button class="btn btn-success btn-xs pull-right" {{action 'saveDefaultSettings'}}><i class="fa fa-plus"></i> Save Default Settings</button>
+  </div>
+
+  {{#each setting in settings}}
+    <div class="setting col-md-12 col-sm-12">
+      <form>
+        <div class="form-group">
+          <div class="input-group">
+            <div class="input-group-addon">
+              {{typeahead-widget
+                  options=predefinedSettings
+                  excluded=excluded
+                  optionLabelPath="name"
+                  optionValuePath="name"
+                  selection=setting.key
+                  create="addKey"
+              }}
+            </div>
+            <div {{bind-attr class=":input-group-addon setting.valid::has-error"}}>
+
+              <div class="setting-input-value">
+                {{#if setting.key.values}}
+                  {{select-widget items=setting.key.values
+                                  labelPath="value"
+                                  selectedValue=setting.selection
+                                  defaultLabelTranslation="placeholders.select.value"
+                  }}
+                {{else}}
+                  {{input class="input-sm form-control" placeholderTranslation="placeholders.select.value" value=setting.selection.value}}
+                {{/if}}
+              </div>
+
+              <span class="fa fa-times-circle remove pull-right" {{action 'remove' setting}}></span>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  {{/each}}
 </div>

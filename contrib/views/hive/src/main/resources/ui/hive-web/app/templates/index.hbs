@@ -50,13 +50,17 @@
 
           {{render 'insert-udfs'}}
 
+          {{#if canKillSession}}
+            <button type="button" class="btn btn-sm btn-danger kill-session" {{action "killSession"}}>{{t "buttons.killSession"}}</button>
+          {{/if}}
+
           <button type="button" class="btn btn-sm btn-primary  pull-right" {{action "addQuery"}}>{{t "buttons.newQuery"}}</button>
         </div>
       {{/panel-widget}}
 
       {{#if displayJobTabs}}
-        {{#if jobProgress.stages.length}}
-          {{#progress-widget value=jobProgress.totalProgress}}
+        {{#if jobProgressService.currentJob.stages.length}}
+          {{#progress-widget value=jobProgressService.currentJob.totalProgress}}
           {{/progress-widget}}
         {{/if}}
       {{/if}}
