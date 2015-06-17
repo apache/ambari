@@ -132,8 +132,13 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
     this.set('isSubmitDisabled', true);
     var self = this;
     this.deleteKerberosService().always(function (data) {
+      self.removeLocalKerberosComponentData();
       self.createKerberosResources();
     });
+  },
+
+  removeLocalKerberosComponentData: function () {
+    App.serviceComponents.removeObject('KERBEROS_CLIENT');
   },
 
   createKerberosResources: function () {
