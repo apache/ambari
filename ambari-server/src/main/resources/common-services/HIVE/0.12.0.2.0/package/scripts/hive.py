@@ -21,7 +21,6 @@ limitations under the License.
 import os
 import glob
 from urlparse import urlparse
-from resource_management import PropertiesFile
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
@@ -38,6 +37,8 @@ from resource_management.core.exceptions import Fail
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+
+from setup_atlas_hive import setup_atlas_hive
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -213,13 +214,8 @@ def hive(name=None):
             group=params.user_group,
             mode=0644)
 
-  if params.atlas_hosts:
-      PropertiesFile(format('{hive_config_dir}/client.properties'),
-                     properties = params.atlas_client_props,
-                     owner = params.hive_user,
-                     group = params.user_group,
-                     mode = 0644)
-
+  setup_atlas_hive()
+  
   if params.hive_specific_configs_supported and name == 'hiveserver2':
     XmlConfig("hiveserver2-site.xml",
               conf_dir=params.hive_server_conf_dir,

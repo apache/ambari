@@ -64,6 +64,9 @@ class TestMetadataServer(RMFTestCase):
                                 cd_access='a',
                                 mode=0644
       )
+      self.assertResourceCalled('File', '/var/lib/atlas/server/webapp/atlas.war',
+          content = StaticFile('/usr/hdp/current/atlas-server/server/webapp/atlas.war'),
+      )
       appprops =  dict(self.getConfig()['configurations'][
           'application-properties'])
       appprops['atlas.http.authentication.kerberos.name.rules'] = ' \\ \n'.join(appprops['atlas.http.authentication.kerberos.name.rules'].splitlines())
@@ -91,11 +94,7 @@ class TestMetadataServer(RMFTestCase):
                                 mode=0644,
       )
 
-  @patch("shutil.copy2", new = MagicMock())
-  @patch("os.path.isfile")
-  def test_configure_default(self, isfile_mock):
-    isfile_mock.return_value = True
-
+  def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/metadata_server.py",
                        classname = "MetadataServer",
                        command = "configure",
@@ -107,11 +106,7 @@ class TestMetadataServer(RMFTestCase):
     self.configureResourcesCalled()
     self.assertNoMoreResources()
 
-  @patch("shutil.copy2", new = MagicMock())
-  @patch("os.path.isfile")
-  def test_start_default(self, isfile_mock):
-    isfile_mock.return_value = True
-
+  def test_start_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/metadata_server.py",
                        classname = "MetadataServer",
                        command = "start",

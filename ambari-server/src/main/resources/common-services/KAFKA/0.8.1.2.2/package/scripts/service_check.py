@@ -47,6 +47,9 @@ class ServiceCheck(Script):
     kafka_config = {}
     with open(params.conf_dir+"/server.properties", "r") as conf_file:
       for line in conf_file:
+        if line.startswith("#") or not line.strip():
+          continue 
+        
         key,value = line.split("=")
         kafka_config[key] = value.replace("\n","")
     

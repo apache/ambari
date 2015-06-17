@@ -55,7 +55,7 @@ class Source(object):
   
   def __eq__(self, other):
     return (isinstance(other, self.__class__)
-        and self.get_content() == other.get_content())
+        and ((self.name.startswith(os.sep) and self.name == other.name) or self.get_content() == other.get_content()))
 
 
 class StaticFile(Source):

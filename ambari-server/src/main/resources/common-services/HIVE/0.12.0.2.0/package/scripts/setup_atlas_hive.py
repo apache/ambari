@@ -18,16 +18,20 @@ limitations under the License.
 
 """
 
-from resource_management.core import source, File
-from resource_management.libraries.functions import format
+from resource_management.libraries.resources.properties_file import PropertiesFile
+from resource_management.core.resources.packaging import Package
+from resource_management.libraries.functions.format import format
 
+def setup_atlas_hive():
+  import params
+  
+  if params.has_atlas:
+    if not params.host_sys_prepped:
+      Package(params.atlas_plugin_package, # FIXME HACK: install the package during RESTART/START when install_packages is not triggered.
+      )
 
-def properties_inline_template(configurations):
-  return source.InlineTemplate('''{% for key, value in configurations_dict.items() %}{{ key }}={{ value }}
-{% endfor %}''', configurations_dict=configurations)
-
-def properties_config(filename, configurations = None, conf_dir = None,
-                      mode = None, owner = None, group = None):
-    config_content = properties_inline_template(configurations)
-    File (format("{conf_dir}/{filename}"), content = config_content, owner = owner,
-          group = group, mode = mode)
+    PropertiesFile(format('{hive_config_dir}/client.properties'),
+                   properties = params.atlas_client_props,
+                   owner = params.hive_user,
+                   group = params.user_group,
+                   mode = 0644)

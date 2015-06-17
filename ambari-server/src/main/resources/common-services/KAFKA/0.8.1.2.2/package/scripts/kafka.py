@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 from resource_management import *
-from properties_config import properties_config
+from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.resources.template_config import TemplateConfig
 import sys, os
 from copy import deepcopy
@@ -67,13 +67,12 @@ def kafka():
               group=params.user_group,
               recursive=True)
 
-    conf_dir = params.conf_dir
-    properties_config("server.properties",
-                      conf_dir=params.conf_dir,
-                      configurations=kafka_server_config,
+    PropertiesFile("server.properties",
+                      dir=params.conf_dir,
+                      properties=kafka_server_config,
                       owner=params.kafka_user,
                       group=params.user_group,
-                      brokerid=brokerid)
+    )
 
     File(format("{conf_dir}/kafka-env.sh"),
           owner=params.kafka_user,
