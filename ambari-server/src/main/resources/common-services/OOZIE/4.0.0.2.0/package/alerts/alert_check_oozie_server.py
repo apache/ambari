@@ -43,8 +43,8 @@ KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}
 
 OOZIE_URL_KEY = '{{oozie-site/oozie.base.url}}'
 SECURITY_ENABLED = '{{cluster-env/security_enabled}}'
-OOZIE_PRINCIPAL = '{{oozie-site/oozie.authentication.kerberos.principal}}'
-OOZIE_KEYTAB = '{{oozie-site/oozie.authentication.kerberos.keytab}}'
+OOZIE_PRINCIPAL = '{{cluster-env/smokeuser_principal_name}}'
+OOZIE_KEYTAB = '{{cluster-env/smokeuser_keytab}}'
 OOZIE_USER = '{{oozie-env/oozie_user}}'
 OOZIE_CONF_DIR = '/usr/hdp/current/oozie-server/conf'
 OOZIE_CONF_DIR_LEGACY = '/etc/oozie/conf'
