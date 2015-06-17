@@ -26,17 +26,20 @@ public class RepositoryResponse {
   private String osType;
   private String repoId;
   private String repoName;
+  private String repoComponents;
   private String mirrorsList;
   private String defaultBaseUrl;
   private String latestBaseUrl;
   private Long repositoryVersionId;
 
-  public RepositoryResponse(String baseUrl, String osType, String repoId,
-      String repoName, String mirrorsList, String defaultBaseUrl, String latestBaseUrl) {
+  public RepositoryResponse(String baseUrl, String osType, String repoId, 
+    String repoName, String repoComponents, String mirrorsList,
+    String defaultBaseUrl, String latestBaseUrl) {
     setBaseUrl(baseUrl);
     setOsType(osType);
     setRepoId(repoId);
     setRepoName(repoName);
+    setRepoComponents(repoComponents);
     setMirrorsList(mirrorsList);
     setDefaultBaseUrl(defaultBaseUrl);
     setLatestBaseUrl(latestBaseUrl);
@@ -94,6 +97,14 @@ public class RepositoryResponse {
 
   public void setRepoName(String repoName) {
     this.repoName = repoName;
+  }
+
+  public String getRepoComponents() {
+    return repoComponents;
+  }
+
+  public void setRepoComponents(String repoComponents) {
+    this.repoComponents = repoComponents;
   }
 
   public String getMirrorsList() {

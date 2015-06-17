@@ -21,7 +21,7 @@ from ambari_commons.os_check import OSCheck
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
 # components_lits = repoName + postfix
-_UBUNTU_REPO_COMPONENTS_POSTFIX = ["main"]
+_DEFAULT_UBUNTU_REPO_COMPONENTS_POSTFIX = "main"
 
 def _alter_repo(action, repo_string, repo_template):
   """
@@ -38,8 +38,10 @@ def _alter_repo(action, repo_string, repo_template):
       repo['baseUrl'] = None
     if not 'mirrorsList' in repo:
       repo['mirrorsList'] = None
-    
-    ubuntu_components = [ repo['repoName'] ] + _UBUNTU_REPO_COMPONENTS_POSTFIX
+    if not 'repoComponents' in repo:
+      repo['repoComponents'] = _DEFAULT_UBUNTU_REPO_COMPONENTS_POSTFIX
+
+    ubuntu_components = [ repo['repoName'] ] + repo['repoComponents'].split()
     
     Repository(repo['repoId'],
                action = action,

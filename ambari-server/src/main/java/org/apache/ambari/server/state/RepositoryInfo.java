@@ -25,6 +25,7 @@ public class RepositoryInfo {
   private String osType;
   private String repoId;
   private String repoName;
+  private String repoComponents;
   private String mirrorsList;
   private String defaultBaseUrl;
   private String latestBaseUrl;
@@ -84,6 +85,21 @@ public class RepositoryInfo {
    */
   public void setRepoName(String repoName) {
     this.repoName = repoName;
+  }
+
+  /**
+   * @return the repoComponents
+   */
+  public String getRepoComponents() {
+    return repoComponents;
+  }
+
+  /**
+   * @param repoComponents
+   *          the repoComponents to set
+   */
+  public void setRepoComponents(String repoComponents) {
+    this.repoComponents = repoComponents;
   }
 
   /**
@@ -149,6 +165,7 @@ public class RepositoryInfo {
         + ", repoId=" + repoId
         + ", baseUrl=" + baseUrl
         + ", repoName=" + repoName
+        + ", repoComponents=" + repoComponents
         + ", mirrorsList=" + mirrorsList
         + " ]";
   }
@@ -156,8 +173,9 @@ public class RepositoryInfo {
 
   public RepositoryResponse convertToResponse()
   {
-    return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(),
-        getRepoName(), getMirrorsList(), getDefaultBaseUrl(), getLatestBaseUrl());
+    return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(), 
+        getRepoName(), getRepoComponents(), getMirrorsList(), 
+        getDefaultBaseUrl(), getLatestBaseUrl());
   }
 
 
