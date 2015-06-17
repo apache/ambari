@@ -43,6 +43,8 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -62,6 +64,10 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
   protected Injector injector;
 
+  // map and list with constants, for filtration like in stack advisor
+  protected Map<String,List<String>> hiveAuthPropertyValueDependencies = new HashMap<String, List<String>>();
+  protected List<String> allHiveAuthPropertyValueDependecies = new ArrayList<String>();
+
   /**
    * Override variable in child's if table name was changed
    */
@@ -72,6 +78,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
    * that require the name of the authenticated user
    */
   protected static final String AUTHENTICATED_USER_NAME = "ambari-upgrade";
+  private static final String CONFIGURATION_TYPE_HIVE_SITE = "hive-site";
+  private static final String PROPERTY_HIVE_SERVER2_AUTHENTICATION = "hive.server2.authentication";
 
   private static final Logger LOG = LoggerFactory.getLogger
     (AbstractUpgradeCatalog.class);
@@ -83,6 +91,17 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     this.injector = injector;
     injector.injectMembers(this);
     registerCatalog(this);
+
+    hiveAuthPropertyValueDependencies.put("ldap", Arrays.asList("hive.server2.authentication.ldap.url",
+            "hive.server2.authentication.ldap.baseDN"));
+    hiveAuthPropertyValueDependencies.put("kerberos", Arrays.asList("hive.server2.authentication.kerberos.keytab",
+            "hive.server2.authentication.kerberos.principal"));
+    hiveAuthPropertyValueDependencies.put("pam", Arrays.asList("hive.server2.authentication.pam.services"));
+    hiveAuthPropertyValueDependencies.put("custom", Arrays.asList("hive.server2.custom.authentication.class"));
+
+    for (List<String> dependencies : hiveAuthPropertyValueDependencies.values()) {
+      allHiveAuthPropertyValueDependecies.addAll(dependencies);
+    }
   }
 
   /**
@@ -272,7 +291,19 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   }
 
   protected boolean checkAccordingToStackAdvisor(PropertyInfo property, Cluster cluster) {
-    //TODO: in future, we can add here general filters
+    if (allHiveAuthPropertyValueDependecies.contains(property.getName())) {
+      Config hiveSite = cluster.getDesiredConfigByType(CONFIGURATION_TYPE_HIVE_SITE);
+      if (hiveSite != null) {
+        String hiveAuthValue = hiveSite.getProperties().get(PROPERTY_HIVE_SERVER2_AUTHENTICATION);
+        if (hiveAuthValue != null) {
+          List<String> dependencies = hiveAuthPropertyValueDependencies.get(hiveAuthValue.toLowerCase());
+          if (dependencies != null) {
+            return dependencies.contains(property.getName());
+          }
+        }
+      }
+      return false;
+    }
     return true;
   }
 
