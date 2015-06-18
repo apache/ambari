@@ -2572,6 +2572,7 @@ Em.I18n.translations = {
   'widget.create.wizard.step2.body.template.invalid.msg':'Invalid expression name existed. Should use name "Expression#" with double curly braces.',
   'widget.create.wizard.step2.addExpression': 'Add Expression',
   'widget.create.wizard.step2.addDataset': 'Add data set',
+  'widget.create.wizard.step2.body.gauge.overflow.warning':'Overflowed! Gauge can only display number between 0 and 1.',
   'widget.create.wizard.step2.allComponents': 'All {0}s',
   'widget.create.wizard.step2.activeComponents': 'Active {0}',
   'widget.create.wizard.step2.noMetricFound': 'No metric found',

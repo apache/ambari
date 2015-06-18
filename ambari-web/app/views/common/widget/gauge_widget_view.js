@@ -33,10 +33,30 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
   metrics: [],
 
   /**
+   * 1 - is maximum value of a gauge
+   * @type {number}
+   * @const
+   */
+  MAX_VALUE: 1,
+  /**
+   * 0 - is minimum value of a gauge
+   * @type {number}
+   * @const
+   */
+  MIN_VALUE: 0,
+
+  /**
    * @type {boolean}
    */
   isUnavailable: function () {
-    return isNaN(parseFloat(this.get('value')));
+    return isNaN(parseFloat(this.get('value'))) || this.get('isOverflowed');
+  }.property('value', 'isOverflowed'),
+
+  /**
+   * @type {boolean}
+   */
+  isOverflowed: function () {
+    return parseFloat(this.get('value')) > this.get('MAX_VALUE') || parseFloat(this.get('value')) < this.get('MIN_VALUE');
   }.property('value'),
 
   chartView: App.ChartPieView.extend({
