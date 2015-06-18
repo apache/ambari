@@ -51,32 +51,32 @@
   </property>
   <property>
     <name>atlas.lineage.hive.table.type.name</name>
-    <value>Table</value>
+    <value>DataSet</value>
     <description></description>
   </property>
   <property>
-    <name>atlas.lineage.hive.column.type.name</name>
-    <value>Column</value>
+    <name>atlas.lineage.hive.table.schema.query.hive_table</name>
+    <value>hive_table where name='%s'\, columns</value>
     <description></description>
   </property>
   <property>
-    <name>atlas.lineage.hive.table.column.name</name>
-    <value>columns</value>
+    <name>atlas.lineage.hive.table.schema.query.Table</name>
+    <value>Table where name='%s'\, columns</value>
     <description></description>
   </property>
   <property>
     <name>atlas.lineage.hive.process.type.name</name>
-    <value>LoadProcess</value>
+    <value>Process</value>
     <description></description>
   </property>
   <property>
     <name>atlas.lineage.hive.process.inputs.name</name>
-    <value>inputTables</value>
+    <value>inputs</value>
     <description></description>
   </property>
   <property>
     <name>atlas.lineage.hive.process.outputs.name</name>
-    <value>outputTables</value>
+    <value>outputs</value>
     <description></description>
   </property>
   <property>
