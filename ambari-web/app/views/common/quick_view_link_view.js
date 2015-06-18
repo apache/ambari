@@ -75,7 +75,7 @@ App.QuickViewLinks = Em.View.extend({
   /**
    * list of files that contains properties for enabling/disabling ssl
    */
-  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','storm-env', 'falcon-env', 'core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site', 'storm-site', 'spark-defaults', 'accumulo-site', 'application-properties'],
+  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','storm-env', 'falcon-env', 'core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site', 'storm-site', 'spark-defaults', 'accumulo-site', 'application-properties', 'ranger-admin-site'],
   /**
    * Get public host name by its host name.
    *
@@ -353,6 +353,14 @@ App.QuickViewLinks = Em.View.extend({
           }
         }
         return "http";
+        break;
+      case "RANGER":
+        var rangerProperties = configProperties && configProperties.findProperty('type', 'ranger-admin-site');
+        if (rangerProperties && rangerProperties.properties && rangerProperties.properties['ranger.service.https.attrib.ssl.enabled'] == "true") {
+          return "https";
+        } else {
+          return "http";
+        }
         break;
       default:
         return this.get('servicesSupportsHttps').contains(service_id) && hadoopSslEnabled ? "https" : "http";
