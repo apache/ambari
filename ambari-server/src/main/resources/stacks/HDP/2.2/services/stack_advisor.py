@@ -630,8 +630,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     self.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     putMapredProperty = self.putProperty(configurations, "mapred-site", services)
     nodemanagerMinRam = 1048576 # 1TB in mb
-    for nodemanager in self.getHostsWithComponent("YARN", "NODEMANAGER", services, hosts):
-      nodemanagerMinRam = min(nodemanager["Hosts"]["total_mem"]/1024, nodemanagerMinRam)
+    if "referenceNodeManagerHost" in clusterData:
+      nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
     putMapredProperty('yarn.app.mapreduce.am.resource.mb', configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
     putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(0.8 * int(configurations["mapred-site"]["properties"]["yarn.app.mapreduce.am.resource.mb"]))) + "m" + " -Dhdp.version=${hdp.version}")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]

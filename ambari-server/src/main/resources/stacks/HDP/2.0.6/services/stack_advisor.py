@@ -124,8 +124,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putYarnProperty = self.putProperty(configurations, "yarn-site", services)
     putYarnEnvProperty = self.putProperty(configurations, "yarn-env", services)
     nodemanagerMinRam = 1048576 # 1TB in mb
-    for nodemanager in self.getHostsWithComponent("YARN", "NODEMANAGER", services, hosts):
-      nodemanagerMinRam = min(nodemanager["Hosts"]["total_mem"]/1024, nodemanagerMinRam)
+    if "referenceNodeManagerHost" in clusterData:
+      nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
     putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
     putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
@@ -251,11 +251,18 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     }
 
     if len(hosts["items"]) > 0:
-      nodeManagerHost = self.getHostWithComponent("YARN", "NODEMANAGER", services, hosts)
-      if nodeManagerHost is not None:
+      nodeManagerHosts = self.getHostsWithComponent("YARN", "NODEMANAGER", services, hosts)
+      # NodeManager host with least memory is generally used in calculations as it will work in larger hosts.
+      if nodeManagerHosts is not None and len(nodeManagerHosts) > 0:
+        nodeManagerHost = nodeManagerHosts[0];
+        for nmHost in nodeManagerHosts:
+          if nmHost["Hosts"]["total_mem"] < nodeManagerHost["Hosts"]["total_mem"]:
+            nodeManagerHost = nmHost
         host = nodeManagerHost["Hosts"]
+        cluster["referenceNodeManagerHost"] = host
       else:
         host = hosts["items"][0]["Hosts"]
+      cluster["referenceHost"] = host
       cluster["cpu"] = host["cpu_count"]
       cluster["disk"] = len(host["disk_info"])
       cluster["ram"] = int(host["total_mem"] / (1024 * 1024))
