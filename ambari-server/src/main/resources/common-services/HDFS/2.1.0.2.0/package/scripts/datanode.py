@@ -52,7 +52,9 @@ class DataNode(Script):
     # pre-upgrade steps shutdown the datanode, so there's no need to call
     # action=stop
     if rolling_restart:
-      datanode_upgrade.pre_upgrade_shutdown()
+      force_stop = datanode_upgrade.pre_upgrade_shutdown()
+      if force_stop:
+        datanode(action="stop")
     else:
       datanode(action="stop")
 

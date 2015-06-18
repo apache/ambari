@@ -16,6 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import re
 
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
@@ -31,7 +32,7 @@ def pre_upgrade_shutdown():
   DataNode in preparation for an upgrade. This will then periodically check
   "getDatanodeInfo" to ensure the DataNode has shutdown correctly.
   This function will obtain the Kerberos ticket if security is enabled.
-  :return:
+  :return: Return True if ran ok (even with errors), and False if need to stop the datanode forcefully.
   """
   import params
 
@@ -40,10 +41,17 @@ def pre_upgrade_shutdown():
     Execute(params.dn_kinit_cmd, user = params.hdfs_user)
 
   command = format('hdfs dfsadmin -shutdownDatanode {dfs_dn_ipc_address} upgrade')
-  Execute(command, user=params.hdfs_user, tries=1 )
 
-  # verify that the datanode is down
-  _check_datanode_shutdown()
+  code, output = shell.call(command, user=params.hdfs_user)
+  if code == 0:
+    # verify that the datanode is down
+    _check_datanode_shutdown()
+  else:
+    # Due to bug HDFS-7533, DataNode may not always shutdown during rolling upgrade, and it is necessary to kill it.
+    if output is not None and re.search("Shutdown already in progress", output):
+      Logger.error("Due to a known issue in DataNode, the command {0} did not work and will shutdown the datanode forcefully.")
+      return False
+  return True
 
 
 def post_upgrade_check():
