@@ -178,5 +178,20 @@ App.hostsMapper = App.QuickDataMapper.create({
       App.get('componentConfigMapper').addNewHostComponents(newHostComponentsMap, cacheServices);
     }
     console.timeEnd('App.hostsMapper execution time');
+  },
+
+  /**
+   * set metric fields of hosts
+   * @param {object} data
+   */
+  setMetrics: function (data) {
+    this.get('model').find().forEach(function (host) {
+      if (host.get('isRequested')) {
+        var hostMetrics = data.items.findProperty('Hosts.host_name', host.get('hostName'));
+        host.set('diskTotal', Em.get(hostMetrics, 'metrics.disk.disk_total'));
+        host.set('diskFree', Em.get(hostMetrics, 'metrics.disk.disk_free'));
+        host.set('loadOne', Em.get(hostMetrics, 'metrics.load.load_one'));
+      }
+    }, this);
   }
 });

@@ -226,6 +226,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
       if (queryParams) {
         params = App.router.get('updateController').computeParameters(queryParams);
       }
+      params = (params.length > 0) ? params + "&" : params;
       return this.get('realUrl').replace('<parameters>', params);
     }
   },

@@ -2293,6 +2293,22 @@ var urls = {
       }
     }
   },
+  'hosts.metrics.lazy_load': {
+    real: '',
+    mock: '/data/hosts/HDP2/hosts.json',
+    format: function (data) {
+      return {
+        url: data.url,
+        headers: {
+          'X-Http-Method-Override': 'GET'
+        },
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {"query": data.parameters}
+        })
+      }
+    }
+  },
   'hosts.bulk.operations': {
     real: '/clusters/{clusterName}/hosts?fields=Hosts/host_name,Hosts/maintenance_state,' +
     'host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +

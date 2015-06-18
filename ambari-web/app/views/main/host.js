@@ -83,7 +83,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
   refresh: function () {
     this.set('filteringComplete', false);
     var updaterMethodName = this.get('updater.tableUpdaterMap')[this.get('tableName')];
-    this.get('updater')[updaterMethodName](this.updaterSuccessCb.bind(this), this.updaterErrorCb.bind(this));
+    this.get('updater')[updaterMethodName](this.updaterSuccessCb.bind(this), this.updaterErrorCb.bind(this), true);
     return true;
   },
 
@@ -384,7 +384,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
       name: 'hosts.bulk.operations',
       sender: this,
       data: {
-        parameters: params.substring(0, params.length - 1),
+        parameters: params,
         operationData: operationData,
         loadingPopup: loadingPopup
       },

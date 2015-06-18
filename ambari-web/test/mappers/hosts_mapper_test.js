@@ -25,7 +25,55 @@ require('mappers/server_data_mapper');
 require('mappers/hosts_mapper');
 
 describe('App.hostsMapper', function () {
+  var mapper = App.hostsMapper;
 
-
-
+  describe("#setMetrics()", function() {
+    var data = {
+      items: [
+        {
+          Hosts: {
+            host_name: 'host1'
+          },
+          metrics: {
+            load: {
+              load_one: 1
+            }
+          }
+        }
+      ]
+    };
+    beforeEach(function(){
+      this.mock = sinon.stub(App.Host, 'find')
+    });
+    afterEach(function(){
+      this.mock.restore();
+    });
+    it("Host not in the model", function() {
+      var host = Em.Object.create({
+        hostName: 'host2',
+        isRequested: true
+      });
+      this.mock.returns([host]);
+      mapper.setMetrics(data);
+      expect(host.get('loadOne')).to.be.undefined;
+    });
+    it("Host not in the filter", function() {
+      var host = Em.Object.create({
+        hostName: 'host1',
+        isRequested: false
+      });
+      this.mock.returns([host]);
+      mapper.setMetrics(data);
+      expect(host.get('loadOne')).to.be.undefined;
+    });
+    it("Host should have updated metrics", function() {
+      var host = Em.Object.create({
+        hostName: 'host1',
+        isRequested: true
+      });
+      this.mock.returns([host]);
+      mapper.setMetrics(data);
+      expect(host.get('loadOne')).to.equal(1);
+    });
+  });
 });

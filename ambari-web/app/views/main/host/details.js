@@ -59,7 +59,7 @@ App.MainHostDetailsView = Em.View.extend({
   didInsertElement: function() {
     var self = this;
 
-    this.set('isLoaded', false);
+    this.set('isLoaded', App.Host.find(this.get('content.id')).get('isLoaded'));
     App.router.get('updateController').updateHost(function () {
       self.set('isLoaded', true);
       if (!self.get('content.isLoaded')) {
