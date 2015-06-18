@@ -42,6 +42,11 @@ App.UpdateController = Em.Controller.extend({
   paginationKeys: ['page_size', 'from'],
 
   /**
+   * @type {string}
+   */
+  HOSTS_TEST_URL: '/data/hosts/HDP2/hosts.json',
+
+  /**
    * map which track status of requests, whether it's running or completed
    * @type {object}
    */
@@ -55,23 +60,19 @@ App.UpdateController = Em.Controller.extend({
 
   /**
    * construct URL from real URL and query parameters
-   * @param testUrl
    * @param realUrl
    * @param queryParams
    * @return {String}
    */
-  getComplexUrl: function (testUrl, realUrl, queryParams) {
+  getComplexUrl: function (realUrl, queryParams) {
     var prefix = App.get('apiPrefix') + '/clusters/' + App.get('clusterName'),
       params = '';
 
-    if (App.get('testMode')) {
-      return testUrl;
-    } else {
-      if (queryParams) {
-        params = this.computeParameters(queryParams);
-      }
-      return prefix + realUrl.replace('<parameters>', params);
+    if (queryParams) {
+      params = this.computeParameters(queryParams);
     }
+    params = (params.length > 0) ? params + "&" : params;
+    return prefix + realUrl.replace('<parameters>', params);
   },
 
   /**
@@ -111,7 +112,7 @@ App.UpdateController = Em.Controller.extend({
       }
       params += '&';
     });
-    return params;
+    return params.substring(0, params.length - 1);
   },
 
   /**
@@ -172,28 +173,44 @@ App.UpdateController = Em.Controller.extend({
     }
   },
 
-  updateHost: function (callback, error) {
-    var testUrl = '/data/hosts/HDP2/hosts.json',
+  /**
+   *
+   * @param {Function} callback
+   * @param {Function} error
+   * @param {boolean} lazyLoadMetrics
+   */
+  updateHost: function (callback, error, lazyLoadMetrics) {
+    var testUrl = this.get('HOSTS_TEST_URL'),
       self = this,
-      hostDetailsFilter = '';
-    var realUrl = '/hosts?<parameters>fields=Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,' +
+      hostDetailsFilter = '',
+      realUrl = '/hosts?fields=Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,' +
       'alerts_summary,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
       'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/desired_admin_state,' +
-        'metrics/disk,metrics/load/load_one,Hosts/total_mem<hostAuxiliaryInfo><stackVersions>&minimal_response=true';
-    var hostAuxiliaryInfo = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free';
-    var stackVersionInfo = ',stack_versions/HostStackVersions,' +
+        '<metrics>Hosts/total_mem<hostDetailsParams><stackVersions>&minimal_response=true',
+      hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free',
+      stackVersionInfo = ',stack_versions/HostStackVersions,' +
       'stack_versions/repository_versions/RepositoryVersions/repository_version,stack_versions/repository_versions/RepositoryVersions/id,' +
-      'stack_versions/repository_versions/RepositoryVersions/display_name';
-    realUrl = realUrl.replace("<stackVersions>", (App.get('supports.stackUpgrade') ? stackVersionInfo : ""));
+      'stack_versions/repository_versions/RepositoryVersions/display_name',
+      mainHostController = App.router.get('mainHostController'),
+      sortProperties = mainHostController.getSortProps();
 
-    if (App.router.get('currentState.name') == 'index' && App.router.get('currentState.parentState.name') == 'hosts') {
+    if (App.router.get('currentState.parentState.name') == 'hosts') {
       App.updater.updateInterval('updateHost', App.get('contentUpdateInterval'));
+      hostDetailsParams = '';
+      this.get('queryParams').set('Hosts', mainHostController.getQueryParameters(true));
     }
     else {
-      if (App.router.get('currentState.parentState.name') == 'hostDetails' &&
-          ['summary', 'alerts', 'stackVersions'].contains(App.router.get('currentState.name'))) {
+      if (App.router.get('currentState.parentState.name') == 'hostDetails') {
         hostDetailsFilter = App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/(summary|alerts|stackVersions)/)[1];
         App.updater.updateInterval('updateHost', App.get('componentsUpdateInterval'));
+        //if host details page opened then request info only of one displayed host
+        this.get('queryParams').set('Hosts', [
+          {
+            key: 'Hosts/host_name',
+            value: [hostDetailsFilter],
+            type: 'MULTIPLE'
+          }
+        ]);
       }
       else {
         callback();
@@ -203,24 +220,18 @@ App.UpdateController = Em.Controller.extend({
         }
       }
     }
-    var mainHostController = App.router.get('mainHostController'),
-      sortProperties = mainHostController.getSortProps();
-    if (hostDetailsFilter) {
-      //if host details page opened then request info only of one displayed host
-      this.get('queryParams').set('Hosts', [
-        {
-          key: 'Hosts/host_name',
-          value: [hostDetailsFilter],
-          type: 'MULTIPLE'
-        }
-      ]);
-    } else {
-      hostAuxiliaryInfo = '';
-      this.get('queryParams').set('Hosts', mainHostController.getQueryParameters(true));
-    }
-    realUrl = realUrl.replace('<hostAuxiliaryInfo>', hostAuxiliaryInfo);
+
+    realUrl = realUrl.replace("<stackVersions>", (App.get('supports.stackUpgrade') ? stackVersionInfo : ""));
+    realUrl = realUrl.replace("<metrics>", (lazyLoadMetrics ? "" : "metrics/disk,metrics/load/load_one,"));
+    realUrl = realUrl.replace('<hostDetailsParams>', hostDetailsParams);
 
     var clientCallback = function (skipCall, queryParams) {
+      var completeCallback = function () {
+        callback();
+        if (lazyLoadMetrics) {
+          self.loadHostsMetric(queryParams);
+        }
+      };
       if (skipCall) {
         //no hosts match filter by component
         App.hostsMapper.map({
@@ -230,41 +241,72 @@ App.UpdateController = Em.Controller.extend({
         callback();
       }
       else {
-        var params = self.computeParameters(queryParams),
-          paginationProps = self.computeParameters(queryParams.filter(function (param) {
-            return (this.get('paginationKeys').contains(param.key));
-          }, self)),
-          sortProps = self.computeParameters(sortProperties);
+        if (App.get('testMode')) {
+          realUrl = testUrl;
+        } else {
+          realUrl = self.addParamsToHostsUrl.call(self, queryParams, sortProperties, realUrl);
+        }
 
-        if ((params.length + paginationProps.length + sortProps.length) > 0) {
-          realUrl = App.get('apiPrefix') + '/clusters/' + App.get('clusterName') +
-            realUrl.replace('<parameters>', '') +
-            (paginationProps.length > 0 ? '&' + paginationProps.substring(0, paginationProps.length - 1) : '') +
-            (sortProps.length > 0 ? '&' + sortProps.substring(0, sortProps.length - 1) : '');
-          if (App.get('testMode')) {
-            realUrl = testUrl;
-          }
-          App.HttpClient.get(realUrl, App.hostsMapper, {
-            complete: callback,
-            doGetAsPost: true,
-            params: params.substring(0, params.length - 1),
-            error: error
-          });
-        }
-        else {
-          var hostsUrl = self.getComplexUrl(testUrl, realUrl, queryParams);
-          App.HttpClient.get(hostsUrl, App.hostsMapper, {
-            complete: callback,
-            doGetAsPost: false,
-            error: error
-          });
-        }
+        App.HttpClient.get(realUrl, App.hostsMapper, {
+          complete: completeCallback,
+          doGetAsPost: true,
+          params: self.computeParameters(queryParams),
+          error: error
+        });
       }
     };
 
     if (!this.preLoadHosts(clientCallback)) {
       clientCallback(false, self.get('queryParams.Hosts'));
     }
+  },
+
+  /**
+   *
+   * @param {Array} queryParams
+   * @param {Array} sortProperties
+   * @param {string} realUrl
+   * @returns {string}
+   */
+  addParamsToHostsUrl: function (queryParams, sortProperties, realUrl) {
+    var paginationProps = this.computeParameters(queryParams.filter(function (param) {
+      return (this.get('paginationKeys').contains(param.key));
+    }, this));
+    var sortProps = this.computeParameters(sortProperties);
+
+    return App.get('apiPrefix') + '/clusters/' + App.get('clusterName') + realUrl +
+      (paginationProps.length > 0 ? '&' + paginationProps : '') +
+      (sortProps.length > 0 ? '&' + sortProps : '');
+  },
+
+  /**
+   * lazy load metrics of hosts
+   * @param {Array} queryParams
+   * @returns {$.ajax|null}
+   */
+  loadHostsMetric: function (queryParams) {
+    var realUrl = '/hosts?fields=metrics/disk/disk_free,metrics/disk/disk_total,metrics/load/load_one&minimal_response=true';
+
+    if (App.Service.find('AMBARI_METRICS').get('isStarted')) {
+      return App.ajax.send({
+        name: 'hosts.metrics.lazy_load',
+        sender: this,
+        data: {
+          url: this.addParamsToHostsUrl(queryParams, [], realUrl),
+          parameters: this.computeParameters(queryParams)
+        },
+        success: 'loadHostsMetricSuccessCallback'
+      });
+    }
+    return null;
+  },
+
+  /**
+   * success callback of <code>loadHostsMetric</code>
+   * @param {object} data
+   */
+  loadHostsMetricSuccessCallback: function (data) {
+    App.hostsMapper.setMetrics(data);
   },
 
   /**
@@ -291,14 +333,13 @@ App.UpdateController = Em.Controller.extend({
    * @param callback
    */
   getHostByHostComponents: function (callback) {
-    var testUrl = '/data/hosts/HDP2/hosts.json';
     var realUrl = '/hosts?<parameters>minimal_response=true';
 
     App.ajax.send({
       name: 'hosts.host_components.pre_load',
       sender: this,
       data: {
-        url: this.getComplexUrl(testUrl, realUrl, this.get('queryParams.Hosts')),
+        url: this.getComplexUrl(realUrl, this.get('queryParams.Hosts')),
         callback: callback
       },
       success: 'getHostByHostComponentsSuccessCallback',

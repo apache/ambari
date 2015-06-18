@@ -117,7 +117,7 @@ describe('MainConfigHistoryController', function () {
         if ('testMode' === k) return false;
         return Em.get(App, k);
       });
-      expect(controller.getUrl({})).to.equal('/api/v1/clusters/mycluster/configurations/service_config_versions?paramsfields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,hosts,service_config_version_note,is_cluster_compatible&minimal_response=true');
+      expect(controller.getUrl({})).to.equal('/api/v1/clusters/mycluster/configurations/service_config_versions?params&fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,hosts,service_config_version_note,is_cluster_compatible&minimal_response=true');
     });
   });
 
