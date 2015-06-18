@@ -1708,7 +1708,7 @@ limitations under the License.
   </property>
   <property>
     <name>hive.server2.authentication.kerberos.keytab</name>
-    <value></value>
+    <value>/etc/security/keytabs/hive.service.keytab</value>
     <depends-on>
       <property>
         <type>hive-site</type>
@@ -1718,7 +1718,7 @@ limitations under the License.
   </property>
   <property>
     <name>hive.server2.authentication.kerberos.principal</name>
-    <value></value>
+    <value>hive/_HOST@EXAMPLE.COM</value>
     <depends-on>
       <property>
         <type>hive-site</type>
