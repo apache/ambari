@@ -1481,7 +1481,7 @@ limitations under the License.
       Expects one of [mr, tez].
       Chooses execution engine. Options are: mr (Map reduce, default) or tez (hadoop 2 only)
     </description>
-    <display-name>Exection Engine</display-name>
+    <display-name>Execution Engine</display-name>
     <value-attributes>
       <type>value-list</type>
       <entries>
