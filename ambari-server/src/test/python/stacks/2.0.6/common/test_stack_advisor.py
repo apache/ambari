@@ -344,12 +344,82 @@ class TestHDP206StackAdvisor(TestCase):
       "ramPerContainer": 512,
       "mapMemory": 512,
       "reduceMemory": 512,
-      "amMemory": 512
+      "amMemory": 512,
+      "referenceHost": hosts["items"][0]["Hosts"]
     }
 
+    # Test - Cluster data with 1 host
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
-
     self.assertEquals(result, expected)
+
+    # Test - Cluster data with 2 hosts - pick minimum memory
+    servicesList.append("YARN")
+    services = services = {"services":
+                  [{"StackServices":
+                      {"service_name" : "YARN",
+                       "service_version" : "2.6.0.2.2"
+                      },
+                    "components":[
+                      {
+                        "StackServiceComponents":{
+                          "advertise_version":"true",
+                          "cardinality":"1+",
+                          "component_category":"SLAVE",
+                          "component_name":"NODEMANAGER",
+                          "custom_commands":[
+
+                          ],
+                          "display_name":"NodeManager",
+                          "is_client":"false",
+                          "is_master":"false",
+                          "service_name":"YARN",
+                          "stack_name":"HDP",
+                          "stack_version":"2.2",
+                          "hostnames":[
+                            "host1",
+                            "host2"
+                          ]
+                        },
+                        "dependencies":[
+                        ]
+                      }
+                      ],
+                    }],
+                "configurations": {}
+    }
+    hosts["items"][0]["Hosts"]["host_name"] = "host1"
+    hosts["items"].append({
+        "Hosts": {
+            "cpu_count" : 4,
+            "total_mem" : 500000,
+            "host_name" : "host2",
+            "disk_info" : [
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/vagrant"},
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/vagrant"}
+            ]
+          }
+        })
+    expected["referenceHost"] = hosts["items"][1]["Hosts"]
+    expected["referenceNodeManagerHost"] = hosts["items"][1]["Hosts"]
+    expected["amMemory"] = 256
+    expected["containers"] = 8
+    expected["cpu"] = 4
+    expected["totalAvailableRam"] = 2048
+    expected["mapMemory"] = 256
+    expected["minContainerSize"] = 256
+    expected["reduceMemory"] = 256
+    expected["ram"] = 0
+    expected["ramPerContainer"] = 256
+    expected["reservedRam"] = 1
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    self.assertEquals(result, expected)
+
 
   def test_getConfigurationClusterSummary_withHBaseAnd48gbRam(self):
     servicesList = ["HBASE"]
@@ -386,7 +456,8 @@ class TestHDP206StackAdvisor(TestCase):
       "ramPerContainer": 3072,
       "mapMemory": 3072,
       "reduceMemory": 3072,
-      "amMemory": 3072
+      "amMemory": 3072,
+      "referenceHost": hosts["items"][0]["Hosts"]
     }
 
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
