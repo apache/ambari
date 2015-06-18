@@ -71,6 +71,7 @@ SERVICE_CHECK_DIRECTORY_MAP = {
   "TEZ_SERVICE_CHECK" : "hadoop-client",
   "PIG_SERVICE_CHECK" : "hadoop-client",
   "HIVE_SERVICE_CHECK" : "hadoop-client",
+  "OOZIE_SERVICE_CHECK" : "hadoop-client",
   "MAHOUT_SERVICE_CHECK" : "mahout-client"
 }
 
