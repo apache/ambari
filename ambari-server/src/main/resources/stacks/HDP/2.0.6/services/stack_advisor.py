@@ -306,7 +306,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     totalAvailableRam = cluster["ram"] - cluster["reservedRam"]
     if cluster["hBaseInstalled"]:
       totalAvailableRam -= cluster["hbaseRam"]
-    cluster["totalAvailableRam"] = max(2048, totalAvailableRam * 1024)
+    cluster["totalAvailableRam"] = max(512, totalAvailableRam * 1024)
     '''containers = max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))'''
     cluster["containers"] = round(max(3,
                                 min(2 * cluster["cpu"],

@@ -1265,7 +1265,8 @@ class TestHDP22StackAdvisor(TestCase):
     clusterData = {
       "cpu": 4,
       "containers" : 5,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "totalAvailableRam": 4096,
     }
     expected = {
       "yarn-env": {
