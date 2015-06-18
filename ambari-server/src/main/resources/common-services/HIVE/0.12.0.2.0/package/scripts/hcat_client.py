@@ -36,7 +36,6 @@ class HCatClient(Script):
     import params
     env.set_params(params)
     hcat()
-    setup_atlas_hive()
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
