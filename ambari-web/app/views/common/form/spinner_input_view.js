@@ -127,14 +127,14 @@ App.SpinnerInputView = Em.View.extend({
    */
   keyDown: function (e) {
     var charCode = (e.charCode) ? e.charCode : e.which;
-    if ([46, 8, 9, 27, 13, 110, 190].contains(charCode) ||
+    if ([46, 8, 9, 27, 13, 110].contains(charCode) ||
       (charCode == 65 && e.ctrlKey === true) ||
       (charCode == 67 && e.ctrlKey === true) ||
       (charCode == 88 && e.ctrlKey === true) ||
       (charCode >= 35 && charCode <= 39)) {
       return;
     }
-    if ((e.shiftKey || (charCode < 48 || charCode > 57)) && (charCode < 96 || charCode > 105)) {
+    if (charCode == 190 || (e.shiftKey || (charCode < 48 || charCode > 57)) && (charCode < 96 || charCode > 105)) {
       e.preventDefault();
     }
   },
