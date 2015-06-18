@@ -1983,6 +1983,14 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
+    # Test - default recommendations should have certain configs deleted. HAS TO BE LAST TEST.
+    services["configurations"] = {}
+    configurations = {}
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['hbase-site']['property_attributes']['phoenix.functions.allowUserDefinedFunctions'], {'delete': 'true'})
+    self.assertEquals(configurations['hbase-site']['property_attributes']['hbase.rpc.controllerfactory.class'], {'delete': 'true'})
+    self.assertEquals(configurations['hbase-site']['properties']['hbase.regionserver.wal.codec'], "org.apache.hadoop.hbase.regionserver.wal.WALCellCodec")
+
 
   def test_recommendHDFSConfigurations(self):
     configurations = {
