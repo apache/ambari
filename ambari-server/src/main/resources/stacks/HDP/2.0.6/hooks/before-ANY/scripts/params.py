@@ -172,7 +172,7 @@ has_ranger_admin = not len(ranger_admin_hosts) == 0
 
 hbase_tmp_dir = "/tmp/hbase-hbase"
 
-proxyuser_group = config['configurations']['hadoop-env']['proxyuser_group']
+proxyuser_group = default("/configurations/hadoop-env/proxyuser_group","users")
 ranger_group = config['configurations']['ranger-env']['ranger_group']
 dfs_cluster_administrators_group = config['configurations']['hdfs-site']["dfs.cluster.administrators"]
 
