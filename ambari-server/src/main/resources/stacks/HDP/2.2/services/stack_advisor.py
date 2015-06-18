@@ -638,7 +638,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     min_mapreduce_map_memory_mb = 0
     min_mapreduce_reduce_memory_mb = 0
     min_mapreduce_map_java_opts = 0
-    if ("PIG" in servicesList):
+    if ("PIG" in servicesList) and clusterData["totalAvailableRam"] >= 4096:
       min_mapreduce_map_memory_mb = 1536
       min_mapreduce_reduce_memory_mb = 1536
       min_mapreduce_map_java_opts = 1024

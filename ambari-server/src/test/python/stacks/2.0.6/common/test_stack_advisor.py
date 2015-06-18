@@ -36,7 +36,7 @@ class TestHDP206StackAdvisor(TestCase):
       stack_advisor_impl = imp.load_module('stack_advisor_impl', fp, hdp206StackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
     clazz = getattr(stack_advisor_impl, hdp206StackAdvisorClassName)
     self.stackAdvisor = clazz()
-
+    self.maxDiff = None
     # substitute method in the instance
     self.get_system_min_uid_real = self.stackAdvisor.get_system_min_uid
     self.stackAdvisor.get_system_min_uid = self.get_system_min_uid_magic
@@ -201,7 +201,7 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateConfigurations(services, hosts)
 
     expectedItems = [
-      {"message": "Value is less than the recommended default of 2048", "level": "WARN"},
+      {"message": "Value is less than the recommended default of 512", "level": "WARN"},
       {"message": "Value should be integer", "level": "ERROR"},
       {"message": "Value should be set", "level": "ERROR"}
     ]
@@ -407,15 +407,15 @@ class TestHDP206StackAdvisor(TestCase):
         })
     expected["referenceHost"] = hosts["items"][1]["Hosts"]
     expected["referenceNodeManagerHost"] = hosts["items"][1]["Hosts"]
-    expected["amMemory"] = 256
-    expected["containers"] = 8
+    expected["amMemory"] = 170.66666666666666
+    expected["containers"] = 3.0
     expected["cpu"] = 4
-    expected["totalAvailableRam"] = 2048
-    expected["mapMemory"] = 256
+    expected["totalAvailableRam"] = 512
+    expected["mapMemory"] = 170
     expected["minContainerSize"] = 256
-    expected["reduceMemory"] = 256
+    expected["reduceMemory"] = 170.66666666666666
     expected["ram"] = 0
-    expected["ramPerContainer"] = 256
+    expected["ramPerContainer"] = 170.66666666666666
     expected["reservedRam"] = 1
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
     self.assertEquals(result, expected)
@@ -529,12 +529,12 @@ class TestHDP206StackAdvisor(TestCase):
       "reservedRam": 1,
       "hbaseRam": 1,
       "minContainerSize": 256,
-      "totalAvailableRam": 2048,
+      "totalAvailableRam": 512,
       "containers": 3,
-      "ramPerContainer": 682.6666666666666,
-      "mapMemory": 682,
-      "reduceMemory": 682.6666666666666,
-      "amMemory": 682.6666666666666
+      "ramPerContainer": 170.66666666666666,
+      "mapMemory": 170,
+      "reduceMemory": 170.66666666666666,
+      "amMemory": 170.66666666666666
     }
 
     self.assertEquals(result, expected)

@@ -236,7 +236,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     min_mapreduce_map_memory_mb = 0
     min_mapreduce_reduce_memory_mb = 0
     min_mapreduce_map_java_opts = 0
-    if ("PIG" in servicesList):
+    if ("PIG" in servicesList) and clusterData["totalAvailableRam"] >= 8192:
       min_mapreduce_map_memory_mb = 1536
       min_mapreduce_reduce_memory_mb = 1536
       min_mapreduce_map_java_opts = 1024
@@ -641,7 +641,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     min_mapreduce_map_memory_mb = 0
     min_mapreduce_map_java_opts = 0
-    if ("PIG" in servicesList):
+    if ("PIG" in servicesList) and clusterData["totalAvailableRam"] >= 8192:
       min_mapreduce_map_memory_mb = 1500
       min_mapreduce_map_java_opts = 1024
     putMapredProperty('mapreduce.map.memory.mb', max(min_mapreduce_map_memory_mb, int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])))
