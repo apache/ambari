@@ -127,7 +127,9 @@ public class BlueprintConfigurationProcessor {
    */
   private static final PropertyFilter[] exportPropertyFilters =
     { new PasswordPropertyFilter(),
-      new SimplePropertyNameExportFilter("tez.tez-ui.history-url.base", "tez-site")};
+      new SimplePropertyNameExportFilter("tez.tez-ui.history-url.base", "tez-site"),
+      new SimplePropertyNameExportFilter("admin_server_host", "kerberos-env"),
+      new SimplePropertyNameExportFilter("kdc_host", "kerberos-env")};
 
   /**
    * Statically-defined list of filters to apply on cluster config
@@ -1941,6 +1943,7 @@ public class BlueprintConfigurationProcessor {
     multiCoreSiteMap.put("hadoop.proxyuser.hive.hosts", new MultipleHostTopologyUpdater("HIVE_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.HTTP.hosts", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.hcat.hosts", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
+    multiCoreSiteMap.put("hadoop.proxyuser.yarn.hosts", new MultipleHostTopologyUpdater("RESOURCEMANAGER"));
     multiWebhcatSiteMap.put("templeton.hive.properties", new TempletonHivePropertyUpdater());
     multiWebhcatSiteMap.put("templeton.kerberos.principal", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     hiveEnvMap.put("hive_hostname", new SingleHostTopologyUpdater("HIVE_SERVER"));

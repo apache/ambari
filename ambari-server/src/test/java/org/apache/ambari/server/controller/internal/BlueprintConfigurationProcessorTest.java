@@ -714,6 +714,60 @@ public class BlueprintConfigurationProcessorTest {
       tezSiteProperties.containsKey("tez.tez-ui.history-url.base"));
   }
 
+  /**
+   * There is no support currently for deploying a fully Kerberized
+   * cluster with Blueprints.  This test verifies the current treatment
+   * of Kerberos-related properties in a Blueprint export.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testKerberosConfigExport() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostGroupName = "host_group_1";
+
+    Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
+    Map<String, String> kerberosEnvProperties = new HashMap<String, String>();
+    Map<String, String> coreSiteProperties = new HashMap<String, String>();
+    configProperties.put("kerberos-env", kerberosEnvProperties);
+    configProperties.put("core-site", coreSiteProperties);
+
+    // simulate the case of a Kerberized cluster, including config
+    // added by the Kerberos service
+    kerberosEnvProperties.put("admin_server_host", expectedHostName);
+    kerberosEnvProperties.put("kdc_host", expectedHostName);
+    coreSiteProperties.put("hadoop.proxyuser.yarn.hosts", expectedHostName);
+
+    Configuration clusterConfig = new Configuration(configProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    // note: test hostgroups may not accurately reflect the required components for the config properties
+    // which are mapped to them.  Only the hostgroup name is used for hostgroup resolution an the components
+    // are not validated
+    Collection<String> groupComponents = new HashSet<String>();
+    groupComponents.add("TEZ_CLIENT");
+    groupComponents.add("RESOURCEMANAGER");
+    Collection<String> hosts = new ArrayList<String>();
+    hosts.add(expectedHostName);
+    hosts.add("serverTwo");
+    TestHostGroup group = new TestHostGroup(expectedHostGroupName, groupComponents, hosts);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    configProcessor.doUpdateForBlueprintExport();
+
+    // verify that these properties are filtered out of the exported configuration
+    assertFalse("admin_server_host should not be present in exported blueprint in kerberos-env",
+      kerberosEnvProperties.containsKey("admin_server_host"));
+    assertFalse("kdc_host should not be present in exported blueprint in kerberos-env",
+      kerberosEnvProperties.containsKey("kdc_host"));
+    assertEquals("hadoop.proxyuser.yarn.hosts was not exported correctly",
+      createExportedHostName("host_group_1"), coreSiteProperties.get("hadoop.proxyuser.yarn.hosts"));
+  }
+
   @Test
   public void testDoNameNodeHighAvailabilityExportWithHAEnabled() throws Exception {
     final String expectedNameService = "mynameservice";
