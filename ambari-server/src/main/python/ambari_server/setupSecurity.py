@@ -158,7 +158,7 @@ def adjust_directory_permissions(ambari_user):
       configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((jce_file_path, "644", "{0}", False))
   if java_home:
     jdk_security_dir = os.path.abspath(os.path.join(java_home, configDefaults.JDK_SECURITY_DIR))
-    if(os.path.exists(jce_file_path)):
+    if(os.path.exists(jdk_security_dir)):
       configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((jdk_security_dir, "644", "{0}", True))
       configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((jdk_security_dir, "755", "{0}", False))
 
