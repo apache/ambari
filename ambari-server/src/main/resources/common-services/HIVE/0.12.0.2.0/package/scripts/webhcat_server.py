@@ -26,7 +26,6 @@ from resource_management.libraries.functions.security_commons import build_expec
   FILE_TYPE_XML
 from webhcat import webhcat
 from webhcat_service import webhcat_service
-from setup_atlas_hive import setup_atlas_hive
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 
@@ -51,7 +50,6 @@ class WebHCatServer(Script):
     import params
     env.set_params(params)
     webhcat()
-    setup_atlas_hive()
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)

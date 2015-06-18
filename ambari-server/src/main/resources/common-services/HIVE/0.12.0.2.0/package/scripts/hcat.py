@@ -40,6 +40,8 @@ def hcat():
 def hcat():
   import params
 
+  from setup_atlas_hive import setup_atlas_hive
+
   Directory(params.hive_conf_dir,
             recursive=True,
             owner=params.hcat_user,
@@ -71,3 +73,5 @@ def hcat():
        group=params.user_group,
        content=InlineTemplate(params.hcat_env_sh_template)
   )
+
+  setup_atlas_hive()

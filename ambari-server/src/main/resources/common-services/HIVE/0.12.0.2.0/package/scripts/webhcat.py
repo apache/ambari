@@ -44,6 +44,8 @@ def webhcat():
 def webhcat():
   import params
 
+  from setup_atlas_hive import setup_atlas_hive
+
   Directory(params.templeton_pid_dir,
             owner=params.webhcat_user,
             mode=0755,
@@ -112,3 +114,5 @@ def webhcat():
          owner=params.webhcat_user,
          content=StaticFile(format("{config_dir}/{log4j_webhcat_filename}.template"))
     )
+
+  setup_atlas_hive()
