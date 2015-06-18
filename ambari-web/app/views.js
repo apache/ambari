@@ -177,14 +177,6 @@ require('views/main/admin/kerberos/step6_view');
 require('views/main/admin/kerberos/step7_view');
 require('views/main/admin/kerberos/step8_view');
 
-require('views/main/admin/security');
-require('views/main/admin/security/disable');
-require('views/main/admin/security/add/menu');
-require('views/main/admin/security/add/step1');
-require('views/main/admin/security/add/step2');
-require('views/main/admin/security/add/step3');
-require('views/main/admin/security/add/step4');
-
 require('views/main/dashboard');
 require('views/main/dashboard/cluster_metrics/cpu');
 require('views/main/dashboard/cluster_metrics/load');

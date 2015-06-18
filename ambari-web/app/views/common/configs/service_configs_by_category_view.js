@@ -147,7 +147,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
       console.log("Unable to load modification handler for ", serviceId);
     }
     if (serviceConfigModificationHandler != null) {
-      var securityEnabled = App.router.get('mainAdminSecurityController.securityEnabled');
+      var securityEnabled = App.router.get('mainAdminKerberosController.securityEnabled');
       this.affectedProperties = serviceConfigModificationHandler.getDependentConfigChanges(changedProperty, this.get("controller.selectedServiceNames"), stepConfigs, securityEnabled);
     }
     changedProperty.set("editDone", false); // Turn off flag

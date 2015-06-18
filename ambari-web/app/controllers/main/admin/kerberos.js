@@ -63,7 +63,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
         this.hide();
       },
       bodyClass: Ember.View.extend({
-        templateName: require('templates/main/admin/security/notify_security_off_popup')
+        templateName: require('templates/main/admin/kerberos/notify_security_off_popup')
       })
     });
   },

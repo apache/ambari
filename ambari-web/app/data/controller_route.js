@@ -30,14 +30,6 @@ module.exports = [
     route: 'main.hostAdd'
   },
   {
-    wizardControllerName: App.router.get('addSecurityController.name'),
-    route: 'main.admin.adminSecurity'
-  },
-  {
-    wizardControllerName: App.router.get('mainAdminSecurityDisableController.name'),
-    route: 'main.admin.adminSecurity'
-  },
-  {
     wizardControllerName: App.router.get('kerberosWizardController.name'),
     route: 'main.admin.adminKerberos.adminAddKerberos'
   },

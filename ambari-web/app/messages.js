@@ -1303,7 +1303,6 @@ Em.I18n.translations = {
   'admin.security.enable.popup.header': 'Add security',
   'admin.security.disable.popup.header': 'Remove security',
   'admin.security.disable.popup.body': 'You are about to disable Kerberos on the cluster. This will stop all the services in your cluster and remove the Kerberos configurations. <strong>Are you sure you wish to proceed with disabling Kerberos?</strong>',
-  'admin.addSecurity.header': 'Enable Security Wizard',
   'admin.security.step1.header': 'Get Started',
   'admin.security.step2.header': 'Configure Services',
   'admin.security.step3.header': 'Create Principals and Keytabs',
@@ -1331,32 +1330,7 @@ Em.I18n.translations = {
   'admin.security.disable.body.header' : 'Disabling kerberos security on the cluster',
   'admin.security.disable.body.success.header': 'Kerberos-based security has been disabled on your cluster. Please wait while services are started in non-secure mode.',
   'admin.security.disable.body.failure.header': 'Failed to disable Kerberos-based security on your cluster. Your cluster will keep running in secure mode.',
-  'admin.addSecurity.apply.stop.services': 'Stop Services',
-  'admin.addSecurity.apply.save.config': 'Save Configurations',
-  'admin.addSecurity.apply.start.services': 'Start Services',
-  'admin.addSecurity.apply.delete.ats': 'Delete ATS',
-  'admin.addSecurity.user.smokeUser': 'Ambari Smoke Test User',
-  'admin.addSecurity.user.hdfsUser': 'HDFS User',
-  'admin.addSecurity.user.hbaseUser': 'HBase User',
-  'admin.addSecurity.user.stormUser': 'Storm User',
-  'admin.addSecurity.hdfs.user.httpUser': 'HDFS SPNEGO User',
-  'admin.addSecurity.rm.user.httpUser': 'ResourceManager SPNEGO User',
-  'admin.addSecurity.nm.user.httpUser': 'NodeManager SPNEGO User',
-  'admin.addSecurity.historyServer.user.httpUser': 'History server SPNEGO User',
-  'admin.addSecurity.webhcat.user.httpUser': 'WebHCat SPNEGO User',
-  'admin.addSecurity.hive.user.httpUser': 'Hive SPNEGO User',
-  'admin.addSecurity.oozie.user.httpUser': 'Oozie SPNEGO User',
-  'admin.addSecurity.falcon.user.httpUser': 'Falcon SPNEGO User',
-  'admin.addSecurity.storm.user.httpUser': 'Storm UI Server',
-  'admin.addSecurity.user.yarn.atsHTTPUser': 'YARN ATS HTTP User',
-  'admin.addSecurity.knox.user': 'Knox Gateway',
-  'admin.addSecurity.enable.onClose': 'You are in the process of enabling security on your cluster. ' +
-    'Are you sure you want to quit? If you quit, ' +
-    'you may have to re-run the security wizard from the beginning to enable security.',
-  'admin.addSecurity.enable.after.stage2.onClose': 'Services are being started with the Kerberos settings you specified. '+
-    'It is recommended that you wait until all the services are started to ensure that they are set up properly. ' +
-    'Are you sure you want to quit?',
-  'admin.addSecurity.disable.onClose': 'You are in the process of disabling security on your cluster. ' +
+  'admin.security.disable.onClose': 'You are in the process of disabling security on your cluster. ' +
     'Are you sure you want to quit?',
   'admin.removeSecurity.header': 'Disable Security',
   'admin.security.applying.config.header': 'Applying Configurations',

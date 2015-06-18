@@ -19,7 +19,6 @@
 var App = require('app');
 var modelSetup = require('test/init_model_test');
 require('utils/ajax/ajax_queue');
-require('controllers/main/admin/security');
 require('controllers/main/service/info/configs');
 require('controllers/wizard/step8_controller');
 var installerStep8Controller, configurationController;

@@ -356,43 +356,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }
     }),
 
-    adminSecurity: Em.Route.extend({
-      route: '/security',
-      enter: function (router) {
-        router.set('mainAdminController.category', "security");
-        var controller = router.get('mainAdminSecurityController');
-        if (!(controller.getAddSecurityWizardStatus() === 'RUNNING') && !(controller.getDisableSecurityStatus() === 'RUNNING')) {
-          Em.run.next(function () {
-            router.transitionTo('adminSecurity.index');
-          });
-        } else if (controller.getAddSecurityWizardStatus() === 'RUNNING') {
-          Em.run.next(function () {
-            router.transitionTo('adminAddSecurity');
-          });
-        } else if (controller.getDisableSecurityStatus() === 'RUNNING') {
-          Em.run.next(function () {
-            router.transitionTo('disableSecurity');
-          });
-        }
-      },
-
-      index: Em.Route.extend({
-        route: '/',
-        connectOutlets: function (router, context) {
-          var controller = router.get('mainAdminController');
-          controller.set('category', "security");
-          controller.connectOutlet('mainAdminSecurity');
-        }
-      }),
-
-      addSecurity: function (router, object) {
-        router.get('mainAdminSecurityController').setAddSecurityWizardStatus('RUNNING');
-        router.transitionTo('adminAddSecurity');
-      },
-
-      adminAddSecurity: require('routes/add_security')
-    }),
-
     adminKerberos: Em.Route.extend({
       route: '/kerberos',
       index: Em.Route.extend({
@@ -436,7 +399,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                     // otherwise show confirmation window
                     App.showConfirmationPopup(function () {
                       self.proceedOnClose();
-                    }, Em.I18n.t('admin.addSecurity.disable.onClose'));
+                    }, Em.I18n.t('admin.security.disable.onClose'));
                   }
                 } else {
                   self.proceedOnClose();

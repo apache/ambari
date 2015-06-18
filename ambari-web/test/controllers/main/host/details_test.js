@@ -397,17 +397,6 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-  describe('#securityEnabled', function () {
-    it('', function () {
-      sinon.stub(App.router, 'get').withArgs('mainAdminSecurityController.securityEnabled').returns(true);
-
-      controller.propertyDidChange('securityEnabled');
-      expect(controller.get('securityEnabled')).to.be.true;
-      App.router.get.restore();
-    });
-  });
-
-
   describe('#addComponent()', function () {
     beforeEach(function () {
       sinon.spy(App, "showConfirmationPopup");
@@ -416,15 +405,14 @@ describe('App.MainHostDetailsController', function () {
       controller.set('content', {hostComponents: [Em.Object.create({
         componentName: "HDFS_CLIENT"
       })]});
-      controller.reopen({
-        securityEnabled: false
-      });
+      sinon.stub(componentsUtils, 'checkComponentDependencies', Em.K);
     });
 
     afterEach(function () {
       App.showConfirmationPopup.restore();
       controller.addClientComponent.restore();
       controller.primary.restore();
+      componentsUtils.checkComponentDependencies.restore();
     });
 
     it('add ZOOKEEPER_SERVER', function () {

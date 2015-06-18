@@ -436,15 +436,6 @@ App.MainHostDetailsController = Em.Controller.extend({
       batchUtils.restartHostComponents([component], Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(component.get('displayName')), "HOST_COMPONENT");
     });
   },
-  /**
-   * get current status of security settings,
-   * if true security is enabled otherwise disabled
-   * @return {Boolean}
-   */
-  securityEnabled: function () {
-    return App.router.get('mainAdminSecurityController.securityEnabled');
-  }.property('App.router.mainAdminSecurityController.securityEnabled'),
-
 
   /**
    * add component as <code>addComponent<code> method but perform

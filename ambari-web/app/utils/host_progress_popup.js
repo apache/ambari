@@ -922,10 +922,6 @@ App.HostPopup = Em.Object.create({
          */
         switchLevel: function (levelName) {
           var dataSourceController = this.get('controller.dataSourceController');
-          var securityControllers = [
-            'mainAdminSecurityDisableController',
-            'mainAdminSecurityAddStep4Controller'
-          ];
           if (this.get("controller.isBackgroundOperations")) {
             var levelInfo = dataSourceController.get('levelInfo');
             levelInfo.set('taskId', this.get('openedTaskId'));
@@ -943,13 +939,6 @@ App.HostPopup = Em.Object.create({
               dataSourceController.requestMostRecent();
             } else {
               this.set('taskCategory', this.get('categories').findProperty('value','all'));
-            }
-          } else if (securityControllers.contains(dataSourceController.get('name'))) {
-            if (levelName === 'TASK_DETAILS') {
-              this.set('isLevelLoaded', false);
-              dataSourceController.startUpdatingTask(this.get('controller.currentServiceId'), this.get('openedTaskId'));
-            } else {
-              dataSourceController.stopUpdatingTask(this.get('controller.currentServiceId'));
             }
           } else if (dataSourceController.get('name') == 'highAvailabilityProgressPopupController') {
             if (levelName === 'TASK_DETAILS') {

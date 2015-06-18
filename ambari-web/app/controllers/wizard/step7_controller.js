@@ -58,14 +58,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   secureConfigs: require('data/HDP2/secure_mapping'),
 
   /**
-   * config categories with secure properties
-   * use only for add service wizard when security is enabled;
-   */
-  secureServices: function () {
-    return $.extend(true, [], require('data/HDP2/secure_configs'));
-  }.property(),
-
-  /**
    * uses for add service - find out is security is enabled
    */
   securityEnabled: function () {
