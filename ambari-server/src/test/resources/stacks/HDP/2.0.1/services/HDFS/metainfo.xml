@@ -111,9 +111,6 @@
             <package>
               <name>hadoop-libhdfs</name>
             </package>
-            <package>
-              <name>ambari-log4j</name>
-            </package>
           </packages>
         </osSpecific>
 

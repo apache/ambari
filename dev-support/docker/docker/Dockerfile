@@ -62,11 +62,6 @@ WORKDIR /tmp/ambari
 RUN mvn versions:set -DnewVersion=1.6.1.0
 RUN mvn -B clean install package rpm:rpm -DskipTests -DnewVersion=1.6.1.0 -Dpython.ver="python >= 2.6" -Preplaceurl
 
-# also build ambari-log4j and install
-WORKDIR /tmp/ambari/contrib/ambari-log4j
-RUN mvn package rpm:rpm
-RUN yum install -y  target/rpm/ambari-log4j/RPMS/noarch/ambari-log4j-1.2.1-*.noarch.rpm
-
 # clean git code because I want to use the one on local filesystem.
 WORKDIR /tmp
 RUN rm -rf /tmp/ambari
