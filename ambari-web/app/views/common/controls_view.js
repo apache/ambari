@@ -126,6 +126,11 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
           if (item.parentConfigs.length > 1) {
             item.parentConfigs.removeObject(parentConfig.get('name'));
           } else {
+            // reset property value
+            var property = controller.findConfigProperty(item.propertyName, App.config.getOriginalFileName(item.fileName));
+            if (property) {
+              property.set('value', property.get('savedValue') || property.get('initialValue'));
+            }
             return true;
           }
         }

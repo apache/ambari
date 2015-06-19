@@ -169,8 +169,9 @@ describe('App.ConfigWidgetView', function () {
   describe('#restoreDependentConfigs', function() {
     beforeEach(function() {
       view = App.ConfigWidgetView.create({
-        controller: Em.Object.create({
-          updateDependentConfigs: function() {}
+        controller: Em.Object.extend(App.EnhancedConfigsMixin, {
+        }).create({
+          updateDependentConfigs: function() {},
         }),
         config: Em.Object.create({ name: 'config1'})
       });
@@ -215,6 +216,27 @@ describe('App.ConfigWidgetView', function () {
       expect(view.get('controller._dependentConfigValues').findProperty('name', 'dependent1').parentConfigs.toArray()).to.be.eql(["config2"]);
       expect(view.get('controller._dependentConfigValues').findProperty('name', 'dependent2').parentConfigs.toArray()).to.be.eql(["config2"]);
       expect(view.get('controller._dependentConfigValues.length')).to.be.eql(2);
+    });
+
+    it('dependent config value should be set with inital or saved when it has one parent', function() {
+      var ctrl = view.get('controller');
+      ctrl.set('stepConfigs', [
+        Em.Object.create({
+          configs: Em.A([
+            Em.Object.create({ name: 'dependent3', savedValue: '1', value: 2, filename: 'some-file.xml' }),
+            Em.Object.create({ name: 'dependent2', savedValue: '4', value: '10', filename: 'some-file.xml' })
+          ])
+        })
+      ]);
+      view.set('controller._dependentConfigValues', [
+        {propertyName: 'dependent1', parentConfigs: ['config1', 'config2'], fileName: 'some-file' },
+        {propertyName: 'dependent2', parentConfigs: ['config2', 'config1'], fileName: 'some-file'},
+        {propertyName: 'dependent3', parentConfigs: ['config1'], fileName: 'some-file' }
+      ]);
+      view.restoreDependentConfigs(view.get('config'));
+      expect(view.get('controller').findConfigProperty('dependent3', 'some-file.xml').get('value')).to.be.eql('1');
+      // config with multi dependency should not be updated
+      expect(view.get('controller').findConfigProperty('dependent2', 'some-file.xml').get('value')).to.be.eql('10');
     });
 
   });
