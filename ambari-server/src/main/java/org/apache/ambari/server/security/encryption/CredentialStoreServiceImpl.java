@@ -131,8 +131,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
   }
 
   private void createKeystore(String filename, String keystoreType) {
+    FileOutputStream out = null;
     try {
-      FileOutputStream out = new FileOutputStream(filename);
+      out = new FileOutputStream(filename);
       KeyStore ks = KeyStore.getInstance(keystoreType);
       ks.load(null, null);
       ks.store(out, masterService.getMasterSecret());
@@ -146,6 +147,12 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
       e.printStackTrace();
     } catch (IOException e) {
       e.printStackTrace();
+    } finally {
+      try {
+        out.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 

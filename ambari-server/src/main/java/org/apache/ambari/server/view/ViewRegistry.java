@@ -1535,8 +1535,6 @@ public class ViewRegistry {
     LOG.info("Reading view archive " + archiveFile + ".");
 
     try {
-      // extract the archive and get the class loader
-      ClassLoader cl = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
 
       ViewConfig viewConfig = archiveUtility.getViewConfigFromExtractedArchive(extractedArchiveDirPath,
           configuration.isViewValidationEnabled());
@@ -1547,7 +1545,7 @@ public class ViewRegistry {
       viewDefinition.setConfiguration(viewConfig);
 
       if (checkViewVersions(viewDefinition, serverVersion)) {
-        setupViewDefinition(viewDefinition, cl);
+        setupViewDefinition(viewDefinition, extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile));
 
         Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
 

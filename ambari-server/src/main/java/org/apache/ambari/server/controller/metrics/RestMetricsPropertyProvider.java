@@ -225,13 +225,16 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
       try {
         InputStream in = streamProvider.readFrom(getSpec(protocol, hostname, port, url));
         if (!ticket.isValid()) {
+          if (in != null) {
+            in.close();
+          }
           return resource;
-        }
+        }       
         try {
           extractValuesFromJSON(in, urls.get(url), resource, propertyInfos);
         } finally {
-          in.close();
-        }
+            in.close();
+          }
       } catch (IOException e) {
         logException(e);
       }

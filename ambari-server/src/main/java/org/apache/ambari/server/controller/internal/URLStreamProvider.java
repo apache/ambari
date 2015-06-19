@@ -285,25 +285,24 @@ public class URLStreamProvider implements StreamProvider {
             LOG.error(msg);
             throw new IllegalStateException(msg);
           }
-
+          FileInputStream in = null;
           try {
-            FileInputStream in = new FileInputStream(new File(trustStorePath));
+            in = new FileInputStream(new File(trustStorePath));
             KeyStore store = KeyStore.getInstance(trustStoreType == null ?
                 KeyStore.getDefaultType() : trustStoreType);
-
             store.load(in, trustStorePassword.toCharArray());
-            in.close();
-
             TrustManagerFactory tmf = TrustManagerFactory
                 .getInstance(TrustManagerFactory.getDefaultAlgorithm());
-
             tmf.init(store);
             SSLContext context = SSLContext.getInstance("TLS");
             context.init(null, tmf.getTrustManagers(), null);
-
             sslSocketFactory = context.getSocketFactory();
           } catch (Exception e) {
             throw new IOException("Can't get connection.", e);
+          } finally {
+            if (in != null) {
+              in.close();
+            }
           }
         }
       }

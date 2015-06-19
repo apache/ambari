@@ -543,51 +543,63 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     }
 
     //use new connection to not affect state of internal one
-    Connection connection = dbAccessor.getNewConnection();
-    PreparedStatement orderedConfigsStatement =
-      connection.prepareStatement("SELECT config_id FROM clusterconfig WHERE type_name = ? ORDER BY create_timestamp");
-
+    Connection connection = null;
+    PreparedStatement orderedConfigsStatement = null;
     Map<String, List<Long>> configVersionMap = new HashMap<String, List<Long>>();
-    for (String configType : configTypes) {
-      List<Long> configIds = new ArrayList<Long>();
-      orderedConfigsStatement.setString(1, configType);
-      resultSet = orderedConfigsStatement.executeQuery();
-      if (resultSet != null) {
-        try {
-          while (resultSet.next()) {
-            configIds.add(resultSet.getLong("config_id"));
-          }
-        } finally {
-          resultSet.close();
-        }
-      }
-      configVersionMap.put(configType, configIds);
-    }
-
-    orderedConfigsStatement.close();
-
-    connection.setAutoCommit(false); //disable autocommit
-    PreparedStatement configVersionStatement =
-      connection.prepareStatement("UPDATE clusterconfig SET version = ? WHERE config_id = ?");
-
-
     try {
-      for (Entry<String, List<Long>> entry : configVersionMap.entrySet()) {
-        long version = 1L;
-        for (Long configId : entry.getValue()) {
-          configVersionStatement.setLong(1, version++);
-          configVersionStatement.setLong(2, configId);
-          configVersionStatement.addBatch();
+      connection = dbAccessor.getNewConnection();
+      try {
+        orderedConfigsStatement
+                = connection.prepareStatement("SELECT config_id FROM clusterconfig WHERE type_name = ? ORDER BY create_timestamp");
+
+        for (String configType : configTypes) {
+          List<Long> configIds = new ArrayList<Long>();
+          orderedConfigsStatement.setString(1, configType);
+          resultSet = orderedConfigsStatement.executeQuery();
+          if (resultSet != null) {
+            try {
+              while (resultSet.next()) {
+                configIds.add(resultSet.getLong("config_id"));
+              }
+            } finally {
+              resultSet.close();
+            }
+          }
+          configVersionMap.put(configType, configIds);
         }
-        configVersionStatement.executeBatch();
+      } finally {
+        if (orderedConfigsStatement != null) {
+          orderedConfigsStatement.close();
+        }
       }
-      connection.commit(); //commit changes manually
-    } catch (SQLException e) {
-      connection.rollback();
-      throw e;
+
+      connection.setAutoCommit(false); //disable autocommit
+      PreparedStatement configVersionStatement = null;
+      try {
+        configVersionStatement = connection.prepareStatement("UPDATE clusterconfig SET version = ? WHERE config_id = ?");
+
+        for (Entry<String, List<Long>> entry : configVersionMap.entrySet()) {
+          long version = 1L;
+          for (Long configId : entry.getValue()) {
+            configVersionStatement.setLong(1, version++);
+            configVersionStatement.setLong(2, configId);
+            configVersionStatement.addBatch();
+          }
+          configVersionStatement.executeBatch();
+        }
+        connection.commit(); //commit changes manually
+      } catch (SQLException e) {
+        connection.rollback();
+        throw e;
+      } finally {
+        if (configVersionStatement != null){
+          configVersionStatement.close();
+        }
+      }
     } finally {
-      configVersionStatement.close();
-      connection.close();
+      if (connection != null) {
+        connection.close();
+      }
     }
 
   }

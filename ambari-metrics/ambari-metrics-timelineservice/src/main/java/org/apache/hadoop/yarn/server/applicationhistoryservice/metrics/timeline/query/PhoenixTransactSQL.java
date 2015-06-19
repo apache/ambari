@@ -318,7 +318,9 @@ public class PhoenixTransactSQL {
     if (LOG.isDebugEnabled()) {
       LOG.debug("SQL: " + sb.toString() + ", condition: " + condition);
     }
-    PreparedStatement stmt = connection.prepareStatement(sb.toString());
+    PreparedStatement stmt = null;
+    try {
+    stmt = connection.prepareStatement(sb.toString());
     int pos = 1;
     if (condition.getMetricNames() != null) {
       for (; pos <= condition.getMetricNames().size(); pos++) {
@@ -363,6 +365,12 @@ public class PhoenixTransactSQL {
     if (condition.getFetchSize() != null) {
       stmt.setFetchSize(condition.getFetchSize());
     }
+    } catch (SQLException e) {
+      if (stmt != null) {
+        stmt.close();
+      }
+      throw e;
+    }
 
     return stmt;
   }
@@ -375,7 +383,7 @@ public class PhoenixTransactSQL {
 
   private static void validateRowCountLimit(Condition condition) {
     if (condition.getMetricNames() == null
-      || condition.getMetricNames().size() ==0 ) {
+      || condition.getMetricNames().isEmpty() ) {
       //aggregator can use empty metrics query
       return;
     }
@@ -399,14 +407,14 @@ public class PhoenixTransactSQL {
   }
 
   public static PreparedStatement prepareGetLatestMetricSqlStmt(
-    Connection connection, Condition condition) throws SQLException {
+          Connection connection, Condition condition) throws SQLException {
 
     validateConditionIsNotEmpty(condition);
 
     if (condition.getMetricNames() == null
-      || condition.getMetricNames().size() == 0) {
-      throw new IllegalArgumentException("Point in time query without " +
-        "metric names not supported ");
+            || condition.getMetricNames().isEmpty()) {
+      throw new IllegalArgumentException("Point in time query without "
+              + "metric names not supported ");
     }
 
     String stmtStr;
@@ -415,15 +423,15 @@ public class PhoenixTransactSQL {
     } else {
       //if not a single metric for a single host
       if (condition.getHostnames().size() > 1
-        && condition.getMetricNames().size() > 1) {
+              && condition.getMetricNames().size() > 1) {
         stmtStr = String.format(GET_LATEST_METRIC_SQL,
-          METRICS_RECORD_TABLE_NAME,
-          METRICS_RECORD_TABLE_NAME,
-          condition.getConditionClause());
+                METRICS_RECORD_TABLE_NAME,
+                METRICS_RECORD_TABLE_NAME,
+                condition.getConditionClause());
       } else {
         StringBuilder sb = new StringBuilder(String.format(GET_METRIC_SQL,
-          "",
-          METRICS_RECORD_TABLE_NAME));
+                "",
+                METRICS_RECORD_TABLE_NAME));
         sb.append(" WHERE ");
         sb.append(condition.getConditionClause());
         String orderByClause = condition.getOrderByClause(false);
@@ -439,47 +447,55 @@ public class PhoenixTransactSQL {
     if (LOG.isDebugEnabled()) {
       LOG.debug("SQL: " + stmtStr + ", condition: " + condition);
     }
-    PreparedStatement stmt = connection.prepareStatement(stmtStr);
-    int pos = 1;
-    if (condition.getMetricNames() != null) {
-      //IGNORE condition limit, set one based on number of metric names
-      for (; pos <= condition.getMetricNames().size(); pos++) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Setting pos: " + pos + ", value = " + condition.getMetricNames().get(pos - 1));
+    PreparedStatement stmt = null;
+    try {
+      stmt = connection.prepareStatement(stmtStr);
+      int pos = 1;
+      if (condition.getMetricNames() != null) {
+        //IGNORE condition limit, set one based on number of metric names
+        for (; pos <= condition.getMetricNames().size(); pos++) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Setting pos: " + pos + ", value = " + condition.getMetricNames().get(pos - 1));
+          }
+          stmt.setString(pos, condition.getMetricNames().get(pos - 1));
         }
-        stmt.setString(pos, condition.getMetricNames().get(pos - 1));
       }
-    }
-    if (condition.getHostnames() != null) {
-      for (String hostname: condition.getHostnames()) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Setting pos: " + pos + ", value: " + hostname);
+      if (condition.getHostnames() != null) {
+        for (String hostname : condition.getHostnames()) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Setting pos: " + pos + ", value: " + hostname);
+          }
+          stmt.setString(pos++, hostname);
         }
-        stmt.setString(pos++, hostname);
       }
-    }
-    if (condition.getAppId() != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting pos: " + pos + ", value: " + condition.getAppId());
+      if (condition.getAppId() != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Setting pos: " + pos + ", value: " + condition.getAppId());
+        }
+        stmt.setString(pos++, condition.getAppId());
       }
-      stmt.setString(pos++, condition.getAppId());
-    }
-    if (condition.getInstanceId() != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting pos: " + pos + ", value: " + condition.getInstanceId());
+      if (condition.getInstanceId() != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Setting pos: " + pos + ", value: " + condition.getInstanceId());
+        }
+        stmt.setString(pos, condition.getInstanceId());
       }
-      stmt.setString(pos, condition.getInstanceId());
-    }
 
-    if (condition.getFetchSize() != null) {
-      stmt.setFetchSize(condition.getFetchSize());
+      if (condition.getFetchSize() != null) {
+        stmt.setFetchSize(condition.getFetchSize());
+      }
+    } catch (SQLException e) {
+      if (stmt != null) {
+        stmt.close();
+      }
+      throw e;
     }
 
     return stmt;
   }
 
   public static PreparedStatement prepareGetAggregateSqlStmt(
-    Connection connection, Condition condition) throws SQLException {
+          Connection connection, Condition condition) throws SQLException {
 
     validateConditionIsNotEmpty(condition);
 
@@ -519,8 +535,8 @@ public class PhoenixTransactSQL {
     }
 
     queryStmt = String.format(queryStmt,
-      getNaiveTimeRangeHint(condition.getStartTime(), NATIVE_TIME_RANGE_DELTA),
-      metricsAggregateTable);
+            getNaiveTimeRangeHint(condition.getStartTime(), NATIVE_TIME_RANGE_DELTA),
+            metricsAggregateTable);
 
     StringBuilder sb = new StringBuilder(queryStmt);
     sb.append(" WHERE ");
@@ -534,25 +550,34 @@ public class PhoenixTransactSQL {
     if (LOG.isDebugEnabled()) {
       LOG.debug("SQL => " + query + ", condition => " + condition);
     }
-    PreparedStatement stmt = connection.prepareStatement(query);
-    int pos = 1;
-    if (condition.getMetricNames() != null) {
-      for (; pos <= condition.getMetricNames().size(); pos++) {
-        stmt.setString(pos, condition.getMetricNames().get(pos - 1));
+    PreparedStatement stmt = null;
+    try {
+      stmt = connection.prepareStatement(query);
+      int pos = 1;
+
+      if (condition.getMetricNames() != null) {
+        for (; pos <= condition.getMetricNames().size(); pos++) {
+          stmt.setString(pos, condition.getMetricNames().get(pos - 1));
+        }
       }
-    }
-    // TODO: Upper case all strings on POST
-    if (condition.getAppId() != null) {
-      stmt.setString(pos++, condition.getAppId());
-    }
-    if (condition.getInstanceId() != null) {
-      stmt.setString(pos++, condition.getInstanceId());
-    }
-    if (condition.getStartTime() != null) {
-      stmt.setLong(pos++, condition.getStartTime());
-    }
-    if (condition.getEndTime() != null) {
-      stmt.setLong(pos, condition.getEndTime());
+      // TODO: Upper case all strings on POST
+      if (condition.getAppId() != null) {
+        stmt.setString(pos++, condition.getAppId());
+      }
+      if (condition.getInstanceId() != null) {
+        stmt.setString(pos++, condition.getInstanceId());
+      }
+      if (condition.getStartTime() != null) {
+        stmt.setLong(pos++, condition.getStartTime());
+      }
+      if (condition.getEndTime() != null) {
+        stmt.setLong(pos, condition.getEndTime());
+      }
+    } catch (SQLException e) {
+      if (stmt != null) {
+        stmt.close();
+      }
+      throw e;
     }
 
     return stmt;
@@ -588,7 +613,9 @@ public class PhoenixTransactSQL {
       LOG.debug("SQL: " + query + ", condition: " + condition);
     }
 
-    PreparedStatement stmt = connection.prepareStatement(query);
+    PreparedStatement stmt = null;
+    try {
+    stmt = connection.prepareStatement(query);
     int pos = 1;
     if (condition.getMetricNames() != null) {
       for (; pos <= condition.getMetricNames().size(); pos++) {
@@ -603,6 +630,12 @@ public class PhoenixTransactSQL {
     }
     if (condition.getInstanceId() != null) {
       stmt.setString(pos, condition.getInstanceId());
+    }
+    } catch (SQLException e) {
+      if (stmt != null) {
+        
+      }
+      throw e;
     }
 
     return stmt;

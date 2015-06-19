@@ -64,18 +64,26 @@ public class ViewArchiveUtility {
    * @throws JAXBException if xml is malformed
    */
   public ViewConfig getViewConfigFromArchive(File archiveFile)
-      throws MalformedURLException, JAXBException {
+      throws MalformedURLException, JAXBException, IOException {
+    ViewConfig res = null;
+    InputStream configStream = null;
+    try {
     ClassLoader cl = URLClassLoader.newInstance(new URL[]{archiveFile.toURI().toURL()});
 
-    InputStream configStream = cl.getResourceAsStream(VIEW_XML);
+    configStream = cl.getResourceAsStream(VIEW_XML);
     if (configStream == null) {
       configStream = cl.getResourceAsStream(WEB_INF_VIEW_XML);
     }
 
     JAXBContext jaxbContext       = JAXBContext.newInstance(ViewConfig.class);
     Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-
-    return (ViewConfig) jaxbUnmarshaller.unmarshal(configStream);
+    res = (ViewConfig) jaxbUnmarshaller.unmarshal(configStream);
+    } finally {
+      if (configStream != null) {
+        configStream.close();
+      }
+    }
+    return res;
   }
 
   /**
@@ -92,7 +100,9 @@ public class ViewArchiveUtility {
    */
   public ViewConfig getViewConfigFromExtractedArchive(String archivePath, boolean validate)
       throws JAXBException, IOException, SAXException {
-
+    ViewConfig res = null;
+    InputStream  configStream = null;
+    try {
     File configFile = new File(archivePath + File.separator + VIEW_XML);
 
     if (!configFile.exists()) {
@@ -103,11 +113,17 @@ public class ViewArchiveUtility {
       validateConfig(new FileInputStream(configFile));
     }
 
-    InputStream  configStream     = new FileInputStream(configFile);
+    configStream     = new FileInputStream(configFile);
     JAXBContext  jaxbContext      = JAXBContext.newInstance(ViewConfig.class);
     Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+    res = (ViewConfig) jaxbUnmarshaller.unmarshal(configStream);
+    } finally {
+      if (configStream != null) {
+        configStream.close();
+      }
+    }
 
-    return (ViewConfig) jaxbUnmarshaller.unmarshal(configStream);
+    return res;
   }
 
   /**

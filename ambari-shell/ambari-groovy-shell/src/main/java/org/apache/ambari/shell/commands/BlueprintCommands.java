@@ -168,10 +168,19 @@ public class BlueprintCommands implements CommandMarker {
 
   private String readContent(File file) {
     String content = null;
+    FileInputStream fis = null;
     try {
-      content = IOUtils.toString(new FileInputStream(file));
+      fis = new FileInputStream(file);
+      content = IOUtils.toString(fis);
     } catch (IOException e) {
       // not important
+    } finally {
+      if (fis != null) {
+        try {
+          fis.close();
+        } catch (IOException ex) {
+        }
+      }
     }
     return content;
   }

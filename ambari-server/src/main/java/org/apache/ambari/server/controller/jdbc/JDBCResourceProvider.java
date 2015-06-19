@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 /**
  * Generic JDBC based resource provider.
@@ -162,85 +163,108 @@ public class JDBCResourceProvider extends BaseProvider implements ResourceProvid
                UnsupportedPropertyException,
                ResourceAlreadyExistsException,
                NoSuchParentResourceException {
-
+        Connection connection = null;
         try {
-            Connection connection = connectionFactory.getConnection();
-
+            connection = connectionFactory.getConnection();
+            Statement statement = null;
             try {
-
                 Set<Map<String, Object>> propertySet = request.getProperties();
-
+                statement = connection.createStatement(); 
                 for (Map<String, Object> properties : propertySet) {
                     String sql = getInsertSQL(properties);
-
-                    Statement statement = connection.createStatement();
-
                     statement.execute(sql);
-
-                    statement.close();
                 }
             } finally {
-                connection.close();
+              if (statement != null) {
+                statement.close();
+              }  
             }
 
         } catch (SQLException e) {
             throw new IllegalStateException("DB error : ", e);
+        } finally {
+          if (connection != null) {
+            try {
+              connection.close();
+            } catch (SQLException ex) {
+              throw new IllegalStateException("DB error : ", ex);
+            }
+          }
         }
 
         return getRequestStatus();
     }
 
     @Override
-    public RequestStatus updateResources(Request request, Predicate predicate)
-        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+  public RequestStatus updateResources(Request request, Predicate predicate)
+          throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    Connection connection = null;
+    try {
+      connection = connectionFactory.getConnection();
+      Statement statement = null;
+      try {
+        Set<Map<String, Object>> propertySet = request.getProperties();
 
-        try {
-            Connection connection = connectionFactory.getConnection();
-            try {
-                Set<Map<String, Object>> propertySet = request.getProperties();
+        Map<String, Object> properties = propertySet.iterator().next();
 
-                Map<String, Object> properties = propertySet.iterator().next();
+        String sql = getUpdateSQL(properties, predicate);
 
-                String sql = getUpdateSQL(properties, predicate);
+        statement = connection.createStatement();
 
-                Statement statement = connection.createStatement();
+        statement.execute(sql);
 
-                statement.execute(sql);
-
-                statement.close();
-            } finally {
-                connection.close();
-            }
-
-        } catch (SQLException e) {
-            throw new IllegalStateException("DB error : ", e);
+      } finally {
+        if (statement != null) {
+          statement.close();
         }
+      }
 
-        return getRequestStatus();
+    } catch (SQLException e) {
+      throw new IllegalStateException("DB error : ", e);
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException ex) {
+          throw new IllegalStateException("DB error : ", ex);
+        }
+      }
     }
 
-    @Override
-    public RequestStatus deleteResources(Predicate predicate)
-        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    return getRequestStatus();
+  }
 
-        try {
-            Connection connection = connectionFactory.getConnection();
-            try {
-                String sql = getDeleteSQL(predicate);
-
-                Statement statement = connection.createStatement();
-                statement.execute(sql);
-                statement.close();
-            } finally {
-                connection.close();
-            }
-
-        } catch (SQLException e) {
-            throw new IllegalStateException("DB error : ", e);
+  @Override
+  public RequestStatus deleteResources(Predicate predicate)
+          throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    Connection connection = null;
+    try {
+      connection = connectionFactory.getConnection();
+      Statement statement = null;
+      try {
+        String sql = getDeleteSQL(predicate);
+        statement = connection.createStatement();
+        statement.execute(sql);
+      } finally {
+        if (statement != null) {
+          statement.close();
         }
+      }
 
-        return getRequestStatus();
+    } catch (SQLException e) {
+      throw new IllegalStateException("DB error : ", e);
+    } finally {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException ex) {
+          throw new IllegalStateException("DB error : ", ex);
+        }
+      }
     }
+
+    return getRequestStatus();
+  }
 
 
     private String getInsertSQL(Map<String, Object> properties) {
@@ -409,28 +433,34 @@ public class JDBCResourceProvider extends BaseProvider implements ResourceProvid
      * @param table      the table
      * @throws SQLException thrown if the meta data for the given connection cannot be obtained
      */
-    private void getImportedKeys(Connection connection, String table) throws SQLException {
-        if (!this.importedKeys.containsKey(table)) {
+  private void getImportedKeys(Connection connection, String table) throws SQLException {
+    if (!this.importedKeys.containsKey(table)) {
 
-            Map<String, String> importedKeys = new HashMap<String, String>();
-            this.importedKeys.put(table, importedKeys);
+      Map<String, String> importedKeys = new HashMap<String, String>();
+      this.importedKeys.put(table, importedKeys);
 
-            DatabaseMetaData metaData = connection.getMetaData();
+      DatabaseMetaData metaData = connection.getMetaData();
+      ResultSet rs = null;
+      try {
+        rs = metaData.getImportedKeys(connection.getCatalog(), null, table);
 
-            ResultSet rs = metaData.getImportedKeys(connection.getCatalog(), null, table);
+        while (rs.next()) {
 
-            while (rs.next()) {
+          String pkPropertyId = PropertyHelper.getPropertyId(
+                  rs.getString("PKTABLE_NAME"), rs.getString("PKCOLUMN_NAME"));
 
-                String pkPropertyId = PropertyHelper.getPropertyId(
-                    rs.getString("PKTABLE_NAME"), rs.getString("PKCOLUMN_NAME"));
+          String fkPropertyId = PropertyHelper.getPropertyId(
+                  rs.getString("FKTABLE_NAME"), rs.getString("FKCOLUMN_NAME"));
 
-                String fkPropertyId = PropertyHelper.getPropertyId(
-                    rs.getString("FKTABLE_NAME"), rs.getString("FKCOLUMN_NAME"));
-
-                importedKeys.put(pkPropertyId, fkPropertyId);
-            }
+          importedKeys.put(pkPropertyId, fkPropertyId);
         }
+      } finally {
+        if (rs != null) {
+          rs.close();
+        }
+      }
     }
+  }
 
     /**
      * Get a request status
