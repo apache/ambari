@@ -55,6 +55,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     server_host = socket.getfqdn()
     server_port = '8080'
+    server_protocol = 'http'
     views_dir = '/var/lib/ambari-server/resources/views/'
 
     if serverProperties:
@@ -62,13 +63,18 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         server_port = serverProperties['client.api.port']
       if 'views.dir' in serverProperties:
         views_dir = serverProperties['views.dir']
+      if 'api.ssl' in serverProperties:
+        if serverProperties['api.ssl'].lower() == 'true':
+          server_protocol = 'https'
 
-      if os.path.exists(views_dir) and os.path.isdir(views_dir):
+      views_work_dir = os.path.join(views_dir, 'work')
+
+      if os.path.exists(views_work_dir) and os.path.isdir(views_work_dir):
         last_version = '0.0.0'
-        for file in os.listdir(views_dir):
-          if fnmatch.fnmatch(file, 'tez-view*.jar'):
-            current_version = file.lstrip("tez-view-")[:-4] # E.g.: tez-view-2.1.0.2043.jar
-            if self.versionCompare(current_version, last_version) >= 0:
+        for file in os.listdir(views_work_dir):
+          if fnmatch.fnmatch(file, 'TEZ{*}'):
+            current_version = file.lstrip("TEZ{").rstrip("}") # E.g.: TEZ{0.7.0.2.3.0.0-2154}
+            if self.versionCompare(current_version.replace("-", "."), last_version.replace("-", ".")) >= 0:
               latest_tez_jar_version = current_version
               last_version = current_version
             pass
@@ -77,7 +83,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     pass
 
     if latest_tez_jar_version:
-      tez_url = 'http://{0}:{1}/views/TEZ/{2}/TEZ_CLUSTER_INSTANCE'.format(server_host, server_port, latest_tez_jar_version)
+      tez_url = '{0}://{1}:{2}/#/main/views/TEZ/{3}/TEZ_CLUSTER_INSTANCE'.format(server_protocol, server_host, server_port, latest_tez_jar_version)
       putTezProperty("tez.tez-ui.history-url.base", tez_url)
     pass
 
