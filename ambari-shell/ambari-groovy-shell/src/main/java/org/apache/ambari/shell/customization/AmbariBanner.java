@@ -18,6 +18,9 @@
 package org.apache.ambari.shell.customization;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.shell.plugin.BannerProvider;
@@ -36,11 +39,22 @@ public class AmbariBanner implements BannerProvider {
 
   @Override
   public String getBanner() {
+    String res = null;
+    InputStream is = null;
     try {
-      return IOUtils.toString(getClass().getResourceAsStream("/banner.txt"));
+      is = getClass().getResourceAsStream("/banner.txt");
+      res = IOUtils.toString(is);
     } catch (IOException e) {
-      return "AmbariShell";
+      res = "AmbariShell";
+    } finally {
+      if (is != null) {
+        try {
+          is.close();
+        } catch (IOException ex) {
+        }
+      }
     }
+    return res;
   }
 
   @Override

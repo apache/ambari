@@ -51,8 +51,8 @@ public class InstallProgress extends AbstractFlash {
         int intValue = decimal.intValue();
         if (intValue != SUCCESS && intValue != FAILED) {
           sb.append("Installation: ").append(decimal).append("% ");
-          int rounded = round(progress.setScale(0, BigDecimal.ROUND_UP).intValue() / 10);
-          for (int i = 0; i < 10; i++) {
+          long rounded = round(progress.setScale(0, BigDecimal.ROUND_UP).floatValue() / 10);
+          for (long i = 0; i < 10; i++) {
             if (i < rounded) {
               sb.append("=");
             } else {
@@ -71,7 +71,7 @@ public class InstallProgress extends AbstractFlash {
       }
     } else {
       if (exit) {
-        System.exit(0);
+        done = true;
       }
     }
     return sb.toString();

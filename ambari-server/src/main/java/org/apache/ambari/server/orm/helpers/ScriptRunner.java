@@ -128,9 +128,11 @@ public class ScriptRunner {
   private void runScript(Connection conn, Reader reader) throws IOException,
     SQLException {
     StringBuffer command = null;
+    Statement statement = null;
     try {
       LineNumberReader lineReader = new LineNumberReader(reader);
       String line = null;
+      statement = conn.createStatement();
       while ((line = lineReader.readLine()) != null) {
         if (command == null) {
           command = new StringBuffer();
@@ -151,7 +153,6 @@ public class ScriptRunner {
           command.append(line.substring(0, line
             .lastIndexOf(getDelimiter())));
           command.append(" ");
-          Statement statement = conn.createStatement();
 
           println(command);
 
@@ -162,7 +163,6 @@ public class ScriptRunner {
             try {
               statement.execute(command.toString());
             } catch (SQLException e) {
-              e.fillInStackTrace();
               printlnError("Error executing: " + command);
               printlnError(e);
             }
@@ -191,11 +191,6 @@ public class ScriptRunner {
           }
 
           command = null;
-          try {
-            statement.close();
-          } catch (Exception e) {
-            // Ignore to workaround a bug in Jakarta DBCP
-          }
           Thread.yield();
         } else {
           command.append(line);
@@ -206,18 +201,19 @@ public class ScriptRunner {
         conn.commit();
       }
     } catch (SQLException e) {
-      e.fillInStackTrace();
       printlnError("Error executing: " + command);
       printlnError(e);
       throw e;
     } catch (IOException e) {
-      e.fillInStackTrace();
       printlnError("Error executing: " + command);
       printlnError(e);
       throw e;
     } finally {
       if (!autoCommit) {
         conn.rollback();
+      }
+      if (statement != null) {
+        statement.close();
       }
       flush();
     }

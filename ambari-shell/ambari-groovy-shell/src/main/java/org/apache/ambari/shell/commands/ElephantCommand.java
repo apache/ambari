@@ -18,6 +18,7 @@
 package org.apache.ambari.shell.commands;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.shell.core.CommandMarker;
@@ -48,6 +49,16 @@ public class ElephantCommand implements CommandMarker {
    */
   @CliCommand(value = "hello", help = "Prints a simple elephant to the console")
   public String elephant() throws IOException {
-    return IOUtils.toString(getClass().getResourceAsStream("/elephant.txt"));
+    String res = null;
+    InputStream is = null;
+    try{
+    is = getClass().getResourceAsStream("/elephant.txt");
+    res = IOUtils.toString(is);
+    } finally {
+      if (is != null) {
+        is.close();
+      }
+    }
+    return res;
   }
 }
