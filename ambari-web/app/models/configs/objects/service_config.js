@@ -62,12 +62,38 @@ App.ServiceConfig = Ember.Object.extend({
     return masterErrors + slaveErrors + overrideErrors + enhancedConfigsErrors;
   }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configCategories.@each.slaveErrorCount', 'configs.@each.overrideErrorTrigger'),
 
+  /**
+   * checks if for example for kdc_type, the value isn't just the pretty version of the saved value, for example mit-kdc
+   * and Existing MIT KDC are the same value, but they are interpreted as being changed. This function fixes that
+   * @param configs
+   * @returns {boolean} - checks
+   */
+  checkDefaultValues: function (configs) {
+    var kdcType = configs.findProperty('name', 'kdc_type');
+
+    if (!kdcType) {
+      return true;
+    }
+
+    // if there is only one value changed and that value is for kdc_type, check if the value has really changed or just
+    // the string shown to the user is different
+    if (configs.filterProperty('isNotDefaultValue').length === 1) {
+      if (configs.findProperty('isNotDefaultValue', true) === kdcType) {
+        return App.router.get('mainAdminKerberosController.kdcTypesValues')[kdcType.get('savedValue')] !== kdcType.get('value');
+      }
+    }
+
+    return true;
+  },
+
   isPropertiesChanged: function() {
     var requiredByAgent = this.get('configs').filterProperty('isRequiredByAgent');
-    return requiredByAgent.someProperty('isNotSaved') ||
-           requiredByAgent.someProperty('isNotDefaultValue') ||
-           requiredByAgent.someProperty('isOverrideChanged') ||
-           this.get('configs.length') !== this.get('initConfigsLength');
+    var isNotSaved = requiredByAgent.someProperty('isNotSaved');
+    var isNotDefaultValue = this.checkDefaultValues(requiredByAgent);
+    var isOverrideChanged = requiredByAgent.someProperty('isOverrideChanged');
+    var differentConfigLengths = this.get('configs.length') !== this.get('initConfigsLength');
+
+    return  isNotSaved || isNotDefaultValue || isOverrideChanged || differentConfigLengths;
   }.property('configs.@each.isNotDefaultValue', 'configs.@each.isOverrideChanged', 'configs.length', 'configs.@each.isNotSaved', 'initConfigsLength'),
 
   init: function() {

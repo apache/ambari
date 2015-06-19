@@ -402,6 +402,26 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   },
 
   /**
+   * revert certain config values to their innital value
+   * i.e. don't save the KDC Type as "Existing MIT KDC", instead save it as mit-kdc
+   */
+  configValueRevert: function () {
+    var stepConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName'));
+    if (!stepConfigs) { return; }
+
+    var configs = stepConfigs.configs;
+    if (configs) {
+      var kdc_type = configs.findProperty('name', 'kdc_type');
+
+      if (!kdc_type) { return; };
+      if (App.router.get('mainAdminKerberosController.kdcTypesValues')[kdc_type.get('value')]) { return; }
+
+      kdc_type.set('value', kdc_type.get('savedValue'));
+    }
+
+  }.observes('saveInProgress'),
+
+  /**
    * adds properties form stack that doesn't belong to cluster
    * to step configs
    * also set recommended value if isn't exists

@@ -958,7 +958,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    */
 
   /**
-   * filter out unchanged configurations
+   * filter out unchanged configurationsisPropertiesChanged
    * @param {Array} configsToSave
    * @private
    * @method filterChangedConfiguration
