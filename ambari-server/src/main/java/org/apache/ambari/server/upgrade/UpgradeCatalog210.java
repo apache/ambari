@@ -1129,6 +1129,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   protected void addMissingConfigs() throws AmbariException {
     updateHiveConfigs();
     updateHdfsConfigs();
+    updateStormConfigs();
   }
 
   protected void updateHdfsConfigs() throws AmbariException {
@@ -1206,6 +1207,31 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
               hiveProps.put("hive.metastore.heapsize", "1024m");
             }
             updateConfigurationPropertiesForCluster(cluster, "hive-env", hiveProps, false, true);
+          }
+        }
+      }
+    }
+  }
+
+  protected  void updateStormConfigs() throws  AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(
+            AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          //if cluster is secured we should set additional properties
+          if(cluster.getDesiredConfigByType("cluster-env") != null
+                  && cluster.getDesiredConfigByType("cluster-env").getProperties().get("security_enabled").equals("true")
+                  && cluster.getDesiredConfigByType("storm-site") != null ) {
+            Map<String, String> newStormProps = new HashMap<String, String>();
+            if (!cluster.getDesiredConfigByType("storm-site").getProperties().containsKey("java.security.auth.login.config")) {
+              newStormProps.put("java.security.auth.login.config", "{{conf_dir}}/storm_jaas.conf");
+            }
+            updateConfigurationPropertiesForCluster(cluster, "storm-site", newStormProps, false, true);
           }
         }
       }

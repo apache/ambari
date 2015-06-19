@@ -252,6 +252,48 @@ public class UpgradeCatalog210Test {
   }
 
   @Test
+  public void testUpdateStormConfiguration() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Config mockClusterEnv = easyMockSupport.createNiceMock(Config.class);
+    final Config mockStormSite = easyMockSupport.createNiceMock(Config.class);
+
+    final Map<String, String> propertiesExpectedClusterEnv = new HashMap<String, String>();
+    propertiesExpectedClusterEnv.put("security_enabled", "true");
+    final Map<String, String> propertiesExpectedStormSite = new HashMap<String, String>();
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    expect(mockClusterExpected.getDesiredConfigByType("cluster-env")).andReturn(mockClusterEnv).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("storm-site")).andReturn(mockStormSite).atLeastOnce();
+    expect(mockClusterEnv.getProperties()).andReturn(propertiesExpectedClusterEnv).anyTimes();
+    expect(mockStormSite.getProperties()).andReturn(propertiesExpectedStormSite).anyTimes();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog210.class).updateStormConfigs();
+    easyMockSupport.verifyAll();
+  }
+
+  @Test
   public void testDeleteStormRestApiServiceComponent() throws Exception {
     ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(injector,
       "c1", desiredStackEntity);
@@ -312,7 +354,7 @@ public class UpgradeCatalog210Test {
 
 
   @Test
-  public void testUpdateClusterEnvConfiguration() throws Exception {
+  public void testUpdateHDFSConfiguration() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
