@@ -176,7 +176,7 @@ class Script(object):
      print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
      sys.exit(1)
 
-    command_name = str.lower(sys.argv[1])
+    self.command_name = str.lower(sys.argv[1])
     self.command_data_file = sys.argv[2]
     self.basedir = sys.argv[3]
     self.stroutfile = sys.argv[4]
@@ -210,12 +210,12 @@ class Script(object):
 
     # Run class method depending on a command type
     try:
-      method = self.choose_method_to_execute(command_name)
+      method = self.choose_method_to_execute(self.command_name)
       with Environment(self.basedir, tmp_dir=Script.tmp_dir) as env:
         env.config.download_path = Script.tmp_dir
         method(env)
     finally:
-      if self.should_expose_component_version(command_name):
+      if self.should_expose_component_version(self.command_name):
         self.save_component_version_to_structured_out()
 
   def choose_method_to_execute(self, command_name):
@@ -373,7 +373,6 @@ class Script(object):
                           hadoop_user, self.get_password(hadoop_user),
                           str(config['hostLevelParams']['stack_version']))
       reload_windows_env()
-    self.set_version()
 
   @staticmethod
   def fail_with_error(message):
@@ -389,13 +388,13 @@ class Script(object):
     """
     To be overridden by subclasses
     """
-    self.fail_with_error('start method isn\'t implemented')
+    self.fail_with_error("start method isn't implemented")
 
   def stop(self, env, rolling_restart=False):
     """
     To be overridden by subclasses
     """
-    self.fail_with_error('stop method isn\'t implemented')
+    self.fail_with_error("stop method isn't implemented")
 
   def pre_rolling_restart(self, env):
     """
@@ -542,18 +541,3 @@ class Script(object):
       archive_dir(output_filename, conf_tmp_dir)
     finally:
       Directory(conf_tmp_dir, action="delete")
-
-  def set_version(self):
-    from resource_management.libraries.functions.default import default
-    stack_name = default("/hostLevelParams/stack_name", None)
-    version = default("/commandParams/version", None)
-    stack_version_unformatted = str(default("/hostLevelParams/stack_version", ""))
-    hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-    stack_to_component = self.get_stack_to_component()
-    if stack_to_component:
-      component_name = stack_to_component[stack_name] if stack_name in stack_to_component else None
-      if component_name and stack_name and version and \
-              compare_versions(format_hdp_stack_version(hdp_stack_version), '2.2.0.0') >= 0:
-        Execute(('/usr/bin/hdp-select', 'set', component_name, version),
-                sudo = True)
-
