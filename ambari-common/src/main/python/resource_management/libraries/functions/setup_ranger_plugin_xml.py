@@ -151,13 +151,13 @@ def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, hdp_version,
   cred_setup_prefix = format('python /usr/hdp/{hdp_version}/ranger-{service_name}-plugin/ranger_credential_helper.py -l "{cred_lib_path}"')
 
   if audit_db_is_enabled:
-    cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "auditDBCred" -v "{xa_audit_db_password!p}" -c 1')
+    cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "auditDBCred" -v {xa_audit_db_password!p} -c 1')
     Execute(cred_setup, environment={'JAVA_HOME': java_home}, logoutput=True)
 
-  cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "sslKeyStore" -v "{ssl_keystore_password!p}" -c 1')
+  cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "sslKeyStore" -v {ssl_keystore_password!p} -c 1')
   Execute(cred_setup, environment={'JAVA_HOME': java_home}, logoutput=True)
 
-  cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "sslTrustStore" -v "{ssl_truststore_password!p}" -c 1')
+  cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "sslTrustStore" -v {ssl_truststore_password!p} -c 1')
   Execute(cred_setup, environment={'JAVA_HOME': java_home}, logoutput=True)
 
   File(credential_file,
