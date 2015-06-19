@@ -953,7 +953,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       try {
         if (!clusters.getClustersForHost(request.getHostname()).contains(cluster)) {
           // case where host exists but not associated with given cluster
-          LOG.error("Host doesn't belong to cluster");
+          LOG.error("Host doesn't belong to cluster - " + request.getHostname());
           throw new ParentObjectNotFoundException("Parent Host resource doesn't exist",
               new HostNotFoundException(request.getClusterName(), request.getHostname()));
         }

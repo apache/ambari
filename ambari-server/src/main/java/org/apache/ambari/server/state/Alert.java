@@ -238,6 +238,7 @@ public class Alert {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append('{');
+    sb.append("cluster=").append(cluster).append(", ");
     sb.append("state=").append(state).append(", ");
     sb.append("name=").append(name).append(", ");
     sb.append("service=").append(service).append(", ");

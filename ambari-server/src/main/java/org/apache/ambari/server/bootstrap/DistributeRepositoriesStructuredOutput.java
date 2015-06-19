@@ -48,7 +48,7 @@ public class DistributeRepositoriesStructuredOutput {
   private String packageInstallationResult;
 
   /**
-   * The actual version returned
+   * The actual version returned, even when a failure during install occurs.
    */
   @SerializedName("actual_version")
   private String actualVersion;
