@@ -487,6 +487,7 @@ Em.I18n.translations = {
   'installer.step0.clusterName.tooltip.title':'Cluster Name',
   'installer.step0.clusterName.tooltip.content':'Enter a unique cluster name.',
   'installer.step0.clusterName.error.required':'Cluster Name is required',
+  'installer.step0.clusterName.error.tooLong':'Cluster Name is too long',
   'installer.step0.clusterName.error.whitespace':'Cluster Name cannot contain whitespace',
   'installer.step0.clusterName.error.specialChar':'Cluster Name cannot contain special characters',
 

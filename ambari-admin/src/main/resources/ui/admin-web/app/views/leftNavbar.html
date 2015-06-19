@@ -22,12 +22,20 @@
       <div class="cluster-section" ng-show="cluster">
         <div id="cluster-name"  ng-switch on="editCluster.editingName">
           <h5 ng-switch-when="false">{{cluster.Clusters.cluster_name}}
-            <i ng-show="cluster.Clusters.provisioning_state == 'INSTALLED'" ng-click="toggleEditName()" class="glyphicon glyphicon-edit pull-right edit-cluster-name" tooltip="Rename Cluster"></i>
+            <i ng-show="cluster.Clusters.provisioning_state == 'INSTALLED'" 
+               ng-click="toggleEditName()" 
+               class="glyphicon glyphicon-edit pull-right edit-cluster-name" tooltip="Rename Cluster">
+            </i>
           </h5>
 
-          <form ng-keyup="toggleEditName($event)" tabindex="1" name="editClusterNameForm" class="editClusterNameForm" ng-switch-when="true"
+          <form ng-keyup="toggleEditName($event)" 
+                tabindex="1" 
+                name="editClusterNameForm" 
+                class="editClusterNameForm" 
+                ng-switch-when="true"
                 ng-submit="editCluster.name !== cluster.Clusters.cluster_name && editClusterNameForm.newClusterName.$valid && confirmClusterNameChange()">
-            <div class="form-group" ng-class="{'has-error': editClusterNameForm.newClusterName.$invalid && !editClusterNameForm.newClusterName.$pristine }">
+            <div class="form-group" 
+                 ng-class="{'has-error': editClusterNameForm.newClusterName.$invalid && !editClusterNameForm.newClusterName.$pristine }">
               <input
                   autofocus
                   type="text"
@@ -37,7 +45,8 @@
                   ng-trim="false"
                   ng-model="editCluster.name"
                   class="form-control input-sm"
-                  tooltip="Only alpha-numeric characters."
+                  ng-maxlength="80"
+                  tooltip="Only alpha-numeric characters, up to 80 characters"
                   tooltip-trigger="focus">
               <button ng-click="toggleEditName()"
                       class="btn btn-xs">
