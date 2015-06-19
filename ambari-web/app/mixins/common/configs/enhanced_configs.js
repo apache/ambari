@@ -737,6 +737,27 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         }
       }
     }
+  },
+
+  /**
+   * Helper method to get property from the <code>stepConfigs</code>
+   *
+   * @param {String} name - config property name
+   * @param {} fileName - config property filename
+   * @return {App.ServiceConfigProperty|Boolean} - App.ServiceConfigProperty instance or <code>false</code> when property not found
+   */
+  findConfigProperty: function(name, fileName) {
+    if (!name && !fileName) return false;
+    if (this.get('stepConfigs') && this.get('stepConfigs.length')) {
+      return this.get('stepConfigs').mapProperty('configs').filter(function(item) {
+        return item.length;
+      }).reduce(function(p, c) {
+        if (p) {
+          return p.concat(c);
+        }
+      }).filterProperty('filename', fileName).findProperty('name', name);
+    }
+    return false;
   }
 
 });
