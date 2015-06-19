@@ -46,9 +46,6 @@
             <package>
               <name>hadoop_2_3_*-libhdfs</name>
             </package>
-            <package>
-              <name>ambari-log4j</name>
-            </package>
           </packages>
         </osSpecific>
 
