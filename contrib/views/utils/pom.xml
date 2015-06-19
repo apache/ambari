@@ -116,11 +116,16 @@
       <artifactId>gson</artifactId>
       <version>2.2.2</version>
     </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.4</version>
+    </dependency>
   </dependencies>
 
   <properties>
     <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
-    <hadoop-version>2.6.0</hadoop-version>
+    <hadoop-version>2.7.0</hadoop-version>
   </properties>
   <build>
   </build>

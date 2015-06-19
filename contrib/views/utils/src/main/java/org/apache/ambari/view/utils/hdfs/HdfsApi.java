@@ -35,6 +35,8 @@ import org.apache.hadoop.hdfs.web.WebHdfsFileSystem;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.json.simple.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.security.auth.Subject;
 
@@ -42,7 +44,10 @@ import javax.security.auth.Subject;
  * Hdfs Business Delegate
  */
 public class HdfsApi {
-private final Configuration conf;
+  private final static Logger LOG =
+      LoggerFactory.getLogger(HdfsApi.class);
+
+  private final Configuration conf;
   private final Map<String, String> authParams;
 
   private FileSystem fs;
@@ -60,7 +65,7 @@ private final Configuration conf;
     conf = configurationBuilder.buildConfig();
     ugi = UserGroupInformation.createProxyUser(username, getProxyUser());
 
-    fs = ugi.doAs(new PrivilegedExceptionAction<FileSystem>() {
+    fs = execute(new PrivilegedExceptionAction<FileSystem>() {
       public FileSystem run() throws IOException {
         return FileSystem.get(conf);
       }
@@ -100,7 +105,7 @@ private final Configuration conf;
    */
   public FileStatus[] listdir(final String path) throws FileNotFoundException,
       IOException, InterruptedException {
-    return ugi.doAs(new PrivilegedExceptionAction<FileStatus[]>() {
+    return execute(new PrivilegedExceptionAction<FileStatus[]>() {
       public FileStatus[] run() throws FileNotFoundException, Exception {
         return fs.listStatus(new Path(path));
       }
@@ -117,7 +122,7 @@ private final Configuration conf;
    */
   public FileStatus getFileStatus(final String path) throws IOException,
       FileNotFoundException, InterruptedException {
-    return ugi.doAs(new PrivilegedExceptionAction<FileStatus>() {
+    return execute(new PrivilegedExceptionAction<FileStatus>() {
       public FileStatus run() throws FileNotFoundException, IOException {
         return fs.getFileStatus(new Path(path));
       }
@@ -133,7 +138,7 @@ private final Configuration conf;
    */
   public boolean mkdir(final String path) throws IOException,
       InterruptedException {
-    return ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
+    return execute(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
         return fs.mkdirs(new Path(path));
       }
@@ -150,7 +155,7 @@ private final Configuration conf;
    */
   public boolean rename(final String src, final String dst) throws IOException,
       InterruptedException {
-    return ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
+    return execute(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
         return fs.rename(new Path(src), new Path(dst));
       }
@@ -163,7 +168,7 @@ private final Configuration conf;
    * @throws Exception
    */
   public boolean trashEnabled() throws Exception {
-    return ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
+    return execute(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws IOException {
         Trash tr = new Trash(fs, conf);
         return tr.isEnabled();
@@ -177,7 +182,7 @@ private final Configuration conf;
    * @throws Exception
    */
   public Path getHomeDir() throws Exception {
-    return ugi.doAs(new PrivilegedExceptionAction<Path>() {
+    return execute(new PrivilegedExceptionAction<Path>() {
       public Path run() throws IOException {
         return fs.getHomeDirectory();
       }
@@ -190,7 +195,7 @@ private final Configuration conf;
    * @throws Exception
    */
   public synchronized FsStatus getStatus() throws Exception {
-    return ugi.doAs(new PrivilegedExceptionAction<FsStatus>() {
+    return execute(new PrivilegedExceptionAction<FsStatus>() {
       public FsStatus run() throws IOException {
         return fs.getStatus();
       }
@@ -203,7 +208,7 @@ private final Configuration conf;
    * @throws Exception
    */
   public Path getTrashDir() throws Exception {
-    return ugi.doAs(new PrivilegedExceptionAction<Path>() {
+    return execute(new PrivilegedExceptionAction<Path>() {
       public Path run() throws IOException {
         TrashPolicy trashPolicy = TrashPolicy.getInstance(conf, fs,
             fs.getHomeDirectory());
@@ -246,7 +251,7 @@ private final Configuration conf;
    * @throws Exception
    */
   public Void emptyTrash() throws Exception {
-    return ugi.doAs(new PrivilegedExceptionAction<Void>() {
+    return execute(new PrivilegedExceptionAction<Void>() {
       public Void run() throws IOException {
         Trash tr = new Trash(fs, conf);
         tr.expunge();
@@ -264,7 +269,7 @@ private final Configuration conf;
    */
   public boolean moveToTrash(final String path) throws IOException,
       InterruptedException {
-    return ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
+    return execute(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
         return Trash.moveToAppropriateTrash(fs, new Path(path), conf);
       }
@@ -281,7 +286,7 @@ private final Configuration conf;
    */
   public boolean delete(final String path, final boolean recursive)
       throws IOException, InterruptedException {
-    return ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
+    return execute(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
         return fs.delete(new Path(path), recursive);
       }
@@ -298,7 +303,7 @@ private final Configuration conf;
    */
   public FSDataOutputStream create(final String path, final boolean overwrite)
       throws IOException, InterruptedException {
-    return ugi.doAs(new PrivilegedExceptionAction<FSDataOutputStream>() {
+    return execute(new PrivilegedExceptionAction<FSDataOutputStream>() {
       public FSDataOutputStream run() throws Exception {
         return fs.create(new Path(path), overwrite);
       }
@@ -314,7 +319,7 @@ private final Configuration conf;
    */
   public FSDataInputStream open(final String path) throws IOException,
       InterruptedException {
-    return ugi.doAs(new PrivilegedExceptionAction<FSDataInputStream>() {
+    return execute(new PrivilegedExceptionAction<FSDataInputStream>() {
       public FSDataInputStream run() throws Exception {
         return fs.open(new Path(path));
       }
@@ -330,7 +335,7 @@ private final Configuration conf;
    */
   public boolean chmod(final String path, final String permissions) throws IOException,
       InterruptedException {
-    return ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
+    return execute(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
         try {
           fs.setPermission(new Path(path), FsPermission.valueOf(permissions));
@@ -349,8 +354,8 @@ private final Configuration conf;
    * @throws java.io.IOException
    * @throws InterruptedException
    */
-  public synchronized void copy(final String src, final String dest) throws IOException, InterruptedException, HdfsApiException {
-    boolean result = ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
+  public void copy(final String src, final String dest) throws IOException, InterruptedException, HdfsApiException {
+    boolean result = execute(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
         return FileUtil.copy(fs, new Path(src), fs, new Path(dest), false, conf);
       }
@@ -361,12 +366,49 @@ private final Configuration conf;
     }
   }
 
-  public synchronized boolean exists(final String newFilePath) throws IOException, InterruptedException {
-    return ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
+  public boolean exists(final String newFilePath) throws IOException, InterruptedException {
+    return execute(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
         return fs.exists(new Path(newFilePath));
       }
     });
+  }
+
+  /**
+   * Executes action on HDFS using doAs
+   * @param action strategy object
+   * @param <T> result type
+   * @return result of operation
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  public <T> T execute(PrivilegedExceptionAction<T> action)
+      throws IOException, InterruptedException {
+    T result = null;
+
+    // Retry strategy applied here due to HDFS-1058. HDFS can throw random
+    // IOException about retrieving block from DN if concurrent read/write
+    // on specific file is performed (see details on HDFS-1058).
+    int tryNumber = 0;
+    boolean succeeded = false;
+    do {
+      tryNumber += 1;
+      try {
+        result = ugi.doAs(action);
+        succeeded = true;
+      } catch (IOException ex) {
+        if (!ex.getMessage().contains("Cannot obtain block length for")) {
+          throw ex;
+        }
+        if (tryNumber >= 3) {
+          throw ex;
+        }
+        LOG.info("HDFS threw 'IOException: Cannot obtain block length' exception. " +
+            "Retrying... Try #" + (tryNumber + 1));
+        Thread.sleep(1000);  //retry after 1 second
+      }
+    } while (!succeeded);
+    return result;
   }
 
   /**

@@ -109,7 +109,7 @@ export default Ember.Controller.extend({
     return true;
   }.property('model.isRunning', 'queryParams.@each.value'),
 
-  parseQueryParams: function () {
+  currentQueryObserver: function () {
     var query = this.get('openQueries.currentQuery.fileContent'),
         param,
         updatedParams = [],
@@ -129,6 +129,8 @@ export default Ember.Controller.extend({
     });
 
     currentParams.setObjects(updatedParams);
+
+    this.set('visualExplain.shouldChangeGraph', true);
   }.observes('openQueries.currentQuery.fileContent'),
 
   _executeQuery: function (referrer, shouldExplain, shouldGetVisualExplain) {
