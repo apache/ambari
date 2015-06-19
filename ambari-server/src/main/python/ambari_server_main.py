@@ -95,6 +95,8 @@ SERVER_START_TIMEOUT = 10
 SERVER_PING_TIMEOUT_WINDOWS = 5
 SERVER_PING_ATTEMPTS_WINDOWS = 4
 
+SERVER_CLASSPATH_KEY = "SERVER_CLASSPATH"
+
 SERVER_SEARCH_PATTERN = "org.apache.ambari.server.controller.AmbariServer"
 
 EXITCODE_NAME = "ambari-server.exitcode"
@@ -319,6 +321,8 @@ def server_process_main(options, scmStatus=None):
 
   class_path = get_conf_dir()
   class_path = os.path.abspath(class_path) + os.pathsep + get_ambari_classpath()
+  if SERVER_CLASSPATH_KEY in os.environ:
+      class_path =  os.environ[SERVER_CLASSPATH_KEY] + os.pathsep + class_path
 
   debug_mode = get_debug_mode()
   debug_start = (debug_mode & 1) or SERVER_START_DEBUG
