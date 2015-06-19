@@ -54,9 +54,9 @@ public class URLStreamProvider implements StreamProvider {
 
   private final int connTimeout;
   private final int readTimeout;
-  private final String path;
-  private final String password;
-  private final String type;
+  private final String trustStorePath;
+  private final String trustStorePassword;
+  private final String trustStoreType;
   private volatile SSLSocketFactory sslSocketFactory = null;
   private AppCookieManager appCookieManager = null;
 
@@ -83,19 +83,20 @@ public class URLStreamProvider implements StreamProvider {
   /**
    * Provide the connection timeout for the underlying connection.
    *
-   * @param connectionTimeout
-   *          time, in milliseconds, to attempt a connection
-   * @param readTimeout
-   *          the read timeout in milliseconds
+   * @param connectionTimeout   time, in milliseconds, to attempt a connection
+   * @param readTimeout         the read timeout in milliseconds
+   * @param trustStorePath      the path to the truststore required for secure connections
+   * @param trustStorePassword  the truststore password
+   * @param trustStoreType      the truststore type (e.g. "JKS")
    */
-  public URLStreamProvider(int connectionTimeout, int readTimeout, String path,
-                           String password, String type) {
+  public URLStreamProvider(int connectionTimeout, int readTimeout, String trustStorePath,
+                           String trustStorePassword, String trustStoreType) {
 
-    this.connTimeout = connectionTimeout;
-    this.readTimeout = readTimeout;
-    this.path        = path;      // truststroe path
-    this.password    = password;  // truststore password
-    this.type        = type;      // truststroe type
+    this.connTimeout        = connectionTimeout;
+    this.readTimeout        = readTimeout;
+    this.trustStorePath     = trustStorePath;
+    this.trustStorePassword = trustStorePassword;
+    this.trustStoreType     = trustStoreType;
   }
 
 
@@ -271,17 +272,26 @@ public class URLStreamProvider implements StreamProvider {
   }
 
   // Get an ssl connection
-  protected HttpsURLConnection getSSLConnection(String spec) throws IOException {
+  protected HttpsURLConnection getSSLConnection(String spec) throws IOException, IllegalStateException {
 
     if (sslSocketFactory == null) {
       synchronized (this) {
         if (sslSocketFactory == null) {
-          try {
-            FileInputStream in = new FileInputStream(new File(path));
-            KeyStore store = KeyStore.getInstance(type == null ? KeyStore
-                .getDefaultType() : type);
 
-            store.load(in, password.toCharArray());
+          if (trustStorePath == null || trustStorePassword == null) {
+            String msg =
+                String.format("Can't get secure connection to %s.  Truststore path or password is not set.", spec);
+
+            LOG.error(msg);
+            throw new IllegalStateException(msg);
+          }
+
+          try {
+            FileInputStream in = new FileInputStream(new File(trustStorePath));
+            KeyStore store = KeyStore.getInstance(trustStoreType == null ?
+                KeyStore.getDefaultType() : trustStoreType);
+
+            store.load(in, trustStorePassword.toCharArray());
             in.close();
 
             TrustManagerFactory tmf = TrustManagerFactory

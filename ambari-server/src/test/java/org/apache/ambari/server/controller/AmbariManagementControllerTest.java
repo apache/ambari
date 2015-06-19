@@ -8366,10 +8366,9 @@ public class AmbariManagementControllerTest {
     // test bad url
     try {
       controller.updateRepositories(requests);
-    } catch (Exception e) {
-      System.err.println(e.getMessage());
-      assertTrue(e.getMessage().contains(IOException.class.getName())
-        || e.getMessage().contains("Could not access base url"));
+      fail("Expected IllegalStateException");
+    } catch (IllegalStateException e) {
+      //expected
     }
 
     requests.clear();
