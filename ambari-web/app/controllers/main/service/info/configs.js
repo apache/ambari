@@ -822,6 +822,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method onLoadOverrides
    */
   onLoadOverrides: function (allConfigs) {
+    var self = this;
     this.get('servicesToLoad').forEach(function(serviceName) {
       var serviceConfig = App.config.createServiceConfig(serviceName);
       if (serviceName == this.get('content.serviceName')) {
@@ -856,7 +857,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     }
     this._onLoadComplete();
     if (App.isAccessible('MANAGER')) {
-      this.getRecommendationsForDependencies(null, true, Em.K);
+      this.getRecommendationsForDependencies(null, true, function(){
+        self.set('hash', self.getHash());
+      });
+    } else {
+      this.set('hash', this.getHash());
     }
   },
 
@@ -864,14 +869,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method _getRecommendationsForDependenciesCallback
    */
   _onLoadComplete: function () {
-    var self = this;
+    this.get('stepConfigs').forEach(function(serviceConfig){
+      serviceConfig.set('initConfigsLength', serviceConfig.get('configs.length'));
+    });
     this.setProperties({
       dataIsLoaded: true,
       versionLoaded: true,
       isInit: false
-    });
-    Em.run.next(function(){
-      self.set('hash', self.getHash());
     });
   },
 
@@ -942,9 +946,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       componentConfig.get('configs').pushObject(serviceConfigProperty);
       serviceConfigProperty.validate();
     }, this);
-    Em.run.next(function () {
-      componentConfig.set('initConfigsLength', componentConfig.get('configs.length'));
-    });
   },
 
   /**
