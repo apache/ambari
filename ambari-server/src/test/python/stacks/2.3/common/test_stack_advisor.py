@@ -17,6 +17,7 @@ limitations under the License.
 '''
 
 import os
+import socket
 from unittest import TestCase
 from mock.mock import patch, MagicMock
 
@@ -489,7 +490,15 @@ class TestHDP23StackAdvisor(TestCase):
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
-  def test_recommendTezConfigurations(self):
+  @patch('os.path.exists')
+  @patch('os.path.isdir')
+  @patch('os.listdir')
+  def test_recommendTezConfigurations(self, os_listdir_mock, os_isdir_mock, os_exists_mock):
+
+    os_exists_mock.return_value = True
+    os_isdir_mock.return_value = True
+    os_listdir_mock.return_value = ['TEZ{0.7.0.2.3.0.0-2155}']
+
     self.maxDiff = None
     configurations = {
       "yarn-site": {
@@ -655,8 +664,12 @@ class TestHDP23StackAdvisor(TestCase):
     self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
+    server_host = socket.getfqdn()
+    tez_ui_url =  "http://" + server_host + ":8080/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE"
+
     # Test JDK1.7
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
+    expected['tez-site']['properties']['tez.tez-ui.history-url.base'] = tez_ui_url
     self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
@@ -664,6 +677,7 @@ class TestHDP23StackAdvisor(TestCase):
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.8_44'}
     expected['tez-site']['properties']['tez.am.launch.cmd-opts'] = "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB"
     expected['tez-site']['properties']['tez.task.launch.cmd-opts'] = "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB"
+    expected['tez-site']['properties']['tez.tez-ui.history-url.base'] = tez_ui_url
     self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
@@ -671,6 +685,7 @@ class TestHDP23StackAdvisor(TestCase):
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.9.2_44'}
     expected['tez-site']['properties']['tez.am.launch.cmd-opts'] = "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB"
     expected['tez-site']['properties']['tez.task.launch.cmd-opts'] = "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB"
+    expected['tez-site']['properties']['tez.tez-ui.history-url.base'] = tez_ui_url
     self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
