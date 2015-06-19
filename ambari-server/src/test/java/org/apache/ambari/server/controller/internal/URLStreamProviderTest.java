@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.internal;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -71,6 +72,32 @@ public class URLStreamProviderTest {
     Assert.assertEquals(connection, urlStreamProvider.processURL("spec", "GET", (String) null, headerMap));
 
     verify(urlStreamProvider, connection, appCookieManager);
+  }
+
+  @Test
+  public void testProcessURL_securityNotSetup() throws Exception {
+
+    URLStreamProvider urlStreamProvider = createMockBuilder(URLStreamProvider.class).
+        withConstructor(Integer.TYPE, Integer.TYPE, String.class, String.class, String.class).
+        withArgs(1000, 1000, null, null, null).
+        addMockedMethod("getAppCookieManager").
+        addMockedMethod("getConnection", String.class).
+        createMock();
+
+    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    headerMap.put("Header1", Collections.singletonList("value"));
+    headerMap.put("Cookie", Collections.singletonList("FOO=bar"));
+
+    replay(urlStreamProvider);
+
+    try {
+      urlStreamProvider.processURL("https://spec", "GET", (String) null, headerMap);
+      Assert.fail("Expected IllegalStateException");
+    } catch (IllegalStateException e) {
+      // expected
+    }
+
+    verify(urlStreamProvider);
   }
 
   @Test
