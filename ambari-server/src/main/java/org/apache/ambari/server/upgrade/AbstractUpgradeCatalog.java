@@ -356,8 +356,19 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     }
   }
 
+  /**
+   * Update properties for the cluster
+   * @param cluster cluster object
+   * @param configType config to be updated
+   * @param properties properties to be added or updated. Couldn't be <code>null</code>, but could be empty.
+   * @param removePropertiesList properties to be removed. Could be <code>null</code>
+   * @param updateIfExists
+   * @param createNewConfigType
+   * @throws AmbariException
+   */
   protected void updateConfigurationPropertiesForCluster(Cluster cluster, String configType,
-      Map<String, String> properties, boolean updateIfExists, boolean createNewConfigType) throws AmbariException {
+        Map<String, String> properties, Set<String> removePropertiesList, boolean updateIfExists,
+        boolean createNewConfigType) throws AmbariException {
     AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
     String newTag = "version" + System.currentTimeMillis();
 
@@ -380,6 +391,10 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
         Map<String, String> mergedProperties =
           mergeProperties(oldConfigProperties, properties, updateIfExists);
+
+        if (removePropertiesList != null) {
+          mergedProperties = removeProperties(mergedProperties, removePropertiesList);
+        }
 
         if (!Maps.difference(oldConfigProperties, mergedProperties).areEqual()) {
           LOG.info("Applying configuration with tag '{}' to " +
@@ -410,6 +425,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         }
       }
     }
+  }
+
+  protected void updateConfigurationPropertiesForCluster(Cluster cluster, String configType,
+        Map<String, String> properties, boolean updateIfExists, boolean createNewConfigType) throws AmbariException {
+    updateConfigurationPropertiesForCluster(cluster, configType, properties, null, updateIfExists, createNewConfigType);
   }
 
   /**
@@ -445,6 +465,17 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     for (Map.Entry<String, String> entry : newProperties.entrySet()) {
       if (!properties.containsKey(entry.getKey()) || updateIfExists) {
         properties.put(entry.getKey(), entry.getValue());
+      }
+    }
+    return properties;
+  }
+
+  private Map<String, String> removeProperties(Map<String, String> originalProperties, Set<String> removeList){
+    Map<String, String> properties = new HashMap<String, String>();
+    properties.putAll(originalProperties);
+    for (String removeProperty: removeList){
+      if (originalProperties.containsKey(removeProperty)){
+        properties.remove(removeProperty);
       }
     }
     return properties;
