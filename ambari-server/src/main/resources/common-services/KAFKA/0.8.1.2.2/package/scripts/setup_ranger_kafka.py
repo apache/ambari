@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from resource_management.core.logger import Logger
-from resource_management.core.resources import Execute
+from resource_management.core.resources import File, Execute
 from resource_management.libraries.functions.format import format
 
 def setup_ranger_kafka():
@@ -44,6 +44,11 @@ def setup_ranger_kafka():
       Execute(('cp', '--remove-destination', params.setup_ranger_env_sh_source, params.setup_ranger_env_sh_target),
         not_if=format("test -f {setup_ranger_env_sh_target}"),
         sudo=True
+      )
+      File(params.setup_ranger_env_sh_target,
+        owner = params.kafka_user,
+        group = params.user_group,
+        mode = 0755
       )
   else:
     Logger.info('Ranger admin not installed')

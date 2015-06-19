@@ -201,7 +201,7 @@ if has_ranger_admin:
     jdbc_symlink_name = "postgres-jdbc-driver.jar"
     audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
     jdbc_driver = "org.postgresql.Driver"
-  elif xa_audit_db_flavor == 'sqlserver':
+  elif xa_audit_db_flavor == 'mssql':
     jdbc_jar_name = "sqljdbc4.jar"
     jdbc_symlink_name = "mssql-jdbc-driver.jar"
     audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')

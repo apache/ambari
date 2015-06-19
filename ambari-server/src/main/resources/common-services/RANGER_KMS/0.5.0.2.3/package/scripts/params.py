@@ -102,7 +102,7 @@ elif db_flavor == 'postgres':
   db_jdbc_url = format('jdbc:postgresql://{db_host}/{db_name}')
   db_jdbc_driver = "org.postgresql.Driver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.PostgreSQLPlatform"
-elif db_flavor == 'sqlserver':
+elif db_flavor == 'mssql':
   jdbc_jar_name = "sqljdbc4.jar"
   jdbc_symlink_name = "mssql-jdbc-driver.jar"
   db_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={db_name}')
@@ -130,7 +130,7 @@ if has_ranger_admin:
     jdbc_symlink = "postgres-jdbc-driver.jar"
     audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
     jdbc_driver = "org.postgresql.Driver"
-  elif xa_audit_db_flavor == 'sqlserver':
+  elif xa_audit_db_flavor == 'mssql':
     jdbc_jar = "sqljdbc4.jar"
     jdbc_symlink = "mssql-jdbc-driver.jar"
     audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')

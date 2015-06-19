@@ -98,7 +98,7 @@ def check_db_connnection():
     env_dict = {'ORACLE_HOME':params.oracle_home, 'LD_LIBRARY_PATH':params.oracle_home}
   elif params.db_flavor.lower() == 'postgres':
     cmd = 'true'
-  elif params.db_flavor.lower() == 'sqlserver':
+  elif params.db_flavor.lower() == 'mssql':
     cmd = 'true'
 
   try:
