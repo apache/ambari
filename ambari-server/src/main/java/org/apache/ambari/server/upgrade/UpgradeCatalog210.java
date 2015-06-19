@@ -42,7 +42,6 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
@@ -66,6 +65,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1118,7 +1118,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       public void run() {
         EntityManager em = getEntityManagerProvider().get();
         Query nativeQuery = em.createNativeQuery("UPDATE alert_definition SET alert_source=?1 WHERE " +
-                "definition_name=?2");
+                                                   "definition_name=?2");
         nativeQuery.setParameter(1, source);
         nativeQuery.setParameter(2, alertName);
         nativeQuery.executeUpdate();
@@ -1130,6 +1130,40 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     updateHiveConfigs();
     updateHdfsConfigs();
     updateStormConfigs();
+    updateRangerHiveConfigs();
+  }
+
+  protected void updateRangerHiveConfigs() throws AmbariException{
+    AmbariManagementController ambariManagementController = injector.getInstance(
+            AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Config RangerHiveConfig = cluster.getDesiredConfigByType("ranger-hive-plugin-properties");
+          if (RangerHiveConfig != null
+                  && RangerHiveConfig.getProperties().containsKey("ranger-hive-plugin-enabled")
+                  && cluster.getDesiredConfigByType("hive-env") != null) {
+            Map<String, String> newHiveEnvProperties = new HashMap<String, String>();
+            Set<String> removeRangerHiveProperties = new HashSet<String>();
+            removeRangerHiveProperties.add("ranger-hive-plugin-enabled");
+
+            if (RangerHiveConfig.getProperties().get("ranger-hive-plugin-enabled") != null
+                    && RangerHiveConfig.getProperties().get("ranger-hive-plugin-enabled").equalsIgnoreCase("yes")) {
+              newHiveEnvProperties.put("hive_security_authorization", "Ranger");
+            } else {
+              newHiveEnvProperties.put("hive_security_authorization", "None");
+            }
+            boolean updateProperty = cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive_security_authorization");
+            updateConfigurationPropertiesForCluster(cluster, "hive-env", newHiveEnvProperties, updateProperty, true);
+            updateConfigurationPropertiesForCluster(cluster, "ranger-hive-plugin-properties", new HashMap<String, String>(),
+                    removeRangerHiveProperties, false, true);
+          }
+        }
+      }
+    }
   }
 
   protected void updateHdfsConfigs() throws AmbariException {
