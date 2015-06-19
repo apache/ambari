@@ -60,6 +60,57 @@ App.KerberosWizardStep7Controller = App.KerberosProgressPageController.extend({
     }
   },
 
+  /**
+   * Send request to unkerberisze cluster
+   * @returns {$.ajax}
+   */
+  unkerberizeCluster: function () {
+    return App.ajax.send({
+      name: 'admin.unkerberize.cluster',
+      sender: this,
+      success: 'goToNextStep',
+      error: 'goToNextStep'
+    });
+  },
+
+  goToNextStep: function() {
+    this.clearStage();
+    App.router.transitionTo('step7');
+  },
+
+  postKerberosDescriptor: function (kerberosDescriptor) {
+    return App.ajax.send({
+      name: 'admin.kerberos.cluster.artifact.create',
+      sender: this,
+      data: {
+        artifactName: 'kerberos_descriptor',
+        data: {
+          artifact_data: kerberosDescriptor
+        }
+      }
+    });
+  },
+
+  /**
+   * Send request to update kerberos descriptor
+   * @param kerberosDescriptor
+   * @returns {$.ajax|*}
+   */
+  putKerberosDescriptor: function (kerberosDescriptor) {
+    return App.ajax.send({
+      name: 'admin.kerberos.cluster.artifact.update',
+      sender: this,
+      data: {
+        artifactName: 'kerberos_descriptor',
+        data: {
+          artifact_data: kerberosDescriptor
+        }
+      },
+      success: 'unkerberizeCluster',
+      error: 'unkerberizeCluster'
+    });
+  },
+
   retry: function () {
     this.set('showRetry', false);
     this.get('tasks').setEach('status', 'PENDING');
