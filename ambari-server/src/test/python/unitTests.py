@@ -25,6 +25,9 @@ import fnmatch
 import tempfile
 import shutil
 
+from ambari_commons.os_check import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
 #excluded directories with non-test staff from stack and service scanning,
 #also we can add service or stack to skip here
 STACK_EXCLUDE = ["utils", "1.3.2"]
@@ -73,6 +76,14 @@ def get_test_files(path, mask=None, recursive=True):
   return current
 
 
+@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
+def get_stack_name():
+  return "HDPWIN"
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def get_stack_name():
+  return "HDP"
+
 def stack_test_executor(base_folder, service, stack, custom_tests, executor_result):
   """
   Stack tests executor. Must be executed in separate process to prevent module
@@ -87,7 +98,7 @@ def stack_test_executor(base_folder, service, stack, custom_tests, executor_resu
   server_src_dir = get_parent_path(base_folder, 'src')
 
   base_stack_folder = os.path.join(server_src_dir,
-                                   'main/resources/stacks/HDP/{0}'.format(stack))
+                                   "main", "resources", "stacks", get_stack_name(), stack)
 
   script_folders = set()
   for root, subFolders, files in os.walk(os.path.join(base_stack_folder,
@@ -128,8 +139,8 @@ def main():
   pwd = os.path.abspath(os.path.dirname(__file__))
 
   ambari_server_folder = get_parent_path(pwd, 'ambari-server')
-  ambari_agent_folder = os.path.join(ambari_server_folder, "../ambari-agent")
-  ambari_common_folder = os.path.join(ambari_server_folder, "../ambari-common")
+  ambari_agent_folder = os.path.normpath(os.path.join(ambari_server_folder, "../ambari-agent"))
+  ambari_common_folder = os.path.normpath(os.path.join(ambari_server_folder, "../ambari-common"))
   sys.path.append(os.path.join(ambari_common_folder, "src/main/python"))
   sys.path.append(os.path.join(ambari_common_folder, "src/main/python/ambari_jinja2"))
   sys.path.append(os.path.join(ambari_common_folder, "src/test/python"))
