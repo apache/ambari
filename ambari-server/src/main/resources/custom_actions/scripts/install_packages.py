@@ -44,7 +44,7 @@ class InstallPackages(Script):
   REPO_FILE_NAME_PREFIX = 'HDP-'
 
   def actionexecute(self, env):
-    delayed_fail = False
+    num_errors = 0
     package_install_result = False
 
     # Parse parameters
@@ -83,12 +83,19 @@ class InstallPackages(Script):
 
       installed_repositories = list_ambari_managed_repos()
     except Exception, err:
-      print "Can not distribute repositories."
+      print "Cannot distribute repositories."
       print traceback.format_exc()
-      delayed_fail = True
+      num_errors += 1
+
+    # Build structured output with initial values
+    structured_output = {
+      'ambari_repositories': installed_repositories,
+      'installed_repository_version': repository_version,
+      'stack_id': stack_id
+    }
 
     # Install packages
-    if not delayed_fail:
+    if not num_errors:
       packages_were_checked = False
       try:
         packages_installed_before = []
@@ -100,9 +107,9 @@ class InstallPackages(Script):
           Package(name, use_repos=list(current_repo_files) if OSCheck.is_ubuntu_family() else current_repositories)
         package_install_result = True
       except Exception, err:
-        print "Can not install packages."
+        print "Cannot install packages."
         print traceback.format_exc()
-        delayed_fail = True
+        num_errors += 1
 
         # Remove already installed packages in case of fail
         if packages_were_checked and packages_installed_before:
@@ -121,24 +128,19 @@ class InstallPackages(Script):
             if package_version_string and (package_version_string in package):
               Package(package, action="remove")
 
-    # Build structured output
-    structured_output = {
-      'ambari_repositories': installed_repositories,
-      'installed_repository_version': repository_version,
-      'stack_id': stack_id,
-      'package_installation_result': 'SUCCESS' if package_install_result else 'FAIL'
-    }
+    # Add more values to structured_out
+    structured_output['package_installation_result'] = 'SUCCESS' if package_install_result else 'FAIL'
 
-    if package_install_result:
-      new_versions = self.hdp_versions()
-      deltas = set(new_versions) - set(old_versions)
-      if 1 == len(deltas):
-        structured_output['actual_version'] = next(iter(deltas))
+    # Even if it failed or did a partial install, report the new version if possible.
+    new_versions = self.hdp_versions()
+    deltas = set(new_versions) - set(old_versions)
+    if 1 == len(deltas):
+      structured_output['actual_version'] = next(iter(deltas))
 
     self.put_structured_out(structured_output)
 
     # Provide correct exit code
-    if delayed_fail:
+    if num_errors > 0:
       raise Fail("Failed to distribute repositories/install packages")
 
   def install_repository(self, url_info, repository_version, append_to_file):

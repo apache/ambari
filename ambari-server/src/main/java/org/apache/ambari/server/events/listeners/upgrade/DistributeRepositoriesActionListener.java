@@ -99,7 +99,7 @@ public class DistributeRepositoriesActionListener {
     String repositoryVersion = null;
 
     if (event.getCommandReport() == null) {
-      LOG.error("Command report is null, marking action as INSTALL_FAILED");
+      LOG.error("Command report is null, will set all INSTALLING versions for host {} to INSTALL_FAILED.", event.getHostname());
     } else {
       // Parse structured output
       try {
@@ -111,56 +111,63 @@ public class DistributeRepositoriesActionListener {
 
         if (event.getCommandReport().getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
           newHostState = RepositoryVersionState.INSTALLED;
+        }
 
-          if (null != structuredOutput.getActualVersion() &&
-              null != structuredOutput.getInstalledRepositoryVersion() &&
-              null != structuredOutput.getStackId() &&
-              !structuredOutput.getActualVersion().equals(structuredOutput.getInstalledRepositoryVersion())) {
+        // Handle the case in which the version to install did not contain the build number,
+        // but the structured output does contain the build number.
+        if (null != structuredOutput.getActualVersion() && !structuredOutput.getActualVersion().isEmpty() &&
+            null != structuredOutput.getInstalledRepositoryVersion() && !structuredOutput.getInstalledRepositoryVersion().isEmpty() &&
+            null != structuredOutput.getStackId() && !structuredOutput.getStackId().isEmpty() &&
+            !structuredOutput.getActualVersion().equals(structuredOutput.getInstalledRepositoryVersion())) {
 
-            // !!! getInstalledRepositoryVersion() from the agent is the one
-            // entered in the UI.  getActualVersion() is computed.
+          // !!! getInstalledRepositoryVersion() from the agent is the one
+          // entered in the UI.  getActualVersion() is computed.
 
-            StackId stackId = new StackId(structuredOutput.getStackId());
-            RepositoryVersionEntity version = repoVersionDAO.findByStackAndVersion(
-                stackId, structuredOutput.getInstalledRepositoryVersion());
+          StackId stackId = new StackId(structuredOutput.getStackId());
+          RepositoryVersionEntity version = repoVersionDAO.findByStackAndVersion(
+              stackId, structuredOutput.getInstalledRepositoryVersion());
+
+          if (null != version) {
+            LOG.info("Repository version {} was found, but {} is the actual value",
+                structuredOutput.getInstalledRepositoryVersion(),
+                structuredOutput.getActualVersion());
+            // !!! the entered version is not correct
+            version.setVersion(structuredOutput.getActualVersion());
+            repoVersionDAO.merge(version);
+            repositoryVersion = structuredOutput.getActualVersion();
+          } else {
+            // !!! extra check that the actual version is correct
+            stackId = new StackId(structuredOutput.getStackId());
+            version = repoVersionDAO.findByStackAndVersion(stackId,
+                structuredOutput.getActualVersion());
+
+            LOG.debug("Repository version {} was not found, check for {}.  Found={}",
+                structuredOutput.getInstalledRepositoryVersion(),
+                structuredOutput.getActualVersion(),
+                Boolean.valueOf(null != version));
 
             if (null != version) {
-              LOG.info("Repository version {} was found, but {} is the actual value",
-                  structuredOutput.getInstalledRepositoryVersion(),
-                  structuredOutput.getActualVersion());
-              // !!! the entered version is not correct
-              version.setVersion(structuredOutput.getActualVersion());
-              repoVersionDAO.merge(version);
               repositoryVersion = structuredOutput.getActualVersion();
-            } else {
-              // !!! extra check that the actual version is correct
-              stackId = new StackId(structuredOutput.getStackId());
-              version = repoVersionDAO.findByStackAndVersion(stackId,
-                  structuredOutput.getActualVersion());
-
-              LOG.debug("Repository version {} was not found, check for {}.  Found={}",
-                  structuredOutput.getInstalledRepositoryVersion(),
-                  structuredOutput.getActualVersion(),
-                  Boolean.valueOf(null != version));
-
-              if (null != version) {
-                repositoryVersion = structuredOutput.getActualVersion();
-              }
             }
           }
         }
       } catch (JsonSyntaxException e) {
-        LOG.error("Can not parse structured output %s", e);
+        LOG.error("Cannot parse structured output %s", e);
       }
     }
 
     List<HostVersionEntity> hostVersions = hostVersionDAO.get().findByHost(event.getHostname());
-    // We have to iterate over all host versions. Otherwise server-side command aborts (that do not
-    // provide exact host stack version info) would be ignored
+      // We have to iterate over all host versions for this host. Otherwise server-side command aborts (that do not
+      // provide exact host stack version info) would be ignored
     for (HostVersionEntity hostVersion : hostVersions) {
-      if (repositoryVersion != null && ! hostVersion.getRepositoryVersion().getVersion().equals(repositoryVersion)) {
+
+      if (repositoryVersion != null && !hostVersion.getRepositoryVersion().getVersion().equals(repositoryVersion)) {
         continue;
       }
+
+      // If repository version is null, it means that we were not able to determine any information (perhaps structured-out was empty),
+      // so we should transition from INSTALLING to INSTALL_FAILED
+
       // If we know exact host stack version, there will be single execution of a code below
       if (hostVersion.getState() == RepositoryVersionState.INSTALLING) {
         hostVersion.setState(newHostState);
@@ -172,7 +179,7 @@ public class DistributeRepositoriesActionListener {
               hostVersion.getRepositoryVersion().getStackId(),
               hostVersion.getRepositoryVersion().getVersion());
         } catch (AmbariException e) {
-          LOG.error("Cannot get cluster with Id " + clusterId.toString(), e);
+          LOG.error("Cannot get cluster with Id " + clusterId.toString() + " to recalculate its ClusterVersion.", e);
         }
       }
     }

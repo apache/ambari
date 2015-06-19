@@ -918,6 +918,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
 
     if (!oldState.equals(getState())) {
+      LOG.info("Host role transitioned to a new state"
+               + ", serviceComponentName=" + getServiceComponentName()
+               + ", hostName=" + getHostName()
+               + ", oldState=" + oldState
+               + ", currentState=" + getState());
       if (LOG.isDebugEnabled()) {
         LOG.debug("ServiceComponentHost transitioned to a new state"
             + ", serviceComponentName=" + getServiceComponentName()
