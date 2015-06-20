@@ -662,17 +662,13 @@ public class DBAccessorImpl implements DBAccessor {
   @Override
   public ResultSet executeSelect(String query) throws SQLException {
     Statement statement = getConnection().createStatement();
-    ResultSet rs = statement.executeQuery(query);
-    statement.closeOnCompletion();
-    return rs;
+    return statement.executeQuery(query);
   }
 
   @Override
   public ResultSet executeSelect(String query, int resultSetType, int resultSetConcur) throws SQLException {
     Statement statement = getConnection().createStatement(resultSetType, resultSetConcur);
-    ResultSet rs = statement.executeQuery(query);
-    statement.closeOnCompletion();
-    return rs;
+    return statement.executeQuery(query);
   }  
   
   @Override
