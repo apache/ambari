@@ -37,6 +37,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +79,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
    * that require the name of the authenticated user
    */
   protected static final String AUTHENTICATED_USER_NAME = "ambari-upgrade";
+
   private static final String CONFIGURATION_TYPE_HIVE_SITE = "hive-site";
+  private static final String CONFIGURATION_TYPE_HDFS_SITE = "hdfs-site";
+
+  private static final String PROPERTY_DFS_NAMESERVICES = "dfs.nameservices";
   private static final String PROPERTY_HIVE_SERVER2_AUTHENTICATION = "hive.server2.authentication";
 
   private static final Logger LOG = LoggerFactory.getLogger
@@ -305,6 +310,21 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
       return false;
     }
     return true;
+  }
+
+  protected boolean isNNHAEnabled(Cluster cluster) {
+    Config hdfsSiteConfig = cluster.getDesiredConfigByType(CONFIGURATION_TYPE_HDFS_SITE);
+    if (hdfsSiteConfig != null) {
+      Map<String, String> properties = hdfsSiteConfig.getProperties();
+      String nameServices = properties.get(PROPERTY_DFS_NAMESERVICES);
+      if (!StringUtils.isEmpty(nameServices)) {
+        String namenodes = properties.get(String.format("dfs.ha.namenodes.%s", nameServices));
+        if (!StringUtils.isEmpty(namenodes)) {
+          return (namenodes.split(",").length > 1);
+        }
+      }
+    }
+    return false;
   }
 
   /**

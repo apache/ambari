@@ -1205,7 +1205,30 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             if (cluster.getDesiredConfigByType("core-site").getProperties() != null &&
                       cluster.getDesiredConfigByType("core-site").getProperties().get("fs.defaultFS") != null) {
               try {
-                nameNodeRpc = new URI(cluster.getDesiredConfigByType("core-site").getProperties().get("fs.defaultFS"));
+                if (isNNHAEnabled(cluster)) {
+                  String nn1RpcAddress = null;
+                  Config hdfsSiteConfig = cluster.getDesiredConfigByType("hdfs-site");
+                  Map<String, String> properties = hdfsSiteConfig.getProperties();
+                  String nameServices = properties.get("dfs.nameservices");
+                  if (!StringUtils.isEmpty(nameServices)) {
+                    String namenodes = properties.get(String.format("dfs.ha.namenodes.%s",nameServices));
+                    if (!StringUtils.isEmpty(namenodes) && namenodes.split(",").length > 1) {
+                      nn1RpcAddress = properties.get(String.format("dfs.namenode.rpc-address.%s.%s", nameServices,
+                              namenodes.split(",")[0]));
+                    }
+                  }
+                  if (!StringUtils.isEmpty(nn1RpcAddress)) {
+                    if (!nn1RpcAddress.startsWith("http")) {
+                      nn1RpcAddress = "http://" + nn1RpcAddress;
+                    }
+                    nameNodeRpc= new URI(nn1RpcAddress);
+                  } else {
+                    // set default value
+                    nameNodeRpc= new URI("http://localhost:8020");
+                  }
+                } else {
+                  nameNodeRpc = new URI(cluster.getDesiredConfigByType("core-site").getProperties().get("fs.defaultFS"));
+                }
                 Map<String, String> hdfsProp = new HashMap<String, String>();
                 hdfsProp.put("dfs.namenode.rpc-address", hostName + ":" + nameNodeRpc.getPort());
                 updateConfigurationPropertiesForCluster(cluster, "hdfs-site",
