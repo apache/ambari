@@ -19,6 +19,9 @@ STACKS_FOLDER_OLD=/var/lib/ambari-server/resources/stacks_$(date '+%d_%m_%y_%H_%
 COMMON_SERVICES_FOLDER="/var/lib/ambari-server/resources/common-services"
 COMMON_SERVICES_FOLDER_OLD=/var/lib/ambari-server/resources/common-services_$(date '+%d_%m_%y_%H_%M').old
 
+AMBARI_VIEWS_FOLDER="/var/lib/ambari-server/resources/views"
+AMBARI_VIEWS_BACKUP_FOLDER="$AMBARI_VIEWS_FOLDER/backups"
+
 if [ -d "/etc/ambari-server/conf.save" ]
 then
     mv /etc/ambari-server/conf.save /etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save
@@ -32,6 +35,16 @@ fi
 if [ -d "$COMMON_SERVICES_FOLDER_OLD" ]
 then
     mv -f "$COMMON_SERVICES_FOLDER" "$COMMON_SERVICES_FOLDER_OLD"
+fi
+
+if [ ! -d "$AMBARI_VIEWS_BACKUP_FOLDER" ] && [ -d "$AMBARI_VIEWS_FOLDER" ]
+then
+    mkdir "$AMBARI_VIEWS_BACKUP_FOLDER"
+fi
+
+if [ -d "$AMBARI_VIEWS_FOLDER" ] && [ -d "$AMBARI_VIEWS_BACKUP_FOLDER" ]
+then
+    cp -u $AMBARI_VIEWS_FOLDER/*.jar $AMBARI_VIEWS_BACKUP_FOLDER/
 fi
 
 exit 0
