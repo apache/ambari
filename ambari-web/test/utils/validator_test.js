@@ -424,4 +424,19 @@ describe('validator', function () {
       })
     });
   });
+
+  describe('#isHostname()', function() {
+    var tests = [
+      {m:'"localhost" - valid',i:'localhost',e:true},
+      {m:'"c6401.apache.ambari.org" - valid',i:'c6401.apache.ambari.org',e:true},
+      {m:'"c6401.org" - valid',i:'c6401.org',e:true},
+      {m:'"c6401" - invalid',i:'c6401',e:false},
+      {m:'"c6401." - invalid',i:'c6401.',e:false}
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(validator.isHostname(test.i)).to.equal(test.e);
+      })
+    });
+  });
 });
