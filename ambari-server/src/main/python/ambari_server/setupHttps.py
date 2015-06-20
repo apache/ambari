@@ -450,7 +450,7 @@ def setup_https(args):
     raise NonFatalException(warning)
 
 
-def setup_component_https(component, command, property, alias):
+def setup_truststore(import_cert=False):
   if not get_silent():
     jdk_path = find_jdk()
     if jdk_path is None:
@@ -461,38 +461,30 @@ def setup_component_https(component, command, property, alias):
 
     properties = get_ambari_properties()
 
-    use_https = properties.get_property(property) in ['true']
+    if get_YN_input("Do you want to configure a truststore [y/n] (y)? ", True):
+      truststore_type = get_truststore_type(properties)
+      truststore_path = get_truststore_path(properties)
+      truststore_password = get_truststore_password(properties)
 
-    if use_https:
-      if get_YN_input("Do you want to disable HTTPS for " + component + " [y/n] (n)? ", False):
-        truststore_path = get_truststore_path(properties)
-        truststore_password = get_truststore_password(properties)
+      if import_cert:
 
-        run_component_https_cmd(get_delete_cert_command(jdk_path, alias, truststore_path, truststore_password))
+        if get_YN_input("Do you want to import a certificate [y/n] (y)? ", True):
 
-        properties.process_pair(property, "false")
-      else:
-        return
+          alias = get_validated_string_input("Please enter an alias for the certificate: ", "", None, None, False, False)
+
+          run_os_command(get_delete_cert_command(jdk_path, alias, truststore_path, truststore_password))
+
+          import_cert_path = get_validated_filepath_input( \
+              "Enter path to certificate: ", \
+              "Certificate not found")
+
+          run_component_https_cmd(get_import_cert_command(jdk_path, alias, truststore_type, import_cert_path, truststore_path, truststore_password))
+
     else:
-      if get_YN_input("Do you want to configure HTTPS for " + component + " [y/n] (y)? ", True):
-        truststore_type = get_truststore_type(properties)
-        truststore_path = get_truststore_path(properties)
-        truststore_password = get_truststore_password(properties)
-
-        run_os_command(get_delete_cert_command(jdk_path, alias, truststore_path, truststore_password))
-
-        import_cert_path = get_validated_filepath_input( \
-            "Enter path to " + component + " Certificate: ", \
-            "Certificate not found")
-
-        run_component_https_cmd(get_import_cert_command(jdk_path, alias, truststore_type, import_cert_path, truststore_path, truststore_password))
-
-        properties.process_pair(property, "true")
-      else:
-        return
+      return
 
     conf_file = find_properties_file()
     f = open(conf_file, 'w')
-    properties.store(f, "Changed by 'ambari-server " + command + "' command")
+    properties.store(f, "Changed by 'ambari-server setup-security' command")
   else:
-    print command + " is not enabled in silent mode."
+    print "setup-security is not enabled in silent mode."
