@@ -101,7 +101,20 @@
       font-size: 35px;
       width: 95%;
     }
-    .template-widget,
+    .template-widget {
+      .frame;
+      .content {
+        padding-top: 21px;
+        height: 75px;
+        line-height: 36px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        display: block;
+        display: -webkit-box;
+      }
+    }
     .number-widget {
       .frame;
       .content {
