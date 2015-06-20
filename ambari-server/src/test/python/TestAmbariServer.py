@@ -83,7 +83,7 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
           run_stack_upgrade, run_metainfo_upgrade, run_schema_upgrade, move_user_custom_actions
         from ambari_server.setupHttps import is_valid_https_port, setup_https, import_cert_and_key_action, get_fqdn, \
           generate_random_string, get_cert_info, COMMON_NAME_ATTR, is_valid_cert_exp, NOT_AFTER_ATTR, NOT_BEFORE_ATTR, \
-          SSL_DATE_FORMAT, import_cert_and_key, is_valid_cert_host, setup_component_https, \
+          SSL_DATE_FORMAT, import_cert_and_key, is_valid_cert_host, setup_truststore, \
           SRVR_ONE_WAY_SSL_PORT_PROPERTY, SRVR_TWO_WAY_SSL_PORT_PROPERTY, GANGLIA_HTTPS
         from ambari_server.setupSecurity import adjust_directory_permissions, get_alias_string, get_ldap_event_spec_names, sync_ldap, LdapSyncOptions, \
           configure_ldap_password, setup_ldap, REGEX_HOSTNAME_PORT, REGEX_TRUE_FALSE, REGEX_ANYTHING, setup_master_key, \
@@ -285,11 +285,11 @@ class TestAmbariServer(TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup_ambari_krb5_jaas")
   @patch.object(_ambari_server_, "setup_master_key")
-  @patch("ambari_server.setupHttps.setup_component_https")
+  @patch.object(_ambari_server_, "setup_truststore")
   @patch.object(_ambari_server_, "setup_https")
   @patch.object(_ambari_server_, "get_validated_string_input")
   def test_setup_security(self, get_validated_string_input_mock, setup_https_mock,
-                          setup_component_https_mock, setup_master_key_mock,
+                          setup_truststore_mock, setup_master_key_mock,
                           setup_ambari_krb5_jaas_mock):
 
     args = {}
@@ -304,6 +304,14 @@ class TestAmbariServer(TestCase):
     get_validated_string_input_mock.return_value = '3'
     _ambari_server_.setup_security(args)
     self.assertTrue(setup_ambari_krb5_jaas_mock.called)
+
+    get_validated_string_input_mock.return_value = '4'
+    _ambari_server_.setup_security(args)
+    self.assertTrue(setup_truststore_mock.called)
+
+    get_validated_string_input_mock.return_value = '5'
+    _ambari_server_.setup_security(args)
+    self.assertTrue(setup_truststore_mock.called)
     pass
 
 
@@ -1378,6 +1386,7 @@ class TestAmbariServer(TestCase):
     pass
 
   @patch("ambari_server.setupHttps.get_validated_filepath_input")
+  @patch("ambari_server.setupHttps.get_validated_string_input")
   @patch("ambari_server.setupHttps.run_os_command")
   @patch("ambari_server.setupHttps.get_truststore_type")
   @patch("__builtin__.open")
@@ -1389,11 +1398,12 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupHttps.get_YN_input")
   @patch("ambari_server.setupHttps.get_ambari_properties")
   @patch("ambari_server.setupHttps.find_jdk")
-  def test_setup_component_https(self, find_jdk_mock, get_ambari_properties_mock, get_YN_input_mock,
+  def test_setup_truststore(self, find_jdk_mock, get_ambari_properties_mock, get_YN_input_mock,
                                  get_truststore_path_mock, get_truststore_password_mock,
                                  get_delete_cert_command_mock, run_component_https_cmd_mock,
                                  find_properties_file_mock, open_mock,
                                  get_truststore_type_mock, run_os_command_mock,
+                                 get_validated_string_input_mock,
                                  get_validated_filepath_input_mock):
     out = StringIO.StringIO()
     sys.stdout = out
@@ -1403,34 +1413,23 @@ class TestAmbariServer(TestCase):
     alias = "alias"
     #Silent mode
     set_silent(True)
-    setup_component_https(component, command, property, alias)
-    self.assertEqual('command is not enabled in silent mode.\n', out.getvalue())
+    setup_truststore()
+    self.assertEqual('setup-security is not enabled in silent mode.\n', out.getvalue())
     sys.stdout = sys.__stdout__
     #Verbouse mode and jdk_path is None
     set_silent(False)
     p = get_ambari_properties_mock.return_value
-    # Use ssl
-    p.get_property.side_effect = ["true"]
     # Dont disable ssl
     get_YN_input_mock.side_effect = [False]
-    setup_component_https(component, command, property, alias)
-    self.assertTrue(p.get_property.called)
-    self.assertTrue(get_YN_input_mock.called)
-    p.get_property.reset_mock()
-    get_YN_input_mock.reset_mock()
-    # Dont use ssl
-    p.get_property.side_effect = ["false"]
-    # Dont enable ssl
-    get_YN_input_mock.side_effect = [False]
-    setup_component_https(component, command, property, alias)
-    self.assertTrue(p.get_property.called)
+    get_validated_string_input_mock.return_value = "alias"
+    setup_truststore()
     self.assertTrue(get_YN_input_mock.called)
     p.get_property.reset_mock()
     get_YN_input_mock.reset_mock()
     # Cant find jdk
     find_jdk_mock.return_value = None
     try:
-        setup_component_https(component, command, property, alias)
+        setup_truststore()
         self.fail("Should throw exception")
     except FatalException as fe:
         # Expected
@@ -1440,13 +1439,12 @@ class TestAmbariServer(TestCase):
     #Verbouse mode and jdk_path is not None (use_https = true)
     find_jdk_mock.return_value = "/jdk_path"
     p.get_property.side_effect = ["true"]
-    get_YN_input_mock.side_effect = [True]
+    get_YN_input_mock.side_effect = [True,True]
     get_truststore_path_mock.return_value = "/truststore_path"
     get_truststore_password_mock.return_value = "/truststore_password"
     get_delete_cert_command_mock.return_value = "rm -f"
-    setup_component_https(component, command, property, alias)
+    setup_truststore(True)
 
-    self.assertTrue(p.process_pair.called)
     self.assertTrue(get_truststore_path_mock.called)
     self.assertTrue(get_truststore_password_mock.called)
     self.assertTrue(get_delete_cert_command_mock.called)
@@ -1464,10 +1462,9 @@ class TestAmbariServer(TestCase):
     p.store.reset_mock()
     #Verbouse mode and jdk_path is not None (use_https = false) and import cert
     p.get_property.side_effect = ["false"]
-    get_YN_input_mock.side_effect = [True]
-    setup_component_https(component, command, property, alias)
+    get_YN_input_mock.side_effect = [True,True]
+    setup_truststore(True)
 
-    self.assertTrue(p.process_pair.called)
     self.assertTrue(get_truststore_type_mock.called)
     self.assertTrue(get_truststore_path_mock.called)
     self.assertTrue(get_truststore_password_mock.called)

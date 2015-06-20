@@ -35,7 +35,7 @@ from ambari_server.serverConfiguration import configDefaults, get_ambari_propert
 from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
 from ambari_server.serverSetup import reset, setup, setup_jce_policy
 from ambari_server.serverUpgrade import upgrade, upgrade_stack, set_current
-from ambari_server.setupHttps import setup_https
+from ambari_server.setupHttps import setup_https, setup_truststore
 
 from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SYNC_ACTION, PSTART_ACTION, \
   REFRESH_STACK_HASH_ACTION, RESET_ACTION, RESTORE_ACTION, SETUP_ACTION, SETUP_SECURITY_ACTION, START_ACTION, \
@@ -191,6 +191,7 @@ def create_setup_security_actions(args):
       ['Enable HTTPS for Ambari server.', UserActionRestart(setup_https, args)],
       ['Encrypt passwords stored in ambari.properties file.', UserAction(setup_master_key)],
       ['Setup Ambari kerberos JAAS configuration.', UserAction(setup_ambari_krb5_jaas)],
+      ['Import certificate to truststore.', UserActionRestart(setup_truststore)],
     ]
   return action_list
 
@@ -200,6 +201,8 @@ def create_setup_security_actions(args):
       ['Enable HTTPS for Ambari server.', UserActionRestart(setup_https, args)],
       ['Encrypt passwords stored in ambari.properties file.', UserAction(setup_master_key)],
       ['Setup Ambari kerberos JAAS configuration.', UserAction(setup_ambari_krb5_jaas)],
+      ['Setup truststore.', UserActionRestart(setup_truststore)],
+      ['Import certificate to truststore.', UserActionRestart(setup_truststore, True)],
     ]
   return action_list
 
