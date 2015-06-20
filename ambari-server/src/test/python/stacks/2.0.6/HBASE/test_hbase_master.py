@@ -71,7 +71,8 @@ class TestHBaseMaster(RMFTestCase):
         user = 'hbase',
     )
     
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hbase/hbase-hbase-master.pid',
+    self.assertResourceCalled('File', '/var/run/hbase/hbase-hbase-master.pid',
+        action = ['delete'],
     )
     self.assertNoMoreResources()
 
@@ -168,7 +169,8 @@ class TestHBaseMaster(RMFTestCase):
         user = 'hbase',
     )
 
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hbase/hbase-hbase-master.pid',
+    self.assertResourceCalled('File', '/var/run/hbase/hbase-hbase-master.pid',
+        action = ['delete'],
     )
     self.assertNoMoreResources()
 
