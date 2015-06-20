@@ -42,7 +42,7 @@
                 <span {{bindAttr class=":label App.router.mainAlertDefinitionsController.isCriticalAlerts:alert-crit-count:alert-warn-count"}} {{action "showPopup" target="App.router.mainAlertInstancesController"}}>
                 {{App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}} {{pluralize App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount singular="alert" plural="alerts"}}</span>
               {{else}}
-                <span rel="tooltip" {{translateAttr title="titlebar.alerts.noAlerts"}}
+                <span {{translateAttr title="titlebar.alerts.noAlerts"}}
                       class="label alerts-none-count" {{action "showPopup" target="App.router.mainAlertInstancesController"}}>
                 {{App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}} {{pluralize App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount singular="alert" plural="alerts"}}</span>
               {{/if}}
