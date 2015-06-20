@@ -108,7 +108,7 @@ module.exports = {
    */
   isHostname: function(value) {
     var regex = /(?=^.{3,254}$)(^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*(\.[a-zA-Z]{1,62})$)/;
-    return regex.test(value);
+    return value === 'localhost' || regex.test(value);
   },
 
   hasSpaces: function(value) {
