@@ -63,6 +63,25 @@ knox_logs_dir = '/var/log/knox'
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
+dfs_ha_enabled = False
+dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
+dfs_ha_namenode_ids = default(format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
+
+if dfs_ha_namenode_ids:
+  dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
+  dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
+  if dfs_ha_namenode_ids_array_len > 1:
+    dfs_ha_enabled = True
+if dfs_ha_enabled:
+  for nn_id in dfs_ha_namemodes_ids_list:
+    nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
+    if hostname in nn_host:
+      namenode_id = nn_id
+      namenode_rpc = nn_host
+    # With HA enabled namenode_address is recomputed
+  namenode_address = format('hdfs://{dfs_ha_nameservices}')
+
+
 namenode_hosts = default("/clusterHostInfo/namenode_host", None)
 if type(namenode_hosts) is list:
   namenode_host = namenode_hosts[0]
@@ -76,8 +95,11 @@ namenode_rpc_port = "8020"
 if has_namenode:
   if 'dfs.namenode.http-address' in config['configurations']['hdfs-site']:
     namenode_http_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.http-address'])
-  if 'dfs.namenode.rpc-address' in config['configurations']['hdfs-site']:
-    namenode_rpc_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.rpc-address'])
+  if dfs_ha_enabled and namenode_rpc:
+    namenode_rpc_port = get_port_from_url(namenode_rpc)
+  else:
+    if 'dfs.namenode.rpc-address' in config['configurations']['hdfs-site']:
+      namenode_rpc_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.rpc-address'])
 
 rm_hosts = default("/clusterHostInfo/rm_host", None)
 if type(rm_hosts) is list:
