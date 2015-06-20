@@ -71,7 +71,8 @@ class TestHbaseRegionServer(RMFTestCase):
         user = 'hbase',
     )
     
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hbase/hbase-hbase-regionserver.pid',
+    self.assertResourceCalled('File', '/var/run/hbase/hbase-hbase-regionserver.pid',
+        action = ['delete'],
     )
     self.assertNoMoreResources()
     
@@ -118,7 +119,8 @@ class TestHbaseRegionServer(RMFTestCase):
         user = 'hbase',
     )
     
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hbase/hbase-hbase-regionserver.pid',
+    self.assertResourceCalled('File', '/var/run/hbase/hbase-hbase-regionserver.pid',
+        action = ['delete'],
     )
     self.assertNoMoreResources()
 
