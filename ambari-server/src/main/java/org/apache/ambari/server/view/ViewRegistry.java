@@ -464,7 +464,7 @@ public class ViewRegistry {
    * Read all view archives.
    */
   public void readViewArchives() {
-    readViewArchives(false, true, ALL_VIEWS_REG_EXP, true);
+    readViewArchives(false, true, ALL_VIEWS_REG_EXP);
   }
 
   /**
@@ -473,7 +473,7 @@ public class ViewRegistry {
    * @param viewNameRegExp view name regular expression
    */
   public void readViewArchives(String viewNameRegExp) {
-    readViewArchives(false, false, viewNameRegExp, false);
+    readViewArchives(false, false, viewNameRegExp);
   }
 
   /**
@@ -1438,7 +1438,7 @@ public class ViewRegistry {
 
   // read the view archives.
   private void readViewArchives(boolean systemOnly, boolean useExecutor,
-                                String viewNameRegExp, boolean removeUndeployed) {
+                                String viewNameRegExp) {
     try {
       File viewDir = configuration.getViewsDir();
 
@@ -1535,17 +1535,16 @@ public class ViewRegistry {
     LOG.info("Reading view archive " + archiveFile + ".");
 
     try {
+      // extract the archive and get the class loader
+      ClassLoader cl = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
 
       ViewConfig viewConfig = archiveUtility.getViewConfigFromExtractedArchive(extractedArchiveDirPath,
           configuration.isViewValidationEnabled());
 
-      if (viewConfig == null) {
-        setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, "View configuration not found");
-      } 
       viewDefinition.setConfiguration(viewConfig);
 
       if (checkViewVersions(viewDefinition, serverVersion)) {
-        setupViewDefinition(viewDefinition, extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile));
+        setupViewDefinition(viewDefinition, cl);
 
         Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
 

@@ -327,6 +327,11 @@ public class ViewEntity implements ViewDefinition {
     return statusDetail;
   }
 
+  @Override
+  public String getMask() {
+    return mask;
+  }
+
 
   // ----- ViewEntity --------------------------------------------------------
 
@@ -795,16 +800,6 @@ public class ViewEntity implements ViewDefinition {
    */
   public void setMask(String mask) {
     this.mask = mask;
-  }
-
-  /**
-   * Get the mask class name.
-   *
-   * @return the mask class name.
-   */
-  @Override
-  public String getMask() {
-    return mask;
   }
 
   /**
