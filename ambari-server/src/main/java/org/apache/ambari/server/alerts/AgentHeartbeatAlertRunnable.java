@@ -170,6 +170,7 @@ public class AgentHeartbeatAlertRunnable implements Runnable {
           alert.setLabel(entity.getLabel());
           alert.setText(alertText);
           alert.setTimestamp(alertTimestamp);
+          alert.setCluster(cluster.getClusterName());
 
           AlertReceivedEvent event = new AlertReceivedEvent(
               cluster.getClusterId(), alert);

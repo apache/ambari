@@ -123,8 +123,8 @@ public class AlertReceivedListener {
 
       Long clusterId = getClusterIdByName(alert.getCluster());
       if (clusterId == null) {
-        LOG.warn("Null cluster id is not supported for alerts as of now"); //based on listener implementation
-        continue;
+        //check event
+        clusterId = event.getClusterId();
       }
 
       AlertDefinitionEntity definition = m_definitionDao.findByName(clusterId,
