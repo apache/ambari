@@ -26,6 +26,8 @@ import os
 import time
 import subprocess
 
+from resource_management.core import shell
+from resource_management.core.exceptions import Fail
 from get_kinit_path import get_kinit_path
 from get_klist_path import get_klist_path
 # hashlib is supplied as of Python 2.5 as the replacement interface for md5
@@ -45,7 +47,7 @@ logger = logging.getLogger()
 
 
 def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix, krb_exec_search_paths,
-                     return_only_http_code, alert_name):
+                     return_only_http_code, alert_name, user):
   import uuid
   # Create the kerberos credentials cache (ccache) file and set it in the environment to use
   # when executing curl. Use the md5 hash of the combination of the principal and keytab file
@@ -61,7 +63,7 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix, krb_exe
   else:
     klist_path_local = get_klist_path()
 
-  if os.system("{0} -s {1}".format(klist_path_local, ccache_file_path)) != 0:
+  if shell.call("{0} -s {1}".format(klist_path_local, ccache_file_path), user=user)[0] != 0:
     if krb_exec_search_paths:
       kinit_path_local = get_kinit_path(krb_exec_search_paths)
     else:
@@ -69,7 +71,7 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix, krb_exe
     logger.debug("[Alert][{0}] Enabling Kerberos authentication via GSSAPI using ccache at {1}.".format(
       alert_name, ccache_file_path))
 
-    os.system("{0} -l 5m -c {1} -kt {2} {3} > /dev/null".format(kinit_path_local, ccache_file_path, keytab, principal))
+    shell.checked_call("{0} -l 5m -c {1} -kt {2} {3} > /dev/null".format(kinit_path_local, ccache_file_path, keytab, principal), user=user)
   else:
     logger.debug("[Alert][{0}] Kerberos authentication via GSSAPI already enabled using ccache at {1}.".format(
       alert_name, ccache_file_path))
@@ -87,20 +89,18 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix, krb_exe
   error_msg = None
   try:
     if return_only_http_code:
-      curl = subprocess.Popen(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
+      _, curl_stdout, curl_stderr = shell.checked_call(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
                              '%{http_code}', url, '--connect-timeout', str(CONNECTION_TIMEOUT),'-o', '/dev/null'],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kerberos_env)
+                             stderr=subprocess.PIPE, env=kerberos_env, user=user)
     else:
       # returns response body
-      curl = subprocess.Popen(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
+      _, curl_stdout, curl_stderr = shell.checked_call(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
                              url, '--connect-timeout', str(CONNECTION_TIMEOUT)],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kerberos_env)
-
-    curl_stdout, curl_stderr = curl.communicate()
-  except Exception, exception:
+                             stderr=subprocess.PIPE, env=kerberos_env, user=user)
+  except Fail:
     if logger.isEnabledFor(logging.DEBUG):
       logger.exception("[Alert][{0}] Unable to make a web request.".format(alert_name))
-    raise Exception(exception)
+    raise
   finally:
     if os.path.isfile(cookie_file):
       os.remove(cookie_file)

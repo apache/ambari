@@ -49,6 +49,7 @@ CONNECTION_TIMEOUT_DEFAULT = 5.0
 KERBEROS_KEYTAB = '{{hdfs-site/dfs.web.authentication.kerberos.keytab}}'
 KERBEROS_PRINCIPAL = '{{hdfs-site/dfs.web.authentication.kerberos.principal}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
+SMOKEUSER_KEY = "{{cluster-env/smokeuser}}"
 
 logger = logging.getLogger()
 
@@ -58,7 +59,7 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return (NN_HTTP_ADDRESS_KEY, NN_HTTPS_ADDRESS_KEY, NN_HTTP_POLICY_KEY, 
-      NN_CHECKPOINT_TX_KEY, NN_CHECKPOINT_PERIOD_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY)
+      NN_CHECKPOINT_TX_KEY, NN_CHECKPOINT_PERIOD_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY, SMOKEUSER_KEY)
   
 
 def execute(configurations={}, parameters={}, host_name=None):
@@ -96,6 +97,9 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   if NN_CHECKPOINT_PERIOD_KEY in configurations:
     checkpoint_period = configurations[NN_CHECKPOINT_PERIOD_KEY]
+    
+  if SMOKEUSER_KEY in configurations:
+    smokeuser = configurations[SMOKEUSER_KEY]
 
   security_enabled = False
   if SECURITY_ENABLED_KEY in configurations:
@@ -145,13 +149,13 @@ def execute(configurations={}, parameters={}, host_name=None):
       env = Environment.get_instance()
       last_checkpoint_time_response, error_msg, time_millis = curl_krb_request(env.tmp_dir, kerberos_keytab,
                                     kerberos_principal, last_checkpoint_time_qry,"checkpoint_time_alert", None, False,
-                                    "NameNode Last Checkpoint")
+                                    "NameNode Last Checkpoint", smokeuser)
       last_checkpoint_time_response_json = json.loads(last_checkpoint_time_response)
       last_checkpoint_time = int(last_checkpoint_time_response_json["beans"][0]["LastCheckpointTime"])
 
       journal_transaction_info_response, error_msg, time_millis = curl_krb_request(env.tmp_dir, kerberos_keytab,
                                       kerberos_principal, journal_transaction_info_qry,"checkpoint_time_alert", None,
-                                      False, "NameNode Last Checkpoint")
+                                      False, "NameNode Last Checkpoint", smokeuser)
       journal_transaction_info_response_json = json.loads(journal_transaction_info_response)
       journal_transaction_info = journal_transaction_info_response_json["beans"][0]["JournalTransactionInfo"]
     else:

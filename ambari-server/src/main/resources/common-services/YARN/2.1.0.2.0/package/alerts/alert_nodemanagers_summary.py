@@ -36,6 +36,7 @@ YARN_HTTP_POLICY_KEY = '{{yarn-site/yarn.http.policy}}'
 KERBEROS_KEYTAB = '{{yarn-site/yarn.nodemanager.webapp.spnego-keytab-file}}'
 KERBEROS_PRINCIPAL = '{{yarn-site/yarn.nodemanager.webapp.spnego-principal}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
+SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 
 CONNECTION_TIMEOUT_KEY = 'connection.timeout'
 CONNECTION_TIMEOUT_DEFAULT = 5.0
@@ -48,7 +49,7 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return NODEMANAGER_HTTP_ADDRESS_KEY, NODEMANAGER_HTTPS_ADDRESS_KEY, \
-    YARN_HTTP_POLICY_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY
+    YARN_HTTP_POLICY_KEY, SMOKEUSER_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY
 
 
 def execute(configurations={}, parameters={}, host_name=None):
@@ -90,6 +91,9 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   if YARN_HTTP_POLICY_KEY in configurations:
     http_policy = configurations[YARN_HTTP_POLICY_KEY]
+    
+  if SMOKEUSER_KEY in configurations:
+    smokeuser = configurations[SMOKEUSER_KEY]
 
   # parse script arguments
   connection_timeout = CONNECTION_TIMEOUT_DEFAULT
@@ -113,7 +117,7 @@ def execute(configurations={}, parameters={}, host_name=None):
       env = Environment.get_instance()
       url_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
                                               live_nodemanagers_qry, "nm_health_summary_alert", None, False,
-                                              "NodeManager Health Summary")
+                                              "NodeManager Health Summary", smokeuser)
       try:
         url_response_json = json.loads(url_response)
         live_nodemanagers = json.loads(url_response_json["beans"][0]["LiveNodeManagers"])
@@ -126,7 +130,7 @@ def execute(configurations={}, parameters={}, host_name=None):
       if convert_to_json_failed:
         response_code, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
                                                     live_nodemanagers_qry, "nm_health_summary_alert", None, True,
-                                                    "NodeManager Health Summary")
+                                                    "NodeManager Health Summary", smokeuser)
     else:
       live_nodemanagers = json.loads(get_value_from_jmx(live_nodemanagers_qry,
       "LiveNodeManagers", connection_timeout))
