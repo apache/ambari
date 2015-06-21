@@ -197,6 +197,7 @@ public class StaleAlertRunnable implements Runnable {
         alert.setLabel(entity.getLabel());
         alert.setText(alertText);
         alert.setTimestamp(now);
+        alert.setCluster(cluster.getClusterName());
 
         AlertReceivedEvent event = new AlertReceivedEvent(
             cluster.getClusterId(), alert);
