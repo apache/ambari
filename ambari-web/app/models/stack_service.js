@@ -197,8 +197,8 @@ App.StackService.FIXTURES = [];
 App.StackService.displayOrder = [
   'HDFS',
   'GLUSTERFS',
-  'MAPREDUCE2',
   'YARN',
+  'MAPREDUCE2',
   'TEZ',
   'GANGLIA',
   'HIVE',
