@@ -16,16 +16,15 @@
  */
 package org.apache.ambari.server.testing;
 
+import org.apache.commons.lang.ArrayUtils;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * 
@@ -34,13 +33,11 @@ import java.util.TreeSet;
  */
 public class DeadlockWarningThread extends Thread {
 
-  private Thread parentThread;
   private final List<String> errorMessages;
   private static final int MAX_STACK_DEPTH = 30;
   private Collection<Thread> monitoredThreads = null;
   private boolean deadlocked = false;
   private static final ThreadMXBean mbean = ManagementFactory.getThreadMXBean();
-  private String stacktrace = "";
 
   public List<String> getErrorMessages() {
     return errorMessages;
@@ -53,11 +50,10 @@ public class DeadlockWarningThread extends Thread {
   public DeadlockWarningThread(Collection<Thread> monitoredThreads) {
     this.errorMessages = new ArrayList<String>();
     this.monitoredThreads = monitoredThreads;
-    parentThread = Thread.currentThread();
     start();
   }
 
-  public String getThreadsStacktraces(long[] ids) {
+  public String getThreadsStacktraces(Collection<Long> ids) {
     StringBuilder errBuilder = new StringBuilder();
       for (long id : ids) {
         ThreadInfo ti = mbean.getThreadInfo(id, MAX_STACK_DEPTH);
@@ -83,7 +79,7 @@ public class DeadlockWarningThread extends Thread {
       long[] ids = mbean.findMonitorDeadlockedThreads();
       StringBuilder errBuilder = new StringBuilder();
       if (ids != null && ids.length > 0) {
-          errBuilder.append(getThreadsStacktraces(ids));
+          errBuilder.append(getThreadsStacktraces(Arrays.asList(ArrayUtils.toObject(ids))));
           errorMessages.add(errBuilder.toString());
           System.out.append(errBuilder.toString());
          //Exit if deadlocks have been found         
@@ -92,42 +88,33 @@ public class DeadlockWarningThread extends Thread {
       } else {
         //Exit if all monitored threads were finished
         boolean hasLive = false;
-        Set<Thread> activeThreads = new HashSet<Thread>();
+        boolean hasRunning = false;
         for (Thread monTh : monitoredThreads) {
-          ThreadGroup group = monTh.getThreadGroup();
-          Thread[] groupThreads = new Thread[group.activeCount()];
-          group.enumerate(groupThreads, true);
-          activeThreads.addAll(Arrays.asList(groupThreads));
-        }
-        activeThreads.remove(Thread.currentThread());
-        activeThreads.remove(parentThread);
-        Set<Long> idSet = new TreeSet<Long>();
-        for (Thread activeThread : activeThreads) {
-          if (activeThread.isAlive()) {
+          State state = monTh.getState();
+          if (state != State.TERMINATED && state != State.NEW) {
             hasLive = true;
-            idSet.add(activeThread.getId());
-          }     
+          }
+          if (state == State.RUNNABLE || state == State.TIMED_WAITING) {
+            hasRunning = true;
+            break;
+          }
         }
-        long[] tid = new long[idSet.size()];
+
         if (!hasLive) {
           deadlocked = false;
           break;
-        } else {
-          int cnt = 0;
-          for (Long id : idSet) {
-            tid[cnt] = id;
-            cnt++;
+        } else if (!hasRunning) {
+          List<Long> tIds = new ArrayList<Long>();
+          for (Thread monitoredThread : monitoredThreads) {
+            State state = monitoredThread.getState();
+            if (state == State.WAITING || state == State.BLOCKED) {
+              tIds.add(monitoredThread.getId());
+            }
           }
-          String currentStackTrace = getThreadsStacktraces(tid);
-          if (stacktrace.equals(currentStackTrace)) {
-            errBuilder.append(currentStackTrace);
-            errorMessages.add(currentStackTrace);
-            System.out.append(currentStackTrace);
-            deadlocked = true;
-            break;            
-          } else {
-            stacktrace = currentStackTrace;
-          }
+          errBuilder.append(getThreadsStacktraces(tIds));
+          errorMessages.add(errBuilder.toString());
+          deadlocked = true;
+          break;
         }
       }
     }
