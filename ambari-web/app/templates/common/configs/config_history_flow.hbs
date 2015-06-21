@@ -17,7 +17,7 @@
 }}
 
 
-<div id="config_history_flow">
+<div id="config_history_flow" {{bindAttr class="view.parentView.supportsConfigLayout:with-enhanced-config"}}>
   <div class="version-slider">
     <div {{bindAttr class=":icon-chevron-box :pull-left view.showLeftArrow::disabled"}} {{action shiftBack target="view"}} data-toggle="arrow-tooltip"
       {{bindAttr data-original-title="view.leftArrowTooltip"}}><i class="icon-chevron-left icon-3x"></i></div>
