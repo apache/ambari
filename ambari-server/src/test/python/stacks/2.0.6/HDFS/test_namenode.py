@@ -983,12 +983,14 @@ class TestNamenode(RMFTestCase):
                        command = "rebalancehdfs",
                        config_file = "rebalancehdfs_secured.json",
                        hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks=[(1, "no kinit")]
     )
     tempdir = tempfile.gettempdir()
     ccache_path =  os.path.join(tempfile.gettempdir(), "hdfs_rebalance_cc_7add60ca651f1bd1ed909a6668937ba9")
     kinit_cmd = "/usr/bin/kinit -c {0} -kt /etc/security/keytabs/hdfs.headless.keytab hdfs@EXAMPLE.COM".format(ccache_path)
     rebalance_cmd = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin KRB5CCNAME={0} ; hdfs --config /etc/hadoop/conf balancer -threshold -1'".format(ccache_path)
+
     self.assertResourceCalled('Execute', kinit_cmd,
                               user = 'hdfs',
                               )

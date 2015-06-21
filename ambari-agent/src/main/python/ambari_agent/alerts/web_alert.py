@@ -164,7 +164,10 @@ class WebAlert(BaseAlert):
       if self.uri_property_keys.kerberos_keytab is not None:
         kerberos_keytab = self._get_configuration_value(self.uri_property_keys.kerberos_keytab)
 
-      if kerberos_principal is not None and kerberos_keytab is not None:
+      security_enabled = self._get_configuration_value('{{cluster-env/security_enabled}}')
+      
+      if kerberos_principal is not None and kerberos_keytab is not None \
+        and security_enabled is not None and security_enabled.lower() == "true":
         # Create the kerberos credentials cache (ccache) file and set it in the environment to use
         # when executing curl. Use the md5 hash of the combination of the principal and keytab file
         # to generate a (relatively) unique cache filename so that we can use it as needed.
@@ -174,9 +177,10 @@ class WebAlert(BaseAlert):
 
         # Get the configured Kerberos executables search paths, if any
         kerberos_executable_search_paths = self._get_configuration_value('{{kerberos-env/executable_search_paths}}')
+        smokeuser = self._get_configuration_value('{{cluster-env/smokeuser}}')
 
         response_code, error_msg, time_millis = curl_krb_request(tmp_dir, kerberos_keytab, kerberos_principal, url,
-                                               "web_alert", kerberos_executable_search_paths, True, self.get_name())
+                                               "web_alert", kerberos_executable_search_paths, True, self.get_name(), smokeuser)
       else:
         # kerberos is not involved; use urllib2
         response_code, time_millis, error_msg = self._make_web_request_urllib(url)

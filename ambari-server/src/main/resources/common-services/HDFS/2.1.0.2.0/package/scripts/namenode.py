@@ -26,6 +26,7 @@ import ambari_simplejson as json # simplejson is much faster comparing to Python
 
 from resource_management import Script
 from resource_management.core.resources.system import Execute
+from resource_management.core import shell
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
@@ -211,7 +212,7 @@ class NameNodeDefault(NameNode):
       # is in the cache
       klist_cmd = format("{klist_path_local} -s {ccache_file_path}")
       kinit_cmd = format("{kinit_path_local} -c {ccache_file_path} -kt {hdfs_user_keytab} {hdfs_principal_name}")
-      if os.system(klist_cmd) != 0:
+      if shell.call(klist_cmd, user=params.hdfs_user)[0] != 0:
         Execute(kinit_cmd, user=params.hdfs_user)
 
     def calculateCompletePercent(first, current):

@@ -203,9 +203,10 @@ class MetricAlert(BaseAlert):
             tmp_dir = gettempdir()
 
           kerberos_executable_search_paths = self._get_configuration_value('{{kerberos-env/executable_search_paths}}')
+          smokeuser = self._get_configuration_value('{{cluster-env/smokeuser}}')
 
           response, error_msg, time_millis = curl_krb_request(tmp_dir, kerberos_keytab, kerberos_principal, url,
-                                          "metric_alert", kerberos_executable_search_paths, False, self.get_name())
+                                          "metric_alert", kerberos_executable_search_paths, False, self.get_name(), smokeuser)
           content = response
         else:
           url_opener = urllib2.build_opener(RefreshHeaderProcessor())
@@ -244,7 +245,7 @@ class MetricAlert(BaseAlert):
       if not json_is_valid and security_enabled and \
             kerberos_principal is not None and kerberos_keytab is not None:
         http_response_code, error_msg, time_millis = curl_krb_request(tmp_dir, kerberos_keytab, kerberos_principal, url,
-                                              "metric_alert", kerberos_executable_search_paths, True, self.get_name())
+                                              "metric_alert", kerberos_executable_search_paths, True, self.get_name(), smokeuser)
 
     return (value_list, http_response_code)
 

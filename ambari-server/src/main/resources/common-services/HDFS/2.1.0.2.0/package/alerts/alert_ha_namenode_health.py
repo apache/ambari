@@ -42,6 +42,7 @@ DFS_POLICY_KEY = '{{hdfs-site/dfs.http.policy}}'
 KERBEROS_KEYTAB = '{{hdfs-site/dfs.web.authentication.kerberos.keytab}}'
 KERBEROS_PRINCIPAL = '{{hdfs-site/dfs.web.authentication.kerberos.principal}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
+SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 
 CONNECTION_TIMEOUT_KEY = 'connection.timeout'
 CONNECTION_TIMEOUT_DEFAULT = 5.0
@@ -54,7 +55,7 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return (HDFS_SITE_KEY, NAMESERVICE_KEY, NN_HTTP_ADDRESS_KEY,
-  NN_HTTPS_ADDRESS_KEY, DFS_POLICY_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY)
+  NN_HTTPS_ADDRESS_KEY, DFS_POLICY_KEY, SMOKEUSER_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY)
   
 
 def execute(configurations={}, parameters={}, host_name=None):
@@ -76,6 +77,9 @@ def execute(configurations={}, parameters={}, host_name=None):
   # hdfs-site is required
   if not HDFS_SITE_KEY in configurations:
     return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script'.format(HDFS_SITE_KEY)])
+  
+  if SMOKEUSER_KEY in configurations:
+    smokeuser = configurations[SMOKEUSER_KEY]
 
   # parse script arguments
   connection_timeout = CONNECTION_TIMEOUT_DEFAULT
@@ -140,7 +144,7 @@ def execute(configurations={}, parameters={}, host_name=None):
           env = Environment.get_instance()
           state_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
                                                     jmx_uri,"ha_nn_health", None, False,
-                                                    "NameNode High Availability Health")
+                                                    "NameNode High Availability Health", smokeuser)
           state_response_json = json.loads(state_response)
           state = state_response_json["beans"][0]['State']
         else:

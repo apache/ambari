@@ -43,6 +43,7 @@ CRITICAL_NODEMANAGER_UNKNOWN_JSON_MESSAGE = 'Unable to determine NodeManager hea
 KERBEROS_KEYTAB = '{{yarn-site/yarn.nodemanager.webapp.spnego-keytab-file}}'
 KERBEROS_PRINCIPAL = '{{yarn-site/yarn.nodemanager.webapp.spnego-principal}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
+SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 
 NODEMANAGER_DEFAULT_PORT = 8042
 
@@ -55,7 +56,7 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return (NODEMANAGER_HTTP_ADDRESS_KEY,NODEMANAGER_HTTPS_ADDRESS_KEY,
-  YARN_HTTP_POLICY_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY)
+  YARN_HTTP_POLICY_KEY, SMOKEUSER_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY)
   
 
 def execute(configurations={}, parameters={}, host_name=None):
@@ -77,6 +78,9 @@ def execute(configurations={}, parameters={}, host_name=None):
   https_uri = None
   http_policy = 'HTTP_ONLY'
 
+  if SMOKEUSER_KEY in configurations:
+    smokeuser = configurations[SMOKEUSER_KEY]
+    
   security_enabled = False
   if SECURITY_ENABLED_KEY in configurations:
     security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
@@ -138,7 +142,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     if kerberos_principal is not None and kerberos_keytab is not None and security_enabled:
       env = Environment.get_instance()
       url_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
-                                                query, "nm_health_alert", None, False, "NodeManager Health")
+                                                query, "nm_health_alert", None, False, "NodeManager Health", smokeuser)
 
       json_response = json.loads(url_response)
     else:
