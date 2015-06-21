@@ -95,12 +95,7 @@ public class DeadlockWarningThread extends Thread {
         Set<Thread> activeThreads = new HashSet<Thread>();
         for (Thread monTh : monitoredThreads) {
           ThreadGroup group = monTh.getThreadGroup();
-          if (group == null) {
-            //expected if thread died, ignore it
-            continue;
-          }
-          int activeCount = group.activeCount();
-          Thread[] groupThreads = new Thread[activeCount];
+          Thread[] groupThreads = new Thread[group.activeCount()];
           group.enumerate(groupThreads, true);
           activeThreads.addAll(Arrays.asList(groupThreads));
         }

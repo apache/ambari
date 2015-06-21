@@ -23,8 +23,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
@@ -48,13 +46,11 @@ public class ConfigImpl implements Config {
 
   public static final String GENERATED_TAG_PREFIX = "generatedTag_";
 
-  private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-
   private Cluster cluster;
   private StackId stackId;
   private String type;
-  private volatile String tag;
-  private volatile Long version;
+  private String tag;
+  private Long version;
   private Map<String, String> properties;
   private Map<String, Map<String, String>> propertiesAttributes;
   private ClusterConfigEntity entity;
@@ -95,9 +91,6 @@ public class ConfigImpl implements Config {
     stackId = new StackId(entity.getStack());
 
     this.entity = entity;
-    propertiesAttributes = gson.<Map<String, Map<String, String>>>fromJson(entity.getAttributes(), Map.class);
-    properties = gson.<Map<String, String>>fromJson(entity.getData(), Map.class);
-
     injector.injectMembers(this);
   }
 
@@ -112,186 +105,93 @@ public class ConfigImpl implements Config {
    * {@inheritDoc}
    */
   @Override
-  public StackId getStackId() {
-    readWriteLock.readLock().lock();
-    try {
-      return stackId;
-    } finally {
-      readWriteLock.readLock().unlock();
-    }
-
+  public synchronized StackId getStackId() {
+    return stackId;
   }
 
   @Override
-  public void setStackId(StackId stackId) {
-    readWriteLock.writeLock().lock();
-    try {
-      this.stackId = stackId;
-    } finally {
-      readWriteLock.writeLock().unlock();
-    }
-
+  public synchronized void setStackId(StackId stackId) {
+    this.stackId = stackId;
   }
 
   @Override
   public String getType() {
-    readWriteLock.readLock().lock();
-    try {
-      return type;
-    } finally {
-      readWriteLock.readLock().unlock();
-    }
-
+    return type;
   }
 
   @Override
-  public String getTag() {
+  public synchronized String getTag() {
     if (tag == null) {
-      readWriteLock.writeLock().lock();
-      try {
-        if (tag == null) {
-          tag = GENERATED_TAG_PREFIX + getVersion();
-        }
-      } finally {
-        readWriteLock.writeLock().unlock();
-      }
+      tag = GENERATED_TAG_PREFIX + getVersion();
     }
-
-    readWriteLock.readLock().lock();
-    try {
-
-      return tag;
-    } finally {
-      readWriteLock.readLock().unlock();
-    }
-
+    return tag;
   }
 
   @Override
-  public Long getVersion() {
+  public synchronized Long getVersion() {
     if (version == null && cluster != null) {
-      readWriteLock.writeLock().lock();
-      try {
-        if (version == null) {
-          version = cluster.getNextConfigVersion(type); //pure DB calculation call, no cluster locking required
-        }
-      } finally {
-        readWriteLock.writeLock().unlock();
-      }
+      version = cluster.getNextConfigVersion(type);
     }
-
-    readWriteLock.readLock().lock();
-    try {
-      return version;
-    } finally {
-      readWriteLock.readLock().unlock();
-    }
-
+    return version;
   }
 
   @Override
-  public Map<String, String> getProperties() {
-    readWriteLock.readLock().lock();
-    try {
-      return null == properties ? new HashMap<String, String>()
-          : new HashMap<String, String>(properties);
-    } finally {
-      readWriteLock.readLock().unlock();
-    }
+  public synchronized Map<String, String> getProperties() {
+    if (null != entity && null == properties) {
 
+      properties = gson.<Map<String, String>>fromJson(entity.getData(), Map.class);
+
+    }
+    return null == properties ? new HashMap<String, String>()
+        : new HashMap<String, String>(properties);
   }
 
   @Override
-  public Map<String, Map<String, String>> getPropertiesAttributes() {
-    readWriteLock.readLock().lock();
-    try {
-      return null == propertiesAttributes ? null : new HashMap<String, Map<String, String>>(propertiesAttributes);
-    } finally {
-      readWriteLock.readLock().unlock();
+  public synchronized Map<String, Map<String, String>> getPropertiesAttributes() {
+    if (null != entity && null == propertiesAttributes) {
+      propertiesAttributes = gson.<Map<String, Map<String, String>>>fromJson(entity.getAttributes(), Map.class);
     }
-
+    return null == propertiesAttributes ? null : new HashMap<String, Map<String, String>>(propertiesAttributes);
   }
 
   @Override
-  public void setTag(String tag) {
-    readWriteLock.writeLock().lock();
-    try {
-      this.tag = tag;
-    } finally {
-      readWriteLock.writeLock().unlock();
-    }
-
+  public synchronized void setTag(String tag) {
+    this.tag = tag;
   }
 
   @Override
-  public void setVersion(Long version) {
-    readWriteLock.writeLock().lock();
-    try {
-      this.version = version;
-    } finally {
-      readWriteLock.writeLock().unlock();
-    }
-
+  public synchronized void setVersion(Long version) {
+    this.version = version;
   }
 
   @Override
-  public void setProperties(Map<String, String> properties) {
-    readWriteLock.writeLock().lock();
-    try {
-      this.properties = properties;
-    } finally {
-      readWriteLock.writeLock().unlock();
-    }
-
+  public synchronized void setProperties(Map<String, String> properties) {
+    this.properties = properties;
   }
 
   @Override
   public void setPropertiesAttributes(Map<String, Map<String, String>> propertiesAttributes) {
-    readWriteLock.writeLock().lock();
-    try {
-      this.propertiesAttributes = propertiesAttributes;
-    } finally {
-      readWriteLock.writeLock().unlock();
-    }
-
+    this.propertiesAttributes = propertiesAttributes;
   }
 
   @Override
-  public void updateProperties(Map<String, String> properties) {
-    readWriteLock.writeLock().lock();
-    try {
-      this.properties.putAll(properties);
-    } finally {
-      readWriteLock.writeLock().unlock();
-    }
-
+  public synchronized void updateProperties(Map<String, String> properties) {
+    this.properties.putAll(properties);
   }
 
   @Override
-  public List<Long> getServiceConfigVersions() {
-    readWriteLock.readLock().lock();
-    try {
-      if (cluster == null || type == null || version == null) {
-        return Collections.emptyList();
-      }
-      return serviceConfigDAO.getServiceConfigVersionsByConfig(cluster.getClusterId(), type, version);
-    } finally {
-      readWriteLock.readLock().unlock();
+  public synchronized List<Long> getServiceConfigVersions() {
+    if (cluster == null || type == null || version == null) {
+      return Collections.emptyList();
     }
-
+    return serviceConfigDAO.getServiceConfigVersionsByConfig(cluster.getClusterId(), type, version);
   }
 
   @Override
-  public void deleteProperties(List<String> properties) {
-    readWriteLock.writeLock().lock();
-    try {
-      for (String key : properties) {
-        this.properties.remove(key);
-      }
-    } finally {
-      readWriteLock.writeLock().unlock();
+  public synchronized void deleteProperties(List<String> properties) {
+    for (String key : properties) {
+      this.properties.remove(key);
     }
-
   }
 
   @Override
@@ -301,70 +201,58 @@ public class ConfigImpl implements Config {
 
   @Override
   @Transactional
-  public void persist(boolean newConfig) {
-    cluster.getClusterGlobalLock().writeLock().lock(); //null cluster is not expected, NPE anyway later in code
-    try {
-      readWriteLock.writeLock().lock();
-      try {
-        ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
+  public synchronized void persist(boolean newConfig) {
+    ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
 
-        if (newConfig) {
-          ClusterConfigEntity entity = new ClusterConfigEntity();
-          entity.setClusterEntity(clusterEntity);
-          entity.setClusterId(cluster.getClusterId());
-          entity.setType(getType());
-          entity.setVersion(getVersion());
-          entity.setTag(getTag());
-          entity.setTimestamp(new Date().getTime());
-          entity.setStack(clusterEntity.getDesiredStack());
-          entity.setData(gson.toJson(getProperties()));
+    if (newConfig) {
+      ClusterConfigEntity entity = new ClusterConfigEntity();
+      entity.setClusterEntity(clusterEntity);
+      entity.setClusterId(cluster.getClusterId());
+      entity.setType(getType());
+      entity.setVersion(getVersion());
+      entity.setTag(getTag());
+      entity.setTimestamp(new Date().getTime());
+      entity.setStack(clusterEntity.getDesiredStack());
+      entity.setData(gson.toJson(getProperties()));
 
-          if (null != getPropertiesAttributes()) {
-            entity.setAttributes(gson.toJson(getPropertiesAttributes()));
-          }
-
-          clusterDAO.createConfig(entity);
-          clusterEntity.getClusterConfigEntities().add(entity);
-
-          // save the entity, forcing a flush to ensure the refresh picks up the
-          // newest data
-          clusterDAO.merge(clusterEntity, true);
-          cluster.refresh();
-        } else {
-          // only supporting changes to the properties
-          ClusterConfigEntity entity = null;
-
-          // find the existing configuration to update
-          for (ClusterConfigEntity cfe : clusterEntity.getClusterConfigEntities()) {
-            if (getTag().equals(cfe.getTag()) &&
-                getType().equals(cfe.getType()) &&
-                getVersion().equals(cfe.getVersion())) {
-              entity = cfe;
-              break;
-            }
-          }
-
-          // if the configuration was found, then update it
-          if (null != entity) {
-            LOG.debug(
-                "Updating {} version {} with new configurations; a new version will not be created",
-                getType(), getVersion());
-
-            entity.setData(gson.toJson(getProperties()));
-
-            // save the entity, forcing a flush to ensure the refresh picks up the
-            // newest data
-            clusterDAO.merge(clusterEntity, true);
-            cluster.refresh();
-          }
-        }
-      } finally {
-        readWriteLock.writeLock().unlock();
+      if (null != getPropertiesAttributes()) {
+        entity.setAttributes(gson.toJson(getPropertiesAttributes()));
       }
-    } finally {
-      cluster.getClusterGlobalLock().writeLock().unlock();
+
+      clusterDAO.createConfig(entity);
+      clusterEntity.getClusterConfigEntities().add(entity);
+
+      // save the entity, forcing a flush to ensure the refresh picks up the
+      // newest data
+      clusterDAO.merge(clusterEntity, true);
+      cluster.refresh();
+    } else {
+      // only supporting changes to the properties
+      ClusterConfigEntity entity = null;
+
+      // find the existing configuration to update
+      for (ClusterConfigEntity cfe : clusterEntity.getClusterConfigEntities()) {
+        if (getTag().equals(cfe.getTag()) &&
+            getType().equals(cfe.getType()) &&
+            getVersion().equals(cfe.getVersion())) {
+          entity = cfe;
+          break;
+        }
+      }
+
+      // if the configuration was found, then update it
+      if (null != entity) {
+        LOG.debug(
+            "Updating {} version {} with new configurations; a new version will not be created",
+            getType(), getVersion());
+
+        entity.setData(gson.toJson(getProperties()));
+
+        // save the entity, forcing a flush to ensure the refresh picks up the
+        // newest data
+        clusterDAO.merge(clusterEntity, true);
+        cluster.refresh();
+      }
     }
-
   }
-
 }
