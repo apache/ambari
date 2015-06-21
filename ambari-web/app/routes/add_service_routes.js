@@ -331,13 +331,13 @@ module.exports = App.WizardRoute.extend({
       console.log('in addService.step6:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('7');
+      if (!App.get('testMode')) {              //if test mode is ON don't disable prior steps link.
+        controller.setLowerStepsDisable(7);
+      }
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps().done(function () {
           var wizardStep9Controller = router.get('wizardStep9Controller');
           wizardStep9Controller.set('wizardController', controller);
-          if (!App.get('testMode')) {              //if test mode is ON don't disable prior steps link.
-            controller.setLowerStepsDisable(7);
-          }
           controller.connectOutlet('wizardStep9', controller.get('content'));
         });
       });
@@ -380,9 +380,9 @@ module.exports = App.WizardRoute.extend({
       console.log('in addService.step7:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('8');
+      controller.setLowerStepsDisable(8);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps().done(function () {
-          controller.setLowerStepsDisable(8);
           controller.connectOutlet('wizardStep10', controller.get('content'));
         });
       });

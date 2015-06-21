@@ -252,7 +252,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
   loadMasterComponentHosts: function () {
     this._super();
     this.set('content.skipMasterStep', App.StackService.find().filterProperty('isSelected').filterProperty('hasMaster').everyProperty('isInstalled', true));
-    this.get('isStepDisabled').findProperty('step', 2).set('value', this.get('content.skipMasterStep'));
+    this.get('isStepDisabled').findProperty('step', 2).set('value', this.get('content.skipMasterStep') || (this.get('currentStep') == 7 || this.get('currentStep') == 8));
   },
 
   /**
