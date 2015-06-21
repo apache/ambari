@@ -376,10 +376,6 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
   getHostsForBulkOperations: function (queryParams, operationData, loadingPopup) {
     var params = App.router.get('updateController').computeParameters(queryParams);
 
-    if (!params.length) {
-      params = '&';
-    }
-
     App.ajax.send({
       name: 'hosts.bulk.operations',
       sender: this,
