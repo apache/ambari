@@ -67,6 +67,8 @@ dfs_ha_enabled = False
 dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
 dfs_ha_namenode_ids = default(format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
 
+namenode_rpc = None
+
 if dfs_ha_namenode_ids:
   dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
   dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
