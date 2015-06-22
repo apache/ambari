@@ -345,6 +345,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
         serviceVersion.set('isDisplayed', false);
       }
     });
+    this.set('isCompareMode', false);
     this.shiftFlowOnSwitch(versionIndex);
     this.get('controller').loadSelectedVersion(displayedVersion);
   },

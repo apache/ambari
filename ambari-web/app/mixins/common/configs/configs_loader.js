@@ -99,6 +99,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
    * @method loadCurrentVersions
    */
   loadCurrentVersions: function() {
+    this.set('isCompareMode', false);
     this.set('versionLoaded', false);
     this.set('selectedVersion', this.get('currentDefaultVersion'));
     this.trackRequest(App.ajax.send({
@@ -129,6 +130,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
    * @method loadSelectedVersion
    */
   loadSelectedVersion: function (version, switchToGroup) {
+    this.set('isCompareMode', false);
     this.set('versionLoaded', false);
     version = version || this.get('currentDefaultVersion');
     if (version === this.get('currentDefaultVersion') && (!switchToGroup || switchToGroup.get('isDefault'))) {
