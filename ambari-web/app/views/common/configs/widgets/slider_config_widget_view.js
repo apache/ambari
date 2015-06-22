@@ -532,8 +532,8 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         }
         this.initIncompatibleWidgetAsTextBox();
         this.initSlider();
-        this.refreshSliderObserver();
         this.toggleWidgetState();
+        this.refreshSliderObserver();
       } catch (e) {
         console.error('error while rebuilding slider for config: ' + this.get('config.name'));
       }
