@@ -363,6 +363,7 @@ test('sendAppDataToServer', function () {
           version: '1'
         },
         name: 'name',
+        twoWaySSLEnabled: false,
         configs: {
           key: 'value'
         }
@@ -405,6 +406,7 @@ test('sendAppDataToServer', function () {
       typeName: 'ACCUMULO',
       typeVersion: '1',
       name: 'name',
+      twoWaySSLEnabled: 'false',
       resources: {
         components: []
       },

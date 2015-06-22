@@ -1186,6 +1186,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       final String appName = json.get("name").getAsString();
       final String queueName = json.has("queue") ? json.get("queue").getAsString() : null;
       final boolean securityEnabled = Boolean.valueOf(getHadoopConfigs().get("security_enabled"));
+      final boolean twoWaySSlEnabled = json.has("twoWaySSLEnabled") ? Boolean.valueOf(json.get("twoWaySSLEnabled").getAsString()) : false;
       JsonObject configs = json.get("typeConfigs").getAsJsonObject();
       JsonObject resourcesObj = json.get("resources").getAsJsonObject();
       JsonArray componentsArray = resourcesObj.get("components").getAsJsonArray();
@@ -1217,7 +1218,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       appCreateFolder.mkdirs();
       File appConfigJsonFile = new File(appCreateFolder, "appConfig.json");
       File resourcesJsonFile = new File(appCreateFolder, "resources.json");
-      saveAppConfigs(configs, componentsArray, appName, sliderAppType.getTypeName(), securityEnabled, appConfigJsonFile);
+      saveAppConfigs(configs, componentsArray, appName, sliderAppType.getTypeName(), securityEnabled, twoWaySSlEnabled, appConfigJsonFile);
       saveAppResources(resourcesObj, resourcesJsonFile);
 
       final ActionCreateArgs createArgs = new ActionCreateArgs();
@@ -1375,7 +1376,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   }
 
   private void saveAppConfigs(JsonObject configs, JsonArray componentsArray,
-      String appName, String appType, boolean securityEnabled, File appConfigJsonFile) throws IOException {
+      String appName, String appType, boolean securityEnabled, boolean twoWaySSlEnabled, File appConfigJsonFile) throws IOException {
     JsonObject appConfigs = new JsonObject();
     appConfigs.addProperty("schema", "http://example.org/specification/v2.0.0");
     appConfigs.add("metadata", new JsonObject());
@@ -1402,7 +1403,17 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       appMasterComponent.add("slider.am.login.keytab.name", new JsonPrimitive(fileName));
       appMasterComponent.add("slider.hdfs.keytab.dir", new JsonPrimitive(".slider/keytabs/" + appName));
       componentsObj.add("slider-appmaster", appMasterComponent);
-    }
+   }
+   if (twoWaySSlEnabled) {
+     JsonObject appMasterComponent;
+     if (componentsObj.has("slider-appmaster")) {
+       appMasterComponent = componentsObj.get("slider-appmaster").getAsJsonObject();
+     } else {
+       appMasterComponent = new JsonObject();
+       componentsObj.add("slider-appmaster", appMasterComponent);
+     }
+     appMasterComponent.add("ssl.server.client.auth", new JsonPrimitive("true"));
+   }
    appConfigs.add("components", componentsObj);
     String jsonString = new GsonBuilder().setPrettyPrinting().create().toJson(appConfigs);
     FileOutputStream fos = null;

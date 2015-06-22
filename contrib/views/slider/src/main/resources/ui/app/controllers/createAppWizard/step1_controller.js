@@ -106,6 +106,7 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend(App.AjaxErrorHandle
       properties = Em.A(['name', 'includeFilePatterns', 'excludeFilePatterns', 'frequency', 'queueName', 'specialLabel', 'selectedYarnLabel']),
       newApp = Ember.Object.create({
         appType: null,
+        twoWaySSLEnabled: false,
         configs: {}
       });
 

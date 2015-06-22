@@ -128,6 +128,7 @@ App.CreateAppWizardStep4Controller = Ember.ObjectController.extend(App.AjaxError
       typeName: app.get('appType.index'),
       typeVersion: app.get('appType.version'),
       name: app.get('name'),
+      twoWaySSLEnabled: app.get('twoWaySSLEnabled') + "",
       resources: this.get('resourcesFormatted'),
       typeConfigs: app.get('configs')
     };

@@ -81,6 +81,18 @@
         </div>
       </div>
     {{/if}}
+    <div class="form-group row">
+      <div class="col-xs-3">
+        <label class=" control-label">{{t wizard.step1.enable2wayssl}}</label>
+      </div>
+      <div class="col-xs-7">
+        {{view
+          Em.Checkbox
+          class="form-control type-select"
+          checkedBinding="controller.newApp.twoWaySSLEnabled"
+        }}
+      </div>
+    </div>
     <!-- Available Applications end -->
     <!-- Scheduler Options -->
     <hr />
