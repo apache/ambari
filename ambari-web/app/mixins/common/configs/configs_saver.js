@@ -925,7 +925,10 @@ App.ConfigsSaverMixin = Em.Mixin.create({
         })
       }),
       footerClass: Ember.View.extend({
-        templateName: require('templates/main/service/info/save_popup_footer')
+        templateName: require('templates/main/service/info/save_popup_footer'),
+        isSaveDisabled: function() {
+          return self.get('isSubmitDisabled');
+        }.property()
       }),
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),
