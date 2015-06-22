@@ -182,9 +182,10 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     if (!this.get('isLoaded')) {
       return false;
     }
+    var ignoreKeys = ['initialGroups'];
     var modifiedGroups = this.get('hostsModifiedConfigGroups');
     return Em.keys(modifiedGroups).map(function (key) {
-      return Em.get(modifiedGroups[key], 'length');
+      return ignoreKeys.contains(key) ? 0 : Em.get(modifiedGroups[key], 'length');
     }).reduce(Em.sum) > 0;
   }.property('hostsModifiedConfigGroups'),
 
