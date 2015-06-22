@@ -407,9 +407,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * Initialize widget with incompatible value as textbox
    */
   initIncompatibleWidgetAsTextBox : function() {
-    if (!this.isValueCompatibleWithWidget()) {
-      this.get('config').set('showAsTextBox', true);
-    }
+    this.get('config').set('showAsTextBox', !this.isValueCompatibleWithWidget());
   },
 
   /**

@@ -21,7 +21,7 @@ require('controllers/wizard/slave_component_groups_controller');
 var batchUtils = require('utils/batch_scheduled_requests');
 var databaseUtils = require('utils/configs/database');
 
-App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ThemesMappingMixin, App.VersionsMappingMixin, App.ConfigsSaverMixin, {
+App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ThemesMappingMixin, App.VersionsMappingMixin, App.ConfigsSaverMixin, App.ConfigsComparator, {
 
   name: 'mainServiceInfoConfigsController',
 
@@ -36,8 +36,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   stepConfigs: [], //contains all field properties that are viewed in this service
 
   selectedService: null,
-
-  serviceConfigTags: null,
 
   selectedConfigGroup: null,
 
@@ -70,19 +68,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
   isCompareMode: false,
 
-  compareServiceVersion: null,
-
   preSelectedConfigVersion: null,
 
   /**
    * contain Service Config Property, when user proceed from Select Config Group dialog
    */
   overrideToAdd: null,
-
-  /**
-   * version of default config group, configs of which currently applied
-   */
-  currentDefaultVersion: null,
 
   /**
    * version selected to view
@@ -97,13 +88,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
   versionLoaded: false,
 
+  dependentServiceNames: [],
   /**
    * defines which service configs need to be loaded to stepConfigs
    * @type {string[]}
    */
   servicesToLoad: function() {
     return this.get('dependentServiceNames').concat([this.get('content.serviceName')]).uniq();
-  }.property('content.serviceName', 'dependentServiceNames'),
+  }.property('content.serviceName', 'dependentServiceNames.length'),
 
   /**
    * defines which config groups need to be loaded
@@ -134,8 +126,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @type {boolean}
    */
   canEdit: function () {
-    return this.get('isCurrentSelected') && !this.get('isCompareMode') && App.isAccessible('MANAGER') && !this.get('isHostsConfigsPage');
-  }.property('isCurrentSelected', 'isCompareMode'),
+    return (this.get('selectedVersion') == this.get('currentDefaultVersion') || !this.get('selectedConfigGroup.isDefault'))
+        && !this.get('isCompareMode') && App.isAccessible('MANAGER') && !this.get('isHostsConfigsPage');
+  }.property('selectedVersion', 'isCompareMode', 'currentDefaultVersion'),
 
   serviceConfigs: function () {
     return App.config.get('preDefinedServiceConfigs');
@@ -148,8 +141,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   configs: function () {
     return  App.config.get('preDefinedSiteProperties');
   }.property('App.config.preDefinedSiteProperties'),
-
-  secureConfigs: require('data/HDP2/secure_mapping'),
 
   showConfigHistoryFeature: true,
 
@@ -285,9 +276,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     this.get('filterColumns').setEach('selected', false);
     this.get('stepConfigs').clear();
     this.get('allConfigs').clear();
-    if (this.get('serviceConfigTags')) {
-      this.set('serviceConfigTags', null);
-    }
   },
 
   /**
@@ -315,7 +303,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method loadStep
    */
   loadStep: function () {
-    console.log("TRACE: Loading configure for service");
     var serviceName = this.get('content.serviceName');
     this.set('dependentServiceNames', App.StackService.find(serviceName).get('dependentServiceNames'));
     this.clearStep();
@@ -370,8 +357,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
         });
       }
     });
-
-    var configs = App.config.mergePredefinedWithSaved(configGroups, this.get('advancedConfigs'), serviceName);
+    var configs = App.config.mergePredefinedWithSaved(configGroups, this.get('advancedConfigs'), serviceName, this.get('selectedConfigGroup'), this.get('canEdit'));
     configs = App.config.syncOrderWithPredefined(configs);
     /**
      * if property defined in stack but somehow it missed from cluster properties (can be after stack upgrade)
@@ -459,6 +445,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   },
 
   addOverrides: function(data, allConfigs) {
+    var self = this;
     data.items.forEach(function(group) {
       if (group.group_name != 'default') {
         var configGroup = App.ServiceConfigGroup.find().filterProperty('serviceName', group.service_name).findProperty('name', group.group_name);
@@ -466,312 +453,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
           for (var prop in config.properties) {
             var fileName = App.config.getOriginalFileName(config.type);
             var serviceConfig = allConfigs.filterProperty('name', prop).findProperty('filename', fileName);
-            var hostOverrideValue = App.config.formatOverrideValue(serviceConfig, config.properties[prop]);
-            var hostOverrideIsFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
+            var value = App.config.formatOverrideValue(serviceConfig, config.properties[prop]);
+            var isFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
+
             if (serviceConfig) {
-              // Value of this property is different for this host.
-              if (!Em.get(serviceConfig, 'overrides')) Em.set(serviceConfig, 'overrides', []);
-              serviceConfig.overrides.pushObject({value: hostOverrideValue, group: configGroup, isFinal: hostOverrideIsFinal});
+              if (self.get('selectedConfigGroup.isDefault') || configGroup.get('name') == self.get('selectedConfigGroup.name')) {
+                var override = self.createNewSCP({"value": value, "isFinal": isFinal, "group": configGroup}, serviceConfig, self.get('selectedConfigGroup.isDefault'));
+                override.set('isEditable', self.get('canEdit') && configGroup.get('name') == self.get('selectedConfigGroup.name'));
+                if (!serviceConfig.get('overrides')) serviceConfig.set('overrides', []);
+                serviceConfig.get('overrides').pushObject(override);
+                serviceConfig.set('overrideValues', serviceConfig.get('overrides').mapProperty('value'));
+                serviceConfig.set('overrideIsFinalValues', serviceConfig.get('overrides').mapProperty('isFinal'));
+              }
             } else {
               allConfigs.push(App.config.createCustomGroupConfig(prop, config, configGroup));
             }
           }
         });
-      }
-    });
-  },
-  /**
-   * load version configs for comparison
-   * @param allConfigs
-   * @return {object}
-   * @private
-   * @method loadCompareVersionConfigs
-   */
-  loadCompareVersionConfigs: function (allConfigs) {
-    var dfd = $.Deferred();
-    var self = this;
-    var compareServiceVersions = [];
-
-    if (this.get('compareServiceVersion')) {
-      if (!this.isVersionDefault(this.get('compareServiceVersion').get('version'))) {
-        compareServiceVersions = [this.get('compareServiceVersion').get('version'), this.get('selectedVersion')];
-      } else {
-        compareServiceVersions = [this.get('compareServiceVersion').get('version')];
-      }
-
-      this.getCompareVersionConfigs(compareServiceVersions).done(function (json) {
-        self.initCompareConfig(allConfigs, json);
-        self.setProperties({
-          compareServiceVersion: null,
-          isCompareMode: true
-        });
-        dfd.resolve(true);
-      }).fail(function () {
-          self.set('compareServiceVersion', null);
-          dfd.resolve(true);
-        });
-    } else {
-      self.set('isCompareMode', false);
-      allConfigs.setEach('isComparison', false);
-      dfd.resolve(false);
-    }
-    return dfd.promise();
-  },
-
-  /**
-   * attach analogical config to each property for comparison
-   * @param allConfigs
-   * @param json
-   * @private
-   * @method initCompareConfig
-   */
-  initCompareConfig: function(allConfigs, json) {
-    var serviceVersionMap = {};
-    var configNamesMap = {};
-    var serviceName = this.get('content.serviceName');
-    var compareVersionNumber = this.get('compareServiceVersion').get('version');
-    //indicate whether compared versions are from non-default group
-    var compareNonDefaultVersions = (json.items.length > 1);
-
-    serviceVersionMap[compareVersionNumber] = {};
-    if (compareNonDefaultVersions) {
-      serviceVersionMap[this.get('selectedVersion')] = {};
-    }
-    allConfigs.mapProperty('name').forEach(function(name) {
-      configNamesMap[name] = true;
-    });
-
-    json.items.forEach(function (item) {
-      item.configurations.forEach(function (configuration) {
-        if (serviceName == 'YARN' && configuration.type == 'capacity-scheduler') {
-          var configsToSkip = this.get('advancedConfigs').filterProperty('filename', 'capacity-scheduler.xml').filterProperty('subSection').mapProperty('name');
-          // put all properties in a single textarea for capacity-scheduler
-          var value = '';
-          for (var prop in configuration.properties) {
-            if (configsToSkip.contains(prop)) {
-              serviceVersionMap[item.service_config_version][prop + '-' + configuration.type] = {
-                name: prop,
-                value: configuration.properties[prop],
-                type: configuration.type,
-                tag: configuration.tag,
-                version: configuration.version,
-                service_config_version: item.service_config_version
-              };
-            } else {
-              value += prop + '=' + configuration.properties[prop] + '\n';
-            }
-          }
-          serviceVersionMap[item.service_config_version][configuration.type + '-' + configuration.type] = {
-            name: configuration.type,
-            value: value,
-            type: configuration.type,
-            tag: configuration.tag,
-            version: configuration.version,
-            service_config_version: item.service_config_version
-          };
-        } else {
-          for (var prop in configuration.properties) {
-            serviceVersionMap[item.service_config_version][prop + '-' + configuration.type] = {
-              name: prop,
-              value: configuration.properties[prop],
-              type: configuration.type,
-              tag: configuration.tag,
-              version: configuration.version,
-              service_config_version: item.service_config_version
-            };
-            if (Em.isNone(configNamesMap[prop])) {
-              allConfigs.push(this.getMockConfig(prop, serviceName, App.config.getOriginalFileName(configuration.type)));
-            }
-          }
-        }
-        if (configuration.properties_attributes && configuration.properties_attributes.final) {
-          for (var final in configuration.properties_attributes.final) {
-            serviceVersionMap[item.service_config_version][final + '-' + configuration.type].isFinal = (configuration.properties_attributes.final[final] === 'true');
-          }
-        }
-      }, this);
-    }, this);
-
-    if (compareNonDefaultVersions) {
-      allConfigs.forEach(function (serviceConfig) {
-        this.setCompareConfigs(serviceConfig, serviceVersionMap, compareVersionNumber, this.get('selectedVersion'));
-      }, this);
-    } else {
-      allConfigs.forEach(function (serviceConfig) {
-        var serviceCfgVersionMap = serviceVersionMap[this.get('compareServiceVersion').get('version')];
-        var compareConfig = serviceCfgVersionMap[serviceConfig.name + '-' + App.config.getConfigTagFromFileName(serviceConfig.filename)]
-        this.setCompareDefaultGroupConfig(serviceConfig, compareConfig);
-      }, this);
-    }
-  },
-
-  /**
-   * set compare properties to service config of non-default group
-   * @param serviceConfig
-   * @param serviceVersionMap
-   * @param compareVersion
-   * @param selectedVersion
-   * @private
-   * @method setCompareConfigs
-   */
-  setCompareConfigs: function (serviceConfig, serviceVersionMap, compareVersion, selectedVersion) {
-    var compareConfig = serviceVersionMap[compareVersion][serviceConfig.name + '-' + App.config.getConfigTagFromFileName(serviceConfig.filename)];
-    var selectedConfig = serviceVersionMap[selectedVersion][serviceConfig.name + '-' + App.config.getConfigTagFromFileName(serviceConfig.filename)];
-
-    serviceConfig.compareConfigs = [];
-    serviceConfig.isComparison = true;
-
-    if (compareConfig && selectedConfig) {
-      serviceConfig.compareConfigs.push(this.getComparisonConfig(serviceConfig, compareConfig));
-      serviceConfig.compareConfigs.push(this.getComparisonConfig(serviceConfig, selectedConfig));
-      serviceConfig.hasCompareDiffs = this.hasCompareDiffs(serviceConfig.compareConfigs[0], serviceConfig.compareConfigs[1]);
-    } else if (compareConfig && !selectedConfig) {
-      serviceConfig.compareConfigs.push(this.getComparisonConfig(serviceConfig, compareConfig));
-      serviceConfig.compareConfigs.push(this.getMockComparisonConfig(selectedConfig, selectedVersion));
-      serviceConfig.hasCompareDiffs = true;
-    } else if (!compareConfig && selectedConfig) {
-      serviceConfig.compareConfigs.push(this.getMockComparisonConfig(selectedConfig, compareVersion));
-      serviceConfig.compareConfigs.push(this.getComparisonConfig(serviceConfig, selectedConfig));
-      serviceConfig.hasCompareDiffs = true;
-    }
-  },
-
-  /**
-   * init attributes and wrap mock compare config into App.ServiceConfigProperty
-   * @param serviceConfig
-   * @param compareServiceVersion
-   * @return {object}
-   * @private
-   * @method getMockComparisonConfig
-   */
-  getMockComparisonConfig: function (serviceConfig, compareServiceVersion) {
-    var compareObject = $.extend(true, {isComparison: false},  serviceConfig);
-    compareObject.isEditable = false;
-
-    compareObject.serviceVersion = App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + compareServiceVersion);
-    compareObject.isMock = true;
-    compareObject.displayType = 'label';
-    compareObject = App.ServiceConfigProperty.create(compareObject);
-    compareObject.set('value', Em.I18n.t('common.property.undefined'));
-    return compareObject;
-  },
-
-  /**
-   * init attributes and wrap compare config into App.ServiceConfigProperty
-   * @param serviceConfig
-   * @param compareConfig
-   * @return {object}
-   * @private
-   * @method getComparisonConfig
-   */
-  getComparisonConfig: function (serviceConfig, compareConfig) {
-    var compareObject = $.extend(true, {isComparison: false, isOriginalSCP: false},  serviceConfig);
-    compareObject.isEditable = false;
-
-    if (compareConfig) {
-      if (serviceConfig.isMock) {
-        compareObject.displayType = 'string';
-        compareObject.isMock = false;
-      }
-      compareObject.serviceVersion = App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + compareConfig.service_config_version);
-      compareObject = App.ServiceConfigProperty.create(compareObject);
-      compareObject.setProperties({
-        isFinal: !!compareConfig.isFinal,
-        value: App.config.formatOverrideValue(serviceConfig, compareConfig.value),
-        compareConfigs: null
-      });
-    }
-    return compareObject;
-  },
-
-  /**
-   * set compare properties to service config of default group
-   * @param serviceConfig
-   * @param compareConfig
-   * @private
-   * @method setCompareDefaultGroupConfig
-   */
-  setCompareDefaultGroupConfig: function (serviceConfig, compareConfig) {
-    var compareObject = {};
-    var isEmptyProp = App.isEmptyObject(serviceConfig);
-
-    serviceConfig.compareConfigs = [];
-    serviceConfig.isComparison = true;
-
-    //if config isn't reconfigurable then it can't have changed value to compare
-    if (compareConfig && (serviceConfig.isReconfigurable || serviceConfig.isUserProperty)) {
-      compareObject = this.getComparisonConfig(serviceConfig, compareConfig);
-      serviceConfig.hasCompareDiffs = serviceConfig.isMock || this.hasCompareDiffs(serviceConfig, compareObject);
-      serviceConfig.compareConfigs.push(compareObject);
-    // user custom property or property that was added during upgrade
-    } else if (serviceConfig.isUserProperty || (!isEmptyProp && !compareConfig && Em.get(serviceConfig, 'isRequiredByAgent') !== false)) {
-      serviceConfig.compareConfigs.push(this.getMockComparisonConfig(serviceConfig, this.get('compareServiceVersion.version')));
-      serviceConfig.hasCompareDiffs = true;
-    }
-    return serviceConfig;
-  },
-
-  /**
-   * check value and final attribute of original and compare config for differences
-   * @param originalConfig
-   * @param compareConfig
-   * @return {Boolean}
-   * @private
-   * @method hasCompareDiffs
-   */
-  hasCompareDiffs: function (originalConfig, compareConfig) {
-    return (originalConfig.value !== compareConfig.value) || (!!originalConfig.isFinal !== (compareConfig.isFinal == true));
-  },
-
-  /**
-   * generate mock config object
-   * @param name
-   * @param serviceName
-   * @param filename
-   * @return {Object}
-   * @private
-   * @method getMockConfig
-   */
-  getMockConfig: function (name, serviceName, filename) {
-    var undefinedConfig = {
-      description: name,
-      displayName: name,
-      id: "site property",
-      isOverridable: false,
-      isReconfigurable: false,
-      isRequired: false,
-      isRequiredByAgent: false,
-      isSecureConfig: false,
-      isUserProperty: true,
-      isVisible: true,
-      name: name,
-      filename: filename,
-      serviceName: serviceName,
-      value: Em.I18n.t('common.property.undefined'),
-      isMock: true,
-      displayType: 'label'
-    };
-    var category = App.config.identifyCategory(undefinedConfig);
-    undefinedConfig.category = category && category.name;
-    return undefinedConfig;
-  },
-
-  /**
-   * get configs of chosen version from server to compare
-   * @param compareServiceVersions
-   * @return {$.ajax}
-   * @private
-   * @method getCompareVersionConfigs
-   */
-  getCompareVersionConfigs: function (compareServiceVersions) {
-    this.set('versionLoaded', false);
-
-    return App.ajax.send({
-      name: 'service.serviceConfigVersions.get.multiple',
-      sender: this,
-      data: {
-        serviceName: this.get('content.serviceName'),
-        serviceConfigVersions: compareServiceVersions
       }
     });
   },
@@ -842,18 +540,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method onLoadOverrides
    */
   onLoadOverrides: function (allConfigs) {
-    var self = this;
     this.get('servicesToLoad').forEach(function(serviceName) {
-      var serviceConfig = App.config.createServiceConfig(serviceName);
-      if (serviceName == this.get('content.serviceName')) {
-        serviceConfig.set('configGroups', this.get('configGroups'));
-      } else {
-        serviceConfig.set('configGroups', this.get('dependentConfigGroups').filterProperty('serviceName', serviceName));
-      }
-      //Make SecondaryNameNode invisible on enabling namenode HA
+      var configGroups = serviceName == this.get('content.serviceName') ? this.get('configGroups') : this.get('dependentConfigGroups').filterProperty('serviceName', serviceName);
       var configsByService = this.get('allConfigs').filterProperty('serviceName', serviceName);
       databaseUtils.bootstrapDatabaseProperties(configsByService, serviceName);
-      this.loadConfigs(configsByService, serviceConfig);
+      var serviceConfig = App.config.createServiceConfig(serviceName, configGroups, configsByService, configsByService.length);
       if (serviceConfig.get('serviceName') === 'HDFS') {
         if (App.get('isHaEnabled')) {
           var c = serviceConfig.configs,
@@ -868,27 +559,24 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
     var selectedService = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName'));
     this.set('selectedService', selectedService);
-    this.setVisibilityForRangerProperties(selectedService);
     this.checkOverrideProperty(selectedService);
     this.checkDatabaseProperties(selectedService);
-    this.checkForSecureConfig(this.get('selectedService'));
     if (!App.Service.find().someProperty('serviceName', 'RANGER')) {
       App.config.removeRangerConfigs(this.get('stepConfigs'));
+    } else {
+      this.setVisibilityForRangerProperties(selectedService);
     }
     this._onLoadComplete();
-    if (App.isAccessible('MANAGER')) {
-      this.getRecommendationsForDependencies(null, true, function(){
-        self.set('hash', self.getHash());
-      });
-    } else {
-      this.set('hash', this.getHash());
-    }
+    this.get('configGroups').forEach(function (configGroup) {
+      this.getRecommendationsForDependencies(null, true, Em.K, configGroup);
+    }, this);
   },
 
   /**
    * @method _getRecommendationsForDependenciesCallback
    */
   _onLoadComplete: function () {
+    var self = this;
     this.get('stepConfigs').forEach(function(serviceConfig){
       serviceConfig.set('initConfigsLength', serviceConfig.get('configs.length'));
     });
@@ -897,99 +585,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       versionLoaded: true,
       isInit: false
     });
-  },
-
-  /**
-   * Changes format from Object to Array
-   *
-   * {
-   *  'core-site': 'version1',
-   *  'hdfs-site': 'version1',
-   *  ...
-   * }
-   *
-   * to
-   *
-   * [
-   *  {
-   *    siteName: 'core-site',
-   *    tagName: 'version1',
-   *    newTageName: null
-   *  },
-   *  ...
-   * ]
-   *
-   * set tagnames for configuration of the *-site.xml
-   * @private
-   * @method setServiceConfigTags
-   */
-  setServiceConfigTags: function (desiredConfigsSiteTags) {
-    console.debug("setServiceConfigTags(): Trying to set ", desiredConfigsSiteTags);
-    var newServiceConfigTags = [];
-    for (var index in desiredConfigsSiteTags) {
-      newServiceConfigTags.pushObject({
-        siteName: index,
-        tagName: desiredConfigsSiteTags[index],
-        newTagName: null
-      }, this);
-    }
-    console.debug("setServiceConfigTags(): Setting 'serviceConfigTags' to ", newServiceConfigTags);
-    this.set('serviceConfigTags', newServiceConfigTags);
-  },
-
-  /**
-   * check whether the config property is a security related knob
-   * @param serviceConfig
-   * @private
-   * @method checkForSecureConfig
-   */
-  checkForSecureConfig: function (serviceConfig) {
-    serviceConfig.get('configs').forEach(function (_config) {
-      this.get('secureConfigs').forEach(function (_secureConfig) {
-        if (_config.get('name') === _secureConfig.name) {
-          _config.set('isSecureConfig', true);
-        }
-      }, this)
-    }, this)
-  },
-
-  /**
-   * Load child components to service config object
-   * @param {Array} configs - array of configs
-   * @param {Object} componentConfig - component config object
-   * @method loadConfigs
-   */
-  loadConfigs: function (configs, componentConfig) {
-    var defaultGroupSelected = this.get('selectedConfigGroup.isDefault');
-    configs.forEach(function (_serviceConfigProperty) {
-      var serviceConfigProperty = this.createConfigProperty(_serviceConfigProperty, defaultGroupSelected);
-      componentConfig.get('configs').pushObject(serviceConfigProperty);
-      serviceConfigProperty.validate();
-    }, this);
-  },
-
-  /**
-   * create {Em.Object} service_cfg_property based on {Object}_serviceConfigProperty and additional info
-   * @param {Object} _serviceConfigProperty - config object
-   * @param {Boolean} defaultGroupSelected - true if selected cfg group is default
-   * @returns {Ember.Object|null}
-   * @private
-   * @method createConfigProperty
-   */
-  createConfigProperty: function (_serviceConfigProperty, defaultGroupSelected) {
-    if (!_serviceConfigProperty) return null;
-
-    var overrides = Em.get(_serviceConfigProperty, 'overrides');
-    // we will populate the override properties below
-    Em.set(_serviceConfigProperty, 'overrides', null);
-    Em.set(_serviceConfigProperty, 'isOverridable', Em.isNone(Em.get(_serviceConfigProperty, 'isOverridable')) ? true : Em.get(_serviceConfigProperty, 'isOverridable'));
-
-    var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
-
-    this.setValuesForOverrides(overrides, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected);
-    this.setEditability(serviceConfigProperty, defaultGroupSelected);
-
-    return serviceConfigProperty;
+    Em.run.next(function() {
+      self.set('hash', self.getHash());
+    });
   },
 
   /**
@@ -1016,7 +614,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
   /**
    * trigger addOverrideProperty
-   * @param {Object} componentConfig
+   * @param {Object[]} configs
    * @private
    * @method checkOverrideProperty
    */
@@ -1036,63 +634,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   },
 
   /**
-   * set isEditable property of config for admin
-   * if default cfg group and not on the host config page
-   * @param {Ember.Object} serviceConfigProperty
-   * @param {Boolean} defaultGroupSelected
-   * @private
-   * @method setEditability
-   */
-  setEditability: function (serviceConfigProperty, defaultGroupSelected) {
-    serviceConfigProperty.set('isEditable', false);
-    if (serviceConfigProperty.get('isComparison')) return;
-    if (App.isAccessible('ADMIN') && defaultGroupSelected && !this.get('isHostsConfigsPage') && !serviceConfigProperty.get('group')) {
-      serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
-    } else if (serviceConfigProperty.get('group') && this.get('selectedConfigGroup.name') === serviceConfigProperty.get('group.name')) {
-      serviceConfigProperty.set('isEditable', true);
-    }
-  },
-
-  /**
-   * set override values
-   * @param overrides
-   * @param _serviceConfigProperty
-   * @param serviceConfigProperty
-   * @param defaultGroupSelected
-   * @private
-   * @method setValuesForOverrides
-   */
-  setValuesForOverrides: function (overrides, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected) {
-    if (Em.isNone(overrides)) return;
-    overrides.forEach(function (override) {
-      if (defaultGroupSelected || (Em.get(override, 'group') && this.get('selectedConfigGroup.name') === Em.get(override, 'group.name'))
-        || serviceConfigProperty.get('serviceName') !== this.get('content.serviceName')) {
-        var newSCP = this.createNewSCP(override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected);
-        var parentOverridesArray = serviceConfigProperty.get('overrides');
-        if (parentOverridesArray == null) {
-          parentOverridesArray = Em.A([]);
-          serviceConfigProperty.set('overrides', parentOverridesArray);
-        }
-        parentOverridesArray.pushObject(newSCP);
-        serviceConfigProperty.set('overrideValues', parentOverridesArray.mapProperty('value'));
-        serviceConfigProperty.set('overrideIsFinalValues', parentOverridesArray.mapProperty('isFinal'));
-        console.debug("createOverrideProperty(): Added override to main-property:", serviceConfigProperty.get('name'));
-      }
-    }, this);
-  },
-
-  /**
    * create new overridden property and set appropriate fields
    * @param override
-   * @param _serviceConfigProperty
    * @param serviceConfigProperty
    * @param defaultGroupSelected
    * @returns {*}
    * @private
    * @method createNewSCP
    */
-  createNewSCP: function (override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected) {
-    var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty, {
+  createNewSCP: function (override, serviceConfigProperty, defaultGroupSelected) {
+    var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty, {
       value: Em.get(override, 'value'),
       savedValue: Em.get(override, 'value'),
       recommendedValue: serviceConfigProperty.get('recommendedValue'),
@@ -1273,7 +824,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     var hostConfig = serviceConfigs.findProperty('name', hostProperty);
     if (hostConfig) {
       hostConfig.recommendedValue = this.getMasterComponentHostValue(componentName, multiple);
-      configs.push(hostConfig);
+      configs.push(App.ServiceConfigProperty.create(hostConfig));
     }
   },
 

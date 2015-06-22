@@ -41,7 +41,10 @@ describe('App.SliderConfigWidgetView', function () {
             type: 'int',
             minimum: '0',
             maximum: '2096',
-            unit: 'MB'
+            unit: 'MB',
+            group1: {
+              maximum: '3072'
+            }
           }),
           widget: Em.Object.create({
             type: 'slider',
@@ -181,6 +184,18 @@ describe('App.SliderConfigWidgetView', function () {
       expect(viewPercent.get('config.errorMessage')).to.equal('');
       expect(viewPercent.get('config.warnMessage')).to.have.property('length').that.is.least(1);
       expect(viewPercent.get('config.warn')).to.be.true;
+    });
+  });
+
+  describe('#getValueAttributeByGroup', function() {
+    it('returns default max value', function() {
+      viewInt.set('config.group', null);
+      expect(viewInt.getValueAttributeByGroup('maximum')).to.equal('2096');
+    });
+
+    it('returns max value for group1', function() {
+      viewInt.set('config.group', {name: 'group1'});
+      expect(viewInt.getValueAttributeByGroup('maximum')).to.equal('3072');
     });
   });
 

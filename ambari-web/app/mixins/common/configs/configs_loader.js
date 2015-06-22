@@ -21,6 +21,11 @@ var App = require('app');
 App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
 
   /**
+   * version of default config group, configs of which currently applied
+   */
+  currentDefaultVersion: null,
+
+  /**
    * the highest version number that is stored in <code>App.ServiceConfigVersion<code>
    * @type {number}
    */
@@ -126,25 +131,29 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
   loadSelectedVersion: function (version, switchToGroup) {
     this.set('versionLoaded', false);
     version = version || this.get('currentDefaultVersion');
-    //version of non-default group require properties from current version of default group to correctly display page
-    var versions = (this.isVersionDefault(version)) ? [version] : [this.get('currentDefaultVersion'), version];
-    switchToGroup = (this.isVersionDefault(version) && !switchToGroup) ? this.get('configGroups').findProperty('isDefault') : switchToGroup;
+    if (version === this.get('currentDefaultVersion') && (!switchToGroup || switchToGroup.get('isDefault'))) {
+      this.loadCurrentVersions();
+    } else {
+      //version of non-default group require properties from current version of default group to correctly display page
+      var versions = (this.isVersionDefault(version)) ? [version] : [this.get('currentDefaultVersion'), version];
+      switchToGroup = (this.isVersionDefault(version) && !switchToGroup) ? this.get('configGroups').findProperty('isDefault') : switchToGroup;
 
-    if (this.get('dataIsLoaded') && switchToGroup) {
-      this.set('selectedConfigGroup', switchToGroup);
+      if (this.get('dataIsLoaded') && switchToGroup) {
+        this.set('selectedConfigGroup', switchToGroup);
+      }
+      var selectedVersion = versions.length > 1 ? versions[1] : versions[0];
+      this.set('selectedVersion', selectedVersion);
+      this.trackRequest(App.ajax.send({
+        name: 'service.serviceConfigVersions.get.multiple',
+        sender: this,
+        data: {
+          serviceName: this.get('content.serviceName'),
+          serviceConfigVersions: versions,
+          additionalParams: App.get('isClusterSupportsEnhancedConfigs') && this.get('dependentServiceNames.length') ? '|service_name.in(' +  this.get('dependentServiceNames') + ')&is_current=true' : ''
+        },
+        success: 'loadSelectedVersionsSuccess'
+      }));
     }
-    var selectedVersion = versions.length > 1 ? versions[1] : versions[0];
-    this.set('selectedVersion', selectedVersion);
-    this.trackRequest(App.ajax.send({
-      name: 'service.serviceConfigVersions.get.multiple',
-      sender: this,
-      data: {
-        serviceName: this.get('content.serviceName'),
-        serviceConfigVersions: versions,
-        additionalParams: App.get('isClusterSupportsEnhancedConfigs') && this.get('dependentServiceNames.length') ? '|service_name.in(' +  this.get('dependentServiceNames') + ')&is_current=true' : ''
-      },
-      success: 'loadSelectedVersionsSuccess'
-    }));
   },
 
   /**

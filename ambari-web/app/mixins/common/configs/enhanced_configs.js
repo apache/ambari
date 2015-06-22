@@ -218,10 +218,14 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @param {{type: string, name: string}[]} changedConfigs - list of changed configs to track recommendations
    * @param {Boolean} initial
    * @param {Function} onComplete
+   * @param {App.ConfigGroup|null} [configGroup=null]
    * @returns {$.ajax|null}
    */
-  getRecommendationsForDependencies: function(changedConfigs, initial, onComplete) {
+  getRecommendationsForDependencies: function(changedConfigs, initial, onComplete, configGroup) {
     if (Em.isArray(changedConfigs) && changedConfigs.length > 0 || initial) {
+      if (!configGroup) {
+        configGroup = this.get('selectedConfigGroup');
+      }
       var recommendations = this.get('hostGroups');
       recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs'));
       delete recommendations.config_groups;
@@ -236,8 +240,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           dataToSend.recommend = 'configuration-dependencies';
           dataToSend.changed_configurations = changedConfigs;
         }
-        if (!this.get('selectedConfigGroup.isDefault') && this.get('selectedConfigGroup.hosts.length') > 0) {
-          var configGroups = this.buildConfigGroupJSON(this.get('selectedService.configs'), this.get('selectedConfigGroup'));
+        if (!configGroup.get('isDefault') && configGroup.get('hosts.length') > 0) {
+          var configGroups = this.buildConfigGroupJSON(this.get('selectedService.configs'), configGroup);
           recommendations.config_groups = [configGroups];
         }
       }
@@ -248,7 +252,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         data: {
           stackVersionUrl: App.get('stackVersionURL'),
           dataToSend: dataToSend,
-          selectedConfigGroup: this.get('selectedConfigGroup.isDefault') ? null : this.get('selectedConfigGroup.name'),
+          selectedConfigGroup: configGroup.get('isDefault') ? null : configGroup.get('name'),
           initial: initial
         },
         success: 'dependenciesSuccess',
@@ -458,32 +462,33 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           } else {
             cp && cp.set('recommendedValue', recommendedValue);
           }
+          if (!updateOnlyBoundaries) {
+            /**
+             * clear _dependentPropertyValues from
+             * properties that wasn't changed while recommendations
+             */
 
-          /**
-           * clear _dependentPropertyValues from
-           * properties that wasn't changed while recommendations
-           */
-
-          if ((initialValue == recommendedValue) || (Em.isNone(initialValue) && Em.isNone(recommendedValue))) {
-            /** if recommended value same as default we shouldn't show it in popup **/
-            if (notDefaultGroup) {
-              if (override) {
-                if (override.get('isNotSaved')) {
-                  cp.get('overrides').removeObject(override);
-                } else {
-                  override.set('value', initialValue);
+            if ((initialValue == recommendedValue) || (Em.isNone(initialValue) && Em.isNone(recommendedValue))) {
+              /** if recommended value same as default we shouldn't show it in popup **/
+              if (notDefaultGroup) {
+                if (override) {
+                  if (override.get('isNotSaved')) {
+                    cp.get('overrides').removeObject(override);
+                  } else {
+                    override.set('value', initialValue);
+                  }
+                  if (dependentProperty) {
+                    this.get('_dependentConfigValues').removeObject(dependentProperty);
+                  }
+                }
+              } else {
+                cp.set('value', initialValue);
+                if (!this.useInitialValue(serviceName)) {
+                  cp.set('savedValue', initialValue);
                 }
                 if (dependentProperty) {
                   this.get('_dependentConfigValues').removeObject(dependentProperty);
                 }
-              }
-            } else {
-              cp.set('value', initialValue);
-              if (!this.useInitialValue(serviceName)) {
-                cp.set('savedValue', initialValue);
-              }
-              if (dependentProperty) {
-                this.get('_dependentConfigValues').removeObject(dependentProperty);
               }
             }
           }
