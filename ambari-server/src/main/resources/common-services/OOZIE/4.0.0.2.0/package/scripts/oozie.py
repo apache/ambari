@@ -130,7 +130,7 @@ def oozie(is_server=False):
       mode=0644,
       group=params.user_group,
       owner=params.oozie_user,
-      content=Template('adminusers.txt.j2', oozie_user=params.oozie_user)
+      content=Template('adminusers.txt.j2', oozie_admin_users=params.oozie_admin_users)
     )
   else:
     File ( format("{params.conf_dir}/adminusers.txt"),

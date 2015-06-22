@@ -28,6 +28,11 @@
     <description>Oozie User.</description>
   </property>
   <property>
+    <name>oozie_admin_users</name>
+    <value>{oozie_user}, oozie-admin</value>
+    <description>Oozie admin users.</description>
+  </property>
+  <property>
     <name>oozie_database</name>
     <value>New Derby Database</value>
     <description>Oozie Server Database.</description>
