@@ -196,7 +196,6 @@ export default Ember.ArrayController.extend({
       var content = query.get('fileContent');
       content = self.get('index').buildQuery(query);
       content = self.get('index').bindQueryParams(content);
-      content = self.get('index').prependQuerySettings(content);
 
       //update query tab path with saved model id if its a new record
       if (wasNew) {
