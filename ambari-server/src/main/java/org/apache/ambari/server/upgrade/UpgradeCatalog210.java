@@ -436,7 +436,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       // The column name is different for one table
       String hostNameColumnName = tableName.equals(SERVICE_CONFIG_HOSTS_TABLE) ? "hostname" : "host_name";
 
-      if (dbAccessor.tableHasData(tableName) && dbAccessor.tableHasColumn(tableName,HOST_NAME_COL)) {
+      if (dbAccessor.tableHasData(tableName) && dbAccessor.tableHasColumn(tableName, hostNameColumnName)) {
         dbAccessor.executeQuery("UPDATE " + tableName + " t SET host_id = (SELECT host_id FROM hosts h WHERE h.host_name = t." + hostNameColumnName + ") WHERE t.host_id IS NULL AND t." + hostNameColumnName + " IS NOT NULL");
 
         // For legacy reasons, the hostrolecommand table will contain "none" for some records where the host_name was not important.
