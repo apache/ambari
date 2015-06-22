@@ -515,6 +515,18 @@
             </organization>            
         </developer>
         <developer>
+            <id>rzang</id>
+            <name>Richard Zang</name>
+            <email>rzang@hortonworks.com</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>rlevas</id>
             <name>Robert Levas</name>
             <email>rlevas@apache.org</email>
