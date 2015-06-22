@@ -19,7 +19,7 @@
   <latest>http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</latest>
   <os family="redhat6">
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/GA/2.2.0.0</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.2.6.0</baseurl>
       <repoid>HDP-2.2</repoid>
       <reponame>HDP</reponame>
     </repo>
@@ -31,7 +31,7 @@
   </os>
   <os family="suse11">
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/GA/2.2.0.0</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.2.6.0</baseurl>
       <repoid>HDP-2.2</repoid>
       <reponame>HDP</reponame>
     </repo>
@@ -43,7 +43,7 @@
   </os>
   <os family="ubuntu12">
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/GA/2.2.0.0</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.2.6.0</baseurl>
       <repoid>HDP-2.2</repoid>
       <reponame>HDP</reponame>
     </repo>
