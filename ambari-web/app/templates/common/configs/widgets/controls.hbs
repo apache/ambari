@@ -64,14 +64,16 @@
         </a>
       {{/if}}
       {{#unless view.isOriginalSCP}}
-        {{#isAccessible ADMIN}}
-          <a {{bindAttr class=":widget-action :widget-action-remove view.isHover:show:hide"}} href="#"
-                                                                                              data-toggle="tooltip"
-            {{action "removeOverride" view.config target="view.parentView"}}
-            {{translateAttr data-original-title="common.remove"}}>
-            <i class="icon-minus-sign"></i>
-          </a>
-        {{/isAccessible}}
+        {{#unless view.disabled}}
+          {{#isAccessible ADMIN}}
+            <a {{bindAttr class=":widget-action :widget-action-remove view.isHover:show:hide"}} href="#"
+                                                                                                data-toggle="tooltip"
+              {{action "removeOverride" view.config target="view.parentView"}}
+              {{translateAttr data-original-title="common.remove"}}>
+              <i class="icon-minus-sign"></i>
+            </a>
+          {{/isAccessible}}
+        {{/unless}}
       {{/unless}}
       {{#if view.overrideAllowed}}
         {{#isAccessible ADMIN}}
