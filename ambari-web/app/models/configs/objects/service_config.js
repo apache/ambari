@@ -72,7 +72,7 @@ App.ServiceConfig = Ember.Object.extend({
     var kdcType = configs.findProperty('name', 'kdc_type');
 
     if (!kdcType) {
-      return true;
+      return configs.someProperty('isNotDefaultValue')
     }
 
     // if there is only one value changed and that value is for kdc_type, check if the value has really changed or just
@@ -83,7 +83,7 @@ App.ServiceConfig = Ember.Object.extend({
       }
     }
 
-    return true;
+    return configs.someProperty('isNotDefaultValue');
   },
 
   isPropertiesChanged: function() {

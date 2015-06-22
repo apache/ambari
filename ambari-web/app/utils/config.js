@@ -118,6 +118,8 @@ App.config = Em.Object.create({
     this.set('preDefinedServiceConfigs', services);
   },
 
+  secureConfigs: require('data/HDP2/secure_mapping'),
+
   configMapping: require('data/HDP2/config_mapping'),
 
   preDefinedSiteProperties: function () {
@@ -277,7 +279,7 @@ App.config = Em.Object.create({
   },
 
 
-  mergePredefinedWithSaved: function (configCategories, advancedConfigs, serviceName) {
+  mergePredefinedWithSaved: function (configCategories, advancedConfigs, serviceName, selectedConfigGroup, canEdit) {
     var configs = [];
     var contentProperties = this.createContentProperties(advancedConfigs);
     var preDefinedConfigs = this.get('preDefinedSiteProperties').concat(contentProperties);
@@ -300,7 +302,7 @@ App.config = Em.Object.create({
           configsPropertyDef = advancedConfig;
         }
         var value = this.parseValue(properties[index], configsPropertyDef, advancedConfig);
-        var serviceConfigObj = App.ServiceConfig.create({
+        var serviceConfigObj = Em.Object.create({
           name: index,
           value: value,
           savedValue: value,
@@ -351,7 +353,13 @@ App.config = Em.Object.create({
           });
           this.calculateConfigProperties(serviceConfigObj, isAdvanced, advancedConfig);
           this.setValueByDisplayType(serviceConfigObj);
-          configs.push(serviceConfigObj);
+          if (this.get('secureConfigs').mapProperty('name').contains(serviceConfigObj.get('name'))) {
+            serviceConfigObj.set('isSecure', true);
+          }
+          serviceConfigObj.set('isEditable', canEdit && selectedConfigGroup.get('isDefault') && serviceConfigObj.get('isReconfigurable'));
+          var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);
+          serviceConfigProperty.validate();
+          configs.push(serviceConfigProperty);
         }
       }
     }, this);
@@ -888,17 +896,21 @@ App.config = Em.Object.create({
   /**
    * create new ServiceConfig object by service name
    * @param {string} serviceName
+   * @param {App.ServiceConfigGroup[]} configGroups
+   * @param {App.ServiceConfigProperty[]} configs
+   * @param {Number} initConfigsLength
    * @return {App.ServiceConfig}
    * @method createServiceConfig
    */
-  createServiceConfig: function (serviceName) {
+  createServiceConfig: function (serviceName, configGroups, configs, initConfigsLength) {
     var preDefinedServiceConfig = App.config.get('preDefinedServiceConfigs').findProperty('serviceName', serviceName);
     return App.ServiceConfig.create({
       serviceName: preDefinedServiceConfig.get('serviceName'),
       displayName: preDefinedServiceConfig.get('displayName'),
       configCategories: preDefinedServiceConfig.get('configCategories'),
-      configs: [],
-      configGroups: []
+      configs: configs || [],
+      configGroups: configGroups || [],
+      initConfigsLength: initConfigsLength || 0
     });
   },
 
@@ -1535,7 +1547,7 @@ App.config = Em.Object.create({
       configs = configs.filter(function (_config) {
         return _config.filename !== filename || (configsToSkip && configsToSkip.someProperty('name', _config.name));
       });
-      configs.push(complexConfig);
+      configs.push(App.ServiceConfigProperty.create(complexConfig));
     }
     return configs;
   },

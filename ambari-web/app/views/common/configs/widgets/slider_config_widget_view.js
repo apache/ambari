@@ -82,9 +82,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   maxMirrorValue: function() {
     var parseFunction = this.get('mirrorValueParseFunction');
-    var defaultGroupAttr = this.get('config.stackConfigProperty.valueAttributes');
-    var groupAttr = this.get('configGroup') && this.get('config.stackConfigProperty.valueAttributes')[this.get('configGroup.name')];
-    var maximum = (groupAttr && !Em.isNone(groupAttr['maximum'])) ? groupAttr['maximum'] : defaultGroupAttr['maximum'];
+    var maximum = this.getValueAttributeByGroup('maximum');
     var max = this.widgetValueByConfigAttributes(maximum);
     return parseFunction(max);
   }.property('config.stackConfigProperty.valueAttributes.maximum', 'controller.forceUpdateBoundaries'),
@@ -95,13 +93,26 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   minMirrorValue: function() {
     var parseFunction = this.get('mirrorValueParseFunction');
-    var defaultGroupAttr = this.get('config.stackConfigProperty.valueAttributes');
-    var groupAttr = this.get('configGroup') && this.get('config.stackConfigProperty.valueAttributes')[this.get('configGroup.name')];
-    var minimum = (groupAttr && !Em.isNone(groupAttr['minimum'])) ? groupAttr['minimum'] : defaultGroupAttr['minimum'];
+    var minimum = this.getValueAttributeByGroup('minimum');
     var min = this.widgetValueByConfigAttributes(minimum);
     return parseFunction(min);
   }.property('config.stackConfigProperty.valueAttributes.minimum', 'controller.forceUpdateBoundaries'),
 
+  /**
+   *
+   * if group is default look into (ex. for maximum)
+   * <code>config.stackConfigProperty.valueAttributes.maximum<code>
+   * if group is not default look into
+   * <code>config.stackConfigProperty.valueAttributes.{group.name}.maximum<code>
+   * @param {String} attribute - name of attribute, for current moment
+   * can be ["maximum","minimum","increment_step"] but allows to use other it there will be available
+   * @returns {*}
+   */
+  getValueAttributeByGroup: function(attribute) {
+    var defaultGroupAttr = this.get('config.stackConfigProperty.valueAttributes');
+    var groupAttr = this.get('configGroup') && this.get('config.stackConfigProperty.valueAttributes')[this.get('configGroup.name')];
+    return (groupAttr && !Em.isNone(groupAttr[attribute])) ? groupAttr[attribute] : defaultGroupAttr[attribute];
+  },
   /**
    * step transformed form config units to widget units
    * @type {Number}
@@ -214,7 +225,13 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     });
     this.removeObserver('mirrorValue', this, this.mirrorValueObs);
     if (this.get('slider')) {
-      this.get('slider').destroy();
+      try {
+        if (self.get('slider')) {
+          self.get('slider').destroy();
+        }
+      } catch (e) {
+        console.error('error while clearing slider for config: ' + self.get('config.name'));
+      }
     }
   },
 
@@ -508,16 +525,18 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       //temp fix as it can broke test that doesn't have any connection with this method
       return;
     }
-    if (this.get('slider')) {
-      this.get('slider').destroy();
-      if (this.get('mirrorValue') > this.get('maxMirrorValue')) {
-        this.setValue(this.get('maxMirrorValue'));
+    if (this.get('config')) {
+      try {
+        if (this.get('slider')) {
+          this.get('slider').destroy();
+        }
+        this.initIncompatibleWidgetAsTextBox();
+        this.initSlider();
+        this.toggleWidgetState();
+        this.refreshSliderObserver();
+      } catch (e) {
+        console.error('error while rebuilding slider for config: ' + this.get('config.name'));
       }
-      if (this.get('mirrorValue') < this.get('minMirrorValue')) {
-        this.setValue(this.get('minMirrorValue'));
-      }
-      this.initSlider();
-      this.toggleWidgetState();
     }
   },
 
@@ -547,7 +566,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       }
       var configValue = this.get('parseFunction')(this.get('config.value'));
       if (this.get('config.stackConfigProperty.valueAttributes.minimum')) {
-        var min = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.minimum'));
+        var min = this.get('parseFunction')(this.getValueAttributeByGroup('minimum'));
         if (configValue < min) {
           min = this.widgetValueByConfigAttributes(min);
           this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(min + this.get('unitLabel')));
@@ -555,7 +574,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         }
       }
       if (this.get('config.stackConfigProperty.valueAttributes.maximum')) {
-        var max = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.maximum'));
+        var max = this.get('parseFunction')(this.getValueAttributeByGroup('maximum'));
         if (configValue > max) {
           max = this.widgetValueByConfigAttributes(max);
           this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(max + this.get('unitLabel')));

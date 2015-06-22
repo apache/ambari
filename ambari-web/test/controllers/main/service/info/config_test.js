@@ -679,70 +679,6 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
-  describe("#setEditability", function () {
-
-    var tests = [
-      {
-        isAdmin: true,
-        isHostsConfigsPage: false,
-        defaultGroupSelected: true,
-        isReconfigurable: true,
-        isEditable: true,
-        m: ""
-      },
-      {
-        isAdmin: false,
-        isHostsConfigsPage: false,
-        defaultGroupSelected: true,
-        isReconfigurable: true,
-        isEditable: false,
-        m: "(non admin)"
-      },
-      {
-        isAdmin: true,
-        isHostsConfigsPage: true,
-        defaultGroupSelected: true,
-        isReconfigurable: true,
-        isEditable: false,
-        m: "(isHostsConfigsPage)"
-      },
-      {
-        isAdmin: true,
-        isHostsConfigsPage: false,
-        defaultGroupSelected: false,
-        isReconfigurable: true,
-        isEditable: false,
-        m: "(defaultGroupSelected is false)"
-      },
-      {
-        isAdmin: true,
-        isHostsConfigsPage: false,
-        defaultGroupSelected: true,
-        isReconfigurable: false,
-        isEditable: false,
-        m: "(isReconfigurable is false)"
-      }
-    ];
-
-    beforeEach(function(){
-      this.mock = sinon.stub(App, 'isAccessible');
-    });
-    afterEach(function () {
-      this.mock.restore();
-    });
-    tests.forEach(function(t) {
-      it("set isEditable " + t.isEditable + t.m, function(){
-        this.mock.returns(t.isAdmin);
-        mainServiceInfoConfigsController.set("isHostsConfigsPage", t.isHostsConfigsPage);
-        var serviceConfigProperty = Em.Object.create({
-          isReconfigurable: t.isReconfigurable
-        });
-        mainServiceInfoConfigsController.setEditability(serviceConfigProperty, t.defaultGroupSelected);
-        expect(serviceConfigProperty.get("isEditable")).to.equal(t.isEditable);
-      });
-    });
-  });
-
   describe("#checkOverrideProperty", function () {
     var tests = [{
       overrideToAdd: {
@@ -831,67 +767,6 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
-  describe("#setValuesForOverrides", function() {
-    var tests = [
-      {
-        overrides: [
-          {name: "override1"},
-          {name: "override2"}
-        ],
-        _serviceConfigProperty: {},
-        serviceConfigProperty: Em.Object.create({overrides: Em.A([])}),
-        defaultGroupSelected: true
-      }
-    ];
-    beforeEach(function() {
-      sinon.stub(mainServiceInfoConfigsController, "createNewSCP", function(override) {return {name: override.name}})
-    });
-    afterEach(function() {
-      mainServiceInfoConfigsController.createNewSCP.restore();
-    });
-    tests.forEach(function(t) {
-      it("set values for overrides. use createNewSCP method to do this", function() {
-        var serviceConfigProperty = t.serviceConfigProperty;
-        mainServiceInfoConfigsController.setValuesForOverrides(t.overrides, serviceConfigProperty, t.serviceConfigProperty, t.defaultGroupSelected);
-        expect(serviceConfigProperty.get("overrides")[0]).to.eql(t.overrides[0]);
-        expect(serviceConfigProperty.get("overrides")[1]).to.eql(t.overrides[1]);
-      });
-    });
-  });
-
-  describe("#createConfigProperty", function() {
-    var tests = [
-      {
-        _serviceConfigProperty: {
-          overrides: {
-
-          }
-        },
-        defaultGroupSelected: true,
-        restartData: {},
-        serviceConfigsData: {},
-        serviceConfigProperty: {
-          overrides: null,
-          isOverridable: true
-        }
-      }];
-    beforeEach(function() {
-      sinon.stub(mainServiceInfoConfigsController, "setValuesForOverrides", Em.K);
-      sinon.stub(mainServiceInfoConfigsController, "setEditability", Em.K);
-    });
-    afterEach(function() {
-      mainServiceInfoConfigsController.setValuesForOverrides.restore();
-      mainServiceInfoConfigsController.setEditability.restore();
-    });
-    tests.forEach(function(t) {
-      it("create service config. run methods to correctly set object fileds", function() {
-        var result = mainServiceInfoConfigsController.createConfigProperty(t._serviceConfigProperty, t.defaultGroupSelected, t.restartData, t.serviceConfigsData);
-        expect(mainServiceInfoConfigsController.setValuesForOverrides.calledWith(t._serviceConfigProperty.overrides, t._serviceConfigProperty, t.serviceConfigProperty, t.defaultGroupSelected));
-        expect(result.getProperties('overrides','isOverridable')).to.eql(t.serviceConfigProperty);
-      });
-    });
-  });
-
   describe("#createNewSCP", function() {
     var tests = [
       {
@@ -901,7 +776,6 @@ describe("App.MainServiceInfoConfigsController", function () {
             value: "group1"
           }
         },
-        _serviceConfigProperty: {},
         serviceConfigProperty: Em.Object.create({
           value: "parentSCP",
           supportsFinal: true
@@ -924,7 +798,7 @@ describe("App.MainServiceInfoConfigsController", function () {
     ];
     tests.forEach(function(t) {
       it("", function() {
-        var newSCP = mainServiceInfoConfigsController.createNewSCP(t.overrides, t._serviceConfigProperty, t.serviceConfigProperty, t.defaultGroupSelected);
+        var newSCP = mainServiceInfoConfigsController.createNewSCP(t.overrides, t.serviceConfigProperty, t.defaultGroupSelected);
         expect(newSCP.getProperties("value", "isOriginalSCP", "parentSCP", "group", "isEditable")).to.eql(t.newSCP);
       });
     });
