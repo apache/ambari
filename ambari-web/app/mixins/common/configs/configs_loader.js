@@ -79,7 +79,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
     if (this.get('preSelectedConfigVersion')) {
       /** handling redirecting from config history page **/
       var self = this;
-      this.loadConfigGroups(this.get('servicesToLoad'), false).done(function() {
+      this.loadConfigGroups(this.get('servicesToLoad')).done(function() {
         var selectedGroup = App.ServiceConfigGroup.find().find(function(g) {
           return g.get('serviceName') == self.get('preSelectedConfigVersion.serviceName')
             && (g.get('name') == self.get('preSelectedConfigVersion.groupName') || (self.get('preSelectedConfigVersion.groupName') == 'default' && g.get('isDefault')));
@@ -121,7 +121,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
     App.configGroupsMapper.map(data, true, params.serviceNames.split(','));
     this.set('selectedConfigGroup', App.ServiceConfigGroup.find().filterProperty('serviceName', this.get('content.serviceName')).findProperty('isDefault'));
     this.parseConfigData(data);
-    this.loadConfigGroups(params.serviceNames.split(','), true);
+    this.loadConfigGroups(params.serviceNames.split(','));
   },
 
   /**

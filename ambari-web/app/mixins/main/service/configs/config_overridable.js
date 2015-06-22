@@ -445,7 +445,7 @@ App.ConfigOverridable = Em.Mixin.create({
       }),
       onPrimary:function() {
         if (self.get('controller.name') == 'mainServiceInfoConfigsController') {
-          self.get('controller').loadConfigGroups([self.get('content.serviceName')], true).done(function() {
+          self.get('controller').loadConfigGroups([self.get('content.serviceName')]).done(function() {
             var group = App.ServiceConfigGroup.find().find(function(g) {
               return g.get('serviceName') == self.get('content.serviceName') && g.get('name') == groupName;
             });
