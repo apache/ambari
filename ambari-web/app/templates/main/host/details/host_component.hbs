@@ -112,7 +112,7 @@
           </li>
         {{/unless}}
         {{#if view.isInit}}
-          <li {{bindAttr class="view."}}>
+          <li>
             <a href="javascript:void(null)" data-toggle="modal" {{action "installComponent" view.content target="controller"}}>
               {{t common.reinstall}}
             </a>

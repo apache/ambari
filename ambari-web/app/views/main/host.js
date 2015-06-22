@@ -548,6 +548,9 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     },
 
     displayComponents: function () {
+      if (this.get('hasNoComponents')) {
+        return;
+      }
       var header = Em.I18n.t('common.components'),
         hostName = this.get('content.hostName'),
         items = this.get('content.hostComponents').getEach('displayName');
@@ -555,6 +558,9 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     },
 
     displayVersions: function () {
+      if (this.get('hasSingleVersion')) {
+        return;
+      }
       var header = Em.I18n.t('common.versions'),
         hostName = this.get('content.hostName'),
         items = this.get('content.stackVersions').filterProperty('isVisible').map(function (stackVersion) {

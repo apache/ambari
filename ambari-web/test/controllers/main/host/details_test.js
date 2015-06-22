@@ -314,20 +314,56 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#deleteComponent()', function () {
-    it('confirm popup should be displayed', function () {
-      var event = {
-        context: Em.Object.create({})
-      };
-      sinon.spy(App.ModalPopup, "show");
-      sinon.stub(controller, '_doDeleteHostComponent', Em.K);
 
-      var popup = controller.deleteComponent(event);
-      expect(App.ModalPopup.show.calledOnce).to.be.true;
-      popup.onPrimary();
-      expect(controller._doDeleteHostComponent.calledWith(Em.Object.create({}))).to.be.true;
+    var jQueryMock,
+      cases = [
+        {
+          isDisabled: false,
+          showCallCount: 1,
+          title: 'confirm popup should be displayed'
+        },
+        {
+          isDisabled: true,
+          showCallCount: 0,
+          title: 'confirm popup shouldn\'t be displayed'
+        }
+      ];
+
+    beforeEach(function () {
+      jQueryMock = sinon.stub(window, '$');
+      sinon.spy(App.ModalPopup, 'show');
+      sinon.stub(controller, '_doDeleteHostComponent', Em.K);
+    });
+
+    afterEach(function () {
+      window.$.restore();
       App.ModalPopup.show.restore();
       controller._doDeleteHostComponent.restore();
     });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        jQueryMock.returns({
+          closest: function () {
+            return {
+              hasClass: function () {
+                return item.isDisabled;
+              }
+            }
+          }
+        });
+        var event = {
+            context: Em.Object.create({})
+          },
+          popup = controller.deleteComponent(event);
+        expect(App.ModalPopup.show.callCount).to.equal(item.showCallCount);
+        if (item.showCallCount) {
+          popup.onPrimary();
+          expect(controller._doDeleteHostComponent.calledWith(Em.Object.create({}))).to.be.true;
+        }
+      });
+    });
+
   });
 
   describe('#mimicWorkStatusChange()', function () {
@@ -1794,36 +1830,70 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#moveComponent()', function () {
-    it('popup should be displayed', function () {
-      var mock = {
+
+    var jQueryMock,
+      mock = {
         saveComponentToReassign: Em.K,
         getSecurityStatus: Em.K,
         setCurrentStep: Em.K
-      };
+      },
+      cases = [
+        {
+          isDisabled: false,
+          showConfirmationPopupCallCount: 1,
+          title: 'popup should be displayed'
+        },
+        {
+          isDisabled: true,
+          showConfirmationPopupCallCount: 0,
+          title: 'popup shouldn\'t be displayed'
+        }
+      ];
+
+    beforeEach(function () {
+      jQueryMock = sinon.stub(window, '$');
       sinon.spy(App, "showConfirmationPopup");
       sinon.stub(App.router, 'get').withArgs('reassignMasterController').returns(mock);
       sinon.stub(App.router, 'transitionTo', Em.K);
       sinon.spy(mock, "saveComponentToReassign");
       sinon.spy(mock, "getSecurityStatus");
       sinon.spy(mock, "setCurrentStep");
+    });
 
-      var popup = controller.moveComponent({context: {}});
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
-      popup.onPrimary();
-      expect(App.router.get.calledWith('reassignMasterController')).to.be.true;
-      expect(mock.saveComponentToReassign.calledWith({})).to.be.true;
-      expect(mock.getSecurityStatus.calledOnce).to.be.true;
-      expect(mock.setCurrentStep.calledWith('1')).to.be.true;
-      expect(App.router.transitionTo.calledWith('reassign')).to.be.true;
-
+    afterEach(function () {
+      window.$.restore();
       App.showConfirmationPopup.restore();
       App.router.get.restore();
       App.router.transitionTo.restore();
       mock.saveComponentToReassign.restore();
       mock.getSecurityStatus.restore();
       mock.setCurrentStep.restore();
-
     });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        jQueryMock.returns({
+          closest: function () {
+            return {
+              hasClass: function () {
+                return item.isDisabled;
+              }
+            }
+          }
+        });
+        var popup = controller.moveComponent({context: {}});
+        expect(App.showConfirmationPopup.callCount).to.equal(item.showConfirmationPopupCallCount);
+        if (item.showConfirmationPopupCallCount) {
+          popup.onPrimary();
+          expect(App.router.get.calledWith('reassignMasterController')).to.be.true;
+          expect(mock.saveComponentToReassign.calledWith({})).to.be.true;
+          expect(mock.getSecurityStatus.calledOnce).to.be.true;
+          expect(mock.setCurrentStep.calledWith('1')).to.be.true;
+          expect(App.router.transitionTo.calledWith('reassign')).to.be.true;
+        }
+      });
+    });
+
   });
 
   describe('#refreshConfigs()', function () {

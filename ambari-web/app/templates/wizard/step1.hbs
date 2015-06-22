@@ -69,8 +69,8 @@
                             {{view view.popoverView repositoryBinding="repository"}}
                           {{/if}}
                         </div>
-                        <div {{bindAttr class=":url-td operatingSystem.osType repository.repoId operatingSystem.isSelected::disabled-textfield repository.invalidFormatError:textfield-error repository.invalidError:textfield-error"}}>
-                          {{view Ember.TextField valueBinding="repository.baseUrl"}}
+                        <div {{bindAttr class=":url-td operatingSystem.osType repository.repoId repository.invalidFormatError:textfield-error repository.invalidError:textfield-error"}}>
+                          {{view Ember.TextField valueBinding="repository.baseUrl" disabledBinding="operatingSystem.isDeselected"}}
                         </div>
                         <div class="clear-td">
                           {{#if repository.clearAll}}
