@@ -36,7 +36,8 @@ from ambari_server.serverConfiguration import configDefaults, \
   update_database_name_property, get_admin_views_dir, \
   AMBARI_PROPERTIES_FILE, IS_LDAP_CONFIGURED, LDAP_PRIMARY_URL_PROPERTY, RESOURCES_DIR_PROPERTY, \
   SETUP_OR_UPGRADE_MSG
-from ambari_server.setupSecurity import adjust_directory_permissions
+from ambari_server.setupSecurity import adjust_directory_permissions, \
+  generate_env, ensure_can_start_under_current_user
 from ambari_server.utils import compare_versions
 from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input
@@ -223,7 +224,12 @@ def run_schema_upgrade():
   print 'Upgrading database schema'
 
   command = SCHEMA_UPGRADE_HELPER_CMD.format(jdk_path, get_full_ambari_classpath())
-  (retcode, stdout, stderr) = run_os_command(command)
+
+  ambari_user = read_ambari_user()
+  current_user = ensure_can_start_under_current_user(ambari_user)
+  environ = generate_env(ambari_user, current_user)
+
+  (retcode, stdout, stderr) = run_os_command(command, env=environ)
   print_info_msg("Return code from schema upgrade command, retcode = " + str(retcode))
   if retcode > 0:
     print_error_msg("Error executing schema upgrade, please check the server logs.")

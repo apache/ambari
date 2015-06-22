@@ -17,11 +17,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import getpass
 import os
-import stat
 import subprocess
-import tempfile
 import sys
 
 from ambari_commons.exceptions import FatalException
@@ -37,7 +34,8 @@ from ambari_server.serverConfiguration import configDefaults, find_jdk, get_amba
   SETUP_OR_UPGRADE_MSG, check_database_name_property, parse_properties_file
 from ambari_server.serverUtils import refresh_stack_hash
 from ambari_server.setupHttps import get_fqdn
-from ambari_server.setupSecurity import save_master_key
+from ambari_server.setupSecurity import generate_env, \
+  ensure_can_start_under_current_user
 from ambari_server.utils import check_reverse_lookup, save_pid, locate_file, looking_for_pid, wait_for_pid, \
   save_main_pid_ex, check_exitcode
 
@@ -107,26 +105,6 @@ AMBARI_SERVER_DIE_MSG = "Ambari Server java process died with exitcode {0}. Chec
 ULIMIT_OPEN_FILES_KEY = 'ulimit.open.files'
 ULIMIT_OPEN_FILES_DEFAULT = 10000
 
-
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def ensure_can_start_under_current_user(ambari_user):
-  #Ignore the requirement to run as root. In Windows, by default the child process inherits the security context
-  # and the environment from the parent process.
-  return ""
-
-@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-def ensure_can_start_under_current_user(ambari_user):
-  current_user = getpass.getuser()
-  if ambari_user is None:
-    err = "Unable to detect a system user for Ambari Server.\n" + SETUP_OR_UPGRADE_MSG
-    raise FatalException(1, err)
-  if current_user != ambari_user and not is_root():
-    err = "Unable to start Ambari Server as user {0}. Please either run \"ambari-server start\" " \
-          "command as root, as sudo or as user \"{1}\"".format(current_user, ambari_user)
-    raise FatalException(1, err)
-  return current_user
-
-
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def ensure_server_security_is_configured():
   pass
@@ -144,7 +122,7 @@ def get_ulimit_open_files(properties):
   return open_files
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def generate_child_process_param_list(ambari_user, current_user, java_exe, class_path, debug_start, suspend_mode):
+def generate_child_process_param_list(ambari_user, java_exe, class_path, debug_start, suspend_mode):
   conf_dir = class_path
   if class_path.find(' ') != -1:
     conf_dir = '"' + class_path + '"'
@@ -155,57 +133,14 @@ def generate_child_process_param_list(ambari_user, current_user, java_exe, class
       jvm_args,
       conf_dir,
       suspend_mode)
-  environ = os.environ.copy()
-  return (command, environ)
+  return command
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-def generate_child_process_param_list(ambari_user, current_user, java_exe, class_path, debug_start, suspend_mode):
+def generate_child_process_param_list(ambari_user, java_exe, class_path,
+                                      debug_start, suspend_mode):
   from ambari_commons.os_linux import ULIMIT_CMD
 
   properties = get_ambari_properties()
-
-  isSecure = get_is_secure(properties)
-  (isPersisted, masterKeyFile) = get_is_persisted(properties)
-  environ = os.environ.copy()
-  # Need to handle master key not persisted scenario
-  if isSecure and not masterKeyFile:
-    prompt = False
-    masterKey = environ.get(SECURITY_KEY_ENV_VAR_NAME)
-
-    if masterKey is not None and masterKey != "":
-      pass
-    else:
-      keyLocation = environ.get(SECURITY_MASTER_KEY_LOCATION)
-
-      if keyLocation is not None:
-        try:
-          # Verify master key can be read by the java process
-          with open(keyLocation, 'r'):
-            pass
-        except IOError:
-          print_warning_msg("Cannot read Master key from path specified in "
-                            "environemnt.")
-          prompt = True
-      else:
-        # Key not provided in the environment
-        prompt = True
-
-    if prompt:
-      import pwd
-
-      masterKey = get_original_master_key(properties)
-      tempDir = tempfile.gettempdir()
-      tempFilePath = tempDir + os.sep + "masterkey"
-      save_master_key(masterKey, tempFilePath, True)
-      if ambari_user != current_user:
-        uid = pwd.getpwnam(ambari_user).pw_uid
-        gid = pwd.getpwnam(ambari_user).pw_gid
-        os.chown(tempFilePath, uid, gid)
-      else:
-        os.chmod(tempFilePath, stat.S_IREAD | stat.S_IWRITE)
-
-      if tempFilePath is not None:
-        environ[SECURITY_MASTER_KEY_LOCATION] = tempFilePath
 
   command_base = SERVER_START_CMD_DEBUG if debug_start else SERVER_START_CMD
 
@@ -235,7 +170,7 @@ def generate_child_process_param_list(ambari_user, current_user, java_exe, class
     cmd = "{ulimit_cmd} ; {command}".format(ulimit_cmd=ulimit_cmd, command=command)
     
   param_list.append(cmd)
-  return (param_list, environ)
+  return param_list
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def wait_for_server_start(pidFile, scmStatus):
@@ -329,8 +264,10 @@ def server_process_main(options, scmStatus=None):
   suspend_start = (debug_mode & 2) or SUSPEND_START_MODE
   suspend_mode = 'y' if suspend_start else 'n'
 
-  (param_list, environ) = generate_child_process_param_list(ambari_user, current_user,
-                                                 java_exe, class_path, debug_start, suspend_mode)
+  param_list = generate_child_process_param_list(ambari_user, java_exe,
+                                                 class_path, debug_start,
+                                                 suspend_mode)
+  environ = generate_env(ambari_user, current_user)
 
   if not os.path.exists(configDefaults.PID_DIR):
     os.makedirs(configDefaults.PID_DIR, 0755)
