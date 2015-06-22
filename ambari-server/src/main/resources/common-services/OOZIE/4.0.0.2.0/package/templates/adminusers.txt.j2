@@ -21,4 +21,8 @@
 #     One user name per line
 #     Empty lines and lines starting with '#' are ignored
 
-{{oozie_user}}
+{% if oozie_admin_users %}
+{% for oozie_admin_user in oozie_admin_users.split(',') %}
+{{oozie_admin_user|trim}}
+{% endfor %}
+{% endif %}
