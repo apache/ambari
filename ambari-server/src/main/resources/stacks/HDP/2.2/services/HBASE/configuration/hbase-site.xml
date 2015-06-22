@@ -106,15 +106,6 @@
     <description>Value to be set between 0.0 and 1.0</description>
   </property>
   <property>
-    <name>hbase.regionserver.global.memstore.size</name>
-    <value>${hbase.regionserver.global.memstore.upperLimit}</value>
-    <description>Maximum size of all memstores in a region server before new
-      updates are blocked and flushes are forced. Defaults to 40% of heap.
-      Updates are blocked and flushes are forced until size of all memstores
-      in a region server hits hbase.regionserver.global.memstore.size.lower.limit.
-    </description>
-  </property>
-  <property>
     <name>hbase.regionserver.wal.codec</name>
     <display-name>RegionServer WAL Codec</display-name>
     <value>org.apache.hadoop.hbase.regionserver.wal.WALCellCodec</value>
