@@ -217,23 +217,21 @@ describe('App.ServiceConfigsByCategoryView', function () {
     ];
 
     before(function () {
-      view.reopen({
-        controller: {
-          secureConfigs: [
-            {
-              name: 'n0',
-              filename: 'f0'
-            },
-            {
-              name: 'n1',
-              filename: 'f0'
-            },
-            {
-              name: 'n2',
-              filename: 'f1'
-            }
-          ]
-        }
+      App.config.reopen({
+        secureConfigs: [
+          {
+            name: 'n0',
+            filename: 'f0'
+          },
+          {
+            name: 'n1',
+            filename: 'f0'
+          },
+          {
+            name: 'n2',
+            filename: 'f1'
+          }
+        ]
       })
     });
 
