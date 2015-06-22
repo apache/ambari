@@ -24,13 +24,7 @@ export default Ember.Controller.extend({
   notifyService: Ember.inject.service(constants.namingConventions.notify),
 
   index: Ember.inject.controller(),
-  openQueries: Ember.inject.controller(),
-
   verticesProgress: Ember.computed.alias('jobProgressService.currentJob.stages'),
-
-  observeCurrentQuery: function () {
-    this.set('shouldChangeGraph', true);
-  }.observes('openQueries.currentQuery', 'openQueries.currentQuery.fileContent'),
 
   actions: {
     onTabOpen: function () {
