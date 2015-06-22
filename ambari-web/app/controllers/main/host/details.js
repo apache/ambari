@@ -216,6 +216,9 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method deleteComponent
    */
   deleteComponent: function (event) {
+    if ($(event.target).closest('li').hasClass('disabled')) {
+      return;
+    }
     var self = this;
     var component = event.context;
     var componentName = component.get('componentName');
@@ -2094,6 +2097,9 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method moveComponent
    */
   moveComponent: function (event) {
+    if ($(event.target).closest('li').hasClass('disabled')) {
+      return;
+    }
     return App.showConfirmationPopup(function () {
       var component = event.context;
       var reassignMasterController = App.router.get('reassignMasterController');

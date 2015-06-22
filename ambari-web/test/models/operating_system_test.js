@@ -16,19 +16,27 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.OperatingSystem = DS.Model.extend({
-  id:  DS.attr('string'), // This is ${stackName}-${stackVersion}-${osType}.
-  osType: DS.attr('string'),
-  stackName: DS.attr('string'),
-  stackVersion: DS.attr('string'),
-  repositories: DS.hasMany('App.Repository'),
-  stack: DS.belongsTo('App.Stack'),
-  isSelected: DS.attr('boolean', {defaultValue: true}),
-  isDeselected: Em.computed.not('isSelected')
+require('models/operating_system');
+
+describe('App.OperatingSystem', function () {
+
+  var os;
+
+  beforeEach(function () {
+    os = App.OperatingSystem.createRecord();
+  });
+
+  describe('#isDeselected', function () {
+
+    it('should be opposite to isSelected', function () {
+      os.set('isSelected', true);
+      expect(os.get('isDeselected')).to.be.false;
+      os.set('isSelected', false);
+      expect(os.get('isDeselected')).to.be.true;
+    });
+
+  });
+
 });
-
-
-App.OperatingSystem.FIXTURES = [];

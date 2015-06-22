@@ -120,17 +120,8 @@ describe('App.MainHostView', function () {
 
     describe('#displayComponents', function () {
 
-      beforeEach(function () {
-        sinon.stub(App, 'showHostsTableListPopup', Em.K);
-      });
-
-      afterEach(function () {
-        App.showHostsTableListPopup.restore();
-      });
-
-      it('should display host components in modal popup', function () {
-        hostView.set('content', {
-          hostName: 'h',
+      var cases = [
+        {
           hostComponents: [
             {
               displayName: 'c0'
@@ -138,16 +129,16 @@ describe('App.MainHostView', function () {
             {
               displayName: 'c1'
             }
-          ]
-        });
-        hostView.displayComponents();
-        expect(App.showHostsTableListPopup.calledOnce).to.be.true;
-        expect(App.showHostsTableListPopup.calledWith(Em.I18n.t('common.components'), 'h', ['c0', 'c1'])).to.be.true;
-      });
-
-    });
-
-    describe('#displayVersions', function () {
+          ],
+          showHostsTableListPopupCallCount: 1,
+          title: 'should display host components in modal popup'
+        },
+        {
+          hostComponents: [],
+          showHostsTableListPopupCallCount: 0,
+          title: 'should not display modal popup'
+        }
+      ];
 
       beforeEach(function () {
         sinon.stub(App, 'showHostsTableListPopup', Em.K);
@@ -157,9 +148,26 @@ describe('App.MainHostView', function () {
         App.showHostsTableListPopup.restore();
       });
 
-      it('should display stack versions in modal popup', function () {
-        hostView.set('content', {
-          hostName: 'h',
+      cases.forEach(function (item) {
+        it(item.title, function () {
+          hostView.set('content', {
+            hostName: 'h',
+            hostComponents: item.hostComponents
+          });
+          hostView.displayComponents();
+          expect(App.showHostsTableListPopup.callCount).to.equal(item.showHostsTableListPopupCallCount);
+          if (item.showHostsTableListPopupCallCount) {
+            expect(App.showHostsTableListPopup.calledWith(Em.I18n.t('common.components'), 'h', ['c0', 'c1'])).to.be.true;
+          }
+        });
+      });
+
+    });
+
+    describe('#displayVersions', function () {
+
+      var cases = [
+        {
           stackVersions: [
             Em.Object.create({
               displayName: 'v0',
@@ -176,20 +184,73 @@ describe('App.MainHostView', function () {
               status: 'INSTALL_FAILED',
               isVisible: false
             })
-          ]
-        });
-        hostView.displayVersions();
-        expect(App.showHostsTableListPopup.calledOnce).to.be.true;
-        expect(App.showHostsTableListPopup.calledWith(Em.I18n.t('common.versions'), 'h', [
-          {
-            name: 'v0',
-            status: 'Current'
-          },
-          {
-            name: 'v1',
-            status: 'Out Of Sync'
+          ],
+          showHostsTableListPopupCallCount: 1,
+          title: 'should display stack versions in modal popup'
+        },
+        {
+          stackVersions: [
+            Em.Object.create({
+              displayName: 'v0',
+              status: 'CURRENT',
+              isVisible: true
+            }),
+            Em.Object.create({
+              displayName: 'v2',
+              status: 'INSTALL_FAILED',
+              isVisible: false
+            })
+          ],
+          showHostsTableListPopupCallCount: 0,
+          title: 'should not display modal popup if there\'s only one visible stack version'
+        },
+        {
+          stackVersions: [
+            Em.Object.create({
+              displayName: 'v2',
+              status: 'INSTALL_FAILED',
+              isVisible: false
+            })
+          ],
+          showHostsTableListPopupCallCount: 0,
+          title: 'should not display modal popup if there are no visible stack versions available'
+        },
+        {
+          stackVersions: [],
+          showHostsTableListPopupCallCount: 0,
+          title: 'should not display modal popup if there are no stack versions available'
+        }
+      ];
+
+      beforeEach(function () {
+        sinon.stub(App, 'showHostsTableListPopup', Em.K);
+      });
+
+      afterEach(function () {
+        App.showHostsTableListPopup.restore();
+      });
+
+      cases.forEach(function (item) {
+        it('should display stack versions in modal popup', function () {
+          hostView.set('content', {
+            hostName: 'h',
+            stackVersions: item.stackVersions
+          });
+          hostView.displayVersions();
+          expect(App.showHostsTableListPopup.callCount).to.equal(item.showHostsTableListPopupCallCount);
+          if (item.showHostsTableListPopupCallCount) {
+            expect(App.showHostsTableListPopup.calledWith(Em.I18n.t('common.versions'), 'h', [
+              {
+                name: 'v0',
+                status: 'Current'
+              },
+              {
+                name: 'v1',
+                status: 'Out Of Sync'
+              }
+            ])).to.be.true;
           }
-        ])).to.be.true;
+        });
       });
 
     });
