@@ -118,6 +118,7 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
   didInsertElement: function () {
     this.initPopover();
     this._super();
+    this.toggleWidgetState();
     this.addObserver('options.@each.isSelected', this, this.calculateVal);
     this.addObserver('options.@each.isSelected', this, this.checkSelectedItemsCount);
     if (this.isValueCompatibleWithWidget()) {
