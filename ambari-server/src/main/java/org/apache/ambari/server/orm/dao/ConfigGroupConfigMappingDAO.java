@@ -25,7 +25,6 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntityPK;
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
@@ -49,11 +48,7 @@ public class ConfigGroupConfigMappingDAO {
       .get().createNamedQuery("configsByGroup", ConfigGroupConfigMappingEntity.class);
 
     query.setParameter("groupId", groupId);
-    try {
-      return query.getResultList();
-    } catch (NoResultException ignored) {
-    }
-    return null;
+    return daoUtils.selectList(query);
   }
 
   @RequiresSession

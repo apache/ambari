@@ -365,7 +365,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     if (isPersisted) {
       // Delete existing mappings and create new ones
       configGroupHostMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
-      configGroupEntity.getConfigGroupHostMappingEntities().clear();
+      configGroupEntity.setConfigGroupHostMappingEntities(new HashSet<ConfigGroupHostMappingEntity>());
     }
 
     if (hosts != null && !hosts.isEmpty()) {
@@ -378,17 +378,17 @@ public class ConfigGroupImpl implements ConfigGroup {
           hostMappingEntity.setHostEntity(hostEntity);
           hostMappingEntity.setConfigGroupEntity(configGroupEntity);
           hostMappingEntity.setConfigGroupId(configGroupEntity.getGroupId());
+          configGroupEntity.getConfigGroupHostMappingEntities().add
+                  (hostMappingEntity);
           configGroupHostMappingDAO.create(hostMappingEntity);
           // TODO: Make sure this does not throw Nullpointer based on JPA docs
-          configGroupEntity.getConfigGroupHostMappingEntities().add
-            (hostMappingEntity);
-          configGroupDAO.merge(configGroupEntity);
         } else {
           LOG.warn("Host seems to be deleted, cannot create host to config " +
             "group mapping, host = " + host.getHostName());
         }
       }
     }
+    configGroupEntity = configGroupDAO.merge(configGroupEntity);
   }
 
   /**
@@ -401,7 +401,7 @@ public class ConfigGroupImpl implements ConfigGroup {
   void persistConfigMapping(ClusterEntity clusterEntity) {
     if (isPersisted) {
       configGroupConfigMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
-      configGroupEntity.getConfigGroupConfigMappingEntities().clear();
+      configGroupEntity.setConfigGroupConfigMappingEntities(new HashSet<ConfigGroupConfigMappingEntity>());
     }
 
     if (configurations != null && !configurations.isEmpty()) {
@@ -445,7 +445,7 @@ public class ConfigGroupImpl implements ConfigGroup {
         configGroupEntity.getConfigGroupConfigMappingEntities().add
           (configMappingEntity);
 
-        configGroupDAO.merge(configGroupEntity);
+        configGroupEntity = configGroupDAO.merge(configGroupEntity);
       }
     }
   }
@@ -455,7 +455,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
 
     if (isPersisted) {
-      configGroupDAO.merge(configGroupEntity);
+      configGroupEntity = configGroupDAO.merge(configGroupEntity);
       persistHostMapping();
       persistConfigMapping(clusterEntity);
     }
