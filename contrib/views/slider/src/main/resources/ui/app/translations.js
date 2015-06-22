@@ -65,8 +65,8 @@ Em.I18n.translations = {
     'placeholder': {
       'optional': '(optional)',
       'step1.name': 'Enter Name (required)',
-      'include.file.patterns': '*.log',
-      'exclude.file.patterns': '*.zip',
+      'include.file.patterns': '.*log',
+      'exclude.file.patterns': '.*zip',
       'frequency': '3600'
     }
   },
@@ -144,6 +144,7 @@ Em.I18n.translations = {
   'wizard.step1.validateAppNameError': 'Application with name \'{0}\' already exists',
   'wizard.step1.noAppTypesError': 'No Slider Application packages have been installed on this server. Please contact your Ambari server administrator to install Slider Application packages into /var/lib/ambari-server/resources/apps/ folder and restart Ambari server.',
   'wizard.step1.frequencyError': 'Frequency value should be numeric',
+  'wizard.step1.enable2wayssl': 'Enable Two-Way SSL',
   'wizard.step2.name': 'Allocate Resources',
   'wizard.step2.header': ' application requires resources to be allocated on the cluster. Provide resource allocation requests for each component of the application below.',
   'wizard.step2.table.instances': 'Instances',
@@ -160,6 +161,7 @@ Em.I18n.translations = {
   'wizard.step4.name': 'Deploy',
   'wizard.step4.appName': 'App Name',
   'wizard.step4.appType': 'App Type',
+  'wizard.step4.2waysslEnabled': 'Two-Way SSL Enabled',
 
   'ajax.errorMessage': 'Error message',
   'ajax.apiInfo': 'received on {0} method for API: {1}',

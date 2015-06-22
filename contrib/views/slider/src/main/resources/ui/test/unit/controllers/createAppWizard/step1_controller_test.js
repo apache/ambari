@@ -125,7 +125,7 @@ test('initializeNewApp', function () {
     return controller.get('newApp.' + item);
   });
 
-  propEqual(values.uniq(), [''], 'should set properties values to empty strings as default');
+  propEqual(values.uniq(), [false, ''], 'should set properties values to empty strings as default');
 
   Em.run(function () {
     controller.set('controllers.createAppWizard.newApp', app);
