@@ -118,6 +118,9 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
    */
   restoreValue: function() {
     this.setConfigValue({ context: this.get('config.savedValue') });
+    if (this.get('config.supportsFinal')) {
+      this.get('config').set('isFinal', this.get('config.savedIsFinal'));
+    }
   },
 
   /**
@@ -125,6 +128,9 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
    */
   setRecommendedValue: function () {
     this.setConfigValue({ context: this.get('config.recommendedValue')});
+    if (this.get('config.supportsFinal')) {
+      this.get('config').set('isFinal', this.get('config.recommendedIsFinal'));
+    }
   },
 
   /**
