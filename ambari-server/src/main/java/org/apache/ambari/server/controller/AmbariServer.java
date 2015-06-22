@@ -31,6 +31,7 @@ import javax.servlet.DispatcherType;
 
 import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StateRecoveryManager;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
@@ -484,8 +485,9 @@ public class AmbariServer {
 
       clusterController = controller;
 
-      // FIXME need to figure out correct order of starting things to
-      // handle restart-recovery correctly
+      StateRecoveryManager recoveryManager = injector.getInstance(
+              StateRecoveryManager.class);
+      recoveryManager.doWork();
 
       /*
        * Start the server after controller state is recovered.
