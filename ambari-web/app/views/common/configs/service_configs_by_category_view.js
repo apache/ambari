@@ -343,7 +343,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   },
 
   isSecureConfig: function (configName, filename) {
-    var secureConfigs = this.get('controller.secureConfigs').filterProperty('filename', filename);
+    var secureConfigs = App.config.get('secureConfigs').filterProperty('filename', filename);
     return !!secureConfigs.findProperty('name', configName);
   },
 
