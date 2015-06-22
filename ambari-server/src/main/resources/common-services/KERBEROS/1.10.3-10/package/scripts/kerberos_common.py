@@ -428,3 +428,36 @@ class KerberosScript(Script):
             curr_content['keytabs'][principal.replace("_HOST", params.hostname)] = '_REMOVED_'
 
             self.put_structured_out(curr_content)
+
+  def setup_jce(self):
+    import params
+
+    if not params.jdk_name:
+      return
+    jce_curl_target = None
+    if params.jce_policy_zip is not None:
+      jce_curl_target = format("{artifact_dir}/{jce_policy_zip}")
+      Directory(params.artifact_dir,
+                recursive = True,
+                )
+      File(jce_curl_target,
+           content = DownloadSource(format("{jce_location}/{jce_policy_zip}")),
+           )
+    elif params.security_enabled:
+      # Something weird is happening
+      raise Fail("Security is enabled, but JCE policy zip is not specified.")
+
+    # The extraction will occur only after the security flag is set
+    if params.security_enabled:
+      security_dir = format("{java_home}/jre/lib/security")
+
+      File([format("{security_dir}/US_export_policy.jar"), format("{security_dir}/local_policy.jar")],
+           action = "delete",
+           )
+
+      extract_cmd = ("unzip", "-o", "-j", "-q", jce_curl_target, "-d", security_dir)
+      Execute(extract_cmd,
+              only_if = format("test -e {security_dir} && test -f {jce_curl_target}"),
+              path = ['/bin/','/usr/bin'],
+              sudo = True
+      )

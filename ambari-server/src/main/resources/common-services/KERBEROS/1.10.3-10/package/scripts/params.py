@@ -62,6 +62,15 @@ smoke_user = 'ambari-qa'
 
 manage_identities = 'true'
 
+artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
+jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
+jce_location = config['hostLevelParams']['jdk_location']
+jdk_name = default("/hostLevelParams/jdk_name", None)
+java_home = config['hostLevelParams']['java_home']
+java_version = int(config['hostLevelParams']['java_version'])
+
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+
 if config is not None:
   kerberos_command_params = get_property_value(config, 'kerberosCommandParams')
 

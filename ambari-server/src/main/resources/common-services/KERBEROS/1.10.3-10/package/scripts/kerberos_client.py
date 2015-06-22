@@ -37,6 +37,8 @@ class KerberosClient(KerberosScript):
     if params.manage_krb5_conf:
       self.write_krb5_conf()
 
+    self.setup_jce()
+
   def status(self, env):
     raise ClientComponentHasNoStatus()
 
@@ -66,6 +68,10 @@ class KerberosClient(KerberosScript):
 
   def remove_keytab(self, env):
     self.delete_keytab_file()
+
+  def download_install_jce(self, env):
+    self.setup_jce()
+
 
 if __name__ == "__main__":
   KerberosClient().execute()
