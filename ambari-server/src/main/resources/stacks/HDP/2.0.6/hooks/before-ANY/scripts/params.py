@@ -37,8 +37,6 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
-jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
-jce_location = config['hostLevelParams']['jdk_location']
 jdk_name = default("/hostLevelParams/jdk_name", None)
 java_home = config['hostLevelParams']['java_home']
 java_version = int(config['hostLevelParams']['java_version'])

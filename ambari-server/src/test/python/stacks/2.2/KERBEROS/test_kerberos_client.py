@@ -93,6 +93,12 @@ class TestKerberosClient(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
+    self.assertResourceCalled('Directory', '/tmp/AMBARI-artifacts/',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('File', '/tmp/AMBARI-artifacts//UnlimitedJCEPolicyJDK7.zip',
+                            content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip'),
+                            )
     self.assertNoMoreResources()
 
   def test_configure_unmanaged_ad(self):
