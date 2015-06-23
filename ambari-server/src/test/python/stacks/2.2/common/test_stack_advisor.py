@@ -86,7 +86,8 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "tez-site": {
         "properties": {
-          "tez.am.resource.memory.mb": "4000",
+          # tez.am.resource.memory.mb must be <= yarn.scheduler.maximum-allocation-mb
+          "tez.am.resource.memory.mb": "2048",
           "tez.task.resource.memory.mb": "768",
           "tez.runtime.io.sort.mb": "307",
           "tez.runtime.unordered.output.buffer.size-mb": "57",
@@ -122,7 +123,8 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "tez-site": {
         "properties": {
-          "tez.am.resource.memory.mb": "3100",
+          # tez.am.resource.memory.mb must be <= yarn.scheduler.maximum-allocation-mb
+          "tez.am.resource.memory.mb": "2048",
           "tez.task.resource.memory.mb": "768",
           "tez.runtime.io.sort.mb": "307",
           "tez.runtime.unordered.output.buffer.size-mb": "57",
@@ -158,7 +160,8 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "tez-site": {
         "properties": {
-          "tez.am.resource.memory.mb": "4000",
+          # tez.am.resource.memory.mb must be <= yarn.scheduler.maximum-allocation-mb
+          "tez.am.resource.memory.mb": "2048",
           "tez.task.resource.memory.mb": "760",
           "tez.runtime.io.sort.mb": "304",
           "tez.runtime.unordered.output.buffer.size-mb": "57",
@@ -1255,16 +1258,16 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "yarn-site": {
         "properties": {
-          "yarn.nodemanager.resource.memory-mb": "1280",
+          "yarn.nodemanager.resource.memory-mb": "2048",
           "yarn.scheduler.minimum-allocation-mb": "100",
-          "yarn.scheduler.maximum-allocation-mb": "1280",
+          "yarn.scheduler.maximum-allocation-mb": "2048",
           "yarn.nodemanager.resource.cpu-vcores": "2"
         },
         }
     }
     clusterData = {
       "cpu": 4,
-      "containers" : 5,
+      "containers" : 7,
       "ramPerContainer": 256,
       "totalAvailableRam": 4096,
     }
@@ -1286,21 +1289,21 @@ class TestHDP22StackAdvisor(TestCase):
         },
         "property_attributes": {
           'mapreduce.task.io.sort.mb': {'maximum': '2047'},
-          'yarn.app.mapreduce.am.resource.mb': {'maximum': '1280',
+          'yarn.app.mapreduce.am.resource.mb': {'maximum': '1792',
                                                 'minimum': '100'},
-          'mapreduce.map.memory.mb': {'maximum': '1280',
+          'mapreduce.map.memory.mb': {'maximum': '1792',
                                       'minimum': '100'},
-          'mapreduce.reduce.memory.mb': {'maximum': '1280',
+          'mapreduce.reduce.memory.mb': {'maximum': '1792',
                                          'minimum': '100'}
         }
       },
       "yarn-site": {
         "properties": {
-          "yarn.nodemanager.resource.memory-mb": "1280",
+          "yarn.nodemanager.resource.memory-mb": "1792",
           "yarn.scheduler.minimum-allocation-mb": "100",
           "yarn.scheduler.maximum-allocation-vcores": "1",
           "yarn.scheduler.minimum-allocation-vcores": "1",
-          "yarn.scheduler.maximum-allocation-mb": "1280",
+          "yarn.scheduler.maximum-allocation-mb": "1792",
           "yarn.nodemanager.resource.cpu-vcores": "1"
         },
         "property_attributes": {
@@ -1308,8 +1311,8 @@ class TestHDP22StackAdvisor(TestCase):
           'yarn.nodemanager.resource.cpu-vcores': {'maximum': '2'},
           'yarn.scheduler.minimum-allocation-vcores': {'maximum': '1'},
           'yarn.scheduler.maximum-allocation-vcores': {'maximum': '1'},
-          'yarn.scheduler.minimum-allocation-mb': {'maximum': '1280'},
-          'yarn.scheduler.maximum-allocation-mb': {'maximum': '1280'}
+          'yarn.scheduler.minimum-allocation-mb': {'maximum': '1792'},
+          'yarn.scheduler.maximum-allocation-mb': {'maximum': '1792'}
         }
       }
     }
@@ -1731,6 +1734,56 @@ class TestHDP22StackAdvisor(TestCase):
       ]
     }
 
+    self.stackAdvisor.recommendMapReduce2Configurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+    configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"] = "700"
+
+    expected = {
+        "yarn-env": {
+            "properties": {
+                "min_user_id": "500"
+            }
+        },
+        "mapred-site": {
+            "properties": {
+                "mapreduce.map.memory.mb": "700",
+                "mapreduce.reduce.memory.mb": "1280",
+                "yarn.app.mapreduce.am.command-opts": "-Xmx560m -Dhdp.version=${hdp.version}",
+                "mapreduce.reduce.java.opts": "-Xmx1024m",
+                "yarn.app.mapreduce.am.resource.mb": "700",
+                "mapreduce.map.java.opts": "-Xmx560m",
+                "mapreduce.task.io.sort.mb": "392"
+            },
+            "property_attributes": {
+                'mapreduce.task.io.sort.mb': {'maximum': '2047'},
+                'yarn.app.mapreduce.am.resource.mb': {'maximum': '1280',
+                                                      'minimum': '700'},
+                'mapreduce.map.memory.mb': {'maximum': '1280',
+                                            'minimum': '700'},
+                'mapreduce.reduce.memory.mb': {'maximum': '1280',
+                                               'minimum': '700'}
+            }
+        },
+        "yarn-site": {
+            "properties": {
+                "yarn.nodemanager.resource.memory-mb": "1280",
+                "yarn.scheduler.minimum-allocation-mb": "700",
+                "yarn.scheduler.maximum-allocation-vcores": "1",
+                "yarn.scheduler.minimum-allocation-vcores": "1",
+                "yarn.scheduler.maximum-allocation-mb": "1280",
+                "yarn.nodemanager.resource.cpu-vcores": "1"
+            },
+            "property_attributes": {
+                'yarn.nodemanager.resource.memory-mb': {'maximum': '1877'},
+                'yarn.nodemanager.resource.cpu-vcores': {'maximum': '2'},
+                'yarn.scheduler.minimum-allocation-vcores': {'maximum': '1'},
+                'yarn.scheduler.maximum-allocation-vcores': {'maximum': '1'},
+                'yarn.scheduler.minimum-allocation-mb': {'maximum': '1280'},
+                'yarn.scheduler.maximum-allocation-mb': {'maximum': '1280'}
+            }
+        }
+    }
     self.stackAdvisor.recommendMapReduce2Configurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
