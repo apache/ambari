@@ -889,7 +889,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     console.log('TRACE: Entering host info function');
     var self = this;
     var totalProgress = 0;
-    var tasksData = polledData.tasks;
+    var tasksData = polledData.tasks || [];
     console.log("The value of tasksData is: ", tasksData);
     var requestId = this.get('content.cluster.requestId');
     tasksData.setEach('Tasks.request_id', requestId);
