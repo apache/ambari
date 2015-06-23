@@ -45,6 +45,7 @@ class Logger:
     cherr = logging.StreamHandler(sys.stderr)
     cherr.setLevel(logging.ERROR)
     cherr.setFormatter(formatter)
+    logger.handlers = []
     logger.addHandler(cherr)
     logger.addHandler(chout)
 

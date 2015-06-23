@@ -99,8 +99,6 @@ class ScriptAlert(BaseAlert):
       matchObj = re.match( r'((.*)services(.*)package)', self.path_to_script)
       if matchObj:
         basedir = matchObj.group(1)
-        Logger.logger = logging.getLogger('resource_management')
-        Logger.logger.setLevel(logging.ERROR)
         with Environment(basedir, tmp_dir=self.config.get('agent', 'tmp_dir')) as env:
           return cmd_module.execute(configurations, self.parameters, self.host_name)
       else:
