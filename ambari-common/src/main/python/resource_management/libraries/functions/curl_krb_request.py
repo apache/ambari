@@ -42,6 +42,7 @@ except ImportError:
   _md5 = md5.new
 
 CONNECTION_TIMEOUT = 10
+MAX_TIMEOUT = 12
 
 logger = logging.getLogger()
 
@@ -90,12 +91,12 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix, krb_exe
   try:
     if return_only_http_code:
       _, curl_stdout, curl_stderr = shell.checked_call(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
-                             '%{http_code}', url, '--connect-timeout', str(CONNECTION_TIMEOUT),'-o', '/dev/null'],
+                             '%{http_code}', url, '--connect-timeout', str(CONNECTION_TIMEOUT), '--max-time', str(MAX_TIMEOUT), '-o', '/dev/null'],
                              stderr=subprocess.PIPE, env=kerberos_env, user=user)
     else:
       # returns response body
       _, curl_stdout, curl_stderr = shell.checked_call(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
-                             url, '--connect-timeout', str(CONNECTION_TIMEOUT)],
+                             url, '--connect-timeout', str(CONNECTION_TIMEOUT), '--max-time', str(MAX_TIMEOUT)],
                              stderr=subprocess.PIPE, env=kerberos_env, user=user)
   except Fail:
     if logger.isEnabledFor(logging.DEBUG):
