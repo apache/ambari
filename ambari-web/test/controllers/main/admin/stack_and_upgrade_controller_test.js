@@ -688,8 +688,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       sinon.stub(controller, 'abortUpgrade');
       sinon.stub(App.RepositoryVersion, 'find').returns([
         Em.Object.create({
-          displayName: 'HDP-2.3',
-          repositoryVersion: '2.3'
+          repositoryVersion: '2.3',
+          stackVersionType: 'HDP'
         })
       ]);
     });
