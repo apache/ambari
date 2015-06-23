@@ -138,6 +138,7 @@
       </requiredServices>
 
       <configuration-dependencies>
+        <config-type>core-site</config-type> <!-- hbase puts core-site in it's folder -->
         <config-type>hbase-policy</config-type>
         <config-type>hbase-site</config-type>
         <config-type>hbase-env</config-type>
