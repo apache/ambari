@@ -518,11 +518,9 @@ public class ViewRegistry {
 
         instanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_CREATE);
 
-        ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(ViewEntity.getViewName(viewName, version));
-
         setPersistenceEntities(instanceEntity);
 
-        ViewInstanceEntity persistedInstance = mergeViewInstance(instanceEntity, resourceTypeEntity);
+        ViewInstanceEntity persistedInstance = mergeViewInstance(instanceEntity, viewEntity.getResourceType());
 
         instanceEntity.setViewInstanceId(persistedInstance.getViewInstanceId());
         syncViewInstance(instanceEntity, persistedInstance);
@@ -1275,9 +1273,8 @@ public class ViewRegistry {
                         Set<ViewInstanceEntity> instanceDefinitions)
       throws Exception {
 
-    String             viewName      = view.getName();
-    ViewEntity         persistedView = viewDAO.findByName(viewName);
-    ResourceTypeEntity resourceType  = view.getResourceType();
+    String      viewName      = view.getName();
+    ViewEntity  persistedView = viewDAO.findByName(viewName);
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Syncing view " + viewName + ".");
@@ -1289,20 +1286,14 @@ public class ViewRegistry {
         LOG.debug("Creating view " + viewName + ".");
       }
 
-      // get or create an admin resource type to represent this view
-      ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(viewName);
-      if (resourceTypeEntity == null) {
-        resourceTypeEntity = resourceType;
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Creating resource type for " + viewName + ".");
-        }
-        resourceTypeDAO.create(resourceTypeEntity);
-      }
+      // create an admin resource type to represent this view
+      ResourceTypeEntity resourceType = resourceTypeDAO.merge(view.getResourceType());
 
       for( ViewInstanceEntity instance : view.getInstances()) {
         instance.setResource(createViewInstanceResource(resourceType));
       }
       // ... merge the view
+      view.setResourceType(resourceType);
       persistedView = viewDAO.merge(view);
     }
 
