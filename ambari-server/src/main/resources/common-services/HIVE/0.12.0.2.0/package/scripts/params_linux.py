@@ -53,7 +53,8 @@ stack_is_hdp21 = Script.is_hdp_stack_greater_or_equal("2.0") and Script.is_hdp_s
 # this is not available on INSTALL action because hdp-select is not available
 hdp_stack_version = functions.get_hdp_version('hive-server2')
 
-# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
+# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade.
+# It cannot be used during the initial Cluser Install because the version is not yet known.
 version = default("/commandParams/version", None)
 
 # current host stack version

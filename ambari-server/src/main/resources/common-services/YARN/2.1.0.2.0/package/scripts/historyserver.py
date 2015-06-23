@@ -33,6 +33,7 @@ from resource_management.libraries.functions.security_commons import build_expec
 from resource_management.core.source import Template
 from resource_management.core.logger import Logger
 
+from install_jars import install_tez_jars
 from yarn import yarn
 from service import service
 from ambari_commons import OSConst
@@ -79,18 +80,25 @@ class HistoryServerDefault(HistoryServer):
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "hadoop", params.version)
       hdp_select.select("hadoop-mapreduce-historyserver", params.version)
+      # MC Hammer said, "Can't touch this"
       copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user)
+      copy_to_hdfs("tez", params.user_group, params.hdfs_user)
       params.HdfsResource(None, action="execute")
-
 
   def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
-    
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user)
-      params.HdfsResource(None, action="execute")
+
+    if params.hdp_stack_version_major and compare_versions(params.hdp_stack_version_major, '2.2.0.0') >= 0:
+      # MC Hammer said, "Can't touch this"
+      resource_created = copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user)
+      resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user) or resource_created
+      if resource_created:
+        params.HdfsResource(None, action="execute")
+    else:
+      # In HDP 2.1, tez.tar.gz was copied to a different folder in HDFS.
+      install_tez_jars()
 
     service('historyserver', action='start', serviceName='mapreduce')
 

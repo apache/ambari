@@ -38,7 +38,7 @@ public class ExecuteTask extends Task {
   private Task.Type type = Task.Type.EXECUTE;
 
   /**
-   * Host to run on, if not specified, run on all. Other values include "master"
+   * Host to run on, if not specified, run on all. Other values include "master", "any"
    */
   @XmlAttribute
   public String hosts;

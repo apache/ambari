@@ -57,6 +57,51 @@ class TestHistoryServer(RMFTestCase):
 
     pid_check_cmd = 'ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid` >/dev/null 2>&1'
 
+    self.assertResourceCalled("HdfsResource", "/apps/tez/",
+                          type="directory",
+                          action=["create_on_execute"],
+                          user=u"hdfs",
+                          owner=u"tez",
+                          mode=493,
+                          hadoop_bin_dir="/usr/bin",
+                          hadoop_conf_dir="/etc/hadoop/conf",
+                          hdfs_site=self.getConfig()["configurations"]["hdfs-site"],
+                          default_fs=u'hdfs://c6401.ambari.apache.org:8020',
+                          security_enabled=False,
+                          kinit_path_local="/usr/bin/kinit",
+                          keytab=UnknownConfigurationMock(),
+                          principal_name=UnknownConfigurationMock()
+                          )
+
+    self.assertResourceCalled("HdfsResource", "/apps/tez/lib/",
+                              type="directory",
+                              action=["create_on_execute"],
+                              user=u'hdfs',
+                              owner=u"tez",
+                              mode=493,
+                              hadoop_bin_dir="/usr/bin",
+                              hadoop_conf_dir="/etc/hadoop/conf",
+                              hdfs_site=self.getConfig()["configurations"]["hdfs-site"],
+                              default_fs=u'hdfs://c6401.ambari.apache.org:8020',
+                              security_enabled=False,
+                              kinit_path_local="/usr/bin/kinit",
+                              keytab=UnknownConfigurationMock(),
+                              principal_name=UnknownConfigurationMock()
+    )
+
+    self.assertResourceCalled("HdfsResource", None,
+                              action=['execute'],
+                              user=u'hdfs',
+                              hadoop_bin_dir="/usr/bin",
+                              hadoop_conf_dir="/etc/hadoop/conf",
+                              hdfs_site=self.getConfig()["configurations"]["hdfs-site"],
+                              default_fs=u'hdfs://c6401.ambari.apache.org:8020',
+                              security_enabled=False,
+                              kinit_path_local="/usr/bin/kinit",
+                              keytab=UnknownConfigurationMock(),
+                              principal_name=UnknownConfigurationMock()
+                          )
+
     self.assertResourceCalled('File', '/var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
                               not_if=pid_check_cmd,
                               action=['delete'])
@@ -710,7 +755,8 @@ class TestHistoryServer(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute', 'hdp-select set hadoop-mapreduce-historyserver %s' % version)
-    copy_to_hdfs_mock.assert_called_with("mapreduce", "hadoop", "hdfs")
+    copy_to_hdfs_mock.assert_called_with("tez", "hadoop", "hdfs")
+
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',

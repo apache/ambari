@@ -24,7 +24,6 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.check_process_status import check_process_status
-from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
@@ -113,13 +112,7 @@ class ResourcemanagerDefault(Resourcemanager):
     env.set_params(params)
     self.configure(env) # FOR SECURITY
     if params.has_ranger_admin and params.is_supported_yarn_ranger:
-      setup_ranger_yarn() #Ranger Yarn Plugin related calls 
-    if not Script.is_hdp_stack_greater_or_equal("2.2"):
-      install_tez_jars()
-    else:
-      resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user)
-      if resource_created:
-        params.HdfsResource(None, action="execute")
+      setup_ranger_yarn() #Ranger Yarn Plugin related calls
     service('resourcemanager', action='start')
 
   def status(self, env):
