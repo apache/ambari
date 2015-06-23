@@ -416,7 +416,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     if (recommendedValueId) {
       sliderTicks.eq(recommendedValueId).addClass('slider-tick-default').on('mousedown', function(e) {
         if (self.get('disabled')) return false;
-        self.setValue(self.get('config.recommendedValue'));
+        self.setRecommendedValue();
         e.stopPropagation();
         return false;
       });
