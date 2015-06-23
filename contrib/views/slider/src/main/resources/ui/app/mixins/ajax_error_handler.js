@@ -43,6 +43,7 @@ App.AjaxErrorHandler = Ember.Mixin.create({
    * @showErrorPopup {boolean}
    */
   defaultErrorHandler: function (jqXHR, url, method, showErrorPopup) {
+    var self = this;
     method = method || 'GET';
     var context = this.get('isController') ? this : (this.get('isView') && this.get('controller'));
     try {
@@ -65,20 +66,17 @@ App.AjaxErrorHandler = Ember.Mixin.create({
           api: Em.I18n.t('ajax.apiInfo').format(method, url),
           statusCode: Em.I18n.t('ajax.statusCode').format(jqXHR.status),
           message: message,
-          showMessage: !!message
+          showMessage: !!message,
+          willDestroyElement: function () {
+            self.set('errorPopupShown', false);
+          }
         }),
         [
-          Ember.Object.create({title: Em.I18n.t('ok'), clicked: "errorPopupClose", dismiss: 'modal', type:'success'})
+          Ember.Object.create({title: Em.I18n.t('ok'), dismiss: 'modal', type: 'success'})
         ],
         context
       );
       this.set('errorPopupShown', true);
-    }
-  },
-  actions: {
-
-    errorPopupClose: function () {
-      this.set('errorPopupShown', false);
     }
   }
 });
