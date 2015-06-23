@@ -113,7 +113,7 @@ def kill_zkfc(zkfc_user):
   if params.dfs_ha_enabled:
     zkfc_pid_file = get_service_pid_file("zkfc", zkfc_user)
     if zkfc_pid_file:
-      check_process = format("ls {zkfc_pid_file} > /dev/null 2>&1 && ps -p `cat {zkfc_pid_file}` > /dev/null 2>&1")
+      check_process = as_user(format("ls {zkfc_pid_file} > /dev/null 2>&1 && ps -p `cat {zkfc_pid_file}` > /dev/null 2>&1"), user=params.hdfs_user)
       code, out = shell.call(check_process)
       if code == 0:
         Logger.debug("ZKFC is running and will be killed to initiate namenode failover.")
@@ -168,9 +168,9 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
     }
     hadoop_env_exports.update(custom_export)
 
-  check_process = format(
+  check_process = as_user(format(
     "ls {pid_file} >/dev/null 2>&1 &&"
-    " ps -p `cat {pid_file}` >/dev/null 2>&1")
+    " ps -p `cat {pid_file}` >/dev/null 2>&1"), user=params.hdfs_user)
 
   # on STOP directories shouldn't be created
   # since during stop still old dirs are used (which were created during previous start)
