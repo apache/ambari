@@ -547,7 +547,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   refreshSliderObserver: function() {
     var sliderTickLabel = this.$('.ui-slider-wrapper:eq(0) .slider-tick-label:first');
     var self = this;
-    if (sliderTickLabel.width() == 0) {
+    if (sliderTickLabel.width() == 0 && this.isValueCompatibleWithWidget()) {
       Em.run.later('sync', function() {
         self.changeBoundariesOnce();
       }, 10);
