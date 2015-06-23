@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.view;
 
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.view.ViewContext;
 import org.junit.Assert;
@@ -30,7 +31,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.aryEq;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
@@ -269,7 +272,10 @@ public class ViewURLStreamProviderTest {
     Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
     headerMap.put("header", Collections.singletonList("headerValue"));
 
-    expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
+    expect(streamProvider.processURL(eq("spec"),
+                                     eq("requestMethod"),
+                                     aryEq("params".getBytes()),
+                                     eq(headerMap))).andReturn(urlConnection);
 
     replay(streamProvider, urlConnection);
 
@@ -299,7 +305,11 @@ public class ViewURLStreamProviderTest {
 
     ViewURLStreamProvider viewURLStreamProvider = new ViewURLStreamProvider(viewContext, streamProvider);
 
-    Assert.assertEquals(urlConnection, viewURLStreamProvider.getConnectionAs("spec", "requestMethod", "params", headers, "joe"));
+    Assert.assertEquals(urlConnection, viewURLStreamProvider.getConnectionAs("spec",
+                                                                             "requestMethod",
+                                                                             "params",
+                                                                             headers,
+                                                                             "joe"));
 
     verify(streamProvider, urlConnection);
   }
@@ -324,8 +334,110 @@ public class ViewURLStreamProviderTest {
 
     ViewURLStreamProvider viewURLStreamProvider = new ViewURLStreamProvider(viewContext, streamProvider);
 
-    Assert.assertEquals(urlConnection, viewURLStreamProvider.getConnectionAsCurrent("spec", "requestMethod", "params", headers));
+    Assert.assertEquals(urlConnection, viewURLStreamProvider.getConnectionAsCurrent("spec",
+                                                                                    "requestMethod",
+                                                                                    "params",
+                                                                                    headers));
 
     verify(streamProvider, urlConnection, viewContext);
+  }
+
+  @Test
+  public void testProxyRestriction() throws Exception {
+    ViewURLStreamProvider viewURLStreamProvider = new ViewURLStreamProvider(null, null);
+    Properties ambariProperties = new Properties();
+    Configuration configuration = new Configuration(ambariProperties);
+    Assert.assertEquals(
+        Configuration.PROXY_ALLOWED_HOST_PORTS_DEFAULT,
+        configuration.getConfigsMap().get(Configuration.PROXY_ALLOWED_HOST_PORTS));
+    ViewURLStreamProvider.HostPortRestrictionHandler hprh =
+        viewURLStreamProvider.new HostPortRestrictionHandler(
+            configuration.getProperty(Configuration.PROXY_ALLOWED_HOST_PORTS));
+    Assert.assertFalse(hprh.proxyCallRestricted());
+    Assert.assertTrue(hprh.allowProxy("host1.com", null));
+    Assert.assertTrue(hprh.allowProxy(null, null));
+    Assert.assertTrue(hprh.allowProxy("host1.com", " "));
+    Assert.assertTrue(hprh.allowProxy("host1.com ", " "));
+    Assert.assertTrue(hprh.allowProxy(" host1.com ", "8080"));
+
+    ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.PROXY_ALLOWED_HOST_PORTS, "");
+    configuration = new Configuration(ambariProperties);
+    hprh =
+        viewURLStreamProvider.new HostPortRestrictionHandler(
+            configuration.getProperty(Configuration.PROXY_ALLOWED_HOST_PORTS));
+    Assert.assertFalse(hprh.proxyCallRestricted());
+    Assert.assertTrue(hprh.allowProxy("host1.com", null));
+    Assert.assertTrue(hprh.allowProxy(null, null));
+    Assert.assertTrue(hprh.allowProxy("host1.com", " "));
+    Assert.assertTrue(hprh.allowProxy("host1.com ", " "));
+    Assert.assertTrue(hprh.allowProxy(" host1.com ", "8080"));
+
+    ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.PROXY_ALLOWED_HOST_PORTS, "host1.com:*");
+    configuration = new Configuration(ambariProperties);
+    hprh =
+        viewURLStreamProvider.new HostPortRestrictionHandler(
+            configuration.getProperty(Configuration.PROXY_ALLOWED_HOST_PORTS));
+    Assert.assertTrue(hprh.proxyCallRestricted());
+    Assert.assertTrue(hprh.allowProxy("host1.com", null));
+    Assert.assertTrue(hprh.allowProxy(null, null));
+    Assert.assertTrue(hprh.allowProxy("host1.com", "20"));
+    Assert.assertFalse(hprh.allowProxy("host2.com ", " "));
+    Assert.assertFalse(hprh.allowProxy(" host2.com ", "8080"));
+
+    ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.PROXY_ALLOWED_HOST_PORTS, " host1.com:80 ,host2.org:443, host2.org:22");
+    configuration = new Configuration(ambariProperties);
+    hprh =
+        viewURLStreamProvider.new HostPortRestrictionHandler(
+            configuration.getProperty(Configuration.PROXY_ALLOWED_HOST_PORTS));
+    Assert.assertTrue(hprh.proxyCallRestricted());
+    Assert.assertTrue(hprh.allowProxy("host1.com", "80"));
+    Assert.assertFalse(hprh.allowProxy("host1.com", "20"));
+    Assert.assertFalse(hprh.allowProxy("host2.org", "404"));
+    Assert.assertFalse(hprh.allowProxy("host2.com", "22"));
+
+    ViewContext viewContext = createNiceMock(ViewContext.class);
+    expect(viewContext.getAmbariProperty(anyObject(String.class))).andReturn(
+        " host1.com:80 ,host2.org:443, host2.org:22");
+    replay(viewContext);
+    viewURLStreamProvider = new ViewURLStreamProvider(viewContext, null);
+
+
+    Assert.assertTrue(viewURLStreamProvider.isProxyCallAllowed("http://host1.com/tt"));
+    Assert.assertTrue(viewURLStreamProvider.isProxyCallAllowed("https://host2.org/tt"));
+    Assert.assertFalse(viewURLStreamProvider.isProxyCallAllowed("https://host2.org:444/tt"));
+
+    viewContext = createNiceMock(ViewContext.class);
+    expect(viewContext.getAmbariProperty(anyObject(String.class))).andReturn("c6401.ambari.apache.org:8088");
+    replay(viewContext);
+    viewURLStreamProvider = new ViewURLStreamProvider(viewContext, null);
+    Assert.assertTrue(viewURLStreamProvider.isProxyCallAllowed(
+        "http://c6401.ambari.apache.org:8088/ws/v1/cluster/get-node-labels"));
+
+    viewContext = createNiceMock(ViewContext.class);
+    expect(viewContext.getAmbariProperty(anyObject(String.class))).andReturn("*:8088");
+    replay(viewContext);
+    viewURLStreamProvider = new ViewURLStreamProvider(viewContext, null);
+    Assert.assertFalse(viewURLStreamProvider.isProxyCallAllowed(
+        "http://c6401.ambari.apache.org:8088/ws/v1/cluster/get-node-labels"));
+
+    viewContext = createNiceMock(ViewContext.class);
+    expect(viewContext.getAmbariProperty(anyObject(String.class))).andReturn("c6401.ambari.apache.org:*");
+    replay(viewContext);
+    viewURLStreamProvider = new ViewURLStreamProvider(viewContext, null);
+    Assert.assertTrue(viewURLStreamProvider.isProxyCallAllowed(
+        "http://c6401.ambari.apache.org:8088/ws/v1/cluster/get-node-labels"));
+
+    viewContext = createNiceMock(ViewContext.class);
+    expect(viewContext.getAmbariProperty(anyObject(String.class))).andReturn(
+        "c6401.ambari.apache.org:80,c6401.ambari.apache.org:443");
+    replay(viewContext);
+    viewURLStreamProvider = new ViewURLStreamProvider(viewContext, null);
+    Assert.assertTrue(viewURLStreamProvider.isProxyCallAllowed(
+        "http://c6401.ambari.apache.org/ws/v1/cluster/get-node-labels"));
+    Assert.assertTrue(viewURLStreamProvider.isProxyCallAllowed(
+        "https://c6401.ambari.apache.org/ws/v1/cluster/get-node-labels"));
   }
 }

@@ -18,19 +18,26 @@
 
 package org.apache.ambari.server.view;
 
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.proxy.ProxyService;
 import org.apache.ambari.view.URLConnectionProvider;
 import org.apache.ambari.view.ViewContext;
 import org.apache.commons.io.IOUtils;
-
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +45,8 @@ import java.util.Map;
  * Wrapper around an internal URL stream provider.
  */
 public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamProvider, URLConnectionProvider {
+
+  private static final Log LOG = LogFactory.getLog(ViewContextImpl.class);
 
   /**
    * The key for the "doAs" header.
@@ -54,20 +63,37 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
    */
   private final URLStreamProvider streamProvider;
 
+  /**
+   * Apply host port restrictions if any
+   */
+  private HostPortRestrictionHandler hostPortRestrictionHandler;
 
   // ----- Constructor -----------------------------------------------------
 
   /**
    * Construct a view URL stream provider.
    *
-   * @param viewContext     the associated view context
-   * @param streamProvider  the underlying stream provider
+   * @param viewContext    the associated view context
+   * @param streamProvider the underlying stream provider
    */
   protected ViewURLStreamProvider(ViewContext viewContext, URLStreamProvider streamProvider) {
-    this.viewContext    = viewContext;
+    this.viewContext = viewContext;
     this.streamProvider = streamProvider;
   }
 
+  /**
+   * Get an instance of HostPortRestrictionHandler
+   *
+   * @return
+   */
+  private HostPortRestrictionHandler getHostPortRestrictionHandler() {
+    if (this.hostPortRestrictionHandler == null) {
+      HostPortRestrictionHandler hostPortRestrictionHandlerTmp =
+          new HostPortRestrictionHandler(this.viewContext.getAmbariProperty(Configuration.PROXY_ALLOWED_HOST_PORTS));
+      this.hostPortRestrictionHandler = hostPortRestrictionHandlerTmp;
+    }
+    return this.hostPortRestrictionHandler;
+  }
 
   // ----- URLStreamProvider -----------------------------------------------
 
@@ -182,6 +208,11 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
   // get the input stream response from the underlying stream provider
   private InputStream getInputStream(String spec, String requestMethod, Map<String, String> headers, byte[] info)
       throws IOException {
+    if (!isProxyCallAllowed(spec)) {
+      LOG.warn("Call to " + spec + " is not allowed. See ambari.properties proxy.allowed.hostports.");
+      throw new IOException("Call to " + spec + " is not allowed. See ambari.properties proxy.allowed.hostports.");
+    }
+
     HttpURLConnection connection = getHttpURLConnection(spec, requestMethod, headers, info);
 
     int responseCode = connection.getResponseCode();
@@ -194,7 +225,13 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
   private HttpURLConnection getHttpURLConnection(String spec, String requestMethod,
                                                  Map<String, String> headers, byte[] info)
       throws IOException {
+    if (!isProxyCallAllowed(spec)) {
+      LOG.warn("Call to " + spec + " is not allowed. See ambari.properties proxy.allowed.hostports.");
+      throw new IOException("Call to " + spec + " is not allowed. See ambari.properties proxy.allowed.hostports.");
+    }
+
     // adapt the headers to the internal URLStreamProvider processURL signature
+
     Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
     for (Map.Entry<String, String> entry : headers.entrySet()) {
       headerMap.put(entry.getKey(), Collections.singletonList(entry.getValue()));
@@ -202,4 +239,117 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
     return streamProvider.processURL(spec, requestMethod, info, headerMap);
   }
 
+  /**
+   * Is it allowed to make calls to the supplied url
+   * @param spec the URL
+   * @return
+   */
+  protected boolean isProxyCallAllowed(String spec) {
+    if (StringUtils.isNotBlank(spec) && this.getHostPortRestrictionHandler().proxyCallRestricted()) {
+      try {
+        URL url = new URL(spec);
+        return this.getHostPortRestrictionHandler().allowProxy(url.getHost(),
+                                                               Integer.toString(url.getPort() == -1
+                                                                                    ? url.getDefaultPort()
+                                                                                    : url.getPort()));
+      } catch (MalformedURLException ex) {
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Creates a list of allowed hosts and ports
+   */
+  class HostPortRestrictionHandler {
+    private final String allowedHostPortsValue;
+    private Map<String, HashSet<String>> allowedHostPorts = null;
+    private Boolean isProxyCallRestricted = Boolean.FALSE;
+
+    public HostPortRestrictionHandler(String allowedHostPortsValue) {
+      this.allowedHostPortsValue = allowedHostPortsValue;
+      LOG.debug("Proxy restriction will be derived from " + allowedHostPortsValue);
+    }
+
+    /**
+     * Checks supplied host and port against the restriction list
+     *
+     * @param host
+     * @param port
+     *
+     * @return if the host and port combination is allowed
+     */
+    public boolean allowProxy(String host, String port) {
+      LOG.debug("Checking host " + host + " port " + port + " against allowed list.");
+      if (StringUtils.isNotBlank(host)) {
+        String hostToCompare = host.trim().toLowerCase();
+        if (this.allowedHostPorts == null) {
+          initializeAllowedHostPorts();
+        }
+
+        if (this.isProxyCallRestricted) {
+          if (this.allowedHostPorts.containsKey(hostToCompare)) {
+            if (this.allowedHostPorts.get(hostToCompare).contains("*")) {
+              return true;
+            }
+            String portToCompare = "";
+            if (StringUtils.isNotBlank(port)) {
+              portToCompare = port.trim();
+            }
+            if (this.allowedHostPorts.get(hostToCompare).contains(portToCompare)) {
+              return true;  // requested host port allowed
+            }
+            return false;
+          }
+          return false; // restricted, at least hostname need to match
+        } // no restriction
+      }
+      return true;
+    }
+
+    /**
+     * Initialize the allowed list of hosts and ports
+     */
+    private void initializeAllowedHostPorts() {
+      boolean proxyCallRestricted = false;
+      Map<String, HashSet<String>> allowed = new HashMap<String, HashSet<String>>();
+      if (StringUtils.isNotBlank(allowedHostPortsValue)) {
+        String allowedStr = allowedHostPortsValue.toLowerCase();
+        if (!allowedStr.equals(Configuration.PROXY_ALLOWED_HOST_PORTS_DEFAULT)) {
+          proxyCallRestricted = true;
+          String[] hostPorts = allowedStr.trim().split(",");
+          for (String hostPortStr : hostPorts) {
+            String[] hostAndPort = hostPortStr.trim().split(":");
+            if (hostAndPort.length == 1) {
+              if (!allowed.containsKey(hostAndPort[0])) {
+                allowed.put(hostAndPort[0], new HashSet<String>());
+              }
+              allowed.get(hostAndPort[0]).add("*");
+              LOG.debug("Allow proxy to host " + hostAndPort[0] + " and all ports.");
+            } else {
+              if (!allowed.containsKey(hostAndPort[0])) {
+                allowed.put(hostAndPort[0], new HashSet<String>());
+              }
+              allowed.get(hostAndPort[0]).add(hostAndPort[1]);
+              LOG.debug("Allow proxy to host " + hostAndPort[0] + " and port " + hostAndPort[1]);
+            }
+          }
+        }
+      }
+      this.allowedHostPorts = allowed;
+      this.isProxyCallRestricted = proxyCallRestricted;
+    }
+
+    /**
+     * Is there a restriction of which host and port the call can be made to
+     * @return
+     */
+    public Boolean proxyCallRestricted() {
+      if (this.allowedHostPorts == null) {
+        initializeAllowedHostPorts();
+      }
+      return this.isProxyCallRestricted;
+    }
+  }
 }
