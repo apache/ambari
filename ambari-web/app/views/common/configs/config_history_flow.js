@@ -152,8 +152,23 @@ App.ConfigHistoryFlowView = Em.View.extend({
     event.stopPropagation();
     this.set('showFullList', true);
   },
+
   hideFullList: function (event) {
     this.set('showFullList', !(this.get('serviceVersions.length') > this.VERSIONS_IN_DROPDOWN));
+  },
+
+  computePosition: function(event) {
+    var $el = Em.$('.dropdown-menu', event.currentTarget);
+    // remove existing style - in case user scrolls the page
+    $el.removeAttr('style');
+    var elHeight = $el.outerHeight(),
+      parentHeight = $el.parent().outerHeight(),
+      pagePosition = window.innerHeight + window.pageYOffset,
+      elBottomPosition = $el.offset().top + elHeight,
+      shouldShowUp = elBottomPosition > pagePosition ;
+    if (shouldShowUp) {
+      $el.css('margin-top', -(elHeight - parentHeight));
+    }
   },
 
   didInsertElement: function () {
