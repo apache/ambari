@@ -33,10 +33,14 @@ App.EditableList = Ember.View.extend({
 
   init: function () {
     this._super();
-    this.set('itemsOriginal', Em.copy(this.get('items')));
+    this.updateItemsOriginal();
     this.set('input', '');
     this.set('editMode', false);
   },
+
+  updateItemsOriginal: function () {
+    this.set('itemsOriginal', Em.copy(this.get('items')));
+  }.observes('items'),
 
   onPrimary: function (event) {
     this.set('editMode', false);
