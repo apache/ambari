@@ -815,10 +815,8 @@ public class ViewRegistryTest {
     ViewConfig config = ViewConfigTest.getConfig(XML_VALID_INSTANCE);
     ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
-    ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
 
     expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(viewInstanceEntity);
-    expect(resourceTypeDAO.findByName("MY_VIEW{1.0.0}")).andReturn(resourceTypeEntity);
 
     handlerList.addViewInstance(viewInstanceEntity);
 
@@ -835,7 +833,7 @@ public class ViewRegistryTest {
     Assert.assertEquals("v2-1", instanceEntity.getProperty("p2").getValue() );
 
     Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
-    Assert.assertEquals(resourceTypeEntity, viewInstanceEntity.getResource().getResourceType());
+    Assert.assertEquals("MY_VIEW{1.0.0}", viewInstanceEntity.getResource().getResourceType().getName());
 
     verify(viewDAO, viewInstanceDAO, resourceTypeDAO, securityHelper, handlerList);
   }
