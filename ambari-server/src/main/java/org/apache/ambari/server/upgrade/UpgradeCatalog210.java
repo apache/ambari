@@ -1288,6 +1288,18 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             if (!cluster.getDesiredConfigByType("storm-site").getProperties().containsKey("java.security.auth.login.config")) {
               newStormProps.put("java.security.auth.login.config", "{{conf_dir}}/storm_jaas.conf");
             }
+            if (!cluster.getDesiredConfigByType("storm-site").getProperties().containsKey("nimbus.admins")) {
+              newStormProps.put("nimbus.admins", "['{{storm_user}}']");
+            }
+            if (!cluster.getDesiredConfigByType("storm-site").getProperties().containsKey("nimbus.supervisors.users")) {
+              newStormProps.put("nimbus.supervisors.users", "['{{storm_user}}']");
+            }
+            if (!cluster.getDesiredConfigByType("storm-site").getProperties().containsKey("storm.zookeeper.superACL")) {
+              newStormProps.put("storm.zookeeper.superACL", "sasl:{{storm_base_jaas_principal}}");
+            }
+            if (!cluster.getDesiredConfigByType("storm-site").getProperties().containsKey("ui.filter.params")) {
+              newStormProps.put("ui.filter.params", "{'type': 'kerberos', 'kerberos.principal': '{{storm_ui_jaas_principal}}', 'kerberos.keytab': '{{storm_ui_keytab_path}}', 'kerberos.name.rules': 'DEFAULT'}");
+            }
             updateConfigurationPropertiesForCluster(cluster, "storm-site", newStormProps, false, true);
           }
         }
