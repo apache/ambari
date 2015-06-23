@@ -47,8 +47,26 @@
             <package>
               <name>hive_2_3_*-webhcat</name>
             </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat6,suse11</osFamily>
+          <packages>
             <package>
               <name>mysql</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat7</osFamily>
+          <packages>
+            <package>
+              <name>mysql-community-release</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>
+              <name>mysql-community-server</name>
               <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>
@@ -68,7 +86,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7,redhat6,debian7,ubuntu12,ubuntu14</osFamily>
+          <osFamily>redhat6,debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
               <name>mysql-server</name>
