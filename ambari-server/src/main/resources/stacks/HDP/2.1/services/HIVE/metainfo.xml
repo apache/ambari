@@ -71,6 +71,19 @@
           </packages>
         </osSpecific>
         <osSpecific>
+          <osFamily>redhat7</osFamily>
+          <packages>
+            <package>
+              <name>mysql-community-release</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>
+              <name>mysql-community-server</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
           <osFamily>redhat6,ubuntu12</osFamily>
           <packages>
             <package>
