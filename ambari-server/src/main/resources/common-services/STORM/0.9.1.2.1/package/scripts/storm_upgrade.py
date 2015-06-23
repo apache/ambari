@@ -61,11 +61,6 @@ class StormUpgrade(Script):
       Logger.info("Unable to extract ZooKeeper hosts from '{0}', assuming localhost").format(params.storm_zookeeper_servers)
       storm_zookeeper_server_list = ["localhost"]
 
-    # kinit if needed
-    if params.security_enabled:
-      kinit_command=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
-      Execute(kinit_command,user=params.smokeuser)
-
     # for every zk server, try to remove /storm
     zookeeper_data_cleared = False
     for storm_zookeeper_server in storm_zookeeper_server_list:
@@ -84,6 +79,11 @@ class StormUpgrade(Script):
         env_map = {
           'JAVA_HOME': params.java64_home
         }
+
+        # AMBARI-12094: if security is enabled, then we need to tell zookeeper where the
+        # JAAS file is located since we don't use kinit directly with STORM
+        if params.security_enabled:
+          env_map['JVMFLAGS'] = "-Djava.security.auth.login.config={0}".format(params.storm_jaas_file)
 
         Execute(command, user=params.storm_user, environment=env_map,
           logoutput=True, tries=1)
