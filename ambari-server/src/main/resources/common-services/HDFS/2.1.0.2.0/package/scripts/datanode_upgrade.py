@@ -49,7 +49,7 @@ def pre_upgrade_shutdown():
   else:
     # Due to bug HDFS-7533, DataNode may not always shutdown during rolling upgrade, and it is necessary to kill it.
     if output is not None and re.search("Shutdown already in progress", output):
-      Logger.error("Due to a known issue in DataNode, the command {0} did not work and will shutdown the datanode forcefully.")
+      Logger.error("Due to a known issue in DataNode, the command {0} did not work, so will need to shutdown the datanode forcefully.".format(command))
       return False
   return True
 

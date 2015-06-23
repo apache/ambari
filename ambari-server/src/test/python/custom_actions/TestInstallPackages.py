@@ -69,6 +69,7 @@ class TestInstallPackages(RMFTestCase):
                       {'package_installation_result': 'SUCCESS',
                        'installed_repository_version': u'2.2.0.1-885',
                        'stack_id': 'HDP-2.2',
+                       'actual_version': u'2.2.0.1-885',
                        'ambari_repositories': []})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
@@ -117,6 +118,7 @@ class TestInstallPackages(RMFTestCase):
                       {'package_installation_result': 'SUCCESS',
                        'installed_repository_version': u'2.2.0.1-885',
                        'stack_id': 'HDP-2.2',
+                       'actual_version': u'2.2.0.1-885',
                        'ambari_repositories': []})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
@@ -167,6 +169,7 @@ class TestInstallPackages(RMFTestCase):
                       {'package_installation_result': 'SUCCESS',
                        'installed_repository_version': u'2.2.0.1-885',
                        'stack_id': 'HDP-2.2',
+                       'actual_version': u'2.2.0.1-885',
                        'ambari_repositories': ["HDP-UTILS-2.2.0.1-885"]})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
@@ -240,7 +243,11 @@ class TestInstallPackages(RMFTestCase):
 
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
-                      {'stack_id': 'HDP-2.2', 'installed_repository_version': u'2.2.0.1-885', 'ambari_repositories': [], 'package_installation_result': 'FAIL'})
+                      {'stack_id': 'HDP-2.2',
+                      'actual_version': u'2.2.0.1-885',
+                      'installed_repository_version': u'2.2.0.1-885',
+                      'ambari_repositories': [],
+                      'package_installation_result': 'FAIL'})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
@@ -284,6 +291,7 @@ class TestInstallPackages(RMFTestCase):
                       {'package_installation_result': 'SUCCESS',
                        'installed_repository_version': u'2.2.0.1-885',
                        'stack_id': 'HDP-2.2',
+                       'actual_version': u'2.2.0.1-885',
                        'ambari_repositories': []})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
