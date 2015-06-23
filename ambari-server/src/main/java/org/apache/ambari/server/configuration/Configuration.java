@@ -266,6 +266,12 @@ public class Configuration {
   public static final String RECOVERY_RETRY_GAP_DEFAULT = "5";
 
   /**
+   * Allow proxy calls to these hosts and ports only
+   */
+  public static final String PROXY_ALLOWED_HOST_PORTS = "proxy.allowed.hostports";
+  public static final String PROXY_ALLOWED_HOST_PORTS_DEFAULT = "*:*";
+
+  /**
    * This key defines whether stages of parallel requests are executed in
    * parallel or sequentally. Only stages from different requests
    * running on not interfering host sets may be executed in parallel.
@@ -573,6 +579,8 @@ public class Configuration {
 
     configsMap.put(AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY, properties.getProperty(
             AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY, AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_DEFAULT));
+    configsMap.put(PROXY_ALLOWED_HOST_PORTS, properties.getProperty(
+        PROXY_ALLOWED_HOST_PORTS, PROXY_ALLOWED_HOST_PORTS_DEFAULT));
 
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
@@ -913,7 +921,7 @@ public class Configuration {
    */
   public int getClientSSLApiPort() {
     return Integer.parseInt(properties.getProperty(CLIENT_API_SSL_PORT_KEY,
-        String.valueOf(CLIENT_API_SSL_PORT_DEFAULT)));
+                                                   String.valueOf(CLIENT_API_SSL_PORT_DEFAULT)));
   }
 
   /**
@@ -1225,23 +1233,26 @@ public class Configuration {
 
   public String getSrvrDisabledCiphers() {
     String disabledCiphers = properties.getProperty(SRVR_DISABLED_CIPHERS,
-            properties.getProperty(SRVR_DISABLED_CIPHERS, SRVR_DISABLED_CIPHERS_DEFAULT));
+                                                    properties.getProperty(SRVR_DISABLED_CIPHERS,
+                                                                           SRVR_DISABLED_CIPHERS_DEFAULT));
     return disabledCiphers.trim();
   }
 
   public String getSrvrDisabledProtocols() {
     String disabledProtocols = properties.getProperty(SRVR_DISABLED_PROTOCOLS,
-            properties.getProperty(SRVR_DISABLED_PROTOCOLS, SRVR_DISABLED_PROTOCOLS_DEFAULT));
+                                                      properties.getProperty(SRVR_DISABLED_PROTOCOLS,
+                                                                             SRVR_DISABLED_PROTOCOLS_DEFAULT));
     return disabledProtocols.trim();
   }
 
   public int getOneWayAuthPort() {
     return Integer.parseInt(properties.getProperty(SRVR_ONE_WAY_SSL_PORT_KEY,
-        String.valueOf(SRVR_ONE_WAY_SSL_PORT_DEFAULT)));
+                                                   String.valueOf(SRVR_ONE_WAY_SSL_PORT_DEFAULT)));
   }
 
   public int getTwoWayAuthPort() {
-    return Integer.parseInt(properties.getProperty(SRVR_TWO_WAY_SSL_PORT_KEY, String.valueOf(SRVR_TWO_WAY_SSL_PORT_DEFAULT)));
+    return Integer.parseInt(properties.getProperty(SRVR_TWO_WAY_SSL_PORT_KEY,
+                                                   String.valueOf(SRVR_TWO_WAY_SSL_PORT_DEFAULT)));
   }
 
   /**
@@ -1317,13 +1328,14 @@ public class Configuration {
     return repoSuffixes.split(",");
   }
 
+
   public String isExecutionSchedulerClusterd() {
     return properties.getProperty(EXECUTION_SCHEDULER_CLUSTERED, "false");
   }
 
   public String getExecutionSchedulerThreads() {
     return properties.getProperty(EXECUTION_SCHEDULER_THREADS,
-        DEFAULT_SCHEDULER_THREAD_COUNT);
+                                  DEFAULT_SCHEDULER_THREAD_COUNT);
   }
 
   public Integer getRequestReadTimeout() {
@@ -1338,7 +1350,7 @@ public class Configuration {
 
   public String getExecutionSchedulerConnections() {
     return properties.getProperty(EXECUTION_SCHEDULER_CONNECTIONS,
-        DEFAULT_SCHEDULER_MAX_CONNECTIONS);
+                                  DEFAULT_SCHEDULER_MAX_CONNECTIONS);
   }
 
   public Long getExecutionSchedulerMisfireToleration() {
@@ -1350,7 +1362,7 @@ public class Configuration {
 
   public Integer getExecutionSchedulerStartDelay() {
     String delay = properties.getProperty(EXECUTION_SCHEDULER_START_DELAY,
-        DEFAULT_SCHEDULER_START_DELAY_SECONDS);
+                                          DEFAULT_SCHEDULER_START_DELAY_SECONDS);
     return Integer.parseInt(delay);
   }
 
