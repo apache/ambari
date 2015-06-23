@@ -201,7 +201,7 @@ App.UpdateController = Em.Controller.extend({
     }
     else {
       if (App.router.get('currentState.parentState.name') == 'hostDetails') {
-        hostDetailsFilter = App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/(summary|alerts|stackVersions)/)[1];
+        hostDetailsFilter = App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/(summary|configs|alerts|stackVersions)/)[1];
         App.updater.updateInterval('updateHost', App.get('componentsUpdateInterval'));
         //if host details page opened then request info only of one displayed host
         this.get('queryParams').set('Hosts', [
