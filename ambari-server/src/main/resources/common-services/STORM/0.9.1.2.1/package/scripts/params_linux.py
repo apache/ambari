@@ -183,7 +183,10 @@ ranger_env = config['configurations']['ranger-env']
 ranger_plugin_properties = config['configurations']['ranger-storm-plugin-properties']
 policy_user = config['configurations']['ranger-storm-plugin-properties']['policy_user']
 
-#For curl command in ranger plugin to get db connector
+# some commands may need to supply the JAAS location when running as storm
+storm_jaas_file = format("{conf_dir}/storm_jaas.conf")
+
+# For curl command in ranger plugin to get db connector
 jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
 
