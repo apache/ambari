@@ -977,7 +977,13 @@ class TestAlerts(TestCase):
     """
     configuration = { 'foo-site' :
       { 'foo-key1' : 'value1',
-        'foo-key2' : 'value2'
+        'foo-key2' : 'value2',
+        'special-character-*' : 'asterisk',
+        'special-character-$' : 'dollar sign',
+        'special-character-%' : 'percent',
+        'special-character-#' : 'hash',
+        'special-character-!' : 'bang',
+        'special-character-&' : 'ampersand'
       }
     }
 
@@ -992,6 +998,11 @@ class TestAlerts(TestCase):
     self.assertEquals("constant", alert._get_configuration_value("constant"))
     self.assertEquals("value1", alert._get_configuration_value("{{foo-site/foo-key1}}"))
     self.assertEquals("value2", alert._get_configuration_value("{{foo-site/foo-key2}}"))
+    self.assertEquals("asterisk", alert._get_configuration_value("{{foo-site/special-character-*}}"))
+    self.assertEquals("dollar sign", alert._get_configuration_value("{{foo-site/special-character-$}}"))
+    self.assertEquals("hash", alert._get_configuration_value("{{foo-site/special-character-#}}"))
+    self.assertEquals("bang", alert._get_configuration_value("{{foo-site/special-character-!}}"))
+    self.assertEquals("ampersand", alert._get_configuration_value("{{foo-site/special-character-&}}"))
 
     # try a mix of parameter and constant
     self.assertEquals("http://value1/servlet", alert._get_configuration_value("http://{{foo-site/foo-key1}}/servlet"))
