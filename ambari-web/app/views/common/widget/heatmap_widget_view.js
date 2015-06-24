@@ -28,10 +28,17 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
   metrics: [],
 
   /**
-   *  racks container  binded in the template
+   *  racks container bound in the template
    *  @type {Array}
    */
   racks: [],
+
+  onMetricsLoaded: function () {
+    if (!this.get('isLoaded')) {
+      this.set('controller.inputMaximum', this.get('content.properties.max_limit'));
+    }
+    this._super();
+  },
 
   /**
    * draw widget
@@ -49,14 +56,12 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
       var metricObject = App.MainChartHeatmapMetric.create({
         name: this.get('content.displayName'),
         units: this.get('content.properties.display_unit'),
-        maximumValue: this.get('content.properties.max_limit'),
+        maximumValue: this.get('controller.inputMaximum'),
         hostNames: hostNames,
         hostToValueMap: hostToValueMap
       });
 
       this.set('controller.selectedMetric', metricObject);
-
-      this.set('controller.inputMaximum', metricObject.get('maximumValue'));
     }
   },
 
@@ -64,9 +69,7 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
    * calculate value for heatmap widgets
    */
   calculateValues: function () {
-    var metrics = this.get('metrics');
-    var hostToValueMap = this.computeExpression(this.extractExpressions(this.get('content.values')[0]), metrics);
-    return hostToValueMap;
+    return this.computeExpression(this.extractExpressions(this.get('content.values')[0]), this.get('metrics'));
   },
 
 
