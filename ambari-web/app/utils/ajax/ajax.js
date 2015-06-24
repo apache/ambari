@@ -2544,7 +2544,7 @@ var urls = {
   },
 
   'widgets.hosts.metrics.get': {
-    real: '/clusters/{clusterName}/hosts?fields={metricPaths}&format=null_padding',
+    real: '/clusters/{clusterName}/hosts?fields={metricPaths}',
     mock: '/data/metrics/{serviceName}/Append_num_ops.json'
   },
 
