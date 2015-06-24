@@ -516,7 +516,8 @@ describe('App.ManageAlertNotificationsController', function () {
               global: {},
               allGroups: {},
               SMTPPassword: {},
-              retypeSMTPPassword: {}
+              retypeSMTPPassword: {},
+              method: {}
             }
           }),
           groupSelect: Em.Object.create({
@@ -618,6 +619,57 @@ describe('App.ManageAlertNotificationsController', function () {
           expect(view.get('controller.inputFields.retypeSMTPPassword.errorMsg')).to.equal(null);
           expect(view.get('parentView.hasErrors')).to.be.false;
 
+        });
+
+      });
+
+      describe('#methodObserver', function () {
+
+        var cases = [
+              {
+                method: 'EMAIL',
+                errors: ['portError', 'hostError'],
+                validators: ['emailToValidation', 'emailFromValidation', 'smtpPortValidation', 'retypePasswordValidation']
+              },
+              {
+                method: 'SNMP',
+                errors: ['emailToError', 'emailFromError', 'smtpPortError', 'passwordError'],
+                validators: ['portValidation', 'hostsValidation']
+              }
+            ],
+            validators = [];
+
+        before(function () {
+          cases.forEach(function (item) {
+            validators.pushObjects(item.validators);
+          });
+        });
+
+        beforeEach(function () {
+          validators.forEach(function (item) {
+            sinon.stub(view, item, Em.K);
+          });
+        });
+
+        afterEach(function () {
+          validators.forEach(function (item) {
+            view.get(item).restore();
+          });
+        });
+
+        cases.forEach(function (item) {
+          it(item.method, function () {
+            item.errors.forEach(function (errorName) {
+              view.set(errorName, true);
+            });
+            view.set('controller.inputFields.method.value', item.method);
+            item.errors.forEach(function (errorName) {
+              expect(view.get(errorName)).to.be.false;
+            });
+            validators.forEach(function (validatorName) {
+              expect(view.get(validatorName).calledOnce).to.equal(item.validators.contains(validatorName));
+            });
+          });
         });
 
       });

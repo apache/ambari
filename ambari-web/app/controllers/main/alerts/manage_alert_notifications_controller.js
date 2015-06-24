@@ -223,6 +223,37 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     'mail.smtp.starttls.enable'
   ],
 
+  validationMap: {
+    EMAIL: [
+      {
+        errorKey: 'emailToError',
+        validator: 'emailToValidation'
+      },
+      {
+        errorKey: 'emailFromError',
+        validator: 'emailFromValidation'
+      },
+      {
+        errorKey: 'smtpPortError',
+        validator: 'smtpPortValidation'
+      },
+      {
+        errorKey: 'passwordError',
+        validator: 'retypePasswordValidation'
+      }
+    ],
+    SNMP: [
+      {
+        errorKey: 'portError',
+        validator: 'portValidation'
+      },
+      {
+        errorKey: 'hostError',
+        validator: 'hostsValidation'
+      }
+    ]
+  },
+
   /**
    * Load all Alert Notifications from server
    * @method loadAlertNotifications
@@ -359,6 +390,23 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         isEmailMethodSelected: function () {
           return this.get('controller.inputFields.method.value') === 'EMAIL';
         }.property('controller.inputFields.method.value'),
+
+        methodObserver: function () {
+          var currentMethod = this.get('controller.inputFields.method.value'),
+              validationMap = self.get('validationMap');
+          self.get('methods').forEach(function (method) {
+            var validations = validationMap[method];
+            if (method == currentMethod) {
+              validations.mapProperty('validator').forEach(function (key) {
+                this.get(key).call(this);
+              }, this);
+            } else {
+              validations.mapProperty('errorKey').forEach(function (key) {
+                this.set(key, false);
+              }, this);
+            }
+          }, this);
+        }.observes('controller.inputFields.method.value'),
 
         nameValidation: function () {
           var newName = this.get('controller.inputFields.name.value').trim();
