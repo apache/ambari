@@ -61,6 +61,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -317,17 +318,24 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     // Sequence value for the hosts table primary key. First record will be 1, so ambari_sequence value must be 0.
     Long hostId = 0L;
-    ResultSet resultSet = null;
+    Statement statement = null;
+    ResultSet rs = null;
     try {
-      // Notice that hosts are ordered by host_id ASC, so any null values are last.
-      resultSet = dbAccessor.executeSelect("SELECT host_name, host_id FROM hosts ORDER BY host_id ASC, host_name ASC");
-      hostId = populateHostsId(resultSet);
+      statement = dbAccessor.getConnection().createStatement();
+      if (statement != null) {
+        rs = statement.executeQuery("SELECT host_name, host_id FROM hosts ORDER BY host_id ASC, host_name ASC");
+        if (rs != null) {
+          hostId = populateHostsId(rs);
+        }
+      }
     } finally {
-      if (resultSet != null) {
-        resultSet.close();
+      if (rs != null) {
+        rs.close();
+      }
+      if (statement != null) {
+        statement.close();
       }
     }
-
     // Insert host id number into ambari_sequences
     addSequence("host_id_seq", hostId, false);
 
@@ -728,30 +736,41 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     String INSERT_STACK_ID_TEMPLATE = "UPDATE {0} SET {1} = {2} WHERE cluster_id = {3}";
     // we should do the changes only if they are required
     if (dbAccessor.tableHasColumn(CLUSTERS_TABLE,DESIRED_STACK_VERSION_COLUMN_NAME)) {
-      ResultSet resultSet = dbAccessor.executeSelect("SELECT * FROM " + CLUSTERS_TABLE);
+
+      Statement statement = null;
+      ResultSet rs = null;
       try {
-        while (resultSet.next()) {
-          long clusterId = resultSet.getLong("cluster_id");
-          String stackJson = resultSet.getString(DESIRED_STACK_VERSION_COLUMN_NAME);
-          StackId stackId = gson.fromJson(stackJson, StackId.class);
+        statement = dbAccessor.getConnection().createStatement();
+        if (statement != null) {
+          rs = statement.executeQuery("SELECT * FROM " + CLUSTERS_TABLE);
+          if (rs != null) {
+            while (rs.next()) {
+              long clusterId = rs.getLong("cluster_id");
+              String stackJson = rs.getString(DESIRED_STACK_VERSION_COLUMN_NAME);
+              StackId stackId = gson.fromJson(stackJson, StackId.class);
 
-          StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
-                                                   stackId.getStackVersion());
+              StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+                stackId.getStackVersion());
 
-          String clusterConfigSQL = MessageFormat.format(
-                                                          INSERT_STACK_ID_TEMPLATE, "clusterconfig", STACK_ID_COLUMN_NAME,
-                                                          stackEntity.getStackId(), clusterId);
+              String clusterConfigSQL = MessageFormat.format(
+                INSERT_STACK_ID_TEMPLATE, "clusterconfig", STACK_ID_COLUMN_NAME,
+                stackEntity.getStackId(), clusterId);
 
-          String serviceConfigSQL = MessageFormat.format(
-                                                          INSERT_STACK_ID_TEMPLATE, "serviceconfig", STACK_ID_COLUMN_NAME,
-                                                          stackEntity.getStackId(), clusterId);
+              String serviceConfigSQL = MessageFormat.format(
+                INSERT_STACK_ID_TEMPLATE, "serviceconfig", STACK_ID_COLUMN_NAME,
+                stackEntity.getStackId(), clusterId);
 
-          dbAccessor.executeQuery(clusterConfigSQL);
-          dbAccessor.executeQuery(serviceConfigSQL);
+              dbAccessor.executeQuery(clusterConfigSQL);
+              dbAccessor.executeQuery(serviceConfigSQL);
+            }
+          }
         }
       } finally {
-        if (null != resultSet) {
-          resultSet.close();
+        if (rs != null) {
+          rs.close();
+        }
+        if (statement != null) {
+          statement.close();
         }
       }
     }
@@ -814,17 +833,25 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
   private String getRandomHostName() throws SQLException {
     String randomHostName = null;
-    ResultSet resultSet = null;
+
+    Statement statement = null;
+    ResultSet rs = null;
     try {
-      resultSet = dbAccessor.executeSelect("SELECT " + HOST_NAME_COL + " FROM " + HOSTS_TABLE + " ORDER BY " + HOST_NAME_COL + " ASC");
-      if (resultSet != null && resultSet.next()) {
-        randomHostName = resultSet.getString(1);
+      statement = dbAccessor.getConnection().createStatement();
+      if (statement != null) {
+        rs = statement.executeQuery("SELECT " + HOST_NAME_COL + " FROM " + HOSTS_TABLE + " ORDER BY " + HOST_NAME_COL + " ASC");
+        if (rs != null && rs.next()) {
+          randomHostName = rs.getString(1);
+        }
       }
     } catch (Exception e) {
       LOG.error("Failed to retrieve random host name. Exception: " + e.getMessage());
     } finally {
-      if (resultSet != null) {
-        resultSet.close();
+      if (rs != null) {
+        rs.close();
+      }
+      if (statement != null) {
+        statement.close();
       }
     }
     return randomHostName;
@@ -840,8 +867,11 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         "SELECT * FROM {0} WHERE {1} NOT IN (SELECT {1} FROM {2})",
         HOSTS_TABLE, HOST_ID_COL, CLUSTER_HOST_MAPPING_TABLE);
     ResultSet hostsNotInCluster = null;
+    Statement statement = null;
+
     try {
-      hostsNotInCluster = dbAccessor.executeSelect(hostsNotInClusterQuery);
+      statement = dbAccessor.getConnection().createStatement();
+      hostsNotInCluster = statement.executeQuery(hostsNotInClusterQuery);
       if(hostsNotInCluster != null) {
         while (hostsNotInCluster.next()) {
           long hostToDeleteId = hostsNotInCluster.getLong(HOST_ID_COL);
@@ -850,7 +880,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           long count = 0;
           ResultSet duplicateHosts = null;
           try {
-            duplicateHosts = dbAccessor.executeSelect(duplicateHostsQuery);
+            statement = dbAccessor.getConnection().createStatement();
+            duplicateHosts = statement.executeQuery(duplicateHostsQuery);
             if (duplicateHosts != null && duplicateHosts.next()) {
               count = duplicateHosts.getLong(1);
             }
@@ -872,6 +903,9 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       if (null != hostsNotInCluster) {
         hostsNotInCluster.close();
       }
+      if (statement != null) {
+        statement.close();
+      }
     }
   }
 
@@ -883,25 +917,34 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
    * @throws SQLException
    */
   private String getDerbyTableConstraintName(String type, String tableName) throws SQLException {
-    ResultSet resultSet = null;
     boolean found = false;
     String constraint = null;
 
+    Statement statement = null;
+    ResultSet rs = null;
     try {
-      resultSet = dbAccessor.executeSelect("SELECT c.constraintname, c.type, t.tablename FROM sys.sysconstraints c, sys.systables t WHERE c.tableid = t.tableid");
-      while(resultSet.next()) {
-        constraint = resultSet.getString(1);
-        String recordType = resultSet.getString(2);
-        String recordTableName = resultSet.getString(3);
+      statement = dbAccessor.getConnection().createStatement();
+      if (statement != null) {
+        rs = statement.executeQuery("SELECT c.constraintname, c.type, t.tablename FROM sys.sysconstraints c, sys.systables t WHERE c.tableid = t.tableid");
+        if (rs != null) {
+          while(rs.next()) {
+            constraint = rs.getString(1);
+            String recordType = rs.getString(2);
+            String recordTableName = rs.getString(3);
 
-        if (recordType.equalsIgnoreCase(type) && recordTableName.equalsIgnoreCase(tableName)) {
-          found = true;
-          break;
+            if (recordType.equalsIgnoreCase(type) && recordTableName.equalsIgnoreCase(tableName)) {
+              found = true;
+              break;
+            }
+          }
         }
       }
     } finally {
-      if (resultSet != null) {
-        resultSet.close();
+      if (rs != null) {
+        rs.close();
+      }
+      if (statement != null) {
+        statement.close();
       }
     }
     return found ? constraint : null;

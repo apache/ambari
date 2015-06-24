@@ -42,8 +42,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -124,20 +126,30 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
    * @throws SQLException
    */
    protected final void addSequence(String seqName, Long seqDefaultValue, boolean ignoreFailure) throws SQLException{
-    // check if sequence is already in the database
-    ResultSet rs = dbAccessor.executeSelect(String.format("SELECT COUNT(*) from %s where sequence_name='%s'", ambariSequencesTable, seqName));
+     // check if sequence is already in the database
+     Statement statement = null;
+     ResultSet rs = null;
+     try {
+       statement = dbAccessor.getConnection().createStatement();
+       if (statement != null) {
+         rs = statement.executeQuery(String.format("SELECT COUNT(*) from %s where sequence_name='%s'", ambariSequencesTable, seqName));
 
-    if (rs != null) {
-      try {
-        if (rs.next() && rs.getInt(1) == 0) {
-          dbAccessor.executeQuery(String.format("INSERT INTO %s(sequence_name, sequence_value) VALUES('%s', %d)", ambariSequencesTable, seqName, seqDefaultValue), ignoreFailure);
-        } else {
-          LOG.warn("Sequence {} already exists, skipping", seqName);
-        }
-      } finally {
-        rs.close();
-      }
-    }
+         if (rs != null) {
+           if (rs.next() && rs.getInt(1) == 0) {
+             dbAccessor.executeQuery(String.format("INSERT INTO %s(sequence_name, sequence_value) VALUES('%s', %d)", ambariSequencesTable, seqName, seqDefaultValue), ignoreFailure);
+           } else {
+             LOG.warn("Sequence {} already exists, skipping", seqName);
+           }
+         }
+       }
+     } finally {
+       if (rs != null) {
+         rs.close();
+       }
+       if (statement != null) {
+         statement.close();
+       }
+     }
   }
 
   /**

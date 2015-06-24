@@ -69,7 +69,6 @@ public class DBAccessorImpl implements DBAccessor {
   private Configuration configuration;
   private DatabaseMetaData databaseMetaData;
   private static final String dbURLPatternString = "jdbc:(.*?):.*";
-  private Pattern dbURLPattern = Pattern.compile(dbURLPatternString, Pattern.CASE_INSENSITIVE);
   private DbType dbType;
   
   @Inject
@@ -122,7 +121,8 @@ public class DBAccessorImpl implements DBAccessor {
     }
   }
 
-  protected Connection getConnection() {
+  @Override
+  public Connection getConnection() {
     return connection;
   }
 
@@ -414,12 +414,24 @@ public class DBAccessorImpl implements DBAccessor {
   public boolean tableHasConstraint(String tableName, String constraintName) throws SQLException {
     // this kind of request is well lower level as we querying system tables, due that we need for some the name of catalog.
     String query = dbmsHelper.getTableConstraintsStatement(connection.getCatalog(), tableName);
-    ResultSet rs = executeSelect(query);
-    if (rs != null) {
-      while (rs.next()) {
-        if (rs.getString("CONSTRAINT_NAME").equalsIgnoreCase(constraintName)) {
-          return true;
+    Statement statement = null;
+    ResultSet rs = null;
+    try {
+      statement = getConnection().createStatement();
+      rs = statement.executeQuery(query);
+      if (rs != null) {
+        while (rs.next()) {
+          if (rs.getString("CONSTRAINT_NAME").equalsIgnoreCase(constraintName)) {
+            return true;
+          }
         }
+      }
+    } finally {
+      if (statement != null) {
+        statement.close();
+      }
+      if (rs != null) {
+        rs.close();
       }
     }
     return false;
@@ -643,6 +655,10 @@ public class DBAccessorImpl implements DBAccessor {
       if (!ignoreErrors) {
         throw e;
       }
+    } finally {
+      if (statement != null) {
+        statement.close();
+      }
     }
     return 0;  // If error appears and ignoreError is set, return 0 (no changes was made)
   }
@@ -659,18 +675,6 @@ public class DBAccessorImpl implements DBAccessor {
     executeQuery(query, false);
   }
 
-  @Override
-  public ResultSet executeSelect(String query) throws SQLException {
-    Statement statement = getConnection().createStatement();
-    return statement.executeQuery(query);
-  }
-
-  @Override
-  public ResultSet executeSelect(String query, int resultSetType, int resultSetConcur) throws SQLException {
-    Statement statement = getConnection().createStatement(resultSetType, resultSetConcur);
-    return statement.executeQuery(query);
-  }  
-  
   @Override
   public void executeQuery(String query, boolean ignoreFailure) throws SQLException {
     LOG.info("Executing query: {}", query);
@@ -860,8 +864,20 @@ public class DBAccessorImpl implements DBAccessor {
   private ResultSetMetaData getColumnMetadata(String tableName, String columnName) throws SQLException {
     // We doesn't require any actual result except metadata, so WHERE clause shouldn't match
     String query = String.format("SELECT %s FROM %s WHERE 1=2", convertObjectName(columnName), convertObjectName(tableName));
-    ResultSet rs = executeSelect(query);
-    return rs.getMetaData();
+    Statement statement = null;
+    ResultSet rs = null;
+    try {
+      statement = getConnection().createStatement();
+      rs = statement.executeQuery(query);
+      return rs.getMetaData();
+    } finally {
+      if (statement != null) {
+        statement.close();
+      }
+      if (rs != null) {
+        rs.close();
+      }
+    }
   }
 
   @Override

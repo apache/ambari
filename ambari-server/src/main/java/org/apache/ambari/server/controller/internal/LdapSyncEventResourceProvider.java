@@ -401,10 +401,14 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
     while (processingEvents) {
       LdapSyncEventEntity event;
       synchronized (eventQueue) {
-        event = eventQueue.poll();
-        if (event == null) {
-          processingEvents = false;
-          return;
+        if (processingEvents) {
+          event = eventQueue.poll();
+          if (event == null) {
+            processingEvents = false;
+            return;
+          }
+        } else {
+          break;
         }
       }
 

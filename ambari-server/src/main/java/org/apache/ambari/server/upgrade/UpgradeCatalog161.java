@@ -18,8 +18,10 @@
 
 package org.apache.ambari.server.upgrade;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -215,15 +217,24 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
 
 
     long count = 1;
-    ResultSet resultSet = null;
+    Statement statement = null;
+    ResultSet rs = null;
     try {
-      resultSet = dbAccessor.executeSelect("SELECT count(*) FROM viewinstance");
-      if (resultSet.next()) {
-        count = resultSet.getLong(1) + 2;
+      statement = dbAccessor.getConnection().createStatement();
+      if (statement != null) {
+        rs = statement.executeQuery("SELECT count(*) FROM viewinstance");
+        if (rs != null) {
+          if (rs.next()) {
+            count = rs.getLong(1) + 2;
+          }
+        }
       }
     } finally {
-      if (resultSet != null) {
-        resultSet.close();
+      if (rs != null) {
+        rs.close();
+      }
+      if (statement != null) {
+        statement.close();
       }
     }
 

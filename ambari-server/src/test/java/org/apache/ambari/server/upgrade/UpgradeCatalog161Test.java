@@ -36,8 +36,10 @@ import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +72,8 @@ public class UpgradeCatalog161Test {
   public void testExecuteDDLUpdates() throws Exception {
 
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+    Connection connection = createNiceMock(Connection.class);
+    Statement statement = createNiceMock(Statement.class);
     Configuration configuration = createNiceMock(Configuration.class);
     ResultSet resultSet = createNiceMock(ResultSet.class);
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
@@ -88,16 +92,20 @@ public class UpgradeCatalog161Test {
     setOperationLevelEntityConfigExpectations(dbAccessor, operationLevelEntityColumnCapture);
     setViewExpectations(dbAccessor, viewIconColumnCapture, viewIcon64ColumnCapture);
     dbAccessor.addColumn(eq("viewinstance"),
-        anyObject(DBAccessor.DBColumnInfo.class));
+      anyObject(DBAccessor.DBColumnInfo.class));
     setViewInstanceExpectations(dbAccessor, labelColumnCapture, descriptionColumnCapture, visibleColumnCapture, instanceIconColumnCapture, instanceIcon64ColumnCapture);
-    dbAccessor.executeSelect(anyObject(String.class));
+    dbAccessor.getConnection();
+    expectLastCall().andReturn(connection).anyTimes();
+    connection.createStatement();
+    expectLastCall().andReturn(statement).anyTimes();
+    statement.executeQuery(anyObject(String.class));
     expectLastCall().andReturn(resultSet).anyTimes();
     resultSet.next();
     expectLastCall().andReturn(false).anyTimes();
     resultSet.close();
     expectLastCall().anyTimes();
 
-    replay(dbAccessor, configuration, resultSet);
+    replay(dbAccessor, configuration, resultSet, statement, connection);
     AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
     Class<?> c = AbstractUpgradeCatalog.class;
     Field f = c.getDeclaredField("configuration");
@@ -105,7 +113,7 @@ public class UpgradeCatalog161Test {
     f.set(upgradeCatalog, configuration);
 
     upgradeCatalog.executeDDLUpdates();
-    verify(dbAccessor, configuration, resultSet);
+    verify(dbAccessor, configuration, resultSet, statement, connection);
 
     assertClusterColumns(provisioningStateColumnCapture);
     assertOperationLevelEntityColumns(operationLevelEntityColumnCapture);

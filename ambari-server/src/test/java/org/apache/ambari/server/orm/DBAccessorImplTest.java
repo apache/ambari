@@ -397,23 +397,6 @@ public class DBAccessorImplTest {
   }
 
   @Test
-  public void testExecuteSelect() throws Exception {
-    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
-    String tableName = getFreeTableName();
-    createMyTable(tableName);
-    dbAccessor.executeQuery("insert into " + tableName + "(id, name, time) values(1, 'Bob', 1234567)");
-
-    ResultSet resultSet = dbAccessor.executeSelect("select name from " + tableName + " where id=1");
-    int count = 0;
-    while (resultSet.next()) {
-      assertEquals("Bob", resultSet.getString(1));
-      count++;
-    }
-
-    assertEquals(count, 1);
-  }
-
-  @Test
   public void testDBSession() throws Exception {
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
     String tableName = getFreeTableName();

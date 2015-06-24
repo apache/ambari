@@ -33,6 +33,11 @@ import org.eclipse.persistence.sessions.DatabaseSession;
 public interface DBAccessor {
 
   /**
+   * @return database connection
+   */
+  Connection getConnection();
+
+  /**
    * @return new database connection
    */
   Connection getNewConnection();
@@ -270,24 +275,6 @@ public interface DBAccessor {
    * @throws SQLException
    */
   void executeQuery(String query) throws SQLException;
-
-  /**
-   * Execute select query
-   * @param query
-   * @return
-   * @throws SQLException
-   */
-  ResultSet executeSelect(String query) throws SQLException;
-
-  /**
-   * Execute select query
-   * @param query
-   * @param resultSetType
-   * @param resultSetConcur
-   * @return
-   * @throws SQLException
-   */
-  ResultSet executeSelect(String query, int resultSetType, int resultSetConcur) throws SQLException;
 
   /**
    * Execute query on DB
