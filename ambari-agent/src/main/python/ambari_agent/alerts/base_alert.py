@@ -213,11 +213,8 @@ class BaseAlert(object):
       if isinstance(value, dict):
         return value
 
-      # foo-site/bar -> r"{{(foo-site/bar)}}
-      replacement_match_regex = r"{{(%s)}}" % placeholder_key
-
       # {{foo-bar/baz}}/whatever -> http://server/whatever
-      resolved_key = re.sub(replacement_match_regex, value, resolved_key)
+      resolved_key = resolved_key.replace("{{%s}}" % placeholder_key, value)
 
     return resolved_key
 
