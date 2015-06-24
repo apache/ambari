@@ -90,10 +90,11 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    */
   isShowBlock: function () {
     var isCustomPropertiesCategory = this.get('category.customCanAddProperty');
-    var emptyFiltered = this.get('categoryConfigs').filterProperty('isHiddenByFilter', false).length > 0;
-    var isWidgetsOnlyCategory = this.get('categoryConfigs.length') == this.get('categoryConfigs').filterProperty('widget').length;
-    return isCustomPropertiesCategory && this.get('controller.filter') === '' && !this.get('parentView.columns').someProperty('selected') ||
-      (emptyFiltered && !isWidgetsOnlyCategory);
+    var hasFilteredAdvancedConfigs = this.get('categoryConfigs').filter(function (config) {
+        return config.get('isHiddenByFilter') === false && Em.isNone(config.get('widget'));
+      }, this).length > 0;
+    return (isCustomPropertiesCategory && this.get('controller.filter') === '' && !this.get('parentView.columns').someProperty('selected')) ||
+      hasFilteredAdvancedConfigs;
   }.property('category.customCanAddProperty', 'categoryConfigs.@each.isHiddenByFilter', 'categoryConfigs.@each.widget', 'controller.filter', 'parentView.columns.@each.selected'),
 
   /**
