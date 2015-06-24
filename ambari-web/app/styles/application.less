@@ -5676,15 +5676,41 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
   }
 }
 
+
+@config-dependency-t-name-width: 180px;
+@config-dependency-t-service-width: 100px;
+@config-dependency-t-group-width: 140px;
+@config-dependency-t-filename-width: 150px;
+@config-dependency-t-value-width: 230px;
+
 #config-dependencies {
   max-height: 500px;
   overflow-y: visible;
   td {
     min-width: 120px;
+    word-break: break-all;
   }
   td.check-box-col {
     min-width: 5px;
     width: 5px;
+  }
+  td.config-dependency-name {
+    min-width: @config-dependency-t-name-width;
+  }
+  td.config-dependency-service {
+    min-width: @config-dependency-t-service-width;
+    max-width: @config-dependency-t-service-width;
+  }
+  td.config-dependency-group {
+    max-width: @config-dependency-t-group-width;
+  }
+  td.config-dependency-filename {
+    max-width: @config-dependency-t-filename-width;
+  }
+  td.config-dependency-value,
+  td.config-dependency-recommended-value {
+    width: @config-dependency-t-value-width;
+    min-width: @config-dependency-t-value-width;
   }
 }
 

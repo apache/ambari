@@ -36,17 +36,17 @@
     {{#each config in view.parentView.configs}}
       <tr>
         <td class="check-box-col">{{view Em.Checkbox checkedBinding="config.saveRecommended"}}</td>
-        <td>{{config.propertyName}}</td>
-        <td>{{config.serviceDisplayName}}</td>
-        <td>
+        <td class="config-dependency-name">{{config.propertyName}}</td>
+        <td class="config-dependency-service">{{config.serviceDisplayName}}</td>
+        <td class="config-dependency-group">
           <span {{bindAttr class="config.allowChangeGroup::not-active-link"}} ><a href="javascript:void(null);" class="black"
             {{action showSelectGroupPopup config.serviceName target="App.router.mainServiceInfoConfigsController"}}>
             {{config.configGroup}}
           </a></span>
         </td>
-        <td>{{config.fileName}}</td>
-        <td>{{config.value}}</td>
-        <td>
+        <td class="config-dependency-filename">{{config.fileName}}</td>
+        <td class="config-dependency-value">{{config.value}}</td>
+        <td class="config-dependency-recommended-value">
           {{#if config.isDeleted}}
             <i>{{t common.removed}}</i>
           {{else}}
