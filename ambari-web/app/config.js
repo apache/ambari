@@ -27,7 +27,7 @@ App.alwaysGoToInstaller = false;
 App.testEnableSecurity = true; // By default enable security is tested; turning it false tests disable security
 App.testNameNodeHA = true;
 App.apiPrefix = '/api/v1';
-App.defaultStackVersion = 'HDP-2.2';
+App.defaultStackVersion = 'HDP-2.3';
 App.defaultWindowsStackVersion = 'HDPWIN-2.1';
 
 App.defaultJavaHome = '/usr/jdk/jdk1.6.0_31';
