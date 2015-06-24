@@ -70,6 +70,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 
 /**
@@ -1072,7 +1073,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
               rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
                     "{{hdfs-site/dfs.web.authentication.kerberos.principal}}");
 
-              updateAlertDefinitionEntitySource(alertName, rootJson.toString());
+              updateAlertDefinitionEntitySource(alertName, rootJson.toString(), UUID.randomUUID().toString());
             }
           }
 
@@ -1090,7 +1091,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
               rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
                     "{{mapred-site/mapreduce.jobhistory.webapp.spnego-principal}}");
 
-              updateAlertDefinitionEntitySource(alertName, rootJson.toString());
+              updateAlertDefinitionEntitySource(alertName, rootJson.toString(), UUID.randomUUID().toString());
             }
           }
 
@@ -1109,7 +1110,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
               rootJson.get("uri").getAsJsonObject().addProperty("kerberos_principal",
                     "{{yarn-site/yarn.resourcemanager.webapp.spnego-principal}}");
 
-              updateAlertDefinitionEntitySource(alertName, rootJson.toString());
+              updateAlertDefinitionEntitySource(alertName, rootJson.toString(), UUID.randomUUID().toString());
             }
           }
 
@@ -1127,7 +1128,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             rootJson.addProperty("default_port", new Integer(8019));
 
             // save the changes
-            updateAlertDefinitionEntitySource("hdfs_zookeeper_failover_controller_process", rootJson.toString());
+            updateAlertDefinitionEntitySource("hdfs_zookeeper_failover_controller_process", rootJson.toString(), UUID.randomUUID().toString());
           }
 
           // update oozie web ui alert
@@ -1148,22 +1149,23 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                     "{{cluster-env/smokeuser_principal_name}}");
 
             // save the changes
-            updateAlertDefinitionEntitySource("oozie_server_webui", rootJson.toString());
+            updateAlertDefinitionEntitySource("oozie_server_webui", rootJson.toString(), UUID.randomUUID().toString());
           }
         }
       }
     }
   }
 
-  private void updateAlertDefinitionEntitySource(final String alertName, final String source) {
+  private void updateAlertDefinitionEntitySource(final String alertName, final String source, final String newHash) {
     executeInTransaction(new Runnable() {
       @Override
       public void run() {
         EntityManager em = getEntityManagerProvider().get();
-        Query nativeQuery = em.createNativeQuery("UPDATE alert_definition SET alert_source=?1 WHERE " +
-                                                   "definition_name=?2");
+        Query nativeQuery = em.createNativeQuery("UPDATE alert_definition SET alert_source=?1, hash=?2 WHERE " +
+                "definition_name=?3");
         nativeQuery.setParameter(1, source);
-        nativeQuery.setParameter(2, alertName);
+        nativeQuery.setParameter(2, newHash);
+        nativeQuery.setParameter(3, alertName);
         nativeQuery.executeUpdate();
       }
     });
