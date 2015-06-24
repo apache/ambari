@@ -42,8 +42,18 @@ import org.apache.ambari.server.state.UpgradeState;
 @Entity
 @NamedQueries({
     @NamedQuery(name = "HostComponentStateEntity.findAll", query = "SELECT hcs from HostComponentStateEntity hcs"),
+
     @NamedQuery(name = "HostComponentStateEntity.findByHost", query =
         "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.hostEntity.hostName=:hostName"),
+
+    @NamedQuery(name = "HostComponentStateEntity.findByService", query =
+        "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.serviceName=:serviceName"),
+
+    @NamedQuery(name = "HostComponentStateEntity.findByServiceAndComponent", query =
+        "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.serviceName=:serviceName AND hcs.componentName=:componentName"),
+
+    @NamedQuery(name = "HostComponentStateEntity.findByServiceComponentAndHost", query =
+        "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.serviceName=:serviceName AND hcs.componentName=:componentName AND hcs.hostEntity.hostName=:hostName"),
 })
 public class HostComponentStateEntity {
 

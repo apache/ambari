@@ -40,6 +40,9 @@ public class HostComponentDesiredStateDAO {
   @Inject
   HostDAO hostDAO;
 
+  @Inject
+  DaoUtils daoUtils;
+
   @RequiresSession
   public HostComponentDesiredStateEntity findByPK(HostComponentDesiredStateEntityPK primaryKey) {
     return entityManagerProvider.get().find(HostComponentDesiredStateEntity.class, primaryKey);
@@ -47,13 +50,30 @@ public class HostComponentDesiredStateDAO {
 
   @RequiresSession
   public List<HostComponentDesiredStateEntity> findAll() {
-    TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get()
-      .createQuery("SELECT hcd from HostComponentDesiredStateEntity hcd", HostComponentDesiredStateEntity.class);
+    final TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get().createNamedQuery("HostComponentDesiredStateEntity.findAll", HostComponentDesiredStateEntity.class);
     try {
       return query.getResultList();
     } catch (NoResultException ignored) {
     }
     return null;
+  }
+
+  /**
+   * Retrieve the single Host Component Desired State for the given unique service, component, and host.
+   *
+   * @param serviceName Service Name
+   * @param componentName Component Name
+   * @param hostName Host Name
+   * @return Return all of the Host Component States that match the criteria.
+   */
+  @RequiresSession
+  public HostComponentDesiredStateEntity findByServiceComponentAndHost(String serviceName, String componentName, String hostName) {
+    final TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get().createNamedQuery("HostComponentDesiredStateEntity.findByServiceComponentAndHost", HostComponentDesiredStateEntity.class);
+    query.setParameter("serviceName", serviceName);
+    query.setParameter("componentName", componentName);
+    query.setParameter("hostName", hostName);
+
+    return daoUtils.selectSingle(query);
   }
 
   @Transactional

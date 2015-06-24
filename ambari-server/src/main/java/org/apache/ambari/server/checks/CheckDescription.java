@@ -130,7 +130,7 @@ public enum CheckDescription {
       "All services must be started",
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT,
-          "The following Services must be started: {{fails}}");
+          "The following Services must be started: {{fails}}. Try to do a Stop & Start in case they were started outside of Ambari.");
       }}),
 
   SERVICES_YARN_WP(PrereqCheckType.SERVICE,

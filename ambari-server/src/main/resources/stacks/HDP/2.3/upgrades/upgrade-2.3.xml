@@ -67,7 +67,7 @@
       </execute-stage>
 
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Check Tez Tarball">
-        <task xsi:type="execute" hosts="any"> <!-- hosts="any" -->
+        <task xsi:type="execute" hosts="any">
           <script>scripts/pre_upgrade.py</script>
           <function>prepare</function>
         </task>

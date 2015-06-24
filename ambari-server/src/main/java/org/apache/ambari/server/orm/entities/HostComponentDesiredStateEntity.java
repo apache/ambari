@@ -29,6 +29,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 
 import org.apache.ambari.server.state.HostComponentAdminState;
@@ -39,6 +41,21 @@ import org.apache.ambari.server.state.State;
 @javax.persistence.IdClass(HostComponentDesiredStateEntityPK.class)
 @javax.persistence.Table(name = "hostcomponentdesiredstate")
 @Entity
+@NamedQueries({
+    @NamedQuery(name = "HostComponentDesiredStateEntity.findAll", query = "SELECT hcds from HostComponentDesiredStateEntity hcds"),
+
+    @NamedQuery(name = "HostComponentDesiredStateEntity.findByHost", query =
+        "SELECT hcds from HostComponentDesiredStateEntity hcds WHERE hcds.hostEntity.hostName=:hostName"),
+
+    @NamedQuery(name = "HostComponentDesiredStateEntity.findByService", query =
+        "SELECT hcds from HostComponentDesiredStateEntity hcds WHERE hcds.serviceName=:serviceName"),
+
+    @NamedQuery(name = "HostComponentDesiredStateEntity.findByServiceAndComponent", query =
+        "SELECT hcds from HostComponentDesiredStateEntity hcds WHERE hcds.serviceName=:serviceName AND hcds.componentName=:componentName"),
+
+    @NamedQuery(name = "HostComponentDesiredStateEntity.findByServiceComponentAndHost", query =
+        "SELECT hcds from HostComponentDesiredStateEntity hcds WHERE hcds.serviceName=:serviceName AND hcds.componentName=:componentName AND hcds.hostEntity.hostName=:hostName"),
+})
 public class HostComponentDesiredStateEntity {
 
   @Id
