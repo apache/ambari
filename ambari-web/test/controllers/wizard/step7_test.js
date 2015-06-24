@@ -1357,10 +1357,20 @@ describe('App.InstallerStep7Controller', function () {
         },
         {
           installedServiceNames: ['s1', 's2', 's3'],
-          m: 'installedServiceNames isn\'t empty',
+          areInstalledConfigGroupsLoaded: false,
+          m: 'installedServiceNames isn\'t empty, config groups not yet loaded',
           e: {
             loadConfigGroups: true,
             loadInstalledServicesConfigGroups: true
+          }
+        },
+        {
+          installedServiceNames: ['s1', 's2', 's3'],
+          areInstalledConfigGroupsLoaded: true,
+          m: 'installedServiceNames isn\'t empty, config groups already loaded',
+          e: {
+            loadConfigGroups: true,
+            loadInstalledServicesConfigGroups: false
           }
         }
       ]).forEach(function (test) {
@@ -1369,7 +1379,12 @@ describe('App.InstallerStep7Controller', function () {
             if (k === 'supports.hostOverridesInstaller') return test.hostOverridesInstaller;
             return Em.get(App, k);
           });
-          installerStep7Controller.reopen({installedServiceNames: test.installedServiceNames});
+          installerStep7Controller.reopen({
+            installedServiceNames: test.installedServiceNames,
+            wizardController: {
+              areInstalledConfigGroupsLoaded: test.areInstalledConfigGroupsLoaded
+            }
+          });
           installerStep7Controller.checkHostOverrideInstaller();
           if (test.e.loadConfigGroups) {
             expect(installerStep7Controller.loadConfigGroups.calledOnce).to.equal(true);

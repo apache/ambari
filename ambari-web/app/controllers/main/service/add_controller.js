@@ -40,6 +40,8 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    */
   installClientQueueLength: 0,
 
+  areInstalledConfigGroupsLoaded: false,
+
   /**
    * All wizards data will be stored in this variable
    *
@@ -589,6 +591,16 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
       this.set('skipConfigureIdentitiesStep', true);
       this.get('isStepDisabled').findProperty('step', 5).set('value', true);
     }
+  },
+
+  loadServiceConfigGroups: function () {
+    this._super();
+    this.set('areInstalledConfigGroupsLoaded', !Em.isNone(this.getDBProperty('serviceConfigGroups')));
+  },
+
+  clearStorageData: function () {
+    this._super();
+    this.set('areInstalledConfigGroupsLoaded', false);
   }
 
 });
