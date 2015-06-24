@@ -48,4 +48,6 @@ def hbase_service(
         on_timeout = format("{no_op_test} && kill -9 `cat {pid_file}`")
       )
       
-      Execute (format("rm -f {pid_file}"))
+      File(pid_file,
+        action = "delete",
+      )

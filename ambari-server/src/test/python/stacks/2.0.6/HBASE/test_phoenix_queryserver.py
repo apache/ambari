@@ -81,8 +81,8 @@ class TestPhoenixQueryServer(RMFTestCase):
       user = 'hbase'
     )
 
-    self.assertResourceCalled('Execute',
-      'rm -f /var/run/hbase/phoenix-hbase-server.pid',
+    self.assertResourceCalled('File', '/var/run/hbase/phoenix-hbase-server.pid',
+        action = ['delete'],
     )
     self.assertNoMoreResources()
 
@@ -136,8 +136,8 @@ class TestPhoenixQueryServer(RMFTestCase):
       user = 'hbase'
     )
 
-    self.assertResourceCalled('Execute',
-      'rm -f /var/run/hbase/phoenix-hbase-server.pid',
+    self.assertResourceCalled('File', '/var/run/hbase/phoenix-hbase-server.pid',
+        action = ['delete'],
     )
     self.assertNoMoreResources()
 
