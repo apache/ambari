@@ -49,6 +49,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -65,6 +68,9 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
+import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
@@ -931,30 +937,77 @@ public class AmbariCustomCommandExecutionHelper {
    * @throws AmbariException if the repository information can not be obtained
    */
   public String getRepoInfo(Cluster cluster, Host host) throws AmbariException {
+
     StackId stackId = cluster.getDesiredStackVersion();
 
     Map<String, List<RepositoryInfo>> repos = ambariMetaInfo.getRepository(
-        stackId.getStackName(), stackId.getStackVersion());
-    String repoInfo = "";
+            stackId.getStackName(), stackId.getStackVersion());
 
     String family = os_family.find(host.getOsType());
     if (null == family) {
       family = host.getOsFamily();
     }
 
+    JsonElement gsonList = null;
+
     // !!! check for the most specific first
     if (repos.containsKey(host.getOsType())) {
-      repoInfo = gson.toJson(repos.get(host.getOsType()));
+      gsonList = gson.toJsonTree(repos.get(host.getOsType()));
     } else if (null != family && repos.containsKey(family)) {
-      repoInfo = gson.toJson(repos.get(family));
+      gsonList = gson.toJsonTree(repos.get(family));
     } else {
       LOG.warn("Could not retrieve repo information for host"
-          + ", hostname=" + host.getHostName()
-          + ", clusterName=" + cluster.getClusterName()
-          + ", stackInfo=" + stackId.getStackId());
+              + ", hostname=" + host.getHostName()
+              + ", clusterName=" + cluster.getClusterName()
+              + ", stackInfo=" + stackId.getStackId());
     }
 
-    return repoInfo;
+    if (null != gsonList) {
+      updateBaseUrls(cluster, JsonArray.class.cast(gsonList));
+      return gsonList.toString();
+    } else {
+      return "";
+    }
+  }
+
+  /**
+   * Checks repo URLs against the current version for the cluster and makes
+   * adjustments to the Base URL when the current is different.
+   * @param cluster   the cluster to load the current version
+   * @param jsonArray the array containing stack repo data
+   */
+  private void updateBaseUrls(Cluster cluster, JsonArray jsonArray) {
+    ClusterVersionEntity cve = cluster.getCurrentClusterVersion();
+    if (null == cve || null == cve.getRepositoryVersion()) {
+      return;
+    }
+
+    RepositoryVersionEntity rve = cve.getRepositoryVersion();
+
+    for (JsonElement e : jsonArray) {
+      JsonObject obj = e.getAsJsonObject();
+
+      String repoId = obj.has("repoId") ? obj.get("repoId").getAsString() : null;
+      String repoName = obj.has("repoName") ? obj.get("repoName").getAsString() : null;
+      String baseUrl = obj.has("baseUrl") ? obj.get("baseUrl").getAsString() : null;
+      String osType = obj.has("osType") ? obj.get("osType").getAsString() : null;
+
+      if (null == repoId || null == baseUrl || null == osType || null == repoName) {
+        continue;
+      }
+
+      for (OperatingSystemEntity ose : rve.getOperatingSystems()) {
+        if (ose.getOsType().equals(osType)) {
+          for (RepositoryEntity re : ose.getRepositories()) {
+            if (re.getName().equals(repoName) &&
+                    re.getRepositoryId().equals(repoId) &&
+                    !re.getBaseUrl().equals(baseUrl)) {
+              obj.addProperty("baseUrl", re.getBaseUrl());
+            }
+          }
+        }
+      }
+    }
   }
 
 
