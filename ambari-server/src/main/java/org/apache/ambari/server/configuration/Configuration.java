@@ -391,15 +391,6 @@ public class Configuration {
   public static final String ALERTS_EXECUTION_SCHEDULER_THREADS_KEY = "alerts.execution.scheduler.maxThreads";
   public static final String ALERTS_EXECUTION_SCHEDULER_THREADS_DEFAULT = "2";
 
-
-  /**
-   * Rolling upgrade stack and version
-   */
-  private static final String ROLLINGUPGRADE_VERSION = "rollingupgrade.version";
-  private static final String ROLLINGUPGRADE_STACK = "rollingupgrade.stack";
-  private static final String ROLLINGUPGRADE_VERSION_DEFAULT = "2.2.4.2";
-  private static final String ROLLINGUPGRADE_STACK_DEFAULT = "HDP";
-
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
 
@@ -1702,24 +1693,6 @@ public class Configuration {
         SERVER_JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL,
         DEFAULT_JDBC_POOL_IDLE_TEST_INTERVAL));
   }
-
- /**
-  * Get the current stack that supports rolling upgrade 
-  * 
-  * @return default of {@value #ROLLINGUPGRADE_STACK_DEFAULT}
-  */
-  public String getRollingUpgradeStack(){
-    return properties.getProperty(ROLLINGUPGRADE_STACK, ROLLINGUPGRADE_STACK_DEFAULT);
-  }
-
-  /**
-   * Get the stack version that supports rolling upgrade 
-   * 
-   * @return default of {@value #ROLLINGUPGRADE_VERSION_DEFAULT}
-   */
-  public String getRollingUpgradeVersion(){
-    return properties.getProperty(ROLLINGUPGRADE_VERSION, ROLLINGUPGRADE_VERSION_DEFAULT);
-  } 
 
   /**
    * Sets a property on the configuration.

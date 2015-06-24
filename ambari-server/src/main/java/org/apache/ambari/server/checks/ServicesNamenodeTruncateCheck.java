@@ -24,6 +24,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.utils.VersionUtils;
 
 import com.google.inject.Singleton;
 
@@ -72,7 +73,15 @@ public class ServicesNamenodeTruncateCheck extends AbstractCheckDescriptor {
 
     if (Boolean.valueOf(truncateEnabled)) {
       prerequisiteCheck.getFailedOn().add("HDFS");
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      PrereqCheckStatus checkStatus = PrereqCheckStatus.FAIL;
+      if ("HDP".equals(request.getSourceStackId().getStackName())) {
+        if (VersionUtils.compareVersions(request.getSourceStackId().getStackVersion(), "2.3.0.0") >= 0
+            && VersionUtils.compareVersions(request.getTargetStackId().getStackVersion(), "2.3.0.0") >= 0
+            && VersionUtils.compareVersions(request.getSourceStackId().getStackVersion(), request.getTargetStackId().getStackVersion()) < 0) {
+          checkStatus = PrereqCheckStatus.PASS;
+        }
+      }
+      prerequisiteCheck.setStatus(checkStatus);
       prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
 
     }
