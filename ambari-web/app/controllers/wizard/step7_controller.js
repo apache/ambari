@@ -752,7 +752,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (this.get('wizardController.name') !== 'kerberosWizardController') {
       this.loadConfigGroups(this.get('content.configGroups'));
     }
-    if (this.get('installedServiceNames').length > 0) {
+    if (this.get('installedServiceNames').length > 0 && !this.get('wizardController.areInstalledConfigGroupsLoaded')) {
       this.loadInstalledServicesConfigGroups(this.get('installedServiceNames'));
     }
   },
