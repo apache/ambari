@@ -17,7 +17,7 @@
 }}
 
 {{template "templates/common/configs/widgets/config_label"}}
-<div {{bindAttr class=":pull-left view.isOriginalSCP:original-widget view.config.showAsTextBox:hide"}}>
+<div {{bindAttr class=":pull-left view.isOriginalSCP:original-widget view.doNotShowWidget:hide"}}>
   {{#each spinnerContent in view.content}}
     {{view App.SpinnerInputView contentBinding="spinnerContent" disabledBinding="view.disabled"}}
   {{/each}}

@@ -16,11 +16,15 @@
 * limitations under the License.
 }}
 
-
+<div {{bindAttr class="view.isPropertyUndefined::hide :left :widget-config-raw"}}>
+  <i>{{t common.property.undefined}}</i>
+</div>
 {{#if view.supportSwitchToCheckBox}}
-  <div {{bindAttr class="view.config.showAsTextBox::hide :left :widget-config-raw"}}>
-    {{view App.PlainConfigTextField sectionBinding="view.section" subSectionBinding="view.subSection" configBinding="view.config" disabledBinding="view.canNotEdit"}}
-  </div>
+  {{#unless view.isPropertyUndefined}}
+    <div {{bindAttr class="view.config.showAsTextBox::hide :left :widget-config-raw"}}>
+      {{view App.PlainConfigTextField sectionBinding="view.section" subSectionBinding="view.subSection" configBinding="view.config" disabledBinding="view.canNotEdit"}}
+    </div>
+  {{/unless}}
 {{/if}}
 {{#if view.canEdit}}
   <div class="widget-config-controls">
@@ -128,10 +132,12 @@
 
 
 {{#if view.isOriginalSCP}}
-  {{view App.ConfigWidgetOverrideView
-  serviceConfigPropertyBinding="view.config"
-  isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
-  }}
+  {{#unless view.config.hasCompareDiffs}}
+    {{view App.ConfigWidgetOverrideView
+    serviceConfigPropertyBinding="view.config"
+    isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
+    }}
+  {{/unless}}
 {{/if}}
 
 {{#if view.isComparison}}

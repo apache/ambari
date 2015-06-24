@@ -328,14 +328,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     });
   },
 
-  willDestroyElement: function () {
-    if (this.get('parentView.controller.name') == 'mainServiceInfoConfigsController') {
-      this.get('categoryConfigsAll').forEach(function (item) {
-        item.set('isVisible', false);
-      });
-    }
-  },
-
   /**
    * @returns {string}
    */

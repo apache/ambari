@@ -17,7 +17,7 @@
 }}
 
 {{template "templates/common/configs/widgets/config_label"}}
-<div {{bindAttr class=":pull-left view.config.showAsTextBox:hide view.isOriginalSCP:original-widget"}}>
+<div {{bindAttr class=":pull-left view.doNotShowWidget:hide view.isOriginalSCP:original-widget"}}>
   {{view Ember.Checkbox checkedBinding="view.switcherValue"}}
 </div>
 {{template "templates/common/configs/widgets/controls"}}
