@@ -1857,8 +1857,8 @@ App.MainHostDetailsController = Em.Controller.extend({
       runningComponents: [],
       nonDeletableComponents: [],
       unknownComponents: []
-    };
-
+    }; 
+    var self = this;
     if (componentsOnHost && componentsOnHost.get('length') > 0) {
       componentsOnHost.forEach(function (cInstance) {
         if (cInstance.get('componentName') === 'ZOOKEEPER_SERVER') {
@@ -1886,7 +1886,7 @@ App.MainHostDetailsController = Em.Controller.extend({
             ? App.HostComponent.find().filterProperty('componentName', componentName).length
             : App.SlaveComponent.find().findProperty('componentName', componentName).get('totalCount');
           var  isDeleteComponentDisabled = (installedCount <= stackComponentCount)
-            || ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
+            || ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(self.get('workStatus'));
           if (isDeleteComponentDisabled) {
             if (!container.masterComponents.contains(displayName))
               container.masterComponents.push(displayName);
