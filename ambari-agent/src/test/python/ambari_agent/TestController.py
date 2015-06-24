@@ -20,7 +20,9 @@ limitations under the License.
 '''
 
 import StringIO
+import os
 import ssl
+import tempfile
 import unittest, threading
 import sys
 from mock.mock import patch, MagicMock, call, Mock
@@ -36,6 +38,7 @@ from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
 from ambari_commons import OSCheck
 from ambari_agent.Hardware import Hardware
 from ambari_agent.ExitHelper import ExitHelper
+from ambari_agent.AmbariConfig import AmbariConfig
 import ambari_commons
 
 OPERATING_SYSTEM_DISTRO = ('Suse','11','Final')
@@ -48,15 +51,16 @@ class TestController(unittest.TestCase):
 
   @patch.object(Controller, "NetUtil", MagicMock())
   @patch.object(Controller, "AlertSchedulerHandler", MagicMock())
+  @patch.object(Controller.Controller, "read_agent_version")
   @patch("threading.Thread")
   @patch("threading.Lock")
   @patch.object(hostname, "hostname")
-  def setUp(self, hostname_method, lockMock, threadMock):
+  def setUp(self, hostname_method, lockMock, threadMock, read_agent_versionMock):
 
     Controller.logger = MagicMock()
     lockMock.return_value = MagicMock()
     hostname_method.return_value = "test_hostname"
-
+    read_agent_versionMock.return_value = '2.1.0'
 
     config = MagicMock()
     #config.get.return_value = "something"
@@ -65,6 +69,21 @@ class TestController(unittest.TestCase):
     self.controller = Controller.Controller(config)
     self.controller.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS = 0.1
     self.controller.netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC = 0.1
+
+  @patch.object(OSCheck, "get_os_type")
+  @patch.object(OSCheck, "get_os_version")
+  def test_read_agent_version(self, get_os_version_mock, get_os_type_mock):
+    config = AmbariConfig().getConfig()
+    tmpdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tmpdir)
+    config.set('agent', 'current_ping_port', '33777')
+    ver_file = os.path.join(tmpdir, "version")
+    reference_version = "1.3.0"
+    with open(ver_file, "w") as text_file:
+      text_file.write(reference_version)
+    version = self.controller.read_agent_version(config)
+    os.remove(ver_file)
+    self.assertEqual(reference_version, version)
 
 
   @patch("ambari_simplejson.dumps")
