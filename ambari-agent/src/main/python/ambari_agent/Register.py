@@ -34,7 +34,7 @@ class Register:
     self.hardware = Hardware()
     self.config = config
 
-  def build(self, id='-1'):
+  def build(self, version, id='-1'):
     global clusterId, clusterDefinitionRevision, firstContact
     timestamp = int(time.time()*1000)
 
@@ -42,7 +42,6 @@ class Register:
     agentEnv = { }
     hostInfo.register(agentEnv, False, False)
 
-    version = self.read_agent_version()
     current_ping_port = self.config.get('agent','current_ping_port')
 
     register = { 'responseId'        : int(id),
@@ -56,11 +55,3 @@ class Register:
                  'prefix'            : self.config.get('agent', 'prefix')
                }
     return register
-
-  def read_agent_version(self):
-    data_dir = self.config.get('agent', 'prefix')
-    ver_file = os.path.join(data_dir, 'version')
-    f = open(ver_file, "r")
-    version = f.read().strip()
-    f.close()
-    return version

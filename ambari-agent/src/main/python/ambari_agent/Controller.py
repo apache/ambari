@@ -57,6 +57,7 @@ class Controller(threading.Thread):
     if heartbeat_stop_callback is None:
       heartbeat_stop_callback = HeartbeatStopHandlers()
 
+    self.version = self.read_agent_version(config)
     self.lock = threading.Lock()
     self.safeMode = True
     self.credential = None
@@ -102,6 +103,15 @@ class Controller(threading.Thread):
     self.alert_scheduler_handler.start()
 
 
+  def read_agent_version(self, config):
+    data_dir = config.get('agent', 'prefix')
+    ver_file = os.path.join(data_dir, 'version')
+    f = open(ver_file, "r")
+    version = f.read().strip()
+    f.close()
+    return version
+
+
   def __del__(self):
     logger.info("Server connection disconnected.")
 
@@ -117,7 +127,7 @@ class Controller(threading.Thread):
 
     while not self.isRegistered:
       try:
-        data = json.dumps(self.register.build())
+        data = json.dumps(self.register.build(self.version))
         prettyData = pprint.pformat(data)
 
         try:
