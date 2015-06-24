@@ -25,7 +25,6 @@ import org.apache.ambari.view.PersistenceException;
 import org.eclipse.persistence.dynamic.DynamicClassLoader;
 import org.eclipse.persistence.dynamic.DynamicEntity;
 import org.eclipse.persistence.dynamic.DynamicType;
-import org.eclipse.persistence.internal.helper.DatabaseField;
 import org.eclipse.persistence.jpa.dynamic.JPADynamicHelper;
 import org.eclipse.persistence.jpa.dynamic.JPADynamicTypeBuilder;
 import org.eclipse.persistence.mappings.DirectToFieldMapping;
@@ -44,8 +43,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.sql.Clob;
-import java.sql.Types;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -116,6 +113,11 @@ public class DataStoreImpl implements DataStore {
    * The logger.
    */
   protected final static Logger LOG = LoggerFactory.getLogger(DataStoreImpl.class);
+
+  /**
+   * Max length of entity string field.
+   */
+  protected static final int MAX_ENTITY_STRING_FIELD_LENGTH = 4000;
 
   /**
    * Table / column name prefix.
@@ -300,12 +302,9 @@ public class DataStoreImpl implements DataStore {
         if (isDirectMappingType(propertyType)) {
           DirectToFieldMapping mapping = typeBuilder.addDirectMapping(attributeName, propertyType, attributeName);
 
-          // explicitly set the type of string fields
+          // explicitly set the length of string fields
           if (String.class.isAssignableFrom(propertyType)) {
-            DatabaseField field = mapping.getField();
-
-            field.setSqlType(Types.CLOB);
-            field.setType(Clob.class);
+            mapping.getField().setLength(MAX_ENTITY_STRING_FIELD_LENGTH);
           }
         }
       }
@@ -427,6 +426,10 @@ public class DataStoreImpl implements DataStore {
                 value = persistEntity(value, em, persistSet);
               }
               if (value != null) {
+                if (String.class.isAssignableFrom(valueClass)) {
+                  // String values can not exceed MAX_ENTITY_STRING_FIELD_LENGTH
+                  checkStringValue(entity, fieldName, (String) value);
+                }
                 dynamicEntity.set(attributeName, value);
               }
             }
@@ -600,6 +603,19 @@ public class DataStoreImpl implements DataStore {
     Field field = clazz.getDeclaredField(fieldName);
     ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
     return (Class<?>) parameterizedType.getActualTypeArguments()[0];
+  }
+
+  // make sure that a string field value doesn't exceed MAX_STRING_LENGTH
+  private static void checkStringValue(Object entity, String fieldName, String value) {
+    if (value.length() > MAX_ENTITY_STRING_FIELD_LENGTH) {
+
+      String msg = String.format("The value for the %s field of the %s entity can not exceed %d characters.  " +
+          "Given value = %s", fieldName, entity.getClass().getSimpleName(), MAX_ENTITY_STRING_FIELD_LENGTH, value);
+
+      LOG.error(msg);
+
+      throw new IllegalStateException(msg);
+    }
   }
 
   // rollback the given transaction if it is active

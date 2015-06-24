@@ -31,6 +31,7 @@ import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.server.view.configuration.ViewConfigTest;
+import org.apache.ambari.view.PersistenceException;
 import org.easymock.Capture;
 import org.eclipse.persistence.dynamic.DynamicClassLoader;
 import org.eclipse.persistence.dynamic.DynamicEntity;
@@ -157,22 +158,14 @@ public class DataStoreImplTest {
     expect(entityManagerFactory.createEntityManager()).andReturn(entityManager);
     expect(entityManager.getTransaction()).andReturn(transaction).anyTimes();
 
-    Capture<Class> entityClassCapture = new Capture<Class>();
-    expect(entityManager.find(capture(entityClassCapture), eq("bar"))).andReturn(null);
-
     Capture<Class> entityClassCapture2 = new Capture<Class>();
     expect(entityManager.find(capture(entityClassCapture2), eq(99))).andReturn(null);
-
-    Capture<DynamicEntity> entityCapture = new Capture<DynamicEntity>();
-    entityManager.persist(capture(entityCapture));
-
-    Capture<DynamicEntity> entityCapture2 = new Capture<DynamicEntity>();
-    entityManager.persist(capture(entityCapture2));
 
     entityManager.close();
 
     transaction.begin();
-    transaction.commit();
+    expect(transaction.isActive()).andReturn(true);
+    transaction.rollback();
 
     // replay mocks
     replay(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager);
@@ -185,16 +178,12 @@ public class DataStoreImplTest {
     }
     String longString = sb.toString();
 
-    dataStore.store(new TestEntity(99, longString, new TestSubEntity("bar")));
-
-    Assert.assertEquals(entityClassCapture.getValue(), typeCapture.getValue().getJavaClass());
-    Assert.assertEquals(entityClassCapture2.getValue(), typeCapture2.getValue().getJavaClass());
-
-    Assert.assertEquals("bar", entityCapture.getValue().get("DS_name"));
-
-    Assert.assertEquals(99, entityCapture2.getValue().get("DS_id"));
-    Assert.assertEquals(longString, entityCapture2.getValue().get("DS_name"));
-
+    try {
+      dataStore.store(new TestEntity(99, longString, new TestSubEntity("bar")));
+      Assert.fail("Expected PersistenceException.");
+    } catch (PersistenceException e) {
+      // expected
+    }
     // verify mocks
     verify(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager);
   }
@@ -273,14 +262,8 @@ public class DataStoreImplTest {
     expect(entityManagerFactory.createEntityManager()).andReturn(entityManager);
     expect(entityManager.getTransaction()).andReturn(transaction).anyTimes();
 
-    Capture<Class> entityClassCapture = new Capture<Class>();
-    expect(entityManager.find(capture(entityClassCapture), eq("bar"))).andReturn(null);
-
     Capture<Class> entityClassCapture2 = new Capture<Class>();
     expect(entityManager.find(capture(entityClassCapture2), eq(99))).andReturn(dynamicEntity);
-
-    Capture<DynamicEntity> entityCapture = new Capture<DynamicEntity>();
-    entityManager.persist(capture(entityCapture));
 
     entityManager.close();
 
@@ -291,23 +274,22 @@ public class DataStoreImplTest {
     String longString = sb.toString();
 
     expect(dynamicEntity.set("DS_id", 99)).andReturn(dynamicEntity);
-    expect(dynamicEntity.set("DS_name", longString)).andReturn(dynamicEntity);
-
-    Capture<DynamicEntity> subEntityCapture = new Capture<DynamicEntity>();
-    expect(dynamicEntity.set(eq("DS_subEntity"), capture(subEntityCapture))).andReturn(dynamicEntity);
 
     transaction.begin();
-    transaction.commit();
+    expect(transaction.isActive()).andReturn(true).anyTimes();
+    transaction.rollback();
 
     // replay mocks
     replay(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager, dynamicEntity);
 
     DataStoreImpl dataStore = getDataStore(entityManagerFactory, jpaDynamicHelper, classLoader, schemaManager);
 
-    dataStore.store(new TestEntity(99, longString, new TestSubEntity("bar")));
-
-    Assert.assertEquals(entityClassCapture.getValue(), typeCapture.getValue().getJavaClass());
-    Assert.assertEquals(entityClassCapture2.getValue(), typeCapture2.getValue().getJavaClass());
+    try {
+      dataStore.store(new TestEntity(99, longString, new TestSubEntity("bar")));
+      Assert.fail();
+    } catch (PersistenceException e) {
+      // expected
+    }
 
     // verify mocks
     verify(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager, dynamicEntity);
