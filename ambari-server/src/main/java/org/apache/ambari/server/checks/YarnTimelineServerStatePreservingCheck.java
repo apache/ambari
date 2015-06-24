@@ -20,7 +20,6 @@ package org.apache.ambari.server.checks;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
@@ -41,7 +40,34 @@ import com.google.inject.Singleton;
 public class YarnTimelineServerStatePreservingCheck extends AbstractCheckDescriptor {
 
   private final static String YARN_TIMELINE_STATE_RECOVERY_ENABLED_KEY = "yarn.timeline-service.recovery.enabled";
-  Configuration _configuration = null;
+
+  /**
+   * Due to the introduction of YARN Timeline state recovery only from certain
+   * stack-versions onwards, this check is not applicable to earlier versions
+   * of the stack.
+   *
+   * This enumeration lists the minimum stack-versions for which this check is applicable.
+   * If a stack is not specified in this enumeration, this check will be applicable.
+   */
+  private enum MinimumApplicableStackVersion {
+    HDP_STACK("HDP", "2.2.4.2");
+
+    private String stackName;
+    private String stackVersion;
+
+    private MinimumApplicableStackVersion(String stackName, String stackVersion) {
+      this.stackName = stackName;
+      this.stackVersion = stackVersion;
+    }
+
+    public String getStackName() {
+      return stackName;
+    }
+
+    public String getStackVersion() {
+      return stackVersion;
+    }
+  }
 
   /**
    * Constructor.
@@ -65,20 +91,14 @@ public class YarnTimelineServerStatePreservingCheck extends AbstractCheckDescrip
       return false;
     }
 
-    if(null == _configuration)
-      _configuration = new Configuration();
-    
-    String rollingUpgradeStack = _configuration.getRollingUpgradeStack(); 
-    // not applicable if not HDP 2.2.4.2 or later    
-    String stackName = cluster.getCurrentStackVersion().getStackName();
-    if (!rollingUpgradeStack.equals(stackName)) {
-      return false;
-    }
-
-    String rollingUpgradeVersion = _configuration.getRollingUpgradeVersion();
-    String currentClusterRepositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion().getVersion();
-    if (VersionUtils.compareVersions(currentClusterRepositoryVersion, rollingUpgradeVersion) < 0) {
-      return false;
+    // Applicable only if stack not defined in MinimumApplicableStackVersion, or
+    // version equals or exceeds the enumerated version.
+    for (MinimumApplicableStackVersion minimumStackVersion : MinimumApplicableStackVersion.values()) {
+      String stackName = cluster.getCurrentStackVersion().getStackName();
+      if (minimumStackVersion.getStackName().equals(stackName)){
+        String currentClusterRepositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion().getVersion();
+        return VersionUtils.compareVersions(currentClusterRepositoryVersion, minimumStackVersion.getStackVersion()) >= 0;
+      }
     }
 
     return true;

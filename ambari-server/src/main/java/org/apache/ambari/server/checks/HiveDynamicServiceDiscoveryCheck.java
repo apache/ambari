@@ -27,6 +27,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Singleton;
@@ -96,7 +97,15 @@ public class HiveDynamicServiceDiscoveryCheck extends AbstractCheckDescriptor {
     if (!errorMessages.isEmpty()) {
       prerequisiteCheck.setFailReason(StringUtils.join(errorMessages, " "));
       prerequisiteCheck.getFailedOn().add("HIVE");
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      PrereqCheckStatus checkStatus = PrereqCheckStatus.FAIL;
+      if ("HDP".equals(request.getSourceStackId().getStackName())) {
+        if (VersionUtils.compareVersions(request.getSourceStackId().getStackVersion(), "2.3.0.0") < 0
+            && VersionUtils.compareVersions(request.getTargetStackId().getStackVersion(), "2.3.0.0") < 0
+            && VersionUtils.compareVersions(request.getSourceStackId().getStackVersion(), request.getTargetStackId().getStackVersion()) < 0) {
+          checkStatus = PrereqCheckStatus.WARNING;
+        }
+      }
+      prerequisiteCheck.setStatus(checkStatus);
     }
   }
 }

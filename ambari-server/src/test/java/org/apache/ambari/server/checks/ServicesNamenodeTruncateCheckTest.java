@@ -86,17 +86,28 @@ public class ServicesNamenodeTruncateCheckTest {
   @Test
   public void testPerform() throws Exception {
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    m_check.perform(check, new PrereqCheckRequest("c1"));
+    PrereqCheckRequest request = new PrereqCheckRequest("c1");
+    m_check.perform(check, request);
     assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
+    // Check HDP-2.2.x => HDP-2.2.y is FAIL
     m_configMap.put("dfs.allow.truncate", "true");
+    request.setSourceStackId(new StackId("HDP-2.2.4.2"));
+    request.setTargetStackId(new StackId("HDP-2.2.8.4"));
     check = new PrerequisiteCheck(null, null);
-    m_check.perform(check, new PrereqCheckRequest("c1"));
+    m_check.perform(check, request);
     assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+
+    // Check HDP-2.3.x => HDP-2.3.y is PASS
+    request.setSourceStackId(new StackId("HDP-2.3.4.2"));
+    request.setTargetStackId(new StackId("HDP-2.3.8.4"));
+    check = new PrerequisiteCheck(null, null);
+    m_check.perform(check, request);
+    assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
     m_configMap.put("dfs.allow.truncate", "false");
     check = new PrerequisiteCheck(null, null);
-    m_check.perform(check, new PrereqCheckRequest("c1"));
+    m_check.perform(check, request);
     assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }
 }
