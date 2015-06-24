@@ -487,6 +487,9 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     this._super();
     this.set('isRestoring', true);
     this.get('slider').setValue(this.get('widgetDefaultValue'));
+    if (this.get('config.value') === this.get('config.savedValue')) {
+      this.set('isRestoring', false);
+    }
   },
 
   /**
@@ -496,6 +499,9 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     this._super();
     this.set('isRestoring', true);
     this.get('slider').setValue(this.get('widgetRecommendedValue'));
+    if (this.get('config.value') === this.get('config.recommendedValue')) {
+      this.set('isRestoring', false);
+    }
   },
 
   /**
