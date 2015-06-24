@@ -106,7 +106,7 @@ describe('App.ServiceConfigsByCategoryView', function () {
     var tests = [
       {
         categoryConfigs: Em.A([
-          { isHiddenByFilter: false }
+          Em.Object.create({ isHiddenByFilter: false })
         ]),
         category: {},
         m: 'no configs with widget, filtered properties are visible. Panel should be shown',
@@ -120,7 +120,7 @@ describe('App.ServiceConfigsByCategoryView', function () {
       },
       {
         categoryConfigs: Em.A([
-          { isHiddenByFilter: false }
+          Em.Object.create({ isHiddenByFilter: false })
         ]),
         category: Em.Object.create({ customCanAddProperty: true}),
         m: 'Category with custom properties. Filtered configs are hidden. Panel should be shown',
@@ -128,7 +128,7 @@ describe('App.ServiceConfigsByCategoryView', function () {
       },
       {
         categoryConfigs: Em.A([
-          { isHiddenByFilter: true }
+          Em.Object.create({ isHiddenByFilter: true })
         ]),
         category: Em.Object.create({ customCanAddProperty: false }),
         m: 'Filtered configs are hidden. Category not for custom properties. Panel should be hidden',
@@ -142,8 +142,8 @@ describe('App.ServiceConfigsByCategoryView', function () {
       },
       {
         categoryConfigs: Em.A([
-          { widget: {someProp: 'a'}},
-          { widget: {someProp: 'b'}}
+          Em.Object.create({ widget: {someProp: 'a'}}),
+          Em.Object.create({ widget: {someProp: 'b'}})
         ]),
         category: Em.Object.create({ customCanAddProperty: false }),
         m: 'All properties have widgets and category is not custom. Panel should be hidden',
@@ -151,8 +151,8 @@ describe('App.ServiceConfigsByCategoryView', function () {
       },
       {
         categoryConfigs: Em.A([
-          { widget: null },
-          { widget: null }
+          Em.Object.create({ widget: null }),
+          Em.Object.create({ widget: null })
         ]),
         category: Em.Object.create({ customCanAddProperty: false }),
         m: 'All properties have widgets set to `null` and category is not custom. Panel should be hidden',
@@ -160,8 +160,8 @@ describe('App.ServiceConfigsByCategoryView', function () {
       },
       {
         categoryConfigs: Em.A([
-          { widget: {someProp: 'a'} },
-          { isHiddenByFilter: true }
+          Em.Object.create({ widget: {someProp: 'a'} }),
+          Em.Object.create({ isHiddenByFilter: true })
         ]),
         category: Em.Object.create({ customCanAddProperty: false }),
         m: 'Category contains mixed properties. Properties are hidden by filter. Panel should be hidden',
@@ -169,8 +169,8 @@ describe('App.ServiceConfigsByCategoryView', function () {
       },
       {
         categoryConfigs: Em.A([
-          { widget: {someProp: 'a'} },
-          { isHiddenByFilter: false }
+          Em.Object.create({ widget: {someProp: 'a'} }),
+          Em.Object.create({ isHiddenByFilter: false })
         ]),
         category: Em.Object.create({ customCanAddProperty: false }),
         m: 'Category contains mixed properties. Properties are visible. Panel should be shown',
