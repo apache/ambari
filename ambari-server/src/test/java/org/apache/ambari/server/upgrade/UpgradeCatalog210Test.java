@@ -19,6 +19,7 @@
 package org.apache.ambari.server.upgrade;
 
 import static junit.framework.Assert.assertEquals;
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
@@ -32,8 +33,10 @@ import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -119,8 +122,16 @@ public class UpgradeCatalog210Test {
   public void testExecuteDDLUpdates() throws Exception {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     Configuration configuration = createNiceMock(Configuration.class);
+    Connection connection = createNiceMock(Connection.class);
+    Statement statement = createNiceMock(Statement.class);
     ResultSet resultSet = createNiceMock(ResultSet.class);
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
+    dbAccessor.getConnection();
+    expectLastCall().andReturn(connection).anyTimes();
+    connection.createStatement();
+    expectLastCall().andReturn(statement).anyTimes();
+    statement.executeQuery(anyObject(String.class));
+    expectLastCall().andReturn(resultSet).anyTimes();
 
     // Create DDL sections with their own capture groups
     AlertSectionDDL alertSectionDDL = new AlertSectionDDL();
@@ -135,7 +146,7 @@ public class UpgradeCatalog210Test {
     viewSectionDDL.execute(dbAccessor);
 
     // Replay sections
-    replay(dbAccessor, configuration, resultSet);
+    replay(dbAccessor, configuration, resultSet, connection, statement);
 
     AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
     Class<?> c = AbstractUpgradeCatalog.class;
@@ -144,7 +155,7 @@ public class UpgradeCatalog210Test {
     f.set(upgradeCatalog, configuration);
 
     upgradeCatalog.executeDDLUpdates();
-    verify(dbAccessor, configuration, resultSet);
+    verify(dbAccessor, configuration, resultSet, connection, statement);
 
     // Verify sections
     alertSectionDDL.verify(dbAccessor);

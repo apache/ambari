@@ -30,8 +30,10 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -72,29 +74,41 @@ public class SchemaUpgradeHelper {
 
   public String readSourceVersion() {
 
-    ResultSet resultSet = null;
+    Statement statement = null;
+    ResultSet rs = null;
     try {
-      resultSet = dbAccessor.executeSelect("SELECT " + dbAccessor.quoteObjectName("metainfo_value") +
+      statement = dbAccessor.getConnection().createStatement();
+      if (statement != null) {
+        rs = statement.executeQuery("SELECT " + dbAccessor.quoteObjectName("metainfo_value") +
           " from metainfo WHERE " + dbAccessor.quoteObjectName("metainfo_key") + "='version'");
-      if (resultSet.next()) {
-        return resultSet.getString(1);
-      } else {
-        //not found, assume oldest version
-        //doesn't matter as there single upgrade catalog for 1.2.0 - 1.5.0 and 1.4.4 - 1.5.0 upgrades
-        return "1.2.0";
+        if (rs != null && rs.next()) {
+          return rs.getString(1);
+        }
       }
     } catch (SQLException e) {
       throw new RuntimeException("Unable to read database version", e);
-    }finally {
-      if (resultSet != null) {
-        try {
-          resultSet.close();
-        } catch (SQLException e) {
-          throw new RuntimeException("Cannot close result set");
+
+    } finally {
+      {
+        if (rs != null) {
+          try {
+            rs.close();
+          } catch (SQLException e) {
+            throw new RuntimeException("Cannot close result set");
+          }
+        }
+        if (statement != null) {
+          try {
+            statement.close();
+          } catch (SQLException e) {
+            throw new RuntimeException("Cannot close statement");
+          }
         }
       }
     }
-
+    //not found, assume oldest version
+    //doesn't matter as there single upgrade catalog for 1.2.0 - 1.5.0 and 1.4.4 - 1.5.0 upgrades
+    return "1.2.0";
   }
 
   /**

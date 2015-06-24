@@ -24,6 +24,7 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
@@ -37,8 +38,10 @@ import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -129,6 +132,8 @@ public class UpgradeCatalog200Test {
   public void testExecuteDDLUpdates() throws Exception {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     Configuration configuration = createNiceMock(Configuration.class);
+    Connection connection = createNiceMock(Connection.class);
+    Statement statement = createNiceMock(Statement.class);
     ResultSet resultSet = createNiceMock(ResultSet.class);
 
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
@@ -250,7 +255,15 @@ public class UpgradeCatalog200Test {
     setViewInstancePropertyExpectations(dbAccessor, valueColumnCapture);
     setViewInstanceDataExpectations(dbAccessor, dataValueColumnCapture);
 
-    replay(dbAccessor, configuration, resultSet);
+    // AbstractUpgradeCatalog.addSequence()
+    dbAccessor.getConnection();
+    expectLastCall().andReturn(connection).anyTimes();
+    connection.createStatement();
+    expectLastCall().andReturn(statement).anyTimes();
+    statement.executeQuery(anyObject(String.class));
+    expectLastCall().andReturn(resultSet).anyTimes();
+
+    replay(dbAccessor, configuration, resultSet, statement, connection);
 
     AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
     Class<?> c = AbstractUpgradeCatalog.class;
@@ -259,7 +272,7 @@ public class UpgradeCatalog200Test {
     f.set(upgradeCatalog, configuration);
 
     upgradeCatalog.executeDDLUpdates();
-    verify(dbAccessor, configuration, resultSet);
+    verify(dbAccessor, configuration, resultSet, statement, connection);
 
     // verify columns for alert_definition
     verifyAlertDefinitionIgnoreColumn(alertDefinitionIgnoreColumnCapture);

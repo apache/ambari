@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -65,6 +66,7 @@ import org.apache.ambari.server.orm.entities.KeyValueEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -454,20 +456,30 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     // Sequences
     if (dbAccessor.tableExists("ambari_sequences")) {
       if (databaseType == DatabaseType.POSTGRES) {
-
-        ResultSet resultSet = dbAccessor.executeSelect("select * from ambari_sequences where sequence_name in " +
-            "('cluster_id_seq','user_id_seq','host_role_command_id_seq')");
-
+        Statement statement = null;
+        ResultSet rs = null;
         try {
-          if (!resultSet.next()) {
-            dbAccessor.executeQuery(getPostgresSequenceUpgradeQuery(), true);
-            // Deletes
-            dbAccessor.dropSequence("host_role_command_task_id_seq");
-            dbAccessor.dropSequence("users_user_id_seq");
-            dbAccessor.dropSequence("clusters_cluster_id_seq");
+          statement = dbAccessor.getConnection().createStatement();
+          if (statement != null) {
+            rs = statement.executeQuery("select * from ambari_sequences where sequence_name in " +
+              "('cluster_id_seq','user_id_seq','host_role_command_id_seq')");
+            if (rs != null) {
+              if (!rs.next()) {
+                dbAccessor.executeQuery(getPostgresSequenceUpgradeQuery(), true);
+                // Deletes
+                dbAccessor.dropSequence("host_role_command_task_id_seq");
+                dbAccessor.dropSequence("users_user_id_seq");
+                dbAccessor.dropSequence("clusters_cluster_id_seq");
+              }
+            }
           }
         } finally {
-          resultSet.close();
+          if (rs != null) {
+            rs.close();
+          }
+          if (statement != null) {
+            statement.close();
+          }
         }
       }
     }

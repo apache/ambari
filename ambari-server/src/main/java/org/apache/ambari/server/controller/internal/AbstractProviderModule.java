@@ -654,7 +654,9 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private void resetInit() {
     if (initialized) {
       synchronized (this) {
-        initialized = false;
+        if (initialized) {
+          initialized = false;
+        }
       }
     }
   }

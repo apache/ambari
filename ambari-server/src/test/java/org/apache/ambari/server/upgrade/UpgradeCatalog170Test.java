@@ -48,6 +48,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -169,6 +170,7 @@ public class UpgradeCatalog170Test {
   @Test
   public void testExecuteDDLUpdates_DBAccessor() throws Exception {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+    Statement statement = createNiceMock(Statement.class);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement stmt = createNiceMock(PreparedStatement.class);
     Configuration configuration = createNiceMock(Configuration.class);
@@ -251,15 +253,18 @@ public class UpgradeCatalog170Test {
     dbAccessor.createTable(eq("serviceconfigmapping"),
         capture(serviceConfigMappingCapture), eq("service_config_id"),
         eq("config_id"));
-
-    dbAccessor.executeSelect(anyObject(String.class));
+    dbAccessor.getConnection();
+    expectLastCall().andReturn(connection).anyTimes();
+    connection.createStatement();
+    expectLastCall().andReturn(statement).anyTimes();
+    statement.executeQuery(anyObject(String.class));
     expectLastCall().andReturn(resultSet).anyTimes();
     resultSet.next();
     expectLastCall().andReturn(false).anyTimes();
     resultSet.close();
     expectLastCall().anyTimes();
 
-    replay(dbAccessor, configuration, resultSet, connection, stmt);
+    replay(dbAccessor, configuration, resultSet, connection, stmt, statement);
     AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
     Class<?> c = AbstractUpgradeCatalog.class;
     Field f = c.getDeclaredField("configuration");
@@ -267,7 +272,7 @@ public class UpgradeCatalog170Test {
     f.set(upgradeCatalog, configuration);
 
     upgradeCatalog.executeDDLUpdates();
-    verify(dbAccessor, configuration, resultSet, connection, stmt);
+    verify(dbAccessor, configuration, resultSet, connection, stmt, statement);
 
     assertClusterConfigColumns(clusterConfigAttributesColumnCapture);
     assertHostgroupConfigColumns(hostgroupConfigAttributesColumnCapture);
@@ -300,6 +305,8 @@ public class UpgradeCatalog170Test {
   @Test
   public void testExecuteDMLUpdates() throws Exception {
     Configuration configuration = createNiceMock(Configuration.class);
+    Connection connection = createNiceMock(Connection.class);
+    Statement statement = createNiceMock(Statement.class);
     DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     Injector injector = createNiceMock(Injector.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
@@ -386,7 +393,13 @@ public class UpgradeCatalog170Test {
     upgradeCatalog.addNewConfigurationsFromXml();
     expectLastCall();
 
-    expect(dbAccessor.executeSelect("SELECT role_name, user_id FROM user_roles")).andReturn(userRolesResultSet).once();
+    dbAccessor.getConnection();
+    expectLastCall().andReturn(connection).anyTimes();
+    connection.createStatement();
+    expectLastCall().andReturn(statement).anyTimes();
+    statement.executeQuery("SELECT role_name, user_id FROM user_roles");
+    expectLastCall().andReturn(userRolesResultSet).once();
+
     expect(entityManager.getTransaction()).andReturn(trans).anyTimes();
     expect(entityManager.getCriteriaBuilder()).andReturn(cb).anyTimes();
     expect(entityManager.createQuery(cq)).andReturn(q).anyTimes();
@@ -527,7 +540,7 @@ public class UpgradeCatalog170Test {
     keyValueDAO.remove(showJobsKeyValue);
     privilegeDAO.create(anyObject(PrivilegeEntity.class));
 
-    replay(entityManager, trans, upgradeCatalog, cb, cq, hrc, q, userRolesResultSet);
+    replay(entityManager, trans, upgradeCatalog, cb, cq, hrc, q, connection, statement, userRolesResultSet);
 
     replay(dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper, pigConfig);
     replay(userDAO, clusterDAO, viewDAO, viewInstanceDAO, permissionDAO, configGroupConfigMappingDAO);
@@ -550,10 +563,13 @@ public class UpgradeCatalog170Test {
 
     upgradeCatalog.executeDMLUpdates();
 
-    verify(upgradeCatalog, dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper,
-        jobsView, showJobsKeyValue, privilegeDAO, viewDAO, viewInstanceDAO, resourceDAO, keyValueDAO, userRolesResultSet,
-        userEntity1, userEntity2, userPrincipal1, userPrincipal2, userPrivileges1, userPrivileges2,
-        viewRegistry, clusterEntity, configEntity, configMappingEntity, clusterStateEntity);
+    verify(upgradeCatalog, dbAccessor, configuration, injector, cluster,
+      clusters, amc, config, configHelper,jobsView, showJobsKeyValue,
+      privilegeDAO, viewDAO, viewInstanceDAO, resourceDAO, keyValueDAO,
+      connection, statement, userRolesResultSet, userEntity1, userEntity2,
+      userPrincipal1, userPrincipal2, userPrivileges1, userPrivileges2,
+      viewRegistry, clusterEntity, configEntity, configMappingEntity,
+      clusterStateEntity);
   }
 
   @Test

@@ -158,18 +158,16 @@ public class ClustersImpl implements Clusters {
   }
 
   private void checkLoaded() {
-    if (clustersLoaded) {
-      return;
-    }
-
-    w.lock();
-    try {
-      if (!clustersLoaded) {
-        loadClustersAndHosts();
+    if (!clustersLoaded) {
+      w.lock();
+      try {
+        if (!clustersLoaded) {
+          loadClustersAndHosts();
+        }
+        clustersLoaded = true;
+      } finally {
+        w.unlock();
       }
-      clustersLoaded = true;
-    } finally {
-      w.unlock();
     }
   }
 
