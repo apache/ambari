@@ -236,6 +236,7 @@ public class ClientConfigResourceProviderTest {
     expect(configMap.get(Configuration.SERVER_TMP_DIR_KEY)).andReturn(Configuration.SERVER_TMP_DIR_DEFAULT);
     expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP_KEY)).andReturn(Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
     expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
+    expect(configuration.getResourceDirPath()).andReturn("/tmp/stacks/S1/V1");
     expect(configuration.getJavaVersion()).andReturn(8);
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.getExternalScriptTimeout()).andReturn(Integer.parseInt(Configuration.EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
@@ -277,7 +278,6 @@ public class ClientConfigResourceProviderTest {
             (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
     expect(componentInfo.getCommandScript()).andReturn(commandScriptDefinition);
     expect(componentInfo.getClientConfigFiles()).andReturn(clientConfigFileDefinitionList);
-    expect(ambariMetaInfo.getStackRoot()).andReturn(stackRootFile);
     expect(cluster.getConfig("hive-site", null)).andReturn(clusterConfig);
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
     expect(clusters.getHost(hostName)).andReturn(host);
@@ -437,10 +437,11 @@ public class ClientConfigResourceProviderTest {
     expect(configMap.get(Configuration.SERVER_TMP_DIR_KEY)).andReturn(Configuration.SERVER_TMP_DIR_DEFAULT);
     expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP_KEY)).andReturn(Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
     expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
-    expect(configuration.getCommonServicesPath()).andReturn(commonServicesPath);
+    expect(configuration.getResourceDirPath()).andReturn("/var/lib/ambari-server/src/main/resources");
     expect(configuration.getJavaVersion()).andReturn(8);
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.getExternalScriptTimeout()).andReturn(Integer.parseInt(Configuration.EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
+
     Map<String,String> props = new HashMap<String, String>();
     props.put(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "pass");
     props.put("key","value");
@@ -479,7 +480,6 @@ public class ClientConfigResourceProviderTest {
             (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
     expect(componentInfo.getCommandScript()).andReturn(commandScriptDefinition);
     expect(componentInfo.getClientConfigFiles()).andReturn(clientConfigFileDefinitionList);
-    expect(ambariMetaInfo.getStackRoot()).andReturn(stackRootFile);
     expect(cluster.getConfig("hive-site", null)).andReturn(clusterConfig);
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
     expect(clusters.getHost(hostName)).andReturn(host);

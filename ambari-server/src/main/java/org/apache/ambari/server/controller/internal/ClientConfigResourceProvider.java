@@ -199,13 +199,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         throw new SystemException("No configuration files defined for the component " + componentInfo.getName());
       }
 
-      String stackRoot = managementController.getAmbariMetaInfo().getStackRoot().getAbsolutePath();
-      String packageFolderAbsolute = null;
-      if (packageFolder.contains(StackManager.COMMON_SERVICES)){
-        packageFolderAbsolute = configs.getCommonServicesPath().replace(StackManager.COMMON_SERVICES, packageFolder);
-      } else {
-        packageFolderAbsolute = stackRoot + File.separator + packageFolder;
-      }
+      String resourceDirPath = configs.getResourceDirPath();
+      String packageFolderAbsolute = resourceDirPath + File.separator + packageFolder;
       
       String commandScriptAbsolute = packageFolderAbsolute + File.separator + commandScript;
 
