@@ -533,10 +533,6 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     this.set('selectedHosts', selectedConfigGroup.get('hosts'));
     this.deleteHosts();
     this.get('configGroups').removeObject(selectedConfigGroup);
-    var groupFromModel = App.ServiceConfigGroup.find().filterProperty('serviceName', selectedConfigGroup.get('service.serviceName')).findProperty('name', selectedConfigGroup.get('name'));
-    if (groupFromModel) {
-      App.configGroupsMapper.deleteRecord(groupFromModel);
-    }
     this.set('selectedConfigGroup', this.get('configGroups').findProperty('isDefault'));
   },
 
@@ -790,7 +786,14 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
               configsController.clearConfigurationGroupHosts(cg, initalGroupState, finishFunction, finishFunction);
             }, this);
             modifiedConfigGroups.toDelete.forEach(function (cg) {
-              configsController.deleteConfigurationGroup(cg, finishFunction, finishFunction);
+              var deleteSuccess = function() {
+                var groupFromModel = App.ServiceConfigGroup.find().filterProperty('serviceName', cg.get('service.serviceName')).findProperty('name', cg.get('name'));
+                if (groupFromModel) {
+                  App.configGroupsMapper.deleteRecord(groupFromModel);
+                }
+                finishFunction();
+              };
+              configsController.deleteConfigurationGroup(cg, deleteSuccess, finishFunction);
             }, this);
           } else if (!createQueriesRun && deleteQueriesCounter < 1) {
             createQueriesRun = true;
