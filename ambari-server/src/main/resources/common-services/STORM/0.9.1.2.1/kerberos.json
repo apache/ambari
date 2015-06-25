@@ -12,12 +12,12 @@
         {
           "name": "storm_components",
           "principal": {
-            "value": "storm@${realm}",
+            "value": "storm-${cluster_name}@${realm}",
             "type": "user",
             "configuration": "storm-env/storm_principal_name"
           },
           "keytab": {
-            "file": "${keytab_dir}/storm.service.keytab",
+            "file": "${keytab_dir}/storm.headless.keytab",
             "owner": {
               "name": "${storm-env/storm_user}",
               "access": "r"

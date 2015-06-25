@@ -324,7 +324,7 @@
             "nimbus_principal_name": "nimbus/_HOST@EXAMPLE.COM", 
             "nimbus_keytab": "/etc/security/keytabs/nimbus.service.keytab", 
             "content": "\n#!/bin/bash\n\n# Set Storm specific environment variables here.\n\n# The java implementation to use.\nexport JAVA_HOME={{java64_home}}\n\n# export STORM_CONF_DIR=\"\"\nexport STORM_HOME=/usr/hdp/current/storm-client", 
-            "storm_keytab": "/etc/security/keytabs/storm.service.keytab", 
+            "storm_keytab": "/etc/security/keytabs/storm.headless.keytab",
             "storm_user": "storm"
         }, 
         "hbase-site": {

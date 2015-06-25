@@ -2492,7 +2492,7 @@
                 "configuration" : "storm-env/storm_principal_name",
                 "type" : "user",
                 "local_username" : null,
-                "value" : "storm@${realm}"
+                "value" : "storm-${cluster_name}@${realm}"
               },
               "name" : "storm_components",
               "keytab" : {
@@ -2500,7 +2500,7 @@
                   "access" : "r",
                   "name" : "${storm-env/storm_user}"
                 },
-                "file" : "${keytab_dir}/storm.service.keytab",
+                "file" : "${keytab_dir}/storm.headless.keytab",
                 "configuration" : "storm-env/storm_keytab",
                 "group" : {
                   "access" : "",

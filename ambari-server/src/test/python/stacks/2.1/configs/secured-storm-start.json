@@ -223,7 +223,7 @@
             "nimbus_principal_name": "nimbus/_HOST@EXAMPLE.COM", 
             "storm_ui_keytab": "/etc/security/keytabs/http.storm.service.keytab",
             "nimbus_keytab": "/etc/security/keytabs/nimbus.service.keytab", 
-            "storm_keytab": "/etc/security/keytabs/storm.service.keytab", 
+            "storm_keytab": "/etc/security/keytabs/storm.headless.keytab",
             "storm_ui_principal_name": "HTTP/_HOST",
             "nimbus_seeds_supported" : false
         },
