@@ -85,16 +85,16 @@ define(['require',
         sysBoltFlag: flag,
         windowTimeFrame: timeFrame,
         success: function(model, response, options) {
+          vent.trigger('LastUpdateRefresh', true);
           that.model = new vTopology(model);
           that.getDetails(that.model);
           that.render();
           that.disableBtnAction(model.status);
           that.$('#sysBolt').prop("checked",that.systemBoltFlag)
-          that.startPollingAction(that.model.get('id'), that.model.get('window'));
           $('.loading').hide();
         },
         error: function(model, response, options) {
-          that.startPollingAction(that.model.get('id'), that.model.get('window'));
+          vent.trigger('LastUpdateRefresh', true);
           $('.loading').hide();
           Utils.notifyError(model.statusText);
         }
@@ -133,9 +133,12 @@ define(['require',
       }
       this.$('.topology-title').html(this.model.has('name') ? this.model.get('name') : '');
       this.showDetailsTable(this.topologyDetailsColl);
-      if(this.summaryArr.length){
+      if(!_.isUndefined(this.summaryArr) && this.summaryArr.length){
         this.setTimeFrameOptions();
+      } else {
+        $('.loading').hide();
       }
+
       this.windowTimeFrame = this.model.get('window');
       this.$('#tFrame').val(this.windowTimeFrame);
       this.showSummaryTable(this.windowTimeFrame);
@@ -152,9 +155,9 @@ define(['require',
       }
 
       this.$('.collapse').on('shown.bs.collapse', function() {
-        $(this).parent().find(".fa-caret-right").removeClass("fa-caret-right").addClass("fa-caret-down");
+        $(this).parent().find(".fa-plus-square").removeClass("fa-plus-square").addClass("fa-minus-square");
       }).on('hidden.bs.collapse', function() {
-        $(this).parent().find(".fa-caret-down").removeClass("fa-caret-down").addClass("fa-caret-right");
+        $(this).parent().find(".fa-minus-square").removeClass("fa-minus-square").addClass("fa-plus-square");
       });
 
       this.$('[data-id="r_tableList"]').parent().removeClass('col-md-12');
@@ -165,7 +168,7 @@ define(['require',
 
     disableBtnAction: function(status){
       _.each(this.$el.find('.btn.btn-success.btn-sm'),function(elem){
-        $(elem).removeAttr('disabled')
+        $(elem).removeAttr('disabled');
       });
       switch(status){
         case "ACTIVE":
@@ -436,16 +439,20 @@ define(['require',
         this.onDialogClosed();
       }
       require(['views/Topology/RebalanceForm'], function(rebalanceForm){
+        var reBalanceModel = new Backbone.Model();
+        reBalanceModel.set('workers',that.topologyDetailsColl.models[0].get('workersTotal'));
+        reBalanceModel.set('waitTime',30);
         that.view = new rebalanceForm({
           spoutCollection : that.spoutsCollection,
-          boltCollection: that.boltsCollection
+          boltCollection: that.boltsCollection,
+          model: reBalanceModel
         });
         that.view.render();
 
         bootbox.dialog({
           message: that.view.$el,
           title: localization.tt('lbl.rebalanceTopology'),
-          className: "topology-modal",
+          className: "rebalance-modal",
           buttons: {
             cancel: {
               label: localization.tt('btn.cancel'),
@@ -455,7 +462,7 @@ define(['require',
               }
             },
             success: {
-              label: localization.tt('btn.save'),
+              label: localization.tt('btn.apply'),
               className: "btn-success",
               callback: function(){
                 var err = that.view.validate();
@@ -473,8 +480,8 @@ define(['require',
           attr = this.view.getValue(),
           obj = {"rebalanceOptions":{}};
 
-      if(!_.isUndefined(attr.workers) && !_.isNull(attr.workers)){
-        obj.rebalanceOptions.numWorkers = attr.workers;
+      if(!_.isUndefined(attr.workers.min) && !_.isNull(attr.workers.min)){
+        obj.rebalanceOptions.numWorkers = attr.workers.min;
       }
 
       var spoutBoltObj = {};
@@ -498,7 +505,13 @@ define(['require',
         type: 'POST',
         success: function(model, response, options){
           if(!_.isUndefined(model.error)){
-            Utils.notifyError(model.error);
+            if(model.errorMessage.search("msg:") != -1){
+              var startIndex = model.errorMessage.search("msg:") + 4;
+              var endIndex = model.errorMessage.split("\n")[0].search("\\)");
+              Utils.notifyError(model.error+":<br/>"+model.errorMessage.substring(startIndex, endIndex));
+            } else {
+              Utils.notifyError(model.error);
+            }
           } else {
             Utils.notifySuccess(localization.tt('dialogMsg.topologyRebalanceSuccessfully'));
             that.fetchData(that.model.get('id'), that.systemBoltFlag, that.windowTimeFrame);
@@ -703,9 +716,7 @@ define(['require',
     },
 
     getTopoConfigColumns: function() {
-
       var cols = [
-
         {
           name: "key",
           cell: "string",
@@ -718,15 +729,6 @@ define(['require',
         }
       ];
       return cols;
-    },
-
-    startPollingAction: function(id){
-      var that = this;
-      setTimeout(function(){
-        if(_.isEqual(typeof that.ui.BoltsSummaryDetails, "object")){
-          that.fetchData(id, that.systemBoltFlag, that.windowTimeFrame);
-        }
-      }, Globals.settings.refreshInterval);
     }
 
   });

@@ -73,9 +73,9 @@ define(['require',
       this.fetchData();
 
       this.$('.collapse').on('shown.bs.collapse', function() {
-        $(this).parent().find(".fa-caret-right").removeClass("fa-caret-right").addClass("fa-caret-down");
+        $(this).parent().find(".fa-plus-square").removeClass("fa-plus-square").addClass("fa-minus-square");
       }).on('hidden.bs.collapse', function() {
-        $(this).parent().find(".fa-caret-down").removeClass("fa-caret-down").addClass("fa-caret-right");
+        $(this).parent().find(".fa-minus-square").removeClass("fa-minus-square").addClass("fa-plus-square");
       });
 
     },
@@ -91,15 +91,15 @@ define(['require',
       this.clusterCollection.trigger('request', this.clusterCollection);
       model.fetch({
         success: function(model, response, options) {
+          vent.trigger('LastUpdateRefresh');
           that.clusterCollection.trigger('sync', that.clusterCollection);
           if (model) {
             that.clusterCollection.reset(model);
           }
-          that.startClusterSumPolling();
         },
         error: function(model, response, options) {
+          vent.trigger('LastUpdateRefresh');
           that.clusterCollection.trigger('error', that.clusterCollection);
-          that.startClusterSumPolling();
           Utils.notifyError(response.statusText);
           return null;
         }
@@ -111,6 +111,7 @@ define(['require',
       this.sprCollection.trigger('request', this.sprCollection);
       model.fetch({
         success: function(model, response, options) {
+          vent.trigger('LastUpdateRefresh');
           that.sprCollection.trigger('sync', that.sprCollection);
           if (model.has('supervisors') && model.get('supervisors').length) {
             var arr = [];
@@ -119,11 +120,10 @@ define(['require',
             });
             that.sprCollection.reset(arr);
           }
-          that.startSupervisorSumPolling();
         },
         error: function(model, response, options) {
+          vent.trigger('LastUpdateRefresh');
           that.sprCollection.trigger('error', that.sprCollection);
-          that.startSupervisorSumPolling();
           Utils.notifyError(response.statusText);
         }
       });
@@ -134,6 +134,7 @@ define(['require',
       this.nimbusConfigCollection.trigger('request', this.nimbusConfigCollection);
       model.fetch({
         success: function(model, response, options) {
+          vent.trigger('LastUpdateRefresh');
           that.nimbusConfigCollection.trigger('sync', that.nimbusConfigCollection);
           if (model) {
             var arr = [];
@@ -145,11 +146,10 @@ define(['require',
             }
             that.nimbusConfigCollection.reset(arr);
           }
-          that.startNimbusConfigPolling();
         },
         error: function(model, response, options) {
+          vent.trigger('LastUpdateRefresh');
           that.nimbusConfigCollection.trigger('error', that.nimbusConfigCollection);
-          that.startNimbusConfigPolling();
           Utils.notifyError(response.statusText);
         }
       });
@@ -160,6 +160,7 @@ define(['require',
       this.nbsCollection.trigger('request', this.nbsCollection);
       model.fetch({
         success: function(model, response, options) {
+          vent.trigger('LastUpdateRefresh');
           that.nbsCollection.trigger('sync', that.nbsCollection);
           if (model.has('nimbuses') && model.get('nimbuses').length) {
             var arr = [];
@@ -168,11 +169,10 @@ define(['require',
             });
             that.nbsCollection.reset(arr);
           }
-          that.startNimbusSummaryPolling();
         },
         error: function(model, response, options) {
+          vent.trigger('LastUpdateRefresh');
           that.nbsCollection.trigger('error', that.nbsCollection);
-          that.startNimbusSummaryPolling();
           Utils.notifyError(response.statusText);
         }
       });
@@ -346,34 +346,6 @@ define(['require',
         label: localization.tt("lbl.value")
       }];
       return cols;
-    },
-
-    startClusterSumPolling: function(){
-      var that = this;
-      setTimeout(function(){
-        that.getClusterSummary(that.clusterModel);
-      }, Globals.settings.refreshInterval);
-    },
-
-    startSupervisorSumPolling: function(){
-      var that = this;
-      setTimeout(function(){
-        that.getSupervisorSummary(that.supervisorModel);
-      }, Globals.settings.refreshInterval);
-    },
-
-    startNimbusConfigPolling: function(){
-      var that = this;
-      setTimeout(function(){
-        that.getNimbusConfig(that.nimbusConfigModel);
-      }, Globals.settings.refreshInterval);
-    },
-
-    startNimbusSummaryPolling: function(){
-      var that = this;
-      setTimeout(function(){
-        that.getNimbusSummary(that.nimbusSummaryModel);
-      }, Globals.settings.refreshInterval);
     }
 
   });

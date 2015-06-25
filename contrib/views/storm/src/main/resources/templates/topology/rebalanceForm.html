@@ -1,0 +1,26 @@
+<form class="form-horizontal">
+  <fieldset>
+    <legend>Worker</legend>
+    <div class="" data-fields="workers"></div>
+  </fieldset>
+  {{#if showParallelism}}
+  <fieldset>
+      <legend>Parallelism</legend>
+    {{#if spoutFlag}}
+      {{#each spoutData}}
+        <div class="" data-fields="{{this}}"></div>
+      {{/each}}
+
+    {{/if}}
+    {{#if boltFlag}}
+      {{#each boltData}}
+        <div class="" data-fields="{{this}}"></div>
+      {{/each}}
+    {{/if}}
+  </fieldset>
+  {{/if}}
+  <fieldset>
+    <legend>Wait Time</legend>
+    <div class="" data-fields="waitTime"></div>
+  </fieldset>
+</form>

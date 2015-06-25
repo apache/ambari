@@ -98,7 +98,8 @@
           cancel: 'Cancel',
           save: 'Save',
           yes: 'Yes',
-          no: 'No'
+          no: 'No',
+          apply: 'Apply'
         },
         h: {
           topologies: 'Topologies',
