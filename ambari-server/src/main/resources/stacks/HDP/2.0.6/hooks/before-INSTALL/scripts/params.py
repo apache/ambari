@@ -42,6 +42,10 @@ proxyuser_group = default("/configurations/hadoop-env/proxyuser_group","users")
 
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 
+# repo templates
+repo_rhel_suse =  config['configurations']['cluster-env']['repo_suse_rhel_template']
+repo_ubuntu =  config['configurations']['cluster-env']['repo_ubuntu_template']
+
 #hosts
 hostname = config["hostname"]
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]

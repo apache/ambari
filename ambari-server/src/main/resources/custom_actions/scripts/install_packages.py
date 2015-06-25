@@ -58,6 +58,10 @@ class InstallPackages(Script):
     # Parse parameters
     config = Script.get_config()
 
+    repo_rhel_suse = config['configurations']['cluster-env']['repo_suse_rhel_template']
+    repo_ubuntu = config['configurations']['cluster-env']['repo_ubuntu_template']
+    template = repo_rhel_suse if OSCheck.is_redhat_family() or OSCheck.is_suse_family() else repo_ubuntu
+
     # Handle a SIGTERM and SIGINT gracefully
     signal.signal(signal.SIGTERM, self.abort_handler)
     signal.signal(signal.SIGINT, self.abort_handler)
@@ -90,7 +94,7 @@ class InstallPackages(Script):
     try:
       append_to_file = False
       for url_info in base_urls:
-        repo_name, repo_file = self.install_repository(url_info, append_to_file)
+        repo_name, repo_file = self.install_repository(url_info, append_to_file, template)
         self.current_repositories.append(repo_name)
         self.current_repo_files.add(repo_file)
         append_to_file = True
@@ -274,8 +278,7 @@ class InstallPackages(Script):
     pass
     return ret_code
 
-  def install_repository(self, url_info, append_to_file):
-    template = "repo_suse_rhel.j2" if OSCheck.is_redhat_family() or OSCheck.is_suse_family() else "repo_ubuntu.j2"
+  def install_repository(self, url_info, append_to_file, template):
 
     repo = {
       'repoName': "{0}-{1}".format(url_info['name'], self.repository_version)

@@ -33,7 +33,12 @@
     "forceRefreshConfigTags": [], 
     "taskId": 61, 
     "public_hostname": "0b3.vm", 
-    "configurations": {}, 
+    "configurations": {
+            "cluster-env": {
+                "repo_suse_rhel_template": "[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0",
+                "repo_ubuntu_template": "{{package_type}} {{base_url}} {{components}}"
+        }
+    },
     "commandParams": {
         "command_timeout": "60", 
         "script_type": "PYTHON",

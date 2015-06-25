@@ -54,4 +54,20 @@
         <property-type>GROUP</property-type>
         <description>Hadoop user group.</description>
     </property>
+    <property>
+        <name>repo_suse_rhel_template</name>
+        <value>[{{repo_id}}]
+name={{repo_id}}
+{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}
+
+path=/
+enabled=1
+gpgcheck=0</value>
+        <description>Template of repositories for rhel and suse.</description>
+    </property>
+    <property>
+        <name>repo_ubuntu_template</name>
+        <value>{{package_type}} {{base_url}} {{components}}</value>
+        <description>Template of repositories for ubuntu.</description>
+    </property>
 </configuration>

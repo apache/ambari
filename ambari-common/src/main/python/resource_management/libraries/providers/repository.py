@@ -27,7 +27,7 @@ from ambari_commons import OSCheck
 from resource_management.core.resources import Execute
 from resource_management.core.resources import File
 from resource_management.core.providers import Provider
-from resource_management.core.source import Template
+from resource_management.core.source import InlineTemplate
 from resource_management.core.source import StaticFile
 from resource_management.libraries.functions.format import format
 from resource_management.core.environment import Environment
@@ -42,8 +42,7 @@ class RhelSuseRepositoryProvider(Provider):
     with Environment.get_instance_copy() as env:
       repo_file_name = self.resource.repo_file_name
       repo_dir = get_repo_dir()
-      repo_template = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', REPO_TEMPLATE_FOLDER, self.resource.repo_template)
-      new_content = Template(repo_template, repo_id=self.resource.repo_id, repo_file_name=self.resource.repo_file_name,
+      new_content = InlineTemplate(self.resource.repo_template, repo_id=self.resource.repo_id, repo_file_name=self.resource.repo_file_name,
                              base_url=self.resource.base_url, mirror_list=self.resource.mirror_list)
       repo_file_path = format("{repo_dir}/{repo_file_name}.repo")
       if self.resource.append_to_file and os.path.isfile(repo_file_path):
@@ -82,9 +81,8 @@ class UbuntuRepositoryProvider(Provider):
       with tempfile.NamedTemporaryFile() as tmpf:
         repo_file_name = format("{repo_file_name}.list",repo_file_name = self.resource.repo_file_name)
         repo_file_path = format("{repo_dir}/{repo_file_name}", repo_dir = self.repo_dir)
-        repo_template = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', REPO_TEMPLATE_FOLDER, self.resource.repo_template)
 
-        new_content = Template(repo_template, package_type=self.package_type,
+        new_content = InlineTemplate(self.resource.repo_template, package_type=self.package_type,
                                       base_url=self.resource.base_url,
                                       components=' '.join(self.resource.components)).get_content()
         old_content = ''
