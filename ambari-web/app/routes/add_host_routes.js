@@ -197,7 +197,13 @@ module.exports = App.WizardRoute.extend({
       wizardStep6Controller.callValidation(function() {
         wizardStep6Controller.showValidationIssuesAcceptBox(function() {
           addHostController.saveSlaveComponentHosts(wizardStep6Controller);
-          router.transitionTo('step4');
+          if (wizardStep6Controller.isAllCheckboxesEmpty()) {
+            router.transitionTo('step5');
+            addHostController.set('content.configGroups', []);
+            addHostController.saveServiceConfigGroups();
+          } else {
+            router.transitionTo('step4');
+          }
         });
       });
     }
@@ -246,7 +252,11 @@ module.exports = App.WizardRoute.extend({
       });
     },
     back: function(router){
-      if(!router.get('wizardStep8Controller.isBackBtnDisabled')) {
+      var addHostController = router.get('addHostController');
+
+      if (addHostController.isConfigGroupsEmpty() && !router.get('wizardStep8Controller.isBackBtnDisabled')) {
+        router.transitionTo('step3');
+      } else if (!router.get('wizardStep8Controller.isBackBtnDisabled')) {
         router.transitionTo('step4');
       }
     },

@@ -87,6 +87,19 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     return this.get('content.controllerName') === 'installerController';
   }.property('content.controllerName'),
 
+  isAllCheckboxesEmpty: function() {
+    var hosts = this.get('hosts');
+    for (var i = 0; i < hosts.length; i++) {
+      var checkboxes = hosts[i].checkboxes;
+      for (var j = 0; j < checkboxes.length; j++) {
+        if (checkboxes[j].checked) {
+          return false;
+        }
+      }
+    }
+    return true;
+  },
+
   /**
    * Check if <code>addServiceWizard</code> used
    * @type {bool}
@@ -533,7 +546,6 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
       return component.get("isSlave") && component.get("isShownOnInstallerSlaveClientPage") === false ||
         component.get("isClient") && component.get("isRequiredOnAllHosts");
     }).mapProperty("componentName");
-
     if (this.get('isInstallerWizard') || this.get('isAddServiceWizard')) {
       masterBlueprint = self.getCurrentMastersBlueprint();
 

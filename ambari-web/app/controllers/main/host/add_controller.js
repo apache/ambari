@@ -68,6 +68,12 @@ App.AddHostController = App.WizardController.extend({
       wizardControllerName: this.get('name'),
       localdb: App.db.data
     });
+    var self = this;
+    Em.run.next(function(){
+      if (self.isConfigGroupsEmpty()) {
+        self.disableStep(4);
+      }
+    });   
   },
 
   /**
@@ -89,6 +95,14 @@ App.AddHostController = App.WizardController.extend({
       delete dbHosts[host];
     });
     this.setDBProperty('hosts', dbHosts);
+  },
+
+  disableStep: function(step) {
+    this.get('isStepDisabled').findProperty('step', step).set('value', true);
+  },
+
+  isConfigGroupsEmpty: function() {
+    return !this.get('content.configGroups') || !this.get('content.configGroups').length; 
   },
 
   /**
