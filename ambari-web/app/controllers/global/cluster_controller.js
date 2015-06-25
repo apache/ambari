@@ -329,20 +329,25 @@ App.ClusterController = Em.Controller.extend({
     this.getAllUpgrades().done(function (data) {
       var upgradeController = App.router.get('mainAdminStackAndUpgradeController');
       var lastUpgradeData = data.items.sortProperty('Upgrade.request_id').pop();
+      var dbUpgradeState = App.db.get('MainAdminStackAndUpgrade', 'upgradeState');
+
+      if (!Em.isNone(dbUpgradeState)) {
+        App.set('upgradeState', dbUpgradeState);
+      }
 
       if (lastUpgradeData) {
         upgradeController.setDBProperty('upgradeId', lastUpgradeData.Upgrade.request_id);
         upgradeController.setDBProperty('isDowngrade', lastUpgradeData.Upgrade.direction === 'DOWNGRADE');
         upgradeController.setDBProperty('upgradeState', lastUpgradeData.Upgrade.request_status);
-        upgradeController.setDBProperty('upgradeVersion', App.get('currentStackName') + '-' + lastUpgradeData.Upgrade.to_version);
+        upgradeController.loadRepoVersionsToModel().done(function () {
+          upgradeController.setDBProperty('upgradeVersion', App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.to_version).get('displayName'));
+          upgradeController.initDBProperties();
+          upgradeController.loadUpgradeData(true);
+        });
+      } else {
+        upgradeController.initDBProperties();
+        upgradeController.loadUpgradeData(true);
       }
-
-      var dbUpgradeState = App.db.get('MainAdminStackAndUpgrade', 'upgradeState');
-      if (!Em.isNone(dbUpgradeState)) {
-        App.set('upgradeState', dbUpgradeState);
-      }
-      upgradeController.initDBProperties();
-      upgradeController.loadUpgradeData(true);
       upgradeController.loadStackVersionsToModel(true).done(function () {
         App.set('stackVersionsAvailable', App.StackVersion.find().content.length > 0);
       });
