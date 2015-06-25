@@ -157,7 +157,7 @@
             "nimbus_keytab" : "/etc/security/keytabs/nimbus.service.keytab",
             "nimbus_principal_name" : "nimbus/_HOST@EXAMPLE.COM",
             "nimbus_seeds_supported" : "true",
-            "storm_keytab" : "/etc/security/keytabs/storm.service.keytab",
+            "storm_keytab" : "/etc/security/keytabs/storm.headless.keytab",
             "storm_log_dir" : "/var/log/storm",
             "storm_pid_dir" : "/var/run/storm",
             "storm_principal_name" : "storm@EXAMPLE.COM",
