@@ -438,15 +438,26 @@ describe('App.WizardStep8Controller', function () {
   });
 
   describe('#loadRepoInfo', function() {
-    it('should use App.currentStackVersion', function() {
-      var version = 'HDP-1.1.1';
-      sinon.stub(App, 'get', function() {return version;});
+
+    beforeEach(function () {
+      sinon.stub(App, 'get').withArgs('currentStackName').returns('HDP');
       sinon.stub(App.ajax, 'send', Em.K);
-      installerStep8Controller.loadRepoInfo();
-      var data = App.ajax.send.args[0][0].data;
-      expect(data).to.eql({stackName: 'HDP', stackVersion: '1.1.1'});
+      sinon.stub(App.StackVersion, 'find', function() {
+        return [
+          Em.Object.create({state: 'CURRENT', repositoryVersion: {repositoryVersion: '2.3.0.0-2208'}})
+        ];
+      });
+    });
+
+    afterEach(function () {
       App.ajax.send.restore();
       App.get.restore();
+      App.StackVersion.find.restore();
+    });
+    it('should use current StackVersion', function() {
+      installerStep8Controller.loadRepoInfo();
+      var data = App.ajax.send.args[0][0].data;
+      expect(data).to.eql({stackName: 'HDP', repositoryVersion: '2.3.0.0-2208'});
     });
   });
 
@@ -454,15 +465,66 @@ describe('App.WizardStep8Controller', function () {
     beforeEach(function () {
       installerStep8Controller.set('clusterInfo', Em.Object.create({}));
     });
+
+    it('should assert error if no data returned from server', function () {
+      expect(function () {
+        installerStep8Controller.loadRepoInfoSuccessCallback({items: []});
+      }).to.throw(Error);
+    });
+
     Em.A([
-        {
-          items: [],
-          m: 'no data',
-          e: {
-            base_url: [],
-            os_type: []
-          }
+      {
+        m: 'Normal JSON',
+        e: {
+          base_url: ['baseurl1', 'baseurl2'],
+          os_type: ['redhat6', 'suse11'],
+          repo_id: ['HDP-2.3', 'HDP-UTILS-1.1.0.20']
         },
+        items: [
+          {
+            repository_versions: [
+              {
+                operating_systems: [
+                  {
+                    repositories: [
+                      {
+                        Repositories: {
+                          base_url: 'baseurl1',
+                          os_type: 'redhat6',
+                          repo_id: 'HDP-2.3'
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    repositories: [
+                      {
+                        Repositories: {
+                          base_url: 'baseurl2',
+                          os_type: 'suse11',
+                          repo_id: 'HDP-UTILS-1.1.0.20'
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]).forEach(function (test) {
+
+      it(test.m, function () {
+        installerStep8Controller.loadRepoInfoSuccessCallback({items: test.items});
+        expect(installerStep8Controller.get('clusterInfo.repoInfo').mapProperty('base_url')).to.eql(test.e.base_url);
+        expect(installerStep8Controller.get('clusterInfo.repoInfo').mapProperty('os_type')).to.eql(test.e.os_type);
+        expect(installerStep8Controller.get('clusterInfo.repoInfo').mapProperty('repo_id')).to.eql(test.e.repo_id);
+      });
+
+    });
+
+    /*Em.A([
         {
           items: [
             {
@@ -574,7 +636,7 @@ describe('App.WizardStep8Controller', function () {
           expect(installerStep8Controller.get('clusterInfo.repoInfo').mapProperty('base_url')).to.eql(test.e.base_url);
           expect(installerStep8Controller.get('clusterInfo.repoInfo').mapProperty('os_type')).to.eql(test.e.os_type);
         });
-      });
+      });*/
   });
 
   describe('#loadRepoInfoErrorCallback', function() {

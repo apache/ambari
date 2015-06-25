@@ -1117,6 +1117,10 @@ var urls = {
       };
     }
   },
+  'cluster.load_repo_version': {
+    'real': '/stacks/{stackName}/versions?fields=repository_versions/operating_systems/repositories/*,repository_versions/RepositoryVersions/display_name&repository_versions/RepositoryVersions/repository_version={repositoryVersion}',
+    'mock': ''
+  },
   'cluster.load_detailed_repo_version': {
     'real': '/clusters/{clusterName}/stack_versions?ClusterStackVersions/state=CURRENT&fields=repository_versions/RepositoryVersions/repository_version&minimal_response=true',
     'mock': '/data/stack_versions/stack_version_all.json'

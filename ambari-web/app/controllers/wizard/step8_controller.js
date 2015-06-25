@@ -598,13 +598,16 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method loadRepoInfo
    */
   loadRepoInfo: function () {
-    var nameVersionCombo = App.get('currentStackVersion').split('-');
+
+    var currentRepoVersion = App.StackVersion.find().findProperty('state', 'CURRENT').get('repositoryVersion.repositoryVersion');
+    var stackName = App.get('currentStackName');
+
     return App.ajax.send({
-      name: 'cluster.load_repositories',
+      name: 'cluster.load_repo_version',
       sender: this,
       data: {
-        stackName: nameVersionCombo[0],
-        stackVersion: nameVersionCombo[1]
+        stackName: stackName,
+        repositoryVersion: currentRepoVersion
       },
       success: 'loadRepoInfoSuccessCallback',
       error: 'loadRepoInfoErrorCallback'
@@ -618,7 +621,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   loadRepoInfoSuccessCallback: function (data) {
     var allRepos = [];
-    data.items.forEach(function (os) {
+    Em.assert('Current repo-version may be only one', data.items.length === 1);
+    data.items[0].repository_versions[0].operating_systems.forEach(function (os) {
       os.repositories.forEach(function (repository) {
         allRepos.push(Em.Object.create({
           base_url: repository.Repositories.base_url,
@@ -626,7 +630,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           repo_id: repository.Repositories.repo_id
         }));
       });
-    }, this);
+    });
     allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
     this.get('clusterInfo').set('repoInfo', allRepos);
   },
