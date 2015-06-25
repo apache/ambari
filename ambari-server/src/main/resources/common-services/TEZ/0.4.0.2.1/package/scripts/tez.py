@@ -44,7 +44,8 @@ def tez():
 
   File(format("{config_dir}/tez-env.sh"),
        owner=params.tez_user,
-       content=InlineTemplate(params.tez_env_sh_template))
+       content=InlineTemplate(params.tez_env_sh_template),
+       mode=0555)
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
