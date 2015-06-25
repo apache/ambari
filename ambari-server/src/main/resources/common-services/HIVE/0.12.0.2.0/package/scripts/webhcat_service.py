@@ -21,6 +21,7 @@ Ambari Agent
 from resource_management import *
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.core.shell import as_user
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def webhcat_service(action='start', rolling_restart=False):
@@ -44,7 +45,7 @@ def webhcat_service(action='start', rolling_restart=False):
       environ['HADOOP_HOME'] = format("/usr/hdp/{version}/hadoop")
 
     daemon_cmd = format('cd {hcat_pid_dir} ; {cmd} start')
-    no_op_test = format('ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p `cat {webhcat_pid_file}` >/dev/null 2>&1')
+    no_op_test = as_user(format('ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p `cat {webhcat_pid_file}` >/dev/null 2>&1'), user=params.webhcat_user)
     Execute(daemon_cmd,
             user=params.webhcat_user,
             not_if=no_op_test,

@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management.core.resources import Execute
 from resource_management.core.resources import File
+from resource_management.core.shell import as_user
 from resource_management.libraries.functions.format import format
 import time
 
@@ -29,8 +30,8 @@ def service(name, action = 'start'):
   import status_params
 
   pid_file = status_params.pid_files[name]
-  no_op_test = format(
-    "ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
+  no_op_test = as_user(format(
+    "ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1"), user=params.storm_user)
 
   if name == "logviewer" or name == "drpc":
     tries_count = 12
@@ -74,7 +75,7 @@ def service(name, action = 'start'):
 
   elif action == "stop":
     process_dont_exist = format("! ({no_op_test})")
-    pid = format("`cat {pid_file}`")
+    pid = '`' + as_user(format("cat {pid_file}"), user=params.storm_user) + '`'
 
     Execute(format("{sudo} kill {pid}"),
       not_if = process_dont_exist)
