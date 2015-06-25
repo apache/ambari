@@ -55,7 +55,7 @@ def install_repos():
   if params.host_sys_prepped:
     return
 
-  template = "repo_suse_rhel.j2" if OSCheck.is_suse_family() or OSCheck.is_redhat_family() else "repo_ubuntu.j2"
+  template = params.repo_rhel_suse if OSCheck.is_suse_family() or OSCheck.is_redhat_family() else params.repo_ubuntu
   _alter_repo("create", params.repo_info, template)
   if params.service_repo_info:
     _alter_repo("create", params.service_repo_info, template)

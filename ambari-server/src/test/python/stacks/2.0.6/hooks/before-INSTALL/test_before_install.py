@@ -38,7 +38,7 @@ class TestHookBeforeInstall(RMFTestCase):
         components=['HDP', 'main'],
         mirror_list=None,
         repo_file_name='HDP',
-        repo_template='repo_suse_rhel.j2'
+        repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0'
     )
     self.assertResourceCalled('Package', 'unzip',)
     self.assertResourceCalled('Package', 'curl',)

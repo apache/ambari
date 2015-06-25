@@ -64,33 +64,32 @@ class TestRepositoryResource(TestCase):
         is_ubuntu_family.return_value = False
         is_suse_family.return_value = False
         with Environment('/') as env:
-          with patch.object(repository,"Template", new=DummyTemplate.create(RHEL_SUSE_DEFAULT_TEMPLATE)):
-            with patch.object(repository, "__file__", new='/ambari/test/repo/dummy/path/file'):
-              Repository('hadoop',
-                         base_url='http://download.base_url.org/rpm/',
-                         mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
-                         repo_file_name='Repository',
-                         repo_template='dummy.j2')
+          with patch.object(repository, "__file__", new='/ambari/test/repo/dummy/path/file'):
+            Repository('hadoop',
+                       base_url='http://download.base_url.org/rpm/',
+                       mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                       repo_file_name='Repository',
+                       repo_template=RHEL_SUSE_DEFAULT_TEMPLATE)
 
-              self.assertTrue('hadoop' in env.resources['Repository'])
-              defined_arguments = env.resources['Repository']['hadoop'].arguments
-              expected_arguments = {'repo_template': 'dummy.j2',
-                                    'base_url': 'http://download.base_url.org/rpm/',
-                                    'mirror_list': 'https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
-                                    'repo_file_name': 'Repository'}
-              expected_template_arguments = {'base_url': 'http://download.base_url.org/rpm/',
-                                    'mirror_list': 'https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
-                                    'repo_file_name': 'Repository'}
+            self.assertTrue('hadoop' in env.resources['Repository'])
+            defined_arguments = env.resources['Repository']['hadoop'].arguments
+            expected_arguments = {'repo_template': RHEL_SUSE_DEFAULT_TEMPLATE,
+                                  'base_url': 'http://download.base_url.org/rpm/',
+                                  'mirror_list': 'https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                                  'repo_file_name': 'Repository'}
+            expected_template_arguments = {'base_url': 'http://download.base_url.org/rpm/',
+                                  'mirror_list': 'https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                                  'repo_file_name': 'Repository'}
 
-              self.assertEqual(defined_arguments, expected_arguments)
-              self.assertEqual(file_mock.call_args[0][0], '/etc/yum.repos.d/Repository.repo')
+            self.assertEqual(defined_arguments, expected_arguments)
+            self.assertEqual(file_mock.call_args[0][0], '/etc/yum.repos.d/Repository.repo')
 
-              template_item = file_mock.call_args[1]['content']
-              template = str(template_item.name)
-              expected_template_arguments.update({'repo_id': 'hadoop'})
+            template_item = file_mock.call_args[1]['content']
+            template = str(template_item.name)
+            expected_template_arguments.update({'repo_id': 'hadoop'})
 
-              self.assertEqual(expected_template_arguments, template_item.context._dict)
-              self.assertEqual('/ambari/test/repo/dummy/path/../data/dummy.j2', template)
+            self.assertEqual(expected_template_arguments, template_item.context._dict)
+            self.assertEqual(RHEL_SUSE_DEFAULT_TEMPLATE, template)
 
 
     @patch.object(OSCheck, "is_suse_family")
@@ -104,33 +103,32 @@ class TestRepositoryResource(TestCase):
         is_ubuntu_family.return_value = False
         is_suse_family.return_value = True
         with Environment('/') as env:
-          with patch.object(repository,"Template", new=DummyTemplate.create(RHEL_SUSE_DEFAULT_TEMPLATE)):
-            with patch.object(repository, "__file__", new='/ambari/test/repo/dummy/path/file'):
-              Repository('hadoop',
-                         base_url='http://download.base_url.org/rpm/',
-                         mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
-                         repo_template = "dummy.j2",
-                         repo_file_name='Repository')
+          with patch.object(repository, "__file__", new='/ambari/test/repo/dummy/path/file'):
+            Repository('hadoop',
+                       base_url='http://download.base_url.org/rpm/',
+                       mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                       repo_template = RHEL_SUSE_DEFAULT_TEMPLATE,
+                       repo_file_name='Repository')
 
-              self.assertTrue('hadoop' in env.resources['Repository'])
-              defined_arguments = env.resources['Repository']['hadoop'].arguments
-              expected_arguments = {'repo_template': 'dummy.j2',
-                                    'mirror_list': 'https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
-                                    'base_url': 'http://download.base_url.org/rpm/',
-                                    'repo_file_name': 'Repository'}
-              expected_template_arguments = {'mirror_list': 'https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
-                                    'base_url': 'http://download.base_url.org/rpm/',
-                                    'repo_file_name': 'Repository'}
+            self.assertTrue('hadoop' in env.resources['Repository'])
+            defined_arguments = env.resources['Repository']['hadoop'].arguments
+            expected_arguments = {'repo_template': RHEL_SUSE_DEFAULT_TEMPLATE,
+                                  'mirror_list': 'https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                                  'base_url': 'http://download.base_url.org/rpm/',
+                                  'repo_file_name': 'Repository'}
+            expected_template_arguments = {'mirror_list': 'https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                                  'base_url': 'http://download.base_url.org/rpm/',
+                                  'repo_file_name': 'Repository'}
 
-              self.assertEqual(defined_arguments, expected_arguments)
-              self.assertEqual(file_mock.call_args[0][0], '/etc/zypp/repos.d/Repository.repo')
+            self.assertEqual(defined_arguments, expected_arguments)
+            self.assertEqual(file_mock.call_args[0][0], '/etc/zypp/repos.d/Repository.repo')
 
-              template_item = file_mock.call_args[1]['content']
-              template = str(template_item.name)
-              expected_template_arguments.update({'repo_id': 'hadoop'})
+            template_item = file_mock.call_args[1]['content']
+            template = str(template_item.name)
+            expected_template_arguments.update({'repo_id': 'hadoop'})
 
-              self.assertEqual(expected_template_arguments, template_item.context._dict)
-              self.assertEqual('/ambari/test/repo/dummy/path/../data/dummy.j2', template)
+            self.assertEqual(expected_template_arguments, template_item.context._dict)
+            self.assertEqual(RHEL_SUSE_DEFAULT_TEMPLATE, template)
     
     @patch.object(OSCheck, "is_suse_family")
     @patch.object(OSCheck, "is_ubuntu_family")
@@ -153,14 +151,13 @@ class TestRepositoryResource(TestCase):
       checked_call_mock.return_value = 0, "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 123ABCD"
       
       with Environment('/') as env:
-        with patch.object(repository,"Template", new=DummyTemplate.create(DEBIAN_DEFAUTL_TEMPLATE)):
-          with patch.object(repository, "__file__", new='/ambari/test/repo/dummy/path/file'):
-            Repository('HDP',
-                       base_url='http://download.base_url.org/rpm/',
-                       repo_file_name='HDP',
-                       repo_template = "dummy.j2",
-                       components = ['a','b','c']
-            )
+        with patch.object(repository, "__file__", new='/ambari/test/repo/dummy/path/file'):
+          Repository('HDP',
+                     base_url='http://download.base_url.org/rpm/',
+                     repo_file_name='HDP',
+                     repo_template = DEBIAN_DEFAUTL_TEMPLATE,
+                     components = ['a','b','c']
+          )
 
       call_content = file_mock.call_args_list[0]
       template_name = call_content[0][0]
@@ -195,14 +192,13 @@ class TestRepositoryResource(TestCase):
       checked_call_mock.return_value = 0, "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 123ABCD\r\n"
 
       with Environment('/') as env:
-        with patch.object(repository,"Template", new=DummyTemplate.create(DEBIAN_DEFAUTL_TEMPLATE)):
-          with patch.object(repository, "__file__", new='/ambari/test/repo/dummy/path/file'):
-            Repository('HDP',
-                       base_url='http://download.base_url.org/rpm/',
-                       repo_file_name='HDP',
-                       repo_template = "dummy.j2",
-                       components = ['a','b','c']
-            )
+        with patch.object(repository, "__file__", new='/ambari/test/repo/dummy/path/file'):
+          Repository('HDP',
+                     base_url='http://download.base_url.org/rpm/',
+                     repo_file_name='HDP',
+                     repo_template = DEBIAN_DEFAUTL_TEMPLATE,
+                     components = ['a','b','c']
+          )
 
       call_content = file_mock.call_args_list[0]
       template_name = call_content[0][0]
@@ -230,14 +226,13 @@ class TestRepositoryResource(TestCase):
       tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
       
       with Environment('/') as env:
-        with patch.object(repository,"Template", new=DummyTemplate.create(DEBIAN_DEFAUTL_TEMPLATE)):
-          with patch.object(repository, "__file__", new='/ambari/test/repo/dummy/path/file'):
-            Repository('HDP',
-                       base_url='http://download.base_url.org/rpm/',
-                       repo_file_name='HDP',
-                       repo_template = "dummy.j2",
-                       components = ['a','b','c']
-            )
+        with patch.object(repository, "__file__", new='/ambari/test/repo/dummy/path/file'):
+          Repository('HDP',
+                     base_url='http://download.base_url.org/rpm/',
+                     repo_file_name='HDP',
+                     repo_template = DEBIAN_DEFAUTL_TEMPLATE,
+                     components = ['a','b','c']
+          )
 
       call_content = file_mock.call_args_list[0]
       template_name = call_content[0][0]

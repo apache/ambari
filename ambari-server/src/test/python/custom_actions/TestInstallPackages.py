@@ -46,6 +46,9 @@ subproc_mock.return_value.stdout = subproc_stdout
 @patch.object(subprocess, "Popen", new=subproc_mock)
 class TestInstallPackages(RMFTestCase):
 
+  def setUp(self):
+    self.maxDiff = None
+
   @staticmethod
   def _add_packages(arg):
     arg.append(["pkg1", "1.0", "repo"])
@@ -75,7 +78,7 @@ class TestInstallPackages(RMFTestCase):
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
-                              repo_template='repo_suse_rhel.j2',
+                              repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                               repo_file_name=u'HDP-2.2.0.1-885',
                               mirror_list=None,
                               append_to_file=False,
@@ -84,7 +87,7 @@ class TestInstallPackages(RMFTestCase):
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
-                              repo_template='repo_suse_rhel.j2',
+                              repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                               repo_file_name=u'HDP-2.2.0.1-885',
                               mirror_list=None,
                               append_to_file=True,
@@ -124,7 +127,7 @@ class TestInstallPackages(RMFTestCase):
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
-                              repo_template='repo_suse_rhel.j2',
+                              repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                               repo_file_name=u'HDP-2.2.0.1-885',
                               mirror_list=None,
                               append_to_file=False,
@@ -133,7 +136,7 @@ class TestInstallPackages(RMFTestCase):
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
-                              repo_template='repo_suse_rhel.j2',
+                              repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                               repo_file_name=u'HDP-2.2.0.1-885',
                               mirror_list=None,
                               append_to_file=True,
@@ -175,7 +178,7 @@ class TestInstallPackages(RMFTestCase):
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
-                              repo_template=u'repo_suse_rhel.j2',
+                              repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                               repo_file_name='HDP-2.2.0.1-885',
                               mirror_list=None,
                               append_to_file=False,
@@ -184,7 +187,7 @@ class TestInstallPackages(RMFTestCase):
                               base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
-                              repo_template=u'repo_suse_rhel.j2',
+                              repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                               repo_file_name=u'HDP-2.2.0.1-885',
                               mirror_list=None,
                               append_to_file=True,
@@ -252,7 +255,7 @@ class TestInstallPackages(RMFTestCase):
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
-                              repo_template=u'repo_suse_rhel.j2',
+                              repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                               repo_file_name=u'HDP-2.2.0.1-885',
                               mirror_list=None,
                               append_to_file=False,
@@ -261,7 +264,7 @@ class TestInstallPackages(RMFTestCase):
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
-                              repo_template=u'repo_suse_rhel.j2',
+                              repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                               repo_file_name=u'HDP-2.2.0.1-885',
                               mirror_list=None,
                               append_to_file=True,
@@ -297,7 +300,7 @@ class TestInstallPackages(RMFTestCase):
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
-                              repo_template='repo_suse_rhel.j2',
+                              repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                               repo_file_name=u'HDP-2.2.0.1-885',
                               mirror_list=None,
                               append_to_file=False,
@@ -306,7 +309,7 @@ class TestInstallPackages(RMFTestCase):
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
-                              repo_template='repo_suse_rhel.j2',
+                              repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
                               repo_file_name=u'HDP-2.2.0.1-885',
                               mirror_list=None,
                               append_to_file=True,
