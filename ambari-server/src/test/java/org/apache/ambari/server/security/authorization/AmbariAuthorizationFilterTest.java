@@ -21,6 +21,8 @@ package org.apache.ambari.server.security.authorization;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.getCurrentArguments;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
@@ -45,6 +47,7 @@ import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.Test;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -52,6 +55,7 @@ import org.springframework.security.core.context.SecurityContext;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class AmbariAuthorizationFilterTest {
 
@@ -68,6 +72,8 @@ public class AmbariAuthorizationFilterTest {
     PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
     PermissionEntity permission = createNiceMock(PermissionEntity.class);
     FilterConfig filterConfig = createNiceMock(FilterConfig.class);
+    Authentication auth = new UsernamePasswordAuthenticationToken("admin",null);
+    SecurityContextHolder.getContext().setAuthentication(auth);
 
 
     expect(filterConfig.getInitParameter("realm")).andReturn("AuthFilter");
@@ -79,6 +85,16 @@ public class AmbariAuthorizationFilterTest {
         .andReturn(Collections.singletonList(authority));
     expect(filter.getSecurityContext()).andReturn(securityContext);
     expect(securityContext.getAuthentication()).andReturn(authentication);
+    response.setHeader("User", "admin");
+    expectLastCall().andAnswer(new IAnswer() {
+      public Object answer() {
+        String arg1 = (String) getCurrentArguments()[0];
+        String arg2 = (String) getCurrentArguments()[1];
+        Assert.assertEquals("User", arg1);
+        Assert.assertEquals("admin", arg2);
+        return null;
+      }
+    });
 
     expect(permission.getId()).andReturn(PermissionEntity.CLUSTER_OPERATE_PERMISSION);
 
@@ -92,7 +108,7 @@ public class AmbariAuthorizationFilterTest {
     filter.doFilter(request, response, chain);
 
     verify(request, response, chain, filter, securityContext, authentication, authority,
-        privilegeEntity, permission, filterConfig);
+               privilegeEntity, permission, filterConfig);
   }
 
   @Test
@@ -108,7 +124,6 @@ public class AmbariAuthorizationFilterTest {
     PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
     PermissionEntity permission = createNiceMock(PermissionEntity.class);
     FilterConfig filterConfig = createNiceMock(FilterConfig.class);
-
 
     expect(filterConfig.getInitParameter("realm")).andReturn("AuthFilter");
     expect(authentication.isAuthenticated()).andReturn(true);

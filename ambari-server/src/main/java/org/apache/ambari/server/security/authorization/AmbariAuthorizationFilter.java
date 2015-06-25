@@ -175,6 +175,9 @@ public class AmbariAuthorizationFilter implements Filter {
       }
     }
 
+    if(AuthorizationHelper.getAuthenticatedName() != null) {
+      httpResponse.setHeader("User", AuthorizationHelper.getAuthenticatedName());
+    }
     chain.doFilter(request, response);
   }
 
