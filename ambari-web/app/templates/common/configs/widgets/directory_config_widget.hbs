@@ -18,7 +18,7 @@
 
 <div {{bindAttr class="view.isOriginalSCP:original-widget"}}>
   {{template "templates/common/configs/widgets/config_label"}}
-   <div class="directory-textarea-wrapper">
+   <div  {{bindAttr class=":directory-textarea-wrapper view.doNotShowWidget:hide"}}>
      {{view view.configView}}
    </div>
    <div class="right">

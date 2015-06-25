@@ -18,7 +18,7 @@
 
 <div class="widget-config slider-widget">
   {{template "templates/common/configs/widgets/config_label"}}
-  <div {{bindAttr class="view.isOriginalSCP:original-widget view.config.showAsTextBox:hide :ui-slider-wrapper"}}>
+  <div {{bindAttr class="view.isOriginalSCP:original-widget view.doNotShowWidget:hide :ui-slider-wrapper"}}>
     <div {{bindAttr class=":pull-left :ui-slider-wrapper-inner"}}>{{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}</div>
   </div>
   {{template "templates/common/configs/widgets/controls"}}

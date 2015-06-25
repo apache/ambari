@@ -59,6 +59,24 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   configLabelClass: '',
 
   /**
+   * defines if widget should be shown
+   * if not, text-field with config value or label "Undefined" should be shown
+   * @type {boolean}
+   */
+  doNotShowWidget: function() {
+    return this.get('isPropertyUndefined') || this.get('config.showAsTextBox');
+  }.property('isPropertyUndefined', 'config.showAsTextBox'),
+
+  /**
+   * defines if property in not defined in selected version
+   * in this case "Undefined" should be shown instead of widget
+   * @type {boolean}
+   */
+  isPropertyUndefined: function() {
+    return this.get('config.value') === "Undefined";
+  }.property('config.value'),
+
+  /**
    * Tab where current widget placed
    * Bound in the template
    * @type {App.Tab}
@@ -151,11 +169,13 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
       this.errorLevelObserver();
       this.addObserver('issuedConfig.warnMessage', this, this.errorLevelObserver);
       this.addObserver('issuedConfig.errorMessage', this, this.errorLevelObserver);
+      this.addObserver('parentView.isPropertyUndefined', this, this.errorLevelObserver);
     },
 
     willDestroyElement: function() {
       this.removeObserver('issuedConfig.warnMessage', this, this.errorLevelObserver);
       this.removeObserver('issuedConfig.errorMessage', this, this.errorLevelObserver);
+      this.removeObserver('parentView.isPropertyUndefined', this, this.errorLevelObserver);
     },
 
     /**
@@ -164,6 +184,9 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
      */
     errorLevelObserver: function() {
       var messageLevel = this.get('issuedConfig.errorMessage') ? 'ERROR': this.get('issuedConfig.warnMessage') ? 'WARN' : 'NONE';
+      if (this.get('parentView.isPropertyUndefined')) {
+        messageLevel = 'NONE';
+      }
       var issue = {
         ERROR: {
           iconClass: '',
