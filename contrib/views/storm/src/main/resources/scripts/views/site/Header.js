@@ -40,7 +40,8 @@ define(['require',
 
     events: {
       'click [data-id="topology"]': 'showTopologySection',
-      'click [data-id="cluster"]': 'showClusterSection'
+      'click [data-id="cluster"]': 'showClusterSection',
+      'click #refresh' : 'evRefresh'
     },
 
     initialize: function (options) {
@@ -57,20 +58,39 @@ define(['require',
       vent.on('Breadcrumb:Hide', function(){
         that.$('.breadcrumb').addClass('displayNone');
       });
+      vent.on('LastUpdateRefresh', function(flag){
+        if(flag)
+          that.$('.last-refreshed').css("margin-top","0px");
+        else
+          that.$('.last-refreshed').css("margin-top","35px");
+        that.$('#refreshTime').html(new Date().toLocaleString());
+      });
     },
 
     onRender: function () {},
 
     showTopologySection: function () {
-      this.ui.clusterLink.parent().removeClass('active');
-      this.ui.toplogyLink.parent().addClass('active');
-      vent.trigger('Region:showTopologySection');
+      if(!this.ui.toplogyLink.parent().hasClass('active')){
+        this.ui.clusterLink.parent().removeClass('active');
+        this.ui.toplogyLink.parent().addClass('active');
+        vent.trigger('Region:showTopologySection');
+      }
     },
 
     showClusterSection: function () {
-      this.ui.toplogyLink.parent().removeClass('active');
-      this.ui.clusterLink.parent().addClass('active');
-      vent.trigger('Region:showClusterSection');
+      if(!this.ui.clusterLink.parent().hasClass('active')){
+        this.ui.toplogyLink.parent().removeClass('active');
+        this.ui.clusterLink.parent().addClass('active');
+        vent.trigger('Region:showClusterSection');
+      }
+    },
+
+    evRefresh: function(){
+      if(this.ui.toplogyLink.parent().hasClass('active')){
+        vent.trigger('Region:showTopologySection');
+      } else {
+        vent.trigger('Region:showClusterSection');
+      }
     }
 
   });

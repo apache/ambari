@@ -1,20 +1,6 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * CSS Goes here
+ */
 
 /* Generic */
 /*body {
@@ -28,6 +14,16 @@ select {
 
 a:hover, a:focus {
   text-decoration: none;
+}
+
+fieldset {
+  border: 1px solid #CCC;
+  margin-bottom: 20px;
+}
+
+legend {
+  font-size: 13px;
+  padding: 0 7px;
 }
 
 [data-error]{
@@ -70,6 +66,11 @@ a:hover, a:focus {
   border-right: 4px solid transparent;
   border-bottom: 0;
   border-left: 4px solid transparent;
+}
+
+.rebalance-modal .modal-body {
+  height: 470px;
+  overflow: auto;
 }
 
 /*.tab-content>.tab-pane {
@@ -117,7 +118,7 @@ a:hover, a:focus {
   background: green 50% 50% repeat-x;
 }
 
-.topology-modal .modal-header {
+.modal-header {
   color:#53c749;
 }
 
@@ -286,7 +287,7 @@ border-bottom: 0;
 }
 
 .breadcrumb {
-  line-height: 52px;
+  line-height: 35px;
   margin-left: 25px;
   font-size: 12px;
   color: #666;
@@ -309,4 +310,19 @@ th.sortable > div > a {
 table tr.recent > td {
   background-color: #3FC846;
   color: #fff;
+}
+.last-refreshed {
+  float: right;
+  font-size: 12px;
+  margin-right: 5px;
+  margin-top: 35px;
+  color: #8B8787;
+}
+.refresh-icon {
+  padding-left: 10px;
+  font-size: 1.5em;
+  margin-left: 7px;
+  color: #5cb85c;
+  border-left: 1px #BBB solid;
+  cursor: pointer;
 }

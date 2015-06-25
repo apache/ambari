@@ -47,21 +47,22 @@ define([
 		},
 
 		bindRegions: function () {
+			var that = this;
 			require(['modules/Vent'], function(vent){
 				vent.on('Region:showTopologySection', function(){
 					App.rCluster.$el.removeClass('active').hide();
 					App.rTopology.$el.addClass('active').show();
 					if(App.rTopology.$el.children().hasClass('topologyDetailView')){
-						vent.trigger('Breadcrumb:Show');
+						that.topologyDetailAction(App.rTopology.currentView.model.get('id'));
+					} else {
+						that.topologySummaryAction();
 					}
 				});
 
 				vent.on('Region:showClusterSection', function(){
-					if(!App.rCluster.hasView()){
-						require(['views/Cluster/ClusterSummary'], function(ClusterSummaryView){
-							App.rCluster.show(new ClusterSummaryView());
-						});
-					}
+					require(['views/Cluster/ClusterSummary'], function(ClusterSummaryView){
+						App.rCluster.show(new ClusterSummaryView());
+					});
 					App.rTopology.$el.removeClass('active').hide();
 					App.rCluster.$el.addClass('active').show();
 					vent.trigger('Breadcrumb:Hide');

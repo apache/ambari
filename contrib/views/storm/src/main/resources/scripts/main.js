@@ -80,6 +80,9 @@ require.config({
     'jquery.ui.widget': {
       deps: ['jquery']
     },
+    'jquery-ui-slider': {
+      deps: ['jquery', 'jquery-ui', 'jquery.ui.widget']
+    },
     globalize: {
       exports: 'Globalize'
     },
@@ -115,6 +118,7 @@ require.config({
     'backgrid': '../libs/bower/backgrid/js/backgrid',
     'jquery-ui': '../libs/bower/jquery-ui/js/jquery-ui-1.10.3.custom',
     'jquery.ui.widget': '../libs/bower/jquery-ui/js/jquery.ui.widget.min',
+    'jquery-ui-slider' : '../libs/bower/jquery-ui/js/jquery-ui-slider',
     'globalize': '../libs/bower/globalize/js/globalize',
     'gblMessages' : '../scripts/globalize',
     'bootbox': '../libs/bower/bootbox/js/bootbox',
@@ -137,8 +141,11 @@ require.config({
   enforceDefine: false
 });
 
-require(["App",
+define(["App",
   "router/Router",
+  'jquery-ui',
+  'jquery.ui.widget',
+  'jquery-ui-slider',
   "utils/Overrides",
   "arbor",
   "arbor-tween",

@@ -37,7 +37,7 @@ define(['require',
     templateHelpers: function() {},
 
     events: {
-      'click [data-id="deployBtn"]': 'evDeployTopology'
+      // 'click [data-id="deployBtn"]': 'evDeployTopology'
     },
 
     ui: {
@@ -53,23 +53,31 @@ define(['require',
       vent.trigger('Breadcrumb:Hide');
     },
 
-    fetchSummary: function(flag) {
+    fetchSummary: function(topologyName) {
       var that = this;
       this.collection.fetch({
         success: function(collection, response, options) {
+          vent.trigger('LastUpdateRefresh');
           if (collection && collection.length) {
             var arr = [];
             _.each(collection.models[0].get('topologies'), function(object){
-              arr.push(new mTopology(object));
+              if(!_.isUndefined(topologyName) && object.name === topologyName){
+                Backbone.history.navigate('!/topology/'+object.id, {trigger:true});
+              } else {
+                arr.push(new mTopology(object));
+              }
             });
-            that.countActive = 0;
-            that.collection.reset(arr);
-            that.showSummaryDetail();
-            that.startPollingAction();
+            if(_.isUndefined(topologyName)){
+              that.countActive = 0;
+              that.collection.reset(arr);
+              that.showSummaryDetail();
+            } else {
+              $('.loading').hide();
+            }
           }
         },
         error: function(collection, response, options){
-          that.startPollingAction();
+          vent.trigger('LastUpdateRefresh');
           Utils.notifyError(response.statusText);
         }
       })
@@ -263,18 +271,21 @@ define(['require',
           response = JSON.parse(response);
         }
         if(_.isEqual(response.status, 'failed')){
+          $('.loading').hide();
           Utils.notifyError(response.error);
         } else {
           Utils.notifySuccess(localization.tt("dialogMsg.topologyDeployedSuccessfully"));
-          that.fetchSummary(true);
+          that.fetchSummary(attrs.name);
         }
       };
 
       var errorCallback = function(){
+        $('.loading').hide();
         Utils.notifyError(localization.tt("dialogMsg.topologyDeployFailed"));
       };
 
       Utils.uploadFile(url,formData,successCallback, errorCallback);
+      $('.loading').show();
     },
 
     onDialogClosed: function() {
@@ -283,16 +294,6 @@ define(['require',
         this.view.remove();
         this.view = null;
       }
-    },
-
-    startPollingAction: function(){
-      var that = this;
-      setTimeout(function() {
-        if(_.isEqual(typeof that.ui.summaryDetails, "object")){
-          that.fetchSummary();
-        }
-      }, Globals.settings.refreshInterval);
-
     }
 
   });

@@ -18,44 +18,72 @@
 
 define(['utils/LangSupport',
   'utils/Globals',
+  'hbs!tmpl/topology/rebalanceForm',
+  'models/Cluster',
   'backbone.forms'
-  ], function (localization, Globals) {
+  ], function (localization, Globals, tmpl, clusterModel) {
   'use strict';
 
   var RebalanceForm = Backbone.Form.extend({
 
+    template: tmpl,
+
     initialize: function (options) {
+      this.showSpout = false,
+      this.showBolt = false,
+      this.spoutData = [],
+      this.boltData = [];
       this.spoutCollection = options.spoutCollection;
       this.boltCollection = options.boltCollection;
+      this.model = options.model;
+      this.schemaObj = this.generateSchema();
+      this.templateData = {
+        "spoutFlag": this.showSpout,
+        "boltFlag": this.showBolt,
+        "spoutData": this.spoutData,
+        "boltData": this.boltData,
+        "showParallelism": (this.showSpout && this.showBolt) ? true : false
+      },
       Backbone.Form.prototype.initialize.call(this, options);
     },
 
-    schema: function () {
+    generateSchema: function(){
       var that = this;
+      var freeSlots = this.getClusterSummary(new clusterModel());
+      freeSlots += this.model.get('workers');
       var obj = {
         workers: {
-          type: 'Number',
-          title: localization.tt('lbl.workers')
+          type: 'RangeSlider',
+          title: localization.tt('lbl.workers'),
+          options: {"min":0,"max":freeSlots}
         }
       };
 
       if(that.spoutCollection.length){
         _.each(that.spoutCollection.models, function(model){
           if(model.has('spoutId')) {
-            obj[model.get('spoutId')] = {
+            that.showSpout = true;
+            var name = model.get('spoutId');
+            obj[name] = {
               type: 'Number',
-              title: model.get('spoutId')
+              title: name
             };
+            that.spoutData.push(name);
+            that.model.set(name,model.get('executors'));
           }
         });
       }
       if(that.boltCollection.length){
         _.each(that.boltCollection.models, function(model){
           if(model.has('boltId')) {
-            obj[model.get('boltId')] = {
+            var name = model.get('boltId');
+            that.showBolt = true;
+            obj[name] = {
               type: 'Number',
-              title: model.get('boltId')
+              title: name
             };
+            that.boltData.push(name);
+            that.model.set(name,model.get('executors'));
           }
         });
       }
@@ -64,7 +92,24 @@ define(['utils/LangSupport',
         title: localization.tt('lbl.waitTime')+'*',
         validators: ['required']
       }
-      return obj
+      return obj;
+    },
+
+    getClusterSummary: function(model){
+      var freeSlots = 0;
+      model.fetch({
+        async: false,
+        success: function(model, response, options) {
+          if (model) {
+            freeSlots = model.get('slotsFree');
+          }
+        }
+      });
+      return freeSlots;
+    },
+
+    schema: function () {
+      return this.schemaObj;
     },
 
     render: function(options){
