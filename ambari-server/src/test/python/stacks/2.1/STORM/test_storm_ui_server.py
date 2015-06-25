@@ -51,7 +51,7 @@ class TestStormUiServer(TestStormBase):
         wait_for_finish = False,
         path = ['/usr/bin'],
         user = 'storm',
-        not_if = 'ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1',
+        not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1'",
     )
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep backtype.storm.ui.core$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep backtype.storm.ui.core$ | awk {'print $1'} > /var/run/storm/ui.pid",
         logoutput = True,
@@ -70,11 +70,11 @@ class TestStormUiServer(TestStormBase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill `cat /var/run/storm/ui.pid`',
-        not_if = '! (ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1)',
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill `ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/storm/ui.pid'`",
+        not_if = "! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1')",
     )
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `cat /var/run/storm/ui.pid`',
-        not_if = 'sleep 2; ! (ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1)',
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 `ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/storm/ui.pid'`",
+        not_if = "sleep 2; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1') || sleep 20; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1')",
         ignore_failures = True,
     )
     self.assertResourceCalled('File', '/var/run/storm/ui.pid',
@@ -108,7 +108,7 @@ class TestStormUiServer(TestStormBase):
         wait_for_finish = False,
         path = ['/usr/bin'],
         user = 'storm',
-        not_if = 'ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1',
+        not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1'",
     )
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep backtype.storm.ui.core$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep backtype.storm.ui.core$ | awk {'print $1'} > /var/run/storm/ui.pid",
         logoutput = True,
@@ -127,11 +127,11 @@ class TestStormUiServer(TestStormBase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill `cat /var/run/storm/ui.pid`',
-        not_if = '! (ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1)',
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill `ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/storm/ui.pid'`",
+        not_if = "! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1')",
     )
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `cat /var/run/storm/ui.pid`',
-        not_if = 'sleep 2; ! (ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1)',
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 `ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/storm/ui.pid'`",
+        not_if = "sleep 2; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1') || sleep 20; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1')",
         ignore_failures = True,
     )
     self.assertResourceCalled('File', '/var/run/storm/ui.pid',

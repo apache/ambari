@@ -47,8 +47,10 @@ class TestHiveMetastore(RMFTestCase):
 
     self.assert_configure_default()
     self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr', 'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45', 'HIVE_BIN': 'hive'},
-        not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
+        environment = {'HADOOP_HOME': '/usr',
+           'HIVE_BIN': 'hive',
+           'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        not_if = "ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive.pid'` >/dev/null 2>&1",
         user = 'hive',
         path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
     )
@@ -68,15 +70,15 @@ class TestHiveMetastore(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill `cat /var/run/hive/hive.pid`',
-      not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)',
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive.pid'`",
+        not_if = "! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive.pid'` >/dev/null 2>&1)",
     )
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `cat /var/run/hive/hive.pid`',
-      not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1) )',
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive.pid'`",
+        not_if = "! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive.pid'` >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive.pid'` >/dev/null 2>&1) )",
     )
-    self.assertResourceCalled('Execute', '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)',
-      tries = 20,
-      try_sleep = 3,
+    self.assertResourceCalled('Execute', "! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive.pid'` >/dev/null 2>&1)",
+        tries = 20,
+        try_sleep = 3,
     )
     self.assertResourceCalled('File', '/var/run/hive/hive.pid',
       action = ['delete'],
@@ -107,8 +109,10 @@ class TestHiveMetastore(RMFTestCase):
                               user = 'hive',
                               )
     self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr', 'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45', 'HIVE_BIN': 'hive'},
-        not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
+        environment = {'HADOOP_HOME': '/usr',
+           'HIVE_BIN': 'hive',
+           'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        not_if = "ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive.pid'` >/dev/null 2>&1",
         user = 'hive',
         path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
     )
@@ -128,15 +132,15 @@ class TestHiveMetastore(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill `cat /var/run/hive/hive.pid`',
-      not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)',
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive.pid'`",
+        not_if = "! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive.pid'` >/dev/null 2>&1)",
     )
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `cat /var/run/hive/hive.pid`',
-      not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1) )',
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive.pid'`",
+        not_if = "! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive.pid'` >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive.pid'` >/dev/null 2>&1) )",
     )
-    self.assertResourceCalled('Execute', '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)',
-      tries = 20,
-      try_sleep = 3,
+    self.assertResourceCalled('Execute', "! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive.pid'` >/dev/null 2>&1)",
+        tries = 20,
+        try_sleep = 3,
     )
     self.assertResourceCalled('File', '/var/run/hive/hive.pid',
      action = ['delete'],

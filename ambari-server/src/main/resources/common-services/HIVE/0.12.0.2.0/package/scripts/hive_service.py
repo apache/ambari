@@ -57,7 +57,8 @@ def hive_service(name, action='start', rolling_restart=False):
     pid_file = format("{hive_pid_dir}/{hive_pid}")
     cmd = format("{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.log {pid_file} {hive_server_conf_dir} {hive_log_dir}")
 
-  process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
+  pid_expression = "`" + as_user(format("cat {pid_file}"), user=params.hive_user) + "`"
+  process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid_expression} >/dev/null 2>&1")
 
   if action == 'start':
     if name == 'hiveserver2':
@@ -99,8 +100,8 @@ def hive_service(name, action='start', rolling_restart=False):
               path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10)
   elif action == 'stop':
 
-    daemon_kill_cmd = format("{sudo} kill `cat {pid_file}`")
-    daemon_hard_kill_cmd = format("{sudo} kill -9 `cat {pid_file}`")
+    daemon_kill_cmd = format("{sudo} kill {pid_expression}")
+    daemon_hard_kill_cmd = format("{sudo} kill -9 {pid_expression}")
 
     Execute(daemon_kill_cmd,
       not_if = format("! ({process_id_exists_command})")

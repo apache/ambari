@@ -49,9 +49,9 @@ class TestWebHCatServer(RMFTestCase):
 
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'cd /var/run/webhcat ; /usr/lib/hcatalog/sbin/webhcat_server.sh start',
-                              not_if = 'ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1',
-                              user = 'hcat',
-                              environment = {'HADOOP_HOME': '/usr' }
+        environment = {'HADOOP_HOME': '/usr'},
+        not_if = "ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1'",
+        user = 'hcat',
     )
     self.assertNoMoreResources()
 
@@ -96,9 +96,9 @@ class TestWebHCatServer(RMFTestCase):
 
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'cd /var/run/webhcat ; /usr/lib/hcatalog/sbin/webhcat_server.sh start',
-                              not_if = 'ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1',
-                              user = 'hcat',
-                              environment = {'HADOOP_HOME': '/usr' }
+        environment = {'HADOOP_HOME': '/usr'},
+        not_if = "ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1'",
+        user = 'hcat',
     )
     self.assertNoMoreResources()
 
