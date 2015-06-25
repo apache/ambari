@@ -75,7 +75,7 @@
                         <span class="stack">{{serviceVersion.stackVersion}}</span>
                         <div class="group"><strong>{{serviceVersion.configGroupName}}</strong></div>
                         <div class="date"><strong>{{serviceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{serviceVersion.createdDate}}</strong></div>
-                        <div class="notes">{{{serviceVersion.fullNotes}}}</div>
+                        <div class="notes">{{serviceVersion.fullNotes}}</div>
                       </div>
                       <div class="version-operations-buttons">
                         <button {{bindAttr disabled="serviceVersion.disabledActionAttr.view" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.view"}} {{action doAction serviceVersion view.actionTypes.SWITCH target="view"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>

@@ -173,7 +173,7 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
       this.toggleProperty('showLessNotes');
     },
     didInsertElement: function () {
-      App.tooltip(this.$("[rel='Tooltip']"));
+      App.tooltip(this.$("[rel='Tooltip']"), {html: false});
     }
   }),
 
