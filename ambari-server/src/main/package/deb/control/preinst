@@ -23,6 +23,9 @@ COMMON_SERVICES_FOLDER_OLD=/var/lib/ambari-server/resources/common-services_$(da
 AMBARI_PROPERTIES="/etc/ambari-server/conf/ambari.properties"
 AMBARI_PROPERTIES_OLD="$AMBARI_PROPERTIES.rpmsave"
 
+AMBARI_KRB_JAAS_LOGIN_FILE="/etc/ambari-server/conf/krb5JAASLogin.conf"
+AMBARI_KRB_JAAS_LOGIN_FILE_OLD="$AMBARI_KRB_JAAS_LOGIN_FILE.rpmsave"
+
 AMBARI_VIEWS_FOLDER="/var/lib/ambari-server/resources/views"
 AMBARI_VIEWS_BACKUP_FOLDER="$AMBARI_VIEWS_FOLDER/backups"
 
@@ -34,6 +37,11 @@ fi
 if [ -f "$AMBARI_PROPERTIES" ]
 then
     mv -f "$AMBARI_PROPERTIES" "$AMBARI_PROPERTIES_OLD"
+fi
+
+if [ -f "$AMBARI_KRB_JAAS_LOGIN_FILE" ]
+then
+    mv -f "$AMBARI_KRB_JAAS_LOGIN_FILE" "$AMBARI_KRB_JAAS_LOGIN_FILE_OLD"
 fi
 
 if [ -d "$STACKS_FOLDER" ]
