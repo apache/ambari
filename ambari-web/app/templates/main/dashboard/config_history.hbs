@@ -60,14 +60,14 @@
             <td class="notes">
               {{#if item.moreNotesExists}}
                 {{#if view.showLessNotes}}
-                  {{{item.briefNotes}}}
+                  {{item.briefNotes}}
                   <a {{action toggleShowLessStatus target="view"}} class="show-more-button">>> More</a>
                 {{else}}
-                  {{{item.fullNotes}}}
+                  {{item.fullNotes}}
                   <a {{action toggleShowLessStatus target="view"}} class="show-more-button"><< Less</a>
                 {{/if}}
               {{else}}
-                {{{item.briefNotes}}}
+                {{item.briefNotes}}
               {{/if}}
             </td>
           {{/view}}
