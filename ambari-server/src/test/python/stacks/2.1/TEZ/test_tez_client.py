@@ -57,7 +57,8 @@ class TestTezClient(RMFTestCase):
 
     self.assertResourceCalled('File', '/etc/tez/conf/tez-env.sh',
       owner = 'tez',
-      content = InlineTemplate(self.getConfig()['configurations']['tez-env']['content'])
+      content = InlineTemplate(self.getConfig()['configurations']['tez-env']['content']),
+      mode=0555
     )
 
     self.assertNoMoreResources()
