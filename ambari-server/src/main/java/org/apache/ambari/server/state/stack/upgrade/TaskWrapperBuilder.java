@@ -57,6 +57,16 @@ public class TaskWrapperBuilder {
             continue;
           }
         }
+        // Pick a random host.
+        if (((ExecuteTask) t).hosts != null && ((ExecuteTask) t).hosts.equalsIgnoreCase("any")) {
+          if (hostsType.hosts != null && !hostsType.hosts.isEmpty()) {
+            collection.add(new TaskWrapper(service, component, Collections.singleton(hostsType.hosts.iterator().next()), t));
+            continue;
+          } else {
+            LOG.error(MessageFormat.format("Found an Execute task for {0} and {1} meant to run on a any host but could not find host to run on. Skipping this task.", service, component));
+            continue;
+          }
+        }
       }
 
       collection.add(new TaskWrapper(service, component, hostsType.hosts, t));

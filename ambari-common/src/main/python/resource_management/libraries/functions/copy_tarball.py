@@ -95,7 +95,8 @@ def _get_single_version_from_hdp_select():
 
   return hdp_version
 
-def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=None, custom_dest_file=None, force_execute=False):
+def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=None, custom_dest_file=None, force_execute=False,
+                 use_ru_version_during_ru=True):
   """
   :param name: Tarball name, e.g., tez, hive, pig, sqoop.
   :param user_group: Group to own the directory.
@@ -104,18 +105,20 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
   :param custom_source_file: Override the source file path
   :param custom_dest_file: Override the destination file path
   :param force_execute: If true, will execute the HDFS commands immediately, otherwise, will defer to the calling function.
+  :param use_ru_version_during_ru: If true, will use the version going to during RU. Otherwise, use the CURRENT (source) version.
   :return: Will return True if successful, otherwise, False.
   """
   import params
 
   if params.stack_name is None or params.stack_name.upper() not in TARBALL_MAP:
     Logger.error("Cannot copy {0} tarball to HDFS because stack {1} does not support this operation.".format(str(name), str(params.stack_name)))
-    return -1
+    return False
 
   if name is None or name.lower() not in TARBALL_MAP[params.stack_name.upper()]:
     Logger.warning("Cannot copy tarball to HDFS because {0} is not supported in stack {1} for this operation.".format(str(name), str(params.stack_name)))
-    return -1
+    return False
 
+  Logger.info("Called copy_to_hdfs tarball: {0}".format(name))
   (source_file, dest_file) = TARBALL_MAP[params.stack_name.upper()][name.lower()]
 
   if custom_source_file is not None:
@@ -127,16 +130,22 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
   upgrade_direction = default("/commandParams/upgrade_direction", None)
   is_rolling_upgrade = upgrade_direction is not None
   current_version = default("/hostLevelParams/current_version", None)
+  Logger.info("Default version is {0}".format(current_version))
   if is_rolling_upgrade:
-    # This is the version going to. In the case of a downgrade, it is the lower version.
-    current_version = default("/commandParams/version", None)
-  elif current_version is None:
-    # During normal operation, the first installation of services won't yet know about the version, so must rely
-    # on hdp-select to get it.
-    hdp_version = _get_single_version_from_hdp_select()
-    if hdp_version:
-      Logger.info("Will use stack version {0}".format(hdp_version))
-      current_version = hdp_version
+    if use_ru_version_during_ru:
+      # This is the version going to. In the case of a downgrade, it is the lower version.
+      current_version = default("/commandParams/version", None)
+      Logger.info("Because this is a Rolling Upgrade, will use version {0}".format(current_version))
+    else:
+      Logger.info("This is a Rolling Upgrade, but keep the version unchanged.")
+  else:
+    if current_version is None:
+      # During normal operation, the first installation of services won't yet know about the version, so must rely
+      # on hdp-select to get it.
+      hdp_version = _get_single_version_from_hdp_select()
+      if hdp_version:
+        Logger.info("Will use stack version {0}".format(hdp_version))
+        current_version = hdp_version
 
   if current_version is None:
     message_suffix = "during rolling %s" % str(upgrade_direction) if is_rolling_upgrade else ""
@@ -145,6 +154,7 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
 
   source_file = source_file.replace(STACK_VERSION_PATTERN, current_version)
   dest_file = dest_file.replace(STACK_VERSION_PATTERN, current_version)
+  Logger.info("Source file: {0} , Dest file in HDFS: {1}".format(source_file, dest_file))
 
   if not os.path.exists(source_file):
     Logger.warning("WARNING. Cannot copy {0} tarball because file does not exist: {1} . It is possible that this component is not installed on this host.".format(str(name), str(source_file)))

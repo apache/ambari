@@ -207,6 +207,10 @@ public class ClusterGrouping extends Grouping {
         if (null != et.hosts && "master".equals(et.hosts) && null != hosts.master) {
           realHosts = Collections.singleton(hosts.master);
         }
+        // Pick a random host.
+        if (null != et.hosts && "any".equals(et.hosts) && !hosts.hosts.isEmpty()) {
+          realHosts = Collections.singleton(hosts.hosts.iterator().next());
+        }
 
         return new StageWrapper(
             StageWrapper.Type.RU_TASKS,
