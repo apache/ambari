@@ -473,11 +473,13 @@ describe('App.AddServiceController', function() {
       cases = [
         {
           serviceConfigGroups: null,
-          areInstalledConfigGroupsLoaded: false
+          areInstalledConfigGroupsLoaded: false,
+          title: 'config groups not yet loaded'
         },
         {
           serviceConfigGroups: [],
-          areInstalledConfigGroupsLoaded: true
+          areInstalledConfigGroupsLoaded: true,
+          title: 'config groups already loaded'
         }
       ];
 
