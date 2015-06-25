@@ -766,6 +766,23 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             }
           }
         }
+        String UPDATE_CURRENT_STACK_ID_IF_NULL_TEMPLATE =
+          "UPDATE hostcomponentstate " +
+          "SET current_stack_id={0} " +
+          "WHERE current_stack_id IS NULL " +
+          "AND cluster_id={1} ";
+        rs = statement.executeQuery("SELECT cluster_id, current_stack_id FROM clusterstate");
+        if (rs != null) {
+          while (rs.next()) {
+            // if hostcomponentstate.current_stack_id is null,
+            // set to cluster's current_stack_id
+            long clusterId = rs.getLong("cluster_id");
+            long currentStackId = rs.getLong("current_stack_id");
+            String hostComponentStateSQL = MessageFormat.format(
+              UPDATE_CURRENT_STACK_ID_IF_NULL_TEMPLATE, currentStackId, clusterId);
+            dbAccessor.executeUpdate(hostComponentStateSQL, false);
+          }
+        }
       } finally {
         if (rs != null) {
           rs.close();
