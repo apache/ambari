@@ -35,7 +35,7 @@ from ambari_server.serverConfiguration import configDefaults, \
   get_java_exe_path, get_stack_location, parse_properties_file, read_ambari_user, update_ambari_properties, \
   update_database_name_property, get_admin_views_dir, \
   AMBARI_PROPERTIES_FILE, IS_LDAP_CONFIGURED, LDAP_PRIMARY_URL_PROPERTY, RESOURCES_DIR_PROPERTY, \
-  SETUP_OR_UPGRADE_MSG
+  SETUP_OR_UPGRADE_MSG, update_krb_jaas_login_properties, AMBARI_KRB_JAAS_LOGIN_FILE
 from ambari_server.setupSecurity import adjust_directory_permissions, \
   generate_env, ensure_can_start_under_current_user
 from ambari_server.utils import compare_versions
@@ -281,6 +281,15 @@ def upgrade(args):
   retcode = update_ambari_properties()
   if not retcode == 0:
     err = AMBARI_PROPERTIES_FILE + ' file can\'t be updated. Exiting'
+    raise FatalException(retcode, err)
+
+  retcode = update_krb_jaas_login_properties()
+  if retcode == -2:
+    pass  # no changes done, let's be silent
+  elif retcode == 0:
+    print 'File ' + AMBARI_KRB_JAAS_LOGIN_FILE + ' updated.'
+  elif not retcode == 0:
+    err = AMBARI_KRB_JAAS_LOGIN_FILE + ' file can\'t be updated. Exiting'
     raise FatalException(retcode, err)
 
   try:

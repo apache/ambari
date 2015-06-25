@@ -60,7 +60,7 @@ BOOTSTRAP_DIR_PROPERTY = "bootstrap.dir"
 
 AMBARI_CONF_VAR = "AMBARI_CONF_DIR"
 AMBARI_PROPERTIES_FILE = "ambari.properties"
-
+AMBARI_KRB_JAAS_LOGIN_FILE = "krb5JAASLogin.conf"
 GET_FQDN_SERVICE_URL = "server.fqdn.service.url"
 
 SERVER_OUT_FILE_KEY = "ambari.output.file.path"
@@ -183,7 +183,7 @@ class ServerConfigDefaults(object):
     self.DEFAULT_LIBS_DIR = ""
 
     self.AMBARI_PROPERTIES_BACKUP_FILE = ""
-
+    self.AMBARI_KRB_JAAS_LOGIN_BACKUP_FILE = ""
     # ownership/permissions mapping
     # path - permissions - user - group - recursive
     # Rules are executed in the same order as they are listed
@@ -225,7 +225,7 @@ class ServerConfigDefaultsWindows(ServerConfigDefaults):
     self.DEFAULT_LIBS_DIR = "lib"
 
     self.AMBARI_PROPERTIES_BACKUP_FILE = "ambari.properties.backup"
-
+    self.AMBARI_KRB_JAAS_LOGIN_BACKUP_FILE = ""  # ToDo: should be adjusted later
     # ownership/permissions mapping
     # path - permissions - user - group - recursive
     # Rules are executed in the same order as they are listed
@@ -281,7 +281,7 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     self.DEFAULT_LIBS_DIR = "/usr/lib/ambari-server"
 
     self.AMBARI_PROPERTIES_BACKUP_FILE = "ambari.properties.rpmsave"
-
+    self.AMBARI_KRB_JAAS_LOGIN_BACKUP_FILE = "krb5JAASLogin.conf.rpmsave"
     # ownership/permissions mapping
     # path - permissions - user - group - recursive
     # Rules are executed in the same order as they are listed
@@ -776,6 +776,40 @@ def parse_properties_file(args):
       args.database_password = open(properties[JDBC_PASSWORD_PROPERTY]).read()
     else:
       args.database_password = args.database_password_file
+  return 0
+
+def is_jaas_keytab_exists(conf_file):
+  with open(conf_file, "r") as f:
+    lines = f.read()
+
+  match = re.search("keyTab=(.*)$", lines, re.MULTILINE)
+  return os.path.exists(match.group(1).strip("\"").strip())
+
+def update_krb_jaas_login_properties():
+  """
+  Update configuration files
+  :return: int -2 - skipped, -1 - error, 0 - successful
+  """
+  prev_conf_file = search_file(configDefaults.AMBARI_KRB_JAAS_LOGIN_BACKUP_FILE, get_conf_dir())
+  conf_file = search_file(AMBARI_KRB_JAAS_LOGIN_FILE, get_conf_dir())
+
+  # check if source and target files exists, if not - skip copy action
+  if prev_conf_file is None or conf_file is None:
+    return -2
+
+  # if rpmsave file contains invalid keytab, we can skip restoring
+  if not is_jaas_keytab_exists(prev_conf_file):
+    return -2
+
+  try:
+    # restore original file, destination arg for rename func shouldn't exists
+    os.remove(conf_file)
+    os.rename(prev_conf_file, conf_file)
+    print_warning_msg("Original file %s kept" % AMBARI_KRB_JAAS_LOGIN_FILE)
+  except OSError as e:
+    print "Couldn't move %s file: %s" % (prev_conf_file, e)
+    return -1
+
   return 0
 
 
