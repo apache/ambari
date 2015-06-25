@@ -49,7 +49,7 @@
           <span class="bold-dot">.</span>
           <div class="form-group" ng-class="{'has-error' : repoRegForm.version.$error.pattern}">
             <input class="form-control" name="version" type="text" ng-model="$parent.repoSubversion" ng-pattern="subversionPattern"
-                   placeholder="Version Name" ng-change="updateCurrentVersionInput()" required/>
+                   placeholder="Version Number (0.0)" ng-change="updateCurrentVersionInput()" required/>
             <span class="text-danger" ng-show="repoRegForm.version.$error.pattern">
               &nbsp{{currentVersionInput}} Invalid.
             </span>
