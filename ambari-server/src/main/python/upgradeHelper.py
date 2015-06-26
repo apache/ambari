@@ -34,6 +34,8 @@ Sub-section options:
   config-types - contains global per-config settings
     merged-copy - would merge latest server properties with properties defined in "properties" section,
                   without this option server properties would be rewritten by properties defined in "properties" section
+    required-services - properties from json catalog would be processed only if desired services are present on the cluster
+                        property level definition will always override catalog level definition.
 
 Sub-section properties - Contains property definition
 Sub-section property-mapping(optional) - contains mapping of property names in case, if some property changed their name in NEWVERSION
@@ -50,7 +52,8 @@ Example:
       "options": {
         "config-types": {
           "CONFIGTYPE1": {
-            "merged-copy": "yes"
+            "merged-copy": "yes",
+            "required-services": ["HDFS"]
           }
         }
       },
@@ -62,7 +65,8 @@ Example:
           },
           "template_property": {
            "value": "{TEMPLATE_TAG}",
-           "template": "yes"
+           "template": "yes",
+           "required-services": ["HDFS", "YARN"]
           }
         }
       },
@@ -145,6 +149,7 @@ class CatConst(Const):
   PROPERTY_VALUE_TAG = "value"
   PROPERTY_REMOVE_TAG = "remove"
   MERGED_COPY_TAG = "merged-copy"
+  REQUIRED_SERVICES = "required-services"
   ITEMS_TAG = "items"
   TYPE_TAG = "type"
   TRUE_TAG = "yes"
@@ -196,6 +201,8 @@ class Options(Const):
   # for verify action
   REPORT_FILE = None
 
+  SERVICES = []
+
   API_TOKENS = {
     "user": None,
     "pass": None
@@ -210,6 +217,8 @@ class Options(Const):
     cls.ROOT_URL = '%s://%s:%s/api/v1' % (cls.API_PROTOCOL, cls.HOST, cls.API_PORT)
     cls.CLUSTER_URL = cls.ROOT_URL + "/clusters/%s" % cls.CLUSTER_NAME
     cls.COMPONENTS_FORMAT = cls.CLUSTER_URL + "/components/{0}"
+    if cls.CLUSTER_NAME is not None and cls.HOST is not None:
+      cls.SERVICES = set(map(lambda x: x.upper(), get_cluster_services()))
 
   @classmethod
   def initialize_logger(cls, filename=None):
@@ -431,6 +440,11 @@ class ConfigConst(object):
     return self._config_types_value_definition.keys()
 
   def get(self, name):
+    """
+    Return desired property catalog
+    :param name: str
+    :return: dict
+    """
     if name in self._config_types_value_definition:
       return self._config_types_value_definition[name]
     raise Exception("No config group with name %s found" % name)
@@ -712,9 +726,70 @@ def get_config_resp_all():
 
   return desired_configs
 
+def is_services_exists(required_services):
+  """
+  return true, if required_services is a part of Options.SERVICES
+  :param required_services: list
+  :return: bool
+  """
+  # sets are equal
+  if Options.SERVICES == set(required_services):
+    return True
+
+  return set(map(lambda x: x.upper(), required_services)) < Options.SERVICES
+
+def get_cluster_services():
+  services_url = Options.CLUSTER_URL + '/services'
+  raw_services = curl(services_url, parse=True, simulate=False)
+
+  # expected structure:
+  # items: [ {"href":"...", "ServiceInfo":{"cluster_name":"..", "service_name":".."}}, ..., ... ]
+  if raw_services is not None and "items" in raw_services and isinstance(raw_services["items"], list):
+    return list(map(lambda item: item["ServiceInfo"]["service_name"], raw_services["items"]))
+
+  Options.logger.warning("Failed to load services list, functionality that depends on them couldn't work")
+  return []
+
+def filter_properties_by_service_presence(config_type, catalog, catalog_properties):
+  """
+  Filter properties by required-services tag.
+  required-services tag could be catalog to per-property defined. per-property definition
+  will always override per-catalog definition.
+  :param config_type: str
+  :param catalog: UpgradeCatalog
+  :param catalog_properties: dict
+  :return: dict
+  """
+  cproperties = dict(catalog_properties)
+  catalog_required_services = []
+  del_props = []
+
+  #  do nothing
+  if CatConst.REQUIRED_SERVICES in catalog.config_groups.get(config_type) and \
+    isinstance(catalog.config_groups.get(config_type)[CatConst.REQUIRED_SERVICES], list):
+    catalog_required_services = catalog.config_groups.get(config_type)[CatConst.REQUIRED_SERVICES]
+
+  for prop_name in cproperties:
+    # set per catalog limitation
+    required_services = catalog_required_services
+    if CatConst.REQUIRED_SERVICES in cproperties[prop_name] and\
+      isinstance(cproperties[prop_name][CatConst.REQUIRED_SERVICES], list):
+      # set per property limitation
+      required_services = catalog_properties[prop_name][CatConst.REQUIRED_SERVICES]
+
+    # add property to list for remove
+    if not is_services_exists(required_services):
+      del_props.append(prop_name)
+
+  # remove properties
+  for prop in del_props:
+    del cproperties[prop]
+
+  return cproperties
 
 def modify_config_item(config_type, catalog):
   #  here should be declared tokens for pattern replace
+
   if catalog.get_parsed_version()["from"] == 13:  # ToDo: introduce class for pre-defined tokens
     hostmapping = read_mapping()
     jt_host = hostmapping["JOBTRACKER"][0]
@@ -745,6 +820,9 @@ def modify_config_item(config_type, catalog):
   properties_copy = catalog.get_properties(config_type)
   is_merged_copy = CatConst.MERGED_COPY_TAG in catalog.config_groups.get(config_type) \
    and catalog.config_groups.get(config_type)[CatConst.MERGED_COPY_TAG] == CatConst.TRUE_TAG
+
+  # filter properties by service-required tag
+  properties_copy = filter_properties_by_service_presence(config_type, catalog, properties_copy)
 
   # ToDo: implement property transfer from one catalog to other
   #   properties_to_move = [
