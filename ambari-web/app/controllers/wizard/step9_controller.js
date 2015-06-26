@@ -769,9 +769,8 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   setFinishState: function (polledData) {
     if (this.get('content.cluster.status') === 'INSTALLED') {
-      var self = this;
-      Em.run.next(function(){
-        self.changeParseHostInfo(this.isServicesStarted(polledData));
+      Em.run.next(this, function(){
+        this.changeParseHostInfo(this.isServicesStarted(polledData));
       });
       return;
     } else if (this.get('content.cluster.status') === 'PENDING') {
@@ -787,7 +786,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
   /**
-   * @param polledData Josn data retrieved from API
+   * @param polledData JSON data retrieved from API
    * @returns {bool} Has "Start All Services" request completed successfully
    * @method isServicesStarted
    */
