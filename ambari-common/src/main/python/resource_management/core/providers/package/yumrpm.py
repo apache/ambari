@@ -24,7 +24,6 @@ from resource_management.core.providers.package import PackageProvider
 from resource_management.core import shell
 from resource_management.core.shell import string_cmd_from_args_list
 from resource_management.core.logger import Logger
-from resource_management.core.utils import suppress_stdout
 import os
 
 INSTALL_CMD = {
@@ -38,20 +37,21 @@ REMOVE_CMD = {
 }
 
 class YumProvider(PackageProvider):
-  def install_package(self, name, use_repos=[]):
+  def install_package(self, name, use_repos=[], skip_repos=[]):
     if use_repos or not self._check_existence(name):
       cmd = INSTALL_CMD[self.get_logoutput()]
       if use_repos:
         enable_repo_option = '--enablerepo=' + ",".join(use_repos)
-        cmd = cmd + ['--disablerepo=*', enable_repo_option]
+        disable_repo_option = '--disablerepo=' + "*,".join(skip_repos)
+        cmd = cmd + [disable_repo_option, enable_repo_option]
       cmd = cmd + [name]
       Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
       shell.checked_call(cmd, sudo=True, logoutput=self.get_logoutput())
     else:
       Logger.info("Skipping installation of existing package %s" % (name))
 
-  def upgrade_package(self, name, use_repos=[]):
-    return self.install_package(name, use_repos)
+  def upgrade_package(self, name, use_repos=[], skip_repos=[]):
+    return self.install_package(name, use_repos, skip_repos)
 
   def remove_package(self, name):
     if self._check_existence(name):

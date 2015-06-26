@@ -51,7 +51,7 @@ def get_active_base_repos():
 
 
 class ZypperProvider(PackageProvider):
-  def install_package(self, name, use_repos=[]):
+  def install_package(self, name, use_repos=[], skip_repos=[]):
     if use_repos or not self._check_existence(name):
       cmd = INSTALL_CMD[self.get_logoutput()]
       if use_repos:
@@ -70,8 +70,8 @@ class ZypperProvider(PackageProvider):
     else:
       Logger.info("Skipping installation of existing package %s" % (name))
 
-  def upgrade_package(self, name, use_repos=[]):
-    return self.install_package(name, use_repos)
+  def upgrade_package(self, name, use_repos=[], skip_repos=[]):
+    return self.install_package(name, use_repos, skip_repos)
   
   def remove_package(self, name):
     if self._check_existence(name):
