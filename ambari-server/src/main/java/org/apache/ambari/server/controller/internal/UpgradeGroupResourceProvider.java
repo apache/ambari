@@ -39,7 +39,6 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
-import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
@@ -74,12 +73,6 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
 
   @Inject
   private static UpgradeDAO m_dao = null;
-
-  /**
-   * Used for querying stage resources.
-   */
-  @Inject
-  private static StageDAO stageDAO = null;
 
   @Inject
   private static HostRoleCommandDAO s_hostRoleCommandDao;

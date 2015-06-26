@@ -18,18 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import com.google.inject.Singleton;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.Request;
-import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
-import org.apache.ambari.server.orm.entities.StageEntity;
-import org.apache.ambari.server.state.host.HostImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,6 +29,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.Request;
+import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
+import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.state.host.HostImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Singleton;
 
 /**
  * Manages all cluster provisioning actions on the cluster topology.
@@ -68,7 +69,12 @@ public class TopologyManager {
   private static AmbariContext ambariContext = new AmbariContext();
 
   private final Object initializationLock = new Object();
-  private boolean isInitialized;
+
+  /**
+   * A boolean not cached thread-local (volatile) to prevent double-checked
+   * locking on the synchronized keyword.
+   */
+  private volatile boolean isInitialized;
 
   private final static Logger LOG = LoggerFactory.getLogger(TopologyManager.class);
 
@@ -79,10 +85,12 @@ public class TopologyManager {
   //todo: can't call in constructor.
   //todo: Very important that this occurs prior to any usage
   private void ensureInitialized() {
-    synchronized(initializationLock) {
-      if (! isInitialized) {
-        replayRequests(persistedState.getAllRequests());
-        isInitialized = true;
+    if (!isInitialized) {
+      synchronized (initializationLock) {
+        if (!isInitialized) {
+          replayRequests(persistedState.getAllRequests());
+          isInitialized = true;
+        }
       }
     }
   }

@@ -39,10 +39,11 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
-@javax.persistence.Table(name = "hosts")
 @Entity
+@Table(name = "hosts")
 @TableGenerator(name = "host_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "host_id_seq"
