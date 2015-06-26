@@ -47,6 +47,7 @@ class TestUpgradeHelper(TestCase):
   catalog_from = "1.3"
   catalog_to = "2.2"
   catalog_cfg_type = "my type"
+  required_service = "TEST"
   test_catalog = """{
    "version": "1.0",
    "stacks": [
@@ -63,7 +64,10 @@ class TestUpgradeHelper(TestCase):
        },
        "properties": {
          "%s": {
-           "my property": "my value"
+           "my property": {
+             "value": "my value",
+             "required-services": [\"%s\"]
+           }
          }
        },
        "property-mapping": {
@@ -76,7 +80,9 @@ class TestUpgradeHelper(TestCase):
 
   def setUp(self):
     # replace original curl call to mock
-    self.test_catalog = self.test_catalog % (self.catalog_from, self.catalog_to, self.catalog_cfg_type, self.catalog_cfg_type)
+    self.test_catalog = self.test_catalog % (self.catalog_from, self.catalog_to,
+                                             self.catalog_cfg_type, self.catalog_cfg_type,
+                                             self.required_service)
 
     self.original_curl = upgradeHelper.curl
     upgradeHelper.curl = self.magic_curl
@@ -133,6 +139,35 @@ class TestUpgradeHelper(TestCase):
     self.assertEqual(1, modify_action_mock.call_count)
     self.assertEqual({"user": options.user, "pass": options.password}, upgradeHelper.Options.API_TOKENS)
     self.assertEqual(options.clustername, upgradeHelper.Options.CLUSTER_NAME)
+
+  def test_is_services_exists(self):
+    old_services = upgradeHelper.Options.SERVICES
+
+    upgradeHelper.Options.SERVICES = set(['TEST1', 'TEST2'])
+    actual_result = upgradeHelper.is_services_exists(['TEST1'])
+
+    # check for situation with two empty sets
+    upgradeHelper.Options.SERVICES = set()
+    actual_result_1 = upgradeHelper.is_services_exists([])
+
+    upgradeHelper.Options.SERVICES = old_services
+
+    self.assertEqual(True, actual_result)
+    self.assertEqual(True, actual_result_1)
+
+  @patch.object(upgradeHelper, "is_services_exists")
+  def test_filter_properties_by_service_presence(self, is_service_exists_mock):
+    catalog_factory = UpgradeCatalogFactoryMock(self.test_catalog)
+    catalog = catalog_factory.get_catalog(self.catalog_from, self.catalog_to)
+    cfg_type = self.catalog_cfg_type
+    is_service_exists_mock.return_value = True
+
+    old_services = upgradeHelper.Options.SERVICES
+    upgradeHelper.Options.SERVICES = set([self.required_service])
+    actual_result = upgradeHelper.filter_properties_by_service_presence(cfg_type, catalog, catalog.get_properties(self.catalog_cfg_type))
+
+    upgradeHelper.Options.SERVICES = old_services
+    self.assertEqual(catalog.get_properties(self.catalog_cfg_type), actual_result)
 
   @patch("__builtin__.open")
   @patch.object(os.path, "isfile")
@@ -640,6 +675,8 @@ class TestUpgradeHelper(TestCase):
                               get_config_mock, read_mapping_mock):
     catalog_factory = UpgradeCatalogFactoryMock(self.test_catalog)
     get_config_resp_mock.return_value = "", {}
+    old_services = upgradeHelper.Options.SERVICES
+    upgradeHelper.Options.SERVICES = set([self.required_service])
     catalog = catalog_factory.get_catalog(self.catalog_from, self.catalog_to)
     cfg_type = self.catalog_cfg_type
     read_mapping_mock.return_value = {
@@ -653,7 +690,8 @@ class TestUpgradeHelper(TestCase):
       cfg_type,
       {
         "my property": {
-          "value": "my value"
+          "value": "my value",
+          "required-services": ["TEST"]
         }
       },
       {
@@ -663,6 +701,8 @@ class TestUpgradeHelper(TestCase):
 
     # execute testing function
     upgradeHelper.modify_config_item(cfg_type, catalog)
+
+    upgradeHelper.Options.SERVICES = old_services
 
     actual_params = [
       update_config_using_existing_properties_mock.call_args[0][0],
@@ -860,7 +900,8 @@ class TestUpgradeHelper(TestCase):
     expected_result = [
       {
         'catalog_item': {
-          'value': u'my value'
+          'value': u'my value',
+          'required-services': [u'TEST']
         },
         'property': 'my property',
         'actual_value': {
