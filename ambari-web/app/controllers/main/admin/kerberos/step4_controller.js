@@ -40,9 +40,6 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     this.getDescriptorConfigs().then(function(properties) {
       self.setStepConfigs(properties);
       self.set('isRecommendedLoaded', true);
-      self.get('stepConfigs').forEach(function(service) {
-        self.overrideConfigIsRequired(service);
-      })
     });
   },
 
