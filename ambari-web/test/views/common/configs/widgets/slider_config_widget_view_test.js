@@ -379,6 +379,25 @@ describe('App.SliderConfigWidgetView', function () {
           ticks: [1, 10, 26, 51, 75, 87.5, 100],
           ticksLabels: ["1 GB", "", "", "51 GB", "", "", "100 GB"]
         }
+      },
+      {
+        viewSetup: {
+          minMirrorValue: 1,
+          maxMirrorValue: 100,
+          isCompareMode: true,
+          widgetRecommendedValue: 10,
+          config: Em.Object.create({
+            isOriginalSCP: false,
+            stackConfigProperty: Em.Object.create({
+              valueAttributes: {unit: "B", type: "int", minimum: "1073741824", maximum: "107374182400", increment_step: "1073741824"},
+              widget: { units: [ { 'unit-name': "GB"}]}
+            })
+          })
+        },
+        e: {
+          ticks: [1, 26, 51, 75, 100],
+          ticksLabels: ["1 GB", "", "51 GB", "", "100 GB"]
+        }
       }
     ];
 
@@ -386,6 +405,9 @@ describe('App.SliderConfigWidgetView', function () {
       it('should generate ticks: {0} - tick labels: {1}'.format(test.e.ticks, test.e.ticksLabels), function() {
         var ticks, ticksLabels;
         this.view = this.view.create(test.viewSetup);
+        this.view.set('controller', {
+          isCompareMode: test.viewSetup.isCompareMode
+        });
         var sliderCopy= window.Slider.prototype;
         window.Slider = function(a, b) {
           ticks = b.ticks;
