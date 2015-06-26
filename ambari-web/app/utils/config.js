@@ -304,11 +304,12 @@ App.config = Em.Object.create({
         var value = this.parseValue(properties[index], configsPropertyDef, advancedConfig);
         var serviceConfigObj = Em.Object.create({
           name: index,
+          displayName: (configsPropertyDef && Em.get(configsPropertyDef, 'displayName')) || index,
           value: value,
           savedValue: value,
           recommendedValue: advancedConfig ? Em.get(advancedConfig, 'recommendedValue') : null,
           filename: filename,
-          isUserProperty: !advancedConfig,
+          isUserProperty: !configsPropertyDef,
           isVisible: !!service,
           isOverridable: true,
           isReconfigurable: true,
@@ -336,7 +337,7 @@ App.config = Em.Object.create({
         if (!this.getBySiteName(serviceConfigObj.get('filename')).someProperty('name', index)) {
           if (configsPropertyDef) {
             if (Em.get(configsPropertyDef, 'isRequiredByAgent') === false) {
-              configs.push(serviceConfigObj);
+              configs.push(App.ServiceConfigProperty.create(serviceConfigObj));
               continue;
             }
             this.handleSpecialProperties(serviceConfigObj);
