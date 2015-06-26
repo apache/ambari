@@ -886,9 +886,11 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         HOSTS_TABLE, HOST_ID_COL, CLUSTER_HOST_MAPPING_TABLE);
     ResultSet hostsNotInCluster = null;
     Statement statement = null;
+    Statement duplicatedHostsStatement = null;
 
     try {
       statement = dbAccessor.getConnection().createStatement();
+      duplicatedHostsStatement = dbAccessor.getConnection().createStatement();
       hostsNotInCluster = statement.executeQuery(hostsNotInClusterQuery);
       if(hostsNotInCluster != null) {
         while (hostsNotInCluster.next()) {
@@ -898,8 +900,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           long count = 0;
           ResultSet duplicateHosts = null;
           try {
-            statement = dbAccessor.getConnection().createStatement();
-            duplicateHosts = statement.executeQuery(duplicateHostsQuery);
+            duplicateHosts = duplicatedHostsStatement.executeQuery(duplicateHostsQuery);
             if (duplicateHosts != null && duplicateHosts.next()) {
               count = duplicateHosts.getLong(1);
             }
@@ -923,6 +924,9 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       }
       if (statement != null) {
         statement.close();
+      }
+      if (duplicatedHostsStatement != null) {
+        duplicatedHostsStatement.close();
       }
     }
   }
