@@ -14,7 +14,6 @@
         {
           "hive-site": {
             "hive.metastore.sasl.enabled": "true",
-            "hive.security.authorization.enabled": "true",
             "hive.server2.authentication": "KERBEROS"
           }
         },
