@@ -21,7 +21,7 @@ var App = require('app');
 App.ToggleIsRequiredMixin = Em.Mixin.create({
   /**
    * Override isRequired property of the configurations in given situation
-   * @param serviceName - make changes only for properties from this service
+   * @param serviceConfigs - make changes only for properties from this service
    */
   overrideConfigIsRequired: function (serviceConfigs) {
     var excludeProperties = [
