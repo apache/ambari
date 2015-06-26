@@ -116,20 +116,20 @@ class InstallPackages(Script):
     if num_errors > 0:
       raise Fail("Failed to distribute repositories/install packages")
 
-    # If the repo doesn't contain a build number, then will need to calculate it after the packages are installed.
+    # If the repo contains a build number, optimistically assume it to be the actual_version. It will get changed
+    # to correct value if it is not
     self.actual_version = None
     if self.repository_version:
       m = re.search("[\d\.]+-\d+", self.repository_version)
       if m:
         # Contains a build number
-        self.actual_version = self.repository_version
-        self.structured_output['actual_version'] = self.actual_version
+        self.structured_output['actual_version'] = self.repository_version
         self.put_structured_out(self.structured_output)
 
     # Initial list of versions, used to compute the new version installed
     self.old_versions = []
     if self.actual_version is None:
-      Logger.info("Repository version {0} doesn't contain a build number. Will have to calculate the actual version.".format(self.repository_version))
+      Logger.info("Calculate the actual version.".format(self.repository_version))
       self.old_versions = self.hdp_versions()
 
     try:
