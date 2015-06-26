@@ -157,4 +157,173 @@ describe('App.ManageConfigGroupsController', function() {
 
   });
 
+  describe("#manageConfigurationGroups", function () {
+    var service = Em.Object.create({});
+    manageConfigGroupsController.set('hostsModifiedConfigGroups', {});
+    describe("#controller passed", function () {
+      var controller = Em.Object.create({
+        content: Em.Object.create()
+      });
+      var popup = manageConfigGroupsController.manageConfigurationGroups(controller, service);
+
+      describe("#onPrimary()", function () {
+        beforeEach(function () {
+          sinon.stub(popup, 'onPrimaryWizard', Em.K);
+        });
+        afterEach(function () {
+          popup.onPrimaryWizard.restore();
+        });
+        it("", function () {
+          popup.onPrimary();
+          expect(popup.onPrimaryWizard.calledOnce).to.be.true;
+        });
+      });
+
+      describe("#onPrimaryWizard()", function () {
+        var ctrl = Em.Object.create({
+          selectedService: Em.Object.create({
+            selected: false
+          }),
+          selectedServiceObserver: Em.K,
+          setGroupsToDelete: Em.K
+        });
+        beforeEach(function () {
+          sinon.spy(ctrl, 'selectedServiceObserver');
+          sinon.spy(ctrl, 'setGroupsToDelete');
+          sinon.stub(manageConfigGroupsController, 'persistConfigGroups', Em.K);
+          sinon.stub(popup, 'updateConfigGroupOnServicePage', Em.K);
+          sinon.stub(popup, 'hide', Em.K);
+        });
+        afterEach(function () {
+          ctrl.setGroupsToDelete.restore();
+          ctrl.selectedServiceObserver.restore();
+          manageConfigGroupsController.persistConfigGroups.restore();
+          popup.updateConfigGroupOnServicePage.restore();
+          popup.hide.restore();
+        });
+        it("groups deleted on 7th step", function () {
+          ctrl.set('name', 'wizardStep7Controller');
+          popup.onPrimaryWizard(ctrl, {toDelete: [1]});
+          expect(ctrl.selectedServiceObserver.calledOnce).to.be.true;
+          expect(ctrl.setGroupsToDelete.calledWith([1])).to.be.true;
+          expect(manageConfigGroupsController.persistConfigGroups.calledOnce).to.be.true;
+          expect(popup.updateConfigGroupOnServicePage.calledOnce).to.be.true;
+          expect(popup.hide.calledOnce).to.be.true;
+        });
+        it("wizard not on 7th step", function () {
+          ctrl.set('name', '');
+          popup.onPrimaryWizard(ctrl, {});
+          expect(ctrl.selectedServiceObserver.calledOnce).to.be.true;
+          expect(ctrl.setGroupsToDelete.called).to.be.false;
+          expect(manageConfigGroupsController.persistConfigGroups.called).to.be.false;
+          expect(popup.updateConfigGroupOnServicePage.called).to.be.false;
+          expect(popup.hide.calledOnce).to.be.true;
+        });
+        it("wizard on 7th step, service selected", function () {
+          ctrl.set('name', 'wizardStep7Controller');
+          ctrl.set('selectedService.selected', true);
+          popup.onPrimaryWizard(ctrl, {toDelete: [1]});
+          expect(ctrl.selectedServiceObserver.calledOnce).to.be.true;
+          expect(ctrl.setGroupsToDelete.called).to.be.false;
+          expect(manageConfigGroupsController.persistConfigGroups.calledOnce).to.be.true;
+          expect(popup.updateConfigGroupOnServicePage.calledOnce).to.be.true;
+          expect(popup.hide.calledOnce).to.be.true;
+        });
+        it("wizard on 7th step, no groups to delete", function () {
+          ctrl.set('name', 'wizardStep7Controller');
+          ctrl.set('selectedService.selected', false);
+          popup.onPrimaryWizard(ctrl, {toDelete: []});
+          expect(ctrl.selectedServiceObserver.calledOnce).to.be.true;
+          expect(ctrl.setGroupsToDelete.called).to.be.false;
+          expect(manageConfigGroupsController.persistConfigGroups.calledOnce).to.be.true;
+          expect(popup.updateConfigGroupOnServicePage.calledOnce).to.be.true;
+          expect(popup.hide.calledOnce).to.be.true;
+        });
+      });
+    });
+
+    describe("#controller not passed", function () {
+      var popup = manageConfigGroupsController.manageConfigurationGroups(null, service);
+
+      describe("#onPrimary()", function () {
+        beforeEach(function () {
+          sinon.stub(popup, 'runClearCGQueue').returns({
+            done: function (callback) {
+              callback();
+            }
+          });
+          sinon.stub(popup, 'runModifyCGQueue').returns({
+            done: function (callback) {
+              callback();
+            }
+          });
+          sinon.stub(popup, 'runCreateCGQueue').returns({
+            done: function (callback) {
+              callback();
+            }
+          });
+          sinon.stub(popup, 'updateConfigGroupOnServicePage', Em.K);
+          sinon.stub(popup, 'hide', Em.K);
+        });
+        afterEach(function () {
+          popup.runCreateCGQueue.restore();
+          popup.runModifyCGQueue.restore();
+          popup.runClearCGQueue.restore();
+          popup.updateConfigGroupOnServicePage.restore();
+          popup.hide.restore();
+        });
+        it("", function () {
+          popup.onPrimary();
+          expect(popup.runClearCGQueue.calledOnce).to.be.true;
+          expect(popup.runModifyCGQueue.calledOnce).to.be.true;
+          expect(popup.runCreateCGQueue.calledOnce).to.be.true;
+          expect(popup.updateConfigGroupOnServicePage.calledOnce).to.be.true;
+          expect(popup.hide.calledOnce).to.be.true;
+        });
+      });
+      describe("#runClearCGQueue()", function () {
+        beforeEach(function () {
+          sinon.stub(manageConfigGroupsController, 'clearConfigurationGroupHosts', Em.K);
+          sinon.stub(manageConfigGroupsController, 'deleteConfigurationGroup', Em.K);
+        });
+        afterEach(function () {
+          manageConfigGroupsController.clearConfigurationGroupHosts.restore();
+          manageConfigGroupsController.deleteConfigurationGroup.restore();
+        });
+        it("", function () {
+          popup.runClearCGQueue(Em.K, {
+            initialGroups: [],
+            toClearHosts: [Em.Object.create()],
+            toDelete: [1]
+          });
+          expect(manageConfigGroupsController.clearConfigurationGroupHosts.calledOnce).to.be.true;
+          expect(manageConfigGroupsController.deleteConfigurationGroup.calledOnce).to.be.true;
+        });
+      });
+      describe("#runModifyCGQueue()", function () {
+        beforeEach(function () {
+          sinon.stub(manageConfigGroupsController, 'updateConfigurationGroup', Em.K);
+        });
+        afterEach(function () {
+          manageConfigGroupsController.updateConfigurationGroup.restore();
+        });
+        it("", function () {
+          popup.runModifyCGQueue(Em.K, {toSetHosts: [1]});
+          expect(manageConfigGroupsController.updateConfigurationGroup.calledOnce).to.be.true;
+        });
+      });
+      describe("#runCreateCGQueue()", function () {
+        beforeEach(function () {
+          sinon.stub(manageConfigGroupsController, 'postNewConfigurationGroup', Em.K);
+        });
+        afterEach(function () {
+          manageConfigGroupsController.postNewConfigurationGroup.restore();
+        });
+        it("", function () {
+          popup.runCreateCGQueue(Em.K, {toCreate: [1]});
+          expect(manageConfigGroupsController.postNewConfigurationGroup.calledOnce).to.be.true;
+        });
+      });
+    });
+  });
 });

@@ -752,81 +752,131 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
 
       primary: Em.I18n.t('common.save'),
 
-      subViewController: function () {
-        return configsController;
-      }.property(),
+      subViewController: configsController,
+
+      /**
+       * handle onPrimary action particularly in wizard
+       * @param {Em.Controller} controller
+       * @param {object} modifiedConfigGroups
+       */
+      onPrimaryWizard: function (controller, modifiedConfigGroups) {
+        controller.set('selectedService.configGroups', configsController.get('configGroups'));
+        controller.selectedServiceObserver();
+        if (controller.get('name') == "wizardStep7Controller") {
+          if (controller.get('selectedService.selected') === false && modifiedConfigGroups.toDelete.length > 0) {
+            controller.setGroupsToDelete(modifiedConfigGroups.toDelete);
+          }
+          configsController.persistConfigGroups();
+          this.updateConfigGroupOnServicePage();
+        }
+        this.hide();
+      },
+
+      /**
+       * run requests which delete config group and clear its hosts
+       * @param {Function} finishFunction
+       * @param {object} modifiedConfigGroups
+       */
+      runClearCGQueue: function (finishFunction, modifiedConfigGroups) {
+        var counter = 0;
+        var dfd = $.Deferred();
+        var doneFunction = function (xhr, text, errorThrown) {
+          counter--;
+          if (counter === 0) dfd.resolve();
+          finishFunction(xhr, text, errorThrown);
+        };
+
+        modifiedConfigGroups.toClearHosts.forEach(function (cg) {
+          counter++;
+          var initialGroupState = modifiedConfigGroups.initialGroups.findProperty('name', cg.get('name'));
+          configsController.clearConfigurationGroupHosts(cg, initialGroupState, doneFunction, doneFunction);
+        }, this);
+        modifiedConfigGroups.toDelete.forEach(function (cg) {
+          counter++;
+          configsController.deleteConfigurationGroup(cg, doneFunction, doneFunction);
+        }, this);
+        if (counter === 0) dfd.resolve();
+        return dfd.promise();
+      },
+
+      /**
+       * run requests which change properties of config group
+       * @param {Function} finishFunction
+       * @param {object} modifiedConfigGroups
+       */
+      runModifyCGQueue: function (finishFunction, modifiedConfigGroups) {
+        var counter = 0;
+        var dfd = $.Deferred();
+        var doneFunction = function (xhr, text, errorThrown) {
+          counter--;
+          if (counter === 0) dfd.resolve();
+          finishFunction(xhr, text, errorThrown);
+        };
+
+        modifiedConfigGroups.toSetHosts.forEach(function (cg) {
+          counter++;
+          configsController.updateConfigurationGroup(cg, doneFunction, doneFunction);
+        }, this);
+        if (counter === 0) dfd.resolve();
+        return dfd.promise();
+      },
+
+      /**
+       * run requests which create new config group
+       * @param {Function} finishFunction
+       * @param {object} modifiedConfigGroups
+       */
+      runCreateCGQueue: function (finishFunction, modifiedConfigGroups) {
+        var counter = 0;
+        var dfd = $.Deferred();
+        var doneFunction = function (xhr, text, errorThrown) {
+          counter--;
+          if (counter === 0) dfd.resolve();
+          finishFunction(xhr, text, errorThrown);
+        };
+
+        modifiedConfigGroups.toCreate.forEach(function (cg) {
+          counter++;
+          configsController.postNewConfigurationGroup(cg, doneFunction);
+        }, this);
+        if (counter === 0) dfd.resolve();
+        return dfd.promise();
+      },
 
       onPrimary: function () {
         var modifiedConfigGroups = configsController.get('hostsModifiedConfigGroups');
-        // Save modified config-groups
-        if (!!controller) {
-          controller.set('selectedService.configGroups', configsController.get('configGroups'));
-          controller.selectedServiceObserver();
-          if (controller.get('name') == "wizardStep7Controller") {
-            if (controller.get('selectedService.selected') === false && modifiedConfigGroups.toDelete.length > 0) {
-              controller.setGroupsToDelete(modifiedConfigGroups.toDelete);
-            }
-            configsController.persistConfigGroups();
-            this.updateConfigGroupOnServicePage();
-          }
-          this.hide();
-          return;
-        }
-        var self = this;
         var errors = [];
-        var deleteQueriesCounter = modifiedConfigGroups.toClearHosts.length + modifiedConfigGroups.toDelete.length;
-        var createQueriesCounter = modifiedConfigGroups.toSetHosts.length + modifiedConfigGroups.toCreate.length;
-        var deleteQueriesRun = false;
-        var createQueriesRun = false;
-        var runNextQuery = function () {
-          if (!deleteQueriesRun && deleteQueriesCounter > 0) {
-            deleteQueriesRun = true;
-            modifiedConfigGroups.toClearHosts.forEach(function (cg) {
-              var initalGroupState = modifiedConfigGroups.initialGroups.findProperty('name', cg.get('name'));
-              configsController.clearConfigurationGroupHosts(cg, initalGroupState, finishFunction, finishFunction);
-            }, this);
-            modifiedConfigGroups.toDelete.forEach(function (cg) {
-              var deleteSuccess = function() {
-                var groupFromModel = App.ServiceConfigGroup.find().filterProperty('serviceName', cg.get('service.serviceName')).findProperty('name', cg.get('name'));
-                if (groupFromModel) {
-                  App.configGroupsMapper.deleteRecord(groupFromModel);
-                }
-                finishFunction();
-              };
-              configsController.deleteConfigurationGroup(cg, deleteSuccess, finishFunction);
-            }, this);
-          } else if (!createQueriesRun && deleteQueriesCounter < 1) {
-            createQueriesRun = true;
-            modifiedConfigGroups.toSetHosts.forEach(function (cg) {
-              configsController.updateConfigurationGroup(cg, finishFunction, finishFunction);
-            }, this);
-            modifiedConfigGroups.toCreate.forEach(function (cg) {
-              configsController.postNewConfigurationGroup(cg, finishFunction);
-            }, this);
-          }
-        };
+        var self = this;
         var finishFunction = function (xhr, text, errorThrown) {
           if (xhr && errorThrown) {
             var error = xhr.status + "(" + errorThrown + ") ";
             try {
               var json = $.parseJSON(xhr.responseText);
               error += json.message;
-            } catch (err) {}
+            } catch (err) {
+            }
             errors.push(error);
           }
-          createQueriesRun ? createQueriesCounter-- : deleteQueriesCounter--;
-          if (deleteQueriesCounter + createQueriesCounter < 1) {
-            if (errors.length > 0) {
-              self.get('subViewController').set('errorMessage', errors.join(". "));
-            } else {
-              self.updateConfigGroupOnServicePage();
-              self.hide();
-            }
-          } else {
-            runNextQuery();
-          }
         };
-        runNextQuery();
+
+        // Save modified config-groups
+        if (controller) {
+          //called only in Wizard
+          return this.onPrimaryWizard(controller, modifiedConfigGroups);
+        }
+
+        this.runClearCGQueue(finishFunction, modifiedConfigGroups).done(function () {
+          self.runModifyCGQueue(finishFunction, modifiedConfigGroups).done(function () {
+            self.runCreateCGQueue(finishFunction, modifiedConfigGroups).done(function () {
+              if (errors.length > 0) {
+                self.get('subViewController').set('errorMessage', errors.join(". "));
+              } else {
+                self.updateConfigGroupOnServicePage();
+                self.hide();
+              }
+            });
+          });
+        });
       },
 
       updateConfigGroupOnServicePage: function () {

@@ -259,8 +259,7 @@ App.ConfigOverridable = Em.Mixin.create({
       }
     };
     sendData.sender = sendData;
-    App.ajax.send(sendData);
-    return newConfigGroupData;
+    return App.ajax.send(sendData);
   },
 
   /**
@@ -367,16 +366,16 @@ App.ConfigOverridable = Em.Mixin.create({
    * Update config group's hosts list and leave only unmodified hosts in the group
    * Save updated config group on server
    * @param {App.ConfigGroup} configGroup
-   * @param {App.ConfigGroup} initalGroupState
+   * @param {App.ConfigGroup} initialGroupState
    * @param {Function} successCallback
    * @param {Function} errorCallback
    * @method clearConfigurationGroupHosts
    */
-  clearConfigurationGroupHosts: function (configGroup, initalGroupState, successCallback, errorCallback) {
+  clearConfigurationGroupHosts: function (configGroup, initialGroupState, successCallback, errorCallback) {
     configGroup = jQuery.extend({}, configGroup);
-    var unmodifiedHosts = this.getUnmodifiedHosts(configGroup, initalGroupState);
+    var unmodifiedHosts = this.getUnmodifiedHosts(configGroup, initialGroupState);
     configGroup.set('hosts', unmodifiedHosts);
-    this.updateConfigurationGroup(configGroup, successCallback, errorCallback);
+    return this.updateConfigurationGroup(configGroup, successCallback, errorCallback);
   },
 
   /**
@@ -409,7 +408,11 @@ App.ConfigOverridable = Em.Mixin.create({
       },
       success: 'successFunction',
       error: 'errorFunction',
-      successFunction: function () {
+      successFunction: function (data, xhr, params) {
+        var groupFromModel = App.ServiceConfigGroup.find().findProperty('configGroupId', params.id);
+        if (groupFromModel) {
+          App.configGroupsMapper.deleteRecord(groupFromModel);
+        }
         if (successCallback) {
           successCallback();
         }
