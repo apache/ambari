@@ -7,7 +7,7 @@
           "name": "/spnego"
         },
         {
-          "name": "/hdfs"
+          "name": "/HDFS/hdfs"
         },
         {
           "name": "/smokeuser"
@@ -175,7 +175,7 @@
           "name": "/spnego"
         },
         {
-          "name": "/hdfs"
+          "name": "/HDFS/hdfs"
         },
         {
           "name": "/smokeuser"

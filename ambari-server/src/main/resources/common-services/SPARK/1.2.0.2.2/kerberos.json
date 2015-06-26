@@ -7,7 +7,7 @@
           "name": "/smokeuser"
         },
         {
-          "name": "/hdfs"
+          "name": "/HDFS/hdfs"
         },
         {
           "name": "sparkuser",

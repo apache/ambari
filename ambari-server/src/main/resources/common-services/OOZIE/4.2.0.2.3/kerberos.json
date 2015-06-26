@@ -10,7 +10,7 @@
           "name": "/smokeuser"
         },
         {
-          "name": "/hdfs"
+          "name": "/HDFS/hdfs"
         }
       ],
       "auth_to_local_properties" : [

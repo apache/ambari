@@ -16,7 +16,25 @@
           "name": "/smokeuser"
         },
         {
-          "name": "/hdfs"
+          "name": "hdfs",
+          "principal": {
+            "value": "${hadoop-env/hdfs_user}-${cluster_name}@${realm}",
+            "type" : "user" ,
+            "configuration": "hadoop-env/hdfs_principal_name",
+            "local_username" : "${hadoop-env/hdfs_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/hdfs.headless.keytab",
+            "owner": {
+              "name": "${hadoop-env/hdfs_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            },
+            "configuration": "hadoop-env/hdfs_user_keytab"
+          }
         }
       ],
       "auth_to_local_properties" : [
