@@ -769,7 +769,10 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   setFinishState: function (polledData) {
     if (this.get('content.cluster.status') === 'INSTALLED') {
-      this.changeParseHostInfo(this.isServicesStarted(polledData));
+      var self = this;
+      Em.run.next(function(){
+        self.changeParseHostInfo(this.isServicesStarted(polledData));
+      });
       return;
     } else if (this.get('content.cluster.status') === 'PENDING') {
       this.setIsServicesInstalled(polledData);
