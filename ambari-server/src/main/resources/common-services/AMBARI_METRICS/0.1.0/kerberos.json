@@ -7,7 +7,7 @@
           "name": "/spnego"
         },
         {
-          "name": "/hdfs"
+          "name": "/HDFS/hdfs"
         }
       ],
       "components": [
