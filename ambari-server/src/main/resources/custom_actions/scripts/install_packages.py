@@ -83,12 +83,8 @@ class InstallPackages(Script):
 
     # Install/update repositories
     installed_repositories = []
-    self.current_repositories = ['base']
-    # Some packages are installed from core repos
-    if OSCheck.is_redhat_family():
-      # rhui* is used for rhel, and base is for centos
-      self.current_repositories.append('rhui*')
-    self.current_repo_files = set(['base'])
+    self.current_repositories = []
+    self.current_repo_files = set()
 
     Logger.info("Will install packages for repository version {0}".format(self.repository_version))
     try:
@@ -250,7 +246,9 @@ class InstallPackages(Script):
       packages_were_checked = True
       for package in package_list:
         name = self.format_package_name(package['name'], self.repository_version)
-        Package(name, use_repos=list(self.current_repo_files) if OSCheck.is_ubuntu_family() else self.current_repositories)
+        Package(name,
+                use_repos=list(self.current_repo_files) if OSCheck.is_ubuntu_family() else self.current_repositories,
+                skip_repos=[self.REPO_FILE_NAME_PREFIX + "*"] if OSCheck.is_redhat_family() else [])
     except Exception, err:
       ret_code = 1
       Logger.logger.exception("Package Manager failed to install packages. Error: {0}".format(str(err)))

@@ -46,7 +46,7 @@ CHECK_CMD = {
 }
 
 class ChocoProvider(PackageProvider):
-  def install_package(self, name, use_repos=[]):
+  def install_package(self, name, use_repos=[], skip_repos=[]):
     if not self._check_existence(name) or use_repos:
       cmd = INSTALL_CMD[self.get_logoutput()]
       if use_repos:
@@ -62,7 +62,7 @@ class ChocoProvider(PackageProvider):
     else:
       Logger.info("Skipping installation of existing package %s" % (name))
 
-  def upgrade_package(self, name, use_repos=[]):
+  def upgrade_package(self, name, use_repos=[], skip_repos=[]):
     cmd = UPGRADE_CMD[self.get_logoutput()]
     if use_repos:
       enable_repo_option = '-s' + ",".join(use_repos)
