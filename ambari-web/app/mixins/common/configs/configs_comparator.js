@@ -226,7 +226,8 @@ App.ConfigsComparator = Em.Mixin.create({
       compareObject.setProperties({
         isFinal: !!compareConfig.isFinal,
         value: App.config.formatOverrideValue(serviceConfig, compareConfig.value),
-        compareConfigs: null
+        compareConfigs: null,
+        isOriginalSCP: false
       });
     }
     return compareObject;
@@ -292,6 +293,7 @@ App.ConfigsComparator = Em.Mixin.create({
       isSecureConfig: false,
       isUserProperty: true,
       isVisible: true,
+      isOriginalSCP: false,
       name: name,
       filename: filename,
       serviceName: serviceName,

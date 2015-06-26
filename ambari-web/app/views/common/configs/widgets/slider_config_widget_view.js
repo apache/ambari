@@ -319,6 +319,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       mirrorStep = this.get('mirrorStep'),
       recommendedValue = this.valueForTick(+this.get('widgetRecommendedValue')),
       range = Math.floor((maxMirrorValue - minMirrorValue) / mirrorStep) * mirrorStep,
+      isOriginalSCP = config.get('isOriginalSCP'),
       // for little odd numbers in range 4..23 and widget type 'int' use always 4 ticks
       isSmallInt = this.get('unitType') == 'int' && range > 4 && range < 23 && range % 2 == 1,
       recommendedValueMirroredId,
@@ -339,35 +340,37 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
 
     ticks = ticks.uniq();
 
-    // default marker should be added only if recommendedValue is in range [min, max]
-    if (recommendedValue <= maxMirrorValue && recommendedValue >= minMirrorValue && recommendedValue != '') {
-      // process additional tick for default value if it not defined in previous computation
-      if (!ticks.contains(recommendedValue)) {
-        // push default value
-        ticks.push(recommendedValue);
-        // and resort array
-        ticks = ticks.sort(function (a, b) {
-          return a - b;
-        });
-        recommendedValueId = ticks.indexOf(recommendedValue);
-        // to save nice tick labels layout we should add new tick value which is mirrored by index to default value
-        recommendedValueMirroredId = ticks.length - recommendedValueId;
-        // push mirrored default value behind default
-        if (recommendedValueId == recommendedValueMirroredId) {
-          recommendedValueMirroredId--;
+    if (!(this.get('controller.isCompareMode') && !isOriginalSCP)) {
+      // default marker should be added only if recommendedValue is in range [min, max]
+      if (recommendedValue <= maxMirrorValue && recommendedValue >= minMirrorValue && recommendedValue != '') {
+        // process additional tick for default value if it not defined in previous computation
+        if (!ticks.contains(recommendedValue)) {
+          // push default value
+          ticks.push(recommendedValue);
+          // and resort array
+          ticks = ticks.sort(function (a, b) {
+            return a - b;
+          });
+          recommendedValueId = ticks.indexOf(recommendedValue);
+          // to save nice tick labels layout we should add new tick value which is mirrored by index to default value
+          recommendedValueMirroredId = ticks.length - recommendedValueId;
+          // push mirrored default value behind default
+          if (recommendedValueId == recommendedValueMirroredId) {
+            recommendedValueMirroredId--;
+          }
+          // push empty label for default value tick
+          ticksLabels.insertAt(recommendedValueId, '');
+          // push empty to mirrored position
+          ticksLabels.insertAt(recommendedValueMirroredId, '');
+          // for saving correct sliding need to add value to mirrored position which is average between previous
+          // and next value
+          ticks.insertAt(recommendedValueMirroredId, this.valueForTick((ticks[recommendedValueMirroredId] + ticks[recommendedValueMirroredId - 1]) / 2));
+          // get new index for default value
+          recommendedValueId = ticks.indexOf(recommendedValue);
         }
-        // push empty label for default value tick
-        ticksLabels.insertAt(recommendedValueId, '');
-        // push empty to mirrored position
-        ticksLabels.insertAt(recommendedValueMirroredId, '');
-        // for saving correct sliding need to add value to mirrored position which is average between previous
-        // and next value
-        ticks.insertAt(recommendedValueMirroredId, this.valueForTick((ticks[recommendedValueMirroredId] + ticks[recommendedValueMirroredId - 1]) / 2));
-        // get new index for default value
-        recommendedValueId = ticks.indexOf(recommendedValue);
-      }
-      else {
-        recommendedValueId = ticks.indexOf(recommendedValue);
+        else {
+          recommendedValueId = ticks.indexOf(recommendedValue);
+        }
       }
     }
 
