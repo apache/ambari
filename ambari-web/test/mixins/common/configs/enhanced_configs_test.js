@@ -94,5 +94,66 @@ describe('App.EnhancedConfigsMixin', function() {
       expect(instanceObject.buildConfigGroupJSON.bind(instanceObject)).to.throw(Error, 'configGroup can\'t be null');
     });
   });
+
+  describe("#dependenciesMessage", function () {
+    var mixinInstance = mixinObject.create({
+      changedProperties: []
+    });
+    it("no properties changed", function() {
+      mixinInstance.set('changedProperties', []);
+      mixinInstance.propertyDidChange('dependenciesMessage');
+      expect(mixinInstance.get('dependenciesMessage')).to.equal(
+        Em.I18n.t('popup.dependent.configs.dependencies.config.plural').format(0) +
+        Em.I18n.t('popup.dependent.configs.dependencies.service.plural').format(0)
+      )
+    });
+    it("single property changed", function() {
+      mixinInstance.set('changedProperties', [
+        Em.Object.create({
+          saveRecommended: true,
+          serviceName: 'S1'
+        })
+      ]);
+      mixinInstance.propertyDidChange('dependenciesMessage');
+      expect(mixinInstance.get('dependenciesMessage')).to.equal(
+        Em.I18n.t('popup.dependent.configs.dependencies.config.singular').format(1) +
+        Em.I18n.t('popup.dependent.configs.dependencies.service.singular').format(1)
+      )
+    });
+    it("two properties changed", function() {
+      mixinInstance.set('changedProperties', [
+        Em.Object.create({
+          saveRecommended: true,
+          serviceName: 'S1'
+        }),
+        Em.Object.create({
+          saveRecommended: true,
+          serviceName: 'S1'
+        })
+      ]);
+      mixinInstance.propertyDidChange('dependenciesMessage');
+      expect(mixinInstance.get('dependenciesMessage')).to.equal(
+        Em.I18n.t('popup.dependent.configs.dependencies.config.plural').format(2) +
+        Em.I18n.t('popup.dependent.configs.dependencies.service.singular').format(1)
+      )
+    });
+    it("two properties changed, from different services", function() {
+      mixinInstance.set('changedProperties', [
+        Em.Object.create({
+          saveRecommended: true,
+          serviceName: 'S1'
+        }),
+        Em.Object.create({
+          saveRecommended: true,
+          serviceName: 'S2'
+        })
+      ]);
+      mixinInstance.propertyDidChange('dependenciesMessage');
+      expect(mixinInstance.get('dependenciesMessage')).to.equal(
+        Em.I18n.t('popup.dependent.configs.dependencies.config.plural').format(2) +
+        Em.I18n.t('popup.dependent.configs.dependencies.service.plural').format(2)
+      )
+    });
+  });
 });
 
