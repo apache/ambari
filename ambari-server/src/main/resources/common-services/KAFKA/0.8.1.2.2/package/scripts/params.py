@@ -108,8 +108,7 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 kafka_kerberos_enabled = ('security.inter.broker.protocol' in config['configurations']['kafka-broker'] and
                           config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "PLAINTEXTSASL")
 
-print kafka_kerberos_enabled
-if security_enabled and hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.3') >= 0:
+if security_enabled and hdp_stack_version != "" and 'kafka_principal_name' in config['configurations']['kafka-env'] and compare_versions(hdp_stack_version, '2.3') >= 0:
     _hostname_lowercase = config['hostname'].lower()
     _kafka_principal_name = config['configurations']['kafka-env']['kafka_principal_name']
     kafka_jaas_principal = _kafka_principal_name.replace('_HOST',_hostname_lowercase)
