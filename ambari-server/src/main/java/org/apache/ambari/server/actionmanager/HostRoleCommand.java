@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import com.google.inject.Inject;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
@@ -28,15 +27,20 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 
-import com.google.inject.Injector;
+import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
 /**
  * This class encapsulates the information for an task on a host for a
- * particular role which action manager needs. It doesn't capture actual
- * command and parameters, but just the stuff enough for action manager to
- * track the request.
+ * particular role which action manager needs. It doesn't capture actual command
+ * and parameters, but just the stuff enough for action manager to track the
+ * request.
+ * <p/>
+ * Since this class is cached by the {@link ActionDBAccessor}, it should not
+ * hold references to JPA entities. It's possible that by holding onto JPA
+ * entities, they will inadvertently hold onto the entire cache of entities in
+ * the L1 cache.
  */
 public class HostRoleCommand {
   private final Role role;
@@ -44,7 +48,8 @@ public class HostRoleCommand {
   private long taskId = -1;
   private long stageId = -1;
   private long requestId = -1;
-  private HostEntity hostEntity;
+  private long hostId = -1;
+  private String hostName;
   private HostRoleStatus status = HostRoleStatus.PENDING;
   private String stdout = "";
   private String stderr = "";
@@ -87,34 +92,41 @@ public class HostRoleCommand {
    * @param hostName Host name
    * @param role Action to run
    * @param event Event on the host and component
-   * @param command Type of command
+   * @param roleCommand Type of command
    * @param retryAllowed Whether the command can be repeated
    * @param hostDAO {@link org.apache.ambari.server.orm.dao.HostDAO} instance being injected
    */
   @AssistedInject
   public HostRoleCommand(String hostName, Role role,
-                         ServiceComponentHostEvent event, RoleCommand command, boolean retryAllowed, HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO) {
+                         ServiceComponentHostEvent event, RoleCommand roleCommand, boolean retryAllowed, HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO) {
     this.hostDAO = hostDAO;
     this.executionCommandDAO = executionCommandDAO;
 
     this.role = role;
     this.event = new ServiceComponentHostEventWrapper(event);
-    this.roleCommand = command;
+    this.roleCommand = roleCommand;
     this.retryAllowed = retryAllowed;
-    this.hostEntity = this.hostDAO.findByName(hostName);
+    this.hostName = hostName;
+
+    HostEntity hostEntity = this.hostDAO.findByName(hostName);
+    if (null != hostEntity) {
+      hostId = hostEntity.getHostId();
+    }
   }
 
   @AssistedInject
-  public HostRoleCommand(Host host, Role role, ServiceComponentHostEvent event, RoleCommand command,
+  public HostRoleCommand(Host host, Role role, ServiceComponentHostEvent event,
+      RoleCommand roleCommand,
                          boolean retryAllowed, HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO) {
     this.hostDAO = hostDAO;
     this.executionCommandDAO = executionCommandDAO;
 
     this.role = role;
     this.event = new ServiceComponentHostEventWrapper(event);
-    this.roleCommand = command;
+    this.roleCommand = roleCommand;
     this.retryAllowed = retryAllowed;
-    this.hostEntity = hostDAO.findById(host.getHostId());
+    hostId = host.getHostId();
+    hostName = host.getHostName();
   }
 
   @AssistedInject
@@ -125,7 +137,8 @@ public class HostRoleCommand {
     taskId = hostRoleCommandEntity.getTaskId();
     stageId = hostRoleCommandEntity.getStage().getStageId();
     requestId = hostRoleCommandEntity.getStage().getRequestId();
-    this.hostEntity = hostRoleCommandEntity.getHostEntity();
+    hostId = hostRoleCommandEntity.getHostId();
+    hostName = hostRoleCommandEntity.getHostName();
     role = hostRoleCommandEntity.getRole();
     status = hostRoleCommandEntity.getStatus();
     stdout = hostRoleCommandEntity.getStdOut() != null ? new String(hostRoleCommandEntity.getStdOut()) : "";
@@ -149,7 +162,6 @@ public class HostRoleCommand {
   //todo: why are we only setting some fields in this constructor, 8 fields missing?????
   public HostRoleCommandEntity constructNewPersistenceEntity() {
     HostRoleCommandEntity hostRoleCommandEntity = new HostRoleCommandEntity();
-    hostRoleCommandEntity.setHostEntity(hostEntity);
     hostRoleCommandEntity.setRole(role);
     hostRoleCommandEntity.setStatus(status);
     hostRoleCommandEntity.setStdError(stderr.getBytes());
@@ -164,6 +176,11 @@ public class HostRoleCommand {
     hostRoleCommandEntity.setRoleCommand(roleCommand);
     hostRoleCommandEntity.setCommandDetail(commandDetail);
     hostRoleCommandEntity.setCustomCommandName(customCommandName);
+
+    HostEntity hostEntity = hostDAO.findById(hostId);
+    if (null != hostEntity) {
+      hostRoleCommandEntity.setHostEntity(hostEntity);
+    }
 
     hostRoleCommandEntity.setEvent(event.getEventJson());
 
@@ -202,13 +219,23 @@ public class HostRoleCommand {
     }
   }
 
-  public String getHostName() {
-    return hostEntity != null ? hostEntity.getHostName() : null;
+  /**
+   * Sets the host ID and name for the host associated with this command.
+   *
+   * @param hostId
+   * @param hostName
+   */
+  public void setHost(long hostId, String hostName) {
+    this.hostId = hostId;
+    this.hostName = hostName;
   }
 
-  public void setHostEntity(HostEntity entity) {
-    //todo: initial entity id and name may be null in case of 'logical' tasks
-    hostEntity = entity;
+  public String getHostName() {
+    return hostName;
+  }
+
+  public long getHostId() {
+    return hostId;
   }
 
   public Role getRole() {
@@ -300,7 +327,7 @@ public class HostRoleCommand {
   }
 
   public void incrementAttemptCount() {
-    this.attemptCount++;
+    attemptCount++;
   }
 
   public boolean isRetryAllowed() {

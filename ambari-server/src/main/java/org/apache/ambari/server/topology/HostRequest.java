@@ -18,6 +18,13 @@
 
 package org.apache.ambari.server.topology;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
@@ -35,13 +42,6 @@ import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Represents a set of requests to a single host such as install, start, etc.
@@ -79,11 +79,11 @@ public class HostRequest implements Comparable<HostRequest> {
     this.requestId = requestId;
     this.id = id;
     this.cluster = cluster;
-    this.blueprint = blueprintName;
+    blueprint = blueprintName;
     this.hostGroup = hostGroup;
-    this.hostgroupName = hostGroup.getName();
+    hostgroupName = hostGroup.getName();
     this.predicate = predicate;
-    this.containsMaster = hostGroup.containsMasterComponent();
+    containsMaster = hostGroup.containsMasterComponent();
     this.topology = topology;
 
     createTasks();
@@ -105,13 +105,13 @@ public class HostRequest implements Comparable<HostRequest> {
 
     this.requestId = requestId;
     this.id = id;
-    this.cluster = topology.getClusterName();
-    this.blueprint = topology.getBlueprint().getName();
-    this.hostgroupName = entity.getTopologyHostGroupEntity().getName();
-    this.hostGroup = topology.getBlueprint().getHostGroup(hostgroupName);
-    this.hostname = entity.getHostName();
+    cluster = topology.getClusterName();
+    blueprint = topology.getBlueprint().getName();
+    hostgroupName = entity.getTopologyHostGroupEntity().getName();
+    hostGroup = topology.getBlueprint().getHostGroup(hostgroupName);
+    hostname = entity.getHostName();
     this.predicate = toPredicate(predicate);
-    this.containsMaster = hostGroup.containsMasterComponent();
+    containsMaster = hostGroup.containsMasterComponent();
     this.topology = topology;
 
     createTasksForReplay(entity);
@@ -140,7 +140,7 @@ public class HostRequest implements Comparable<HostRequest> {
   }
 
   public void setHostName(String hostName) {
-    this.hostname = hostName;
+    hostname = hostName;
   }
 
   public long getRequestId() {
@@ -260,7 +260,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
   private void setHostOnTasks(HostImpl host) {
     for (HostRoleCommand task : getLogicalTasks()) {
-      task.setHostEntity(host.getHostEntity());
+      task.setHost(host.getHostId(), host.getHostName());
     }
   }
 
@@ -382,7 +382,9 @@ public class HostRequest implements Comparable<HostRequest> {
       return other.containsMaster() ? hashCode() - other.hashCode() : -1;
     } else if (other.containsMaster()) {
       return 1;
-    } else return hashCode() - other.hashCode();
+    } else {
+      return hashCode() - other.hashCode();
+    }
   }
 
   //todo: once we have logical tasks, move tracking of physical tasks there
@@ -441,7 +443,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
     @Override
     public void init(ClusterTopology topology, AmbariContext ambariContext) {
-      this.clusterTopology = topology;
+      clusterTopology = topology;
       this.ambariContext = ambariContext;
     }
 
@@ -462,7 +464,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
     @Override
     public void init(ClusterTopology topology, AmbariContext ambariContext) {
-      this.clusterTopology = topology;
+      clusterTopology = topology;
     }
 
     @Override
@@ -501,7 +503,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
     @Override
     public void init(ClusterTopology topology, AmbariContext ambariContext) {
-      this.clusterTopology = topology;
+      clusterTopology = topology;
     }
 
     @Override
@@ -596,6 +598,6 @@ public class HostRequest implements Comparable<HostRequest> {
           host.getDisksInfo());
       hostResource.setProperty(HostResourceProvider.HOST_STATE_PROPERTY_ID,
           host.getState());
-    }      
+    }
   }
 }

@@ -65,12 +65,24 @@ public class StageEntity {
   @Basic
   private String requestContext = "";
 
+  /**
+   * On large clusters, this value can be in the 10,000's of kilobytes. During
+   * an upgrade, all stages are loaded in memory for every request, which can
+   * lead to an OOM. As a result, lazy load this since it's barely ever
+   * requested or used.
+   */
   @Column(name = "cluster_host_info")
-  @Basic
+  @Basic(fetch = FetchType.LAZY)
   private byte[] clusterHostInfo;
 
+  /**
+   * On large clusters, this value can be in the 10,000's of kilobytes. During
+   * an upgrade, all stages are loaded in memory for every request, which can
+   * lead to an OOM. As a result, lazy load this since it's barely ever
+   * requested or used.
+   */
   @Column(name = "command_params")
-  @Basic
+  @Basic(fetch = FetchType.LAZY)
   private byte[] commandParamsStage;
 
   @Column(name = "host_params")
@@ -178,22 +190,6 @@ public class StageEntity {
       return false;
     }
 
-    if (logInfo != null ? !logInfo.equals(that.logInfo) : that.logInfo != null) {
-      return false;
-    }
-
-    if (clusterHostInfo != null ? !clusterHostInfo.equals(that.clusterHostInfo) : that.clusterHostInfo != null) {
-      return false;
-    }
-
-    if (commandParamsStage != null ? !commandParamsStage.equals(that.commandParamsStage) : that.commandParamsStage != null) {
-      return false;
-    }
-
-    if (hostParamsStage != null ? !hostParamsStage.equals(that.hostParamsStage) : that.hostParamsStage != null) {
-      return false;
-    }
-
     return !(requestContext != null ? !requestContext.equals(that.requestContext) : that.requestContext != null);
   }
 
@@ -202,10 +198,6 @@ public class StageEntity {
     int result = clusterId != null ? clusterId.hashCode() : 0;
     result = 31 * result + (requestId != null ? requestId.hashCode() : 0);
     result = 31 * result + (stageId != null ? stageId.hashCode() : 0);
-    result = 31 * result + (logInfo != null ? logInfo.hashCode() : 0);
-    result = 31 * result + (clusterHostInfo != null ? clusterHostInfo.hashCode() : 0);
-    result = 31 * result + (commandParamsStage != null ? commandParamsStage.hashCode() : 0);
-    result = 31 * result + (hostParamsStage != null ? hostParamsStage.hashCode() : 0);
     result = 31 * result + (requestContext != null ? requestContext.hashCode() : 0);
     return result;
   }

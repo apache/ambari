@@ -74,11 +74,6 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
   @Inject
   private static HostRoleCommandDAO hostRoleCommandDAO = null;
 
-  /**
-   * Used to get cluster information.
-   */
-  private static Clusters clusters = null;
-
   @Inject
   private static Provider<Clusters> clustersProvider = null;
 
@@ -188,8 +183,6 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
 
       Map<String,Object> updateProperties = iterator.next();
 
-      ensureClusters();
-
       List<StageEntity> entities = dao.findAll(request, predicate);
       for (StageEntity entity : entities) {
 
@@ -217,8 +210,6 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    ensureClusters();
-
     Set<Resource> results     = new LinkedHashSet<Resource>();
     Set<String>   propertyIds = getRequestPropertyIds(request, predicate);
 
@@ -231,6 +222,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     for (StageEntity entity : entities) {
       results.add(toResource(cache, entity, propertyIds));
     }
+
     cache.clear();
 
     Collection<StageEntity> topologyManagerStages = topologyManager.getStages();
@@ -336,7 +328,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     Long clusterId = entity.getClusterId();
     if (clusterId != null && !clusterId.equals(Long.valueOf(-1L))) {
       try {
-        Cluster cluster = clusters.getClusterById(clusterId);
+        Cluster cluster = clustersProvider.get().getClusterById(clusterId);
 
         setResourceProperty(resource, STAGE_CLUSTER_NAME, cluster.getClusterName(), requestedIds);
       } catch (Exception e) {
@@ -353,9 +345,22 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     setResourceProperty(resource, STAGE_STAGE_ID, entity.getStageId(), requestedIds);
     setResourceProperty(resource, STAGE_REQUEST_ID, entity.getRequestId(), requestedIds);
     setResourceProperty(resource, STAGE_CONTEXT, entity.getRequestContext(), requestedIds);
-    setResourceProperty(resource, STAGE_CLUSTER_HOST_INFO, entity.getClusterHostInfo(), requestedIds);
-    setResourceProperty(resource, STAGE_COMMAND_PARAMS, entity.getCommandParamsStage(), requestedIds);
-    setResourceProperty(resource, STAGE_HOST_PARAMS, entity.getHostParamsStage(), requestedIds);
+
+    // this property is lazy loaded in JPA; don't use it unless requested
+    if (isPropertyRequested(STAGE_CLUSTER_HOST_INFO, requestedIds)) {
+      resource.setProperty(STAGE_CLUSTER_HOST_INFO, entity.getClusterHostInfo());
+    }
+
+    // this property is lazy loaded in JPA; don't use it unless requested
+    if (isPropertyRequested(STAGE_COMMAND_PARAMS, requestedIds)) {
+      resource.setProperty(STAGE_COMMAND_PARAMS, entity.getCommandParamsStage());
+    }
+
+    // this property is lazy loaded in JPA; don't use it unless requested
+    if (isPropertyRequested(STAGE_HOST_PARAMS, requestedIds)) {
+      resource.setProperty(STAGE_HOST_PARAMS, entity.getHostParamsStage());
+    }
+
     setResourceProperty(resource, STAGE_SKIPPABLE, entity.isSkippable(), requestedIds);
 
     Long startTime = Long.MAX_VALUE;
@@ -393,7 +398,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     Long clusterId = entity.getClusterId();
     if (clusterId != null && !clusterId.equals(Long.valueOf(-1L))) {
       try {
-        Cluster cluster = clusters.getClusterById(clusterId);
+        Cluster cluster = clustersProvider.get().getClusterById(clusterId);
 
         setResourceProperty(resource, STAGE_CLUSTER_NAME, cluster.getClusterName(), requestedIds);
       } catch (Exception e) {
@@ -407,9 +412,22 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     setResourceProperty(resource, STAGE_STAGE_ID, entity.getStageId(), requestedIds);
     setResourceProperty(resource, STAGE_REQUEST_ID, entity.getRequestId(), requestedIds);
     setResourceProperty(resource, STAGE_CONTEXT, entity.getRequestContext(), requestedIds);
-    setResourceProperty(resource, STAGE_CLUSTER_HOST_INFO, entity.getClusterHostInfo(), requestedIds);
-    setResourceProperty(resource, STAGE_COMMAND_PARAMS, entity.getCommandParamsStage(), requestedIds);
-    setResourceProperty(resource, STAGE_HOST_PARAMS, entity.getHostParamsStage(), requestedIds);
+
+    // this property is lazy loaded in JPA; don't use it unless requested
+    if (isPropertyRequested(STAGE_CLUSTER_HOST_INFO, requestedIds)) {
+      resource.setProperty(STAGE_CLUSTER_HOST_INFO, entity.getClusterHostInfo());
+    }
+
+    // this property is lazy loaded in JPA; don't use it unless requested
+    if (isPropertyRequested(STAGE_COMMAND_PARAMS, requestedIds)) {
+      resource.setProperty(STAGE_COMMAND_PARAMS, entity.getCommandParamsStage());
+    }
+
+    // this property is lazy loaded in JPA; don't use it unless requested
+    if (isPropertyRequested(STAGE_HOST_PARAMS, requestedIds)) {
+      resource.setProperty(STAGE_HOST_PARAMS, entity.getHostParamsStage());
+    }
+
     setResourceProperty(resource, STAGE_SKIPPABLE, entity.isSkippable(), requestedIds);
 
     Long startTime = Long.MAX_VALUE;
@@ -428,18 +446,6 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     setResourceProperty(resource, STAGE_STATUS, status.getStatus().toString(), requestedIds);
 
     return resource;
-  }
-
-  /**
-   * Ensure that cluster information is available.
-   *
-   * @return the clusters information
-   */
-  private synchronized Clusters ensureClusters() {
-    if (clusters == null) {
-      clusters = clustersProvider.get();
-    }
-    return clusters;
   }
 
   /**
