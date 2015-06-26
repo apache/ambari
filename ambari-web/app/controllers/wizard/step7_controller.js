@@ -539,7 +539,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (overrideToAdd) {
       overrideToAdd = componentConfig.get('configs').findProperty('name', overrideToAdd.name);
       if (overrideToAdd) {
-        this.addOverrideProperty(overrideToAdd);
+        var group = this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name'));
+        var newSCP = App.config.createOverride(overrideToAdd, {isEditable: true}, group);
+        group.get('properties').pushObject(newSCP);
         component.set('overrideToAdd', null);
       }
     }
@@ -1160,41 +1162,17 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       configOverrides = overrides.filterProperty('name', config.get('name'));
     if (!selectedGroup) return config;
     if (overrideToAdd && overrideToAdd.get('name') === config.get('name')) {
-      configOverrides.push(this.addOverrideProperty(config));
+      var valueForOverride = (config.get('widget') || config.get('displayType') == 'checkbox') ? config.get('value') : '';
+      var group = this.get('selectedService.configGroups').findProperty('name', selectedGroup.get('name'));
+      var newSCP = App.config.createOverride(config, {value: valueForOverride, recommendedValue: valueForOverride}, group);
+      configOverrides.push(newSCP);
+      group.get('properties').pushObject(newSCP);
       this.set('overrideToAdd', null);
     }
     configOverrides.setEach('isEditable', !selectedGroup.get('isDefault'));
     configOverrides.setEach('parentSCP', config);
     config.set('overrides', configOverrides);
     return config;
-  },
-
-  /**
-   * create overriden property and push it into Config group
-   * @param serviceConfigProperty
-   * @param group
-   * @param value
-   * @param isNotSaved
-   * @param {App.ServiceConfigProperty} serviceConfigProperty
-   * @return {App.ServiceConfigProperty}
-   * @method addOverrideProperty
-   */
-  addOverrideProperty: function (serviceConfigProperty, group, value, isNotSaved) {
-    var overrides = serviceConfigProperty.get('overrides') || [];
-    var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
-    group = group || this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name'));
-    var valueForOverride = (serviceConfigProperty.get('widget') || serviceConfigProperty.get('displayType') == 'checkbox') ? serviceConfigProperty.get('value') : '';
-    newSCP.set('group', group);
-    newSCP.set('value', value || valueForOverride);
-    newSCP.set('recommendedValue', value || valueForOverride);
-    newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
-    newSCP.set('parentSCP', serviceConfigProperty);
-    newSCP.set('isEditable', true);
-    newSCP.set('isNotSaved', isNotSaved);
-    group.get('properties').pushObject(newSCP);
-    overrides.pushObject(newSCP);
-    newSCP.validate();
-    return newSCP;
   },
 
   /**

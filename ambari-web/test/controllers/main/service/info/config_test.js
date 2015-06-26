@@ -188,31 +188,6 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
-  describe("#addOverrideProperty", function () {
-    var serviceConfigProperty = Em.Object.create({
-      overrides: [],
-      isOriginalSCP: true
-    });
-
-    var group = {};
-    var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
-    newSCP.set('value', '1');
-    newSCP.set('isOriginalSCP', false);
-    newSCP.set('parentSCP', serviceConfigProperty);
-    newSCP.set('isEditable', true);
-    newSCP.set('group', group);
-
-
-    it("add new overridden property", function () {
-      mainServiceInfoConfigsController.addOverrideProperty(serviceConfigProperty, group, '1');
-      expect(serviceConfigProperty.get("overrides")[0].get('name')).to.equal(newSCP.get('name'));
-      expect(serviceConfigProperty.get("overrides")[0].get('isOriginalSCP')).to.be.false;
-      expect(serviceConfigProperty.get("overrides")[0].get('isEditable')).to.be.true;
-      expect(serviceConfigProperty.get("overrides")[0].get('group')).to.eql({});
-      expect(serviceConfigProperty.get("overrides")[0].get('parentSCP')).to.eql(serviceConfigProperty);
-    });
-  });
-
   describe("#showComponentsShouldBeRestarted", function () {
 
     var tests = [
@@ -738,20 +713,20 @@ describe("App.MainServiceInfoConfigsController", function () {
       }];
 
     beforeEach(function() {
-      sinon.stub(mainServiceInfoConfigsController,"addOverrideProperty", Em.K)
+      sinon.stub(App.config,"createOverride", Em.K)
     });
     afterEach(function() {
-      mainServiceInfoConfigsController.addOverrideProperty.restore();
+      App.config.createOverride.restore();
     });
     tests.forEach(function(t) {
       it(t.m, function() {
         mainServiceInfoConfigsController.set("overrideToAdd", t.overrideToAdd);
         mainServiceInfoConfigsController.checkOverrideProperty(t.componentConfig);
         if(t.add) {
-          expect(mainServiceInfoConfigsController.addOverrideProperty.calledWith(t.overrideToAdd)).to.equal(true);
+          expect(App.config.createOverride.calledWith(t.overrideToAdd)).to.equal(true);
           expect(mainServiceInfoConfigsController.get("overrideToAdd")).to.equal(null);
         } else {
-          expect(mainServiceInfoConfigsController.addOverrideProperty.calledOnce).to.equal(false);
+          expect(App.config.createOverride.calledOnce).to.equal(false);
         }
       });
     });
@@ -764,43 +739,6 @@ describe("App.MainServiceInfoConfigsController", function () {
     it("should set requestInProgress", function () {
       mainServiceInfoConfigsController.trackRequest({'request': {}});
       expect(mainServiceInfoConfigsController.get('requestInProgress')).to.eql({'request': {}});
-    });
-  });
-
-  describe("#createNewSCP", function() {
-    var tests = [
-      {
-        overrides: {
-          value: "value",
-          group: {
-            value: "group1"
-          }
-        },
-        serviceConfigProperty: Em.Object.create({
-          value: "parentSCP",
-          supportsFinal: true
-        }),
-        defaultGroupSelected: true,
-
-        newSCP: {
-          value: "value",
-          isOriginalSCP: false,
-          parentSCP:Em.Object.create({
-            value: "parentSCP",
-            supportsFinal: true
-          }),
-          group: {
-            value: "group1"
-          },
-          isEditable: false
-        }
-      }
-    ];
-    tests.forEach(function(t) {
-      it("", function() {
-        var newSCP = mainServiceInfoConfigsController.createNewSCP(t.overrides, t.serviceConfigProperty, t.defaultGroupSelected);
-        expect(newSCP.getProperties("value", "isOriginalSCP", "parentSCP", "group", "isEditable")).to.eql(t.newSCP);
-      });
     });
   });
 

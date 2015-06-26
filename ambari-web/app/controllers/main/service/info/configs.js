@@ -134,10 +134,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     return App.config.get('preDefinedServiceConfigs');
   }.property('App.config.preDefinedServiceConfigs'),
 
-  configMapping: function () {
-    return App.config.get('configMapping');
-  }.property('App.config.configMapping'),
-
   configs: function () {
     return  App.config.get('preDefinedSiteProperties');
   }.property('App.config.preDefinedSiteProperties'),
@@ -458,12 +454,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
             if (serviceConfig) {
               if (self.get('selectedConfigGroup.isDefault') || configGroup.get('name') == self.get('selectedConfigGroup.name')) {
-                var override = self.createNewSCP({"value": value, "isFinal": isFinal, "group": configGroup}, serviceConfig, self.get('selectedConfigGroup.isDefault'));
-                override.set('isEditable', self.get('canEdit') && configGroup.get('name') == self.get('selectedConfigGroup.name'));
-                if (!serviceConfig.get('overrides')) serviceConfig.set('overrides', []);
-                serviceConfig.get('overrides').pushObject(override);
-                serviceConfig.set('overrideValues', serviceConfig.get('overrides').mapProperty('value'));
-                serviceConfig.set('overrideIsFinalValues', serviceConfig.get('overrides').mapProperty('isFinal'));
+                var overridePlainObject = {
+                  "value": value,
+                  "savedValue": value,
+                  "isFinal": isFinal,
+                  "savedIsFinal": isFinal,
+                  "isEditable": self.get('canEdit') && configGroup.get('name') == self.get('selectedConfigGroup.name')
+                };
+                App.config.createOverride(serviceConfig, overridePlainObject, configGroup);
               }
             } else {
               allConfigs.push(App.config.createCustomGroupConfig(prop, config, configGroup));
@@ -620,178 +618,24 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   },
 
   /**
-   * trigger addOverrideProperty
-   * @param {Object[]} configs
+   * trigger App.config.createOverride
+   * @param {Object[]} stepConfig
    * @private
    * @method checkOverrideProperty
    */
-  checkOverrideProperty: function (componentConfig) {
+  checkOverrideProperty: function (stepConfig) {
     var overrideToAdd = this.get('overrideToAdd');
-    var value = Em.get(overrideToAdd, 'value');
-    var isEnhanced = !!this.get('overrideToAdd.widget');
+    var value = !!this.get('overrideToAdd.widget') ? Em.get(overrideToAdd, 'value') : '';
     if (overrideToAdd) {
-      overrideToAdd = componentConfig.configs.filter(function(c){
+      overrideToAdd = stepConfig.configs.filter(function(c){
         return c.name == overrideToAdd.name && c.filename == overrideToAdd.filename;
       });
       if (overrideToAdd[0]) {
-        this.addOverrideProperty(overrideToAdd[0], this.get('selectedConfigGroup'), isEnhanced ? value : null);
+        App.config.createOverride(overrideToAdd[0], {"isEditable": true, "value": value}, this.get('selectedConfigGroup'));
         this.set('overrideToAdd', null);
       }
     }
   },
-
-  /**
-   * create new overridden property and set appropriate fields
-   * @param override
-   * @param serviceConfigProperty
-   * @param defaultGroupSelected
-   * @returns {*}
-   * @private
-   * @method createNewSCP
-   */
-  createNewSCP: function (override, serviceConfigProperty, defaultGroupSelected) {
-    var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty, {
-      value: Em.get(override, 'value'),
-      savedValue: Em.get(override, 'value'),
-      recommendedValue: serviceConfigProperty.get('recommendedValue'),
-      isFinal: Em.get(override, 'isFinal'),
-      savedIsFinal: Em.get(override, 'isFinal'),
-      recommendedIsFinal: serviceConfigProperty.get('recommendedIsFinal'),
-      group: Em.get(override, 'group'),
-      supportsFinal: serviceConfigProperty.get('supportsFinal'),
-      isOriginalSCP: false,
-      parentSCP: serviceConfigProperty,
-      overrides: null
-    });
-    if (defaultGroupSelected) {
-      newSCP.set('isEditable', false);
-    }
-    newSCP.validate();
-    return newSCP;
-  },
-
-  /**
-   * Array of Objects
-   * {
-   *  hostProperty - hostName property name for current component
-   *  componentName - master componentName
-   *  serviceName - serviceName of component
-   *  serviceUseThis - services that use hostname property of component(componentName)
-   *  m(multiple) - true if can be more than one components installed on cluster
-   * }
-   */
-
-  hostComponentsMapping: [
-    {
-      hostProperty: 'snamenode_host',
-      componentName: 'SECONDARY_NAMENODE',
-      serviceName: 'HDFS',
-      serviceUseThis: []
-    },
-    {
-      hostProperty: 'jobtracker_host',
-      componentName: 'JOBTRACKER',
-      serviceName: 'MAPREDUCE2',
-      serviceUseThis: []
-    },
-    {
-      hostProperty: 'hs_host',
-      componentName: 'HISTORYSERVER',
-      serviceName: 'MAPREDUCE2',
-      serviceUseThis: ['YARN']
-    },
-    {
-      hostProperty: 'ats_host',
-      componentName: 'APP_TIMELINE_SERVER',
-      serviceName: 'YARN',
-      serviceUseThis: []
-    },
-    {
-      hostProperty: 'rm_host',
-      componentName: 'RESOURCEMANAGER',
-      serviceName: 'YARN',
-      serviceUseThis: []
-    },
-    {
-      hostProperty: 'hivemetastore_host',
-      componentName: 'HIVE_METASTORE',
-      serviceName: 'HIVE',
-      serviceUseThis: ['HIVE'],
-      m: true
-    },
-    {
-      hostProperty: 'hive_ambari_host',
-      componentName: 'HIVE_SERVER',
-      serviceName: 'HIVE',
-      serviceUseThis: []
-    },
-    {
-      hostProperty: 'oozieserver_host',
-      componentName: 'OOZIE_SERVER',
-      serviceName: 'OOZIE',
-      serviceUseThis: [],
-      m: true
-    },
-    {
-      hostProperty: 'oozie_ambari_host',
-      componentName: 'OOZIE_SERVER',
-      serviceName: 'OOZIE',
-      serviceUseThis: []
-    },
-    {
-      hostProperty: 'hbasemaster_host',
-      componentName: 'HBASE_MASTER',
-      serviceName: 'HBASE',
-      serviceUseThis: [],
-      m: true
-    },
-    {
-      hostProperty: 'webhcatserver_host',
-      componentName: 'WEBHCAT_SERVER',
-      serviceName: 'HIVE',
-      serviceUseThis: [],
-      m: true
-    },
-    {
-      hostProperty: 'zookeeperserver_hosts',
-      componentName: 'ZOOKEEPER_SERVER',
-      serviceName: 'ZOOKEEPER',
-      serviceUseThis: ['HBASE', 'HIVE'],
-      m: true
-    },
-    {
-      hostProperty: 'stormuiserver_host',
-      componentName: 'STORM_UI_SERVER',
-      serviceName: 'STORM',
-      serviceUseThis: []
-    },
-    {
-      hostProperty: 'drpcserver_host',
-      componentName: 'DRPC_SERVER',
-      serviceName: 'STORM',
-      serviceUseThis: []
-    },
-    {
-      hostProperty: 'storm_rest_api_host',
-      componentName: 'STORM_REST_API',
-      serviceName: 'STORM',
-      serviceUseThis: []
-    },
-    {
-      hostProperty: 'supervisor_hosts',
-      componentName: 'SUPERVISOR',
-      serviceName: 'STORM',
-      serviceUseThis: [],
-      m: true
-    },
-    {
-      hostProperty: 'rangerserver_host',
-      componentName: 'RANGER_ADMIN',
-      serviceName: 'RANGER',
-      serviceUseThis: [],
-      m: true
-    }
-  ],
 
   /**
    * Adds host name of master component to config
@@ -800,7 +644,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    */
   addHostNamesToConfig: function () {
     var serviceName = this.get('content.serviceName');
-    var configs = this.get('allConfigs');
+    var hostComponentMapping = require('data/host_component_mapping');
     //namenode_host is required to derive "fs.default.name" a property of core-site
     try {
       this.setHostForService('HDFS', 'NAMENODE', 'namenode_host', true);
@@ -808,7 +652,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       console.log("No NameNode Host available.  This is expected if you're using GLUSTERFS rather than HDFS.");
     }
 
-    var hostProperties = this.get('hostComponentsMapping').filter(function (h) {
+    var hostProperties = hostComponentMapping.filter(function (h) {
       return h.serviceUseThis.contains(serviceName) || h.serviceName == serviceName;
     });
     hostProperties.forEach(function (h) {
@@ -948,39 +792,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       bodyClass: App.SelectablePopupBodyView,
       secondary: null
     });
-  },
-
-  /**
-   * add new overridden property to config property object
-   * @param {object} serviceConfigProperty - config property object
-   * @param {App.ConfigGroup} group - config group for new property
-   * @param {String} value
-   * @param {boolean} isNotSaved TODO
-   * @method addOverrideProperty
-   */
-  addOverrideProperty: function (serviceConfigProperty, group, value, isNotSaved) {
-    if (serviceConfigProperty.get('isOriginalSCP')) {
-      var overrides = serviceConfigProperty.get('overrides');
-      if (!overrides) {
-        overrides = [];
-        serviceConfigProperty.set('overrides', overrides);
-      }
-      // create new override with new value
-      var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty, {
-        value: value || '',
-        recommendedValue: serviceConfigProperty.get('recommendedValue'),
-        recommendedIsFinal: serviceConfigProperty.get('recommendedIsFinal'),
-        isOriginalSCP: false,
-        parentSCP: serviceConfigProperty,
-        isEditable: true,
-        group: group,
-        overrides: null,
-        isNotSaved: isNotSaved
-      });
-      console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty);
-      newSCP.validate();
-      overrides.pushObject(newSCP);
-    }
   },
 
   /**

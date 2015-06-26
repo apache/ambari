@@ -53,7 +53,6 @@ App.ConfigOverridable = Em.Mixin.create({
         configGroups,
         serviceConfigProperty,
         function (selectedGroupInPopup) {
-          console.log("launchConfigGroupSelectionCreationDialog(): Selected/Created:", selectedGroupInPopup);
           if (selectedGroupInPopup) {
             serviceConfigController.set('overrideToAdd', serviceConfigProperty);
             serviceConfigController.set('selectedConfigGroup', selectedGroupInPopup);
@@ -63,8 +62,11 @@ App.ConfigOverridable = Em.Mixin.create({
       );
     }
     else {
-      var valueForOverride = (serviceConfigProperty.get('widget') || serviceConfigProperty.get('displayType') == 'checkbox') ? serviceConfigProperty.get('value') : null;
-      serviceConfigController.addOverrideProperty(serviceConfigProperty, selectedConfigGroup, valueForOverride);
+      var valueForOverride = (serviceConfigProperty.get('widget') || serviceConfigProperty.get('displayType') == 'checkbox') ? serviceConfigProperty.get('value') : '';
+      var override = App.config.createOverride(serviceConfigProperty, { "value": valueForOverride, "isEditable": true }, selectedConfigGroup);
+      if (isInstaller) {
+        selectedConfigGroup.get('properties').pushObject(override);
+      }
     }
     Em.$('body>.tooltip').remove();
   },
@@ -126,8 +128,10 @@ App.ConfigOverridable = Em.Mixin.create({
         if (this.get('optionSelectConfigGroup')) {
           var selectedConfigGroup = this.get('selectedConfigGroup');
           this.hide();
-          App.get('router.mainServiceInfoConfigsController').loadSelectedVersion(null, this.get('selectedConfigGroup'));
           callback(selectedConfigGroup);
+          if (!isInstaller) {
+            App.get('router.mainServiceInfoConfigsController').doSelectConfigGroup({context: selectedConfigGroup});
+          }
         } else {
           var newConfigGroupName = this.get('newConfigGroupName').trim();
           var newConfigGroup = App.ConfigGroup.create({

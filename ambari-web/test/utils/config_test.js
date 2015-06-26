@@ -1300,4 +1300,81 @@ describe('App.config', function () {
 
   });
 
+  describe("#createOverride", function() {
+    var template = {
+      name: "p1",
+      filename: "f1",
+      value: "v1",
+      recommendedValue: "rv1",
+      savedValue: "sv1",
+      isFinal: true,
+      recommendedIsFinal: false,
+      savedIsFinal: true
+    };
+
+    var configProperty = App.ServiceConfigProperty.create(template);
+
+    var group = App.ConfigGroup.create({name: "group1"});
+
+    it('creates override with save properties as original config', function() {
+      var override = App.config.createOverride(configProperty, {}, group);
+      for (var key in template) {
+        expect(override.get(key)).to.eql(template[key]);
+      }
+    });
+
+    it('overrides some values that should be different for override', function() {
+      var override = App.config.createOverride(configProperty, {}, group);
+      expect(override.get('isOriginalSCP')).to.be.false;
+      expect(override.get('overrides')).to.be.null;
+      expect(override.get('group')).to.eql(group);
+      expect(override.get('parentSCP')).to.eql(configProperty);
+    });
+
+    it('overrides some specific values', function() {
+      var overridenTemplate = {
+        value: "v2",
+        recommendedValue: "rv2",
+        savedValue: "sv2",
+        isFinal: true,
+        recommendedIsFinal: false,
+        savedIsFinal: true
+      };
+
+      var override = App.config.createOverride(configProperty, overridenTemplate, group);
+      for (var key in overridenTemplate) {
+        expect(override.get(key)).to.eql(overridenTemplate[key]);
+      }
+    });
+
+    it('throws error due to undefined configGroup', function() {
+      expect(App.config.createOverride.bind(App.config, configProperty, {}, null)).to.throw(Error, 'configGroup can\' be null');
+    });
+
+    it('throws error due to undefined originalSCP', function() {
+      expect(App.config.createOverride.bind(App.config, null, {}, group)).to.throw(Error, 'serviceConfigProperty can\' be null');
+    });
+
+    it('updates originalSCP object ', function() {
+      configProperty.set('overrides', null);
+      configProperty.set('overrideValues', []);
+      configProperty.set('overrideIsFinalValues', []);
+
+      var overridenTemplate2 = {
+        value: "v12",
+        recommendedValue: "rv12",
+        savedValue: "sv12",
+        isFinal: true,
+        recommendedIsFinal: false,
+        savedIsFinal: false
+      };
+
+      var override = App.config.createOverride(configProperty, overridenTemplate2, group);
+
+      expect(configProperty.get('overrides')[0]).to.be.eql(override);
+      expect(configProperty.get('overrideValues')).to.be.eql([overridenTemplate2.value]);
+      expect(configProperty.get('overrideIsFinalValues')).to.be.eql([overridenTemplate2.isFinal]);
+    });
+  })
+
 });

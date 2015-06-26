@@ -643,29 +643,6 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
-  describe('#addOverrideProperty', function () {
-    it('should add override property', function () {
-      var groupName = 'groupName',
-        selectedService = {configGroups: [Em.Object.create({name: groupName, properties: []})]},
-        selectedConfigGroup = {name: groupName},
-        serviceConfigProperty = Em.Object.create({overrides: []}),
-        expected = Em.Object.create({
-          value: '',
-          isOriginalSCP: false,
-          isEditable: true
-        });
-      installerStep7Controller.reopen({selectedService: selectedService, selectedConfigGroup: selectedConfigGroup});
-      var newSCP = installerStep7Controller.addOverrideProperty(serviceConfigProperty);
-      Em.keys(expected).forEach(function (k) {
-        expect(newSCP.get(k)).to.equal(expected.get(k));
-      });
-      var group = installerStep7Controller.get('selectedService.configGroups').findProperty('name', groupName);
-      expect(newSCP.get('group')).to.eql(group);
-      expect(newSCP.get('parentSCP')).to.eql(serviceConfigProperty);
-      expect(group.get('properties.length')).to.equal(1);
-    });
-  });
-
   describe('#resolveYarnConfigs', function () {
     it('should set property to true', function () {
       var allSelectedServiceNames = ['SLIDER', 'YARN'],

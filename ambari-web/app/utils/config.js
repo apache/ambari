@@ -1765,6 +1765,40 @@ App.config = Em.Object.create({
       });
       service.set('configCategories', filteredCategories);
     });
-  }
+  },
 
+  /**
+   * @param {App.ServiceConfigProperty} serviceConfigProperty
+   * @param {Object} override - plain object with properties that is different from parent SCP
+   * @param {App.ServiceConfigGroup} configGroup
+   * @returns {App.ServiceConfigProperty}
+   */
+  createOverride: function(serviceConfigProperty, override, configGroup) {
+    Em.assert('serviceConfigProperty can\' be null', serviceConfigProperty);
+    Em.assert('configGroup can\' be null', configGroup);
+
+    if (Em.isNone(serviceConfigProperty.get('overrides'))) serviceConfigProperty.set('overrides', []);
+
+    var newOverride = App.ServiceConfigProperty.create(serviceConfigProperty);
+
+    if (!Em.isNone(override)) {
+      for (var key in override) {
+        newOverride.set(key, override[key]);
+      }
+    }
+
+    newOverride.setProperties({
+      'isOriginalSCP': false,
+      'overrides': null,
+      'group': configGroup,
+      'parentSCP': serviceConfigProperty
+    });
+
+    serviceConfigProperty.get('overrides').pushObject(newOverride);
+    serviceConfigProperty.set('overrideValues', serviceConfigProperty.get('overrides').mapProperty('value'));
+    serviceConfigProperty.set('overrideIsFinalValues', serviceConfigProperty.get('overrides').mapProperty('isFinal'));
+
+    newOverride.validate();
+    return newOverride;
+  }
 });

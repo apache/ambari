@@ -628,7 +628,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             overriddenProperty.set('value', Em.get(propertyToAdd, 'recommendedValue'));
             overriddenProperty.set('recommendedValue', Em.get(propertyToAdd, 'recommendedValue'));
           } else {
-            this.addOverrideProperty(cp, selectedGroup, Em.get(propertyToAdd, 'recommendedValue'), !Em.get(propertyToAdd, 'isDeleted'));
+            var overridePlainObject = {
+              "value": Em.get(propertyToAdd, 'recommendedValue'),
+              "recommendedValue": Em.get(propertyToAdd, 'recommendedValue'),
+              "isNotSaved": !Em.get(propertyToAdd, 'isDeleted'),
+              "isEditable": true
+            };
+            App.config.createOverride(cp, overridePlainObject, selectedGroup);
           }
         }
         Em.setProperties(propertyToAdd, {
