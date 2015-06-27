@@ -30,6 +30,7 @@ from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script.script import Script
 from resource_management.core.resources.packaging import Package
+from resource_management.core.shell import as_user
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 from ambari_commons.inet_utils import download_file
@@ -178,9 +179,11 @@ def oozie_ownership():
 def oozie_server_specific():
   import params
   
+  no_op_test = as_user(format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1"), user=params.oozie_user)
+  
   File(params.pid_file,
     action="delete",
-    not_if=format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
+    not_if=no_op_test
   )
   
   oozie_server_directories = [format("{oozie_home}/{oozie_tmp_dir}"), params.oozie_pid_dir, params.oozie_log_dir, params.oozie_tmp_dir, params.oozie_data_dir, params.oozie_lib_dir, params.oozie_webapps_dir, params.oozie_webapps_conf_dir, params.oozie_server_dir]
@@ -195,8 +198,6 @@ def oozie_server_specific():
   Directory(params.oozie_libext_dir,
             recursive=True,
   )
-
-  no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
   
   hashcode_file = format("{oozie_home}/.hashcode")
   hashcode = hashlib.md5(format('{oozie_home}/oozie-sharelib.tar.gz')).hexdigest()
