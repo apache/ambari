@@ -19,6 +19,7 @@ limitations under the License.
 """
 import os
 from resource_management import *
+from resource_management.core.shell import as_user
 from resource_management.libraries.providers.hdfs_resource import WebHDFSUtil
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -56,7 +57,7 @@ def oozie_service(action = 'start', rolling_restart=False):
   else:
     kinit_if_needed = ""
 
-  no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
+  no_op_test = as_user(format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1"), user=params.oozie_user)
   
   if action == 'start':
     start_cmd = format("cd {oozie_tmp_dir} && {oozie_home}/bin/oozie-start.sh")
