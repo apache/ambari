@@ -42,6 +42,8 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.orm.entities.StageEntity_;
 import org.apache.ambari.server.utils.StageUtils;
+import org.eclipse.persistence.config.HintValues;
+import org.eclipse.persistence.config.QueryHints;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -206,6 +208,12 @@ public class StageDAO {
     query.orderBy(sortOrders);
 
     TypedQuery<StageEntity> typedQuery = entityManager.createQuery(query);
+
+    // !!! https://bugs.eclipse.org/bugs/show_bug.cgi?id=398067
+    // ensure that an associated entity with a JOIN is not stale; this causes
+    // the associated StageEntity to be stale
+    typedQuery.setHint(QueryHints.REFRESH, HintValues.TRUE);
+
     return daoUtils.selectList(typedQuery);
   }
 
