@@ -132,27 +132,48 @@ App.Router = Em.Router.extend({
     var dfd = $.Deferred();
     var self = this;
     var auth = App.db.getAuthenticated();
-    var authResp = (auth && auth === true);
-    if (authResp) {
-      App.ajax.send({
-        name: 'router.login.clusters',
-        sender: this,
-        success: 'onAuthenticationSuccess',
-        error: 'onAuthenticationError'
-      }).complete(function () {
+    App.ajax.send({
+      name: 'router.login.clusters',
+      sender: this,
+      success: 'onAuthenticationSuccess',
+      error: 'onAuthenticationError'
+    }).complete(function (xhr) {
+      if (xhr.isResolved()) {
+        // if server knows the user and user authenticated by UI
+        if (auth && auth === true) {
           dfd.resolve(self.get('loggedIn'));
-        });
-    } else {
-      this.set('loggedIn', false);
-      dfd.resolve(false);
-    }
+          // if server knows the user but UI don't, check the response header
+          // and try to authorize
+        } else if (xhr.getResponseHeader('User')) {
+          var user = xhr.getResponseHeader('User');
+          App.ajax.send({
+            name: 'router.login',
+            sender: self,
+            data: {
+              usr: user,
+              loginName: encodeURIComponent(user)
+            },
+            success: 'loginSuccessCallback',
+            error: 'loginErrorCallback'
+          });
+        } else {
+          self.setAuthenticated(false);
+          dfd.resolve(false);
+        }
+      } else {
+        self.setAuthenticated(false);
+        dfd.resolve(false);
+      }
+    });
     return dfd.promise();
   },
 
   onAuthenticationSuccess: function (data) {
-    this.setAuthenticated(true);
-    if (data.items.length) {
-      this.setClusterInstalled(data);
+    if (App.db.getAuthenticated() === true) {
+      this.setAuthenticated(true);
+      if (data.items.length) {
+        this.setClusterInstalled(data);
+      }
     }
   },
 
