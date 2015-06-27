@@ -70,6 +70,8 @@ public interface ServiceComponent {
 
   public boolean isMasterComponent();
 
+  public boolean isVersionAdvertised();
+
   public boolean canBeRemoved();
 
   public void deleteAllServiceComponentHosts() throws AmbariException;

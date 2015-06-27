@@ -61,6 +61,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
   private final boolean isClientComponent;
   private final boolean isMasterComponent;
+  private final boolean isVersionAdvertised;
   volatile boolean persisted = false;
   @Inject
   private ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
@@ -101,6 +102,7 @@ public class ServiceComponentImpl implements ServiceComponent {
           stackId.getStackVersion(), service.getName(), componentName);
       isClientComponent = compInfo.isClient();
       isMasterComponent = compInfo.isMaster();
+      isVersionAdvertised = compInfo.isVersionAdvertised();
     } catch (ObjectNotFoundException e) {
       throw new RuntimeException("Trying to create a ServiceComponent"
           + " not recognized in stack info"
@@ -149,6 +151,7 @@ public class ServiceComponentImpl implements ServiceComponent {
           getName());
       isClientComponent = compInfo.isClient();
       isMasterComponent = compInfo.isMaster();
+      isVersionAdvertised = compInfo.isVersionAdvertised();
     } catch (ObjectNotFoundException e) {
       throw new AmbariException("Trying to create a ServiceComponent"
           + " not recognized in stack info"
@@ -530,6 +533,12 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public boolean isMasterComponent() {
     return isMasterComponent;
+  }
+
+
+  @Override
+  public boolean isVersionAdvertised() {
+    return isVersionAdvertised;
   }
 
   @Override

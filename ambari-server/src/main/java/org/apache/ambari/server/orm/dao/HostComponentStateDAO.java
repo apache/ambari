@@ -71,6 +71,54 @@ public class HostComponentStateDAO {
     return daoUtils.selectList(query);
   }
 
+  /**
+   * Retrieve all of the Host Component States for the given service.
+   *
+   * @param serviceName Service Name
+   * @return Return all of the Host Component States that match the criteria.
+   */
+  @RequiresSession
+  public List<HostComponentStateEntity> findByService(String serviceName) {
+    final TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get().createNamedQuery("HostComponentStateEntity.findByService", HostComponentStateEntity.class);
+    query.setParameter("serviceName", serviceName);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Retrieve all of the Host Component States for the given service and component.
+   *
+   * @param serviceName Service Name
+   * @param componentName Component Name
+   * @return Return all of the Host Component States that match the criteria.
+   */
+  @RequiresSession
+  public List<HostComponentStateEntity> findByServiceAndComponent(String serviceName, String componentName) {
+    final TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get().createNamedQuery("HostComponentStateEntity.findByServiceAndComponent", HostComponentStateEntity.class);
+    query.setParameter("serviceName", serviceName);
+    query.setParameter("componentName", componentName);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Retrieve the single Host Component State for the given unique service, component, and host.
+   *
+   * @param serviceName Service Name
+   * @param componentName Component Name
+   * @param hostName Host Name
+   * @return Return all of the Host Component States that match the criteria.
+   */
+  @RequiresSession
+  public HostComponentStateEntity findByServiceComponentAndHost(String serviceName, String componentName, String hostName) {
+    final TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get().createNamedQuery("HostComponentStateEntity.findByServiceComponentAndHost", HostComponentStateEntity.class);
+    query.setParameter("serviceName", serviceName);
+    query.setParameter("componentName", componentName);
+    query.setParameter("hostName", hostName);
+
+    return daoUtils.selectSingle(query);
+  }
+
   @Transactional
   public void refresh(HostComponentStateEntity hostComponentStateEntity) {
     entityManagerProvider.get().refresh(hostComponentStateEntity);
