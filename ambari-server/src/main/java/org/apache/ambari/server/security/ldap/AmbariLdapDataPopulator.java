@@ -184,7 +184,7 @@ public class AmbariLdapDataPopulator {
       } else {
         batchInfo.getGroupsToBeCreated().add(groupName);
       }
-      refreshGroupMembers(batchInfo, groupDto, internalUsersMap);
+      refreshGroupMembers(batchInfo, groupDto, internalUsersMap, null);
     }
     for (Entry<String, Group> internalGroup : internalGroupsMap.entrySet()) {
       if (internalGroup.getValue().isLdapGroup()) {
@@ -258,7 +258,7 @@ public class AmbariLdapDataPopulator {
       } else {
         batchInfo.getGroupsToBeCreated().add(groupName);
       }
-      refreshGroupMembers(batchInfo, groupDto, internalUsersMap);
+      refreshGroupMembers(batchInfo, groupDto, internalUsersMap, null);
     }
 
     return batchInfo;
@@ -316,7 +316,7 @@ public class AmbariLdapDataPopulator {
           batchInfo.getGroupsToBeRemoved().add(group.getGroupName());
         } else {
           LdapGroupDto groupDto = groupDtos.iterator().next();
-          refreshGroupMembers(batchInfo, groupDto, internalUsersMap);
+          refreshGroupMembers(batchInfo, groupDto, internalUsersMap, null);
         }
       }
     }
@@ -350,15 +350,31 @@ public class AmbariLdapDataPopulator {
    * @param batchInfo batch update object
    * @param group ldap group
    * @param internalUsers map of internal users
+   * @param groupMemberAttributes  set of group member attributes that have already been refreshed
    * @throws AmbariException if group refresh failed
    */
-  protected void refreshGroupMembers(LdapBatchDto batchInfo, LdapGroupDto group, Map<String, User> internalUsers)
+  protected void refreshGroupMembers(LdapBatchDto batchInfo, LdapGroupDto group, Map<String, User> internalUsers, Set<String> groupMemberAttributes)
       throws AmbariException {
     Set<String> externalMembers = new HashSet<String>();
+
+    if (groupMemberAttributes == null) {
+      groupMemberAttributes = new HashSet<String>();
+    }
+
     for (String memberAttributeValue: group.getMemberAttributes()) {
       LdapUserDto groupMember = getLdapUserByMemberAttr(memberAttributeValue);
       if (groupMember != null) {
         externalMembers.add(groupMember.getUserName());
+      } else {
+        // if we haven't already processed this group
+        if (!groupMemberAttributes.contains(memberAttributeValue)) {
+          // if the member is another group then add all of its members
+          LdapGroupDto subGroup = getLdapGroupByMemberAttr(memberAttributeValue);
+          if (subGroup != null) {
+            groupMemberAttributes.add(memberAttributeValue);
+            refreshGroupMembers(batchInfo, subGroup, internalUsers, groupMemberAttributes);
+          }
+        }
       }
     }
     String groupName = group.getGroupName();
@@ -419,22 +435,33 @@ public class AmbariLdapDataPopulator {
   }
 
   /**
-   * Get the LDAP member for the given member attribute.
+   * Get the LDAP user member for the given member attribute.
    *
    * @param memberAttributeValue  the member attribute value
    *
    * @return the user for the given member attribute; null if not found
    */
   protected LdapUserDto getLdapUserByMemberAttr(String memberAttributeValue) {
-    LdapUserDto dto = getLdapUser(memberAttributeValue);
-    if (dto == null) {
-      Set<LdapUserDto> filteredLdapUsers = getFilteredLdapUsers(
-          new EqualsFilter(OBJECT_CLASS_ATTRIBUTE, ldapServerProperties.getUserObjectClass()),
-          getMemberFilter(memberAttributeValue));
+    Set<LdapUserDto> filteredLdapUsers = getFilteredLdapUsers(
+        new EqualsFilter(OBJECT_CLASS_ATTRIBUTE, ldapServerProperties.getUserObjectClass()),
+        getMemberFilter(memberAttributeValue));
 
-      dto = (filteredLdapUsers.isEmpty()) ? null : filteredLdapUsers.iterator().next();
-    }
-    return dto;
+    return (filteredLdapUsers.isEmpty()) ? null : filteredLdapUsers.iterator().next();
+  }
+
+  /**
+   * Get the LDAP group member for the given member attribute.
+   *
+   * @param memberAttributeValue  the member attribute value
+   *
+   * @return the group for the given member attribute; null if not found
+   */
+  protected LdapGroupDto getLdapGroupByMemberAttr(String memberAttributeValue) {
+    Set<LdapGroupDto> filteredLdapUsers = getFilteredLdapGroups(
+        new EqualsFilter(OBJECT_CLASS_ATTRIBUTE, ldapServerProperties.getGroupObjectClass()),
+        getMemberFilter(memberAttributeValue));
+
+    return (filteredLdapUsers.isEmpty()) ? null : filteredLdapUsers.iterator().next();
   }
 
   /**
@@ -497,13 +524,6 @@ public class AmbariLdapDataPopulator {
     EqualsFilter userObjectFilter = new EqualsFilter(OBJECT_CLASS_ATTRIBUTE,
         ldapServerProperties.getUserObjectClass());
     return getFilteredLdapUsers(userObjectFilter);
-  }
-
-  // get the user for the given distinguished name; null if not found
-  private LdapUserDto getLdapUser(String distinguishedName) {
-    final LdapTemplate ldapTemplate = loadLdapTemplate();
-
-    return (LdapUserDto) ldapTemplate.lookup(distinguishedName, new LdapUserContextMapper(ldapServerProperties));
   }
 
   private Set<LdapUserDto> getFilteredLdapUsers(Filter...filters) {
