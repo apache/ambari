@@ -371,9 +371,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       console.log('in installer.step9:connectOutlets');
       var controller = router.get('installerController'),
           wizardStep9Controller = router.get('wizardStep9Controller');
-      controller.setCurrentStep('9');
       controller.loadAllPriorSteps().done(function () {
         wizardStep9Controller.loadDoServiceChecksFlag().done(function () {
+          controller.setCurrentStep('9');
           if (!App.get('testMode')) {
             controller.setLowerStepsDisable(9);
           }
@@ -427,9 +427,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     connectOutlets: function (router, context) {
       console.log('in installer.step10:connectOutlets');
       var controller = router.get('installerController');
-      controller.setCurrentStep('10');
       controller.loadAllPriorSteps().done(function () {
         if (!App.get('testMode')) {
+          controller.setCurrentStep('10');
           controller.setLowerStepsDisable(10);
         }
         controller.connectOutlet('wizardStep10', controller.get('content'));

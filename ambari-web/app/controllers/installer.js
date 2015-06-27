@@ -86,7 +86,7 @@ App.InstallerController = App.WizardController.extend({
     this.get('isStepDisabled').setEach('value', true);
     this.get('isStepDisabled').pushObject(Ember.Object.create({
       step: 0,
-      value: false
+      value: true
     }));
   },
   /**
@@ -705,12 +705,7 @@ App.InstallerController = App.WizardController.extend({
 
   setStepsEnable: function () {
     for (var i = 0; i <= this.totalSteps; i++) {
-      var step = this.get('isStepDisabled').findProperty('step', i);
-      if (i <= this.get('currentStep')) {
-        step.set('value', false);
-      } else {
-        step.set('value', true);
-      }
+      this.get('isStepDisabled').findProperty('step', i).set('value', i > this.get('currentStep'));
     }
   }.observes('currentStep'),
 

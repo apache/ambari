@@ -26,6 +26,17 @@ describe('App.InstallerController', function () {
 
   var installerController = App.InstallerController.create();
 
+  describe('#init', function () {
+    var c;
+    beforeEach(function () {
+      c = App.InstallerController.create({});
+    });
+    it('all steps are disabled by default', function () {
+      expect(c.get('isStepDisabled.length') > 0 ).to.be.ok;
+      expect(c.get('isStepDisabled').everyProperty('value', true)).to.be.ok;
+    });
+  });
+
   describe('#loadStacksVersionsSuccessCallback', function() {
     beforeEach(function () {
       sinon.stub(App.store, 'commit', Em.K);
