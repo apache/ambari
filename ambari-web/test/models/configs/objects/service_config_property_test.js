@@ -531,25 +531,6 @@ describe('App.ServiceConfigProperty', function () {
         }
       },
       {
-        m: 'not original config, parent override has same value',
-        e: true,
-        c: {
-          value: 'on',
-          isOriginalSCP: false,
-          supportsFinal: true,
-          isFinal: false,
-          parentSCP: App.ServiceConfigProperty.create({
-            value: 'off',
-            overrides: [
-              App.ServiceConfigProperty.create({
-                value: 'on',
-                isOriginalSCP: false
-              })
-            ]
-          })
-        }
-      },
-      {
         m: 'not original config, parent override doesn\'t have same value',
         e: false,
         c: {
