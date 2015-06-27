@@ -42,6 +42,7 @@ import org.apache.ambari.server.security.authorization.Users;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.ldap.control.PagedResultsCookie;
 import org.springframework.ldap.control.PagedResultsDirContextProcessor;
@@ -249,7 +250,7 @@ public class AmbariLdapDataPopulatorTest {
     expect(populator.getLdapGroups("group2")).andReturn(Collections.EMPTY_SET);
     LdapGroupDto externalGroup1 = createNiceMock(LdapGroupDto.class);
     LdapBatchDto batchInfo = new LdapBatchDto();
-    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup1), anyObject(Map.class));
+    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup1), anyObject(Map.class), anyObject(Set.class));
     expectLastCall();
     expect(populator.getLdapGroups("group4")).andReturn(Collections.singleton(externalGroup1));
     expect(populator.getLdapGroups("group5")).andReturn(Collections.EMPTY_SET);
@@ -320,12 +321,12 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup3, externalGroup4);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class));
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Set.class));
       expectLastCall();
     }
-    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup1), anyObject(Map.class));
+    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup1), anyObject(Map.class), anyObject(Set.class));
     expectLastCall();
-    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup2), anyObject(Map.class));
+    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup2), anyObject(Map.class), anyObject(Set.class));
     expectLastCall();
     expect(populator.getLdapGroups("x*")).andReturn(externalGroups);
     expect(populator.getLdapGroups("group1")).andReturn(Collections.singleton(externalGroup1));
@@ -399,10 +400,10 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup3, externalGroup4);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class));
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Set.class));
       expectLastCall();
     }
-    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup2), anyObject(Map.class));
+    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup2), anyObject(Map.class), anyObject(Set.class));
     expectLastCall();
     expect(populator.getLdapGroups("x*")).andReturn(externalGroups);
     expect(populator.getLdapGroups("group2")).andReturn(Collections.singleton(externalGroup2));
@@ -473,7 +474,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1, externalGroup2, externalGroup3, externalGroup4);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class));
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Set.class));
       expectLastCall();
     }
     expect(populator.getLdapGroups("group*")).andReturn(externalGroups);
@@ -603,7 +604,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1, externalGroup2, externalGroup3, externalGroup4);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class));
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Set.class));
       expectLastCall();
     }
 
@@ -664,7 +665,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1, externalGroup2);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class));
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Set.class));
       expectLastCall();
     }
     expect(populator.getExternalLdapGroupInfo()).andReturn(externalGroups);
@@ -728,7 +729,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class));
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Set.class));
       expectLastCall();
     }
     expect(populator.getExternalLdapGroupInfo()).andReturn(externalGroups);
@@ -791,7 +792,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1, externalGroup2);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class));
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Set.class));
       expectLastCall();
     }
     expect(populator.getExternalLdapGroupInfo()).andReturn(externalGroups);
@@ -1392,7 +1393,7 @@ public class AmbariLdapDataPopulatorTest {
     internalUsers.putAll(internalMembers);
     internalUsers.put("user2", user2);
 
-    populator.refreshGroupMembers(batchInfo, externalGroup, internalUsers);
+    populator.refreshGroupMembers(batchInfo, externalGroup, internalUsers, null);
 
     Set<String> groupMembersToAdd = new HashSet<String>();
     for (LdapUserGroupMemberDto ldapUserGroupMemberDto : batchInfo.getMembershipToAdd()) {
@@ -1498,9 +1499,6 @@ public class AmbariLdapDataPopulatorTest {
     expect(processor.getCookie()).andReturn(cookie).anyTimes();
     expect(cookie.getCookie()).andReturn(null).anyTimes();
 
-    expect(ldapTemplate.lookup(eq("uid=foo,dc=example,dc=com"), capture(contextMapperCapture))).andReturn(dto);
-
-    expect(ldapTemplate.lookup(eq("foo"), capture(contextMapperCapture))).andReturn(null);
     expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(|(dn=foo)(uid=foo)))"), anyObject(SearchControls.class), capture(contextMapperCapture), eq(processor))).andReturn(list);
 
     replay(ldapTemplate, ldapServerProperties, users, configuration, processor, cookie);
@@ -1510,7 +1508,6 @@ public class AmbariLdapDataPopulatorTest {
     populator.setLdapTemplate(ldapTemplate);
     populator.setProcessor(processor);
 
-    assertEquals(dto, populator.getLdapUserByMemberAttr("uid=foo,dc=example,dc=com"));
     assertEquals(dto, populator.getLdapUserByMemberAttr("foo"));
 
     verify(ldapTemplate, ldapServerProperties, users, configuration, processor, cookie);
