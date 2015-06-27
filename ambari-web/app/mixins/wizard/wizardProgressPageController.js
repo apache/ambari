@@ -656,13 +656,13 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
   },
 
   showHostProgressPopup: function (event) {
-    if (!['IN_PROGRESS', 'FAILED', 'COMPLETED'].contains(Em.get(event.context, 'status')) || !this.get('content.requestIds.length')) {
+    if (!['IN_PROGRESS', 'FAILED', 'COMPLETED'].contains(Em.get(event.context, 'status')) || !event.contexts[0].requestIds.length) {
       return;
     }
-    var popupTitle = event.contexts[0].title;
-    var requestIds = event.contexts[0].requestIds;
-    var stageId = event.contexts[0].stageId;
-    var hostProgressPopupController = App.router.get('highAvailabilityProgressPopupController');
+    var popupTitle = event.contexts[0].title,
+     requestIds = event.contexts[0].requestIds,
+     stageId = event.contexts[0].stageId,
+     hostProgressPopupController = App.router.get('highAvailabilityProgressPopupController');
     hostProgressPopupController.initPopup(popupTitle, requestIds, this, true, stageId);
   },
 
