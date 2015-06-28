@@ -37,6 +37,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,6 +50,7 @@ import com.google.inject.AbstractModule;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -236,10 +238,12 @@ public class UpgradeCatalog210Test {
 
     final Config mockRangerPlugin = easyMockSupport.createNiceMock(Config.class);
     final Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
+    final Config mockHiveServer = easyMockSupport.createNiceMock(Config.class);
 
     final Map<String, String> propertiesExpectedRangerPlugin = new HashMap<String, String>();
     propertiesExpectedRangerPlugin.put("ranger-hive-plugin-enabled", "yes");
     final Map<String, String> propertiesExpectedHiveEnv = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedHiveServer2 = new HashMap<String, String>();
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -259,8 +263,16 @@ public class UpgradeCatalog210Test {
 
     expect(mockClusterExpected.getDesiredConfigByType("ranger-hive-plugin-properties")).andReturn(mockRangerPlugin).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("hive-env")).andReturn(mockHiveEnv).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hiveserver2-site")).andReturn(mockHiveServer).atLeastOnce();
     expect(mockRangerPlugin.getProperties()).andReturn(propertiesExpectedRangerPlugin).anyTimes();
     expect(mockHiveEnv.getProperties()).andReturn(propertiesExpectedHiveEnv).anyTimes();
+    expect(mockHiveServer.getProperties()).andReturn(propertiesExpectedHiveServer2).anyTimes();
+
+    ServiceConfigVersionResponse r = null;
+    expect(mockClusterExpected.getConfig(anyObject(String.class), anyObject(String.class))).
+        andReturn(mockHiveServer).anyTimes();
+    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveServer))).
+        andReturn(r).times(3);
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog210.class).updateRangerHiveConfigs();

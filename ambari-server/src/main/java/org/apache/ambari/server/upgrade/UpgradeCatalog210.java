@@ -1213,17 +1213,20 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                   && RangerHiveConfig.getProperties().containsKey("ranger-hive-plugin-enabled")
                   && cluster.getDesiredConfigByType("hive-env") != null) {
             Map<String, String> newHiveEnvProperties = new HashMap<String, String>();
+            Map<String, String> newHiveServerProperties = new HashMap<String, String>();
             Set<String> removeRangerHiveProperties = new HashSet<String>();
             removeRangerHiveProperties.add("ranger-hive-plugin-enabled");
 
             if (RangerHiveConfig.getProperties().get("ranger-hive-plugin-enabled") != null
                     && RangerHiveConfig.getProperties().get("ranger-hive-plugin-enabled").equalsIgnoreCase("yes")) {
               newHiveEnvProperties.put("hive_security_authorization", "Ranger");
+              newHiveServerProperties.put("hive.security.authorization.enabled", "true");
             } else {
               newHiveEnvProperties.put("hive_security_authorization", "None");
             }
             boolean updateProperty = cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive_security_authorization");
             updateConfigurationPropertiesForCluster(cluster, "hive-env", newHiveEnvProperties, updateProperty, true);
+            updateConfigurationPropertiesForCluster(cluster, "hiveserver2-site", newHiveServerProperties, updateProperty, true);
             updateConfigurationPropertiesForCluster(cluster, "ranger-hive-plugin-properties", new HashMap<String, String>(),
                     removeRangerHiveProperties, false, true);
           }
