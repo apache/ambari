@@ -384,7 +384,7 @@ class TestMapReduce2Client(RMFTestCase):
     )
 
     # for now, it's enough that hdp-select is confirmed
-    self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
 
 
   def test_pre_rolling_restart_23(self):
@@ -404,7 +404,7 @@ class TestMapReduce2Client(RMFTestCase):
                        call_mocks = [(0, None), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute', 'hdp-select set hadoop-client {0}'.format(version))
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hadoop-client', version), sudo=True)
     self.assertNoMoreResources()
 
     self.assertEquals(2, mocks_dict['call'].call_count)

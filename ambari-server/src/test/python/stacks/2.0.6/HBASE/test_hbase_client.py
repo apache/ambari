@@ -200,8 +200,8 @@ class TestHBaseClient(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES,
                    mocks_dict = mocks_dict)
 
-    self.assertResourceCalled("Execute", "hdp-select set hbase-client 2.2.1.0-2067")
-    self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'hbase-client', '2.2.1.0-2067'), sudo=True)
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
     self.assertEquals(1, mocks_dict['call'].call_count)
 
 
@@ -225,8 +225,8 @@ class TestHBaseClient(RMFTestCase):
                        call_mocks = [(0, None), (0, None), (0, None), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute', 'hdp-select set hbase-client %s' % version)
-    self.assertResourceCalled('Execute', 'hdp-select set hadoop-client %s' % version)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hbase-client', version), sudo=True)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hadoop-client', version), sudo=True)
 
     self.assertEquals(5, mocks_dict['call'].call_count)
     self.assertEquals(

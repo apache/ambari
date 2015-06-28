@@ -64,7 +64,7 @@ class TestMahoutClient(RMFTestCase):
       hdp_stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Execute', "hdp-select set mahout-client 2.2.1.0-3242")
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'mahout-client', '2.2.1.0-3242'), sudo=True)
     self.assertNoMoreResources()
 
   def test_pre_rolling_restart_23(self):
@@ -91,7 +91,7 @@ class TestMahoutClient(RMFTestCase):
       call_mocks = itertools.cycle([(0, None)]),
       mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute', "hdp-select set mahout-client 2.3.0.0-1234")
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'mahout-client', '2.3.0.0-1234'), sudo=True)
     self.assertNoMoreResources()
 
     import sys

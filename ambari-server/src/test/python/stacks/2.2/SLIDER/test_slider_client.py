@@ -115,8 +115,8 @@ class TestSliderClient(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled("Execute", "hdp-select set slider-client 2.2.1.0-2067")
-    self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'slider-client', '2.2.1.0-2067'), sudo=True)
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
     self.assertNoMoreResources()
 
 
@@ -136,8 +136,8 @@ class TestSliderClient(RMFTestCase):
                        call_mocks = [(0, None), (0, None), (0, None), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled("Execute", "hdp-select set slider-client 2.3.0.0-1234")
-    self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.3.0.0-1234")
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'slider-client', '2.3.0.0-1234'), sudo=True)
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'hadoop-client', '2.3.0.0-1234'), sudo=True)
     self.assertNoMoreResources()
 
     self.assertEquals(4, mocks_dict['call'].call_count)

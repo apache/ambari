@@ -67,7 +67,7 @@ def reach_safemode_state(user, safemode_state, in_ha):
                 logoutput=True,
                 path=[params.hadoop_bin_dir])
 
-        code, out = call(safemode_check_with_grep, user=user)
+        code, out = shell.call(safemode_check_with_grep, user=user)
         Logger.info("Command: %s\nCode: %d. Out: %s" % (safemode_check_with_grep, code, out))
         if code == 0:
           return (True, original_state)

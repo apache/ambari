@@ -401,6 +401,6 @@ class TestPhoenixQueryServer(RMFTestCase):
       hdp_stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Execute', 'hdp-select set phoenix-server 2.3.0.0-1234')
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'phoenix-server', '2.3.0.0-1234'), sudo=True)
 
     self.assertNoMoreResources()

@@ -149,7 +149,7 @@ class TestStormRestApi(TestStormBase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled("Execute", "hdp-select set storm-client 2.2.1.0-2067")
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'storm-client', '2.2.1.0-2067'), sudo=True)
 
   def test_pre_rolling_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.1/configs/default.json"
@@ -168,7 +168,7 @@ class TestStormRestApi(TestStormBase):
                      call_mocks = [(0, None), (0, None)],
                      mocks_dict = mocks_dict)
 
-    self.assertResourceCalled("Execute", "hdp-select set storm-client 2.3.0.0-1234")
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'storm-client', '2.3.0.0-1234'), sudo=True)
 
     self.assertEquals(2, mocks_dict['call'].call_count)
     self.assertEquals(

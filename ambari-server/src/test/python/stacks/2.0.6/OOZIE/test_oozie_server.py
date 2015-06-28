@@ -949,7 +949,7 @@ class TestOozieServer(RMFTestCase):
     self.assertEqual(glob_mock.call_count,1)
     glob_mock.assert_called_with('/usr/hdp/2.2.1.0-2135/hadoop/lib/hadoop-lzo*.jar')
 
-    self.assertResourceCalled('Execute', 'hdp-select set oozie-server 2.2.1.0-2135',)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.2.1.0-2135'), sudo=True,)
     self.assertResourceCalled('HdfsResource', '/user/oozie/share',
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
@@ -1036,7 +1036,7 @@ class TestOozieServer(RMFTestCase):
     self.assertEqual(glob_mock.call_count,1)
     glob_mock.assert_called_with('/usr/hdp/2.3.0.0-1234/hadoop/lib/hadoop-lzo*.jar')
 
-    self.assertResourceCalled('Execute', 'hdp-select set oozie-server 2.3.0.0-1234')
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo=True)
     self.assertResourceCalled('HdfsResource', '/user/oozie/share',
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
@@ -1118,7 +1118,7 @@ class TestOozieServer(RMFTestCase):
     self.assertEqual(isfile_mock.call_count,2)
     isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
 
-    self.assertResourceCalled('Execute', 'hdp-select set oozie-server 2.2.0.0-0000')
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.2.0.0-0000'), sudo=True)
     self.assertResourceCalled('HdfsResource', '/user/oozie/share',
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/2.2.0.0-0000/hadoop/bin',

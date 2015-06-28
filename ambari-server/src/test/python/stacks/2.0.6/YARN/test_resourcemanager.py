@@ -634,7 +634,7 @@ class TestResourceManager(RMFTestCase):
                        call_mocks = [(0, None), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute', 'hdp-select set hadoop-yarn-resourcemanager {0}'.format(version))
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hadoop-yarn-resourcemanager', version), sudo=True)
     self.assertNoMoreResources()
 
     self.assertEquals(2, mocks_dict['call'].call_count)
