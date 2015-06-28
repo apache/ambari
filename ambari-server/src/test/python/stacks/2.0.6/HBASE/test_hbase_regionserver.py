@@ -487,7 +487,7 @@ class TestHbaseRegionServer(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
-                              'hdp-select set hbase-regionserver %s' % version,)
+                              ('hdp-select', 'set', 'hbase-regionserver', version), sudo=True,)
     self.assertNoMoreResources()
 
 
@@ -529,7 +529,7 @@ class TestHbaseRegionServer(RMFTestCase):
                        call_mocks = [(0, None), (0, None), (0, None), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute', 'hdp-select set hbase-regionserver %s' % version)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hbase-regionserver', version), sudo=True)
 
     self.assertEquals(2, mocks_dict['call'].call_count)
     self.assertEquals(

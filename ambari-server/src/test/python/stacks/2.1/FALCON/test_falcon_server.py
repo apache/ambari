@@ -207,7 +207,7 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('File', '/var/run/falcon/falcon.pid',
       action = ['delete'])
 
-    self.assertResourceCalled('Execute', 'hdp-select set falcon-server 2.2.1.0-2135')
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'falcon-server', '2.2.1.0-2135'), sudo=True)
 
     # 4 calls to tarfile.open (2 directories * read + write)
     self.assertTrue(tarfile_open_mock.called)
@@ -349,7 +349,7 @@ class TestFalconServer(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
-                              'hdp-select set falcon-server %s' % version,)
+                              ('hdp-select', 'set', 'falcon-server', version), sudo=True,)
     self.assertTrue(tarfile_open_mock.called)
     self.assertTrue(rmtree_mock.called)
     self.printResources()
@@ -378,7 +378,7 @@ class TestFalconServer(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute',
-                              'hdp-select set falcon-server %s' % version,)
+                              ('hdp-select', 'set', 'falcon-server', version), sudo=True,)
     self.assertNoMoreResources()
 
     self.assertEquals(2, mocks_dict['call'].call_count)

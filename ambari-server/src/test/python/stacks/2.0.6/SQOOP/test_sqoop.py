@@ -129,7 +129,7 @@ class TestSqoop(RMFTestCase):
                        call_mocks = [(0, None), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled("Execute", "hdp-select set sqoop-client %s" % version)
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'sqoop-client', version), sudo=True)
 
     self.assertEquals(2, mocks_dict['call'].call_count)
     self.assertEquals(

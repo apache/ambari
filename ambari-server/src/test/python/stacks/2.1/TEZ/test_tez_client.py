@@ -73,7 +73,7 @@ class TestTezClient(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     get_hdp_version_mock.return_value = "2.2.1.0-2067"
-    self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
 
     # for now, it's enough that hdp-select is confirmed
 
@@ -87,7 +87,7 @@ class TestTezClient(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     get_hdp_version_mock.return_value = "2.2.1.0-2067"
-    self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
 
     # for now, it's enough that hdp-select is confirmed
 
@@ -108,7 +108,7 @@ class TestTezClient(RMFTestCase):
                        call_mocks = [(0, None), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute', 'hdp-select set hadoop-client %s' % version)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hadoop-client', version), sudo=True)
     self.assertNoMoreResources()
 
     self.assertEquals(2, mocks_dict['call'].call_count)

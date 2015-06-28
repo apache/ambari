@@ -146,7 +146,7 @@ class TestPigClient(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
-                              'hdp-select set hadoop-client %s' % version)
+                              ('hdp-select', 'set', 'hadoop-client', version), sudo=True)
     self.assertNoMoreResources()
 
   def test_pre_rolling_restart_23(self):
@@ -167,7 +167,7 @@ class TestPigClient(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute',
-                              'hdp-select set hadoop-client %s' % version)
+                              ('hdp-select', 'set', 'hadoop-client', version), sudo=True)
     self.assertNoMoreResources()
 
     self.assertEquals(2, mocks_dict['call'].call_count)

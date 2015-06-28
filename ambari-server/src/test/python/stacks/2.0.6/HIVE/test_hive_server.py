@@ -692,7 +692,7 @@ class TestHiveServer(RMFTestCase):
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
 
-    self.assertResourceCalled('Execute', 'hdp-select set hive-server2 2.2.1.0-2065',)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=True))
@@ -712,7 +712,7 @@ class TestHiveServer(RMFTestCase):
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
 
-    self.assertResourceCalled('Execute', 'hdp-select set hive-server2 2.2.1.0-2065',)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
 
   def test_stop_during_upgrade_bad_hive_version(self):
     try:
@@ -857,7 +857,7 @@ class TestHiveServer(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
-                              'hdp-select set hive-server2 %s' % version,)
+                              ('hdp-select', 'set', 'hive-server2', version), sudo=True,)
 
     copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs")
     copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs")
@@ -896,7 +896,7 @@ class TestHiveServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
 
-                              'hdp-select set hive-server2 %s' % version,)
+                              ('hdp-select', 'set', 'hive-server2', version), sudo=True,)
     copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs")
     copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs")
     self.assertEquals(2, copy_to_hdfs_mock.call_count)

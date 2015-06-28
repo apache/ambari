@@ -464,7 +464,7 @@ class TestJournalnode(RMFTestCase):
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
-    self.assertResourceCalled('Execute', 'hdp-select set hadoop-hdfs-journalnode %s' % version,)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hadoop-hdfs-journalnode', version), sudo=True,)
     self.assertNoMoreResources()
 
   @patch("resource_management.core.shell.call")
@@ -485,7 +485,7 @@ class TestJournalnode(RMFTestCase):
                        call_mocks = [(0, None), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute', 'hdp-select set hadoop-hdfs-journalnode %s' % version,)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hadoop-hdfs-journalnode', version), sudo=True,)
     self.assertNoMoreResources()
 
     self.assertEquals(

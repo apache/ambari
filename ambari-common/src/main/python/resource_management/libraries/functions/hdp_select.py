@@ -27,7 +27,7 @@ from resource_management.libraries.functions.get_hdp_version import get_hdp_vers
 from resource_management.libraries.script.script import Script
 
 # hdp-select set oozie-server 2.2.0.0-1234
-TEMPLATE = "hdp-select set {0} {1}"
+TEMPLATE = ('hdp-select', 'set')
 
 # a mapping of Ambari server role to hdp-select component name for all
 # non-clients
@@ -103,8 +103,8 @@ def select(component, version):
   :param component: the hdp-select component, such as oozie-server
   :param version: the version to set the component to, such as 2.2.0.0-1234
   """
-  command = TEMPLATE.format(component, version)
-  Execute(command)
+  command = TEMPLATE + (component, version)
+  Execute(command, sudo=True)
 
   # don't trust the ordering of modules:
   # 1) status_params

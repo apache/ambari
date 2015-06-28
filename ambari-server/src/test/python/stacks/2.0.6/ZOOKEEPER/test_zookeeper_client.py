@@ -167,7 +167,7 @@ class TestZookeeperClient(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
-                              'hdp-select set zookeeper-client %s' % version)
+                              ('hdp-select', 'set', 'zookeeper-client', version), sudo=True)
     self.assertNoMoreResources()
 
   @patch("resource_management.core.shell.call")
@@ -191,7 +191,7 @@ class TestZookeeperClient(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute',
-                              'hdp-select set zookeeper-client %s' % version)
+                              ('hdp-select', 'set', 'zookeeper-client', version), sudo=True)
 
     self.assertEquals(2, mocks_dict['call'].call_count)
     self.assertEquals(

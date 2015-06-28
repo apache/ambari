@@ -182,7 +182,7 @@ class TestRangerAdmin(RMFTestCase):
                        call_mocks = [(0, None), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled("Execute", "hdp-select set ranger-admin 2.3.0.0-1234")
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'ranger-admin', '2.3.0.0-1234'), sudo=True)
 
     self.assertEquals(2, mocks_dict['call'].call_count)
     self.assertEquals(

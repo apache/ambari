@@ -257,7 +257,7 @@ class TestKnoxGateway(RMFTestCase):
 
     self.assertTrue(tarfile_open_mock.called)
 
-    self.assertResourceCalled("Execute", "hdp-select set knox-server %s" % version)
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'knox-server', version), sudo=True)
 
   @patch("os.remove")
   @patch("os.path.exists")
@@ -288,7 +288,7 @@ class TestKnoxGateway(RMFTestCase):
 
     self.assertTrue(tarfile_open_mock.called)
 
-    self.assertResourceCalled("Execute", "hdp-select set knox-server %s" % version)
+    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'knox-server', version), sudo=True)
 
     self.assertEquals(2, mocks_dict['call'].call_count)
     self.assertEquals(

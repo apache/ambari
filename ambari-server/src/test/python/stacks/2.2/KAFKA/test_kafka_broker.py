@@ -110,7 +110,7 @@ class TestKafkaBroker(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
-                              'hdp-select set kafka-broker %s' % version,)
+                              ('hdp-select', 'set', 'kafka-broker', version), sudo=True,)
     self.assertNoMoreResources()
 
   @patch("resource_management.core.shell.call")
@@ -132,7 +132,7 @@ class TestKafkaBroker(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute',
-                              'hdp-select set kafka-broker %s' % version,)
+                              ('hdp-select', 'set', 'kafka-broker', version), sudo=True,)
     self.assertNoMoreResources()
 
     self.assertEquals(2, mocks_dict['call'].call_count)
