@@ -90,6 +90,9 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("forceRefreshConfigTags")
   private Set<String> forceRefreshConfigTags = new HashSet<String>();
 
+  @SerializedName("forceRefreshConfigTagsBeforeExecution")
+  private Set<String> forceRefreshConfigTagsBeforeExecution = new HashSet<String>();
+
   @SerializedName("commandParams")
   private Map<String, String> commandParams = new HashMap<String, String>();
 
@@ -231,6 +234,19 @@ public class ExecutionCommand extends AgentCommand {
     this.forceRefreshConfigTags = forceRefreshConfigTags;
   }
 
+  /**
+   * Comma separated list of config-types whose tags have be refreshed
+   * at runtime before being executed. If all config-type tags have to be
+   * refreshed, "*" can be specified.
+   */
+  public Set<String> getForceRefreshConfigTagsBeforeExecution() {
+    return forceRefreshConfigTagsBeforeExecution;
+  }
+
+  public void setForceRefreshConfigTagsBeforeExecution(Set<String> forceRefreshConfigTagsBeforeExecution) {
+    this.forceRefreshConfigTagsBeforeExecution = forceRefreshConfigTagsBeforeExecution;
+  }
+
   public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {
     return configurationAttributes;
   }
@@ -332,6 +348,12 @@ public class ExecutionCommand extends AgentCommand {
     String HOST_SYS_PREPPED = "host_sys_prepped";
     String MAX_DURATION_OF_RETRIES = "max_duration_for_retries";
     String COMMAND_RETRY_ENABLED = "command_retry_enabled";
+    /**
+     * Comma separated list of config-types whose tags have be refreshed
+     * at runtime before being executed. If all config-type tags have to be
+     * refreshed, "*" can be specified.
+     */
+    String REFRESH_CONFIG_TAGS_BEFORE_EXECUTION = "forceRefreshConfigTagsBeforeExecution";
 
     String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standard command? maybe add it to RoleCommand enum?
     String CUSTOM_COMMAND = "custom_command";

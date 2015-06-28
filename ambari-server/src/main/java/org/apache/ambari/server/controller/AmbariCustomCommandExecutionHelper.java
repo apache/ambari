@@ -330,6 +330,10 @@ public class AmbariCustomCommandExecutionHelper {
         execCmd.setForceRefreshConfigTags(parseAndValidateComponentsMapping(actionExecutionContext.getParameters().get(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)));
       }
 
+      if(actionExecutionContext.getParameters() != null && actionExecutionContext.getParameters().containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
+        execCmd.setForceRefreshConfigTagsBeforeExecution(parseAndValidateComponentsMapping(actionExecutionContext.getParameters().get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)));
+      }
+
       Map<String, String> hostLevelParams = new TreeMap<String, String>();
 
       hostLevelParams.put(CUSTOM_COMMAND, commandName);
@@ -549,6 +553,9 @@ public class AmbariCustomCommandExecutionHelper {
     execCmd.setConfigurations(configurations);
     execCmd.setConfigurationAttributes(configurationAttributes);
     execCmd.setConfigurationTags(configTags);
+    if(actionParameters != null && actionParameters.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
+      execCmd.setForceRefreshConfigTagsBeforeExecution(parseAndValidateComponentsMapping(actionParameters.get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)));
+    }
 
     // Generate cluster host info
     execCmd.setClusterHostInfo(
@@ -922,6 +929,10 @@ public class AmbariCustomCommandExecutionHelper {
 
         if(requestParams.containsKey(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)){
           actionExecutionContext.getParameters().put(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS, requestParams.get(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS));
+        }
+
+        if(requestParams.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
+          actionExecutionContext.getParameters().put(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION, requestParams.get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION));
         }
 
         RequestOperationLevel operationLevel = actionExecutionContext.getOperationLevel();
