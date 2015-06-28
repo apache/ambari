@@ -422,7 +422,16 @@ describe('App.WizardStep2Controller', function () {
         }
       }
       expect(result).to.equal(true);
-    })
+    });
+
+    it('should skip duplicates', function () {
+      var controller = App.WizardStep2Controller.create({
+        hostNameArr: ['host[1-3]', 'host2']
+      });
+      controller.parseHostNamesAsPatternExpression();
+      expect(controller.get('hostNameArr')).to.eql(['host1', 'host2', 'host3']);
+    });
+
   });
 
   describe('#proceedNext()', function () {
