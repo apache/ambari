@@ -56,7 +56,7 @@ def post_upgrade_check():
   nn_address = namenode_ha.get_address(NAMENODE_STATE.ACTIVE)
 
   nn_data = get_jmx_data(nn_address, 'org.apache.hadoop.hdfs.server.namenode.FSNamesystem', 'JournalTransactionInfo',
-                         namenode_ha.is_encrypted())
+                         namenode_ha.is_encrypted(), params.security_enabled)
   if not nn_data:
     raise Fail("Could not retrieve JournalTransactionInfo from JMX")
 
@@ -121,7 +121,7 @@ def ensure_jns_have_new_txn(nodes, last_txn_id):
         continue
 
       url = '%s://%s:%s' % (protocol, node, params.journalnode_port)
-      data = get_jmx_data(url, 'Journal-', 'LastWrittenTxId')
+      data = get_jmx_data(url, 'Journal-', 'LastWrittenTxId', params.https_only, params.security_enabled)
       if data:
         actual_txn_ids[node] = int(data)
         if actual_txn_ids[node] >= last_txn_id:

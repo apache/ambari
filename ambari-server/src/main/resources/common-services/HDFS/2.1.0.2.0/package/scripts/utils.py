@@ -29,6 +29,7 @@ from resource_management.core import shell
 from resource_management.core.shell import as_user, as_sudo
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
+from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 
 from zkfc_slave import ZkfcSlave
 
@@ -261,7 +262,7 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
          action="delete",
     )
 
-def get_jmx_data(nn_address, modeler_type, metric, encrypted=False):
+def get_jmx_data(nn_address, modeler_type, metric, encrypted=False, security_enabled=False):
   """
   :param nn_address: Namenode Address, e.g., host:port, ** MAY ** be preceded with "http://" or "https://" already.
   If not preceded, will use the encrypted param to determine.
@@ -281,17 +282,23 @@ def get_jmx_data(nn_address, modeler_type, metric, encrypted=False):
   nn_address = nn_address + "jmx"
   Logger.info("Retrieve modeler: %s, metric: %s from JMX endpoint %s" % (modeler_type, metric, nn_address))
 
-  data = urllib2.urlopen(nn_address).read()
-  data_dict = json.loads(data)
+  if security_enabled:
+    import params
+    data, error_msg, time_millis = curl_krb_request(params.tmp_dir, params.smoke_user_keytab, params.smokeuser_principal, nn_address,
+                            "jn_upgrade", params.kinit_path_local, False, None, params.smoke_user)
+  else:
+    data = urllib2.urlopen(nn_address).read()
   my_data = None
-  if data_dict:
-    for el in data_dict['beans']:
-      if el is not None and el['modelerType'] is not None and el['modelerType'].startswith(modeler_type):
-        if metric in el:
-          my_data = el[metric]
-          if my_data:
-            my_data = json.loads(str(my_data))
-            break
+  if data:
+    data_dict = json.loads(data)
+    if data_dict:
+      for el in data_dict['beans']:
+        if el is not None and el['modelerType'] is not None and el['modelerType'].startswith(modeler_type):
+          if metric in el:
+            my_data = el[metric]
+            if my_data:
+              my_data = json.loads(str(my_data))
+              break
   return my_data
 
 def get_port(address):

@@ -261,7 +261,8 @@ class TestJournalnode(RMFTestCase):
 
   @patch('time.sleep')
   @patch("urllib2.urlopen")
-  def test_post_rolling_restart(self, urlopen_mock, time_mock):
+  @patch("utils.curl_krb_request")
+  def test_post_rolling_restart(self, curl_krb_request_mock, urlopen_mock, time_mock):
     # load the NN and JN JMX files so that the urllib2.urlopen mock has data
     # to return
     num_journalnodes = 3
@@ -300,9 +301,7 @@ class TestJournalnode(RMFTestCase):
     urlopen_mock.assert_called_with("http://c6407.ambari.apache.org:8480/jmx")
 
     url_stream_mock.reset_mock()
-    url_stream_mock.read.side_effect = (num_journalnodes * [namenode_jmx, journalnode_jmx])
-
-    urlopen_mock.return_value = url_stream_mock
+    curl_krb_request_mock.side_effect = (num_journalnodes * [(namenode_jmx, "", 1), (journalnode_jmx, "", 1)])
 
     # now try with HDFS on SSL
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
@@ -313,10 +312,10 @@ class TestJournalnode(RMFTestCase):
       target = RMFTestCase.TARGET_COMMON_SERVICES )
 
     # ensure that the mock was called with the http-style version of the URL
-    urlopen_mock.assert_called
-    urlopen_mock.assert_called_with("https://c6407.ambari.apache.org:8481/jmx")
-
-
+    curl_krb_request_mock.assert_called
+    curl_krb_request_mock.assert_called_with("/tmp", "/etc/security/keytabs/smokeuser.headless.keytab",
+                                             "ambari-qa@EXAMPLE.COM", "https://c6407.ambari.apache.org:8481/jmx",
+                                             "jn_upgrade", "/usr/bin/kinit", False, None, "ambari-qa")
 
   @patch('time.sleep')
   @patch("urllib2.urlopen")

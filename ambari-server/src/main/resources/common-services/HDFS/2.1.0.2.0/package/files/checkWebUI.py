@@ -47,9 +47,7 @@ def main():
       httpCode = 404
 
     if httpCode != 200:
-      if not https:
-        print "Cannot access WEB UI on: http://" + host + ":" + port if not https.lower() == "true" else "Cannot access WEB UI on: https://" + host + ":" + port
-
+      print "Cannot access WEB UI on: http://" + host + ":" + port if not https.lower() == "true" else "Cannot access WEB UI on: https://" + host + ":" + port
       exit(1)
 
 if __name__ == "__main__":
