@@ -345,7 +345,7 @@ App.WizardStep2Controller = Em.Controller.extend({
         hostNames.push(a);
       }
     });
-    this.set('hostNameArr', hostNames);
+    this.set('hostNameArr', hostNames.uniq());
   },
 
   /**
