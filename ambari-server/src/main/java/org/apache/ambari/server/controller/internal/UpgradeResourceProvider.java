@@ -44,6 +44,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.resources.UpgradeResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -845,6 +846,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     params.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
     params.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
     params.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
+    // Setting REFRESH_CONFIG_TAGS_BEFORE_EXECUTION is required during upgrade to
+    // force a refresh of config-tags just before execution. Generally upgrade packs
+    // have config updates which tend to make the persisted config-tags in the
+    // ExecutionCommand stale.
+    params.put(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION, "*");
 
     // Because custom task may end up calling a script/function inside a service, it is necessary to set the
     // service_package_folder and hooks_folder params.
@@ -924,6 +930,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         context.getOriginalStackId().getStackId());
     restartCommandParams.put(COMMAND_PARAM_TARGET_STACK,
         context.getTargetStackId().getStackId());
+    // Setting REFRESH_CONFIG_TAGS_BEFORE_EXECUTION is required during upgrade to
+    // force a refresh of config-tags just before execution. Generally upgrade packs
+    // have config updates which tend to make the persisted config-tags in the
+    // ExecutionCommand stale.
+    restartCommandParams.put(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION, "*");
 
     ActionExecutionContext actionContext = new ActionExecutionContext(
         cluster.getClusterName(), "RESTART",
@@ -980,6 +991,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         context.getOriginalStackId().getStackId());
     commandParams.put(COMMAND_PARAM_TARGET_STACK,
         context.getTargetStackId().getStackId());
+    // Setting REFRESH_CONFIG_TAGS_BEFORE_EXECUTION is required during upgrade to
+    // force a refresh of config-tags just before execution. Generally upgrade packs
+    // have config updates which tend to make the persisted config-tags in the
+    // ExecutionCommand stale.
+    commandParams.put(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION, "*");
 
     ActionExecutionContext actionContext = new ActionExecutionContext(
         cluster.getClusterName(), "SERVICE_CHECK",

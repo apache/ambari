@@ -17,22 +17,25 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 public class ExecutionCommandWrapper {
   @Inject
@@ -50,6 +53,7 @@ public class ExecutionCommandWrapper {
     this.executionCommand = executionCommand;
   }
 
+  @SuppressWarnings("serial")
   public ExecutionCommand getExecutionCommand() {
     if (executionCommand != null) {
       return executionCommand;
@@ -73,10 +77,32 @@ public class ExecutionCommandWrapper {
         try {
           Cluster cluster = clusters.getClusterById(clusterId);
           ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+          Map<String, Map<String, String>> configurationTags = executionCommand.getConfigurationTags();
+
+          // Execution commands have config-tags already set during their creation. However, these
+          // tags become stale at runtime when other ExecutionCommands run and change the desired
+          // configs (like ConfigureAction). Hence an ExecutionCommand can specify which config-types
+          // should be refreshed at runtime. Specifying <code>*</code> will result in all config-type
+          // tags to be refreshed to the latest cluster desired-configs.
+          Set<String> refreshConfigTagsBeforeExecution = executionCommand.getForceRefreshConfigTagsBeforeExecution();
+          if (refreshConfigTagsBeforeExecution != null && !refreshConfigTagsBeforeExecution.isEmpty()) {
+            Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+            for (String refreshConfigTag : refreshConfigTagsBeforeExecution) {
+              if ("*".equals(refreshConfigTag)) {
+                for (final Entry<String, DesiredConfig> desiredConfig : desiredConfigs.entrySet()) {
+                  configurationTags.put(desiredConfig.getKey(), new HashMap<String, String>() {{
+                    put("tag", desiredConfig.getValue().getTag());
+                  }});
+                }
+                break;
+              } else if (configurationTags.containsKey(refreshConfigTag) && desiredConfigs.containsKey(refreshConfigTag)) {
+                configurationTags.get(refreshConfigTag).put("tag", desiredConfigs.get(refreshConfigTag).getTag());
+              }
+            }
+          }
 
           Map<String, Map<String, String>> configProperties = configHelper
-            .getEffectiveConfigProperties(cluster,
-              executionCommand.getConfigurationTags());
+            .getEffectiveConfigProperties(cluster, configurationTags);
 
           // Apply the configurations saved with the Execution Cmd on top of
           // derived configs - This will take care of all the hacks
