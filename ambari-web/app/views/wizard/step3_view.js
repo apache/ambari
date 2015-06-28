@@ -107,6 +107,7 @@ App.WizardStep3View = App.TableView.extend({
 
   didInsertElement: function () {
     this.get('controller').loadStep();
+    App.get('router').set('transitionInProgress', false);
   },
 
   /**

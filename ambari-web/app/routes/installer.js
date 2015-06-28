@@ -174,13 +174,16 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       router.transitionTo('step2');
     },
     next: function (router, context) {
-      var installerController = router.get('installerController');
-      var wizardStep3Controller = router.get('wizardStep3Controller');
-      installerController.saveConfirmedHosts(wizardStep3Controller);
-      installerController.setDBProperty('bootStatus', true);
-      installerController.setDBProperty('selectedServiceNames', undefined);
-      installerController.setDBProperty('installedServiceNames', undefined);
-      router.transitionTo('step4');
+      if (!router.transitionInProgress) {
+        router.set('transitionInProgress', true);
+        var installerController = router.get('installerController');
+        var wizardStep3Controller = router.get('wizardStep3Controller');
+        installerController.saveConfirmedHosts(wizardStep3Controller);
+        installerController.setDBProperty('bootStatus', true);
+        installerController.setDBProperty('selectedServiceNames', undefined);
+        installerController.setDBProperty('installedServiceNames', undefined);
+        router.transitionTo('step4');
+      }
     },
     exit: function (router) {
       router.get('wizardStep3Controller').set('stopBootstrap', true);
