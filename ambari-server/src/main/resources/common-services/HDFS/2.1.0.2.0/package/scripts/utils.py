@@ -114,13 +114,17 @@ def kill_zkfc(zkfc_user):
   if params.dfs_ha_enabled:
     zkfc_pid_file = get_service_pid_file("zkfc", zkfc_user)
     if zkfc_pid_file:
-      check_process = as_user(format("ls {zkfc_pid_file} > /dev/null 2>&1 && ps -p `cat {zkfc_pid_file}` > /dev/null 2>&1"), user=params.hdfs_user)
+      check_process = as_user(format("ls {zkfc_pid_file} > /dev/null 2>&1 && ps -p `cat {zkfc_pid_file}` > /dev/null 2>&1"), user=zkfc_user)
       code, out = shell.call(check_process)
       if code == 0:
         Logger.debug("ZKFC is running and will be killed to initiate namenode failover.")
-        kill_command = format("{check_process} && kill -9 `cat {zkfc_pid_file}` > /dev/null 2>&1")
-        Execute(kill_command)
-        Execute(format("rm -f {zkfc_pid_file}"))
+        kill_command = format("kill -9 `cat {zkfc_pid_file}`")
+        Execute(kill_command,
+             user=zkfc_user
+        )
+        File(zkfc_pid_file,
+             action = "delete",
+        )
         return True
   return False
 
