@@ -17,7 +17,17 @@ limitations under the License.
 
 """
 import os
-from resource_management import *
+import shutil
+import ambari_simplejson as json
+from resource_management.core.shell import as_sudo
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.script import Script
+
 
 def setup_hdp_install_directory():
   # This is a name of marker file.
@@ -42,3 +52,87 @@ def setup_config():
               owner=params.hdfs_user,
               group=params.user_group,
               only_if=format("ls {hadoop_conf_dir}"))
+
+
+def load_version(struct_out_file):
+  """
+  Load version from file.  Made a separate method for testing
+  """
+  json_version = None
+  try:
+    if os.path.exists(struct_out_file):
+      with open(struct_out_file, 'r') as fp:
+        json_info = json.load(fp)
+        json_version = json_info['version']
+  except:
+    pass
+
+  return json_version
+  
+
+def link_configs(struct_out_file):
+  """
+  Links configs, only on a fresh install of HDP-2.3 and higher
+  """
+
+  if not Script.is_hdp_stack_greater_or_equal("2.3"):
+    Logger.info("Can only link configs for HDP-2.3 and higher.")
+    return
+
+  json_version = load_version(struct_out_file)
+
+  if not json_version:
+    Logger.info("Could not load 'version' from {0}".format(struct_out_file))
+    return
+
+  for k, v in conf_select.PACKAGE_DIRS.iteritems():
+    _link_configs(k, json_version, v['conf_dir'], v['current_dir'])
+
+def _link_configs(package, version, old_conf, link_conf):
+  """
+  Link a specific package's configuration directory
+  """
+
+  if not os.path.exists(old_conf):
+    Logger.debug("Skipping {0} as it does not exist.".format(old_conf))
+    return
+
+  # check if conf is a link to the target already
+  if os.path.islink(old_conf):
+    Logger.debug("{0} is already a link to {1}".format(old_conf, os.path.realpath(old_conf)))
+    return
+
+  # make backup dir and copy everything in case configure() was called after install()
+  old_parent = os.path.abspath(os.path.join(old_conf, os.pardir))
+  old_conf_copy = os.path.join(old_parent, "conf.install")
+  if not os.path.exists(old_conf_copy):
+    try:
+      Execute(as_sudo(["cp", "-R", "-p", old_conf, old_conf_copy]), logoutput=True)
+    except:
+      pass
+
+  versioned_conf = conf_select.create("HDP", package, version, dry_run = True)
+
+  Logger.info("New conf directory is {0}".format(versioned_conf))
+
+  # make new conf dir and copy everything in case configure() was called after install()
+  if not os.path.exists(versioned_conf):
+    conf_select.create("HDP", package, version)
+    try:
+      Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
+        logoutput=True)
+    except:
+      pass
+
+  # make /usr/hdp/<version>/hadoop/conf point to the versioned config.
+  # /usr/hdp/current is already set
+  conf_select.select("HDP", package, version)
+
+  # no more references to /etc/[component]/conf
+  shutil.rmtree(old_conf, ignore_errors=True)
+
+  # link /etc/[component]/conf -> /usr/hdp/current/[component]-client/conf
+  os.symlink(link_conf, old_conf)
+      
+  # should conf.install be removed?
+

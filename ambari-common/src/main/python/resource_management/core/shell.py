@@ -356,8 +356,11 @@ def _get_environment_str(env):
   return reduce(lambda str,x: '{0} {1}={2}'.format(str,x,quote_bash_args(env[x])), env, '')
 
 def string_cmd_from_args_list(command, auto_escape=True):
-  escape_func = lambda x:quote_bash_args(x) if auto_escape else lambda x:x
-  return ' '.join(escape_func(x) for x in command)
+  if auto_escape:
+    escape_func = lambda x:quote_bash_args(x)
+    return ' '.join(escape_func(x) for x in command)
+  else:
+    return ' '.join(command)
 
 def _print(line):
   sys.stdout.write(line)
