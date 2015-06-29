@@ -613,7 +613,9 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @method onSuccessPerHost
    */
   onSuccessPerHost: function (actions, contentHost) {
-    if (actions.everyProperty('Tasks.status', 'COMPLETED') && this.get('content.cluster.status') === 'INSTALLED') {
+    var status = this.get('content.cluster.status');
+    if (actions.everyProperty('Tasks.status', 'COMPLETED') && 
+        (status === 'INSTALLED' || status === 'STARTED') ) {
       contentHost.set('status', 'success');
     }
   },
