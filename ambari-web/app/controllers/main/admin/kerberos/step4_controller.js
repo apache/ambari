@@ -29,7 +29,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     this.set('selectedService', null);
     this.set('stepConfigs', []);
   },
-  
+
   loadStep: function() {
     if (this.get('wizardController.skipConfigureIdentitiesStep')) {
       App.router.send('next');
@@ -37,10 +37,23 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     }
     var self = this;
     this.clearStep();
-    this.getDescriptorConfigs().then(function(properties) {
-      self.setStepConfigs(properties);
-      self.set('isRecommendedLoaded', true);
-    });
+     if (this.get('wizardController.name') === 'addServiceController' && this.get('shouldLoadClusterDescriptor')) {
+     // merge saved properties with default ones for the newly added service
+       this.loadClusterDescriptorConfigs().always(function(clusterDescriptorConfigs,textStatus) {
+         var clusterProperties =  textStatus === 'success' ? self.createServicesStackDescriptorConfigs.call(self, clusterDescriptorConfigs) : [];
+         self.loadStackDescriptorConfigs().always(function(stackDescriptorConfigs, textStatus) {
+           var stackProperties =  textStatus === 'success' ? self.createServicesStackDescriptorConfigs.call(self, stackDescriptorConfigs) : [];
+            self.setStepConfigs(clusterProperties, stackProperties);
+            self.set('isRecommendedLoaded', true);
+         });
+       });
+     } else {
+       this.getDescriptorConfigs().then(function (properties) {
+         self.setStepConfigs(properties);
+       }).always(function() {
+         self.set('isRecommendedLoaded', true);
+       });
+     }
   },
 
   /**
@@ -105,15 +118,35 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
    * Prepare step configs using stack descriptor properties.
    * 
    * @param {App.ServiceConfigProperty[]} configs
+   * @param {App.ServiceConfigProperty[]} stackConfigs
    */
-  setStepConfigs: function(configs) {
-    var configProperties = this.prepareConfigProperties(configs);
+  setStepConfigs: function(configs, stackConfigs) {
+    var configProperties = this.prepareConfigProperties(configs),
+      stackConfigProperties = stackConfigs ? this.prepareConfigProperties(stackConfigs) : [],
+      alterProperties = ['value','initialValue', 'defaultValue'];
     if (this.get('wizardController.name') == 'addServiceController') {
       // config properties for installed services should be disabled on Add Service Wizard
       configProperties.forEach(function(item) {
         if (this.get('adminPropertyNames').mapProperty('name').contains(item.get('name'))) return;
         if (this.get('installedServiceNames').contains(item.get('serviceName')) || item.get('serviceName') == 'Cluster') {
           item.set('isEditable', false);
+        } else if (stackConfigs) {
+          var stackConfigProperty = stackConfigProperties.filterProperty('filename', item.get('filename')).findProperty('name', item.get('name'));
+          if (stackConfigProperty) {
+            alterProperties.forEach(function (alterProperty) {
+              item.set(alterProperty, stackConfigProperty.get(alterProperty));
+            });
+          }
+        }
+      }, this);
+      // Concat properties that are present in the stack's kerberos  descriptor but not in the cluster kerberos descriptor
+      stackConfigProperties.forEach(function(_stackConfigProperty){
+        var isPropertyInClusterDescriptor = configProperties.filterProperty('filename', _stackConfigProperty.get('filename')).someProperty('name', _stackConfigProperty.get('name'));
+        if (!isPropertyInClusterDescriptor) {
+          if (this.get('installedServiceNames').contains(_stackConfigProperty.get('serviceName')) || _stackConfigProperty.get('serviceName') == 'Cluster') {
+            _stackConfigProperty.set('isEditable', false);
+          }
+          configProperties.pushObject(_stackConfigProperty);
         }
       }, this);
     }
