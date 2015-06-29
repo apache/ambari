@@ -21,6 +21,9 @@ require('controllers/wizard/step7_controller');
 
 App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecurityConfigs, App.ToggleIsRequiredMixin, {
   name: 'kerberosWizardStep4Controller',
+  isWithinAddService: function () {
+    return this.get('wizardController.name') == 'addServiceController';
+  }.property('wizardController.name'),
 
   adminPropertyNames: [{name: 'admin_principal', displayName: 'Admin principal'}, {name: 'admin_password', displayName: 'Admin password'}],
   
@@ -166,13 +169,20 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
    * @returns {App.ServiceConfigProperty[]}
    */
   prepareConfigProperties: function(configs) {
+    console.log("call prepare");
     var self = this;
     var storedServiceConfigs = this.get('wizardController').getDBProperty('serviceConfigProperties');
     var installedServiceNames = ['Cluster'].concat(App.Service.find().mapProperty('serviceName'));
     var adminProps = [];
     var configProperties = configs.slice(0);
     var siteProperties = App.config.get('preDefinedSiteProperties');
-    if (this.get('wizardController.name') == 'addServiceController') {
+    // override stored values
+    App.config.mergeStoredValue(configProperties, storedServiceConfigs);
+    console.log(this.get('wizardController'));
+    App.config.mergeStoredValue(configProperties, this.get('wizardController').loadCachedStepConfigValues(this));
+
+    // show admin properties in add service wizard
+    if (this.get('isWithinAddService')) {
       installedServiceNames = installedServiceNames.concat(this.get('selectedServiceNames'));
       this.get('adminPropertyNames').forEach(function(item) {
         var property = storedServiceConfigs.filterProperty('filename', 'krb5-conf.xml').findProperty('name', item.name);
@@ -188,8 +198,8 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
           adminProps.push(_prop);
         }
       });
-      configProperties = adminProps.concat(configProperties);
     }
+    configProperties = adminProps.concat(configProperties);
     configProperties = configProperties.filter(function(item) {
       return installedServiceNames.contains(item.get('serviceName'));
     });
