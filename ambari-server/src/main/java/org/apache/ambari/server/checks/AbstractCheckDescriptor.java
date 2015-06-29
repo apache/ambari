@@ -17,8 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
@@ -226,7 +225,7 @@ public abstract class AbstractCheckDescriptor {
     }
 
     if (fail.contains("{{fails}}")) {
-      List<String> names = prerequisiteCheck.getFailedOn();
+      LinkedHashSet<String> names = prerequisiteCheck.getFailedOn();
 
       // If Type=PrereqCheckType.HOST, names list is already populated
       if (getDescription().getType() == PrereqCheckType.SERVICE) {
@@ -239,7 +238,7 @@ public abstract class AbstractCheckDescriptor {
               c.getDesiredStackVersion().getStackName(),
               c.getDesiredStackVersion().getStackVersion());
 
-          List<String> displays = new ArrayList<String>();
+          LinkedHashSet<String> displays = new LinkedHashSet<String>();
           for (String name : names) {
             if (services.containsKey(name)) {
               displays.add(services.get(name).getDisplayName());
@@ -270,10 +269,11 @@ public abstract class AbstractCheckDescriptor {
    * @param entities list of entities to format
    * @return formatted entity list
    */
-  protected String formatEntityList(List<String> entities) {
+  protected String formatEntityList(LinkedHashSet<String> entities) {
     if (entities == null || entities.isEmpty()) {
       return "";
     }
+
     final StringBuilder formatted = new StringBuilder(StringUtils.join(entities, ", "));
     if (entities.size() > 1) {
       formatted.replace(formatted.lastIndexOf(","), formatted.lastIndexOf(",") + 1, " and");
@@ -281,5 +281,4 @@ public abstract class AbstractCheckDescriptor {
 
     return formatted.toString();
   }
-
 }

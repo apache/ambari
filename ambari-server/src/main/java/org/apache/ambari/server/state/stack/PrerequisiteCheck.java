@@ -18,6 +18,7 @@
 package org.apache.ambari.server.state.stack;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.apache.ambari.server.checks.CheckDescription;
@@ -31,7 +32,7 @@ public class PrerequisiteCheck {
   private final String m_clusterName;
   private PrereqCheckStatus m_status = PrereqCheckStatus.PASS;
   private String m_failReason = "";
-  private List<String> m_failedOn = new ArrayList<String>();
+  private LinkedHashSet<String> m_failedOn = new LinkedHashSet<String>();
   private List<Object> m_failedDetail = new ArrayList<Object>();
 
   public PrerequisiteCheck(CheckDescription description, String clusterName) {
@@ -63,7 +64,7 @@ public class PrerequisiteCheck {
     m_failReason = failReason;
   }
 
-  public List<String> getFailedOn() {
+  public LinkedHashSet<String> getFailedOn() {
     return m_failedOn;
   }
 
@@ -71,8 +72,7 @@ public class PrerequisiteCheck {
     return m_failedDetail;
   }
 
-
-  public void setFailedOn(List<String> failedOn) {
+  public void setFailedOn(LinkedHashSet<String> failedOn) {
     m_failedOn = failedOn;
   }
 

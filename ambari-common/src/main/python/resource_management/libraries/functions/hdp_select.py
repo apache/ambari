@@ -148,7 +148,7 @@ def get_role_component_current_hdp_version():
   return current_hdp_version
 
 
-def get_hadoop_dir(target):
+def get_hadoop_dir(target, force_latest_on_upgrade=False):
   """
   Return the hadoop shared directory in the following override order
   1. Use default for 2.1 and lower
@@ -157,6 +157,8 @@ def get_hadoop_dir(target):
   However, if the upgrade has not yet invoked hdp-select, return the current
   version of the component.
   :target: the target directory
+  :force_latest_on_upgrade: if True, then this will return the "current" directory
+  without the HDP version built into the path, such as /usr/hdp/current/hadoop-client
   """
 
   if not target in HADOOP_DIR_DEFAULTS:
@@ -171,22 +173,25 @@ def get_hadoop_dir(target):
     else:
       hadoop_dir = HADOOP_DIR_TEMPLATE.format("current", "hadoop-client", target)
 
-    stack_info = _get_upgrade_stack()
+    # if we are not forcing "current" for HDP 2.2, then attempt to determine
+    # if the exact version needs to be returned in the directory
+    if not force_latest_on_upgrade:
+      stack_info = _get_upgrade_stack()
 
-    if stack_info is not None:
-      stack_version = stack_info[1]
+      if stack_info is not None:
+        stack_version = stack_info[1]
 
-      # determine if hdp-select has been run and if not, then use the current
-      # hdp version until this component is upgraded
-      current_hdp_version = get_role_component_current_hdp_version()
-      if current_hdp_version is not None and stack_version != current_hdp_version:
-        stack_version = current_hdp_version
+        # determine if hdp-select has been run and if not, then use the current
+        # hdp version until this component is upgraded
+        current_hdp_version = get_role_component_current_hdp_version()
+        if current_hdp_version is not None and stack_version != current_hdp_version:
+          stack_version = current_hdp_version
 
-      if target == "home":
-        # home uses a different template
-        hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_version, "hadoop")
-      else:
-        hadoop_dir = HADOOP_DIR_TEMPLATE.format(stack_version, "hadoop", target)
+        if target == "home":
+          # home uses a different template
+          hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_version, "hadoop")
+        else:
+          hadoop_dir = HADOOP_DIR_TEMPLATE.format(stack_version, "hadoop", target)
 
   return hadoop_dir
 

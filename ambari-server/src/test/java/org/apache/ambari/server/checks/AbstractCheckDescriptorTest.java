@@ -17,8 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
 
 import junit.framework.Assert;
 
@@ -57,7 +56,7 @@ public class AbstractCheckDescriptorTest {
 
     Assert.assertEquals("", check.formatEntityList(null));
 
-    final List<String> failedOn = new ArrayList<String>();
+    final LinkedHashSet<String> failedOn = new LinkedHashSet<String>();
     Assert.assertEquals("", check.formatEntityList(failedOn));
 
     failedOn.add("host1");

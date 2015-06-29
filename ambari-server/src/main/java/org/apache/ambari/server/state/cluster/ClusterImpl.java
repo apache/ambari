@@ -51,9 +51,9 @@ import org.apache.ambari.server.controller.AmbariSessionManager;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.RequiresSession;
-import org.apache.ambari.server.orm.cache.ConfigGroupHostMapping;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
@@ -397,7 +397,6 @@ public class ClusterImpl implements Cluster {
                     "Can not get service info: stackName=%s, stackVersion=%s, serviceName=%s",
                     stackId.getStackName(), stackId.getStackVersion(),
                     serviceEntity.getServiceName()));
-                e.printStackTrace();
               }
             }
           }
@@ -2488,39 +2487,50 @@ public class ClusterImpl implements Cluster {
       for (Entry<String, ServiceComponentHostEvent> entry : eventMap.entries()) {
         String serviceName = entry.getKey();
         ServiceComponentHostEvent event = entry.getValue();
+        String serviceComponentName = event.getServiceComponentName();
+
+        // server-side events either don't have a service name or are AMBARI;
+        // either way they are not handled by this method since it expects a
+        // real service and component
+        if (StringUtils.isBlank(serviceName) || Services.AMBARI.name().equals(serviceName)) {
+          continue;
+        }
+
+        if (StringUtils.isBlank(serviceComponentName)) {
+          continue;
+        }
+
         try {
           Service service = getService(serviceName);
-          ServiceComponent serviceComponent = service.getServiceComponent(event.getServiceComponentName());
+          ServiceComponent serviceComponent = service.getServiceComponent(serviceComponentName);
           ServiceComponentHost serviceComponentHost = serviceComponent.getServiceComponentHost(event.getHostName());
           serviceComponentHost.handleEvent(event);
         } catch (ServiceNotFoundException e) {
           String message = String.format("ServiceComponentHost lookup exception. Service not found for Service: %s. Error: %s",
                   serviceName, e.getMessage());
           LOG.error(message);
-          e.printStackTrace();
           failedEvents.put(event, message);
         } catch (ServiceComponentNotFoundException e) {
           String message = String.format("ServiceComponentHost lookup exception. Service Component not found for Service: %s, Component: %s. Error: %s",
-                  serviceName, event.getServiceComponentName(), e.getMessage());
+              serviceName, serviceComponentName, e.getMessage());
           LOG.error(message);
-          e.printStackTrace();
           failedEvents.put(event, message);
         } catch (ServiceComponentHostNotFoundException e) {
           String message = String.format("ServiceComponentHost lookup exception. Service Component Host not found for Service: %s, Component: %s, Host: %s. Error: %s",
-                  serviceName, event.getServiceComponentName(), event.getHostName(), e.getMessage());
+              serviceName, serviceComponentName, event.getHostName(), e.getMessage());
           LOG.error(message);
-          e.printStackTrace();
           failedEvents.put(event, message);
         } catch (AmbariException e) {
           String message = String.format("ServiceComponentHost lookup exception %s", e.getMessage());
           LOG.error(message);
-          e.printStackTrace();
           failedEvents.put(event, message);
         } catch (InvalidStateTransitionException e) {
           LOG.error("Invalid transition ", e);
           if ((e.getEvent() == ServiceComponentHostEventType.HOST_SVCCOMP_START) &&
             (e.getCurrentState() == State.STARTED)) {
-            LOG.warn("Component request for component = " + event.getServiceComponentName() + " to start is invalid, since component is already started. Ignoring this request.");
+            LOG.warn("Component request for component = "
+                + serviceComponentName
+                + " to start is invalid, since component is already started. Ignoring this request.");
             // skip adding this as a failed event, to work around stack ordering issues with Hive
           } else {
             failedEvents.put(event, String.format("Invalid transition. %s", e.getMessage()));

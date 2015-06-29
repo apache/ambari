@@ -328,10 +328,6 @@ if not lzo_enabled:
   
 name_node_params = default("/commandParams/namenode", None)
 
-#hadoop params
-hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
-
-#hadoop-env.sh
 java_home = config['hostLevelParams']['java_home']
 java_version = int(config['hostLevelParams']['java_version'])
 
