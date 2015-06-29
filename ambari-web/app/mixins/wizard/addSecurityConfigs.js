@@ -340,12 +340,21 @@ App.AddSecurityConfigs = Em.Mixin.create({
    * @method loadStackDescriptorConfigs
    */
   loadDescriptorConfigs: function() {
-    if (App.router.get('mainAdminKerberosController.securityEnabled') && !App.router.get('mainAdminKerberosController.defaultKerberosLoaded')) {
+    if (this.get('shouldLoadClusterDescriptor')) {
       return this.loadClusterDescriptorConfigs();
     } else {
       return this.loadStackDescriptorConfigs();
     }
   },
+
+  /**
+   * Check if cluster descriptor should be loaded
+   * @returns {Boolean}
+   */
+  shouldLoadClusterDescriptor: function() {
+    return App.router.get('mainAdminKerberosController.securityEnabled') && !App.router.get('mainAdminKerberosController.defaultKerberosLoaded');
+  }.property('App.router.mainAdminKerberosController.securityEnabled', 'App.router.mainAdminKerberosController.defaultKerberosLoaded'),
+
   /**
    * Make request for stack descriptor configs.
    * @returns {$.ajax}

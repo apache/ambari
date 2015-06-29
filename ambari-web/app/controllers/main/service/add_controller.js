@@ -300,6 +300,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     if (App.router.get('mainAdminKerberosController.securityEnabled')) {
       this.getDescriptorConfigs().then(function(properties) {
         self.set('kerberosDescriptorConfigs', properties);
+      }).always(function(){
         dfd.resolve();
       });
     } else {
