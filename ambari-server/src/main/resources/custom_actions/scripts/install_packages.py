@@ -32,6 +32,7 @@ from resource_management import *
 from resource_management.libraries.functions.list_ambari_managed_repos import list_ambari_managed_repos
 from ambari_commons.os_check import OSCheck, OSConst
 from resource_management.libraries.functions.packages_analyzer import allInstalledPackages
+from resource_management.libraries.functions import conf_select
 from resource_management.core.shell import call
 
 from resource_management.core.logger import Logger
@@ -142,6 +143,11 @@ class InstallPackages(Script):
     # Provide correct exit code
     if num_errors > 0:
       raise Fail("Failed to distribute repositories/install packages")
+
+    if 'package_installation_result' in self.structured_output and \
+      'actual_version' in self.structured_output and \
+      self.structured_output['package_installation_result'] == 'SUCCESS':
+      conf_select.create_config_links(stack_id, self.structured_output['actual_version'])
 
   def get_actual_version_from_file(self):
     """

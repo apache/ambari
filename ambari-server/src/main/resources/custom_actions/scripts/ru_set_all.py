@@ -20,14 +20,19 @@ Ambari Agent
 
 """
 
+import os
+import shutil
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.script import Script
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute
+from resource_management.core.shell import as_sudo
 
 class UpgradeSetAll(Script):
   """
@@ -57,6 +62,42 @@ class UpgradeSetAll(Script):
         cmd = "hdp-select set all {0}".format(version)
         code, out = shell.call(cmd)
         Logger.info("Command: {0}\nCode: {1}, Out: {2}".format(cmd, str(code), str(out)))
+
+      if compare_versions(real_ver, format_hdp_stack_version("2.3")) >= 0:
+        # backup the old and symlink /etc/[component]/conf to /usr/hdp/current/[component]
+        for k, v in conf_select.PACKAGE_DIRS.iteritems():
+          link_config(v['conf_dir'], v['current_dir'])
+
+def link_config(old_conf, link_conf):
+  """
+  Creates a config link following:
+  1. Checks if the old_conf location exists
+  2. If it does, check if it's a link already
+  3. Make a copy to /etc/[component]/conf.backup
+  4. Remove the old directory and create a symlink to link_conf
+  :old_conf: the old config directory, ie /etc/[component]/config
+  :link_conf: the new target for the config directory, ie /usr/hdp/current/[component-dir]/conf
+  """
+  if not os.path.exists(old_conf):
+    Logger.debug("Skipping {0}; it does not exist".format(old_conf))
+    return
+  
+  if os.path.islink(old_conf):
+    Logger.debug("Skipping {0}; it is already a link".format(old_conf))
+    return
+
+  old_parent = os.path.abspath(os.path.join(old_conf, os.pardir))
+
+  Logger.info("Linking {0} to {1}".format(old_conf, link_conf))
+
+  old_conf_copy = os.path.join(old_parent, "conf.backup")
+  if not os.path.exists(old_conf_copy):
+    Execute(as_sudo(["cp", "-R", "-p", old_conf, old_conf_copy]), logoutput=True)
+
+  shutil.rmtree(old_conf, ignore_errors=True)
+
+  # link /etc/[component]/conf -> /usr/hdp/current/[component]-client/conf
+  os.symlink(link_conf, old_conf)
 
 if __name__ == "__main__":
   UpgradeSetAll().execute()

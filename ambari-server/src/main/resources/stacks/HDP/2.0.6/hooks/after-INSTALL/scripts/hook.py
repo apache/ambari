@@ -17,11 +17,12 @@ limitations under the License.
 
 """
 
-import sys
-from resource_management import *
-from shared_initialization import *
+from resource_management.libraries.script.hook import Hook
+from shared_initialization import link_configs
+from shared_initialization import setup_config
+from shared_initialization import setup_hdp_install_directory
+from resource_management.libraries.script import Script
 
-#Hook for hosts with only client without other components
 class AfterInstallHook(Hook):
 
   def hook(self, env):
@@ -30,6 +31,8 @@ class AfterInstallHook(Hook):
     env.set_params(params)
     setup_hdp_install_directory()
     setup_config()
+
+    link_configs(self.stroutfile)
 
 if __name__ == "__main__":
   AfterInstallHook().execute()

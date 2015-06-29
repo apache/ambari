@@ -20,11 +20,92 @@ limitations under the License.
 
 __all__ = ["select", "create", "get_hadoop_conf_dir", "get_hadoop_dir"]
 
+import os
 import version
 import hdp_select
 
 from resource_management.core import shell
 from resource_management.libraries.script.script import Script
+from resource_management.core.logger import Logger
+
+PACKAGE_DIRS = {
+  "accumulo": {
+    "conf_dir": "/etc/accumulo/conf",
+    "current_dir": "/usr/hdp/current/accumulo-client/conf"
+  },
+  "falcon": {
+    "conf_dir": "/etc/falcon/conf",
+    "current_dir": "/usr/hdp/current/falcon-client/conf"
+  },
+  "hadoop": {
+    "conf_dir": "/etc/hadoop/conf",
+    "current_dir": "/usr/hdp/current/hadoop-client/conf"
+  },
+  "hbase": {
+    "conf_dir": "/etc/hbase/conf",
+    "current_dir": "/usr/hdp/current/hbase-client/conf"
+  },
+  "hive": {
+    "conf_dir": "/etc/hive/conf",
+    "current_dir": "/usr/hdp/current/hive-client/conf"
+  },
+  "kafka": {
+    "conf_dir": "/etc/kafka/conf",
+    "current_dir": "/usr/hdp/current/kafka-broker/conf"
+  },
+  "knox": {
+    "conf_dir": "/etc/knox/conf",
+    "current_dir": "/usr/hdp/current/knox-server/conf"
+  },
+  "mahout": {
+    "conf_dir": "/etc/mahout/conf",
+    "current_dir": "/usr/hdp/current/mahout-client/conf"
+  },
+  "oozie": {
+    "conf_dir": "/etc/oozie/conf",
+    "current_dir": "/usr/hdp/current/oozie-client/conf"
+  },
+  "phoenix": {
+    "conf_dir": "/etc/phoenix/conf",
+    "current_dir": "/usr/hdp/current/phoenix-client/conf"
+  },
+  "ranger-admin": {
+    "conf_dir": "/etc/ranger/admin/conf",
+    "current_dir": "/usr/hdp/current/ranger-admin/conf"
+  },
+  "ranger-kms": {
+    "conf_dir": "/etc/ranger/kms/conf",
+    "current_dir": "/usr/hdp/current/ranger-kms/conf"
+  },
+  "ranger-usersync": {
+    "conf_dir": "/etc/ranger/kms/usersync",
+    "current_dir": "/usr/hdp/current/ranger-usersync/conf"
+  },
+  "slider": {
+    "conf_dir": "/etc/slider/conf",
+    "current_dir": "/usr/hdp/current/slider-client/conf"
+  },
+  "spark": {
+    "conf_dir": "/etc/spark/conf",
+    "current_dir": "/usr/hdp/current/spark-client/conf"
+  },
+  "sqoop": {
+    "conf_dir": "/etc/sqoop/conf",
+    "current_dir": "/usr/hdp/current/sqoop-client/conf"
+  },
+  "storm": {
+    "conf_dir": "/etc/storm/conf",
+    "current_dir": "/usr/hdp/current/storm-client/conf"
+  },
+  "tez": {
+    "conf_dir": "/etc/tez/conf",
+    "current_dir": "/usr/hdp/current/tez-client/conf"
+  },
+  "zookeeper": {
+    "conf_dir": "/etc/zookeeper/conf",
+    "current_dir": "/usr/hdp/current/zookeeper-client/conf"
+  }
+}
 
 TEMPLATE = "conf-select {0} --package {1} --stack-version {2} --conf-version 0"
 
@@ -38,7 +119,7 @@ def _valid(stack_name, package, ver):
   return True
 
 
-def create(stack_name, package, version):
+def create(stack_name, package, version, dry_run = False):
   """
   Creates a config version for the specified package
   :stack_name: the name of the stack
@@ -49,7 +130,11 @@ def create(stack_name, package, version):
   if not _valid(stack_name, package, version):
     return
 
-  shell.call(TEMPLATE.format("create-conf-dir", package, version), logoutput=False, quiet=True)
+  command = "dry-run-create" if dry_run else "create-conf-dir"
+
+  code, stdout = shell.call(TEMPLATE.format(command, package, version), logoutput=False, quiet=True)
+
+  return stdout
 
 
 def select(stack_name, package, version, try_create=True):
@@ -115,5 +200,34 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
   return hadoop_conf_dir
 
 
+def create_config_links(stack_id, stack_version):
+  """
+  Creates config links
+  stack_id:  stack id, ie HDP-2.3
+  stack_version:  version to set, ie 2.3.0.0-1234
+  """
 
+  if stack_id is None:
+    Logger.info("Cannot create config links when stack_id is not defined")
+    return
+
+  args = stack_id.upper().split('-')
+  if len(args) != 2:
+    Logger.info("Unrecognized stack id {0}".format(stack_id))
+    return
+
+  if args[0] != "HDP":
+    Logger.info("Unrecognized stack name {0}".format(args[0]))
+
+  if version.compare_versions(version.format_hdp_stack_version(args[1]), "2.3.0.0") < 0:
+    Logger.info("Cannot link configs unless HDP-2.3 or higher")
+    return
+
+  for k, v in PACKAGE_DIRS.iteritems():
+    if os.path.exists(v['conf_dir']):
+      new_conf_dir = create(args[0], k, stack_version, dry_run = True)
+
+      if not os.path.exists(new_conf_dir):
+        Logger.info("Creating conf {0} for {1}".format(new_conf_dir, k))
+        select(args[0], k, stack_version)
 

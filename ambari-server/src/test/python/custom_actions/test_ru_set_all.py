@@ -92,3 +92,39 @@ class TestRUSetAll(RMFTestCase):
 
     call_mock.assert_called_with("hdp-select set all 2.2.1.0-2260")
 
+  @patch("resource_management.core.shell.call")
+  @patch.object(Script, 'get_config')
+  @patch.object(OSCheck, 'is_redhat_family')
+  @patch("ru_set_all.link_config")
+  def test_execution_23(self, link_mock, family_mock, get_config_mock, call_mock):
+    # Mock the config objects
+    json_file_path = os.path.join(self.CUSTOM_ACTIONS_DIR, "ru_execute_tasks_namenode_prepare.json")
+    self.assertTrue(os.path.isfile(json_file_path))
+    with open(json_file_path, "r") as json_file:
+      json_payload = json.load(json_file)
+
+    json_payload['hostLevelParams']['stack_version'] = "2.3"
+    json_payload['commandParams']['version'] = "2.3.0.0-1234"
+
+    config_dict = ConfigDictionary(json_payload)
+
+    family_mock.return_value = True
+    get_config_mock.return_value = config_dict
+    call_mock.side_effect = fake_call   # echo the command
+
+    # Ensure that the json file was actually read.
+    stack_name = default("/hostLevelParams/stack_name", None)
+    stack_version = default("/hostLevelParams/stack_version", None)
+    service_package_folder = default('/roleParams/service_package_folder', None)
+
+    self.assertEqual(stack_name, "HDP")
+    self.assertEqual(stack_version, 2.3)
+    self.assertEqual(service_package_folder, "common-services/HDFS/2.1.0.2.0/package")
+
+    # Begin the test
+    ru_execute = UpgradeSetAll()
+    ru_execute.actionexecute(None)
+
+    self.assertTrue(link_mock.called)
+    call_mock.assert_called_with("hdp-select set all 2.3.0.0-1234")
+
