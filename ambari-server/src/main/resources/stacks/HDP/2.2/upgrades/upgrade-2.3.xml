@@ -125,6 +125,7 @@
     </group>
 
     <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
+      <skippable>true</skippable>
       <service-check>false</service-check>
       <service name="HDFS">
         <component>DATANODE</component>
