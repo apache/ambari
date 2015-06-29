@@ -60,6 +60,11 @@ public enum UpgradeCheckGroup {
   MULTIPLE_COMPONENT_WARNING(6.0f),
 
   /**
+   * A general group for warning about configuration properties.
+   */
+  CONFIGURATION_WARNING(7.0f),
+
+  /**
    * All other checks.
    */
   DEFAULT(Float.MAX_VALUE);

@@ -20,14 +20,13 @@ package org.apache.ambari.server.checks;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.models.HostComponentSummary;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
@@ -35,9 +34,9 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Singleton;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Checks that services are up.
@@ -103,7 +102,7 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
     }
 
     if (!errorMessages.isEmpty()) {
-      prerequisiteCheck.setFailedOn(new ArrayList<String>(failedServiceNames));
+      prerequisiteCheck.setFailedOn(new LinkedHashSet<String>(failedServiceNames));
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason("The following Service Components should be in a started state.  Please invoke a service Stop and full Start and try again. " + StringUtils.join(errorMessages, ", "));
     }

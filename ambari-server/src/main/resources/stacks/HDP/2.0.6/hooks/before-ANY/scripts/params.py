@@ -81,13 +81,18 @@ def is_secure_port(port):
 
 # hadoop default params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-hadoop_home = hdp_select.get_hadoop_dir("home")
+
+# upgrades would cause these directories to have a version instead of "current"
+# which would cause a lot of problems when writing out hadoop-env.sh; instead
+# force the use of "current" in the hook
+hadoop_home = hdp_select.get_hadoop_dir("home", force_latest_on_upgrade=True)
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec", force_latest_on_upgrade=True)
+
+hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 hadoop_secure_dn_user = hdfs_user
 hadoop_dir = "/etc/hadoop"
 versioned_hdp_root = '/usr/hdp/current'
-hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
-hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec")
-hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 
 # HDP 2.2+ params
 if Script.is_hdp_stack_greater_or_equal("2.2"):

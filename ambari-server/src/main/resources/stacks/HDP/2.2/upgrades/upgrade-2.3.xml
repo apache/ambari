@@ -23,7 +23,7 @@
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Backups">
       <direction>UPGRADE</direction>
-      
+
       <execute-stage service="HDFS" component="NAMENODE" title="Pre Upgrade HDFS">
         <task xsi:type="execute" hosts="master">
           <script>scripts/namenode.py</script>
@@ -63,6 +63,16 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HDFS" component="NAMENODE" title="Modify hadoop-env.sh">
+        <task xsi:type="configure">
+          <type>hadoop-env</type>
+          <replace key="content" find="# Add libraries required by nodemanager" replace-with="" />
+          <replace key="content" find="MAPREDUCE_LIBS={{mapreduce_libs_path}}" replace-with="" />
+          <replace key="content" find=":${MAPREDUCE_LIBS}" replace-with="" />
+          <replace key="content" find=":/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*:/etc/tez/conf/" replace-with="" />
+          <replace key="content" find=":/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*:/usr/hdp/current/tez-client/conf/" replace-with="" />
+        </task>
+      </execute-stage>
     </group>
 
     <group name="ZOOKEEPER" title="ZooKeeper">

@@ -106,7 +106,7 @@ public class ClusterGrouping extends Grouping {
 
     @Override
     public List<StageWrapper> build(UpgradeContext ctx) {
-      if (null == ClusterGrouping.this.executionStages) {
+      if (null == executionStages) {
         return Collections.emptyList();
       }
 
@@ -128,6 +128,7 @@ public class ClusterGrouping extends Grouping {
               wrapper = getManualStageWrapper(ctx, execution);
               break;
 
+            case CONFIGURE:
             case SERVER_ACTION:
               wrapper = new StageWrapper(
                   StageWrapper.Type.SERVER_SIDE_ACTION,
