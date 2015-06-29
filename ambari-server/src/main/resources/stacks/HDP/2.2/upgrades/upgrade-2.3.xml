@@ -451,7 +451,7 @@
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure">
-            <condition type="ranger-hdfs-plugin-properties" key="ranger-hdfs-plugin-enabled" value="true">
+            <condition type="ranger-hdfs-plugin-properties" key="ranger-hdfs-plugin-enabled" value="Yes">
               <type>hdfs-site</type>
               <key>dfs.namenode.inode.attributes.provider.class</key>
               <value>org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer</value>
