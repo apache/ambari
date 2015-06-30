@@ -248,7 +248,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     final String desiredRepoVersion;
     String stackName;
     String stackVersion;
-    if (request.getProperties().size() != 1) {
+    if (request.getProperties().size() > 1) {
       throw new UnsupportedOperationException("Multiple requests cannot be executed at the same time.");
     }
 
@@ -296,7 +296,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
         clusterSet = getManagementController().getClusters().getClustersForHost(hostName);
       } catch (AmbariException e) {
         throw new NoSuchParentResourceException(String.format((
-                "Host %s does belong to any cluster"
+                "Host %s does not belong to any cluster"
         ), hostName), e);
       }
     } else {
@@ -311,21 +311,18 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       clusterSet = Collections.singleton(cluster);
     }
 
-    // Select all clusters that contain the desired repo version
-    Set<Cluster> selectedClusters = new HashSet<Cluster>();
-    for (Cluster cluster : clusterSet) {
-      if (cluster.getCurrentStackVersion().equals(stackId)) {
-        selectedClusters.add(cluster);
-      }
-    }
-
     Cluster cluster;
-    if (selectedClusters.size() != 1) {
-      throw new UnsupportedOperationException(String.format("Host %s belongs to %d clusters " +
-              "with stack id %s. Performing %s action on multiple clusters " +
-              "is not supported", hostName, selectedClusters.size(), stackId, INSTALL_PACKAGES_FULL_NAME));
+    if (clusterSet.isEmpty()) {
+      throw new UnsupportedOperationException(String.format("Host %s belongs " +
+        "to 0 clusters with stack id %s. Performing %s action failed.",
+        hostName, stackId, INSTALL_PACKAGES_FULL_NAME));
+    } else if (clusterSet.size() > 1) {
+      throw new UnsupportedOperationException(String.format("Host %s belongs " +
+        "to %d clusters with stack id %s. Performing %s action on multiple " +
+        "clusters is not supported", hostName, clusterSet.size(), stackId,
+        INSTALL_PACKAGES_FULL_NAME));
     } else {
-      cluster = selectedClusters.iterator().next();
+      cluster = clusterSet.iterator().next();
     }
 
     RepositoryVersionEntity repoVersionEnt = repositoryVersionDAO.findByStackAndVersion(stackId, desiredRepoVersion);
