@@ -25,9 +25,10 @@ angular.module('ambariAdminConsole')
     delete data.app.loginName;
     delete data.app.user;
     localStorage.ambari = JSON.stringify(data);
-    $window.location.pathname = '';
     $scope.hello = "hello";
-    Auth.signout();
+    Auth.signout().finally(function() {
+      $window.location.pathname = '';
+    });
   };
 
   $scope.ambariVersion = null;
