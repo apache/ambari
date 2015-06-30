@@ -22,7 +22,7 @@
 
   <order>
 
-    <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Backups">
+    <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
       <direction>UPGRADE</direction>
       <execute-stage service="HDFS" component="NAMENODE" title="Pre Upgrade HDFS">
         <task xsi:type="execute" hosts="master">

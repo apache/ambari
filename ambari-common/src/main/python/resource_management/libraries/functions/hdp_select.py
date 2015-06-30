@@ -148,7 +148,7 @@ def get_role_component_current_hdp_version():
   return current_hdp_version
 
 
-def get_hadoop_dir(target, force_latest_on_upgrade=False):
+def get_hadoop_dir(target, force_latest_on_upgrade=False, upgrade_stack_only=False):
   """
   Return the hadoop shared directory in the following override order
   1. Use default for 2.1 and lower
@@ -159,6 +159,7 @@ def get_hadoop_dir(target, force_latest_on_upgrade=False):
   :target: the target directory
   :force_latest_on_upgrade: if True, then this will return the "current" directory
   without the HDP version built into the path, such as /usr/hdp/current/hadoop-client
+  :upgrade_stack_only: if True, provides upgrade stack target if present and not current
   """
 
   if not target in HADOOP_DIR_DEFAULTS:
@@ -184,7 +185,7 @@ def get_hadoop_dir(target, force_latest_on_upgrade=False):
         # determine if hdp-select has been run and if not, then use the current
         # hdp version until this component is upgraded
         current_hdp_version = get_role_component_current_hdp_version()
-        if current_hdp_version is not None and stack_version != current_hdp_version:
+        if current_hdp_version is not None and stack_version != current_hdp_version and not upgrade_stack_only:
           stack_version = current_hdp_version
 
         if target == "home":
