@@ -809,6 +809,38 @@
             </condition>
           </task>
 
+          <task xsi:type="configure" summary="Configuring hive authentication">
+            <type>hive-site</type>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
+
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
+            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="ldap"/>
+
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
+            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="kerberos"/>
+
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+            <transfer operation="delete" delete-key="hive.server2.custom.authentication.class" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="pam"/>
+
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.pam.services" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.keytab" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+            <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
+          </task>
+
           <task xsi:type="configure" summary="Configuring Ranger Hive Policy">
             <type>ranger-hive-policymgr-ssl</type>
             <transfer operation="copy" from-type="ranger-hive-plugin-properties" from-key="SSL_KEYSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.keystore" default-value="/usr/hdp/current/hive-server2/conf/ranger-plugin-keystore.jks"/>
