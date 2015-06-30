@@ -178,7 +178,9 @@ ats_host = set(default("/clusterHostInfo/app_timeline_server_hosts", []))
 has_ats = not len(ats_host) == 0
 
 nm_hosts = default("/clusterHostInfo/nm_hosts", [])
-number_of_nm = len(nm_hosts)
+
+# don't using len(nm_hosts) here, because check can take too much time on large clusters
+number_of_nm = 1
 
 # default kinit commands
 rm_kinit_cmd = ""
