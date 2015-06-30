@@ -46,7 +46,7 @@ import namenode_upgrade
 from hdfs_namenode import namenode
 from hdfs import hdfs
 import hdfs_rebalance
-from utils import failover_namenode
+from utils import stop_zkfc_during_ru
 
 
 # hashlib is supplied as of Python 2.5 as the replacement interface for md5
@@ -86,7 +86,7 @@ class NameNode(Script):
     env.set_params(params)
     if rolling_restart and params.dfs_ha_enabled:
       if params.dfs_ha_automatic_failover_enabled:
-        failover_namenode()
+        stop_zkfc_during_ru()
       else:
         raise Fail("Rolling Upgrade - dfs.ha.automatic-failover.enabled must be enabled to perform a rolling restart")
     namenode(action="stop", rolling_restart=rolling_restart, env=env)

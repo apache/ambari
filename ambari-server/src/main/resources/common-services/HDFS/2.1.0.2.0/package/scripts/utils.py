@@ -30,6 +30,7 @@ from resource_management.core.shell import as_user, as_sudo
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.core.exceptions import Fail
 
 from zkfc_slave import ZkfcSlave
 
@@ -60,23 +61,25 @@ def safe_zkfc_op(action, env):
         zkfc.stop(env)
 
 
-def failover_namenode():
+def stop_zkfc_during_ru():
   """
-  Failover the primary namenode by killing zkfc if it exists on this host (assuming this host is the primary).
+  Restart ZKFC on either the standby or active Namenode. If done on the currently active namenode, wait for it to
+  become the standby.
   """
   import params
   check_service_cmd = format("hdfs haadmin -getServiceState {namenode_id}")
   code, out = shell.call(check_service_cmd, logoutput=True, user=params.hdfs_user)
 
-  state = "unknown"
+  original_state = "unknown"
   if code == 0 and out:
-    state = "active" if "active" in out else ("standby" if "standby" in out else state)
-    Logger.info("Namenode service state: %s" % state)
+    original_state = "active" if "active" in out else ("standby" if "standby" in out else original_state)
+    Logger.info("Namenode service state: %s" % original_state)
 
-  if state == "active":
-    Logger.info("Rolling Upgrade - Initiating namenode failover by killing zkfc on active namenode")
+    msg = "Rolling Upgrade - Killing ZKFC on {0} NameNode host {1} {2}"\
+      .format(original_state, params.hostname, "to initiate a failover" if original_state == "active" else "")
+    Logger.info(msg)
 
-    # Forcefully kill ZKFC on this host to initiate a failover
+    # Forcefully kill ZKFC. If this is the active, will initiate a failover.
     # If ZKFC is already dead, then potentially this node can still be the active one.
     was_zkfc_killed = kill_zkfc(params.hdfs_user)
 
@@ -84,22 +87,24 @@ def failover_namenode():
     check_standby_cmd = format("hdfs haadmin -getServiceState {namenode_id} | grep standby")
 
     # process may already be down.  try one time, then proceed
-    code, out = shell.call(check_standby_cmd, user=params.hdfs_user, logoutput=True)
-    Logger.info(format("Rolling Upgrade - check for standby returned {code}"))
 
-    if code == 255 and out:
-      Logger.info("Rolling Upgrade - namenode is already down.")
-    else:
-      if was_zkfc_killed:
-        # Only mandate that this be the standby namenode if ZKFC was indeed killed to initiate a failover.
-        Logger.info("Waiting for this NameNode to become the standby one.")
-        Execute(check_standby_cmd,
-                user=params.hdfs_user,
-                tries=50,
-                try_sleep=6,
-                logoutput=True)
+    if original_state == "active":
+      code, out = shell.call(check_standby_cmd, user=params.hdfs_user, logoutput=True)
+      Logger.info(format("Rolling Upgrade - check for standby returned {code}"))
+
+      if code == 255 and out:
+        Logger.info("Rolling Upgrade - namenode is already down.")
+      else:
+        if was_zkfc_killed:
+          # Only mandate that this be the standby namenode if ZKFC was indeed killed to initiate a failover.
+          Logger.info("Waiting for this NameNode to become the standby one.")
+          Execute(check_standby_cmd,
+                  user=params.hdfs_user,
+                  tries=50,
+                  try_sleep=6,
+                  logoutput=True)
   else:
-    Logger.info("Rolling Upgrade - Host %s is already the standby namenode." % str(params.hostname))
+    raise Fail("Unable to determine NameNode HA states by calling command: {0}".format(check_service_cmd))
 
 
 def kill_zkfc(zkfc_user):
@@ -117,8 +122,8 @@ def kill_zkfc(zkfc_user):
       check_process = as_user(format("ls {zkfc_pid_file} > /dev/null 2>&1 && ps -p `cat {zkfc_pid_file}` > /dev/null 2>&1"), user=zkfc_user)
       code, out = shell.call(check_process)
       if code == 0:
-        Logger.debug("ZKFC is running and will be killed to initiate namenode failover.")
-        kill_command = format("kill -9 `cat {zkfc_pid_file}`")
+        Logger.debug("ZKFC is running and will be killed.")
+        kill_command = format("kill -15 `cat {zkfc_pid_file}`")
         Execute(kill_command,
              user=zkfc_user
         )

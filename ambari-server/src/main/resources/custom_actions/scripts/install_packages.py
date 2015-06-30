@@ -48,6 +48,7 @@ class InstallPackages(Script):
 
   UBUNTU_REPO_COMPONENTS_POSTFIX = ["main"]
   REPO_FILE_NAME_PREFIX = 'HDP-'
+  STACK_TO_ROOT_FOLDER = {"HDP": "/usr/hdp"}
   
   # Mapping file used to store repository versions without a build number, and the actual version it corresponded to.
   # E.g., HDP 2.2.0.0 => HDP 2.2.0.0-2041
@@ -79,6 +80,17 @@ class InstallPackages(Script):
       base_urls = json.loads(config['commandParams']['base_urls'])
       package_list = json.loads(config['commandParams']['package_list'])
       stack_id = config['commandParams']['stack_id']
+
+    stack_name = None
+    self.stack_root_folder = None
+    if stack_id and "-" in stack_id:
+      stack_split = stack_id.split("-")
+      if len(stack_split) == 2:
+        stack_name = stack_split[0].upper()
+        if stack_name in self.STACK_TO_ROOT_FOLDER:
+          self.stack_root_folder = self.STACK_TO_ROOT_FOLDER[stack_name]
+    if self.stack_root_folder is None:
+      raise Fail("Cannot determine the stack's root directory by parsing the stack_id property, {0}".format(str(stack_id)))
 
     self.repository_version = self.repository_version.strip()
 
@@ -120,14 +132,11 @@ class InstallPackages(Script):
       m = re.search("[\d\.]+-\d+", self.repository_version)
       if m:
         # Contains a build number
-        self.structured_output['actual_version'] = self.repository_version
+        self.structured_output['actual_version'] = self.repository_version  # This is the best value known so far.
         self.put_structured_out(self.structured_output)
 
     # Initial list of versions, used to compute the new version installed
-    self.old_versions = []
-    if self.actual_version is None:
-      Logger.info("Calculate the actual version.".format(self.repository_version))
-      self.old_versions = self.hdp_versions()
+    self.old_versions = self.hdp_versions()
 
     try:
       # It's possible for the process to receive a SIGTERM while installing the packages
@@ -207,34 +216,43 @@ class InstallPackages(Script):
     """
     After packages are installed, determine what the new actual version is, in order to save it.
     """
+    Logger.info("Attempting to determine actual version with build number.")
+    Logger.info("Old versions: {0}".format(self.old_versions))
 
-    # If needed to calculate the actual_version, add it to the structured out file.
-    if self.actual_version is None:
-      Logger.info("Attempting to determine actual version with build number.")
-      Logger.info("Old versions: {0}".format(self.old_versions))
+    new_versions = self.hdp_versions()
+    Logger.info("New versions: {0}".format(new_versions))
 
-      new_versions = self.hdp_versions()
-      Logger.info("New versions: {0}".format(new_versions))
+    deltas = set(new_versions) - set(self.old_versions)
+    Logger.info("Deltas: {0}".format(deltas))
 
-      deltas = set(new_versions) - set(self.old_versions)
-      Logger.info("Deltas: {0}".format(deltas))
-
-      if 1 == len(deltas):
-        self.actual_version = next(iter(deltas)).strip()
+    if 1 == len(deltas):
+      self.actual_version = next(iter(deltas)).strip()
+      self.structured_output['actual_version'] = self.actual_version
+      self.put_structured_out(self.structured_output)
+      self.write_actual_version_to_file(self.actual_version)
+    else:
+      Logger.info("Cannot determine a new actual version installed by using the delta method.")
+      # If the first install attempt does a partial install and is unable to report this to the server,
+      # then a subsequent attempt will report an empty delta. For this reason, it is important to search the
+      # repo version history file to determine if we previously did write an actual_version.
+      self.actual_version = self.get_actual_version_from_file()
+      if self.actual_version is not None:
+        self.actual_version = self.actual_version.strip()
         self.structured_output['actual_version'] = self.actual_version
         self.put_structured_out(self.structured_output)
-        self.write_actual_version_to_file(self.actual_version)
+        Logger.info("Found actual version {0} by parsing file {1}".format(self.actual_version, self.REPO_VERSION_HISTORY_FILE))
       else:
-        Logger.info("Cannot determine a new actual version installed by using the delta method. "
-                    "This is expected during the first install attempt since not all packages will yield a new version in \"hdp-select versions\".")
-        # If the first install attempt does a partial install and is unable to report this to the server,
-        # then a subsequent attempt will report an empty delta. For this reason, it is important to search the
-        # repo version history file to determine if we previously did write an actual_version.
-        self.actual_version = self.get_actual_version_from_file()
-        if self.actual_version is not None:
-          self.actual_version = self.actual_version.strip()
-          self.structured_output['actual_version'] = self.actual_version
-          self.put_structured_out(self.structured_output)
+        # It's likely that this host does not have any Stack Components installed, so only contains AMS.
+        if not os.path.exists(self.stack_root_folder):
+          # Special case when this host does not contain any HDP components, but still contains other components like AMS.
+          msg = "Could not determine actual version. This stack's root directory ({0}) is not present on this host, so this host does not contain any versionable components. " \
+                "Therefore, ignore this host and allow other hosts to report the correct repository version.".format(self.stack_root_folder)
+          Logger.info(msg)
+        else:
+          msg = "Could not determine actual version. This stack's root directory ({0}) exists but was not able to determine the actual repository version installed. " \
+                "Try reinstalling packages again.".format(self.stack_root_folder)
+          raise Fail(msg)
+
 
   def install_packages(self, package_list):
     """
@@ -277,7 +295,11 @@ class InstallPackages(Script):
             Package(package, action="remove")
     else:
       # Compute the actual version in order to save it in structured out
-      self.compute_actual_version()
+      try:
+        self.compute_actual_version()
+      except Exception, err:
+        ret_code = 1
+        Logger.logger.exception("Failure while computing actual version. Error: {0}".format(str(err)))
 
     pass
     return ret_code
