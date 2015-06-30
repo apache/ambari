@@ -370,6 +370,80 @@ public class UpgradeHelperTest {
   }
 
   @Test
+  public void testConditionalDeleteTask() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP",
+                                                                       "2.1.1");
+
+    assertTrue(upgrades.containsKey("upgrade_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_test");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+                                                HDP_21, UPGRADE_VERSION, Direction.UPGRADE);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade,
+                                                                     context);
+
+    assertEquals(6, groups.size());
+
+    // grab the configure task out of Hive
+    UpgradeGroupHolder hiveGroup = groups.get(4);
+    assertEquals("HIVE", hiveGroup.name);
+    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(1).getTasks().get(
+        1).getTasks().get(0);
+
+    // now change the thrift port to http to have the 2nd condition invoked
+    Map<String, String> hiveConfigs = new HashMap<String, String>();
+    hiveConfigs.put("hive.server2.transport.mode", "http");
+    hiveConfigs.put("hive.server2.thrift.port", "10001");
+    ConfigurationRequest configurationRequest = new ConfigurationRequest();
+    configurationRequest.setClusterName(cluster.getClusterName());
+    configurationRequest.setType("hive-site");
+    configurationRequest.setVersionTag("version2");
+    configurationRequest.setProperties(hiveConfigs);
+
+    final ClusterRequest clusterRequest = new ClusterRequest(
+        cluster.getClusterId(), cluster.getClusterName(),
+        cluster.getDesiredStackVersion().getStackVersion(), null);
+
+    clusterRequest.setDesiredConfig(Collections.singletonList(configurationRequest));
+    m_managementController.updateClusters(new HashSet<ClusterRequest>() {
+      {
+        add(clusterRequest);
+      }
+    }, null);
+
+    Map<String, String> configProperties = configureTask.getConfigurationChanges(cluster);
+    assertFalse(configProperties.isEmpty());
+    assertEquals(configProperties.get(ConfigureTask.PARAMETER_CONFIG_TYPE), "hive-site");
+
+    String configurationJson = configProperties.get(ConfigureTask.PARAMETER_TRANSFERS);
+    assertNotNull(configurationJson);
+
+    List<ConfigureTask.Transfer> transfers = m_gson.fromJson(configurationJson,
+                                                                              new TypeToken<List<ConfigureTask.Transfer>>() {
+                                                                              }.getType());
+
+    assertEquals(8, transfers.size());
+    assertEquals("copy-key", transfers.get(0).fromKey);
+    assertEquals("copy-key-to", transfers.get(0).toKey);
+
+    assertEquals("move-key", transfers.get(1).fromKey);
+    assertEquals("move-key-to", transfers.get(1).toKey);
+
+    assertEquals("delete-key", transfers.get(2).deleteKey);
+
+    assertEquals("delete-http", transfers.get(3).deleteKey);
+    assertEquals("delete-null-if-value", transfers.get(4).deleteKey);
+    assertEquals("delete-blank-if-key", transfers.get(5).deleteKey);
+    assertEquals("delete-blank-if-type", transfers.get(6).deleteKey);
+    assertEquals("delete-thrift", transfers.get(7).deleteKey);
+  }
+
+
+  @Test
   public void testConfigureTask() throws Exception {
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP",
         "2.1.1");

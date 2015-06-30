@@ -31,12 +31,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.ambari.server.serveraction.upgrades.ConfigureAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 
 import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link ConfigureTask} represents a configuration change. This task can be
@@ -80,6 +83,8 @@ import com.google.gson.Gson;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name="configure")
 public class ConfigureTask extends ServerSideActionTask {
+
+  private static Logger LOG = LoggerFactory.getLogger(ConfigureTask.class);
 
   /**
    * The key that represents the configuration type to change (ie hdfs-site).
@@ -257,6 +262,27 @@ public class ConfigureTask extends ServerSideActionTask {
     @XmlAttribute(name = "coerce-to")
     public TransferCoercionType coerceTo;
 
+    // if the condition is true apply the transfer action
+    // only supported conditional action is DELETE
+    // if-type/if-key == if-value
+    /**
+     * The key to read for the if condition.
+     */
+    @XmlAttribute(name = "if-key")
+    public String ifKey;
+
+    /**
+     * The config type to read for the if condition.
+     */
+    @XmlAttribute(name = "if-type")
+    public String ifType;
+
+    /**
+     * The property value to compare against for the if condition.
+     */
+    @XmlAttribute(name = "if-value")
+    public String ifValue;
+
     /**
      * The keys to keep when the action is {@link TransferOperation#DELETE}.
      */
@@ -407,8 +433,31 @@ public class ConfigureTask extends ServerSideActionTask {
     }
 
     // transfers
-    if( null != transfers && !transfers.isEmpty() ){
-      configParameters.put(ConfigureTask.PARAMETER_TRANSFERS, m_gson.toJson(transfers));
+    if (null != transfers && !transfers.isEmpty()) {
+
+      List<Transfer> allowedTransfers = new ArrayList<Transfer>();
+      for (Transfer transfer : transfers) {
+        if (transfer.operation == TransferOperation.DELETE) {
+          if (StringUtils.isNotBlank(transfer.ifKey) &&
+              StringUtils.isNotBlank(transfer.ifType) &&
+              transfer.ifValue != null) {
+
+            String ifConfigType = transfer.ifType;
+            String ifKey = transfer.ifKey;
+            String ifValue = transfer.ifValue;
+
+            String checkValue = getDesiredConfigurationValue(cluster, ifConfigType, ifKey);
+            if (!ifValue.toLowerCase().equals(StringUtils.lowerCase(checkValue))) {
+              // skip adding
+              LOG.info("Skipping property delete for {}/{} as the value {} for {}/{} is not equal to {}",
+                       this.getConfigType(), transfer.deleteKey, checkValue, ifConfigType, ifKey, ifValue);
+              continue;
+            }
+          }
+        }
+        allowedTransfers.add(transfer);
+      }
+      configParameters.put(ConfigureTask.PARAMETER_TRANSFERS, m_gson.toJson(allowedTransfers));
     }
 
     // replacements

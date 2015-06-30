@@ -223,6 +223,15 @@
             <set key="fooKey3" value="fooValue3"/>
             <transfer operation="copy" from-key="copy-key" to-key="copy-key-to" />
             <transfer operation="move" from-key="move-key" to-key="move-key-to" />
+            <transfer operation="delete" delete-key="delete-key" />
+            <transfer operation="delete" delete-key="delete-http" if-key="hive.server2.transport.mode" if-type="hive-site" if-value="http" />
+            <transfer operation="delete" delete-key="delete-https-fail" if-key="hive.server2.transport.mode" if-type="hive-site" if-value="https" />
+            <transfer operation="delete" delete-key="delete-prop-fail" if-key="non.existent" if-type="hive-site" if-value="https" />
+            <transfer operation="delete" delete-key="delete-type-fail" if-key="non.existent" if-type="non.existent" if-value="" />
+            <transfer operation="delete" delete-key="delete-null-if-value" if-key="non.existent" if-type="non.existent" />
+            <transfer operation="delete" delete-key="delete-blank-if-key" if-key="" if-type="non.existent" />
+            <transfer operation="delete" delete-key="delete-blank-if-type" if-key="non.existent" if-type="" />
+            <transfer operation="delete" delete-key="delete-thrift" if-key="hive.server2.thrift.port" if-type="hive-site" if-value="10001" />
           </task>
         </pre-upgrade>
        </component>
