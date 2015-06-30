@@ -52,12 +52,12 @@ class ZookeeperServer(Script):
     import params
     env.set_params(params)
     self.configure(env, rolling_restart=rolling_restart)
-    zookeeper_service(action = 'start')
+    zookeeper_service(action='start', rolling_restart=rolling_restart)
 
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-    zookeeper_service(action = 'stop')
+    zookeeper_service(action='stop', rolling_restart=rolling_restart)
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ZookeeperServerLinux(ZookeeperServer):
