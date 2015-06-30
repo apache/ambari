@@ -155,11 +155,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     change: function () {
       this.get('parentView').saveDisplayLength();
       var self = this;
-      if (this.get('parentView.startIndex') === 1 || this.get('parentView.startIndex') === 0) {
-        Ember.run.next(function () {
-          self.get('parentView').updatePagination();
-        });
-      } else {
+      if (this.get('parentView.startIndex') !== 1 && this.get('parentView.startIndex') !== 0) {
         Ember.run.next(function () {
           self.set('parentView.startIndex', 1);
         });
@@ -203,14 +199,10 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     this.clearFiltersObs();
     this.addObserver('selectAllHosts', this, this.toggleAllHosts);
     this.addObserver('filteringComplete', this, this.overlayObserver);
-    this.addObserver('startIndex', this, 'updateHostsPagination');
+    this.addObserver('startIndex', this, 'updatePagination');
     this.addObserver('displayLength', this, 'updatePagination');
     this.addObserver('filteredCount', this, this.updatePaging);
     this.overlayObserver();
-  },
-
-  updateHostsPagination: function () {
-    this.updatePagination();
   },
 
   willDestroyElement: function () {
