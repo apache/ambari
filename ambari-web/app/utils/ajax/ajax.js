@@ -1958,7 +1958,14 @@ var urls = {
   },
   'router.logoff': {
     'real': '/logout',
-    'mock': ''
+    'mock': '',
+    format: function() {
+      // Workaround for sign off within Basic Authorization
+      return {
+        username: Date.now(),
+        password: Date.now()
+      };
+    }
   },
   'ambari.service': {
     'real': '/services/AMBARI/components/AMBARI_SERVER{fields}',

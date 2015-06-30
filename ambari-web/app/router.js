@@ -122,7 +122,7 @@ App.Router = Em.Router.extend({
     return currentStep;
   },
 
-  loggedIn: App.db.getAuthenticated(),
+  loggedIn: !!App.db.getAuthenticated(),
 
   loginName: function() {
     return this.getLoginName();
@@ -132,27 +132,45 @@ App.Router = Em.Router.extend({
     var dfd = $.Deferred();
     var self = this;
     var auth = App.db.getAuthenticated();
-    var authResp = (auth && auth === true);
-    if (authResp) {
-      App.ajax.send({
-        name: 'router.login.clusters',
-        sender: this,
-        success: 'onAuthenticationSuccess',
-        error: 'onAuthenticationError'
-      }).complete(function () {
+    App.ajax.send({
+      name: 'router.login.clusters',
+      sender: this,
+      success: 'onAuthenticationSuccess',
+      error: 'onAuthenticationError'
+    }).complete(function (xhr) {
+      if (xhr.isResolved()) {
+        // if server knows the user and user authenticated by UI
+        if (auth && auth === true) {
           dfd.resolve(self.get('loggedIn'));
-        });
-    } else {
-      this.set('loggedIn', false);
-      dfd.resolve(false);
-    }
+          // if server knows the user but UI don't, check the response header
+          // and try to authorize
+        } else if (xhr.getResponseHeader('User')) {
+          var user = xhr.getResponseHeader('User');
+          App.ajax.send({
+            name: 'router.login',
+            sender: self,
+            data: {
+              usr: user,
+              loginName: encodeURIComponent(user)
+            },
+            success: 'loginSuccessCallback',
+            error: 'loginErrorCallback'
+          });
+        } else {
+          self.setAuthenticated(false);
+          dfd.resolve(false);
+        }
+      }
+    });
     return dfd.promise();
   },
 
   onAuthenticationSuccess: function (data) {
-    this.setAuthenticated(true);
-    if (data.items.length) {
-      this.setClusterInstalled(data);
+    if (App.db.getAuthenticated() === true) {
+      this.setAuthenticated(true);
+      if (data.items.length) {
+        this.setClusterInstalled(data);
+      }
     }
   },
 
@@ -381,9 +399,9 @@ App.Router = Em.Router.extend({
   },
 
   logOff: function (context) {
-    $('title').text(Em.I18n.t('app.name'));
-    var hash = misc.utf8ToB64(this.get('loginController.loginName') + ":" + this.get('loginController.password'));
+    var self = this;
 
+    $('title').text(Em.I18n.t('app.name'));
     App.router.get('mainController').stopPolling();
     // App.db.cleanUp() must be called before router.clearAllSteps().
     // otherwise, this.set('installerController.currentStep, 0) would have no effect
@@ -404,29 +422,37 @@ App.Router = Em.Router.extend({
       App.ajax.send({
         name: 'router.logoff',
         sender: this,
-        data: {
-          auth: "Basic " + hash
-        },
-        beforeSend: 'authBeforeSend',
         success: 'logOffSuccessCallback',
-        error:'logOffErrorCallback'
+        error: 'logOffErrorCallback'
+      }).complete(function() {
+        self.logoffRedirect(context);
       });
+    } else {
+      this.logoffRedirect();
     }
+  },
+
+  logOffSuccessCallback: function () {
+    console.log("invoked logout on the server successfully");
+    var applicationController = App.router.get('applicationController');
+    applicationController.set('isPollerRunning', false);
+  },
+
+  logOffErrorCallback: function () {
+    console.log("failed to invoke logout on the server");
+  },
+
+  /**
+   * Redirect function on sign off request.
+   *
+   * @param {$.Event} [context=undefined] - triggered event context
+   */
+  logoffRedirect: function(context) {
     if (App.router.get('clusterController.isLoaded')) {
       window.location.reload();
     } else {
       this.transitionTo('login', context);
     }
-  },
-
-  logOffSuccessCallback: function (data) {
-    console.log("invoked logout on the server successfully");
-    var applicationController = App.router.get('applicationController');
-    applicationController.set('isPollerRunning',false);
-  },
-
-  logOffErrorCallback: function (req) {
-    console.log("failed to invoke logout on the server");
   },
 
   /**
@@ -489,7 +515,6 @@ App.Router = Em.Router.extend({
         $('title').text(Em.I18n.t('app.name'));
         console.log('/login:connectOutlet');
         console.log('currentStep is: ' + router.getInstallerCurrentStep());
-        console.log('authenticated is: ' + router.getAuthenticated());
         router.get('applicationController').connectOutlet('login');
       }
     }),

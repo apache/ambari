@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.factory('Auth',['$http', 'Settings', function($http, Settings) {
+.factory('Auth',['$http', 'Settings', '$window', function($http, Settings, $window) {
   var ambari;
   var currentUserName;
   if (localStorage.ambari) {
@@ -29,9 +29,12 @@ angular.module('ambariAdminConsole')
   }
   return {
     signout: function() {
+      // Workaround for sign off within Basic Authorization
+      var origin = $window.location.protocol + '//' + Date.now() + ':' + Date.now() + '@' +
+            $window.location.hostname + ($window.location.port ? ':' + $window.location.port : '');
       return $http({
         method: 'GET',
-        url: Settings.baseUrl + '/logout'
+        url: origin + Settings.baseUrl + '/logout'
       });
     },
     getCurrentUser: function() {
