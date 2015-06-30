@@ -682,6 +682,12 @@
             </condition>
           </task>
 
+          <task xsi:type="configure" summary="Updating Authorization Coprocessors">
+            <type>hbase-site</type>
+            <replace key="hbase.coprocessor.master.classes" find="com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor" replace-with="org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor" />
+            <replace key="hbase.coprocessor.region.classes" find="com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor" replace-with="org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor" />           
+          </task>
+          
           <task xsi:type="configure" summary="Transitioning Ranger HBase Policy">
             <type>ranger-hbase-policymgr-ssl</type>
             <transfer operation="copy" from-type="ranger-hbase-plugin-properties" from-key="SSL_KEYSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.keystore" default-value="/usr/hdp/current/hbase-client/conf/ranger-plugin-keystore.jks" />
@@ -817,6 +823,11 @@
               <key>hive.server2.http.port</key>
               <value>10011</value>
             </condition>
+          </task>
+          
+          <task xsi:type="configure" summary="Update Hive Authentication Manager">
+            <type>hiveserver2-site</type>
+            <replace key="hive.security.authorization.manager" find="com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory" replace-with="org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory" />
           </task>
 
           <task xsi:type="configure" summary="Configuring hive authentication">
@@ -1155,6 +1166,7 @@
             <type>storm-site</type>
             <transfer operation="copy" from-key="nimbus.host" to-key="nimbus.seeds" coerce-to="yaml-array"/>
             <transfer operation="delete" delete-key="nimbus.host"/>
+            <replace key="nimbus.authorizer" find="com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer" replace-with="org.apache.ranger.authorization.storm.authorizer.RangerStormAuthorizer" />
           </task>
 
           <task xsi:type="configure" summary="Updating Storm home and configuration environment variables">
