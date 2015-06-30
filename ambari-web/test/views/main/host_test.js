@@ -49,11 +49,6 @@ describe('App.MainHostView', function () {
           callCount: 2
         },
         {
-          methodName: 'updateHostsPagination',
-          propertyToChange: 'startIndex',
-          callCount: 1
-        },
-        {
           methodName: 'updatePagination',
           propertyToChange: 'displayLength',
           callCount: 1
@@ -84,23 +79,6 @@ describe('App.MainHostView', function () {
         view.propertyDidChange(item.propertyToChange);
         expect(view[item.methodName].callCount).to.equal(item.callCount);
       });
-    });
-
-  });
-
-  describe('#updateHostsPagination', function () {
-
-    beforeEach(function () {
-      sinon.stub(view, 'updatePagination', Em.K);
-    });
-
-    afterEach(function () {
-      view.updatePagination.restore();
-    });
-
-    it('should execute updatePagination', function () {
-      view.updateHostsPagination();
-      expect(view.updatePagination.calledOnce).to.be.true;
     });
 
   });

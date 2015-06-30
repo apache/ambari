@@ -59,11 +59,6 @@ App.TableServerMixin = Em.Mixin.create({
    * @return {array}
    */
   getPaginationProps: function () {
-    var displayLength = App.db.getDisplayLength(this.get('name'));
-    if (displayLength) {
-      this.get('paginationProps').findProperty('name', 'displayLength').value = displayLength;
-    }
-
     var startIndex = App.db.getStartIndex(this.get('name'));
     if (!Em.isNone(startIndex)) {
       startIndex = (startIndex > 0) ? startIndex - 1 : startIndex;
