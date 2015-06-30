@@ -24,8 +24,6 @@ import sys
 import shutil
 import base64
 import urllib2
-import re
-import glob
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg, print_error_msg, get_verbose
@@ -294,7 +292,6 @@ def upgrade(args):
     err = AMBARI_KRB_JAAS_LOGIN_FILE + ' file can\'t be updated. Exiting'
     raise FatalException(retcode, err)
 
-  restore_custom_services()
   try:
     update_database_name_property(upgrade=True)
   except FatalException:
@@ -410,52 +407,6 @@ def set_current(options):
 
   sys.stdout.write('\n')
   sys.stdout.flush()
-
-#
-# Search for folders with custom services and restore them from backup
-#
-def restore_custom_services():
-  properties = get_ambari_properties()
-  if properties == -1:
-    err = "Error getting ambari properties"
-    print_error_msg(err)
-    raise FatalException(-1, err)
-
-  try:
-    resources_dir = properties[RESOURCES_DIR_PROPERTY]
-  except (KeyError), e:
-    conf_file = properties.fileName
-    err = 'Property ' + str(e) + ' is not defined at ' + conf_file
-    print_error_msg(err)
-    raise FatalException(1, err)
-
-  services = glob.glob(os.path.join(resources_dir,"stacks","*","*","services","*"))
-  managed_services = []
-  for service in services:
-    if os.path.isdir(service) and not os.path.basename(service) in managed_services:
-      managed_services.append(os.path.basename(service))
-  # add deprecated managed services
-  managed_services.extend(["NAGIOS","GANGLIA","MAPREDUCE"])
-
-  stack_backup_dirs = glob.glob(os.path.join(resources_dir,"stacks_*.old"))
-  if stack_backup_dirs:
-    last_backup_dir = max(stack_backup_dirs, key=os.path.getctime)
-    backup_services = glob.glob(os.path.join(last_backup_dir,"*","*","services","*"))
-
-    regex = re.compile(r'/stacks.*old/')
-    for backup_service in backup_services:
-      backup_base_service_dir = os.path.dirname(backup_service)
-      current_base_service_dir = regex.sub('/stacks/', backup_base_service_dir)
-      # if services dir does not exists, we do not manage this stack
-      if not os.path.exists(current_base_service_dir):
-        continue
-
-      # process dirs only
-      if os.path.isdir(backup_service):
-        service_name = os.path.basename(backup_service)
-        if not service_name in managed_services:
-          shutil.copytree(backup_service, os.path.join(current_base_service_dir,service_name))
-
 
 
 class SetCurrentVersionOptions:
