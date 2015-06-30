@@ -42,7 +42,7 @@
   </property>
   <property>
     <name>metadata_opts</name>
-    <value> </value>
+    <value>-Xmx1024m</value>
     <description>Metadata Server command line options.</description>
   </property>
   <property>
