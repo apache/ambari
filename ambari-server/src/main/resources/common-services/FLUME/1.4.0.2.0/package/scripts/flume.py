@@ -204,7 +204,7 @@ def flume(action = None):
       
       if is_flume_process_live(pid_file):
         pid = shell.checked_call(("cat", pid_file), sudo=True)[1].strip()
-        Execute(('kill', pid), sudo=True)
+        Execute(("kill", "-15", pid), sudo=True)    # kill command has to be a tuple
       
       if not await_flume_process_termination(pid_file):
         raise Fail("Can't stop flume agent: {0}".format(agent))
