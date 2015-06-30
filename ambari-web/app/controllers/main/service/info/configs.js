@@ -373,9 +373,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
         configs.findProperty('name', 'kdc_host').set('isRequired', false).set('isVisible', false);
         configs.findProperty('name', 'admin_server_host').set('isRequired', false).set('isVisible', false);
         configs.findProperty('name', 'domains').set('isRequired', false).set('isVisible', false);
+      } else if (kdc_type.get('value') === 'active-directory') {
+        configs.findProperty('name', 'container_dn').set('isVisible', true);
+        configs.findProperty('name', 'ldap_url').set('isVisible', true);
       }
-
-      kdc_type.set('value', App.router.get('mainAdminKerberosController.kdcTypesValues')[kdc_type.get('value')]);
     }
 
     this.set('allConfigs', configs);

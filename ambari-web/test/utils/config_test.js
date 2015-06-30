@@ -1375,6 +1375,280 @@ describe('App.config', function () {
       expect(configProperty.get('overrideValues')).to.be.eql([overridenTemplate2.value]);
       expect(configProperty.get('overrideIsFinalValues')).to.be.eql([overridenTemplate2.isFinal]);
     });
-  })
+  });
+
+  describe('#getIsEditable', function() {
+    [{
+        isDefaultGroup: true,
+        isReconfigurable: true,
+        canEdit: true,
+        res: true,
+        m: "isEditable is true"
+      },
+      {
+        isDefaultGroup: false,
+        isReconfigurable: true,
+        canEdit: true,
+        res: false,
+        m: "isEditable is false; config group is not default"
+      },
+      {
+        isDefaultGroup: true,
+        isReconfigurable: false,
+        canEdit: true,
+        res: false,
+        m: "isEditable is true; config is not reconfigurable"
+      },
+      {
+        isDefaultGroup: true,
+        isReconfigurable: true,
+        canEdit: false,
+        res: false,
+        m: "isEditable is true; edition restricted by controller state"
+    }].forEach(function(t) {
+        it(t.m, function() {
+          var configProperty = Ember.Object.create({isReconfigurable: t.isReconfigurable});
+          var configGroup = Ember.Object.create({isDefault: t.isDefaultGroup});
+          var isEditable = App.config.getIsEditable(configProperty, configGroup, t.canEdit);
+          expect(isEditable).to.equal(t.res);
+        })
+      });
+  });
+
+  describe('#getIsSecure', function() {
+    var secureConfigs = App.config.get('secureConfigs');
+    before(function() {
+      App.config.set('secureConfigs', [{name: 'secureConfig'}]);
+    });
+    after(function() {
+      App.config.set('secureConfigs', secureConfigs);
+    });
+
+    it('config is secure', function() {
+      expect(App.config.getIsSecure('secureConfig')).to.equal(true);
+    });
+    it('config is not secure', function() {
+      expect(App.config.getIsSecure('NotSecureConfig')).to.equal(false);
+    });
+  });
+
+  describe('#getDefaultCategory', function() {
+    it('returns custom category', function() {
+      expect(App.config.getDefaultCategory(null, 'filename.xml')).to.equal('Custom filename');
+    });
+    it('returns advanced category', function() {
+      expect(App.config.getDefaultCategory(Em.Object.create, 'filename.xml')).to.equal('Advanced filename');
+    });
+  });
+
+  describe('#getDefaultDisplayType', function() {
+    it('returns singleLine displayTyepe', function() {
+      expect(App.config.getDefaultDisplayType('v1')).to.equal('advanced');
+    });
+    it('returns multiline displayTyepe', function() {
+      expect(App.config.getDefaultDisplayType('v1\nv2')).to.equal('multiLine');
+    });
+  });
+
+  describe('#formatValue', function() {
+    it('formatValue for masterHosts', function () {
+      var serviceConfigProperty = Em.Object.create({'displayType': 'masterHosts', value: "['h1','h2']"});
+      expect(App.config.formatPropertyValue(serviceConfigProperty)).to.eql(['h1','h2']);
+    });
+
+    it('formatValue for int', function () {
+      var serviceConfigProperty = Em.Object.create({'displayType': 'int', value: '4.0'});
+      expect(App.config.formatPropertyValue(serviceConfigProperty)).to.equal('4');
+    });
+
+    it('formatValue for int with m', function () {
+      var serviceConfigProperty = Em.Object.create({'displayType': 'int', value: '4m'});
+      expect(App.config.formatPropertyValue(serviceConfigProperty)).to.equal('4');
+    });
+
+    it('formatValue for float', function () {
+      var serviceConfigProperty = Em.Object.create({'displayType': 'float', value: '0.40'});
+      expect(App.config.formatPropertyValue(serviceConfigProperty)).to.equal('0.4');
+    });
+
+    it('formatValue for kdc_type', function () {
+      var serviceConfigProperty = Em.Object.create({'name': 'kdc_type', value: 'mit-kdc'});
+      expect(App.config.formatPropertyValue(serviceConfigProperty)).to.equal(Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'));
+    });
+
+    it('don\'t format value', function () {
+      var serviceConfigProperty = Em.Object.create({'name': 'any', displayType: 'any', value: 'any'});
+      expect(App.config.formatPropertyValue(serviceConfigProperty)).to.equal('any');
+    });
+  });
+
+  describe('#getPropertyIfExists', function() {
+    [
+      {
+        propertyName: 'someProperty',
+        defaultValue: 'default',
+        firstObject: { someProperty: '1' },
+        secondObject: { someProperty: '2' },
+        res: '1',
+        m: 'use value from first object'
+      },
+      {
+        propertyName: 'someProperty',
+        defaultValue: 'default',
+        firstObject: { someOtherProperty: '1' },
+        secondObject: { someProperty: '2' },
+        res: '2',
+        m: 'use value from second object'
+      },
+      {
+        propertyName: 'someProperty',
+        defaultValue: 'default',
+        firstObject: { someOtherProperty: '1' },
+        secondObject: { someOtherProperty: '2' },
+        res: 'default',
+        m: 'use default value'
+      },
+      {
+        propertyName: 'someProperty',
+        defaultValue: 'default',
+        res: 'default',
+        m: 'use default value'
+      },
+      {
+        propertyName: 'someProperty',
+        defaultValue: true,
+        firstObject: { someProperty: false },
+        secondObject: { someProperty: true },
+        res: false,
+        m: 'use value from first object, check booleans'
+      },
+      {
+        propertyName: 'someProperty',
+        defaultValue: true,
+        firstObject: { someProperty: 0 },
+        secondObject: { someProperty: 1 },
+        res: 0,
+        m: 'use value from first object, check 0'
+      },
+      {
+        propertyName: 'someProperty',
+        defaultValue: true,
+        firstObject: { someProperty: '' },
+        secondObject: { someProperty: '1' },
+        res: '',
+        m: 'use value from first object, check empty string'
+      }
+    ].forEach(function (t) {
+        it(t.m, function () {
+          expect(App.config.getPropertyIfExists(t.propertyName, t.defaultValue, t.firstObject, t.secondObject)).to.equal(t.res);
+        })
+      });
+  });
+
+  describe('#mergeStackConfigsWithUI', function() {
+    beforeEach(function() {
+      sinon.stub(App.config, 'getPropertyIfExists', function(propertyName, defaultValue) {return defaultValue});
+      sinon.stub(App.config, 'getDefaultCategory', function(stackConfigProperty, filename) {return 'Advanced ' + filename});
+      sinon.stub(App.config, 'getIsSecure', function() {return false});
+      sinon.stub(App.config, 'getDefaultDisplayType', function() {return 'string'});
+    });
+
+    afterEach(function() {
+      App.config.getPropertyIfExists.restore();
+      App.config.getDefaultCategory.restore();
+      App.config.getIsSecure.restore();
+      App.config.getDefaultDisplayType.restore();
+    });
+    var service = Em.Object.create({ serviceName:'sName' });
+    var template =  {
+        name: 'pName',
+        filename: 'pFileName',
+        value: 'v',
+        savedValue: 'v',
+        isFinal: true,
+        savedIsFinal: true,
+        recommendedValue: null,
+        recommendedIsFinal: null,
+        displayName: 'pName',
+        description: null,
+        displayType: 'string',
+        category: 'Advanced pFileName',
+        isSecureConfig: false,
+        serviceName: 'sName',
+        isVisible: true,
+        isUserProperty: false,
+        isRequired: true,
+        id: 'site property',
+        supportsFinal: false,
+        isRequiredByAgent: true,
+        isReconfigurable: true,
+        unit: null,
+        isOverridable: true,
+        index: null,
+        showLabel: true,
+        dependentConfigPattern: null,
+        options: null,
+        radioName: null,
+        belongsToService: []
+    };
+    it('performs merge UI and Stack properties', function() {
+      for (var key in template){
+        expect(App.config.mergeStackConfigsWithUI('pName', 'pFileName', 'v', true, service, Em.Object.create({}), Em.Object.create({}))[key]).to.eql(template[key]);
+      }
+    });
+
+    it('performs merge UI and Stack properties (without stackProperty)', function() {
+      template.isUserProperty = true;
+      template.isRequired = false;
+      for (var key in template){
+        expect(App.config.mergeStackConfigsWithUI('pName', 'pFileName', 'v', true, service, null, Em.Object.create({}))[key]).to.eql(template[key]);
+      }
+    });
+
+    it('performs merge UI and Stack properties (unknown service)', function () {
+      template.serviceName = 'MISC';
+      template.isUserProperty = false;
+      template.isRequired = true;
+      template.isVisible = false;
+      for (var key in template) {
+        expect(App.config.mergeStackConfigsWithUI('pName', 'pFileName', 'v', true, null, Em.Object.create({}), Em.Object.create({}))[key]).to.eql(template[key]);
+      }
+    });
+
+    it('called getPropertyIfExists couple of times', function () {
+      App.config.mergeStackConfigsWithUI('pName', 'pFileName', 'v', true, null, Em.Object.create({}), Em.Object.create({}));
+      expect(App.config.getPropertyIfExists.callCount).to.equal(23);
+    });
+
+    it('called getPropertyIfExists with args', function () {
+      var stackConfigProperty = Em.Object.create({stackProperty: true});
+      var UIConfigProperty = Em.Object.create({UIProperty: true});
+      App.config.mergeStackConfigsWithUI('pName', 'pFileName', 'v', true, service, stackConfigProperty, UIConfigProperty);
+
+      expect(App.config.getPropertyIfExists.calledWith('recommendedValue', null, stackConfigProperty, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('recommendedIsFinal', null, stackConfigProperty, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('displayName', 'pName', stackConfigProperty, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('description', null, stackConfigProperty, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('supportsFinal', false, stackConfigProperty, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('id', 'site property', UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('isRequiredByAgent', true, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('isReconfigurable', true, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('unit', null, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('isOverridable', true, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('index', null, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('showLabel', true, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('dependentConfigPattern', null, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('options', null, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('belongsToService', [], UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('radioName', null, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('displayType', 'string', UIConfigProperty, stackConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('category', 'Advanced pFileName', UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('isSecureConfig', false, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('serviceName', 'sName', stackConfigProperty, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('isVisible', true, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('isUserProperty', false, UIConfigProperty)).to.be.true;
+      expect(App.config.getPropertyIfExists.calledWith('isRequired', true, UIConfigProperty)).to.be.true;
+    });
+  });
 
 });

@@ -279,11 +279,20 @@ App.config = Em.Object.create({
   },
 
 
+  /**
+   * generates config objects
+   * @param configCategories
+   * @param advancedConfigs
+   * @param serviceName
+   * @param selectedConfigGroup
+   * @param canEdit
+   * @returns {Array}
+   */
   mergePredefinedWithSaved: function (configCategories, advancedConfigs, serviceName, selectedConfigGroup, canEdit) {
     var configs = [];
     var contentProperties = this.createContentProperties(advancedConfigs);
     var preDefinedConfigs = this.get('preDefinedSiteProperties').concat(contentProperties);
-    var filenameExceptions = this.get('filenameExceptions');
+
     configCategories.forEach(function (siteConfig) {
       var service = this.getServiceByConfigType(siteConfig.type);
       if (service) {
@@ -297,75 +306,177 @@ App.config = Em.Object.create({
       for (var index in properties) {
         var configsPropertyDef = preDefinedConfigs.filterProperty('name', index).findProperty('filename', filename);
         var advancedConfig = advancedConfigs.filterProperty('name', index).findProperty('filename', filename);
-        var isAdvanced = Boolean(advancedConfig);
-        if (!configsPropertyDef) {
-          configsPropertyDef = advancedConfig;
-        }
-        var value = this.parseValue(properties[index], configsPropertyDef, advancedConfig);
-        var serviceConfigObj = Em.Object.create({
-          name: index,
-          displayName: (configsPropertyDef && Em.get(configsPropertyDef, 'displayName')) || index,
-          value: value,
-          savedValue: value,
-          recommendedValue: advancedConfig ? Em.get(advancedConfig, 'recommendedValue') : null,
-          filename: filename,
-          isUserProperty: !configsPropertyDef,
-          isVisible: !!service,
-          isOverridable: true,
-          isReconfigurable: true,
-          isRequired: isAdvanced,
-          isFinal: finalAttributes[index] === "true",
-          savedIsFinal: finalAttributes[index] === "true",
-          recommendedIsFinal: advancedConfig ? Em.get(advancedConfig, 'recommendedIsFinal') : null,
-          showLabel: true,
-          serviceName: serviceName,
-          belongsToService: [],
-          supportsFinal: advancedConfig ? Em.get(advancedConfig, 'supportsFinal') : this.shouldSupportFinal(serviceName, siteConfig.type)
-        });
-        if (configsPropertyDef) {
-          this.setServiceConfigUiAttributes(serviceConfigObj, configsPropertyDef);
-          // check if defined UI config present in config list obtained from server.
-          // in case when config is absent on server and defined UI config is required
-          // by server, this config should be ignored
-          var serverProperty = properties[serviceConfigObj.get('name')];
-          if (Em.isNone(serverProperty) && serviceConfigObj.get('isRequiredByAgent')) {
-            continue;
-          }
+
+        var serviceConfigObj = this.mergeStackConfigsWithUI(index, filename, properties[index], finalAttributes[index] === "true", service, advancedConfig, configsPropertyDef);
+
+        if (serviceConfigObj.get('isRequiredByAgent') !== false) {
+          var formattedValue = this.formatPropertyValue(serviceConfigObj);
+          serviceConfigObj.setProperties({
+            'value': formattedValue,
+            'savedValue': formattedValue,
+            'isEditable': this.getIsEditable(serviceConfigObj, selectedConfigGroup, canEdit)
+          });
         }
 
-        this.tweakConfigVisibility(serviceConfigObj, properties);
-        if (!this.getBySiteName(serviceConfigObj.get('filename')).someProperty('name', index)) {
-          if (configsPropertyDef) {
-            if (Em.get(configsPropertyDef, 'isRequiredByAgent') === false) {
-              configs.push(App.ServiceConfigProperty.create(serviceConfigObj));
-              continue;
-            }
-            this.handleSpecialProperties(serviceConfigObj);
-          } else {
-            serviceConfigObj.set('displayType', stringUtils.isSingleLine(serviceConfigObj.get('value')) ? 'advanced' : 'multiLine');
-          }
-          serviceConfigObj.setProperties({
-            'id': 'site property',
-            'displayName': configsPropertyDef && Em.get(configsPropertyDef, 'displayName') ? Em.get(configsPropertyDef, 'displayName') : index,
-            'options': configsPropertyDef ? Em.get(configsPropertyDef, 'options') : null,
-            'radioName': configsPropertyDef ? Em.get(configsPropertyDef, 'radioName') : null,
-            'serviceName': configsPropertyDef && Em.get(configsPropertyDef, 'serviceName') ? Em.get(configsPropertyDef, 'serviceName') : serviceName,
-            'belongsToService': configsPropertyDef && Em.get(configsPropertyDef, 'belongsToService') ? Em.get(configsPropertyDef, 'belongsToService') : []
-          });
-          this.calculateConfigProperties(serviceConfigObj, isAdvanced, advancedConfig);
-          this.setValueByDisplayType(serviceConfigObj);
-          if (this.get('secureConfigs').mapProperty('name').contains(serviceConfigObj.get('name'))) {
-            serviceConfigObj.set('isSecure', true);
-          }
-          serviceConfigObj.set('isEditable', canEdit && selectedConfigGroup.get('isDefault') && serviceConfigObj.get('isReconfigurable'));
-          var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);
-          serviceConfigProperty.validate();
-          configs.push(serviceConfigProperty);
-        }
+        var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);
+        serviceConfigProperty.validate();
+        configs.push(serviceConfigProperty);
       }
     }, this);
     return configs;
   },
+
+  /**
+   * This method merge properties form <code>stackConfigProperty<code> which are taken from stack
+   * with <code>UIConfigProperty<code> which are hardcoded on UI
+   * @param name
+   * @param fileName
+   * @param value
+   * @param isFinal
+   * @param service
+   * @param stackConfigProperty
+   * @param UIConfigProperty
+   */
+  mergeStackConfigsWithUI: function(name, fileName, value, isFinal, service, stackConfigProperty, UIConfigProperty) {
+    return Em.Object.create({
+      /** core properties **/
+      name: name,
+      filename: fileName,
+      value: value,
+      savedValue: value,
+      isFinal: isFinal,
+      savedIsFinal: isFinal,
+      /** UI and Stack properties **/
+      recommendedValue: this.getPropertyIfExists('recommendedValue', null, stackConfigProperty, UIConfigProperty),
+      recommendedIsFinal: this.getPropertyIfExists('recommendedIsFinal', null, stackConfigProperty, UIConfigProperty),
+      displayName: this.getPropertyIfExists('displayName', name, stackConfigProperty, UIConfigProperty),
+      description: this.getPropertyIfExists('description', null, stackConfigProperty, UIConfigProperty),
+      supportsFinal: this.getPropertyIfExists('supportsFinal', false, stackConfigProperty, UIConfigProperty),
+      /** properties with calculations **/
+      displayType: this.getPropertyIfExists('displayType', this.getDefaultDisplayType(value), UIConfigProperty, stackConfigProperty),
+      category: this.getPropertyIfExists('category', this.getDefaultCategory(stackConfigProperty, fileName), UIConfigProperty),
+      isSecureConfig: this.getPropertyIfExists('isSecureConfig', this.getIsSecure(name), UIConfigProperty),
+      serviceName: this.getPropertyIfExists('serviceName', service ? service.get('serviceName') : 'MISC', stackConfigProperty, UIConfigProperty),
+      isVisible: this.getPropertyIfExists('isVisible', !!service, UIConfigProperty),
+      isUserProperty: this.getPropertyIfExists('isUserProperty', !stackConfigProperty, UIConfigProperty),
+      isRequired: this.getPropertyIfExists('isRequired', !!stackConfigProperty, UIConfigProperty),
+      /** UI properties **/
+      id: this.getPropertyIfExists('id', 'site property', UIConfigProperty),
+      isRequiredByAgent: this.getPropertyIfExists('isRequiredByAgent', true, UIConfigProperty),
+      isReconfigurable: this.getPropertyIfExists('isReconfigurable', true, UIConfigProperty),
+      unit: this.getPropertyIfExists('unit', null, UIConfigProperty),
+      isOverridable: this.getPropertyIfExists('isOverridable', true, UIConfigProperty),
+      index: this.getPropertyIfExists('index', null, UIConfigProperty),
+      showLabel: this.getPropertyIfExists('showLabel', true, UIConfigProperty),
+      dependentConfigPattern: this.getPropertyIfExists('dependentConfigPattern', null, UIConfigProperty),
+      options: this.getPropertyIfExists('options', null, UIConfigProperty),
+      radioName: this.getPropertyIfExists('radioName', null, UIConfigProperty),
+      belongsToService: this.getPropertyIfExists('belongsToService', [], UIConfigProperty)
+    });
+  },
+
+  /**
+   * This method using for merging some properties from two objects
+   * if property exists in <code>firstPriority<code> result will be it's property
+   * else if property exists in <code>secondPriority<code> result will be it's property
+   * otherwise <code>defaultValue<code> will be returned
+   * @param {String} propertyName
+   * @param {*} defaultValue=null
+   * @param {Em.Object|Object} firstPriority
+   * @param {Em.Object|Object} [secondPriority=null]
+   * @returns {*}
+   */
+  getPropertyIfExists: function(propertyName, defaultValue, firstPriority, secondPriority) {
+    if (firstPriority && !Em.isNone(Em.get(firstPriority, propertyName))) {
+      return Em.get(firstPriority, propertyName);
+    } else if (secondPriority && !Em.isNone(Em.get(secondPriority, propertyName))) {
+      return Em.get(secondPriority, propertyName);
+    } else {
+      return defaultValue;
+    }
+  },
+
+  /**
+   * Get displayType for properties that has not defined value
+   * @param value
+   * @returns {string}
+   */
+  getDefaultDisplayType: function(value) {
+    return stringUtils.isSingleLine(value) ? 'advanced' : 'multiLine';
+  },
+
+  /**
+   * Get category for properties that has not defined value
+   * @param stackConfigProperty
+   * @param fileName
+   * @returns {string}
+   */
+  getDefaultCategory: function(stackConfigProperty, fileName) {
+    return (stackConfigProperty ? 'Advanced ' : 'Custom ') + this.getConfigTagFromFileName(fileName);
+  },
+
+  /**
+   * Get isSecureConfig for properties that has not defined value
+   * @param propertyName
+   * @returns {boolean}
+   */
+  getIsSecure: function(propertyName) {
+    return this.get('secureConfigs').mapProperty('name').contains(propertyName);
+  },
+
+  /**
+   * Calculate isEditable rely on controller state selected group and config restriction
+   * @param {Em.Object} serviceConfigProperty
+   * @param {Em.Object} selectedConfigGroup
+   * @param {boolean} canEdit
+   * @returns {boolean}
+   */
+  getIsEditable: function(serviceConfigProperty, selectedConfigGroup, canEdit) {
+    return canEdit && selectedConfigGroup.get('isDefault') && serviceConfigProperty.get('isReconfigurable')
+  },
+
+  /**
+   * format property value depending on displayType
+   * and one exception for 'kdc_type'
+   * @param serviceConfigProperty
+   * @returns {*}
+   */
+  formatPropertyValue: function(serviceConfigProperty) {
+    var value = serviceConfigProperty.get('value'), displayType = serviceConfigProperty.get('displayType') || serviceConfigProperty.get('valueAttributes.type'), category = serviceConfigProperty.get('category');
+    switch (displayType) {
+      case 'directories':
+        if (['DataNode', 'NameNode'].contains(category)) {
+          return value.split(',').sort().join(',');//TODO check if this code is used
+        }
+        break;
+      case 'directory':
+        if (['SNameNode'].contains(category)) {
+          return value.split(',').sort()[0];//TODO check if this code is used
+        }
+        break;
+      case 'masterHosts':
+        if (typeof(value) == 'string') {
+          return value.replace(/\[|]|'|&apos;/g, "").split(',');
+        }
+        break;
+      case 'int':
+        if (/\d+m$/.test(value) ) {
+          return value.slice(0, value.length - 1);
+        } else {
+          var int = parseInt(value);
+          return isNaN(int) ? "" : int.toString();
+        }
+        break;
+      case 'float':
+        var float = parseFloat(value);
+        return isNaN(float) ? "" : float.toString();
+    }
+    if (serviceConfigProperty.get('name') === 'kdc_type') {
+      return App.router.get('mainAdminKerberosController.kdcTypesValues')[value];
+    }
+    return value;
+  },
+
   /**
    * return:
    *   configs,
