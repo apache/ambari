@@ -60,6 +60,9 @@ version = default("/commandParams/version", None)
 # current host stack version
 current_version = default("/hostLevelParams/current_version", None)
 
+# Upgrade direction
+upgrade_direction = default("/commandParams/upgrade_direction", None)
+
 hadoop_bin_dir = "/usr/bin"
 hadoop_home = '/usr'
 hive_bin = '/usr/lib/hive/bin'

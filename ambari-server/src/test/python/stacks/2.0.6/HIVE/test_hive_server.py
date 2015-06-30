@@ -678,7 +678,12 @@ class TestHiveServer(RMFTestCase):
   @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
   def test_stop_during_upgrade(self, copy_to_hdfs_mock):
 
-    call_side_effects = [(0, "hive-server2 - 2.2.0.0-2041"), (0, "hive-server2 - 2.2.0.0-2041")] * 4
+    hiveServerVersionOutput = """WARNING: Use "yarn jar" to launch YARN applications.
+Hive 1.2.1.2.3.0.0-2434
+Subversion git://ip-10-0-0-90.ec2.internal/grid/0/jenkins/workspace/HDP-dal-centos6/bigtop/build/hive/rpm/BUILD/hive-1.2.1.2.3.0.0 -r a77a00ae765a73b2957337e96ed5a0dbb2e60dfb
+Compiled by jenkins on Sat Jun 20 11:50:41 EDT 2015
+From source with checksum 150f554beae04f76f814f59549dead8b"""
+    call_side_effects = [(0, hiveServerVersionOutput), (0, hiveServerVersionOutput)] * 4
     copy_to_hdfs_mock.return_value = True
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
@@ -688,7 +693,7 @@ class TestHiveServer(RMFTestCase):
      call_mocks = call_side_effects
     )
 
-    self.assertResourceCalled('Execute', 'hive --config /usr/hdp/current/hive-server2/conf/conf.server --service hiveserver2 --deregister 2.2.0.0-2041',
+    self.assertResourceCalled('Execute', 'hive --config /usr/hdp/current/hive-server2/conf/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
 
@@ -697,8 +702,12 @@ class TestHiveServer(RMFTestCase):
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=True))
   def test_stop_during_upgrade_with_default_conf_server(self, copy_to_hdfs_mock):
-
-    call_side_effects = [(0, "hive-server2 - 2.2.0.0-2041"), (0, "hive-server2 - 2.2.0.0-2041")] * 4
+    hiveServerVersionOutput = """WARNING: Use "yarn jar" to launch YARN applications.
+Hive 1.2.1.2.3.0.0-2434
+Subversion git://ip-10-0-0-90.ec2.internal/grid/0/jenkins/workspace/HDP-dal-centos6/bigtop/build/hive/rpm/BUILD/hive-1.2.1.2.3.0.0 -r a77a00ae765a73b2957337e96ed5a0dbb2e60dfb
+Compiled by jenkins on Sat Jun 20 11:50:41 EDT 2015
+From source with checksum 150f554beae04f76f814f59549dead8b"""
+    call_side_effects = [(0, hiveServerVersionOutput), (0, hiveServerVersionOutput)] * 4
     copy_to_hdfs_mock.return_value = True
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
@@ -708,7 +717,7 @@ class TestHiveServer(RMFTestCase):
      call_mocks = call_side_effects
     )
 
-    self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 2.2.0.0-2041',
+    self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
 

@@ -24,6 +24,9 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
 from resource_management.core import shell
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import compare_versions
 
 
 def pre_upgrade_deregister():
@@ -56,36 +59,51 @@ def pre_upgrade_deregister():
     hive_server_conf_dir = "/etc/hive/conf.server"
 
   # deregister
+  hive_execute_path = params.execute_path
+  # If upgrading, the upgrade-target hive binary should be used to call the --deregister command.
+  # If downgrading, the downgrade-source hive binary should be used to call the --deregister command.
+  if "upgrade" == params.upgrade_direction:
+    # hive_bin
+    upgrade_target_version = format_hdp_stack_version(params.version)
+    if upgrade_target_version and compare_versions(upgrade_target_version, "2.2") >= 0:
+      upgrade_target_hive_bin = format('/usr/hdp/{version}/hive/bin')
+      if (os.pathsep + params.hive_bin) in hive_execute_path:
+        hive_execute_path = hive_execute_path.replace(os.pathsep + params.hive_bin, os.pathsep + upgrade_target_hive_bin)
+    # hadoop_bin_dir
+    upgrade_target_hadoop_bin = hdp_select.get_hadoop_dir("bin", upgrade_stack_only=True)
+    upgrade_source_hadoop_bin = params.hadoop_bin_dir
+    if upgrade_target_hadoop_bin and len(upgrade_target_hadoop_bin) > 0 and (os.pathsep + upgrade_source_hadoop_bin) in hive_execute_path:
+      hive_execute_path = hive_execute_path.replace(os.pathsep + upgrade_source_hadoop_bin, os.pathsep + upgrade_target_hadoop_bin)
+
   command = format('hive --config {hive_server_conf_dir} --service hiveserver2 --deregister ' + current_hiveserver_version)
-  Execute(command, user=params.hive_user, path=params.execute_path, tries=1 )
+  Execute(command, user=params.hive_user, path=hive_execute_path, tries=1 )
 
 
 def _get_current_hiveserver_version():
   """
-  Runs an "hdp-select status hive-server2" check and parses the result in order
+  Runs "hive --version" and parses the result in order
   to obtain the current version of hive.
 
-  :return:  the hiveserver2 version, such as "hdp-select status hive-server2"
+  :return:  the hiveserver2 version, returned by "hive --version"
   """
   import params
 
   try:
-    command = 'hdp-select status hive-server2'
-    return_code, hdp_output = shell.call(command, user=params.hive_user)
+    command = 'hive --version'
+    return_code, hdp_output = shell.call(command, user=params.hive_user, path=params.execute_path)
   except Exception, e:
     Logger.error(str(e))
-    raise Fail('Unable to execute hdp-select command to retrieve the hiveserver2 version.')
+    raise Fail('Unable to execute hive --version command to retrieve the hiveserver2 version.')
 
   if return_code != 0:
     raise Fail('Unable to determine the current HiveServer2 version because of a non-zero return code of {0}'.format(str(return_code)))
 
-  # strip "hive-server2 - " off of result and test the version
-  current_hive_server_version = re.sub('hive-server2 - ', '', hdp_output)
-  match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', current_hive_server_version)
+  match = re.search('^(Hive) ([0-9]+.[0-9]+.\S+)', hdp_output, re.MULTILINE)
 
   if match:
+    current_hive_server_version = match.group(2)
     return current_hive_server_version
   else:
-    raise Fail('The extracted hiveserver2 version "{0}" does not matching any known pattern'.format(current_hive_server_version))
+    raise Fail('The extracted hiveserver2 version "{0}" does not matching any known pattern'.format(hdp_output))
 
 

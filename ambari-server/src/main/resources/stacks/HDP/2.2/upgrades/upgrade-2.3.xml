@@ -21,7 +21,7 @@
   <target>2.3.*.*</target>
   <target-stack>HDP-2.3</target-stack>
   <order>
-    <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Backups">
+    <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
       <direction>UPGRADE</direction>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Pre Upgrade HDFS">
