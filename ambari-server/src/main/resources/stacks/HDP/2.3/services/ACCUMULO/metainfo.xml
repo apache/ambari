@@ -20,6 +20,7 @@
   <services>
     <service>
       <name>ACCUMULO</name>
+      <extends>common-services/ACCUMULO/1.6.1.2.2.0</extends>
       <version>1.7.0.2.3</version>
       <osSpecifics>
         <osSpecific>
