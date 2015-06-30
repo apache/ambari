@@ -181,6 +181,7 @@ public class ViewContextImplTest {
     ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
     ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
     ViewURLStreamProvider urlStreamProvider = createNiceMock(ViewURLStreamProvider.class);
+    ViewURLStreamProvider urlStreamProvider2 = createNiceMock(ViewURLStreamProvider.class);
 
     ResourceProvider provider = createNiceMock(ResourceProvider.class);
     Resource.Type type = new Resource.Type("MY_VIEW/myType");
@@ -190,10 +191,13 @@ public class ViewContextImplTest {
     ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition, viewRegistry);
 
     expect(viewRegistry.createURLStreamProvider(viewContext)).andReturn(urlStreamProvider);
+    expect(viewRegistry.createURLStreamProvider(viewContext)).andReturn(urlStreamProvider2);
 
     replay(viewRegistry);
 
     Assert.assertEquals(urlStreamProvider, viewContext.getURLStreamProvider());
+    // make sure the the provider is not cached
+    Assert.assertEquals(urlStreamProvider2, viewContext.getURLStreamProvider());
 
     verify(viewRegistry);
   }

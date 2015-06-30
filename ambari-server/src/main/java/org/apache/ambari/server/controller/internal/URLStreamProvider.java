@@ -185,7 +185,7 @@ public class URLStreamProvider implements StreamProvider {
         headers = new HashMap<String, List<String>>(headers);
 
         List<String> cookieList = headers.get(COOKIE);
-        String       cookies    = cookieList.isEmpty() ? null : cookieList.get(0);
+        String       cookies    = cookieList == null || cookieList.isEmpty() ? null : cookieList.get(0);
 
         headers.put(COOKIE, Collections.singletonList(appendCookie(cookies, appCookie)));
       }
