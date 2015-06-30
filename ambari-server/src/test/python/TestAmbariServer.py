@@ -4369,7 +4369,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_3_mock.reset_mock()
     get_ambari_properties_3_mock.return_value = get_ambari_properties_2_mock.return_value = \
       get_ambari_properties_mock.return_value = p
-    p.__getitem__.side_effect = ["something", "something", "something", KeyError("test exception")]
+    p.__getitem__.side_effect = ["something", "something", "something", "something", KeyError("test exception")]
     exists_mock.return_value = False
     fail = False
 
