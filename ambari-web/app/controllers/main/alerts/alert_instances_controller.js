@@ -300,7 +300,7 @@ App.MainAlertInstancesController = Em.Controller.extend({
 
         refreshTooltips: function () {
           this.ensureTooltip();
-        }.observes('contents.[]'),
+        }.observes('contents.[]', 'filteringComplete'),
 
         ensureTooltip: function () {
           Em.run.next(this, function () {
