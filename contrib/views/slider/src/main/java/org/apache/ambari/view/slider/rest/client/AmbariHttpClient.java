@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.slider.clients.AmbariClient;
 import org.apache.ambari.view.slider.clients.AmbariCluster;
 import org.apache.ambari.view.slider.clients.AmbariClusterInfo;
@@ -47,8 +48,9 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 
 	private static final Logger logger = Logger.getLogger(AmbariHttpClient.class);
 
-	public AmbariHttpClient(String url, String userId, String password) {
-		super(url, userId, password);
+	public AmbariHttpClient(String url, String userId, String password,
+			ViewContext viewContext) {
+		super(url, userId, password, viewContext);
 	}
 	
     @SuppressWarnings("deprecation")

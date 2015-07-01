@@ -19,37 +19,64 @@
 package org.apache.ambari.view.slider.rest.client;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.apache.commons.httpclient.HttpClient;
+import org.apache.ambari.view.URLStreamProvider;
+import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.utils.ambari.AmbariApi;
+import org.apache.ambari.view.utils.ambari.URLStreamProviderBasicAuth;
 import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 
 public class BaseHttpClient {
+	private static final Logger logger = Logger.getLogger(BaseHttpClient.class);
 
-	private HttpClient httpClient;
 	private String url;
 	private boolean needsAuthentication;
 	private String userId;
 	private String password;
+	protected ViewContext viewContext;
+	protected AmbariApi ambariApi;
 
-	public BaseHttpClient(String url) {
+	public BaseHttpClient(String url, ViewContext viewContext) {
 		setUrl(url);
 		setNeedsAuthentication(false);
+		setViewContext(viewContext);
+		if (viewContext != null) {
+			ambariApi = new AmbariApi(viewContext);
+		}
 	}
 
-	public BaseHttpClient(String url, String userId, String password) {
+	public BaseHttpClient(String url, String userId, String password,
+			ViewContext viewContext) {
 		setUrl(url);
 		setNeedsAuthentication(true);
 		setUserId(userId);
 		setPassword(password);
+		setViewContext(viewContext);
+		if (viewContext != null) {
+			ambariApi = new AmbariApi(viewContext);
+		}
+	}
+
+	public void setViewContext(ViewContext viewContext) {
+		this.viewContext = viewContext;
+	}
+
+	public URLStreamProvider getUrlStreamProvider() {
+		return viewContext.getURLStreamProvider();
+	}
+
+	public URLStreamProviderBasicAuth getUrlStreamProviderBasicAuth() {
+		return ambariApi.getUrlStreamProviderBasicAuth();
 	}
 
 	public String getUrl() {
@@ -88,53 +115,49 @@ public class BaseHttpClient {
 		return doGetJson(getUrl(), path);
 	}
 
-	@SuppressWarnings("deprecation")
-    public JsonElement doGetJson(String url, String path) throws HttpException,
-	    IOException {
-		GetMethod get = new GetMethod(url + path);
-		if (isNeedsAuthentication()) {
-			get.setDoAuthentication(true);
+	public JsonElement doGetJson(String url, String path) throws HttpException,
+			IOException {
+		InputStream inputStream = null;
+		try {
+			Map<String, String> headers = new HashMap<String, String>();
+			if (isNeedsAuthentication()) {
+				inputStream = getUrlStreamProviderBasicAuth().readFrom(
+						url + path, "GET", (String) null, headers);
+			} else {
+				inputStream = getUrlStreamProviderBasicAuth().readAsCurrent(
+						url + path, "GET", (String) null, headers);
+			}
+		} catch (IOException e) {
+			logger.error("Error while reading from url " + url + path, e);
+			HttpException httpException = new HttpException(
+					e.getLocalizedMessage());
+			throw httpException;
 		}
-		int executeMethod = getHttpClient().executeMethod(get);
-        switch (executeMethod) {
-        case HttpStatus.SC_OK:
-          JsonElement jsonElement = new JsonParser().parse(new JsonReader(new InputStreamReader(get.getResponseBodyAsStream())));
-          return jsonElement;
-        case HttpStatus.SC_NOT_FOUND:
-          return null;
-        default:
-          HttpException httpException = new HttpException(get.getResponseBodyAsString());
-          httpException.setReason(HttpStatus.getStatusText(executeMethod));
-          httpException.setReasonCode(executeMethod);
-          throw httpException;
-        }
+		JsonElement jsonElement = new JsonParser().parse(new JsonReader(
+				new InputStreamReader(inputStream)));
+		return jsonElement;
 	}
 
 	public String doGet(String path) throws HttpException, IOException {
-		GetMethod get = new GetMethod(url + path);
-		if (isNeedsAuthentication()) {
-			get.setDoAuthentication(true);
+		String response = null;
+		try {
+			InputStream inputStream = null;
+			if (isNeedsAuthentication()) {
+				inputStream = getUrlStreamProviderBasicAuth().readFrom(
+						getUrl() + path, "GET", (String) null,
+						new HashMap<String, String>());
+			} else {
+				inputStream = getUrlStreamProviderBasicAuth().readAsCurrent(
+						getUrl() + path, "GET", (String) null,
+						new HashMap<String, String>());
+			}
+			response = IOUtils.toString(inputStream);
+		} catch (IOException e) {
+			logger.error("Error while reading from url " + getUrl() + path, e);
+			HttpException httpException = new HttpException(
+					e.getLocalizedMessage());
+			throw httpException;
 		}
-		int executeMethod = getHttpClient().executeMethod(get);
-		switch (executeMethod) {
-		case HttpStatus.SC_OK:
-			return get.getResponseBodyAsString();
-		default:
-			break;
-		}
-		return null;
-	}
-
-	private HttpClient getHttpClient() {
-		if (httpClient == null) {
-			httpClient = new HttpClient();
-		}
-		if (isNeedsAuthentication()) {
-			httpClient.getState().setCredentials(
-			    new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT),
-			    new UsernamePasswordCredentials(getUserId(), getPassword()));
-			httpClient.getParams().setAuthenticationPreemptive(true);
-		}
-		return httpClient;
+		return response;
 	}
 }
