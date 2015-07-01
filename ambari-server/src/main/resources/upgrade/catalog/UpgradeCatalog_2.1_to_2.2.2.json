@@ -111,7 +111,6 @@
 		},
 		"hdfs-site": {
 		  "dfs.datanode.max.transfer.threads": "16384",
-          "dfs.journalnode.edits.dir": "/hadoop/hdfs/journalnode",
           "dfs.namenode.startup.delay.block.deletion.sec": "3600"  
 		},
 		"hive-env": {
