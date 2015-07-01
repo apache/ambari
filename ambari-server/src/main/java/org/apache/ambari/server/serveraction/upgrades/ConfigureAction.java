@@ -415,6 +415,9 @@ public class ConfigureAction extends AbstractServerAction {
           outputBuffer.append(MessageFormat.format("Replaced {0}/{1} containing \"{2}\" with \"{3}\"\n",
             configType, replacement.key, replacement.find, replacement.replaceWith));
         }
+      } else {
+        outputBuffer.append(MessageFormat.format("Property \"{0}\" was not found in {1} to replace content\n",
+            replacement.key, configType));
       }
     }
 
