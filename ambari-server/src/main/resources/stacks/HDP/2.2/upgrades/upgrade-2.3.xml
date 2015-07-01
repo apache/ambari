@@ -392,19 +392,29 @@
             <transfer operation="copy" from-type="usersync-properties" from-key="MIN_UNIX_USER_ID_TO_SYNC" to-key="ranger.usersync.unix.minUserId" default-value="" />
             <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_INTERVAL" to-key="ranger.usersync.sleeptimeinmillisbetweensynccycle" default-value="60000" />
             <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_BIND_DN" to-key="ranger.usersync.ldap.binddn" default-value="" />
-            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_BIND_PASSWORD" to-key="" default-value="ranger.usersync.ldap.ldapbindpassword" mask="true" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_BIND_PASSWORD" to-key="ranger.usersync.ldap.ldapbindpassword" default-value="" mask="true" />
             <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_GROUPNAME_CASE_CONVERSION" to-key="ranger.usersync.ldap.groupname.caseconversion" default-value="" />
             <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_URL" to-key="ranger.usersync.ldap.url" default-value="" />
             <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USERNAME_CASE_CONVERSION" to-key="ranger.usersync.ldap.username.caseconversion" default-value="" />
-            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE" to-key="ranger.usersync.group.memberattributename" default-value="" />
-            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_NAME_ATTRIBUTE" to-key="ranger.usersync.group.nameattribute" default-value="" />
-            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_OBJECT_CLASS" to-key="ranger.usersync.group.objectclass" default-value="" />
-            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_BASE" to-key="ranger.usersync.group.searchbase" default-value="" />
-            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_FILTER" to-key="ranger.usersync.group.searchfilter" default-value="" />
-            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_SCOPE" to-key="ranger.usersync.group.searchscope" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE" to-key="ranger.usersync.ldap.user.groupnameattribute" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_NAME_ATTRIBUTE" to-key="ranger.usersync.ldap.user.nameattribute" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_OBJECT_CLASS" to-key="ranger.usersync.ldap.user.objectclass" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_BASE" to-key="ranger.usersync.ldap.user.searchbase" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_FILTER" to-key="ranger.usersync.ldap.user.searchfilter" default-value="" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_SCOPE" to-key="ranger.usersync.ldap.user.searchscope" default-value="" />
             <transfer operation="copy" from-type="usersync-properties" from-key="logdir" to-key="ranger.usersync.logdir" default-value="" />
-            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_SOURCE" to-key="ranger.usersync.source.impl.class" default-value="org.apache.ranger.unixusersync.process.UnixUserGroupBuilder" />
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_SOURCE" to-key="ranger.usersync.sync.source" default-value="unix" />
             <transfer operation="copy" from-type="usersync-properties" from-key="POLICY_MGR_URL" to-key="ranger.usersync.policymanager.baseURL" default-value="{{ranger_external_url}}" />
+            <set key="ranger.usersync.source.impl.class" value="" />
+            <set key="ranger.usersync.ldap.searchBase" value="" />
+            <set key="ranger.usersync.group.memberattributename" value="" />
+            <set key="ranger.usersync.group.nameattribute" value="" />
+            <set key="ranger.usersync.group.objectclass" value="" />
+            <set key="ranger.usersync.group.searchbase" value="" />
+            <set key="ranger.usersync.group.searchenabled" value="" />
+            <set key="ranger.usersync.group.searchfilter" value="" />
+            <set key="ranger.usersync.group.searchscope" value="" />
+            <set key="ranger.usersync.group.usermapsyncenabled" value="" />
           </task>
             
           <task xsi:type="configure">
