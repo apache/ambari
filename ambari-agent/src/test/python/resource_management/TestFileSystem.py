@@ -22,6 +22,7 @@ from mock.mock import patch
 
 from resource_management.libraries.functions import file_system
 import resource_management.core.providers.mount
+from resource_management.core.logger import Logger
 
 
 class TestFileSystem(TestCase):
@@ -78,7 +79,9 @@ class TestFileSystem(TestCase):
 
     return mount_val
 
-  def test_invalid(self):
+  @patch.object(Logger, "info")
+  @patch.object(Logger, "error")
+  def test_invalid(self, log_error, log_info):
     """
     Testing when parameters are invalid or missing.
     """
@@ -91,9 +94,10 @@ class TestFileSystem(TestCase):
     mount_point = file_system.get_mount_point_for_dir("  ")
     self.assertEqual(mount_point, None)
 
-
+  @patch.object(Logger, "info")
+  @patch.object(Logger, "error")
   @patch('resource_management.core.providers.mount.get_mounted')
-  def test_at_root(self, mounted_mock):
+  def test_at_root(self, mounted_mock, log_error, log_info):
     """
     Testing when the path is mounted on the root.
     """
@@ -102,9 +106,10 @@ class TestFileSystem(TestCase):
     mount_point = file_system.get_mount_point_for_dir("/hadoop/hdfs/data")
     self.assertEqual(mount_point, "/")
 
-
+  @patch.object(Logger, "info")
+  @patch.object(Logger, "error")
   @patch('resource_management.core.providers.mount.get_mounted')
-  def test_at_drive(self, mounted_mock):
+  def test_at_drive(self, mounted_mock, log_error, log_info):
     """
     Testing when the path is mounted on a virtual file system not at the root.
     """
