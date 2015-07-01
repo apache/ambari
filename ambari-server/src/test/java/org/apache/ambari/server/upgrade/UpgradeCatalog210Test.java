@@ -230,7 +230,8 @@ public class UpgradeCatalog210Test {
   @Test
   public void testUpdateRangerHiveConfigs() throws Exception{
     EasyMockSupport easyMockSupport = new EasyMockSupport();
-    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(
+        AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
 
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
@@ -319,7 +320,8 @@ public class UpgradeCatalog210Test {
   @Test
   public void testUpdateStormConfiguration() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
-    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(
+        AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
 
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
@@ -356,6 +358,56 @@ public class UpgradeCatalog210Test {
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog210.class).updateStormConfigs();
     easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testUpdateHBaseConfiguration() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Config mockHBaseSite = easyMockSupport.createNiceMock(Config.class);
+    final Config mockHBaseEnv = easyMockSupport.createNiceMock(Config.class);
+
+    final Map<String, String> propertiesExpectedHBaseSite = new HashMap<String, String>();
+    propertiesExpectedHBaseSite.put("hbase.region.server.rpc.scheduler.factory.class",
+                                    "org.apache.phoenix.hbase.index.ipc.PhoenixIndexRpcSchedulerFactory");
+    final Map<String, String> propertiesExpectedHBaseEnv = new HashMap<String, String>();
+    propertiesExpectedHBaseEnv.put("phoenix_sql_enabled", "false");
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    expect(mockClusterExpected.getDesiredConfigByType("hbase-site")).andReturn(mockHBaseSite).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hbase-env")).andReturn(mockHBaseEnv).atLeastOnce();
+    expect(mockHBaseSite.getProperties()).andReturn(propertiesExpectedHBaseSite).anyTimes();
+    expect(mockHBaseEnv.getProperties()).andReturn(propertiesExpectedHBaseEnv).anyTimes();
+
+    Capture<String> configType = new Capture<String>();
+    Capture<String> configTag = new Capture<String>();
+    expect(mockClusterExpected.getConfig(capture(configType), capture(configTag))).
+        andReturn(mockHBaseEnv).times(1);
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog210.class).updateHBaseConfigs();
+    easyMockSupport.verifyAll();
+    assertEquals("hbase-env", configType.getValue());
   }
 
   @Test
