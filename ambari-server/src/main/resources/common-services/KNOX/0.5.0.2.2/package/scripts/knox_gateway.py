@@ -130,19 +130,17 @@ class KnoxGatewayDefault(KnoxGateway):
           extract_dir = os.path.realpath(params.knox_conf_dir)
           conf_tar_dest_path = os.path.join(extract_dir, upgrade.BACKUP_CONF_ARCHIVE)
           Logger.info("Copying %s into %s file." % (upgrade.BACKUP_CONF_ARCHIVE, conf_tar_dest_path))
-          Execute("cp %s %s" % (conf_tar_source_path, conf_tar_dest_path))
+          Execute(('cp', conf_tar_source_path, conf_tar_dest_path),
+                  sudo = True,
+          )
 
-          tarball = None
-          try:
-            tarball = tarfile.open(conf_tar_source_path, "r")
-            Logger.info("Extracting %s into %s directory." % (upgrade.BACKUP_CONF_ARCHIVE, extract_dir))
-            tarball.extractall(extract_dir)
-
-            Logger.info("Deleting temporary tar at %s" % conf_tar_dest_path)
-            Execute("rm %s" % (conf_tar_dest_path))
-          finally:
-            if tarball:
-              tarball.close()
+          Execute(('tar','-xvf',conf_tar_source_path,'-C',extract_dir),
+                  sudo = True,
+          )
+          
+          File(conf_tar_dest_path,
+               action = "delete",
+          )
 
   def start(self, env, rolling_restart=False):
     import params

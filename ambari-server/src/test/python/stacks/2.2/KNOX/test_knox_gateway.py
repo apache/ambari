@@ -298,7 +298,6 @@ class TestKnoxGateway(RMFTestCase):
       "conf-select set-conf-dir --package knox --stack-version 2.3.0.0-1234 --conf-version 0",
        mocks_dict['call'].call_args_list[1][0][0])
 
-    self.assertEquals(1, knox_conf_tarfile.extractall_count)
     self.assertTrue(2, knox_conf_tarfile.close_count)
 
   @patch("os.path.islink")
