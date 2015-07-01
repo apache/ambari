@@ -18,11 +18,7 @@ limitations under the License.
 
 """
 
-import oozie_server_upgrade
-
 from resource_management.core import Logger
-from resource_management.core.resources.system import Execute
-from resource_management.libraries.functions import format
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import compare_versions
 from resource_management.libraries.functions import conf_select
@@ -33,11 +29,13 @@ from resource_management.libraries.functions.security_commons import cached_kini
 from resource_management.libraries.functions.security_commons import get_params_from_filesystem
 from resource_management.libraries.functions.security_commons import validate_security_config_properties
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
+
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 
 from oozie import oozie
 from oozie_service import oozie_service
+from oozie_server_upgrade import OozieUpgrade
 
 from check_oozie_server_status import check_oozie_server_status
          
@@ -159,14 +157,15 @@ class OozieServerDefault(OozieServer):
 
     Logger.info("Executing Oozie Server Rolling Upgrade pre-restart")
 
-    oozie_server_upgrade.backup_configuration()
+    OozieUpgrade.backup_configuration()
 
     conf_select.select(params.stack_name, "oozie", params.version)
     hdp_select.select("oozie-server", params.version)
 
-    oozie_server_upgrade.restore_configuration()
-    oozie_server_upgrade.prepare_libext_directory()
-    oozie_server_upgrade.upgrade_oozie()
+    OozieUpgrade.restore_configuration()
+    OozieUpgrade.prepare_libext_directory()
+    OozieUpgrade.prepare_warfile()
+
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class OozieServerWindows(OozieServer):

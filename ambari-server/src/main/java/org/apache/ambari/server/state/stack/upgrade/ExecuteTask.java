@@ -19,11 +19,11 @@ package org.apache.ambari.server.state.stack.upgrade;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlAttribute;
 
 /**
  * Used to represent an execution that should occur on an agent.
@@ -38,10 +38,11 @@ public class ExecuteTask extends Task {
   private Task.Type type = Task.Type.EXECUTE;
 
   /**
-   * Host to run on, if not specified, run on all. Other values include "master", "any"
+   * The hosts to run the task on. Default to running on
+   * {@link ExecuteHostType#ALL}.
    */
   @XmlAttribute
-  public String hosts;
+  public ExecuteHostType hosts = ExecuteHostType.ALL;
 
   /**
    * Similar to a command, but instead it is a call to invoke the script (using its relative path).

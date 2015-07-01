@@ -26,7 +26,6 @@ from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import File
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import format
 from resource_management.libraries.functions.default import default
 
 class StormUpgrade(Script):
