@@ -4161,7 +4161,7 @@ public class AmbariManagementControllerTest {
 
     controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
         "a2", ActionType.SYSTEM, "", "HDFS", "DATANODE", "Does file exist",
-        TargetHostType.ALL, Short.valueOf("100")));
+        TargetHostType.ALL, Short.valueOf("1000")));
 
     Map<String, String> params = new HashMap<String, String>() {{
       put("test", "test");
@@ -4200,6 +4200,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("HDFS", cmd.getServiceName());
     Assert.assertEquals("DATANODE", cmd.getComponentName());
     Assert.assertNotNull(hostParametersStage.get("jdk_location"));
+    Assert.assertEquals("100", cmd.getCommandParams().get("command_timeout"));
     Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
     resourceFilters.clear();
@@ -6388,7 +6389,7 @@ public class AmbariManagementControllerTest {
 
     controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
       "a1", ActionType.SYSTEM, "", "HDFS", "", "Some custom action.",
-      TargetHostType.ALL, Short.valueOf("100")));
+      TargetHostType.ALL, Short.valueOf("10010")));
 
     Map<String, String> params = new HashMap<String, String>() {{
       put("test", "test");
@@ -6432,6 +6433,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(nnCommand);
     ExecutionCommand cmd = nnCommand.getExecutionCommandWrapper().getExecutionCommand();
     Assert.assertEquals("a1", cmd.getRole());
+    Assert.assertEquals("900", cmd.getCommandParams().get("command_timeout"));
     Type type = new TypeToken<Map<String, String>>(){}.getType();
     for (Stage stage : actionDB.getAllStages(response.getRequestId())){
       Map<String, String> commandParamsStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
