@@ -599,10 +599,35 @@
 
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="all" summary="Shut down all Oozie servers">
+            <script>scripts/oozie_server.py</script>
+            <function>stop</function>
+          </task>
+
+          <task xsi:type="execute" hosts="any" summary="Upgrading the database and creating a new sharelib">
+            <script>scripts/oozie_server_upgrade.py</script>
+            <function>upgrade_oozie_database_and_sharelib</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="execute" hosts="all" summary="Shut down all Oozie servers">
+            <script>scripts/oozie_server.py</script>
+            <function>stop</function>
+          </task>
+
+          <task xsi:type="execute" hosts="any" summary="Create a new sharelib">
+            <script>scripts/oozie_server_upgrade.py</script>
+            <function>create_sharelib</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
       </component>
+
       <component name="OOZIE_CLIENT">
         <upgrade>
           <task xsi:type="restart" />

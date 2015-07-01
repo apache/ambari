@@ -910,8 +910,14 @@ class TestOozieServer(RMFTestCase):
   def test_upgrade(self, glob_mock, chmod_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
 
+    def exists_mock_side_effect(path):
+      if path == '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar':
+        return True
+
+      return False
+
+    exists_mock.side_effect = exists_mock_side_effect
     isdir_mock.return_value = True
-    exists_mock.side_effect = [False,False,True]
     isfile_mock.return_value = True
     glob_mock.return_value = ["/usr/hdp/2.2.1.0-2187/hadoop/lib/hadoop-lzo-0.6.0.2.2.1.0-2187.jar"]
 
@@ -950,38 +956,6 @@ class TestOozieServer(RMFTestCase):
     glob_mock.assert_called_with('/usr/hdp/2.2.1.0-2135/hadoop/lib/hadoop-lzo*.jar')
 
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.2.1.0-2135'), sudo=True,)
-    self.assertResourceCalled('HdfsResource', '/user/oozie/share',
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-        user = 'hdfs',
-        hdfs_site = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        principal_name = UnknownConfigurationMock(),
-        recursive_chmod = True,
-        owner = 'oozie',
-        group = 'hadoop',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0755,
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-        hdfs_site = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        principal_name = UnknownConfigurationMock(),
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-    )
-    self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/ooziedb.sh upgrade -run', user='oozie')
-    self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020', user='oozie')
-
     self.assertNoMoreResources()
 
   @patch("tarfile.open")
@@ -996,18 +970,25 @@ class TestOozieServer(RMFTestCase):
   def test_upgrade_23(self, glob_mock, chmod_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
 
+    def exists_mock_side_effect(path):
+      if path == '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar':
+        return True
+
+      return False
+
     isdir_mock.return_value = True
-    exists_mock.side_effect = [False,False,True]
+    exists_mock.side_effect = exists_mock_side_effect
     isfile_mock.return_value = True
     glob_mock.return_value = ["/usr/hdp/2.2.1.0-2187/hadoop/lib/hadoop-lzo-0.6.0.2.2.1.0-2187.jar"]
 
     prepare_war_stdout = """INFO: Adding extension: libext/mysql-connector-java.jar
     New Oozie WAR file with added 'JARs' at /var/lib/oozie/oozie-server/webapps/oozie.war"""
 
-
     config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/oozie-upgrade.json"
+
     with open(config_file, "r") as f:
       json_content = json.load(f)
+
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
 
@@ -1037,40 +1018,6 @@ class TestOozieServer(RMFTestCase):
     glob_mock.assert_called_with('/usr/hdp/2.3.0.0-1234/hadoop/lib/hadoop-lzo*.jar')
 
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo=True)
-    self.assertResourceCalled('HdfsResource', '/user/oozie/share',
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-        user = 'hdfs',
-        hdfs_site = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        principal_name = UnknownConfigurationMock(),
-        recursive_chmod = True,
-        owner = 'oozie',
-        group = 'hadoop',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0755,
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-        hdfs_site = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        principal_name = UnknownConfigurationMock(),
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-    )
-    self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/ooziedb.sh upgrade -run',
-        user = 'oozie',
-    )
-    self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020', user='oozie')
-
     self.assertNoMoreResources()
 
     self.assertEquals(3, mocks_dict['call'].call_count)
@@ -1119,37 +1066,7 @@ class TestOozieServer(RMFTestCase):
     isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
 
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.2.0.0-0000'), sudo=True)
-    self.assertResourceCalled('HdfsResource', '/user/oozie/share',
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/2.2.0.0-0000/hadoop/bin',
-        keytab = UnknownConfigurationMock(),
-        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-        user = 'hdfs',
-        hdfs_site = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        principal_name = UnknownConfigurationMock(),
-        recursive_chmod = True,
-        owner = 'oozie',
-        group = 'hadoop',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0755,
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/2.2.0.0-0000/hadoop/bin',
-        keytab = UnknownConfigurationMock(),
-        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-        hdfs_site = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        principal_name = UnknownConfigurationMock(),
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-    )
-    self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/ooziedb.sh upgrade -run', user='oozie')
-    self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020', user='oozie')
+    self.assertNoMoreResources()
 
 
   @patch("tarfile.open")
@@ -1165,7 +1082,7 @@ class TestOozieServer(RMFTestCase):
       isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
 
     isdir_mock.return_value = True
-    exists_mock.side_effect = [False,False,True]
+    exists_mock.return_value = False
     isfile_mock.return_value = True
 
     try:
@@ -1177,4 +1094,61 @@ class TestOozieServer(RMFTestCase):
       self.fail("An invalid WAR preparation should have caused an error")
     except Fail,f:
       pass
+
+
+  def test_upgrade_database_sharelib(self):
+    """
+    Tests that the upgrade script runs the proper commands before the
+    actual upgrade begins.
+    :return:
+    """
+    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/oozie-upgrade.json"
+
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['stack_name'] = "HDP"
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server_upgrade.py",
+      classname = "OozieUpgrade", command = "upgrade_oozie_database_and_sharelib",
+      config_dict = json_content,
+      hdp_stack_version = self.UPGRADE_STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES )
+
+    self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/oozie/bin/ooziedb.sh upgrade -run',
+      user = 'oozie', logoutput = True )
+
+    self.assertResourceCalled('HdfsResource', '/user/oozie/share',
+      security_enabled = False,
+      hadoop_bin_dir = '/usr/hdp/2.3.0.0-1234/hadoop/bin',
+      keytab = UnknownConfigurationMock(),
+      default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+      user = 'hdfs',
+      hdfs_site = UnknownConfigurationMock(),
+      kinit_path_local = '/usr/bin/kinit',
+      principal_name = UnknownConfigurationMock(),
+      recursive_chmod = True,
+      owner = 'oozie',
+      group = 'hadoop',
+      hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+      type = 'directory',
+      action = ['create_on_execute'],
+      mode = 0755 )
+
+    self.assertResourceCalled('HdfsResource', None,
+      security_enabled = False,
+      hadoop_bin_dir = '/usr/hdp/2.3.0.0-1234/hadoop/bin',
+      keytab = UnknownConfigurationMock(),
+      default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+      hdfs_site = UnknownConfigurationMock(),
+      kinit_path_local = '/usr/bin/kinit',
+      principal_name = UnknownConfigurationMock(),
+      user = 'hdfs',
+      action = ['execute'],
+      hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf' )
+
+    self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/oozie/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020',
+      user='oozie', logoutput = True)
 

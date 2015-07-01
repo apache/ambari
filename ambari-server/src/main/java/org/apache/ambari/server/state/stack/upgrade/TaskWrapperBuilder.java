@@ -48,7 +48,7 @@ public class TaskWrapperBuilder {
     List<TaskWrapper> collection = new ArrayList<TaskWrapper>();
     for (Task t : tasks) {
       if (t.getType().equals(Task.Type.EXECUTE)) {
-        if (((ExecuteTask) t).hosts != null && ((ExecuteTask) t).hosts.equalsIgnoreCase("master")) {
+        if (((ExecuteTask) t).hosts != null && ((ExecuteTask) t).hosts == ExecuteHostType.MASTER) {
           if (hostsType.master != null) {
             collection.add(new TaskWrapper(service, component, Collections.singleton(hostsType.master), t));
             continue;
@@ -58,7 +58,7 @@ public class TaskWrapperBuilder {
           }
         }
         // Pick a random host.
-        if (((ExecuteTask) t).hosts != null && ((ExecuteTask) t).hosts.equalsIgnoreCase("any")) {
+        if (((ExecuteTask) t).hosts != null && ((ExecuteTask) t).hosts == ExecuteHostType.ANY) {
           if (hostsType.hosts != null && !hostsType.hosts.isEmpty()) {
             collection.add(new TaskWrapper(service, component, Collections.singleton(hostsType.hosts.iterator().next()), t));
             continue;
