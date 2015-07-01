@@ -113,6 +113,7 @@ App.ServiceConfigProperty = Em.Object.extend({
   showLabel: true,
   error: false,
   warn: false,
+  previousValue: null, // cached value before changing config <code>value</code>
 
   /**
    * List of <code>isFinal</code>-values for overrides

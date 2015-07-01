@@ -686,7 +686,24 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
         App.config.removeRangerConfigs(self.get('stepConfigs'));
       }
-      self.updateDependentConfigs();
+      if (!self.get('content.serviceConfigProperties.length')) {
+        // for Add Service just remove or add dependent properties and ignore config values changes
+        // for installed services only
+        if (self.get('wizardController.name') == 'addServiceController') {
+          self.addRemoveDependentConfigs(self.get('installedServiceNames'));
+          self.clearDependenciesForInstalledServices(self.get('installedServiceNames'), self.get('stepConfigs'));
+        }
+        // * add dependencies based on recommendations
+        // * update config values with recommended
+        // * remove properties recieved from recommendations
+        self.updateDependentConfigs();
+      } else {
+        // control flow for managing dependencies for stored configs,
+        // * Don't update values with recommended to save user's input
+        // * add dependencies based on user's input for parent configs
+        // * remove dependencies based on user's input for parent configs
+        self.addRemoveDependentConfigs();
+      }
       self.restoreRecommendedConfigs();
       self.clearDependentConfigsByService(App.StackService.find().filterProperty('isSelected').mapProperty('serviceName'));
       self.set('isRecommendedLoaded', true);

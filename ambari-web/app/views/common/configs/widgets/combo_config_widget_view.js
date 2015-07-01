@@ -104,12 +104,12 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
    * @param {Object} e
    */
   setConfigValue: function(e) {
-    var configValueChanged = this.get('config.value') != e.context;
     this.set('config.value', e.context);
     this.set('content.value', this.generateWidgetValue(e.context));
-    if (configValueChanged) {
+    if (this.get('config.previousValue') != this.get('config.value')) {
       this.sendRequestRorDependentConfigs(this.get('config'));
     }
+    this.set('config.previousValue', this.get('config.value'));
   },
 
   /**
@@ -143,9 +143,9 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
     }
   },
 
-  setValue: function() {
-    this.setConfigValue({ context: this.get('config.value') });
-  },
+  // setValue: function() {
+  //   this.setConfigValue({ context: this.get('config.value') });
+  // },
 
   isValueCompatibleWithWidget: function() {
     var res = this._super() && this.get('content.valuesList').someProperty('configValue', this.get('config.value'));
