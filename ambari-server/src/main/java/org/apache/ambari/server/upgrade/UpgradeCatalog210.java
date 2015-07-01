@@ -1197,6 +1197,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     updateHdfsConfigs();
     updateStormConfigs();
     updateRangerHiveConfigs();
+    updateHBaseConfigs();
   }
 
   protected void updateRangerHiveConfigs() throws AmbariException{
@@ -1319,7 +1320,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     if (clusters != null) {
       Map<String, Cluster> clusterMap = clusters.getClusters();
-      Map<String, String> prop = new HashMap<String, String>();
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
@@ -1333,6 +1333,32 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
               hiveProps.put("hive.metastore.heapsize", "1024m");
             }
             updateConfigurationPropertiesForCluster(cluster, "hive-env", hiveProps, false, true);
+          }
+        }
+      }
+    }
+  }
+
+  protected void updateHBaseConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(
+        AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          if (cluster.getDesiredConfigByType("hbase-site") != null) {
+            Map<String, String> hbaseEnvProps = new HashMap<String, String>();
+            Map<String, String> hbaseSiteProps = cluster.getDesiredConfigByType("hbase-site").getProperties();
+
+            if (hbaseSiteProps.containsKey("hbase.region.server.rpc.scheduler.factory.class") &&
+                "org.apache.phoenix.hbase.index.ipc.PhoenixIndexRpcSchedulerFactory".equals(hbaseSiteProps.get(
+                    "hbase.region.server.rpc.scheduler.factory.class"))) {
+              hbaseEnvProps.put("phoenix_sql_enabled", "true");
+            }
+            updateConfigurationPropertiesForCluster(cluster, "hbase-env", hbaseEnvProps, true, false);
           }
         }
       }
