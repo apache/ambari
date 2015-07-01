@@ -736,6 +736,8 @@ App.WidgetLoadAggregator = Em.Object.create({
     var self = this;
     for (var id in bulks) {
       (function (_request) {
+        if (_request.context.get('state') !== 'inDOM') return;
+
         _request.data.metric_paths = self.arrayUtils.uniqObjectsbyId(_request.data.metric_paths, "id");
         _request.context[_request.startCallName].call(_request.context, _request.data).done(function (response) {
           _request.subRequests.forEach(function (subRequest) {

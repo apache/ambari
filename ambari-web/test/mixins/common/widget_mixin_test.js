@@ -458,14 +458,15 @@ describe('App.WidgetLoadAggregator', function () {
   });
 
   describe("#runRequests()", function () {
-    var mock = {
+    var mock = Em.Object.create({
       f1: function () {
         return {
           done: Em.K,
           complete: Em.K
         }
-      }
-    };
+      },
+      state: 'inDOM'
+    });
     beforeEach(function () {
       sinon.stub(aggregator, 'groupRequests', function (requests) {
         return requests;
@@ -476,7 +477,7 @@ describe('App.WidgetLoadAggregator', function () {
       aggregator.groupRequests.restore();
       mock.f1.restore();
     });
-    it("", function () {
+    it("view in DOM", function () {
       var requests = {
         'r1': {
           data: {
@@ -488,6 +489,20 @@ describe('App.WidgetLoadAggregator', function () {
       };
       aggregator.runRequests(requests);
       expect(mock.f1.calledWith(requests['r1'].data)).to.be.true;
+    });
+    it("view destroyed", function () {
+      var requests = {
+        'r1': {
+          data: {
+            metric_paths: ['m1', 'm1', 'm2']
+          },
+          context: mock,
+          startCallName: 'f1'
+        }
+      };
+      mock.set('state', 'destroyed');
+      aggregator.runRequests(requests);
+      expect(mock.f1.called).to.be.false;
     });
   });
 });
