@@ -38,6 +38,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.state.Cluster;
@@ -75,6 +76,8 @@ public class AmbariActionExecutionHelper {
   private MaintenanceStateHelper maintenanceStateHelper;
   @Inject
   private ConfigHelper configHelper;
+  @Inject
+  private Configuration configs;
 
   /**
    * Validates the request to execute an action.
@@ -349,7 +352,12 @@ public class AmbariActionExecutionHelper {
       }
 
       Map<String, String> commandParams = new TreeMap<String, String>();
-      commandParams.put(COMMAND_TIMEOUT, actionContext.getTimeout().toString());
+      int maxTaskTimeout = Integer.parseInt(configs.getDefaultAgentTaskTimeout(false));
+      if(maxTaskTimeout < actionContext.getTimeout()) {
+        commandParams.put(COMMAND_TIMEOUT, Integer.toString(maxTaskTimeout));
+      } else {
+        commandParams.put(COMMAND_TIMEOUT, actionContext.getTimeout().toString());
+      }
       commandParams.put(SCRIPT, actionName + ".py");
       commandParams.put(SCRIPT_TYPE, TYPE_PYTHON);
 

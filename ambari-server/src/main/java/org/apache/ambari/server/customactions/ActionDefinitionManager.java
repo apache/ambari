@@ -43,7 +43,7 @@ public class ActionDefinitionManager {
       .getLogger(ActionDefinitionManager.class);
   private static final Map<Class<?>, JAXBContext> _jaxbContexts =
       new HashMap<Class<?>, JAXBContext>();
-  private static final Short MAX_TIMEOUT = 600;
+  private static final Short MAX_TIMEOUT = Short.MAX_VALUE-1;
 
   static {
     try {
