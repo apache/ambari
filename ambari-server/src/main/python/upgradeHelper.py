@@ -182,12 +182,16 @@ class Options(Const):
   REPLACE_JH_HOST_NAME_TAG = "REPLACE_JH_HOST"
   REPLACE_RM_HOST_NAME_TAG = "REPLACE_RM_HOST"
   REPLACE_WITH_TAG = "REPLACE_WITH_"
+  ZK_OPTIONS = "zoo.cfg"
+  ZK_CLIENTPORT = "clientPort"
   DELETE_OLD_TAG = "DELETE_OLD"
 
   ZOOKEEPER_SERVER = "ZOOKEEPER_SERVER"
 
   MR_MAPPING = None
   logger = None
+  server_config_factory = None
+  """:type : ServerConfigFactory"""
 
   # Api constants
   ROOT_URL = None
@@ -953,6 +957,11 @@ def get_zookeeper_quorum():
   zoo_cfg = curl(Options.COMPONENTS_FORMAT.format(Options.ZOOKEEPER_SERVER), validate=False, simulate=False, parse=True)
   zoo_quorum = []
   zoo_def_port = "2181"
+  if Options.server_config_factory is not None and Options.ZK_OPTIONS in Options.server_config_factory.items():
+    props = Options.server_config_factory.get_config(Options.ZK_OPTIONS)
+    if Options.ZK_CLIENTPORT in props.properties:
+      zoo_def_port = props.properties[Options.ZK_CLIENTPORT]
+
   if "host_components" in zoo_cfg:
     for item in zoo_cfg["host_components"]:
       zoo_quorum.append("%s:%s" % (item["HostRoles"]["host_name"], zoo_def_port))
@@ -1028,7 +1037,8 @@ def modify_configs():
                                      Options.OPTIONS.to_stack)  # get desired version of catalog
 
   # load all desired configs from the server
-  server_config_factory = ServerConfigFactory()
+  # ToDo: implement singleton for that class
+  Options.server_config_factory = ServerConfigFactory()
 
   if catalog is None:
     raise FatalException(1, "Upgrade catalog for version %s-%s not found, no configs was modified"
@@ -1041,15 +1051,15 @@ def modify_configs():
     raise FatalException("Config type %s not exists, no configs was modified" % config_type)
 
   if config_type is not None:
-    modify_config_item(config_type, catalog, server_config_factory)
+    modify_config_item(config_type, catalog, Options.server_config_factory)
   else:
     for collection_name in catalog.items:
-      modify_config_item(collection_name, catalog, server_config_factory)
+      modify_config_item(collection_name, catalog, Options.server_config_factory)
 
-  server_config_factory.process_mapping_transformations(catalog)
+  Options.server_config_factory.process_mapping_transformations(catalog)
 
   # commit changes to server, if any will be found
-  server_config_factory.commit()
+  Options.server_config_factory.commit()
 
 
 def backup_configs(conf_type=None):
