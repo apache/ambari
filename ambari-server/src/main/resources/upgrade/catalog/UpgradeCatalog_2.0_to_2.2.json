@@ -114,7 +114,10 @@
           "yarn.resourcemanager.work-preserving-recovery.enabled": "false",
           "yarn.resourcemanager.work-preserving-recovery.scheduling-wait-ms": "10000",
           "yarn.resourcemanager.zk-acl": "world:anyone:rwcda",
-          "yarn.resourcemanager.zk-address": "localhost:2181",
+          "yarn.resourcemanager.zk-address": {
+            "value": "{ZOOKEEPER_QUORUM}",
+            "template": "yes"
+          },
           "yarn.resourcemanager.zk-num-retries": "1000",
           "yarn.resourcemanager.zk-retry-interval-ms": "1000",
           "yarn.resourcemanager.zk-state-store.parent-path": "/rmstore",
