@@ -461,6 +461,8 @@ App.UpdateController = Em.Controller.extend({
           requestsRunningStatus["updateServiceMetric"] = false;
         }
       });
+    } else {
+      callback();
     }
   },
   /**
