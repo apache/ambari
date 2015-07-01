@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.inject.persist.jpa.AmbariJpaPersistModule;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -50,22 +51,18 @@ public class ConfigGroupTest {
   private Cluster cluster;
   private String clusterName;
   private Injector injector;
-  private AmbariMetaInfo metaInfo;
   private ConfigGroupFactory configGroupFactory;
   private ConfigFactory configFactory;
-  private HostDAO hostDAO;
   private ConfigGroupDAO configGroupDAO;
   private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
 
   @Before
   public void setup() throws Exception {
-    injector  = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
-    metaInfo = injector.getInstance(AmbariMetaInfo.class);
     configFactory = injector.getInstance(ConfigFactory.class);
     configGroupFactory = injector.getInstance(ConfigGroupFactory.class);
-    hostDAO = injector.getInstance(HostDAO.class);
     configGroupDAO = injector.getInstance(ConfigGroupDAO.class);
     configGroupHostMappingDAO = injector.getInstance
       (ConfigGroupHostMappingDAO.class);
@@ -175,7 +172,7 @@ public class ConfigGroupTest {
 
     // Save
     configGroup.persist();
-
+    configGroup.refresh();
     configGroupEntity = configGroupDAO.findByName("NewName");
 
     Assert.assertNotNull(configGroupEntity);

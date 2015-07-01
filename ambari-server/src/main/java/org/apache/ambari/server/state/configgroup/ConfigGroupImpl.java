@@ -365,6 +365,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     if (isPersisted) {
       // Delete existing mappings and create new ones
       configGroupHostMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
+      configGroupDAO.refresh(configGroupEntity);
       configGroupEntity.setConfigGroupHostMappingEntities(new HashSet<ConfigGroupHostMappingEntity>());
     }
 
@@ -381,13 +382,13 @@ public class ConfigGroupImpl implements ConfigGroup {
           configGroupEntity.getConfigGroupHostMappingEntities().add
                   (hostMappingEntity);
           configGroupHostMappingDAO.create(hostMappingEntity);
-          // TODO: Make sure this does not throw Nullpointer based on JPA docs
         } else {
           LOG.warn("Host seems to be deleted, cannot create host to config " +
             "group mapping, host = " + host.getHostName());
         }
       }
     }
+    // TODO: Make sure this does not throw Nullpointer based on JPA docs
     configGroupEntity = configGroupDAO.merge(configGroupEntity);
   }
 
@@ -401,6 +402,7 @@ public class ConfigGroupImpl implements ConfigGroup {
   void persistConfigMapping(ClusterEntity clusterEntity) {
     if (isPersisted) {
       configGroupConfigMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
+      configGroupDAO.refresh(configGroupEntity);
       configGroupEntity.setConfigGroupConfigMappingEntities(new HashSet<ConfigGroupConfigMappingEntity>());
     }
 
