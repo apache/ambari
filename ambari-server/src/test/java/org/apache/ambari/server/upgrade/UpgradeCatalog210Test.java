@@ -72,6 +72,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -450,6 +451,7 @@ public class UpgradeCatalog210Test {
 
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Host mockHost = easyMockSupport.createNiceMock(Host.class);
 
     final Config mockHBaseSite = easyMockSupport.createNiceMock(Config.class);
     final Config mockHBaseEnv = easyMockSupport.createNiceMock(Config.class);
@@ -457,8 +459,11 @@ public class UpgradeCatalog210Test {
     final Map<String, String> propertiesExpectedHBaseSite = new HashMap<String, String>();
     propertiesExpectedHBaseSite.put("hbase.region.server.rpc.scheduler.factory.class",
                                     "org.apache.phoenix.hbase.index.ipc.PhoenixIndexRpcSchedulerFactory");
+    propertiesExpectedHBaseSite.put("hbase.security.authorization", "true");
+
     final Map<String, String> propertiesExpectedHBaseEnv = new HashMap<String, String>();
     propertiesExpectedHBaseEnv.put("phoenix_sql_enabled", "false");
+
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -481,15 +486,21 @@ public class UpgradeCatalog210Test {
     expect(mockHBaseSite.getProperties()).andReturn(propertiesExpectedHBaseSite).anyTimes();
     expect(mockHBaseEnv.getProperties()).andReturn(propertiesExpectedHBaseEnv).anyTimes();
 
+    expect(mockClusterExpected.getHosts(anyObject(String.class), anyObject(String.class))).andReturn(new HashSet<String>() {{
+      add("host_1");
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getHosts()).andReturn(new HashSet<Host>(){{add(mockHost);}}).atLeastOnce();
+    expect(mockHost.getHostName()).andReturn("host_1");
+    expect(mockHost.getTotalMemBytes()).andReturn(16777216L);
+
     Capture<String> configType = new Capture<String>();
     Capture<String> configTag = new Capture<String>();
     expect(mockClusterExpected.getConfig(capture(configType), capture(configTag))).
-        andReturn(mockHBaseEnv).times(1);
+            andReturn(mockHBaseSite).atLeastOnce();
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog210.class).updateHBaseConfigs();
     easyMockSupport.verifyAll();
-    assertEquals("hbase-env", configType.getValue());
   }
 
   @Test
