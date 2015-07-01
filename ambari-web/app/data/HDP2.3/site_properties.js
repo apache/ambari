@@ -855,6 +855,96 @@ hdp23properties.push({
   },
   {
     "id": "site property",
+    "name": "ranger.usersync.group.memberattributename",
+    "displayName": "ranger.usersync.group.memberattributename",
+    "category": "Advanced ranger-ugsync-site",
+    "isRequired": false,
+    "serviceName": "RANGER",
+    "filename": "ranger-ugsync-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.usersync.group.nameattribute",
+    "displayName": "ranger.usersync.group.nameattribute",
+    "category": "Advanced ranger-ugsync-site",
+    "isRequired": false,
+    "serviceName": "RANGER",
+    "filename": "ranger-ugsync-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.usersync.group.objectclass",
+    "displayName": "ranger.usersync.group.objectclass",
+    "category": "Advanced ranger-ugsync-site",
+    "isRequired": false,
+    "serviceName": "RANGER",
+    "filename": "ranger-ugsync-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.usersync.group.searchbase",
+    "displayName": "ranger.usersync.group.searchbase",
+    "category": "Advanced ranger-ugsync-site",
+    "isRequired": false,
+    "serviceName": "RANGER",
+    "filename": "ranger-ugsync-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.usersync.group.searchenabled",
+    "displayName": "ranger.usersync.group.searchenabled",
+    "category": "Advanced ranger-ugsync-site",
+    "isRequired": false,
+    "serviceName": "RANGER",
+    "filename": "ranger-ugsync-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.usersync.group.searchfilter",
+    "displayName": "ranger.usersync.group.searchfilter",
+    "category": "Advanced ranger-ugsync-site",
+    "isRequired": false,
+    "serviceName": "RANGER",
+    "filename": "ranger-ugsync-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.usersync.group.searchscope",
+    "displayName": "ranger.usersync.group.searchscope",
+    "category": "Advanced ranger-ugsync-site",
+    "isRequired": false,
+    "serviceName": "RANGER",
+    "filename": "ranger-ugsync-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.usersync.group.usermapsyncenabled",
+    "displayName": "ranger.usersync.group.usermapsyncenabled",
+    "category": "Advanced ranger-ugsync-site",
+    "isRequired": false,
+    "serviceName": "RANGER",
+    "filename": "ranger-ugsync-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.usersync.ldap.searchBase",
+    "displayName": "ranger.usersync.ldap.searchBase",
+    "category": "Advanced ranger-ugsync-site",
+    "isRequired": false,
+    "serviceName": "RANGER",
+    "filename": "ranger-ugsync-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.usersync.source.impl.class",
+    "displayName": "ranger.usersync.source.impl.class",
+    "category": "Advanced ranger-ugsync-site",
+    "isRequired": false,
+    "serviceName": "RANGER",
+    "filename": "ranger-ugsync-site.xml"
+  },
+  {
+    "id": "site property",
     "name": "common.name.for.certificate",
     "displayName": "common.name.for.certificate",
     "category": "Advanced ranger-yarn-plugin-properties",
