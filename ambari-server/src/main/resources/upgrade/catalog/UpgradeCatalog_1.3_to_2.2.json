@@ -481,7 +481,6 @@
           "dfs.namenode.checkpoint.txns": "1000000",
           "dfs.namenode.checkpoint.period": "21600",
           "dfs.namenode.checkpoint.edits.dir": "${dfs.namenode.checkpoint.dir}",
-          "dfs.journalnode.edits.dir": "/hadoop/hdfs/journalnode",
           "dfs.namenode.startup.delay.block.deletion.sec": "3600",
           "dfs.http.policy": "HTTP_ONLY",
           "dfs.namenode.name.dir.restore": "true",

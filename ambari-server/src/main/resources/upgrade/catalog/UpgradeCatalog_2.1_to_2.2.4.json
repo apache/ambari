@@ -126,7 +126,6 @@
 		},
 		"hdfs-site": {
 		  "dfs.datanode.max.transfer.threads": "16384",
-		  "dfs.journalnode.edits.dir": "/hadoop/hdfs/journalnode",
 		  "dfs.namenode.handler.count": "100",
 		  "dfs.namenode.startup.delay.block.deletion.sec": "3600"
 		},
