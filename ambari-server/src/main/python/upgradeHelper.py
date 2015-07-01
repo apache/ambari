@@ -197,6 +197,7 @@ class Options(Const):
   ROOT_URL = None
   CLUSTER_URL = None
   COMPONENTS_FORMAT = None
+  TEZ_VIEW_URL = None
 
   # Curl options
   CURL_PRINT_ONLY = None
@@ -225,6 +226,7 @@ class Options(Const):
     cls.ROOT_URL = '%s://%s:%s/api/v1' % (cls.API_PROTOCOL, cls.HOST, cls.API_PORT)
     cls.CLUSTER_URL = cls.ROOT_URL + "/clusters/%s" % cls.CLUSTER_NAME
     cls.COMPONENTS_FORMAT = cls.CLUSTER_URL + "/components/{0}"
+    cls.TEZ_VIEW_URL = cls.ROOT_URL + "/views/TEZ"
     if cls.CLUSTER_NAME is not None and cls.HOST is not None:
       cls.SERVICES = set(map(lambda x: x.upper(), get_cluster_services()))
 
@@ -968,6 +970,16 @@ def get_zookeeper_quorum():
 
   return ",".join(zoo_quorum)
 
+def get_tez_history_url_base():
+  tez_view = curl(Options.TEZ_VIEW_URL, validate=False, simulate=False, parse=True)
+  version = ""
+  if "versions" in tez_view and \
+    len(tez_view['versions']) > 0 and \
+    "ViewVersionInfo" in tez_view['versions'][0] and \
+    'version' in tez_view['versions'][0]['ViewVersionInfo']:
+    version = tez_view['versions'][0]['ViewVersionInfo']['version']
+  url = '{0}://{1}:{2}/#/main/views/TEZ/{3}/TEZ_CLUSTER_INSTANCE'.format(Options.API_PROTOCOL, Options.HOST, Options.API_PORT, version)
+  return url
 
 def get_jt_host(catalog):
   """
@@ -1006,6 +1018,9 @@ def _substitute_handler(upgrade_catalog, tokens, value):
       value = value.replace(token, get_jt_host(upgrade_catalog))
     elif token == "{ZOOKEEPER_QUORUM}":
       value = value.replace(token, get_zookeeper_quorum())
+    elif token == "{TEZ_HISTORY_URL_BASE}":
+      value = value.replace(token, get_tez_history_url_base())
+
   return value
 
 
