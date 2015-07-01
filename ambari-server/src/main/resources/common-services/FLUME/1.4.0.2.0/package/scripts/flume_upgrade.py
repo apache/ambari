@@ -23,6 +23,7 @@ import tempfile
 
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
+from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import tar_archive
 
 BACKUP_TEMP_DIR = "flume-upgrade-backup"
@@ -70,13 +71,9 @@ def pre_start_restore():
 
     if os.path.isfile(archive):
       Logger.info('Extracting {0} to {1}'.format(archive, directory))
-      tarball = None
-      try:
-        tarball = tarfile.open(archive, "r")
-        tarball.extractall(directory)
-      finally:
-        if tarball:
-          tarball.close()
+      Execute(('tar','-xvf',archive,'-C',directory+"/"),
+              sudo = True,
+      )
 
     # cleanup
     if os.path.exists(os.path.join(tempfile.gettempdir(), BACKUP_TEMP_DIR)):
