@@ -582,9 +582,11 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     selectedConfigGroup.get('hosts').forEach(function (hostName) {
       groupHosts.push({"host_name": hostName});
     });
+    var id = selectedConfigGroup.get('configGroupId');
+    id = Em.isNone(id) ? selectedConfigGroup.get('id') : id;
     this.putConfigGroupChanges({
       ConfigGroup: {
-        "id": selectedConfigGroup.get('configGroupId'),
+        "id": id,
         "cluster_name": App.get('clusterName'),
         "group_name": selectedConfigGroup.get('name'),
         "tag": selectedConfigGroup.get('service.id'),
