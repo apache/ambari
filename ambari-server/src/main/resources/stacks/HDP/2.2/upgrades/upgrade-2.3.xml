@@ -1005,7 +1005,6 @@
               <keep-key>oozie.authentication.type</keep-key>
               <keep-key>oozie.authentication.simple.anonymous.allowed</keep-key>
               <keep-key>oozie.authentication.kerberos.name.rules</keep-key>
-              <keep-key>oozie.service.AuthorizationService.authorization.enabled</keep-key>
               <keep-key>oozie.service.HadoopAccessorService.hadoop.configurations</keep-key>
               <keep-key>oozie.service.HadoopAccessorService.kerberos.enabled</keep-key>
               <keep-key>oozie.service.URIHandlerService.uri.handlers</keep-key>

@@ -49,15 +49,6 @@
   </property>
 
   <property>
-    <name>oozie.service.AuthorizationService.authorization.enabled</name>
-    <value>false</value>
-    <description>
-      Specifies whether security (user name/admin role) is enabled or not.
-      If disabled any user can manage Oozie system and manage any job.
-    </description>
-  </property>
-
-  <property>
     <name>oozie.service.HadoopAccessorService.hadoop.configurations</name>
     <value>*=/etc/hadoop/conf</value>
     <description>
