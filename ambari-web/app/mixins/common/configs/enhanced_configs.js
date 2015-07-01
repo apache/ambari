@@ -170,6 +170,40 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   },
 
   /**
+   * Remove configs from <code>_dependentConfigValues</code> which depends between installed services only.
+   *
+   * @param {String[]} installedServices
+   * @param {App.ServiceConfig[]} stepConfigs
+   */
+  clearDependenciesForInstalledServices: function(installedServices, stepConfigs) {
+    var allConfigs = stepConfigs.mapProperty('configs').filter(function(item) {
+      return item.length;
+    }).reduce(function(p, c) {
+      if (p) {
+        return p.concat(c);
+      }
+    });
+    var cleanDependencies = this.get('_dependentConfigValues').reject(function(item) {
+      if (installedServices.contains(Em.get(item, 'serviceName'))) {
+        var parentConfigs = Em.getWithDefault(item, 'parentConfigs', []);
+        if (!parentConfigs.length) {
+          return true;
+        }
+        // check that all parent properties from installed service
+        return !parentConfigs.reject(function(parentConfigName) {
+          var property = allConfigs.findProperty('name', parentConfigName);
+          if (!property) {
+            return false;
+          }
+          return installedServices.contains(Em.get(property, 'serviceName'));
+        }).length;
+      }
+      return false;
+    });
+    this.set('_dependentConfigValues', cleanDependencies);
+  },
+
+  /**
    * get config group object for current service
    * @param serviceName
    * @returns {App.ConfigGroup|null}
@@ -430,15 +464,15 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             if (dependentProperty) {
               Em.set(dependentProperty, 'value', initialValue);
               Em.set(dependentProperty, 'recommendedValue', recommendedValue);
-              Em.set(dependentProperty, 'toDelete', false);
-              Em.set(dependentProperty, 'toAdd', false);
+              Em.set(dependentProperty, 'toDelete', false); // handled in <code>saveRecommendedAttributes</code>
+              Em.set(dependentProperty, 'toAdd', isNewProperty);
               Em.set(dependentProperty, 'parentConfigs', dependentProperty.parentConfigs.concat(parentPropertiesNames).uniq());
             } else {
               this.get('_dependentConfigValues').pushObject({
                 saveRecommended: true,
                 saveRecommendedDefault: true,
                 toDelete: false,
-                isDeleted: false,
+                isDeleted: false, // handled in <code>saveRecommendedAttributes</code>
                 toAdd: isNewProperty,
                 fileName: key,
                 propertyName: propertyName,
@@ -583,6 +617,25 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
       }
     });
     this.set('recommendationTimeStamp', (new Date).getTime());
+  },
+
+  /**
+   * Add and remove dependencies based on recommendations
+   *
+   * @param {String[]} [serviceNames=undefined] - list of services to apply changes
+   */
+  addRemoveDependentConfigs: function(serviceNames) {
+    var self = this;
+    this.get('stepConfigs').forEach(function(serviceConfigs) {
+      if (serviceNames && !serviceNames.contains(serviceConfigs.get('serviceName'))) {
+        return;
+      }
+      var selectedGroup = self.getGroupForService(serviceConfigs.get('serviceName'));
+      if (selectedGroup) {
+        self._addRecommendedProperties(serviceConfigs, selectedGroup);
+        self._removeUnRecommendedProperties(serviceConfigs, selectedGroup);
+      }
+    });
   },
 
 
@@ -748,7 +801,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * Helper method to get property from the <code>stepConfigs</code>
    *
    * @param {String} name - config property name
-   * @param {} fileName - config property filename
+   * @param {String} fileName - config property filename
    * @return {App.ServiceConfigProperty|Boolean} - App.ServiceConfigProperty instance or <code>false</code> when property not found
    */
   findConfigProperty: function(name, fileName) {

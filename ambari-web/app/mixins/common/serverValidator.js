@@ -114,9 +114,21 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @returns {*}
    */
   loadServerSideConfigsRecommendations: function() {
+    var self = this;
     // if extended controller doesn't support recommendations ignore this call but keep promise chain
     if (!this.get('isControllerSupportsEnhancedConfigs')) {
       return $.Deferred().resolve().promise();
+    }
+    var recommendations = this.get('hostGroups');
+    // send user's input based on stored configurations
+    if (this.get('content.serviceConfigProperties.length')) {
+      recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs'));
+    }
+    // for add service send configurations for installed services on first transition to Customize Services step
+    if (!this.get('content.serviceConfigProperties.length') && this.get('wizardController.name') === 'addServiceController') {
+      recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs').filter(function(serviceConfigs) {
+        return self.get('installedServiceNames').contains(serviceConfigs.get('serviceName'));
+      }));
     }
     return App.ajax.send({
       'name': 'config.recommendations',
@@ -127,7 +139,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
           recommend: 'configurations',
           hosts: this.get('hostNames'),
           services: this.get('serviceNames'),
-          recommendations: this.get('hostGroups')
+          recommendations: recommendations
         }
       },
       'success': 'loadRecommendationsSuccess',

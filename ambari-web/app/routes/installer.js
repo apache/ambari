@@ -334,7 +334,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         controller.saveServiceConfigProperties(wizardStep7Controller);
         controller.saveServiceConfigGroups(wizardStep7Controller);
         controller.setDBProperty('recommendationsConfigs', wizardStep7Controller.get('recommendationsConfigs'));
-        router.transitionTo('step8');
+        App.clusterStatus.setClusterStatus({
+          localdb: App.db.data
+        }, {
+          alwaysCallback: function() {
+            router.transitionTo('step8');
+          }
+        });
       }
     }
   }),
