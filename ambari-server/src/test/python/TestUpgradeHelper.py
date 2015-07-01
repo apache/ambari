@@ -494,6 +494,32 @@ class TestUpgradeHelper(TestCase):
     self.assertEqual(expected_result, actual_result)
 
   @patch.object(upgradeHelper, "curl")
+  def test_get_tez_history_url_base(self, curl_mock):
+    return_curl_data = {
+      'href': 'http://127.0.0.1:8080/api/v1/views/TEZ',
+      'ViewInfo': {'view_name': 'TEZ'},
+      'versions': [
+        {
+          'ViewVersionInfo': {
+            'view_name': 'TEZ',
+            'version': '0.7.0.2.3.0.0-1319'
+          },
+          'href': 'http://127.0.0.1:8080/api/v1/views/TEZ/versions/0.7.0.2.3.0.0-1319'
+        }
+      ]
+    }
+
+    curl_mock.return_value = copy.deepcopy(return_curl_data)
+
+    # build zookeeper quorum string from return_curl_data and remove trailing comas
+    expected_result = "http://127.0.0.1:8080/#/main/views/TEZ/0.7.0.2.3.0.0-1319/TEZ_CLUSTER_INSTANCE"
+
+    # execute testing function
+    actual_result = upgradeHelper.get_tez_history_url_base()
+
+    self.assertEqual(expected_result, actual_result)
+
+  @patch.object(upgradeHelper, "curl")
   def test_get_config_resp_all(self, curl_mock):
     cfg_type = "my type"
     cfg_tag = "my tag"
