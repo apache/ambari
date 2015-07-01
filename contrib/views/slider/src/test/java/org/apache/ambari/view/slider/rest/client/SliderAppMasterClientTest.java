@@ -31,7 +31,7 @@ public class SliderAppMasterClientTest {
 
   @Test
   public void testSliderClientClassAvailability() {
-    SliderAppMasterClient client = new SliderAppMasterClient("http://tmpurl.org");
+    SliderAppMasterClient client = new SliderAppMasterClient("http://tmpurl.org", null);
     Map<String, Metric> metrics = new HashMap<String, Metric>();
     Map<String, String> jmxProperties = new HashMap<String, String>();
     Map<String, Map<String, Object>> categories = new HashMap<String, Map<String, Object>>();

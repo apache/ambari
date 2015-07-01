@@ -46,8 +46,8 @@ public class SliderAppMasterClient extends BaseHttpClient {
   private static final Logger logger = Logger
       .getLogger(SliderAppMasterClient.class);
 
-  public SliderAppMasterClient(String url) {
-    super(url);
+  public SliderAppMasterClient(String url, ViewContext viewContext) {
+    super(url, viewContext);
   }
 
   public SliderAppMasterData getAppMasterData() {

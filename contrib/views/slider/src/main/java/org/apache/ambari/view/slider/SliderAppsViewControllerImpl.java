@@ -136,7 +136,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
           clusterName = clusterName.substring(0, clusterName.length() - 1);
         }
         AmbariHttpClient ambariClient = new AmbariHttpClient(ambariUrl,
-            ambariUsername, ambariPassword);
+            ambariUsername, ambariPassword, viewContext);
         try {
           AmbariClusterInfo clusterInfo = ambariClient.getClusterInfo();
           if (clusterInfo!=null && clusterName.equals(clusterInfo.getName())) {
@@ -292,7 +292,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                     + clusterName + "] was not found on Ambari server"));
           }
         } catch (Throwable e) {
-          logger.warn("Exception determining view status", e);
+          logger.error("Exception determining view status", e);
           String message = e.getClass().getName() + ": " + e.getMessage();
           if (e instanceof RuntimeException && e.getCause() != null) {
             message = e.getCause().getClass().getName() + ": " + e.getMessage();
@@ -659,7 +659,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       }
 
       SliderAppMasterClient sliderAppClient = yarnApp.getTrackingUrl() == null ? null
-          : new SliderAppMasterClient(yarnApp.getTrackingUrl());
+          : new SliderAppMasterClient(yarnApp.getTrackingUrl(), viewContext);
       SliderAppMasterData appMasterData = null;
       Map<String, String> quickLinks = new HashMap<String, String>();
       Set<String> metrics = new HashSet<String>();

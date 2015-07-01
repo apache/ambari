@@ -126,6 +126,11 @@
       <artifactId>commons-io</artifactId>
       <version>${commons-io.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.ambari.contrib.views</groupId>
+      <artifactId>ambari-views-utils</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <properties>
@@ -137,7 +142,7 @@
     <commons-lang.version>2.6</commons-lang.version>
     <commons-compress.version>1.9</commons-compress.version>
     <httpclient.version>4.2.5</httpclient.version>
-    <slider.version>0.72.0-incubating-SNAPSHOT</slider.version>
+    <slider.version>0.81.0-incubating-SNAPSHOT</slider.version>
     <guice.version>3.0</guice.version>
     <jackson.version>1.9.13</jackson.version>
     <jersey.version>1.9</jersey.version>
