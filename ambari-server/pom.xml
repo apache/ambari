@@ -401,6 +401,7 @@
             </mapping>
             <mapping>
               <directory>/var/lib/ambari-server/</directory>
+              <configuration>true</configuration>
               <filemode>700</filemode>
               <username>root</username>
               <groupname>root</groupname>

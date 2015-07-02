@@ -20,6 +20,9 @@ STACKS_FOLDER_OLD=/var/lib/ambari-agent/cache/stacks_$(date '+%d_%m_%y_%H_%M').o
 COMMON_SERVICES_FOLDER="/var/lib/ambari-agent/cache/common-services"
 COMMON_SERVICES_FOLDER_OLD=/var/lib/ambari-agent/cache/common-services_$(date '+%d_%m_%y_%H_%M').old
 
+AMBARI_ENV="/var/lib/ambari-agent/ambari-env.sh"
+AMBARI_ENV_OLD="$AMBARI_ENV.rpmsave"
+
 if [ -d "/etc/ambari-agent/conf.save" ]
 then
     mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
@@ -38,6 +41,11 @@ fi
 if [ -d "$COMMON_SERVICES_FOLDER_OLD" ]
 then
     mv -f "$COMMON_SERVICES_FOLDER" "$COMMON_SERVICES_FOLDER_OLD"
+fi
+
+if [ -f "$AMBARI_ENV" ]
+then
+    mv -f "$AMBARI_ENV" "$AMBARI_ENV_OLD"
 fi
 
 exit 0
