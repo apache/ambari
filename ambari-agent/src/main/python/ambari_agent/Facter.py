@@ -381,22 +381,30 @@ class FacterLinux(Facter):
     if OSCheck.is_redhat7():
       interface_pattern="(\w+)(?:.*flags=)"
     for i in re.findall(interface_pattern, self.DATA_IFCONFIG_OUTPUT):
-      if primary_ip == self.get_ip_address_by_ifname(i.strip()).strip():
-        return socket.inet_ntoa(fcntl.ioctl(socket.socket(socket.AF_INET, socket.SOCK_DGRAM), 35099, struct.pack('256s', i))[20:24])
+      ip_address_by_ifname = self.get_ip_address_by_ifname(i.strip())
+      if ip_address_by_ifname is not None:
+        if primary_ip == ip_address_by_ifname.strip():
+          return socket.inet_ntoa(fcntl.ioctl(socket.socket(socket.AF_INET, socket.SOCK_DGRAM), 35099, struct.pack('256s', i))[20:24])
         
-
+    return None
       
   # Return IP by interface name
   def get_ip_address_by_ifname(self, ifname):
     import fcntl
     import struct
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    return socket.inet_ntoa(fcntl.ioctl(
+    ip_address_by_ifname = None
+    try:
+      ip_address_by_ifname = socket.inet_ntoa(fcntl.ioctl(
         s.fileno(),
         0x8915,  # SIOCGIFADDR
         struct.pack('256s', ifname[:15])
-    )[20:24])
-
+        )[20:24])
+    except Exception, err:
+      log.warn("Can't get the IP address for {0}".format(ifname))
+    
+    return ip_address_by_ifname
+      
 
   # Return interfaces
   def getInterfaces(self):
