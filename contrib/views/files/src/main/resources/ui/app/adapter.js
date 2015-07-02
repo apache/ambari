@@ -156,6 +156,44 @@ App.ApplicationStore = DS.Store.extend({
     headers: {
       'X-Requested-By': 'ambari'
     },
+
+    /**
+      @method ajaxOptions
+      @param {String} url
+      @param {String} type The request type GET, POST, PUT, DELETE etc.
+      @param {Object} hash
+      @return {Object} hash
+    */
+    ajaxOptions: function(url, type, options) {
+      var hash = options || {};
+      hash.url = url;
+      hash.type = type;
+      hash.dataType = 'json';
+      hash.context = this;
+
+      if (hash.data && type !== 'GET') {
+        hash.contentType = 'application/json; charset=utf-8';
+        hash.data = JSON.stringify(hash.data);
+      }
+
+      var headers = this.get('headers');
+
+      if ((navigator.userAgent.indexOf("MSIE") != -1) || (!!navigator.userAgent.match(/Trident.*rv[ :]*11\./))) {
+        headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+        headers['Pragma'] = 'no-cache';
+        headers['Expires'] = '0';
+      }
+
+      if (headers !== undefined) {
+        hash.beforeSend = function (xhr) {
+          Ember.keys(headers).forEach(function (key) {
+            xhr.setRequestHeader(key, headers[key]);
+          });
+        };
+      }
+
+      return hash;
+    },
     listdir: function(store, type, query) {
       return this.ajax(this.buildURL('fileops','listdir'), 'GET', { data: query });
     },
