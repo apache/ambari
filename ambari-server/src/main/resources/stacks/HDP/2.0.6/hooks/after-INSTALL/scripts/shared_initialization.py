@@ -27,6 +27,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script import Script
+from resource_management.core.resources.system import Directory
 
 
 def setup_hdp_install_directory():
@@ -121,6 +122,10 @@ def _link_configs(package, version, old_conf, link_conf):
     try:
       Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
         logoutput=True)
+      Directory(versioned_conf,
+                mode=0755,
+                cd_access='a'
+      )
     except:
       pass
 
