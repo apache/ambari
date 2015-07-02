@@ -365,7 +365,6 @@ public class ConfigGroupImpl implements ConfigGroup {
     if (isPersisted) {
       // Delete existing mappings and create new ones
       configGroupHostMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
-      configGroupDAO.refresh(configGroupEntity);
       configGroupEntity.setConfigGroupHostMappingEntities(new HashSet<ConfigGroupHostMappingEntity>());
     }
 
@@ -402,7 +401,6 @@ public class ConfigGroupImpl implements ConfigGroup {
   void persistConfigMapping(ClusterEntity clusterEntity) {
     if (isPersisted) {
       configGroupConfigMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
-      configGroupDAO.refresh(configGroupEntity);
       configGroupEntity.setConfigGroupConfigMappingEntities(new HashSet<ConfigGroupConfigMappingEntity>());
     }
 
@@ -452,15 +450,16 @@ public class ConfigGroupImpl implements ConfigGroup {
     }
   }
 
-  @Transactional
   void saveIfPersisted() {
-    ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
-
     if (isPersisted) {
-      configGroupEntity = configGroupDAO.merge(configGroupEntity);
-      persistHostMapping();
-      persistConfigMapping(clusterEntity);
+      save(clusterDAO.findById(cluster.getClusterId()));
     }
+  }
+
+  @Transactional
+  private void save(ClusterEntity clusterEntity) {
+    persistHostMapping();
+    persistConfigMapping(clusterEntity);
   }
 
   @Override
