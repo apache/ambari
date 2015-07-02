@@ -43,9 +43,19 @@ public abstract class HiveCall <T> {
       if (needRetry) {
         needRetry = false;
         attempts += 1;
-        conn.closeConnection();
+        try {
+          conn.closeConnection();
+        } catch (Exception e) {
+          LOG.error("Connection closed with error", e);
+        }
+      }
+
+      if (conn.getClient() == null) {
+        // previous attempt closed the connection, but new was failed to be established.
+        // on new call trying to open the connection again.
         conn.openConnection();
       }
+
       try {
 
         synchronized (conn) {
