@@ -643,7 +643,8 @@ App.config = Em.Object.create({
           // skip property if predefined config doesn't exist or ignored in stack property definition for current stack.
           // if `isRequiredByAgent` is set to `false` then this property used by UI only to display properties like
           // host names or some misc properties that won't be persisted.
-          if (Em.get(preDefined, 'isRequiredByAgent') !== false && !isAdvanced &&
+          var isPresentInConfigApi = advancedConfigs && advancedConfigs.filterProperty('filename', preDefined.filename).someProperty('name', name);
+          if (Em.get(preDefined, 'isRequiredByAgent') !== false && !isPresentInConfigApi &&
               Em.get(preDefined, 'filename') != 'alert_notification' &&
               ![
                 'hive_hostname',
