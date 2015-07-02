@@ -22,7 +22,7 @@
   
   <property>
     <name>xasecure.policymgr.clientssl.keystore</name>
-    <value>/usr/hdp/current/hadoop-client/conf/ranger-plugin-keystore.jks</value>
+    <value>/usr/hdp/current/hadoop-client/conf/ranger-yarn-plugin-keystore.jks</value>
     <description>Java Keystore files</description>
   </property>
 
@@ -35,7 +35,7 @@
 
   <property>
     <name>xasecure.policymgr.clientssl.truststore</name>
-    <value>/usr/hdp/current/hadoop-client/conf/ranger-plugin-truststore.jks</value>
+    <value>/usr/hdp/current/hadoop-client/conf/ranger-yarn-plugin-truststore.jks</value>
     <description>java truststore file</description>
   </property>
 

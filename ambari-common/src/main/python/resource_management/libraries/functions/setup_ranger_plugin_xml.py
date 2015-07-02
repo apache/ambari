@@ -112,13 +112,22 @@ def setup_ranger_plugin(component_select_name, service_name,
       group = component_group,
       mode=0744)
 
-    XmlConfig("ranger-policymgr-ssl.xml",
-      conf_dir=component_conf_dir,
-      configurations=plugin_policymgr_ssl_properties,
-      configuration_attributes=plugin_policymgr_ssl_attributes,
-      owner = component_user,
-      group = component_group,
-      mode=0744)
+    if str(service_name).lower() == 'yarn' :
+      XmlConfig("ranger-policymgr-ssl-yarn.xml",
+        conf_dir=component_conf_dir,
+        configurations=plugin_policymgr_ssl_properties,
+        configuration_attributes=plugin_policymgr_ssl_attributes,
+        owner = component_user,
+        group = component_group,
+        mode=0744) 
+    else :
+      XmlConfig("ranger-policymgr-ssl.xml",
+        conf_dir=component_conf_dir,
+        configurations=plugin_policymgr_ssl_properties,
+        configuration_attributes=plugin_policymgr_ssl_attributes,
+        owner = component_user,
+        group = component_group,
+        mode=0744) 
 
     #This should be done by rpm
     #setup_ranger_plugin_jar_symblink(hdp_version, service_name, component_list)
