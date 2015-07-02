@@ -1002,6 +1002,32 @@ def get_jh_host(catalog):
 
   return ""
 
+def get_ranger_host():
+  ranger_config = curl(Options.COMPONENTS_FORMAT.format('RANGER_ADMIN'), validate=False, simulate=False, parse=True)
+  ranger_host_list = []
+  if "host_components" in ranger_config:
+    for item in ranger_config["host_components"]:
+      ranger_host_list.append(item["HostRoles"]["host_name"])
+  return ranger_host_list[0]
+
+def get_ranger_service_details():
+  server_cfg_factory = ServerConfigFactory()
+  server_cfg_catalog = server_cfg_factory.get_config('admin-properties')
+  properties_latest = server_cfg_catalog.properties
+  data = {}
+
+  if properties_latest['DB_FLAVOR'].lower() == 'mysql':
+    data['RANGER_JDBC_DRIVER'] = 'com.mysql.jdbc.Driver'
+    data['RANGER_JDBC_DIALECT'] = 'org.eclipse.persistence.platform.database.MySQLPlatform'
+    data['RANGER_JDBC_URL'] = 'jdbc:mysql://{0}/{1}'.format(properties_latest['db_host'], properties_latest['db_name'])
+    data['RANGER_AUDIT_JDBC_URL'] = 'jdbc:mysql://{0}/{1}'.format(properties_latest['db_host'], properties_latest['audit_db_name'])
+  elif properties_latest['DB_FLAVOR'].lower() == 'oracle':
+    data['RANGER_JDBC_DRIVER'] = 'oracle.jdbc.OracleDriver'
+    data['RANGER_JDBC_DIALECT'] = 'org.eclipse.persistence.platform.database.OraclePlatform'
+    data['RANGER_JDBC_URL'] = 'jdbc:oracle:thin:@//{0}'.format(properties_latest['db_host'])
+    data['RANGER_AUDIT_JDBC_URL'] = 'jdbc:oracle:thin:@//{0}'.format(properties_latest['db_host'])
+
+  return data
 
 def _substitute_handler(upgrade_catalog, tokens, value):
   """
@@ -1020,6 +1046,16 @@ def _substitute_handler(upgrade_catalog, tokens, value):
       value = value.replace(token, get_zookeeper_quorum())
     elif token == "{TEZ_HISTORY_URL_BASE}":
       value = value.replace(token, get_tez_history_url_base())
+    elif token == "{RANGER_JDBC_DRIVER}":
+      value = value.replace(token, get_ranger_service_details()['RANGER_JDBC_DRIVER'])
+    elif token == "{RANGER_JDBC_URL}":
+      value = value.replace(token, get_ranger_service_details()['RANGER_JDBC_URL'])
+    elif token == "{RANGER_AUDIT_JDBC_URL}":
+      value = value.replace(token, get_ranger_service_details()['RANGER_AUDIT_JDBC_URL'])
+    elif token == "{RANGER_HOST}":
+      value = value.replace(token, get_ranger_host())
+    elif token == "{RANGER_JDBC_DIALECT}":
+      value = value.replace(token, get_ranger_service_details()['RANGER_JDBC_DIALECT'])
 
   return value
 

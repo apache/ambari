@@ -1,0 +1,516 @@
+{
+    "version": "1.0",
+    "stacks": [
+        {
+            "name": "HDP",
+            "old-version": "2.2",
+            "target-version": "2.3",
+            "options": {
+                "config-types": {
+                    "admin-properties": {
+                        "merged-copy": "yes",
+                        "required-services": [
+                            "RANGER"
+                        ]
+                    },
+                    "usersync-properties": {
+                        "merged-copy": "yes",
+                        "required-services": [
+                            "RANGER"
+                        ]
+                    },
+                    "ranger-site": {
+                        "merged-copy": "yes",
+                        "required-services": [
+                            "RANGER"
+                        ]
+                    },
+                    "ranger-env": {
+                        "merged-copy": "yes",
+                        "required-services": [
+                            "RANGER"
+                        ]
+                    },
+                    "ranger-admin-site": {
+                        "merged-copy": "yes",
+                        "required-services": [
+                            "RANGER"
+                        ]
+                    },
+                    "ranger-ugsync-site": {
+                        "merged-copy": "yes",
+                        "required-services": [
+                            "RANGER"
+                        ]
+                    }
+                }
+            },
+            "properties": {
+                "ranger-env": {
+                    "oracle_home": {
+                        "remove": "yes"
+                    },
+                    "create_db_dbuser": {
+                        "value": "true"
+                    },
+                    "xml_configurations_supported": {
+                        "value": "true"
+                    }
+                },
+                "ranger-admin-site": {
+                    "ranger.service.host": {
+                        "value": "{RANGER_HOST}",
+                        "template": "yes",
+                        "required-services": [
+                            "RANGER"
+                        ]
+                    },
+                    "ranger.service.https.attrib.ssl.enabled": {
+                        "value": "false"
+                    },
+                    "ranger.jpa.jdbc.driver": {
+                        "value": "{RANGER_JDBC_DRIVER}",
+                        "template": "yes",
+                        "required-services": [
+                            "RANGER"
+                        ]
+                    },
+                    "ranger.jpa.jdbc.url": {
+                        "value": "{RANGER_JDBC_URL}",
+                        "template": "yes",
+                        "required-services": [
+                            "RANGER"
+                        ]
+                    },
+                    "ranger.jpa.jdbc.credential.alias": {
+                        "value": "rangeradmin"
+                    },
+                    "ranger.credential.provider.path": {
+                        "value": "/etc/ranger/admin/rangeradmin.jceks"
+                    },
+                    "ranger.audit.source.type": {
+                        "value": "db"
+                    },
+                    "ranger.audit.solr.urls": {
+                        "value": "http://solr_host:6083/solr/ranger_audits"
+                    },
+                    "ranger.jpa.audit.jdbc.driver": {
+                        "value": "{RANGER_JDBC_DRIVER}",
+                        "template": "yes",
+                        "required-services": [
+                            "RANGER"
+                        ]
+                    },
+                    "ranger.jpa.audit.jdbc.url": {
+                        "value": "{RANGER_AUDIT_JDBC_URL}",
+                        "template": "yes",
+                        "required-services": [
+                            "RANGER"
+                        ]
+                    },
+                    "ranger.jpa.audit.jdbc.credential.alias": {
+                        "value": "rangeraudit"
+                    },
+                    "ranger.jpa.jdbc.dialect": {
+                        "value": "{RANGER_JDBC_DIALECT}",
+                        "template": "yes",
+                        "required-services": [
+                            "RANGER"
+                        ]
+                    },
+                    "ranger.jpa.audit.jdbc.dialect": {
+                        "value": "{RANGER_JDBC_DIALECT}",
+                        "template": "yes",
+                        "required-services": [
+                            "RANGER"
+                        ]
+                    },
+                    "ranger.audit.solr.zookeepers": {
+                        "value": "NONE"
+                    },
+                    "ranger.audit.solr.username": {
+                        "value": "ranger_solr"
+                    },
+                    "ranger.audit.solr.password": {
+                        "value": "NONE"
+                    },
+                    "ranger.externalurl": {
+                        "value": "{{ranger_external_url}}"
+                    },
+                    "ranger.jpa.jdbc.user": {
+                        "value": "{{ranger_db_user}}"
+                    },
+                    "ranger.jpa.audit.jdbc.user": {
+                        "value": "{{ranger_audit_db_user}}"
+                    },
+                    "ranger.jpa.jdbc.password": {
+                        "value": "_"
+                    },
+                    "ranger.jpa.audit.jdbc.password": {
+                        "value": "_"
+                    }
+                },
+                "ranger-ugsync-site": {
+                    "ranger.usersync.port": {
+                        "value": "5151"
+                    },
+                    "ranger.usersync.ssl": {
+                        "value": "true"
+                    },
+                    "ranger.usersync.keystore.file": {
+                        "value": "/usr/hdp/current/ranger-usersync/conf/unixauthservice.jks"
+                    },
+                    "ranger.usersync.keystore.password": {
+                        "value": "UnIx529p"
+                    },
+                    "ranger.usersync.truststore.file": {
+                        "value": "/usr/hdp/current/ranger-usersync/conf/mytruststore.jks"
+                    },
+                    "ranger.usersync.truststore.password": {
+                        "value": "changeit"
+                    },
+                    "ranger.usersync.passwordvalidator.path": {
+                        "value": "./native/credValidator.uexe"
+                    },
+                    "ranger.usersync.enabled": {
+                        "value": "true"
+                    },
+                    "ranger.usersync.sink.impl.class": {
+                        "value": "org.apache.ranger.unixusersync.process.PolicyMgrUserGroupBuilder"
+                    },
+                    "ranger.usersync.policymanager.maxrecordsperapicall": {
+                        "value": "1000"
+                    },
+                    "ranger.usersync.policymanager.mockrun": {
+                        "value": "false"
+                    },
+                    "ranger.usersync.filesource.file": {
+                        "value": "/tmp/usergroup.txt"
+                    },
+                    "ranger.usersync.filesource.text.delimiter": {
+                        "value": ","
+                    },
+                    "ranger.usersync.ldap.bindalias": {
+                        "value": "ranger.usersync.ldap.bindalias"
+                    },
+                    "ranger.usersync.ldap.bindkeystore": {
+                        "value": ""
+                    },
+                    "ranger.usersync.group.searchenabled": {
+                        "value": ""
+                    },
+                    "ranger.usersync.group.usermapsyncenabled": {
+                        "value": ""
+                    },
+                    "ranger.usersync.group.searchbase": {
+                        "value": ""
+                    },
+                    "ranger.usersync.group.searchscope": {
+                        "value": ""
+                    },
+                    "ranger.usersync.group.objectclass": {
+                        "value": ""
+                    },
+                    "ranger.usersync.group.searchfilter": {
+                        "value": "empty"
+                    },
+                    "ranger.usersync.group.nameattribute": {
+                        "value": ""
+                    },
+                    "ranger.usersync.ldap.searchBase": {
+                        "value": ""
+                    },
+                    "ranger.usersync.group.memberattributename": {
+                        "value": ""
+                    },
+                    "ranger.usersync.pagedresultsenabled": {
+                        "value": "true"
+                    },
+                    "ranger.usersync.pagedresultssize": {
+                        "value": "500"
+                    },
+                    "ranger.usersync.source.impl.class": {
+                        "value": ""
+                    },
+                    "ranger.usersync.policymanager.baseURL": {
+                        "value": "{{ranger_external_url}}"
+                    }
+                }
+            },
+            "property-mapping": {
+                "https.attrib.clientAuth": {
+                    "map-to": "ranger.service.https.attrib.clientAuth",
+                    "from-catalog": "ranger-site",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "https.attrib.keystoreFile": {
+                    "map-to": "ranger.https.attrib.keystore.file",
+                    "from-catalog": "ranger-site",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "https.attrib.keystorePass": {
+                    "map-to": "ranger.service.https.attrib.keystore.pass",
+                    "from-catalog": "ranger-site",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "https.service.port": {
+                    "map-to": "ranger.service.https.port",
+                    "from-catalog": "ranger-site",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "http.service.port": {
+                    "map-to": "ranger.service.http.port",
+                    "from-catalog": "ranger-site",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "https.attrib.keyAlias": {
+                    "map-to": "ranger.service.https.attrib.keystore.keyalias",
+                    "from-catalog": "ranger-site",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "http.enabled": {
+                    "map-to": "ranger.service.http.enabled",
+                    "from-catalog": "ranger-site",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "authServiceHostName": {
+                    "map-to": "ranger.unixauth.service.hostname",
+                    "from-catalog": "admin-properties",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "authServicePort": {
+                    "map-to": "ranger.unixauth.service.port",
+                    "from-catalog": "admin-properties",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "authentication_method": {
+                    "map-to": "ranger.authentication.method",
+                    "from-catalog": "admin-properties",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "remoteLoginEnabled": {
+                    "map-to": "ranger.unixauth.remote.login.enabled",
+                    "from-catalog": "admin-properties",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "xa_ldap_url": {
+                    "map-to": "ranger.ldap.url",
+                    "from-catalog": "admin-properties",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "xa_ldap_userDNpattern": {
+                    "map-to": "ranger.ldap.user.dnpattern",
+                    "from-catalog": "admin-properties",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "xa_ldap_groupSearchBase": {
+                    "map-to": "ranger.ldap.group.searchbase",
+                    "from-catalog": "admin-properties",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "xa_ldap_groupSearchFilter": {
+                    "map-to": "ranger.ldap.group.searchfilter",
+                    "from-catalog": "admin-properties",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "xa_ldap_groupRoleAttribute": {
+                    "map-to": "ranger.ldap.group.roleattribute",
+                    "from-catalog": "admin-properties",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "xa_ldap_ad_domain": {
+                    "map-to": "ranger.ldap.ad.domain",
+                    "from-catalog": "admin-properties",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "xa_ldap_ad_url": {
+                    "map-to": "ranger.ldap.ad.url",
+                    "from-catalog": "admin-properties",
+                    "to-catalog": "ranger-admin-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "CRED_KEYSTORE_FILENAME": {
+                    "map-to": "ranger.usersync.credstore.filename",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "MIN_UNIX_USER_ID_TO_SYNC": {
+                    "map-to": "ranger.usersync.unix.minUserId",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "SYNC_INTERVAL": {
+                    "map-to": "ranger.usersync.sleeptimeinmillisbetweensynccycle",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "SYNC_LDAP_BIND_DN": {
+                    "map-to": "ranger.usersync.ldap.binddn",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "SYNC_LDAP_BIND_PASSWORD": {
+                    "map-to": "ranger.usersync.ldap.ldapbindpassword",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "SYNC_LDAP_GROUPNAME_CASE_CONVERSION": {
+                    "map-to": "ranger.usersync.ldap.groupname.caseconversion",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "SYNC_LDAP_URL": {
+                    "map-to": "ranger.usersync.ldap.url",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "SYNC_LDAP_USERNAME_CASE_CONVERSION": {
+                    "map-to": "ranger.usersync.ldap.username.caseconversion",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE": {
+                    "map-to": "ranger.usersync.ldap.user.groupnameattribute",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "SYNC_LDAP_USER_NAME_ATTRIBUTE": {
+                    "map-to": "ranger.usersync.ldap.user.nameattribute",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "SYNC_LDAP_USER_OBJECT_CLASS": {
+                    "map-to": "ranger.usersync.ldap.user.objectclass",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "SYNC_LDAP_USER_SEARCH_BASE": {
+                    "map-to": "ranger.usersync.ldap.user.searchbase",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "SYNC_LDAP_USER_SEARCH_FILTER": {
+                    "map-to": "ranger.usersync.ldap.user.searchfilter",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "SYNC_LDAP_USER_SEARCH_SCOPE": {
+                    "map-to": "ranger.usersync.ldap.user.searchscope",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "logdir": {
+                    "map-to": "ranger.usersync.logdir",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                },
+                "SYNC_SOURCE": {
+                    "map-to": "ranger.usersync.sync.source",
+                    "from-catalog": "usersync-properties",
+                    "to-catalog": "ranger-ugsync-site",
+                    "required-services": [
+                        "RANGER"
+                    ]
+                }
+            }
+        }
+    ]
+}
