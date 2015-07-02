@@ -26,14 +26,12 @@ from resource_management.libraries.functions.file_system import get_mount_point_
 from resource_management.core.logger import Logger
 
 
-def _write_data_dir_to_mount_in_file(new_data_dir_to_mount_point):
+def _write_data_dir_to_mount_in_file(params, new_data_dir_to_mount_point):
   """
   :param new_data_dir_to_mount_point: Dictionary to write to the data_dir_mount_file file, where
   the key is each DFS data dir, and the value is its current mount point.
   :return: Returns True on success, False otherwise.
   """
-  import params
-
   # Overwrite the existing file, or create it if doesn't exist
   if params.data_dir_mount_file:
     try:
@@ -53,12 +51,11 @@ def _write_data_dir_to_mount_in_file(new_data_dir_to_mount_point):
   return True
 
 
-def _get_data_dir_to_mount_from_file():
+def _get_data_dir_to_mount_from_file(params):
   """
   :return: Returns a dictionary by parsing the data_dir_mount_file file,
   where the key is each DFS data dir, and the value is its last known mount point.
   """
-  import params
   data_dir_to_mount = {}
 
   if params.data_dir_mount_file is not None and os.path.exists(str(params.data_dir_mount_file)):
@@ -78,7 +75,7 @@ def _get_data_dir_to_mount_from_file():
   return data_dir_to_mount
 
 
-def handle_dfs_data_dir(func, params):
+def handle_dfs_data_dir(func, params, update_cache=True):
   """
   This function determine which DFS data dir paths can be created.
   There are 2 uses cases:
@@ -98,12 +95,24 @@ def handle_dfs_data_dir(func, params):
   :param func: Function that will be called if a directory will be created. This function
                will be called as func(data_dir, params)
   :param params: parameters to pass to function pointer
+  :param update_cache: Bool indicating whether to update the global cache of mount points
   """
-  prev_data_dir_to_mount_point = _get_data_dir_to_mount_from_file()
 
+  # Get the data dirs that Ambari knows about and their last known mount point
+  prev_data_dir_to_mount_point = _get_data_dir_to_mount_from_file(params)
+
+  # Dictionary from data dir to the mount point that will be written to the history file.
+  # If a data dir becomes unmounted, we should still keep its original value.
+  # If a data dir was previously on / and is now mounted on a drive, we should store that too.
+  data_dir_to_mount_point = prev_data_dir_to_mount_point.copy()
+
+  # This should typically be False for customers, but True the first time.
   allowed_to_create_any_dir = params.data_dir_mount_file is None or not os.path.exists(params.data_dir_mount_file)
 
-  valid_data_dirs = []
+  valid_data_dirs = []                # data dirs that have been normalized
+  error_messages = []                 # list of error messages to report at the end
+  data_dirs_unmounted = set()         # set of data dirs that have become unmounted
+
   for data_dir in params.dfs_data_dir.split(","):
     if data_dir is None or data_dir.strip() == "":
       continue
@@ -112,38 +121,58 @@ def handle_dfs_data_dir(func, params):
     valid_data_dirs.append(data_dir)
 
     if not os.path.isdir(data_dir):
-      create_this_dir = allowed_to_create_any_dir
-      # Determine if should be allowed to create the data_dir directory
-      if not create_this_dir:
+      may_create_this_dir = allowed_to_create_any_dir
+      last_mount_point_for_dir = None
+
+      # Determine if should be allowed to create the data_dir directory.
+      # Either first time, became unmounted, or was just mounted on a drive
+      if not may_create_this_dir:
         last_mount_point_for_dir = prev_data_dir_to_mount_point[data_dir] if data_dir in prev_data_dir_to_mount_point else None
+
         if last_mount_point_for_dir is None:
-          # Couldn't retrieve any information about where this dir used to be mounted, so allow creating the directory
-          # to be safe.
-          create_this_dir = True
+          # Couldn't retrieve any information about where this dir used to be mounted, so allow creating the directory to be safe.
+          may_create_this_dir = True
         else:
           curr_mount_point = get_mount_point_for_dir(data_dir)
 
           # This means that create_this_dir will stay false if the directory became unmounted.
+          # In other words, allow creating if it was already on /, or it's currently not on /
           if last_mount_point_for_dir == "/" or (curr_mount_point is not None and curr_mount_point != "/"):
-            create_this_dir = True
+            may_create_this_dir = True
 
-      if create_this_dir:
-        Logger.info("Forcefully creating directory: %s" % str(data_dir))
+      if may_create_this_dir:
+        Logger.info("Forcefully creating directory: {0}".format(data_dir))
 
         # Call the function
         func(data_dir, params)
       else:
-        Logger.warning("Directory %s does not exist and became unmounted." % str(data_dir))
+        # Additional check that wasn't allowed to create this dir and became unmounted.
+        if last_mount_point_for_dir is not None:
+          data_dirs_unmounted.add(data_dir)
+          msg = "Directory {0} does not exist and became unmounted from {1} .".format(data_dir, last_mount_point_for_dir)
+          error_messages.append(msg)
+  pass
 
-  # Refresh the known mount points
-  get_and_cache_mount_points(refresh=True)
+  # This is set to false during unit tests.
+  if update_cache:
+    get_and_cache_mount_points(refresh=True)
 
-  new_data_dir_to_mount_point = {}
+  # Update all data dirs (except the unmounted ones) with their current mount points.
   for data_dir in valid_data_dirs:
     # At this point, the directory may or may not exist
-    if os.path.isdir(data_dir):
+    if os.path.isdir(data_dir) and data_dir not in data_dirs_unmounted:
       curr_mount_point = get_mount_point_for_dir(data_dir)
-      new_data_dir_to_mount_point[data_dir] = curr_mount_point
+      data_dir_to_mount_point[data_dir] = curr_mount_point
 
   # Save back to the file
-  _write_data_dir_to_mount_in_file(new_data_dir_to_mount_point)
+  _write_data_dir_to_mount_in_file(params, data_dir_to_mount_point)
+
+  if error_messages and len(error_messages) > 0:
+    header = " ERROR ".join(["*****"] * 6)
+    header = "\n" + "\n".join([header, ] * 3) + "\n"
+    msg = " ".join(error_messages) + \
+          " Please remount the data dir(s) and run this command again. To ignore this failure and allow writing to the " \
+          "root partition, either update the contents of {0}, or delete that file.".format(params.data_dir_mount_file)
+    Logger.error(header + msg + header)
+
+

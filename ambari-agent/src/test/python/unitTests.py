@@ -18,7 +18,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+"""
+SAMPLE USAGE:
+
+python unitTests.py
+python unitTests.py NameOfFile.py
+python unitTests.py NameOfFileWithoutExtension  (this will append .* to the end, so it can match other file names too)
+
+SETUP:
+To run in Linux from command line,
+cd to this same directory. Then make sure PYTHONPATH is correct.
+
+export PYTHONPATH=$PYTHONPATH:$(pwd)/ambari-agent/src/test/python:
+$(pwd)/ambari-common/src/test/python:
+$(pwd)/ambari-agent/src/test/python/ambari_agent:
+$(pwd)/ambari-common/src/main/python:
+$(pwd)/ambari-server/src/main/resources/common-services/HDFS/2.1.0.2.0/package/files:
+$(pwd)/ambari-agent/src/test/python/resource_management:
+$(pwd)/ambari-common/src/main/python/ambari_jinja2
+"""
+
 import unittest
+import fnmatch
 from os.path import isdir
 import logging
 from only_for_platform import get_platform, PLATFORM_WINDOWS
@@ -33,6 +54,8 @@ if get_platform() == PLATFORM_WINDOWS:
   IGNORE_FOLDERS = ["resource_management"]
 else:
   IGNORE_FOLDERS = ["resource_management_windows"]
+
+TEST_MASK = '[Tt]est*.py'
 
 class TestAgent(unittest.TestSuite):
   def run(self, result):
@@ -51,15 +74,39 @@ def parent_dir(path):
 
   return parent_dir
 
+def get_test_files(path, mask=None, recursive=True):
+  """
+  Returns test files for path recursively
+  """
+  # Must convert mask so it can match a file
+  if mask and mask != "" and not mask.endswith("*"):
+    mask = mask + "*"
 
-def all_tests_suite():
+  file_list = []
+  directory_items = os.listdir(path)
 
+  for item in directory_items:
+    add_to_pythonpath = False
+    p = os.path.join(path, item)
+    if os.path.isfile(p):
+      if fnmatch.fnmatch(item, mask):
+        add_to_pythonpath = True
+        file_list.append(item)
+    elif os.path.isdir(p)and p not in IGNORE_FOLDERS:
+      if recursive:
+        file_list.extend(get_test_files(p, mask=mask))
+    if add_to_pythonpath:
+      sys.path.append(path)
+
+  return file_list
+
+
+def all_tests_suite(custom_test_mask):
+  test_mask = custom_test_mask if custom_test_mask else TEST_MASK
 
   src_dir = os.getcwd()
-  files_list = []
-  for directory in os.listdir(src_dir):
-    if os.path.isdir(directory) and not (directory in IGNORE_FOLDERS):
-      files_list += os.listdir(src_dir + os.sep + directory)
+  files_list = get_test_files(src_dir, mask=test_mask)
+
   #TODO Add an option to randomize the tests' execution
   #shuffle(files_list)
   tests_list = []
@@ -84,12 +131,15 @@ def all_tests_suite():
   return unittest.TestSuite([suite])
 
 def main():
+  test_mask = None
+  if len(sys.argv) >= 2:
+    test_mask = sys.argv[1]
 
   logger.info('------------------------------------------------------------------------')
   logger.info('PYTHON AGENT TESTS')
   logger.info('------------------------------------------------------------------------')
   runner = unittest.TextTestRunner(verbosity=2, stream=sys.stdout)
-  suite = all_tests_suite()
+  suite = all_tests_suite(test_mask)
   status = runner.run(suite).wasSuccessful()
 
   if not status:
