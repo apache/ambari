@@ -71,8 +71,10 @@ Example:
       },
       "property-mapping": {
         "old-property-name": "new-property-name", (short form, equal to "old-property-name": { "map-to": "new-property-name" })
-        "old-property1-name": {
-          "map-to": "new_property1_name", (required, new property name)
+        "old-property1-name": {    (usually key is an name of the property which need to be mapped, but in case of same
+                                     property should be set to unique name and "map-from" option used instead)
+          "map-from": "old property name", (optional, define property name which should be mapped)
+          "map-to": "new_property1_name", (optional, new property name. If not set, would be used old property name)
           "from-catalog": "test",        (optional, require "to-catalog. Source of old-property1-name)
           "to-catalog": "test",          (optional, require "from-catalog. Target of new_property1_name)
           "default": "default value",    (optional, if set and old property not exists, new one would be created with default value)
@@ -260,6 +262,7 @@ class CatConst(Const):
   PROPERTY_VALUE_TAG = "value"
   PROPERTY_REMOVE_TAG = "remove"
   PROPERTY_MAP_TO = "map-to"
+  PROPERTY_MAP_FROM = "map-from"
   PROPERTY_FROM_CATALOG = "from-catalog"
   PROPERTY_TO_CATALOG = "to-catalog"
   PROPERTY_DEFAULT = "default"
@@ -625,7 +628,17 @@ class ServerConfigFactory(object):
     :type map_item_name str
     :type map_property_item dict
     """
-    new_property_name = map_property_item[CatConst.PROPERTY_MAP_TO]
+    old_property_name = map_item_name
+
+    # map-from item name could be re-defined via PROPERTY_MAP_FROM property to avoid duplicate entries
+    if CatConst.PROPERTY_MAP_FROM in map_property_item and map_property_item[CatConst.PROPERTY_MAP_FROM] is not None:
+      old_property_name = map_property_item[CatConst.PROPERTY_MAP_FROM]
+
+    new_property_name = old_property_name
+
+    if CatConst.PROPERTY_MAP_TO in map_property_item:
+      new_property_name = map_property_item[CatConst.PROPERTY_MAP_TO]
+
     source_cfg_group = map_property_item[CatConst.PROPERTY_FROM_CATALOG] if CatConst.PROPERTY_FROM_CATALOG in map_property_item and\
                                                                             map_property_item[CatConst.PROPERTY_FROM_CATALOG] != "" else None
     target_cfg_group = map_property_item[CatConst.PROPERTY_TO_CATALOG] if CatConst.PROPERTY_TO_CATALOG in map_property_item and \
@@ -639,16 +652,16 @@ class ServerConfigFactory(object):
       return 0
 
     if source_cfg_group is None and target_cfg_group is None:  # global scope mapping renaming
-      self.notify_observers(CatConst.ACTION_RENAME_PROPERTY, [map_item_name, new_property_name])
+      self.notify_observers(CatConst.ACTION_RENAME_PROPERTY, [old_property_name, new_property_name])
     elif source_cfg_group is not None and target_cfg_group is not None:  # group-to-group moving
       if source_cfg_group in self._server_catalogs and target_cfg_group in self._server_catalogs:
         old_cfg_group = self.get_config(source_cfg_group).properties
         new_cfg_group = self.get_config(target_cfg_group).properties
 
-        if map_item_name in old_cfg_group:
-          new_cfg_group[new_property_name] = old_cfg_group[map_item_name]
-          del old_cfg_group[map_item_name]
-        elif map_item_name not in old_cfg_group and default_value is not None:
+        if old_property_name in old_cfg_group:
+          new_cfg_group[new_property_name] = old_cfg_group[old_property_name]
+          del old_cfg_group[old_property_name]
+        elif old_property_name not in old_cfg_group and default_value is not None:
           new_cfg_group[new_property_name] = default_value
 
   def commit(self):
