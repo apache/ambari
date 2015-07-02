@@ -35,7 +35,7 @@
         {{#if service.isInstalled}}
           <span class="label label-success">{{t common.installed}}</span>
         {{else}}
-          <a class="path-link" {{action goToAddService service.serviceName target="view"}}>
+          <a {{bindAttr class=":path-link view.isAddServiceAvailable::not-active-link"}} {{action goToAddService service.serviceName target="view"}}>
             {{t services.service.add}}</a>
         {{/if}}
       </td>

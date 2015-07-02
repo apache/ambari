@@ -22,6 +22,10 @@ var App = require('app');
 App.MainAdminStackServicesView = Em.View.extend({
   templateName: require('templates/main/admin/stack_upgrade/services'),
 
+  isAddServiceAvailable: function () {
+    return App.isAccessible('ADMIN');
+  }.property('App.supports.opsDuringRollingUpgrade', 'App.upgradeState', 'App.isAdmin'),
+
   /**
    * @type {Array}
    */
@@ -44,7 +48,9 @@ App.MainAdminStackServicesView = Em.View.extend({
    * @param event
    */
   goToAddService: function (event) {
-    if (event.context == "KERBEROS") {
+    if (!App.isAccessible('ADMIN')) {
+      return;
+    } else if (event.context == "KERBEROS") {
       App.router.get('mainAdminKerberosController').checkAndStartKerberosWizard();
       App.router.get('kerberosWizardController').setDBProperty('onClosePath', 'main.admin.stackAndUpgrade.services');
     } else {

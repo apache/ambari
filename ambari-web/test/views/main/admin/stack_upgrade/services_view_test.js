@@ -48,29 +48,64 @@ describe('App.MainAdminStackServicesView', function () {
 
   describe("#goToAddService()" , function() {
     var mock = Em.Object.create({
-      checkAndStartKerberosWizard: Em.K,
-      setDBProperty: sinon.spy()
-    });
+        checkAndStartKerberosWizard: Em.K,
+        setDBProperty: sinon.spy()
+      }),
+      isAccessibleMock;
     beforeEach(function() {
       sinon.stub(App.get('router'), 'transitionTo', Em.K);
       sinon.stub(App.router, 'get').returns(mock);
       sinon.spy(mock, 'checkAndStartKerberosWizard');
+      isAccessibleMock = sinon.stub(App, 'isAccessible');
     });
     afterEach(function() {
       App.get('router').transitionTo.restore();
       App.router.get.restore();
       mock.checkAndStartKerberosWizard.restore();
+      App.isAccessible.restore();
+    });
+    it ("operations locked", function () {
+      isAccessibleMock.returns(false);
+      view.goToAddService();
+      expect(App.router.get.called).to.be.false;
+      expect(App.get('router').transitionTo.called).to.be.false;
     });
     it("routes to Add Service Wizard and set redirect path on wizard close", function() {
+      isAccessibleMock.returns(true);
       view.goToAddService({context: "serviceName"});
       expect(App.router.get.calledWith('addServiceController') && mock.setDBProperty.calledWith('onClosePath', 'main.admin.stackAndUpgrade.services')).to.be.true;
       expect(App.get('router').transitionTo.calledWith('main.serviceAdd')).to.be.true;
       expect(mock.get('serviceToInstall')).to.be.equal("serviceName");
     });
     it("routes to Security Wizard", function() {
+      isAccessibleMock.returns(true);
       view.goToAddService({context: "KERBEROS"});
       expect(App.router.get.calledWith('kerberosWizardController') && mock.setDBProperty.calledWith('onClosePath', 'main.admin.stackAndUpgrade.services')).to.be.true;
       expect(mock.checkAndStartKerberosWizard.calledOnce).to.be.true;
     });
+  });
+
+  describe('#isAddServiceAvailable', function () {
+
+    var cases = [true, false],
+      titleTemplate = 'should be {0}',
+      isAccessibleMock;
+
+    beforeEach(function() {
+      isAccessibleMock = sinon.stub(App, 'isAccessible');
+    });
+
+    afterEach(function() {
+      App.isAccessible.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(titleTemplate.format(item.toString()), function () {
+        isAccessibleMock.returns(item);
+        view.propertyDidChange('isAddServiceAvailable');
+        expect(view.get('isAddServiceAvailable')).to.equal(item);
+      });
+    });
+
   });
 });
