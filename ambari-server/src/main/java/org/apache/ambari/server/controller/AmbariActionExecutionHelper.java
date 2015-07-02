@@ -23,6 +23,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
@@ -44,7 +46,6 @@ import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -74,8 +75,6 @@ public class AmbariActionExecutionHelper {
   private AmbariMetaInfo ambariMetaInfo;
   @Inject
   private MaintenanceStateHelper maintenanceStateHelper;
-  @Inject
-  private ConfigHelper configHelper;
   @Inject
   private Configuration configs;
 
@@ -334,22 +333,13 @@ public class AmbariActionExecutionHelper {
       }
     }
 
-    //create tasks for each host
+    // create tasks for each host
     for (String hostName : targetHosts) {
       stage.addHostRoleExecutionCommand(hostName,
         Role.valueOf(actionContext.getActionName()), RoleCommand.ACTIONEXECUTE,
           new ServiceComponentHostOpInProgressEvent(actionContext.getActionName(),
             hostName, System.currentTimeMillis()), clusterName,
               serviceName, retryAllowed);
-
-      Map<String, Map<String, String>> hostConfigTags = configHelper.getEffectiveDesiredTags(cluster, hostName);
-      Map<String, Map<String, String>> hostConfigurations = configHelper.getEffectiveConfigProperties(cluster, hostConfigTags);
-
-      Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();
-      Map<String, Map<String, String>> configTags = null;
-      if (!StringUtils.isEmpty(serviceName) && null != cluster) {
-        configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
-      }
 
       Map<String, String> commandParams = new TreeMap<String, String>();
       int maxTaskTimeout = Integer.parseInt(configs.getDefaultAgentTaskTimeout(false));
@@ -358,22 +348,29 @@ public class AmbariActionExecutionHelper {
       } else {
         commandParams.put(COMMAND_TIMEOUT, actionContext.getTimeout().toString());
       }
+
       commandParams.put(SCRIPT, actionName + ".py");
       commandParams.put(SCRIPT_TYPE, TYPE_PYTHON);
 
       ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
         actionContext.getActionName()).getExecutionCommand();
 
-      /*
-       * TODO Execution command field population should be (partially?)
-        * combined with the same code at createHostAction()
-        */
-      execCmd.setConfigurations(hostConfigurations);
-      execCmd.setConfigurationAttributes(configurationAttributes);
+      // !!! ensure that these are empty so that commands have the correct tags
+      // applied when the execution is about to be scheduled to run
+      execCmd.setConfigurations(new TreeMap<String, Map<String, String>>());
+      execCmd.setConfigurationAttributes(new TreeMap<String, Map<String, Map<String, String>>>());
+
+      // !!! ensure that the config tags are added to this command so that the
+      // configurations can be populated from the tags before the command is
+      // sent
+      Map<String, Map<String, String>> configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
       execCmd.setConfigurationTags(configTags);
+
       execCmd.setCommandParams(commandParams);
+
       execCmd.setServiceName(serviceName == null || serviceName.isEmpty() ?
         resourceFilter.getServiceName() : serviceName);
+
       execCmd.setComponentName(componentName == null || componentName.isEmpty() ?
         resourceFilter.getComponentName() : componentName);
 
@@ -388,6 +385,19 @@ public class AmbariActionExecutionHelper {
       }
 
       execCmd.setRoleParams(roleParams);
+
+      // ensure that any tags that need to be refreshed are extracted from the
+      // context and put onto the execution command
+      Map<String, String> actionParameters = actionContext.getParameters();
+      if (null != actionParameters && !actionParameters.isEmpty()) {
+        if (actionParameters.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)) {
+          String[] split = StringUtils.split(
+              actionParameters.get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION));
+          Set<String> configsToRefresh = new HashSet<String>(Arrays.asList(split));
+
+          execCmd.setForceRefreshConfigTagsBeforeExecution(configsToRefresh);
+        }
+      }
 
       // Generate cluster host info
       if (null != cluster) {

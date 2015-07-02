@@ -101,9 +101,10 @@
           <message>Please confirm you are ready to finalize</message>
         </task>
       </execute-stage>
-      <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
+      <execute-stage title="Update remaining HDP stack to {{version}}">
         <task xsi:type="execute">
-          <command>ls</command>
+          <script>scripts/ru_set_all.py</script>
+          <function>actionexecute</function>
         </task>
       </execute-stage>
       <execute-stage title="Save Cluster State" service="" component="">

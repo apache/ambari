@@ -89,6 +89,11 @@ public class ExecutionCommandWrapper {
             Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
             for (String refreshConfigTag : refreshConfigTagsBeforeExecution) {
               if ("*".equals(refreshConfigTag)) {
+                // if forcing a refresh of *, then clear out any existing
+                // configurations so that all of the new configurations are
+                // forcefully applied
+                executionCommand.getConfigurations().clear();
+
                 for (final Entry<String, DesiredConfig> desiredConfig : desiredConfigs.entrySet()) {
                   configurationTags.put(desiredConfig.getKey(), new HashMap<String, String>() {{
                     put("tag", desiredConfig.getValue().getTag());
@@ -114,6 +119,7 @@ public class ExecutionCommandWrapper {
               Map<String, String> mergedConfig =
                 configHelper.getMergedConfig(allLevelMergedConfig,
                   executionCommand.getConfigurations().get(type));
+
               executionCommand.getConfigurations().get(type).clear();
               executionCommand.getConfigurations().get(type).putAll(mergedConfig);
 
