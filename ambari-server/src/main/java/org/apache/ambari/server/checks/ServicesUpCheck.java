@@ -29,8 +29,10 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.models.HostComponentSummary;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
@@ -44,6 +46,8 @@ import com.google.inject.Singleton;
 @Singleton
 @UpgradeCheck(group = UpgradeCheckGroup.LIVELINESS, order = 2.0f)
 public class ServicesUpCheck extends AbstractCheckDescriptor {
+
+  private static final float SLAVE_THRESHOLD = 0.5f;
 
   /**
    * Constructor.
@@ -59,6 +63,8 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
     List<String> errorMessages = new ArrayList<String>();
     Set<String> failedServiceNames = new HashSet<String>();
 
+    StackId stackId = cluster.getCurrentStackVersion();
+
     for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
       final Service service = serviceEntry.getValue();
 
@@ -69,11 +75,26 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
         for (Map.Entry<String, ServiceComponent> component : serviceComponents.entrySet()) {
 
           boolean ignoreComponent = false;
+          boolean checkThreshold = false;
 
           ServiceComponent serviceComponent = component.getValue();
           // In Services like HDFS, ignore components like HDFS Client
           if (serviceComponent.isClientComponent()) {
             ignoreComponent = true;
+          }
+
+          // non-master, "true" slaves with cardinality 1+
+          if (!ignoreComponent && !serviceComponent.isMasterComponent()) {
+            ComponentInfo componentInfo = ambariMetaInfo.get().getComponent(
+                stackId.getStackName(), stackId.getStackVersion(),
+                serviceComponent.getServiceName(), serviceComponent.getName());
+
+            String cardinality = componentInfo.getCardinality();
+            // !!! check if there can be more than one. This will match, say, datanodes but not ZKFC
+            if (null != cardinality &&
+                (cardinality.equals("ALL") || cardinality.matches("[1-9].*"))) {
+              checkThreshold = true;
+            }
           }
 
           if (!serviceComponent.isVersionAdvertised()) {
@@ -88,12 +109,33 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
           if (!ignoreComponent) {
             List<HostComponentSummary> hostComponentSummaries = HostComponentSummary.getHostComponentSummaries(service.getName(), serviceComponent.getName());
 
-            for(HostComponentSummary s : hostComponentSummaries) {
-              if ((s.getDesiredState() == State.INSTALLED || s.getDesiredState() == State.STARTED) && State.STARTED != s.getCurrentState()) {
+            if (checkThreshold && !hostComponentSummaries.isEmpty()) {
+              int total = hostComponentSummaries.size();
+              int up = 0;
+              int down = 0;
+
+              for(HostComponentSummary s : hostComponentSummaries) {
+                if ((s.getDesiredState() == State.INSTALLED || s.getDesiredState() == State.STARTED) && State.STARTED != s.getCurrentState()) {
+                  down++;
+                } else {
+                  up++;
+                }
+              }
+
+              if ((float) down/total > SLAVE_THRESHOLD) { // arbitrary
                 failedServiceNames.add(service.getName());
-                String message = MessageFormat.format("{0} - {1} (in {2} on host {3})", service.getName(), serviceComponent.getName(), s.getCurrentState(), s.getHostName());
+                String message = MessageFormat.format("{0}: {1} out of {2} {3} are started; there should be {4,number,percent} started before upgrading.",
+                    service.getName(), up, total, serviceComponent.getName(), SLAVE_THRESHOLD);
                 errorMessages.add(message);
-                continue;
+              }
+            } else {
+              for(HostComponentSummary s : hostComponentSummaries) {
+                if ((s.getDesiredState() == State.INSTALLED || s.getDesiredState() == State.STARTED) && State.STARTED != s.getCurrentState()) {
+                  failedServiceNames.add(service.getName());
+                  String message = MessageFormat.format("{0}: {1} (in {2} on host {3})", service.getName(), serviceComponent.getName(), s.getCurrentState(), s.getHostName());
+                  errorMessages.add(message);
+                  break;
+                }
               }
             }
           }
@@ -107,4 +149,5 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
       prerequisiteCheck.setFailReason("The following Service Components should be in a started state.  Please invoke a service Stop and full Start and try again. " + StringUtils.join(errorMessages, ", "));
     }
   }
+
 }
