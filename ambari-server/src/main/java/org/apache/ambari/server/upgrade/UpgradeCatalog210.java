@@ -42,6 +42,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
@@ -1314,6 +1315,21 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     }
   }
 
+  private int getHbaseRamRecomendations(int totalMem) {
+    if (totalMem <= 4) return 1;
+    if (4 < totalMem && totalMem <= 8) return 1;
+    if (8 < totalMem && totalMem <= 16) return 2;
+    if (16 < totalMem && totalMem <= 24) return 4;
+    if (24 < totalMem && totalMem <= 48) return 8;
+    if (48 < totalMem && totalMem <= 64) return 8;
+    if (64 < totalMem && totalMem <= 72) return 8;
+    if (72 < totalMem && totalMem <= 96) return 16;
+    if (96 < totalMem && totalMem <= 128) return 24;
+    if (128 < totalMem && totalMem <= 256) return 32;
+    if (256 < totalMem) return 64;
+    return -1;
+  }
+
   protected void updateHiveConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(
             AmbariManagementController.class);
@@ -1359,14 +1375,80 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         for (final Cluster cluster : clusterMap.values()) {
           if (cluster.getDesiredConfigByType("hbase-site") != null) {
             Map<String, String> hbaseEnvProps = new HashMap<String, String>();
-            Map<String, String> hbaseSiteProps = cluster.getDesiredConfigByType("hbase-site").getProperties();
+            Map<String, String> hbaseSiteProps = new HashMap<String, String>();
+            Set<String> hbaseEnvRemoveProps = new HashSet<String>();
+            Set<String> hbaseSiteRemoveProps = new HashSet<String>();
 
-            if (hbaseSiteProps.containsKey("hbase.region.server.rpc.scheduler.factory.class") &&
-                "org.apache.phoenix.hbase.index.ipc.PhoenixIndexRpcSchedulerFactory".equals(hbaseSiteProps.get(
-                    "hbase.region.server.rpc.scheduler.factory.class"))) {
+            if (cluster.getDesiredConfigByType("hbase-site").getProperties().containsKey("hbase.region.server.rpc.scheduler.factory.class") &&
+                "org.apache.phoenix.hbase.index.ipc.PhoenixIndexRpcSchedulerFactory".equals(cluster.getDesiredConfigByType("hbase-site").getProperties().get(
+                        "hbase.region.server.rpc.scheduler.factory.class"))) {
               hbaseEnvProps.put("phoenix_sql_enabled", "true");
             }
+
+            if (cluster.getDesiredConfigByType("hbase-env").getProperties().containsKey("phoenix_sql_enabled") &&
+            "true".equalsIgnoreCase(cluster.getDesiredConfigByType("hbase-env").getProperties().get("phoenix_sql_enabled"))) {
+              hbaseSiteProps.put("hbase.regionserver.wal.codec", "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec");
+              hbaseSiteProps.put("phoenix.functions.allowUserDefinedFunctions", "true");
+            }
+            else {
+              hbaseSiteProps.put("hbase.regionserver.wal.codec", "org.apache.hadoop.hbase.regionserver.wal.WALCellCodec");
+              hbaseSiteRemoveProps.add("hbase.rpc.controllerfactory.class");
+              hbaseSiteRemoveProps.add("phoenix.functions.allowUserDefinedFunctions");
+            }
+
+            if (cluster.getDesiredConfigByType("hbase-site").getProperties().containsKey("hbase.security.authorization")) {
+              if("true".equalsIgnoreCase(cluster.getDesiredConfigByType("hbase-site").getProperties().get("hbase.security.authorization"))) {
+                hbaseSiteProps.put("hbase.coprocessor.master.classes", "org.apache.hadoop.hbase.security.access.AccessController");
+                hbaseSiteProps.put("hbase.coprocessor.regionserver.classes", "org.apache.hadoop.hbase.security.access.AccessController");
+              }
+              else {
+                hbaseSiteProps.put("hbase.coprocessor.master.classes", "");
+                hbaseSiteRemoveProps.add("hbase.coprocessor.regionserver.classes");
+              }
+            }
+            else {
+              hbaseSiteRemoveProps.add("hbase.coprocessor.regionserver.classes");
+            }
+
+            int threshold = 23;
+            int totalMem = 0;
+            String hostName = cluster.getHosts("HBASE", "HBASE_MASTER").iterator().next();
+            for (Host host : cluster.getHosts()) {
+              if(host.getHostName().equalsIgnoreCase(hostName)) {
+                totalMem = (int)(host.getTotalMemBytes() / (1024 * 1024));
+                break;
+              }
+            }
+
+            if (totalMem == 0) {
+              LOG.error("UpgradeCatalog210 could not retrieve total memory size from the hosts.");
+            }
+            else {
+              if (getHbaseRamRecomendations(totalMem) > threshold) {
+                final int mb = 1024;
+                final int block_cache_heap = 8192;
+                final int regionserver_heap_size = 20480;
+                final int reserved_offheap_memory = 2048;
+                final int regionserver_total_ram = getHbaseRamRecomendations(totalMem) * mb;
+                final int regionserver_max_direct_memory_size = regionserver_total_ram - regionserver_heap_size;
+                final int bucketcache_offheap_memory = regionserver_max_direct_memory_size - reserved_offheap_memory;
+
+                hbaseSiteProps.put("hbase.bucketcache.size", block_cache_heap + bucketcache_offheap_memory + "m");
+                hbaseSiteProps.put("hbase.bucketcache.ioengine", "offheap");
+                hbaseEnvProps.put("hbase_max_direct_memory_size", String.valueOf(regionserver_max_direct_memory_size));
+              } else {
+                hbaseSiteRemoveProps.add("hbase.bucketcache.ioengine");
+                hbaseSiteRemoveProps.add("hbase.bucketcache.size");
+                hbaseSiteRemoveProps.add("hbase.bucketcache.percentage.in.combinedcache");
+                hbaseSiteRemoveProps.add("hbase_max_direct_memory_size");
+                hbaseEnvRemoveProps.add("hbase_max_direct_memory_size");
+              }
+            }
+
+            updateConfigurationPropertiesForCluster(cluster, "hbase-site", hbaseSiteProps, true, false);
             updateConfigurationPropertiesForCluster(cluster, "hbase-env", hbaseEnvProps, true, false);
+            updateConfigurationPropertiesForCluster(cluster, "hbase-site", new HashMap<String, String>(), hbaseSiteRemoveProps, false, true);
+            updateConfigurationPropertiesForCluster(cluster, "hbase-env", new HashMap<String, String>(), hbaseEnvRemoveProps, false, true);
           }
         }
       }
