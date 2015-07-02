@@ -50,7 +50,7 @@ def hcat_service_check():
          mode=0755
     )
 
-    prepare_cmd = format("{kinit_cmd}env JAVA_HOME={java64_home} {tmp_dir}/hcatSmoke.sh hcatsmoke{unique} prepare")
+    prepare_cmd = format("{kinit_cmd}env JAVA_HOME={java64_home} {tmp_dir}/hcatSmoke.sh hcatsmoke{unique} prepare {purge_tables}")
 
     exec_path = params.execute_path
     if params.version and params.stack_name:
@@ -85,7 +85,7 @@ def hcat_service_check():
                     bin_dir=params.execute_path
       )
 
-    cleanup_cmd = format("{kinit_cmd} {tmp_dir}/hcatSmoke.sh hcatsmoke{unique} cleanup")
+    cleanup_cmd = format("{kinit_cmd} {tmp_dir}/hcatSmoke.sh hcatsmoke{unique} cleanup {purge_tables}")
 
     Execute(cleanup_cmd,
             tries=3,
