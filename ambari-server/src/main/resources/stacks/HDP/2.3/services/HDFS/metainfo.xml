@@ -74,7 +74,6 @@
             </package>
             <package>
               <name>hadooplzo_2_3_*</name>
-              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>hadoop_2_3_*-libhdfs</name>
@@ -111,7 +110,6 @@
             </package>
             <package>
               <name>hadooplzo-2-3-.*</name>
-              <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
               <name>libhdfs0-2-3-.*</name>
