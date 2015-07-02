@@ -281,6 +281,88 @@ public class UpgradeCatalog210Test {
   }
 
   @Test
+  public void testUpdateHiveConfigs() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
+
+    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<String, String>();
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    expect(mockClusterExpected.getDesiredConfigByType("hive-env")).andReturn(mockHiveEnv).atLeastOnce();
+    expect(mockHiveEnv.getProperties()).andReturn(propertiesExpectedHiveEnv).anyTimes();
+    expect(mockClusterExpected.getConfig(anyObject(String.class), anyObject(String.class))).
+        andReturn(mockHiveEnv).anyTimes();
+    ServiceConfigVersionResponse r = null;
+    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveEnv))).
+        andReturn(r).once();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog210.class).updateHiveConfigs();
+    easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void TestUpdateHiveEnvContent() {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+    String content = "# Start HIVE_AUX_JARS_PATH \n" +
+        "if [ \"${HIVE_AUX_JARS_PATH}\" != \"\" ]; then\n" +
+        "  export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}\n" +
+        "elif [ -d \"/usr/hdp/current/hive-webhcat/share/hcatalog\" ]; then \n" +
+        "  export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog\n" +
+        "fi\n" +
+        "#End HIVE_AUX_JARS_PATH";
+    String expectedContent = "# Start HIVE_AUX_JARS_PATH \n" +
+        "if [ \"${HIVE_AUX_JARS_PATH}\" != \"\" ]; then\n" +
+        "  if [ -f \"${HIVE_AUX_JARS_PATH}\" ]; then    \n" +
+        "    export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}\n" +
+        "  elif [ -d \"/usr/hdp/current/hive-webhcat/share/hcatalog\" ]; then\n" +
+        "    export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar\n" +
+        "  fi\n" +
+        "elif [ -d \"/usr/hdp/current/hive-webhcat/share/hcatalog\" ]; then\n" +
+        "  export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar\n" +
+        "fi\n" +
+        "#End HIVE_AUX_JARS_PATH";
+
+    String modifiedContent = mockInjector.getInstance(UpgradeCatalog210.class).updateHiveEnvContent(content);
+    Assert.assertEquals(modifiedContent, expectedContent);
+  }
+
+  @Test
   public void testInitializeClusterAndServiceWidgets() throws Exception {
     final AmbariManagementController controller = createStrictMock(AmbariManagementController.class);
     final Clusters clusters = createStrictMock(Clusters.class);
