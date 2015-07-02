@@ -71,6 +71,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
 
 
 /**
@@ -1323,16 +1324,23 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          //hive metastore and client_heapsize are added for HDP2, we should check if it exists and not add it for HDP1
+          String content = null;
           if(cluster.getDesiredConfigByType("hive-env") != null) {
             Map<String, String> hiveProps = new HashMap<String, String>();
+            // Update logic for setting HIVE_AUX_JARS_PATH in hive-env.sh
+            content = cluster.getDesiredConfigByType("hive-env").getProperties().get("content");
+            if(content != null) {
+              content = updateHiveEnvContent(content);
+              hiveProps.put("content", content);
+            }
+            //hive metastore and client_heapsize are added for HDP2, we should check if it exists and not add it for HDP1
             if (!cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive.client.heapsize")) {
               hiveProps.put("hive.client.heapsize", "512m");
             }
             if (!cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive.metastore.heapsize")) {
               hiveProps.put("hive.metastore.heapsize", "1024m");
             }
-            updateConfigurationPropertiesForCluster(cluster, "hive-env", hiveProps, false, true);
+            updateConfigurationPropertiesForCluster(cluster, "hive-env", hiveProps, true, true);
           }
         }
       }
@@ -1363,6 +1371,28 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  protected String updateHiveEnvContent(String hiveEnvContent) {
+    if(hiveEnvContent == null) {
+      return null;
+    }
+
+    String oldAuxJarRegex = "if\\s*\\[\\s*\"\\$\\{HIVE_AUX_JARS_PATH\\}\"\\s*!=\\s*\"\"\\s*];\\s*then\\s*\\n" +
+        "\\s*export\\s+HIVE_AUX_JARS_PATH\\s*=\\s*\\$\\{HIVE_AUX_JARS_PATH\\}\\s*\\n" +
+        "\\s*elif\\s*\\[\\s*-d\\s*\"/usr/hdp/current/hive-webhcat/share/hcatalog\"\\s*\\];\\s*then\\s*\\n" +
+        "\\s*export\\s+HIVE_AUX_JARS_PATH\\s*=\\s*/usr/hdp/current/hive-webhcat/share/hcatalog\\s*\n" +
+        "\\s*fi";
+    String newAuxJarPath = "if [ \"${HIVE_AUX_JARS_PATH}\" != \"\" ]; then\n" +
+        "  if [ -f \"${HIVE_AUX_JARS_PATH}\" ]; then    \n" +
+        "    export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}\n" +
+        "  elif [ -d \"/usr/hdp/current/hive-webhcat/share/hcatalog\" ]; then\n" +
+        "    export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar\n" +
+        "  fi\n" +
+        "elif [ -d \"/usr/hdp/current/hive-webhcat/share/hcatalog\" ]; then\n" +
+        "  export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar\n" +
+        "fi";
+    return hiveEnvContent.replaceAll(oldAuxJarRegex, Matcher.quoteReplacement(newAuxJarPath));
   }
 
   protected  void updateStormConfigs() throws  AmbariException {
