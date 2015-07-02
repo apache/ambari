@@ -207,7 +207,7 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
 
             String propertyId = propertyIdMap.get(metric.getMetricName());
             if (propertyId != null) {
-              resource.setProperty(propertyId, getValue(metric, true));
+              resource.setProperty(propertyId, getValue(metric, temporalInfo));
             }
           }
         }

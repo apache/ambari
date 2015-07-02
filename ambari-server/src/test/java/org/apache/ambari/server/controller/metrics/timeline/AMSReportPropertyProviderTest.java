@@ -66,7 +66,7 @@ public class AMSReportPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
-    temporalInfoMap.put(propertyId, new TemporalInfoImpl(1416445244701L, 1416445244901L, 1L));
+    temporalInfoMap.put(propertyId, new TemporalInfoImpl(1416445244800L, 1416448936474L, 1L));
     Request request = PropertyHelper.getReadRequest(
       Collections.singleton(propertyId), temporalInfoMap);
     Set<Resource> resources =
@@ -78,8 +78,8 @@ public class AMSReportPropertyProviderTest {
     URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
     uriBuilder.addParameter("metricNames", "cpu_user");
     uriBuilder.addParameter("appId", "HOST");
-    uriBuilder.addParameter("startTime", "1416445244701");
-    uriBuilder.addParameter("endTime", "1416445244901");
+    uriBuilder.addParameter("startTime", "1416445244800");
+    uriBuilder.addParameter("endTime", "1416448936474");
     Assert.assertEquals(uriBuilder.toString(), streamProvider.getLastSpec());
     Number[][] val = (Number[][]) res.getPropertyValue("metrics/cpu/User");
     Assert.assertEquals(111, val.length);
@@ -107,7 +107,7 @@ public class AMSReportPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
-    temporalInfoMap.put(propertyId, new TemporalInfoImpl(1432033256912L, 1432033257912L, 1L));
+    temporalInfoMap.put(propertyId, new TemporalInfoImpl(1432033257812L, 1432035927922L, 1L));
     Request request = PropertyHelper.getReadRequest(
       Collections.singleton(propertyId), temporalInfoMap);
     Set<Resource> resources =
@@ -119,10 +119,10 @@ public class AMSReportPropertyProviderTest {
     URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
     uriBuilder.addParameter("metricNames", "cpu_user._sum");
     uriBuilder.addParameter("appId", "HOST");
-    uriBuilder.addParameter("startTime", "1432033256912");
-    uriBuilder.addParameter("endTime", "1432033257912");
+    uriBuilder.addParameter("startTime", "1432033257812");
+    uriBuilder.addParameter("endTime", "1432035927922");
     Assert.assertEquals(uriBuilder.toString(), streamProvider.getLastSpec());
     Number[][] val = (Number[][]) res.getPropertyValue("metrics/cpu/User._sum");
-    Assert.assertEquals(91, val.length);
+    Assert.assertEquals(90, val.length);
   }
 }

@@ -203,6 +203,16 @@ public class MetricsPaddingMethodTest {
       public Long getStep() {
         return step;
       }
+
+      @Override
+      public Long getStartTimeMillis() {
+        return startTime;
+      }
+
+      @Override
+      public Long getEndTimeMillis() {
+        return endTime;
+      }
     };
   }
 }

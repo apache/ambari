@@ -40,6 +40,7 @@ import org.apache.hadoop.yarn.util.timeline.TimelineUtils;
 import org.apache.phoenix.exception.SQLExceptionCode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -51,6 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_DAILY_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_HOUR_TABLE_TTL;
@@ -63,6 +65,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.HOST_DAILY_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.HOST_HOUR_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.HOST_MINUTE_TABLE_TTL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.OUT_OFF_BAND_DATA_TIME_ALLOWANCE;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.PRECISION_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.ALTER_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_AGGREGATE_TABLE_SQL;
@@ -87,23 +90,28 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
  * Provides a facade over the Phoenix API to access HBase schema
  */
 public class PhoenixHBaseAccessor {
+  private static final Log LOG = LogFactory.getLog(PhoenixHBaseAccessor.class);
 
   static final int PHOENIX_MAX_MUTATION_STATE_SIZE = 50000;
-  private static final Log LOG = LogFactory.getLog(PhoenixHBaseAccessor.class);
-  private static final TimelineMetricReadHelper TIMELINE_METRIC_READ_HELPER = new TimelineMetricReadHelper();
+  // Default stale data allowance set to 3 minutes, 2 minutes more than time
+  // it was collected. Also 2 minutes is the default aggregation interval at
+  // cluster and host levels.
+  static final long DEFAULT_OUT_OF_BAND_TIME_ALLOWANCE = 300000;
   /**
    * 4 metrics/min * 60 * 24: Retrieve data for 1 day.
    */
   private static final int METRICS_PER_MINUTE = 4;
-  public static int RESULTSET_LIMIT = (int)TimeUnit.DAYS.toMinutes(1) *
-    METRICS_PER_MINUTE;
+  public static int RESULTSET_LIMIT = (int)TimeUnit.DAYS.toMinutes(1) * METRICS_PER_MINUTE;
+
+  private static final TimelineMetricReadHelper TIMELINE_METRIC_READ_HELPER = new TimelineMetricReadHelper();
   private static ObjectMapper mapper = new ObjectMapper();
-  private static TypeReference<Map<Long, Double>> metricValuesTypeRef =
-    new TypeReference<Map<Long, Double>>() {};
+  private static TypeReference<Map<Long, Double>> metricValuesTypeRef = new TypeReference<Map<Long, Double>>() {};
+
   private final Configuration hbaseConf;
   private final Configuration metricsConf;
   private final RetryCounterFactory retryCounterFactory;
   private final ConnectionProvider dataSource;
+  private final long outOfBandTimeAllowance;
 
   public PhoenixHBaseAccessor(Configuration hbaseConf,
                               Configuration metricsConf){
@@ -126,6 +134,8 @@ public class PhoenixHBaseAccessor {
     this.retryCounterFactory = new RetryCounterFactory(
       metricsConf.getInt(GLOBAL_MAX_RETRIES, 10),
       (int) SECONDS.toMillis(metricsConf.getInt(GLOBAL_RETRY_INTERVAL, 5)));
+    this.outOfBandTimeAllowance = metricsConf.getLong(OUT_OFF_BAND_DATA_TIME_ALLOWANCE,
+      DEFAULT_OUT_OF_BAND_TIME_ALLOWANCE);
   }
 
   private static TimelineMetric getLastTimelineMetricFromResultSet(ResultSet rs)
@@ -330,6 +340,14 @@ public class PhoenixHBaseAccessor {
         UPSERT_METRICS_SQL, METRICS_RECORD_TABLE_NAME));
 
       for (TimelineMetric metric : timelineMetrics) {
+        if (Math.abs(currentTime - metric.getStartTime()) > outOfBandTimeAllowance) {
+          // If timeseries start time is way in the past : discard
+          LOG.debug("Discarding out of band timeseries, currentTime = "
+            + currentTime + ", startTime = " + metric.getStartTime()
+            + ", hostname = " + metric.getHostName());
+          continue;
+        }
+
         metricRecordStmt.clearParameters();
 
         if (LOG.isTraceEnabled()) {

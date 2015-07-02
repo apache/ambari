@@ -17,8 +17,34 @@
  */
 package org.apache.ambari.server.controller.metrics;
 
+import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class MetricsDownsamplingMethod {
-  public abstract Number[][] reportMetricData(TimelineMetric metricData, MetricsDataTransferMethod dataTransferMethod);
+  // Allow for 2 minute discrepancy to account for client side buffering,
+  // this ensures at least some data is returned in the initial few minutes.
+  private static final long OUT_OF_BAND_TIME_ALLOWANCE = 120000;
+  static Logger LOG = LoggerFactory.getLogger(MetricsDownsamplingMethod.class);
+
+  // Downsampling methods iterate over the entire metrics result to create output array.
+  // Passing down @TemporalInfo avoids re-iterating to filter out out of band data.
+  public abstract Number[][] reportMetricData(TimelineMetric metricData,
+                                              MetricsDataTransferMethod dataTransferMethod,
+                                              TemporalInfo temporalInfo);
+
+  protected boolean isWithinTemporalQueryRange(Long timestamp, TemporalInfo temporalInfo) {
+    boolean retVal = temporalInfo == null ||
+      timestamp >= (temporalInfo.getStartTimeMillis() - OUT_OF_BAND_TIME_ALLOWANCE)
+        && timestamp <= temporalInfo.getEndTimeMillis();
+
+    if (!retVal && LOG.isTraceEnabled()) {
+      LOG.trace("Ignoring out of band metric with ts: " + timestamp + ", "
+        + "temporalInfo: startTime = " + temporalInfo.getStartTimeMillis() + ","
+        + " endTime = " + temporalInfo.getEndTimeMillis());
+    }
+
+    return retVal;
+  }
 }

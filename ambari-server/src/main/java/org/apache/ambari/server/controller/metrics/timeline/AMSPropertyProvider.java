@@ -39,7 +39,6 @@ import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -54,7 +53,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import static org.apache.ambari.server.Role.HBASE_MASTER;
 import static org.apache.ambari.server.Role.HBASE_REGIONSERVER;
 import static org.apache.ambari.server.Role.METRICS_COLLECTOR;
@@ -259,7 +257,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
               for (TimelineMetric metric : metricsMap.get(hostname)) {
                 // Pad zeros or nulls if needed
                 metricsPaddingMethod.applyPaddingStrategy(metric, temporalInfo);
-                populateResource(resource, metric);
+                populateResource(resource, metric, temporalInfo);
               }
             }
           }
@@ -389,7 +387,8 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       return result;
     }
 
-    private void populateResource(Resource resource, TimelineMetric metric) {
+    private void populateResource(Resource resource, TimelineMetric metric,
+                                  TemporalInfo temporalInfo) {
       String metric_name = metric.getMetricName();
       Set<String> propertyIdSet = metrics.get(metric_name);
       List<String> parameterList  = new LinkedList<String>();
@@ -423,7 +422,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
                     ++i;
                   }
                 }
-                Object value = getValue(metric, temporalInfo != null);
+                Object value = getValue(metric, temporalInfo);
                 if (value != null) {
                   resource.setProperty(propertyId, value);
                 }

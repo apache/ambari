@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.metrics;
 
+import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 
 public class MetricReportingAdapter {
@@ -28,7 +29,7 @@ public class MetricReportingAdapter {
     dataTransferMethod = MetricsDataTransferMethodFactory.detectDataTransferMethod(metricDecl);
   }
 
-  public Number[][] reportMetricData(TimelineMetric metricData) {
-    return downsamplingMethod.reportMetricData(metricData, dataTransferMethod);
+  public Number[][] reportMetricData(TimelineMetric metricData, TemporalInfo temporalInfo) {
+    return downsamplingMethod.reportMetricData(metricData, dataTransferMethod, temporalInfo);
   }
 }

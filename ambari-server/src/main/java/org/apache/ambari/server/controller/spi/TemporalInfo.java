@@ -45,4 +45,18 @@ public interface TemporalInfo {
    * @return the step time in seconds
    */
   Long getStep();
+
+  /**
+   * Get milliseconds time from startTime
+   *
+   * @return time in milliseconds
+   */
+  Long getStartTimeMillis();
+
+  /**
+   * Get milliseconds time from endTime
+   *
+   * @return time in milliseconds
+   */
+  Long getEndTimeMillis();
 }
