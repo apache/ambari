@@ -137,6 +137,9 @@ public class UpgradeResourceProviderHDP22Test {
           }
         }).anyTimes();
 
+    expect(configHelper.getMergedConfig(EasyMock.anyObject(Map.class),
+        EasyMock.anyObject(Map.class))).andReturn(new HashMap<String, String>()).anyTimes();
+
     EasyMock.replay(configHelper);
 
     // create an injector which will inject the mocks
@@ -224,7 +227,7 @@ public class UpgradeResourceProviderHDP22Test {
 
   /**
    * Tests upgrades from HDP-2.2.x to HDP-2.2.y
-   * 
+   *
    * @throws Exception
    */
   @SuppressWarnings("serial")
@@ -271,7 +274,7 @@ public class UpgradeResourceProviderHDP22Test {
     assertEquals(3, upgrade.getUpgradeGroups().size());
 
     UpgradeGroupEntity group = upgrade.getUpgradeGroups().get(2);
-    assertEquals(2, group.getItems().size());
+    assertEquals(3, group.getItems().size());
 
     group = upgrade.getUpgradeGroups().get(0);
     assertEquals(2, group.getItems().size());
@@ -311,24 +314,35 @@ public class UpgradeResourceProviderHDP22Test {
         add(newConfig);
       }
     };
+
     cluster.addConfig(newConfig);
     cluster.addDesiredConfig("admin", desiredConfigs);
     assertEquals(configTagVersion2, cluster.getDesiredConfigByType("hive-site").getTag());
     Gson gson = new Gson();
+
     List<ExecutionCommandEntity> currentExecutionCommands = injector.getInstance(ExecutionCommandDAO.class).findAll();
     for (ExecutionCommandEntity ece : currentExecutionCommands) {
       String executionCommandJson = new String(ece.getCommand());
       Map<String, Object> commandMap = gson.<Map<String, Object>> fromJson(executionCommandJson, Map.class);
-      if ("SERVICE_CHECK".equals(commandMap.get("roleCommand")) || "RESTART".equals(commandMap.get("roleCommand"))) {
+
+      // ensure that the latest tag is being used and that "*" is forcing a
+      // refresh - this is absolutely required for upgrades
+      Set<String> roleCommandsThatMustHaveRefresh = new HashSet<String>();
+      roleCommandsThatMustHaveRefresh.add("SERVICE_CHECK");
+      roleCommandsThatMustHaveRefresh.add("RESTART");
+      roleCommandsThatMustHaveRefresh.add("ACTIONEXECUTE");
+
+      String roleCommand = (String) commandMap.get("roleCommand");
+      if (roleCommandsThatMustHaveRefresh.contains(roleCommand)) {
         assertTrue(commandMap.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION));
         Object object = commandMap.get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION);
         assertTrue(object instanceof List);
+
         @SuppressWarnings("unchecked")
         List<String> tags = (List<String>) commandMap.get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION);
         assertEquals(1, tags.size());
         assertEquals("*", tags.get(0));
 
-        // Verify latest tag is being used.
         ExecutionCommandWrapper executionCommandWrapper = new ExecutionCommandWrapper(executionCommandJson);
         ExecutionCommand executionCommand = executionCommandWrapper.getExecutionCommand();
         Map<String, Map<String, String>> configurationTags = executionCommand.getConfigurationTags();
