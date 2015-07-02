@@ -21,6 +21,13 @@
     <service>
       <name>HBASE</name>
       <version>1.1.0.2.3</version>
+
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
     </service>
   </services>
 </metainfo>

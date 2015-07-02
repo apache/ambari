@@ -61,6 +61,13 @@
         </osSpecific>
       </osSpecifics>
 
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
     </service>
   </services>
 </metainfo>
