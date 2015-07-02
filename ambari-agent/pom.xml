@@ -343,6 +343,7 @@
             </mapping>
             <mapping>
               <directory>/var/lib/ambari-agent</directory>
+              <configuration>true</configuration>
               <filemode>700</filemode>
               <username>root</username>
               <groupname>root</groupname>
