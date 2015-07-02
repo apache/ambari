@@ -99,6 +99,11 @@ if Script.is_hdp_stack_greater_or_equal("2.1"):
   hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
   webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
 
+# Starting from HDP2.3 drop should be executed with purge suffix
+purge_tables = "false"
+if Script.is_hdp_stack_greater_or_equal("2.3"):
+  purge_tables = 'true'
+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   hive_specific_configs_supported = True
 

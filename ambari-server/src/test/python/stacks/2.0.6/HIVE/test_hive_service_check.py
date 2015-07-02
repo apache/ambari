@@ -50,7 +50,7 @@ class TestServiceCheck(RMFTestCase):
                         content = StaticFile('hcatSmoke.sh'),
                         mode = 0755,
     )
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare',
+    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare false',
         logoutput = True,
         path = ['/usr/sbin',
            '/usr/local/bin',
@@ -70,7 +70,7 @@ class TestServiceCheck(RMFTestCase):
         user = 'hdfs',
         bin_dir = '/bin:/usr/lib/hive/bin:/usr/bin',
     )
-    self.assertResourceCalled('Execute', ' /tmp/hcatSmoke.sh hcatsmoke cleanup',
+    self.assertResourceCalled('Execute', ' /tmp/hcatSmoke.sh hcatsmoke cleanup false',
         logoutput = True,
         path = ['/usr/sbin',
            '/usr/local/bin',
@@ -162,7 +162,7 @@ class TestServiceCheck(RMFTestCase):
                         mode = 0755,
     )
     self.maxDiff = None
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare false',
         logoutput = True,
         path = ['/usr/sbin','/usr/local/bin','/bin','/usr/bin', '/bin:/usr/lib/hive/bin:/usr/bin'],
         tries = 3,
@@ -179,7 +179,7 @@ class TestServiceCheck(RMFTestCase):
         bin_dir = '/bin:/usr/lib/hive/bin:/usr/bin',
         principal = 'hdfs',
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;  /tmp/hcatSmoke.sh hcatsmoke cleanup',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;  /tmp/hcatSmoke.sh hcatsmoke cleanup false',
         logoutput = True,
         path = ['/usr/sbin',
            '/usr/local/bin',
@@ -274,7 +274,7 @@ class TestServiceCheck(RMFTestCase):
       content = StaticFile('hcatSmoke.sh'),
       mode = 0755)
 
-    self.assertResourceCalled('Execute', "env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare",
+    self.assertResourceCalled('Execute', "env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare false",
         logoutput = True,
         path = ['/usr/sbin','/usr/local/bin','/bin','/usr/bin', '/bin:/usr/hdp/current/hadoop-client/bin:/usr/hdp/2.3.0.0-1234/hive/bin'],
         tries = 3,
