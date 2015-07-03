@@ -55,7 +55,7 @@
       },
       {
         "name": "hbase_master_cpu",
-        "label": "HBase Maser CPU Utilization",
+        "label": "HBase Master CPU Utilization",
         "description": "This host-level alert is triggered if CPU utilization of the HBase Master exceeds certain warning and critical thresholds. It checks the HBase Master JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
         "interval": 5,
         "scope": "ANY",
