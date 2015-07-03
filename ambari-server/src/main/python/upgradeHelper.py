@@ -78,6 +78,7 @@ Example:
           "from-catalog": "test",        (optional, require "to-catalog. Source of old-property1-name)
           "to-catalog": "test",          (optional, require "from-catalog. Target of new_property1_name)
           "default": "default value",    (optional, if set and old property not exists, new one would be created with default value)
+          "template": "yes",             (optional, template parsing for default option)
           "required-services": ["YARN"]  (optional, process entry if services in the list existed on the cluster
       }
      }
@@ -433,6 +434,14 @@ class UpgradeCatalog(object):
       return self._catalog_options[CatConst.CONFIG_TYPES]
     return {}
 
+  @property
+  def action_handlers(self):
+    return self._handlers
+
+  @property
+  def tag_search_pattern(self):
+    return self._search_pattern
+
   def __handle_remove_tag(self, catalog_item_name, catalog_property_item, properties):
     """
     :type catalog_item_name str
@@ -621,10 +630,26 @@ class ServerConfigFactory(object):
     :type catalog UpgradeCatalog
     """
     for map_item in catalog.mapping.list():
-      self._process_single_map_transformation(map_item, catalog.mapping.get(map_item))
+      self._process_single_map_transformation(catalog, map_item, catalog.mapping.get(map_item))
 
-  def _process_single_map_transformation(self, map_item_name, map_property_item):
+  def _process_default_template_map_replacement(self, catalog, item):
     """
+    :type catalog: UpgradeCatalog
+    :type item: dict
+    """
+    if CatConst.VALUE_TEMPLATE_TAG in item and CatConst.TEMPLATE_HANDLER in catalog.action_handlers and\
+            CatConst.PROPERTY_DEFAULT in item and item[CatConst.VALUE_TEMPLATE_TAG] == CatConst.TRUE_TAG:
+
+      parsed_value = catalog.action_handlers[CatConst.TEMPLATE_HANDLER](
+        catalog,
+        catalog.tag_search_pattern.findall(item[CatConst.PROPERTY_DEFAULT]),
+        item[CatConst.PROPERTY_DEFAULT]
+      )
+      item[CatConst.PROPERTY_DEFAULT] = parsed_value
+
+  def _process_single_map_transformation(self, catalog, map_item_name, map_property_item):
+    """
+    :type catalog UpgradeCatalog
     :type map_item_name str
     :type map_property_item dict
     """
@@ -638,6 +663,9 @@ class ServerConfigFactory(object):
 
     if CatConst.PROPERTY_MAP_TO in map_property_item:
       new_property_name = map_property_item[CatConst.PROPERTY_MAP_TO]
+
+    # process template tag
+    self._process_default_template_map_replacement(catalog, map_property_item)
 
     source_cfg_group = map_property_item[CatConst.PROPERTY_FROM_CATALOG] if CatConst.PROPERTY_FROM_CATALOG in map_property_item and\
                                                                             map_property_item[CatConst.PROPERTY_FROM_CATALOG] != "" else None
@@ -1024,7 +1052,7 @@ def get_ranger_host():
   return ranger_host_list[0]
 
 def get_ranger_service_details():
-  server_cfg_factory = ServerConfigFactory()
+  server_cfg_factory = Options.server_config_factory
   server_cfg_catalog = server_cfg_factory.get_config('admin-properties')
   properties_latest = server_cfg_catalog.properties
   data = {}
