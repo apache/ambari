@@ -21,7 +21,7 @@ limitations under the License.
 
   <property>
     <name>hive.default.fileformat.managed</name>
-    <value>orc</value>
+    <value>TextFile</value>
     <description>
       Default file format for CREATE TABLE statement applied to managed tables only. 
       External tables will be created with default file format. Leaving this null 
