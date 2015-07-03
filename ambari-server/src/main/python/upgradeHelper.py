@@ -186,10 +186,16 @@ class Options(Const):
   REPLACE_RM_HOST_NAME_TAG = "REPLACE_RM_HOST"
   REPLACE_WITH_TAG = "REPLACE_WITH_"
   ZK_OPTIONS = "zoo.cfg"
+  KAFKA_BROKER_CONF = "kafka-broker"
+  RANGER_ADMIN = "admin-properties"
+  KAFKA_PORT = "port"
+  RANGER_EXTERNAL_URL = "ranger.externalurl"
   ZK_CLIENTPORT = "clientPort"
   DELETE_OLD_TAG = "DELETE_OLD"
 
   ZOOKEEPER_SERVER = "ZOOKEEPER_SERVER"
+  KAFKA_BROKER = "KAFKA_BROKER"
+  NAMENODE = "NAMENODE"
 
   MR_MAPPING = None
   logger = None
@@ -1022,6 +1028,72 @@ def get_tez_history_url_base():
   url = '{0}://{1}:{2}/#/main/views/TEZ/{3}/TEZ_CLUSTER_INSTANCE'.format(Options.API_PROTOCOL, Options.HOST, Options.API_PORT, version)
   return url
 
+def get_kafka_listeners():
+  kafka_host="localhost"
+  kafka_port="6667"
+  if Options.server_config_factory is not None and Options.KAFKA_BROKER_CONF in Options.server_config_factory.items():
+    props = Options.server_config_factory.get_config(Options.KAFKA_BROKER_CONF)
+    if Options.KAFKA_PORT in props.properties:
+      kafka_port = props.properties[Options.KAFKA_PORT]
+
+  # Default kafka listeners string
+  kafka_listeners = ["PLAINTEXT://{0}:{1}".format(kafka_host, kafka_port)]
+
+  # Get hosts where kafka_broker is installed
+  kafka_cfg = curl(Options.COMPONENTS_FORMAT.format(Options.KAFKA_BROKER), validate=False, simulate=False, parse=True)
+  if "host_components" in kafka_cfg:
+    kafka_listeners = []
+    for item in kafka_cfg["host_components"]:
+      kafka_listeners.append("PLAINTEXT://{0}:{1}".format(item["HostRoles"]["host_name"], kafka_port))
+
+  return ",".join(kafka_listeners)
+
+def get_ranger_xaaudit_hdfs_destination_directory():
+  namenode_hostname="localhost"
+  namenode_cfg = curl(Options.COMPONENTS_FORMAT.format(Options.NAMENODE), validate=False, simulate=False, parse=True)
+  if "host_components" in namenode_cfg:
+    namenode_hostname = namenode_cfg["host_components"][0]["HostRoles"]["host_name"]
+
+  return "hdfs://{0}:8020/ranger/audit".format(namenode_hostname)
+
+def get_ranger_policymgr_external_url():
+  url = "{{ranger_external_url}}"
+  if Options.server_config_factory is not None and Options.RANGER_ADMIN in Options.server_config_factory.items():
+    props = Options.server_config_factory.get_config(Options.RANGER_ADMIN)
+    if Options.RANGER_EXTERNAL_URL in props.properties:
+      url = props.properties[Options.RANGER_EXTERNAL_URL]
+  return url
+
+def get_jdbc_driver(config_name):
+  driver = "{{jdbc_driver}}"
+  if Options.server_config_factory is not None and config_name in Options.server_config_factory.items():
+    props = Options.server_config_factory.get_config(config_name)
+    if "XAAUDIT.DB.FLAVOUR" in props.properties:
+      db = props.properties["XAAUDIT.DB.FLAVOUR"]
+
+  if db == "mysql":
+    driver = "com.mysql.jdbc.Driver"
+  elif db == "oracle":
+    driver = "oracle.jdbc.OracleDriver"
+  return driver
+
+def get_audit_jdbc_url(config_name):
+  audit_jdbc_url = "{{audit_jdbc_url}}"
+  if Options.server_config_factory is not None and config_name in Options.server_config_factory.items():
+    props = Options.server_config_factory.get_config(config_name)
+    if "XAAUDIT.DB.FLAVOUR" in props.properties:
+      xa_audit_db_flavor = props.properties["XAAUDIT.DB.FLAVOUR"]
+    if "XAAUDIT.DB.HOSTNAME" in props.properties:
+      xa_db_host =  props.properties["XAAUDIT.DB.HOSTNAME"]
+    if "XAAUDIT.DB.DATABASE_NAME" in props.properties:
+      xa_audit_db_name = props.properties["XAAUDIT.DB.DATABASE_NAME"]
+
+  if xa_audit_db_flavor == 'mysql':
+    audit_jdbc_url = "jdbc:mysql://{0}/{1}".format(xa_db_host, xa_audit_db_name)
+  elif xa_audit_db_flavor == 'oracle':
+    audit_jdbc_url = "jdbc:oracle:thin:\@//{0}".format(xa_db_host)
+  return audit_jdbc_url
+
 def get_jt_host(catalog):
   """
   :type catalog: UpgradeCatalog
@@ -1097,6 +1169,63 @@ def _substitute_handler(upgrade_catalog, tokens, value):
       value = value.replace(token, get_ranger_host())
     elif token == "{RANGER_JDBC_DIALECT}":
       value = value.replace(token, get_ranger_service_details()['RANGER_JDBC_DIALECT'])
+    elif token == "{KAFKA_LISTENERS}":
+      value = value.replace(token, get_kafka_listeners())
+    elif token == "{RANGER_PLUGIN_HBASE_POLICY_CACHE_DIR}":
+      value = value.replace(token, "/etc/ranger/{0}{1}/policycache".format(Options.CLUSTER_NAME, "_hbase"))
+    elif token == "{RANGER_PLUGIN_HDFS_POLICY_CACHE_DIR}":
+      value = value.replace(token, "/etc/ranger/{0}{1}/policycache".format(Options.CLUSTER_NAME, "_hdfs"))
+    elif token == "{RANGER_PLUGIN_HIVE_POLICY_CACHE_DIR}":
+      value = value.replace(token, "/etc/ranger/{0}{1}/policycache".format(Options.CLUSTER_NAME, "_hive"))
+    elif token == "{RANGER_PLUGIN_KNOX_POLICY_CACHE_DIR}":
+      value = value.replace(token, "/etc/ranger/{0}{1}/policycache".format(Options.CLUSTER_NAME, "_knox"))
+    elif token == "{RANGER_PLUGIN_STORM_POLICY_CACHE_DIR}":
+      value = value.replace(token, "/etc/ranger/{0}{1}/policycache".format(Options.CLUSTER_NAME, "_storm"))
+    elif token == "{RANGER_HBASE_KEYSTORE_CREDENTIAL_FILE}":
+      value = value.replace(token, "jceks://file/etc/ranger/{0}{1}/cred.jceks".format(Options.CLUSTER_NAME, "_hbase"))
+    elif token == "{RANGER_HDFS_KEYSTORE_CREDENTIAL_FILE}":
+      value = value.replace(token, "jceks://file/etc/ranger/{0}{1}/cred.jceks".format(Options.CLUSTER_NAME, "_hdfs"))
+    elif token == "{RANGER_HIVE_KEYSTORE_CREDENTIAL_FILE}":
+      value = value.replace(token, "jceks://file/etc/ranger/{0}{1}/cred.jceks".format(Options.CLUSTER_NAME, "_hive"))
+    elif token == "{RANGER_KNOX_KEYSTORE_CREDENTIAL_FILE}":
+      value = value.replace(token, "jceks://file/etc/ranger/{0}{1}/cred.jceks".format(Options.CLUSTER_NAME, "_knox"))
+    elif token == "{RANGER_STORM_KEYSTORE_CREDENTIAL_FILE}":
+      value = value.replace(token, "jceks://file/etc/ranger/{0}{1}/cred.jceks".format(Options.CLUSTER_NAME, "_storm"))
+
+    elif token == "{XAAUDIT_HDFS_DESTINATION_DIRECTORY}":
+      value = value.replace(token, get_ranger_xaaudit_hdfs_destination_directory())
+    elif token == "{HBASE_RANGER_REPO_NAME}":
+      value = value.replace(token, Options.CLUSTER_NAME+"_hbase")
+    elif token == "{HDFS_RANGER_REPO_NAME}":
+      value = value.replace(token, Options.CLUSTER_NAME+"_hdfs")
+    elif token == "{HIVE_RANGER_REPO_NAME}":
+      value = value.replace(token, Options.CLUSTER_NAME+"_hive")
+    elif token == "{HNOX_RANGER_REPO_NAME}":
+      value = value.replace(token, Options.CLUSTER_NAME+"_knox")
+    elif token == "{STORM_RANGER_REPO_NAME}":
+      value = value.replace(token, Options.CLUSTER_NAME+"_storm")
+    elif token == "{POLICYMGR_MGR_URL}":
+      value = value.replace(token, get_ranger_policymgr_external_url())
+    elif token == "{HDFS_JDBC_DRIVER}":
+      value = value.replace(token, get_jdbc_driver("ranger-hdfs-plugin-properties"))
+    elif token == "{HBASE_JDBC_DRIVER}":
+      value = value.replace(token, get_jdbc_driver("ranger-hbase-plugin-properties"))
+    elif token == "{HIVE_JDBC_DRIVER}":
+      value = value.replace(token, get_jdbc_driver("ranger-hive-plugin-properties"))
+    elif token == "{KNOX_JDBC_DRIVER}":
+      value = value.replace(token, get_jdbc_driver("ranger-knox-plugin-properties"))
+    elif token == "{STORM_JDBC_DRIVER}":
+      value = value.replace(token, get_jdbc_driver("ranger-storm-plugin-properties"))
+    elif token == "{HDFS_AUDIT_JDBC_URL}":
+      value = value.replace(token, get_audit_jdbc_url("ranger-hdfs-plugin-properties"))
+    elif token == "{HBASE_AUDIT_JDBC_URL}":
+      value = value.replace(token, get_audit_jdbc_url("ranger-hbase-plugin-properties"))
+    elif token == "{HIVE_AUDIT_JDBC_URL}":
+      value = value.replace(token, get_audit_jdbc_url("ranger-hive-plugin-properties"))
+    elif token == "{KNOX_AUDIT_JDBC_URL}":
+      value = value.replace(token, get_audit_jdbc_url("ranger-knox-plugin-properties"))
+    elif token == "{STORM_AUDIT_JDBC_URL}":
+      value = value.replace(token, get_audit_jdbc_url("ranger-storm-plugin-properties"))
 
   return value
 
