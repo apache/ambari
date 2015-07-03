@@ -31,8 +31,6 @@ public enum CheckDescription {
   CLIENT_RETRY(PrereqCheckType.SERVICE,
       "Client Retry Properties",
       new HashMap<String, String>() {{
-        put(ClientRetryPropertyCheck.HDFS_CLIENT_RETRY_MISSING_KEY,
-          "The hdfs-site.xml property dfs.client.retry.policy.enabled should be set to true.");
         put(ClientRetryPropertyCheck.HIVE_CLIENT_RETRY_MISSING_KEY,
           "The hive-site.xml property hive.metastore.failure.retries should be set to a positive value.");
         put(ClientRetryPropertyCheck.OOZIE_CLIENT_RETRY_MISSING_KEY,
