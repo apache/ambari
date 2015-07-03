@@ -18,21 +18,29 @@
 
 package org.apache.ambari.server.serveraction;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.actionmanager.*;
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.actionmanager.RequestStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * Server Action Executor used to execute server-side actions (or tasks)
@@ -340,7 +348,7 @@ public class ServerActionExecutor {
   public void doWork() throws InterruptedException {
     List<HostRoleCommand> tasks = db.getTasksByHostRoleAndStatus(serverHostName,
         Role.AMBARI_SERVER_ACTION.toString(), HostRoleStatus.QUEUED);
-    
+
     if (null == tasks || tasks.isEmpty()) {
       // !!! if the server is not a part of the cluster,
       // !!! just look for anything designated AMBARI_SERVER_ACTION.
@@ -444,7 +452,7 @@ public class ServerActionExecutor {
             taskId, (commandReport == null) ? "UNKNOWN" : commandReport.getStatus());
       } catch (Throwable t) {
         LOG.warn("Task #{} failed to complete execution due to thrown exception: {}:{}",
-            taskId, t.getClass().getName(), t.getLocalizedMessage());
+            taskId, t.getClass().getName(), t.getLocalizedMessage(), t);
 
         commandReport = createErrorReport(t.getLocalizedMessage());
       }

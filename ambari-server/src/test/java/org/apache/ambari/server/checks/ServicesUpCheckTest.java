@@ -18,16 +18,17 @@
 package org.apache.ambari.server.checks;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.inject.Provider;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.models.HostComponentSummary;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
@@ -38,9 +39,13 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.google.inject.Provider;
 
 
 /**
@@ -51,6 +56,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest(HostComponentSummary.class)   // This class has a static method that will be mocked
 public class ServicesUpCheckTest {
   private final Clusters clusters = Mockito.mock(Clusters.class);
+  private AmbariMetaInfo ambariMetaInfo = Mockito.mock(AmbariMetaInfo.class);
 
   @Test
   public void testIsApplicable() throws Exception {
@@ -78,7 +84,7 @@ public class ServicesUpCheckTest {
     servicesUpCheck.ambariMetaInfo = new Provider<AmbariMetaInfo>() {
       @Override
       public AmbariMetaInfo get() {
-        return Mockito.mock(AmbariMetaInfo.class);
+        return ambariMetaInfo;
       }
     };
 
@@ -107,6 +113,20 @@ public class ServicesUpCheckTest {
 
     Mockito.when(cluster.getServices()).thenReturn(clusterServices);
 
+    Mockito.when(ambariMetaInfo.getComponent(Mockito.anyString(), Mockito.anyString(),
+        Mockito.anyString(), Mockito.anyString())).thenAnswer(new Answer<ComponentInfo>() {
+      @Override
+      public ComponentInfo answer(InvocationOnMock invocation) throws Throwable {
+        ComponentInfo anyInfo = Mockito.mock(ComponentInfo.class);
+        if (invocation.getArguments().length > 3 && "DATANODE".equals(invocation.getArguments()[3])) {
+          Mockito.when(anyInfo.getCardinality()).thenReturn("1+");
+        } else {
+          Mockito.when(anyInfo.getCardinality()).thenReturn(null);
+        }
+
+        return anyInfo;
+      }
+    });
 
     // Put Components inside Services
     // HDFS
@@ -116,16 +136,19 @@ public class ServicesUpCheckTest {
     Mockito.when(nameNode.getName()).thenReturn("NAMENODE");
     Mockito.when(nameNode.isClientComponent()).thenReturn(false);
     Mockito.when(nameNode.isVersionAdvertised()).thenReturn(true);
+    Mockito.when(nameNode.isMasterComponent()).thenReturn(true);
 
     ServiceComponent dataNode = Mockito.mock(ServiceComponent.class);
     Mockito.when(dataNode.getName()).thenReturn("DATANODE");
     Mockito.when(dataNode.isClientComponent()).thenReturn(false);
     Mockito.when(dataNode.isVersionAdvertised()).thenReturn(true);
+    Mockito.when(dataNode.isMasterComponent()).thenReturn(false);
 
     ServiceComponent zkfc = Mockito.mock(ServiceComponent.class);
     Mockito.when(zkfc.getName()).thenReturn("ZKFC");
     Mockito.when(zkfc.isClientComponent()).thenReturn(false);
     Mockito.when(zkfc.isVersionAdvertised()).thenReturn(false);
+    Mockito.when(zkfc.isMasterComponent()).thenReturn(false);
 
     hdfsComponents.put("NAMENODE", nameNode);
     hdfsComponents.put("DATANODE", dataNode);
@@ -164,7 +187,9 @@ public class ServicesUpCheckTest {
     Mockito.when(amsService.getServiceComponents()).thenReturn(amsComponents);
 
     final HostComponentSummary hcsNameNode = Mockito.mock(HostComponentSummary.class);
-    final HostComponentSummary hcsDataNode = Mockito.mock(HostComponentSummary.class);
+    final HostComponentSummary hcsDataNode1 = Mockito.mock(HostComponentSummary.class);
+    final HostComponentSummary hcsDataNode2 = Mockito.mock(HostComponentSummary.class);
+    final HostComponentSummary hcsDataNode3 = Mockito.mock(HostComponentSummary.class);
     final HostComponentSummary hcsZKFC = Mockito.mock(HostComponentSummary.class);
     final HostComponentSummary hcsTezClient = Mockito.mock(HostComponentSummary.class);
     final HostComponentSummary hcsMetricsCollector = Mockito.mock(HostComponentSummary.class);
@@ -172,19 +197,21 @@ public class ServicesUpCheckTest {
 
     List<HostComponentSummary> allHostComponentSummaries = new ArrayList<HostComponentSummary>();
     allHostComponentSummaries.add(hcsNameNode);
-    allHostComponentSummaries.add(hcsDataNode);
+    allHostComponentSummaries.add(hcsDataNode1);
+    allHostComponentSummaries.add(hcsDataNode2);
+    allHostComponentSummaries.add(hcsDataNode3);
     allHostComponentSummaries.add(hcsZKFC);
     allHostComponentSummaries.add(hcsTezClient);
     allHostComponentSummaries.add(hcsMetricsCollector);
     allHostComponentSummaries.add(hcsMetricsMonitor);
 
     // Mock the static method
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "NAMENODE")).thenReturn(new ArrayList<HostComponentSummary>(){{ add(hcsNameNode); }});
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "DATANODE")).thenReturn(new ArrayList<HostComponentSummary>(){{ add(hcsDataNode); }});
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "ZKFC")).thenReturn(new ArrayList<HostComponentSummary>(){{ add(hcsZKFC); }});
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("TEZ", "TEZ_CLIENT")).thenReturn(new ArrayList<HostComponentSummary>(){{ add(hcsTezClient); }});
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_COLLECTOR")).thenReturn(new ArrayList<HostComponentSummary>(){{ add(hcsMetricsCollector); }});
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_MONITOR")).thenReturn(new ArrayList<HostComponentSummary>(){{ add(hcsMetricsMonitor); }});
+    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "NAMENODE")).thenReturn(Arrays.asList(hcsNameNode));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "DATANODE")).thenReturn(Arrays.asList(hcsDataNode1, hcsDataNode2, hcsDataNode3));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "ZKFC")).thenReturn(Arrays.asList(hcsZKFC));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries("TEZ", "TEZ_CLIENT")).thenReturn(Arrays.asList(hcsTezClient));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_COLLECTOR")).thenReturn(Arrays.asList(hcsMetricsCollector));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_MONITOR")).thenReturn(Arrays.asList(hcsMetricsMonitor));
 
     // Case 1. Initialize with good values
     for (HostComponentSummary hcs : allHostComponentSummaries) {
@@ -196,7 +223,7 @@ public class ServicesUpCheckTest {
 
     // Case 2. Change some desired states to STARTED, should still pass
     Mockito.when(hcsNameNode.getDesiredState()).thenReturn(State.STARTED);
-    Mockito.when(hcsDataNode.getDesiredState()).thenReturn(State.STARTED);
+    Mockito.when(hcsDataNode1.getDesiredState()).thenReturn(State.STARTED);
 
     check = new PrerequisiteCheck(null, null);
     servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
@@ -213,10 +240,26 @@ public class ServicesUpCheckTest {
 
     // Case 4. Change HDFS current states to INSTALLED, should fail.
     Mockito.when(hcsNameNode.getCurrentState()).thenReturn(State.INSTALLED);
-    Mockito.when(hcsDataNode.getCurrentState()).thenReturn(State.INSTALLED);
+    Mockito.when(hcsDataNode1.getCurrentState()).thenReturn(State.INSTALLED);
 
     check = new PrerequisiteCheck(null, null);
     servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+
+    // Case 5. Change HDFS master to STARTED, but one slave to INSTALLED, should pass (2/3 are up).
+    Mockito.when(hcsNameNode.getCurrentState()).thenReturn(State.STARTED);
+    Mockito.when(hcsDataNode1.getCurrentState()).thenReturn(State.INSTALLED);
+    check = new PrerequisiteCheck(null, null);
+    servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+
+    // Case 6. Change HDFS master to STARTED, but 2 slaves to INSTALLED, should fail (2/3 are down)
+    Mockito.when(hcsNameNode.getCurrentState()).thenReturn(State.STARTED);
+    Mockito.when(hcsDataNode1.getCurrentState()).thenReturn(State.INSTALLED);
+    Mockito.when(hcsDataNode2.getCurrentState()).thenReturn(State.INSTALLED);
+    check = new PrerequisiteCheck(null, null);
+    servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    Assert.assertTrue(check.getFailReason().indexOf("50%") > -1);
   }
 }
