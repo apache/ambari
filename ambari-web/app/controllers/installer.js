@@ -281,8 +281,14 @@ App.InstallerController = App.WizardController.extend({
         error: 'loadStacksVersionsErrorCallback'
       }));
     }, this);
+    this.set('loadStacksRequestsCounter', requests.length);
     return requests;
   },
+
+  /**
+   * Counter for counting number of successful requests to load stack versions
+   */
+  loadStacksRequestsCounter: 0,
 
   /**
    * Parse loaded data and create array of stacks objects
@@ -299,16 +305,18 @@ App.InstallerController = App.WizardController.extend({
       }, this);
     }
     App.stackMapper.map(data);
-    if (!isStacksExistInDb) {
-      var defaultStackVersion = App.Stack.find().findProperty('id', App.defaultStackVersion);
-      if (defaultStackVersion) {
-        defaultStackVersion.set('isSelected', true)
-      } else {
-        App.Stack.find().objectAt(0).set('isSelected', true);
+    if (!this.decrementProperty('loadStacksRequestsCounter')) {
+      if (!isStacksExistInDb) {
+        var defaultStackVersion = App.Stack.find().findProperty('id', App.defaultStackVersion);
+        if (defaultStackVersion) {
+          defaultStackVersion.set('isSelected', true)
+        } else {
+          App.Stack.find().objectAt(0).set('isSelected', true);
+        }
       }
+      this.set('content.stacks', App.Stack.find());
+      App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('id'));
     }
-    this.set('content.stacks', App.Stack.find());
-    App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('id'));
   },
 
   /**
