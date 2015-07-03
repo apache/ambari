@@ -1907,11 +1907,19 @@ class TestHDP22StackAdvisor(TestCase):
       "configurations": {
         "hbase-env": {
           "properties": {
-            "phoenix_sql_enabled": "true"
+            "phoenix_sql_enabled": "true",
+            "hbase_max_direct_memory_size": ""
           }
         },
         "hbase-site": {
-          "properties": {}
+          "properties": {
+            "hbase.rpc.controllerfactory.class": "",
+            "phoenix.functions.allowUserDefinedFunctions": "",
+            "hbase.bucketcache.ioengine": "",
+            "hbase.bucketcache.size": "",
+            "hbase.bucketcache.percentage.in.combinedcache": "",
+            "hbase.coprocessor.regionserver.classes": ""
+          }
         }
       }
     }
@@ -1924,9 +1932,6 @@ class TestHDP22StackAdvisor(TestCase):
           "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint"
         },
         'property_attributes': {
-          'hbase.coprocessor.regionserver.classes': {
-            'delete': 'true'
-          },
           "hbase.bucketcache.size": {
             "delete": "true"
           },
@@ -2037,7 +2042,7 @@ class TestHDP22StackAdvisor(TestCase):
     self.assertEquals(configurations, expected)
 
     # Test - default recommendations should have certain configs deleted. HAS TO BE LAST TEST.
-    services["configurations"] = {}
+    services["configurations"] = {"hbase-site": {"properties": {"phoenix.functions.allowUserDefinedFunctions": '', "hbase.rpc.controllerfactory.class": ''}}}
     configurations = {}
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['hbase-site']['property_attributes']['phoenix.functions.allowUserDefinedFunctions'], {'delete': 'true'})

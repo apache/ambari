@@ -560,13 +560,13 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       else:
         putHbaseSiteProperty('hbase.coprocessor.master.classes', "")
         coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
-        if ('hbase.coprocessor.regionserver.classes' in configurations["hbase-env"]["properties"]) or \
-                ('hbase-env' in services['configurations'] and 'hbase.coprocessor.regionserver.classes' in services['configurations']["hbase-env"]["properties"]):
+        if ('hbase.coprocessor.regionserver.classes' in configurations["hbase-site"]["properties"]) or \
+                ('hbase-site' in services['configurations'] and 'hbase.coprocessor.regionserver.classes' in services['configurations']["hbase-site"]["properties"]):
           putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
     else:
       coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
-      if ('hbase.coprocessor.regionserver.classes' in configurations["hbase-env"]["properties"]) or \
-              ('hbase-env' in services['configurations'] and 'hbase.coprocessor.regionserver.classes' in services['configurations']["hbase-env"]["properties"]):
+      if ('hbase.coprocessor.regionserver.classes' in configurations["hbase-site"]["properties"]) or \
+              ('hbase-site' in services['configurations'] and 'hbase.coprocessor.regionserver.classes' in services['configurations']["hbase-site"]["properties"]):
         putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
 
     # Authentication
