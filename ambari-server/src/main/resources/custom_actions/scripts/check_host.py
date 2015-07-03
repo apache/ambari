@@ -34,6 +34,7 @@ from ambari_agent.HostInfo import HostInfo
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 from resource_management.core.resources import Directory, File
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from resource_management.core import shell
 
 CHECK_JAVA_HOME = "java_home_check"
 CHECK_DB_CONNECTION = "db_connection_check"
@@ -317,27 +318,19 @@ class CheckHost(Script):
       print message
       db_connection_check_structured_output = {"exit_code" : 1, "message": message}
       return db_connection_check_structured_output
-  
-  
+
+
     # try to connect to db
     db_connection_check_command = format("{java_exec} -cp {check_db_connection_path}{class_path_delimiter}" \
            "{jdbc_path} -Djava.library.path={agent_cache_dir} org.apache.ambari.server.DBConnectionVerification \"{db_connection_url}\" " \
            "{user_name} {user_passwd!p} {jdbc_driver}")
-    print "INFO db_connection_check_command: " + db_connection_check_command
-    process = subprocess.Popen(db_connection_check_command,
-                               stdout=subprocess.PIPE,
-                               stdin=subprocess.PIPE,
-                               stderr=subprocess.PIPE,
-                               shell=True)
-    (stdoutdata, stderrdata) = process.communicate()
-    print "INFO stdoutdata: " + stdoutdata
-    print "INFO stderrdata: " + stderrdata
-    print "INFO returncode: " + str(process.returncode)
-  
-    if process.returncode == 0:
+
+    code, out = shell.call(db_connection_check_command)
+
+    if code == 0:
       db_connection_check_structured_output = {"exit_code" : 0, "message": "DB connection check completed successfully!" }
     else:
-      db_connection_check_structured_output = {"exit_code" : 1, "message":  stdoutdata + stderrdata }
+      db_connection_check_structured_output = {"exit_code" : 1, "message":  out }
   
     return db_connection_check_structured_output
 

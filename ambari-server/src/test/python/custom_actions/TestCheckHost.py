@@ -75,10 +75,10 @@ class TestCheckHost(TestCase):
   @patch.object(Script, 'get_tmp_dir')
   @patch("check_host.download_file")
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("subprocess.Popen")
   @patch("check_host.format")
   @patch("os.path.isfile")
-  def testDBConnectionCheck(self, isfile_mock, format_mock, popenMock, structured_out_mock, download_file_mock, get_tmp_dir_mock, mock_config):
+  @patch("resource_management.core.shell.call")
+  def testDBConnectionCheck(self, shell_call_mock, isfile_mock, format_mock, structured_out_mock, download_file_mock, get_tmp_dir_mock, mock_config):
     # test, download DBConnectionVerification.jar failed
     mock_config.return_value = {"commandParams" : {"check_execute_list" : "db_connection_check",
                                                    "java_home" : "test_java_home",
@@ -139,10 +139,7 @@ class TestCheckHost(TestCase):
     format_mock.reset_mock()
     download_file_mock.reset_mock()
     download_file_mock.side_effect = [p, p]
-    s = MagicMock()
-    s.communicate.return_value = ("test message", "")
-    s.returncode = 1
-    popenMock.return_value = s
+    shell_call_mock.return_value = (1, "test message")
 
     checkHost.actionexecute(None)
 
@@ -156,7 +153,7 @@ class TestCheckHost(TestCase):
     # test, db connection success
     download_file_mock.reset_mock()
     download_file_mock.side_effect = [p, p]
-    s.returncode = 0
+    shell_call_mock.return_value = (0, "test message")
 
     checkHost.actionexecute(None)
 
