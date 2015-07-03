@@ -477,8 +477,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHbaseSiteProperty("phoenix.functions.allowUserDefinedFunctions", 'true')
     else:
       putHbaseSiteProperty("hbase.regionserver.wal.codec", 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec')
-      putHbaseSitePropertyAttributes('hbase.rpc.controllerfactory.class', 'delete', 'true')
-      putHbaseSitePropertyAttributes('phoenix.functions.allowUserDefinedFunctions', 'delete', 'true')
+      if ('hbase.rpc.controllerfactory.class' in configurations["hbase-site"]["properties"]) or \
+              ('hbase-site' in services['configurations'] and 'hbase.rpc.controllerfactory.class' in services['configurations']["hbase-site"]["properties"]):
+        putHbaseSitePropertyAttributes('hbase.rpc.controllerfactory.class', 'delete', 'true')
+      if ('phoenix.functions.allowUserDefinedFunctions' in configurations["hbase-site"]["properties"]) or \
+              ('hbase-site' in services['configurations'] and 'phoenix.functions.allowUserDefinedFunctions' in services['configurations']["hbase-site"]["properties"]):
+        putHbaseSitePropertyAttributes('phoenix.functions.allowUserDefinedFunctions', 'delete', 'true')
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if 'ranger-hbase-plugin-properties' in services['configurations'] and ('ranger-hbase-plugin-enabled' in services['configurations']['ranger-hbase-plugin-properties']['properties']):
@@ -518,10 +522,18 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHbaseEnvProperty('hbase_regionserver_heapsize', regionserver_heap_size)
     else:
       # Disable
-      putHbaseSitePropertyAttributes('hbase.bucketcache.ioengine', 'delete', 'true')
-      putHbaseSitePropertyAttributes('hbase.bucketcache.size', 'delete', 'true')
-      putHbaseSitePropertyAttributes('hbase.bucketcache.percentage.in.combinedcache', 'delete', 'true')
-      putHbaseEnvPropertyAttributes('hbase_max_direct_memory_size', 'delete', 'true')
+      if ('hbase.bucketcache.ioengine' in configurations["hbase-site"]["properties"]) or \
+              ('hbase-site' in services['configurations'] and 'hbase.bucketcache.ioengine' in services['configurations']["hbase-site"]["properties"]):
+        putHbaseSitePropertyAttributes('hbase.bucketcache.ioengine', 'delete', 'true')
+      if ('hbase.bucketcache.size' in configurations["hbase-site"]["properties"]) or \
+              ('hbase-site' in services['configurations'] and 'hbase.bucketcache.size' in services['configurations']["hbase-site"]["properties"]):
+        putHbaseSitePropertyAttributes('hbase.bucketcache.size', 'delete', 'true')
+      if ('hbase.bucketcache.percentage.in.combinedcache' in configurations["hbase-site"]["properties"]) or \
+              ('hbase-site' in services['configurations'] and 'hbase.bucketcache.percentage.in.combinedcache' in services['configurations']["hbase-site"]["properties"]):
+        putHbaseSitePropertyAttributes('hbase.bucketcache.percentage.in.combinedcache', 'delete', 'true')
+      if ('hbase_max_direct_memory_size' in configurations["hbase-env"]["properties"]) or \
+              ('hbase-env' in services['configurations'] and 'hbase_max_direct_memory_size' in services['configurations']["hbase-env"]["properties"]):
+        putHbaseEnvPropertyAttributes('hbase_max_direct_memory_size', 'delete', 'true')
 
     # Authorization
     hbase_coprocessor_region_classes = None
@@ -548,10 +560,14 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       else:
         putHbaseSiteProperty('hbase.coprocessor.master.classes', "")
         coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
-        putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
+        if ('hbase.coprocessor.regionserver.classes' in configurations["hbase-env"]["properties"]) or \
+                ('hbase-env' in services['configurations'] and 'hbase.coprocessor.regionserver.classes' in services['configurations']["hbase-env"]["properties"]):
+          putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
     else:
       coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
-      putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
+      if ('hbase.coprocessor.regionserver.classes' in configurations["hbase-env"]["properties"]) or \
+              ('hbase-env' in services['configurations'] and 'hbase.coprocessor.regionserver.classes' in services['configurations']["hbase-env"]["properties"]):
+        putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
 
     # Authentication
     if 'hbase-site' in services['configurations'] and 'hbase.security.authentication' in services['configurations']['hbase-site']['properties']:

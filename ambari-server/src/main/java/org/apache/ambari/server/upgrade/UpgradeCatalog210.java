@@ -1440,7 +1440,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                 hbaseSiteRemoveProps.add("hbase.bucketcache.ioengine");
                 hbaseSiteRemoveProps.add("hbase.bucketcache.size");
                 hbaseSiteRemoveProps.add("hbase.bucketcache.percentage.in.combinedcache");
-                hbaseSiteRemoveProps.add("hbase_max_direct_memory_size");
                 hbaseEnvRemoveProps.add("hbase_max_direct_memory_size");
               }
             }
