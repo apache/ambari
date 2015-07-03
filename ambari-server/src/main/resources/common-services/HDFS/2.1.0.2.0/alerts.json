@@ -472,20 +472,22 @@
         "scope": "ANY",
         "enabled": true,
         "source": {
-          "type": "PORT",
-          "uri": "{{hdfs-site/dfs.namenode.secondary.http-address}}",
-          "default_port": 50071,
+          "type": "WEB",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.secondary.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.secondary.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
+          },
           "reporting": {
             "ok": {
-              "text": "TCP OK - {0:.3f}s response on port {1}"
+              "text": "HTTP {0} response in {2:.3f}s"
             },
-            "warning": {
-              "text": "TCP OK - {0:.3f}s response on port {1}",
-              "value": 1.5
+            "warning":{
+              "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
             },
             "critical": {
-              "text": "Connection failed: {0} to {1}:{2}",
-              "value": 5.0
+              "text": "Connection failed to {1} ({3})"
             }
           }
         }
