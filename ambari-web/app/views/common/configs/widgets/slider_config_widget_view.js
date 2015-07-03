@@ -542,7 +542,12 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         this.initIncompatibleWidgetAsTextBox();
         this.initSlider();
         this.toggleWidgetState();
-        this.refreshSliderObserver();
+        // arguments exists - means method is called as observer and not directly from other method
+        // so, no need to call <code>refreshSliderObserver</code> and this prevent recursive calls
+        // like changeBoundariesOnce -> refreshSliderObserver -> changeBoundariesOnce -> ...
+        if (arguments.length) {
+          this.refreshSliderObserver();
+        }
       } catch (e) {
         console.error('error while rebuilding slider for config: ' + this.get('config.name'));
       }
