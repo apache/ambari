@@ -45,6 +45,7 @@ describe('App.InstallerController', function () {
       App.store.commit.restore();
     });
     it ('Correct data', function() {
+      installerController.set('loadStacksRequestsCounter', 1);
       installerController.loadStacksVersionsSuccessCallback(require('test/stack'));
       expect(installerController.get('content.stacks.length')).to.equal(2);
       expect(installerController.get('content.stacks').everyProperty('isSelected')).to.be.false;
