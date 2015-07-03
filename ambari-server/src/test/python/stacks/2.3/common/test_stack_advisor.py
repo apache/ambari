@@ -72,19 +72,7 @@ class TestHDP23StackAdvisor(TestCase):
     return self.get_system_min_uid_real()
 
   def test_recommendHBASEConfigurations(self):
-    configurations = {
-        "yarn-site": {
-            "properties": {
-                "yarn.scheduler.minimum-allocation-mb": "256",
-                "yarn.scheduler.maximum-allocation-mb": "2048",
-                },
-            },
-        "hbase-env": {
-          "properties": {
-            "phoenix_sql_enabled" : "true"
-          },
-        }
-    }
+    configurations = {}
     clusterData = {
       "totalAvailableRam": 2048,
       "hBaseInstalled": True,
@@ -118,22 +106,16 @@ class TestHDP23StackAdvisor(TestCase):
         "properties": {
           "hbase_master_heapsize": "114688",
           "hbase_max_direct_memory_size": "94208",
-          "hbase_regionserver_heapsize": "20480",
-          "phoenix_sql_enabled" : "true"
-        }
-      },
-      "yarn-site": {
-        "properties": {
-          "yarn.scheduler.minimum-allocation-mb": "256",
-          "yarn.scheduler.maximum-allocation-mb": "2048"
+          "hbase_regionserver_heapsize": "20480"
         }
       }
     }
-    services = {"services":
+    services = {
+      "services":
         [{"StackServices":
-              {"service_name" : "HDFS",
-               "service_version" : "2.6.0.2.2"
-               },
+            {"service_name" : "HDFS",
+             "service_version" : "2.6.0.2.2"
+             },
           "components":[
             {
               "href":"/api/v1/stacks/HDP/versions/2.2/services/HDFS/components/DATANODE",
@@ -217,9 +199,26 @@ class TestHDP23StackAdvisor(TestCase):
 
               ]
             },
-          ],
-        }],
-    "configurations": configurations
+            ],
+          }],
+      "configurations": {
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "256",
+            "yarn.scheduler.maximum-allocation-mb": "2048"
+            }
+          },
+        "hbase-env": {
+          "properties": {
+            "phoenix_sql_enabled": "true"
+          }
+        },
+        "hbase-site": {
+          "properties": {
+            "hbase.coprocessor.regionserver.classes": ""
+          }
+        }
+      }
     }
 
     # Test
@@ -238,7 +237,7 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertEquals(configurations, expected)
 
     # Test - default recommendations should have certain configs deleted. HAS TO BE LAST TEST.
-    services["configurations"] = {}
+    services["configurations"] = {"hbase-site": {"properties": {"phoenix.functions.allowUserDefinedFunctions": '', "hbase.rpc.controllerfactory.class": '', "hbase.region.server.rpc.scheduler.factory.class": ''}}}
     configurations = {}
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['hbase-site']['property_attributes']['phoenix.functions.allowUserDefinedFunctions'], {'delete': 'true'})
