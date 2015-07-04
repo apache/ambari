@@ -162,7 +162,7 @@ class TestServiceCheck(RMFTestCase):
                         mode = 0755,
     )
     self.maxDiff = None
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare false',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare false',
         logoutput = True,
         path = ['/usr/sbin','/usr/local/bin','/bin','/usr/bin', '/bin:/usr/lib/hive/bin:/usr/bin'],
         tries = 3,
@@ -179,7 +179,7 @@ class TestServiceCheck(RMFTestCase):
         bin_dir = '/bin:/usr/lib/hive/bin:/usr/bin',
         principal = 'hdfs',
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;  /tmp/hcatSmoke.sh hcatsmoke cleanup false',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM;  /tmp/hcatSmoke.sh hcatsmoke cleanup false',
         logoutput = True,
         path = ['/usr/sbin',
            '/usr/local/bin',
