@@ -41,7 +41,7 @@ def hcat_service_check():
 
     if params.security_enabled:
       kinit_cmd = format(
-        "{kinit_path_local} -kt {smoke_user_keytab} {smokeuser}; ")
+        "{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
     else:
       kinit_cmd = ""
 
