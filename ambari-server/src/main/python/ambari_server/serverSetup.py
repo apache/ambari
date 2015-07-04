@@ -414,11 +414,6 @@ class JDKSetup(object):
           properties.removeOldProp(JDK_NAME_PROPERTY)
           properties.removeOldProp(JCE_NAME_PROPERTY)
 
-          # Make sure any previously existing JDK and JCE name properties are removed. These will
-          # confuse things in a Custom JDK scenario
-          properties.removeProp(JDK_NAME_PROPERTY)
-          properties.removeProp(JCE_NAME_PROPERTY)
-
           self._ensure_java_home_env_var_is_set(args.java_home)
           self.jdk_index = self.custom_jdk_number
           return
@@ -459,6 +454,11 @@ class JDKSetup(object):
       properties.process_pair(JAVA_HOME_PROPERTY, args.java_home)
       properties.removeOldProp(JDK_NAME_PROPERTY)
       properties.removeOldProp(JCE_NAME_PROPERTY)
+
+      # Make sure any previously existing JDK and JCE name properties are removed. These will
+      # confuse things in a Custom JDK scenario
+      properties.removeProp(JDK_NAME_PROPERTY)
+      properties.removeProp(JCE_NAME_PROPERTY)
 
       self._ensure_java_home_env_var_is_set(args.java_home)
       return
