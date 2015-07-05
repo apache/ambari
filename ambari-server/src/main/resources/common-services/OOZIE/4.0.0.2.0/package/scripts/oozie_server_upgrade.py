@@ -33,8 +33,8 @@ from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import format_hdp_stack_version
 from resource_management.libraries.functions import tar_archive
 from resource_management.libraries.script.script import Script
-from resource_management.core.resources import File
-from resource_management.core.source import DownloadSource
+
+import oozie
 
 BACKUP_TEMP_DIR = "oozie-upgrade-backup"
 BACKUP_CONF_ARCHIVE = "oozie-conf-backup.tar"
@@ -156,18 +156,7 @@ class OozieUpgrade(Script):
     shutil.copy2(oozie_ext_zip_file, params.oozie_libext_customer_dir)
 
     # Redownload jdbc driver to a new current location
-    if params.jdbc_driver_name=="com.mysql.jdbc.Driver" or \
-      params.jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver" or \
-      params.jdbc_driver_name=="oracle.jdbc.driver.OracleDriver":
-
-      File(params.downloaded_custom_connector,
-        content = DownloadSource(params.driver_curl_source))
-
-      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.target),
-        #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
-        path=["/bin", "/usr/bin/"], sudo = True)
-
-      File(params.target, owner = params.oozie_user, group = params.user_group)
+    oozie.download_database_library_if_needed()
 
 
   @staticmethod
@@ -230,6 +219,13 @@ class OozieUpgrade(Script):
 
     # upgrade oozie DB
     Logger.info('Upgrading the Oozie database...')
+
+    # the database upgrade requires the db driver JAR, but since we have
+    # not yet run hdp-select to upgrade the current points, we have to use
+    # the versioned libext directory as the location[[-vufdtffr,
+    versioned_libext_dir = "/usr/hdp/{0}/oozie/libext".format(stack_version)
+    oozie.download_database_library_if_needed(target_directory=versioned_libext_dir)
+
     database_upgrade_command = "/usr/hdp/{0}/oozie/bin/ooziedb.sh upgrade -run".format(stack_version)
     Execute(database_upgrade_command, user=params.oozie_user, logoutput=True)
 
