@@ -84,14 +84,17 @@ class HiveServerDefault(HiveServer):
 
     setup_ranger_hive(rolling_upgrade=rolling_restart)
     hive_service( 'hiveserver2', action = 'start', rolling_restart=rolling_restart)
+    if rolling_restart:
+      hive_server_upgrade.post_upgrade_deregister()
 
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
 
-    if rolling_restart:
-      hive_server_upgrade.pre_upgrade_deregister()
-    else:
+    # During rolling upgrade, HiveServer2 should not be stopped before new server is available.
+    # Once new server is started, old one is stopped by the --deregister command which is 
+    # invoked by the 'hive_server_upgrade.post_upgrade_deregister()' method
+    if not rolling_restart:
       hive_service( 'hiveserver2', action = 'stop' )
 
   def status(self, env):

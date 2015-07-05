@@ -304,11 +304,21 @@ class Script(object):
     :param compare_to_version: the version to compare to
     :return: True if the command's stack is greater than the specified version
     """
-    hdp_stack_version = Script.get_hdp_stack_version()
-    if hdp_stack_version is None or hdp_stack_version == "":
+    return Script.is_hdp_stack_greater_or_equal_to(Script.get_hdp_stack_version(), compare_to_version)
+
+  @staticmethod
+  def is_hdp_stack_greater_or_equal_to(formatted_hdp_stack_version, compare_to_version):
+    """
+    Gets whether the provided formatted_hdp_stack_version (normalized)
+    is greater than or equal to the specified stack version
+    :param formatted_hdp_stack_version: the version of stack to compare
+    :param compare_to_version: the version of stack to compare to
+    :return: True if the command's stack is greater than the specified version
+    """
+    if formatted_hdp_stack_version is None or formatted_hdp_stack_version == "":
       return False
 
-    return compare_versions(hdp_stack_version, compare_to_version) >= 0
+    return compare_versions(formatted_hdp_stack_version, compare_to_version) >= 0
 
   @staticmethod
   def is_hdp_stack_less_than(compare_to_version):
