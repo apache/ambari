@@ -29,7 +29,7 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.libraries.functions.version import compare_versions
 
 
-def pre_upgrade_deregister():
+def post_upgrade_deregister():
   """
   Runs the "hive --service hiveserver2 --deregister <version>" command to
   de-provision the server in preparation for an upgrade. This will contact
@@ -42,7 +42,7 @@ def pre_upgrade_deregister():
   """
   import params
 
-  Logger.info('HiveServer2 executing "deregister" command in preparation for upgrade...')
+  Logger.info('HiveServer2 executing "deregister" command to complete upgrade...')
 
   if params.security_enabled:
     kinit_command=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
@@ -62,21 +62,40 @@ def pre_upgrade_deregister():
   hive_execute_path = params.execute_path
   # If upgrading, the upgrade-target hive binary should be used to call the --deregister command.
   # If downgrading, the downgrade-source hive binary should be used to call the --deregister command.
-  if "upgrade" == params.upgrade_direction:
+  # By now hdp-select has been called to set 'current' to target-stack
+  if "downgrade" == params.upgrade_direction:
     # hive_bin
-    upgrade_target_version = format_hdp_stack_version(params.version)
-    if upgrade_target_version and compare_versions(upgrade_target_version, "2.2") >= 0:
-      upgrade_target_hive_bin = format('/usr/hdp/{version}/hive/bin')
-      if (os.pathsep + params.hive_bin) in hive_execute_path:
-        hive_execute_path = hive_execute_path.replace(os.pathsep + params.hive_bin, os.pathsep + upgrade_target_hive_bin)
-    # hadoop_bin_dir
-    upgrade_target_hadoop_bin = hdp_select.get_hadoop_dir("bin", upgrade_stack_only=True)
-    upgrade_source_hadoop_bin = params.hadoop_bin_dir
-    if upgrade_target_hadoop_bin and len(upgrade_target_hadoop_bin) > 0 and (os.pathsep + upgrade_source_hadoop_bin) in hive_execute_path:
-      hive_execute_path = hive_execute_path.replace(os.pathsep + upgrade_source_hadoop_bin, os.pathsep + upgrade_target_hadoop_bin)
+    downgrade_version = params.current_version
+    if params.downgrade_from_version:
+      downgrade_version = params.downgrade_from_version
+    hive_execute_path = _get_hive_execute_path(downgrade_version)
 
   command = format('hive --config {hive_server_conf_dir} --service hiveserver2 --deregister ' + current_hiveserver_version)
   Execute(command, user=params.hive_user, path=hive_execute_path, tries=1 )
+
+
+def _get_hive_execute_path(hdp_stack_version):
+  """
+  Returns the exact execute path to use for the given stack-version.
+  This method does not return the "current" path
+  :param hdp_stack_version: Exact stack-version to use in the new path
+  :return: Hive execute path for the exact hdp stack-version
+  """
+  import params
+
+  hive_execute_path = params.execute_path
+  formatted_stack_version = format_hdp_stack_version(hdp_stack_version)
+  if formatted_stack_version and compare_versions(formatted_stack_version, "2.2") >= 0:
+    # hive_bin
+    new_hive_bin = format('/usr/hdp/{hdp_stack_version}/hive/bin')
+    if (os.pathsep + params.hive_bin) in hive_execute_path:
+      hive_execute_path = hive_execute_path.replace(os.pathsep + params.hive_bin, os.pathsep + new_hive_bin)
+    # hadoop_bin_dir
+    new_hadoop_bin = hdp_select.get_hadoop_dir_for_stack_version("bin", hdp_stack_version)
+    old_hadoop_bin = params.hadoop_bin_dir
+    if new_hadoop_bin and len(new_hadoop_bin) > 0 and (os.pathsep + old_hadoop_bin) in hive_execute_path:
+      hive_execute_path = hive_execute_path.replace(os.pathsep + old_hadoop_bin, os.pathsep + new_hadoop_bin)
+  return hive_execute_path
 
 
 def _get_current_hiveserver_version():
@@ -89,8 +108,20 @@ def _get_current_hiveserver_version():
   import params
 
   try:
-    command = 'hive --version'
-    return_code, hdp_output = shell.call(command, user=params.hive_user, path=params.execute_path)
+    # When downgrading the source version should be the version we are downgrading from
+    if "downgrade" == params.upgrade_direction:
+      if not params.downgrade_from_version:
+        raise Fail('The version from which we are downgrading from should be provided in \'downgrade_from_version\'')
+      source_version = params.downgrade_from_version
+    else:
+      source_version = params.current_version
+    hive_execute_path = _get_hive_execute_path(source_version)
+    version_hive_bin = params.hive_bin
+    formatted_source_version = format_hdp_stack_version(source_version)
+    if formatted_source_version and compare_versions(formatted_source_version, "2.2") >= 0:
+      version_hive_bin = format('/usr/hdp/{source_version}/hive/bin')
+    command = format('{version_hive_bin}/hive --version')
+    return_code, hdp_output = shell.call(command, user=params.hive_user, path=hive_execute_path)
   except Exception, e:
     Logger.error(str(e))
     raise Fail('Unable to execute hive --version command to retrieve the hiveserver2 version.')

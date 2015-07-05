@@ -26,6 +26,7 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.eclipse.persistence.config.HintValues;
 import org.eclipse.persistence.config.QueryHints;
 
@@ -155,6 +156,22 @@ public class UpgradeDAO {
     return daoUtils.selectSingle(query);
   }
 
+  /**
+   * @param requestId the request id
+   * @param stageId the stage id
+   * @return the upgrade entity, or {@code null} if not found
+   */
+  @RequiresSession
+  public UpgradeEntity findLastUpgradeForCluster(long clusterId) {
+    TypedQuery<UpgradeEntity> query = entityManagerProvider.get().createNamedQuery(
+        "UpgradeEntity.findLatestForCluster", UpgradeEntity.class);
+    query.setMaxResults(1);
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("direction", Direction.UPGRADE);
 
+    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
+
+    return daoUtils.selectSingle(query);
+  }
 
 }

@@ -48,6 +48,8 @@ import org.apache.ambari.server.state.stack.upgrade.Direction;
       query = "SELECT u FROM UpgradeEntity u WHERE u.clusterId = :clusterId"),
   @NamedQuery(name = "UpgradeEntity.findUpgrade",
       query = "SELECT u FROM UpgradeEntity u WHERE u.upgradeId = :upgradeId"),
+  @NamedQuery(name = "UpgradeEntity.findLatestForCluster",
+      query = "SELECT u FROM UpgradeEntity u WHERE u.clusterId = :clusterId AND u.direction = :direction ORDER BY u.upgradeId DESC"),
 })
 public class UpgradeEntity {
 

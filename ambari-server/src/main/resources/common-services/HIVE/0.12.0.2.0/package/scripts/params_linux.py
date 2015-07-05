@@ -60,6 +60,10 @@ version = default("/commandParams/version", None)
 # current host stack version
 current_version = default("/hostLevelParams/current_version", None)
 
+# When downgrading the 'version' and 'current_version' are both pointing to the downgrade-target version
+# downgrade_from_version provides the source-version the downgrade is happening from 
+downgrade_from_version = default("/commandParams/downgrade_from_version", None)
+
 # Upgrade direction
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 

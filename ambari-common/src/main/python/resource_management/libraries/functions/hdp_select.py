@@ -26,6 +26,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_hdp_version import get_hdp_version
 from resource_management.libraries.script.script import Script
 from resource_management.core.shell import call
+from resource_management.libraries.functions.version import format_hdp_stack_version
 
 # hdp-select set oozie-server 2.2.0.0-1234
 TEMPLATE = ('hdp-select', 'set')
@@ -149,7 +150,7 @@ def get_role_component_current_hdp_version():
   return current_hdp_version
 
 
-def get_hadoop_dir(target, force_latest_on_upgrade=False, upgrade_stack_only=False):
+def get_hadoop_dir(target, force_latest_on_upgrade=False):
   """
   Return the hadoop shared directory in the following override order
   1. Use default for 2.1 and lower
@@ -160,7 +161,6 @@ def get_hadoop_dir(target, force_latest_on_upgrade=False, upgrade_stack_only=Fal
   :target: the target directory
   :force_latest_on_upgrade: if True, then this will return the "current" directory
   without the HDP version built into the path, such as /usr/hdp/current/hadoop-client
-  :upgrade_stack_only: if True, provides upgrade stack target if present and not current
   """
 
   if not target in HADOOP_DIR_DEFAULTS:
@@ -186,7 +186,7 @@ def get_hadoop_dir(target, force_latest_on_upgrade=False, upgrade_stack_only=Fal
         # determine if hdp-select has been run and if not, then use the current
         # hdp version until this component is upgraded
         current_hdp_version = get_role_component_current_hdp_version()
-        if current_hdp_version is not None and stack_version != current_hdp_version and not upgrade_stack_only:
+        if current_hdp_version is not None and stack_version != current_hdp_version:
           stack_version = current_hdp_version
 
         if target == "home":
@@ -194,6 +194,29 @@ def get_hadoop_dir(target, force_latest_on_upgrade=False, upgrade_stack_only=Fal
           hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_version, "hadoop")
         else:
           hadoop_dir = HADOOP_DIR_TEMPLATE.format(stack_version, "hadoop", target)
+
+  return hadoop_dir
+
+def get_hadoop_dir_for_stack_version(target, stack_version):
+  """
+  Return the hadoop shared directory for the provided stack version. This is necessary
+  when folder paths of downgrade-source stack-version are needed after hdp-select. 
+  :target: the target directory
+  :stack_version: stack version to get hadoop dir for
+  """
+
+  if not target in HADOOP_DIR_DEFAULTS:
+    raise Fail("Target {0} not defined".format(target))
+
+  hadoop_dir = HADOOP_DIR_DEFAULTS[target]
+
+  formatted_stack_version = format_hdp_stack_version(stack_version)
+  if Script.is_hdp_stack_greater_or_equal_to(formatted_stack_version, "2.2"):
+    # home uses a different template
+    if target == "home":
+      hadoop_dir = HADOOP_HOME_DIR_TEMPLATE.format(stack_version, "hadoop")
+    else:
+      hadoop_dir = HADOOP_DIR_TEMPLATE.format(stack_version, "hadoop", target)
 
   return hadoop_dir
 

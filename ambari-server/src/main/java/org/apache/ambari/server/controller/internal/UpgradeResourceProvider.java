@@ -141,6 +141,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final String COMMAND_PARAM_RESTART_TYPE = "restart_type";
   private static final String COMMAND_PARAM_TASKS = "tasks";
   private static final String COMMAND_PARAM_STRUCT_OUT = "structured_out";
+  private static final String COMMAND_DOWNGRADE_FROM_VERSION = "downgrade_from_version";
 
   /**
    * The original "current" stack of the cluster before the upgrade started.
@@ -569,6 +570,15 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     UpgradeContext ctx = new UpgradeContext(resolver, sourceStackId, targetStackId, version,
         direction);
 
+    if (direction.isDowngrade()) {
+      if (requestMap.containsKey(UPGRADE_FROM_VERSION)) {
+        ctx.setDowngradeFromVersion((String) requestMap.get(UPGRADE_FROM_VERSION));
+      } else {
+        UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeForCluster(cluster.getClusterId());
+        ctx.setDowngradeFromVersion(lastUpgradeItemForCluster.getToVersion());
+      }
+    }
+
     List<UpgradeGroupHolder> groups = s_upgradeHelper.createSequence(pack, ctx);
 
     if (groups.isEmpty()) {
@@ -844,6 +854,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     params.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
     params.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
     params.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
+    params.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
 
     // Because custom task may end up calling a script/function inside a
     // service, it is necessary to set the
@@ -919,6 +930,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     restartCommandParams.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
     restartCommandParams.put(COMMAND_PARAM_ORIGINAL_STACK,context.getOriginalStackId().getStackId());
     restartCommandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
+    restartCommandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         "RESTART", filters, restartCommandParams);
@@ -968,6 +980,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     commandParams.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
     commandParams.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
     commandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
+    commandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         "SERVICE_CHECK", filters, commandParams);
@@ -1012,6 +1025,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     commandParams.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
     commandParams.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
     commandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
+    commandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
 
     String itemDetail = entity.getText();
     String stageText = StringUtils.abbreviate(entity.getText(), 255);

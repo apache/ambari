@@ -53,6 +53,7 @@ public class UpgradeContext {
   private List<ServiceComponentHost> m_unhealthy = new ArrayList<ServiceComponentHost>();
   private Map<String, String> m_serviceNames = new HashMap<String, String>();
   private Map<String, String> m_componentNames = new HashMap<String, String>();
+  private String m_downgradeFromVersion = null;
 
   /**
    * Constructor.
@@ -220,6 +221,22 @@ public class UpgradeContext {
     m_componentNames.put(key, displayName);
   }
 
+  /**
+   * This method returns the non-finalized version we are downgrading from.
+   * 
+   * @return version cluster is downgrading from
+   */
+  public String getDowngradeFromVersion() {
+    return m_downgradeFromVersion;
+  }
 
+  /**
+   * Set the HDP stack version we are downgrading from.
+   *  
+   * @param downgradeFromVersion
+   */
+  public void setDowngradeFromVersion(String downgradeFromVersion) {
+    this.m_downgradeFromVersion = downgradeFromVersion;
+  }
 
 }
