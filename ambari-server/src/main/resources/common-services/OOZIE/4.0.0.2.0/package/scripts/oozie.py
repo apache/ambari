@@ -220,23 +220,8 @@ def oozie_server_specific():
     sudo = True,
   )
 
-  if params.jdbc_driver_name=="com.mysql.jdbc.Driver" or \
-     params.jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver" or \
-     params.jdbc_driver_name=="oracle.jdbc.driver.OracleDriver":
-    File(params.downloaded_custom_connector,
-         content = DownloadSource(params.driver_curl_source),
-    )
-
-
-    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.target),
-            #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
-            path=["/bin", "/usr/bin/"],
-            sudo = True)
-            
-    File ( params.target,
-      owner = params.oozie_user,
-      group = params.user_group
-    )
+  # download the database JAR
+  download_database_library_if_needed()
 
   #falcon el extension
   if params.has_falcon_host:
@@ -289,3 +274,39 @@ def oozie_server_specific():
   Execute(('chown', '-R', format("{oozie_user}:{user_group}"), params.oozie_server_dir), 
           sudo=True
   )
+
+def download_database_library_if_needed(target_directory = None):
+  """
+  Downloads the library to use when connecting to the Oozie database, if
+  necessary. The library will be downloaded to 'params.target' unless
+  otherwise specified.
+  :param target_directory: the location where the database library will be
+  downloaded to.
+  :return:
+  """
+  import params
+  jdbc_drivers = ["com.mysql.jdbc.Driver",
+    "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+    "oracle.jdbc.driver.OracleDriver"]
+
+  # check to see if the JDBC driver name is in the list of ones that need to
+  # be downloaded
+  if params.jdbc_driver_name not in jdbc_drivers:
+    return
+
+  # if the target directory is not specified
+  if target_directory is None:
+    target_jar_with_directory = params.target
+  else:
+    # create the full path using the supplied target directory and the JDBC JAR
+    target_jar_with_directory = target_directory + os.path.sep + params.jdbc_driver_jar
+
+  File(params.downloaded_custom_connector,
+    content = DownloadSource(params.driver_curl_source))
+
+  Execute(('cp', '--remove-destination', params.downloaded_custom_connector, target_jar_with_directory),
+    path=["/bin", "/usr/bin/"],
+    sudo = True)
+
+  File(target_jar_with_directory, owner = params.oozie_user,
+    group = params.user_group)

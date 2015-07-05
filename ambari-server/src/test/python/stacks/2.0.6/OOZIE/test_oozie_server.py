@@ -1153,3 +1153,73 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/oozie/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020',
       user='oozie', logoutput = True)
 
+
+  def test_upgrade_database_sharelib_existing_mysql(self):
+    """
+    Tests that the upgrade script runs the proper commands before the
+    actual upgrade begins when Oozie is using and external database. This
+    should ensure that the JDBC JAR is copied.
+    :return:
+    """
+    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/oozie-upgrade.json"
+
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['stack_name'] = "HDP"
+
+    # use mysql external database
+    json_content['configurations']['oozie-site']['oozie.service.JPAService.jdbc.driver'] = "com.mysql.jdbc.Driver"
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server_upgrade.py",
+      classname = "OozieUpgrade", command = "upgrade_oozie_database_and_sharelib",
+      config_dict = json_content,
+      hdp_stack_version = self.UPGRADE_STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES )
+
+    self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
+      content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar') )
+
+    self.assertResourceCalled('Execute', ('cp', '--remove-destination', '/tmp/mysql-connector-java.jar',
+      '/usr/hdp/2.3.0.0-1234/oozie/libext/mysql-connector-java.jar'),
+      path = ['/bin', '/usr/bin/'], sudo = True)
+
+    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/oozie/libext/mysql-connector-java.jar',
+      owner = 'oozie', group = 'hadoop' )
+
+    self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/oozie/bin/ooziedb.sh upgrade -run',
+      user = 'oozie', logoutput = True )
+
+    self.assertResourceCalled('HdfsResource', '/user/oozie/share',
+      security_enabled = False,
+      hadoop_bin_dir = '/usr/hdp/2.3.0.0-1234/hadoop/bin',
+      keytab = UnknownConfigurationMock(),
+      default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+      user = 'hdfs',
+      hdfs_site = UnknownConfigurationMock(),
+      kinit_path_local = '/usr/bin/kinit',
+      principal_name = UnknownConfigurationMock(),
+      recursive_chmod = True,
+      owner = 'oozie',
+      group = 'hadoop',
+      hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+      type = 'directory',
+      action = ['create_on_execute'],
+      mode = 0755 )
+
+    self.assertResourceCalled('HdfsResource', None,
+      security_enabled = False,
+      hadoop_bin_dir = '/usr/hdp/2.3.0.0-1234/hadoop/bin',
+      keytab = UnknownConfigurationMock(),
+      default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+      hdfs_site = UnknownConfigurationMock(),
+      kinit_path_local = '/usr/bin/kinit',
+      principal_name = UnknownConfigurationMock(),
+      user = 'hdfs',
+      action = ['execute'],
+      hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf' )
+
+    self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/oozie/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020',
+      user='oozie', logoutput = True)
