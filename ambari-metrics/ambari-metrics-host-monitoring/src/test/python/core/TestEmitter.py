@@ -80,7 +80,6 @@ class TestEmitter(TestCase):
     self.assertEqual(url_open_mock.call_count, 3)
     self.assertUrlData(url_open_mock)
     
-
   def assertUrlData(self, url_open_mock):
     self.assertEqual(len(url_open_mock.call_args), 2)
     data = url_open_mock.call_args[0][0].data
