@@ -1247,35 +1247,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     return dfd.promise();
   },
 
-
-  /**
-   * Cache all step config to local storage in name value pairs
-   * @param stepController
-   */
-  cacheStepConfigValues: function(stepController) {
-    var stepConfigs = [];
-    stepController.get("stepConfigs").forEach(function (category) {
-      var configs = category.configs.map(function(config) {
-        return {
-          name: config.name,
-          value: config.value
-        };
-      });
-      stepConfigs = stepConfigs.concat(configs);
-    });
-    if (stepConfigs.length > 0 ) {
-      this.setDBProperty(stepController.name + "-sc", stepConfigs);
-    }
-  },
-
-  loadCachedStepConfigValues: function(stepController) {
-    return this.getDBProperty(stepController.name + "-sc");
-  },
-
-  clearCachedStepConfigValues: function(stepController) {
-    this.setDBProperty(stepController.name + "-sc", null);
-  },
-
   saveTasksStatuses: function (tasksStatuses) {
     this.set('content.tasksStatuses', tasksStatuses);
     this.setDBProperty('tasksStatuses', tasksStatuses);

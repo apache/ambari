@@ -78,7 +78,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
    * @method loadStep
    */
   loadStep: function () {
-    console.log("TRACE: Loading step2: Configure Kerberos");
+    console.log("TRACE: Loading step7: Configure Services");
     if (!App.StackService.find().someProperty('serviceName', 'KERBEROS') || !this.get('isConfigsLoaded')) {
       return;
     }
