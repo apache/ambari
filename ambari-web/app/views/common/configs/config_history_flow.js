@@ -102,13 +102,14 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var allServiceVersions = App.ServiceConfigVersion.find().filterProperty('serviceName', this.get('serviceName'));
     var groupName = this.get('controller.selectedConfigGroup.isDefault') ? 'default'
         : this.get('controller.selectedConfigGroup.name');
+    var groupId = this.get('controller.selectedConfigGroup.configGroupId');
 
     allServiceVersions.forEach(function (version) {
       version.set('isDisabled', !(version.get('groupName') === groupName));
     }, this);
 
     var serviceVersions = allServiceVersions.filter(function(s) {
-      return s.get('groupName') == groupName || s.get('groupName') == 'default';
+      return (s.get('groupId') === groupId) || s.get('groupName') == 'default';
     });
 
     return serviceVersions.sort(function (a, b) {
