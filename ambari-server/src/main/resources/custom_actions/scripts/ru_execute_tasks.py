@@ -150,10 +150,7 @@ class ExecuteUpgradeTasks(Script):
 
         if task.command:
           task.command = replace_variables(task.command, host_name, version)
-          code, out = shell.call(task.command)
-          Logger.info("Command: %s\nCode: %s, Out: %s" % (task.command, str(code), str(out)))
-          if code != 0:
-            raise Fail(out)
+          shell.checked_call(task.command, logoutput=True, quiet=True)
 
 if __name__ == "__main__":
   ExecuteUpgradeTasks().execute()
