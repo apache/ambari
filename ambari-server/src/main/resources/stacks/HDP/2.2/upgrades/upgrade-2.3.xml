@@ -687,18 +687,6 @@
             <replace key="hbase.coprocessor.master.classes" find="com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor" replace-with="org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor" />
             <replace key="hbase.coprocessor.region.classes" find="com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor" replace-with="org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor" />           
           </task>
-
-          <task xsi:type="configure">
-            <transfer operation="copy" from-type="hbase-site" from-key="hbase.regionserver.global.memstore.upperLimit" to-key="base.regionserver.global.memstore.size" default-value="0.4" />
-          </task>
-
-          <task xsi:type="server_action" summary="Calculating HBase Properties" class="org.apache.ambari.server.serveraction.upgrades.HBaseConfigCalculation" />
-
-          <task xsi:type="configure">
-            <type>hbase-site</type>
-            <transfer operation="delete" delete-key="hbase.regionserver.global.memstore.upperLimit"/>
-            <transfer operation="delete" delete-key="hbase.regionserver.global.memstore.lowerLimit"/>
-          </task>
           
           <task xsi:type="configure" summary="Transitioning Ranger HBase Policy">
             <type>ranger-hbase-policymgr-ssl</type>
