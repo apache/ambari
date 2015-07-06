@@ -22,7 +22,7 @@ var componentsUtils = require('utils/components');
 var hostsManagement = require('utils/hosts');
 var stringUtils = require('utils/string_utils');
 
-App.MainHostDetailsController = Em.Controller.extend({
+App.MainHostDetailsController = Em.Controller.extend(App.ComponentActionsMixin, {
 
   name: 'mainHostDetailsController',
 
@@ -55,6 +55,18 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @type {string}
    */
   hiveMetastoreHost: '',
+
+  /**
+   *  Host on which Storm Nimbus will be added
+   * @type {string}
+   */
+  nimbusHost: '',
+
+  /**
+   *  Host on which Ranger KMS Server will be added
+   * @type {string}
+   */
+  rangerKMSServerHost: '',
 
   /**
    * Deferred object will be resolved when Oozie configs are downloaded
@@ -309,29 +321,6 @@ App.MainHostDetailsController = Em.Controller.extend({
   redrawComponents: false,
 
   /**
-   * Deletes the given host component, or all host components.
-   *
-   * @param {object|null} component  When <code>null</code> all host components are deleted.
-   * @return  <code>null</code> when components get deleted.
-   *          <code>{xhr: XhrObj, url: "http://", method: "DELETE"}</code>
-   *          when components failed to get deleted.
-   * @method _doDeleteHostComponent
-   */
-  _doDeleteHostComponent: function (component, callback) {
-    callback = callback || Em.K;
-    App.ajax.send({
-      name: (Em.isNone(component)) ? 'common.delete.host' : 'common.delete.host_component',
-      sender: this,
-      data: {
-        componentName: (component) ? component.get('componentName') : '',
-        hostName: this.get('content.hostName')
-      },
-      success: '_doDeleteHostComponentSuccessCallback',
-      error: '_doDeleteHostComponentErrorCallback'
-    }).then(callback, callback);
-  },
-
-  /**
    * Result of delete component(s) request
    * @type {object}
    */
@@ -517,6 +506,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       }
     return returnFunc;
   },
+  
   /**
    * Send command to server to install client on selected host
    * @param component
@@ -662,7 +652,7 @@ App.MainHostDetailsController = Em.Controller.extend({
   /**
    * get Oozie database config and set databaseType
    * @param {object} data
-   * @method onLoadHiveConfigs
+   * @method onLoadOozieConfigs
    */
   onLoadOozieConfigs: function (data) {
     var configs = {};
@@ -672,7 +662,6 @@ App.MainHostDetailsController = Em.Controller.extend({
     this.set('isOozieServerAddable', !(Em.isEmpty(configs["oozie_database"]) || configs["oozie_database"] === 'New Derby Database'));
     this.get('isOozieConfigLoaded').resolve();
   },
-
 
   /**
    * Success callback for Storm load configs request
@@ -1051,19 +1040,6 @@ App.MainHostDetailsController = Em.Controller.extend({
         self.loadConfigs();
       }, App.get('componentsUpdateInterval'));
     }
-  },
-
-  /**
-   * Load configs
-   * @method loadConfigs
-   */
-  loadConfigs: function (callback) {
-    App.ajax.send({
-      name: 'config.tags',
-      sender: this,
-      success: callback ? callback : 'loadConfigsSuccessCallback',
-      error: 'onLoadConfigsErrorCallback'
-    });
   },
 
   /**
@@ -1774,40 +1750,6 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
-   * Send request to get passive state for hostComponent
-   * @param {object} component - hostComponentn object
-   * @param {string} state
-   * @param {string} message
-   * @method hostPassiveModeRequest
-   */
-  updateComponentPassiveState: function (component, state, message) {
-    App.ajax.send({
-      name: 'common.host.host_component.passive',
-      sender: this,
-      data: {
-        hostName: this.get('content.hostName'),
-        componentName: component.get('componentName'),
-        component: component,
-        passive_state: state,
-        context: message
-      },
-      success: 'updateHostComponent'
-    });
-  },
-
-  /**
-   * Success callback for receiving hostComponent passive state
-   * @param {object} data
-   * @param {object} opt
-   * @param {object} params
-   * @method updateHost
-   */
-  updateHostComponent: function (data, opt, params) {
-    params.component.set('passiveState', params.passive_state);
-    batchUtils.infoPassiveState(params.passive_state);
-  },
-
-  /**
    * Show confirmation popup for action "start all components"
    * @method doStartAllComponents
    */
@@ -2143,15 +2085,6 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
   },
 
-  toggleMaintenanceMode: function (event) {
-    var self = this;
-    var state = event.context.get('passiveState') === "ON" ? "OFF" : "ON";
-    var message = Em.I18n.t('passiveState.turn' + state.toCapital() + 'For').format(event.context.get('displayName'));
-    return App.showConfirmationPopup(function () {
-      self.updateComponentPassiveState(event.context, state, message);
-    });
-  },
-
   downloadClientConfigs: function (event) {
     componentsUtils.downloadClientConfigs.call(this, {
       hostName: event.context.get('hostName'),
@@ -2215,49 +2148,6 @@ App.MainHostDetailsController = Em.Controller.extend({
         });
       }.bind(this));
     }
-  },
-
-  /**
-   * On click handler for custom command from items menu
-   * @param context
-   */
-  executeCustomCommand: function(event) {
-    var controller = this;
-    var context = event.context;
-    return App.showConfirmationPopup(function() {
-      App.ajax.send({
-        name : 'service.item.executeCustomCommand',
-        sender: controller,
-        data : {
-          command : context.command,
-          context : context.context || Em.I18n.t('services.service.actions.run.executeCustomCommand.context').format(context.command),
-          hosts : context.hosts,
-          serviceName : context.service,
-          componentName : context.component
-        },
-        success : 'executeCustomCommandSuccessCallback',
-        error : 'executeCustomCommandErrorCallback'
-      });
-    });
-  },
-
-  executeCustomCommandSuccessCallback  : function(data, ajaxOptions, params) {
-    if (data.Requests.id) {
-      App.router.get('backgroundOperationsController').showPopup();
-    } else {
-      console.warn('Error during execution of ' + params.command + ' custom command on' + params.componentName);
-    }
-  },
-  executeCustomCommandErrorCallback : function(data) {
-    var error = Em.I18n.t('services.service.actions.run.executeCustomCommand.error');
-    if(data && data.responseText){
-      try {
-        var json = $.parseJSON(data.responseText);
-        error += json.message;
-      } catch (err) {}
-    }
-    App.showAlertPopup(Em.I18n.t('services.service.actions.run.executeCustomCommand.error'), error);
-    console.warn('Error during executing custom command');
   },
 
   /**

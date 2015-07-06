@@ -18,6 +18,7 @@
 
 var App = require('app');
 var uiEffects = require('utils/ui_effects');
+var componentsUtils = require('utils/components');
 
 App.MainDashboardServiceHealthView = Em.View.extend({
   classNameBindings: ["healthStatus", "healthStatusClass"],
@@ -131,7 +132,13 @@ App.MainDashboardServiceView = Em.View.extend({
     },
     templateName: require('templates/main/service/info/summary/master_components'),
     mastersComp: function () {
-      return this.get('parentView.service.hostComponents').filterProperty('isMaster', true);
+      var hostComponentViewMap = componentsUtils.hostComponentViewMap,
+        components = this.get('parentView.service.hostComponents').filterProperty('isMaster', true);
+      components.forEach(function (item) {
+        var view = hostComponentViewMap[item.get('componentName')] ? hostComponentViewMap[item.get('componentName')] : App.HostComponentView;
+        item.set('view', view);
+      });
+      return components;
     }.property("service")
   }),
 

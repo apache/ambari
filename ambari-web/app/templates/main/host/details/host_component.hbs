@@ -16,35 +16,38 @@
 * limitations under the License.
 }}
 
-<div class="span7">
-  {{#if view.isUpgradeFailed}}
-    {{#isAccessible ADMIN}}
-      <a href="#" {{action "upgradeComponent" view.content target="controller"}} >
-        <i title="Component upgrade failed" class="components-health icon-arrow-up"></i>
-      </a>
-    {{/isAccessible}}
-  {{else}}
-    <span rel='componentHealthTooltip' {{bindAttr class="view.statusClass view.statusIconClass :components-health" data-original-title="view.componentTextStatus"}}></span>&nbsp;
-  {{/if}}
-  {{#if component.displayNameAdvanced}}
-    {{component.displayNameAdvanced}}
-  {{else}}
-    {{component.displayName}}
-  {{/if}}
-  &nbsp;/&nbsp;
-  <a href="#" {{action routeToService component.service}}>{{component.service.displayName}}</a>
-  &nbsp;
-  {{#if component.staleConfigs}}
-    <span class="text-warning icon-refresh"></span>
-  {{/if}}
-  {{#unless component.isActive}}
-    <span class="icon-medkit"></span>
-  {{/unless}}
-</div>
-<div class="span5 pull-right">
+{{#if controller.isHostDetails}}
+  <div class="span7">
+    {{#if view.isUpgradeFailed}}
+      {{#isAccessible ADMIN}}
+        <a href="#" {{action "upgradeComponent" view.content target="controller"}} >
+          <i title="Component upgrade failed" class="components-health icon-arrow-up"></i>
+        </a>
+      {{/isAccessible}}
+    {{else}}
+      <span rel='componentHealthTooltip' {{bindAttr class="view.statusClass view.statusIconClass :components-health" data-original-title="view.componentTextStatus"}}></span>&nbsp;
+    {{/if}}
+    {{#if component.displayNameAdvanced}}
+      {{component.displayNameAdvanced}}
+    {{else}}
+      {{component.displayName}}
+    {{/if}}
+    &nbsp;/&nbsp;
+    <a href="#" {{action routeToService component.service}}>{{component.service.displayName}}</a>
+    &nbsp;
+    {{#if component.staleConfigs}}
+      <span class="text-warning icon-refresh"></span>
+    {{/if}}
+    {{#unless component.isActive}}
+      <span class="icon-medkit"></span>
+    {{/unless}}
+  </div>
+{{/if}}
+<div {{bindAttr class="controller.isHostDetails:pull-right:pull-left :span5"}}>
   {{#isAccessible ADMIN}}
-    <div class="btn-group pull-right">
+    <div {{bindAttr class="controller.isHostDetails:pull-right:pull-left :btn-group"}}>
       <a {{ bindAttr class="view.disabled :btn :dropdown-toggle"}} data-toggle="dropdown">
+        {{#unless controller.isHostDetails}}<span rel="healthTooltip" {{bindAttr class="view.statusClass view.statusIconClass" data-original-title="view.passiveTooltip"}}></span>{{/unless}}
         {{view.componentTextStatus}}
         <span class="caret pull-right"></span>
       </a>
@@ -140,5 +143,13 @@
       {{/each}}
       </ul>
     </div>
+  {{/isAccessible}}
+  {{#isAccessible NON_ADMIN}}
+    {{#unless controller.isHostDetails}}
+      <div>
+        <span rel="healthTooltip" {{bindAttr class="view.statusClass view.statusIconClass" data-original-title="view.passiveTooltip"}}></span>
+        {{view.componentTextStatus}}
+      </div>
+    {{/unless}}
   {{/isAccessible}}
 </div>

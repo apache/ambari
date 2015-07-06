@@ -20,6 +20,7 @@
 // load all mixins here
 
 require('mixins/common/blueprint');
+require('mixins/common/component_actions');
 require('mixins/common/localStorage');
 require('mixins/common/userPref');
 require('mixins/common/reload_popup');

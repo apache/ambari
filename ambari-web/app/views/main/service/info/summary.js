@@ -18,6 +18,7 @@
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
 var misc = require('utils/misc');
+var componentsUtils = require('utils/components');
 require('views/main/service/service');
 require('data/service_graph_config');
 
@@ -145,7 +146,13 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
   }.property('controller.content'),
 
   mastersObj: function() {
-    return this.get('service.hostComponents').filterProperty('isMaster', true);
+    var hostComponentViewMap = componentsUtils.hostComponentViewMap,
+      components = this.get('service.hostComponents').filterProperty('isMaster', true);
+    components.forEach(function (item) {
+      var view = hostComponentViewMap[item.get('componentName')] ? hostComponentViewMap[item.get('componentName')] : App.HostComponentView;
+      item.set('view', view);
+    });
+    return components;
   }.property('service'),
 
   /**
