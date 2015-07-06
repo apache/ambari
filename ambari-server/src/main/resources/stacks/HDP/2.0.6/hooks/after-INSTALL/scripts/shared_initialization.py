@@ -27,7 +27,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script import Script
-from resource_management.core.resources.system import Directory
+from resource_management.core.resources.system import Directory, Link
 
 
 def setup_hdp_install_directory():
@@ -106,11 +106,10 @@ def _link_configs(package, version, old_conf, link_conf):
   # make backup dir and copy everything in case configure() was called after install()
   old_parent = os.path.abspath(os.path.join(old_conf, os.pardir))
   old_conf_copy = os.path.join(old_parent, "conf.install")
-  if not os.path.exists(old_conf_copy):
-    try:
-      Execute(as_sudo(["cp", "-R", "-p", old_conf, old_conf_copy]), logoutput=True)
-    except:
-      pass
+  Execute(("cp", "-R", "-p", old_conf, old_conf_copy),
+          not_if = format("test -e {old_conf_copy}"),
+          sudo = True,
+  )
 
   versioned_conf = conf_select.create("HDP", package, version, dry_run = True)
 
@@ -119,25 +118,23 @@ def _link_configs(package, version, old_conf, link_conf):
   # make new conf dir and copy everything in case configure() was called after install()
   if not os.path.exists(versioned_conf):
     conf_select.create("HDP", package, version)
-    try:
-      Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
-        logoutput=True)
-      Directory(versioned_conf,
-                mode=0755,
-                cd_access='a'
-      )
-    except:
-      pass
-
+    Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
+            only_if = format("ls {old_conf}/*")
+    )
+    
   # make /usr/hdp/<version>/hadoop/conf point to the versioned config.
   # /usr/hdp/current is already set
   conf_select.select("HDP", package, version)
 
   # no more references to /etc/[component]/conf
-  shutil.rmtree(old_conf, ignore_errors=True)
+  Directory(old_conf,
+    action="delete",
+  )
 
   # link /etc/[component]/conf -> /usr/hdp/current/[component]-client/conf
-  os.symlink(link_conf, old_conf)
+  Link(old_conf,
+    to = link_conf
+  )
       
   # should conf.install be removed?
 

@@ -27,6 +27,7 @@ import hdp_select
 from resource_management.core import shell
 from resource_management.libraries.script.script import Script
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Directory
 
 PACKAGE_DIRS = {
   "accumulo": {
@@ -107,7 +108,8 @@ PACKAGE_DIRS = {
   }
 }
 
-TEMPLATE = "conf-select {0} --package {1} --stack-version {2} --conf-version 0"
+def get_cmd(command, package, version):
+  return ('conf-select', command, '--package', package, '--stack-version', version, '--conf-version', '0')
 
 def _valid(stack_name, package, ver):
   if stack_name != "HDP":
@@ -132,7 +134,15 @@ def create(stack_name, package, version, dry_run = False):
 
   command = "dry-run-create" if dry_run else "create-conf-dir"
 
-  code, stdout = shell.call(TEMPLATE.format(command, package, version), logoutput=False, quiet=True)
+  code, stdout = shell.call(get_cmd(command, package, version), logoutput=False, quiet=True, sudo=True)
+
+  # take care of permissions
+  if not code and stdout and command == "create-conf-dir":
+    Directory(stdout,
+        mode=0755,
+        cd_access='a',
+        recursive=True,
+    )
 
   return stdout
 
@@ -153,7 +163,7 @@ def select(stack_name, package, version, try_create=True):
   if try_create:
     create(stack_name, package, version)
 
-  shell.call(TEMPLATE.format("set-conf-dir", package, version), logoutput=False, quiet=False)
+  shell.checked_call(get_cmd("set-conf-dir", package, version), logoutput=False, quiet=False, sudo=True)
 
 
 def get_hadoop_conf_dir(force_latest_on_upgrade=False):

@@ -137,7 +137,11 @@ class DirectoryProvider(Provider):
       
       # dead links should be followed, else we gonna have failures on trying to create directories on top of them.
       if self.resource.follow:
+        followed_links = []
         while sudo.path_lexists(path):
+          if path in followed_links:
+            raise Fail("Applying %s failed, looped symbolic links found while resolving %s" % (self.resource, path))
+          followed_links.append(path)
           path = sudo.readlink(path)
           
         if path != self.resource.path:
