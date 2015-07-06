@@ -8,28 +8,36 @@
             "options": {
                 "config-types": {
                     "falcon-startup.properties": {
-                      "merged-copy": "yes"
+                      "merged-copy": "yes",
+                      "required-services": ["FALCON"]
                     },
                     "tez-site":{
-                      "merged-copy": "yes"
+                      "merged-copy": "yes",
+                      "required-services": ["TEZ"]
                     },
                     "oozie-site": {
-                      "merged-copy": "yes"
+                      "merged-copy": "yes",
+                      "required-services": ["OOZIE"]
                     },
                     "hbase-site": {
-                      "merged-copy": "yes"
+                      "merged-copy": "yes",
+                      "required-services": ["HBASE"]
                     },
                     "mapred-site": {
-                      "merged-copy": "yes"
+                      "merged-copy": "yes",
+                      "required-services": ["MAPREDUCE2"]
                     },
                     "hdfs-site": {
-                      "merged-copy": "yes"
+                      "merged-copy": "yes",
+                      "required-services": ["HDFS"]
                     },
                     "yarn-site": {
-                      "merged-copy": "yes"
+                      "merged-copy": "yes",
+                      "required-services": ["YARN"]
                     },
                     "kafka-broker": {
-                      "merged-copy": "yes"
+                      "merged-copy": "yes",
+                      "required-services": ["KAFKA"]
                     },
                   "ranger-hdfs-policymgr-ssl": {
                     "merged-copy": "yes",
