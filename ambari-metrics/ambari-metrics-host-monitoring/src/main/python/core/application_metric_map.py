@@ -66,7 +66,7 @@ class ApplicationMetricMap:
     del self.app_metric_map[ app_id ]
   pass
 
-  def flatten(self, application_id = None):
+  def flatten(self, application_id = None, clear_once_flattened = False):
     """
     Return flatten dict to caller in json format.
     Json format:
@@ -100,7 +100,13 @@ class ApplicationMetricMap:
           timeline_metrics[ "metrics" ].append( timeline_metric )
         pass
       pass
-      return json.dumps(timeline_metrics) if len(timeline_metrics[ "metrics" ]) > 0 else None
+      json_data = json.dumps(timeline_metrics) if len(timeline_metrics[ "metrics" ]) > 0 else None
+
+      if clear_once_flattened:
+        self.app_metric_map.clear()
+      pass
+
+      return json_data
   pass
 
   def get_start_time(self, app_id, metric_id):

@@ -46,35 +46,38 @@ class Emitter(threading.Thread):
     while True:
       try:
         self.submit_metrics()
-        #Wait for the service stop event instead of sleeping blindly
-        if 0 == self._stop_handler.wait(self.send_interval):
-          logger.info('Shutting down Emitter thread')
-          return
       except Exception, e:
         logger.warn('Unable to emit events. %s' % str(e))
-        #Wait for the service stop event instead of sleeping blindly
-        if 0 == self._stop_handler.wait(self.RETRY_SLEEP_INTERVAL):
-          logger.info('Shutting down Emitter thread - abort retry')
-          return
-        logger.info('Retrying emit after %s seconds.' % self.RETRY_SLEEP_INTERVAL)
+      pass
+      #Wait for the service stop event instead of sleeping blindly
+      if 0 == self._stop_handler.wait(self.send_interval):
+        logger.info('Shutting down Emitter thread')
+        return
     pass
   
   def submit_metrics(self):
     retry_count = 0
+    # This call will acquire lock on the map and clear contents before returning
+    # After configured number of retries the data will not be sent to the
+    # collector
+    json_data = self.application_metric_map.flatten(None, True)
+    if json_data is None:
+      logger.info("Nothing to emit, resume waiting.")
+      return
+    pass
+
+    response = None
     while retry_count < self.MAX_RETRY_COUNT:
-      json_data = self.application_metric_map.flatten()
-      if json_data is None:
-        logger.info("Nothing to emit, resume waiting.")
-        break
+      try:
+        response = self.push_metrics(json_data)
+      except Exception, e:
+        logger.warn('Error sending metrics to server. %s' % str(e))
       pass
-      response = self.push_metrics(json_data)
   
       if response and response.getcode() == 200:
         retry_count = self.MAX_RETRY_COUNT
-        self.application_metric_map.clear()
       else:
-        logger.warn("Error sending metrics to server. Retrying after {0} "
-                    "...".format(self.RETRY_SLEEP_INTERVAL))
+        logger.warn("Retrying after {0} ...".format(self.RETRY_SLEEP_INTERVAL))
         retry_count += 1
         #Wait for the service stop event instead of sleeping blindly
         if 0 == self._stop_handler.wait(self.RETRY_SLEEP_INTERVAL):

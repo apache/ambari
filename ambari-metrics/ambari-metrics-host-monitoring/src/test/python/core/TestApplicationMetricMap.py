@@ -62,6 +62,13 @@ class TestApplicationMetricMap(TestCase):
     
     
   def testEmptyMapReturnNone(self):
-    application_metric_map = ApplicationMetricMap("host","10.10.10.10")
+    application_metric_map = ApplicationMetricMap("host", "10.10.10.10")
     self.assertTrue(application_metric_map.flatten() == None)
-    
+
+  def testFlattenAndClear(self):
+    application_metric_map = ApplicationMetricMap("host", "10.10.10.10")
+    application_metric_map.put_metric("A1", { "a" : "b" }, int(round(1415390657.3806491 * 1000)))
+    json_data = json.loads(application_metric_map.flatten('A1', True))
+    self.assertEqual(len(json_data['metrics']), 1)
+    self.assertTrue(json_data['metrics'][0]['metricname'] == 'a')
+    self.assertFalse(application_metric_map.app_metric_map)
