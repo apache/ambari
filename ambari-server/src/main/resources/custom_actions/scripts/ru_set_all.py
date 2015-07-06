@@ -31,7 +31,7 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, Link
 from resource_management.core.shell import as_sudo
 
 class UpgradeSetAll(Script):
@@ -51,17 +51,15 @@ class UpgradeSetAll(Script):
   
     # other os?
     if OSCheck.is_redhat_family():
-      cmd = "/usr/bin/yum clean all"
-      code, out = shell.call(cmd)
-      Logger.info("Command: {0}\nCode: {1}, Out: {2}".format(cmd, str(code), str(out)))
+      cmd = ('/usr/bin/yum', 'clean', 'all')
+      code, out = shell.call(cmd, sudo=True)
 
     min_ver = format_hdp_stack_version("2.2")
     real_ver = format_hdp_stack_version(version)
     if stack_name == "HDP":
       if compare_versions(real_ver, min_ver) >= 0:
-        cmd = "hdp-select set all {0}".format(version)
-        code, out = shell.call(cmd)
-        Logger.info("Command: {0}\nCode: {1}, Out: {2}".format(cmd, str(code), str(out)))
+        cmd = ('hdp-select', 'set', 'all', version)
+        code, out = shell.call(cmd, sudo=True)
 
       if compare_versions(real_ver, format_hdp_stack_version("2.3")) >= 0:
         # backup the old and symlink /etc/[component]/conf to /usr/hdp/current/[component]
@@ -97,7 +95,9 @@ def link_config(old_conf, link_conf):
   shutil.rmtree(old_conf, ignore_errors=True)
 
   # link /etc/[component]/conf -> /usr/hdp/current/[component]-client/conf
-  os.symlink(link_conf, old_conf)
+  Link(old_conf,
+    to = link_conf,
+  )
 
 if __name__ == "__main__":
   UpgradeSetAll().execute()

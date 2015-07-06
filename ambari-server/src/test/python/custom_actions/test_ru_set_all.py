@@ -35,7 +35,7 @@ from ambari_agent.FileCache import FileCache
 from ambari_commons.os_check import OSCheck
 
 
-def fake_call(command):
+def fake_call(command, **kwargs):
   """
   Instead of shell.call, call a command whose output equals the command.
   :param command: Command that will be echoed.
@@ -45,7 +45,8 @@ def fake_call(command):
 
 
 class TestRUSetAll(RMFTestCase):
-  CUSTOM_ACTIONS_DIR = os.path.join(os.getcwd(), "../resources/custom_actions/")
+  def get_custom_actions_dir(self):
+    return os.path.join(self.get_src_folder(), "test/resources/custom_actions/")
 
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
@@ -66,8 +67,9 @@ class TestRUSetAll(RMFTestCase):
   @patch.object(OSCheck, 'is_redhat_family')
   def test_execution(self, family_mock, get_config_mock, call_mock):
     # Mock the config objects
-    json_file_path = os.path.join(self.CUSTOM_ACTIONS_DIR, "ru_execute_tasks_namenode_prepare.json")
+    json_file_path = os.path.join(self.get_custom_actions_dir(), "ru_execute_tasks_namenode_prepare.json")
     self.assertTrue(os.path.isfile(json_file_path))
+    
     with open(json_file_path, "r") as json_file:
       json_payload = json.load(json_file)
 
@@ -90,7 +92,7 @@ class TestRUSetAll(RMFTestCase):
     ru_execute = UpgradeSetAll()
     ru_execute.actionexecute(None)
 
-    call_mock.assert_called_with("hdp-select set all 2.2.1.0-2260")
+    call_mock.assert_called_with(('hdp-select', 'set', 'all', u'2.2.1.0-2260'), sudo=True)
 
   @patch("resource_management.core.shell.call")
   @patch.object(Script, 'get_config')
@@ -98,7 +100,7 @@ class TestRUSetAll(RMFTestCase):
   @patch("ru_set_all.link_config")
   def test_execution_23(self, link_mock, family_mock, get_config_mock, call_mock):
     # Mock the config objects
-    json_file_path = os.path.join(self.CUSTOM_ACTIONS_DIR, "ru_execute_tasks_namenode_prepare.json")
+    json_file_path = os.path.join(self.get_custom_actions_dir(), "ru_execute_tasks_namenode_prepare.json")
     self.assertTrue(os.path.isfile(json_file_path))
     with open(json_file_path, "r") as json_file:
       json_payload = json.load(json_file)
@@ -126,5 +128,5 @@ class TestRUSetAll(RMFTestCase):
     ru_execute.actionexecute(None)
 
     self.assertTrue(link_mock.called)
-    call_mock.assert_called_with("hdp-select set all 2.3.0.0-1234")
+    call_mock.assert_called_with(('hdp-select', 'set', 'all', '2.3.0.0-1234'), sudo=True)
 

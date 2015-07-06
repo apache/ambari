@@ -35,7 +35,7 @@ from ambari_agent.FileCache import FileCache
 from ambari_commons.os_check import OSCheck
 
 
-def fake_call(command):
+def fake_call(command, **kwargs):
   """
   Instead of shell.call, call a command whose output equals the command.
   :param command: Command that will be echoed.
@@ -45,8 +45,9 @@ def fake_call(command):
 
 
 class TestRUExecuteTasks(RMFTestCase):
-  CUSTOM_ACTIONS_DIR = os.path.join(os.getcwd(), "../resources/custom_actions/")
-
+  def get_custom_actions_dir(self):
+    return os.path.join(self.get_src_folder(), "test/resources/custom_actions/")
+  
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
   @patch.object(OSCheck, "get_os_type")
@@ -64,7 +65,7 @@ class TestRUExecuteTasks(RMFTestCase):
   def tearDown(self):
     Logger.logger = None
 
-  @patch("resource_management.core.shell.call")
+  @patch("resource_management.core.shell.checked_call")
   @patch("os.path.exists")
   @patch.object(AmbariConfig, "getConfigFile")
   @patch.object(Script, 'get_tmp_dir')
@@ -72,7 +73,7 @@ class TestRUExecuteTasks(RMFTestCase):
   @patch.object(FileCache, 'get_service_base_dir')
   def test_execution(self, cache_mock, get_config_mock, get_tmp_dir_mock, get_config_file_mock, os_path_exists_mock, call_mock):
     # Mock the config objects
-    json_file_path = os.path.join(self.CUSTOM_ACTIONS_DIR, "ru_execute_tasks_namenode_prepare.json")
+    json_file_path = os.path.join(self.get_custom_actions_dir(), "ru_execute_tasks_namenode_prepare.json")
     self.assertTrue(os.path.isfile(json_file_path))
     with open(json_file_path, "r") as json_file:
       json_payload = json.load(json_file)
@@ -82,8 +83,7 @@ class TestRUExecuteTasks(RMFTestCase):
     cache_mock.return_value = "/var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package"
     get_config_mock.return_value = config_dict
     get_tmp_dir_mock.return_value = "/tmp"
-
-    ambari_agent_ini_file_path = os.path.join(os.getcwd(), "../../../../ambari-agent/conf/unix/ambari-agent.ini")
+    ambari_agent_ini_file_path = os.path.join(self.get_src_folder(), "../../ambari-agent/conf/unix/ambari-agent.ini")
     self.assertTrue(os.path.isfile(ambari_agent_ini_file_path))
     get_config_file_mock.return_value = ambari_agent_ini_file_path
 
@@ -104,9 +104,9 @@ class TestRUExecuteTasks(RMFTestCase):
     ru_execute = ExecuteUpgradeTasks()
     ru_execute.actionexecute(None)
 
-    call_mock.assert_called_with("/usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package/scripts/namenode.py prepare_rolling_upgrade /tmp")
+    call_mock.assert_called_with("/usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package/scripts/namenode.py prepare_rolling_upgrade /tmp", logoutput=True, quiet=True)
 
-  @patch("resource_management.core.shell.call")
+  @patch("resource_management.core.shell.checked_call")
   @patch("os.path.exists")
   @patch.object(AmbariConfig, "getConfigFile")
   @patch.object(Script, 'get_tmp_dir')
@@ -114,7 +114,7 @@ class TestRUExecuteTasks(RMFTestCase):
   @patch.object(FileCache, 'get_custom_actions_base_dir')
   def test_execution_custom_action(self, cache_mock, get_config_mock, get_tmp_dir_mock, get_config_file_mock, os_path_exists_mock, call_mock):
     # Mock the config objects
-    json_file_path = os.path.join(self.CUSTOM_ACTIONS_DIR, "ru_execute_tasks_namenode_prepare.json")
+    json_file_path = os.path.join(self.get_custom_actions_dir(), "ru_execute_tasks_namenode_prepare.json")
     self.assertTrue(os.path.isfile(json_file_path))
     with open(json_file_path, "r") as json_file:
       json_payload = json.load(json_file)
@@ -128,7 +128,7 @@ class TestRUExecuteTasks(RMFTestCase):
     get_config_mock.return_value = config_dict
     get_tmp_dir_mock.return_value = "/tmp"
 
-    ambari_agent_ini_file_path = os.path.join(os.getcwd(), "../../../../ambari-agent/conf/unix/ambari-agent.ini")
+    ambari_agent_ini_file_path = os.path.join(self.get_src_folder(), "../../ambari-agent/conf/unix/ambari-agent.ini")
     self.assertTrue(os.path.isfile(ambari_agent_ini_file_path))
     get_config_file_mock.return_value = ambari_agent_ini_file_path
 
@@ -149,4 +149,4 @@ class TestRUExecuteTasks(RMFTestCase):
     ru_execute = ExecuteUpgradeTasks()
     ru_execute.actionexecute(None)
 
-    call_mock.assert_called_with("/usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/custom_actions/scripts/namenode.py prepare_rolling_upgrade /tmp")
+    call_mock.assert_called_with("/usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/custom_actions/scripts/namenode.py prepare_rolling_upgrade /tmp", logoutput=True, quiet=True)
