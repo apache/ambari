@@ -54,9 +54,15 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     return installedComponents;
   }.property('App.router.clusterController.isLoaded'),
 
-  content: function () {
-    return this.get('dataSource').filterProperty('isRequested');
-  }.property('dataSource.@each.isRequested'),
+  content: [],
+
+  requestedObserver: function() {
+    Em.run.once(this, 'setContentOnce');
+  }.observes('dataSource.@each.isRequested'),
+
+  setContentOnce: function() {
+    this.set('content', this.get('dataSource').filterProperty('isRequested'));
+  },
 
   allHostStackVersions: App.HostStackVersion.find(),
   /**

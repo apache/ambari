@@ -156,11 +156,12 @@ App.hostsMapper = App.QuickDataMapper.create({
       }
 
 
-      App.Host.find().forEach(function (host) {
-        if (!hostIds[host.get('hostName')]) {
-          host.set('isRequested', false);
-        }
-      });
+      App.Host.find().filterProperty('isRequested', true)
+        .filter(function(item) {
+          return !hostIds[item.get('hostName')];
+        })
+        .setEach('isRequested', false);
+
       App.HostComponent.find().filterProperty('isMaster').forEach(function(component) {
         if (componentsIdMap[component.get('id')]) componentsIdMap[component.get('id')].display_name_advanced = component.get('displayNameAdvanced');
       });
@@ -188,9 +189,11 @@ App.hostsMapper = App.QuickDataMapper.create({
     this.get('model').find().forEach(function (host) {
       if (host.get('isRequested')) {
         var hostMetrics = data.items.findProperty('Hosts.host_name', host.get('hostName'));
-        host.set('diskTotal', Em.get(hostMetrics, 'metrics.disk.disk_total'));
-        host.set('diskFree', Em.get(hostMetrics, 'metrics.disk.disk_free'));
-        host.set('loadOne', Em.get(hostMetrics, 'metrics.load.load_one'));
+        host.setProperties({
+          diskTotal: Em.get(hostMetrics, 'metrics.disk.disk_total'),
+          diskFree: Em.get(hostMetrics, 'metrics.disk.disk_free'),
+          loadOne: Em.get(hostMetrics, 'metrics.load.load_one')
+        });
       }
     }, this);
   }
