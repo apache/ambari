@@ -1513,6 +1513,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     }
   }
 
+
   /**
    * Adds non NULL constraints and drops outdated columns no longer needed after
    * the column data migration.

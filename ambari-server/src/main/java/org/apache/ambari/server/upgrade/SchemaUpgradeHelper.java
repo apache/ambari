@@ -234,7 +234,7 @@ public class SchemaUpgradeHelper {
       for (UpgradeCatalog upgradeCatalog : upgradeCatalogs) {
         try {
           upgradeCatalog.onPostUpgrade();
-          ;
+          upgradeCatalog.updateDatabaseSchemaVersion();
         } catch (Exception e) {
           LOG.error("Upgrade failed. ", e);
           throw new AmbariException(e.getMessage(), e);

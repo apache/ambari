@@ -224,6 +224,8 @@ public class UpgradeTest {
 
     schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs);
 
+    schemaUpgradeHelper.executeOnPostUpgrade(upgradeCatalogs);
+
     LOG.info("Upgrade successful.");
 
     schemaUpgradeHelper.stopPersistenceService();

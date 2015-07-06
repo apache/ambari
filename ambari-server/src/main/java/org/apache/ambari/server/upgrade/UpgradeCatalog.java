@@ -76,4 +76,9 @@ public interface UpgradeCatalog {
    * @return null : default
    */
   String getSourceVersion();
+
+  /**
+   * Update schema version in the database to the Target one
+   */
+  void updateDatabaseSchemaVersion();
 }

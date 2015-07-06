@@ -58,4 +58,15 @@ public class DerbyHelper extends GenericDbmsHelper {
     builder.append(nullStatement);
     return builder;
   }
+
+  @Override
+  public String writeGetTableConstraints(String databaseName, String tableName){
+    StringBuilder statement = new StringBuilder()
+      .append("SELECT")
+        .append(" C.CONSTRAINTNAME AS CONSTRAINT_NAME,")
+        .append(" C.TYPE AS CONSTRAINT_TYPE")
+      .append(" FROM SYS.SYSCONSTRAINTS AS C, SYS.SYSTABLES AS T")
+      .append(" WHERE C.TABLEID = T.TABLEID AND T.TABLENAME = '").append(tableName).append("'");
+    return statement.toString();
+  }
 }

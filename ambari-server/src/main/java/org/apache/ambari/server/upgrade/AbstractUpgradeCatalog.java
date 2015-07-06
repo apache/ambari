@@ -532,6 +532,10 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   @Override
   public void upgradeData() throws AmbariException, SQLException {
     executeDMLUpdates();
+  }
+
+  @Override
+  public final void updateDatabaseSchemaVersion() {
     updateMetaInfoVersion(getTargetVersion());
   }
 
