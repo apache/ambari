@@ -228,17 +228,18 @@ class TestHBaseClient(RMFTestCase):
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hbase-client', version), sudo=True)
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hadoop-client', version), sudo=True)
 
-    self.assertEquals(5, mocks_dict['call'].call_count)
+    self.assertEquals(3, mocks_dict['call'].call_count)
+    self.assertEquals(5, mocks_dict['checked_call'].call_count)
     self.assertEquals(
-      "conf-select create-conf-dir --package hbase --stack-version 2.3.0.0-1234 --conf-version 0",
+      ('conf-select', 'set-conf-dir', '--package', 'hbase', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
+       mocks_dict['checked_call'].call_args_list[1][0][0])
+    self.assertEquals(
+      ('conf-select', 'create-conf-dir', '--package', 'hbase', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
        mocks_dict['call'].call_args_list[0][0][0])
     self.assertEquals(
-      "conf-select set-conf-dir --package hbase --stack-version 2.3.0.0-1234 --conf-version 0",
+      ('conf-select', 'set-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
+       mocks_dict['checked_call'].call_args_list[3][0][0])
+    self.assertEquals(
+      ('conf-select', 'create-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
        mocks_dict['call'].call_args_list[1][0][0])
-    self.assertEquals(
-      "conf-select create-conf-dir --package hadoop --stack-version 2.3.0.0-1234 --conf-version 0",
-       mocks_dict['call'].call_args_list[2][0][0])
-    self.assertEquals(
-      "conf-select set-conf-dir --package hadoop --stack-version 2.3.0.0-1234 --conf-version 0",
-       mocks_dict['call'].call_args_list[3][0][0])
 

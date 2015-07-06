@@ -398,9 +398,15 @@ class TestPhoenixQueryServer(RMFTestCase):
       classname = "PhoenixQueryServer",
       command = "pre_rolling_restart",
       config_dict = json_content,
+      call_mocks = [(0, "/etc/hbase/2.3.0.0-1234/0")],
       hdp_stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
+    self.assertResourceCalled('Directory', '/etc/hbase/2.3.0.0-1234/0',
+        recursive = True,
+        mode = 0755,
+        cd_access = 'a',
+    )
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'phoenix-server', '2.3.0.0-1234'), sudo=True)
 
     self.assertNoMoreResources()

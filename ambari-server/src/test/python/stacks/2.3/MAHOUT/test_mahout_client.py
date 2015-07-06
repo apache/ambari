@@ -91,7 +91,9 @@ class TestMahoutClient(RMFTestCase):
       call_mocks = itertools.cycle([(0, None)]),
       mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'mahout-client', '2.3.0.0-1234'), sudo=True)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'mahout-client', '2.3.0.0-1234'),
+        sudo = True,
+    )
     self.assertNoMoreResources()
 
     import sys
@@ -99,20 +101,21 @@ class TestMahoutClient(RMFTestCase):
     self.assertEquals("/usr/hdp/2.3.0.0-1234/hadoop/conf",
       sys.modules["params"].hadoop_conf_dir)
 
-    self.assertEquals(6, mocks_dict['call'].call_count)
+    self.assertEquals(3, mocks_dict['call'].call_count)
+    self.assertEquals(3, mocks_dict['checked_call'].call_count)
 
     self.assertEquals(
-      "conf-select create-conf-dir --package hadoop --stack-version 2.3.0.0-1234 --conf-version 0",
+      ('conf-select', 'set-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
+      mocks_dict['checked_call'].call_args_list[0][0][0])
+
+    self.assertEquals(
+      ('conf-select', 'create-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
       mocks_dict['call'].call_args_list[0][0][0])
 
     self.assertEquals(
-      "conf-select set-conf-dir --package hadoop --stack-version 2.3.0.0-1234 --conf-version 0",
+      ('conf-select', 'set-conf-dir', '--package', 'mahout', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
+      mocks_dict['checked_call'].call_args_list[1][0][0])
+
+    self.assertEquals(
+      ('conf-select', 'create-conf-dir', '--package', 'mahout', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
       mocks_dict['call'].call_args_list[1][0][0])
-
-    self.assertEquals(
-      "conf-select create-conf-dir --package mahout --stack-version 2.3.0.0-1234 --conf-version 0",
-      mocks_dict['call'].call_args_list[2][0][0])
-
-    self.assertEquals(
-      "conf-select set-conf-dir --package mahout --stack-version 2.3.0.0-1234 --conf-version 0",
-      mocks_dict['call'].call_args_list[3][0][0])
