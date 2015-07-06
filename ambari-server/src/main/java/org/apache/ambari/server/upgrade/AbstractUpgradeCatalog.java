@@ -42,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -437,6 +436,9 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
           cr.setVersionTag(newTag);
           cr.setType(configType);
           cr.setProperties(mergedProperties);
+          if (oldConfig != null) {
+            cr.setPropertiesAttributes(oldConfig.getPropertiesAttributes());
+          }
           controller.createConfiguration(cr);
 
           Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
