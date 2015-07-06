@@ -1011,6 +1011,32 @@ class TestAlerts(TestCase):
     # try to request a dictionary object instead of a property
     self.assertEquals(configuration["foo-site"], alert._get_configuration_value("{{foo-site}}"))
 
+
+  @patch.object(MetricAlert, "_load_jmx")
+  def test_metric_alert_floating_division(self, ma_load_jmx_mock):
+    definition_json = self._get_metric_alert_definition_with_float_division()
+    configuration = {'hdfs-site' :
+      { 'dfs.datanode.http.address': 'c6401.ambari.apache.org:80'}
+    }
+
+    collector = AlertCollector()
+    cluster_configuration = self.__get_cluster_configuration()
+    self.__update_cluster_configuration(cluster_configuration, configuration)
+
+    alert = MetricAlert(definition_json, definition_json['source'], None)
+    alert.set_helpers(collector, cluster_configuration)
+    alert.set_cluster("c1", "c6401.ambari.apache.org")
+
+    # 10 / 5
+    ma_load_jmx_mock.return_value = ([10, 5], None)
+
+    alert.collect()
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+    self.assertEquals('OK', alerts[0]['state'])
+    self.assertEquals('(Unit Tests) OK: 10 5 2.0', alerts[0]['text'])
+
+
   def __get_cluster_configuration(self):
     """
     Gets an instance of the cluster cache where the file read and write
@@ -1151,6 +1177,46 @@ class TestAlerts(TestCase):
       }
     }
 
+  def _get_metric_alert_definition_with_float_division(self):
+    return {
+      "name": "DataNode CPU Check",
+      "service": "HDFS",
+      "component": "DATANODE",
+      "label": "DataNode Process",
+      "interval": 6,
+      "scope": "host",
+      "enabled": True,
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
+      "source": {
+        "type": "METRIC",
+        "uri": {
+          "http": "{{hdfs-site/dfs.datanode.http.address}}",
+          "https": "{{hdfs-site/dfs.datanode.https.address}}",
+          "https_property": "{{hdfs-site/dfs.http.policy}}",
+          "https_property_value": "HTTPS_ONLY"
+        },
+        "jmx": {
+          "property_list": [
+            "someJmxObject/value",
+            "someOtherJmxObject/value"
+          ],
+          "value": "{0} / {1}"
+        },
+        "reporting": {
+          "ok": {
+            "text": "(Unit Tests) OK: {0} {1} {2}",
+          },
+          "warning": {
+            "text": "(Unit Tests) Warning: {0} {1} {2}",
+            "value": 150
+          },
+          "critical": {
+            "text": "(Unit Tests) Critical: {0} {1} {2}",
+            "value": 200
+          }
+        }
+      }
+    }
 
   def _get_web_alert_definition(self):
     return {

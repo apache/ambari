@@ -262,6 +262,14 @@ class MetricAlert(BaseAlert):
 
     
 class JmxMetric:
+  DYNAMIC_CODE_TEMPLATE = """
+# ensure that division yields a float, use // for integer division
+from __future__ import division
+
+def f(args):
+  return {0}
+"""
+
   def __init__(self, jmx_info):
     self.custom_module = None
     self.property_list = jmx_info['property_list']
@@ -271,7 +279,7 @@ class JmxMetric:
       realcode = re.sub('(\{(\d+)\})', 'args[\g<2>]', jmx_info['value'])
       
       self.custom_module =  imp.new_module(str(uuid.uuid4()))
-      code = 'def f(args):\n  return ' + realcode
+      code = self.DYNAMIC_CODE_TEMPLATE.format(realcode)
       exec code in self.custom_module.__dict__
     
     for p in self.property_list:
