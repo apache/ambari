@@ -20,6 +20,9 @@ limitations under the License.
 import math
 from math import floor
 from urlparse import urlparse
+import os
+import fnmatch
+import socket
 
 class HDP22StackAdvisor(HDP21StackAdvisor):
 
@@ -601,6 +604,43 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putTezProperty("tez.runtime.io.sort.mb", min(int(taskResourceMemory * 0.4), 2047))
     putTezProperty("tez.runtime.unordered.output.buffer.size-mb", int(taskResourceMemory * 0.075))
     putTezProperty("tez.session.am.dag.submit.timeout.secs", "600")
+
+    serverProperties = services["ambari-server-properties"]
+    latest_tez_jar_version = None
+
+    server_host = socket.getfqdn()
+    server_port = '8080'
+    server_protocol = 'http'
+    views_dir = '/var/lib/ambari-server/resources/views/'
+
+    if serverProperties:
+      if 'client.api.port' in serverProperties:
+        server_port = serverProperties['client.api.port']
+      if 'views.dir' in serverProperties:
+        views_dir = serverProperties['views.dir']
+      if 'api.ssl' in serverProperties:
+        if serverProperties['api.ssl'].lower() == 'true':
+          server_protocol = 'https'
+
+      views_work_dir = os.path.join(views_dir, 'work')
+
+      if os.path.exists(views_work_dir) and os.path.isdir(views_work_dir):
+        last_version = '0.0.0'
+        for file in os.listdir(views_work_dir):
+          if fnmatch.fnmatch(file, 'TEZ{*}'):
+            current_version = file.lstrip("TEZ{").rstrip("}") # E.g.: TEZ{0.7.0.2.3.0.0-2154}
+            if self.versionCompare(current_version.replace("-", "."), last_version.replace("-", ".")) >= 0:
+              latest_tez_jar_version = current_version
+              last_version = current_version
+            pass
+        pass
+      pass
+    pass
+
+    if latest_tez_jar_version:
+      tez_url = '{0}://{1}:{2}/#/main/views/TEZ/{3}/TEZ_CLUSTER_INSTANCE'.format(server_protocol, server_host, server_port, latest_tez_jar_version)
+      putTezProperty("tez.tez-ui.history-url.base", tez_url)
+    pass
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP22StackAdvisor, self).getServiceConfigurationValidators()

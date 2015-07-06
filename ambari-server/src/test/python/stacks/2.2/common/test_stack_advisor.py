@@ -19,7 +19,7 @@ limitations under the License.
 import os
 from unittest import TestCase
 from mock.mock import patch, MagicMock
-
+import socket
 
 class TestHDP22StackAdvisor(TestCase):
 
@@ -67,7 +67,15 @@ class TestHDP22StackAdvisor(TestCase):
     open_mock.return_value = MagicFile()
     return self.get_system_min_uid_real()
 
-  def test_recommendTezConfigurations(self):
+  @patch('os.path.exists')
+  @patch('os.path.isdir')
+  @patch('os.listdir')
+  def test_recommendTezConfigurations(self, os_listdir_mock, os_isdir_mock, os_exists_mock):
+
+    os_exists_mock.return_value = True
+    os_isdir_mock.return_value = True
+    os_listdir_mock.return_value = ['TEZ{0.7.0.2.3.0.0-2155}']
+
     configurations = {
         "yarn-site": {
             "properties": {
@@ -101,7 +109,17 @@ class TestHDP22StackAdvisor(TestCase):
         }
       }
     }
-    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, None, None)
+    services = {
+      "ambari-server-properties": {}
+    }
+
+    server_host = socket.getfqdn()
+    tez_ui_url =  "http://" + server_host + ":8080/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE"
+
+    services['ambari-server-properties'] = {'api.ssl': 'false'}
+    expected['tez-site']['properties']['tez.tez-ui.history-url.base'] = tez_ui_url
+
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendTezConfigurations_amMemoryMoreThan3072(self):
@@ -138,7 +156,11 @@ class TestHDP22StackAdvisor(TestCase):
         }
       }
     }
-    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, None, None)
+    services = {
+      "ambari-server-properties": {}
+    }
+
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendTezConfigurations_mapMemoryLessThan768(self):
@@ -175,7 +197,11 @@ class TestHDP22StackAdvisor(TestCase):
         }
       }
     }
-    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, None, None)
+    services = {
+      "ambari-server-properties": {}
+    }
+
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
 
