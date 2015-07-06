@@ -229,14 +229,14 @@
           },
           "reporting": {
             "ok": {
-              "text": "Capacity Used:[{2:d}%, {0}], Capacity Remaining:[{1}]"
+              "text": "Capacity Used:[{2:.0f}%, {0}], Capacity Remaining:[{1}]"
             },
             "warning": {
-              "text": "Capacity Used:[{2:d}%, {0}], Capacity Remaining:[{1}]",
+              "text": "Capacity Used:[{2:.0f}%, {0}], Capacity Remaining:[{1}]",
               "value": 80
             },
             "critical": {
-              "text": "Capacity Used:[{2:d}%, {0}], Capacity Remaining:[{1}]",
+              "text": "Capacity Used:[{2:.0f}%, {0}], Capacity Remaining:[{1}]",
               "value": 90
             },
             "units" : "%"
@@ -246,7 +246,7 @@
               "Hadoop:service=NameNode,name=FSNamesystemState/CapacityUsed",
               "Hadoop:service=NameNode,name=FSNamesystemState/CapacityRemaining"
             ],
-            "value": "{0}/({0} + {1}) * 100"
+            "value": "{0}/({0} + {1}) * 100.0"
           }
         }
       },
@@ -583,14 +583,14 @@
           },
           "reporting": {
             "ok": {
-              "text": "Remaining Capacity:[{0}], Total Capacity:[{2:d}% Used, {1}]"
+              "text": "Remaining Capacity:[{0}], Total Capacity:[{2:.0f}% Used, {1}]"
             },
             "warning": {
-              "text": "Remaining Capacity:[{0}], Total Capacity:[{2:d}% Used, {1}]",
+              "text": "Remaining Capacity:[{0}], Total Capacity:[{2:.0f}% Used, {1}]",
               "value": 80
             },
             "critical": {
-              "text": "Remaining Capacity:[{0}], Total Capacity:[{2:d}% Used, {1}]",
+              "text": "Remaining Capacity:[{0}], Total Capacity:[{2:.0f}% Used, {1}]",
               "value": 90
             },
             "units" : "%"
@@ -600,7 +600,7 @@
               "Hadoop:service=DataNode,name=FSDatasetState-*/Remaining",
               "Hadoop:service=DataNode,name=FSDatasetState-*/Capacity"
             ],
-            "value": "({1} - {0})/{1} * 100"
+            "value": "({1} - {0})/{1} * 100.0"
           }
         }
       }

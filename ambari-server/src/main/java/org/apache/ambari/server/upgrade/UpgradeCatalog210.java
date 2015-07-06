@@ -18,12 +18,28 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
+import javax.persistence.criteria.Root;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -45,7 +61,6 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -53,26 +68,13 @@ import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaDelete;
-import javax.persistence.criteria.Root;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.regex.Matcher;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 
 
 /**
@@ -1067,7 +1069,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
     Clusters clusters = ambariManagementController.getClusters();
-    AlertDefinitionFactory alertDefinitionFactory = injector.getInstance(AlertDefinitionFactory.class);
 
     List<String> metricAlerts = Arrays.asList("namenode_cpu", "namenode_hdfs_blocks_health",
             "namenode_hdfs_capacity_utilization", "namenode_rpc_latency",
@@ -1151,12 +1152,13 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             rootJson.addProperty("default_port", new Integer(8019));
 
             // save the changes
-            updateAlertDefinitionEntitySource("hdfs_zookeeper_failover_controller_process", rootJson.toString(), UUID.randomUUID().toString());
+            updateAlertDefinitionEntitySource("hdfs_zookeeper_failover_controller_process",
+                rootJson.toString(), UUID.randomUUID().toString());
           }
 
           // update oozie web ui alert
-          AlertDefinitionEntity oozieWebUIAlertDefinitionEntity =  alertDefinitionDAO.findByName(cluster.getClusterId(),
-                            "oozie_server_webui");
+          AlertDefinitionEntity oozieWebUIAlertDefinitionEntity = alertDefinitionDAO.findByName(
+              cluster.getClusterId(), "oozie_server_webui");
 
           if (oozieWebUIAlertDefinitionEntity != null) {
             String source = oozieWebUIAlertDefinitionEntity.getSource();
@@ -1172,7 +1174,41 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                     "{{cluster-env/smokeuser_principal_name}}");
 
             // save the changes
-            updateAlertDefinitionEntitySource("oozie_server_webui", rootJson.toString(), UUID.randomUUID().toString());
+            updateAlertDefinitionEntitySource("oozie_server_webui", rootJson.toString(),
+                UUID.randomUUID().toString());
+          }
+
+          // update HDFS metric alerts that had changes to their text
+          List<String> hdfsMetricAlertsFloatDivision = Arrays.asList(
+              "namenode_hdfs_capacity_utilization", "datanode_storage");
+
+          for (String metricAlertName : hdfsMetricAlertsFloatDivision) {
+            AlertDefinitionEntity entity = alertDefinitionDAO.findByName(cluster.getClusterId(),
+                metricAlertName);
+
+            if (null == entity) {
+              continue;
+            }
+
+            String source = entity.getSource();
+            JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
+            JsonObject reporting = rootJson.getAsJsonObject("reporting");
+            JsonObject ok = reporting.getAsJsonObject("ok");
+            JsonObject warning = reporting.getAsJsonObject("warning");
+            JsonObject critical = reporting.getAsJsonObject("critical");
+
+            JsonElement okText = ok.remove("text");
+            ok.addProperty("text", okText.getAsString().replace("{2:d}", "{2:.0f}"));
+
+            JsonElement warningText = warning.remove("text");
+            warning.addProperty("text", warningText.getAsString().replace("{2:d}", "{2:.0f}"));
+
+            JsonElement criticalText = critical.remove("text");
+            critical.addProperty("text", criticalText.getAsString().replace("{2:d}", "{2:.0f}"));
+
+            // save the changes
+            updateAlertDefinitionEntitySource(metricAlertName, rootJson.toString(),
+                UUID.randomUUID().toString());
           }
         }
       }
@@ -1316,17 +1352,39 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   }
 
   private int getHbaseRamRecomendations(int totalMem) {
-    if (totalMem <= 4) return 1;
-    if (4 < totalMem && totalMem <= 8) return 1;
-    if (8 < totalMem && totalMem <= 16) return 2;
-    if (16 < totalMem && totalMem <= 24) return 4;
-    if (24 < totalMem && totalMem <= 48) return 8;
-    if (48 < totalMem && totalMem <= 64) return 8;
-    if (64 < totalMem && totalMem <= 72) return 8;
-    if (72 < totalMem && totalMem <= 96) return 16;
-    if (96 < totalMem && totalMem <= 128) return 24;
-    if (128 < totalMem && totalMem <= 256) return 32;
-    if (256 < totalMem) return 64;
+    if (totalMem <= 4) {
+      return 1;
+    }
+    if (4 < totalMem && totalMem <= 8) {
+      return 1;
+    }
+    if (8 < totalMem && totalMem <= 16) {
+      return 2;
+    }
+    if (16 < totalMem && totalMem <= 24) {
+      return 4;
+    }
+    if (24 < totalMem && totalMem <= 48) {
+      return 8;
+    }
+    if (48 < totalMem && totalMem <= 64) {
+      return 8;
+    }
+    if (64 < totalMem && totalMem <= 72) {
+      return 8;
+    }
+    if (72 < totalMem && totalMem <= 96) {
+      return 16;
+    }
+    if (96 < totalMem && totalMem <= 128) {
+      return 24;
+    }
+    if (128 < totalMem && totalMem <= 256) {
+      return 32;
+    }
+    if (256 < totalMem) {
+      return 64;
+    }
     return -1;
   }
 
