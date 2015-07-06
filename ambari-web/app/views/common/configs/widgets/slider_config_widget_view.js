@@ -526,10 +526,12 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   /**
-   * recreate widget in case max or min values were changed
+   * Recreate widget in case max or min values were changed
+   *
    * @method changeBoundariesOnce
    */
   changeBoundariesOnce: function () {
+    var self = this;
     if ($.mocho) {
       //temp fix as it can broke test that doesn't have any connection with this method
       return;
@@ -548,10 +550,32 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         if (arguments.length) {
           this.refreshSliderObserver();
         }
+        else {
+          // hack for slider-overrides
+          this._changeBoundariesOnceLater("don't call me more!");
+        }
       } catch (e) {
         console.error('error while rebuilding slider for config: ' + this.get('config.name'));
       }
     }
+  },
+
+  /**
+   * Method used for initializing sliders in the next Ember run-loop
+   * It's useful for overrides, because they are redrawn a little bit later than origin config
+   *
+   * If this method is called without arguments, it will call itself recursively using <code>changeBoundariesOnce</code>
+   * and <code>refreshSliderObserver</code>
+   * If not - it will just call <code>changeBoundariesOnce</code> in the next run-loop
+   * @method changeBoundariesOnceLater
+   */
+  _changeBoundariesOnceLater: function() {
+    console.debug('_changeBoundariesOnceLater', arguments);
+    var args = arguments;
+    var self = this;
+    Em.run.later('sync', function() {
+      self.changeBoundariesOnce(args);
+    }, 10);
   },
 
   /**
@@ -560,11 +584,8 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   refreshSliderObserver: function() {
     var sliderTickLabel = this.$('.ui-slider-wrapper:eq(0) .slider-tick-label:first');
-    var self = this;
     if (sliderTickLabel.width() == 0 && this.isValueCompatibleWithWidget()) {
-      Em.run.later('sync', function() {
-        self.changeBoundariesOnce();
-      }, 10);
+      this._changeBoundariesOnceLater();
     }
   }.observes('parentView.content.isActive', 'parentView.parentView.tab.isActive'),
 
