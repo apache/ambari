@@ -65,7 +65,6 @@ App.InstallerController = App.WizardController.extend({
     'installOptions',
     'allHostNamesPattern',
     'serviceComponents',
-    'advancedServiceConfig',
     'clientInfo',
     'selectedServiceNames',
     'serviceConfigGroups',
@@ -484,8 +483,6 @@ App.InstallerController = App.WizardController.extend({
     var serviceConfigProperties = this.getDBProperty('serviceConfigProperties');
     this.set('content.serviceConfigProperties', serviceConfigProperties);
     console.log("InstallerController.loadServiceConfigProperties: loaded config ", serviceConfigProperties);
-
-    this.set('content.advancedServiceConfig', this.getDBProperty('advancedServiceConfig'));
   },
   /**
    * Generate clients list for selected services and save it to model

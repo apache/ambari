@@ -297,12 +297,6 @@ App.db.setServiceConfigs = function (serviceConfigs) {
   localStorage.setObject('ambari', App.db.data);
 };
 
-App.db.setAdvancedServiceConfig = function (serviceConfigs) {
-  App.db.data = localStorage.getObject('ambari');
-  App.db.data.Installer.advanceServiceConfigs = serviceConfigs;
-  localStorage.setObject('ambari', App.db.data);
-};
-
 App.db.setServiceConfigProperties = function (configProperties) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.Installer.configProperties = configProperties;
@@ -687,11 +681,6 @@ App.db.getSlaveComponentHosts = function () {
 App.db.getServiceConfigs = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.serviceConfigs;
-};
-
-App.db.getAdvancedServiceConfig = function () {
-  App.db.data = localStorage.getObject('ambari');
-  return App.db.data.Installer.advanceServiceConfigs;
 };
 
 App.db.getServiceConfigProperties = function () {
