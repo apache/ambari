@@ -42,7 +42,7 @@
     <description>
       Zookeeper also allows you to add a "chroot" path which will make all kafka data for this cluster appear under a particular path.
       This is a way to setup multiple Kafka clusters or other applications on the same zookeeper cluster. To do this give a connection
-      string in the form hostname1:port1,hostname2:port2,hostname3:port3/chroot/path which would put all this cluster's data under the
+     string in the form hostname1:port1,hostname2:port2,hostname3:port3/chroot/path which would put all this cluster's data under the
       path /chroot/path. Note that you must create this path yourself prior to starting the broker and consumers must use the
       same connection string.
     </description>
@@ -155,21 +155,6 @@
       The byte interval at which we add an entry to the offset index. When executing a fetch request the server must do a linear scan for up to this many bytes to find the correct position in the log to begin and end the fetch. So setting this value to be larger will mean larger index files (and a bit more memory usage) but less scanning. However the server will never add more than one index entry per log append (even if more than log.index.interval worth of messages are appended). In general you probably don't need to mess with this value.
     </description>
   </property>
-
-  <property>
-    <name>log.flush.scheduler.interval.ms</name>
-    <value>3000</value>
-    <description>
-      The frequency in ms that the log flusher checks whether any log is eligible to be flushed to disk.
-    </description>
-  </property>
-  <property>
-    <name>log.flush.interval.ms</name>
-    <value>3000</value>
-    <description>
-      The maximum time between fsync calls on the log. If used in conjuction with log.flush.interval.messages the log will be flushed when either criteria is met.
-    </description>
-  </property>
   <property>
     <name>auto.create.topics.enable</name>
     <value>true</value>
@@ -259,7 +244,7 @@
   </property>
   <property>
     <name>zookeeper.connection.timeout.ms</name>
-    <value>6000</value>
+    <value>15000</value>
     <description>The maximum amount of time that the client waits to establish a connection to zookeeper.</description>
   </property>
   <property>
