@@ -169,7 +169,7 @@ public class UpgradeCatalog200Test {
 
     // Alert Definition
     dbAccessor.addColumn(eq("alert_definition"),
-        capture(alertDefinitionIgnoreColumnCapture));
+                          capture(alertDefinitionIgnoreColumnCapture));
 
     dbAccessor.addColumn(eq("alert_definition"),
         capture(alertDefinitionDescriptionColumnCapture));
@@ -245,6 +245,8 @@ public class UpgradeCatalog200Test {
     // kerberos_principal_host
     dbAccessor.createTable(eq("kerberos_principal_host"), capture(kerberosPrincipalHostCapture),
         eq("principal_name"), eq("host_name"));
+
+    expect(dbAccessor.tableHasColumn("kerberos_principal_host", "host_name")).andReturn(true).atLeastOnce();
 
     dbAccessor.addFKConstraint(eq("kerberos_principal_host"), eq("FK_krb_pr_host_hostname"),
         eq("host_name"), eq("hosts"), eq("host_name"), eq(true), eq(false));

@@ -241,7 +241,9 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     // Foreign Key Constraints
     dbAccessor.addFKConstraint("cluster_version", "FK_cluster_version_cluster_id", "cluster_id", "clusters", "cluster_id", false);
     dbAccessor.addFKConstraint("cluster_version", "FK_cluster_version_repovers_id", "repo_version_id", "repo_version", "repo_version_id", false);
-    dbAccessor.addFKConstraint("host_version", "FK_host_version_host_name", "host_name", "hosts", "host_name", false);
+    if (dbAccessor.tableHasColumn("host_version", "host_name")) {
+      dbAccessor.addFKConstraint("host_version", "FK_host_version_host_name", "host_name", "hosts", "host_name", false);
+    }
     dbAccessor.addFKConstraint("host_version", "FK_host_version_repovers_id", "repo_version_id", "repo_version", "repo_version_id", false);
 
     // New sequences
@@ -305,7 +307,9 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("principal_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("host_name", String.class, 255, null, false));
     dbAccessor.createTable(KERBEROS_PRINCIPAL_HOST_TABLE, columns, "principal_name", "host_name");
-    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_hostname", "host_name", "hosts", "host_name", true, false);
+    if (dbAccessor.tableHasColumn(KERBEROS_PRINCIPAL_HOST_TABLE, "host_name")) {
+      dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_hostname", "host_name", "hosts", "host_name", true, false);
+    }
     dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_principalname", "principal_name", KERBEROS_PRINCIPAL_TABLE, "principal_name", true, false);
   }
 

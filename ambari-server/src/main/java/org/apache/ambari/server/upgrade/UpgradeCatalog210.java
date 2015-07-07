@@ -266,13 +266,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     ), 0L, false);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void onPostUpgrade() throws AmbariException, SQLException {
-    cleanupStackUpdates();
-  }
 
   private void executeAlertDDLUpdates() throws AmbariException, SQLException {
     //Fix latest_text column type to match for all DBMS
@@ -982,6 +975,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
     executeStackPreDMLUpdates();
+    cleanupStackUpdates();
   }
 
   /**
