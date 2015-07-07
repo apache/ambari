@@ -879,6 +879,79 @@ public class UpgradeHelperTest {
     return c;
   }
 
+  @Test
+  public void testDowngradeAfterPartialUpgrade() throws Exception {
+
+    Clusters clusters = injector.getInstance(Clusters.class);
+    ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+
+    String clusterName = "c1";
+
+    StackId stackId = new StackId("HDP-2.1.1");
+    clusters.addCluster(clusterName, stackId);
+    Cluster c = clusters.getCluster(clusterName);
+
+    helper.getOrCreateRepositoryVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion());
+
+    c.createClusterVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
+
+    for (int i = 0; i < 2; i++) {
+      String hostName = "h" + (i+1);
+      clusters.addHost(hostName);
+      Host host = clusters.getHost(hostName);
+
+      Map<String, String> hostAttributes = new HashMap<String, String>();
+      hostAttributes.put("os_family", "redhat");
+      hostAttributes.put("os_release_version", "6");
+
+      host.setHostAttributes(hostAttributes);
+
+      host.persist();
+      clusters.mapHostToCluster(hostName, clusterName);
+    }
+
+    // !!! add services
+    c.addService(serviceFactory.createNew(c, "HDFS"));
+
+    Service s = c.getService("HDFS");
+    ServiceComponent sc = s.addServiceComponent("NAMENODE");
+    sc.addServiceComponentHost("h1");
+    sc.addServiceComponentHost("h2");
+
+    List<ServiceComponentHost> schs = c.getServiceComponentHosts("HDFS", "NAMENODE");
+    assertEquals(2, schs.size());
+
+    HostsType type = new HostsType();
+    type.master = "h1";
+    type.secondary = "h2";
+
+    expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER")).andReturn(null).anyTimes();
+    expect(m_masterHostResolver.getMasterAndHosts("HDFS", "NAMENODE")).andReturn(type).anyTimes();
+    expect(m_masterHostResolver.getCluster()).andReturn(c).anyTimes();
+    replay(m_masterHostResolver);
+
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21, HDP_21, DOWNGRADE_VERSION, Direction.DOWNGRADE);
+
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    UpgradePack upgrade = upgrades.get("upgrade_direction");
+    assertNotNull(upgrade);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+    assertEquals(1, groups.size());
+
+    UpgradeGroupHolder group = groups.get(0);
+    assertEquals(3, group.items.size());
+
+    StageWrapper stage = group.items.get(1);
+    assertEquals("NameNode Finalize", stage.getText());
+    assertEquals(1, stage.getTasks().size());
+    TaskWrapper task = stage.getTasks().get(0);
+    assertEquals(1, task.getHosts().size());
+  }
+
 
 
   /**

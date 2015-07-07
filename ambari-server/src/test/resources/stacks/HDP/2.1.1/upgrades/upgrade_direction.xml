@@ -41,6 +41,14 @@
           <message>this is downgrade message</message>
         </task>
       </execute-stage>
+      
+      <execute-stage title="NameNode Finalize" service="HDFS" component="NAMENODE" >
+        <task xsi:type="execute" hosts="master">
+          <script>scripts/namenode.py</script>
+          <function>actionexecute</function>
+        </task>
+      </execute-stage>      
+      
       <execute-stage title="Save Cluster State" service="" component="">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
         </task>
