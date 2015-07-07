@@ -25,6 +25,7 @@ from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_hdp_version import get_hdp_version
 from resource_management.libraries.script.script import Script
+from resource_management.core.shell import call
 
 # hdp-select set oozie-server 2.2.0.0-1234
 TEMPLATE = ('hdp-select', 'set')
@@ -212,3 +213,14 @@ def _get_upgrade_stack():
     return (stack_name, stack_version)
 
   return None
+
+
+def get_hdp_versions():
+  code, out = call("hdp-select versions")
+  if 0 == code:
+    versions = []
+    for line in out.splitlines():
+      versions.append(line.rstrip('\n'))
+    return versions
+  else:
+    return []
