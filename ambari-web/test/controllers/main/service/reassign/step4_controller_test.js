@@ -582,6 +582,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       sinon.stub(controller, 'setSecureConfigs', Em.K);
       sinon.stub(controller, 'setSpecificNamenodeConfigs', Em.K);
       sinon.stub(controller, 'setSpecificResourceMangerConfigs', Em.K);
+      sinon.stub(controller, 'getWebAddressPort', Em.K);
       sinon.stub(controller, 'getComponentDir', Em.K);
       sinon.stub(controller, 'saveClusterStatus', Em.K);
       sinon.stub(controller, 'saveConfigsToServer', Em.K);
@@ -593,6 +594,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.setSecureConfigs.restore();
       controller.setSpecificNamenodeConfigs.restore();
       controller.setSpecificResourceMangerConfigs.restore();
+      controller.getWebAddressPort.restore();
       controller.getComponentDir.restore();
       controller.saveClusterStatus.restore();
       controller.saveConfigsToServer.restore();
@@ -813,28 +815,85 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       isRMHaEnabled = true;
       var configs = {
         'yarn-site': {
-          'yarn.resourcemanager.hostname.rm1': 'host1'
+          'yarn.resourcemanager.hostname.rm1': 'host1',
+          'yarn.resourcemanager.webapp.address.rm1': 'host1:8088',
+          'yarn.resourcemanager.webapp.https.address.rm1': 'host1:8443'
         }
       };
       controller.setSpecificResourceMangerConfigs(configs, 'host2');
       expect(configs['yarn-site']).to.eql({
-        'yarn.resourcemanager.hostname.rm1': 'host2'
+        'yarn.resourcemanager.hostname.rm1': 'host2',
+        'yarn.resourcemanager.webapp.address.rm1': 'host2:8088',
+        'yarn.resourcemanager.webapp.https.address.rm1': 'host2:8443'
       });
     });
     it('HA enabled and resource manager 2', function () {
       isRMHaEnabled = true;
       var configs = {
         'yarn-site': {
-          'yarn.resourcemanager.hostname.rm2': 'host2'
+          'yarn.resourcemanager.hostname.rm2': 'host2',
+          'yarn.resourcemanager.webapp.address.rm2': 'host2:8088',
+          'yarn.resourcemanager.webapp.https.address.rm2': 'host2:8443'
         }
       };
       controller.setSpecificResourceMangerConfigs(configs, 'host1');
       expect(configs['yarn-site']).to.eql({
-        'yarn.resourcemanager.hostname.rm2': 'host1'
+        'yarn.resourcemanager.hostname.rm2': 'host1',
+        'yarn.resourcemanager.webapp.address.rm2': 'host1:8088',
+        'yarn.resourcemanager.webapp.https.address.rm2': 'host1:8443'
       });
     });
   });
 
+  describe('#getWebAddressPort', function(){
+    var configs = {
+        'yarn-site': {
+          'yarn.resourcemanager.hostname.rm2': 'host2',
+          'yarn.resourcemanager.webapp.address.rm2': 'host2:8088',
+          'yarn.resourcemanager.webapp.https.address.rm2': 'host2:8443'
+        }
+    };
+    
+    var httpPort = controller.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.address.rm2');
+    expect(httpPort).to.eql('8088');
+    
+    var httpsPort = controller.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.https.address.rm2');
+    expect(httpsPort).to.eql('8443');
+
+    configs = {
+        'yarn-site': {
+          'yarn.resourcemanager.hostname.rm2': 'host2',
+          'yarn.resourcemanager.webapp.address.rm2': 'host2:',
+          'yarn.resourcemanager.webapp.https.address.rm2': 'host2:  '
+        }
+    };
+    
+    //check for falsy conditions
+    httpPort = controller.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.address.rm2');
+    var flag = "falsy"
+    if (httpPort)
+      flag = "truthy"
+    expect(flag).to.eql('falsy')
+
+    httpsPort = controller.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.https.address.rm2');
+    flag = "falsy"
+    if (httpsPort)
+      flag = "truthy"
+    expect(flag).to.eql("falsy")
+
+    configs = {
+        'yarn-site': {
+          'yarn.resourcemanager.hostname.rm2': 'host2'
+        }
+    };
+
+   httpPort = controller.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.address.rm2');
+   var flag = "falsy"
+   if (httpPort != null) //check for null, still part of the falsy condition checks.
+      flag = "truthy"
+    expect(flag).to.eql('falsy')
+  });
+  
   describe('#setSecureConfigs()', function () {
     it('undefined component and security disabled', function () {
       var secureConfigs = [];

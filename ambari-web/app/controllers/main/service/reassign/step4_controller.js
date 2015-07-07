@@ -677,12 +677,50 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     if (App.get('isRMHaEnabled')) {
       if (configs['yarn-site']['yarn.resourcemanager.hostname.rm1'] === sourceHostName) {
         configs['yarn-site']['yarn.resourcemanager.hostname.rm1'] = targetHostName;
+        
+        var webAddressPort = this.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.address.rm1');
+        if(webAddressPort != null)
+          configs['yarn-site']['yarn.resourcemanager.webapp.address.rm1'] = targetHostName +":"+ webAddressPort;
+        
+        var httpsWebAddressPort = this.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.https.address.rm1');
+        if(httpsWebAddressPort != null)
+          configs['yarn-site']['yarn.resourcemanager.webapp.https.address.rm1'] = targetHostName +":"+ httpsWebAddressPort;
       } else {
         configs['yarn-site']['yarn.resourcemanager.hostname.rm2'] = targetHostName;
+        
+        var webAddressPort = this.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.address.rm2');
+        if(webAddressPort != null)
+          configs['yarn-site']['yarn.resourcemanager.webapp.address.rm2'] = targetHostName +":"+ webAddressPort;
+        
+        var httpsWebAddressPort = this.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.https.address.rm2');
+        if(httpsWebAddressPort != null)
+          configs['yarn-site']['yarn.resourcemanager.webapp.https.address.rm2'] = targetHostName +":"+ httpsWebAddressPort;
       }
     }
   },
 
+  /**
+   * Get the web address port when RM HA is enabled. 
+   * @param configs
+   * @param webAddressKey (http vs https)
+   * */
+  getWebAddressPort: function (configs, webAddressKey){
+    var result = null;
+    var rmWebAddressValue = configs['yarn-site'][webAddressKey];
+    if(rmWebAddressValue){
+      var tokens = rmWebAddressValue.split(":");
+      if(tokens.length > 1){
+        result = tokens[1];
+        result = result.replace(/^\s+|\s+$/g, '');
+      }
+    }
+    
+    if(result)  //only return non-empty result
+      return result;
+    else
+      return null;
+  },
+  
   /**
    * set specific configs which applies only to Hive related configs
    * @param configs
