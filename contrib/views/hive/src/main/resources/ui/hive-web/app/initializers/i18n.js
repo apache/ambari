@@ -38,7 +38,6 @@ TRANSLATIONS = {
     settings: 'Settings',
     visualExplain: 'Visual Explain',
     tez: 'Tez',
-    visualization: 'Visualization',
     notifications: 'Notifications',
     expand: 'Expand query panel',
     makeSettingGlobal: 'Make setting global',
@@ -114,8 +113,7 @@ TRANSLATIONS = {
       visualExplain: 'Visual Explain',
       tez: 'TEZ',
       status: 'Status: ',
-      messages: 'Messages',
-      visualization: 'Visualization'
+      messages: 'Messages'
     },
     download: 'Save results...',
     tableSample: '{{tableName}} sample'

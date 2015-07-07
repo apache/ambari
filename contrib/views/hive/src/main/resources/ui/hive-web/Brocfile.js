@@ -51,16 +51,4 @@ app.import('vendor/codemirror/codemirror.css');
 app.import('vendor/codemirror/show-hint.css');
 app.import('vendor/dagre.min.js');
 
-app.import('bower_components/d3/d3.js');
-app.import('bower_components/vega/vega.js');
-//app.import('bower_components/vega-lite/vega-lite.js');
-app.import('vendor/vega-lite.js');
-app.import('bower_components/eventEmitter/eventEmitter.js');
-app.import('bower_components/get-size/get-size.js');
-app.import('bower_components/eventie/eventie.js');
-app.import('bower_components/unipointer/unipointer.js');
-app.import('bower_components/unidragger/unidragger.js');
-app.import('bower_components/classie/classie.js');
-app.import('bower_components/get-style-property/get-style-property.js');
-app.import('bower_components/draggabilly/draggabilly.js');
 module.exports = app.toTree();

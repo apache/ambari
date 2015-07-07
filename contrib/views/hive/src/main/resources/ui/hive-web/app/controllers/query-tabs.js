@@ -70,16 +70,6 @@ export default Ember.Controller.extend({
       badgeProperty: 'count',
       onTabOpen: 'markMessagesAsSeen',
       tooltip: Ember.I18n.t('tooltips.notifications')
-    }),
-    Ember.Object.create({
-      iconClass: 'fa-area-chart',
-      id: 'visualization-icon',
-      action: 'toggleOverlay',
-      tooltip: Ember.I18n.t('tooltips.visualization'),
-      into: 'index',
-      outlet: 'overlay',
-      template: 'visualization-ui',
-      onTabOpen: 'onTabOpen'
     })
   ],
 
