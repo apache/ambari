@@ -29,7 +29,13 @@ module.exports = App.WizardRoute.extend({
       clusterName: App.router.get('content.cluster.name'),
       clusterState: 'DEFAULT',
       localdb: App.db.data
-    }, {alwaysCallback: function() {context.hide();App.router.transitionTo('hosts.index');location.reload();}});
+    }, {
+      alwaysCallback: function() {
+        context.hide();
+        App.router.transitionTo('hosts.index');
+        location.reload();
+      }
+    });
   },
 
   enter: function (router) {

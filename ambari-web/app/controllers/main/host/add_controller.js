@@ -391,7 +391,6 @@ App.AddHostController = App.WizardController.extend({
    * Clear all temporary data
    */
   finish: function () {
-    this.setCurrentStep('1');
     this.clearAllSteps();
     this.clearStorageData();
     App.router.get('updateController').updateAll();
