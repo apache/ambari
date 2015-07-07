@@ -114,9 +114,9 @@ class ServiceCheckDefault(ServiceCheck):
 
     json_response_received = False
     for rm_host in params.rm_hosts:
-      info_app_url = "http://" + rm_host + ":" + params.rm_port + "/ws/v1/cluster/apps/" + application_name
+      info_app_url = params.scheme + "://" + params.yarn_rm_address + "/ws/v1/cluster/apps/" + application_name
 
-      get_app_info_cmd = "curl --negotiate -u : -sL --connect-timeout " + CURL_CONNECTION_TIMEOUT + " " + info_app_url
+      get_app_info_cmd = "curl --negotiate -u : -ksL --connect-timeout " + CURL_CONNECTION_TIMEOUT + " " + info_app_url
 
       return_code, stdout = shell.checked_call(get_app_info_cmd,
                                             path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',

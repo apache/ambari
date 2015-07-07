@@ -281,6 +281,11 @@ else:
 
 ranger_admin_log_dir = default("/configurations/ranger-env/ranger_admin_log_dir","/var/log/ranger/admin")
 
+yarn_http_policy = config['configurations']['yarn-site']['yarn.http.policy']
+yarn_https_on = (yarn_http_policy.upper() == 'HTTPS_ONLY')
+scheme = 'http' if not yarn_https_on else 'https'
+yarn_rm_address = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'] if not yarn_https_on else config['configurations']['yarn-site']['yarn.resourcemanager.webapp.https.address']
+
 #ranger yarn properties
 if has_ranger_admin:
   is_supported_yarn_ranger = config['configurations']['yarn-env']['is_supported_yarn_ranger']
@@ -299,11 +304,7 @@ if has_ranger_admin:
     ranger_env = config['configurations']['ranger-env']
     ranger_plugin_properties = config['configurations']['ranger-yarn-plugin-properties']
     policy_user = config['configurations']['ranger-yarn-plugin-properties']['policy_user']
-    yarn_rest_url = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address']
-    yarn_http_policy = config['configurations']['yarn-site']['yarn.http.policy']
-    scheme = 'http'
-    if yarn_http_policy.upper() == 'HTTPS_ONLY':
-      scheme = 'https'    
+    yarn_rest_url = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address']  
 
     ranger_plugin_config = {
       'username' : config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
