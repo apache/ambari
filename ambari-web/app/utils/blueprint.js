@@ -248,13 +248,15 @@ module.exports = {
         host_groups: []
       }
     };
+    var hostsMap = this.getComponentForHosts();
 
-    for (var i = 1; i <= hostNames.length; i++) {
+    for (var i = 0; i <= hostNames.length; i++) {
       var host_group = {
-        name: "host-group-" + i,
+        name: "host-group-" + (i + 1),
         components: []
       };
-      var hcFiltered = this.getComponentForHost(hostNames[i-1]);
+      var hcFiltered = hostsMap[hostNames[i]];
+      if (Em.isNone(hcFiltered)) continue;
       for (var j = 0; j < hcFiltered.length; j++) {
         host_group.components.push({
           name: hcFiltered[j]
@@ -262,9 +264,9 @@ module.exports = {
       }
       recommendations.blueprint.host_groups.push(host_group);
       recommendations.blueprint_cluster_binding.host_groups.push({
-        name: "host-group-" + i,
+        name: "host-group-" + (i + 1),
         hosts: [{
-          fqdn: hostNames[i-1]
+          fqdn: hostNames[i]
         }]
       });
     }
@@ -272,20 +274,39 @@ module.exports = {
   },
 
   /**
-   * gets all component names that are present on current host
-   * @param {String} hostName
-   * @returns {Array}
+   * collect all component names that are present on hosts
+   * @returns {object}
    */
-  getComponentForHost: function(hostName) {
-    var clients = App.ClientComponent.find().filter(function(c) {
-      return c.get('hostNames').contains(hostName);
-    }).mapProperty('componentName');
-    var slaves = App.SlaveComponent.find().filter(function(s) {
-      return s.get('hostNames').contains(hostName);
-    }).mapProperty('componentName');
-    var masters = App.HostComponent.find().filter(function(m) {
-      return m.get('isMaster') && m.get('hostName') === hostName;
-    }).mapProperty('componentName');
-    return masters.concat(slaves).concat(clients);
+  getComponentForHosts: function() {
+    var hostsMap = {};
+    App.ClientComponent.find().forEach(function(c) {
+      var componentName = c.get('componentName');
+      c.get('hostNames').forEach(function(hostName){
+        if (hostsMap[hostName]) {
+          hostsMap[hostName].push(componentName);
+        } else {
+          hostsMap[hostName] = [componentName];
+        }
+      });
+    });
+    App.SlaveComponent.find().forEach(function (c) {
+      var componentName = c.get('componentName');
+      c.get('hostNames').forEach(function (hostName) {
+        if (hostsMap[hostName]) {
+          hostsMap[hostName].push(componentName);
+        } else {
+          hostsMap[hostName] = [componentName];
+        }
+      });
+    });
+    App.HostComponent.find().forEach(function (c) {
+      var hostName = c.get('hostName');
+      if (hostsMap[hostName]) {
+        hostsMap[hostName].push(c.get('componentName'));
+      } else {
+        hostsMap[hostName] = [c.get('componentName')];
+      }
+    });
+    return hostsMap;
   }
 };
