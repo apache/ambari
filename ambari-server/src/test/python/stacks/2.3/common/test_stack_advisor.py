@@ -254,11 +254,6 @@ class TestHDP23StackAdvisor(TestCase):
           "yarn.scheduler.minimum-allocation-mb": "256",
           "yarn.scheduler.maximum-allocation-mb": "8192",
         },
-      },
-      "capacity-scheduler": {
-        "properties": {
-          "yarn.scheduler.capacity.root.queues": "queue1,queue2"
-        }
       }
     }
     clusterData = {
@@ -270,11 +265,6 @@ class TestHDP23StackAdvisor(TestCase):
       "ramPerContainer": 256
     }
     expected = {
-      'capacity-scheduler': {
-        'properties': {
-          'yarn.scheduler.capacity.root.queues': 'queue1,queue2'
-        }
-      },
       'yarn-site': {
         'properties': {
           'yarn.scheduler.minimum-allocation-mb': '256',
@@ -421,7 +411,34 @@ class TestHDP23StackAdvisor(TestCase):
           ]
         },
       ],
-      "configurations": configurations,
+      "configurations": {
+        "capacity-scheduler": {
+          "properties": {
+            "yarn.scheduler.capacity.root.queues": "queue1,queue2"
+          }
+        },
+        "hive-env": {
+          "properties": {
+          }
+        },
+        "hive-site": {
+          "properties": {
+            "hive.server2.authentication": "none",
+            "hive.server2.authentication.ldap.url": "",
+            "hive.server2.authentication.ldap.baseDN": "",
+            "hive.server2.authentication.kerberos.keytab": "",
+            "hive.server2.authentication.kerberos.principal": "",
+            "hive.server2.authentication.pam.services": "",
+            "hive.server2.custom.authentication.class": ""
+          }
+        },
+        "hiveserver2-site": {
+          "properties": {
+            "hive.security.authorization.manager": "",
+            "hive.security.authenticator.manager": ""
+          }
+        }
+      },
       "changed-configurations": [ ]
 
     }

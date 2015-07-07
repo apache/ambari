@@ -379,8 +379,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     # this property is unrelated to Kerberos
     if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "none":
       putHiveSiteProperty("hive.security.authorization.manager", "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory")
-      putHiveServerPropertyAttribute("hive.security.authorization.manager", "delete", "true")
-      putHiveServerPropertyAttribute("hive.security.authenticator.manager", "delete", "true")
+      if ("hive.security.authorization.manager" in configurations["hiveserver2-site"]["properties"]) or \
+              ("hiveserver2-site" in services["configurations"] and "hive.security.authorization.manager" in services["configurations"]["hiveserver2-site"]["properties"]):
+        putHiveServerPropertyAttribute("hive.security.authorization.manager", "delete", "true")
+      if ("hive.security.authenticator.manager" in configurations["hiveserver2-site"]["properties"]) or \
+              ("hiveserver2-site" in services["configurations"] and "hive.security.authenticator.manager" in services["configurations"]["hiveserver2-site"]["properties"]):
+        putHiveServerPropertyAttribute("hive.security.authenticator.manager", "delete", "true")
       if "KERBEROS" not in servicesList: # Kerberos security depends on this property
         putHiveSiteProperty("hive.security.authorization.enabled", "false")
     else:
@@ -431,25 +435,37 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHiveSiteProperty("hive.server2.authentication.ldap.url", "")
       putHiveSiteProperty("hive.server2.authentication.ldap.baseDN", " ")
     else:
-      putHiveSitePropertyAttribute("hive.server2.authentication.ldap.url", "delete", "true")
-      putHiveSitePropertyAttribute("hive.server2.authentication.ldap.baseDN", "delete", "true")
+      if ("hive.server2.authentication.ldap.url" in configurations["hive-site"]["properties"]) or \
+              ("hive-site" in services["configurations"] and "hive.server2.authentication.ldap.url" in services["configurations"]["hive-site"]["properties"]):
+        putHiveSitePropertyAttribute("hive.server2.authentication.ldap.url", "delete", "true")
+      if ("hive.server2.authentication.ldap.baseDN" in configurations["hive-site"]["properties"]) or \
+              ("hive-site" in services["configurations"] and "hive.server2.authentication.ldap.baseDN" in services["configurations"]["hive-site"]["properties"]):
+        putHiveSitePropertyAttribute("hive.server2.authentication.ldap.baseDN", "delete", "true")
 
     if hive_server2_auth == "kerberos":
       putHiveSiteProperty("hive.server2.authentication.kerberos.keytab", "")
       putHiveSiteProperty("hive.server2.authentication.kerberos.principal", "")
     elif "KERBEROS" not in servicesList: # Since 'hive_server2_auth' cannot be relied on within the default, empty recommendations request
-      putHiveSitePropertyAttribute("hive.server2.authentication.kerberos.keytab", "delete", "true")
-      putHiveSitePropertyAttribute("hive.server2.authentication.kerberos.principal", "delete", "true")
+      if ("hive.server2.authentication.kerberos.keytab" in configurations["hive-site"]["properties"]) or \
+              ("hive-site" in services["configurations"] and "hive.server2.authentication.kerberos.keytab" in services["configurations"]["hive-site"]["properties"]):
+        putHiveSitePropertyAttribute("hive.server2.authentication.kerberos.keytab", "delete", "true")
+      if ("hive.server2.authentication.kerberos.principal" in configurations["hive-site"]["properties"]) or \
+              ("hive-site" in services["configurations"] and "hive.server2.authentication.kerberos.principal" in services["configurations"]["hive-site"]["properties"]):
+        putHiveSitePropertyAttribute("hive.server2.authentication.kerberos.principal", "delete", "true")
 
     if hive_server2_auth == "pam":
       putHiveSiteProperty("hive.server2.authentication.pam.services", "")
     else:
-      putHiveSitePropertyAttribute("hive.server2.authentication.pam.services", "delete", "true")
+      if ("hive.server2.authentication.pam.services" in configurations["hive-site"]["properties"]) or \
+              ("hive-site" in services["configurations"] and "hive.server2.authentication.pam.services" in services["configurations"]["hive-site"]["properties"]):
+        putHiveSitePropertyAttribute("hive.server2.authentication.pam.services", "delete", "true")
 
     if hive_server2_auth == "custom":
       putHiveSiteProperty("hive.server2.custom.authentication.class", "")
     else:
-      putHiveSitePropertyAttribute("hive.server2.custom.authentication.class", "delete", "true")
+      if ("hive.server2.authentication" in configurations["hive-site"]["properties"]) or \
+              ("hive-site" in services["configurations"] and "hive.server2.custom.authentication.class" in services["configurations"]["hive-site"]["properties"]):
+        putHiveSitePropertyAttribute("hive.server2.custom.authentication.class", "delete", "true")
 
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):

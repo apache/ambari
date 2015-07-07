@@ -1394,21 +1394,51 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         for (final Cluster cluster : clusterMap.values()) {
           String content = null;
           if(cluster.getDesiredConfigByType("hive-env") != null) {
-            Map<String, String> hiveProps = new HashMap<String, String>();
+            Map<String, String> hiveEnvProps = new HashMap<String, String>();
+            Set<String> hiveServerSiteRemoveProps = new HashSet<String>();
             // Update logic for setting HIVE_AUX_JARS_PATH in hive-env.sh
             content = cluster.getDesiredConfigByType("hive-env").getProperties().get("content");
             if(content != null) {
               content = updateHiveEnvContent(content);
-              hiveProps.put("content", content);
+              hiveEnvProps.put("content", content);
             }
             //hive metastore and client_heapsize are added for HDP2, we should check if it exists and not add it for HDP1
             if (!cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive.client.heapsize")) {
-              hiveProps.put("hive.client.heapsize", "512m");
+              hiveEnvProps.put("hive.client.heapsize", "512m");
             }
             if (!cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive.metastore.heapsize")) {
-              hiveProps.put("hive.metastore.heapsize", "1024m");
+              hiveEnvProps.put("hive.metastore.heapsize", "1024m");
             }
-            updateConfigurationPropertiesForCluster(cluster, "hive-env", hiveProps, true, true);
+            if (cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive_security_authorization") &&
+                    "none".equalsIgnoreCase(cluster.getDesiredConfigByType("hive-env").getProperties().get("hive_security_authorization"))) {
+              hiveServerSiteRemoveProps.add("hive.security.authorization.manager");
+              hiveServerSiteRemoveProps.add("hive.security.authenticator.manager");
+            }
+            updateConfigurationPropertiesForCluster(cluster, "hive-env", hiveEnvProps, true, true);
+            updateConfigurationPropertiesForCluster(cluster, "hiveserver2-site", new HashMap<String, String>(), hiveServerSiteRemoveProps, false, true);
+          }
+
+          if(cluster.getDesiredConfigByType("hive-site") != null) {
+            Set<String> hiveSiteRemoveProps = new HashSet<String>();
+            String hive_server2_auth = "";
+            if (cluster.getDesiredConfigByType("hive-site").getProperties().containsKey("hive.server2.authentication")) {
+              hive_server2_auth = cluster.getDesiredConfigByType("hive-site").getProperties().get("hive.server2.authentication");
+            }
+            if (!"pam".equalsIgnoreCase(hive_server2_auth)) {
+              hiveSiteRemoveProps.add("hive.server2.authentication.pam.services");
+            }
+            if (!"custom".equalsIgnoreCase(hive_server2_auth)) {
+              hiveSiteRemoveProps.add("hive.server2.custom.authentication.class");
+            }
+            if (!"ldap".equalsIgnoreCase(hive_server2_auth)) {
+              hiveSiteRemoveProps.add("hive.server2.authentication.ldap.url");
+              hiveSiteRemoveProps.add("hive.server2.authentication.ldap.baseDN");
+            }
+            if (!"kerberos".equalsIgnoreCase(hive_server2_auth) && !cluster.getServices().containsKey("KERBEROS")) {
+              hiveSiteRemoveProps.add("hive.server2.authentication.kerberos.keytab");
+              hiveSiteRemoveProps.add("hive.server2.authentication.kerberos.principal");
+            }
+            updateConfigurationPropertiesForCluster(cluster, "hive-site", new HashMap<String, String>(), hiveSiteRemoveProps, false, true);
           }
         }
       }
