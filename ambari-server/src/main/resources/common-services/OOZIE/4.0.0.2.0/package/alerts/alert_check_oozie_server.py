@@ -178,11 +178,13 @@ def execute(configurations={}, parameters={}, host_name=None):
     parsed_url = urlparse(oozie_url)
     oozie_url = oozie_url.replace(parsed_url.scheme, "https")
     if parsed_url.port is None:
-      oozie_url.replace(parsed_url.hostname, ":".join([parsed_url.hostname, https_port]))
+      oozie_url.replace(parsed_url.hostname, ":".join([parsed_url.hostname, str(https_port)]))
     else:
-      oozie_url = oozie_url.replace(str(parsed_url.port), https_port)
+      oozie_url = oozie_url.replace(str(parsed_url.port), str(https_port))
 
-  oozie_url = oozie_url.replace(urlparse(oozie_url).hostname, localhost_address)
+  # https will not work with localhost address, we need put fqdn
+  if https_port is None:
+    oozie_url = oozie_url.replace(urlparse(oozie_url).hostname, localhost_address)
 
   try:
     command, env, oozie_user = get_check_command(oozie_url, host_name, configurations)

@@ -30,6 +30,8 @@ from resource_management.libraries.script.script import Script
 
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 
+from urlparse import urlparse
+
 import status_params
 import os
 
@@ -139,10 +141,32 @@ oozie_log_dir = config['configurations']['oozie-env']['oozie_log_dir']
 oozie_data_dir = config['configurations']['oozie-env']['oozie_data_dir']
 oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
 oozie_server_admin_port = config['configurations']['oozie-env']['oozie_admin_port']
-if 'oozie.https.port' in config['configurations']['oozie-site'] or 'oozie.https.keystore.file' in config['configurations']['oozie-site'] or 'oozie.https.keystore.pass' in config['configurations']['oozie-site']:
+if 'export OOZIE_HTTPS_PORT' in oozie_env_sh_template or 'oozie.https.port' in config['configurations']['oozie-site'] or 'oozie.https.keystore.file' in config['configurations']['oozie-site'] or 'oozie.https.keystore.pass' in config['configurations']['oozie-site']:
   oozie_secure = '-secure'
 else:
   oozie_secure = ''
+
+https_port = None
+# try to get https port form oozie-env content
+for line in oozie_env_sh_template.splitlines():
+  result = re.match(r"export\s+OOZIE_HTTPS_PORT=(\d+)", line)
+  if result is not None:
+    https_port = result.group(1)
+# or from oozie-site.xml
+if https_port is None and 'oozie.https.port' in config['configurations']['oozie-site']:
+  https_port = config['configurations']['oozie-site']['oozie.https.port']
+
+oozie_base_url = config['configurations']['oozie-site']['oozie.base.url']
+
+# construct proper url for https
+if https_port is not None:
+  parsed_url = urlparse(oozie_base_url)
+  oozie_base_url = oozie_base_url.replace(parsed_url.scheme, "https")
+  if parsed_url.port is None:
+    oozie_base_url.replace(parsed_url.hostname, ":".join([parsed_url.hostname, str(https_port)]))
+  else:
+    oozie_base_url = oozie_base_url.replace(str(parsed_url.port), str(https_port))
+
 
 hdfs_site = config['configurations']['hdfs-site']
 fs_root = config['configurations']['core-site']['fs.defaultFS']

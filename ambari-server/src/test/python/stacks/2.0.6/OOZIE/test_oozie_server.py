@@ -38,6 +38,9 @@ class TestOozieServer(RMFTestCase):
   STACK_VERSION = "2.0.6"
   UPGRADE_STACK_VERSION = "2.2"
 
+  def setUp(self):
+    self.maxDiff = None
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                        classname = "OozieServer",
@@ -233,11 +236,15 @@ class TestOozieServer(RMFTestCase):
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
     )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
-        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]]",
+        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]] && test -f /usr/lib/oozie/.prepare_war_cmd && [[ `cat /usr/lib/oozie/.prepare_war_cmd` == 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ' ]]",
         user = 'oozie',
     )
     self.assertResourceCalled('File', '/usr/lib/oozie/.hashcode',
         content = 'abc123hash',
+        mode = 0644,
+    )
+    self.assertResourceCalled('File', '/usr/lib/oozie/.prepare_war_cmd',
+        content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
         mode = 0644,
     )
     self.assertResourceCalled('Execute', ('chown', '-R', u'oozie:hadoop', '/var/lib/oozie/oozie-server'),
@@ -564,11 +571,15 @@ class TestOozieServer(RMFTestCase):
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
     )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
-        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]]",
+        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]] && test -f /usr/lib/oozie/.prepare_war_cmd && [[ `cat /usr/lib/oozie/.prepare_war_cmd` == 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ' ]]",
         user = 'oozie',
     )
     self.assertResourceCalled('File', '/usr/lib/oozie/.hashcode',
         content = 'abc123hash',
+        mode = 0644,
+    )
+    self.assertResourceCalled('File', '/usr/lib/oozie/.prepare_war_cmd',
+        content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
         mode = 0644,
     )
     self.assertResourceCalled('Execute', ('chown', '-R', u'oozie:hadoop', '/var/lib/oozie/oozie-server'),
@@ -736,11 +747,15 @@ class TestOozieServer(RMFTestCase):
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
     )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war -secure',
-        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]]",
+        not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]] && test -f /usr/lib/oozie/.prepare_war_cmd && [[ `cat /usr/lib/oozie/.prepare_war_cmd` == 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war -secure' ]]",
         user = 'oozie',
     )
     self.assertResourceCalled('File', '/usr/lib/oozie/.hashcode',
         content = 'abc123hash',
+        mode = 0644,
+    )
+    self.assertResourceCalled('File', '/usr/lib/oozie/.prepare_war_cmd',
+        content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war -secure',
         mode = 0644,
     )
     self.assertResourceCalled('Execute', ('chown', '-R', u'oozie:hadoop', '/var/lib/oozie/oozie-server'),
