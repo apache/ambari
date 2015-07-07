@@ -39,7 +39,11 @@ module.exports = Em.Route.extend({
       var href = ['/views', params.viewName, params.version, params.instanceName + "/"].join('/');
       var viewPath = this.parseViewPath(window.location.href.slice(window.location.href.indexOf('?')));
       if (viewPath) {
-        href = ['/views', params.viewName, params.version, params.instanceName.slice(0, params.instanceName.lastIndexOf('?')) + "/"].join('/');
+        var slicedInstanceName = this._getSlicedInstanceName(params.instanceName);
+        if (slicedInstanceName === params.instanceName) {
+          viewPath = '';
+        }
+        href = ['/views', params.viewName, params.version, slicedInstanceName + "/"].join('/');
         //remove slash from viewPath since href already contains it at the end
         if (viewPath.charAt(0) === '/') viewPath = viewPath.slice(1);
       }
@@ -50,6 +54,22 @@ module.exports = Em.Route.extend({
         router.get('mainController').connectOutlet('mainViewsDetails', content);
       });
     },
+
+    /**
+     * parse the instance name and slice if needed
+     *
+     * @param {string}
+     * @returns {string}
+     * @private
+     */
+    _getSlicedInstanceName: function (instanceName) {
+      if (instanceName.lastIndexOf('?') > -1) {
+        return instanceName.slice(0, instanceName.lastIndexOf('?'));
+      }
+
+      return instanceName;
+    },
+
     /**
      * parse internal view path
      * "viewPath" - used as a key of additional path
