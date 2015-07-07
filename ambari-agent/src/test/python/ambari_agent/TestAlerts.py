@@ -961,7 +961,7 @@ class TestAlerts(TestCase):
     definition_json = self._get_web_alert_definition()
     alert = WebAlert(definition_json, definition_json['source'], None)
     self.assertEquals(5.678, alert.connection_timeout)
-    self.assertEquals("5", alert.curl_connection_timeout)
+    self.assertEquals(5, alert.curl_connection_timeout)
 
     # the metric definition will not and should default to 5.0
     definition_json = self._get_metric_alert_definition()

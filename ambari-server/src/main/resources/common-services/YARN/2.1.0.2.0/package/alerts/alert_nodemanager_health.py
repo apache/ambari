@@ -141,8 +141,13 @@ def execute(configurations={}, parameters={}, host_name=None):
   try:
     if kerberos_principal is not None and kerberos_keytab is not None and security_enabled:
       env = Environment.get_instance()
+
+      # curl requires an integer timeout
+      curl_connection_timeout = int(connection_timeout)
+
       url_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
-                                                query, "nm_health_alert", None, False, "NodeManager Health", smokeuser)
+        query, "nm_health_alert", None, False, "NodeManager Health", smokeuser,
+        connection_timeout=curl_connection_timeout)
 
       json_response = json.loads(url_response)
     else:

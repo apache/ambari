@@ -58,8 +58,9 @@ class MetricAlert(BaseAlert):
       if 'connection_timeout' in uri:
         connection_timeout = uri['connection_timeout']
 
-    # python uses 5.0, not 5
+    # python uses 5.0, CURL uses "5"
     self.connection_timeout = float(connection_timeout)
+    self.curl_connection_timeout = int(connection_timeout)
 
     self.config = config
 
@@ -206,7 +207,9 @@ class MetricAlert(BaseAlert):
           smokeuser = self._get_configuration_value('{{cluster-env/smokeuser}}')
 
           response, error_msg, time_millis = curl_krb_request(tmp_dir, kerberos_keytab, kerberos_principal, url,
-                                          "metric_alert", kerberos_executable_search_paths, False, self.get_name(), smokeuser)
+            "metric_alert", kerberos_executable_search_paths, False, self.get_name(), smokeuser,
+            connection_timeout=self.curl_connection_timeout)
+
           content = response
         else:
           url_opener = urllib2.build_opener(RefreshHeaderProcessor())
@@ -242,10 +245,10 @@ class MetricAlert(BaseAlert):
           value_list.append(json_data[attr])
 
       http_response_code = None
-      if not json_is_valid and security_enabled and \
-            kerberos_principal is not None and kerberos_keytab is not None:
-        http_response_code, error_msg, time_millis = curl_krb_request(tmp_dir, kerberos_keytab, kerberos_principal, url,
-                                              "metric_alert", kerberos_executable_search_paths, True, self.get_name(), smokeuser)
+      if not json_is_valid and security_enabled and kerberos_principal is not None and kerberos_keytab is not None:
+        http_response_code, error_msg, time_millis = curl_krb_request(tmp_dir, kerberos_keytab,
+          kerberos_principal, url, "metric_alert", kerberos_executable_search_paths, True,
+          self.get_name(), smokeuser, connection_timeout=self.curl_connection_timeout)
 
     return (value_list, http_response_code)
 

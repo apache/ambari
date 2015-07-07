@@ -116,11 +116,11 @@ def execute(configurations={}, parameters={}, host_name=None):
     return (RESULT_STATE_UNKNOWN, ['Unable to find unique namenode alias key {0}'.format(nn_unique_ids_key)])
 
   namenode_http_fragment = 'dfs.namenode.http-address.{0}.{1}'
-  jmx_uri_fragment = "http://{0}/jmx?qry=Hadoop:service=NameNode,name=NameNodeStatus"
+  jmx_uri_fragment = "http://{0}/jmx?qry=Hadoop:service=NameNode,name=*"
 
   if is_ssl_enabled:
     namenode_http_fragment = 'dfs.namenode.https-address.{0}.{1}'
-    jmx_uri_fragment = "https://{0}/jmx?qry=Hadoop:service=NameNode,name=NameNodeStatus"
+    jmx_uri_fragment = "https://{0}/jmx?qry=Hadoop:service=NameNode,name=*"
 
 
   active_namenodes = []
@@ -142,13 +142,18 @@ def execute(configurations={}, parameters={}, host_name=None):
         jmx_uri = jmx_uri_fragment.format(value)
         if kerberos_principal is not None and kerberos_keytab is not None and security_enabled:
           env = Environment.get_instance()
-          state_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
-                                                    jmx_uri,"ha_nn_health", None, False,
-                                                    "NameNode High Availability Health", smokeuser)
-          state_response_json = json.loads(state_response)
-          state = state_response_json["beans"][0]['State']
+
+          # curl requires an integer timeout
+          curl_connection_timeout = int(connection_timeout)
+
+          state_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir,
+            kerberos_keytab, kerberos_principal, jmx_uri,"ha_nn_health", None, False,
+            "NameNode High Availability Health", smokeuser, connection_timeout=curl_connection_timeout)
+
+          state = _get_ha_state_from_json(state_response)
         else:
-          state = get_value_from_jmx(jmx_uri, 'State', connection_timeout)
+          state_response = get_jmx(jmx_uri, connection_timeout)
+          state = _get_ha_state_from_json(state_response)
 
         if state == HDFS_NN_STATE_ACTIVE:
           active_namenodes.append(value)
@@ -204,18 +209,45 @@ def execute(configurations={}, parameters={}, host_name=None):
       return (RESULT_STATE_SKIPPED, ['Another host will report this alert'])
 
 
-def get_value_from_jmx(query, jmx_property, connection_timeout):
+def get_jmx(query, connection_timeout):
   response = None
   
   try:
     response = urllib2.urlopen(query, timeout=connection_timeout)
-    data = response.read()
-
-    data_dict = json.loads(data)
-    return data_dict["beans"][0][jmx_property]
+    json_data = response.read()
+    return json_data
   finally:
     if response is not None:
       try:
         response.close()
       except:
         pass
+
+
+def _get_ha_state_from_json(string_json):
+  """
+  Searches through the specified JSON string looking for either the HDP 2.0 or 2.1+ HA state
+  enumerations.
+  :param string_json: the string JSON
+  :return:  the value of the HA state (active, standby, etc)
+  """
+  json_data = json.loads(string_json)
+  jmx_beans = json_data["beans"]
+
+  # look for HDP 2.1+ first
+  for jmx_bean in jmx_beans:
+    if "name" not in jmx_bean:
+      continue
+
+    jmx_bean_name = jmx_bean["name"]
+    if jmx_bean_name == "Hadoop:service=NameNode,name=NameNodeStatus" and "State" in jmx_bean:
+      return jmx_bean["State"]
+
+  # look for HDP 2.0 last
+  for jmx_bean in jmx_beans:
+    if "name" not in jmx_bean:
+      continue
+
+    jmx_bean_name = jmx_bean["name"]
+    if jmx_bean_name == "Hadoop:service=NameNode,name=FSNamesystem":
+      return jmx_bean["tag.HAState"]
