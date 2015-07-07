@@ -464,7 +464,7 @@ public interface DBAccessor {
    * @return the string list of index names
    * @throws SQLException
    */
-  //List<String> getIndexesList(String tableName, boolean unique) throws SQLException;
+  List<String> getIndexesList(String tableName, boolean unique) throws SQLException;
 
   /**
    * Check if index is already in scheme
@@ -476,7 +476,7 @@ public interface DBAccessor {
    *            name of the index to check
    * @return true if index present in the schema
    */
-  //boolean tableHasIndex(String tableName, boolean unique, String indexName) throws SQLException;
+  boolean tableHasIndex(String tableName, boolean unique, String indexName) throws SQLException;
 
   /**
    * Gets the column's SQL type

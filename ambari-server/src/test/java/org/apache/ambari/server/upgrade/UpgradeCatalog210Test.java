@@ -89,6 +89,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
+import org.powermock.api.easymock.PowerMock;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog210} unit tests.
@@ -170,16 +171,26 @@ public class UpgradeCatalog210Test {
   @Test
   public void testExecutePreDMLUpdates() throws Exception {
     Method executeStackPreDMLUpdates = UpgradeCatalog210.class.getDeclaredMethod("executeStackPreDMLUpdates");
+    Method cleanupStackUpdates = UpgradeCatalog210.class.getDeclaredMethod("cleanupStackUpdates");
 
-    UpgradeCatalog210 upgradeCatalog210 = createMockBuilder(UpgradeCatalog210.class)
-        .addMockedMethod( executeStackPreDMLUpdates) .createMock();
+    final UpgradeCatalog210 upgradeCatalog210 = createMockBuilder(UpgradeCatalog210.class)
+        .addMockedMethod(executeStackPreDMLUpdates)
+        .addMockedMethod(cleanupStackUpdates).createMock();
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(UpgradeCatalog210.class).toInstance(upgradeCatalog210);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
 
     upgradeCatalog210.executeStackPreDMLUpdates();
     expectLastCall().once();
 
     replay(upgradeCatalog210);
-
-    upgradeCatalog210.executePreDMLUpdates();
+    mockInjector.getInstance(UpgradeCatalog210.class).executePreDMLUpdates();
 
     verify(upgradeCatalog210);
   }

@@ -96,6 +96,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -429,37 +430,24 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.addColumn("configgroup", new DBColumnInfo("service_name", String.class, 255));
 
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('alert_definition_id_seq', 0)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('alert_group_id_seq', 0)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('alert_target_id_seq', 0)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('alert_history_id_seq', 0)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('alert_notice_id_seq', 0)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('alert_current_id_seq', 0)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('group_id_seq', 1)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('member_id_seq', 1)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('resource_type_id_seq', 4)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('resource_id_seq', 2)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('principal_type_id_seq', 3)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('principal_id_seq', 2)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('permission_id_seq', 5)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('privilege_id_seq', 1)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('service_config_id_seq', 1)", false);
-
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('service_config_application_id_seq', 1)", false);
+    addSequences(Arrays.asList(
+                                "alert_definition_id_seq",
+                                "alert_group_id_seq",
+                                "alert_target_id_seq",
+                                "alert_history_id_seq",
+                                "alert_notice_id_seq",
+                                "alert_current_id_seq"
+    ), 0L, false);
+    addSequence("group_id_seq", 1L, false);
+    addSequence("member_id_seq", 1L, false);
+    addSequence("resource_type_id_seq", 4L, false);
+    addSequence("resource_id_seq", 2L, false);
+    addSequence("principal_type_id_seq", 3L, false);
+    addSequence("principal_id_seq", 2L, false);
+    addSequence("permission_id_seq", 5L, false);
+    addSequence("privilege_id_seq", 1L, false);
+    addSequence("service_config_id_seq", 1L, false);
+    addSequence("service_config_application_id_seq", 1L, false);
 
     long count = 1;
 
@@ -484,7 +472,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
       }
     }
 
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('config_id_seq', " + count + ")", false);
+    addSequence("config_id_seq", count, false);
 
     dbAccessor.addFKConstraint("users", "FK_users_principal_id", "principal_id", "adminprincipal", "principal_id", true);
     dbAccessor.addFKConstraint("clusters", "FK_clusters_resource_id", "resource_id", "adminresource", "resource_id", true);
@@ -499,9 +487,9 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint("members", "FK_members_user_id", "user_id", "users", "user_id", true);
     dbAccessor.addFKConstraint("members", "FK_members_group_id", "group_id", "groups", "group_id", true);
 
-    dbAccessor.executeQuery("ALTER TABLE groups ADD CONSTRAINT UNQ_groups_0 UNIQUE (group_name, ldap_group)");
-    dbAccessor.executeQuery("ALTER TABLE members ADD CONSTRAINT UNQ_members_0 UNIQUE (group_id, user_id)");
-    dbAccessor.executeQuery("ALTER TABLE adminpermission ADD CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id)");
+    dbAccessor.addUniqueConstraint("groups", "UNQ_groups_0", "group_name", "ldap_group");
+    dbAccessor.addUniqueConstraint("members", "UNQ_members_0", "group_id", "user_id");
+    dbAccessor.addUniqueConstraint("adminpermission", "UQ_perm_name_resource_type_id", "permission_name", "resource_type_id");
   }
 
   /**
@@ -511,7 +499,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   private void addConfigAttributesColumn(String tableName) throws SQLException {
     final DatabaseType databaseType = configuration.getDatabaseType();
     if (databaseType == DatabaseType.ORACLE) {
-      dbAccessor.executeQuery("ALTER TABLE " + tableName + " ADD config_attributes CLOB NULL");
+      dbAccessor.addColumn(tableName, new DBColumnInfo("config_attributes", char[].class));
     } else {
       DBColumnInfo clusterConfigAttributesColumn = new DBColumnInfo(
           "config_attributes", Character[].class, null, null, true);
@@ -963,11 +951,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         "fk_alert_def_cluster_id",
         "cluster_id", "clusters", "cluster_id", false);
 
-    dbAccessor.executeQuery(
-        "ALTER TABLE "
-            + ALERT_TABLE_DEFINITION
-            + " ADD CONSTRAINT uni_alert_def_name UNIQUE (cluster_id,definition_name)",
-        false);
+    dbAccessor.addUniqueConstraint(ALERT_TABLE_DEFINITION, "uni_alert_def_name", "cluster_id", "definition_name");
 
     // alert_history
     columns = new ArrayList<DBColumnInfo>();
@@ -1014,9 +998,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         "fk_alert_current_history_id", "history_id", ALERT_TABLE_HISTORY,
         "alert_id", false);
 
-    dbAccessor.executeQuery("ALTER TABLE " + ALERT_TABLE_CURRENT
-        + " ADD CONSTRAINT uni_alert_current_hist_id UNIQUE (history_id)",
-        false);
+    dbAccessor.addUniqueConstraint(ALERT_TABLE_CURRENT, "uni_alert_current_hist_id", "history_id");
 
     // alert_group
     columns = new ArrayList<DBColumnInfo>();
@@ -1027,11 +1009,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("service_name", String.class, 255, null, true));
     dbAccessor.createTable(ALERT_TABLE_GROUP, columns, "group_id");
 
-    dbAccessor.executeQuery(
-        "ALTER TABLE "
-            + ALERT_TABLE_GROUP
-            + " ADD CONSTRAINT uni_alert_group_name UNIQUE (cluster_id,group_name)",
-        false);
+    dbAccessor.addUniqueConstraint(ALERT_TABLE_GROUP, "uni_alert_group_name", "cluster_id", "group_name");
 
     // alert_target
     columns = new ArrayList<DBColumnInfo>();
@@ -1042,9 +1020,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("description", String.class, 1024, null, true));
     dbAccessor.createTable(ALERT_TABLE_TARGET, columns, "target_id");
 
-    dbAccessor.executeQuery("ALTER TABLE " + ALERT_TABLE_TARGET
-        + " ADD CONSTRAINT uni_alert_target_name UNIQUE (target_name)",
-        false);
+    dbAccessor.addUniqueConstraint(ALERT_TABLE_TARGET, "uni_alert_target_name", "target_name");
 
     // alert_group_target
     columns = new ArrayList<DBColumnInfo>();
@@ -1092,9 +1068,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint(ALERT_TABLE_NOTICE, "fk_alert_notice_hist_id",
         "history_id", ALERT_TABLE_HISTORY, "alert_id", false);
 
-    dbAccessor.executeQuery("ALTER TABLE " + ALERT_TABLE_NOTICE
-        + " ADD CONSTRAINT uni_alert_notice_uuid UNIQUE (uuid)", false);
-
+    dbAccessor.addUniqueConstraint(ALERT_TABLE_NOTICE, "uni_alert_notice_uuid", "uuid");
     // Indexes
     dbAccessor.createIndex("idx_alert_history_def_id", ALERT_TABLE_HISTORY,
         "alert_definition_id");

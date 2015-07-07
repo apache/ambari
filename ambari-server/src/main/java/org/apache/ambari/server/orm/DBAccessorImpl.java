@@ -350,11 +350,23 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
+  public boolean tableHasIndex(String tableName, boolean unique, String indexName) throws SQLException{
+    if (tableExists(tableName)){
+      List<String> indexList = getIndexesList(tableName, false);
+      return (CustomStringUtils.containsCaseInsensitive(indexName, indexList));
+    }
+    return false;
+  }
+
+  @Override
   public void createIndex(String indexName, String tableName,
           String... columnNames) throws SQLException {
-    String query = dbmsHelper.getCreateIndexStatement(indexName, tableName, columnNames);
-
-    executeQuery(query);
+   if (!tableHasIndex(tableName, false, indexName)) {
+     String query = dbmsHelper.getCreateIndexStatement(indexName, tableName, columnNames);
+     executeQuery(query);
+   } else {
+     LOG.info("Index {} already exist, skipping creation, table = {}", indexName, tableName);
+   }
   }
 
   @Override
@@ -440,7 +452,7 @@ public class DBAccessorImpl implements DBAccessor {
   @Override
   public void addUniqueConstraint(String tableName, String constraintName, String... columnNames)
           throws SQLException {
-    if (!tableHasConstraint(tableName, constraintName)) {
+    if (!tableHasConstraint(tableName, constraintName) && tableHasColumn(tableName, columnNames)) {
       String query = dbmsHelper.getAddUniqueConstraintStatement(tableName, constraintName, columnNames);
       try {
         executeQuery(query);
@@ -449,7 +461,7 @@ public class DBAccessorImpl implements DBAccessor {
         throw e;
       }
     } else {
-      LOG.info("Unique constraint {} already exists, skipping", constraintName);
+      LOG.info("Unique constraint {} already exists or columns {} not found, skipping", constraintName, StringUtils.join(columnNames, ", "));
     }
   }
 
@@ -457,7 +469,6 @@ public class DBAccessorImpl implements DBAccessor {
   public void addPKConstraint(String tableName, String constraintName, boolean ignoreErrors, String... columnName) throws SQLException {
     if (!tableHasPrimaryKey(tableName, null) && tableHasColumn(tableName, columnName)) {
       String query = dbmsHelper.getAddPrimaryKeyConstraintStatement(tableName, constraintName, columnName);
-
       executeQuery(query, ignoreErrors);
     } else {
       LOG.warn("Primary constraint {} not altered to table {} as column {} not present or constraint already exists",
@@ -861,7 +872,9 @@ public class DBAccessorImpl implements DBAccessor {
     return res;
   }
 
-  private ResultSetMetaData getColumnMetadata(String tableName, String columnName) throws SQLException {
+  @Override
+  public Class getColumnClass(String tableName, String columnName)
+          throws SQLException, ClassNotFoundException {
     // We doesn't require any actual result except metadata, so WHERE clause shouldn't match
     String query = String.format("SELECT %s FROM %s WHERE 1=2", convertObjectName(columnName), convertObjectName(tableName));
     Statement statement = null;
@@ -869,7 +882,7 @@ public class DBAccessorImpl implements DBAccessor {
     try {
       statement = getConnection().createStatement();
       rs = statement.executeQuery(query);
-      return rs.getMetaData();
+      return Class.forName(rs.getMetaData().getColumnClassName(1));
     } finally {
       if (statement != null) {
         statement.close();
@@ -881,39 +894,46 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
-  public Class getColumnClass(String tableName, String columnName)
-          throws SQLException, ClassNotFoundException {
-    ResultSetMetaData rsmd = getColumnMetadata(tableName, columnName);
-    return Class.forName(rsmd.getColumnClassName(1));
-  }
-
-  @Override
   public boolean isColumnNullable(String tableName, String columnName) throws SQLException {
-    ResultSetMetaData rsmd = getColumnMetadata(tableName, columnName);
-    return !(rsmd.isNullable(1) == ResultSetMetaData.columnNoNulls);
+    // We doesn't require any actual result except metadata, so WHERE clause shouldn't match
+    String query = String.format("SELECT %s FROM %s WHERE 1=2", convertObjectName(columnName), convertObjectName(tableName));
+    Statement statement = null;
+    ResultSet rs = null;
+    try {
+      statement = getConnection().createStatement();
+      rs = statement.executeQuery(query);
+      return !(rs.getMetaData().isNullable(1) == ResultSetMetaData.columnNoNulls);
+    } finally {
+      if (statement != null) {
+        statement.close();
+      }
+      if (rs != null) {
+        rs.close();
+      }
+    }
   }
 
   @Override
   public void setColumnNullable(String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable)
           throws SQLException {
+    String columnName = columnInfo.getName();
 
-    String statement = dbmsHelper.getSetNullableStatement(tableName, columnInfo, nullable);
-    executeQuery(statement);
+    // if column is already in nullable state, we shouldn't do anything. This is important for Oracle
+    if (isColumnNullable(tableName, columnName) != nullable) {
+      String query = dbmsHelper.getSetNullableStatement(tableName, columnInfo, nullable);
+      executeQuery(query);
+    } else {
+      LOG.info("Column nullability property is not changed due to {} column from {} table is already in {} state, skipping",
+                columnName, tableName, (nullable) ? "nullable" : "not nullable");
+    }
   }
 
   @Override
   public void setColumnNullable(String tableName, String columnName, boolean nullable)
           throws SQLException {
     try {
-      // if column is already in nullable state, we shouldn't do anything. This is important for Oracle
-      if (isColumnNullable(tableName, columnName) != nullable) {
-        Class columnClass = getColumnClass(tableName, columnName);
-        String query = dbmsHelper.getSetNullableStatement(tableName, new DBColumnInfo(columnName, columnClass), nullable);
-        executeQuery(query);
-      } else {
-        LOG.info("Column nullability property is not changed due to {} column from {} table is already in {} state, skipping",
-                columnName, tableName, (nullable) ? "nullable" : "not nullable");
-      }
+      Class columnClass = getColumnClass(tableName, columnName);
+      setColumnNullable(tableName,new DBColumnInfo(columnName, columnClass), nullable);
     } catch (ClassNotFoundException e) {
       LOG.error("Could not modify table=[], column={}, error={}", tableName, columnName, e.getMessage());
     }
@@ -940,6 +960,26 @@ public class DBAccessorImpl implements DBAccessor {
     }
 
     alterColumn(tableName, new DBColumnInfo(columnName, toType, null));
+  }
+
+  @Override
+  public List<String> getIndexesList(String tableName, boolean unique)
+    throws SQLException{
+    ResultSet rs = getDatabaseMetaData().getIndexInfo(null, null, convertObjectName(tableName), unique, false);
+    List<String> indexList = new ArrayList<String>();
+    if (rs != null){
+      try{
+        while (rs.next()) {
+          String indexName = rs.getString(convertObjectName("index_name"));
+          if (indexName != null) {  // hack for Oracle database, as she could return null values
+            indexList.add(indexName);
+          }
+        }
+      }finally {
+        rs.close();
+      }
+    }
+    return indexList;
   }
 
 }
