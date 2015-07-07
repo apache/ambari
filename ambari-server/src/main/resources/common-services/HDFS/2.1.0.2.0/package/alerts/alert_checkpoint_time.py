@@ -147,15 +147,21 @@ def execute(configurations={}, parameters={}, host_name=None):
   try:
     if kerberos_principal is not None and kerberos_keytab is not None and security_enabled:
       env = Environment.get_instance()
+
+      # curl requires an integer timeout
+      curl_connection_timeout = int(connection_timeout)
+
       last_checkpoint_time_response, error_msg, time_millis = curl_krb_request(env.tmp_dir, kerberos_keytab,
-                                    kerberos_principal, last_checkpoint_time_qry,"checkpoint_time_alert", None, False,
-                                    "NameNode Last Checkpoint", smokeuser)
+        kerberos_principal, last_checkpoint_time_qry,"checkpoint_time_alert", None, False,
+        "NameNode Last Checkpoint", smokeuser, connection_timeout=curl_connection_timeout)
+
       last_checkpoint_time_response_json = json.loads(last_checkpoint_time_response)
       last_checkpoint_time = int(last_checkpoint_time_response_json["beans"][0]["LastCheckpointTime"])
 
       journal_transaction_info_response, error_msg, time_millis = curl_krb_request(env.tmp_dir, kerberos_keytab,
-                                      kerberos_principal, journal_transaction_info_qry,"checkpoint_time_alert", None,
-                                      False, "NameNode Last Checkpoint", smokeuser)
+        kerberos_principal, journal_transaction_info_qry,"checkpoint_time_alert", None,
+        False, "NameNode Last Checkpoint", smokeuser, connection_timeout=curl_connection_timeout)
+
       journal_transaction_info_response_json = json.loads(journal_transaction_info_response)
       journal_transaction_info = journal_transaction_info_response_json["beans"][0]["JournalTransactionInfo"]
     else:

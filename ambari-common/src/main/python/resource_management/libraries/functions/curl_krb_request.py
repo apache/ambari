@@ -41,15 +41,18 @@ except ImportError:
   import md5
   _md5 = md5.new
 
-CONNECTION_TIMEOUT = 10
-MAX_TIMEOUT = 12
+CONNECTION_TIMEOUT_DEFAULT = 10
+MAX_TIMEOUT_DEFAULT = CONNECTION_TIMEOUT_DEFAULT + 2
 
 logger = logging.getLogger()
 
 
-def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix, krb_exec_search_paths,
-                     return_only_http_code, alert_name, user):
+def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
+    krb_exec_search_paths, return_only_http_code, alert_name, user,
+    connection_timeout = CONNECTION_TIMEOUT_DEFAULT):
+
   import uuid
+
   # Create the kerberos credentials cache (ccache) file and set it in the environment to use
   # when executing curl. Use the md5 hash of the combination of the principal and keytab file
   # to generate a (relatively) unique cache filename so that we can use it as needed.
@@ -88,15 +91,20 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix, krb_exe
 
   start_time = time.time()
   error_msg = None
+
+  # setup timeouts for the request; ensure we use integers since that is what curl needs
+  connection_timeout = int(connection_timeout)
+  maximum_timeout = connection_timeout + 2
+
   try:
     if return_only_http_code:
       _, curl_stdout, curl_stderr = shell.checked_call(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
-                             '%{http_code}', url, '--connect-timeout', str(CONNECTION_TIMEOUT), '--max-time', str(MAX_TIMEOUT), '-o', '/dev/null'],
+                             '%{http_code}', url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout), '-o', '/dev/null'],
                              stderr=subprocess.PIPE, env=kerberos_env, user=user)
     else:
       # returns response body
       _, curl_stdout, curl_stderr = shell.checked_call(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
-                             url, '--connect-timeout', str(CONNECTION_TIMEOUT), '--max-time', str(MAX_TIMEOUT)],
+                             url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout)],
                              stderr=subprocess.PIPE, env=kerberos_env, user=user)
   except Fail:
     if logger.isEnabledFor(logging.DEBUG):

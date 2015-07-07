@@ -68,7 +68,7 @@ class WebAlert(BaseAlert):
 
     # python uses 5.0, CURL uses "5"
     self.connection_timeout = float(connection_timeout)
-    self.curl_connection_timeout = str(int(connection_timeout))
+    self.curl_connection_timeout = int(connection_timeout)
 
     self.config = config
 
@@ -180,7 +180,8 @@ class WebAlert(BaseAlert):
         smokeuser = self._get_configuration_value('{{cluster-env/smokeuser}}')
 
         response_code, error_msg, time_millis = curl_krb_request(tmp_dir, kerberos_keytab, kerberos_principal, url,
-                                               "web_alert", kerberos_executable_search_paths, True, self.get_name(), smokeuser)
+          "web_alert", kerberos_executable_search_paths, True, self.get_name(), smokeuser,
+          connection_timeout=self.curl_connection_timeout)
       else:
         # kerberos is not involved; use urllib2
         response_code, time_millis, error_msg = self._make_web_request_urllib(url)

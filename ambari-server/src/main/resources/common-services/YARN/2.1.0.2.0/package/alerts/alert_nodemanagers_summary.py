@@ -115,9 +115,14 @@ def execute(configurations={}, parameters={}, host_name=None):
   try:
     if kerberos_principal is not None and kerberos_keytab is not None and security_enabled:
       env = Environment.get_instance()
+
+      # curl requires an integer timeout
+      curl_connection_timeout = int(connection_timeout)
+
       url_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
-                                              live_nodemanagers_qry, "nm_health_summary_alert", None, False,
-                                              "NodeManager Health Summary", smokeuser)
+        live_nodemanagers_qry, "nm_health_summary_alert", None, False,
+        "NodeManager Health Summary", smokeuser, connection_timeout=curl_connection_timeout)
+
       try:
         url_response_json = json.loads(url_response)
         live_nodemanagers = json.loads(url_response_json["beans"][0]["LiveNodeManagers"])
@@ -129,8 +134,8 @@ def execute(configurations={}, parameters={}, host_name=None):
 
       if convert_to_json_failed:
         response_code, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
-                                                    live_nodemanagers_qry, "nm_health_summary_alert", None, True,
-                                                    "NodeManager Health Summary", smokeuser)
+          live_nodemanagers_qry, "nm_health_summary_alert", None, True,
+          "NodeManager Health Summary", smokeuser, connection_timeout=curl_connection_timeout)
     else:
       live_nodemanagers = json.loads(get_value_from_jmx(live_nodemanagers_qry,
       "LiveNodeManagers", connection_timeout))
