@@ -528,7 +528,8 @@
             "yarn.nodemanager.aux-services.mapreduce_shuffle.class": "org.apache.hadoop.mapred.ShuffleHandler",
             "yarn.timeline-service.leveldb-timeline-store.path": "/var/log/hadoop-yarn/timeline",
             "yarn.timeline-service.principal": "yarn/_HOST@EXAMPLE.COM",
-            "yarn.timeline-service.keytab" : "/etc/security/keytabs/yarn.service.keytab"
+            "yarn.timeline-service.keytab" : "/etc/security/keytabs/yarn.service.keytab",
+            "yarn.http.policy": "HTTP_ONLY"
         },
         "yarn-env": {
             "yarn_pid_dir_prefix": "/var/run/hadoop-yarn", 
