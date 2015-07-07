@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+var componentsUtils = require('utils/components');
 
 App.KerberosWizardController = App.WizardController.extend({
 
@@ -201,6 +202,59 @@ App.KerberosWizardController = App.WizardController.extend({
     this.set('kerberosDescriptorConfigs', kerberosDescriptorConfigs);
   },
 
+  createKerberosResources: function (callback) {
+    var self = this;
+    this.createKerberosService().done(function () {
+      componentsUtils.createServiceComponent('KERBEROS_CLIENT').done(function () {
+        self.createKerberosHostComponents().done(callback);
+      });
+    });
+  },
+
+  createKerberosService: function () {
+    return App.ajax.send({
+      name: 'wizard.step8.create_selected_services',
+      sender: this,
+      data: {
+        data: '{"ServiceInfo": { "service_name": "KERBEROS"}}',
+        cluster: App.get('clusterName') || App.clusterStatus.get('clusterName')
+      }
+    });
+  },
+
+  createKerberosHostComponents: function () {
+    var hostNames = App.get('allHostNames');
+    var queryStr = '';
+    hostNames.forEach(function (hostName) {
+      queryStr += 'Hosts/host_name=' + hostName + '|';
+    });
+    //slice off last symbol '|'
+    queryStr = queryStr.slice(0, -1);
+
+    var data = {
+      "RequestInfo": {
+        "query": queryStr
+      },
+      "Body": {
+        "host_components": [
+          {
+            "HostRoles": {
+              "component_name": 'KERBEROS_CLIENT'
+            }
+          }
+        ]
+      }
+    };
+
+    return App.ajax.send({
+      name: 'wizard.step8.register_host_to_component',
+      sender: this,
+      data: {
+        cluster: App.router.getClusterName(),
+        data: JSON.stringify(data)
+      }
+    });
+  },
 
   loadMap: {
     '1': [
