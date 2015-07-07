@@ -81,8 +81,10 @@
                     <li><a href="" {{action showSettingsPopup target="controller"}}>{{t app.settings}}</a></li>
                   {{/isAccessible}}
                 {{/if}}
-                <li class="break"></li>
-                <li><a href="" id="sign-out" {{action logoff}}>{{t app.signout}}</a></li>
+                {{#if isClusterDataLoaded}}
+                  <li class="break"></li>
+                  <li><a href="" id="sign-out" {{action logoff}}>{{t app.signout}}</a></li>
+                {{/if}}
               </ul>
             </div>
           {{/if}}
