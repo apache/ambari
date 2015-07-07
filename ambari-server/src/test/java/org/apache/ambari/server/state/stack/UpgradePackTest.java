@@ -243,7 +243,7 @@ public class UpgradePackTest {
 
     ClusterGrouping cluster_group = (ClusterGrouping) groups.get(2);
     List<ExecuteStage> stages = cluster_group.executionStages;
-    assertEquals(2, stages.size());
+    assertEquals(3, stages.size());
     assertNotNull(stages.get(0).intendedDirection);
     assertEquals(Direction.DOWNGRADE, stages.get(0).intendedDirection);
 

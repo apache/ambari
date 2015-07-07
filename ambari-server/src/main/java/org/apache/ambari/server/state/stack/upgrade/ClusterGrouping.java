@@ -203,14 +203,20 @@ public class ClusterGrouping extends Grouping {
       HostsType hosts = ctx.getResolver().getMasterAndHosts(service, component);
 
       if (hosts != null) {
-        Set<String> realHosts = new LinkedHashSet<String>(hosts.hosts);
 
-        if (null != et.hosts && "master".equals(et.hosts) && null != hosts.master) {
+        Set<String> realHosts = new LinkedHashSet<String>(hosts.hosts);
+        if (ExecuteHostType.MASTER == et.hosts && null != hosts.master) {
           realHosts = Collections.singleton(hosts.master);
         }
+
         // Pick a random host.
-        if (null != et.hosts && "any".equals(et.hosts) && !hosts.hosts.isEmpty()) {
+        if (ExecuteHostType.ANY == et.hosts && !hosts.hosts.isEmpty()) {
           realHosts = Collections.singleton(hosts.hosts.iterator().next());
+        }
+
+        // !!! cannot execute against empty hosts (safety net)
+        if (realHosts.isEmpty()) {
+          return null;
         }
 
         return new StageWrapper(
