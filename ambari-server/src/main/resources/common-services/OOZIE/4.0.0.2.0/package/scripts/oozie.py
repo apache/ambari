@@ -204,12 +204,12 @@ def oozie_server_specific():
   skip_recreate_sharelib = format("test -f {hashcode_file} && test -d {oozie_home}/share && [[ `cat {hashcode_file}` == '{hashcode}' ]]")
 
   untar_sharelib = ('tar','-xvf',format('{oozie_home}/oozie-sharelib.tar.gz'),'-C',params.oozie_home)
-  
+
   Execute( untar_sharelib,    # time-expensive
     not_if  = format("{no_op_test} || {skip_recreate_sharelib}"), 
     sudo = True,
   )
-    
+
   configure_cmds = []
   configure_cmds.append(('cp', params.ext_js_path, params.oozie_libext_dir))
   configure_cmds.append(('chown', format('{oozie_user}:{user_group}'), format('{oozie_libext_dir}/{ext_js_file}')))
@@ -237,12 +237,20 @@ def oozie_server_specific():
       not_if  = no_op_test,
     )
 
-  Execute(format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war {oozie_secure}"),    # time-expensive
+  prepare_war_cmd_file = format("{oozie_home}/.prepare_war_cmd")
+  prepare_war_cmd = format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war {oozie_secure}")
+  skip_prepare_war_cmd = format("test -f {prepare_war_cmd_file} && [[ `cat {prepare_war_cmd_file}` == '{prepare_war_cmd}' ]]")
+
+  Execute(prepare_war_cmd,    # time-expensive
     user = params.oozie_user,
-    not_if  = format("{no_op_test} || {skip_recreate_sharelib}")
+    not_if  = format("{no_op_test} || {skip_recreate_sharelib} && {skip_prepare_war_cmd}")
   )
   File(hashcode_file,
        content = hashcode,
+       mode = 0644,
+  )
+  File(prepare_war_cmd_file,
+       content = prepare_war_cmd,
        mode = 0644,
   )
 

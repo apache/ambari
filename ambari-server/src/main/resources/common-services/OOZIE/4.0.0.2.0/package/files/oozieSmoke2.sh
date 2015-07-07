@@ -24,14 +24,15 @@ export os_family=$1
 export oozie_lib_dir=$2
 export oozie_conf_dir=$3
 export oozie_bin_dir=$4
-export oozie_examples_dir=$5
-export hadoop_conf_dir=$6
-export hadoop_bin_dir=$7
-export smoke_test_user=$8
-export security_enabled=$9
-export smoke_user_keytab=${10}
-export kinit_path_local=${11}
-export smokeuser_principal=${12}
+export oozie_server_url=$5
+export oozie_examples_dir=$6
+export hadoop_conf_dir=$7
+export hadoop_bin_dir=$8
+export smoke_test_user=$9
+export security_enabled=$10
+export smoke_user_keytab=${11}
+export kinit_path_local=${12}
+export smokeuser_principal=${13}
 
 function getValueFromField {
   xmllint $1 | grep "<name>$2</name>" -C 2 | grep '<value>' | cut -d ">" -f2 | cut -d "<" -f1
@@ -68,7 +69,7 @@ function checkOozieJobStatus {
 }
 
 export OOZIE_EXIT_CODE=0
-export OOZIE_SERVER=`getValueFromField ${oozie_conf_dir}/oozie-site.xml oozie.base.url | tr '[:upper:]' '[:lower:]'`
+export OOZIE_SERVER=$oozie_server_url
 
 cd $oozie_examples_dir
 

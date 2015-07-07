@@ -137,7 +137,7 @@ class TestServiceCheck(RMFTestCase):
         action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
-    self.assertResourceCalled('Execute', '/tmp/oozieSmoke2.sh suse /var/lib/oozie /etc/oozie/conf /usr/bin / /etc/hadoop/conf /usr/bin ambari-qa False',
+    self.assertResourceCalled('Execute', '/tmp/oozieSmoke2.sh suse /var/lib/oozie /etc/oozie/conf /usr/bin http://c6402.ambari.apache.org:11000/oozie / /etc/hadoop/conf /usr/bin ambari-qa False',
         logoutput = True,
         path = ['/usr/bin:/usr/bin'],
         tries = 3,
