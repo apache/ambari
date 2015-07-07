@@ -140,7 +140,6 @@ module.exports = App.WizardRoute.extend({
 
       kerberosWizardController.saveKerberosOption(kerberosStep1controller);
       kerberosWizardController.setDBProperty('serviceConfigProperties', null);
-      kerberosWizardController.setDBProperty('advancedServiceConfig', null);
       router.transitionTo('step2');
     }
   }),

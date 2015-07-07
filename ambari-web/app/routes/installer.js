@@ -283,7 +283,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             controller.saveSlaveComponentHosts(wizardStep6Controller);
             controller.get('content').set('serviceConfigProperties', null);
             controller.setDBProperty('serviceConfigProperties', null);
-            controller.setDBProperty('advancedServiceConfig', null);
             controller.setDBProperty('serviceConfigGroups', null);
             controller.setDBProperty('recommendationsHostGroups', wizardStep6Controller.get('content.recommendationsHostGroups'));
             controller.setDBProperty('recommendationsConfigs', null);

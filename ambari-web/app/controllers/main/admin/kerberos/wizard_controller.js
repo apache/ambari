@@ -164,7 +164,6 @@ App.KerberosWizardController = App.WizardController.extend({
     App.config.loadAdvancedConfig(serviceName, function (properties) {
       loadAdvancedConfigResult.pushObjects(properties);
       self.set('content.advancedServiceConfig', loadAdvancedConfigResult);
-      self.setDBProperty('advancedServiceConfig', loadAdvancedConfigResult);
       dependentController.set('isAdvancedConfigLoaded', true);
     });
   },

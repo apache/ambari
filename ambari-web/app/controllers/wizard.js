@@ -852,7 +852,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         });
         loadAdvancedConfigResult.pushObjects(clusterProperties);
         self.set('content.advancedServiceConfig', loadAdvancedConfigResult);
-        self.setDBProperty('advancedServiceConfig', loadAdvancedConfigResult);
         dependentController.set('isAdvancedConfigLoaded', true);
       });
     };
