@@ -334,15 +334,17 @@ describe('utils/blueprint', function() {
     });
   });
 
-  describe('#generateHostGroups', function () {
+  describe('#generateHostGroups()', function () {
     beforeEach(function() {
-      sinon.stub(blueprintUtils, 'getComponentForHost' ,function(host) {
-        return host == "host1" ? ["C1","C2"] : ["C1","C3"];
+      sinon.stub(blueprintUtils, 'getComponentForHosts').returns({
+        "host1": ["C1", "C2"],
+        "host2": ["C1", "C3"]
       });
     });
     afterEach(function() {
-      blueprintUtils.getComponentForHost.restore();
-    })
+      blueprintUtils.getComponentForHosts.restore();
+    });
+
     var tests = [
       {
         "hostNames": ["host1", "host2"],
@@ -417,6 +419,52 @@ describe('utils/blueprint', function() {
     tests.forEach(function (test) {
       it("generate host groups", function () {
         expect(blueprintUtils.generateHostGroups(test.hostNames)).to.eql(test.result);
+      });
+    });
+  });
+
+  describe("#getComponentForHosts()", function() {
+
+    beforeEach(function() {
+      sinon.stub(App.ClientComponent, 'find').returns([
+        Em.Object.create({
+          componentName: "C1",
+          hostNames: ["host1", "host2"]
+        })
+      ]);
+      sinon.stub(App.SlaveComponent, 'find').returns([
+        Em.Object.create({
+          componentName: "C2",
+          hostNames: ["host2", "host3"]
+        })
+      ]);
+      sinon.stub(App.HostComponent, 'find').returns([
+        Em.Object.create({
+          componentName: "C3",
+          hostName: "host3",
+          isMaster: true
+        })
+      ]);
+    });
+    afterEach(function() {
+      App.ClientComponent.find.restore();
+      App.SlaveComponent.find.restore();
+      App.HostComponent.find.restore();
+    });
+
+    it("", function() {
+      expect(blueprintUtils.getComponentForHosts()).to.eql({
+        "host1": [
+          "C1"
+        ],
+        "host2": [
+          "C1",
+          "C2"
+        ],
+        "host3": [
+          "C2",
+          "C3"
+        ]
       });
     });
   });

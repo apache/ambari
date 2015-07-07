@@ -42,7 +42,7 @@ App.componentConfigMapper = App.QuickDataMapper.create({
     // We do not want to parse JSON if there is no need to
     var hostComponentJsonMap = {};
     var hostComponentJsonIds = [];
-    var hostComponentJsonsToRemove = {};
+    var hostComponentLoaded = {};
 
     if (json.items.length > 0 || this.get('model').find().someProperty('staleConfigs', true)) {
       json.items.forEach(function (item) {
@@ -54,31 +54,32 @@ App.componentConfigMapper = App.QuickDataMapper.create({
       });
       this.get('model').find().forEach(function (hostComponent) {
         var hostComponentJson = hostComponentJsonMap[hostComponent.get('id')];
-        if (!hostComponentJson && !hostComponent.get('isMaster')) {
-          hostComponent.set('staleConfigs', false);
+        var currentStaleConfigsState = Boolean(hostComponentJson);
+        var stateChanged = hostComponent.get('staleConfigs') !== currentStaleConfigsState;
+
+        if (stateChanged && !hostComponent.get('isMaster')) {
+          hostComponent.set('staleConfigs', currentStaleConfigsState);
         }
-        if (hostComponentJson != null && hostComponent.get('staleConfigs') &&
-          hostComponentJson.HostRoles.state == hostComponent.get('workStatus') &&
-          hostComponentJson.HostRoles.maintenance_state == hostComponent.get('passiveState')) {
-          // A component already exists with correct stale_configs flag and other values - no need to load again
-          hostComponentJsonsToRemove[hostComponentJson.id] = hostComponentJson;
-        }
+        //delete load host-components, so only new ones left
+        delete hostComponentJsonMap[hostComponent.get('id')];
       });
       hostComponentJsonIds.forEach(function (hcId) {
-        if (!hostComponentJsonsToRemove[hcId]) {
-          var host_component = hostComponentJsonMap[hcId];
-          var serviceName = host_component.HostRoles.service_name;
-          hostComponents.push(this.parseIt(host_component, mapConfig));
+        var newHostComponent = hostComponentJsonMap[hcId];
+        if (newHostComponent) {
+          var serviceName = newHostComponent.HostRoles.service_name;
+          hostComponents.push(this.parseIt(newHostComponent, mapConfig));
           if (!newHostComponentsMap[serviceName]) {
             newHostComponentsMap[serviceName] = [];
           }
-          if (!currentServiceComponentsMap[serviceName][host_component.id]) {
-            newHostComponentsMap[serviceName].push(host_component.id);
+          if (!currentServiceComponentsMap[serviceName][newHostComponent.id]) {
+            newHostComponentsMap[serviceName].push(newHostComponent.id);
           }
         }
       }, this);
-      App.store.loadMany(this.get('model'), hostComponents);
-      this.addNewHostComponents(newHostComponentsMap, cacheServices);
+      if (hostComponents.length > 0) {
+        App.store.loadMany(this.get('model'), hostComponents);
+        this.addNewHostComponents(newHostComponentsMap, cacheServices);
+      }
     }
     console.timeEnd('App.componentConfigMapper execution time');
   },
