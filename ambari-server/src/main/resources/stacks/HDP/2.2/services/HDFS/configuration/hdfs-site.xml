@@ -36,7 +36,7 @@
   
   <property>
     <name>dfs.client.retry.policy.enabled</name>
-    <value>true</value>
+    <value>false</value>
     <description>Enables HDFS client retry in the event of a NameNode failure.</description>
   </property>
 

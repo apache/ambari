@@ -39,7 +39,6 @@ import com.google.inject.Singleton;
 @UpgradeCheck(group = UpgradeCheckGroup.CLIENT_RETRY_PROPERTY)
 public class ClientRetryPropertyCheck extends AbstractCheckDescriptor {
 
-  static final String HDFS_CLIENT_RETRY_MISSING_KEY = "hdfs.client.retry.missing.key";
   static final String HIVE_CLIENT_RETRY_MISSING_KEY = "hive.client.retry.missing.key";
   static final String OOZIE_CLIENT_RETRY_MISSING_KEY = "oozie.client.retry.missing.key";
 
@@ -80,14 +79,9 @@ public class ClientRetryPropertyCheck extends AbstractCheckDescriptor {
 
     List<String> errorMessages = new ArrayList<String>();
 
+    // We excluded hdfs-site property dfs.client.retry.policy.enabled because default is false, and should remain
+    // that way due to *****.
     // check hdfs client property
-    if (services.containsKey("HDFS")) {
-      String hdfsClientRetry = getProperty(request, "hdfs-site", "dfs.client.retry.policy.enabled");
-      if (null == hdfsClientRetry || !Boolean.parseBoolean(hdfsClientRetry)) {
-        errorMessages.add(getFailReason(HDFS_CLIENT_RETRY_MISSING_KEY, prerequisiteCheck, request));
-        prerequisiteCheck.getFailedOn().add("HDFS");
-      }
-    }
 
     // check hive client properties
     if (services.containsKey("HIVE")) {

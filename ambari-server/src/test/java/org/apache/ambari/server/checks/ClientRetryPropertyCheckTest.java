@@ -113,18 +113,6 @@ public class ClientRetryPropertyCheckTest {
     m_check.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
-    // hdfs retry false
-    properties.put("dfs.client.retry.policy.enabled", "false");
-    check = new PrerequisiteCheck(null, null);
-    m_check.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-
-    // hdfs retry true
-    properties.put("dfs.client.retry.policy.enabled", "true");
-    check = new PrerequisiteCheck(null, null);
-    m_check.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-
     // add hive
     services.put("HIVE", Mockito.mock(Service.class));
 
