@@ -491,7 +491,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       case 'mapred-queue-acls.xml':
         return false;
       case 'core-site.xml':
-        return ['HDFS', 'GLUSTERFS'].contains(this.get('content.serviceName'));
+        return ['HDFS', 'GLUSTERFS', 'RANGER_KMS'].contains(this.get('content.serviceName'));
       default :
         return true;
     }

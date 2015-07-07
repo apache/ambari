@@ -208,16 +208,16 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     if "hadoop-env" in services["configurations"] and "keyserver_host" in services["configurations"]["hadoop-env"]["properties"] and "keyserver_port" in services["configurations"]["hadoop-env"]["properties"]:
       keyserverHostsString = services["configurations"]["hadoop-env"]["properties"]["keyserver_host"]
       keyserverPortString = services["configurations"]["hadoop-env"]["properties"]["keyserver_port"]
-    if keyserverHostsString is None or len(keyserverHostsString.strip()) < 1 :
-      # Caller did not specify any value - so we recommend where they are installed
-      rangerKMSServerHosts = self.getHostsWithComponent("RANGER_KMS", "RANGER_KMS_SERVER", services, hosts)
-      if rangerKMSServerHosts is not None and len(rangerKMSServerHosts) > 0:
-        rangerKMSServerHostsArray = []
-        for rangeKMSServerHost in rangerKMSServerHosts:
-          rangerKMSServerHostsArray.append(rangeKMSServerHost["Hosts"]["host_name"])
-        keyserverHostsString = ",".join(rangerKMSServerHostsArray)
-        if "kms-env" in services["configurations"] and "kms_port" in services["configurations"]["kms-env"]["properties"]:
-          keyserverPortString = services["configurations"]["kms-env"]["properties"]["kms_port"]
+
+    # Irrespective of what hadoop-env has, if Ranger-KMS is installed, we use its values. 
+    rangerKMSServerHosts = self.getHostsWithComponent("RANGER_KMS", "RANGER_KMS_SERVER", services, hosts)
+    if rangerKMSServerHosts is not None and len(rangerKMSServerHosts) > 0:
+      rangerKMSServerHostsArray = []
+      for rangeKMSServerHost in rangerKMSServerHosts:
+        rangerKMSServerHostsArray.append(rangeKMSServerHost["Hosts"]["host_name"])
+      keyserverHostsString = ",".join(rangerKMSServerHostsArray)
+      if "kms-env" in services["configurations"] and "kms_port" in services["configurations"]["kms-env"]["properties"]:
+        keyserverPortString = services["configurations"]["kms-env"]["properties"]["kms_port"]
 
     if keyserverHostsString is not None and len(keyserverHostsString.strip()) > 0:
       urlScheme = "http"
