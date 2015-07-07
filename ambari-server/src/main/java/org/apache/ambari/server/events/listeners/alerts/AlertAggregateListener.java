@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.google.inject.Provider;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.AggregateAlertRecalculateEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
@@ -32,6 +34,7 @@ import org.apache.ambari.server.orm.dao.AlertSummaryDTO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.AggregateDefinitionMapping;
 import org.apache.ambari.server.state.alert.AggregateSource;
 import org.apache.ambari.server.state.alert.AlertDefinition;
@@ -66,6 +69,12 @@ public class AlertAggregateListener {
 
   @Inject
   private AlertsDAO m_alertsDao = null;
+
+  /**
+   * Used for looking cluster name by cluster id
+   */
+  @Inject
+  Provider<Clusters> m_clusters;
 
   /**
    * The event publisher used to receive incoming events and publish new events
@@ -168,6 +177,11 @@ public class AlertAggregateListener {
 
     aggregateAlert.setLabel(aggregateDefinition.getLabel());
     aggregateAlert.setTimestamp(System.currentTimeMillis());
+    try {
+      aggregateAlert.setCluster(m_clusters.get().getClusterById(clusterId).getClusterName());
+    } catch (AmbariException exception) {
+      LOG.error("Unable to lookup cluster with ID {}", clusterId, exception);
+    }
 
     if (0 == totalCount) {
       aggregateAlert.setText("There are no instances of the aggregated alert.");
