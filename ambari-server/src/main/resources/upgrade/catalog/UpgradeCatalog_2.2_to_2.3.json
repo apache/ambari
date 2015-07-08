@@ -115,9 +115,49 @@
                     "merged-copy": "yes",
                     "required-services": ["RANGER","STORM"]
                   },
-                  "ranger-storm-plugin-properties": {
+                  "ranger-storm-plugin-properties" : {
                     "merged-copy": "yes",
                     "required-services": ["RANGER","STORM"]
+                  },
+                  "ranger-kafka-policymgr-ssl" : {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","KAFKA"]
+                  },
+                  "ranger-kafka-security" : {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","KAFKA"]
+                  },
+                  "ranger-kafka-audit" : {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","KAFKA"]
+                  },
+                  "ranger-kafka-plugin-properties" : {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","KAFKA"]
+                  },
+                  "ranger-yarn-policymgr-ssl" : {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","YARN"]
+                  },
+                  "ranger-yarn-security" : {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","YARN"]
+                  },
+                  "ranger-yarn-audit" : {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","YARN"]
+                  },
+                  "ranger-yarn-plugin-properties" : {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","YARN"]
+                  },
+                  "kafka-env" : {
+                    "merged-copy": "yes",
+                    "required-services": ["KAFKA"]
+                  },
+                  "yarn-env" : {
+                    "merged-copy": "yes",
+                    "required-services": ["YARN"]
                   },
                     "admin-properties": {
                         "merged-copy": "yes",
@@ -225,35 +265,35 @@
                   "xasecure.policymgr.clientssl.keystore.credential.file": {
                     "value": "{RANGER_HDFS_KEYSTORE_CREDENTIAL_FILE}",
                     "template": "yes",
-                    "required-services": ["RANGER"]
+                    "required-services": ["RANGER", "HDFS"]
                   },
                   "xasecure.policymgr.clientssl.truststore.credential.file": {
                     "value": "{RANGER_HDFS_KEYSTORE_CREDENTIAL_FILE}",
                     "template": "yes",
-                    "required-services": ["RANGER"]
+                    "required-services": ["RANGER", "HDFS"]
                   }
                 },
                 "ranger-hdfs-security": {
                   "ranger.plugin.hdfs.policy.source.impl": {
                     "value": "org.apache.ranger.admin.client.RangerAdminRESTClient",
-                    "required-services": ["RANGER"]
+                    "required-services": ["RANGER", "HDFS"]
                   },
                   "ranger.plugin.hdfs.policy.rest.ssl.config.file": {
                     "value": "/usr/hdp/current/hadoop-client/conf/ranger-policymgr-ssl.xml",
-                    "required-services": ["RANGER"]
+                    "required-services": ["RANGER", "HDFS"]
                   },
                   "ranger.plugin.hdfs.policy.pollIntervalMs": {
                     "value": "30000",
-                    "required-services": ["RANGER"]
+                    "required-services": ["RANGER", "HDFS"]
                   },
                   "ranger.plugin.hdfs.policy.cache.dir": {
                     "value": "{RANGER_PLUGIN_HDFS_POLICY_CACHE_DIR}",
                     "template": "yes",
-                    "required-services": ["RANGER"]
+                    "required-services": ["RANGER", "HDFS"]
                   },
                   "xasecure.add-hadoop-authorization": {
-                    "value": "TRUE",
-                    "required-services": ["RANGER"]
+                    "value": "true",
+                    "required-services": ["RANGER", "HDFS"]
                   }
                 },
                 "ranger-hdfs-audit": {
@@ -263,7 +303,7 @@
                     "required-services": ["RANGER"]
                   },
                   "xasecure.audit.destination.solr": {
-                    "value": "FALSE",
+                    "value": "false",
                     "required-services": ["RANGER"]
                   },
                   "xasecure.audit.destination.solr.urls": {
@@ -280,10 +320,12 @@
                   },
                   "xasecure.audit.destination.db.jdbc.driver": {
                     "value": "{HDFS_JDBC_DRIVER}",
+                    "template": "yes",
                     "required-services": ["RANGER"]
                   },
                   "xasecure.audit.destination.db.jdbc.url": {
                     "value": "{HDFS_AUDIT_JDBC_URL}",
+                    "template": "yes",
                     "required-services": ["RANGER"]
                   },
                   "xasecure.audit.provider.summary.enabled": {
@@ -291,7 +333,26 @@
                     "required-services": ["RANGER"]
                   },
                   "xasecure.audit.destination.db.batch.filespool.dir": "/var/log/hadoop/hdfs/audit/db/spool",
-                  "xasecure.audit.is.enabled": "true"
+                  "xasecure.audit.is.enabled": "true",
+                  "xasecure.audit.destination.db.password" : {
+                    "value": "{AUDIT_DB_PASSWD}",
+                    "template": "yes",
+                    "required-services": ["RANGER"]
+                  },
+                  "xasecure.audit.destination.db" : {
+                    "value" : "{AUDIT_TO_DB_HDFS}",
+                    "template" : "yes",
+                    "required-services": ["RANGER"]
+                  },
+                  "xasecure.audit.destination.hdfs" : {
+                    "value" : "{AUDIT_TO_HDFS_HDFS}",
+                    "template" : "yes",
+                    "required-services" : ["RANGER"]
+                  },
+                  "xasecure.audit.destination.hdfs.batch.filespool.dir" : {
+                    "value" : "{AUDIT_HDFS_FILESPOOL_DIR_HDFS}",
+                    "template" : "yes"
+                  }
                 },
               "ranger-hdfs-plugin-properties": {
                 "XAAUDIT.HDFS.DESTINTATION_FILE": {
@@ -333,12 +394,22 @@
                 }
               },
               "ranger-hbase-security": {
-                "ranger.plugin.hbase.policy.source.impl": "org.apache.ranger.admin.client.RangerAdminRESTClient",
-                "ranger.plugin.hbase.policy.rest.ssl.config.file": "/usr/hdp/current/hbase-client/conf/ranger-policymgr-ssl.xml",
-                "ranger.plugin.hbase.policy.pollIntervalMs": "30000",
+                "ranger.plugin.hbase.policy.source.impl": {
+                  "value":"org.apache.ranger.admin.client.RangerAdminRESTClient",
+                  "required-services": ["RANGER", "HBASE"]
+                },
+                "ranger.plugin.hbase.policy.rest.ssl.config.file": {
+                  "value":"/usr/hdp/current/hbase-client/conf/ranger-policymgr-ssl.xml",
+                  "required-services": ["RANGER", "HBASE"]
+                },
+                "ranger.plugin.hbase.policy.pollIntervalMs": {
+                  "value":"30000",
+                  "required-services": ["RANGER", "HBASE"]
+                },
                 "ranger.plugin.hbase.policy.cache.dir": {
                   "value": "{RANGER_PLUGIN_HBASE_POLICY_CACHE_DIR}",
-                  "template": "yes"
+                  "template": "yes",
+                  "required-services": ["RANGER", "HBASE"]
                 }
               },
               "ranger-hbase-audit": {
@@ -347,7 +418,7 @@
                   "template": "yes"
                 },
                 "xasecure.audit.destination.solr": {
-                  "value": "TRUE"
+                  "value": "false"
                 },
                 "xasecure.audit.destination.solr.urls": {
                   "value": "{{ranger_audit_solr_urls}}"
@@ -359,16 +430,34 @@
                   "value": "/var/log/hbase/audit/solr/spool"
                 },
                 "xasecure.audit.destination.db.jdbc.driver": {
-                  "value": "{HBASE_JDBC_DRIVER}"
+                  "value": "{HBASE_JDBC_DRIVER}",
+                  "template": "yes"
                 },
                 "xasecure.audit.destination.db.jdbc.url": {
-                  "value": "{HBASE_AUDIT_JDBC_URL}"
+                  "value": "{HBASE_AUDIT_JDBC_URL}",
+                  "template": "yes"
                 },
                 "xasecure.audit.provider.summary.enabled": {
-                  "value": ""
+                  "value": "true"
                 },
                 "xasecure.audit.destination.db.batch.filespool.dir": "/var/log/hbase/audit/db/spool",
-                "xasecure.audit.is.enabled": "true"
+                "xasecure.audit.is.enabled": "true",
+                "xasecure.audit.destination.db.password" : {
+                  "value": "{AUDIT_DB_PASSWD}",
+                  "template": "yes"
+                },
+                "xasecure.audit.destination.db" : {
+                  "value" : "{AUDIT_TO_DB_HBASE}",
+                  "template" : "yes"
+                },
+                "xasecure.audit.destination.hdfs" : {
+                  "value" : "{AUDIT_TO_HDFS_HBASE}",
+                  "template" : "yes"
+                },
+                "xasecure.audit.destination.hdfs.batch.filespool.dir" : {
+                  "value" : "{AUDIT_HDFS_FILESPOOL_DIR_HBASE}",
+                  "template" : "yes"
+                }
               },
               "ranger-hbase-plugin-properties": {
                 "XAAUDIT.HDFS.DESTINTATION_FILE": {
@@ -413,11 +502,8 @@
                 }
               },
               "ranger-hive-security": {
-                "ranger.plugin.hive.policy.rest.url": {
-                  "value": "{POLICYMGR_MGR_URL}",
-                  "template": "yes"
-                },
-                "ranger.plugin.hive.policy.rest.ssl.config.file": "/etc/hive/conf/conf.server/ranger-policymgr-ssl.xml",
+                "ranger.plugin.hive.policy.source.impl": "org.apache.ranger.admin.client.RangerAdminRESTClient",
+                "ranger.plugin.hive.policy.rest.ssl.config.file": "usr/hdp/current/hive-server2/conf/conf.server/ranger-policymgr-ssl.xml",
                 "ranger.plugin.hive.policy.pollIntervalMs": "30000",
                 "ranger.plugin.hive.policy.cache.dir": {
                   "value": "{RANGER_PLUGIN_HIVE_POLICY_CACHE_DIR}",
@@ -442,16 +528,34 @@
                   "value": "/var/log/hive/audit/solr/spool"
                 },
                 "xasecure.audit.destination.db.jdbc.driver": {
-                  "value": "{HIVE_JDBC_DRIVER}"
+                  "value": "{HIVE_JDBC_DRIVER}",
+                  "template": "yes"
                 },
                 "xasecure.audit.destination.db.jdbc.url": {
-                  "value": "{HIVE_AUDIT_JDBC_URL}"
+                  "value": "{HIVE_AUDIT_JDBC_URL}",
+                  "template": "yes"
                 },
                 "xasecure.audit.provider.summary.enabled": {
-                  "value": ""
+                  "value": "false"
                 },
                 "xasecure.audit.destination.db.batch.filespool.dir": "/var/log/hive/audit/db/spool",
-                "xasecure.audit.is.enabled": "true"
+                "xasecure.audit.is.enabled": "true",
+                "xasecure.audit.destination.db.password" : {
+                    "value": "{AUDIT_DB_PASSWD}",
+                    "template": "yes"
+                },
+                "xasecure.audit.destination.db" : {
+                  "value" : "{AUDIT_TO_DB_HIVE}",
+                  "template" : "yes"
+                },
+                "xasecure.audit.destination.hdfs" : {
+                  "value" : "{AUDIT_TO_HDFS_HIVE}",
+                  "template" : "yes"
+                },
+                "xasecure.audit.destination.hdfs.batch.filespool.dir" : {
+                  "value" : "{AUDIT_HDFS_FILESPOOL_DIR_HIVE}",
+                  "template" : "yes"
+                }
               },
               "ranger-hive-plugin-properties": {
                 "XAAUDIT.HDFS.DESTINTATION_FILE": {
@@ -521,16 +625,34 @@
                   "value": "/var/log/knox/audit/solr/spool"
                 },
                 "xasecure.audit.destination.db.jdbc.driver": {
-                  "value": "{KNOX_JDBC_DRIVER}"
+                  "value": "{KNOX_JDBC_DRIVER}",
+                  "template": "yes"
                 },
                 "xasecure.audit.destination.db.jdbc.url": {
-                  "value": "{KNOX_AUDIT_JDBC_URL}"
+                  "value": "{KNOX_AUDIT_JDBC_URL}",
+                  "template": "yes"
                 },
                 "xasecure.audit.provider.summary.enabled": {
-                  "value": ""
+                  "value": "false"
                 },
                 "xasecure.audit.destination.db.batch.filespool.dir": "/var/log/knox/audit/db/spool",
-                "xasecure.audit.is.enabled": "true"
+                "xasecure.audit.is.enabled": "true",
+                "xasecure.audit.destination.db.password" : {
+                  "value": "{AUDIT_DB_PASSWD}",
+                  "template": "yes"
+                },
+                "xasecure.audit.destination.db" : {
+                  "value" : "{AUDIT_TO_DB_KNOX}",
+                  "template" : "yes"
+                },
+                "xasecure.audit.destination.hdfs" : {
+                  "value" : "{AUDIT_TO_HDFS_KNOX}",
+                  "template" : "yes"
+                },
+                "xasecure.audit.destination.hdfs.batch.filespool.dir" : {
+                  "value" : "{AUDIT_HDFS_FILESPOOL_DIR_KNOX}",
+                  "template" : "yes"
+                }
               },
               "ranger-knox-plugin-properties": {
                 "XAAUDIT.HDFS.DESTINTATION_FILE": {
@@ -561,9 +683,6 @@
                   "remove": "yes"
                 }
               },
-
-
-
               "ranger-storm-policymgr-ssl": {
                 "xasecure.policymgr.clientssl.keystore.credential.file": {
                   "value": "{RANGER_STORM_KEYSTORE_CREDENTIAL_FILE}",
@@ -603,16 +722,34 @@
                   "value": "/var/log/storm/audit/solr/spool"
                 },
                 "xasecure.audit.destination.db.jdbc.driver": {
-                  "value": "{STORM_JDBC_DRIVER}"
+                  "value": "{STORM_JDBC_DRIVER}",
+                  "template": "yes"
                 },
                 "xasecure.audit.destination.db.jdbc.url": {
-                  "value": "{STORM_AUDIT_JDBC_URL}"
+                  "value": "{STORM_AUDIT_JDBC_URL}",
+                  "template": "yes"
                 },
                 "xasecure.audit.provider.summary.enabled": {
-                  "value": ""
+                  "value": "false"
                 },
                 "xasecure.audit.destination.db.batch.filespool.dir": "/var/log/storm/audit/db/spool",
-                "xasecure.audit.is.enabled": "true"
+                "xasecure.audit.is.enabled": "true",
+                "xasecure.audit.destination.db.password" : {
+                  "value": "{AUDIT_DB_PASSWD}",
+                  "template": "yes"
+                },
+                "xasecure.audit.destination.db" : {
+                  "value" : "{AUDIT_TO_DB_STORM}",
+                  "template" : "yes"
+                },
+                "xasecure.audit.destination.hdfs" : {
+                  "value" : "AUDIT_TO_HDFS_STORM",
+                  "template" : "yes"
+                },
+                "xasecure.audit.destination.hdfs.batch.filespool.dir" : {
+                  "value" : "{AUDIT_HDFS_FILESPOOL_DIR_STORM}",
+                  "template" : "yes"
+                }
               },
               "ranger-storm-plugin-properties": {
                 "XAAUDIT.HDFS.DESTINTATION_FILE": {
@@ -640,6 +777,105 @@
                   "remove": "yes"
                 },
                 "XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS": {
+                  "remove": "yes"
+                }
+              },
+              "ranger-kafka-plugin-properties" : {
+                "policy_user" : "ambari-qa",
+                "hadoop.rpc.protection":"",
+                "common.name.for.certificate":"",
+                "zookeeper.connect":"localhost:2181",
+                "ranger-kafka-plugin-enabled":"No",
+                "REPOSITORY_CONFIG_USERNAME":"kafka",
+                "REPOSITORY_CONFIG_PASSWORD":"kafka"
+              },
+              "ranger-kafka-policymgr-ssl" : {
+                "xasecure.policymgr.clientssl.keystore" : "/usr/hdp/current/kafka-broker/config/ranger-plugin-keystore.jks",
+                "xasecure.policymgr.clientssl.keystore.password" : "myKeyFilePassword",
+                "xasecure.policymgr.clientssl.truststore" : "/usr/hdp/current/kafka-broker/config/ranger-plugin-truststore.jks",
+                "xasecure.policymgr.clientssl.truststore.password" : "changeit",
+                "xasecure.policymgr.clientssl.keystore.credential.file" : "jceks://file/{{credential_file}}",
+                "xasecure.policymgr.clientssl.truststore.credential.file" : "jceks://file/{{credential_file}}"
+              },
+              "ranger-kafka-audit" : {
+                "xasecure.audit.is.enabled" : "true",
+                "xasecure.audit.destination.db" : "false",
+                "xasecure.audit.destination.db.jdbc.url" : "{{audit_jdbc_url}}",
+                "xasecure.audit.destination.db.user" : "{{xa_audit_db_user}}",
+                "xasecure.audit.destination.db.password" : "crypted",
+                "xasecure.audit.destination.db.jdbc.driver" : "{{jdbc_driver}}",
+                "xasecure.audit.credential.provider.file" : "jceks://file{{credential_file}}",
+                "xasecure.audit.destination.db.batch.filespool.dir" : "/var/log/kafka/audit/db/spool",
+                "xasecure.audit.destination.hdfs" : "true",
+                "xasecure.audit.destination.hdfs.dir" : "hdfs://NAMENODE_HOSTNAME:8020/ranger/audit",
+                "xasecure.audit.destination.hdfs.batch.filespool.dir" : "/var/log/kafka/audit/hdfs/spool",
+                "xasecure.audit.destination.solr" : "true",
+                "xasecure.audit.destination.solr.urls" : "{{ranger_audit_solr_urls}}",
+                "xasecure.audit.destination.solr.zookeepers" : "none",
+                "xasecure.audit.destination.solr.batch.filespool.dir" : "/var/log/kafka/audit/solr/spool",
+                "xasecure.audit.provider.summary.enabled" : "true"
+              },
+              "ranger-kafka-security" : {
+                "ranger.plugin.kafka.service.name" : "{{repo_name}}",
+                "ranger.plugin.kafka.policy.source.impl" : "org.apache.ranger.admin.client.RangerAdminRESTClient",
+                "ranger.plugin.kafka.policy.rest.url" : "{{policymgr_mgr_url}}",
+                "ranger.plugin.kafka.policy.rest.ssl.config.file" : "/etc/kafka/conf/ranger-policymgr-ssl.xml",
+                "ranger.plugin.kafka.policy.pollIntervalMs" : "30000",
+                "ranger.plugin.kafka.policy.cache.dir" : "/etc/ranger/{{repo_name}}/policycache"
+              },
+              "kafka-env" : {
+                "is_supported_kafka_ranger" : "true"
+              },
+              "ranger-yarn-plugin-properties" : {
+                "policy_user" : "ambari-qa",
+                "hadoop.rpc.protection":"",
+                "common.name.for.certificate":"",
+                "ranger-yarn-plugin-enabled":"No",
+                "REPOSITORY_CONFIG_USERNAME":"yarn",
+                "REPOSITORY_CONFIG_PASSWORD":"yarn"
+              },
+              "ranger-yarn-policymgr-ssl" : {
+                "xasecure.policymgr.clientssl.keystore" : "/usr/hdp/current/hadoop-client/conf/ranger-yarn-plugin-keystore.jks",
+                "xasecure.policymgr.clientssl.keystore.password" : "myKeyFilePassword",
+                "xasecure.policymgr.clientssl.truststore" : "/usr/hdp/current/hadoop-client/conf/ranger-yarn-plugin-truststore.jks",
+                "xasecure.policymgr.clientssl.truststore.password" : "changeit",
+                "xasecure.policymgr.clientssl.keystore.credential.file" : "jceks://file/{{credential_file}}",
+                "xasecure.policymgr.clientssl.truststore.credential.file" : "jceks://file/{{credential_file}}"
+              },
+              "ranger-yarn-audit" : {
+                "xasecure.audit.is.enabled" : "true",
+                "xasecure.audit.destination.db" : "false",
+                "xasecure.audit.destination.db.jdbc.url" : "{{audit_jdbc_url}}",
+                "xasecure.audit.destination.db.user" : "{{xa_audit_db_user}}",
+                "xasecure.audit.destination.db.password" : "crypted",
+                "xasecure.audit.destination.db.jdbc.driver" : "{{jdbc_driver}}",
+                "xasecure.audit.credential.provider.file" : "jceks://file{{credential_file}}",
+                "xasecure.audit.destination.db.batch.filespool.dir" : "/var/log/hadoop/yarn/audit/db/spool",
+                "xasecure.audit.destination.hdfs" : "true",
+                "xasecure.audit.destination.hdfs.dir" : "hdfs://NAMENODE_HOSTNAME:8020/ranger/audit",
+                "xasecure.audit.destination.hdfs.batch.filespool.dir" : "/var/log/hadoop/yarn/audit/hdfs/spool",
+                "xasecure.audit.destination.solr" : "false",
+                "xasecure.audit.destination.solr.urls" : "{{ranger_audit_solr_urls}}",
+                "xasecure.audit.destination.solr.zookeepers" : "none",
+                "xasecure.audit.destination.solr.batch.filespool.dir" : "/var/log/hadoop/yarn/audit/solr/spool",
+                "xasecure.audit.provider.summary.enabled" : "false"
+              },
+              "ranger-yarn-security" : {
+                "ranger.plugin.yarn.service.name" : "{{repo_name}}",
+                "ranger.plugin.yarn.policy.source.impl" : "org.apache.ranger.admin.client.RangerAdminRESTClient",
+                "ranger.plugin.yarn.policy.rest.url" : "{{policymgr_mgr_url}}",
+                "ranger.plugin.yarn.policy.rest.ssl.config.file" : "/usr/hdp/current/hadoop-client/conf/ranger-policymgr-ssl-yarn.xml",
+                "ranger.plugin.yarn.policy.pollIntervalMs" : "30000",
+                "ranger.plugin.yarn.policy.cache.dir" : "/etc/ranger/{{repo_name}}/policycache"
+              },
+              "yarn-env" : {
+                "is_supported_yarn_ranger" : "true"
+              },
+              "admin-properties" : {
+                "policymgr_http_enabled" : {
+                  "remove": "yes"
+                },
+                "SQL_COMMAND_INVOKER" : {
                   "remove": "yes"
                 }
               },
@@ -1119,21 +1355,28 @@
                 "from-catalog": "ranger-hdfs-plugin-properties",
                 "to-catalog": "ranger-hdfs-policymgr-ssl",
                 "default": "/usr/hdp/current/hadoop-client/conf/ranger-plugin-keystore.jks",
-                "required-services": ["RANGER"]
+                "required-services": ["RANGER", "HDFS"]
               },
               "SSL_KEYSTORE_PASSWORD": {
                 "map-to": "xasecure.policymgr.clientssl.keystore.password",
                 "from-catalog": "ranger-hdfs-plugin-properties",
                 "to-catalog": "ranger-hdfs-policymgr-ssl",
                 "default": "myKeyFilePassword",
-                "required-services": ["RANGER"]
+                "required-services": ["RANGER", "HDFS"]
               },
               "SSL_TRUSTSTORE_FILE_PATH": {
                 "map-to": "xasecure.policymgr.clientssl.truststore",
                 "from-catalog": "ranger-hdfs-plugin-properties",
                 "to-catalog": "ranger-hdfs-policymgr-ssl",
-                "default": "/usr/hdp/current/hadoop-client/conf/ranger-plugin-keystore.jks",
-                "required-services": ["RANGER"]
+                "default": "/usr/hdp/current/hadoop-client/conf/ranger-plugin-truststore.jks",
+                "required-services": ["RANGER", "HDFS"]
+              },
+              "SSL_TRUSTSTORE_PASSWORD": {
+                "map-to": "xasecure.policymgr.clientssl.truststore.password",
+                "from-catalog": "ranger-hdfs-plugin-properties",
+                "to-catalog": "ranger-hdfs-policymgr-ssl",
+                "default": "changeit",
+                "required-services": ["RANGER", "HDFS"]
               },
               "POLICY_MGR_URL": {
                 "map-to": "ranger.plugin.hdfs.policy.rest.url",
@@ -1141,7 +1384,7 @@
                 "to-catalog": "ranger-hdfs-security",
                 "default": "{POLICYMGR_MGR_URL}",
                 "template": "yes",
-                "required-services": ["RANGER"]
+                "required-services": ["RANGER", "HDFS"]
               },
               "REPOSITORY_NAME": {
                 "map-to": "ranger.plugin.hdfs.service.name",
@@ -1149,14 +1392,7 @@
                 "to-catalog": "ranger-hdfs-security",
                 "default": "{HDFS_RANGER_REPO_NAME}",
                 "template": "yes",
-                "required-services": ["RANGER"]
-              },
-              "XAAUDIT.DB.IS_ENABLED": {
-                "map-to": "xasecure.audit.destination.db",
-                "from-catalog": "ranger-hdfs-plugin-properties",
-                "to-catalog": "ranger-hdfs-audit",
-                "default": "FALSE",
-                "required-services": ["RANGER"]
+                "required-services": ["RANGER", "HDFS"]
               },
               "XAAUDIT.HDFS.DESTINATION_DIRECTORY": {
                 "map-to": "xasecure.audit.destination.hdfs.dir",
@@ -1164,33 +1400,13 @@
                 "to-catalog": "ranger-hdfs-audit",
                 "default": "{XAAUDIT_HDFS_DESTINATION_DIRECTORY}",
                 "template": "yes",
-                "required-services": ["RANGER"]
-              },
-              "XAAUDIT.HDFS.IS_ENABLED": {
-                "map-to": "xasecure.audit.destination.hdfs",
-                "from-catalog": "ranger-hdfs-plugin-properties",
-                "to-catalog": "ranger-hdfs-audit",
-                "default": "TRUE",
-                "required-services": ["RANGER"]
-              },
-              "XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY": {
-                "map-to": "xasecure.audit.destination.hdfs.batch.filespool.dir",
-                "from-catalog": "ranger-hdfs-plugin-properties",
-                "to-catalog": "ranger-hdfs-audit",
-                "default": "/var/log/hadoop/hdfs/audit/hdfs/spool",
-                "required-services": ["RANGER"]
+                "required-services": ["RANGER", "HDFS"]
               },
               "XAAUDIT.DB.USER_NAME": {
                 "map-to": "xasecure.audit.destination.db.user",
                 "from-catalog": "ranger-hdfs-plugin-properties",
                 "to-catalog": "ranger-hdfs-audit",
-                "required-services": ["RANGER"]
-              },
-              "XAAUDIT.DB.PASSWORD": {
-                "map-to": "xasecure.audit.destination.db.password",
-                "from-catalog": "ranger-hdfs-plugin-properties",
-                "to-catalog": "ranger-hdfs-audit",
-                "required-services": ["RANGER"]
+                "required-services": ["RANGER", "HDFS"]
               },
               "hbase_SSL_KEYSTORE_FILE_PATH": {
                 "map-to": "xasecure.policymgr.clientssl.keystore",
@@ -1249,14 +1465,6 @@
                 "template": "yes",
                 "required-services": ["RANGER", "HBASE"]
               },
-              "hbase_XAAUDIT.DB.IS_ENABLED": {
-                "map-from": "XAAUDIT.DB.IS_ENABLED",
-                "map-to": "xasecure.audit.destination.db",
-                "from-catalog": "ranger-hbase-plugin-properties",
-                "to-catalog": "ranger-hbase-audit",
-                "default": "false",
-                "required-services": ["RANGER", "HBASE"]
-              },
               "hbase_XAAUDIT.HDFS.DESTINATION_DIRECTORY": {
                 "map-from": "XAAUDIT.HDFS.DESTINATION_DIRECTORY",
                 "map-to": "xasecure.audit.destination.hdfs.dir",
@@ -1266,32 +1474,9 @@
                 "template": "yes",
                 "required-services": ["RANGER", "HBASE"]
               },
-              "hbase_XAAUDIT.HDFS.IS_ENABLED": {
-                "map-from": "XAAUDIT.HDFS.IS_ENABLED",
-                "map-to": "xasecure.audit.destination.hdfs",
-                "from-catalog": "ranger-hbase-plugin-properties",
-                "to-catalog": "ranger-hbase-audit",
-                "default": "true",
-                "required-services": ["RANGER", "HBASE"]
-              },
-              "hbase_XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY": {
-                "map-from": "XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY",
-                "map-to": "xasecure.audit.destination.hdfs.batch.filespool.dir",
-                "from-catalog": "ranger-hbase-plugin-properties",
-                "to-catalog": "ranger-hbase-audit",
-                "default": "/var/log/hbase/audit/hdfs/spool",
-                "required-services": ["RANGER", "HBASE"]
-              },
               "hbase_XAAUDIT.DB.USER_NAME": {
                 "map-from": "XAAUDIT.DB.USER_NAME",
                 "map-to": "xasecure.audit.destination.db.user",
-                "from-catalog": "ranger-hbase-plugin-properties",
-                "to-catalog": "ranger-hbase-audit",
-                "required-services": ["RANGER", "HBASE"]
-              },
-              "hbase_XAAUDIT.DB.PASSWORD": {
-                "map-from": "XAAUDIT.DB.PASSWORD",
-                "map-to": "xasecure.audit.destination.db.password",
                 "from-catalog": "ranger-hbase-plugin-properties",
                 "to-catalog": "ranger-hbase-audit",
                 "required-services": ["RANGER", "HBASE"]
@@ -1317,7 +1502,7 @@
                 "map-from": "SSL_TRUSTSTORE_FILE_PATH",
                 "from-catalog": "ranger-hive-plugin-properties",
                 "to-catalog": "ranger-hive-policymgr-ssl",
-                "default": "/etc/hive/conf/conf.server/ranger-plugin-keystore.jks",
+                "default": "/etc/hive/conf/conf.server/ranger-plugin-truststore.jks",
                 "required-services": ["RANGER", "HIVE"]
               },
               "hive_SSL_TRUSTSTORE_PASSWORD": {
@@ -1338,27 +1523,20 @@
               },
               "hive_POLICY_MGR_URL": {
                 "map-from": "POLICY_MGR_URL",
-                "map-to": "ranger.plugin.hive.service.name",
+                "map-to": "ranger.plugin.hive.policy.rest.url",
                 "from-catalog": "ranger-hive-plugin-properties",
                 "to-catalog": "ranger-hive-security",
-                "default": "{HIVE_RANGER_REPO_NAME}",
+                "default": "{POLICYMGR_MGR_URL}",
                 "template": "yes",
                 "required-services": ["RANGER", "HIVE"]
               },
               "hive_REPOSITORY_NAME": {
                 "map-from": "REPOSITORY_NAME",
-                "map-to": "ranger.plugin.hive.policy.source.impl",
+                "map-to": "ranger.plugin.hive.service.name",
                 "from-catalog": "ranger-hive-plugin-properties",
                 "to-catalog": "ranger-hive-security",
-                "default": "org.apache.ranger.admin.client.RangerAdminRESTClient",
-                "required-services": ["RANGER", "HIVE"]
-              },
-              "hive_XAAUDIT.DB.IS_ENABLED": {
-                "map-from": "XAAUDIT.DB.IS_ENABLED",
-                "map-to": "xasecure.audit.destination.db",
-                "from-catalog": "ranger-hive-plugin-properties",
-                "to-catalog": "ranger-hive-audit",
-                "default": "false",
+                "default": "{HIVE_RANGER_REPO_NAME}",
+                "template" : "yes",
                 "required-services": ["RANGER", "HIVE"]
               },
               "hive_XAAUDIT.HDFS.DESTINATION_DIRECTORY": {
@@ -1370,32 +1548,9 @@
                 "template": "yes",
                 "required-services": ["RANGER", "HIVE"]
               },
-              "hive_XAAUDIT.HDFS.IS_ENABLED": {
-                "map-from": "XAAUDIT.HDFS.IS_ENABLED",
-                "map-to": "xasecure.audit.destination.hdfs",
-                "from-catalog": "ranger-hive-plugin-properties",
-                "to-catalog": "ranger-hive-audit",
-                "default": "true",
-                "required-services": ["RANGER", "HIVE"]
-              },
-              "hive_XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY": {
-                "map-from": "XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY",
-                "map-to": "xasecure.audit.destination.hdfs.batch.filespool.dir",
-                "from-catalog": "ranger-hive-plugin-properties",
-                "to-catalog": "ranger-hive-audit",
-                "default": "/var/log/hive/audit/hdfs/spool",
-                "required-services": ["RANGER", "HIVE"]
-              },
               "hive_XAAUDIT.DB.USER_NAME": {
                 "map-from": "XAAUDIT.DB.USER_NAME",
                 "map-to": "xasecure.audit.destination.db.user",
-                "from-catalog": "ranger-hive-plugin-properties",
-                "to-catalog": "ranger-hive-audit",
-                "required-services": ["RANGER", "HIVE"]
-              },
-              "hive_XAAUDIT.DB.PASSWORD": {
-                "map-from": "XAAUDIT.DB.PASSWORD",
-                "map-to": "xasecure.audit.destination.db.password",
                 "from-catalog": "ranger-hive-plugin-properties",
                 "to-catalog": "ranger-hive-audit",
                 "required-services": ["RANGER", "HIVE"]
@@ -1421,7 +1576,7 @@
                 "map-from": "SSL_TRUSTSTORE_FILE_PATH",
                 "from-catalog": "ranger-knox-plugin-properties",
                 "to-catalog": "ranger-knox-policymgr-ssl",
-                "default": "/usr/hdp/current/knox-server/conf/ranger-plugin-keystore.jks",
+                "default": "/usr/hdp/current/knox-server/conf/ranger-plugin-truststore.jks",
                 "required-services": ["RANGER", "KNOX"]
               },
               "knox_SSL_TRUSTSTORE_PASSWORD": {
@@ -1450,14 +1605,6 @@
                 "template": "yes",
                 "required-services": ["RANGER", "KNOX"]
               },
-              "knox_XAAUDIT.DB.IS_ENABLED": {
-                "map-from": "XAAUDIT.DB.IS_ENABLED",
-                "map-to": "xasecure.audit.destination.db",
-                "from-catalog": "ranger-knox-plugin-properties",
-                "to-catalog": "ranger-knox-audit",
-                "default": "false",
-                "required-services": ["RANGER", "KNOX"]
-              },
               "knox_XAAUDIT.HDFS.DESTINATION_DIRECTORY": {
                 "map-from": "XAAUDIT.HDFS.DESTINATION_DIRECTORY",
                 "map-to": "xasecure.audit.destination.hdfs.dir",
@@ -1467,22 +1614,6 @@
                 "template": "yes",
                 "required-services": ["RANGER", "KNOX"]
               },
-              "knox_XAAUDIT.HDFS.IS_ENABLED": {
-                "map-from": "XAAUDIT.HDFS.IS_ENABLED",
-                "map-to": "xasecure.audit.destination.hdfs",
-                "from-catalog": "ranger-knox-plugin-properties",
-                "to-catalog": "ranger-knox-audit",
-                "default": "true",
-                "required-services": ["RANGER", "KNOX"]
-              },
-              "knox_XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY": {
-                "map-from": "XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY",
-                "map-to": "xasecure.audit.destination.hdfs.batch.filespool.dir",
-                "from-catalog": "ranger-knox-plugin-properties",
-                "to-catalog": "ranger-knox-audit",
-                "default": "/var/log/knox/audit/hdfs/spool",
-                "required-services": ["RANGER", "KNOX"]
-              },
               "knox_XAAUDIT.DB.USER_NAME": {
                 "map-from": "XAAUDIT.DB.USER_NAME",
                 "map-to": "xasecure.audit.destination.db.user",
@@ -1490,15 +1621,6 @@
                 "to-catalog": "ranger-knox-audit",
                 "required-services": ["RANGER", "KNOX"]
               },
-              "knox_XAAUDIT.DB.PASSWORD": {
-                "map-from": "XAAUDIT.DB.PASSWORD",
-                "map-to": "xasecure.audit.destination.db.password",
-                "from-catalog": "ranger-knox-plugin-properties",
-                "to-catalog": "ranger-knox-audit",
-                "required-services": ["RANGER", "KNOX"]
-              },
-
-
               "storm_SSL_KEYSTORE_FILE_PATH": {
                 "map-to": "xasecure.policymgr.clientssl.keystore",
                 "map-from": "SSL_KEYSTORE_FILE_PATH",
@@ -1520,7 +1642,7 @@
                 "map-from": "SSL_TRUSTSTORE_FILE_PATH",
                 "from-catalog": "ranger-storm-plugin-properties",
                 "to-catalog": "ranger-storm-policymgr-ssl",
-                "default": "/usr/hdp/current/storm-client/conf/ranger-plugin-keystore.jks",
+                "default": "/usr/hdp/current/storm-client/conf/ranger-plugin-truststore.jks",
                 "required-services": ["RANGER", "STORM"]
               },
               "storm_SSL_TRUSTSTORE_PASSWORD": {
@@ -1549,14 +1671,6 @@
                 "template": "yes",
                 "required-services": ["RANGER", "STORM"]
               },
-              "storm_XAAUDIT.DB.IS_ENABLED": {
-                "map-from": "XAAUDIT.DB.IS_ENABLED",
-                "map-to": "xasecure.audit.destination.db",
-                "from-catalog": "ranger-storm-plugin-properties",
-                "to-catalog": "ranger-storm-audit",
-                "default": "false",
-                "required-services": ["RANGER", "STORM"]
-              },
               "storm_XAAUDIT.HDFS.DESTINATION_DIRECTORY": {
                 "map-from": "XAAUDIT.HDFS.DESTINATION_DIRECTORY",
                 "map-to": "xasecure.audit.destination.hdfs.dir",
@@ -1566,32 +1680,9 @@
                 "template": "yes",
                 "required-services": ["RANGER", "STORM"]
               },
-              "storm_XAAUDIT.HDFS.IS_ENABLED": {
-                "map-from": "XAAUDIT.HDFS.IS_ENABLED",
-                "map-to": "xasecure.audit.destination.hdfs",
-                "from-catalog": "ranger-storm-plugin-properties",
-                "to-catalog": "ranger-storm-audit",
-                "default": "true",
-                "required-services": ["RANGER", "STORM"]
-              },
-              "storm_XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY": {
-                "map-from": "XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY",
-                "map-to": "xasecure.audit.destination.hdfs.batch.filespool.dir",
-                "from-catalog": "ranger-storm-plugin-properties",
-                "to-catalog": "ranger-storm-audit",
-                "default": "/var/log/storm/audit/hdfs/spool",
-                "required-services": ["RANGER", "STORM"]
-              },
               "storm_XAAUDIT.DB.USER_NAME": {
                 "map-from": "XAAUDIT.DB.USER_NAME",
                 "map-to": "xasecure.audit.destination.db.user",
-                "from-catalog": "ranger-storm-plugin-properties",
-                "to-catalog": "ranger-storm-audit",
-                "required-services": ["RANGER", "STORM"]
-              },
-              "storm_XAAUDIT.DB.PASSWORD": {
-                "map-from": "XAAUDIT.DB.PASSWORD",
-                "map-to": "xasecure.audit.destination.db.password",
                 "from-catalog": "ranger-storm-plugin-properties",
                 "to-catalog": "ranger-storm-audit",
                 "required-services": ["RANGER", "STORM"]

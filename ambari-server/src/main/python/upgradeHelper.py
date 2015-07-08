@@ -189,7 +189,7 @@ class Options(Const):
   KAFKA_BROKER_CONF = "kafka-broker"
   RANGER_ADMIN = "admin-properties"
   KAFKA_PORT = "port"
-  RANGER_EXTERNAL_URL = "ranger.externalurl"
+  RANGER_EXTERNAL_URL = "policymgr_external_url"
   ZK_CLIENTPORT = "clientPort"
   DELETE_OLD_TAG = "DELETE_OLD"
 
@@ -1057,42 +1057,78 @@ def get_ranger_xaaudit_hdfs_destination_directory():
   return "hdfs://{0}:8020/ranger/audit".format(namenode_hostname)
 
 def get_ranger_policymgr_external_url():
-  url = "{{ranger_external_url}}"
+  url = "{{policymgr_mgr_url}}"
   if Options.server_config_factory is not None and Options.RANGER_ADMIN in Options.server_config_factory.items():
     props = Options.server_config_factory.get_config(Options.RANGER_ADMIN)
     if Options.RANGER_EXTERNAL_URL in props.properties:
       url = props.properties[Options.RANGER_EXTERNAL_URL]
   return url
 
-def get_jdbc_driver(config_name):
+def get_jdbc_driver():
   driver = "{{jdbc_driver}}"
-  if Options.server_config_factory is not None and config_name in Options.server_config_factory.items():
-    props = Options.server_config_factory.get_config(config_name)
-    if "XAAUDIT.DB.FLAVOUR" in props.properties:
-      db = props.properties["XAAUDIT.DB.FLAVOUR"]
+  if Options.server_config_factory is not None and Options.RANGER_ADMIN in Options.server_config_factory.items():
+    props = Options.server_config_factory.get_config(Options.RANGER_ADMIN)
+    if "DB_FLAVOR" in props.properties:
+      db = props.properties["DB_FLAVOR"]
 
-  if db == "mysql":
+  if db.lower() == "mysql":
     driver = "com.mysql.jdbc.Driver"
-  elif db == "oracle":
+  elif db.lower() == "oracle":
     driver = "oracle.jdbc.OracleDriver"
   return driver
 
-def get_audit_jdbc_url(config_name):
+def get_audit_jdbc_url():
   audit_jdbc_url = "{{audit_jdbc_url}}"
-  if Options.server_config_factory is not None and config_name in Options.server_config_factory.items():
-    props = Options.server_config_factory.get_config(config_name)
-    if "XAAUDIT.DB.FLAVOUR" in props.properties:
-      xa_audit_db_flavor = props.properties["XAAUDIT.DB.FLAVOUR"]
-    if "XAAUDIT.DB.HOSTNAME" in props.properties:
-      xa_db_host =  props.properties["XAAUDIT.DB.HOSTNAME"]
-    if "XAAUDIT.DB.DATABASE_NAME" in props.properties:
-      xa_audit_db_name = props.properties["XAAUDIT.DB.DATABASE_NAME"]
+  if Options.server_config_factory is not None and Options.RANGER_ADMIN in Options.server_config_factory.items():
+    props = Options.server_config_factory.get_config(Options.RANGER_ADMIN)
+    if "DB_FLAVOR" in props.properties:
+      xa_audit_db_flavor = props.properties["DB_FLAVOR"]
+    if "db_host" in props.properties:
+      xa_db_host =  props.properties["db_host"]
+    if "audit_db_name" in props.properties:
+      xa_audit_db_name = props.properties["audit_db_name"]
 
-  if xa_audit_db_flavor == 'mysql':
+  if xa_audit_db_flavor.lower() == 'mysql':
     audit_jdbc_url = "jdbc:mysql://{0}/{1}".format(xa_db_host, xa_audit_db_name)
-  elif xa_audit_db_flavor == 'oracle':
+  elif xa_audit_db_flavor.lower() == 'oracle':
     audit_jdbc_url = "jdbc:oracle:thin:\@//{0}".format(xa_db_host)
   return audit_jdbc_url
+
+def get_audit_db_passwd():
+  audit_db_passwd = "crypted"
+  if Options.server_config_factory is not None and Options.RANGER_ADMIN in Options.server_config_factory.items():
+    props = Options.server_config_factory.get_config(Options.RANGER_ADMIN)
+    if "audit_db_password" in props.properties:
+      audit_db_passwd = props.properties['audit_db_password']
+  return audit_db_passwd
+
+def get_audit_to_db_enabled(config_name):
+  audit_to_db = "true"
+  if Options.server_config_factory is not None and config_name in Options.server_config_factory.items():
+    props = Options.server_config_factory.get_config(config_name)
+    if "XAAUDIT.DB.IS_ENABLED" in props.properties:
+      audit_to_db = props.properties["XAAUDIT.DB.IS_ENABLED"]
+  return audit_to_db
+
+def get_audit_to_hdfs_enabled(config_name):
+  audit_to_hdfs = "false"
+  if Options.server_config_factory is not None and config_name in Options.server_config_factory.items():
+    props = Options.server_config_factory.get_config(config_name)
+    if "XAAUDIT.HDFS.IS_ENABLED" in props.properties:
+      audit_to_hdfs = props.properties["XAAUDIT.HDFS.IS_ENABLED"]
+  return audit_to_hdfs
+
+def get_hdfs_batch_filespool_dir(config_name, component):
+  if component == 'hdfs':
+    path = '/var/log/hadoop/hdfs/audit/hdfs/spool'
+  else:
+    path = '/var/log/{0}/audit/hdfs/spool'.format(component)
+  if Options.server_config_factory is not None and config_name in Options.server_config_factory.items():
+    props = Options.server_config_factory.get_config(config_name)
+    if "XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY" in props.properties:
+      path = props.properties["XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"]
+  return path
+
 
 def get_jt_host(catalog):
   """
@@ -1174,7 +1210,7 @@ def _substitute_handler(upgrade_catalog, tokens, value):
     elif token == "{RANGER_PLUGIN_HBASE_POLICY_CACHE_DIR}":
       value = value.replace(token, "/etc/ranger/{0}{1}/policycache".format(Options.CLUSTER_NAME, "_hbase"))
     elif token == "{RANGER_PLUGIN_HDFS_POLICY_CACHE_DIR}":
-      value = value.replace(token, "/etc/ranger/{0}{1}/policycache".format(Options.CLUSTER_NAME, "_hdfs"))
+      value = value.replace(token, "/etc/ranger/{0}{1}/policycache".format(Options.CLUSTER_NAME, "_hadoop"))
     elif token == "{RANGER_PLUGIN_HIVE_POLICY_CACHE_DIR}":
       value = value.replace(token, "/etc/ranger/{0}{1}/policycache".format(Options.CLUSTER_NAME, "_hive"))
     elif token == "{RANGER_PLUGIN_KNOX_POLICY_CACHE_DIR}":
@@ -1184,48 +1220,79 @@ def _substitute_handler(upgrade_catalog, tokens, value):
     elif token == "{RANGER_HBASE_KEYSTORE_CREDENTIAL_FILE}":
       value = value.replace(token, "jceks://file/etc/ranger/{0}{1}/cred.jceks".format(Options.CLUSTER_NAME, "_hbase"))
     elif token == "{RANGER_HDFS_KEYSTORE_CREDENTIAL_FILE}":
-      value = value.replace(token, "jceks://file/etc/ranger/{0}{1}/cred.jceks".format(Options.CLUSTER_NAME, "_hdfs"))
+      value = value.replace(token, "jceks://file/etc/ranger/{0}{1}/cred.jceks".format(Options.CLUSTER_NAME, "_hadoop"))
     elif token == "{RANGER_HIVE_KEYSTORE_CREDENTIAL_FILE}":
       value = value.replace(token, "jceks://file/etc/ranger/{0}{1}/cred.jceks".format(Options.CLUSTER_NAME, "_hive"))
     elif token == "{RANGER_KNOX_KEYSTORE_CREDENTIAL_FILE}":
       value = value.replace(token, "jceks://file/etc/ranger/{0}{1}/cred.jceks".format(Options.CLUSTER_NAME, "_knox"))
     elif token == "{RANGER_STORM_KEYSTORE_CREDENTIAL_FILE}":
       value = value.replace(token, "jceks://file/etc/ranger/{0}{1}/cred.jceks".format(Options.CLUSTER_NAME, "_storm"))
-
     elif token == "{XAAUDIT_HDFS_DESTINATION_DIRECTORY}":
       value = value.replace(token, get_ranger_xaaudit_hdfs_destination_directory())
     elif token == "{HBASE_RANGER_REPO_NAME}":
       value = value.replace(token, Options.CLUSTER_NAME+"_hbase")
     elif token == "{HDFS_RANGER_REPO_NAME}":
-      value = value.replace(token, Options.CLUSTER_NAME+"_hdfs")
+      value = value.replace(token, Options.CLUSTER_NAME+"_hadoop")
     elif token == "{HIVE_RANGER_REPO_NAME}":
       value = value.replace(token, Options.CLUSTER_NAME+"_hive")
-    elif token == "{HNOX_RANGER_REPO_NAME}":
+    elif token == "{KNOX_RANGER_REPO_NAME}":
       value = value.replace(token, Options.CLUSTER_NAME+"_knox")
     elif token == "{STORM_RANGER_REPO_NAME}":
       value = value.replace(token, Options.CLUSTER_NAME+"_storm")
     elif token == "{POLICYMGR_MGR_URL}":
       value = value.replace(token, get_ranger_policymgr_external_url())
     elif token == "{HDFS_JDBC_DRIVER}":
-      value = value.replace(token, get_jdbc_driver("ranger-hdfs-plugin-properties"))
+      value = value.replace(token, get_jdbc_driver())
     elif token == "{HBASE_JDBC_DRIVER}":
-      value = value.replace(token, get_jdbc_driver("ranger-hbase-plugin-properties"))
+      value = value.replace(token, get_jdbc_driver())
     elif token == "{HIVE_JDBC_DRIVER}":
-      value = value.replace(token, get_jdbc_driver("ranger-hive-plugin-properties"))
+      value = value.replace(token, get_jdbc_driver())
     elif token == "{KNOX_JDBC_DRIVER}":
-      value = value.replace(token, get_jdbc_driver("ranger-knox-plugin-properties"))
+      value = value.replace(token, get_jdbc_driver())
     elif token == "{STORM_JDBC_DRIVER}":
-      value = value.replace(token, get_jdbc_driver("ranger-storm-plugin-properties"))
+      value = value.replace(token, get_jdbc_driver())
     elif token == "{HDFS_AUDIT_JDBC_URL}":
-      value = value.replace(token, get_audit_jdbc_url("ranger-hdfs-plugin-properties"))
+      value = value.replace(token, get_audit_jdbc_url())
     elif token == "{HBASE_AUDIT_JDBC_URL}":
-      value = value.replace(token, get_audit_jdbc_url("ranger-hbase-plugin-properties"))
+      value = value.replace(token, get_audit_jdbc_url())
     elif token == "{HIVE_AUDIT_JDBC_URL}":
-      value = value.replace(token, get_audit_jdbc_url("ranger-hive-plugin-properties"))
+      value = value.replace(token, get_audit_jdbc_url())
     elif token == "{KNOX_AUDIT_JDBC_URL}":
-      value = value.replace(token, get_audit_jdbc_url("ranger-knox-plugin-properties"))
+      value = value.replace(token, get_audit_jdbc_url())
     elif token == "{STORM_AUDIT_JDBC_URL}":
-      value = value.replace(token, get_audit_jdbc_url("ranger-storm-plugin-properties"))
+      value = value.replace(token, get_audit_jdbc_url())
+    elif token == "{AUDIT_DB_PASSWD}":
+      value = value.replace(token, get_audit_db_passwd())
+    elif token == "{AUDIT_TO_DB_HDFS}":
+      value = value.replace(token, get_audit_to_db_enabled("ranger-hdfs-plugin-properties"))
+    elif token == "{AUDIT_TO_DB_HBASE}":
+      value = value.replace(token, get_audit_to_db_enabled("ranger-hbase-plugin-properties"))
+    elif token == "{AUDIT_TO_DB_HIVE}":
+      value = value.replace(token, get_audit_to_db_enabled("ranger-hive-plugin-properties"))
+    elif token == "{AUDIT_TO_DB_KNOX}":
+      value = value.replace(token, get_audit_to_db_enabled("ranger-knox-plugin-properties"))
+    elif token == "{AUDIT_TO_DB_STORM}":
+      value = value.replace(token, get_audit_to_db_enabled("ranger-storm-plugin-properties"))
+    elif token == "{AUDIT_TO_HDFS_HDFS}":
+      value = value.replace(token, get_audit_to_hdfs_enabled("ranger-hdfs-plugin-properties"))
+    elif token == "{AUDIT_TO_HDFS_HIVE}":
+      value = value.replace(token, get_audit_to_hdfs_enabled("ranger-hive-plugin-properties"))
+    elif token == "{AUDIT_TO_HDFS_HBASE}":
+      value = value.replace(token, get_audit_to_hdfs_enabled("ranger-hbase-plugin-properties"))
+    elif token == "{AUDIT_TO_HDFS_KNOX}":
+      value = value.replace(token, get_audit_to_hdfs_enabled("ranger-knox-plugin-properties"))
+    elif token == "{AUDIT_TO_HDFS_STORM}":
+      value = value.replace(token, get_audit_to_hdfs_enabled("ranger-storm-plugin-properties"))
+    elif token == "{AUDIT_HDFS_FILESPOOL_DIR_HDFS}":
+      value = value.replace(token, get_hdfs_batch_filespool_dir("ranger-hdfs-plugin-properties", "hdfs"))
+    elif token == "{AUDIT_HDFS_FILESPOOL_DIR_HIVE}":
+      value = value.replace(token, get_hdfs_batch_filespool_dir("ranger-hive-plugin-properties", "hive"))
+    elif token == "{AUDIT_HDFS_FILESPOOL_DIR_HBASE}":
+      value = value.replace(token, get_hdfs_batch_filespool_dir("ranger-hbase-plugin-properties", "hbase"))
+    elif token == "{AUDIT_HDFS_FILESPOOL_DIR_KNOX}":
+      value = value.replace(token, get_hdfs_batch_filespool_dir("ranger-knox-plugin-properties", "knox"))
+    elif token == "{AUDIT_HDFS_FILESPOOL_DIR_STORM}":
+      value = value.replace(token, get_hdfs_batch_filespool_dir("ranger-storm-plugin-properties", "storm"))
 
   return value
 
