@@ -25,19 +25,19 @@ limitations under the License.
 
   <property>
     <name>templeton.jar</name>
-    <value>/usr/hdp/current/hive-webhcat/share/webhcat/svr/lib/hive-webhcat-*.jar</value>
+    <value>/usr/hdp/${hdp.version}/hive/share/webhcat/svr/lib/hive-webhcat-*.jar</value>
     <description>The path to the Templeton jar file.</description>
   </property>
 
   <property>
     <name>templeton.libjars</name>
-    <value>/usr/hdp/current/zookeeper-client/zookeeper.jar</value>
+    <value>/usr/hdp/${hdp.version}/zookeeper/zookeeper.jar</value>
     <description>Jars to add the the classpath.</description>
   </property>
 
   <property>
     <name>templeton.hadoop</name>
-    <value>/usr/hdp/current/hadoop-client/bin/hadoop</value>
+    <value>/usr/hdp/${hdp.version}/hadoop/bin/hadoop</value>
     <description>The path to the Hadoop executable.</description>
   </property>
 
@@ -55,7 +55,7 @@ limitations under the License.
 
   <property>
     <name>templeton.hcat</name>
-    <value>/usr/hdp/current/hive-client/bin/hcat</value>
+    <value>/usr/hdp/${hdp.version}/hive/bin/hcat</value>
     <description>The path to the hcatalog executable.</description>
   </property>
 
@@ -111,7 +111,7 @@ limitations under the License.
 
    <property>
     <name>templeton.hive.extra.files</name>
-    <value>/etc/tez/conf/tez-site.xml,/usr/hdp/current/tez-client,/usr/hdp/current/tez-client/lib</value>
+    <value>/usr/hdp/${hdp.version}/tez/conf/tez-site.xml,/usr/hdp/${hdp.version}/tez,/usr/hdp/${hdp.version}/tez/lib</value>
     <description>The resources in this list will be localized to the node running LaunchMapper and added to HADOOP_CLASSPTH
       before launching 'hive' command.  If the path /foo/bar is a directory, the contents of the the entire dir will be localized
       and ./foo/* will be added to HADOOP_CLASSPATH.  Note that since classpath path processing does not recurse into subdirectories,

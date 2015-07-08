@@ -694,7 +694,7 @@
             <replace key="hbase.coprocessor.master.classes" find="com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor" replace-with="org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor" />
             <replace key="hbase.coprocessor.region.classes" find="com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor" replace-with="org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor" />           
           </task>
-          
+
           <task xsi:type="configure" summary="Transitioning Ranger HBase Policy">
             <type>ranger-hbase-policymgr-ssl</type>
             <transfer operation="copy" from-type="ranger-hbase-plugin-properties" from-key="SSL_KEYSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.keystore" default-value="/usr/hdp/current/hbase-client/conf/ranger-plugin-keystore.jks" />
@@ -702,6 +702,7 @@
             <transfer operation="copy" from-type="ranger-hbase-plugin-properties" from-key="SSL_TRUSTSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.truststore" default-value="/usr/hdp/current/hbase-client/conf/ranger-plugin-truststore.jks" />
             <transfer operation="copy" from-type="ranger-hbase-plugin-properties" from-key="SSL_TRUSTSTORE_PASSWORD" to-key="xasecure.policymgr.clientssl.truststore.password" mask="true" default-value="changeit" />
           </task>
+
           <task xsi:type="configure" summary="Transitioning Ranger HBase Audit">
             <type>ranger-hbase-audit</type>
             <transfer operation="copy" from-type="ranger-hbase-plugin-properties" from-key="XAAUDIT.DB.IS_ENABLED" to-key="xasecure.audit.destination.db" default-value="false" />
@@ -719,12 +720,14 @@
             <set key="xasecure.audit.destination.db.jdbc.url" value="{{audit_jdbc_url}}" />
             <set key="xasecure.audit.provider.summary.enabled" value="true" />
           </task>
+
           <task xsi:type="configure">
             <type>ranger-hbase-security</type>
             <transfer operation="copy" from-type="ranger-hbase-plugin-properties" from-key="UPDATE_XAPOLICIES_ON_GRANT_REVOKE" to-key="xasecure.hbase.update.xapolicies.on.grant.revoke" default-value="true" />
             <transfer operation="copy" from-type="ranger-hbase-plugin-properties" from-key="POLICY_MGR_URL" to-key="ranger.plugin.hbase.policy.rest.url" default-value="{{policymgr_mgr_url}}" />
             <transfer operation="copy" from-type="ranger-hbase-plugin-properties" from-key="REPOSITORY_NAME" to-key="ranger.plugin.hbase.service.name" default-value="{{repo_name}}" />
           </task>
+
           <task xsi:type="configure">
             <type>ranger-hbase-plugin-properties</type>
             <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FILE" />
@@ -964,7 +967,17 @@
             <type>webhcat-env</type>
             <replace key="content" find="export HADOOP_HOME={{hadoop_home}}" replace-with="export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}" />
           </task>
+
+          <task xsi:type="configure" summary="Updating Configuration Paths">
+            <type>webhcat-site</type>
+            <replace key="templeton.jar" find="/usr/hdp/current/hive-webhcat" replace-with="/usr/hdp/${hdp.version}/hive"/>
+            <replace key="templeton.libjars" find="/usr/hdp/current/zookeeper-client" replace-with="/usr/hdp/${hdp.version}/zookeeper"/>
+            <replace key="templeton.hadoop" find="/usr/hdp/current/hadoop-client" replace-with="/usr/hdp/${hdp.version}/hadoop"/>
+            <replace key="templeton.hcat" find="/usr/hdp/current/hive-client" replace-with="/usr/hdp/${hdp.version}/hive"/>
+            <set key="templeton.hive.extra.files" value="/usr/hdp/${hdp.version}/tez/conf/tez-site.xml,/usr/hdp/${hdp.version}/tez,/usr/hdp/${hdp.version}/tez/lib"/>
+          </task>
         </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
