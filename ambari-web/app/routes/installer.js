@@ -286,8 +286,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             controller.setDBProperty('serviceConfigGroups', null);
             controller.setDBProperty('recommendationsHostGroups', wizardStep6Controller.get('content.recommendationsHostGroups'));
             controller.setDBProperty('recommendationsConfigs', null);
-            controller.loadAdvancedConfigs(wizardStep7Controller);
-            wizardStep7Controller.set('isAdvancedConfigLoaded', false);
             router.transitionTo('step7');
           }
         });
@@ -307,6 +305,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
       controller.loadAllPriorSteps().done(function () {
         var wizardStep7Controller = router.get('wizardStep7Controller');
+        controller.loadAdvancedConfigs(wizardStep7Controller);
+        wizardStep7Controller.set('isAdvancedConfigLoaded', false);
         wizardStep7Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep7', controller.get('content'));
       });
