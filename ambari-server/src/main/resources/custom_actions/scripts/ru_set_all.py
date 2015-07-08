@@ -64,7 +64,8 @@ class UpgradeSetAll(Script):
       if compare_versions(real_ver, format_hdp_stack_version("2.3")) >= 0:
         # backup the old and symlink /etc/[component]/conf to /usr/hdp/current/[component]
         for k, v in conf_select.PACKAGE_DIRS.iteritems():
-          link_config(v['conf_dir'], v['current_dir'])
+          for dir_def in v:
+            link_config(dir_def['conf_dir'], dir_def['current_dir'])
 
 def link_config(old_conf, link_conf):
   """
@@ -95,9 +96,7 @@ def link_config(old_conf, link_conf):
   shutil.rmtree(old_conf, ignore_errors=True)
 
   # link /etc/[component]/conf -> /usr/hdp/current/[component]-client/conf
-  Link(old_conf,
-    to = link_conf,
-  )
+  Link(old_conf, to = link_conf)
 
 if __name__ == "__main__":
   UpgradeSetAll().execute()

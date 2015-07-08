@@ -18,16 +18,17 @@ limitations under the License.
 """
 import os
 import shutil
+
 import ambari_simplejson as json
-from resource_management.core.shell import as_sudo
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Directory, Link
 from resource_management.core.resources.system import Execute
-from resource_management.libraries.functions.version import compare_versions
-from resource_management.libraries.functions.format import format
+from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script import Script
-from resource_management.core.resources.system import Directory, Link
 
 
 def setup_hdp_install_directory():
@@ -87,54 +88,79 @@ def link_configs(struct_out_file):
     return
 
   for k, v in conf_select.PACKAGE_DIRS.iteritems():
-    _link_configs(k, json_version, v['conf_dir'], v['current_dir'])
+    _link_configs(k, json_version, v)
 
-def _link_configs(package, version, old_conf, link_conf):
+def _link_configs(package, version, dirs):
   """
   Link a specific package's configuration directory
   """
+  bad_dirs = []
+  for dir_def in dirs:
+    if not os.path.exists(dir_def['conf_dir']):
+      bad_dirs.append(dir_def['conf_dir'])
 
-  if not os.path.exists(old_conf):
-    Logger.debug("Skipping {0} as it does not exist.".format(old_conf))
+  if len(bad_dirs) > 0:
+    Logger.debug("Skipping {0} as it does not exist.".format(",".join(bad_dirs)))
     return
 
-  # check if conf is a link to the target already
-  if os.path.islink(old_conf):
-    Logger.debug("{0} is already a link to {1}".format(old_conf, os.path.realpath(old_conf)))
+  bad_dirs = []
+  for dir_def in dirs:
+    # check if conf is a link already
+    old_conf = dir_def['conf_dir']
+    if os.path.islink(old_conf):
+      Logger.debug("{0} is a link to {1}".format(old_conf, os.path.realpath(old_conf)))
+      bad_dirs.append(old_conf)
+
+  if len(bad_dirs) > 0:
     return
 
   # make backup dir and copy everything in case configure() was called after install()
-  old_parent = os.path.abspath(os.path.join(old_conf, os.pardir))
-  old_conf_copy = os.path.join(old_parent, "conf.install")
-  Execute(("cp", "-R", "-p", old_conf, old_conf_copy),
-          not_if = format("test -e {old_conf_copy}"),
-          sudo = True,
-  )
+  for dir_def in dirs:
+    old_conf = dir_def['conf_dir']
+    old_parent = os.path.abspath(os.path.join(old_conf, os.pardir))
+    old_conf_copy = os.path.join(old_parent, "conf.install")
+    Execute(("cp", "-R", "-p", old_conf, old_conf_copy),
+      not_if = format("test -e {old_conf_copy}"), sudo = True)
 
-  versioned_conf = conf_select.create("HDP", package, version, dry_run = True)
+  # we're already in the HDP stack
+  versioned_confs = conf_select.create("HDP", package, version, dry_run = True)
 
-  Logger.info("New conf directory is {0}".format(versioned_conf))
+  Logger.info("New conf directories: {0}".format(", ".join(versioned_confs)))
 
-  # make new conf dir and copy everything in case configure() was called after install()
-  if not os.path.exists(versioned_conf):
+  need_dirs = []
+  for d in versioned_confs:
+    if not os.path.exists(d):
+      need_dirs.append(d)
+
+  if len(need_dirs) > 0:
     conf_select.create("HDP", package, version)
-    Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
-            only_if = format("ls {old_conf}/*")
-    )
-    
-  # make /usr/hdp/<version>/hadoop/conf point to the versioned config.
+
+    # find the matching definition and back it up (not the most efficient way) ONLY if there is more than one directory
+    if len(dirs) > 1:
+      for need_dir in need_dirs:
+        for dir_def in dirs:
+          if 'prefix' in dir_def and need_dir.startswith(dir_def['prefix']):
+            old_conf = dir_def['conf_dir']
+            versioned_conf = need_dir
+            Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
+              only_if = format("ls {old_conf}/*"))
+    elif 1 == len(dirs) and 1 == len(need_dirs):
+      old_conf = dirs[0]['conf_dir']
+      versioned_conf = need_dirs[0]
+      Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
+        only_if = format("ls {old_conf}/*"))
+
+
+  # make /usr/hdp/[version]/[component]/conf point to the versioned config.
   # /usr/hdp/current is already set
   conf_select.select("HDP", package, version)
 
   # no more references to /etc/[component]/conf
-  Directory(old_conf,
-    action="delete",
-  )
+  for dir_def in dirs:
+    Directory(dir_def['conf_dir'], action="delete")
 
-  # link /etc/[component]/conf -> /usr/hdp/current/[component]-client/conf
-  Link(old_conf,
-    to = link_conf
-  )
+    # link /etc/[component]/conf -> /usr/hdp/current/[component]-client/conf
+    Link(dir_def['conf_dir'], to = dir_def['current_dir'])
       
   # should conf.install be removed?
 
