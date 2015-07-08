@@ -33,8 +33,7 @@ class BeforeStartHook(Hook):
     setup_hadoop()
     setup_configs()
     create_javahome_symlink()
-    if params.refresh_topology :
-      create_topology_script_and_mapping()
+    create_topology_script_and_mapping()
 
 if __name__ == "__main__":
   BeforeStartHook().execute()
