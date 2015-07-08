@@ -18,16 +18,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import os
-import tarfile
-from contextlib import closing
+from resource_management.core.resources.system import Execute
 
 def archive_dir(output_filename, input_dir):
-  with closing(tarfile.open(output_filename, "w:gz")) as tar:
-    try:
-      tar.add(input_dir, arcname=os.path.basename("."))
-    finally:
-      tar.close()
+  Execute(('tar', '-zcvf', output_filename, input_dir),
+    sudo = True,
+  )
 
 
 def archive_directory_dereference(archive, directory):
@@ -38,19 +34,15 @@ def archive_directory_dereference(archive, directory):
   :param directory:   the directory to include
   :return:  None
   """
-  tarball = None
-  try:
-    # !!! dereference must be TRUE since the conf is a symlink and we want
-    # its contents instead of the actual symlink
-    tarball = tarfile.open(archive, mode="w", dereference=True)
-
-    # tar the files, chopping off everything in front of directory
-    # /foo/bar/conf/a, /foo/bar/conf/b, /foo/bar/conf/dir/c
-    # becomes
-    # a
-    # b
-    # dir/c
-    tarball.add(directory, arcname=os.path.relpath(directory, start=directory))
-  finally:
-    if tarball:
-      tarball.close()
+  
+  Execute(('tar', '-zcvhf', archive, directory),
+    sudo = True,
+  )
+  
+def untar_archive(archive, directory):
+  """
+  :param directory:   can be a symlink and is followed
+  """
+  Execute(('tar','-xvf',archive,'-C',directory+"/"),
+          sudo = True,
+  )

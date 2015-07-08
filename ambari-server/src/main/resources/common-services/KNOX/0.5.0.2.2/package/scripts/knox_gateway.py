@@ -21,7 +21,7 @@ import os
 import tarfile
 
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import conf_select, tar_archive
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import format
@@ -134,9 +134,7 @@ class KnoxGatewayDefault(KnoxGateway):
                   sudo = True,
           )
 
-          Execute(('tar','-xvf',conf_tar_source_path,'-C',extract_dir),
-                  sudo = True,
-          )
+          tar_archive.untar_archive(conf_tar_source_path, extract_dir)
           
           File(conf_tar_dest_path,
                action = "delete",

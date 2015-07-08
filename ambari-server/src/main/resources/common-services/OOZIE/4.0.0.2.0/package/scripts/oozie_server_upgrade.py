@@ -25,7 +25,7 @@ import tempfile
 from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, Directory
 from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import compare_versions
@@ -87,17 +87,12 @@ class OozieUpgrade(Script):
 
       Logger.info('Extracting {0} to {1}'.format(archive, directory))
 
-      tarball = None
-      try:
-        tarball = tarfile.open(archive, "r")
-        tarball.extractall(directory)
-      finally:
-        if tarball:
-          tarball.close()
+      tar_archive.untar_archive(archive, directory)
 
     # cleanup
-    shutil.rmtree(os.path.join(tempfile.gettempdir(), BACKUP_TEMP_DIR))
-
+    Directory(os.path.join(tempfile.gettempdir(), BACKUP_TEMP_DIR),
+              action="delete",
+    )
 
   @staticmethod
   def prepare_libext_directory():
@@ -112,11 +107,9 @@ class OozieUpgrade(Script):
     target_version_needs_compression_libraries = compare_versions(
       format_hdp_stack_version(params.version), '2.2.1.0') >= 0
 
-    if not os.path.isdir(params.oozie_libext_customer_dir):
-      os.makedirs(params.oozie_libext_customer_dir, 0o777)
-
-    # ensure that it's rwx for all
-    os.chmod(params.oozie_libext_customer_dir, 0o777)
+    Directory(params.oozie_libext_customer_dir,
+      mode = 0777,
+    )
 
     # get all hadooplzo* JAR files
     # hdp-select set hadoop-client has not run yet, therefore we cannot use
