@@ -59,6 +59,14 @@ class HbaseClientDefault(HbaseClient):
       conf_select.select(params.stack_name, "hbase", params.version)
       hdp_select.select("hbase-client", params.version)
 
+      # phoenix may not always be deployed
+      try:
+        hdp_select.select("phoenix-client", params.version)
+      except Exception as e:
+        print "Ignoring error due to missing phoenix-client"
+        print str(e)
+
+
       # set all of the hadoop clients since hbase client is upgraded as part
       # of the final "CLIENTS" group and we need to ensure that hadoop-client
       # is also set

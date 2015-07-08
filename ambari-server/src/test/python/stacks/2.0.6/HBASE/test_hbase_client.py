@@ -201,6 +201,7 @@ class TestHBaseClient(RMFTestCase):
                    mocks_dict = mocks_dict)
 
     self.assertResourceCalled("Execute", ('hdp-select', 'set', 'hbase-client', '2.2.1.0-2067'), sudo=True)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'phoenix-client', '2.2.1.0-2067'), sudo=True)
     self.assertResourceCalled("Execute", ('hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
     self.assertEquals(1, mocks_dict['call'].call_count)
 
@@ -226,10 +227,11 @@ class TestHBaseClient(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hbase-client', version), sudo=True)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'phoenix-client', version), sudo=True)
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hadoop-client', version), sudo=True)
 
     self.assertEquals(3, mocks_dict['call'].call_count)
-    self.assertEquals(5, mocks_dict['checked_call'].call_count)
+    self.assertEquals(6, mocks_dict['checked_call'].call_count)
     self.assertEquals(
       ('conf-select', 'set-conf-dir', '--package', 'hbase', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
        mocks_dict['checked_call'].call_args_list[1][0][0])
@@ -238,7 +240,7 @@ class TestHBaseClient(RMFTestCase):
        mocks_dict['call'].call_args_list[0][0][0])
     self.assertEquals(
       ('conf-select', 'set-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
-       mocks_dict['checked_call'].call_args_list[3][0][0])
+       mocks_dict['checked_call'].call_args_list[4][0][0])
     self.assertEquals(
       ('conf-select', 'create-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
        mocks_dict['call'].call_args_list[1][0][0])
