@@ -189,6 +189,46 @@ public class DataStoreImplTest {
   }
 
   @Test
+  public void testStore_create_largeEntity() throws Exception {
+    DynamicClassLoader classLoader = new DynamicClassLoader(DataStoreImplTest.class.getClassLoader());
+
+    // create mocks
+    EntityManagerFactory entityManagerFactory = createMock(EntityManagerFactory.class);
+    EntityManager entityManager = createMock(EntityManager.class);
+    JPADynamicHelper jpaDynamicHelper = createNiceMock(JPADynamicHelper.class);
+    SchemaManager schemaManager = createNiceMock(SchemaManager.class);
+    EntityTransaction transaction = createMock(EntityTransaction.class);
+
+    // set expectations
+    Capture<DynamicType> typeCapture = new Capture<DynamicType>();
+    Capture<DynamicType> typeCapture2 = new Capture<DynamicType>();
+    jpaDynamicHelper.addTypes(eq(true), eq(true), capture(typeCapture), capture(typeCapture2));
+
+    expect(entityManagerFactory.createEntityManager()).andReturn(entityManager);
+    expect(entityManager.getTransaction()).andReturn(transaction).anyTimes();
+
+    entityManager.close();
+
+    transaction.begin();
+    expect(transaction.isActive()).andReturn(true);
+    transaction.rollback();
+
+    // replay mocks
+    replay(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager);
+
+    DataStoreImpl dataStore = getDataStore(entityManagerFactory, jpaDynamicHelper, classLoader, schemaManager);
+
+    try {
+      dataStore.store(new TestLargeEntity(99));
+      Assert.fail("Expected PersistenceException.");
+    } catch (PersistenceException e) {
+      // expected
+    }
+    // verify mocks
+    verify(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager);
+  }
+
+  @Test
   public void testStore_update() throws Exception {
     DynamicClassLoader classLoader = new DynamicClassLoader(DataStoreImplTest.class.getClassLoader());
 
@@ -586,6 +626,47 @@ public class DataStoreImplTest {
 
     public void setName(String name) {
       this.name = name;
+    }
+  }
+
+  public static class TestLargeEntity {
+
+    public TestLargeEntity() {
+    }
+
+    public TestLargeEntity(int id) {
+      this.id = id;
+    }
+
+    int id;
+    String f1;
+    String f2;
+    String f3;
+    String f4;
+    String f5;
+    String f6;
+    String f7;
+    String f8;
+    String f9;
+    String f10;
+    String f11;
+    String f12;
+    String f13;
+    String f14;
+    String f15;
+    String f16;
+    String f17;
+    String f18;
+    String f19;
+    String f20;
+    String f21;
+
+    public int getId() {
+      return id;
+    }
+
+    public void setId(int id) {
+      this.id = id;
     }
   }
 
