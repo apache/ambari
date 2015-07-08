@@ -58,7 +58,8 @@ class PhoenixQueryServer(Script):
     env.set_params(params)
 
     if Script.is_hdp_stack_greater_or_equal("2.3"):
-      conf_select.select(params.stack_name, "phoenix", params.version)
+      # phoenix uses hbase configs
+      conf_select.select(params.stack_name, "hbase", params.version)
       hdp_select.select("phoenix-server", params.version)
 
 
