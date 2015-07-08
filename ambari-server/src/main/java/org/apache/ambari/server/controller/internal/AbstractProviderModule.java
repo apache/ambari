@@ -736,8 +736,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
   }
 
   private String getPortString(String value) {
-    return value != null && value.contains(":") ? value.substring
-        (value.lastIndexOf(":") + 1, value.length()) : value;
+    return value != null && value.contains(":") ?
+      value.substring(value.lastIndexOf(":") + 1, value.length()) : value;
   }
 
   private String getDesiredConfigVersion(String clusterName,
@@ -746,11 +746,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
       SystemException {
 
     // Get config version tag
-    ResourceProvider clusterResourceProvider = getResourceProvider(Resource
-        .Type.Cluster);
-    Predicate basePredicate = new PredicateBuilder().property
-        (ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals(clusterName)
-        .toPredicate();
+    ResourceProvider clusterResourceProvider = getResourceProvider(Resource.Type.Cluster);
+    Predicate basePredicate = new PredicateBuilder()
+      .property(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals(clusterName)
+      .toPredicate();
 
     Set<Resource> clusterResource = null;
     try {
@@ -774,8 +773,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     if (clusterResource != null) {
       for (Resource resource : clusterResource) {
         Map<String, Object> configs =
-            resource.getPropertiesMap().get(ClusterResourceProvider
-                .CLUSTER_DESIRED_CONFIGS_PROPERTY_ID);
+            resource.getPropertiesMap().get(ClusterResourceProvider.CLUSTER_DESIRED_CONFIGS_PROPERTY_ID);
         if (configs != null) {
           DesiredConfig config = (DesiredConfig) configs.get(configType);
           if (config != null) {
@@ -787,10 +785,9 @@ public abstract class AbstractProviderModule implements ProviderModule,
     return versionTag;
   }
 
-  private Map<String, String> getDesiredConfigMap(String clusterName,
-                                                  String versionTag, String configType, Map<String, String[]> keys) throws
-      NoSuchParentResourceException, UnsupportedPropertyException,
-      SystemException {
+  private Map<String, String> getDesiredConfigMap(String clusterName, String versionTag,
+      String configType, Map<String, String[]> keys) throws NoSuchParentResourceException,
+      UnsupportedPropertyException, SystemException {
     // Get desired configs based on the tag
     ResourceProvider configResourceProvider = getResourceProvider(Resource.Type.Configuration);
     Predicate configPredicate = new PredicateBuilder().property
@@ -818,8 +815,16 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
           for (String pname : entry.getValue()) {
             propName = pname;
-            value = (String) res.getPropertyValue(PropertyHelper.getPropertyId(
-                PROPERTIES_CATEGORY, pname));
+            // For NN HA the property key contains nameservice id
+            Map<String, Object> properties = res.getPropertiesMap().get(PROPERTIES_CATEGORY);
+            if (properties != null) {
+              for (Map.Entry<String, Object> propertyEntry : properties.entrySet()) {
+                if (propertyEntry.getKey().startsWith(pname)) {
+                  value = (String) propertyEntry.getValue();
+                  break;
+                }
+              }
+            }
             if (null != value) {
               break;
             }
