@@ -18,9 +18,10 @@
 <metainfo>
     <schemaVersion>2.0</schemaVersion>
     <services>
-        <service>
-            <name>MAHOUT</name>
-            <extends>common-services/MAHOUT/1.0.0.2.3</extends>
-        </service>
+      <service>
+        <name>MAHOUT</name>
+        <version>0.9.0.2.3</version>
+        <extends>common-services/MAHOUT/1.0.0.2.3</extends>
+      </service>
     </services>
 </metainfo>
