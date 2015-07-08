@@ -91,9 +91,9 @@ class ZookeeperServerLinux(ZookeeperServer):
     delete_command = format("echo 'delete /{unique} ' | {cli_shell}")
 
     quorum_err_message = "Failed to establish zookeeper quorum"
-    call_and_match_output(create_command, 'Created', quorum_err_message)
-    call_and_match_output(list_command, r"\[.*?" + unique + ".*?\]", quorum_err_message)
-    shell.call(delete_command)
+    call_and_match_output(create_command, 'Created', quorum_err_message, user=params.zk_user)
+    call_and_match_output(list_command, r"\[.*?" + unique + ".*?\]", quorum_err_message, user=params.zk_user)
+    shell.call(delete_command, user=params.zk_user)
 
     if params.client_port:
       check_leader_command = format("echo stat | nc localhost {client_port} | grep Mode")

@@ -25,12 +25,12 @@ from resource_management.core.exceptions import Fail
 
 
 @retry(times=10, sleep_time=2)
-def call_and_match_output(command, regex_expression, err_message):
+def call_and_match_output(command, regex_expression, err_message, **call_kwargs):
   """
   Call the command and performs a regex match on the output for the specified expression.
   :param command: Command to call
   :param regex_expression: Regex expression to search in the output
   """
-  code, out = shell.call(command, logoutput=True)
+  code, out = shell.call(command, logoutput=True, quiet=False, **call_kwargs)
   if not (out and re.search(regex_expression, out, re.IGNORECASE)):
     raise Fail(err_message)
