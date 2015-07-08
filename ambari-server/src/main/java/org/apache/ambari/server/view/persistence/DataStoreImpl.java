@@ -25,6 +25,7 @@ import org.apache.ambari.view.PersistenceException;
 import org.eclipse.persistence.dynamic.DynamicClassLoader;
 import org.eclipse.persistence.dynamic.DynamicEntity;
 import org.eclipse.persistence.dynamic.DynamicType;
+import org.eclipse.persistence.internal.helper.DatabaseField;
 import org.eclipse.persistence.jpa.dynamic.JPADynamicHelper;
 import org.eclipse.persistence.jpa.dynamic.JPADynamicTypeBuilder;
 import org.eclipse.persistence.mappings.DirectToFieldMapping;
@@ -117,7 +118,12 @@ public class DataStoreImpl implements DataStore {
   /**
    * Max length of entity string field.
    */
-  protected static final int MAX_ENTITY_STRING_FIELD_LENGTH = 4000;
+  protected static final int MAX_ENTITY_STRING_FIELD_LENGTH = 3200;
+
+  /**
+   * Max total length of all the fields of an entity.
+   */
+  protected static final int MAX_ENTITY_FIELD_LENGTH_TOTAL = 65000;
 
   /**
    * Table / column name prefix.
@@ -286,6 +292,8 @@ public class DataStoreImpl implements DataStore {
 
       Map<String, PropertyDescriptor> descriptorMap = getDescriptorMap(clazz);
 
+      long totalLength = 0L;
+
       for (Map.Entry<String, PropertyDescriptor> descriptorEntry : descriptorMap.entrySet()) {
 
         String fieldName     = descriptorEntry.getKey();
@@ -302,9 +310,18 @@ public class DataStoreImpl implements DataStore {
         if (isDirectMappingType(propertyType)) {
           DirectToFieldMapping mapping = typeBuilder.addDirectMapping(attributeName, propertyType, attributeName);
 
+          DatabaseField field = mapping.getField();
+
           // explicitly set the length of string fields
           if (String.class.isAssignableFrom(propertyType)) {
-            mapping.getField().setLength(MAX_ENTITY_STRING_FIELD_LENGTH);
+            field.setLength(MAX_ENTITY_STRING_FIELD_LENGTH);
+          }
+          totalLength += field.getLength();
+          if (totalLength > MAX_ENTITY_FIELD_LENGTH_TOTAL) {
+            String msg = String.format("The total length of the fields of the %s entity can not exceed %d characters.",
+                clazz.getSimpleName(), MAX_ENTITY_FIELD_LENGTH_TOTAL);
+            LOG.error(msg);
+            throw new IllegalStateException(msg);
           }
         }
       }
