@@ -121,7 +121,7 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 rm_hosts = config['clusterHostInfo']['rm_host']
 rm_host = rm_hosts[0]
 rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]
-rm_https_port = "8090"
+rm_https_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.https.address'].split(':')[-1]
 # TODO UPGRADE default, update site during upgrade
 rm_nodes_exclude_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
 
@@ -285,6 +285,7 @@ yarn_http_policy = config['configurations']['yarn-site']['yarn.http.policy']
 yarn_https_on = (yarn_http_policy.upper() == 'HTTPS_ONLY')
 scheme = 'http' if not yarn_https_on else 'https'
 yarn_rm_address = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'] if not yarn_https_on else config['configurations']['yarn-site']['yarn.resourcemanager.webapp.https.address']
+rm_active_port = rm_https_port if yarn_https_on else rm_port
 
 #ranger yarn properties
 if has_ranger_admin:
