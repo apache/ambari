@@ -209,6 +209,9 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
       try {
         for (String hostName : hostNames) {
           try {
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Spec: " + getSpec(protocol, hostName, port, "/jmx"));
+            }
             in = streamProvider.readFrom(getSpec(protocol, hostName, port, "/jmx"));
             // if the ticket becomes invalid (timeout) then bail out
             if (!ticket.isValid()) {
