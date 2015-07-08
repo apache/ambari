@@ -554,10 +554,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         if (arguments.length) {
           this.refreshSliderObserver();
         }
-        else {
-          // hack for slider-overrides
-          this._changeBoundariesOnceLater("don't call me more!");
-        }
       } catch (e) {
         console.error('error while rebuilding slider for config: ' + this.get('config.name'));
       }
@@ -574,11 +570,9 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    * @method changeBoundariesOnceLater
    */
   _changeBoundariesOnceLater: function() {
-    console.debug('_changeBoundariesOnceLater', arguments);
-    var args = arguments;
     var self = this;
     Em.run.later('sync', function() {
-      self.changeBoundariesOnce(args);
+      self.changeBoundariesOnce();
     }, 10);
   },
 
@@ -587,9 +581,12 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    * @method refreshSliderObserver
    */
   refreshSliderObserver: function() {
+    var self = this;
     var sliderTickLabel = this.$('.ui-slider-wrapper:eq(0) .slider-tick-label:first');
     if (sliderTickLabel.width() == 0 && this.isValueCompatibleWithWidget()) {
-      this._changeBoundariesOnceLater();
+      Em.run.next(function() {
+        self._changeBoundariesOnceLater();
+      });
     }
   }.observes('parentView.content.isActive', 'parentView.parentView.tab.isActive'),
 
