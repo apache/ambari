@@ -40,7 +40,7 @@
 
   <property>
     <name>ranger.plugin.kms.policy.rest.ssl.config.file</name>
-    <value>/etc/kms/conf/ranger-policymgr-ssl.xml</value>
+    <value>/etc/ranger/kms/conf/ranger-policymgr-ssl.xml</value>
     <description>Path to the file containing SSL details to contact Ranger Admin</description>
   </property>
 
