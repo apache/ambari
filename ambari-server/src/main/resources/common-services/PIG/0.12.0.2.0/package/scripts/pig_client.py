@@ -47,8 +47,9 @@ class PigClientLinux(PigClient):
     env.set_params(params)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      conf_select.select(params.stack_name, "pig", params.version)
       conf_select.select(params.stack_name, "hadoop", params.version)
-      hdp_select.select("hadoop-client", params.version)
+      hdp_select.select("hadoop-client", params.version) # includes pig-client
 
   def install(self, env):
     self.install_packages(env)

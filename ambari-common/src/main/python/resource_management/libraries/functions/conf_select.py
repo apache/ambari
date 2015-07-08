@@ -30,82 +30,150 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory
 
 PACKAGE_DIRS = {
-  "accumulo": {
-    "conf_dir": "/etc/accumulo/conf",
-    "current_dir": "/usr/hdp/current/accumulo-client/conf"
-  },
-  "falcon": {
-    "conf_dir": "/etc/falcon/conf",
-    "current_dir": "/usr/hdp/current/falcon-client/conf"
-  },
-  "hadoop": {
-    "conf_dir": "/etc/hadoop/conf",
-    "current_dir": "/usr/hdp/current/hadoop-client/conf"
-  },
-  "hbase": {
-    "conf_dir": "/etc/hbase/conf",
-    "current_dir": "/usr/hdp/current/hbase-client/conf"
-  },
-  "hive": {
-    "conf_dir": "/etc/hive/conf",
-    "current_dir": "/usr/hdp/current/hive-client/conf"
-  },
-  "kafka": {
-    "conf_dir": "/etc/kafka/conf",
-    "current_dir": "/usr/hdp/current/kafka-broker/conf"
-  },
-  "knox": {
-    "conf_dir": "/etc/knox/conf",
-    "current_dir": "/usr/hdp/current/knox-server/conf"
-  },
-  "mahout": {
-    "conf_dir": "/etc/mahout/conf",
-    "current_dir": "/usr/hdp/current/mahout-client/conf"
-  },
-  "oozie": {
-    "conf_dir": "/etc/oozie/conf",
-    "current_dir": "/usr/hdp/current/oozie-client/conf"
-  },
-  "phoenix": {
-    "conf_dir": "/etc/phoenix/conf",
-    "current_dir": "/usr/hdp/current/phoenix-client/conf"
-  },
-  "ranger-admin": {
-    "conf_dir": "/etc/ranger/admin/conf",
-    "current_dir": "/usr/hdp/current/ranger-admin/conf"
-  },
-  "ranger-kms": {
-    "conf_dir": "/etc/ranger/kms/conf",
-    "current_dir": "/usr/hdp/current/ranger-kms/conf"
-  },
-  "ranger-usersync": {
-    "conf_dir": "/etc/ranger/kms/usersync",
-    "current_dir": "/usr/hdp/current/ranger-usersync/conf"
-  },
-  "slider": {
-    "conf_dir": "/etc/slider/conf",
-    "current_dir": "/usr/hdp/current/slider-client/conf"
-  },
-  "spark": {
-    "conf_dir": "/etc/spark/conf",
-    "current_dir": "/usr/hdp/current/spark-client/conf"
-  },
-  "sqoop": {
-    "conf_dir": "/etc/sqoop/conf",
-    "current_dir": "/usr/hdp/current/sqoop-client/conf"
-  },
-  "storm": {
-    "conf_dir": "/etc/storm/conf",
-    "current_dir": "/usr/hdp/current/storm-client/conf"
-  },
-  "tez": {
-    "conf_dir": "/etc/tez/conf",
-    "current_dir": "/usr/hdp/current/tez-client/conf"
-  },
-  "zookeeper": {
-    "conf_dir": "/etc/zookeeper/conf",
-    "current_dir": "/usr/hdp/current/zookeeper-client/conf"
-  }
+  "accumulo": [
+    {
+      "conf_dir": "/etc/accumulo/conf",
+      "current_dir": "/usr/hdp/current/accumulo-client/conf"
+    }
+  ],
+  "falcon": [
+    {
+      "conf_dir": "/etc/falcon/conf",
+      "current_dir": "/usr/hdp/current/falcon-client/conf"
+    }
+  ],
+  "hadoop": [
+    {
+      "conf_dir": "/etc/hadoop/conf",
+      "current_dir": "/usr/hdp/current/hadoop-client/conf"
+    }
+  ],
+  "hbase": [
+    {
+      "conf_dir": "/etc/hbase/conf",
+      "current_dir": "/usr/hdp/current/hbase-client/conf"
+    }
+  ],
+  "hive": [
+    {
+      "conf_dir": "/etc/hive/conf",
+      "current_dir": "/usr/hdp/current/hive-client/conf"
+    }
+  ],
+  "kafka": [
+    {
+      "conf_dir": "/etc/kafka/conf",
+      "current_dir": "/usr/hdp/current/kafka-broker/conf"
+    }
+  ],
+  "knox": [
+    {
+      "conf_dir": "/etc/knox/conf",
+      "current_dir": "/usr/hdp/current/knox-server/conf"
+    }
+  ],
+  "mahout": [
+    {
+      "conf_dir": "/etc/mahout/conf",
+      "current_dir": "/usr/hdp/current/mahout-client/conf"
+    }
+  ],
+  "oozie": [
+    {
+      "conf_dir": "/etc/oozie/conf",
+      "current_dir": "/usr/hdp/current/oozie-client/conf"
+    }
+  ],
+  "phoenix": [
+    {
+      "conf_dir": "/etc/phoenix/conf",
+      "current_dir": "/usr/hdp/current/phoenix-client/conf"
+    }
+  ],
+  "ranger-admin": [
+    {
+      "conf_dir": "/etc/ranger/admin/conf",
+      "current_dir": "/usr/hdp/current/ranger-admin/conf"
+    }
+  ],
+  "ranger-kms": [
+    {
+      "conf_dir": "/etc/ranger/kms/conf",
+      "current_dir": "/usr/hdp/current/ranger-kms/conf"
+    }
+  ],
+  "ranger-usersync": [
+    {
+      "conf_dir": "/etc/ranger/usersync/conf",
+      "current_dir": "/usr/hdp/current/ranger-usersync/conf"
+    }
+  ],
+  "slider": [
+    {
+      "conf_dir": "/etc/slider/conf",
+      "current_dir": "/usr/hdp/current/slider-client/conf"
+    }
+  ],
+  "spark": [
+    {
+      "conf_dir": "/etc/spark/conf",
+      "current_dir": "/usr/hdp/current/spark-client/conf"
+    }
+  ],
+  "sqoop": [
+    {
+      "conf_dir": "/etc/sqoop/conf",
+      "current_dir": "/usr/hdp/current/sqoop-client/conf"
+    }
+  ],
+  "storm": [
+    {
+      "conf_dir": "/etc/storm/conf",
+      "current_dir": "/usr/hdp/current/storm-client/conf"
+    }
+  ],
+  "tez": [
+    {
+      "conf_dir": "/etc/tez/conf",
+      "current_dir": "/usr/hdp/current/tez-client/conf"
+    }
+  ],
+  "zookeeper": [
+    {
+      "conf_dir": "/etc/zookeeper/conf",
+      "current_dir": "/usr/hdp/current/zookeeper-client/conf"
+    }
+  ],
+  "pig": [
+    {
+      "conf_dir": "/etc/pig/conf",
+      "current_dir": "/usr/hdp/current/pig-client/conf"
+    }
+  ],
+  "flume": [
+    {
+      "conf_dir": "/etc/flume/conf",
+      "current_dir": "/usr/hdp/current/flume-server/conf"
+    }
+  ],
+  "storm-slider-client": [
+    {
+      "conf_dir": "/etc/storm-slider-client/conf",
+      "current_dir": "/usr/hdp/current/storm-slider-client/conf"
+    }
+  ],
+  "hive-hcatalog": [
+    {
+      "conf_dir": "/etc/hive-webhcat/conf",
+      "prefix": "/etc/hive-webhcat",
+      "current_dir": "/usr/hdp/current/hive-webhcat/etc/webhcat"
+    },
+    {
+      "conf_dir": "/etc/hive-hcatalog/conf",
+      "prefix": "/etc/hive-hcatalog",
+      "current_dir": "/usr/hdp/current/hive-webhcat/etc/hcatalog"
+    }
+  ]
 }
 
 def get_cmd(command, package, version):
@@ -136,15 +204,22 @@ def create(stack_name, package, version, dry_run = False):
 
   code, stdout = shell.call(get_cmd(command, package, version), logoutput=False, quiet=True, sudo=True)
 
+  # conf-select can set more than one directory
+  # per package, so return that list, especially for dry_run
+  dirs = []
+  if 0 == code and stdout is not None: # just be sure we have a stdout
+    for line in stdout.splitlines():
+      dirs.append(line.rstrip('\n'))
+
   # take care of permissions
   if not code and stdout and command == "create-conf-dir":
-    Directory(stdout,
-        mode=0755,
-        cd_access='a',
-        recursive=True,
-    )
+    for d in dirs:
+      Directory(d,
+          mode=0755,
+          cd_access='a',
+          recursive=True)
 
-  return stdout
+  return dirs
 
 
 def select(stack_name, package, version, try_create=True):
@@ -234,10 +309,16 @@ def create_config_links(stack_id, stack_version):
     return
 
   for k, v in PACKAGE_DIRS.iteritems():
-    if os.path.exists(v['conf_dir']):
-      new_conf_dir = create(args[0], k, stack_version, dry_run = True)
+    dirs = create(args[0], k, stack_version, dry_run = True)
+    if 0 == len(dirs):
+      Logger.debug("Package {0} is not installed".format(k))
+    else:
+      need = False
+      for new_conf_dir in dirs:
+        if not os.path.exists(new_conf_dir):
+          need = True
 
-      if not os.path.exists(new_conf_dir):
-        Logger.info("Creating conf {0} for {1}".format(new_conf_dir, k))
+      if need:
+        Logger.info("Creating conf dirs {0} for {1}".format(",".join(dirs), k))
         select(args[0], k, stack_version)
 
