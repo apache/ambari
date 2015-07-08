@@ -23,9 +23,10 @@ from mock.mock import MagicMock, patch
 import shutil
 from stacks.utils.RMFTestCase import *
 import tarfile
-
+import tempfile
 
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
+@patch.object(tempfile, "gettempdir", new=MagicMock(return_value="/tmp"))
 class TestFalconServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "FALCON/0.5.0.2.1/package"
   STACK_VERSION = "2.1"
@@ -191,7 +192,7 @@ class TestFalconServer(RMFTestCase):
       tarfile_open_mock):
 
     isdir_mock.return_value = True
-    exists_mock.side_effect = [False,False,True]
+    exists_mock.side_effect = [False,False,True, True]
     isfile_mock.return_value = True
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_server.py",
@@ -207,11 +208,159 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('File', '/var/run/falcon/falcon.pid',
       action = ['delete'])
 
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'falcon-server', '2.2.1.0-2135'), sudo=True)
+    self.assertResourceCalled('Execute', ('tar',
+     '-zcvhf',
+     '/tmp/falcon-upgrade-backup/falcon-conf-backup.tar',
+     '/usr/hdp/current/falcon-server/conf'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('tar',
+     '-zcvhf',
+     '/tmp/falcon-upgrade-backup/falcon-local-backup.tar',
+     u'/hadoop/falcon'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'falcon-server', u'2.2.1.0-2135'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Directory', '/var/run/falcon',
+        owner = 'falcon',
+        recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/falcon',
+        owner = 'falcon',
+        recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/usr/hdp/current/falcon-server/webapp',
+        owner = 'falcon',
+        recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/usr/hdp/current/falcon-server',
+        owner = 'falcon',
+        recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/etc/falcon',
+        recursive = True,
+        mode = 0755,
+    )
+    self.assertResourceCalled('Directory', '/usr/hdp/current/falcon-server/conf',
+        owner = 'falcon',
+        recursive = True,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/falcon-server/conf/falcon-env.sh',
+        owner = 'falcon',
+        content = InlineTemplate(self.getConfig()['configurations']['falcon-env']['content']),
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/falcon-server/conf/client.properties',
+        owner = 'falcon',
+        content = Template('client.properties.j2'),
+        mode = 0644,
+    )
+    self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/falcon-server/conf/runtime.properties',
+        owner = 'falcon',
+        mode = 0644,
+        properties = {u'*.domain': u'${falcon.app.type}',
+           u'*.log.cleanup.frequency.days.retention': u'days(7)',
+           u'*.log.cleanup.frequency.hours.retention': u'minutes(1)',
+           u'*.log.cleanup.frequency.minutes.retention': u'hours(6)',
+           u'*.log.cleanup.frequency.months.retention': u'months(3)'},
+    )
+    self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/falcon-server/conf/startup.properties',
+        owner = 'falcon',
+        mode = 0644,
+        properties = self.getConfig()['configurations']['falcon-startup.properties'],
+    )
+    self.assertResourceCalled('Directory', '/hadoop/falcon/data/lineage/graphdb',
+        owner = 'falcon',
+        recursive = True,
+        group = 'hadoop',
+        mode = 0775,
+        cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/hadoop/falcon/data/lineage',
+        owner = 'falcon',
+        recursive = True,
+        group = 'hadoop',
+        mode = 0775,
+        cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/hadoop/falcon/store',
+        owner = 'falcon',
+        recursive = True,
+    )
+    self.assertResourceCalled('HdfsResource', '/apps/falcon',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        keytab = UnknownConfigurationMock(),
+        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+        hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+        kinit_path_local = '/usr/bin/kinit',
+        principal_name = UnknownConfigurationMock(),
+        user = 'hdfs',
+        owner = 'falcon',
+        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        type = 'directory',
+        action = ['create_on_execute'],
+        mode = 0777,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/falcon/store',
+        owner = 'falcon',
+        recursive = True,
+    )
+    self.assertResourceCalled('HdfsResource', '/apps/data-mirroring',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        keytab = UnknownConfigurationMock(),
+        source = '/usr/hdp/current/falcon-server/data-mirroring',
+        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+        user = 'hdfs',
+        hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+        kinit_path_local = '/usr/bin/kinit',
+        principal_name = UnknownConfigurationMock(),
+        recursive_chmod = True,
+        recursive_chown = True,
+        owner = 'falcon',
+        group = 'users',
+        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        type = 'directory',
+        action = ['create_on_execute'],
+        mode = 0770,
+    )
+    self.assertResourceCalled('HdfsResource', None,
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        keytab = UnknownConfigurationMock(),
+        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+        hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+        kinit_path_local = '/usr/bin/kinit',
+        principal_name = UnknownConfigurationMock(),
+        user = 'hdfs',
+        action = ['execute'],
+        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+    )
+    self.assertResourceCalled('Directory', '/hadoop/falcon',
+        owner = 'falcon',
+        recursive = True,
+        cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/hadoop/falcon/embeddedmq',
+        owner = 'falcon',
+        recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/falcon/embeddedmq/data',
+        owner = 'falcon',
+        recursive = True,
+    )
+    self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-start -port 15000',
+        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client'},
+        path = ['/usr/hdp/current/hadoop-client/bin'],
+        user = 'falcon',
+    )
+    self.assertNoMoreResources()
 
     # 4 calls to tarfile.open (2 directories * read + write)
     self.assertTrue(tarfile_open_mock.called)
-    self.assertEqual(tarfile_open_mock.call_count,4)
+    self.assertEqual(tarfile_open_mock.call_count,2)
 
     # check the call args for creation of the tarfile
     call_args = tarfile_open_mock.call_args_list[0]
@@ -219,7 +368,6 @@ class TestFalconServer(RMFTestCase):
     call_kwargs = call_args[1]
 
     self.assertTrue("falcon-upgrade-backup/falcon-conf-backup.tar" in call_argument_tarfile)
-    self.assertEquals(True, call_kwargs["dereference"])
     
   @patch("resource_management.libraries.functions.security_commons.build_expectations")
   @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")

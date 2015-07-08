@@ -70,10 +70,7 @@ def pre_start_restore():
       directoryMappings[directory])
 
     if os.path.isfile(archive):
-      Logger.info('Extracting {0} to {1}'.format(archive, directory))
-      Execute(('tar','-xvf',archive,'-C',directory+"/"),
-              sudo = True,
-      )
+      tar_archive.untar_archive(archive, directory)
 
     # cleanup
     if os.path.exists(os.path.join(tempfile.gettempdir(), BACKUP_TEMP_DIR)):

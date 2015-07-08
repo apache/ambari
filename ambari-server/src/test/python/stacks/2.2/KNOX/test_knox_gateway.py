@@ -18,31 +18,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import json
+import tempfile
 from resource_management import *
 from stacks.utils.RMFTestCase import *
 from mock.mock import patch
 from mock.mock import MagicMock
 
-
-class TarfileFake:
-  """
-  Dummy class to mock the calls to tarfile module.
-  """
-  def __init__(self):
-    self.extractall_count = 0
-    self.add_count = 0
-    self.close_count = 0
-
-  def extractall(self, path=".", members=None):
-    self.extractall_count += 1
-
-  def add(self, name, arcname=None, recursive=True, exclude=None, filter=None):
-    self.add_count += 1
-
-  def close(self):
-    self.close_count += 1
-
-
+@patch.object(tempfile, "gettempdir", new=MagicMock(return_value="/tmp"))
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestKnoxGateway(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "KNOX/0.5.0.2.2/package"
@@ -238,9 +220,8 @@ class TestKnoxGateway(RMFTestCase):
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
-  @patch("tarfile.open")
   @patch("os.path.isdir")
-  def test_pre_rolling_restart(self, isdir_mock, tarfile_open_mock):
+  def test_pre_rolling_restart(self, isdir_mock):
     isdir_mock.return_value = True
     config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/knox_upgrade.json"
     with open(config_file, "r") as f:
@@ -255,16 +236,28 @@ class TestKnoxGateway(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertTrue(tarfile_open_mock.called)
-
-    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'knox-server', version), sudo=True)
+    self.assertResourceCalled('Execute', ('tar',
+     '-zcvhf',
+     '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
+     '/usr/hdp/current/knox-server/conf/'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('tar',
+     '-zcvhf',
+     '/tmp/knox-upgrade-backup/knox-data-backup.tar',
+     '/var/lib/knox/data'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', '2.2.1.0-3242'),
+        sudo = True,
+    )
+    self.assertNoMoreResources()
 
   @patch("os.remove")
   @patch("os.path.exists")
-  @patch("tarfile.open")
   @patch("os.path.isdir")
   @patch("resource_management.core.shell.call")
-  def test_pre_rolling_restart_23(self, call_mock, isdir_mock, tarfile_open_mock, path_exists_mock, remove_mock):
+  def test_pre_rolling_restart_23(self, call_mock, isdir_mock, path_exists_mock, remove_mock):
     isdir_mock.return_value = True
     config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/knox_upgrade.json"
     with open(config_file, "r") as f:
@@ -273,8 +266,6 @@ class TestKnoxGateway(RMFTestCase):
     json_content['commandParams']['version'] = version
 
     path_exists_mock.return_value = True
-    knox_conf_tarfile = TarfileFake()
-    tarfile_open_mock.return_value = knox_conf_tarfile
     mocks_dict = {}
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
@@ -286,9 +277,37 @@ class TestKnoxGateway(RMFTestCase):
                        call_mocks = [(0, None), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertTrue(tarfile_open_mock.called)
-
-    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'knox-server', version), sudo=True)
+    self.assertResourceCalled('Execute', ('tar',
+     '-zcvhf',
+     '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
+     '/usr/hdp/current/knox-server/conf/'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('tar',
+     '-zcvhf',
+     '/tmp/knox-upgrade-backup/knox-data-backup.tar',
+     '/var/lib/knox/data'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', '2.3.0.0-1234'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('cp',
+     '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
+     '/usr/hdp/current/knox-server/conf/knox-conf-backup.tar'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('tar',
+     '-xvf',
+     '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
+     '-C',
+     '/usr/hdp/current/knox-server/conf/'),
+        sudo = True,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/knox-conf-backup.tar',
+        action = ['delete'],
+    )
+    self.assertNoMoreResources()
 
     self.assertEquals(1, mocks_dict['call'].call_count)
     self.assertEquals(1, mocks_dict['checked_call'].call_count)
@@ -298,8 +317,6 @@ class TestKnoxGateway(RMFTestCase):
     self.assertEquals(
       ('conf-select', 'create-conf-dir', '--package', 'knox', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
        mocks_dict['call'].call_args_list[0][0][0])
-
-    self.assertTrue(2, knox_conf_tarfile.close_count)
 
   @patch("os.path.islink")
   @patch("os.path.realpath")

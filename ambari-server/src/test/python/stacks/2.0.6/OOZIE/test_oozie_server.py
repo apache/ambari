@@ -26,6 +26,7 @@ from resource_management.core.exceptions import Fail
 from resource_management.libraries import functions
 from resource_management.libraries.providers.hdfs_resource import WebHDFSUtil
 import hashlib
+import tempfile
 
 md5_mock = MagicMock()
 md5_mock.hexdigest.return_value = "abc123hash"
@@ -33,6 +34,7 @@ md5_mock.hexdigest.return_value = "abc123hash"
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch.object(hashlib, "md5", new=MagicMock(return_value=md5_mock))
 @patch.object(WebHDFSUtil, "run_command", new=MagicMock(return_value={}))
+@patch.object(tempfile, "gettempdir", new=MagicMock(return_value="/tmp"))
 class TestOozieServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "OOZIE/4.0.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -913,17 +915,15 @@ class TestOozieServer(RMFTestCase):
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
 
-  @patch("tarfile.open")
   @patch("os.path.isdir")
   @patch("os.path.exists")
   @patch("os.path.isfile")
   @patch("os.remove")
-  @patch("os.chmod")
   @patch("shutil.rmtree", new = MagicMock())
   @patch("glob.iglob")
   @patch("shutil.copy2", new = MagicMock())
-  def test_upgrade(self, glob_mock, chmod_mock, remove_mock,
-      isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
+  def test_upgrade(self, glob_mock, remove_mock,
+      isfile_mock, exists_mock, isdir_mock):
 
     def exists_mock_side_effect(path):
       if path == '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar':
@@ -945,23 +945,7 @@ class TestOozieServer(RMFTestCase):
      target = RMFTestCase.TARGET_COMMON_SERVICES,
      call_mocks = [(0, prepare_war_stdout)]
     )
-
-    # 2 calls to tarfile.open (1 directories, read + write)
-    self.assertTrue(tarfile_open_mock.called)
-    self.assertEqual(tarfile_open_mock.call_count,2)
-
-    # check the call args for creation of the tarfile
-    call_args = tarfile_open_mock.call_args_list[0]
-    call_argument_tarfile = call_args[0][0]
-    call_kwargs = call_args[1]
-
-    self.assertTrue("oozie-upgrade-backup/oozie-conf-backup.tar" in call_argument_tarfile)
-    self.assertEquals(True, call_kwargs["dereference"])
-
-    self.assertTrue(chmod_mock.called)
-    self.assertEqual(chmod_mock.call_count,1)
-    chmod_mock.assert_called_once_with('/usr/hdp/current/oozie-server/libext-customer', 511)
-
+    
     self.assertTrue(isfile_mock.called)
     self.assertEqual(isfile_mock.call_count,3)
     isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
@@ -970,20 +954,39 @@ class TestOozieServer(RMFTestCase):
     self.assertEqual(glob_mock.call_count,1)
     glob_mock.assert_called_with('/usr/hdp/2.2.1.0-2135/hadoop/lib/hadoop-lzo*.jar')
 
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.2.1.0-2135'), sudo=True,)
+    self.assertResourceCalled('Execute', ('tar',
+     '-zcvhf',
+     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
+     '/usr/hdp/current/oozie-server/conf/'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', u'2.2.1.0-2135'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('tar',
+     '-xvf',
+     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
+     '-C',
+     '/usr/hdp/current/oozie-server/conf//'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup',
+        action = ['delete'],
+    )
+    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext-customer',
+        mode = 0777,
+    )
     self.assertNoMoreResources()
 
-  @patch("tarfile.open")
   @patch("os.path.isdir")
   @patch("os.path.exists")
   @patch("os.path.isfile")
   @patch("os.remove")
-  @patch("os.chmod")
   @patch("shutil.rmtree", new = MagicMock())
   @patch("glob.iglob")
   @patch("shutil.copy2", new = MagicMock())
-  def test_upgrade_23(self, glob_mock, chmod_mock, remove_mock,
-      isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
+  def test_upgrade_23(self, glob_mock, remove_mock,
+      isfile_mock, exists_mock, isdir_mock):
 
     def exists_mock_side_effect(path):
       if path == '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar':
@@ -1016,14 +1019,6 @@ class TestOozieServer(RMFTestCase):
      mocks_dict = mocks_dict
     )
 
-    # 2 calls to tarfile.open (1 directories, read + write)
-    self.assertTrue(tarfile_open_mock.called)
-    self.assertEqual(tarfile_open_mock.call_count,2)
-
-    self.assertTrue(chmod_mock.called)
-    self.assertEqual(chmod_mock.call_count,1)
-    chmod_mock.assert_called_once_with('/usr/hdp/current/oozie-server/libext-customer', 511)
-
     self.assertTrue(isfile_mock.called)
     self.assertEqual(isfile_mock.call_count,3)
     isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
@@ -1032,7 +1027,28 @@ class TestOozieServer(RMFTestCase):
     self.assertEqual(glob_mock.call_count,1)
     glob_mock.assert_called_with('/usr/hdp/2.3.0.0-1234/hadoop/lib/hadoop-lzo*.jar')
 
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo=True)
+    self.assertResourceCalled('Execute', ('tar',
+     '-zcvhf',
+     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
+     '/usr/hdp/current/oozie-server/conf/'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('tar',
+     '-xvf',
+     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
+     '-C',
+     '/usr/hdp/current/oozie-server/conf//'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup',
+        action = ['delete'],
+    )
+    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext-customer',
+        mode = 0777,
+    )
     self.assertNoMoreResources()
 
     self.assertEquals(2, mocks_dict['call'].call_count)
@@ -1045,16 +1061,14 @@ class TestOozieServer(RMFTestCase):
        mocks_dict['call'].call_args_list[0][0][0])
 
 
-  @patch("tarfile.open")
   @patch("os.path.isdir")
   @patch("os.path.exists")
   @patch("os.path.isfile")
   @patch("os.remove")
-  @patch("os.chmod")
   @patch("shutil.rmtree", new = MagicMock())
   @patch("shutil.copy2", new = MagicMock())
-  def test_downgrade_no_compression_library_copy(self, chmod_mock, remove_mock,
-      isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
+  def test_downgrade_no_compression_library_copy(self, remove_mock,
+      isfile_mock, exists_mock, isdir_mock):
 
     isdir_mock.return_value = True
     exists_mock.return_value = False
@@ -1069,19 +1083,31 @@ class TestOozieServer(RMFTestCase):
      target = RMFTestCase.TARGET_COMMON_SERVICES,
      call_mocks = [(0, prepare_war_stdout)])
 
-    # 2 calls to tarfile.open (1 directories, read + write)
-    self.assertTrue(tarfile_open_mock.called)
-    self.assertEqual(tarfile_open_mock.call_count,2)
-
-    self.assertTrue(chmod_mock.called)
-    self.assertEqual(chmod_mock.call_count,1)
-    chmod_mock.assert_called_once_with('/usr/hdp/current/oozie-server/libext-customer', 511)
-
     self.assertTrue(isfile_mock.called)
     self.assertEqual(isfile_mock.call_count,2)
     isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
-
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.2.0.0-0000'), sudo=True)
+    self.assertResourceCalled('Execute', ('tar',
+     '-zcvhf',
+     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
+     '/usr/hdp/current/oozie-server/conf/'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', u'2.2.0.0-0000'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('tar',
+     '-xvf',
+     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
+     '-C',
+     '/usr/hdp/current/oozie-server/conf//'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup',
+        action = ['delete'],
+    )
+    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext-customer',
+        mode = 0777,
+    )
     self.assertNoMoreResources()
 
 

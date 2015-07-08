@@ -64,6 +64,9 @@ class Test(RMFTestCase):
     self.assertResourceCalled('PropertiesFile', '/tmp/123/startup.properties',
                               properties = UnknownConfigurationMock(),
     )
+    self.assertResourceCalled('Execute', ('tar', '-zcvf', u'/tmp/HDFS_CLIENT-configs.tar.gz', '/tmp/123'),
+        sudo = True,
+    )
     self.assertResourceCalled('Directory', '/tmp/123',
                               action = ['delete'],
                               )
