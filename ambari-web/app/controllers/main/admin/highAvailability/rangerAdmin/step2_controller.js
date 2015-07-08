@@ -33,7 +33,9 @@ App.RAHighAvailabilityWizardStep2Controller = Em.Controller.extend(App.Blueprint
 
   mastersAddableInHA: ['RANGER_ADMIN'],
 
-  showInstalledMastersFirst: true
+  showInstalledMastersFirst: true,
+
+  generalWarningMessages: [Em.I18n.t('admin.ra_highAvailability.wizard.step2.warning')]
 
 });
 

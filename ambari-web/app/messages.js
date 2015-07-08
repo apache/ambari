@@ -1272,11 +1272,13 @@ Em.I18n.translations = {
   'Once enabled, you will be running a Standby Ranger Admin in addition to your Active Ranger Admin.<br/>' +
   'This allows for an Active-Standby Ranger Admin configuration that automatically performs failover.<br/><br/>' +
   '<b>You should plan a cluster maintenance window and prepare for cluster downtime when enabling Ranger Admin HA.</b><br/><br/>' +
-  'Please setup the load balancer and provide the URL to be used. Make sure that the load balancer is setup properly before proceeding.',
+  'Please setup the load balancer and provide the URL to be used. Make sure that the load balancer is setup properly before proceeding.' +
+  '<br/><br/><div class="alert">Be sure that Ranger Admin and load balancer are located on separate hosts.</div>',
   'admin.ra_highAvailability.wizard.step1.load_balancer_url': 'URL to load balancer',
   'admin.ra_highAvailability.wizard.step1.invalid_url': 'Must be valid URL',
   'admin.ra_highAvailability.wizard.step2.header': 'Select Hosts',
   'admin.ra_highAvailability.wizard.step2.body': 'Select a host or hosts that will be running the additional Ranger Admin components',
+  'admin.ra_highAvailability.wizard.step2.warning': 'Be sure that load balancer located separately from Ranger Admin components.',
   'admin.ra_highAvailability.wizard.step3.header': 'Review',
   'admin.ra_highAvailability.wizard.step3.alert_message': '<b>Confirm your host selections.</b>',
   'admin.ra_highAvailability.wizard.step3.currentRA': 'Current Ranger Admin',
