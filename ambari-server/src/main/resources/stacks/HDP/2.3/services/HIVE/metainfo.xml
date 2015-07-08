@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>HIVE</name>
-      <version>1.2.0.2.3</version>
+      <version>1.2.1.2.3</version>
 
       <osSpecifics>
         <osSpecific>
