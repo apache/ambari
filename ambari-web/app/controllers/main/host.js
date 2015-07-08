@@ -61,7 +61,10 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   }.observes('dataSource.@each.isRequested'),
 
   setContentOnce: function() {
-    this.set('content', this.get('dataSource').filterProperty('isRequested'));
+    var self = this;
+    Em.run.next(function() {
+      self.set('content', self.get('dataSource').filterProperty('isRequested'));
+    });
   },
 
   allHostStackVersions: App.HostStackVersion.find(),
