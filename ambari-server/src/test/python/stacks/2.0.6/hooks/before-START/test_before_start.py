@@ -158,6 +158,15 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/topology_mappings.data',
+                              owner = 'hdfs',
+                              content = Template('topology_mappings.data.j2'),
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/topology_script.py',
+                              content = StaticFile('topology_script.py'),
+                              mode = 0755,
+                              )
     self.assertNoMoreResources()
 
   def test_hook_default_hdfs(self):

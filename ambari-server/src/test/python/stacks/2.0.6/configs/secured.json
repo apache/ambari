@@ -944,7 +944,15 @@
         "all_hosts": [
             "c6401.ambari.apache.org", 
             "c6402.ambari.apache.org"
-        ], 
+        ],
+        "all_racks": [
+            "/default/rack_01",
+            "/default/rack_02"
+        ],
+        "all_ipv4_ips": [
+            "127.0.0.1",
+            "127.0.0.1"
+        ],
         "storm_ui_server_hosts": [
             "c6401.ambari.apache.org"
         ], 
