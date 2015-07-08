@@ -675,6 +675,13 @@
           </task>
 
           <task xsi:type="configure">
+            <type>hbase-site</type>
+            <transfer operation="copy" from-type="hbase-site" from-key="hbase.regionserver.global.memstore.upperLimit" to-key="hbase.regionserver.global.memstore.size" default-value="0.4" />
+          </task>
+
+          <task xsi:type="server_action" summary="Calculating HBase Properties" class="org.apache.ambari.server.serveraction.upgrades.HBaseConfigCalculation" />
+
+          <task xsi:type="configure">
             <condition type="hbase-env" key="phoenix_sql_enabled" value="true">
               <type>hbase-site</type>
               <key>hbase.regionserver.wal.codec</key>

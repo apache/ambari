@@ -151,7 +151,7 @@
           "subsection-name": "subsection-hbase-memory-col1"
         },
         {
-          "config": "hbase-site/hbase.regionserver.global.memstore.size",
+          "config": "hbase-site/hbase.regionserver.global.memstore.upperLimit",
           "subsection-name": "subsection-hbase-memory-col1"
         },
         {
@@ -239,7 +239,7 @@
         }
       },
       {
-        "config": "hbase-site/hbase.regionserver.global.memstore.size",
+        "config": "hbase-site/hbase.regionserver.global.memstore.upperLimit",
         "widget": {
           "type": "slider",
           "units": [
