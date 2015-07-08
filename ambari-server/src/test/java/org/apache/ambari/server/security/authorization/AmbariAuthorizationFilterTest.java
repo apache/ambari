@@ -292,6 +292,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/stacks/HDP/versions/2.3/validations", "POST", true);
     urlTests.put("/api/v1/stacks/HDP/versions/2.3/recommendations", "POST", true);
     performGeneralDoFilterTest("user1", new int[] { PermissionEntity.CLUSTER_OPERATE_PERMISSION }, urlTests, false);
+    performGeneralDoFilterTest("user2", new int[] { PermissionEntity.CLUSTER_READ_PERMISSION }, urlTests, false);
     performGeneralDoFilterTest("admin", new int[] { PermissionEntity.AMBARI_ADMIN_PERMISSION }, urlTests, false);
   }
 

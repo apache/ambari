@@ -111,7 +111,7 @@ public class AmbariAuthorizationFilter implements Filter {
           AmbariGrantedAuthority ambariGrantedAuthority = (AmbariGrantedAuthority) grantedAuthority;
 
           PrivilegeEntity privilegeEntity = ambariGrantedAuthority.getPrivilegeEntity();
-          Integer         permissionId    = privilegeEntity.getPermission().getId();
+          Integer permissionId = privilegeEntity.getPermission().getId();
 
           // admin has full access
           if (permissionId.equals(PermissionEntity.AMBARI_ADMIN_PERMISSION)) {
@@ -119,20 +119,21 @@ public class AmbariAuthorizationFilter implements Filter {
             break;
           }
 
-            // clusters require permission
-	  if (requestURI.matches(API_CLUSTERS_ALL_PATTERN)) {
+          // clusters require permission
+          if (requestURI.matches(API_CLUSTERS_ALL_PATTERN)) {
             if (permissionId.equals(PermissionEntity.CLUSTER_READ_PERMISSION) ||
-                permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
+              permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
               authorized = true;
               break;
             }
           } else if (STACK_ADVISOR_REGEX.matcher(requestURI).matches()) {
             //TODO permissions model doesn't manage stacks api, but we need access to stack advisor to save configs
-            if (permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
+            if (permissionId.equals(PermissionEntity.CLUSTER_READ_PERMISSION) ||
+                permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
               authorized = true;
               break;
             }
-	  } else if (requestURI.matches(API_VIEWS_ALL_PATTERN)) {
+          } else if (requestURI.matches(API_VIEWS_ALL_PATTERN)) {
             // views require permission
             if (permissionId.equals(PermissionEntity.VIEW_USE_PERMISSION)) {
               authorized = true;
@@ -163,10 +164,10 @@ public class AmbariAuthorizationFilter implements Filter {
       // allow GET for everything except /views, /api/v1/users, /api/v1/groups, /api/v1/ldap_sync_events
       if (!authorized &&
           (!httpRequest.getMethod().equals("GET")
-              || requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)
-              || requestURI.matches(API_USERS_ALL_PATTERN)
-              || requestURI.matches(API_GROUPS_ALL_PATTERN)
-              || requestURI.matches(API_LDAP_SYNC_EVENTS_ALL_PATTERN))) {
+            || requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)
+            || requestURI.matches(API_USERS_ALL_PATTERN)
+            || requestURI.matches(API_GROUPS_ALL_PATTERN)
+            || requestURI.matches(API_LDAP_SYNC_EVENTS_ALL_PATTERN))) {
 
         httpResponse.setHeader("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
         httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permissions to access this resource.");
@@ -175,7 +176,7 @@ public class AmbariAuthorizationFilter implements Filter {
       }
     }
 
-    if(AuthorizationHelper.getAuthenticatedName() != null) {
+    if (AuthorizationHelper.getAuthenticatedName() != null) {
       httpResponse.setHeader("User", AuthorizationHelper.getAuthenticatedName());
     }
     chain.doFilter(request, response);
