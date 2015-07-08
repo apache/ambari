@@ -34,6 +34,8 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.slf4j.Logger;
@@ -88,6 +90,12 @@ public class AlertServiceStateListener {
    */
   @Inject
   private AlertDefinitionDAO m_definitionDao;
+
+  /**
+   * Used to retrieve a cluster using clusterId from event.
+   */
+  @Inject
+  private Provider<Clusters> clusters;
 
   /**
    * Constructor.
@@ -160,23 +168,38 @@ public class AlertServiceStateListener {
   @AllowConcurrentEvents
   public void onAmbariEvent(ServiceRemovedEvent event) {
     LOG.debug("Received event {}", event);
+    Cluster cluster = null;
 
-    List<AlertDefinitionEntity> definitions = m_definitionDao.findByService(event.getClusterId(),
-        event.getServiceName());
+    try {
+      cluster = clusters.get().getClusterById(event.getClusterId());
+    } catch (AmbariException e) {
+      LOG.warn("Unable to retrieve cluster info for id: " + event.getClusterId());
+    }
 
-    for (AlertDefinitionEntity definition : definitions) {
+    if (cluster != null) {
+      // TODO: Explicit locking used to prevent deadlock situation caused during cluster delete
+      cluster.getClusterGlobalLock().writeLock().lock();
       try {
-        m_definitionDao.remove(definition);
+        List<AlertDefinitionEntity> definitions = m_definitionDao.findByService(event.getClusterId(),
+          event.getServiceName());
 
-        // remove the default group for the service
-        AlertGroupEntity group = m_alertDispatchDao.findGroupByName(event.getClusterId(),
-            event.getServiceName());
+        for (AlertDefinitionEntity definition : definitions) {
+          try {
+            m_definitionDao.remove(definition);
 
-        if (null != group && group.isDefault()) {
-          m_alertDispatchDao.remove(group);
+            // remove the default group for the service
+            AlertGroupEntity group = m_alertDispatchDao.findGroupByName(event.getClusterId(),
+              event.getServiceName());
+
+            if (null != group && group.isDefault()) {
+              m_alertDispatchDao.remove(group);
+            }
+          } catch (Exception exception) {
+            LOG.error("Unable to remove alert definition {}", definition.getDefinitionName(), exception);
+          }
         }
-      } catch (Exception exception) {
-        LOG.error("Unable to remove alert definition {}", definition.getDefinitionName(), exception);
+      } finally {
+        cluster.getClusterGlobalLock().writeLock().unlock();
       }
     }
   }
