@@ -272,6 +272,10 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       if (!Em.isNone(this.get('config.savedValue')) && parsed == parseFunction(this.widgetValueByConfigAttributes(this.get('config.savedValue')))) {
         this.set('config.value', this.get('config.savedValue'));
       }
+      // ignore precision during set recommended value
+      if (!Em.isNone(this.get('config.recommendedValue')) && parsed == parseFunction(this.widgetValueByConfigAttributes(this.get('config.recommendedValue')))) {
+        this.set('config.value', this.get('config.recommendedValue'));
+      }
     } else {
       this.set('isMirrorValueValid', false);
       this.set('config.errorMessage', 'Invalid value');
