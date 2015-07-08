@@ -394,7 +394,6 @@ public class UpgradeResourceProviderTest {
 
   @Test
   public void testCreatePartialDowngrade() throws Exception {
-
     clusters.addHost("h2");
     Host host = clusters.getHost("h2");
     Map<String, String> hostAttributes = new HashMap<String, String>();
@@ -412,8 +411,25 @@ public class UpgradeResourceProviderTest {
     ServiceComponentHost sch = component.addServiceComponentHost("h2");
     sch.setVersion("2.2.2.2");
 
+    // start out with 0 (sanity check)
     List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(0, upgrades.size());
+
+    // a downgrade MUST have an upgrade to come from, so populate an upgrade in
+    // the DB
+    UpgradeEntity upgradeEntity = new UpgradeEntity();
+    upgradeEntity.setClusterId(cluster.getClusterId());
+    upgradeEntity.setDirection(Direction.UPGRADE);
+    upgradeEntity.setFromVersion("2.1.1.1");
+    upgradeEntity.setToVersion("2.2.2.2");
+    upgradeEntity.setRequestId(1L);
+
+    upgradeDao.create(upgradeEntity);
+    upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+    UpgradeEntity lastUpgrade = upgradeDao.findLastUpgradeForCluster(cluster.getClusterId());
+    assertNotNull(lastUpgrade);
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
@@ -428,13 +444,12 @@ public class UpgradeResourceProviderTest {
     upgradeResourceProvider.createResources(request);
 
     upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
-    assertEquals(1, upgrades.size());
+    assertEquals(2, upgrades.size());
 
+    UpgradeEntity downgrade = upgrades.get(1);
+    assertEquals(cluster.getClusterId(), downgrade.getClusterId().longValue());
 
-    UpgradeEntity entity = upgrades.get(0);
-    assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
-
-    List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
+    List<UpgradeGroupEntity> upgradeGroups = downgrade.getUpgradeGroups();
     assertEquals(3, upgradeGroups.size());
 
     UpgradeGroupEntity group = upgradeGroups.get(1);
