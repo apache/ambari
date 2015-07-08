@@ -111,7 +111,7 @@ public class ClientRetryPropertyCheckTest {
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     m_check.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
     // add hive
     services.put("HIVE", Mockito.mock(Service.class));
