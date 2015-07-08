@@ -484,7 +484,8 @@
             "yarn.timeline-service.webapp.https.address": "c6402.ambari.apache.org:8190", 
             "yarn.resourcemanager.connect.retry-interval.ms": "30000", 
             "yarn.timeline-service.leveldb-timeline-store.start-time-write-cache-size": "10000",
-            "yarn.http.policy": "HTTP_ONLY"
+            "yarn.http.policy": "HTTP_ONLY",
+            "yarn.resourcemanager.webapp.https.address": "c6402.ambari.apache.org:8090"
         }, 
         "capacity-scheduler": {
             "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100", 

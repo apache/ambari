@@ -474,7 +474,8 @@
             "yarn.resourcemanager.admin.address": "c6402.ambari.apache.org:8141", 
             "yarn.nodemanager.aux-services.mapreduce_shuffle.class": "org.apache.hadoop.mapred.ShuffleHandler",
             "yarn.timeline-service.leveldb-timeline-store.path": "/var/log/hadoop-yarn/timeline",
-            "yarn.http.policy": "HTTP_ONLY"
+            "yarn.http.policy": "HTTP_ONLY",
+            "yarn.resourcemanager.webapp.https.address": "c6402.ambari.apache.org:8090"
         },
         "tez-site": {
             "tez.am.log.level": "WARN",

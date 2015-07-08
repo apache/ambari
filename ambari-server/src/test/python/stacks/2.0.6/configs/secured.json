@@ -529,7 +529,8 @@
             "yarn.timeline-service.leveldb-timeline-store.path": "/var/log/hadoop-yarn/timeline",
             "yarn.timeline-service.principal": "yarn/_HOST@EXAMPLE.COM",
             "yarn.timeline-service.keytab" : "/etc/security/keytabs/yarn.service.keytab",
-            "yarn.http.policy": "HTTP_ONLY"
+            "yarn.http.policy": "HTTP_ONLY",
+            "yarn.resourcemanager.webapp.https.address": "c6402.ambari.apache.org:8090"
         },
         "yarn-env": {
             "yarn_pid_dir_prefix": "/var/run/hadoop-yarn", 
