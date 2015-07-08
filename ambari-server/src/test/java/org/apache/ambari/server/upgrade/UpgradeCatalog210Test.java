@@ -300,24 +300,9 @@ public class UpgradeCatalog210Test {
 
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
-    final ServiceConfigVersionResponse mockServiceConfigVersionResponse = easyMockSupport.createNiceMock(ServiceConfigVersionResponse.class);
     final Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
-    final Config mockHiveServerSite = easyMockSupport.createNiceMock(Config.class);
-    final Config mockHiveSite = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<String, String>() {{
-      put("hive_security_authorization", "none");
-    }};
-    final Map<String, String> propertiesExpectedHiveSite = new HashMap<String, String>() {{
-      put("hive.server2.authentication", "pam");
-      put("hive.server2.custom.authentication.class", "");
-    }};
-    final Map<String, String> propertiesExpectedHiveServerSite = new HashMap<String, String>() {{
-      put("hive.security.authorization.manager", "");
-      put("hive.security.authenticator.manager", "");
-    }};
-    final Map<String, Service> servicesExpected = new HashMap<String, Service>();
-
+    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<String, String>();
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -335,32 +320,17 @@ public class UpgradeCatalog210Test {
       put("normal", mockClusterExpected);
     }}).once();
 
-    Capture<String> configTypeEnv = new Capture<String>();
-    Capture<String> configTypeSite = new Capture<String>();
-    Capture<String> configTypeServerSite = new Capture<String>();
-
     expect(mockClusterExpected.getDesiredConfigByType("hive-env")).andReturn(mockHiveEnv).atLeastOnce();
-    expect(mockClusterExpected.getDesiredConfigByType("hiveserver2-site")).andReturn(mockHiveServerSite).atLeastOnce();
     expect(mockHiveEnv.getProperties()).andReturn(propertiesExpectedHiveEnv).anyTimes();
-    expect(mockHiveServerSite.getProperties()).andReturn(propertiesExpectedHiveServerSite).anyTimes();
-    expect(mockClusterExpected.getConfig(capture(configTypeEnv), anyObject(String.class))).andReturn(mockHiveEnv).once();
-    expect(mockClusterExpected.getConfig(capture(configTypeServerSite), anyObject(String.class))).andReturn(mockHiveServerSite).once();
-    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveEnv))).andReturn(mockServiceConfigVersionResponse).once();
-    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveServerSite))).andReturn(mockServiceConfigVersionResponse).once();
-
-    expect(mockClusterExpected.getDesiredConfigByType("hive-site")).andReturn(mockHiveSite).atLeastOnce();
-    expect(mockHiveSite.getProperties()).andReturn(propertiesExpectedHiveSite).anyTimes();
-    expect(mockClusterExpected.getServices()).andReturn(servicesExpected).once();
-    expect(mockClusterExpected.getConfig(capture(configTypeSite), anyObject(String.class))).andReturn(mockHiveSite).once();
-    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveSite))).andReturn(mockServiceConfigVersionResponse).once();
+    expect(mockClusterExpected.getConfig(anyObject(String.class), anyObject(String.class))).
+        andReturn(mockHiveEnv).anyTimes();
+    ServiceConfigVersionResponse r = null;
+    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveEnv))).
+        andReturn(r).once();
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog210.class).updateHiveConfigs();
     easyMockSupport.verifyAll();
-
-    assertEquals("hive-env", configTypeEnv.getValue());
-    assertEquals("hive-site", configTypeSite.getValue());
-    assertEquals("hiveserver2-site", configTypeServerSite.getValue());
   }
 
   @Test

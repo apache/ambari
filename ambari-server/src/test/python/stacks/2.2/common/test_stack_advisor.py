@@ -953,11 +953,20 @@ class TestHDP22StackAdvisor(TestCase):
       "yarn-site": {
         "properties": {
           "yarn.scheduler.minimum-allocation-mb": "256",
-          "yarn.scheduler.maximum-allocation-mb": "8192"
+          "yarn.scheduler.maximum-allocation-mb": "8192",
+        },
+      },
+      "capacity-scheduler": {
+        "properties": {
+          "yarn.scheduler.capacity.root.queues": "queue1,queue2"
+        }
+      },
+      "hive-site": {
+        "properties": {
+          "hive.server2.authentication": "none"
         }
       }
     }
-
     clusterData = {
       "cpu": 4,
       "mapMemory": 3000,
@@ -966,8 +975,12 @@ class TestHDP22StackAdvisor(TestCase):
       "containers": 3,
       "ramPerContainer": 256
     }
-
     expected = {
+      'capacity-scheduler': {
+        'properties': {
+          'yarn.scheduler.capacity.root.queues': 'queue1,queue2'
+        }
+      },
       'yarn-site': {
         'properties': {
           'yarn.scheduler.minimum-allocation-mb': '256',
@@ -1022,7 +1035,8 @@ class TestHDP22StackAdvisor(TestCase):
           'hive.vectorized.execution.enabled': 'true',
           'hive.vectorized.execution.reduce.enabled': 'false',
           'hive.security.metastore.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider',
-          'hive.security.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory'
+          'hive.security.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory',
+          "hive.server2.authentication": "none"
         },
        'property_attributes': {
          'hive.auto.convert.join.noconditionaltask.size': {'maximum': '805306368'},
@@ -1046,7 +1060,6 @@ class TestHDP22StackAdvisor(TestCase):
         }
       }
     }
-
     services = {
       "services": [
         {
@@ -1115,37 +1128,10 @@ class TestHDP22StackAdvisor(TestCase):
           ]
         },
       ],
-      "configurations": {
-        "capacity-scheduler": {
-          "properties": {
-            "yarn.scheduler.capacity.root.queues": "queue1,queue2"
-          }
-        },
-        "hive-env": {
-          "properties": {
-          }
-        },
-        "hive-site": {
-          "properties": {
-            "hive.server2.authentication": "none",
-            "hive.server2.authentication.ldap.url": "",
-            "hive.server2.authentication.ldap.baseDN": "",
-            "hive.server2.authentication.kerberos.keytab": "",
-            "hive.server2.authentication.kerberos.principal": "",
-            "hive.server2.authentication.pam.services": "",
-            "hive.server2.custom.authentication.class": ""
-          }
-        },
-        "hiveserver2-site": {
-          "properties": {
-            "hive.security.authorization.manager": "",
-            "hive.security.authenticator.manager": ""
-          }
-        }
-      },
+      "configurations": configurations,
       "changed-configurations": [ ]
-    }
 
+    }
     hosts = {
       "items" : [
         {
@@ -1194,8 +1180,8 @@ class TestHDP22StackAdvisor(TestCase):
     self.assertEquals(configurations, expected)
 
     #test recommendations
-    services["configurations"]["hive-site"]["properties"]["hive.cbo.enable"] = "false"
-    services["configurations"]["hive-env"]["properties"]["hive_security_authorization"] = "sqlstdauth"
+    configurations["hive-site"]["properties"]["hive.cbo.enable"] = "false"
+    configurations["hive-env"]["properties"]["hive_security_authorization"] = "sqlstdauth"
     services["changed-configurations"] = [{"type": "hive-site", "name": "hive.cbo.enable"},
                                           {"type": "hive-env", "name": "hive_security_authorization"}]
     expected["hive-env"]["properties"]["hive_security_authorization"] = "sqlstdauth"
@@ -1215,7 +1201,7 @@ class TestHDP22StackAdvisor(TestCase):
 
 
     # test 'hive_security_authorization'=='sqlstdauth' => 'hive.server2.enable.doAs'=='false'
-    services["configurations"]["hive-env"]["properties"]["hive_security_authorization"] = "none"
+    configurations["hive-env"]["properties"]["hive_security_authorization"] = "none"
     expected["hive-env"]["properties"]["hive_security_authorization"] = "none"
     expected["hive-site"]["properties"]["hive.security.authorization.enabled"]="false"
     expected["hive-site"]["properties"]["hive.server2.enable.doAs"]="true"
@@ -1225,7 +1211,7 @@ class TestHDP22StackAdvisor(TestCase):
     self.assertEquals(configurations, expected)
 
     # test 'hive.server2.tez.default.queues' leaf queues
-    services["configurations"]['capacity-scheduler']['properties'] = {
+    configurations['capacity-scheduler']['properties'] = {
             "yarn.scheduler.capacity.maximum-am-resource-percent": "0.2",
             "yarn.scheduler.capacity.maximum-applications": "10000",
             "yarn.scheduler.capacity.node-locality-delay": "40",
