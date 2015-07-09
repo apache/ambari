@@ -62,12 +62,14 @@ App.RouterRedirections = Em.Mixin.create({
       case 'SERVICE_STARTING_3' :
         if (!installerController.get('isStep9')) {
           installerController.setCurrentStep('9');
+          installerController.setLowerStepsDisable(9);
         }
         router.transitionTo(path + 'step' + installerController.get('currentStep'));
         break;
       case 'CLUSTER_INSTALLED_4' :
         if (!installerController.get('isStep10')) {
           installerController.setCurrentStep('10');
+          installerController.setLowerStepsDisable(10);
         }
         App.db.data = currentClusterStatus.localdb;
         App.get('router').setAuthenticated(true);

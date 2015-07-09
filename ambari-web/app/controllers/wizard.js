@@ -47,18 +47,26 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   ],
 
   init: function () {
-    this.set('isStepDisabled', []);
     this.clusters = App.Cluster.find();
-    this.get('isStepDisabled').pushObject(Ember.Object.create({
-      step: 1,
-      value: false
-    }));
-    for (var i = 2; i <= this.get('totalSteps'); i++) {
-      this.get('isStepDisabled').pushObject(Ember.Object.create({
-        step: i,
-        value: true
+    this.setIsStepDisabled();
+  },
+
+  /**
+   * Set <code>isStepDisabled</code> with list of available steps (basing on <code>totalSteps</code>)
+   * @method setIsStepDisabled
+   */
+  setIsStepDisabled: function () {
+      this.set('isStepDisabled', []);
+      this.get('isStepDisabled').pushObject(Em.Object.create({
+        step: 1,
+        value: false
       }));
-    }
+      for (var i = 2; i <= this.get('totalSteps'); i++) {
+        this.get('isStepDisabled').pushObject(Em.Object.create({
+          step: i,
+          value: true
+        }));
+      }
   },
 
   slaveComponents: function () {
