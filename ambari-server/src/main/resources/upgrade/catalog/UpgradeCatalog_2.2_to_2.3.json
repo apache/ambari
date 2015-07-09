@@ -1343,7 +1343,10 @@
                         "RANGER"
                     ]
                 },
-              "nimbus.host": "nimbus.seeds",
+              "nimbus.host": {
+                "map-to": "nimbus.seeds",
+                "coerce-to": "yaml-array"
+              },
               "mapreduce.job.speculative.speculativecap": {
                 "map-to": "mapreduce.job.speculative.speculative-cap-running-tasks",
                 "from-catalog": "mapred-site",
