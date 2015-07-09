@@ -115,7 +115,11 @@ public class Configuration {
    */
   public Map<String, Map<String, String>> getFullProperties(int depthLimit) {
     if (depthLimit == 0) {
-      return new HashMap<String, Map<String, String>>(properties);
+      HashMap<String, Map<String, String>> propertiesCopy = new HashMap<String, Map<String, String>>();
+      for (Map.Entry<String, Map<String, String>> typeProperties : properties.entrySet()) {
+        propertiesCopy.put(typeProperties.getKey(), new HashMap<String, String>(typeProperties.getValue()));
+      }
+      return propertiesCopy;
     }
 
     Map<String, Map<String, String>> mergedProperties = parentConfiguration == null ?
@@ -159,8 +163,10 @@ public class Configuration {
 
     for (Map.Entry<String, Map<String, Map<String, String>>> typeEntry : attributes.entrySet()) {
       String type = typeEntry.getKey();
-      Map<String, Map<String, String>> typeAttributes =
-          new HashMap<String, Map<String, String>>(typeEntry.getValue());
+      Map<String, Map<String, String>> typeAttributes = new HashMap<String, Map<String, String>>();
+      for (Map.Entry<String, Map<String, String>> attributeEntry : typeEntry.getValue().entrySet()) {
+        typeAttributes.put(attributeEntry.getKey(), new HashMap<String, String>(attributeEntry.getValue()));
+      }
 
       if (! mergedAttributeMap.containsKey(type)) {
         mergedAttributeMap.put(type, typeAttributes);

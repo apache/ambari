@@ -106,12 +106,6 @@ public class ConfigurationTest {
   @Test
   public void testGetFullProperties_withParent() {
     Configuration configuration = createConfigurationWithParents_PropsOnly();
-    // get prop maps prior to calling getFullProperties
-    Map<String, Map<String, String>> leafProperties = configuration.getProperties();
-    Map<String, Map<String, String>> parentProperties = configuration.getParentConfiguration().getProperties();
-    Map<String, Map<String, String>> parentParentProperties = configuration.getParentConfiguration().getParentConfiguration().getProperties();
-
-    // test
     // all parents should be reflected in getFullProperties() result
     Map<String, Map<String, String>> fullProperties = configuration.getFullProperties();
 
@@ -145,9 +139,10 @@ public class ConfigurationTest {
     assertEquals("val11.3", type4Props.get("prop11"));
 
     // ensure that underlying property map is not modified in getFullProperties
-    assertEquals(leafProperties, configuration.getProperties());
-    assertEquals(parentProperties, configuration.getParentConfiguration().getProperties());
-    assertEquals(parentParentProperties, configuration.getParentConfiguration().getParentConfiguration().getProperties());
+    Configuration expectedConfiguration = createConfigurationWithParents_PropsOnly();
+    assertEquals(expectedConfiguration.getProperties(), configuration.getProperties());
+    assertEquals(expectedConfiguration.getParentConfiguration().getProperties(), configuration.getParentConfiguration().getProperties());
+    assertEquals(expectedConfiguration.getParentConfiguration().getParentConfiguration().getProperties(), configuration.getParentConfiguration().getParentConfiguration().getProperties());
 
     assertEquals(EMPTY_ATTRIBUTES, configuration.getAttributes());
 
@@ -159,12 +154,6 @@ public class ConfigurationTest {
   @Test
   public void testGetFullProperties_withParent_specifyDepth() {
     Configuration configuration = createConfigurationWithParents_PropsOnly();
-    // get prop maps prior to calling getFullProperties
-    Map<String, Map<String, String>> leafProperties = configuration.getProperties();
-    Map<String, Map<String, String>> parentProperties = configuration.getParentConfiguration().getProperties();
-    Map<String, Map<String, String>> parentParentProperties = configuration.getParentConfiguration().getParentConfiguration().getProperties();
-
-    // test
     // specify a depth of 1 which means to include only 1 level up the parent chain
     Map<String, Map<String, String>> fullProperties = configuration.getFullProperties(1);
 
@@ -196,9 +185,10 @@ public class ConfigurationTest {
     assertEquals("val11.3", type4Props.get("prop11"));
 
     // ensure that underlying property maps are not modified in getFullProperties
-    assertEquals(leafProperties, configuration.getProperties());
-    assertEquals(parentProperties, configuration.getParentConfiguration().getProperties());
-    assertEquals(parentParentProperties, configuration.getParentConfiguration().getParentConfiguration().getProperties());
+    Configuration expectedConfiguration = createConfigurationWithParents_PropsOnly();
+    assertEquals(expectedConfiguration.getProperties(), configuration.getProperties());
+    assertEquals(expectedConfiguration.getParentConfiguration().getProperties(), configuration.getParentConfiguration().getProperties());
+    assertEquals(expectedConfiguration.getParentConfiguration().getParentConfiguration().getProperties(), configuration.getParentConfiguration().getParentConfiguration().getProperties());
 
     assertEquals(EMPTY_ATTRIBUTES, configuration.getAttributes());
   }
@@ -228,10 +218,6 @@ public class ConfigurationTest {
   @Test
   public void testGetFullAttributes_withParent() {
     Configuration configuration = createConfigurationWithParents_AttributesOnly();
-    Map<String, Map<String, Map<String, String>>> leafAttributes = configuration.getAttributes();
-    Map<String, Map<String, Map<String, String>>> parentAttributes = configuration.getParentConfiguration().getAttributes();
-    Map<String, Map<String, Map<String, String>>> parentParentAttributes = configuration.getParentConfiguration().getParentConfiguration().getAttributes();
-    // test
     // all parents should be reflected in getFullAttributes() result
     Map<String, Map<String, Map<String, String>>> fullAttributes = configuration.getFullAttributes();
     assertEquals(2, fullAttributes.size());
@@ -284,9 +270,10 @@ public class ConfigurationTest {
     assertEquals("val101.1", attribute101Properties.get("prop101"));
 
     // ensure that underlying attribute maps are not modified in getFullProperties
-    assertEquals(leafAttributes, configuration.getAttributes());
-    assertEquals(parentAttributes, configuration.getParentConfiguration().getAttributes());
-    assertEquals(parentParentAttributes, configuration.getParentConfiguration().getParentConfiguration().getAttributes());
+    Configuration expectedConfiguration = createConfigurationWithParents_AttributesOnly();
+    assertEquals(expectedConfiguration.getAttributes(), configuration.getAttributes());
+    assertEquals(expectedConfiguration.getParentConfiguration().getAttributes(), configuration.getParentConfiguration().getAttributes());
+    assertEquals(expectedConfiguration.getParentConfiguration().getParentConfiguration().getAttributes(), configuration.getParentConfiguration().getParentConfiguration().getAttributes());
 
     assertEquals(EMPTY_PROPERTIES, configuration.getProperties());
 
