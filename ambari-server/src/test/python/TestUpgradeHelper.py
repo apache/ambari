@@ -881,8 +881,6 @@ class TestUpgradeHelper(TestCase):
     self.assertEqual(1, open_mock.call_count)
 
 
-
-
   def test_report_formatter(self):
     file = StringIO()
     cfg_item = self.catalog_cfg_type
@@ -920,6 +918,69 @@ class TestUpgradeHelper(TestCase):
     upgradeHelper.report_formatter(file, cfg_item, analyzed_list)
 
     self.assertEqual(expected_output, file.getvalue())
+
+  @patch.object(upgradeHelper, "get_config_resp_all")
+  def test_conditional_replace(self, get_config_resp_all_mock):
+    test_catalog = """
+        {
+      "version": "1.0",
+      "stacks": [
+        {
+          "name": "HDP",
+          "old-version": "1.0",
+          "target-version": "1.1",
+          "options": {
+            "config-types":{
+              "test": {
+                "merged-copy": "yes"
+              }
+            }
+          },
+          "properties": {
+             "test": {
+               "test": {
+                 "value": "10",
+                 "value-required": "-1"
+               },
+               "test2": {
+                 "value": "10",
+                 "value-required": "-2"
+               }
+            }
+          },
+          "property-mapping": {
+          }
+        }
+      ]
+    }
+    """
+
+    expected_properties = {"test":"10", "test2":"15"}
+
+    old_opt = upgradeHelper.Options.OPTIONS
+    options = lambda: ""
+    options.from_stack = "1.0"
+    options.to_stack = "1.1"
+    options.upgrade_json = ""
+
+    upgradeHelper.Options.OPTIONS = options
+    upgradeHelper.Options.SERVICES = [self.required_service]
+    get_config_resp_all_mock.return_value = {
+      "test": {
+        "properties": {"test":"-1", "test2":"15"}
+      }
+    }
+
+    ucf = UpgradeCatalogFactoryMock(test_catalog)
+    scf = upgradeHelper.ServerConfigFactory()
+
+    cfg = scf.get_config("test")
+    ucfg = ucf.get_catalog("1.0", "1.1")
+
+    cfg.merge(ucfg)
+    upgradeHelper.Options.OPTIONS = old_opt
+
+    self.assertEqual(expected_properties, cfg.properties)
 
 if __name__ == "__main__":
   unittest.main()

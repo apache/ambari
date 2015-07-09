@@ -35,6 +35,10 @@
                       "merged-copy": "yes",
                       "required-services": ["YARN"]
                     },
+                    "capacity-scheduler": {
+                      "merged-copy": "yes",
+                      "required-services": ["YARN"]
+                    },
                     "kafka-broker": {
                       "merged-copy": "yes",
                       "required-services": ["KAFKA"]
@@ -253,6 +257,17 @@
                   "yarn.timeline-service.recovery.enabled": "true",
                   "yarn.timeline-service.state-store-class": "org.apache.hadoop.yarn.server.timeline.recovery.LeveldbTimelineStateStore",
                   "yarn.timeline-service.leveldb-state-store.path": "/var/log/hadoop-yarn/timeline"
+                },
+                "capacity-scheduler": {
+                  "yarn.scheduler.capacity.root.default-node-label-expression": "",
+                  "yarn.scheduler.capacity.root.accessible-node-labels.default.capacity": {
+                    "value": "10",
+                    "value-required": "-1"
+                  },
+                  "yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity": {
+                    "value": "100",
+                    "value-required": "-1"
+                  }
                 },
                 "kafka-broker": {
                   "listeners": {

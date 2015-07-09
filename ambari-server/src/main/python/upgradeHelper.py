@@ -66,6 +66,10 @@ Example:
            "value": "{TEMPLATE_TAG}",
            "template": "yes",
            "required-services": ["HDFS", "YARN"]
+          },
+          "test_property": {
+           "value": "new value",
+           "value-required": "old value"  (optional, property would be set if the required value is present)
           }
         }
       },
@@ -287,6 +291,7 @@ class CatConst(Const):
   ITEMS_TAG = "items"
   TYPE_TAG = "type"
   TRUE_TAG = "yes"
+  VALUE_REQUIRED_TAG = "value-required"
   STACK_PROPERTIES_MAPPING_LIST_TAG = "property-mapping"
   VALUE_TEMPLATE_TAG = "template"
   SEARCH_PATTERN = "(\{[^\{\}]+\})"  # {XXXXX}
@@ -520,10 +525,12 @@ class UpgradeCatalog(object):
       properties[catalog_item_name] = catalog_property_item[CatConst.PROPERTY_VALUE_TAG]
     return properties
 
-  def __can_handler_execute(self, catalog_options, property_item):
+  def __can_handler_execute(self, catalog_options, catalog_property_item, property_item, properties):
     """
     :type catalog_options dict
+    :type catalog_property_item str
     :type property_item dict
+    :type properties dict
     """
     can_process = True
 
@@ -540,6 +547,10 @@ class UpgradeCatalog(object):
 
     if required_list is not None:
       can_process = can_process and is_services_exists(required_list)
+
+    if CatConst.VALUE_REQUIRED_TAG in property_item and property_item[CatConst.VALUE_REQUIRED_TAG] is not None and\
+      CatConst.PROPERTY_VALUE_TAG in property_item and catalog_property_item in properties:
+      can_process = properties[catalog_property_item] == property_item[CatConst.VALUE_REQUIRED_TAG]
 
     return can_process
 
@@ -560,7 +571,7 @@ class UpgradeCatalog(object):
     catalog_item = self._properties_catalog[name]
     for catalog_property_item in catalog_item.keys():
       catalog_options = self.options[name] if name in self.options else {}
-      if self.__can_handler_execute(catalog_options, catalog_item[catalog_property_item]):
+      if self.__can_handler_execute(catalog_options, catalog_property_item, catalog_item[catalog_property_item], properties):
         for handler in tag_handlers:
           handler(catalog_property_item, catalog_item[catalog_property_item], properties)
 
