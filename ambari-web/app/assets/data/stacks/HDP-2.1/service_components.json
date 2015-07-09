@@ -2492,7 +2492,7 @@
                 "configuration" : "storm-env/storm_principal_name",
                 "type" : "user",
                 "local_username" : null,
-                "value" : "storm-${cluster_name}@${realm}"
+                "value" : "${storm-env/storm_user}@${realm}"
               },
               "name" : "storm_components",
               "keytab" : {
