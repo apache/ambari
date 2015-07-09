@@ -63,10 +63,17 @@ def safe_zkfc_op(action, env):
 
 def stop_zkfc_during_ru():
   """
-  Restart ZKFC on either the standby or active Namenode. If done on the currently active namenode, wait for it to
-  become the standby.
+  Restart ZKFC on either the standby or active Namenode. If done on the currently active namenode,
+  wait for it to become the standby.
+  This will run a kinit before executing the 'hdfs haadmin' command.
   """
   import params
+
+  # must kinit before running the HDFS command
+  if params.security_enabled:
+      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+        user = params.hdfs_user)
+
   check_service_cmd = format("hdfs haadmin -getServiceState {namenode_id}")
   code, out = shell.call(check_service_cmd, logoutput=True, user=params.hdfs_user)
 
