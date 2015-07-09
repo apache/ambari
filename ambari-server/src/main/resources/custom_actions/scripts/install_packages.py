@@ -96,6 +96,14 @@ class InstallPackages(Script):
     self.current_repositories = []
     self.current_repo_files = set()
 
+    # Enable base system repositories
+    # We don't need that for RHEL family, because we leave all repos enabled
+    # except disabled HDP* ones
+    if OSCheck.is_suse_family():
+      self.current_repositories.append('base')
+    elif OSCheck.is_ubuntu_family():
+      self.current_repo_files.add('base')
+
     Logger.info("Will install packages for repository version {0}".format(self.repository_version))
     try:
       append_to_file = False

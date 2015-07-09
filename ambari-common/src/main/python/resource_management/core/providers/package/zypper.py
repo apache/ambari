@@ -57,6 +57,7 @@ class ZypperProvider(PackageProvider):
       if use_repos:
         active_base_repos = get_active_base_repos()
         if 'base' in use_repos:
+          # Remove 'base' from use_repos list
           use_repos = filter(lambda x: x != 'base', use_repos)
           use_repos.extend(active_base_repos)
         use_repos_options = []
