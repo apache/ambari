@@ -79,6 +79,11 @@ Example:
           "to-catalog": "test",          (optional, require "from-catalog. Target of new_property1_name)
           "default": "default value",    (optional, if set and old property not exists, new one would be created with default value)
           "template": "yes",             (optional, template parsing for default option)
+          "coerce-to": "pre-defined type", (optional, convert value from one type to another. Types supported:
+                                              yaml-array - converts string item1,item2 to  ['item1', 'item2']
+                                            )
+          "replace-from": "something", (optional, should be present both from and to. Replace 'from' value to 'to')
+          "replace-to": "something,
           "required-services": ["YARN"]  (optional, process entry if services in the list existed on the cluster
       }
      }
@@ -275,6 +280,10 @@ class CatConst(Const):
   PROPERTY_DEFAULT = "default"
   MERGED_COPY_TAG = "merged-copy"
   REQUIRED_SERVICES = "required-services"
+  COERCE_TO_PROPERTY_TAG = "coerce-to"
+  COERCE_YAML_OPTION_TAG = "yaml-array"
+  REPLACE_FROM_TAG = "replace-from"
+  REPLACE_TO_TAG = "replace-to"
   ITEMS_TAG = "items"
   TYPE_TAG = "type"
   TRUE_TAG = "yes"
@@ -385,6 +394,20 @@ class UpgradeCatalog(object):
     """
     for config_item in properties:
       cfg_item = properties[config_item]
+
+      """
+        case when "properties": {
+                        "yarn-site": {
+                            .....
+                         }
+                     }
+        is set like "properties": {
+           "yarn-site": ""
+        }
+      """
+      if not isinstance(cfg_item, dict):
+        raise MalformedPropertyDefinitionException("The property catalog '%s' definition error" % config_item)
+
       properties[config_item] = dict(zip(
         cfg_item.keys(),
         map(lambda x: x if isinstance(x, dict) or isinstance(x, list) else {CatConst.PROPERTY_VALUE_TAG: x}, cfg_item.values())
@@ -580,10 +603,9 @@ class PropertyMapping(object):
 
 
 class ServerConfigFactory(object):
-  _server_catalogs = {}
-
   def __init__(self):
     self.__observers = []
+    self._server_catalogs = {}
     self._load_configs()
 
   def subscribe(self, name, config_item):
@@ -653,6 +675,28 @@ class ServerConfigFactory(object):
       )
       item[CatConst.PROPERTY_DEFAULT] = parsed_value
 
+  def _process_property_value_transformation(self, catalog, property_map_definition, old_value):
+    """
+    :type catalog: UpgradeCatalog
+    :type property_map_definition: dict
+    :type old_value: str
+    :return: str
+    """
+
+    tmp = old_value
+
+    if CatConst.REPLACE_FROM_TAG in property_map_definition and CatConst.REPLACE_TO_TAG in property_map_definition and\
+      property_map_definition[CatConst.REPLACE_TO_TAG] is not None and property_map_definition[CatConst.REPLACE_FROM_TAG] is not None:
+      tmp = tmp.replace(property_map_definition[CatConst.REPLACE_FROM_TAG], property_map_definition[CatConst.REPLACE_TO_TAG])
+
+    if CatConst.COERCE_TO_PROPERTY_TAG in property_map_definition:
+      if property_map_definition[CatConst.COERCE_TO_PROPERTY_TAG] == CatConst.COERCE_YAML_OPTION_TAG:
+        # for example c6401,c6402 into ['c6401','c6402']
+        data = list(map(lambda x: "'%s'" % x.strip(), tmp.split(',')))
+        tmp = "[%s]" % ','.join(data)
+
+    return tmp
+
   def _process_single_map_transformation(self, catalog, map_item_name, map_property_item):
     """
     :type catalog UpgradeCatalog
@@ -670,6 +714,13 @@ class ServerConfigFactory(object):
     if CatConst.PROPERTY_MAP_TO in map_property_item:
       new_property_name = map_property_item[CatConst.PROPERTY_MAP_TO]
 
+    # process first required section
+    required_services = map_property_item[CatConst.REQUIRED_SERVICES] if CatConst.REQUIRED_SERVICES in map_property_item else None
+
+    # process required-services tag
+    if required_services is not None and not is_services_exists(required_services):
+      return 0
+
     # process template tag
     self._process_default_template_map_replacement(catalog, map_property_item)
 
@@ -679,22 +730,22 @@ class ServerConfigFactory(object):
                                                                           map_property_item[CatConst.PROPERTY_TO_CATALOG] != ""else None
     default_value = map_property_item[CatConst.PROPERTY_DEFAULT] if CatConst.PROPERTY_DEFAULT in map_property_item and \
                                                                     map_property_item[CatConst.PROPERTY_DEFAULT] != "" else None
-    required_services = map_property_item[CatConst.REQUIRED_SERVICES] if CatConst.REQUIRED_SERVICES in map_property_item else None
-
-    # process required-services tag
-    if required_services is not None and not is_services_exists(required_services):
-      return 0
 
     if source_cfg_group is None and target_cfg_group is None:  # global scope mapping renaming
-      self.notify_observers(CatConst.ACTION_RENAME_PROPERTY, [old_property_name, new_property_name])
+      self.notify_observers(CatConst.ACTION_RENAME_PROPERTY, [old_property_name, new_property_name,
+                                                              self._process_property_value_transformation,
+                                                              catalog,
+                                                              map_property_item
+                                                              ])
     elif source_cfg_group is not None and target_cfg_group is not None:  # group-to-group moving
       if source_cfg_group in self._server_catalogs and target_cfg_group in self._server_catalogs:
         old_cfg_group = self.get_config(source_cfg_group).properties
         new_cfg_group = self.get_config(target_cfg_group).properties
 
         if old_property_name in old_cfg_group:
-          new_cfg_group[new_property_name] = old_cfg_group[old_property_name]
-          del old_cfg_group[old_property_name]
+          new_cfg_group[new_property_name] = self._process_property_value_transformation(catalog, map_property_item, old_cfg_group[old_property_name])
+          if new_property_name != old_property_name:
+            del old_cfg_group[old_property_name]
         elif old_property_name not in old_cfg_group and default_value is not None:
           new_cfg_group[new_property_name] = default_value
 
@@ -722,14 +773,27 @@ class ServerConfig(object):
       self._hash = self._calculate_hash()
     elif action == CatConst.ACTION_COMMIT:
       self._commit()
-    elif action == CatConst.ACTION_RENAME_PROPERTY and isinstance(arg, list) and len(arg) == 2:
-      self._rename_property(arg[0], arg[1])
+    elif action == CatConst.ACTION_RENAME_PROPERTY and isinstance(arg, list) and len(arg) == 5:
+      self._rename_property(*arg)
 
-  def _rename_property(self, old_name, new_name):
+  def _rename_property(self, old_name, new_name, transform_func, catalog, map_item):
+    """
+    :type old_name: str
+    :type new_name: str
+    :type transform_func: function
+    :type catalog: UpgradeCatalog
+    :type map_item: dict
+    :return:
+    """
     if old_name in self.properties:
       old_property_value = self.properties[old_name]
-      self.properties[new_name] = old_property_value
-      del self.properties[old_name]
+      if transform_func is not None:
+        self.properties[new_name] = transform_func(catalog, map_item, old_property_value)
+      else:
+        self.properties[new_name] = old_property_value
+
+      if old_name != new_name:
+        del self.properties[old_name]
 
   def is_attributes_exists(self):
     return CatConst.STACK_PROPERTIES_ATTRIBUTES in self._configs

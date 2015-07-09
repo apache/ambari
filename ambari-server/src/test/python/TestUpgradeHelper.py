@@ -415,6 +415,127 @@ class TestUpgradeHelper(TestCase):
 
     self.assertEqual(expected_curl_args, curl_mock.call_args_list)
 
+  @patch.object(upgradeHelper, "get_config_resp_all")
+  def test_coerce_tag(self, get_config_resp_all_mock):
+    test_catalog = """
+        {
+      "version": "1.0",
+      "stacks": [
+        {
+          "name": "HDP",
+          "old-version": "1.0",
+          "target-version": "1.1",
+          "options": {
+            "config-types":{
+              "test": {
+                "merged-copy": "yes"
+              }
+            }
+          },
+          "properties": {
+             "test": {
+               "test": "host1.com"
+            }
+          },
+          "property-mapping": {
+            "test":{
+                "map-to": "test-arr",
+                "coerce-to": "yaml-array"
+           }
+          }
+        }
+      ]
+    }
+    """
+    old_opt = upgradeHelper.Options.OPTIONS
+    options = lambda: ""
+    options.from_stack = "1.0"
+    options.to_stack = "1.1"
+    options.upgrade_json = ""
+
+    upgradeHelper.Options.OPTIONS = options
+    upgradeHelper.Options.SERVICES = [self.required_service]
+    get_config_resp_all_mock.return_value = {
+      "test": {
+        "properties": {}
+      }
+    }
+
+    ucf = UpgradeCatalogFactoryMock(test_catalog)
+    scf = upgradeHelper.ServerConfigFactory()
+
+    cfg = scf.get_config("test")
+    ucfg = ucf.get_catalog("1.0", "1.1")
+
+    cfg.merge(ucfg)
+    scf.process_mapping_transformations(ucfg)
+
+    upgradeHelper.Options.OPTIONS = old_opt
+
+    self.assertEqual(True, "test-arr" in cfg.properties)
+    self.assertEqual("['host1.com']", cfg.properties["test-arr"])
+
+  @patch.object(upgradeHelper, "get_config_resp_all")
+  def test_replace_tag(self, get_config_resp_all_mock):
+    test_catalog = """
+        {
+      "version": "1.0",
+      "stacks": [
+        {
+          "name": "HDP",
+          "old-version": "1.0",
+          "target-version": "1.1",
+          "options": {
+            "config-types":{
+              "test": {
+                "merged-copy": "yes"
+              }
+            }
+          },
+          "properties": {
+             "test": {
+               "test": "host1.com"
+            }
+          },
+          "property-mapping": {
+            "test":{
+                "map-to": "test-arr",
+                "replace-from": "com",
+                "replace-to": "org"
+           }
+          }
+        }
+      ]
+    }
+    """
+    old_opt = upgradeHelper.Options.OPTIONS
+    options = lambda: ""
+    options.from_stack = "1.0"
+    options.to_stack = "1.1"
+    options.upgrade_json = ""
+
+    upgradeHelper.Options.OPTIONS = options
+    upgradeHelper.Options.SERVICES = [self.required_service]
+    get_config_resp_all_mock.return_value = {
+      "test": {
+        "properties": {}
+      }
+    }
+
+    ucf = UpgradeCatalogFactoryMock(test_catalog)
+    scf = upgradeHelper.ServerConfigFactory()
+
+    cfg = scf.get_config("test")
+    ucfg = ucf.get_catalog("1.0", "1.1")
+
+    cfg.merge(ucfg)
+    scf.process_mapping_transformations(ucfg)
+
+    upgradeHelper.Options.OPTIONS = old_opt
+
+    self.assertEqual(True, "test-arr" in cfg.properties)
+    self.assertEqual("host1.org", cfg.properties["test-arr"])
+
   @patch.object(upgradeHelper, "curl")
   @patch("time.time")
   def test_update_config(self, time_mock, curl_mock):
@@ -734,6 +855,7 @@ class TestUpgradeHelper(TestCase):
   @patch("__builtin__.open")
   def test_verify_configuration(self, open_mock, configuration_diff_analyze_mock, configuration_item_diff_mock,
                                 get_config_resp_all_mock, upgradecatalogfactory_mock):
+    old_opt = upgradeHelper.Options.OPTIONS
     options = lambda: ""
     options.from_stack = self.catalog_from
     options.to_stack = self.catalog_to
@@ -750,6 +872,8 @@ class TestUpgradeHelper(TestCase):
 
     # execute testing function
     upgradeHelper.verify_configuration()
+
+    upgradeHelper.Options.OPTIONS = old_opt
 
     self.assertEqual(1, get_config_resp_all_mock.call_count)
     self.assertEqual(1, configuration_item_diff_mock.call_count)
