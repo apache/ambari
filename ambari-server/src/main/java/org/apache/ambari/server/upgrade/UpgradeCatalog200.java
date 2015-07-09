@@ -93,7 +93,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
    */
   @Override
   public String getTargetVersion() {
-    return "2.0.1";
+    return "2.0.2";
   }
 
   /**
