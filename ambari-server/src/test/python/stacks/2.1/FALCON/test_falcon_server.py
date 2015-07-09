@@ -182,14 +182,10 @@ class TestFalconServer(RMFTestCase):
                               recursive = True
                               )
 
-
-  @patch("shutil.rmtree", new = MagicMock())
-  @patch("tarfile.open")
   @patch("os.path.isdir")
   @patch("os.path.exists")
   @patch("os.path.isfile")
-  def test_upgrade(self, isfile_mock, exists_mock, isdir_mock,
-      tarfile_open_mock):
+  def test_upgrade(self, isfile_mock, exists_mock, isdir_mock):
 
     isdir_mock.return_value = True
     exists_mock.side_effect = [False,False,True, True]
@@ -222,6 +218,23 @@ class TestFalconServer(RMFTestCase):
     )
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'falcon-server', u'2.2.1.0-2135'),
         sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('tar',
+     '-xvf',
+     '/tmp/falcon-upgrade-backup/falcon-conf-backup.tar',
+     '-C',
+     '/usr/hdp/current/falcon-server/conf/'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('tar',
+     '-xvf',
+     '/tmp/falcon-upgrade-backup/falcon-local-backup.tar',
+     '-C',
+     u'/hadoop/falcon/'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Directory', '/tmp/falcon-upgrade-backup',
+        action = ['delete'],
     )
     self.assertResourceCalled('Directory', '/var/run/falcon',
         owner = 'falcon',
@@ -357,17 +370,6 @@ class TestFalconServer(RMFTestCase):
         user = 'falcon',
     )
     self.assertNoMoreResources()
-
-    # 4 calls to tarfile.open (2 directories * read + write)
-    self.assertTrue(tarfile_open_mock.called)
-    self.assertEqual(tarfile_open_mock.call_count,2)
-
-    # check the call args for creation of the tarfile
-    call_args = tarfile_open_mock.call_args_list[0]
-    call_argument_tarfile = call_args[0][0]
-    call_kwargs = call_args[1]
-
-    self.assertTrue("falcon-upgrade-backup/falcon-conf-backup.tar" in call_argument_tarfile)
     
   @patch("resource_management.libraries.functions.security_commons.build_expectations")
   @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")
@@ -479,11 +481,8 @@ class TestFalconServer(RMFTestCase):
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
   @patch('os.path.isfile', new=MagicMock(return_value=True))
-  @patch.object(tarfile, 'open')
-  @patch.object(shutil, 'rmtree')
-  def test_pre_rolling_restart(self, tarfile_open_mock, rmtree_mock):
+  def test_pre_rolling_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/falcon-upgrade.json"
-    tarfile_open_mock.return_value = MagicMock()
 
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -498,8 +497,6 @@ class TestFalconServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('hdp-select', 'set', 'falcon-server', version), sudo=True,)
-    self.assertTrue(tarfile_open_mock.called)
-    self.assertTrue(rmtree_mock.called)
     self.printResources()
 
   @patch('os.path.isfile', new=MagicMock(return_value=True))
@@ -527,6 +524,24 @@ class TestFalconServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
                               ('hdp-select', 'set', 'falcon-server', version), sudo=True,)
+
+    self.assertResourceCalled('Execute', ('tar',
+     '-xvf',
+     '/tmp/falcon-upgrade-backup/falcon-conf-backup.tar',
+     '-C',
+     '/usr/hdp/current/falcon-server/conf/'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('tar',
+     '-xvf',
+     '/tmp/falcon-upgrade-backup/falcon-local-backup.tar',
+     '-C',
+     u'/hadoop/falcon/'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Directory', '/tmp/falcon-upgrade-backup',
+        action = ['delete'],
+    )
     self.assertNoMoreResources()
 
     self.assertEquals(1, mocks_dict['call'].call_count)
