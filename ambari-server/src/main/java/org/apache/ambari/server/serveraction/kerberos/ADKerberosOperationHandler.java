@@ -33,6 +33,7 @@ import org.apache.velocity.exception.ResourceNotFoundException;
 import javax.naming.AuthenticationException;
 import javax.naming.CommunicationException;
 import javax.naming.Context;
+import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -71,9 +72,14 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
   private String ldapUrl = null;
 
   /**
-   * A String containing the DN of the container to create new account in
+   * A String containing the DN of the container for managing Active Directory accounts
    */
   private String principalContainerDn = null;
+
+  /**
+   * The LdapName of the container for managing Active Directory accounts
+   */
+  private LdapName principalContainerLdapName = null;
 
   /**
    * A String containing the Velocity template to use to generate the JSON structure declaring the
@@ -145,6 +151,12 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     this.principalContainerDn = kerberosConfiguration.get(KERBEROS_ENV_PRINCIPAL_CONTAINER_DN);
     if (this.principalContainerDn == null) {
       throw new KerberosLDAPContainerException("principalContainerDn not provided");
+    }
+
+    try {
+      this.principalContainerLdapName = new LdapName(principalContainerDn);
+    } catch (InvalidNameException e) {
+      throw new KerberosLDAPContainerException("principalContainerDn is not a valid LDAP name", e);
     }
 
     setAdministratorCredentials(administratorCredentials);
@@ -302,7 +314,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
 
     try {
       Rdn rdn = new Rdn("cn", cn);
-      LdapName name = new LdapName(principalContainerDn);
+      LdapName name = new LdapName(principalContainerLdapName.getRdns());
       name.add(name.size(), rdn);
       ldapContext.createSubcontext(name, attributes);
     } catch (NamingException ne) {
@@ -340,7 +352,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
 
       if (dn != null) {
         ldapContext.modifyAttributes(
-            dn,
+            new LdapName(dn),
             new ModificationItem[]{
                 new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("unicodePwd", String.format("\"%s\"", password).getBytes("UTF-16LE")))
             }
@@ -381,7 +393,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
       String dn = findPrincipalDN(deconstructPrincipal.getNormalizedPrincipal());
 
       if (dn != null) {
-        ldapContext.destroySubcontext(dn);
+        ldapContext.destroySubcontext(new LdapName(dn));
       }
     } catch (NamingException e) {
       throw new KerberosOperationException(String.format("Can not remove principal %s: %s", principal, e.getMessage()), e);
@@ -545,7 +557,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
 
       try {
         results = ldapContext.search(
-            principalContainerDn,
+            principalContainerLdapName,
             String.format("(userPrincipalName=%s)", normalizedPrincipal),
             searchControls
         );
