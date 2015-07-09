@@ -905,57 +905,105 @@ describe('App.InstallerStep9Controller', function () {
       {
         cluster: {status: 'PENDING'},
         host: Em.Object.create({progress: 0}),
-        actions: [
-          {Tasks: {status: 'COMPLETED'}},
-          {Tasks: {status: 'COMPLETED'}},
-          {Tasks: {status: 'QUEUED'}},
-          {Tasks: {status: 'QUEUED'}},
-          {Tasks: {status: 'IN_PROGRESS'}}
-        ],
-        e: {ret: 17, host: '17'},
+        actions: {
+          'COMPLETED': 2,
+          'QUEUED': 2,
+          'IN_PROGRESS': 1
+        },
+        e: {progress: 17},
         m: 'All types of status available. cluster status PENDING'
       },
       {
         cluster: {status: 'PENDING'},
         host: Em.Object.create({progress: 0}),
-        actions: [],
-        e: {ret: 33, host: '33'},
+        actions: {},
+        e: {progress: 33},
         m: 'No tasks available. cluster status PENDING'
       },
       {
         cluster: {status: 'INSTALLED'},
         host: Em.Object.create({progress: 0}),
-        actions: [],
-        e: {ret: 100, host: '100'},
+        actions: {},
+        e: {progress: 100},
         m: 'No tasks available. cluster status INSTALLED'
       },
       {
         cluster: {status: 'INSTALLED'},
         host: Em.Object.create({progress: 0}),
-        actions: [
-          {Tasks: {status: 'COMPLETED'}},
-          {Tasks: {status: 'COMPLETED'}},
-          {Tasks: {status: 'QUEUED'}},
-          {Tasks: {status: 'QUEUED'}},
-          {Tasks: {status: 'IN_PROGRESS'}}
-        ],
-        e: {ret: 68, host: '68'},
+        actions: {
+          'COMPLETED': 2,
+          'QUEUED': 2,
+          'IN_PROGRESS': 1
+        },
+        e: {progress: 66},
         m: 'All types of status available. cluster status INSTALLED'
       },
       {
         cluster: {status: 'FAILED'},
         host: Em.Object.create({progress: 0}),
-        actions: [],
-        e: {ret: 100, host: '100'},
+        actions: {},
+        e: {progress: 100},
         m: 'Cluster status is not PENDING or INSTALLED'
+      },
+      {
+        cluster: {status: 'INSTALLED'},
+        host: Em.Object.create({progress: 0}),
+        actions: {
+          'COMPLETED': 150,
+          'QUEUED': 0,
+          'IN_PROGRESS': 1
+        },
+        e: {progress: 99},
+        m: '150 tasks on host'
+      },
+      {
+        cluster: {status: 'INSTALLED'},
+        host: Em.Object.create({progress: 0}),
+        actions: {
+          'COMPLETED': 498,
+          'QUEUED': 1,
+          'IN_PROGRESS': 1
+        },
+        e: {progress: 99},
+        m: '500 tasks on host'
+      },
+      {
+        cluster: {status: 'INSTALLED'},
+        host: Em.Object.create({progress: 0}),
+        actions: {
+          'COMPLETED': 150,
+          'QUEUED': 0,
+          'IN_PROGRESS': 0
+        },
+        e: {progress: 100},
+        m: '100 tasks, 100 completed'
+      },
+      {
+        cluster: {status: 'INSTALLED'},
+        host: Em.Object.create({progress: 0}),
+        actions: {
+          'COMPLETED': 1,
+          'QUEUED': 0,
+          'IN_PROGRESS': 0
+        },
+        e: {progress: 100},
+        m: '1 task, 1 completed'
       }
     ]);
     tests.forEach(function (test) {
       it(test.m, function () {
+        var actions = [];
+        for (var prop in test.actions) {
+          if (test.actions.hasOwnProperty(prop) && test.actions[prop]) {
+            for (var i = 0; i < test.actions[prop]; i++) {
+              actions.push({Tasks: {status: prop}});
+            }
+          }
+        }
         c.reopen({content: {cluster: {status: test.cluster.status}}});
-        var progress = c.progressPerHost(test.actions, test.host);
-        expect(progress).to.equal(test.e.ret);
-        expect(test.host.progress).to.equal(test.e.host);
+        var progress = c.progressPerHost(actions, test.host);
+        expect(progress).to.equal(test.e.progress);
+        expect(test.host.progress).to.equal(test.e.progress.toString());
       });
     });
   });

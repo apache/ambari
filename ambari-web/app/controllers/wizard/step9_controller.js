@@ -705,7 +705,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         progress = actionsPerHost ? (Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 33)) : 33;
         break;
       case 'INSTALLED':
-        progress = actionsPerHost ? (34 + Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 66)) : 100;
+        progress = actionsPerHost ? (33 + Math.floor(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 67)) : 100;
         break;
       default:
         progress = 100;
