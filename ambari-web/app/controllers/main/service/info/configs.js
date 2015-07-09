@@ -465,7 +465,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
                 App.config.createOverride(serviceConfig, overridePlainObject, configGroup);
               }
             } else {
-              allConfigs.push(App.config.createCustomGroupConfig(prop, config, configGroup));
+              var isEditable = self.get('canEdit') && configGroup.get('name') == self.get('selectedConfigGroup.name');
+              allConfigs.push(App.config.createCustomGroupConfig(prop, config, configGroup, isEditable));
             }
           }
         });
