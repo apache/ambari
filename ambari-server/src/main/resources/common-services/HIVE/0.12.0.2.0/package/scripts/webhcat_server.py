@@ -77,6 +77,7 @@ class WebHCatServerDefault(WebHCatServer):
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       # webhcat has no conf, but uses hadoop home, so verify that regular hadoop conf is set
+      conf_select.select(params.stack_name, "hive-hcatalog", params.version)
       conf_select.select(params.stack_name, "hadoop", params.version)
       hdp_select.select("hive-webhcat", params.version)
 

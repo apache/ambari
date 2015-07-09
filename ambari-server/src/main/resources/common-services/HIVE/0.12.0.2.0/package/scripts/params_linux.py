@@ -108,6 +108,11 @@ purge_tables = "false"
 if Script.is_hdp_stack_greater_or_equal("2.3"):
   purge_tables = 'true'
 
+  # this is NOT a typo.  HDP-2.3 configs for hcatalog/webhcat point to a
+  # specific directory which is NOT called 'conf'
+  hcat_conf_dir = '/usr/hdp/current/hive-webhcat/etc/hcatalog'
+  config_dir = '/usr/hdp/current/hive-webhcat/etc/webhcat'
+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   hive_specific_configs_supported = True
 
