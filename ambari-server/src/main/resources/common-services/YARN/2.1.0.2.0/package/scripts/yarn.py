@@ -90,12 +90,6 @@ def yarn(name = None):
                          mode=0777
     )
     params.HdfsResource(None, action="execute")
-    Directory(params.jhs_leveldb_state_store_dir,
-              owner=params.mapred_user,
-              group=params.user_group,
-              recursive=True,
-              cd_access="a",
-              )
 
   if name == "nodemanager":
     Directory(params.nm_local_dirs.split(',') + params.nm_log_dirs.split(','),

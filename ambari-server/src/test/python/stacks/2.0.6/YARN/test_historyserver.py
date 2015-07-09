@@ -247,12 +247,6 @@ class TestHistoryServer(RMFTestCase):
         action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/timeline',
-      owner = 'mapred',
-      group = 'hadoop',
-      recursive = True,
-      cd_access = 'a',
-    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -469,12 +463,6 @@ class TestHistoryServer(RMFTestCase):
         user = 'hdfs',
         action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/timeline',
-      owner = 'mapred',
-      group = 'hadoop',
-      recursive = True,
-      cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
