@@ -1278,9 +1278,10 @@ App.config = Em.Object.create({
    * @param {String} propertyName - name of the property
    * @param {Object} config - config info
    * @param {Em.Object} group - config group to set
+   * @param {Boolean} isEditable
    * @return {Object}
    **/
-  createCustomGroupConfig: function (propertyName, config, group) {
+  createCustomGroupConfig: function (propertyName, config, group, isEditable) {
     var propertyValue = config.properties[propertyName];
     var propertyObject = {
       name: propertyName,
@@ -1298,6 +1299,9 @@ App.config = Em.Object.create({
       isOverridable: false
     };
     propertyObject.category = this.identifyCategory(propertyObject).name;
+    if(isEditable == false) {
+      propertyObject.isEditable = isEditable;
+    }
     group.set('switchGroupTextShort', Em.I18n.t('services.service.config_groups.switchGroupTextShort').format(group.get('name')));
     group.set('switchGroupTextFull', Em.I18n.t('services.service.config_groups.switchGroupTextFull').format(group.get('name')));
     return App.ServiceConfigProperty.create(propertyObject);

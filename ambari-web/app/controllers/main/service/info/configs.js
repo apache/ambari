@@ -466,7 +466,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
                 serviceConfig.set('overrideIsFinalValues', serviceConfig.get('overrides').mapProperty('isFinal'));
               }
             } else {
-              allConfigs.push(App.config.createCustomGroupConfig(prop, config, configGroup));
+              var isEditable = self.get('canEdit') && configGroup.get('name') == self.get('selectedConfigGroup.name');
+              allConfigs.push(App.config.createCustomGroupConfig(prop, config, configGroup, isEditable));
             }
           }
         });
