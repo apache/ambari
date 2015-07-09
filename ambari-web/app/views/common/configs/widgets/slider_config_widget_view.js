@@ -333,7 +333,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     for (var i = 1; i <= 3; i++) {
       var val = minMirrorValue + this.valueForTickProportionalToStep(range * (i / (isSmallInt ? 3 : 4)));
       // if value's type is float, ticks may be float too
-      ticks.push(val);
+      ticks.push(this._extraRound(val));
     }
 
     ticks.push(this.valueForTick(maxMirrorValue));
@@ -465,7 +465,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    * @returns {Number}
    */
   valueForTick: function(val) {
-    return this.get('unitType') === 'int' ? Math.round(val) : parseFloat(val.toFixed(3));
+    return this.get('unitType') === 'int' ? Math.round(val) : this._extraRound(val);
   },
 
   /**
@@ -482,7 +482,19 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     }
     var mirrorStep = this.get('mirrorStep');
     var r = Math.round(val / mirrorStep);
-    return parseFloat((r * mirrorStep).toFixed(3));
+    return this._extraRound(r * mirrorStep);
+  },
+
+  /**
+   * Round number to 3 digits after "."
+   * Used for all slider's ticks
+   * @param {Number} v
+   * @returns {Number} number with 3 digits after "."
+   * @private
+   * @method _extraRound
+   */
+  _extraRound: function(v) {
+    return parseFloat(v.toFixed(3));
   },
 
   /**

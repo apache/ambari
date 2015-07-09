@@ -398,6 +398,25 @@ describe('App.SliderConfigWidgetView', function () {
           ticks: [1, 26, 51, 75, 100],
           ticksLabels: ["1 GB", "", "51 GB", "", "100 GB"]
         }
+      },
+      {
+        viewSetup: {
+          minMirrorValue: 0.166,
+          maxMirrorValue: 0.5,
+          isCompareMode: false,
+          widgetRecommendedValue: 0.166,
+          config: Em.Object.create({
+            isOriginalSCP: true,
+            stackConfigProperty: Em.Object.create({
+              valueAttributes: {unit: "MB", type: "int", minimum: "170", maximum: "512", increment_step: "256"},
+              widget: {"units":[{"unit-name":"GB"}]}
+            })
+          })
+        },
+        e: {
+          ticks: [0.166, 0.416, 0.5],
+          ticksLabels: ["0.166 GB", "0.416 GB", "0.5 GB"]
+        }
       }
     ];
 
