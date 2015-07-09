@@ -214,6 +214,7 @@ yarn_nm_app_log_dir =  config['configurations']['yarn-site']['yarn.nodemanager.r
 mapreduce_jobhistory_intermediate_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.intermediate-done-dir']
 mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.done-dir']
 jobhistory_heapsize = default("/configurations/mapred-env/jobhistory_heapsize", "900")
+jhs_leveldb_state_store_dir = default('/configurations/mapred-site/mapreduce.jobhistory.recovery.store.leveldb.path', "/hadoop/yarn/timeline")
 
 # Tez-related properties
 tez_user = config['configurations']['tez-env']['tez_user']
