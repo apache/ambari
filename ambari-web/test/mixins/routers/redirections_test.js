@@ -18,18 +18,25 @@
 
 var App = require('app');
 
-var route, installerController, currentClusterStatus;
+var router, installerController, currentClusterStatus;
 
-describe('App.Redirections', function () {
+describe('App.RouterRedirections', function () {
 
   beforeEach(function () {
 
     installerController = Em.Object.create({
       currentStep: '',
+      totalSteps: 11,
       setCurrentStep: function (k) {
         this.set('currentStep', k);
       }
     });
+    App.router.get('installerController').setIsStepDisabled.call(installerController);
+    installerController.setLowerStepsDisable = App.router.get('installerController').setLowerStepsDisable.bind(installerController);
+    installerController.get('isStepDisabled').pushObject(Ember.Object.create({
+      step: 0,
+      value: true
+    }));
 
     router = Em.Object.create(App.RouterRedirections, {
       transitionTo: Em.K,
