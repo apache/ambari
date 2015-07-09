@@ -49,6 +49,19 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
     return App.router.get('clusterInstallCompleted') && this.get('isClusterDataLoaded');
   }.property('App.router.clusterInstallCompleted', 'isClusterDataLoaded'),
 
+  /**
+   * Determines if "Exit" menu-item should be shown
+   * It should if cluster isn't installed
+   * If cluster is installer, <code>isClusterDataLoaded</code> is checked
+   * @type {boolean}
+   */
+  showExitLink: function () {
+    if (App.router.get('clusterInstallCompleted')) {
+      return this.get('isClusterDataLoaded');
+    }
+    return true;
+  }.property('App.router.clusterInstallCompleted', 'isClusterDataLoaded'),
+
   init: function(){
     this._super();
   },
