@@ -45,7 +45,6 @@ App.AddAlertDefinitionController = App.WizardController.extend({
 
   finish: function() {
     this.clear();
-    this.setCurrentStep('1');
   }
 
 });
