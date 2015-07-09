@@ -285,7 +285,8 @@ App.AddSecurityConfigs = Em.Mixin.create({
   },
 
   /**
-   *
+   * This function updates stack/service/component level configurations of the kerberos descriptor
+   * with the values entered by the user on the rendered ui
    * @param configurations
    * @param config
    * @return boolean
@@ -312,7 +313,8 @@ App.AddSecurityConfigs = Em.Mixin.create({
 
 
   /**
-   *
+   * This function updates stack/service/component level kerberos descriptor identities (principal and keytab)
+   * with the values entered by the user on the rendered ui
    * @param identities
    * @param config
    * @return boolean
@@ -323,8 +325,14 @@ App.AddSecurityConfigs = Em.Mixin.create({
       var keys = Em.keys(identity).without('name');
       keys.forEach(function (item) {
         var prop = identity[item];
-        if (prop.configuration && prop.configuration.split('/')[0] === config.filename &&
-          prop.configuration.split('/')[1] === config.name) {
+
+        // compare ui rendered config against identity with `configuration attribute` (Most of the identities have `configuration attribute`)
+        var isIdentityWithConfig =  (prop.configuration && prop.configuration.split('/')[0] === config.filename && prop.configuration.split('/')[1] === config.name);
+
+        // compare ui rendered config against identity without `configuration attribute` (For example spnego principal and keytab)
+        var isIdentityWithoutConfig = (!prop.configuration && identity.name === config.name.split('_')[0] && item === config.name.split('_')[1]);
+
+        if (isIdentityWithConfig || isIdentityWithoutConfig) {
           prop[{keytab: 'file', principal: 'value'}[item]] = config.value;
           isConfigUpdated = true;
         }
