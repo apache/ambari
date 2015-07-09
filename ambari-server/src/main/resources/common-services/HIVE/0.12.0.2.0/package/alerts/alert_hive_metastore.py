@@ -160,10 +160,10 @@ def execute(configurations={}, parameters={}, host_name=None):
 
     cmd = format("export HIVE_CONF_DIR='{conf_dir}' ; "
                  "hive --hiveconf hive.metastore.uris={metastore_uri}\
-                 --hiveconf hive.metastore.client.connect.retry.delay=1s\
+                 --hiveconf hive.metastore.client.connect.retry.delay=1\
                  --hiveconf hive.metastore.failure.retries=1\
                  --hiveconf hive.metastore.connect.retries=1\
-                 --hiveconf hive.metastore.client.socket.timeout=14s\
+                 --hiveconf hive.metastore.client.socket.timeout=14\
                  --hiveconf hive.execution.engine=mr -e 'show databases;'")
 
     start_time = time.time()
@@ -225,10 +225,10 @@ def execute(configurations={}, parameters={}, host_name=None):
 
     hive_cmd = os.path.join(hive_home, "bin", "hive.cmd")
     cmd = format("cmd /c {hive_cmd} --hiveconf hive.metastore.uris={metastore_uri}\
-                 --hiveconf hive.metastore.client.connect.retry.delay=1s\
+                 --hiveconf hive.metastore.client.connect.retry.delay=1\
                  --hiveconf hive.metastore.failure.retries=1\
                  --hiveconf hive.metastore.connect.retries=1\
-                 --hiveconf hive.metastore.client.socket.timeout=14s\
+                 --hiveconf hive.metastore.client.socket.timeout=14\
                  --hiveconf hive.execution.engine=mr -e 'show databases;'")
     start_time = time.time()
     try:
