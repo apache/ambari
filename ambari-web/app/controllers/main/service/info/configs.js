@@ -859,7 +859,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   doCancel: function () {
     this.set('preSelectedConfigVersion', null);
     this.clearDependentConfigs();
-    this.loadSelectedVersion(this.get('selectedConfigVersion'), this.get('selectedConfigGroup'));
+    this.loadSelectedVersion(this.get('selectedVersion'), this.get('selectedConfigGroup'));
   },
 
   /**
