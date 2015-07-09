@@ -2281,7 +2281,7 @@ a:focus {
       list-style: none;
       height: 20px;
       width: 20px;
-      margin-left: 6px;
+      margin-left: 2px;
       display: inline;
       float: none;
     }
@@ -2310,7 +2310,7 @@ a:focus {
         padding: 1px 4px;
         background: @health-status-red;
         float: right;
-        margin-right: 5px;
+        margin-right: 1px;
         margin-top: 3px;
         &.alerts-crit-count {
           background: @health-status-red;
@@ -2328,7 +2328,7 @@ a:focus {
     }
     .icon-laptop {
       color: #555;
-      padding-left: 5px;
+      padding-left: 1px;
     }
     .active {
       .icon-laptop {
@@ -3563,7 +3563,7 @@ table.graphs {
 .services-menu {
   .icon-refresh {
     color: @restart-indicator-color;
-    margin-left: 4px;
+    margin-left: 1px;
   }
 }
 #host-details, #serviceConfig {
@@ -5325,6 +5325,20 @@ i.icon-asterisks {
         left: 0%;
         width: 100%;
       }
+    }
+  }
+
+  .services-menu .nav-list li {
+    .label.alerts-count {
+      margin-right: 4px;
+    }
+    .icon-laptop {
+      padding-left: 5px;
+    }
+    .health-status-LIVE, .health-status-STARTING,
+    .health-status-DEAD-RED, .health-status-STOPPING,
+    .health-status-DEAD-YELLOW {
+      margin-left: 6px;
     }
   }
 }
