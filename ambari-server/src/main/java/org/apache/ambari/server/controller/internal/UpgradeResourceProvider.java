@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,6 +90,7 @@ import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.ServerSideActionTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
@@ -590,7 +592,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // desired configs must be set before creating stages because the config tag
     // names are read and set on the command for filling in later
-    processConfigurations(cluster, version, direction);
+    processConfigurations(cluster, version, direction, pack);
 
     for (UpgradeGroupHolder group : groups) {
       UpgradeGroupEntity groupEntity = new UpgradeGroupEntity();
@@ -682,9 +684,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    *          the cluster
    * @param version
    *          the version
+   * @param direction
+   *          upgrade or downgrade
+   * @param upgradePack
+   *          upgrade pack used for upgrade or downgrade. This is needed to determine 
+   *          which services are effected.
    * @throws AmbariException
    */
-  void processConfigurations(Cluster cluster, String version, Direction direction)
+  void processConfigurations(Cluster cluster, String version, Direction direction, UpgradePack upgradePack)
       throws AmbariException {
     RepositoryVersionEntity targetRve = s_repoVersionDAO.findMaxByVersion(version);
     if (null == targetRve) {
@@ -726,11 +733,63 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       // populate a map with default configurations from the new stack
       newConfigurationsByType = configHelper.getDefaultProperties(targetStackId, cluster);
 
+      // We want to skip updating config-types of services that are not in the upgrade pack.
+      // Care should be taken as some config-types could be in services that are in and out
+      // of the upgrade pack. We should never ignore config-types of services in upgrade pack.
+      Set<String> skipConfigTypes = new HashSet<String>();
+      Set<String> upgradePackServices = new HashSet<String>();
+      Set<String> upgradePackConfigTypes = new HashSet<String>();
+      AmbariMetaInfo ambariMetaInfo = s_metaProvider.get();
+      Map<String, ServiceInfo> stackServicesMap = ambariMetaInfo.getServices(targetStack.getStackName(), targetStack.getStackVersion());
+      for (Grouping group : upgradePack.getGroups(direction)) {
+        for (UpgradePack.OrderService service : group.services) {
+          if (service.serviceName == null || upgradePackServices.contains(service.serviceName)) {
+            // No need to re-process service that has already been looked at
+            continue;
+          }
+          upgradePackServices.add(service.serviceName);
+          ServiceInfo serviceInfo = stackServicesMap.get(service.serviceName);
+          if (serviceInfo == null) {
+            continue;
+          }
+          Set<String> serviceConfigTypes = serviceInfo.getConfigTypeAttributes().keySet();
+          for (String serviceConfigType : serviceConfigTypes) {
+            if (!upgradePackConfigTypes.contains(serviceConfigType)) {
+              upgradePackConfigTypes.add(serviceConfigType);
+            }
+          }
+        }
+      }
+      Set<String> servicesNotInUpgradePack = new HashSet<String>(stackServicesMap.keySet());
+      servicesNotInUpgradePack.removeAll(upgradePackServices);
+      for (String serviceNotInUpgradePack : servicesNotInUpgradePack) {
+        ServiceInfo serviceInfo = stackServicesMap.get(serviceNotInUpgradePack);
+        Set<String> configTypesOfServiceNotInUpgradePack = serviceInfo.getConfigTypeAttributes().keySet();
+        for (String configType : configTypesOfServiceNotInUpgradePack) {
+          if (!upgradePackConfigTypes.contains(configType) && !skipConfigTypes.contains(configType)) {
+            skipConfigTypes.add(configType);
+          }
+        }
+      }
+      // Remove unused config-types from 'newConfigurationsByType'
+      Iterator<String> iterator = newConfigurationsByType.keySet().iterator();
+      while (iterator.hasNext()) {
+        String configType = (String) iterator.next();
+        if (skipConfigTypes.contains(configType)) {
+          LOG.info("RU: Removing configs for config-type {}", configType);
+          iterator.remove();
+        }
+      }
+
       // now that the map has been populated with the default configurations
       // from the stack/service, overlay the existing configurations on top
       Map<String, DesiredConfig> existingDesiredConfigurationsByType = cluster.getDesiredConfigs();
       for (Map.Entry<String, DesiredConfig> existingEntry : existingDesiredConfigurationsByType.entrySet()) {
         String configurationType = existingEntry.getKey();
+        if(skipConfigTypes.contains(configurationType)) {
+          LOG.info("RU: Skipping config-type {} as upgrade-pack contains no updates to its service", configurationType);
+          continue;
+        }
 
         // NPE sanity, althought shouldn't even happen since we are iterating
         // over the desired configs to start with

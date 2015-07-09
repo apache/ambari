@@ -39,6 +39,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.RequestStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.api.resources.UpgradeResourceDefinition;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -76,6 +77,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
@@ -108,6 +110,7 @@ public class UpgradeResourceProviderTest {
   private AmbariManagementController amc;
   private ConfigHelper configHelper;
   private StackDAO stackDAO;
+  private AmbariMetaInfo ambariMetaInfo;
 
   @Before
   public void before() throws Exception {
@@ -137,6 +140,7 @@ public class UpgradeResourceProviderTest {
     helper = injector.getInstance(OrmTestHelper.class);
 
     amc = injector.getInstance(AmbariManagementController.class);
+    ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
 
     Field field = AmbariServer.class.getDeclaredField("clusterController");
     field.setAccessible(true);
@@ -784,11 +788,14 @@ public class UpgradeResourceProviderTest {
     Map<String, Map<String, String>> stack220Configs = new HashMap<String, Map<String, String>>();
     Map<String, String> stack220FooType = new HashMap<String, String>();
     Map<String, String> stack220BazType = new HashMap<String, String>();
+    Map<String, String> stack220FlumeEnvType = new HashMap<String, String>();
     stack220Configs.put("foo-site", stack220FooType);
     stack220Configs.put("baz-site", stack220BazType);
+    stack220Configs.put("flume-env", stack220FlumeEnvType);
     stack220FooType.put("1", "one-new");
     stack220FooType.put("111", "one-one-one");
     stack220BazType.put("3", "three-new");
+    stack220FlumeEnvType.put("flume_env_key", "flume-env-value");
 
     Map<String, String> clusterFooType = new HashMap<String, String>();
     Map<String, String> clusterBarType = new HashMap<String, String>();
@@ -844,12 +851,16 @@ public class UpgradeResourceProviderTest {
 
     UpgradeResourceProvider upgradeResourceProvider = createProvider(amc);
 
-    upgradeResourceProvider.processConfigurations(cluster, "2.2.0.0", Direction.UPGRADE);
+    Map<String, UpgradePack> upgradePacks = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    upgradeResourceProvider.processConfigurations(cluster, "2.2.0.0", Direction.UPGRADE, upgradePacks.get("upgrade_to_new_stack"));
 
     Map<String, Map<String, String>> expectedConfigurations = expectedConfigurationsCapture.getValue();
     Map<String, String> expectedFooType = expectedConfigurations.get("foo-site");
     Map<String, String> expectedBarType = expectedConfigurations.get("bar-site");
     Map<String, String> expectedBazType = expectedConfigurations.get("baz-site");
+
+    // As the upgrade pack did not have any Flume updates, its configs should not be updated.
+    assertFalse(expectedConfigurations.containsKey("flume-env"));
 
     // the really important values are one-new and three-changed; one-new
     // indicates that the new stack value is changed since it was not customized

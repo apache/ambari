@@ -94,6 +94,7 @@
       <service name="HDFS">
         <component>JOURNALNODE</component>
         <component>NAMENODE</component>
+        <component>ZKFC</component>
       </service>
 
       <service name="MAPREDUCE2">
@@ -559,6 +560,12 @@
       </component>
 
       <component name="JOURNALNODE">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+
+      <component name="ZKFC">
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
