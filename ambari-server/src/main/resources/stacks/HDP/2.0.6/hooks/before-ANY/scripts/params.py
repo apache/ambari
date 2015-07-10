@@ -86,7 +86,6 @@ mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 # which would cause a lot of problems when writing out hadoop-env.sh; instead
 # force the use of "current" in the hook
 hadoop_home = hdp_select.get_hadoop_dir("home", force_latest_on_upgrade=True)
-hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
 hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec", force_latest_on_upgrade=True)
 
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
@@ -174,6 +173,9 @@ has_hbase_masters = not len(hbase_master_hosts) == 0
 has_oozie_server = not len(oozie_servers) == 0
 has_falcon_server_hosts = not len(falcon_server_hosts) == 0
 has_ranger_admin = not len(ranger_admin_hosts) == 0
+
+if has_namenode:
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
 
 hbase_tmp_dir = "/tmp/hbase-hbase"
 

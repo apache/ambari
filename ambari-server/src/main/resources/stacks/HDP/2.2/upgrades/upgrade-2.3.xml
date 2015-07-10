@@ -63,16 +63,6 @@
         </task>
       </execute-stage>
 
-      <execute-stage service="HDFS" component="NAMENODE" title="Modify hadoop-env.sh">
-        <task xsi:type="configure">
-          <type>hadoop-env</type>
-          <replace key="content" find="# Add libraries required by nodemanager" replace-with="" />
-          <replace key="content" find="MAPREDUCE_LIBS={{mapreduce_libs_path}}" replace-with="" />
-          <replace key="content" find=":${MAPREDUCE_LIBS}" replace-with="" />
-          <replace key="content" find=":/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*:/etc/tez/conf/" replace-with="" />
-          <replace key="content" find=":/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*:/usr/hdp/current/tez-client/conf/" replace-with="" />
-        </task>
-      </execute-stage>
     </group>
 
     <group name="ZOOKEEPER" title="ZooKeeper">
@@ -472,6 +462,16 @@
       <component name="NAMENODE">
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
+
+          <task xsi:type="configure" summary="Modify hadoop-env.sh">
+            <type>hadoop-env</type>
+            <replace key="content" find="# Add libraries required by nodemanager" replace-with="" />
+            <replace key="content" find="MAPREDUCE_LIBS={{mapreduce_libs_path}}" replace-with="" />
+            <replace key="content" find=":${MAPREDUCE_LIBS}" replace-with="" />
+            <replace key="content" find=":/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*:/etc/tez/conf/" replace-with="" />
+            <replace key="content" find=":/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*:/usr/hdp/current/tez-client/conf/" replace-with="" />
+          </task>
+
           <task xsi:type="configure">
             <condition type="ranger-hdfs-plugin-properties" key="ranger-hdfs-plugin-enabled" value="Yes">
               <type>hdfs-site</type>
