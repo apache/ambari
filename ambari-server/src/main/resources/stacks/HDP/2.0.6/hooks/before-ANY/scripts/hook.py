@@ -27,7 +27,8 @@ class BeforeAnyHook(Hook):
     env.set_params(params)
 
     setup_users()
-    setup_hadoop_env()
+    if params.has_namenode:
+      setup_hadoop_env()
 
 if __name__ == "__main__":
   BeforeAnyHook().execute()

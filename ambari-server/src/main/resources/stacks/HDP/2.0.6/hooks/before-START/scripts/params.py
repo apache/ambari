@@ -42,7 +42,6 @@ hadoop_lib_home = hdp_select.get_hadoop_dir("lib")
 hadoop_bin = hdp_select.get_hadoop_dir("sbin")
 hadoop_home = '/usr'
 create_lib_snappy_symlinks = True
-hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
 default_topology_script_file_path = "/etc/hadoop/conf/topology_script.py"
 
 # HDP 2.2+ params
@@ -109,10 +108,10 @@ if has_metric_collector:
 
 if has_namenode:
   hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+  task_log4j_properties_location = os.path.join(hadoop_conf_dir, "task-log4j.properties")
+
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
-
-task_log4j_properties_location = os.path.join(hadoop_conf_dir, "task-log4j.properties")
-
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hbase_tmp_dir = "/tmp/hbase-hbase"
 #db params

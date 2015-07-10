@@ -37,7 +37,6 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 # default hadoop params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec")
-hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 
 # HDP 2.2+ params
@@ -88,3 +87,6 @@ user_group = config['configurations']['cluster-env']['user_group']
 
 namenode_host = default("/clusterHostInfo/namenode_host", [])
 has_namenode = not len(namenode_host) == 0
+
+if has_namenode:
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)

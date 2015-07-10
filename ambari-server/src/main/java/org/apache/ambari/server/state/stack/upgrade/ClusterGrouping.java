@@ -128,7 +128,6 @@ public class ClusterGrouping extends Grouping {
               wrapper = getManualStageWrapper(ctx, execution);
               break;
 
-            case CONFIGURE:
             case SERVER_ACTION:
               wrapper = new StageWrapper(
                   StageWrapper.Type.SERVER_SIDE_ACTION,
