@@ -142,6 +142,8 @@ do
   JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
 done
 
+export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:${JAVA_JDBC_LIBS}
+
 # Setting path to hdfs command line
 export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
 
