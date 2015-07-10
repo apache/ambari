@@ -114,8 +114,8 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
    * @param {Object[]} advancedConfigs
    */
   createConfigObject: function(serverConfigs, advancedConfigs) {
-    var configSet = App.config.mergePreDefinedWithLoaded(serverConfigs, advancedConfigs, this.get('serviceConfigTags'), this.get('selectedService'));
-    var miscConfigs = configSet.configs.filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).rejectProperty('displayType', 'password').rejectProperty('displayType', 'checkbox');
+    var configs = App.config.mergePredefinedWithSaved(serverConfigs, advancedConfigs, this.get('selectedService'));
+    var miscConfigs = configs.filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).rejectProperty('displayType', 'password').rejectProperty('displayType', 'checkbox');
 
     miscConfigs = App.config.miscConfigVisibleProperty(miscConfigs, App.Service.find().mapProperty('serviceName').concat('MISC'));
 

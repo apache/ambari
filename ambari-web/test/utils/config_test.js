@@ -619,74 +619,6 @@ describe('App.config', function () {
     });
   });
 
-  describe('#mergePreDefinedWithLoaded', function() {
-    var result;
-
-    before(function() {
-      sinon.stub(App.config, 'parseValue', function(value) {return value});
-      sinon.stub(App.config, 'getConfigTypesInfoFromService').returns({
-        supportsFinal: ['hdfs-site']
-      });
-      setups.setupStackVersion(this, 'HDP-2.2');
-      loadServiceModelsData(['HDFS', 'STORM']);
-      App.config.loadAdvancedConfigSuccess(modelSetup.advancedConfigs, { url: '/serviceName/configurations'}, {
-        callback: function(advancedConfigs) {
-          App.config.loadClusterConfigSuccess(modelSetup.advancedClusterConfigs, { url: '/cluster/configurations'}, {
-            callback: function(clusterConfigs) {
-              var configCategories = modelSetup.setupConfigGroupsObject();
-              var tags = [
-                {newTagName: null, tagName: 'version1', siteName: 'hadoop-env'},
-                {newTagName: null, tagName: 'version1', siteName: 'hdfs-site'},
-                {newTagName: null, tagName: 'version1', siteName: 'cluster-env'},
-                {newTagName: null, tagName: 'version1', siteName: 'storm-env'}
-              ];
-              var serviceName = 'STORM';
-              result = App.config.mergePreDefinedWithLoaded(configCategories, advancedConfigs.concat(clusterConfigs), tags, serviceName);
-            }
-          });
-        }
-      });
-    });
-
-    after(function() {
-      App.config.parseValue.restore();
-      App.config.getConfigTypesInfoFromService.restore();
-      setups.restoreStackVersion(this);
-      removeServiceModelData(['HDFS', 'STORM']);
-    });
-    
-    var propertyTests = [
-      {
-        name: 'hdfs_user',
-        cases: [
-          {
-            key: 'displayType',
-            e: 'user'
-          },
-          {
-            key: 'isVisible',
-            e: true
-          },
-          {
-            key: 'serviceName',
-            e: 'MISC'
-          },
-          {
-            key: 'category',
-            e: 'Users and Groups'
-          }
-        ]
-      }
-    ];
-    propertyTests.forEach(function(test) {
-      test.cases.forEach(function(testCase) {
-        it('config property `{0}` `{1}` key should be`{2}`'.format(test.name, testCase.key, testCase.e), function() {
-          var property = result.configs.findProperty('name', test.name);
-          expect(Em.get(property, testCase.key)).to.equal(testCase.e);
-        });
-      });
-    });
-  });
 
   describe('#replaceConfigValues', function () {
 
@@ -1442,12 +1374,75 @@ describe('App.config', function () {
   });
 
   describe('#getDefaultDisplayType', function() {
-    it('returns singleLine displayTyepe', function() {
+    it('returns singleLine displayType', function() {
       expect(App.config.getDefaultDisplayType('v1')).to.equal('advanced');
     });
-    it('returns multiline displayTyepe', function() {
+    it('returns multiLine displayType', function() {
       expect(App.config.getDefaultDisplayType('v1\nv2')).to.equal('multiLine');
     });
+  });
+
+  describe('#getDefaultDisplayName', function() {
+    beforeEach(function() {
+      sinon.stub(App.config, 'getConfigTagFromFileName', function(fName) {return fName} );
+    });
+    afterEach(function() {
+      App.config.getConfigTagFromFileName.restore();
+    });
+
+    it('returns name', function() {
+      sinon.stub(App.config, 'isContentProperty', function() {return false} );
+      expect(App.config.getDefaultDisplayName('name')).to.equal('name');
+      App.config.isContentProperty.restore();
+    });
+    it('returns name for env content', function() {
+      sinon.stub(App.config, 'isContentProperty', function() {return true} );
+      expect(App.config.getDefaultDisplayName('name', 'fileName')).to.equal('fileName template');
+      App.config.isContentProperty.restore();
+    });
+  });
+
+  describe('#isContentProperty', function() {
+    beforeEach(function() {
+      sinon.stub(App.config, 'getConfigTagFromFileName', function(fName) {return fName} );
+    });
+    afterEach(function() {
+      App.config.getConfigTagFromFileName.restore();
+    });
+    var tests = [
+      {
+        name: 'content',
+        fileName: 'something-env',
+        tagEnds: null,
+        res: true,
+        m: 'returns true as it\'s content property'
+      },
+      {
+        name: 'content',
+        fileName: 'something-any-end',
+        tagEnds: ['-any-end'],
+        res: true,
+        m: 'returns true as it\'s content property with specific fileName ending'
+      },
+      {
+        name: 'notContent',
+        fileName: 'something-env',
+        tagEnds: ['-env'],
+        res: false,
+        m: 'returns false as name is not content'
+      },
+      {
+        name: 'content',
+        fileName: 'something-env1',
+        tagEnds: ['-env'],
+        res: false,
+        m: 'returns false as fileName is not correct'
+      }
+    ].forEach(function(t) {
+        it(t.m, function() {
+          expect(App.config.isContentProperty(t.name, t.fileName, t.tagEnds)).to.equal(t.res);
+        });
+      });
   });
 
   describe('#formatValue', function() {
@@ -1545,109 +1540,117 @@ describe('App.config', function () {
       });
   });
 
+  describe('#createDefaultConfig', function() {
+    before(function() {
+      sinon.stub(App.config, 'getDefaultDisplayName', function() {
+        return 'pDisplayName';
+      });
+      sinon.stub(App.config, 'getDefaultDisplayType', function() {
+        return 'pDisplayType';
+      });
+      sinon.stub(App.config, 'getDefaultCategory', function() {
+        return 'pCategory';
+      });
+      sinon.stub(App.config, 'getIsSecure', function() {
+        return false;
+      });
+      sinon.stub(App.config, 'isContentProperty', function() {
+        return false;
+      });
+    });
+
+    after(function() {
+      App.config.getDefaultDisplayName.restore();
+      App.config.getDefaultDisplayType.restore();
+      App.config.getDefaultCategory.restore();
+      App.config.getIsSecure.restore();
+      App.config.isContentProperty.restore();
+    });
+
+    var res = {
+      name: 'pName',
+      filename: 'pFileName',
+      value: 'pValue',
+      savedValue: 'pValue',
+      isFinal: true,
+      savedIsFinal: true,
+      recommendedValue: null,
+      recommendedIsFinal: null,
+      supportsFinal: false,
+      serviceName: 'pServiceName',
+      displayName: 'pDisplayName',
+      displayType: 'pDisplayType',
+      description: null,
+      category: 'pCategory',
+      isSecureConfig: false,
+      showLabel: true,
+      isVisible: true,
+      isUserProperty: false,
+      isRequired: true,
+      id: 'site property',
+      isRequiredByAgent:  true,
+      isReconfigurable: true,
+      unit: null,
+      isOverridable: true,
+      index: null,
+      dependentConfigPattern: null,
+      options: null,
+      radioName: null,
+      belongsToService: []
+    };
+    it('create default config object', function() {
+      expect(App.config.createDefaultConfig('pName','pFileName','pValue',true,'pServiceName',true, false)).to.eql(res);
+    });
+    it('runs proper methods', function() {
+      expect(App.config.getDefaultDisplayName.calledWith('pName','pFileName')).to.be.true;
+      expect(App.config.getDefaultDisplayType.calledWith('pValue')).to.be.true;
+      expect(App.config.getDefaultCategory.calledWith(true, 'pFileName')).to.be.true;
+      expect(App.config.getIsSecure.calledWith('pName')).to.be.true;
+      expect(App.config.isContentProperty.calledWith('pName', 'pFileName', ['-log4j'])).to.be.true;
+    });
+  });
+
   describe('#mergeStackConfigsWithUI', function() {
     beforeEach(function() {
-      sinon.stub(App.config, 'getPropertyIfExists', function(propertyName, defaultValue) {return defaultValue});
-      sinon.stub(App.config, 'getDefaultCategory', function(stackConfigProperty, filename) {return 'Advanced ' + filename});
-      sinon.stub(App.config, 'getIsSecure', function() {return false});
-      sinon.stub(App.config, 'getDefaultDisplayType', function() {return 'string'});
+      sinon.stub(App.config, 'getPropertyIfExists', function(key, value) {return 'res_' + value});
     });
 
     afterEach(function() {
       App.config.getPropertyIfExists.restore();
-      App.config.getDefaultCategory.restore();
-      App.config.getIsSecure.restore();
-      App.config.getDefaultDisplayType.restore();
     });
-    var service = Em.Object.create({ serviceName:'sName' });
-    var template =  {
-        name: 'pName',
-        filename: 'pFileName',
-        value: 'v',
-        savedValue: 'v',
-        isFinal: true,
-        savedIsFinal: true,
-        recommendedValue: null,
-        recommendedIsFinal: null,
-        displayName: 'pName',
-        description: null,
-        displayType: 'string',
-        category: 'Advanced pFileName',
-        isSecureConfig: false,
-        serviceName: 'sName',
-        isVisible: true,
-        isUserProperty: false,
-        isRequired: true,
-        id: 'site property',
-        supportsFinal: false,
-        isRequiredByAgent: true,
-        isReconfigurable: true,
-        unit: null,
-        isOverridable: true,
-        index: null,
-        showLabel: true,
-        dependentConfigPattern: null,
-        options: null,
-        radioName: null,
-        belongsToService: []
+
+    var template = {
+      name: 'pName',
+      filename: 'pFileName',
+      value: 'pValue',
+      savedValue: 'pValue',
+      isFinal: true,
+      savedIsFinal: true,
+      id: 'site property',
+
+      serviceName: 'pServiceName',
+      displayName: 'pDisplayName',
+      displayType: 'pDisplayType',
+      category: 'pCategory'
     };
-    it('performs merge UI and Stack properties', function() {
-      for (var key in template){
-        expect(App.config.mergeStackConfigsWithUI('pName', 'pFileName', 'v', true, service, Em.Object.create({}), Em.Object.create({}))[key]).to.eql(template[key]);
-      }
-    });
 
-    it('performs merge UI and Stack properties (without stackProperty)', function() {
-      template.isUserProperty = true;
-      template.isRequired = false;
-      for (var key in template){
-        expect(App.config.mergeStackConfigsWithUI('pName', 'pFileName', 'v', true, service, null, Em.Object.create({}))[key]).to.eql(template[key]);
-      }
-    });
+    var result = {
+      name: 'pName',
+      filename: 'pFileName',
+      value: 'pValue',
+      savedValue: 'pValue',
+      isFinal: true,
+      savedIsFinal: true,
+      id: 'site property',
 
-    it('performs merge UI and Stack properties (unknown service)', function () {
-      template.serviceName = 'MISC';
-      template.isUserProperty = false;
-      template.isRequired = true;
-      template.isVisible = false;
-      for (var key in template) {
-        expect(App.config.mergeStackConfigsWithUI('pName', 'pFileName', 'v', true, null, Em.Object.create({}), Em.Object.create({}))[key]).to.eql(template[key]);
-      }
-    });
+      serviceName: 'res_pServiceName',
+      displayName: 'res_pDisplayName',
+      displayType: 'res_pDisplayType',
+      category: 'res_pCategory'
+    };
 
-    it('called getPropertyIfExists couple of times', function () {
-      App.config.mergeStackConfigsWithUI('pName', 'pFileName', 'v', true, null, Em.Object.create({}), Em.Object.create({}));
-      expect(App.config.getPropertyIfExists.callCount).to.equal(23);
-    });
-
-    it('called getPropertyIfExists with args', function () {
-      var stackConfigProperty = Em.Object.create({stackProperty: true});
-      var UIConfigProperty = Em.Object.create({UIProperty: true});
-      App.config.mergeStackConfigsWithUI('pName', 'pFileName', 'v', true, service, stackConfigProperty, UIConfigProperty);
-
-      expect(App.config.getPropertyIfExists.calledWith('recommendedValue', null, stackConfigProperty, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('recommendedIsFinal', null, stackConfigProperty, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('displayName', 'pName', stackConfigProperty, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('description', null, stackConfigProperty, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('supportsFinal', false, stackConfigProperty, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('id', 'site property', UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('isRequiredByAgent', true, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('isReconfigurable', true, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('unit', null, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('isOverridable', true, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('index', null, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('showLabel', true, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('dependentConfigPattern', null, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('options', null, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('belongsToService', [], UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('radioName', null, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('displayType', 'string', UIConfigProperty, stackConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('category', 'Advanced pFileName', UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('isSecureConfig', false, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('serviceName', 'sName', stackConfigProperty, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('isVisible', true, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('isUserProperty', false, UIConfigProperty)).to.be.true;
-      expect(App.config.getPropertyIfExists.calledWith('isRequired', true, UIConfigProperty)).to.be.true;
+    it('called generate property object', function () {
+      expect(App.config.mergeStackConfigsWithUI(template, {}, {})).to.eql(Em.Object.create(result));
     });
   });
 

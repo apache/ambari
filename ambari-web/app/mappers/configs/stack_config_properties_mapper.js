@@ -83,7 +83,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
     console.timeEnd('stackConfigMapper execution time');
   },
 
-  /******************* METHODS TO MERGE STACK PROPERTIES WITH STORED ON UI (NOT USED FOR NOW)*********************************/
+  /******************* METHODS TO MERGE STACK PROPERTIES WITH STORED ON UI *********************************/
 
   /**
    * find UI config with current name and fileName
@@ -98,7 +98,11 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
       config.StackConfigurations.property_display_name = uiConfigProperty && uiConfigProperty.displayName ? uiConfigProperty.displayName : config.StackConfigurations.property_name;
     }
     config.category = uiConfigProperty ? uiConfigProperty.category : 'Advanced ' + App.config.getConfigTagFromFileName(config.StackConfigurations.type);
-    config.display_type = uiConfigProperty ? uiConfigProperty.displayType || displayType : displayType;
+    if (App.config.isContentProperty(config.StackConfigurations.property_name, config.StackConfigurations.type)) {
+      config.display_type = 'content';
+    } else {
+      config.display_type = uiConfigProperty ? uiConfigProperty.displayType || displayType : displayType;
+    }
   },
 
   /**
