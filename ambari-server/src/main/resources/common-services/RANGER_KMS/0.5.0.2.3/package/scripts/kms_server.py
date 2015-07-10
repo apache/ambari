@@ -29,6 +29,9 @@ import upgrade
 
 class KmsServer(Script):
 
+  def get_stack_to_component(self):
+    return {"HDP": "ranger-kms"}
+
   def install(self, env):
     self.install_packages(env)
     import params
