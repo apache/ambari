@@ -185,7 +185,9 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
     }
     hadoop_env_exports.update(custom_export)
 
-  check_process = as_sudo(["test", "-f", pid_file]) + " && " + as_sudo(["pgrep", "--pidfile", pid_file])
+  check_process = as_user(format(
+    "ls {pid_file} >/dev/null 2>&1 &&"
+    " ps -p `cat {pid_file}` >/dev/null 2>&1"), user=params.hdfs_user)
 
   # on STOP directories shouldn't be created
   # since during stop still old dirs are used (which were created during previous start)
