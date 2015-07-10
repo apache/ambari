@@ -25,6 +25,7 @@ import os
 import sys
 import logging
 import platform
+import tarfile
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.resources import XmlConfig
@@ -40,6 +41,7 @@ from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
 from resource_management.core.resources.system import Execute
+from contextlib import closing
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -536,18 +538,26 @@ class Script(object):
         for filename, dict in file_dict.iteritems():
           XmlConfig(filename,
                     conf_dir=conf_tmp_dir,
+                    mode=0644,
                     **self.generate_configs_get_xml_file_content(filename, dict)
           )
       for file_dict in env_configs_list:
         for filename,dicts in file_dict.iteritems():
           File(os.path.join(conf_tmp_dir, filename),
+               mode=0644,
                content=InlineTemplate(self.generate_configs_get_template_file_content(filename, dicts)))
 
       for file_dict in properties_configs_list:
         for filename, dict in file_dict.iteritems():
           PropertiesFile(os.path.join(conf_tmp_dir, filename),
-            properties=self.generate_configs_get_xml_file_dict(filename, dict)
+                         mode=0644,
+                         properties=self.generate_configs_get_xml_file_dict(filename, dict)
           )
-      archive_dir(output_filename, conf_tmp_dir)
+      with closing(tarfile.open(output_filename, "w:gz")) as tar:
+        try:
+          tar.add(conf_tmp_dir, arcname=os.path.basename("."))
+        finally:
+          tar.close()
+
     finally:
       Directory(conf_tmp_dir, action="delete")
