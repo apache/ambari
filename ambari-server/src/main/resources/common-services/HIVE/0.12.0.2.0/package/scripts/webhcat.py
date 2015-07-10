@@ -115,4 +115,4 @@ def webhcat():
          content=StaticFile(format("{config_dir}/{log4j_webhcat_filename}.template"))
     )
 
-  setup_atlas_hive()
+  setup_atlas_hive(configuration_directory=params.config_dir)
