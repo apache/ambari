@@ -419,7 +419,11 @@ describe('App.WidgetLoadAggregator', function () {
             component_name: 'C1',
             metric_paths: ['m1']
           },
-          context: 'c1'
+          context: Em.Object.create({
+            content: {
+              widgetType: 'GRAPH'
+            }
+          })
         },
         {
           startCallName: 'n1',
@@ -427,7 +431,11 @@ describe('App.WidgetLoadAggregator', function () {
             component_name: 'C1',
             metric_paths: ['m2']
           },
-          context: 'c2'
+          context: Em.Object.create({
+            content: {
+              widgetType: 'NUMBER'
+            }
+          })
         },
         {
           startCallName: 'n2',
@@ -435,7 +443,11 @@ describe('App.WidgetLoadAggregator', function () {
             component_name: 'C1',
             metric_paths: ['m3']
           },
-          context: 'c3'
+          context: Em.Object.create({
+            content: {
+              widgetType: 'TEMPLATE'
+            }
+          })
         },
         {
           startCallName: 'n1',
@@ -443,13 +455,19 @@ describe('App.WidgetLoadAggregator', function () {
             component_name: 'C2',
             metric_paths: ['m4']
           },
-          context: 'c4'
+          context: Em.Object.create({
+            content: {
+              widgetType: 'GAUGE'
+            }
+          })
         }
       ];
       var result = aggregator.groupRequests(requests);
 
-      expect(result['n1_C1'].subRequests.length).to.equal(2);
-      expect(result['n1_C1'].data.metric_paths.length).to.equal(2);
+      expect(result['n1_C1'].subRequests.length).to.equal(1);
+      expect(result['n1_C1'].data.metric_paths.length).to.equal(1);
+      expect(result['n1_C1_graph'].subRequests.length).to.equal(1);
+      expect(result['n1_C1_graph'].data.metric_paths.length).to.equal(1);
       expect(result['n2_C1'].subRequests.length).to.equal(1);
       expect(result['n2_C1'].data.metric_paths.length).to.equal(1);
       expect(result['n1_C2'].subRequests.length).to.equal(1);

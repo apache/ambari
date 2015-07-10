@@ -702,7 +702,9 @@ App.WidgetLoadAggregator = Em.Object.create({
     var bulks = {};
 
     requests.forEach(function (request) {
-      var id = request.startCallName + "_" + request.data.component_name;
+      //poll metrics for graph widgets separately
+      var graphSuffix = request.context.get('content.widgetType') === "GRAPH" ? "_graph" : '';
+      var id = request.startCallName + "_" + request.data.component_name + graphSuffix;
 
       if (Em.isNone(bulks[id])) {
         bulks[id] = {
