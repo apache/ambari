@@ -152,19 +152,6 @@ public enum CheckDescription {
           "YARN should have state preserving restart enabled for the Timeline server. The yarn-site.xml property yarn.timeline-service.recovery.enabled should be set to true.");
       }}),
 
-  SERVICES_MR2_JOBHISTORY_ST(PrereqCheckType.SERVICE,
-      "MapReduce2 JobHistory recovery should be enabled",
-      new HashMap<String, String>() {{
-        put(MapReduce2JobHistoryStatePreservingCheck.MAPREDUCE2_JOBHISTORY_RECOVERY_ENABLE_KEY,
-          "MapReduce2 should have recovery enabled for the JobHistory server. The mapred-site.xml property mapreduce.jobhistory.recovery.enable should be set to true.");
-        put(MapReduce2JobHistoryStatePreservingCheck.MAPREDUCE2_JOBHISTORY_RECOVERY_STORE_KEY,
-          "MapReduce2 should have recovery enabled for the JobHistory server. The mapred-site.xml property mapreduce.jobhistory.recovery.store.class should be set to org.apache.hadoop.mapreduce.v2.hs.HistoryServerLeveldbStateStoreService.");
-        put(MapReduce2JobHistoryStatePreservingCheck.MAPREDUCE2_JOBHISTORY_RECOVERY_STORE_LEVELDB_PATH_KEY,
-          "MapReduce2 should have recovery enabled for the JobHistory server. The mapred-site.xml property mapreduce.jobhistory.recovery.store.leveldb.path should be set. Please note that \"mapreduce.jobhistory.recovery.store.leveldb.path\" should be set equal to \"yarn.timeline-service.leveldb-state-store.path\" for consistency.");
-        put(MapReduce2JobHistoryStatePreservingCheck.YARN_TIMELINE_SERVICE_LEVELDB_STATE_STORE_PATH_KEY,
-          "The mapred-site.xml property mapreduce.jobhistory.recovery.store.leveldb.path should be set. Please note that \"mapreduce.jobhistory.recovery.store.leveldb.path\" should be set equal to \"yarn.timeline-service.leveldb-state-store.path\" for consistency.");
-      }}),
-
   SERVICES_HIVE_DYNAMIC_SERVICE_DISCOVERY(PrereqCheckType.SERVICE,
       "Hive Dynamic Service Discovery",
       new HashMap<String, String>() {{
