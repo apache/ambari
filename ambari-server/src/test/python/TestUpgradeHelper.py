@@ -476,6 +476,67 @@ class TestUpgradeHelper(TestCase):
     self.assertEqual("['host1.com']", cfg.properties["test-arr"])
 
   @patch.object(upgradeHelper, "get_config_resp_all")
+  def test_override_tag(self, get_config_resp_all_mock):
+    test_catalog = """
+        {
+      "version": "1.0",
+      "stacks": [
+        {
+          "name": "HDP",
+          "old-version": "1.0",
+          "target-version": "1.1",
+          "options": {
+            "config-types":{
+              "test": {
+                "merged-copy": "yes"
+              }
+            }
+          },
+          "properties": {
+             "test": {
+               "test_property": {
+                  "value": "host1.com",
+                  "override": "no"
+                }
+
+            }
+          },
+          "property-mapping": {}
+        }
+      ]
+    }
+    """
+    old_opt = upgradeHelper.Options.OPTIONS
+    options = lambda: ""
+    options.from_stack = "1.0"
+    options.to_stack = "1.1"
+    options.upgrade_json = ""
+
+    upgradeHelper.Options.OPTIONS = options
+    upgradeHelper.Options.SERVICES = [self.required_service]
+    get_config_resp_all_mock.return_value = {
+      "test": {
+        "properties": {
+          "test_property": "test host"
+        }
+      }
+    }
+
+    ucf = UpgradeCatalogFactoryMock(test_catalog)
+    scf = upgradeHelper.ServerConfigFactory()
+
+    cfg = scf.get_config("test")
+    ucfg = ucf.get_catalog("1.0", "1.1")
+
+    cfg.merge(ucfg)
+    scf.process_mapping_transformations(ucfg)
+
+    upgradeHelper.Options.OPTIONS = old_opt
+
+    self.assertEqual(True, "test_property" in cfg.properties)
+    self.assertEqual("test host", cfg.properties["test_property"])
+
+  @patch.object(upgradeHelper, "get_config_resp_all")
   def test_replace_tag(self, get_config_resp_all_mock):
     test_catalog = """
         {

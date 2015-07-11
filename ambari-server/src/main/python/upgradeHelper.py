@@ -69,6 +69,7 @@ Example:
           },
           "test_property": {
            "value": "new value",
+           "override: "no", (optional, override already existed property yes/no)
            "value-required": "old value"  (optional, property would be set if the required value is present)
           }
         }
@@ -288,6 +289,7 @@ class CatConst(Const):
   COERCE_YAML_OPTION_TAG = "yaml-array"
   REPLACE_FROM_TAG = "replace-from"
   REPLACE_TO_TAG = "replace-to"
+  OVERRIDE_TAG = "override"
   ITEMS_TAG = "items"
   TYPE_TAG = "type"
   TRUE_TAG = "yes"
@@ -520,7 +522,12 @@ class UpgradeCatalog(object):
     :type properties dict
     """
     catalog_property_item = dict(catalog_property_item)
-    if CatConst.PROPERTY_VALUE_TAG in catalog_property_item and catalog_item_name in properties:
+    can_override = True
+
+    if CatConst.OVERRIDE_TAG in catalog_property_item and catalog_property_item[CatConst.OVERRIDE_TAG] != CatConst.TRUE_TAG:
+      can_override = False
+
+    if CatConst.PROPERTY_VALUE_TAG in catalog_property_item and catalog_item_name in properties and can_override:
       self.__handle_template_tag_sub(catalog_item_name, catalog_property_item)
       properties[catalog_item_name] = catalog_property_item[CatConst.PROPERTY_VALUE_TAG]
     return properties

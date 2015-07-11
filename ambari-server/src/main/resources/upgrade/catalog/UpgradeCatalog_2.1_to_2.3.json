@@ -246,7 +246,11 @@
           "hbase.regionserver.wal.codec": "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec",
           "phoenix.functions.allowUserDefinedFunctions": "true",
           "fs.hdfs.impl": "org.apache.hadoop.hdfs.DistributedFileSystem",
-          "hbase.bucketcache.percentage.in.combinedcache": {"remove": "yes"}
+          "hbase.bucketcache.percentage.in.combinedcache": {"remove": "yes"},
+          "hbase.bulkload.staging.dir": {
+            "value": "/apps/hbase/staging",
+            "override": "no"
+          }
         },
         "mapred-site": {
           "mapreduce.job.emit-timeline-data": "false",
