@@ -97,9 +97,11 @@ class OozieUpgrade(Script):
   @staticmethod
   def prepare_libext_directory():
     """
-    Creates /usr/hdp/current/oozie/libext-customer and recursively sets
-    777 permissions on it and its parents.
-    Also, downloads jdbc driver and provides other staff
+    Performs the following actions on libext:
+      - creates /usr/hdp/current/oozie/libext and recursively
+      - set 777 permissions on it and its parents.
+      - downloads JDBC driver JAR if needed
+      - copies Falcon JAR for the Oozie WAR if needed
     """
     import params
 
@@ -107,9 +109,8 @@ class OozieUpgrade(Script):
     target_version_needs_compression_libraries = compare_versions(
       format_hdp_stack_version(params.version), '2.2.1.0') >= 0
 
-    Directory(params.oozie_libext_customer_dir,
-      mode = 0777,
-    )
+    # ensure the directory exists
+    Directory(params.oozie_libext_dir, mode = 0777)
 
     # get all hadooplzo* JAR files
     # hdp-select set hadoop-client has not run yet, therefore we cannot use
@@ -132,30 +133,52 @@ class OozieUpgrade(Script):
       files_copied = False
       for file in files:
         if os.path.isfile(file):
-          Logger.info("Copying {0} to {1}".format(str(file), params.oozie_libext_customer_dir))
-          shutil.copy2(file, params.oozie_libext_customer_dir)
+          Logger.info("Copying {0} to {1}".format(str(file), params.oozie_libext_dir))
+          shutil.copy2(file, params.oozie_libext_dir)
           files_copied = True
 
       if not files_copied:
         raise Fail("There are no files at {0} matching {1}".format(
           hadoop_client_new_lib_dir, hadoop_lzo_pattern))
 
-    # copy ext ZIP to customer dir
+    # copy ext ZIP to libext dir
     oozie_ext_zip_file = '/usr/share/HDP-oozie/ext-2.2.zip'
     if not os.path.isfile(oozie_ext_zip_file):
       raise Fail("Unable to copy {0} because it does not exist".format(oozie_ext_zip_file))
 
-    Logger.info("Copying {0} to {1}".format(oozie_ext_zip_file, params.oozie_libext_customer_dir))
-    shutil.copy2(oozie_ext_zip_file, params.oozie_libext_customer_dir)
+    Logger.info("Copying {0} to {1}".format(oozie_ext_zip_file, params.oozie_libext_dir))
+    shutil.copy2(oozie_ext_zip_file, params.oozie_libext_dir)
 
     # Redownload jdbc driver to a new current location
     oozie.download_database_library_if_needed()
+
+    # get the upgrade version in the event that it's needed
+    upgrade_stack = hdp_select._get_upgrade_stack()
+    if upgrade_stack is None or len(upgrade_stack) < 2 or upgrade_stack[1] is None:
+      raise Fail("Unable to determine the stack that is being upgraded to or downgraded to.")
+
+    # something like 2.3.0.0-1234
+    stack_version = upgrade_stack[1]
+
+    # copy the Falcon JAR if needed; falcon has not upgraded yet, so we must
+    # use the versioned falcon directory
+    if params.has_falcon_host:
+      versioned_falcon_jar_directory = "/usr/hdp/{0}/falcon/oozie/ext/falcon-oozie-el-extension-*.jar".format(stack_version)
+      Logger.info("Copying {0} to {1}".format(versioned_falcon_jar_directory, params.oozie_libext_dir))
+
+      Execute(format('{sudo} cp {versioned_falcon_jar_directory} {oozie_libext_dir}'))
+      Execute(format('{sudo} chown {oozie_user}:{user_group} {oozie_libext_dir}/falcon-oozie-el-extension-*.jar'))
 
 
   @staticmethod
   def prepare_warfile():
     """
     Invokes the 'prepare-war' command in Oozie in order to create the WAR.
+    The prepare-war command uses the input WAR from ${OOZIE_HOME}/oozie.war and
+    outputs the prepared WAR to ${CATALINA_BASE}/webapps/oozie.war - because of this,
+    both of these environment variables must point to the upgraded oozie-server path and
+    not oozie-client since it was not yet updated.
+
     This method will also perform a kinit if necessary.
     :return:
     """
@@ -167,10 +190,14 @@ class OozieUpgrade(Script):
       command = format("{kinit_path_local} -kt {oozie_keytab} {oozie_principal_with_host}")
       Execute(command, user=params.oozie_user, logoutput=True)
 
+    # setup environment
+    environment = { "CATALINA_BASE" : "/usr/hdp/current/oozie-server/oozie-server",
+      "OOZIE_HOME" : "/usr/hdp/current/oozie-server" }
+
     # prepare the oozie WAR
-    command = format("{oozie_setup_sh} prepare-war {oozie_secure} -d {oozie_libext_customer_dir}")
+    command = format("{oozie_setup_sh} prepare-war {oozie_secure} -d {oozie_libext_dir}")
     return_code, oozie_output = shell.call(command, user=params.oozie_user,
-      logoutput=False, quiet=False)
+      logoutput=False, quiet=False, env=environment)
 
     # set it to "" in to prevent a possible iteration issue
     if oozie_output is None:

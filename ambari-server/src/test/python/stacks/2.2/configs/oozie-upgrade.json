@@ -208,9 +208,6 @@
         "nm_hosts": [
             "c6403.ambari.apache.org"
         ], 
-        "falcon_server_hosts": [
-            "c6402.ambari.apache.org"
-        ], 
         "hive_metastore_host": [
             "c6402.ambari.apache.org"
         ], 

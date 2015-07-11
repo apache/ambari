@@ -226,11 +226,11 @@ def oozie_server_specific():
   #falcon el extension
   if params.has_falcon_host:
     Execute(format('{sudo} cp {falcon_home}/oozie/ext/falcon-oozie-el-extension-*.jar {oozie_libext_dir}'),
-      not_if  = no_op_test,
-    )
+      not_if  = no_op_test)
+
     Execute(format('{sudo} chown {oozie_user}:{user_group} {oozie_libext_dir}/falcon-oozie-el-extension-*.jar'),
-      not_if  = no_op_test,
-    )
+      not_if  = no_op_test)
+
   if params.lzo_enabled and len(params.all_lzo_packages) > 0:
     Package(params.all_lzo_packages)
     Execute(format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),

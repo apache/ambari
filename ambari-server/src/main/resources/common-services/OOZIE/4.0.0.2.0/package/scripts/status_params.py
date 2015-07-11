@@ -29,7 +29,8 @@ from resource_management.libraries.script.script import Script
 SERVER_ROLE_DIRECTORY_MAP = {
   'OOZIE_SERVER' : 'oozie-server',
   'OOZIE_CLIENT' : 'oozie-client',
-  'OOZIE_SERVICE_CHECK' : 'oozie-client'
+  'OOZIE_SERVICE_CHECK' : 'oozie-client',
+  'ru_execute_tasks' : 'oozie-server'
 }
 
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "OOZIE_CLIENT")
