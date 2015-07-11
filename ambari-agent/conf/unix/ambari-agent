@@ -56,11 +56,11 @@ if [ "$?" != "0" ] && [ "$EUID" -ne 0 ] ; then
 fi
 
 change_files_permissions() {
-	ambari-sudo.sh chown -R $current_user "/var/run/ambari-agent"
-	ambari-sudo.sh chown -R $current_user "/var/log/ambari-agent"
-	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/data"
-	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/cache"
-	ambari-sudo.sh chown 	  $current_user "/usr/lib/ambari-agent"
+	ambari-sudo.sh chown -R $current_user "/var/run/ambari-agent/"
+	ambari-sudo.sh chown -R $current_user "/var/log/ambari-agent/"
+	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/data/"
+	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/cache/"
+	ambari-sudo.sh chown 	$current_user "/usr/lib/ambari-agent/"
 }
 
 if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
