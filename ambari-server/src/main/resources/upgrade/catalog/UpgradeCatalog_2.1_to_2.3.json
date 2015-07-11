@@ -301,7 +301,7 @@
           "yarn.resourcemanager.connect.max-wait.ms": "900000",
           "yarn.resourcemanager.connect.retry-interval.ms": "30000",
           "yarn.resourcemanager.fs.state-store.retry-policy-spec": "2000, 500",
-          "yarn.resourcemanager.fs.state-store.uri": "",
+          "yarn.resourcemanager.fs.state-store.uri": " ",
           "yarn.resourcemanager.ha.enabled": "false",
           "yarn.resourcemanager.recovery.enabled": "false",
           "yarn.resourcemanager.state-store.max-completed-applications": "${yarn.resourcemanager.max-completed-applications}",
