@@ -973,7 +973,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup',
         action = ['delete'],
     )
-    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext-customer',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext',
         mode = 0777,
     )
     self.assertNoMoreResources()
@@ -1016,8 +1016,7 @@ class TestOozieServer(RMFTestCase):
      hdp_stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
      call_mocks = [(0, None), (0, prepare_war_stdout)],
-     mocks_dict = mocks_dict
-    )
+     mocks_dict = mocks_dict)
 
     self.assertTrue(isfile_mock.called)
     self.assertEqual(isfile_mock.call_count,3)
@@ -1031,31 +1030,33 @@ class TestOozieServer(RMFTestCase):
      '-zcvhf',
      '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
      '/usr/hdp/current/oozie-server/conf/'),
-        sudo = True,
-    )
+        sudo = True)
+
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'),
-        sudo = True,
-    )
+        sudo = True)
+
     self.assertResourceCalled('Execute', ('tar',
      '-xvf',
      '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
      '-C',
      '/usr/hdp/current/oozie-server/conf//'),
-        sudo = True,
-    )
+        sudo = True)
+
     self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup',
-        action = ['delete'],
-    )
-    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext-customer',
-        mode = 0777,
-    )
+        action = ['delete'])
+
+    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext',
+        mode = 0777)
+
     self.assertNoMoreResources()
 
-    self.assertEquals(2, mocks_dict['call'].call_count)
+    self.assertEquals(1, mocks_dict['call'].call_count)
     self.assertEquals(1, mocks_dict['checked_call'].call_count)
+
     self.assertEquals(
       ('conf-select', 'set-conf-dir', '--package', 'oozie', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
        mocks_dict['checked_call'].call_args_list[0][0][0])
+
     self.assertEquals(
       ('conf-select', 'create-conf-dir', '--package', 'oozie', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
        mocks_dict['call'].call_args_list[0][0][0])
@@ -1105,37 +1106,10 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup',
         action = ['delete'],
     )
-    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext-customer',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext',
         mode = 0777,
     )
     self.assertNoMoreResources()
-
-
-  @patch("tarfile.open")
-  @patch("os.path.isdir")
-  @patch("os.path.exists")
-  @patch("os.path.isfile")
-  @patch("os.remove")
-  @patch("os.chmod")
-  @patch("shutil.rmtree", new = MagicMock())
-  @patch("glob.iglob", new = MagicMock(return_value=["/usr/hdp/2.2.1.0-2187/hadoop/lib/hadoop-lzo-0.6.0.2.2.1.0-2187.jar"]))
-  @patch("shutil.copy2")
-  def test_upgrade_failed_prepare_war(self, shutil_copy_mock, chmod_mock, remove_mock,
-      isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
-
-    isdir_mock.return_value = True
-    exists_mock.return_value = False
-    isfile_mock.return_value = True
-
-    try:
-      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
-       classname = "OozieServer", command = "pre_rolling_restart", config_file = "oozie-upgrade.json",
-       hdp_stack_version = self.UPGRADE_STACK_VERSION,
-       target = RMFTestCase.TARGET_COMMON_SERVICES )
-
-      self.fail("An invalid WAR preparation should have caused an error")
-    except Fail,f:
-      pass
 
 
   def test_upgrade_database_sharelib(self):
@@ -1264,3 +1238,90 @@ class TestOozieServer(RMFTestCase):
 
     self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/oozie/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020',
       user='oozie', logoutput = True)
+
+  @patch("os.path.isdir")
+  @patch("os.path.exists")
+  @patch("os.path.isfile")
+  @patch("os.remove")
+  @patch("shutil.rmtree", new = MagicMock())
+  @patch("glob.iglob")
+  @patch("shutil.copy2", new = MagicMock())
+  def test_upgrade_23_ensure_falcon_copied(self, glob_mock, remove_mock,
+      isfile_mock, exists_mock, isdir_mock):
+
+    def exists_mock_side_effect(path):
+      if path == '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar':
+        return True
+
+      return False
+
+    isdir_mock.return_value = True
+    exists_mock.side_effect = exists_mock_side_effect
+    isfile_mock.return_value = True
+    glob_mock.return_value = ["/usr/hdp/2.2.1.0-2187/hadoop/lib/hadoop-lzo-0.6.0.2.2.1.0-2187.jar"]
+
+    prepare_war_stdout = """INFO: Adding extension: libext/mysql-connector-java.jar
+    New Oozie WAR file with added 'JARs' at /var/lib/oozie/oozie-server/webapps/oozie.war"""
+
+    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/oozie-upgrade.json"
+
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+    json_content['clusterHostInfo']['falcon_server_hosts'] = ['c6401.ambari.apache.org']
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
+     classname = "OozieServer", command = "pre_rolling_restart", config_dict = json_content,
+     hdp_stack_version = self.UPGRADE_STACK_VERSION,
+     target = RMFTestCase.TARGET_COMMON_SERVICES,
+     call_mocks = [(0, None), (0, prepare_war_stdout)],
+     mocks_dict = mocks_dict)
+
+    self.assertTrue(isfile_mock.called)
+    self.assertEqual(isfile_mock.call_count,3)
+    isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
+
+    self.assertTrue(glob_mock.called)
+    self.assertEqual(glob_mock.call_count,1)
+    glob_mock.assert_called_with('/usr/hdp/2.3.0.0-1234/hadoop/lib/hadoop-lzo*.jar')
+
+    self.assertResourceCalled('Execute', ('tar',
+     '-zcvhf',
+     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
+     '/usr/hdp/current/oozie-server/conf/'),
+        sudo = True)
+
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'),
+        sudo = True)
+
+    self.assertResourceCalled('Execute', ('tar',
+     '-xvf',
+     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
+     '-C',
+     '/usr/hdp/current/oozie-server/conf//'),
+        sudo = True)
+
+    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup',
+        action = ['delete'])
+
+    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext',
+        mode = 0777)
+
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh cp /usr/hdp/2.3.0.0-1234/falcon/oozie/ext/falcon-oozie-el-extension-*.jar /usr/hdp/current/oozie-server/libext')
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh chown oozie:hadoop /usr/hdp/current/oozie-server/libext/falcon-oozie-el-extension-*.jar')
+
+    self.assertNoMoreResources()
+
+    self.assertEquals(1, mocks_dict['call'].call_count)
+    self.assertEquals(1, mocks_dict['checked_call'].call_count)
+
+    self.assertEquals(
+      ('conf-select', 'set-conf-dir', '--package', 'oozie', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
+       mocks_dict['checked_call'].call_args_list[0][0][0])
+
+    self.assertEquals(
+      ('conf-select', 'create-conf-dir', '--package', 'oozie', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
+       mocks_dict['call'].call_args_list[0][0][0])

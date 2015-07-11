@@ -53,8 +53,13 @@ class OozieServer(Script):
   def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-    #TODO remove this when config command will be implemented
+
     self.configure(env)
+
+    # preparing the WAR file must run after configure since configure writes out
+    # oozie-env.sh which is needed to have the right environment directories setup!
+    if rolling_restart is True:
+      OozieUpgrade.prepare_warfile()
 
     oozie_service(action='start', rolling_restart=rolling_restart)
 
@@ -141,9 +146,11 @@ class OozieServerDefault(OozieServer):
 
   def pre_rolling_restart(self, env):
     """
-    Performs the tasks surrounding the Oozie startup when a rolling upgrade
-    is in progress. This includes backing up the configuration, updating
-    the database, preparing the WAR, and installing the sharelib in HDFS.
+    Performs the tasks that should be done before an upgrade of oozie. This includes:
+      - backing up configurations
+      - running hdp-select and conf-select
+      - restoring configurations
+      - preparing the libext directory
     :param env:
     :return:
     """
@@ -164,7 +171,6 @@ class OozieServerDefault(OozieServer):
 
     OozieUpgrade.restore_configuration()
     OozieUpgrade.prepare_libext_directory()
-    OozieUpgrade.prepare_warfile()
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)

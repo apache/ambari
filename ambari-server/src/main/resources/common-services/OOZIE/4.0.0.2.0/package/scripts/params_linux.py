@@ -56,6 +56,12 @@ hadoop_lib_home = hdp_select.get_hadoop_dir("lib")
 
 #hadoop params
 if Script.is_hdp_stack_greater_or_equal("2.2"):
+  # something like 2.3.0.0-1234
+  stack_version = None
+  upgrade_stack = hdp_select._get_upgrade_stack()
+  if upgrade_stack is not None and len(upgrade_stack) == 2 and upgrade_stack[1] is not None:
+    stack_version = upgrade_stack[1]
+
   # oozie-server or oozie-client, depending on role
   oozie_root = status_params.component_directory
 
@@ -65,13 +71,17 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   oozie_webapps_dir = format("/usr/hdp/current/{oozie_root}/oozie-server/webapps")
   oozie_webapps_conf_dir = format("/usr/hdp/current/{oozie_root}/oozie-server/conf")
   oozie_libext_dir = format("/usr/hdp/current/{oozie_root}/libext")
-  oozie_libext_customer_dir = format("/usr/hdp/current/{oozie_root}/libext-customer")
   oozie_server_dir = format("/usr/hdp/current/{oozie_root}/oozie-server")
   oozie_shared_lib = format("/usr/hdp/current/{oozie_root}/share")
   oozie_home = format("/usr/hdp/current/{oozie_root}")
   oozie_bin_dir = format("/usr/hdp/current/{oozie_root}/bin")
   oozie_examples_regex = format("/usr/hdp/current/{oozie_root}/doc")
+
+  # set the falcon home for copying JARs; if in an upgrade, then use the version of falcon that
+  # matches the version of oozie
   falcon_home = '/usr/hdp/current/falcon-client'
+  if stack_version is not None:
+    falcon_home = '/usr/hdp/{0}/falcon'.format(stack_version)
 
   conf_dir = format("/usr/hdp/current/{oozie_root}/conf")
   hive_conf_dir = format("{conf_dir}/action-conf/hive")
