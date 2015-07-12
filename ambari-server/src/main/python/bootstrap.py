@@ -458,6 +458,7 @@ class BootstrapDefault(Bootstrap):
               target, params.bootdir, self.host_log)
     result = scp.run()
     self.host_log.write("\n")
+    result["exitstatus"] = 0 # ignore not copied *.pyc files with permission denied. 
     return result
 
   def getMoveRepoFileWithPasswordCommand(self, targetDir):
