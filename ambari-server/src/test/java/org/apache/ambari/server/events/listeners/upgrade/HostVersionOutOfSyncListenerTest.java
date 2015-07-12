@@ -132,7 +132,7 @@ public class HostVersionOutOfSyncListenerTest {
    */
   private void createClusterAndHosts(String INSTALLED_VERSION, StackId stackId) throws AmbariException {
     // Configuring 3-node cluster with 2 repo versions
-    String CURRENT_VERSION = "1.0-2086";
+    String CURRENT_VERSION = "2.2.0-2086";
 
     Host h1 = clusters.getHost("h1");
     h1.setState(HostState.HEALTHY);
@@ -211,8 +211,8 @@ public class HostVersionOutOfSyncListenerTest {
    */
   @Test
   public void testOnServiceEvent() throws AmbariException {
-    String INSTALLED_VERSION = "1.0-1000";
-    String INSTALLED_VERSION_2 = "2.0-2000";
+    String INSTALLED_VERSION = "2.2.0-1000";
+    String INSTALLED_VERSION_2 = "2.1.1-2000";
     StackId stackId = new StackId(this.stackId);
     StackId yaStackId = new StackId(this.yetAnotherStackId);
 
@@ -262,7 +262,7 @@ public class HostVersionOutOfSyncListenerTest {
    */
   @Test
   public void testOnServiceEvent_component_does_not_advertise_version() throws AmbariException {
-    String INSTALLED_VERSION = "1.0-1000";
+    String INSTALLED_VERSION = "2.2.0-1000";
     StackId stackId = new StackId(this.stackId);
 
     createClusterAndHosts(INSTALLED_VERSION, stackId);
@@ -301,8 +301,8 @@ public class HostVersionOutOfSyncListenerTest {
    */
   @Test
   public void testOnServiceComponentEvent() throws AmbariException {
-    String INSTALLED_VERSION = "1.0-1000";
-    String INSTALLED_VERSION_2 = "2.0-2000";
+    String INSTALLED_VERSION = "2.2.0-1000";
+    String INSTALLED_VERSION_2 = "2.1.1-2000";
     StackId stackId = new StackId(this.stackId);
     StackId yaStackId = new StackId(this.yetAnotherStackId);
 
@@ -351,20 +351,20 @@ public class HostVersionOutOfSyncListenerTest {
 
     StackId stackId = new StackId(this.stackId);
     StackId yaStackId = new StackId(this.yetAnotherStackId);
-    RepositoryVersionEntity repositoryVersionEntity = helper.getOrCreateRepositoryVersion(stackId,"1.0-1000");
-    RepositoryVersionEntity repositoryVersionEntity2 = helper.getOrCreateRepositoryVersion(stackId,"2.0-2000");
-    c1.createClusterVersion(stackId, "1.0-1000", "admin", RepositoryVersionState.INSTALLING);
+    RepositoryVersionEntity repositoryVersionEntity = helper.getOrCreateRepositoryVersion(stackId,"2.2.0-1000");
+    RepositoryVersionEntity repositoryVersionEntity2 = helper.getOrCreateRepositoryVersion(stackId,"2.2.0-2000");
+    c1.createClusterVersion(stackId, "2.2.0-1000", "admin", RepositoryVersionState.INSTALLING);
     c1.setCurrentStackVersion(stackId);
     c1.recalculateAllClusterVersionStates();
-    checkStackVersionState(stackId.getStackId(), "1.0-1000", RepositoryVersionState.INSTALLING);
-    checkStackVersionState(stackId.getStackId(), "1.0-2086", RepositoryVersionState.CURRENT);
+    checkStackVersionState(stackId.getStackId(), "2.2.0-1000", RepositoryVersionState.INSTALLING);
+    checkStackVersionState(stackId.getStackId(), "2.2.0-2086", RepositoryVersionState.CURRENT);
 
     HostVersionEntity hv1 = helper.createHostVersion("h1", repositoryVersionEntity, RepositoryVersionState.INSTALLED);
     HostVersionEntity hv2 = helper.createHostVersion("h1", repositoryVersionEntity2, RepositoryVersionState.INSTALLED);
     c1.recalculateAllClusterVersionStates();
-    checkStackVersionState(stackId.getStackId(), "1.0-1000", RepositoryVersionState.INSTALLED);
-    checkStackVersionState(stackId.getStackId(), "2.0-2000", RepositoryVersionState.INSTALLED);
-    checkStackVersionState(stackId.getStackId(), "1.0-2086", RepositoryVersionState.CURRENT);
+    checkStackVersionState(stackId.getStackId(), "2.2.0-1000", RepositoryVersionState.INSTALLED);
+    checkStackVersionState(stackId.getStackId(), "2.2.0-2000", RepositoryVersionState.INSTALLED);
+    checkStackVersionState(stackId.getStackId(), "2.2.0-2086", RepositoryVersionState.CURRENT);
 
     // Add new host and verify that it has all host versions present
     addHost("h2");
@@ -373,7 +373,7 @@ public class HostVersionOutOfSyncListenerTest {
     List<HostVersionEntity> h2Versions = hostVersionDAO.findByHost("h2");
 
     for (HostVersionEntity hostVersionEntity : h2Versions) {
-      if (hostVersionEntity.getRepositoryVersion().toString().equals("1.0-2086")) {
+      if (hostVersionEntity.getRepositoryVersion().toString().equals("2.2.0-2086")) {
         assertEquals(hostVersionEntity.getState(), RepositoryVersionState.CURRENT);
       } else {
         assertEquals(hostVersionEntity.getState(), RepositoryVersionState.OUT_OF_SYNC);

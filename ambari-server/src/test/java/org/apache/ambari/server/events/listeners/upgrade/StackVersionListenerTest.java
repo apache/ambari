@@ -24,9 +24,9 @@ import static org.easymock.EasyMock.verify;
 
 import org.apache.ambari.server.events.HostComponentVersionEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.StackId;
 import org.easymock.EasyMock;
 import org.junit.Test;
 
@@ -37,21 +37,18 @@ public class StackVersionListenerTest {
 
   @Test
   public void testOnAmbariEvent() throws Exception {
-    StackId stackId = new StackId("HDP-0.1");
-
     VersionEventPublisher publisher = createNiceMock(VersionEventPublisher.class);
-
     Cluster cluster = createNiceMock(Cluster.class);
     ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
+    RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
 
     expect(cluster.getClusterId()).andReturn(99L);
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+    expect(sch.recalculateHostVersionState()).andReturn(repositoryVersionEntity).atLeastOnce();
 
-    cluster.recalculateClusterVersionState(stackId, "1.0.0");
+    cluster.recalculateClusterVersionState(repositoryVersionEntity);
     EasyMock.expectLastCall().atLeastOnce();
 
-    expect(sch.recalculateHostVersionState()).andReturn("1.0.0").atLeastOnce();
-
+    // Replay and assert expectations
     replay(cluster, sch);
 
     HostComponentVersionEvent event = new HostComponentVersionEvent(cluster, sch);

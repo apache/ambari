@@ -61,9 +61,8 @@ import com.google.inject.Provider;
     )
 @NamedQueries({
     @NamedQuery(name = "repositoryVersionByDisplayName", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.displayName=:displayname"),
-    @NamedQuery(name = "repositoryVersionByStackVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.stack.stackVersion=:stackVersion AND repoversion.version=:version"),
     @NamedQuery(name = "repositoryVersionByStack", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.stack.stackVersion=:stackVersion"),
-    @NamedQuery(name = "repositoryVersionByVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.version=:version")
+        @NamedQuery(name = "repositoryVersionByStackNameAndVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.version=:version")
 })
 @StaticallyInject
 public class RepositoryVersionEntity {
@@ -255,4 +254,30 @@ public class RepositoryVersionEntity {
     return result;
   }
 
+  /**
+   * Determine if the version belongs to the stack.
+   * Right now, this is only applicable for the HDP stack.
+   * @param stackId Stack, such as HDP-2.3
+   * @param version Version number, such as 2.3.0.0, or 2.3.0.0-1234
+   * @return Return true if the version starts with the digits of the stack.
+   */
+  public static boolean isVersionInStack(StackId stackId, String version) {
+    if (null != version && !StringUtils.isBlank(version)) {
+      // HDP Stack
+      if (stackId.getStackName().equalsIgnoreCase(StackId.HDP_STACK) ||
+          stackId.getStackName().equalsIgnoreCase(StackId.HDPWIN_STACK)) {
+
+        String leading = stackId.getStackVersion();  // E.g, 2.3
+        // In some cases during unit tests, the leading can contain 3 digits, so only the major number (first two parts) are needed.
+        String[] leadingParts = leading.split(".");
+        if (null != leadingParts && leadingParts.length > 2) {
+          leading = leadingParts[0] + "." + leadingParts[1];
+        }
+        return version.startsWith(leading);
+      }
+      // For other stacks, don't make the check.
+      return true;
+    }
+    return false;
+  }
 }

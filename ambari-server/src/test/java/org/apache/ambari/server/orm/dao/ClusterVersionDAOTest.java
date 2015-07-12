@@ -109,7 +109,7 @@ public class ClusterVersionDAOTest {
     // Start upgrading C
     if (currStep >= 4) {
       if (lastStep <= 3) {
-        cvC = new ClusterVersionEntity(cluster, helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.1.0-100"), RepositoryVersionState.UPGRADING, System.currentTimeMillis(), "admin");
+        cvC = new ClusterVersionEntity(cluster, helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.0.0-100"), RepositoryVersionState.UPGRADING, System.currentTimeMillis(), "admin");
         clusterVersionDAO.create(cvC);
         cvCId = cvC.getId();
       } else {

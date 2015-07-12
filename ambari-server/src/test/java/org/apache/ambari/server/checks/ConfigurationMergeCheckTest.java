@@ -58,12 +58,13 @@ public class ConfigurationMergeCheckTest {
   private Clusters clusters = EasyMock.createMock(Clusters.class);
   private Map<String, String> m_configMap = new HashMap<String, String>();
 
+  private static final StackId stackId_1_0 = new StackId("HDP-1.0");
+
   @Before
   public void before() throws Exception {
     Cluster cluster = EasyMock.createMock(Cluster.class);
-    StackId stackId = new StackId("HDP-1.0");
 
-    expect(cluster.getCurrentStackVersion()).andReturn(stackId).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(stackId_1_0).anyTimes();
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
 
     expect(cluster.getServices()).andReturn(new HashMap<String, Service>() {{
@@ -84,14 +85,15 @@ public class ConfigurationMergeCheckTest {
   public void testApplicable() throws Exception {
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setTargetStackId(stackId_1_0);
 
     ConfigurationMergeCheck cmc = new ConfigurationMergeCheck();
     Assert.assertFalse(cmc.isApplicable(request));
 
     final RepositoryVersionDAO repositoryVersionDAO = EasyMock.createMock(RepositoryVersionDAO.class);
-    expect(repositoryVersionDAO.findMaxByVersion("1.0")).andReturn(createFor("1.0")).anyTimes();
-    expect(repositoryVersionDAO.findMaxByVersion("1.1")).andReturn(createFor("1.1")).anyTimes();
-    expect(repositoryVersionDAO.findMaxByVersion("1.2")).andReturn(null).anyTimes();
+    expect(repositoryVersionDAO.findByStackNameAndVersion("HDP", "1.0")).andReturn(createFor("1.0")).anyTimes();
+    expect(repositoryVersionDAO.findByStackNameAndVersion("HDP", "1.1")).andReturn(createFor("1.1")).anyTimes();
+    expect(repositoryVersionDAO.findByStackNameAndVersion("HDP", "1.2")).andReturn(null).anyTimes();
 
     replay(repositoryVersionDAO);
 
@@ -117,7 +119,6 @@ public class ConfigurationMergeCheckTest {
 
     request.setRepositoryVersion("1.2");
     Assert.assertFalse(cmc.isApplicable(request));
-
   }
 
   @Test
@@ -125,8 +126,8 @@ public class ConfigurationMergeCheckTest {
     ConfigurationMergeCheck cmc = new ConfigurationMergeCheck();
 
     final RepositoryVersionDAO repositoryVersionDAO = EasyMock.createMock(RepositoryVersionDAO.class);
-    expect(repositoryVersionDAO.findMaxByVersion("1.0")).andReturn(createFor("1.0")).anyTimes();
-    expect(repositoryVersionDAO.findMaxByVersion("1.1")).andReturn(createFor("1.1")).anyTimes();
+    expect(repositoryVersionDAO.findByStackNameAndVersion("HDP", "1.0")).andReturn(createFor("1.0")).anyTimes();
+    expect(repositoryVersionDAO.findByStackNameAndVersion("HDP", "1.1")).andReturn(createFor("1.1")).anyTimes();
 
     replay(repositoryVersionDAO);
 
@@ -183,6 +184,7 @@ public class ConfigurationMergeCheckTest {
     replay(ami);
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setTargetStackId(stackId_1_0);
     request.setRepositoryVersion("1.1");
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, "cluster");

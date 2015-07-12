@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -36,6 +37,8 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import java.util.UUID;
 
 /**
  * RepositoryVersionDAO unit tests.
@@ -68,7 +71,7 @@ public class RepositoryVersionDAOTest {
     injector.getInstance(AmbariMetaInfo.class);
   }
 
-  private void createSingleRecord() {
+  private RepositoryVersionEntity createSingleRecord() {
     StackEntity stackEntity = stackDAO.find(HDP_206.getStackName(),
         HDP_206.getStackVersion());
 
@@ -81,6 +84,58 @@ public class RepositoryVersionDAOTest {
     entity.setUpgradePackage("upgrade package");
     entity.setVersion("version");
     repositoryVersionDAO.create(entity);
+
+    return entity;
+  }
+
+  @Test
+  public void testCreate() {
+    UUID uuid = UUID.randomUUID();
+
+    RepositoryVersionEntity first = createSingleRecord();
+    Assert.assertNotNull(first);
+
+    StackEntity stackEntity = stackDAO.find(first.getStackName(), first.getStackVersion());
+    Assert.assertNotNull(stackEntity);
+
+    // Assert the version must be unique
+    RepositoryVersionEntity dupVersion = new RepositoryVersionEntity();
+    dupVersion.setDisplayName("display name " + uuid.toString());
+    dupVersion.setOperatingSystems("repositories");
+    dupVersion.setStack(stackEntity);
+    dupVersion.setUpgradePackage("upgrade package");
+    dupVersion.setVersion(first.getVersion());
+
+    boolean exceptionThrown = false;
+    try {
+      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getUpgradePackage(), dupVersion.getOperatingSystemsJson());
+    } catch (AmbariException e) {
+      exceptionThrown = true;
+      Assert.assertTrue(e.getMessage().contains("already exists"));
+    }
+    // Expected the exception to be thrown since the build version was reused in the second record.
+    Assert.assertTrue(exceptionThrown);
+
+    exceptionThrown = false;
+
+    // The version must belong to the stack
+    dupVersion.setVersion("2.3-1234");
+    try {
+      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getUpgradePackage(), dupVersion.getOperatingSystemsJson());
+    } catch (AmbariException e) {
+      exceptionThrown = true;
+      Assert.assertTrue(e.getMessage().contains("needs to belong to stack"));
+    }
+    // Expected the exception to be thrown since the version does not belong to the stack.
+    Assert.assertTrue(exceptionThrown);
+
+    // Success
+    dupVersion.setVersion(stackEntity.getStackVersion() + "-1234");
+    try {
+      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getUpgradePackage(), dupVersion.getOperatingSystemsJson());
+    } catch (AmbariException e) {
+      Assert.fail("Did not expect a failure creating the Repository Version");
+    }
   }
 
   @Test

@@ -1235,10 +1235,13 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
-  public void recalculateClusterVersionState(StackId stackId, String repositoryVersion) throws AmbariException {
+  public void recalculateClusterVersionState(RepositoryVersionEntity repositoryVersion) throws AmbariException {
     if (repositoryVersion == null) {
       return;
     }
+
+    StackId stackId = repositoryVersion.getStackId();
+    String version = repositoryVersion.getVersion();
 
     Map<String, Host> hosts = clusters.getHostsForCluster(getClusterName());
     clusterGlobalLock.writeLock().lock();
@@ -1247,7 +1250,7 @@ public class ClusterImpl implements Cluster {
       // Part 1, bootstrap cluster version if necessary.
 
       ClusterVersionEntity clusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(
-          getClusterName(), stackId, repositoryVersion);
+          getClusterName(), stackId, version);
 
       boolean performingInitialBootstrap = false;
       if (clusterVersion == null) {
@@ -1260,11 +1263,11 @@ public class ClusterImpl implements Cluster {
           performingInitialBootstrap = true;
           createClusterVersionInternal(
               stackId,
-              repositoryVersion,
+              version,
               AuthorizationHelper.getAuthenticatedName(configuration.getAnonymousAuditName()),
               RepositoryVersionState.UPGRADING);
           clusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(
-              getClusterName(), stackId, repositoryVersion);
+              getClusterName(), stackId, version);
 
           if (clusterVersion == null) {
             LOG.warn(String.format(
@@ -1298,7 +1301,7 @@ public class ClusterImpl implements Cluster {
       //hack until better hostversion integration into in-memory cluster structure
 
       List<HostVersionEntity> hostVersionEntities =
-              hostVersionDAO.findByClusterStackAndVersion(getClusterName(), stackId, repositoryVersion);
+              hostVersionDAO.findByClusterStackAndVersion(getClusterName(), stackId, version);
 
       Set<String> hostsWithState = new HashSet<String>();
       for (HostVersionEntity hostVersionEntity : hostVersionEntities) {
@@ -1358,7 +1361,7 @@ public class ClusterImpl implements Cluster {
         // Any mismatch will be caught while transitioning, and raise an
         // exception.
         try {
-          transitionClusterVersion(stackId, repositoryVersion,
+          transitionClusterVersion(stackId, version,
               effectiveClusterVersionState);
         } catch (AmbariException e) {
           ;
@@ -1441,9 +1444,7 @@ public class ClusterImpl implements Cluster {
         if (clusterVersionEntity.getRepositoryVersion().getStack().equals(
             currentStackId.getStackId())
             && clusterVersionEntity.getState() != RepositoryVersionState.CURRENT) {
-          recalculateClusterVersionState(
-              clusterVersionEntity.getRepositoryVersion().getStackId(),
-              clusterVersionEntity.getRepositoryVersion().getVersion());
+          recalculateClusterVersionState(clusterVersionEntity.getRepositoryVersion());
         }
       }
     } finally {

@@ -852,7 +852,7 @@ public class UpgradeResourceProviderTest {
     UpgradeResourceProvider upgradeResourceProvider = createProvider(amc);
 
     Map<String, UpgradePack> upgradePacks = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
-    upgradeResourceProvider.processConfigurations(cluster, "2.2.0.0", Direction.UPGRADE, upgradePacks.get("upgrade_to_new_stack"));
+    upgradeResourceProvider.processConfigurations(stack211.getStackName(), cluster, "2.2.0.0", Direction.UPGRADE, upgradePacks.get("upgrade_to_new_stack"));
 
     Map<String, Map<String, String>> expectedConfigurations = expectedConfigurationsCapture.getValue();
     Map<String, String> expectedFooType = expectedConfigurations.get("foo-site");

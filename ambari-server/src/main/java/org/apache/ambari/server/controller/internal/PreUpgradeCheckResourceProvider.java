@@ -127,12 +127,14 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
         throw new NoSuchResourceException(ambariException.getMessage());
       }
 
+      String stackName = cluster.getCurrentStackVersion().getStackName();
+
       final PrereqCheckRequest upgradeCheckRequest = new PrereqCheckRequest(clusterName);
       upgradeCheckRequest.setSourceStackId(cluster.getCurrentStackVersion());
 
       if (propertyMap.containsKey(UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID)) {
         String repositoryVersionId = propertyMap.get(UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID).toString();
-        RepositoryVersionEntity repositoryVersionEntity = repositoryVersionDAO.findMaxByVersion(repositoryVersionId);
+        RepositoryVersionEntity repositoryVersionEntity = repositoryVersionDAO.findByStackNameAndVersion(stackName, repositoryVersionId);
 
         // set some required properties on the check request
         upgradeCheckRequest.setRepositoryVersion(repositoryVersionId);

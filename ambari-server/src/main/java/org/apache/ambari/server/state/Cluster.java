@@ -199,11 +199,10 @@ public interface Cluster {
 
   /**
    * Update state of a cluster stack version for cluster based on states of host versions and stackids.
-   * @param stackId           the stack id with the version
-   * @param repositoryVersion the repository version (e.g. 2.2.1.0-100)
+   * @param repositoryVersion the repository version entity whose version is a value like 2.2.1.0-100)
    * @throws AmbariException
    */
-  void recalculateClusterVersionState(StackId stackId, String repositoryVersion) throws AmbariException;
+  void recalculateClusterVersionState(RepositoryVersionEntity repositoryVersion) throws AmbariException;
 
   /**
    * Update state of all cluster stack versions for cluster based on states of host versions.
