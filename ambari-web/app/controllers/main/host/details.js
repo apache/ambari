@@ -1877,21 +1877,6 @@ App.MainHostDetailsController = Em.Controller.extend({
         if (!cInstance.get('isDeletable')) {
           container.nonDeletableComponents.push(cInstance.get('displayName'));
         }
-        // if is deletable, but with cardinality 1+ and is the only instance on server
-        if (cInstance.get('isMaster') && cInstance.get('isDeletable')) {
-          var displayName = cInstance.get('displayName'),
-            componentName = cInstance.get('componentName');
-          var stackComponentCount = App.StackServiceComponent.find(componentName).get('minToInstall');
-          var installedCount = App.StackServiceComponent.find(componentName).get('isMaster')
-            ? App.HostComponent.find().filterProperty('componentName', componentName).length
-            : App.SlaveComponent.find().findProperty('componentName', componentName).get('totalCount');
-          var  isDeleteComponentDisabled = (installedCount <= stackComponentCount)
-            || ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(self.get('workStatus'));
-          if (isDeleteComponentDisabled) {
-            if (!container.masterComponents.contains(displayName))
-              container.masterComponents.push(displayName);
-          }
-        }
         if (workStatus === App.HostComponentStatus.unknown) {
           container.unknownComponents.push(cInstance.get('displayName'));
         }

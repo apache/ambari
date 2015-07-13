@@ -1601,42 +1601,6 @@ describe('App.MainHostDetailsController', function () {
       expect(controller.getHostComponentsInfo().nonDeletableComponents).to.eql(['ZK1']);
       App.HostComponent.find.restore();
     });
-
-
-    it('content.hostComponents has master deletable with cardinality 1+ and only one installed component', function () {
-      sinon.stub(App.HostComponent, 'find', function () {
-        return [
-          {
-            id: 'TASKTRACKER_host1',
-            componentName: 'TASKTRACKER'
-          }
-        ];
-      });
-      sinon.stub(App.StackServiceComponent, 'find', function (component) {
-        return Em.Object.create(
-          {
-            componentName: 'TASKTRACKER',
-            minToInstall: 1,
-            isMaster: true
-          });
-      });
-      sinon.stub(App.SlaveComponent, 'find', function () {
-        return [];
-      });
-      controller.set('content', {hostComponents: [Em.Object.create({
-        componentName: 'TASKTRACKER',
-        workStatus: 'INIT',
-        isDeletable: true,
-        isMaster: true,
-        displayName: 'ZK1'
-      })]});
-      expect(controller.getHostComponentsInfo().masterComponents.contains('ZK1')).to.be.true;
-      App.HostComponent.find.restore();
-      App.StackServiceComponent.find.restore();
-      App.SlaveComponent.find.restore();
-    });
-
-
     it('content.hostComponents has running component', function () {
       sinon.stub(App.HostComponent, 'find', function () {
         return [
