@@ -24,6 +24,7 @@ import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +64,8 @@ public class BlueprintConfigurationProcessor {
   private final static String COMMAND_RETRY_MAX_TIME_IN_SEC_DEFAULT = "600";
 
   private final static String CLUSTER_ENV_CONFIG_TYPE_NAME = "cluster-env";
+
+  private final static String HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES = "hbase.coprocessor.master.classes";
 
   /**
    * Single host topology updaters
@@ -254,6 +257,20 @@ public class BlueprintConfigurationProcessor {
       }
     }
     setMissingConfigurations(clusterConfig);
+  }
+
+  /**
+   * Returns true if property should be retained with default value instead of deleting
+   * TODO: This is a temporary work-around till BP integrates with stack advisor
+   * @param propertyName
+   * @return
+   */
+  private static boolean shouldPropertyBeStoredWithDefault(String propertyName) {
+    if (!StringUtils.isBlank(propertyName) && HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES.equals(propertyName)) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -740,7 +757,9 @@ public class BlueprintConfigurationProcessor {
     for(PropertyFilter filter : clusterUpdatePropertyFilters) {
       try {
         if (!filter.isPropertyIncluded(propertyName, propertyValue, propertyType, topology)) {
-          return true;
+          if (!shouldPropertyBeStoredWithDefault(propertyName)) {
+            return true;
+          }
         }
       } catch (Throwable throwable) {
         // if any error occurs during a filter execution, just log it
