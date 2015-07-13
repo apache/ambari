@@ -1533,7 +1533,7 @@
               },
               "hive_UPDATE_XAPOLICIES_ON_GRANT_REVOKE": {
                 "map-from": "UPDATE_XAPOLICIES_ON_GRANT_REVOKE",
-                "map-to": "xasecure.hbase.update.xapolicies.on.grant.revoke",
+                "map-to": "xasecure.hive.update.xapolicies.on.grant.revoke",
                 "from-catalog": "ranger-hive-plugin-properties",
                 "to-catalog": "ranger-hive-security",
                 "default": "true",
