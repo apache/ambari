@@ -1260,6 +1260,28 @@ def get_ranger_service_details():
 
   return data
 
+def get_hive_security_authorization_setting():
+  # this pattern should be used only once, changes here mimic UpgradeCatalog210.java -> updateRangerHiveConfigs
+  response = "None"
+  old_ranger_catalog = "ranger-hive-plugin-properties"
+  old_ranger_setting = "ranger-hive-plugin-enabled"
+  hive_server_catalog = "hiveserver2-site"
+  hive_sec_property = "hive.security.authorization.enabled"
+
+  scf = Options.server_config_factory
+  if scf is not None and old_ranger_catalog in scf.items():
+    cfg = scf.get_config(old_ranger_catalog)
+    prop = cfg.properties
+    if old_ranger_setting in prop and cfg.properties[old_ranger_setting].upper() == "YES":
+      response = "Ranger"
+      if hive_server_catalog in scf.items():
+         hive_props = scf.get_config(hive_server_catalog).properties
+         hive_props[hive_sec_property] = "true"
+    if old_ranger_setting in prop:
+      del prop[old_ranger_setting]
+
+  return response
+
 def _substitute_handler(upgrade_catalog, tokens, value):
   """
   Substitute handler
@@ -1275,6 +1297,8 @@ def _substitute_handler(upgrade_catalog, tokens, value):
       value = value.replace(token, get_jt_host(upgrade_catalog))
     elif token == "{ZOOKEEPER_QUORUM}":
       value = value.replace(token, get_zookeeper_quorum())
+    elif token == "{HIVE_SECURITY_AUTHORIZATION}":
+      value = value.replace(token, get_hive_security_authorization_setting())
     elif token == "{TEZ_HISTORY_URL_BASE}":
       value = value.replace(token, get_tez_history_url_base())
     elif token == "{RANGER_JDBC_DRIVER}":
