@@ -186,9 +186,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     });
     var cleanDependencies = this.get('_dependentConfigValues').reject(function(item) {
       if (installedServices.contains(Em.get(item, 'serviceName'))) {
-        var parentConfigs = Em.getWithDefault(item, 'parentConfigs', []);
-        if (!parentConfigs.length) {
+        var parentConfigs = App.StackConfigProperty.find().findProperty("name", item.propertyName).get('propertyDependsOn')
+        if (!parentConfigs || !parentConfigs.length) {
           return true;
+        } else {
+          parentConfigs = parentConfigs.map(function (e) {
+            return e.name;
+          });
         }
         // check that all parent properties from installed service
         return !parentConfigs.reject(function(parentConfigName) {
