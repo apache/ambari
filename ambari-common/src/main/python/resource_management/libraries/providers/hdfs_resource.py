@@ -356,9 +356,9 @@ class HdfsResourceWebHDFS:
     
     
   def _fill_in_parent_directories(self, target, results):
-    path_parts = self.util.parse_path(target).split("/") 
+    path_parts = self.util.parse_path(target).split("/")[1:]# [1:] remove '' from parts
     path = "/"
-    
+
     for path_part in path_parts:
       path += path_part + "/"
       results.append(path)
