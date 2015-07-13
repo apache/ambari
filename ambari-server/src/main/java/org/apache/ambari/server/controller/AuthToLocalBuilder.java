@@ -282,7 +282,7 @@ public class AuthToLocalBuilder {
      * pattern used to parse existing rules
      */
     private static final Pattern PATTERN_RULE_PARSE =
-        Pattern.compile("RULE:\\s*\\[\\s*(\\d)\\s*:\\s*(.+?)(?:@(.+?))??\\s*\\]\\s*\\((.+?)\\)\\s*(.*)");
+      Pattern.compile("RULE:\\s*\\[\\s*(\\d)\\s*:\\s*(.+?)(?:@(.+?))??\\s*\\]\\s*\\((.+?)\\)\\s*([^\\\\\\n]*)(.|\\n)*");
 
     /**
      * associated principal

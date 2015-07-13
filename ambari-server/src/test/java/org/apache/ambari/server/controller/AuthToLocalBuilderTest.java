@@ -180,6 +180,30 @@ public class AuthToLocalBuilderTest {
     );
   }
 
+  @Test
+  public void testRuleRegexWithDifferentEnding() {
+    String rules =
+        "RULE:[1:$1@$0](foobar@EXAMPLE.COM)s/.*/hdfs/\\\\\n" +
+            "RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\ntext\\\\" +
+            "RULE:[2:$1@$0](dn@EXAMPLE.COM)s/.*/hdfs/\n" +
+            "RULE:[2:$1@$0](hm@EXAMPLE.COM)s/.*/hbase/" +
+            "RULE:[2:$1@$0](jhs@EXAMPLE.COM)s/.*/mapred/\\\\\\" +
+            "RULE:[2:$1@$0](jn@EXAMPLE.COM)s/.*/hdfs/\\/\\";
+
+    AuthToLocalBuilder builder = new AuthToLocalBuilder();
+    builder.addRules(rules);
+
+    assertEquals(
+        "RULE:[1:$1@$0](foobar@EXAMPLE.COM)s/.*/hdfs/\n" +
+            "RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\n" +
+            "RULE:[2:$1@$0](dn@EXAMPLE.COM)s/.*/hdfs/\n" +
+            "RULE:[2:$1@$0](hm@EXAMPLE.COM)s/.*/hbase/\n" +
+            "RULE:[2:$1@$0](jhs@EXAMPLE.COM)s/.*/mapred/\n" +
+            "RULE:[2:$1@$0](jn@EXAMPLE.COM)s/.*/hdfs/\n" +
+            "DEFAULT",
+        builder.generate("EXAMPLE.COM"));
+  }
+
 
   @Test
   public void testRulesWithWhitespace() {
