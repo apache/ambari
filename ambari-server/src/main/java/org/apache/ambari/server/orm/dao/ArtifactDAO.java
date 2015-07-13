@@ -86,6 +86,21 @@ public class ArtifactDAO {
   }
 
   /**
+   * Find all artifacts for the specified artifact name.
+   *
+   * @param artifactName name of artifact to find
+   * @return all artifacts with the specified artifact name or an empty List
+   */
+  @RequiresSession
+  public List<ArtifactEntity> findByName(String artifactName) {
+    TypedQuery<ArtifactEntity> query = entityManagerProvider.get().
+        createNamedQuery("artifactByName", ArtifactEntity.class);
+    query.setParameter("artifactName", artifactName);
+
+    return query.getResultList();
+  }
+
+  /**
    * Refresh the state of the instance from the database,
    * overwriting changes made to the entity, if any.
    *
