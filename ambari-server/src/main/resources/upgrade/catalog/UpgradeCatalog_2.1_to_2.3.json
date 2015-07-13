@@ -320,6 +320,10 @@
             "value": "{ZOOKEEPER_QUORUM}",
             "template": "yes"
           },
+          "hadoop.registry.zk.quorum": {
+            "value": "{ZOOKEEPER_QUORUM}",
+            "template": "yes"
+          },
           "yarn.resourcemanager.zk-num-retries": "1000",
           "yarn.resourcemanager.zk-retry-interval-ms": "1000",
           "yarn.resourcemanager.zk-state-store.parent-path": "/rmstore",
