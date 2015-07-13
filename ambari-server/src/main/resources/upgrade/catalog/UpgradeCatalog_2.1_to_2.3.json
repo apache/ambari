@@ -29,6 +29,10 @@
           "hive-site": {
             "merged-copy": "yes"
           },
+          "hive-env": {
+            "merged-copy": "yes",
+            "required-services": ["HIVE"]
+          },
           "oozie-site": {
             "merged-copy": "yes"
           },
@@ -47,6 +51,13 @@
         }
       },
       "properties": {
+        "hive-env": {
+          "hive_security_authorization": {
+            "value": "{HIVE_SECURITY_AUTHORIZATION}",
+            "template": "yes",
+            "override": "no"
+          }
+        },
         "falcon-startup.properties": {
           "*.application.services": "org.apache.falcon.security.AuthenticationInitializationService, org.apache.falcon.workflow.WorkflowJobEndNotificationService, org.apache.falcon.service.ProcessSubscriberService, org.apache.falcon.entity.store.ConfigurationStore, org.apache.falcon.rerun.service.RetryService, org.apache.falcon.rerun.service.LateRunService, org.apache.falcon.service.LogCleanupService",
           "*.dfs.namenode.kerberos.principal": "nn/_HOST@EXAMPLE.COM",
