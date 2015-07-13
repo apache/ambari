@@ -4026,12 +4026,13 @@ public class BlueprintConfigurationProcessorTest {
     // setup properties for HBase to simulate the case of authorization being off
     hbaseSiteProperties.put("hbase.security.authorization", "false");
     hbaseSiteProperties.put("hbase.coprocessor.regionserver.classes", " ");
+    hbaseSiteProperties.put("hbase.coprocessor.master.classes", "");
 
     Map<String, Stack.ConfigProperty> mapOfMetadata =
       new HashMap<String, Stack.ConfigProperty>();
 
     // simulate the stack dependencies for these Hive properties, that are dependent upon
-    // hive.server2.authorization being enabled
+    // hbase.security.authorization being enabled
     Stack.ConfigProperty configProperty1 =
       new Stack.ConfigProperty("hbase-site", "hbase.coprocessor.regionserver.classes", " ") {
         @Override
@@ -4041,7 +4042,17 @@ public class BlueprintConfigurationProcessorTest {
         }
       };
 
+    Stack.ConfigProperty configProperty2 =
+        new Stack.ConfigProperty("hbase-site", "hbase.coprocessor.master.classes", "") {
+          @Override
+          Set<PropertyDependencyInfo> getDependsOnProperties() {
+            PropertyDependencyInfo dependencyInfo = new PropertyDependencyInfo("hbase-site", "hbase.security.authorization");
+            return Collections.singleton(dependencyInfo);
+          }
+        };
+
     mapOfMetadata.put("hbase.coprocessor.regionserver.classes", configProperty1);
+    mapOfMetadata.put("hbase.coprocessor.master.classes", configProperty2);
 
     // defaults from init() method that we need
     expect(stack.getName()).andReturn("testStack").anyTimes();
@@ -4071,7 +4082,9 @@ public class BlueprintConfigurationProcessorTest {
     updater.doUpdateForClusterCreate();
 
     assertFalse("hbase.coprocessor.regionserver.classes should have been filtered out of configuration",
-        hbaseSiteProperties.containsKey("hbase.coprocessor.regionserver.classes"));
+                hbaseSiteProperties.containsKey("hbase.coprocessor.regionserver.classes"));
+    assertTrue("hbase.coprocessor.master.classes should not have been filtered out of configuration",
+               hbaseSiteProperties.containsKey("hbase.coprocessor.master.classes"));
 
   }
 
