@@ -39,11 +39,14 @@ import java.util.TreeMap;
 @IdClass(ArtifactEntityPK.class)
 @Table(name = "artifact")
 @NamedQueries({
-  @NamedQuery(name = "artifactByNameAndForeignKeys",
-    query = "SELECT artifact FROM ArtifactEntity artifact " +
-              "WHERE artifact.artifactName=:artifactName AND artifact.foreignKeys=:foreignKeys"),
-  @NamedQuery(name = "artifactByForeignKeys",
-    query = "SELECT artifact FROM ArtifactEntity artifact " +
+    @NamedQuery(name = "artifactByNameAndForeignKeys",
+        query = "SELECT artifact FROM ArtifactEntity artifact " +
+            "WHERE artifact.artifactName=:artifactName AND artifact.foreignKeys=:foreignKeys"),
+    @NamedQuery(name = "artifactByName",
+        query = "SELECT artifact FROM ArtifactEntity artifact " +
+            "WHERE artifact.artifactName=:artifactName"),
+    @NamedQuery(name = "artifactByForeignKeys",
+        query = "SELECT artifact FROM ArtifactEntity artifact " +
             "WHERE artifact.foreignKeys=:foreignKeys")
 })
 
@@ -58,7 +61,7 @@ public class ArtifactEntity {
   @Basic
   private String foreignKeys;
 
-  @Column(name = "artifact_data", nullable = false, insertable = true, updatable = false)
+  @Column(name = "artifact_data", nullable = false, insertable = true, updatable = true)
   @Basic
   private String artifactData;
 

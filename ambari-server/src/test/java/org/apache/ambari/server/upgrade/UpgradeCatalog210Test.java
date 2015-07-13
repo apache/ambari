@@ -19,6 +19,8 @@
 package org.apache.ambari.server.upgrade;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
@@ -31,13 +33,14 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,11 +58,13 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
@@ -75,6 +80,9 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
@@ -210,12 +218,17 @@ public class UpgradeCatalog210Test {
     Method removeStormRestApiServiceComponent =
       UpgradeCatalog210.class.getDeclaredMethod("removeStormRestApiServiceComponent");
 
+    Method updateKerberosDescriptorArtifacts =
+      UpgradeCatalog210.class.getDeclaredMethod("updateKerberosDescriptorArtifacts");
+
     UpgradeCatalog210 upgradeCatalog210 = createMockBuilder(UpgradeCatalog210.class)
-      .addMockedMethod(addNewConfigurationsFromXml)
-      .addMockedMethod(initializeClusterAndServiceWidgets)
-      .addMockedMethod(addMissingConfigs)
-      .addMockedMethod(updateAlertDefinitions)
-      .addMockedMethod(removeStormRestApiServiceComponent).createMock();
+        .addMockedMethod(addNewConfigurationsFromXml)
+        .addMockedMethod(initializeClusterAndServiceWidgets)
+        .addMockedMethod(addMissingConfigs)
+        .addMockedMethod(updateAlertDefinitions)
+        .addMockedMethod(removeStormRestApiServiceComponent)
+        .addMockedMethod(updateKerberosDescriptorArtifacts)
+        .createMock();
 
     upgradeCatalog210.addNewConfigurationsFromXml();
     expectLastCall().once();
@@ -230,6 +243,9 @@ public class UpgradeCatalog210Test {
     expectLastCall().once();
 
     upgradeCatalog210.removeStormRestApiServiceComponent();
+    expectLastCall().once();
+
+    upgradeCatalog210.updateKerberosDescriptorArtifacts();
     expectLastCall().once();
 
     replay(upgradeCatalog210);
@@ -469,7 +485,7 @@ public class UpgradeCatalog210Test {
 
     final Map<String, String> propertiesExpectedHBaseSite = new HashMap<String, String>();
     propertiesExpectedHBaseSite.put("hbase.region.server.rpc.scheduler.factory.class",
-                                    "org.apache.phoenix.hbase.index.ipc.PhoenixIndexRpcSchedulerFactory");
+        "org.apache.phoenix.hbase.index.ipc.PhoenixIndexRpcSchedulerFactory");
     propertiesExpectedHBaseSite.put("hbase.security.authorization", "true");
 
     final Map<String, String> propertiesExpectedHBaseEnv = new HashMap<String, String>();
@@ -519,9 +535,9 @@ public class UpgradeCatalog210Test {
     ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(injector,
       "c1", desiredStackEntity);
     ClusterServiceEntity clusterServiceEntity = upgradeCatalogHelper.createService(
-      injector, clusterEntity, "STORM");
+        injector, clusterEntity, "STORM");
     HostEntity hostEntity = upgradeCatalogHelper.createHost(injector,
-      clusterEntity, "h1");
+        clusterEntity, "h1");
 
     // Set current stack version
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
@@ -655,6 +671,112 @@ public class UpgradeCatalog210Test {
     UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
 
     Assert.assertEquals("2.1.0", upgradeCatalog.getTargetVersion());
+  }
+
+  @Test
+  public void testUpdateKerberosDescriptorArtifact_Simple() throws Exception {
+    final KerberosDescriptorFactory kerberosDescriptorFactory = new KerberosDescriptorFactory();
+
+    KerberosServiceDescriptor serviceDescriptor;
+
+    URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_kerberos_descriptor_simple.json");
+    assertNotNull(systemResourceURL);
+
+    final KerberosDescriptor kerberosDescriptorOrig = kerberosDescriptorFactory.createInstance(new File(systemResourceURL.getFile()));
+    assertNotNull(kerberosDescriptorOrig);
+    assertNotNull(kerberosDescriptorOrig.getIdentity("hdfs"));
+
+    serviceDescriptor = kerberosDescriptorOrig.getService("HDFS");
+    assertNotNull(serviceDescriptor);
+    assertNotNull(serviceDescriptor.getIdentity("/hdfs"));
+    assertNull(serviceDescriptor.getIdentity("hdfs"));
+
+    serviceDescriptor = kerberosDescriptorOrig.getService("OOZIE");
+    assertNotNull(serviceDescriptor);
+    assertNotNull(serviceDescriptor.getIdentity("/hdfs"));
+    assertNull(serviceDescriptor.getIdentity("/HDFS/hdfs"));
+
+    UpgradeCatalog210 upgradeMock = createMockBuilder(UpgradeCatalog210.class).createMock();
+
+    Capture<Map<String, Object>> updatedData = new Capture<Map<String, Object>>();
+
+    ArtifactEntity artifactEntity = createNiceMock(ArtifactEntity.class);
+    expect(artifactEntity.getArtifactData())
+        .andReturn(kerberosDescriptorOrig.toMap())
+        .once();
+
+    artifactEntity.setArtifactData(capture(updatedData));
+    expectLastCall().once();
+
+    replay(artifactEntity, upgradeMock);
+    upgradeMock.updateKerberosDescriptorArtifact(createNiceMock(ArtifactDAO.class), artifactEntity);
+    verify(artifactEntity, upgradeMock);
+
+    KerberosDescriptor kerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updatedData.getValue());
+    assertNotNull(kerberosDescriptorUpdated);
+    assertNull(kerberosDescriptorUpdated.getIdentity("/hdfs"));
+
+    serviceDescriptor = kerberosDescriptorUpdated.getService("HDFS");
+    assertNotNull(serviceDescriptor);
+    assertNull(serviceDescriptor.getIdentity("/hdfs"));
+    assertNotNull(serviceDescriptor.getIdentity("hdfs"));
+
+    serviceDescriptor = kerberosDescriptorUpdated.getService("OOZIE");
+    assertNotNull(serviceDescriptor);
+    assertNull(serviceDescriptor.getIdentity("/hdfs"));
+    assertNotNull(serviceDescriptor.getIdentity("/HDFS/hdfs"));
+  }
+
+  @Test
+  public void testUpdateKerberosDescriptorArtifact_NoHDFSService() throws Exception {
+    final KerberosDescriptorFactory kerberosDescriptorFactory = new KerberosDescriptorFactory();
+
+    KerberosServiceDescriptor serviceDescriptor;
+
+    URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_kerberos_descriptor_no_hdfs.json");
+    assertNotNull(systemResourceURL);
+
+    final KerberosDescriptor kerberosDescriptorOrig = kerberosDescriptorFactory.createInstance(new File(systemResourceURL.getFile()));
+    assertNotNull(kerberosDescriptorOrig);
+    assertNotNull(kerberosDescriptorOrig.getIdentity("hdfs"));
+
+    serviceDescriptor = kerberosDescriptorOrig.getService("HDFS");
+    assertNull(serviceDescriptor);
+
+    serviceDescriptor = kerberosDescriptorOrig.getService("OOZIE");
+    assertNotNull(serviceDescriptor);
+    assertNotNull(serviceDescriptor.getIdentity("/hdfs"));
+    assertNull(serviceDescriptor.getIdentity("/HDFS/hdfs"));
+
+    UpgradeCatalog210 upgradeMock = createMockBuilder(UpgradeCatalog210.class).createMock();
+
+    Capture<Map<String, Object>> updatedData = new Capture<Map<String, Object>>();
+
+    ArtifactEntity artifactEntity = createNiceMock(ArtifactEntity.class);
+    expect(artifactEntity.getArtifactData())
+        .andReturn(kerberosDescriptorOrig.toMap())
+        .once();
+
+    artifactEntity.setArtifactData(capture(updatedData));
+    expectLastCall().once();
+
+    replay(artifactEntity, upgradeMock);
+    upgradeMock.updateKerberosDescriptorArtifact(createNiceMock(ArtifactDAO.class), artifactEntity);
+    verify(artifactEntity, upgradeMock);
+
+    KerberosDescriptor kerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updatedData.getValue());
+    assertNotNull(kerberosDescriptorUpdated);
+    assertNull(kerberosDescriptorUpdated.getIdentity("/hdfs"));
+
+    serviceDescriptor = kerberosDescriptorUpdated.getService("HDFS");
+    assertNotNull(serviceDescriptor);
+    assertNull(serviceDescriptor.getIdentity("/hdfs"));
+    assertNotNull(serviceDescriptor.getIdentity("hdfs"));
+
+    serviceDescriptor = kerberosDescriptorUpdated.getService("OOZIE");
+    assertNotNull(serviceDescriptor);
+    assertNull(serviceDescriptor.getIdentity("/hdfs"));
+    assertNotNull(serviceDescriptor.getIdentity("/HDFS/hdfs"));
   }
 
   // *********** Inner Classes that represent sections of the DDL ***********

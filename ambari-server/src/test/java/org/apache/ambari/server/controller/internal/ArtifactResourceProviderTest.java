@@ -413,7 +413,6 @@ public class ArtifactResourceProviderTest {
     expect(cluster.getClusterName()).andReturn("test-cluster").anyTimes();
 
 
-    expect(dao.findByForeignKeys(eq(foreignKeys))).andReturn(entities).anyTimes();
     expect(entity.getArtifactName()).andReturn("test-artifact").anyTimes();
     expect(entity.getForeignKeys()).andReturn(responseForeignKeys).anyTimes();
     expect(entity.getArtifactData()).andReturn(artifact_data).anyTimes();
@@ -421,7 +420,10 @@ public class ArtifactResourceProviderTest {
     expect(entity2.getForeignKeys()).andReturn(responseForeignKeys).anyTimes();
     expect(entity2.getArtifactData()).andReturn(artifact_data2).anyTimes();
 
+    expect(dao.findByForeignKeys(eq(foreignKeys))).andReturn(entities).once();
+    expect(dao.findByNameAndForeignKeys(eq("test-artifact"), eq(foreignKeys))).andReturn(entity).once();
     dao.remove(capture(deleteEntityCapture));
+    expect(dao.findByNameAndForeignKeys(eq("test-artifact2"), eq(foreignKeys))).andReturn(entity2).once();
     dao.remove(capture(deleteEntityCapture2));
 
     // end of expectation setting

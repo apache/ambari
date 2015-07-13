@@ -365,22 +365,26 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
     return new Command<Void>() {
       @Override
       public Void invoke() throws AmbariException {
-        Map<String, Object> keyProperties = new HashMap<String, Object>();
-
         // flatten out key properties as is expected by createForeignKeyMap()
+        Map<String, Object> keyProperties = new HashMap<String, Object>();
         for (Map.Entry<String, Object> entry : resource.getPropertiesMap().get("Artifacts").entrySet()) {
           keyProperties.put(String.format("Artifacts/%s", entry.getKey()), entry.getValue());
         }
 
-        // create entity and set properties
-        final ArtifactEntity entity = new ArtifactEntity();
-        entity.setArtifactName(String.valueOf(resource.getPropertyValue(ARTIFACT_NAME_PROPERTY)));
-        entity.setForeignKeys(createForeignKeyMap(keyProperties));
+        // find entity to remove
+        String artifactName = String.valueOf(resource.getPropertyValue(ARTIFACT_NAME_PROPERTY));
+        TreeMap<String, String> artifactForeignKeys = createForeignKeyMap(keyProperties);
+        ArtifactEntity entity = artifactDAO.findByNameAndForeignKeys(artifactName, artifactForeignKeys);
 
-        LOG.info("Deleting Artifact, name = {}, foreign keys = {}",
-            entity.getArtifactName(), entity.getForeignKeys());
+        if (entity != null) {
+          LOG.info("Deleting Artifact: name = {}, foreign keys = {}",
+              entity.getArtifactName(), entity.getForeignKeys());
+          artifactDAO.remove(entity);
+        } else {
+          LOG.info("Cannot find Artifact to delete, ignoring: name = {}, foreign keys = {}",
+              artifactName, artifactForeignKeys);
+        }
 
-        artifactDAO.remove(entity);
         return null;
       }
     };
