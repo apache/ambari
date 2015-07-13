@@ -32,6 +32,7 @@ from resource_management.libraries.functions.security_commons import cached_kini
 from resource_management.libraries.functions.security_commons import get_params_from_filesystem
 from resource_management.libraries.functions.security_commons import validate_security_config_properties
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
+from resource_management.core.resources.system import File
 
 from hive import hive
 from hive import jdbc_connector
@@ -177,6 +178,10 @@ class HiveMetastoreDefault(HiveMetastore):
 
       Execute(('cp', params.target, target_directory),
         path=["/bin", "/usr/bin/"], sudo = True)
+
+      File(os.path.join(target_directory, os.path.basename(params.target)),
+        mode = 0644,
+      )
 
     # build the schema tool command
     binary = format("/usr/hdp/{version}/hive/bin/schematool")

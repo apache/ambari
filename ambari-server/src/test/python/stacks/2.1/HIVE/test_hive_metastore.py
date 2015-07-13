@@ -577,6 +577,10 @@ class TestHiveMetastore(RMFTestCase):
       ('cp', '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar', '/usr/hdp/2.3.0.0-1234/hive/lib'),
       path = ['/bin', '/usr/bin/'], sudo = True)
 
+    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar',
+      mode = 0644,
+    )
+
     self.assertResourceCalled('Execute', "/usr/hdp/2.3.0.0-1234/hive/bin/schematool -dbType mysql -upgradeSchema",
      logoutput = True, environment = {'HIVE_CONF_DIR': '/usr/hdp/current/hive-server2/conf/conf.server'},
       tries = 1, user = 'hive')
