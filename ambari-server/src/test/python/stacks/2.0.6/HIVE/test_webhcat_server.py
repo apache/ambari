@@ -381,3 +381,79 @@ class TestWebHCatServer(RMFTestCase):
     self.assertEquals(
       ('conf-select', 'create-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
        mocks_dict['call'].call_args_list[1][0][0])
+
+  @patch("resource_management.core.shell.call")
+  def test_rolling_restart_configure(self, call_mock):
+    import sys
+
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['stack_version'] = "2.3"
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
+      classname = "WebHCatServer",
+      command = "configure",
+      config_dict = json_content,
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, None), (0, None)],
+      mocks_dict = mocks_dict)
+
+
+    self.assertResourceCalled('Directory', '/var/run/webhcat',
+      owner = 'hcat',
+      group = 'hadoop',
+      recursive = True,
+      mode = 0755)
+
+    self.assertResourceCalled('Directory', '/var/log/webhcat',
+      owner = 'hcat',
+      group = 'hadoop',
+      recursive = True,
+      mode = 0755)
+
+    self.assertResourceCalled('Directory', '/usr/hdp/current/hive-webhcat/etc/webhcat',
+      owner = 'hcat',
+      group = 'hadoop',
+      recursive = True)
+
+    self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
+      owner = 'hcat',
+      group = 'hadoop',
+      conf_dir = '/usr/hdp/current/hive-webhcat/etc/webhcat',
+      configurations = self.getConfig()['configurations']['webhcat-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['webhcat-site'])
+
+    self.assertResourceCalled('XmlConfig', 'hive-site.xml',
+      owner = 'hive',
+      conf_dir = '/usr/hdp/2.3.0.0-1234/hive/conf',
+      configurations = self.getConfig()['configurations']['hive-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'])
+      
+    self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
+      owner = 'yarn',
+      conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf',
+      configurations = self.getConfig()['configurations']['yarn-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['yarn-site'])
+
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-webhcat/etc/webhcat/webhcat-env.sh',
+      content = InlineTemplate(self.getConfig()['configurations']['webhcat-env']['content']),
+      owner = 'hcat',
+      group = 'hadoop')
+
+    self.assertResourceCalled('Directory', '/usr/hdp/current/hive-webhcat/etc/webhcat',
+      cd_access = 'a',
+      recursive=True)
+
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-webhcat/etc/webhcat/webhcat-log4j.properties',
+                              content = 'log4jproperties\nline2',
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              mode = 0644)
+
+    self.assertNoMoreResources()
+
