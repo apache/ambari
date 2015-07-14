@@ -293,6 +293,7 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
       ("/var/run/ambari-server/", "755", "{0}", False),
       ("/var/run/ambari-server/bootstrap", "755", "{0}", False),
       ("/var/lib/ambari-server/ambari-env.sh", "700", "{0}", False),
+      ("/var/lib/ambari-server/ambari-sudo.sh", "700", "{0}", False),
       ("/var/lib/ambari-server/keys/", "600", "{0}", True),
       ("/var/lib/ambari-server/keys/", "700", "{0}", False),
       ("/var/lib/ambari-server/keys/db/", "700", "{0}", False),
