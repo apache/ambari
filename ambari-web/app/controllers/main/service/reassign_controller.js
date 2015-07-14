@@ -184,6 +184,7 @@ App.ReassignMasterController = App.WizardController.extend({
     });
     App.db.setMasterComponentHosts(masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
+    this.setDBProperty('masterComponentHosts', masterComponentHosts);
   },
 
   loadComponentToReassign: function () {

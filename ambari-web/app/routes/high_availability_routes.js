@@ -124,16 +124,13 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var controller = router.get('highAvailabilityWizardController');
       controller.saveNameServiceId(router.get('highAvailabilityWizardStep1Controller.content.nameServiceId'));
+      controller.clearMasterComponentHosts();
       router.transitionTo('step2');
     }
   }),
 
   step2: Em.Route.extend({
     route: '/step2',
-    enter: function(router) {
-      var controller = router.get('highAvailabilityWizardController');
-      controller.clearMasterComponentHosts();
-    },
     connectOutlets: function (router) {
       var controller = router.get('highAvailabilityWizardController');
       controller.dataLoading().done(function () {

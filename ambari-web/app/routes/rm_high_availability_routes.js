@@ -110,7 +110,9 @@ module.exports = App.WizardRoute.extend({
       return false;
     },
     next: function (router) {
-      router.get('rMHighAvailabilityWizardController').setDBProperty('rmHosts', undefined);
+      var controller = router.get('rMHighAvailabilityWizardController');
+      controller.setDBProperty('rmHosts', undefined);
+      controller.clearMasterComponentHosts();
       router.transitionTo('step2');
     }
   }),
@@ -138,6 +140,7 @@ module.exports = App.WizardRoute.extend({
         additionalRM: additionalRM.get('selectedHost')
       };
       wizardController.saveRmHosts(rmHost);
+      wizardController.saveMasterComponentHosts(stepController);
       router.transitionTo('step3');
     },
     back: function (router) {

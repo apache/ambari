@@ -127,7 +127,9 @@ module.exports = App.WizardRoute.extend({
       })
     },
     next: function (router) {
+      var controller = router.get('reassignMasterController');
       App.db.setMasterComponentHosts(undefined);
+      controller.clearMasterComponentHosts();
       router.transitionTo('step2');
     },
 

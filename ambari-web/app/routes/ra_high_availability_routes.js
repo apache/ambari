@@ -109,7 +109,9 @@ module.exports = App.WizardRoute.extend({
       });
     },
     next: function (router) {
-      router.get('rAHighAvailabilityWizardController').save('loadBalancerURL');
+      var controller = router.get('rAHighAvailabilityWizardController');
+      controller.save('loadBalancerURL');
+      controller.clearMasterComponentHosts();
       router.transitionTo('step2');
     }
   }),
@@ -136,6 +138,7 @@ module.exports = App.WizardRoute.extend({
       };
       wizardController.set('content.raHosts', raHosts);
       wizardController.save('raHosts');
+      wizardController.saveMasterComponentHosts(stepController);
       router.transitionTo('step3');
     },
     back: function (router) {

@@ -537,8 +537,8 @@ App.AssignMasterComponents = Em.Mixin.create({
       var mastersLength = this.get("selectedServicesMasters").filterProperty("component_name", componentName).length;
       if (mastersLength < this.getMaxNumberOfMasters(componentName)) {
         component.set('showAddControl', true);
-      } else if (mastersLength == 1) {
-        component.set('showRemoveControl', false);
+      } else {
+        component.set('showRemoveControl', mastersLength != 1);
       }
     }
   },
@@ -797,16 +797,22 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @returns {masterComponents[]}
    */
   addNewMasters: function (masterComponents) {
-    this.get('mastersToAdd').forEach(function(masterName){
-      var hostName = this.getHostForMaster(masterName, masterComponents);
-      var serviceName = this.getServiceByMaster(masterName);
-      masterComponents.push(this.createComponentInstallationObject(
+    this.get('mastersToAdd').forEach(function (masterName, index, mastersToAdd) {
+      var toBeAddedNumber = mastersToAdd.filter(function (name) {
+          return name === masterName;
+        }).length,
+        alreadyAddedNumber = masterComponents.filterProperty('component_name', masterName).rejectProperty('isInstalled').length;
+      if (toBeAddedNumber > alreadyAddedNumber) {
+        var hostName = this.getHostForMaster(masterName, masterComponents),
+          serviceName = this.getServiceByMaster(masterName);
+        masterComponents.push(this.createComponentInstallationObject(
           Em.Object.create({
             componentName: masterName,
             serviceName: serviceName
           }),
           hostName
-      ));
+        ));
+      }
     }, this);
     return masterComponents;
   },

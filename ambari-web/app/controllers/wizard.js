@@ -1078,6 +1078,32 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     }
     this.set("content.masterComponentHosts", masterComponentHosts);
   },
+
+  /**
+   * Save Master Component Hosts data to Main Controller
+   * @param stepController App.WizardStep5Controller
+   */
+  saveMasterComponentHosts: function (stepController) {
+    var obj = stepController.get('selectedServicesMasters');
+    var masterComponentHosts = [];
+    obj.forEach(function (_component) {
+      masterComponentHosts.push({
+        display_name: _component.get('display_name'),
+        component: _component.get('component_name'),
+        hostName: _component.get('selectedHost'),
+        serviceId: _component.get('serviceId'),
+        isInstalled:  _component.get('isInstalled')
+      });
+    });
+    this.setDBProperty('masterComponentHosts', masterComponentHosts);
+    this.set('content.masterComponentHosts', masterComponentHosts);
+  },
+
+  clearMasterComponentHosts: function() {
+    this.set('content.masterComponentHosts', null);
+    this.setDBProperty('masterComponentHosts', null);
+  },
+
   /**
    * Load information about hosts with clients components
    */

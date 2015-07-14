@@ -81,31 +81,6 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     this.save('cluster');
   },
 
-  /**
-   * Save Master Component Hosts data to Main Controller
-   * @param stepController App.WizardStep5Controller
-   */
-  saveMasterComponentHosts: function (stepController) {
-    var obj = stepController.get('selectedServicesMasters');
-    var masterComponentHosts = [];
-    obj.forEach(function (_component) {
-      masterComponentHosts.push({
-        display_name: _component.get('display_name'),
-        component: _component.get('component_name'),
-        hostName: _component.get('selectedHost'),
-        serviceId: _component.get('serviceId'),
-        isInstalled:  _component.get('isInstalled')
-      });
-    });
-    this.setDBProperty('masterComponentHosts', masterComponentHosts);
-    this.set('content.masterComponentHosts', masterComponentHosts);
-  },
-
-  clearMasterComponentHosts: function() {
-    this.set('content.masterComponentHosts', null);
-    this.setDBProperty('masterComponentHosts', null);
-  },
-
   saveHdfsUser: function () {
     App.db.setHighAvailabilityWizardHdfsUser(this.get('content.hdfsUser'));
   },

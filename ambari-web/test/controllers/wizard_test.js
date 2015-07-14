@@ -1387,4 +1387,79 @@ describe('App.WizardController', function () {
     });
   });
 
+  describe('#saveMasterComponentHosts', function () {
+
+    var stepController = Em.Object.create({
+        selectedServicesMasters: [
+          Em.Object.create({
+            display_name: 'd0',
+            component_name: 'c0',
+            selectedHost: 'h0',
+            serviceId: 's0',
+            isInstalled: true
+          }),
+          Em.Object.create({
+            display_name: 'd1',
+            component_name: 'c1',
+            selectedHost: 'h1',
+            serviceId: 's1',
+            isInstalled: false
+          })
+        ]
+      }),
+      masterComponentHosts = [
+        {
+          display_name: 'd0',
+          component: 'c0',
+          hostName: 'h0',
+          serviceId: 's0',
+          isInstalled: true
+        },
+        {
+          display_name: 'd1',
+          component: 'c1',
+          hostName: 'h1',
+          serviceId: 's1',
+          isInstalled: false
+        }
+      ];
+
+    beforeEach(function () {
+      sinon.stub(wizardController, 'setDBProperty', Em.K);
+    });
+
+    afterEach(function () {
+      wizardController.setDBProperty.restore();
+    });
+
+    it('should save master component hosts', function () {
+      wizardController.saveMasterComponentHosts(stepController);
+      expect(wizardController.setDBProperty.calledOnce).to.be.true;
+      expect(wizardController.setDBProperty.calledWith('masterComponentHosts', masterComponentHosts)).to.be.true;
+      expect(wizardController.get('content.masterComponentHosts')).to.eql(masterComponentHosts);
+    });
+
+  });
+
+  describe('#clearMasterComponentHosts', function () {
+
+    beforeEach(function () {
+      sinon.stub(wizardController, 'setDBProperty', Em.K);
+    });
+
+    afterEach(function () {
+      wizardController.setDBProperty.restore();
+    });
+
+    it('should clear master component hosts', function () {
+      wizardController.set('content.masterComponentHosts', {});
+      wizardController.clearMasterComponentHosts();
+      expect(wizardController.setDBProperty.calledOnce).to.be.true;
+      expect(wizardController.setDBProperty.calledWith('masterComponentHosts', null)).to.be.true;
+      expect(wizardController.get('content.masterComponentHosts')).to.be.null;
+    });
+
+  });
+
+
 });
