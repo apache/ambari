@@ -132,7 +132,7 @@ case "$1" in
           PID=`cat $PIDFILE`
           if ! (ps -p $PID >/dev/null 2>/dev/null); then
             echo "$PIDFILE found with no process. Removing $PID..."
-            rm -f $PIDFILE
+            ambari-sudo.sh rm -f $PIDFILE
           else
             tput bold
             echo "ERROR: $AMBARI_AGENT already running"
@@ -208,7 +208,7 @@ case "$1" in
             $PYTHON $AGENT_SCRIPT stop
           fi
           echo "Removing PID file at $PIDFILE"
-          rm -f $PIDFILE
+          ambari-sudo.sh rm -f $PIDFILE
           tput bold
           echo "$AMBARI_AGENT successfully stopped"
           tput sgr0
