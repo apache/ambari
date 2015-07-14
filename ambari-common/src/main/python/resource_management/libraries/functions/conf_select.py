@@ -320,5 +320,9 @@ def create_config_links(stack_id, stack_version):
 
       if need:
         Logger.info("Creating conf dirs {0} for {1}".format(",".join(dirs), k))
-        select(args[0], k, stack_version)
+        try:
+          select(args[0], k, stack_version)
+        except Exception, err:
+          # don't ruin someone's day
+          Logger.logger.exception("Conf-select set failed to link '{k}'. Error: {0}".format(k, str(err)))
 

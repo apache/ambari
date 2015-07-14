@@ -88,6 +88,21 @@ def webhcat():
             group=params.user_group,
             )
 
+  # if we're in an upgrade of a secure cluster, make sure hive-site and yarn-site are created
+  if Script.is_hdp_stack_greater_or_equal("2.3") and params.version:
+    XmlConfig("hive-site.xml",
+      conf_dir = format("/usr/hdp/{version}/hive/conf"),
+      configurations = params.config['configurations']['hive-site'],
+      configuration_attributes = params.config['configuration_attributes']['hive-site'],
+      owner = params.hive_user)
+
+    XmlConfig("yarn-site.xml",
+      conf_dir = format("/usr/hdp/{version}/hadoop/conf"),
+      configurations = params.config['configurations']['yarn-site'],
+      configuration_attributes = params.config['configuration_attributes']['yarn-site'],
+      owner = params.yarn_user)
+  
+
   File(format("{config_dir}/webhcat-env.sh"),
        owner=params.webhcat_user,
        group=params.user_group,
