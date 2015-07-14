@@ -73,10 +73,11 @@ import com.google.inject.persist.PersistService;
  * Tests upgrade-related server side actions
  */
 public class ConfigureActionTest {
-  private static final String HDP_2_2_1_0 = "2.2.1.0-2270";
+  
   private static final String HDP_2_2_0_0 = "2.2.0.0-2041";
-  private static final StackId HDP_21_STACK = new StackId("HDP-2.1.1");
-  private static final StackId HDP_22_STACK = new StackId("HDP-2.2.0");
+  private static final String HDP_2_2_0_1 = "2.2.0.1-2270";
+  private static final StackId HDP_211_STACK = new StackId("HDP-2.1.1");
+  private static final StackId HDP_220_STACK = new StackId("HDP-2.2.0");
 
   private Injector m_injector;
 
@@ -117,7 +118,8 @@ public class ConfigureActionTest {
     Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
-    c.setDesiredStackVersion(HDP_22_STACK);
+    c.setCurrentStackVersion(HDP_211_STACK);
+    c.setDesiredStackVersion(HDP_220_STACK);
     ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
           put("initLimit", "10");
@@ -137,7 +139,7 @@ public class ConfigureActionTest {
 
     Map<String, String> commandParams = new HashMap<String, String>();
     commandParams.put("upgrade_direction", "upgrade");
-    commandParams.put("version", HDP_2_2_1_0);
+    commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
     commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
     commandParams.put(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS, new Gson().toJson(configurations));
@@ -179,7 +181,7 @@ public class ConfigureActionTest {
     Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
-    c.setDesiredStackVersion(HDP_21_STACK);
+    c.setDesiredStackVersion(HDP_220_STACK);
 
     // create a config for zoo.cfg with two values; one is a stack value and the
     // other is custom
@@ -199,7 +201,7 @@ public class ConfigureActionTest {
 
     Map<String, String> commandParams = new HashMap<String, String>();
     commandParams.put("upgrade_direction", "upgrade");
-    commandParams.put("version", HDP_2_2_1_0);
+    commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
     commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
 
@@ -249,7 +251,7 @@ public class ConfigureActionTest {
     Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
-    c.setDesiredStackVersion(HDP_21_STACK);
+    c.setDesiredStackVersion(HDP_220_STACK);
     ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
           put("initLimit", "10");
@@ -272,7 +274,7 @@ public class ConfigureActionTest {
 
     Map<String, String> commandParams = new HashMap<String, String>();
     commandParams.put("upgrade_direction", "upgrade");
-    commandParams.put("version", HDP_2_2_1_0);
+    commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
     commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
     commandParams.put(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS, new Gson().toJson(configurations));
@@ -381,7 +383,7 @@ public class ConfigureActionTest {
     Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
-    c.setDesiredStackVersion(HDP_21_STACK);
+    c.setDesiredStackVersion(HDP_220_STACK);
     ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
       {
@@ -397,7 +399,7 @@ public class ConfigureActionTest {
 
     Map<String, String> commandParams = new HashMap<String, String>();
     commandParams.put("upgrade_direction", "upgrade");
-    commandParams.put("version", HDP_2_2_1_0);
+    commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
     commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
 
@@ -448,7 +450,7 @@ public class ConfigureActionTest {
     Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
-    c.setDesiredStackVersion(HDP_21_STACK);
+    c.setDesiredStackVersion(HDP_220_STACK);
     ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
       {
@@ -465,7 +467,7 @@ public class ConfigureActionTest {
 
     Map<String, String> commandParams = new HashMap<String, String>();
     commandParams.put("upgrade_direction", "upgrade");
-    commandParams.put("version", HDP_2_2_1_0);
+    commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
     commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
 
@@ -519,7 +521,8 @@ public class ConfigureActionTest {
     Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
-    c.setDesiredStackVersion(HDP_22_STACK);
+    c.setCurrentStackVersion(HDP_211_STACK);
+    c.setDesiredStackVersion(HDP_220_STACK);
     ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
       {
@@ -549,7 +552,7 @@ public class ConfigureActionTest {
 
     Map<String, String> commandParams = new HashMap<String, String>();
     commandParams.put("upgrade_direction", "upgrade");
-    commandParams.put("version", HDP_2_2_1_0);
+    commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
     commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
     commandParams.put(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS, new Gson().toJson(configurations));
@@ -584,16 +587,16 @@ public class ConfigureActionTest {
     String hostName = "h1";
 
     Clusters clusters = m_injector.getInstance(Clusters.class);
-    clusters.addCluster(clusterName, HDP_21_STACK);
+    clusters.addCluster(clusterName, HDP_220_STACK);
 
     StackDAO stackDAO = m_injector.getInstance(StackDAO.class);
-    StackEntity stackEntity = stackDAO.find(HDP_21_STACK.getStackName(),
-        HDP_21_STACK.getStackVersion());
+    StackEntity stackEntity = stackDAO.find(HDP_220_STACK.getStackName(),
+        HDP_220_STACK.getStackVersion());
 
     assertNotNull(stackEntity);
 
     Cluster c = clusters.getCluster(clusterName);
-    c.setDesiredStackVersion(HDP_21_STACK);
+    c.setDesiredStackVersion(HDP_220_STACK);
 
     // !!! very important, otherwise the loops that walk the list of installed
     // service properties will not run!
@@ -622,22 +625,23 @@ public class ConfigureActionTest {
     host.setHostAttributes(hostAttributes);
     host.persist();
 
-    String urlInfo = "[{'repositories':["
-        + "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'HDP-2.1.1'}"
-        + "], 'OperatingSystems/os_type':'redhat6'}]";
+    // Creating starting repo
+    m_helper.getOrCreateRepositoryVersion(HDP_220_STACK, HDP_2_2_0_0);
+    c.createClusterVersion(HDP_220_STACK, HDP_2_2_0_0, "admin", RepositoryVersionState.UPGRADING);
+    c.transitionClusterVersion(HDP_220_STACK, HDP_2_2_0_0, RepositoryVersionState.CURRENT);
 
-    m_helper.getOrCreateRepositoryVersion(HDP_21_STACK, HDP_2_2_0_0);
-    repoVersionDAO.create(stackEntity, HDP_2_2_1_0, String.valueOf(System.currentTimeMillis()),
+    String urlInfo = "[{'repositories':["
+        + "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'HDP-2.2.0'}"
+        + "], 'OperatingSystems/os_type':'redhat6'}]";
+    repoVersionDAO.create(stackEntity, HDP_2_2_0_1, String.valueOf(System.currentTimeMillis()),
         "pack", urlInfo);
 
-    c.createClusterVersion(HDP_21_STACK, HDP_2_2_0_0, "admin", RepositoryVersionState.UPGRADING);
-    c.createClusterVersion(HDP_21_STACK, HDP_2_2_1_0, "admin", RepositoryVersionState.INSTALLING);
 
-    c.transitionClusterVersion(HDP_21_STACK, HDP_2_2_0_0, RepositoryVersionState.CURRENT);
-    c.transitionClusterVersion(HDP_21_STACK, HDP_2_2_1_0, RepositoryVersionState.INSTALLED);
-    c.transitionClusterVersion(HDP_21_STACK, HDP_2_2_1_0, RepositoryVersionState.UPGRADING);
-    c.transitionClusterVersion(HDP_21_STACK, HDP_2_2_1_0, RepositoryVersionState.UPGRADED);
-    c.setCurrentStackVersion(HDP_21_STACK);
+    c.createClusterVersion(HDP_220_STACK, HDP_2_2_0_1, "admin", RepositoryVersionState.INSTALLING);
+    c.transitionClusterVersion(HDP_220_STACK, HDP_2_2_0_1, RepositoryVersionState.INSTALLED);
+    c.transitionClusterVersion(HDP_220_STACK, HDP_2_2_0_1, RepositoryVersionState.UPGRADING);
+    c.transitionClusterVersion(HDP_220_STACK, HDP_2_2_0_1, RepositoryVersionState.UPGRADED);
+    c.setCurrentStackVersion(HDP_220_STACK);
 
     c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
         RepositoryVersionState.CURRENT);
@@ -646,7 +650,7 @@ public class ConfigureActionTest {
 
     HostVersionEntity entity = new HostVersionEntity();
     entity.setHostEntity(hostDAO.findByName(hostName));
-    entity.setRepositoryVersion(repoVersionDAO.findByStackAndVersion(HDP_21_STACK, HDP_2_2_1_0));
+    entity.setRepositoryVersion(repoVersionDAO.findByStackAndVersion(HDP_220_STACK, HDP_2_2_0_1));
     entity.setState(RepositoryVersionState.UPGRADED);
     hostVersionDAO.create(entity);
 

@@ -437,7 +437,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       hostVersionDAO.merge(hostVersEntity);
 
       StackId desiredStackId = cluster.getDesiredStackVersion();
-      cluster.recalculateClusterVersionState(desiredStackId, desiredRepoVersion);
+      cluster.recalculateClusterVersionState(repoVersionEnt);
       req.persist();
     } catch (AmbariException e) {
       throw new SystemException("Can not persist request", e);

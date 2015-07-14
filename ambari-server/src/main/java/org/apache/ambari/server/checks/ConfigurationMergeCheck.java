@@ -55,12 +55,13 @@ public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
       return false;
     }
 
+    String stackName = request.getTargetStackId().getStackName();
     String repoVersion = request.getRepositoryVersion();
     if (null == repoVersion) {
       return false;
     }
 
-    RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().findMaxByVersion(repoVersion);
+    RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().findByStackNameAndVersion(stackName, repoVersion);
     if (null == rve) {
       return false;
     }
@@ -87,7 +88,8 @@ public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {
 
-    RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().findMaxByVersion(request.getRepositoryVersion());
+    String stackName = request.getTargetStackId().getStackName();
+    RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().findByStackNameAndVersion(stackName, request.getRepositoryVersion());
 
     Map<String, Map<String, ThreeWayValue>> changes =
         m_mergeHelper.getConflicts(request.getClusterName(), rve.getStackId());

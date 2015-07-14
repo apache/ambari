@@ -25,6 +25,10 @@ public class StackId implements Comparable<StackId> {
 
   private static final String NAME_SEPARATOR = "-";
 
+  public static final String HDP_STACK = "HDP";
+  public static final String HDPWIN_STACK = "HDPWIN";
+  public static final String BIGTOP_STACK = "BIGTOP";
+
   private String stackName;
   private String stackVersion;
 

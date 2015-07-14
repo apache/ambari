@@ -175,9 +175,7 @@ public class DistributeRepositoriesActionListener {
         // Update state of a cluster stack version
         try {
           Cluster cluster = clusters.get().getClusterById(clusterId);
-          cluster.recalculateClusterVersionState(
-              hostVersion.getRepositoryVersion().getStackId(),
-              hostVersion.getRepositoryVersion().getVersion());
+          cluster.recalculateClusterVersionState(hostVersion.getRepositoryVersion());
         } catch (AmbariException e) {
           LOG.error("Cannot get cluster with Id " + clusterId.toString() + " to recalculate its ClusterVersion.", e);
         }

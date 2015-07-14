@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -77,6 +78,7 @@ import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
+import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1511,6 +1513,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
         stackId.getStackVersion());
 
+    // Ensure that the version provided is part of the Stack.
+    // E.g., version 2.3.0.0 is part of HDP 2.3, so is 2.3.0.0-1234
+    if (null == version) {
+      throw new AmbariException(MessageFormat.format("Cannot create Repository Version for Stack {0}-{1} if the version is empty",
+          stackId.getStackName(), stackId.getStackVersion()));
+    }
+
     return repositoryVersionDAO.create(
         stackEntity,
         version,
@@ -1523,11 +1532,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * Bootstrap any Repo Version, and potentially transition the Host Version across states.
    * If a Host Component has a valid version, then create a Host Version if it does not already exist.
    * If a Host Component does not have a version, return right away because no information is known.
-   * @return Return the version
+   * @return Return the Repository Version object
    * @throws AmbariException
    */
   @Override
-  public String recalculateHostVersionState() throws AmbariException {
+  public RepositoryVersionEntity recalculateHostVersionState() throws AmbariException {
+    RepositoryVersionEntity repositoryVersion = null;
     String version = getVersion();
     if (version == null || version.isEmpty() || version.equalsIgnoreCase(State.UNKNOWN.toString())) {
       // Recalculate only if some particular version is set
@@ -1545,9 +1555,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
     writeLock.lock();
     try {
-      RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(
-          stackId, version);
-      if (repositoryVersion == null) {
+      // Check if there is a Repo Version already for the version.
+      // If it doesn't exist, will have to create it.
+      repositoryVersion = repositoryVersionDAO.findByStackNameAndVersion(stackId.getStackName(), version);
+
+      if (null == repositoryVersion) {
         repositoryVersion = createRepositoryVersion(version, stackId, stackInfo);
       }
 
@@ -1556,7 +1568,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       writeLock.unlock();
     }
-    return version;
+    return repositoryVersion;
   }
 
   // Get the cached desired state entity or load it fresh through the DAO.

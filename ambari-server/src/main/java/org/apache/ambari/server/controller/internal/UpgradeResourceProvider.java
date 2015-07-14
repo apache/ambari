@@ -465,7 +465,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       repoVersion = versionForUpgradePack;
     }
 
-    RepositoryVersionEntity versionEntity = s_repoVersionDAO.findMaxByVersion(repoVersion);
+    RepositoryVersionEntity versionEntity = s_repoVersionDAO.findByStackNameAndVersion(stack.getStackName(), repoVersion);
 
     if (null == versionEntity) {
       throw new AmbariException(String.format("Repository version %s was not found", repoVersion));
@@ -559,8 +559,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       case UPGRADE:
         sourceStackId = cluster.getCurrentStackVersion();
 
-        RepositoryVersionEntity targetRepositoryVersion = s_repoVersionDAO.findMaxByVersion(
-            version);
+        RepositoryVersionEntity targetRepositoryVersion = s_repoVersionDAO.findByStackNameAndVersion(
+            sourceStackId.getStackName(), version);
         targetStackId = targetRepositoryVersion.getStackId();
         break;
       case DOWNGRADE:
@@ -592,7 +592,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // desired configs must be set before creating stages because the config tag
     // names are read and set on the command for filling in later
-    processConfigurations(cluster, version, direction, pack);
+    processConfigurations(targetStackId.getStackName(), cluster, version, direction, pack);
 
     for (UpgradeGroupHolder group : groups) {
       UpgradeGroupEntity groupEntity = new UpgradeGroupEntity();
@@ -680,6 +680,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * </ul>
    *
    *
+   * @param stackName Stack name such as HDP, HDPWIN, BIGTOP
    * @param cluster
    *          the cluster
    * @param version
@@ -691,9 +692,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    *          which services are effected.
    * @throws AmbariException
    */
-  void processConfigurations(Cluster cluster, String version, Direction direction, UpgradePack upgradePack)
+  void processConfigurations(String stackName, Cluster cluster, String version, Direction direction, UpgradePack upgradePack)
       throws AmbariException {
-    RepositoryVersionEntity targetRve = s_repoVersionDAO.findMaxByVersion(version);
+    RepositoryVersionEntity targetRve = s_repoVersionDAO.findByStackNameAndVersion(stackName, version);
     if (null == targetRve) {
       LOG.info("Could not find version entity for {}; not setting new configs", version);
       return;

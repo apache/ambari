@@ -117,8 +117,7 @@ public class HostVersionOutOfSyncListener {
         if (hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED)) {
           hostVersionEntity.setState(RepositoryVersionState.OUT_OF_SYNC);
           hostVersionDAO.get().merge(hostVersionEntity);
-          cluster.recalculateClusterVersionState(hostStackId,
-              hostVersionEntity.getRepositoryVersion().getVersion());
+          cluster.recalculateClusterVersionState(hostVersionEntity.getRepositoryVersion());
         }
       }
     } catch (AmbariException e) {
@@ -179,7 +178,7 @@ public class HostVersionOutOfSyncListener {
       }
       for (RepositoryVersionEntity repositoryVersion : changedRepositoryVersions) {
         StackId stackId = new StackId(repositoryVersion.getStackName(), repositoryVersion.getStackVersion());
-        cluster.recalculateClusterVersionState(stackId, repositoryVersion.getVersion());
+        cluster.recalculateClusterVersionState(repositoryVersion);
       }
     } catch (AmbariException e) {
       LOG.error("Can not update hosts about out of sync", e);
@@ -206,7 +205,7 @@ public class HostVersionOutOfSyncListener {
                   repositoryVersion, RepositoryVersionState.OUT_OF_SYNC);
           hostVersionDAO.get().create(missingHostVersion);
           StackId stackId = new StackId(repositoryVersion.getStackName(), repositoryVersion.getStackVersion());
-          cluster.recalculateClusterVersionState(stackId, repositoryVersion.getVersion());
+          cluster.recalculateClusterVersionState(repositoryVersion);
         }
       }
     } catch (AmbariException e) {
