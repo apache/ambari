@@ -61,6 +61,7 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
@@ -144,6 +145,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   @Inject
   private static HostVersionDAO hostVersionDAO;
+
+  @Inject
+  private static StackDAO stackDAO;
 
   @Inject
   private static RepositoryVersionDAO repositoryVersionDAO;
@@ -529,6 +533,13 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       LOG.info("Initiating finalization for manual upgrade to version {} for cluster {}",
               desiredRepoVersion, clName);
 
+      // First, set desired cluster stack version to enable cross-stack upgrade
+      StackId stackId = rve.getStackId();
+      ClusterEntity cluster = clusterDAO.findByName(clName);
+      StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+      cluster.setDesiredStack(stackEntity);
+      clusterDAO.merge(cluster);
+
       Map<String, String> args = new HashMap<String, String>();
       if (newStateStr.equals(RepositoryVersionState.CURRENT.toString())) {
         // Finalize upgrade workflow
@@ -543,7 +554,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
 
       // Get a host name to populate the hostrolecommand table's hostEntity.
-      ClusterEntity cluster = clusterDAO.findByName(clName);
       String defaultHostName = null;
       List<HostEntity> hosts = new ArrayList(cluster.getHostEntities());
       if (hosts != null && !hosts.isEmpty()) {
