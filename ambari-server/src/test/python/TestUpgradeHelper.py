@@ -702,28 +702,6 @@ class TestUpgradeHelper(TestCase):
     self.assertEqual(expected_result, actual_result)
 
   @patch.object(upgradeHelper, "curl")
-  def test_get_kafka_listeners(self, curl_mock):
-    return_curl_data = {
-      "host_components": [
-        {
-          "HostRoles": {
-            "host_name": "test.host.vm"
-          }
-        }
-      ]
-    }
-
-    curl_mock.return_value = copy.deepcopy(return_curl_data)
-
-    # build zookeeper quorum string from return_curl_data and remove trailing comas
-    expected_result = "PLAINTEXT://test.host.vm:6667"
-
-    # execute testing function
-    actual_result = upgradeHelper.get_kafka_listeners()
-
-    self.assertEqual(expected_result, actual_result)
-
-  @patch.object(upgradeHelper, "curl")
   def test_get_ranger_xaaudit_hdfs_destination_directory(self, curl_mock):
     return_curl_data = {
       "host_components": [

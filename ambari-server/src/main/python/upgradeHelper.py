@@ -1111,24 +1111,17 @@ def get_tez_history_url_base():
   return url
 
 def get_kafka_listeners():
-  kafka_host="localhost"
-  kafka_port="6667"
+  kafka_host = "localhost"
+  kafka_port = "6667"
   if Options.server_config_factory is not None and Options.KAFKA_BROKER_CONF in Options.server_config_factory.items():
     props = Options.server_config_factory.get_config(Options.KAFKA_BROKER_CONF)
     if Options.KAFKA_PORT in props.properties:
       kafka_port = props.properties[Options.KAFKA_PORT]
 
   # Default kafka listeners string
-  kafka_listeners = ["PLAINTEXT://{0}:{1}".format(kafka_host, kafka_port)]
+  kafka_listeners = "PLAINTEXT://{0}:{1}".format(kafka_host, kafka_port)
 
-  # Get hosts where kafka_broker is installed
-  kafka_cfg = curl(Options.COMPONENTS_FORMAT.format(Options.KAFKA_BROKER), validate=False, simulate=False, parse=True)
-  if "host_components" in kafka_cfg:
-    kafka_listeners = []
-    for item in kafka_cfg["host_components"]:
-      kafka_listeners.append("PLAINTEXT://{0}:{1}".format(item["HostRoles"]["host_name"], kafka_port))
-
-  return ",".join(kafka_listeners)
+  return kafka_listeners
 
 def get_ranger_xaaudit_hdfs_destination_directory():
   namenode_hostname="localhost"
