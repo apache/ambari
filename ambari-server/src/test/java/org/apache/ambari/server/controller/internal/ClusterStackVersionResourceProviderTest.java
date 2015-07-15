@@ -91,6 +91,7 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
+
 /**
  * ClusterStackVersionResourceProvider tests.
  */
@@ -340,6 +341,8 @@ public class ClusterStackVersionResourceProviderTest {
 
     RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
     repoVersion.setOperatingSystems(operatingSystemsJson);
+    StackEntity newDesiredStack = stackDAO.find("HDP", "2.0.1");
+    repoVersion.setStack(newDesiredStack);
 
     final ServiceOsSpecific.Package hivePackage = new ServiceOsSpecific.Package();
     hivePackage.setName("hive");
@@ -427,6 +430,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     // verify
     verify(managementController, response);
+    Assert.assertEquals(clusterEntity.getDesiredStack(), newDesiredStack);
   }
 
 
