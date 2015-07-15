@@ -651,7 +651,7 @@ public class ConfigHelper {
    * A helper method to create a new {@link Config} for a given configuration
    * type and updates to the current values, if any. This method will perform the following tasks:
    * <ul>
-   * <li>Marge the specified updates with the properties of the current version of the
+   * <li>Merge the specified updates with the properties of the current version of the
    * configuration</li>
    * <li>Create a {@link Config} in the cluster for the specified type. This
    * will have the proper versions and tags set automatically.</li>
@@ -678,6 +678,8 @@ public class ConfigHelper {
       Config oldConfig = cluster.getDesiredConfigByType(configType);
       Map<String, String> oldConfigProperties;
       Map<String, String> properties = new HashMap<String, String>();
+      Map<String, Map<String, String>> propertiesAttributes =
+        new HashMap<String, Map<String, String>>();
 
       if (oldConfig == null) {
         oldConfigProperties = null;
@@ -686,6 +688,7 @@ public class ConfigHelper {
         if (oldConfigProperties != null) {
           properties.putAll(oldConfig.getProperties());
         }
+        propertiesAttributes.putAll(oldConfig.getPropertiesAttributes());
       }
 
       properties.putAll(updates);
@@ -694,12 +697,49 @@ public class ConfigHelper {
       if(removals != null) {
         for (String propertyName : removals) {
           properties.remove(propertyName);
+          for (Map<String, String> attributesMap: propertiesAttributes.values()) {
+            attributesMap.remove(propertyName);
+          }
         }
       }
 
-      if ((oldConfigProperties == null) || !Maps.difference(oldConfigProperties, properties).areEqual()) {
-        createConfigType(cluster, controller, configType, properties, authenticatedUserName, serviceVersionNote);
+      if ((oldConfigProperties == null)
+        || !Maps.difference(oldConfigProperties, properties).areEqual()) {
+        createConfigType(cluster, controller, configType, properties,
+          propertiesAttributes, authenticatedUserName, serviceVersionNote);
       }
+    }
+  }
+
+  private void createConfigType(Cluster cluster,
+                               AmbariManagementController controller,
+                               String configType, Map<String, String> properties,
+                               Map<String, Map<String, String>> propertyAttributes,
+                               String authenticatedUserName,
+                               String serviceVersionNote) throws AmbariException {
+
+    String tag = "version1";
+    if (cluster.getConfigsByType(configType) != null) {
+      tag = "version" + System.currentTimeMillis();
+    }
+
+    // update the configuration
+    ConfigurationRequest configurationRequest = new ConfigurationRequest();
+    configurationRequest.setClusterName(cluster.getClusterName());
+    configurationRequest.setVersionTag(tag);
+    configurationRequest.setType(configType);
+    configurationRequest.setProperties(properties);
+    configurationRequest.setPropertiesAttributes(propertyAttributes);
+    configurationRequest.setServiceConfigVersionNote(serviceVersionNote);
+    controller.createConfiguration(configurationRequest);
+
+    // create the configuration history entry
+    Config baseConfig = cluster.getConfig(configurationRequest.getType(),
+        configurationRequest.getVersionTag());
+
+    if (baseConfig != null) {
+      cluster.addDesiredConfig(authenticatedUserName,
+          Collections.singleton(baseConfig), serviceVersionNote);
     }
   }
 
@@ -722,32 +762,13 @@ public class ConfigHelper {
    * @throws AmbariException
    */
   public void createConfigType(Cluster cluster,
-                               AmbariManagementController controller, String configType,
-                               Map<String, String> properties, String authenticatedUserName,
+                               AmbariManagementController controller,
+                               String configType, Map<String, String> properties,
+                               String authenticatedUserName,
                                String serviceVersionNote) throws AmbariException {
-
-    String tag = "version1";
-    if (cluster.getConfigsByType(configType) != null) {
-      tag = "version" + System.currentTimeMillis();
-    }
-
-    // update the configuration
-    ConfigurationRequest configurationRequest = new ConfigurationRequest();
-    configurationRequest.setClusterName(cluster.getClusterName());
-    configurationRequest.setVersionTag(tag);
-    configurationRequest.setType(configType);
-    configurationRequest.setProperties(properties);
-    configurationRequest.setServiceConfigVersionNote(serviceVersionNote);
-    controller.createConfiguration(configurationRequest);
-
-    // create the configuration history entry
-    Config baseConfig = cluster.getConfig(configurationRequest.getType(),
-        configurationRequest.getVersionTag());
-
-    if (baseConfig != null) {
-      cluster.addDesiredConfig(authenticatedUserName,
-          Collections.singleton(baseConfig), serviceVersionNote);
-    }
+    createConfigType(cluster, controller, configType, properties,
+      new HashMap<String, Map<String, String>>(), authenticatedUserName,
+      serviceVersionNote);
   }
 
   /**
