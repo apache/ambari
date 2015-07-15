@@ -479,6 +479,9 @@ class BootstrapDefault(Bootstrap):
   def getAptUpdateCommand(self):
     return "sudo apt-get update -o Dir::Etc::sourcelist=\"%s/%s\" -o API::Get::List-Cleanup=\"0\" --no-list-cleanup" %\
           ("sources.list.d", self.AMBARI_REPO_FILENAME)
+          
+  def getRepoFileChmodCommand(self):
+    return "sudo chmod 644 {0}".format(self.getRepoFile())
 
   def copyNeededFiles(self):
     # Copying the files
@@ -502,6 +505,15 @@ class BootstrapDefault(Bootstrap):
               params.bootdir, self.host_log)
     retcode2 = ssh.run()
     self.host_log.write("\n")
+    
+    # Change permissions on ambari.repo
+    self.host_log.write("==========================\n")
+    self.host_log.write("Changing permissions for ambari.repo...")
+    command = self.getRepoFileChmodCommand()
+    ssh = SSH(params.user, params.sshkey_file, self.host, command,
+              params.bootdir, self.host_log)
+    retcode4 = ssh.run()
+    self.host_log.write("\n")
 
     # Update repo cache for ubuntu OS
     if OSCheck.is_ubuntu_family():
@@ -522,7 +534,7 @@ class BootstrapDefault(Bootstrap):
     retcode3 = scp.run()
     self.host_log.write("\n")
 
-    return max(retcode1["exitstatus"], retcode2["exitstatus"], retcode3["exitstatus"])
+    return max(retcode1["exitstatus"], retcode2["exitstatus"], retcode3["exitstatus"], retcode4["exitstatus"])
 
   def getAmbariPort(self):
     server_port = self.shared_state.server_port

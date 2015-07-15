@@ -438,11 +438,12 @@ class TestBootstrap(TestCase):
     expected1 = {"exitstatus": 42, "log": "log42", "errormsg": "errorMsg"}
     expected2 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
     expected3 = {"exitstatus": 1, "log": "log1", "errormsg": "errorMsg"}
+    expected4 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
     scp_init_mock.return_value = None
     ssh_init_mock.return_value = None
     # Testing max retcode return
     scp_run_mock.side_effect = [expected1, expected3]
-    ssh_run_mock.side_effect = [expected2]
+    ssh_run_mock.side_effect = [expected2, expected4]
     res = bootstrap_obj.copyNeededFiles()
     self.assertEquals(res, expected1["exitstatus"])
     input_file = str(scp_init_mock.call_args[0][3])
@@ -450,21 +451,23 @@ class TestBootstrap(TestCase):
     self.assertEqual(input_file, "setupAgentFile")
     self.assertEqual(remote_file, "RemoteName")
     command = str(ssh_init_mock.call_args[0][3])
-    self.assertEqual(command, "MoveRepoFileCommand")
+    self.assertEqual(command, "sudo chmod 644 RepoFile")
     # Another order
     expected1 = {"exitstatus": 0, "log": "log0", "errormsg": "errorMsg"}
     expected2 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
     expected3 = {"exitstatus": 1, "log": "log1", "errormsg": "errorMsg"}
+    expected4 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
     scp_run_mock.side_effect = [expected1, expected3]
-    ssh_run_mock.side_effect = [expected2]
+    ssh_run_mock.side_effect = [expected2, expected4]
     res = bootstrap_obj.copyNeededFiles()
     self.assertEquals(res, expected2["exitstatus"])
     # yet another order
     expected1 = {"exitstatus": 33, "log": "log33", "errormsg": "errorMsg"}
     expected2 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
     expected3 = {"exitstatus": 42, "log": "log42", "errormsg": "errorMsg"}
+    expected4 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
     scp_run_mock.side_effect = [expected1, expected3]
-    ssh_run_mock.side_effect = [expected2]
+    ssh_run_mock.side_effect = [expected2, expected4]
     res = bootstrap_obj.copyNeededFiles()
     self.assertEquals(res, expected3["exitstatus"])
 
