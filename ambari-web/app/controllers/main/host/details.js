@@ -683,7 +683,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
-          urlParams: '(type=storm-site&tag=' + data.Clusters.desired_configs['storm-env'].tag +')'
+          urlParams: '(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag +')'
       },
       success: 'onLoadStormConfigs'
     });
@@ -709,20 +709,10 @@ App.MainHostDetailsController = Em.Controller.extend({
     var groups = [
       {
         properties: {
-          'storm-site': configs['storm-site'],
-          'storm-env': configs['storm-env']
+          'storm-site': configs['storm-site']
         },
         properties_attributes: {
-          'storm-site': attributes['storm-site'],
-          'storm-env': attributes['storm-env']
-        }
-      },
-      {
-        properties: {
-          'core-site': configs['core-site']
-        },
-        properties_attributes: {
-          'core-site': attributes['core-site']
+          'storm-site': attributes['storm-site']
         }
       }
     ];
@@ -808,8 +798,9 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   /**
    * save configs' sites in batch
-   * @param host
    * @param groups
+   * @param componentName
+   * @param host
    */
   saveConfigsBatch: function (groups, componentName, host) {
     groups.forEach(function (group) {
