@@ -214,7 +214,7 @@
                   }
                 },
                 "oozie-site": {
-                  "oozie.authentication.simple.anonymous.allowed": "false",
+                  "oozie.authentication.simple.anonymous.allowed": "true",
                   "oozie.service.AuthorizationService.authorization.enabled": "true",
                   "oozie.authentication.kerberos.name.rules": "RULE:[2:$1@$0]([jt]t@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-MAPREDUSER/\nRULE:[2:$1@$0]([nd]n@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HDFSUSER/\nRULE:[2:$1@$0](hm@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/\nRULE:[2:$1@$0](rs@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/\nDEFAULT",
                   "oozie.credentials.credentialclasses": "hcat=org.apache.oozie.action.hadoop.HCatCredentials,hive2=org.apache.oozie.action.hadoop.Hive2Credentials",
