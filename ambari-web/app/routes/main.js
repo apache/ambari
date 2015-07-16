@@ -666,7 +666,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }),
       showInfo: function (router, event) {
         var mainServiceInfoConfigsController = App.router.get('mainServiceInfoConfigsController');
-        if (event.context === 'summary' && mainServiceInfoConfigsController.hasUnsavedChanges()) {
+        if (event.context !== 'configs' && mainServiceInfoConfigsController.hasUnsavedChanges()) {
           mainServiceInfoConfigsController.showSavePopup(router.get('location.lastSetURL').replace('configs', 'summary'));
           return false;
         }
