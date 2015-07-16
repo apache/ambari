@@ -70,7 +70,10 @@ Example:
           "test_property": {
            "value": "new value",
            "override: "no", (optional, override already existed property yes/no)
-           "value-required": "old value"  (optional, property would be set if the required value is present)
+           "value-required": "old value",  (optional, property would be set if the required value is present)
+           "can-create": "no", (optional, process property only if that property present on the server.
+                                         i.e. ability to create new property, default yes)
+           "required-services": ["HDFS", "YARN"]  (optional, process property only if selected services existed)
           }
         }
       },
@@ -294,6 +297,7 @@ class CatConst(Const):
   TYPE_TAG = "type"
   TRUE_TAG = "yes"
   VALUE_REQUIRED_TAG = "value-required"
+  PROPERTY_CAN_CREATE_TAG = "can-create"
   STACK_PROPERTIES_MAPPING_LIST_TAG = "property-mapping"
   VALUE_TEMPLATE_TAG = "template"
   SEARCH_PATTERN = "(\{[^\{\}]+\})"  # {XXXXX}
@@ -511,7 +515,9 @@ class UpgradeCatalog(object):
     :type properties dict
     """
     catalog_property_item = dict(catalog_property_item)
-    if CatConst.PROPERTY_VALUE_TAG in catalog_property_item and catalog_item_name not in properties:
+    can_add_new = not (CatConst.PROPERTY_CAN_CREATE_TAG in catalog_property_item and
+                       catalog_property_item[CatConst.PROPERTY_CAN_CREATE_TAG].upper() == "NO")
+    if CatConst.PROPERTY_VALUE_TAG in catalog_property_item and catalog_item_name not in properties and can_add_new:
       self.__handle_template_tag_sub(catalog_item_name, catalog_property_item)
       properties[catalog_item_name] = catalog_property_item[CatConst.PROPERTY_VALUE_TAG]
 
@@ -1275,6 +1281,55 @@ def get_hive_security_authorization_setting():
 
   return response
 
+
+def get_hbase_coprocessmaster_classes():
+  scf = Options.server_config_factory
+  prop = "hbase.coprocessor.master.classes"
+  hbase_ranger_enabled = False
+  old_value = ""
+  if "hbase-site" in scf.items():
+    if prop in scf.get_config("hbase-site").properties:
+      old_value = scf.get_config("hbase-site").properties[prop]
+    if "hbase.security.authorization" in scf.get_config("hbase-site").properties and \
+      scf.get_config("hbase-site").properties["hbase.security.authorization"].upper() == "TRUE":
+      hbase_ranger_enabled = True
+
+  if hbase_ranger_enabled and "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor" not in old_value:
+    if "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor" in old_value:
+      old_value = old_value.replace("com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor",
+                                    "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor")
+    else:
+      val = [] if old_value.strip() == "" else old_value.split(',')
+      val.append("org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor")
+      old_value = ','.join(val)
+
+  return old_value
+
+
+def get_hbase_coprocessor_region_classes():
+  scf = Options.server_config_factory
+  prop = "hbase.coprocessor.region.classes"
+  hbase_ranger_enabled = False
+  old_value = ""
+  if "hbase-site" in scf.items():
+    if prop in scf.get_config("hbase-site").properties:
+      old_value = scf.get_config("hbase-site").properties[prop]
+    if "hbase.security.authorization" in scf.get_config("hbase-site").properties and \
+        scf.get_config("hbase-site").properties["hbase.security.authorization"].upper() == "TRUE":
+      hbase_ranger_enabled = True
+
+  if hbase_ranger_enabled and "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor" not in old_value:
+    if "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor" in old_value:
+      old_value = old_value.replace("com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor",
+                                    "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor")
+    else:
+      val = [] if old_value.strip() == "" else old_value.split(',')
+      val.append("org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor")
+      old_value = ','.join(val)
+
+  return old_value
+
+
 def _substitute_handler(upgrade_catalog, tokens, value):
   """
   Substitute handler
@@ -1290,6 +1345,10 @@ def _substitute_handler(upgrade_catalog, tokens, value):
       value = value.replace(token, get_jt_host(upgrade_catalog))
     elif token == "{ZOOKEEPER_QUORUM}":
       value = value.replace(token, get_zookeeper_quorum())
+    elif token == "{HBASE_COPROCESS_MASTER_CLASSES}":
+      value = value.replace(token, get_hbase_coprocessmaster_classes())
+    elif token == "{HBASE_COPROCESSOR_REGION_CLASSES}":
+      value = value.replace(token, get_hbase_coprocessor_region_classes())
     elif token == "{HIVE_SECURITY_AUTHORIZATION}":
       value = value.replace(token, get_hive_security_authorization_setting())
     elif token == "{TEZ_HISTORY_URL_BASE}":

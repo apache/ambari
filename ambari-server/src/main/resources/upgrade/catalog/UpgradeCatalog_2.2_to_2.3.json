@@ -240,7 +240,19 @@
                   "hbase.regionserver.wal.codec": "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec",
                   "phoenix.functions.allowUserDefinedFunctions": "true",
                   "fs.hdfs.impl": "org.apache.hadoop.hdfs.DistributedFileSystem",
-                  "hbase.bucketcache.percentage.in.combinedcache": {"remove": "yes"}
+                  "hbase.bucketcache.percentage.in.combinedcache": {"remove": "yes"},
+                  "hbase.coprocessor.master.classes": {
+                    "value": "{HBASE_COPROCESS_MASTER_CLASSES}",
+                    "template": "yes",
+                    "can-create": "no",
+                    "required-services": ["HBASE", "RANGER"]
+                   },
+                  "hbase.coprocessor.region.classes": {
+                    "value": "{HBASE_COPROCESSOR_REGION_CLASSES}",
+                    "template": "yes",
+                    "can-create": "no",
+                    "required-services": ["HBASE", "RANGER"]
+                  }
                 },
                 "mapred-site": {
                   "mapreduce.fileoutputcommitter.algorithm.version": "1",
