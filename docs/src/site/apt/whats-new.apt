@@ -16,27 +16,26 @@
 
 What's New with Ambari?
 
- * The latest release Ambari 2.0.1 is a maintenance release for Ambari 2.0.0
+ * The latest release of Ambari is Ambari 2.1.0
 
- * Ambari 2.0.0 added the following features:
+ * Ambari 2.1.0 added the following features:
 
-   * Automated Rolling Upgrades
+   * Updated Ambari OS Support
 
-   * Automated Kerberization of Hadoop Cluster
+   * Updated Ambari JDK support
 
-   * Ambari Alerting Framework
+   * Enhanced Configuration support in the Ambari User Interface
 
-   * Ambari Metrics System
+   * Additional Blueprint HA Support (Oozie, Hive, Storm Nimbus)
 
-   * "Add Hosts" Blueprints API support
+   * New Dynamic Provisioning model for Blueprint installs
 
-   * Blueprint Support for HA Clusters
+   * Rack Awareness
 
-   * Enable Explicit Service Stack Inheritance
+   * Updated stacks (NFS Gateway, Accumulo)
 
-   * Common Services
+   * Delivered set of contrib Views
 
-   * Move master components to different host after installation
 
 Getting Ambari Source
 
@@ -51,7 +50,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.0.1} how to install a Hadoop cluster using Ambari 2.0.1}}.
+  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.1.0} how to install a Hadoop cluster using Ambari 2.1.0}}.
 
 Stay Tuned
 
