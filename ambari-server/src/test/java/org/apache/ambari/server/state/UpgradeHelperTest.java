@@ -940,10 +940,16 @@ public class UpgradeHelperTest {
     assertNotNull(upgrade);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
-    assertEquals(1, groups.size());
+    assertEquals(2, groups.size());
 
     UpgradeGroupHolder group = groups.get(0);
+    assertEquals(1, group.items.size());
+    assertEquals("PRE_POST_CLUSTER", group.name);
+
+    group = groups.get(1);
+    assertEquals("POST_CLUSTER", group.name);
     assertEquals(3, group.items.size());
+
 
     StageWrapper stage = group.items.get(1);
     assertEquals("NameNode Finalize", stage.getText());

@@ -287,6 +287,15 @@
       </service>
     </group>
 
+    <group xsi:type="cluster" name="ALL_HOST_OPS" title="Finalize Hosts">
+      <execute-stage title="Update remaining HDP stack to {{version}}">
+        <task xsi:type="execute">
+          <script>scripts/ru_set_all.py</script>
+          <function>actionexecute</function>
+        </task>
+      </execute-stage>
+    </group>
+
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <skippable>true</skippable>
       <execute-stage title="Check Unhealthy Hosts" id="unhealthy-hosts">
@@ -306,13 +315,6 @@
         <task xsi:type="execute" hosts="master">
           <script>scripts/namenode.py</script>
           <function>finalize_rolling_upgrade</function>
-        </task>
-      </execute-stage>
-
-      <execute-stage title="Update remaining HDP stack to {{version}}">
-        <task xsi:type="execute">
-          <script>scripts/ru_set_all.py</script>
-          <function>actionexecute</function>
         </task>
       </execute-stage>
 

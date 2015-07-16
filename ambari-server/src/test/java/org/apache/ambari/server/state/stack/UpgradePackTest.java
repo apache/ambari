@@ -237,19 +237,29 @@ public class UpgradePackTest {
     UpgradePack up = upgrades.get("upgrade_direction");
 
     List<Grouping> groups = up.getGroups(Direction.UPGRADE);
-    assertEquals(3, groups.size());
+    assertEquals(4, groups.size());
     Grouping group = groups.get(2);
     assertEquals(ClusterGrouping.class, group.getClass());
+    ClusterGrouping cluster_group = (ClusterGrouping) group;
+    assertEquals("Run on All", group.title);
 
-    ClusterGrouping cluster_group = (ClusterGrouping) groups.get(2);
+    cluster_group = (ClusterGrouping) groups.get(3);
     List<ExecuteStage> stages = cluster_group.executionStages;
     assertEquals(3, stages.size());
     assertNotNull(stages.get(0).intendedDirection);
     assertEquals(Direction.DOWNGRADE, stages.get(0).intendedDirection);
 
     groups = up.getGroups(Direction.DOWNGRADE);
-    assertEquals(2, groups.size());
-    assertEquals(ClusterGrouping.class, groups.get(1).getClass());
+    assertEquals(3, groups.size());
+    // there are two clustergroupings at the end
+    group = groups.get(1);
+    assertEquals(ClusterGrouping.class, group.getClass());
+    assertEquals("Run on All", group.title);
+
+    group = groups.get(2);
+    assertEquals(ClusterGrouping.class, group.getClass());
+    assertEquals("Finalize Upgrade", group.title);
+
   }
 
 
