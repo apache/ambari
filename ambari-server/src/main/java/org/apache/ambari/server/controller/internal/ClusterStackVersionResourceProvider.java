@@ -62,7 +62,6 @@ import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
@@ -79,6 +78,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -535,10 +535,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
       // First, set desired cluster stack version to enable cross-stack upgrade
       StackId stackId = rve.getStackId();
-      ClusterEntity cluster = clusterDAO.findByName(clName);
-      StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
-      cluster.setDesiredStack(stackEntity);
-      clusterDAO.merge(cluster);
+      Cluster cluster = getManagementController().getClusters().getCluster(clName);
+      cluster.setDesiredStackVersion(stackId);
 
       Map<String, String> args = new HashMap<String, String>();
       if (newStateStr.equals(RepositoryVersionState.CURRENT.toString())) {
@@ -555,7 +553,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
       // Get a host name to populate the hostrolecommand table's hostEntity.
       String defaultHostName = null;
-      List<HostEntity> hosts = new ArrayList(cluster.getHostEntities());
+      // TODO: remove direct access to cluster entity completely
+      ClusterEntity clusterEntity = clusterDAO.findByName(clName);
+      List<HostEntity> hosts = new ArrayList(clusterEntity.getHostEntities());
       if (hosts != null && !hosts.isEmpty()) {
         Collections.sort(hosts);
         defaultHostName = hosts.get(0).getHostName();
