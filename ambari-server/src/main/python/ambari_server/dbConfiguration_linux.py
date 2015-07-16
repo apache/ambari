@@ -42,7 +42,10 @@ from ambari_server.serverConfiguration import encrypt_password, store_password_f
     JDBC_DRIVER_PROPERTY, JDBC_URL_PROPERTY, \
     JDBC_RCA_USER_NAME_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_PASSWORD_FILE_PROPERTY, \
     JDBC_RCA_DRIVER_PROPERTY, JDBC_RCA_URL_PROPERTY, \
-    PERSISTENCE_TYPE_PROPERTY
+    PERSISTENCE_TYPE_PROPERTY, JDBC_CONNECTION_POOL_TYPE, JDBC_CONNECTION_POOL_ACQUISITION_SIZE, \
+    JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL, JDBC_CONNECTION_POOL_MAX_AGE, JDBC_CONNECTION_POOL_MAX_IDLE_TIME, \
+    JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS
+
 from ambari_server.userInput import get_YN_input, get_validated_string_input, read_password
 from ambari_server.utils import get_postgre_hba_dir, get_postgre_running_status
 
@@ -258,6 +261,7 @@ class LinuxDBMSConfig(DBMSConfig):
     properties.process_pair(JDBC_DATABASE_NAME_PROPERTY, self.database_name)
 
     properties.process_pair(JDBC_DRIVER_PROPERTY, self.driver_class_name)
+
     # fully qualify the hostname to make sure all the other hosts can connect
     # to the jdbc hostname since its passed onto the agents for RCA
     jdbc_hostname = self.database_host
@@ -281,6 +285,9 @@ class LinuxDBMSConfig(DBMSConfig):
     properties.process_pair(JDBC_RCA_USER_NAME_PROPERTY, self.database_username)
 
     self._store_password_property(properties, JDBC_RCA_PASSWORD_FILE_PROPERTY)
+
+    # connection pooling (internal JPA by default)
+    properties.process_pair(JDBC_CONNECTION_POOL_TYPE, "internal")
 
 
 # PostgreSQL configuration and setup
@@ -518,7 +525,11 @@ class PGConfig(LinuxDBMSConfig):
     properties.process_pair(JDBC_POSTGRES_SCHEMA_PROPERTY, self.postgres_schema)
     properties.process_pair(JDBC_USER_NAME_PROPERTY, self.database_username)
 
+    # connection pooling (internal JPA by default)
+    properties.process_pair(JDBC_CONNECTION_POOL_TYPE, "internal")
+
     self._store_password_property(properties, JDBC_PASSWORD_PROPERTY)
+
 
   @staticmethod
   def _get_postgre_status():
@@ -867,6 +878,23 @@ class MySQLConfig(LinuxDBMSConfig):
       self.database_name,
       scriptFile
     )
+
+  def _store_remote_properties(self, properties):
+    """
+    Override the remote properties written for MySQL, inheriting those from the parent first.
+    :param properties:  the properties object to set MySQL specific properties on
+    :return:
+    """
+    super(MySQLConfig, self)._store_remote_properties(properties)
+
+    # connection pooling (c3p0 used by MySQL by default)
+    properties.process_pair(JDBC_CONNECTION_POOL_TYPE, "c3p0")
+    properties.process_pair(JDBC_CONNECTION_POOL_ACQUISITION_SIZE, "5")
+    properties.process_pair(JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL, "7200")
+    properties.process_pair(JDBC_CONNECTION_POOL_MAX_IDLE_TIME, "14400")
+    properties.process_pair(JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS, "0")
+    properties.process_pair(JDBC_CONNECTION_POOL_MAX_AGE, "0")
+
 
 def createMySQLConfig(options, properties, storage_type, dbId):
   return MySQLConfig(options, properties, storage_type)

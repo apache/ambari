@@ -106,6 +106,14 @@ JDBC_DRIVER_PROPERTY = "server.jdbc.driver"
 JDBC_DRIVER_PATH_PROPERTY = "server.jdbc.driver.path"
 JDBC_URL_PROPERTY = "server.jdbc.url"
 
+# connection pool (age and time are in seconds)
+JDBC_CONNECTION_POOL_TYPE = "server.jdbc.connection-pool"
+JDBC_CONNECTION_POOL_ACQUISITION_SIZE = "server.jdbc.connection-pool.acquisition-size"
+JDBC_CONNECTION_POOL_MAX_AGE = "server.jdbc.connection-pool.max-age"
+JDBC_CONNECTION_POOL_MAX_IDLE_TIME = "server.jdbc.connection-pool.max-idle-time"
+JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS = "server.jdbc.connection-pool.max-idle-time-excess"
+JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL = "server.jdbc.connection-pool.idle-test-interval"
+
 JDBC_RCA_DATABASE_PROPERTY = "server.jdbc.database"
 JDBC_RCA_HOSTNAME_PROPERTY = "server.jdbc.hostname"
 JDBC_RCA_PORT_PROPERTY = "server.jdbc.port"
@@ -184,6 +192,7 @@ class ServerConfigDefaults(object):
 
     self.AMBARI_PROPERTIES_BACKUP_FILE = ""
     self.AMBARI_KRB_JAAS_LOGIN_BACKUP_FILE = ""
+
     # ownership/permissions mapping
     # path - permissions - user - group - recursive
     # Rules are executed in the same order as they are listed

@@ -70,6 +70,9 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
           JDBC_DATABASE_NAME_PROPERTY, OS_TYPE_PROPERTY, validate_jdk, JDBC_POSTGRES_SCHEMA_PROPERTY, \
           RESOURCES_DIR_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_SCHEMA_PROPERTY, IS_LDAP_CONFIGURED, \
           SSL_API, SSL_API_PORT, CLIENT_API_PORT_PROPERTY,\
+          JDBC_CONNECTION_POOL_TYPE, JDBC_CONNECTION_POOL_ACQUISITION_SIZE, \
+          JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL, JDBC_CONNECTION_POOL_MAX_AGE, JDBC_CONNECTION_POOL_MAX_IDLE_TIME, \
+          JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS,\
           LDAP_MGR_PASSWORD_PROPERTY, LDAP_MGR_PASSWORD_ALIAS, JDBC_PASSWORD_FILENAME, NR_USER_PROPERTY, SECURITY_KEY_IS_PERSISTED, \
           SSL_TRUSTSTORE_PASSWORD_PROPERTY, SECURITY_IS_ENCRYPTION_ENABLED, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
           SECURITY_MASTER_KEY_LOCATION, SECURITY_KEYS_DIR, LDAP_PRIMARY_URL_PROPERTY, store_password_file, \
@@ -4857,7 +4860,23 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         found = True
 
     self.assertTrue(found)
-    pass
+
+    # verify that some properties exist
+    self.assertEquals("internal", properties.get_property(JDBC_CONNECTION_POOL_TYPE))
+
+    # now try with MySQL instead of Oracle to verify that the properties are different
+    args.dbms = "mysql"
+    args.database_index = 2
+
+    properties0 = Properties()
+    properties = Properties()
+
+    factory = DBMSConfigFactory()
+    dbConfig = factory.create(args, properties0)
+    dbConfig._store_remote_properties(properties)
+
+    # verify MySQL properties
+    self.assertEquals("c3p0", properties.get_property(JDBC_CONNECTION_POOL_TYPE))
 
 
   @not_for_platform(PLATFORM_WINDOWS)
