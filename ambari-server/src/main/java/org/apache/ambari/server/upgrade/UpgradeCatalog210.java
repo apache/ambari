@@ -1362,6 +1362,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     updateHdfsConfigs();
     updateStormConfigs();
     updateRangerHiveConfigs();
+    updateRangerHBaseConfigs();
     updateHBaseConfigs();
   }
 
@@ -1395,6 +1396,38 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             updateConfigurationPropertiesForCluster(cluster, "hiveserver2-site", newHiveServerProperties, updateProperty, true);
             updateConfigurationPropertiesForCluster(cluster, "ranger-hive-plugin-properties", new HashMap<String, String>(),
                     removeRangerHiveProperties, false, true);
+          }
+        }
+      }
+    }
+  }
+
+  protected void updateRangerHBaseConfigs() throws AmbariException{
+    AmbariManagementController ambariManagementController = injector.getInstance(
+                                                                                  AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Config RangerHBaseConfig = cluster.getDesiredConfigByType("ranger-hbase-plugin-properties");
+          if (RangerHBaseConfig != null
+                && RangerHBaseConfig.getProperties().containsKey("ranger-hbase-plugin-enabled")
+                && cluster.getDesiredConfigByType("hbase-site") != null) {
+            Map<String, String> newHBaseSiteProperties = new HashMap<String, String>();
+            Set<String> removeRangerHiveProperties = new HashSet<String>();
+            removeRangerHiveProperties.add("ranger-hbase-plugin-enabled");
+
+            if (RangerHBaseConfig.getProperties().get("ranger-hbase-plugin-enabled") != null
+                  && RangerHBaseConfig.getProperties().get("ranger-hbase-plugin-enabled").equalsIgnoreCase("yes")) {
+
+              newHBaseSiteProperties.put("hbase.security.authorization", "true");
+            }
+            boolean updateProperty = cluster.getDesiredConfigByType("hbase-site").getProperties().containsKey("hbase.security.authorization");
+            updateConfigurationPropertiesForCluster(cluster, "hbase-site", newHBaseSiteProperties, updateProperty, true);
+            updateConfigurationPropertiesForCluster(cluster, "ranger-hbase-plugin-properties", new HashMap<String, String>(),
+                                                     removeRangerHiveProperties, false, true);
           }
         }
       }
