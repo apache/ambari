@@ -60,7 +60,7 @@
 
           {{#each component in view.sortedComponents}}
             <div class="row-fluid">
-              {{view component.view contentBinding="component"}}
+              {{view component.viewClass contentBinding="component"}}
             </div>
           {{/each}}
         {{/if}}

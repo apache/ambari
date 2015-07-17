@@ -1838,7 +1838,8 @@ App.MainHostDetailsController = Em.Controller.extend({
       masterComponents: [],
       runningComponents: [],
       nonDeletableComponents: [],
-      unknownComponents: []
+      unknownComponents: [],
+      toDecommissionComponents: []
     }; 
     var self = this;
     if (componentsOnHost && componentsOnHost.get('length') > 0) {
@@ -1862,6 +1863,9 @@ App.MainHostDetailsController = Em.Controller.extend({
         if (workStatus === App.HostComponentStatus.unknown) {
           container.unknownComponents.push(cInstance.get('displayName'));
         }
+        if (App.get('components.decommissionAllowed').contains(cInstance.get('componentName')) && !cInstance.get('view.isComponentRecommissionAvailable')) {
+          container.toDecommissionComponents.push(cInstance.get('displayName'));
+        }
       });
     }
     return container;
@@ -1875,22 +1879,22 @@ App.MainHostDetailsController = Em.Controller.extend({
     var container = this.getHostComponentsInfo();
 
     if (container.masterComponents.length > 0) {
-      this.raiseDeleteComponentsError(container.masterComponents, 'masterList');
+      this.raiseDeleteComponentsError(container, 'masterList');
       return;
     } else if (container.nonDeletableComponents.length > 0) {
-      this.raiseDeleteComponentsError(container.nonDeletableComponents, 'nonDeletableList');
+      this.raiseDeleteComponentsError(container, 'nonDeletableList');
       return;
     } else if (container.runningComponents.length > 0) {
-      this.raiseDeleteComponentsError(container.runningComponents, 'runningList');
+      this.raiseDeleteComponentsError(container, 'runningList');
       return;
     }
     if (container.zkServerInstalled) {
       var self = this;
       return App.showConfirmationPopup(function () {
-        self.confirmDeleteHost(container.unknownComponents, container.lastComponents);
+        self.confirmDeleteHost(container);
       }, Em.I18n.t('hosts.host.addComponent.deleteHostWithZooKeeper'));
     } else {
-      this.confirmDeleteHost(container.unknownComponents, container.lastComponents);
+      this.confirmDeleteHost(container);
     }
   },
 
@@ -1900,14 +1904,25 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param {string} type
    * @method raiseDeleteComponentsError
    */
-  raiseDeleteComponentsError: function (components, type) {
+  raiseDeleteComponentsError: function (container, type) {
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.cant.do.popup.title'),
       type: type,
       showBodyEnd: function () {
         return this.get('type') === 'runningList' || this.get('type') === 'masterList';
       }.property(),
-      components: components,
+      container: container,
+      components: function(){
+        var container = this.get('container');
+        switch (this.get('type')) {
+          case 'masterList':
+            return container.masterComponents;
+          case 'nonDeletableList':
+            return container.nonDeletableComponents;
+          case 'runningList':
+            return container.runningComponents;
+        }
+      }.property('type'),
       componentsStr: function () {
         return this.get('components').join(", ");
       }.property(),
@@ -1916,7 +1931,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       }.property(),
       componentsBodyEnd: function () {
         if (this.get('showBodyEnd')) {
-          return Em.I18n.t('hosts.cant.do.popup.' + type + '.body.end');
+          return Em.I18n.t('hosts.cant.do.popup.' + type + '.body.end').format(App.get('components.decommissionAllowed').map(function(c){return App.format.role(c)}).join(", "));
         }
         return '';
       }.property(),
@@ -1929,11 +1944,10 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   /**
    * Show confirmation popup to delete host
-   * @param {string[]} unknownComponents
-   * @param {string[]} lastComponents
+   * @param {Object} container
    * @method confirmDeleteHost
    */
-  confirmDeleteHost: function (unknownComponents, lastComponents) {
+  confirmDeleteHost: function (container) {
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('hosts.delete.popup.title'),
@@ -1941,7 +1955,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         return Em.I18n.t('hosts.delete.popup.body').format(self.get('content.publicHostName'));
       }.property(),
       lastComponent: function () {
-        if (lastComponents && lastComponents.length) {
+        if (container.lastComponents && container.lastComponents.length) {
           this.set('isChecked', false);
           return true;
         } else {
@@ -1954,14 +1968,18 @@ App.MainHostDetailsController = Em.Controller.extend({
       }.property('isChecked'),
       isChecked: false,
       lastComponentError: Em.View.extend({
-        template: Em.Handlebars.compile(Em.I18n.t('hosts.delete.popup.body.msg4').format(lastComponents))
+        template: Em.Handlebars.compile(Em.I18n.t('hosts.delete.popup.body.msg4').format(container.lastComponents))
       }),
       unknownComponents: function () {
-        if (unknownComponents && unknownComponents.length) {
-          return unknownComponents.join(", ");
+        if (container.unknownComponents && container.unknownComponents.length) {
+          return container.unknownComponents.join(", ");
         }
         return '';
       }.property(),
+      decommissionWarning: Em.View.extend({
+        template: Em.Handlebars.compile(Em.I18n.t('hosts.delete.popup.body.msg7').format(container.toDecommissionComponents.join(', ')))
+      }),
+      toDecommissionComponents: container.toDecommissionComponents,
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/details/doDeleteHostPopup')
       }),

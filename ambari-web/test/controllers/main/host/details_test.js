@@ -1531,7 +1531,8 @@ describe('App.MainHostDetailsController', function () {
       masterComponents: [],
       runningComponents: [],
       nonDeletableComponents: [],
-      unknownComponents: []
+      unknownComponents: [],
+      toDecommissionComponents: []
     };
 
     it('content.hostComponents is null', function () {
@@ -1667,9 +1668,9 @@ describe('App.MainHostDetailsController', function () {
         {}
       ]});
       controller.validateAndDeleteHost();
-      expect(controller.raiseDeleteComponentsError.calledWith([
+      expect(controller.raiseDeleteComponentsError.calledWith({masterComponents: [
         {}
-      ], 'masterList')).to.be.true;
+      ]}, 'masterList')).to.be.true;
     });
     it('nonDeletableComponents exist', function () {
       controller.set('mockHostComponentsInfo', {
@@ -1679,9 +1680,12 @@ describe('App.MainHostDetailsController', function () {
         ]
       });
       controller.validateAndDeleteHost();
-      expect(controller.raiseDeleteComponentsError.calledWith([
-        {}
-      ], 'nonDeletableList')).to.be.true;
+      expect(controller.raiseDeleteComponentsError.calledWith({
+        masterComponents: [],
+        nonDeletableComponents: [
+          {}
+        ]
+      }, 'nonDeletableList')).to.be.true;
     });
     it('runningComponents exist', function () {
       controller.set('mockHostComponentsInfo', {
@@ -1690,7 +1694,11 @@ describe('App.MainHostDetailsController', function () {
         runningComponents: [{}]
       });
       controller.validateAndDeleteHost();
-      expect(controller.raiseDeleteComponentsError.calledWith([{}], 'runningList')).to.be.true;
+      expect(controller.raiseDeleteComponentsError.calledWith({
+        masterComponents: [],
+        nonDeletableComponents: [],
+        runningComponents: [{}]
+      }, 'runningList')).to.be.true;
     });
     it('zkServerInstalled = true', function () {
       controller.set('mockHostComponentsInfo', {
@@ -1704,7 +1712,14 @@ describe('App.MainHostDetailsController', function () {
       var popup = controller.validateAndDeleteHost();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(controller.confirmDeleteHost.calledWith([], [])).to.be.true;
+      expect(controller.confirmDeleteHost.calledWith({
+        masterComponents: [],
+        nonDeletableComponents: [],
+        runningComponents: [],
+        unknownComponents: [],
+        lastComponents: [],
+        zkServerInstalled: true
+      })).to.be.true;
     });
     it('zkServerInstalled = false', function () {
       controller.set('mockHostComponentsInfo', {
@@ -1716,7 +1731,14 @@ describe('App.MainHostDetailsController', function () {
         zkServerInstalled: false
       });
       controller.validateAndDeleteHost();
-      expect(controller.confirmDeleteHost.calledWith([], [])).to.be.true;
+      expect(controller.confirmDeleteHost.calledWith({
+        masterComponents: [],
+        nonDeletableComponents: [],
+        runningComponents: [],
+        unknownComponents: [],
+        lastComponents: [],
+        zkServerInstalled: false
+      })).to.be.true;
     });
   });
 
@@ -1740,7 +1762,7 @@ describe('App.MainHostDetailsController', function () {
       sinon.spy(App.ModalPopup, "show");
       sinon.stub(controller, 'doDeleteHost');
 
-      var popup = controller.confirmDeleteHost([], []);
+      var popup = controller.confirmDeleteHost({toDecommissionComponents:[]});
       expect(App.ModalPopup.show.calledOnce).to.be.true;
       popup.onPrimary();
       expect(controller.doDeleteHost.calledOnce).to.be.true;

@@ -33,6 +33,11 @@
     </div>
 {{/if}}
 <br />
+{{#if toDecommissionComponents.length}}
+  <div class='alert'>
+    {{view decommissionWarning}}
+  </div>
+{{/if}}
 <div class='alert'>{{{t common.important}}}
   {{#if unknownComponents}}
     {{t hosts.delete.popup.body.msg.unknownComponents}}

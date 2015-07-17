@@ -2246,6 +2246,7 @@ Em.I18n.translations = {
   'hosts.delete.popup.body.msg4':'<b>WARNING!</b> Delete the last <i>{0}</i> component[s] in the cluster?</br>Deleting the last components in the cluster could result in permanent loss of service data.',
   'hosts.delete.popup.body.msg5':'<b>WARNING!</b> The agent is still heartbeating so the Host will still exist in the database.',
   'hosts.delete.popup.body.msg6':'To completely delete the Host, first stop ambari-agent on it.',
+  'hosts.delete.popup.body.msg7':'<b>WARNING!</b> {0} should be decommissioned first to prevent data loss.',
   'hosts.delete.popup.body.msg.unknownComponents':'This host does not appear to be online and Ambari communication with the Agent has been lost.',
   'hosts.delete.popup.header':'Confirmation',
   'hosts.delete.popup.title':'Delete Host',
@@ -2256,7 +2257,7 @@ Em.I18n.translations = {
   'hosts.cant.do.popup.nonDeletableList.body':'Deletion of the following {0} components is not supported. ',
   'hosts.cant.do.popup.runningList.body':'This host cannot be deleted since the following components are running:',
   'hosts.cant.do.popup.runningList.body.end':'To delete this host, you must first stop all the running components listed above. ' +
-    'If this host has a DataNode, it should be decommissioned first to prevent data loss.',
+    'If this host has a {0}, it should be decommissioned first to prevent data loss.',
   'hosts.add.header':'Add Host Wizard',
   'hosts.add.exit.header':'Exit',
   'hosts.add.exit.body':'Do you really want to exit Add Host Wizard?',

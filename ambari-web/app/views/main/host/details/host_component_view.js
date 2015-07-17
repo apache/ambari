@@ -269,6 +269,11 @@ App.HostComponentView = Em.View.extend({
     return App.get('components.refreshConfigsAllowed').contains(this.get('content.componentName'));
   }.property('content'),
 
+  willInsertElement: function() {
+    //make link to view instance to get decommission state
+    this.set('content.view', this);
+  },
+
   didInsertElement: function () {
     App.tooltip($('[rel=componentHealthTooltip]'));
     App.tooltip($('[rel=passiveTooltip]'));

@@ -153,7 +153,7 @@ App.MainHostSummaryView = Em.View.extend({
         }
         else {
           // Add new component
-          component.set('view', hostComponentViewMap[component.get('componentName')] ? hostComponentViewMap[component.get('componentName')] : App.HostComponentView);
+          component.set('viewClass', hostComponentViewMap[component.get('componentName')] ? hostComponentViewMap[component.get('componentName')] : App.HostComponentView);
           if (component.get('isMaster')) {
             // Masters should be before slaves
             var lastMasterIndex = 0, atLeastOneMasterExists = false;
