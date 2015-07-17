@@ -64,7 +64,7 @@ jdbc_alias = config['configurations']['dbks-site']['ranger.ks.jpa.jdbc.credentia
 masterkey_alias = config['configurations']['dbks-site']['ranger.ks.masterkey.credential.alias']
 repo_name = str(config['clusterName']) + '_kms'
 cred_lib_path = os.path.join(kms_home,"cred","lib","*")
-cred_setup_prefix = format('python {kms_home}/ranger_credential_helper.py -l "{cred_lib_path}"')
+cred_setup_prefix = (format('{kms_home}/ranger_credential_helper.py'), '-l', cred_lib_path)
 credential_file = format('/etc/ranger/{repo_name}/cred.jceks')
 
 if has_ranger_admin:

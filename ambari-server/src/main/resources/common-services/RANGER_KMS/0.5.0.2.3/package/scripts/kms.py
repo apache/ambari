@@ -90,7 +90,7 @@ def setup_java_patch():
     if len(hadoop_jar_files) != 0:
       for f in hadoop_jar_files:
         Execute((format('{java_home}/bin/jar'),'-uf', format('{kms_home}/ews/webapp/lib/{f}'), format('{kms_home}/ews/webapp/META-INF/services/org.apache.hadoop.crypto.key.KeyProviderFactory')),
-          sudo=True)
+          user=params.kms_user)
 
         File(format('{kms_home}/ews/webapp/lib/{f}'), owner=params.kms_user, group=params.kms_group)
 
@@ -99,9 +99,12 @@ def do_keystore_setup(cred_provider_path, credential_alias, credential_password)
   import params
 
   if cred_provider_path is not None:
-    cred_setup = format('{cred_setup_prefix} -f {cred_provider_path} -k "{credential_alias}" -v {credential_password!p} -c 1')
-
-    Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True)
+    cred_setup = params.cred_setup_prefix + ('-f', cred_provider_path, '-k', credential_alias, '-v', credential_password, '-c', '1')
+    Execute(cred_setup, 
+            environment={'JAVA_HOME': params.java_home}, 
+            logoutput=True, 
+            sudo=True,
+    )
 
     File(cred_provider_path,
       owner = params.kms_user,
@@ -267,14 +270,14 @@ def enable_kms_plugin():
       mode=0744)
 
     if params.xa_audit_db_is_enabled:
-      cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "auditDBCred" -v {xa_audit_db_password!p} -c 1')
-      Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True)
+      cred_setup = params.cred_setup_prefix + ('-f', params.credential_file, '-k', 'auditDBCred', '-v', params.xa_audit_db_password, '-c', '1')
+      Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
-    cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "sslKeyStore" -v {ssl_keystore_password!p} -c 1')
-    Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True)
+    cred_setup = params.cred_setup_prefix + ('-f', params.credential_file, '-k', 'sslKeyStore', '-v', params.ssl_keystore_password, '-c', '1')
+    Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
-    cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "sslTrustStore" -v {ssl_truststore_password!p} -c 1')
-    Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True)
+    cred_setup = params.cred_setup_prefix + ('-f', params.credential_file, '-k', 'sslTrustStore', '-v', params.ssl_truststore_password, '-c', '1')
+    Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
     File(params.credential_file,
       owner = params.kms_user,
