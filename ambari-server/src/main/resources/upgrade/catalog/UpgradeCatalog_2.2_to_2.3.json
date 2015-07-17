@@ -198,10 +198,19 @@
                         "required-services": [
                             "RANGER"
                         ]
+                    },
+                    "storm-env": {
+                       "merged-copy": "yes",
+                       "required-services": [
+                         "STORM"
+                       ]
                     }
                 }
             },
             "properties": {
+                "storm-env": {
+                  "nimbus_seeds_supported": "true"
+                },
                 "falcon-startup.properties": {
                   "*.shared.libs": "activemq-core,ant,geronimo-j2ee-management,jms,json-simple,oozie-client,spring-jms,commons-lang3,commons-el",
                   "*.configstore.listeners": "org.apache.falcon.entity.v0.EntityGraph,\\\n      org.apache.falcon.entity.ColoClusterRelation,\\\n      org.apache.falcon.group.FeedGroupMap,\\\n      org.apache.falcon.service.SharedLibraryHostingService"
