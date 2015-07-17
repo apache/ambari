@@ -310,6 +310,7 @@
                   }
                 },
                 "ranger-hdfs-security": {
+                  "upgrade.transition": "yes",
                   "ranger.plugin.hdfs.policy.source.impl": {
                     "value": "org.apache.ranger.admin.client.RangerAdminRESTClient",
                     "required-services": ["RANGER", "HDFS"]
@@ -430,6 +431,7 @@
                 }
               },
               "ranger-hbase-security": {
+                "upgrade.transition": "yes",
                 "ranger.plugin.hbase.policy.source.impl": {
                   "value":"org.apache.ranger.admin.client.RangerAdminRESTClient",
                   "required-services": ["RANGER", "HBASE"]
@@ -538,6 +540,7 @@
                 }
               },
               "ranger-hive-security": {
+                "upgrade.transition": "yes",
                 "ranger.plugin.hive.policy.source.impl": "org.apache.ranger.admin.client.RangerAdminRESTClient",
                 "ranger.plugin.hive.policy.rest.ssl.config.file": "usr/hdp/current/hive-server2/conf/conf.server/ranger-policymgr-ssl.xml",
                 "ranger.plugin.hive.policy.pollIntervalMs": "30000",
@@ -633,6 +636,7 @@
                 }
               },
               "ranger-knox-security": {
+                "upgrade.transition": "yes",
                 "ranger.plugin.knox.policy.source.impl": {
                   "value": "org.apache.ranger.admin.client.RangerAdminJersey2RESTClient"
                 },
@@ -730,6 +734,7 @@
                 }
               },
               "ranger-storm-security": {
+                "upgrade.transition": "yes",
                 "ranger.plugin.storm.policy.source.impl": {
                   "value": "org.apache.ranger.admin.client.RangerAdminRESTClient"
                 },
@@ -852,6 +857,7 @@
                 "xasecure.audit.provider.summary.enabled" : "true"
               },
               "ranger-kafka-security" : {
+                "upgrade.transition": "yes",
                 "ranger.plugin.kafka.service.name" : "{{repo_name}}",
                 "ranger.plugin.kafka.policy.source.impl" : "org.apache.ranger.admin.client.RangerAdminRESTClient",
                 "ranger.plugin.kafka.policy.rest.url" : "{{policymgr_mgr_url}}",
@@ -897,6 +903,7 @@
                 "xasecure.audit.provider.summary.enabled" : "false"
               },
               "ranger-yarn-security" : {
+                "upgrade.transition": "yes",
                 "ranger.plugin.yarn.service.name" : "{{repo_name}}",
                 "ranger.plugin.yarn.policy.source.impl" : "org.apache.ranger.admin.client.RangerAdminRESTClient",
                 "ranger.plugin.yarn.policy.rest.url" : "{{policymgr_mgr_url}}",
@@ -927,6 +934,7 @@
                     }
                 },
                 "ranger-admin-site": {
+                    "upgrade.transition": "yes",
                     "ranger.service.host": {
                         "value": "{RANGER_HOST}",
                         "template": "yes",
@@ -1020,6 +1028,7 @@
                     }
                 },
                 "ranger-ugsync-site": {
+                    "upgrade.transition": "yes",
                     "ranger.usersync.port": {
                         "value": "5151"
                     },
