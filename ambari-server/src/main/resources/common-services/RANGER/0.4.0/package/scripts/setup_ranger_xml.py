@@ -52,6 +52,7 @@ def setup_ranger_admin(rolling_upgrade=False):
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
     content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
+    mode = 0644,
   )
 
   cp = format("{check_db_connection_jar}")
@@ -129,19 +130,28 @@ def setup_ranger_db(rolling_upgrade=False):
       sudo=True)
 
   ModifyPropertiesFile(format("{ranger_home}/install.properties"),
-    properties = params.config['configurations']['admin-properties']
+    properties = params.config['configurations']['admin-properties'],
+    owner = params.unix_user,
   )
 
   # User wants us to setup the DB user and DB?
   if params.create_db_dbuser:
     Logger.info('Setting up Ranger DB and DB User')
     dba_setup = format('python {ranger_home}/dba_script.py -q')
-    Execute(dba_setup, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+    Execute(dba_setup, 
+            environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, 
+            logoutput=True,
+            user=params.unix_user,
+    )
   else:
     Logger.info('Separate DBA property not set. Assuming Ranger DB and DB User exists!')
 
   db_setup = format('python {ranger_home}/db_setup.py')
-  Execute(db_setup, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+  Execute(db_setup, 
+          environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, 
+          logoutput=True,
+          user=params.unix_user,
+  )
 
 
 def setup_java_patch(rolling_upgrade=False):
@@ -152,7 +162,11 @@ def setup_java_patch(rolling_upgrade=False):
     ranger_home = format("/usr/hdp/{version}/ranger-admin")
 
   setup_java_patch = format('python {ranger_home}/db_setup.py -javapatch')
-  Execute(setup_java_patch, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+  Execute(setup_java_patch, 
+          environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home},
+          logoutput=True,
+          user=params.unix_user,
+  )
 
 
 def do_keystore_setup(rolling_upgrade=False): 
@@ -165,14 +179,17 @@ def do_keystore_setup(rolling_upgrade=False):
   if rolling_upgrade:
     ranger_home = format("/usr/hdp/{version}/ranger-admin")
     cred_lib_path = os.path.join(ranger_home,"cred","lib","*")
-    cred_setup_prefix = format('python {ranger_home}/ranger_credential_helper.py -l "{cred_lib_path}"')
+    cred_setup_prefix = (format('{ranger_home}/ranger_credential_helper.py'), '-l', cred_lib_path)
 
   if not is_empty(params.ranger_credential_provider_path):    
     jceks_path = params.ranger_credential_provider_path
-    cred_setup = format('{cred_setup_prefix} -f {jceks_path} -k "{ranger_jpa_jdbc_credential_alias}" -v {ranger_ambari_db_password!p} -c 1')
+    cred_setup = cred_setup_prefix + ('-f', jceks_path, '-k', params.ranger_jpa_jdbc_credential_alias, '-v', params.ranger_ambari_db_password, '-c', '1')
 
-    Execute(cred_setup, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
-
+    Execute(cred_setup, 
+            environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, 
+            logoutput=True, 
+            sudo=True
+    )
     File(params.ranger_credential_provider_path,
       owner = params.unix_user,
       group = params.unix_group
@@ -180,9 +197,12 @@ def do_keystore_setup(rolling_upgrade=False):
 
   if not is_empty(params.ranger_credential_provider_path) and (params.ranger_audit_source_type).lower() == 'db' and not is_empty(params.ranger_ambari_audit_db_password):
     jceks_path = params.ranger_credential_provider_path
-    cred_setup = format('{cred_setup_prefix} -f {jceks_path} -k "{ranger_jpa_audit_jdbc_credential_alias}" -v {ranger_ambari_audit_db_password!p} -c 1')
-
-    Execute(cred_setup, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+    cred_setup = cred_setup_prefix + ('-f', jceks_path, '-k', params.ranger_jpa_audit_jdbc_credential_alias, '-v', params.ranger_ambari_db_password, '-c', '1')
+    Execute(cred_setup, 
+            environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, 
+            logoutput=True, 
+            sudo=True
+    )
 
     File(params.ranger_credential_provider_path,
       owner = params.unix_user,
@@ -203,6 +223,10 @@ def setup_usersync():
     owner = params.unix_user,
     group = params.unix_group
   )
+  
+  Directory(format("{ranger_ugsync_conf}/"),
+       owner = params.unix_user
+  )
 
   XmlConfig("ranger-ugsync-site.xml",
     conf_dir=params.ranger_ugsync_conf,
@@ -213,15 +237,16 @@ def setup_usersync():
     mode=0644)
 
   cred_lib = os.path.join(params.usersync_home,"lib","*")
+  cred_setup_prefix = (format('{ranger_home}/ranger_credential_helper.py'), '-l', cred_lib)
 
-  cred_setup = format('python {ranger_home}/ranger_credential_helper.py -l "{cred_lib}" -f {ugsync_jceks_path} -k "usersync.ssl.key.password" -v {ranger_usersync_keystore_password!p} -c 1')
-  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+  cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'usersync.ssl.key.password', '-v', params.ranger_usersync_keystore_password, '-c', '1')
+  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
-  cred_setup = format('python {ranger_home}/ranger_credential_helper.py -l "{cred_lib}" -f {ugsync_jceks_path} -k "ranger.usersync.ldap.bindalias" -v {ranger_usersync_ldap_ldapbindpassword!p} -c 1')
-  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+  cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'ranger.usersync.ldap.bindalias', '-v', params.ranger_usersync_ldap_ldapbindpassword, '-c', '1')
+  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
-  cred_setup = format('python {ranger_home}/ranger_credential_helper.py -l "{cred_lib}" -f {ugsync_jceks_path} -k "usersync.ssl.truststore.password" -v {ranger_usersync_truststore_password!p} -c 1')
-  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+  cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'usersync.ssl.truststore.password', '-v', params.ranger_usersync_truststore_password, '-c', '1')
+  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
   File(params.ugsync_jceks_path,
        owner = params.unix_user,
@@ -245,7 +270,7 @@ def setup_usersync():
   if not os.path.isfile(params.ranger_usersync_keystore_file):
     cmd = format("{java_home}/bin/keytool -genkeypair -keyalg RSA -alias selfsigned -keystore '{ranger_usersync_keystore_file}' -keypass {ranger_usersync_keystore_password!p} -storepass {ranger_usersync_keystore_password!p} -validity 3600 -keysize 2048 -dname '{default_dn_name}'")
 
-    Execute(cmd, logoutput=True)
+    Execute(cmd, logoutput=True, user = params.unix_user)
 
     File(params.ranger_usersync_keystore_file,
         owner = params.unix_user,
