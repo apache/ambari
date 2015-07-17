@@ -39,7 +39,7 @@ if os.geteuid() == 0:
   def chmod(path, mode):
     return os.chmod(path, mode)
   
-  mode_to_stat = {"a+x": stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH, "u+x": stat.S_IXUSR, "g+x": stat.S_IXGRP,  "o+x": stat.S_IXOTH}
+  mode_to_stat = {"a+x": stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH, "a+rx": stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH, "u+x": stat.S_IXUSR, "g+x": stat.S_IXGRP,  "o+x": stat.S_IXOTH}
   def chmod_extended(path, mode):
     if mode in mode_to_stat:
       st = os.stat(path)

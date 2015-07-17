@@ -70,7 +70,7 @@ def _ensure_metadata(path, user, group, mode=None, cd_access=None):
     dir_path = path
     while dir_path != os.sep:
       if sudo.path_isdir(dir_path):
-        sudo.chmod_extended(dir_path, cd_access+"+x")
+        sudo.chmod_extended(dir_path, cd_access+"+rx")
         
       dir_path = os.path.split(dir_path)[0]
 

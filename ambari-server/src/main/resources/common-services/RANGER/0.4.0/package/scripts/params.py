@@ -135,7 +135,7 @@ ranger_ambari_audit_db_password = unicode(config["configurations"]["admin-proper
 
 ugsync_jceks_path = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.credstore.filename"]
 cred_lib_path = os.path.join(ranger_home,"cred","lib","*")
-cred_setup_prefix = format('python {ranger_home}/ranger_credential_helper.py -l "{cred_lib_path}"')
+cred_setup_prefix = (format('{ranger_home}/ranger_credential_helper.py'), '-l', cred_lib_path)
 ranger_audit_source_type = config["configurations"]["ranger-admin-site"]["ranger.audit.source.type"]
 
 if xml_configurations_supported:
