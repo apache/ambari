@@ -99,7 +99,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   protected static final String COMMAND_ID = "command";
   protected static final String SERVICE_ID = "service_name";
   protected static final String COMPONENT_ID = "component_name";
-  protected static final String HOSTS_ID = "hosts";
+  protected static final String HOSTS_ID = "hosts";                           // This is actually a list of hosts
   protected static final String ACTION_ID = "action";
   protected static final String INPUTS_ID = "parameters";
   protected static final String EXLUSIVE_ID = "exclusive";

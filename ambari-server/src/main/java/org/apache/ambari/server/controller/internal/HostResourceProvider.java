@@ -55,12 +55,15 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequest;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -775,27 +778,47 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         continue;
       }
 
+      Set<String> clusterNamesForHost = new HashSet<String>();
       if (null != hostRequest.getClusterName()) {
-        Cluster cluster = clusters.getCluster(hostRequest.getClusterName());
+        clusterNamesForHost.add(hostRequest.getClusterName());
+      } else {
+        Set<Cluster> clustersForHost = clusters.getClustersForHost(hostRequest.getHostname());
+        if (null != clustersForHost) {
+          for (Cluster c : clustersForHost) {
+            clusterNamesForHost.add(c.getClusterName());
+          }
+        }
+      }
+
+      for (String clusterName : clusterNamesForHost) {
+        Cluster cluster = clusters.getCluster(clusterName);
 
         List<ServiceComponentHost> list = cluster.getServiceComponentHosts(hostName);
 
-        if (0 != list.size()) {
-          StringBuilder reason = new StringBuilder("Cannot remove host ")
-              .append(hostName)
-              .append(" from ")
-              .append(hostRequest.getClusterName())
-              .append(".  The following roles exist: ");
+        if (!list.isEmpty()) {
 
-          int i = 0;
+          List<String> componentsToRemove = new ArrayList<String>();
           for (ServiceComponentHost sch : list) {
-            if ((i++) > 0) {
-              reason.append(", ");
+            Service s = cluster.getService(sch.getServiceName());
+            ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
+
+            // Masters and Slaves must be deleted first. Clients are ok.
+            if (!sc.isClientComponent()) {
+              componentsToRemove.add(sch.getServiceComponentName());
             }
-            reason.append(sch.getServiceComponentName());
           }
 
-          throw new AmbariException(reason.toString());
+          if (!componentsToRemove.isEmpty()) {
+            StringBuilder reason = new StringBuilder("Cannot remove host ")
+                .append(hostName)
+                .append(" from ")
+                .append(hostRequest.getClusterName())
+                .append(".  The following roles exist, and these components must be stopped if running, and then deleted: ");
+
+            reason.append(StringUtils.join(componentsToRemove, ", "));
+
+            throw new AmbariException(reason.toString());
+          }
         }
       }
       okToRemove.add(hostRequest);

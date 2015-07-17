@@ -1142,14 +1142,31 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public ServiceComponentHostResponse convertToResponse() {
     readLock.lock();
     try {
+      HostComponentStateEntity hostComponentStateEntity = getStateEntity();
+      if (null == hostComponentStateEntity) {
+        LOG.warn("Could not convert ServiceComponentHostResponse to a response. It's possible that Host " + getHostName() + " was deleted.");
+        return null;
+      }
+
+      String clusterName = serviceComponent.getClusterName();
+      String serviceName = serviceComponent.getServiceName();
+      String serviceComponentName = serviceComponent.getName();
+      String hostName = getHostName();
+      String state = getState().toString();
+      String stackId = getStackVersion().getStackId();
+      String desiredState = getDesiredState().toString();
+      String desiredStackId = getDesiredStackVersion().getStackId();
+      HostComponentAdminState componentAdminState = getComponentAdminState();
+      UpgradeState upgradeState = hostComponentStateEntity.getUpgradeState();
+
       ServiceComponentHostResponse r = new ServiceComponentHostResponse(
-          serviceComponent.getClusterName(), serviceComponent.getServiceName(),
-          serviceComponent.getName(), getHostName(), getState().toString(),
-          getStackVersion().getStackId(), getDesiredState().toString(),
-          getDesiredStackVersion().getStackId(), getComponentAdminState());
+          clusterName, serviceName,
+          serviceComponentName, hostName, state,
+          stackId, desiredState,
+          desiredStackId, componentAdminState);
 
       r.setActualConfigs(actualConfigs);
-      r.setUpgradeState(getStateEntity().getUpgradeState());
+      r.setUpgradeState(upgradeState);
 
       try {
         r.setStaleConfig(helper.isStaleConfigs(this));

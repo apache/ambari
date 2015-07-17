@@ -51,6 +51,7 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
+import org.apache.ambari.server.orm.dao.RequestOperationLevelDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
@@ -116,6 +117,8 @@ public class ClustersImpl implements Clusters {
   private HostRoleCommandDAO hostRoleCommandDAO;
   @Inject
   private ResourceTypeDAO resourceTypeDAO;
+  @Inject
+  private RequestOperationLevelDAO requestOperationLevelDAO;
   @Inject
   private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
   @Inject
@@ -811,6 +814,7 @@ public class ClustersImpl implements Clusters {
       hostStateDAO.removeByHostId(entity.getHostId());
       hostConfigMappingDAO.removeByHostId(entity.getHostId());
       serviceConfigDAO.removeHostFromServiceConfigs(entity.getHostId());
+      requestOperationLevelDAO.removeByHostId(entity.getHostId());
 
       // Remove from dictionaries
       hosts.remove(hostname);
