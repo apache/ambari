@@ -1060,6 +1060,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
             ServiceComponentHost sch = serviceComponentHostMap.get(request.getHostname());
 
+            if (null == sch) {
+              // It's possible that the host was deleted during the time that the request was generated.
+              continue;
+            }
+
             if (checkDesiredState && (desiredStateToCheck != sch.getDesiredState())) {
               continue;
             }
@@ -1077,7 +1082,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
 
             ServiceComponentHostResponse r = sch.convertToResponse();
-            if (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig) {
+            if (null == r || (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig)) {
               continue;
             }
 
@@ -1106,6 +1111,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
         } else {
           for (ServiceComponentHost sch : serviceComponentHostMap.values()) {
+            if (null == sch) {
+              // It's possible that the host was deleted during the time that the request was generated.
+              continue;
+            }
+
             if (checkDesiredState && (desiredStateToCheck != sch.getDesiredState())) {
               continue;
             }
@@ -1123,7 +1133,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
 
             ServiceComponentHostResponse r = sch.convertToResponse();
-            if (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig) {
+            if (null == r || (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig)) {
               continue;
             }
 

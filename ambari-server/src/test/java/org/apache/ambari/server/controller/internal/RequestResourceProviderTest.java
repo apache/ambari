@@ -1047,14 +1047,14 @@ public class RequestResourceProviderTest {
     String host_component = "HOST_COMPONENT";
     String service_id = "HDFS";
     String hostcomponent_id = "Namenode";
-    String host_id = "host1";
+    String host_name = "host1";
 
     properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, c1);
 
     Set<Map<String, Object>> filterSet = new HashSet<Map<String, Object>>();
     Map<String, Object> filterMap = new HashMap<String, Object>();
     filterMap.put(RequestResourceProvider.SERVICE_ID, service_id);
-    filterMap.put(RequestResourceProvider.HOSTS_ID, host_id);
+    filterMap.put(RequestResourceProvider.HOSTS_ID, host_name);
     filterSet.add(filterMap);
 
     properties.put(RequestResourceProvider.REQUEST_RESOURCE_FILTER_ID, filterSet);
@@ -1071,8 +1071,8 @@ public class RequestResourceProviderTest {
             service_id);
     requestInfoProperties.put(RequestOperationLevel.OPERATION_HOSTCOMPONENT_ID,
             hostcomponent_id);
-    requestInfoProperties.put(RequestOperationLevel.OPERATION_HOST_ID,
-            host_id);
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_HOST_NAME,
+        host_name);
 
     Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -1092,7 +1092,7 @@ public class RequestResourceProviderTest {
     Assert.assertEquals(level.getClusterName(), c1);
     Assert.assertEquals(level.getServiceName(), service_id);
     Assert.assertEquals(level.getHostComponentName(), hostcomponent_id);
-    Assert.assertEquals(level.getHostName(), host_id);
+    Assert.assertEquals(level.getHostName(), host_name);
   }
 
   @Test

@@ -50,7 +50,7 @@ public class RequestOperationLevelTest {
             service_id);
     requestInfoProperties.put(RequestOperationLevel.OPERATION_HOSTCOMPONENT_ID,
             hostcomponent_id);
-    requestInfoProperties.put(RequestOperationLevel.OPERATION_HOST_ID,
+    requestInfoProperties.put(RequestOperationLevel.OPERATION_HOST_NAME,
             host_id);
 
     // Check normal creation

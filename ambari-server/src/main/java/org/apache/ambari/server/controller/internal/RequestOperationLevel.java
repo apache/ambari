@@ -48,7 +48,7 @@ public class RequestOperationLevel {
   public static final String OPERATION_CLUSTER_ID = "operation_level/cluster_name";
   public static final String OPERATION_SERVICE_ID = "operation_level/service_name";
   public static final String OPERATION_HOSTCOMPONENT_ID = "operation_level/hostcomponent_name";
-  public static final String OPERATION_HOST_ID = "operation_level/host_name";
+  public static final String OPERATION_HOST_NAME = "operation_level/host_name";
 
   /**
    * Converts external operation level alias to an internal name
@@ -117,7 +117,7 @@ public class RequestOperationLevel {
     this.serviceName = requestInfoProperties.get(OPERATION_SERVICE_ID);
     this.hostComponentName =
             requestInfoProperties.get(OPERATION_HOSTCOMPONENT_ID);
-    this.hostName = requestInfoProperties.get(OPERATION_HOST_ID);
+    this.hostName = requestInfoProperties.get(OPERATION_HOST_NAME);
   }
 
   /**
