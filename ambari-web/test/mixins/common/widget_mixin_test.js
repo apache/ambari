@@ -294,7 +294,7 @@ describe('App.WidgetMixin', function () {
         value: '${a}'
       }]);
       mixinObject.calculateValues();
-      expect(mixinObject.get('content.values')[0].computedValue).to.be.empty;
+      expect(mixinObject.get('content.values')[0].computedValue).to.equal('<span class="grey">n/a</span>');
     });
     it("value is null", function () {
       this.mock.returns({'${a}': null});
@@ -302,7 +302,7 @@ describe('App.WidgetMixin', function () {
         value: '${a}'
       }]);
       mixinObject.calculateValues();
-      expect(mixinObject.get('content.values')[0].computedValue).to.be.empty;
+      expect(mixinObject.get('content.values')[0].computedValue).to.equal('<span class="grey">n/a</span>');
     });
   });
 

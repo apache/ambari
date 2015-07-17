@@ -406,7 +406,7 @@ App.WidgetMixin = Ember.Mixin.create({
       value.computedValue = value.value.replace(this.get('EXPRESSION_REGEX'), function (match) {
         var float = parseFloat(computeExpression[match]);
         if (isNaN(float)) {
-          return computeExpression[match] || "";
+          return computeExpression[match] || "<span class=\"grey\">n/a</span>";
         } else {
           return String((float % 1 !== 0) ? float.toFixed(2) : float);
         }
