@@ -1,0 +1,81 @@
+{
+    "version": "1.0",
+    "stacks": [
+        {
+            "name": "HDP",
+            "old-version": "2.2",
+            "target-version": "2.3",
+            "options": {
+                "config-types": {
+                  "ranger-hdfs-security": {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","HDFS"]
+                  },
+                  "ranger-hbase-security": {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","HBASE"]
+                  },
+                  "ranger-hive-security": {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","HIVE"]
+                  },
+                  "ranger-knox-security": {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","KNOX"]
+                  },
+                  "ranger-storm-security": {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","STORM"]
+                  },
+                  "ranger-kafka-security" : {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","KAFKA"]
+                  },
+                  "ranger-yarn-security" : {
+                    "merged-copy": "yes",
+                    "required-services": ["RANGER","YARN"]
+                  },
+                    "ranger-admin-site": {
+                        "merged-copy": "yes",
+                        "required-services": [ "RANGER" ]
+                    },
+                    "ranger-ugsync-site": {
+                        "merged-copy": "yes",
+                        "required-services": [
+                            "RANGER"
+                        ]
+                    }
+                }
+            },
+            "properties": {
+              "ranger-admin-site": {
+                "upgrade.transition": {"remove": "yes"}
+              },
+              "ranger-ugsync-site": {
+                "upgrade.transition": {"remove": "yes"}
+              },
+              "ranger-hbase-security": {
+                "upgrade.transition": {"remove": "yes"}
+              },
+              "ranger-hdfs-security": {
+                "upgrade.transition": {"remove": "yes"}
+              },
+              "ranger-storm-security": {
+                "upgrade.transition": {"remove": "yes"}
+              },
+              "ranger-knox-security": {
+                "upgrade.transition": {"remove": "yes"}
+              },
+              "ranger-hive-security": {
+                "upgrade.transition": {"remove": "yes"}
+              },
+              "ranger-kafka-security": {
+                "upgrade.transition": {"remove": "yes"}
+              },
+              "ranger-yarn-security": {
+                "upgrade.transition": {"remove": "yes"}
+              }
+            }
+    }
+  ]
+}
