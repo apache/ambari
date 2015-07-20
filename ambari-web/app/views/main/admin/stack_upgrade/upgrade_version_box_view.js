@@ -243,21 +243,36 @@ App.UpgradeVersionBoxView = Em.View.extend({
       classNames: ['repository-list', 'sixty-percent-width-modal'],
       skipValidation: false,
       autoHeight: false,
-      hasErrors: false,
+      /**
+       * @type {boolean}
+       */
+      serverValidationFailed: false,
       bodyClass: Ember.View.extend({
         content: repo,
         skipCheckBox: Ember.Checkbox.extend({
           classNames: ["align-checkbox"],
           change: function() {
             this.get('parentView.content.operatingSystems').forEach(function(os) {
-              if (Em.get(os, 'repositories.length') > 0) {
-                os.get('repositories').forEach(function(repo) {
-                  Em.set(repo, 'hasError', false);
-                })
-              }
-            });
+              os.get('repositories').forEach(function(repo) {
+                repo.set('skipValidation', this.get('checked'));
+              }, this);
+            }, this);
           }
         }),
+
+        /**
+         * set <code>disablePrimary</code> of popup depending on base URL validation
+         */
+        uiValidation: function () {
+          var disablePrimary = !(App.get('isAdmin') && !App.get('isOperator'));
+
+          this.get('content.operatingSystems').forEach(function (os) {
+            os.get('repositories').forEach(function (repo) {
+              disablePrimary = (!disablePrimary) ? repo.get('hasError') : disablePrimary;
+            }, this);
+          }, this);
+          this.set('parentView.disablePrimary', disablePrimary);
+        },
         templateName: require('templates/main/admin/stack_upgrade/edit_repositories'),
         didInsertElement: function () {
           App.tooltip($("[rel=skip-validation-tooltip]"), {placement: 'right'});
@@ -265,12 +280,13 @@ App.UpgradeVersionBoxView = Em.View.extend({
       }),
       header: Em.I18n.t('common.repositories'),
       primary: Em.I18n.t('common.save'),
-      disablePrimary: !(App.get('isAdmin') && !App.get('isOperator')),
+      disablePrimary: false,
       onPrimary: function () {
         var self = this;
         App.get('router.mainAdminStackAndUpgradeController').saveRepoOS(repo, this.get('skipValidation')).done(function(data){
           if (data.length > 0) {
-            self.set('hasErrors', true);
+            self.set('serverValidationFailed', true);
+            self.set('disablePrimary', true);
           } else {
             self.hide();
           }

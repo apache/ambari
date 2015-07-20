@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var validator = require('utils/validator');
 
 var delay = (function(){
   var timer = 0;
@@ -41,7 +42,7 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
   popoverPlacement: 'right',
 
   didInsertElement: function () {
-    $('body').tooltip({
+    App.tooltip($('body'), {
       selector: '[data-toggle=tooltip]',
       placement: 'top'
     });
@@ -1626,20 +1627,27 @@ App.BaseUrlTextField = Ember.TextField.extend({
   defaultValue: '',
 
   /**
+   *  validate base URL
+   */
+  validate: function () {
+    if (this.get('repository.skipValidation')) {
+      this.set('repository.hasError', false);
+    } else {
+      this.set('repository.hasError', !(validator.isValidBaseUrl(this.get('value'))));
+    }
+    this.get('parentView').uiValidation();
+  }.observes('value', 'repository.skipValidation'),
+
+  /**
    * Determines if user have put some new value
    * @type {boolean}
    */
-  valueWasChanged: false,
+  valueWasChanged: function () {
+    return this.get('value') !== this.get('defaultValue');
+  }.property('value', 'defaultValue'),
 
   didInsertElement: function () {
     this.set('defaultValue', this.get('value'));
-    this.addObserver('value', this, this.valueWasChangedObs);
-  },
-
-  valueWasChangedObs: function () {
-    var value = this.get('value'),
-      defaultValue = this.get('defaultValue');
-    this.set('valueWasChanged', value !== defaultValue);
   },
 
   /**
@@ -1648,17 +1656,5 @@ App.BaseUrlTextField = Ember.TextField.extend({
    */
   restoreValue: function () {
     this.set('value', this.get('defaultValue'));
-    this.keyUp();
-  },
-
-  /**
-   * Remove error-highlight after user puts some new value
-   * @method keyUp
-   */
-  keyUp: function () {
-    if (Em.get(this, 'repository.hasError')) {
-      Em.set(this, 'repository.hasError', false);
-    }
   }
-
 });

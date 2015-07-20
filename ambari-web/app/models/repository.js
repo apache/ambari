@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+var validator = require('utils/validator');
 
 App.Repository = DS.Model.extend({
   id:  DS.attr('string'), // This is ${osType}-${repoId}.
@@ -40,9 +41,7 @@ App.Repository = DS.Model.extend({
   }.property('id','operatingSystem.isSelected'),
 
   invalidFormatError: function() {
-    var remotePattern = /^(?:(?:https?|ftp):\/{2})(?:\S+(?::\S*)?@)?(?:(?:(?:[\w\-.]))*)(?::[0-9]+)?(?:\/\S*)?$/,
-      localPattern = /^file:\/{2,3}([a-zA-Z][:|]\/){0,1}[\w~!*'();@&=\/\\\-+$,?%#.\[\]]+$/;
-    return !(remotePattern.test(this.get('baseUrl')) || localPattern.test(this.get('baseUrl')));
+    return !validator.isValidBaseUrl(this.get('baseUrl'));
   }.property('baseUrl'),
 
   invalidError: function() {

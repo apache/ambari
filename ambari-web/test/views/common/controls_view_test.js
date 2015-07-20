@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('views/common/controls_view');
+var validator = require('utils/validator');
 
 describe('App.ServiceConfigRadioButtons', function () {
 
@@ -1084,42 +1085,70 @@ describe('App.CheckDBConnectionView', function () {
 
 describe('App.BaseUrlTextField', function () {
 
-  var view;
-
-  beforeEach(function () {
-    view = App.BaseUrlTextField.create({
-      repository: Em.Object.create({
-        baseUrl: 'val'
-      })
-    });
-    view.didInsertElement();
+  var view = App.BaseUrlTextField.create({
+    repository: Em.Object.create({
+      baseUrl: 'val'
+    }),
+    parentView: Em.Object.create({
+      uiValidation: Em.K
+    })
   });
 
   describe('#valueWasChanged', function () {
-
     it('should be recalculated after value is changed', function () {
       view.setProperties({
         value: 'val',
-        recommendedValue: 'val'
+        defaultValue: 'val'
       });
       expect(view.get('valueWasChanged')).to.be.false;
       view.set('value', 'newVal');
       expect(view.get('valueWasChanged')).to.be.true;
     });
-
   });
 
-  describe('#restoreValue', function () {
-
+  describe('#restoreValue()', function () {
     it('should unset value', function () {
       view.setProperties({
         value: 'valNew',
-        savedValue: 'val'
+        defaultValue: 'val'
       });
       view.restoreValue();
       expect(view.get('value')).to.equal('val');
     });
-
   });
 
+  describe('#didInsertElement()', function () {
+    it('should set defaultValue', function () {
+      view.setProperties({
+        value: 'valNew',
+        defaultValue: 'val'
+      });
+      view.didInsertElement();
+      expect(view.get('defaultValue')).to.equal('valNew');
+    });
+  });
+
+  describe('#validate()', function () {
+    beforeEach(function(){
+      sinon.stub(view.get('parentView'), 'uiValidation', Em.K);
+      sinon.stub(validator, 'isValidBaseUrl').returns(true);
+    });
+    afterEach(function(){
+      view.get('parentView').uiValidation.restore();
+      validator.isValidBaseUrl.restore();
+    });
+    it('skip validation', function () {
+      view.set('repository', Em.Object.create({
+        skipValidation: true
+      }));
+      expect(view.get('repository.hasError')).to.be.false;
+    });
+    it('apply validation', function () {
+      view.set('repository', Em.Object.create({
+          skipValidation: false
+      }));
+      expect(view.get('repository.hasError')).to.be.false;
+      expect(validator.isValidBaseUrl.calledOnce).to.be.true;
+    });
+  });
 });

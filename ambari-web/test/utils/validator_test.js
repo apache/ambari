@@ -439,4 +439,22 @@ describe('validator', function () {
       })
     });
   });
+
+  describe('#isValidBaseUrl()', function() {
+    var tests = [
+      {m: '"" - invalid', i: '', e: false},
+      {m: '"http://" - valid', i: 'http://', e: true},
+      {m: '"https://" - valid', i: 'https://', e: true},
+      {m: '"ftp://" - valid', i: 'ftp://', e: true},
+      {m: '"file:///" - valid', i: 'file:///', e: true},
+      {m: '"file3" - invalid', i: 'file3', e: false},
+      {m: '"3" - invalid', i: '3', e: false},
+      {m: '"a" - invalid', i: 'a', e: false}
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(validator.isValidBaseUrl(test.i)).to.equal(test.e);
+      })
+    });
+  });
 });
