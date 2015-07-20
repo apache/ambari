@@ -136,10 +136,10 @@ case "$1" in
         rm -f ${PIDFILE}
       else
         tput bold
-        echo "ERROR: ${METRIC_MONITOR} already running"
+        echo "WARN: ${METRIC_MONITOR} already running with PID: ${PID}"
         tput sgr0
-        echo "Check ${PIDFILE} for PID."
-        exit -1
+        echo "Exiting."
+        exit 0
       fi
     fi
 
