@@ -24,14 +24,28 @@ import org.apache.ambari.server.controller.spi.TemporalInfo;
 * Temporal query data.
 */
 public class TemporalInfoImpl implements TemporalInfo {
-  private long m_startTime;
-  private long m_endTime;
-  private long m_step;
+  private final long m_startTime;
+  private final long m_endTime;
+  private final long m_step;
+  private final long startTimeMillis;
+  private final long endTimeMillis;
 
   public TemporalInfoImpl(long startTime, long endTime, long step) {
     m_startTime = startTime;
     m_endTime = endTime;
     m_step = step;
+
+    if (startTime < 9999999999l) {
+      startTimeMillis = startTime * 1000;
+    } else {
+      startTimeMillis = startTime;
+    }
+
+    if (endTime < 9999999999l) {
+      endTimeMillis = endTime * 1000;
+    } else {
+      endTimeMillis = endTime;
+    }
   }
 
   @Override
@@ -47,6 +61,16 @@ public class TemporalInfoImpl implements TemporalInfo {
   @Override
   public Long getStep() {
     return m_step;
+  }
+
+  @Override
+  public Long getStartTimeMillis() {
+    return startTimeMillis;
+  }
+
+  @Override
+  public Long getEndTimeMillis() {
+    return endTimeMillis;
   }
 
   @Override

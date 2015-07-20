@@ -17,7 +17,11 @@
  */
 package org.apache.ambari.server.controller.metrics;
 
+import com.google.common.collect.Iterators;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -46,15 +50,20 @@ public class MetricsDownsamplingMethodFactory {
 }
 
 class MetricNoDownsampling extends MetricsDownsamplingMethod {
+
   @Override
-  public Number[][] reportMetricData(TimelineMetric metricData, MetricsDataTransferMethod dataTransferMethod) {
+  public Number[][] reportMetricData(TimelineMetric metricData,
+                                     MetricsDataTransferMethod dataTransferMethod,
+                                     TemporalInfo temporalInfo) {
     Number[][] datapointsArray = new Number[metricData.getMetricValues().size()][2];
     int cnt = 0;
 
     for (Map.Entry<Long, Double> metricEntry : metricData.getMetricValues().entrySet()) {
-      datapointsArray[cnt][0] = dataTransferMethod.getData(metricEntry.getValue());
-      datapointsArray[cnt][1] = metricEntry.getKey();
-      cnt++;
+      if (isWithinTemporalQueryRange(metricEntry.getKey(), temporalInfo)) {
+        datapointsArray[cnt][0] = dataTransferMethod.getData(metricEntry.getValue());
+        datapointsArray[cnt][1] = metricEntry.getKey();
+        cnt++;
+      }
     }
 
     return datapointsArray;
@@ -62,6 +71,7 @@ class MetricNoDownsampling extends MetricsDownsamplingMethod {
 }
 
 class MetricsAveragePerSecondDownsampling extends MetricsDownsamplingMethod {
+
   class Accumulo {
     public long ts;
     public Double val;
@@ -71,9 +81,35 @@ class MetricsAveragePerSecondDownsampling extends MetricsDownsamplingMethod {
       this.val = v;
     }
   }
+
+  // Cache does not accept out of band data
+  class OutOfBandAccumuloFilterList<T> extends ArrayList<Accumulo> {
+    TemporalInfo temporalInfo;
+
+    OutOfBandAccumuloFilterList(TemporalInfo temporalInfo) {
+      this.temporalInfo = temporalInfo;
+    }
+
+    @Override
+    public boolean add(Accumulo accumulo) {
+      long ts = accumulo.ts;
+      if (ts < 9999999999l) {
+        ts = ts * 1000;
+      }
+      // Skip out of band data
+      if (isWithinTemporalQueryRange(ts, temporalInfo)) {
+        return super.add(accumulo);
+      }
+      return false;
+    }
+  }
+
   @Override
-  public Number[][] reportMetricData(TimelineMetric metricData, MetricsDataTransferMethod dataTransferMethod) {
-    ArrayList<Accumulo> cache = new ArrayList<Accumulo>();
+  public Number[][] reportMetricData(TimelineMetric metricData,
+                                     MetricsDataTransferMethod dataTransferMethod,
+                                     TemporalInfo temporalInfo) {
+
+    OutOfBandAccumuloFilterList<Accumulo> cache = new OutOfBandAccumuloFilterList<Accumulo>(temporalInfo);
 
     final Iterator<Map.Entry<Long, Double>> ci = metricData.getMetricValues().entrySet().iterator();
 
@@ -96,6 +132,7 @@ class MetricsAveragePerSecondDownsampling extends MetricsDownsamplingMethod {
 
       while(ci.hasNext()) {
         e0 = ci.next();
+
         // Skip null padding at the end of the series.
         if (e0.getValue() == null) {
           if (!lastNonNullEntryAdded) {

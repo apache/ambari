@@ -22,11 +22,15 @@ import org.apache.ambari.server.controller.utilities.StreamProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class TestStreamProvider implements StreamProvider {
   // Allow for filename to be set at runtime
   protected String fileName;
   private String lastSpec;
+  protected Set<String> specs = new HashSet<String>();
   private boolean isLastSpecUpdated;
 
   public TestStreamProvider(String fileName) {
@@ -35,16 +39,21 @@ public class TestStreamProvider implements StreamProvider {
 
   @Override
   public InputStream readFrom(String spec) throws IOException {
-    if (!isLastSpecUpdated)
+    if (!isLastSpecUpdated) {
       lastSpec = spec;
-    
+    }
     isLastSpecUpdated = false;
+    specs.add(spec);
     
     return ClassLoader.getSystemResourceAsStream(fileName);
   }
 
   public String getLastSpec() {
     return lastSpec;
+  }
+
+  public Set<String> getAllSpecs() {
+    return specs;
   }
 
   @Override

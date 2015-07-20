@@ -159,6 +159,9 @@ public class TimelineMetricConfiguration {
   public static final String SERVER_SIDE_TIMESIFT_ADJUSTMENT =
     "timeline.metrics.service.cluster.aggregator.timeshift.adjustment";
 
+  public static final String OUT_OFF_BAND_DATA_TIME_ALLOWANCE =
+    "timeline.metrics.service.outofband.time.allowance.millis";
+
   public static final String HOST_APP_ID = "HOST";
 
   private Configuration hbaseConf;
