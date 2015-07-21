@@ -39,6 +39,12 @@ App.MainHostDetailsController = Em.Controller.extend({
   isFromHosts: false,
 
   /**
+   * Are we adding hive server2 component
+   * @type {bool}
+   */
+  addHiveServer: false,
+
+  /**
    * path to page visited before
    * @type {string}
    */
@@ -628,6 +634,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       var self = this;
       this.removeObserver('App.router.backgroundOperationsController.serviceTimestamp', this, this.checkHiveDone);
       setTimeout(function () {
+        self.set('addHiveServer', true);
         self.loadConfigs("loadHiveConfigs");
       }, App.get('componentsUpdateInterval'));
     }
@@ -800,7 +807,8 @@ App.MainHostDetailsController = Em.Controller.extend({
         }
       }
     ];
-    this.saveConfigsBatch(groups, 'HIVE_METASTORE', hiveMetastoreHost);
+    this.saveConfigsBatch(groups, this.get('addHiveServer') ? 'HIVE_SERVER' : 'HIVE_METASTORE', hiveMetastoreHost);
+    this.set('addHiveServer', false);
   },
 
   /**
