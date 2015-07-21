@@ -32,7 +32,7 @@ from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, validate_security_config_properties, get_params_from_filesystem, \
   FILE_TYPE_XML
-from resource_management.core.resources.system import File, Execute, Directory
+from resource_management.core.resources.system import File, Execute, Directory, Link
 from resource_management.core.resources.service import Service
 from resource_management.core.logger import Logger
 
@@ -148,9 +148,10 @@ class KnoxGatewayDefault(KnoxGateway):
     no_op_test = format('ls {knox_pid_file} >/dev/null 2>&1 && ps -p `cat {knox_pid_file}` >/dev/null 2>&1')
     setup_ranger_knox(rolling_upgrade=rolling_restart)
     # Used to setup symlink, needed to update the knox managed symlink, in case of custom locations
-    if os.path.islink(params.knox_managed_pid_symlink) and os.path.realpath(params.knox_managed_pid_symlink) != params.knox_pid_dir:
-      os.unlink(params.knox_managed_pid_symlink)
-      os.symlink(params.knox_pid_dir, params.knox_managed_pid_symlink)
+    if os.path.islink(params.knox_managed_pid_symlink):
+      Link(params.knox_managed_pid_symlink,
+           to = params.knox_pid_dir,
+      )
 
     Execute(daemon_cmd,
             user=params.knox_user,
@@ -196,7 +197,9 @@ class KnoxGatewayDefault(KnoxGateway):
             environment={'JAVA_HOME': params.java_home},
             user=params.knox_user,
             )
-    Execute (format("rm -f {ldap_pid_file}"))
+    File(params.ldap_pid_file,
+      action = "delete"
+    )
 
   def security_status(self, env):
     import status_params
