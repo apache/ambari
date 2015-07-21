@@ -19,7 +19,9 @@ limitations under the License.
 
 from unittest import TestCase
 from mock.mock import patch, MagicMock
-from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
+from only_for_platform import get_platform, not_for_platform, os_distro_value, PLATFORM_WINDOWS
+
+from ambari_commons.os_check import OSCheck
 
 import os
 import sys
@@ -32,9 +34,12 @@ if get_platform() != PLATFORM_WINDOWS:
   import resource_management.core.providers.system
   import grp
   import pwd
+else:
+  import resource_management.core.providers.windows.system
 
 
-@patch.object(System, "os_family", new = 'redhat')
+
+@patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
 class TestFileResource(TestCase):
   @patch.object(os.path, "dirname")
   @patch("resource_management.core.sudo.path_isdir")

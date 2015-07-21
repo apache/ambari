@@ -18,15 +18,17 @@ limitations under the License.
 
 from unittest import TestCase
 from mock.mock import patch, MagicMock
-from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
+from only_for_platform import get_platform, not_for_platform, os_distro_value, PLATFORM_WINDOWS
+
+from ambari_commons.os_check import OSCheck
 
 from resource_management.core import Environment, Fail
 from resource_management.core.resources import Group
 from resource_management.core.system import System
 
-import subprocess
 import os
 import select
+import subprocess
 
 if get_platform() != PLATFORM_WINDOWS:
   import grp
@@ -35,9 +37,9 @@ if get_platform() != PLATFORM_WINDOWS:
 
 subproc_stdout = MagicMock()
 
+@patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
 @patch.object(os, "read", new=MagicMock(return_value=None))
 @patch.object(select, "select", new=MagicMock(return_value=([subproc_stdout], None, None)))
-@patch.object(System, "os_family", new = 'redhat')
 @patch.object(os, "environ", new = {'PATH':'/bin'})
 @patch("pty.openpty", new = MagicMock(return_value=(1,5)))
 @patch.object(os, "close", new=MagicMock())

@@ -19,12 +19,16 @@ limitations under the License.
 import os
 
 from unittest import TestCase
-from mock.mock import patch
+from mock.mock import patch, MagicMock
+from only_for_platform import get_platform, not_for_platform, os_distro_value, PLATFORM_WINDOWS
+
+from ambari_commons.os_check import OSCheck
+
 from resource_management import *
 from resource_management.libraries.resources.execute_hadoop\
   import ExecuteHadoop
 
-@patch.object(System, "os_family", new = 'redhat')
+@patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
 class TestExecuteHadoopResource(TestCase):
   @patch("resource_management.core.providers.system.ExecuteProvider")
   def test_run_default_args(self, execute_mock):

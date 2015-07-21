@@ -18,7 +18,9 @@ limitations under the License.
 
 from unittest import TestCase
 from mock.mock import patch, MagicMock, call
-from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
+from only_for_platform import get_platform, not_for_platform, os_distro_value, PLATFORM_WINDOWS
+
+from ambari_commons.os_check import OSCheck
 
 from resource_management.core.system import System
 from resource_management.core.resources.system import Execute
@@ -36,7 +38,7 @@ if get_platform() != PLATFORM_WINDOWS:
 import select
 
 
-@patch.object(System, "os_family", new='redhat')
+@patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
 class TestExecuteResource(TestCase):
   @patch.object(os, "read")
   @patch.object(select, "select")

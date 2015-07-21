@@ -17,12 +17,17 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-from mock.mock import patch
+from mock.mock import patch, MagicMock
+
+from only_for_platform import get_platform, not_for_platform, os_distro_value, PLATFORM_WINDOWS
+
+from ambari_commons.os_check import OSCheck
+
 from resource_management import *
 from resource_management.libraries.resources.template_config \
   import TemplateConfig
 
-@patch.object(System, "os_family", new = 'redhat')
+@patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
 class TestTemplateConfigResource(TestCase):
 
   @patch("resource_management.libraries.providers.template_config.Template")

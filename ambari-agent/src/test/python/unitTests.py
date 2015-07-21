@@ -50,13 +50,8 @@ LOG_FILE_NAME='tests.log'
 SELECTED_PREFIX = "_"
 PY_EXT='.py'
 
-if get_platform() == PLATFORM_WINDOWS:
-  IGNORE_FOLDERS = ["resource_management"]
-else:
-  IGNORE_FOLDERS = ["resource_management_windows"]
 
 TEST_MASK = '[Tt]est*.py'
-
 class TestAgent(unittest.TestSuite):
   def run(self, result):
     run = unittest.TestSuite.run
@@ -92,7 +87,7 @@ def get_test_files(path, mask=None, recursive=True):
       if fnmatch.fnmatch(item, mask):
         add_to_pythonpath = True
         file_list.append(item)
-    elif os.path.isdir(p)and p not in IGNORE_FOLDERS:
+    elif os.path.isdir(p):
       if recursive:
         file_list.extend(get_test_files(p, mask=mask))
     if add_to_pythonpath:

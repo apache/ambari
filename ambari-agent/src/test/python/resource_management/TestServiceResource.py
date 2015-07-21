@@ -18,9 +18,16 @@ limitations under the License.
 
 from unittest import TestCase
 from mock.mock import patch, MagicMock
-from resource_management import *
+from only_for_platform import get_platform, not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
-@patch.object(System, "os_family", new = 'redhat')
+from ambari_commons.os_check import OSCheck
+
+from resource_management.core.environment import Environment
+from resource_management.core.exceptions import Fail
+from resource_management.core.resources.service import Service
+
+
+@patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
 class TestServiceResource(TestCase):
 
   @patch("resource_management.core.shell.call")
