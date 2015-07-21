@@ -26,11 +26,11 @@ from resource_management.libraries.functions.version import compare_versions, fo
 from resource_management.libraries.functions.format import format
 
 def get_lzo_packages(stack_version_unformatted):
-  lzo_packages = ["hadoop-lzo"]
+  lzo_packages = []
  
   if OSCheck.is_redhat_family() or OSCheck.is_suse_family():
     lzo_packages += ["lzo", "hadoop-lzo-native"]
-  elif  OSCheck.is_ubuntu_family():
+  elif OSCheck.is_ubuntu_family():
     lzo_packages += ["liblzo2-2"]
     
   underscored_version = stack_version_unformatted.replace('.', '_')
@@ -42,6 +42,7 @@ def get_lzo_packages(stack_version_unformatted):
       lzo_packages += [format("hadooplzo_{underscored_version}_*")]
     elif OSCheck.is_ubuntu_family():
       lzo_packages += [format("hadooplzo_{dashed_version}_*")]
+  else:
+    lzo_packages += ["hadoop-lzo"]
 
   return lzo_packages
-  
