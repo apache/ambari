@@ -1637,6 +1637,7 @@ module.exports =
       "name": "*.falcon.http.authentication.kerberos.name.rules",
       "displayName": "*.falcon.http.authentication.kerberos.name.rules",
       "category": "FalconStartupSite",
+      "displayType": "multiLine",
       "serviceName": "FALCON",
       "filename": "falcon-startup.properties.xml"
     },
