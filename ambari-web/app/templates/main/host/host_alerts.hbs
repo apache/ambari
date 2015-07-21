@@ -22,49 +22,53 @@
 
   {{#if App.router.mainAlertInstancesController.isLoaded}}
 
-  <table class="table advanced-header-table table-bordered table-striped alerts-table" id="host-alerts-table">
-    <thead>
+    <table class="table advanced-header-table table-bordered table-striped alerts-table" id="host-alerts-table">
+      <thead>
       {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
         {{view view.parentView.serviceSort class="first service-sorting"}}
         {{view view.parentView.nameSort class="name-sorting"}}
         {{view view.parentView.statusSort class="status-sorting"}}
         {{view view.parentView.textSort class="text-sorting"}}
       {{/view}}
-    <tr class="filter-row">
-      <th class="first">{{view view.serviceFilterView class="service-filter"}}</th>
-      <th>{{view view.nameFilterView class="name-filter"}}</th>
-      <th>{{view view.stateFilterView class="status-filter"}}</th>
-      <th>{{view view.textView class="text-filter"}}</th>
-    </tr>
-    </thead>
-    <tbody>
-    {{#if view.pageContent}}
-      {{#each alertInstance in view.pageContent}}
+      <tr class="filter-row">
+        <th class="first">{{view view.serviceFilterView class="service-filter"}}</th>
+        <th>{{view view.nameFilterView class="name-filter"}}</th>
+        <th>{{view view.stateFilterView class="status-filter"}}</th>
+        <th>{{view view.textView class="text-filter"}}</th>
+      </tr>
+      </thead>
+      <tbody>
+      {{#if view.pageContent}}
+        {{#each alertInstance in view.pageContent}}
+          <tr>
+            <td class="first">
+              {{#if alertInstance.isAmbariServiceName}}
+                {{alertInstance.serviceDisplayName}}
+              {{else}}
+                <a href="#" {{action routeToService alertInstance.service}}>{{alertInstance.serviceDisplayName}}</a>
+              {{/if}}
+            </td>
+            <td>
+              <a href="#" {{action routeToAlertDefinition alertInstance.definitionId target="controller"}}>{{alertInstance.label}}</a>
+            </td>
+            <td>{{{alertInstance.status}}}
+              <time class="timeago" {{bindAttr data-original-title="alertInstance.statusChangedAndLastCheckedFormatted"}}>{{alertInstance.lastTriggeredForFormatted}}</time>
+            </td>
+            <td><span
+                    class="alert-text" {{bindAttr data-original-title="alertInstance.escapeSpecialCharactersFromTooltip"}}
+                    class="alert-text">{{alertInstance.text}}</span></td>
+          </tr>
+        {{/each}}
+      {{else}}
         <tr>
           <td class="first">
-            {{#if alertInstance.isAmbariServiceName}}
-              {{alertInstance.serviceDisplayName}}
-            {{else}}
-              <a href="#" {{action routeToService alertInstance.service}}>{{alertInstance.serviceDisplayName}}</a>
-            {{/if}}
+            {{t alerts.table.noAlerts}}
           </td>
-          <td>
-            <a href="#" {{action routeToAlertDefinition alertInstance.definitionId target="controller"}}>{{alertInstance.label}}</a>
-          </td>
-          <td>{{{alertInstance.status}}} <time class="timeago" {{bindAttr data-original-title="alertInstance.statusChangedAndLastCheckedFormatted"}}>{{alertInstance.lastTriggeredForFormatted}}</time></td>
-          <td><span class="alert-text" {{bindAttr data-original-title="alertInstance.escapeSpecialCharactersFromTooltip"}} class="alert-text">{{alertInstance.text}}</span></td>
+          <td colspan="3"></td>
         </tr>
-      {{/each}}
-    {{else}}
-      <tr>
-        <td class="first">
-          {{t alerts.table.noAlerts}}
-        </td>
-        <td colspan="3"></td>
-      </tr>
-    {{/if}}
-    </tbody>
-  </table>
+      {{/if}}
+      </tbody>
+    </table>
 
   {{else}}
     <div class="spinner"></div>
@@ -74,7 +78,7 @@
     <div class="filtered-info span4">
       {{#if view.showFilteredContent}}
         <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
-            href="#">{{t tableView.filters.clearAllFilters}}</a></label>
+                href="#">{{t tableView.filters.clearAllFilters}}</a></label>
       {{/if}}
     </div>
     <div class="selected-hosts-info span4">
@@ -84,8 +88,10 @@
     </div>
     <div class="info">{{view.paginationInfo}}</div>
     <div class="paging_two_button">
-      <a {{bindAttr class="view.paginationLeftClass"}}{{action previousPage target="view"}}><i class="icon-arrow-left"></i></a>
-      <a {{bindAttr class="view.paginationRightClass"}}{{action nextPage target="view"}}><i class="icon-arrow-right"></i></a>
+      <a {{bindAttr class="view.paginationLeftClass"}}{{action previousPage target="view"}}><i
+              class="icon-arrow-left"></i></a>
+      <a {{bindAttr class="view.paginationRightClass"}}{{action nextPage target="view"}}><i
+              class="icon-arrow-right"></i></a>
     </div>
   </div>
 </div>

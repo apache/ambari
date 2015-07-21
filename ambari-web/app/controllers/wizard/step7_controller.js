@@ -66,13 +66,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   }.property(),
 
   /**
-   * uses for add service - find out is security is enabled
-   */
-  securityEnabled: function () {
-    return App.router.get('mainAdminKerberosController.securityEnabled');
-  }.property('App.router.mainAdminKerberosController.securityEnabled'),
-
-  /**
    * If configChangeObserver Modal is shown
    * @type {bool}
    */
@@ -667,7 +660,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }
     }, this);
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
-    if (this.get('securityEnabled') && this.get('wizardController.name') == 'addServiceController') {
+    if (App.get('isKerberosEnabled') && this.get('wizardController.name') == 'addServiceController') {
       this.addKerberosDescriptorConfigs(configs, this.get('wizardController.kerberosDescriptorConfigs') || []);
     }
     this.setStepConfigs(configs, storedConfigs);

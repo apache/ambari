@@ -146,13 +146,11 @@ describe('App.MainServiceItemController', function () {
 
       beforeEach(function () {
         sinon.stub(reassignMasterController, 'saveComponentToReassign', Em.K);
-        sinon.stub(reassignMasterController, 'getSecurityStatus', Em.K);
         sinon.stub(reassignMasterController, 'setCurrentStep', Em.K);
       });
 
       afterEach(function () {
         reassignMasterController.saveComponentToReassign.restore();
-        reassignMasterController.getSecurityStatus.restore();
         reassignMasterController.setCurrentStep.restore();
       });
 
@@ -168,7 +166,6 @@ describe('App.MainServiceItemController', function () {
         });
         mainServiceItemController.reassignMaster(test.componentName);
         expect(reassignMasterController.saveComponentToReassign.calledOnce).to.equal(test.result);
-        expect(reassignMasterController.getSecurityStatus.calledOnce).to.equal(test.result);
         expect(reassignMasterController.setCurrentStep.calledOnce).to.equal(test.result);
         App.HostComponent.find.restore();
         App.router.transitionTo.restore();

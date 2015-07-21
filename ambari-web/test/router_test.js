@@ -24,26 +24,24 @@ describe('App.Router', function () {
   var router = App.Router.create();
 
   describe('#loginSuccessCallback()', function() {
-    it('should log in user and load views', function () {
-      var mainViewsControllerMock = Em.Object.create({
-        loadAmbariViews: sinon.stub()
-      });
-      var userName = 'test';
+
+    beforeEach(function () {
       sinon.stub(App.usersMapper, 'map');
       sinon.stub(router, 'setUserLoggedIn');
-      sinon.stub(App.router, 'get').withArgs('mainViewsController').returns(mainViewsControllerMock);
       sinon.stub(App.ajax, 'send');
+    });
 
-      router.loginSuccessCallback({},{},{loginName: userName});
-
-      expect(mainViewsControllerMock.loadAmbariViews.calledOnce).to.be.true;
-      expect(router.setUserLoggedIn.calledOnce).to.be.true;
-      expect(router.setUserLoggedIn.calledWith(userName)).to.be.true;
-
+    afterEach(function() {
       App.usersMapper.map.restore();
       router.setUserLoggedIn.restore();
-      App.router.get.restore();
       App.ajax.send.restore();
+    });
+
+    it('should log in user and load views', function () {
+      var userName = 'test';
+      router.loginSuccessCallback({},{},{loginName: userName});
+      expect(router.setUserLoggedIn.calledOnce).to.be.true;
+      expect(router.setUserLoggedIn.calledWith(userName)).to.be.true;
     })
   });
 

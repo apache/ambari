@@ -24,61 +24,66 @@
     </a>
   </td>
   <td>
-    <span>
-      {{#view App.ComponentLiveTextView liveComponentsBinding="view.superVisorsLive" totalComponentsBinding="view.superVisorsTotal"}}
-        {{view.liveComponents}}/{{view.totalComponents}}
-      {{/view}}
-    </span> {{t services.service.summary.SupervisorsLIVE}}
+    {{#if App.router.clusterController.isComponentsStateLoaded}}
+      <span>
+        {{#view App.ComponentLiveTextView liveComponentsBinding="view.superVisorsLive" totalComponentsBinding="view.superVisorsTotal"}}
+          {{view.liveComponents}}/{{view.totalComponents}}
+        {{/view}}
+      </span> {{t services.service.summary.SupervisorsLIVE}}
+    {{else}}
+      {{t common.noData}}
+    {{/if}}
   </td>
 </tr>
 
 <!-- Divider-- make the remaining summary info on 2nd table-->
-    </tbody>
-  </table>
+</tbody>
+</table>
 </div>
 <div class="span6">
   <table class="summary-info table no-borders table-condensed">
     <tbody>
 
-<tr>
-  <td class="summary-label">
-    {{t services.service.summary.storm.freeslots}}
-  </td>
-  <td>
-    {{formatNull view.service.freeSlots}} / {{formatNull view.service.totalSlots}} ({{formatNull view.freeSlotsPercentage empty="0"}}% {{t common.free}})
-  </td>
-</tr>
-<tr>
-  <td class="summary-label">
-    {{t services.service.summary.storm.tasks}}
-  </td>
-  <td>
-    {{formatNull view.service.totalTasks}}
-  </td>
-</tr>
-<tr>
-  <td class="summary-label">
-    {{t services.service.summary.storm.executors}}
-  </td>
-  <td>
-    {{formatNull view.service.totalExecutors}}
-  </td>
-</tr>
-<tr>
-  <td class="summary-label">
-    {{t services.service.summary.storm.topologies}}
-  </td>
-  <td>
-    {{formatNull view.service.topologies}}
-  </td>
-</tr>
-<tr>
-  <td class="summary-label">
-    {{t services.service.summary.storm.nimbus.uptime}}
-  </td>
-  <td>
-    {{view.nimbusUptimeFormatted}}
-  </td>
-</tr>
+    <tr>
+      <td class="summary-label">
+        {{t services.service.summary.storm.freeslots}}
+      </td>
+      <td>
+        {{formatNull view.service.freeSlots}} / {{formatNull view.service.totalSlots}}
+        ({{formatNull view.freeSlotsPercentage empty="0"}}% {{t common.free}})
+      </td>
+    </tr>
+    <tr>
+      <td class="summary-label">
+        {{t services.service.summary.storm.tasks}}
+      </td>
+      <td>
+        {{formatNull view.service.totalTasks}}
+      </td>
+    </tr>
+    <tr>
+      <td class="summary-label">
+        {{t services.service.summary.storm.executors}}
+      </td>
+      <td>
+        {{formatNull view.service.totalExecutors}}
+      </td>
+    </tr>
+    <tr>
+      <td class="summary-label">
+        {{t services.service.summary.storm.topologies}}
+      </td>
+      <td>
+        {{formatNull view.service.topologies}}
+      </td>
+    </tr>
+    <tr>
+      <td class="summary-label">
+        {{t services.service.summary.storm.nimbus.uptime}}
+      </td>
+      <td>
+        {{view.nimbusUptimeFormatted}}
+      </td>
+    </tr>
 
 

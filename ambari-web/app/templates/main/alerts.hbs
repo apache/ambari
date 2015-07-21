@@ -31,13 +31,13 @@
   </div>
   <table class="table advanced-header-table table-bordered table-striped alerts-table" id="alert-definitions-table">
     <thead>
-      {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-        {{view view.parentView.nameSort class="first name-sorting"}}
-        {{view view.parentView.statusSort class="status-sorting"}}
-        {{view view.parentView.serviceSort class="service-sorting"}}
-        {{view view.parentView.lastTriggeredSort class="last-triggred-sorting"}}
-        {{view view.parentView.enabledSort class="enabled-sorting"}}
-      {{/view}}
+    {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+      {{view view.parentView.nameSort class="first name-sorting"}}
+      {{view view.parentView.statusSort class="status-sorting"}}
+      {{view view.parentView.serviceSort class="service-sorting"}}
+      {{view view.parentView.lastTriggeredSort class="last-triggred-sorting"}}
+      {{view view.parentView.enabledSort class="enabled-sorting"}}
+    {{/view}}
     <tr class="filter-row">
       <th class="first">{{view view.nameFilterView class="name-filter"}}</th>
       <th>{{view view.stateFilterView class="status-filter"}}</th>
@@ -47,62 +47,73 @@
     </tr>
     </thead>
     <tbody>
-    {{#if view.pageContent}}
-      {{#each alertDefinition in view.pageContent}}
-        <tr>
-          <td class="first">
-            <span {{bindAttr title="alertDefinition.type"}} {{bindAttr class=":type-icon  alertDefinition.typeIconClass"}}></span>
-            <a href="#" {{action "gotoAlertDetails" alertDefinition}}>{{alertDefinition.label}}</a>
-          </td>
-          <td>{{{alertDefinition.status}}}</td>
-          <td>{{alertDefinition.serviceDisplayName}}</td>
-          <td><time class="timeago" {{bindAttr data-original-title="alertDefinition.lastTriggeredFormatted"}}>{{alertDefinition.lastTriggeredAgoFormatted}}</time></td>
-          <td class="last toggle-state-button">
-            {{#if alertDefinition.enabled}}
-              {{#isAccessible ADMIN}}
-                <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
+    {{#if App.router.clusterController.isAlertsLoaded}}
+      {{#if view.pageContent}}
+        {{#each alertDefinition in view.pageContent}}
+          <tr>
+            <td class="first">
+              <span {{bindAttr title="alertDefinition.type"}} {{bindAttr class=":type-icon  alertDefinition.typeIconClass"}}></span>
+              <a href="#" {{action "gotoAlertDetails" alertDefinition}}>{{alertDefinition.label}}</a>
+            </td>
+            <td>{{{alertDefinition.status}}}</td>
+            <td>{{alertDefinition.serviceDisplayName}}</td>
+            <td>
+              <time class="timeago" {{bindAttr data-original-title="alertDefinition.lastTriggeredFormatted"}}>{{alertDefinition.lastTriggeredAgoFormatted}}</time>
+            </td>
+            <td class="last toggle-state-button">
+              {{#if alertDefinition.enabled}}
+                {{#isAccessible ADMIN}}
+                  <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
                   <span class="enable-disable-button" {{bindAttr data-original-title="view.enabledTooltip"}}>
                     {{view.enabledDisplay}}
                   </span>
-                </a>
-              {{/isAccessible}}
-              {{#isAccessible NON_ADMIN}}
-                <span {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
-                      {{t alerts.table.state.enabled}}
-                </span>
-              {{/isAccessible}}
-            {{else}}
-              {{#isAccessible ADMIN}}
-                <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
+                  </a>
+                {{/isAccessible}}
+                {{#isAccessible NON_ADMIN}}
+                  <span {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
+                    {{t alerts.table.state.enabled}}
+                  </span>
+                {{/isAccessible}}
+              {{else}}
+                {{#isAccessible ADMIN}}
+                  <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
                   <span class="enable-disable-button" {{bindAttr data-original-title="view.disabledTooltip"}}>
                     {{view.disabledDisplay}}
                   </span>
-                </a>
-              {{/isAccessible}}
-              {{#isAccessible NON_ADMIN}}
-                <span {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
-                      {{t alerts.table.state.disabled}}
-                </span>
-              {{/isAccessible}}
-            {{/if}}
+                  </a>
+                {{/isAccessible}}
+                {{#isAccessible NON_ADMIN}}
+                  <span {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
+                    {{t alerts.table.state.disabled}}
+                  </span>
+                {{/isAccessible}}
+              {{/if}}
+            </td>
+          </tr>
+        {{/each}}
+      {{else}}
+        <tr>
+          <td class="first"></td>
+          <td colspan="4">
+            {{t alerts.table.noAlerts}}
           </td>
         </tr>
-      {{/each}}
+      {{/if}}
     {{else}}
       <tr>
         <td class="first"></td>
-        <td colspan="4">
-          {{t alerts.table.noAlerts}}
+        <td colspan="2">
+          <div class="spinner"></div>
         </td>
       </tr>
-      {{/if}}
+    {{/if}}
     </tbody>
   </table>
 
   <div class="page-bar">
     <div class="filtered-info span4">
       <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
-          href="#">{{t tableView.filters.clearAllFilters}}</a></label>
+              href="#">{{t tableView.filters.clearAllFilters}}</a></label>
     </div>
     <div class="selected-hosts-info span4">
     </div>
@@ -111,8 +122,10 @@
     </div>
     <div class="info">{{view.paginationInfo}}</div>
     <div class="paging_two_button">
-      <a {{bindAttr class="view.paginationLeftClass"}}{{action previousPage target="view"}}><i class="icon-arrow-left"></i></a>
-      <a {{bindAttr class="view.paginationRightClass"}}{{action nextPage target="view"}}><i class="icon-arrow-right"></i></a>
+      <a {{bindAttr class="view.paginationLeftClass"}}{{action previousPage target="view"}}><i
+              class="icon-arrow-left"></i></a>
+      <a {{bindAttr class="view.paginationRightClass"}}{{action nextPage target="view"}}><i
+              class="icon-arrow-right"></i></a>
     </div>
   </div>
 </div>

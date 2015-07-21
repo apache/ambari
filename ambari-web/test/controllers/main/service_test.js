@@ -141,7 +141,7 @@ describe('App.MainServiceController', function () {
     ]).forEach(function(test) {
         it(test.m, function() {
           sinon.stub(App.router, 'get', function(k) {
-            if ('clusterController.isLoaded' === k) return test.isLoaded;
+            if ('clusterController.isClusterDataLoaded' === k) return test.isLoaded;
             return Em.get(App.router, k);
           });
           sinon.stub(App.Cluster, 'find', function() {

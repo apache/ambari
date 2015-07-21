@@ -121,14 +121,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   serviceConfigTags: [],
 
   /**
-   * Is cluster security enabled
-   * @type {bool}
-   */
-  securityEnabled: function () {
-    return App.router.get('mainAdminKerberosController.securityEnabled');
-  }.property('App.router.mainAdminKerberosController.securityEnabled'),
-
-  /**
    * Selected config group
    * @type {Object}
    */
@@ -742,7 +734,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       this.set('isSubmitDisabled', true);
       this.set('isBackBtnDisabled', true);
       wizardController.setLowerStepsDisable(wizardController.get('currentStep'));
-      if (this.get('content.controllerName') != 'installerController' && this.get('securityEnabled') && !this.get('isManualKerberos')) {
+      if (this.get('content.controllerName') != 'installerController' && App.get('isKerberosEnabled') && !this.get('isManualKerberos')) {
         App.get('router.mainAdminKerberosController').getKDCSessionState(this.submitProceed.bind(this), function () {
           self.set('isSubmitDisabled', false);
           self.set('isBackBtnDisabled', false);
@@ -990,7 +982,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     if (this.get('content.controllerName') !== 'addHostController') {
       if (this.get('content.controllerName') === 'addServiceController') {
         // for manually enabled Kerberos descriptor was updated on transition to this step
-        if (this.get('securityEnabled') && !this.get('isManualKerberos')) {
+        if (App.get('isKerberosEnabled') && !this.get('isManualKerberos')) {
           this.updateKerberosDescriptor();
         }
       }
@@ -1090,8 +1082,14 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     }, this);
 
     if (this.get('content.controllerName') === 'addHostController') {
+      var allServiceComponents = [];
+      var services = App.Service.find().mapProperty('serviceName');
+      services.forEach(function(_service){
+        var _serviceComponents = App.Service.find(_service).get('serviceComponents');
+        allServiceComponents = allServiceComponents.concat(_serviceComponents);
+      }, this);
       this.get('content.slaveComponentHosts').forEach(function (component) {
-        if (component.componentName !== 'CLIENT' && !App.serviceComponents.contains(component.componentName)) {
+        if (component.componentName !== 'CLIENT' && !allServiceComponents.contains(component.componentName)) {
           this.addRequestToCreateComponent(
               [{"ServiceComponentInfo": {"component_name": component.componentName}}],
               App.StackServiceComponent.find().findProperty('componentName', component.componentName).get('serviceName')
@@ -1099,7 +1097,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         }
       }, this);
       this.get('content.clients').forEach(function (component) {
-        if (!App.serviceComponents.contains(component.component_name)) {
+        if (!allServiceComponents.contains(component.component_name)) {
           this.addRequestToCreateComponent(
               [{"ServiceComponentInfo": {"component_name": component.component_name}}],
               App.StackServiceComponent.find().findProperty('componentName', component.component_name).get('serviceName')

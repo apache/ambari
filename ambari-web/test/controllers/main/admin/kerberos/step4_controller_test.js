@@ -284,7 +284,7 @@ describe('App.KerberosWizardStep4Controller', function() {
 
   describe('#loadStep', function() {
 
-    describe('skip "Configure Identities" step', function() {
+    describe('skip "Configure Identities" step. ', function() {
       beforeEach(function() {
         this.controller = App.KerberosWizardStep4Controller.create({});
         this.wizardController = App.AddServiceController.create({});
@@ -305,7 +305,7 @@ describe('App.KerberosWizardStep4Controller', function() {
       var tests = [
         {
           securityEnabled: true,
-          stepSkipped: false,
+          stepSkipped: false
         },
         {
           securityEnabled: false,
@@ -314,10 +314,10 @@ describe('App.KerberosWizardStep4Controller', function() {
       ];
 
       tests.forEach(function(test) {
-        it('security {0} configure identities step should be {1}'.format(!!test.securityEnabled ? 'enabled' : 'disabled', !!test.stepSkipped ? 'skipped' : 'not skipped'), function() {
-          sinon.stub(App.router, 'get').withArgs('mainAdminKerberosController.securityEnabled').returns(test.securityEnabled);
+        it('Security {0} configure identities step should be {1}'.format(!!test.securityEnabled ? 'enabled' : 'disabled', !!test.stepSkipped ? 'skipped' : 'not skipped'), function() {
+          sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(test.securityEnabled);
           this.wizardController.checkSecurityStatus();
-          App.router.get.restore();
+          App.get.restore();
           this.controller.loadStep();
           expect(App.router.send.calledWith('next')).to.be.eql(test.stepSkipped);
         });

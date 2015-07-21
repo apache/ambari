@@ -53,7 +53,7 @@ App.SuperVisorUpView = App.TextDashboardWidgetView.extend({
   }.property('model.superVisorsTotal'),
 
   data: function () {
-    if ( !this.get('superVisorsTotal')) {
+    if ( !this.get('superVisorsTotal') || Em.isNone(this.get('superVisorsLive'))) {
       return -1;
     } else {
       return ((this.get('superVisorsLive') / this.get('superVisorsTotal')).toFixed(2)) * 100;
@@ -61,7 +61,11 @@ App.SuperVisorUpView = App.TextDashboardWidgetView.extend({
   }.property('superVisorsTotal', 'superVisorsLive'),
 
   content: function () {
-    return this.get('superVisorsLive') + "/" + this.get('superVisorsTotal');
+    if (!Em.isNone(this.get('superVisorsTotal')) && !Em.isNone(this.get('superVisorsLive'))) {
+      return this.get('superVisorsLive') + "/" + this.get('superVisorsTotal');
+    } else {
+      return Em.I18n.t('services.service.summary.notAvailable');
+    }
   }.property('superVisorsLive', 'superVisorsTotal'),
 
   editWidget: function (event) {

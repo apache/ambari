@@ -1209,7 +1209,7 @@ var urls = {
     }
   },
   'cluster.load_cluster_name': {
-    'real': '/clusters',
+    'real': '/clusters?fields=Clusters/security_type',
     'mock': '/data/clusters/info.json'
   },
   'cluster.load_last_upgrade': {

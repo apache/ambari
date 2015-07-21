@@ -19,13 +19,18 @@
 
 <!-- NodeManagers -->
 <tr>
-  <td class="summary-label"><a href="#" {{action filterHosts view.nodeManagerComponent}}>{{t dashboard.services.yarn.nodeManagers}}</a></td>
+  <td class="summary-label"><a
+          href="#" {{action filterHosts view.nodeManagerComponent}}>{{t dashboard.services.yarn.nodeManagers}}</a></td>
   <td>
-    <span>
-      {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nodeManagersStarted" totalComponentsBinding="view.service.nodeManagersTotal"}}
-        {{view.liveComponents}}/{{view.totalComponents}}
-      {{/view}}
-    </span>{{t common.started}}
+    {{#if App.router.clusterController.isComponentsStateLoaded}}
+      <span>
+        {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nodeManagersStarted" totalComponentsBinding="view.service.nodeManagersTotal"}}
+          {{view.liveComponents}}/{{view.totalComponents}}
+        {{/view}}
+      </span>{{t common.started}}
+    {{else}}
+      {{t common.noData}}
+    {{/if}}
   </td>
 </tr>
 <!-- NodeManagers status -->
@@ -36,7 +41,7 @@
 <!-- YARN Clients -->
 <tr>
   <td class="summary-label"><a {{action filterHosts view.yarnClientComponent}}
-      href="javascript:void(null)">{{pluralize view.service.installedClients singular="t:dashboard.services.yarn.client" plural="t:dashboard.services.yarn.clients"}}</a>
+          href="javascript:void(null)">{{pluralize view.service.installedClients singular="t:dashboard.services.yarn.client" plural="t:dashboard.services.yarn.clients"}}</a>
   </td>
   <td>
     <span class="green-live">{{view.service.installedClients}} </span>
@@ -50,37 +55,37 @@
 </tr>
 
 <!-- Divider-- make the remaining summary info on 2nd table-->
-    </tbody>
-  </table>
+</tbody>
+</table>
 </div>
 <div class="span6">
   <table class="summary-info table no-borders table-condensed">
     <tbody>
 
-<!-- ResourceManager Heap -->
-<tr>
-  <td class="summary-label">{{t dashboard.services.resourceManager.nodes.heap}}</td>
-  <td>{{view.nodeHeap}}</td>
-</tr>
-<!-- Containers -->
-<tr>
-  <td class="summary-label">{{t dashboard.services.yarn.containers}}</td>
-  <td>{{view.containers}}</td>
-</tr>
-<!-- Applications -->
-<tr>
-  <td class="summary-label">{{t dashboard.services.yarn.apps}}</td>
-  <td>{{view.apps}}</td>
-</tr>
-<!-- Memory -->
-<tr>
-  <td class="summary-label">{{t dashboard.services.yarn.memory}}</td>
-  <td>{{view.memory}}</td>
-</tr>
-<!-- Queues -->
-<tr>
-  <td class="summary-label">{{t dashboard.services.yarn.queues}}</td>
-  <td><span rel="queue-tooltip"
-            class="text-tooltip" {{bindAttr data-original-title="view.service.queueFormatted" }}>{{view.queues}}</span>
-  </td>
-</tr>
+    <!-- ResourceManager Heap -->
+    <tr>
+      <td class="summary-label">{{t dashboard.services.resourceManager.nodes.heap}}</td>
+      <td>{{view.nodeHeap}}</td>
+    </tr>
+    <!-- Containers -->
+    <tr>
+      <td class="summary-label">{{t dashboard.services.yarn.containers}}</td>
+      <td>{{view.containers}}</td>
+    </tr>
+    <!-- Applications -->
+    <tr>
+      <td class="summary-label">{{t dashboard.services.yarn.apps}}</td>
+      <td>{{view.apps}}</td>
+    </tr>
+    <!-- Memory -->
+    <tr>
+      <td class="summary-label">{{t dashboard.services.yarn.memory}}</td>
+      <td>{{view.memory}}</td>
+    </tr>
+    <!-- Queues -->
+    <tr>
+      <td class="summary-label">{{t dashboard.services.yarn.queues}}</td>
+      <td><span rel="queue-tooltip"
+                class="text-tooltip" {{bindAttr data-original-title="view.service.queueFormatted" }}>{{view.queues}}</span>
+      </td>
+    </tr>

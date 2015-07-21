@@ -2113,7 +2113,6 @@ App.MainHostDetailsController = Em.Controller.extend({
       var component = event.context;
       var reassignMasterController = App.router.get('reassignMasterController');
       reassignMasterController.saveComponentToReassign(component);
-      reassignMasterController.getSecurityStatus();
       reassignMasterController.setCurrentStep('1');
       App.router.transitionTo('reassign');
     });

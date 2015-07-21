@@ -42,17 +42,29 @@ App.DataNodeUpView = App.TextDashboardWidgetView.extend({
   maxValue: 100,
 
   dataNodesLive: function () {
-    return this.get('model.metricsNotAvailable') ? Em.I18n.t('services.service.summary.notAvailable') : this.get('model.liveDataNodes.length');
+    if (!Em.isNone(this.get('model.liveDataNodes')) && !this.get('model.metricsNotAvailable')) {
+      return this.get('model.liveDataNodes.length');
+    } else {
+      return   Em.I18n.t('services.service.summary.notAvailable');
+    }
   }.property('model.liveDataNodes.length'),
   dataNodesDead: function () {
-    return this.get('model.metricsNotAvailable') ? Em.I18n.t('services.service.summary.notAvailable') : this.get('model.deadDataNodes.length');
+    if (!Em.isNone(this.get('model.deadDataNodes')) && !this.get('model.metricsNotAvailable')) {
+      return this.get('model.deadDataNodes.length');
+    } else {
+      return   Em.I18n.t('services.service.summary.notAvailable');
+    }
   }.property('model.deadDataNodes.length'),
   dataNodesDecom: function () {
-    return this.get('model.metricsNotAvailable') ? Em.I18n.t('services.service.summary.notAvailable') : this.get('model.decommissionDataNodes.length');
+    if (!Em.isNone(this.get('model.decommissionDataNodes')) && !this.get('model.metricsNotAvailable')) {
+      return this.get('model.decommissionDataNodes.length');
+    } else {
+      return   Em.I18n.t('services.service.summary.notAvailable');
+    }
   }.property('model.decommissionDataNodes.length'),
 
   data: function () {
-    if (this.get('model.metricsNotAvailable')) {
+    if (Em.isNone(this.get('model.liveDataNodes')) || Em.isNone(this.get('model.dataNodesTotal')) || this.get('model.metricsNotAvailable')) {
       return null;
     } else {
       return ((this.get('dataNodesLive') / this.get('model.dataNodesTotal')).toFixed(2)) * 100;
@@ -60,7 +72,11 @@ App.DataNodeUpView = App.TextDashboardWidgetView.extend({
   }.property('model.dataNodesTotal', 'dataNodesLive'),
 
   content: function () {
-    return this.get('model.metricsNotAvailable') ? Em.I18n.t('services.service.summary.notAvailable') : this.get('dataNodesLive') + "/" + this.get('model.dataNodesTotal');
+    if (Em.isNone(this.get('model.liveDataNodes')) || Em.isNone(this.get('model.dataNodesTotal')) || this.get('model.metricsNotAvailable')) {
+      return  Em.I18n.t('services.service.summary.notAvailable');
+    } else {
+      return this.get('dataNodesLive') + "/" + this.get('model.dataNodesTotal');
+    }
   }.property('model.dataNodesTotal', 'dataNodesLive'),
 
   editWidget: function (event) {

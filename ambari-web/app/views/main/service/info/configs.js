@@ -24,7 +24,10 @@ App.MainServiceInfoConfigsView = Em.View.extend({
   templateName: require('templates/main/service/info/configs'),
 
   didInsertElement: function () {
-    this.get('controller').loadStep();
+    var self = this;
+    App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isConfigsPropertiesLoaded').done(function () {
+      self.get('controller').loadStep();
+    });
   },
 
   /**

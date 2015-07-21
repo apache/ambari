@@ -757,7 +757,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * @return {Boolean}
    */
   setSecureConfigs: function (secureConfigs, configs, componentName) {
-    var securityEnabled = this.get('content.securityEnabled');
+    var securityEnabled = App.get('isKerberosEnabled');
     var component = this.get('secureConfigsMap').findProperty('componentName', componentName);
     if (Em.isNone(component) || !securityEnabled) return false;
 
