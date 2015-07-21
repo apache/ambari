@@ -253,6 +253,8 @@ public class ControllerModule extends AbstractModule {
       dataSource.setInitialPoolSize(configuration.getConnectionPoolMinimumSize());
       dataSource.setMaxPoolSize(configuration.getConnectionPoolMaximumSize());
       dataSource.setAcquireIncrement(configuration.getConnectionPoolAcquisitionSize());
+      dataSource.setAcquireRetryAttempts(configuration.getConnectionPoolAcquisitionRetryAttempts());
+      dataSource.setAcquireRetryDelay(configuration.getConnectionPoolAcquisitionRetryDelay());
 
       // validity
       dataSource.setMaxConnectionAge(configuration.getConnectionPoolMaximumAge());

@@ -420,6 +420,8 @@ public class ConfigurationTest {
     Assert.assertEquals(14400, configuration.getConnectionPoolMaximumIdle());
     Assert.assertEquals(32, configuration.getConnectionPoolMaximumSize());
     Assert.assertEquals(5, configuration.getConnectionPoolMinimumSize());
+    Assert.assertEquals(30, configuration.getConnectionPoolAcquisitionRetryAttempts());
+    Assert.assertEquals(1000, configuration.getConnectionPoolAcquisitionRetryDelay());
 
     ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL, ConnectionPoolType.C3P0.getName());
     ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL_MIN_SIZE, "1");
@@ -429,6 +431,9 @@ public class ConfigurationTest {
     ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME, "5");
     ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS, "6");
     ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL, "7");
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_ATTEMPTS, "8");
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_DELAY, "9");
+
 
     Assert.assertEquals(ConnectionPoolType.C3P0, configuration.getConnectionPoolType());
     Assert.assertEquals(3, configuration.getConnectionPoolAcquisitionSize());
@@ -438,6 +443,8 @@ public class ConfigurationTest {
     Assert.assertEquals(5, configuration.getConnectionPoolMaximumIdle());
     Assert.assertEquals(2, configuration.getConnectionPoolMaximumSize());
     Assert.assertEquals(1, configuration.getConnectionPoolMinimumSize());
+    Assert.assertEquals(8, configuration.getConnectionPoolAcquisitionRetryAttempts());
+    Assert.assertEquals(9, configuration.getConnectionPoolAcquisitionRetryDelay());
   }
 
   @Test
