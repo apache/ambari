@@ -53,16 +53,18 @@ def get_test_files(path, mask = None, recursive=True):
   """
   current = []
   directory_items = os.listdir(path)
+  directory_items.sort()
 
   for item in directory_items:
     add_to_pythonpath = False
-    if os.path.isfile(path + "/" + item):
+    item_path = os.path.join(path, item)
+    if os.path.isfile(item_path):
       if fnmatch.fnmatch(item, mask):
         add_to_pythonpath = True
         current.append(item)
-    elif os.path.isdir(path + "/" + item):
+    elif os.path.isdir(item_path):
       if recursive:
-        current.extend(get_test_files(path + "/" + item, mask = mask))
+        current.extend(get_test_files(item_path, mask = mask))
     if add_to_pythonpath:
       sys.path.append(path)
   return current

@@ -19,12 +19,12 @@ limitations under the License.
 '''
 import logging
 from unittest import TestCase
-
-from application_metric_map import ApplicationMetricMap
-from metric_collector import MetricsCollector
-from event_definition import HostMetricCollectEvent
 from mock.mock import patch
-from host_info import HostInfo
+
+from core.application_metric_map import ApplicationMetricMap
+from core.metric_collector import MetricsCollector
+from core.event_definition import HostMetricCollectEvent
+from core.host_info import HostInfo
 
 logger = logging.getLogger()
 
