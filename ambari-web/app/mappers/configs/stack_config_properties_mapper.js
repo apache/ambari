@@ -72,6 +72,20 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
                 type : dep.StackConfigurationDependency.dependency_type,
                 name : dep.StackConfigurationDependency.dependency_name
               });
+              var service = App.StackService.find(config.StackConfigurations.service_name);
+              var dependentService = App.config.getServiceByConfigType(dep.StackConfigurationDependency.dependency_type);
+              if (dependentService && service && dependentService.get('serviceName') != service.get('serviceName') && !service.get('dependentServiceNames').contains(dependentService.get('serviceName'))) {
+                service.set('dependentServiceNames', service.get('dependentServiceNames').concat(dependentService.get('serviceName')));
+              }
+            });
+          }
+          if (Em.get(config, 'config.StackConfigurations.property_depends_on.length') > 0) {
+            config.StackConfigurations.property_depends_on.forEach(function(dep) {
+              var service = App.StackService.find(config.StackConfigurations.service_name);
+              var dependentService = App.config.getServiceByConfigType(dep.type);
+              if (dependentService && service && dependentService.get('serviceName') != service.get('serviceName') && !service.get('dependentServiceNames').contains(dependentService.get('serviceName'))) {
+                service.set('dependentServiceNames', service.get('dependentServiceNames').concat(dependentService.get('serviceName')));
+              }
             });
           }
           /**
@@ -84,10 +98,6 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
         }, this);
       }, this);
       App.store.loadMany(this.get('model'), configs);
-
-      App.StackService.find().filterProperty('id').forEach(function(service) {
-        this.setDependentServices(service);
-      }, this);
     }
     console.timeEnd('stackConfigPropertiesMapper execution time');
   },
@@ -125,44 +135,5 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
    */
   getUIConfig: function(propertyName, siteName) {
     return App.config.get('preDefinedSitePropertiesMap')[App.config.configId(propertyName, siteName)];
-  },
-
-  /**
-   * runs <code>setDependentServicesAndFileNames<code>
-   * for stack properties for current service
-   * @method loadDependentConfigs
-   */
-  setDependentServices: function(service) {
-    App.StackConfigProperty.find().filterProperty('serviceName', service.get('serviceName')).forEach(function(stackProperty) {
-      if (stackProperty.get('propertyDependedBy.length')) {
-        this._setDependentServices(stackProperty, 'propertyDependedBy', service);
-      }
-      if (stackProperty.get('propertyDependsOn.length')) {
-        this._setDependentServices(stackProperty, 'propertyDependsOn', service);
-      }
-    }, this);
-  },
-  /**
-   * defines service names for configs and set them to <code>dependentServiceNames<code>
-   * @param {App.StackConfigProperty} stackProperty
-   * @param {String} [key='propertyDependedBy'] - attribute to check dependent configs
-   * @param service
-   * @private
-   */
-  _setDependentServices: function(stackProperty, key, service) {
-    key = key || 'propertyDependedBy';
-    if (stackProperty.get(key + '.length') > 0) {
-      stackProperty.get(key).forEach(function(dependent) {
-        var tag = App.config.getConfigTagFromFileName(dependent.type);
-        /** setting dependent serviceNames (without current serviceName) **/
-        var dependentProperty = App.StackConfigProperty.find(App.config.configId(dependent.name, tag));
-        if (dependentProperty) {
-          if (dependentProperty.get('serviceName') && dependentProperty.get('serviceName') != service.get('serviceName') && !service.get('dependentServiceNames').contains(dependentProperty.get('serviceName'))) {
-            service.set('dependentServiceNames', service.get('dependentServiceNames').concat([dependentProperty.get('serviceName')]));
-          }
-          this._setDependentServices(dependentProperty, key, service);
-        }
-      }, this);
-    }
   }
 });

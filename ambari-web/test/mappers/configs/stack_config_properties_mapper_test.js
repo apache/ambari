@@ -162,9 +162,11 @@ describe('App.stackConfigPropertiesMapper', function () {
     beforeEach(function () {
       App.resetDsStoreTypeMap(App.StackConfigProperty);
       sinon.stub(App.store, 'commit', Em.K);
+      sinon.stub(App.StackService, 'find', function() { return Em.A()});
     });
     afterEach(function(){
       App.store.commit.restore();
+      App.StackService.find.restore();
     });
 
     it('should not do anything as there is no json', function() {
