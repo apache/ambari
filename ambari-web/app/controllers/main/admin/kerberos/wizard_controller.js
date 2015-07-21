@@ -30,6 +30,7 @@ App.KerberosWizardController = App.WizardController.extend({
 
   isKerberosWizard: true,
 
+  stackConfigsLoaded: false,
   /**
    * Used for hiding back button in wizard
    */
@@ -153,21 +154,6 @@ App.KerberosWizardController = App.WizardController.extend({
     this.set('content.serviceConfigProperties', serviceConfigProperties);
   },
 
-  /**
-   * load advanced configs from server
-   */
-  loadAdvancedConfigs: function (dependentController) {
-    var self = this;
-    var loadAdvancedConfigResult = [];
-    dependentController.set('isAdvancedConfigLoaded', false);
-    var serviceName = this.get('content.serviceName');
-    App.config.loadAdvancedConfig(serviceName, function (properties) {
-      loadAdvancedConfigResult.pushObjects(properties);
-      self.set('content.advancedServiceConfig', loadAdvancedConfigResult);
-      dependentController.set('isAdvancedConfigLoaded', true);
-    });
-  },
-
   loadKerberosDescriptorConfigs: function () {
     var kerberosDescriptorConfigs = this.getDBProperty('kerberosDescriptorConfigs');
     this.set('kerberosDescriptorConfigs', kerberosDescriptorConfigs);
@@ -268,9 +254,13 @@ App.KerberosWizardController = App.WizardController.extend({
       {
         type: 'sync',
         callback: function () {
-          var kerberosStep2controller = App.get('router.kerberosWizardStep2Controller');
-          this.loadAdvancedConfigs(kerberosStep2controller);
+          var self = this;
           this.loadServiceConfigProperties();
+          if (!this.get('stackConfigsLoaded')) {
+            App.config.loadConfigsFromStack(['KERBEROS']).complete(function() {
+              self.set('stackConfigsLoaded', true);
+            }, this);
+          }
         }
       }
     ],

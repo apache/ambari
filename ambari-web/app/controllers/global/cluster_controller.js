@@ -285,6 +285,7 @@ App.ClusterController = Em.Controller.extend({
           });
 
           updater.updateServiceMetric(function () {
+            App.config.loadClusterConfigsFromStack();
             App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName')).complete(function () {
               updater.updateComponentConfig(function () {
                 self.updateLoadStatus('componentConfigs');

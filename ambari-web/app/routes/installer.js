@@ -301,11 +301,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
     connectOutlets: function (router, context) {
       var controller = router.get('installerController');
-
+      var wizardStep7Controller = router.get('wizardStep7Controller');
       controller.loadAllPriorSteps().done(function () {
-        var wizardStep7Controller = router.get('wizardStep7Controller');
-        controller.loadAdvancedConfigs(wizardStep7Controller);
-        wizardStep7Controller.set('isAdvancedConfigLoaded', false);
         wizardStep7Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep7', controller.get('content'));
       });

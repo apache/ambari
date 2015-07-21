@@ -34,25 +34,34 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
     property_depended_by: 'StackConfigurations.property_depended_by',
     property_depends_on: 'StackConfigurations.property_depends_on',
     value_attributes: 'StackConfigurations.property_value_attributes',
-    is_final: 'default_is_final',
-    recommended_is_final: 'default_is_final',
+    is_final: 'recommended_is_final',
+    recommended_is_final: 'recommended_is_final',
     supports_final: 'supports_final',
     widget: 'widget',
     /**** ui properties ***/
     display_type: 'display_type',
-    category: 'category'
+    category: 'category',
+    index: 'index'
   },
 
   map: function (json) {
-    console.time('stackConfigMapper execution time');
+    console.time('stackConfigPropertiesMapper execution time');
+    if (json && json.Versions) {
+      //hack for cluster versions
+      json = {items: [json]};
+      var clusterConfigs = true;
+    }
     if (json && json.items) {
       var configs = [];
       json.items.forEach(function(stackItem) {
-        var configTypeInfo = Em.get(stackItem, 'StackServices.config_types');
+        var configTypeInfo = clusterConfigs ? Em.get(stackItem, 'Versions.config_types') : Em.get(stackItem, 'StackServices.config_types');
 
         stackItem.configurations.forEach(function(config) {
+          if (clusterConfigs) {
+            config.StackConfigurations = config.StackLevelConfigurations;
+          }
           var configType = App.config.getConfigTagFromFileName(config.StackConfigurations.type);
-          config.id = config.StackConfigurations.property_name + '_' + configType;
+          config.id = App.config.configId(config.StackConfigurations.property_name, configType);
           config.recommended_is_final = config.StackConfigurations.final === "true";
           config.supports_final = !!configTypeInfo[configType] && configTypeInfo[configType].supports.final === "true";
           // Map from /dependencies to property_depended_by
@@ -80,7 +89,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
         this.setDependentServices(service);
       }, this);
     }
-    console.timeEnd('stackConfigMapper execution time');
+    console.timeEnd('stackConfigPropertiesMapper execution time');
   },
 
   /******************* METHODS TO MERGE STACK PROPERTIES WITH STORED ON UI *********************************/
@@ -92,17 +101,18 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
    * @method mergeWithUI
    */
   mergeWithUI: function(config) {
-    var uiConfigProperty = this.getUIConfig(config.StackConfigurations.property_name, config.StackConfigurations.type);
-    var displayType = App.permit(App.config.advancedConfigIdentityData(config.StackConfigurations), 'displayType').displayType || 'string';
-    if (!config.StackConfigurations.property_display_name) {
-      config.StackConfigurations.property_display_name = uiConfigProperty && uiConfigProperty.displayName ? uiConfigProperty.displayName : config.StackConfigurations.property_name;
+    var c = config.StackConfigurations;
+    var uiConfigProperty = this.getUIConfig(c.property_name, c.type);
+    var advancedData = App.config.advancedConfigIdentityData(c);
+
+    if (!c.property_display_name) {
+      c.property_display_name = App.config.getPropertyIfExists('displayName', App.config.getDefaultDisplayName(c.property_name, c.type), advancedData, uiConfigProperty);
     }
-    config.category = uiConfigProperty ? uiConfigProperty.category : 'Advanced ' + App.config.getConfigTagFromFileName(config.StackConfigurations.type);
-    if (App.config.isContentProperty(config.StackConfigurations.property_name, config.StackConfigurations.type)) {
-      config.display_type = 'content';
-    } else {
-      config.display_type = uiConfigProperty ? uiConfigProperty.displayType || displayType : displayType;
-    }
+    c.service_name = App.config.getPropertyIfExists('serviceName', c.service_name, advancedData, uiConfigProperty);
+
+    config.category = App.config.getPropertyIfExists('category', App.config.getDefaultCategory(true, c.type), advancedData, uiConfigProperty);
+    config.display_type = App.config.getPropertyIfExists('displayType', App.config.getDefaultDisplayType(c.property_name, c.type, c.property_value), advancedData, uiConfigProperty);
+    config.index = App.config.getPropertyIfExists('index', null, advancedData, uiConfigProperty);
   },
 
   /**
@@ -114,7 +124,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
    * @method getUIConfig
    */
   getUIConfig: function(propertyName, siteName) {
-    return App.config.get('preDefinedSiteProperties').filterProperty('filename', siteName).findProperty('name', propertyName);
+    return App.config.get('preDefinedSitePropertiesMap')[App.config.configId(propertyName, siteName)];
   },
 
   /**
@@ -145,7 +155,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
       stackProperty.get(key).forEach(function(dependent) {
         var tag = App.config.getConfigTagFromFileName(dependent.type);
         /** setting dependent serviceNames (without current serviceName) **/
-        var dependentProperty = App.StackConfigProperty.find(dependent.name + "_" + tag);
+        var dependentProperty = App.StackConfigProperty.find(App.config.configId(dependent.name, tag));
         if (dependentProperty) {
           if (dependentProperty.get('serviceName') && dependentProperty.get('serviceName') != service.get('serviceName') && !service.get('dependentServiceNames').contains(dependentProperty.get('serviceName'))) {
             service.set('dependentServiceNames', service.get('dependentServiceNames').concat([dependentProperty.get('serviceName')]));

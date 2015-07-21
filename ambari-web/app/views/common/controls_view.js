@@ -94,7 +94,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
       var saveRecommended = (this.get('config.value') === this.get('config.recommendedValue'));
       var controller = this.get('controller');
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
-      var p = App.StackConfigProperty.find(name + '_' + type);
+      var p = App.StackConfigProperty.find(App.config.configId(name, type));
       if (p && p.get('propertyDependedBy.length') > 0) {
         return controller.getRecommendationsForDependencies([{
           "type": type,

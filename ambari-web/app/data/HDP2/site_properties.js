@@ -181,6 +181,7 @@ var hdp2properties = [
     "isRequiredByAgent": false,
     "isVisible": false,
     "category": "Advanced hdfs-site",
+    "filename": "hdfs-site.xml",
     "serviceName": "HDFS"
   },
   {

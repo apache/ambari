@@ -143,8 +143,8 @@ describe('App.themeMapper', function () {
 
     it('should map theme data', function () {
 
-      App.StackConfigProperty.createRecord({id: 'p1_c1'});
-      App.StackConfigProperty.createRecord({id: 'p2_c1'});
+      App.StackConfigProperty.createRecord({id: 'p1__c1'});
+      App.StackConfigProperty.createRecord({id: 'p2__c1'});
 
       App.themesMapper.map(json);
 
@@ -194,7 +194,7 @@ describe('App.themeMapper', function () {
 
       //checking stack config object
       var config = App.Tab.find('HDFS_settings').get('sections').objectAt(0).get('subSections').objectAt(0).get('configProperties').objectAt(0);
-      expect(config.get('id')).to.eql("p1_c1");
+      expect(config.get('id')).to.eql("p1__c1");
       expect(config.get('subSection.id')).to.eql("subsection1");
       expect(config.get('widget')).to.eql({
         "type": "slider",
@@ -229,7 +229,7 @@ describe('App.themeMapper', function () {
 
   describe('#getConfigId', function () {
     it('gets configs id from json', function () {
-      expect(App.themesMapper.getConfigId({config: "c1/p1"})).to.equal("p1_c1");
+      expect(App.themesMapper.getConfigId({config: "c1/p1"})).to.equal("p1__c1");
     });
     it('returns null as data is invalid', function () {
       expect(App.themesMapper.getConfigId({configs: "c1/p1"})).to.equal(null);

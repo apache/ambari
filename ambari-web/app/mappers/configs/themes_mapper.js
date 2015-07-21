@@ -164,7 +164,7 @@ App.themesMapper = App.QuickDataMapper.create({
   getConfigId: function(json) {
     if (json && json.config && typeof json.config === "string") {
       var split = json.config.split("/");
-      return split[1] + "_" + split[0];
+      return App.config.configId(split[1], split[0]);
     } else {
       console.warn('getConfigId: invalid input data');
       return null;

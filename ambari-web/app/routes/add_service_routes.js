@@ -201,7 +201,6 @@ module.exports = App.WizardRoute.extend({
       controller.dataLoading().done(function () {
         var wizardStep7Controller = router.get('wizardStep7Controller');
         controller.loadAllPriorSteps().done(function () {
-          controller.loadAdvancedConfigs(wizardStep7Controller);
           wizardStep7Controller.getConfigTags();
           wizardStep7Controller.set('wizardController', controller);
           controller.usersLoading().done(function () {

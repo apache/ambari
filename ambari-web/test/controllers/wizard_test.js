@@ -92,49 +92,6 @@ describe('App.WizardController', function () {
     });
   });
 
-  describe('#loadAdvancedConfigs', function() {
-    beforeEach(function () {
-      sinon.stub(App.config, 'loadClusterConfig', function(callback){
-        callback();
-      });
-      sinon.stub(App.config, 'loadAdvancedConfigAll', function(val,callback) {
-        var properties = {
-          "s1" : [
-            {
-              supportsFinal: '',
-              filename: 'name'
-            }
-          ]
-        };
-        callback(properties);
-      });
-    });
-    afterEach(function () {
-      App.config.loadClusterConfig.restore();
-      App.config.loadAdvancedConfigAll.restore();
-    });
-    it('Should load configs', function() {
-      var data = Em.Object.create({
-        isAdvancedConfigLoaded: true
-      });
-      var services = Em.A([
-        Em.Object.create({
-          isInstalled: true,
-          serviceName: 's1'
-        })
-      ]);
-      wizardController.set('content.services', services);
-      wizardController.loadAdvancedConfigs(data);
-      var res = JSON.parse(JSON.stringify(wizardController.get('content.advancedServiceConfig')));
-      expect(res).to.be.eql([
-        {
-          "supportsFinal": false,
-          "filename": "name"
-        }
-      ]);
-    });
-  });
-
   describe('#launchBootstrapSuccessCallback', function() {
     it('Save bootstrapRequestId', function() {
       var data = {requestId: 123};

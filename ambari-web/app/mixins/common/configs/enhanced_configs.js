@@ -556,7 +556,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
       var properties = configs[siteName].property_attributes || {};
       Em.keys(properties).forEach(function (propertyName) {
         var cp = configProperties.findProperty('name', propertyName);
-        var stackProperty = App.StackConfigProperty.find().findProperty('id', propertyName + '_' + siteName);
+        var stackProperty = App.StackConfigProperty.find().findProperty('id', App.config.configId(propertyName, siteName));
         var attributes = properties[propertyName] || {};
         Em.keys(attributes).forEach(function (attributeName) {
           if (attributeName == 'delete') {

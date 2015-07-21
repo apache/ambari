@@ -1386,11 +1386,11 @@ describe('App.InstallerStep7Controller', function () {
         wizardController: Em.Object.create({
           getDBProperty: function (k) {
             return this.get(k);
-          }
+          },
+          stackConfigsLoaded: true
         })
       });
       sinon.stub(App.config, 'mergePreDefinedWithStored', Em.K);
-      sinon.stub(App.config, 'addAdvancedConfigs', Em.K);
       sinon.stub(App.config, 'fileConfigsIntoTextarea', Em.K);
       sinon.stub(installerStep7Controller, 'clearStep', Em.K);
       sinon.stub(installerStep7Controller, 'getConfigTags', Em.K);
@@ -1405,7 +1405,6 @@ describe('App.InstallerStep7Controller', function () {
     });
     afterEach(function () {
       App.config.mergePreDefinedWithStored.restore();
-      App.config.addAdvancedConfigs.restore();
       App.config.fileConfigsIntoTextarea.restore();
       installerStep7Controller.clearStep.restore();
       installerStep7Controller.getConfigTags.restore();
@@ -1423,14 +1422,13 @@ describe('App.InstallerStep7Controller', function () {
       expect(installerStep7Controller.clearStep.calledOnce).to.equal(true);
     });
     it('shouldn\'t do nothing if isAdvancedConfigLoaded is false', function () {
-      installerStep7Controller.set('isAdvancedConfigLoaded', false);
+      installerStep7Controller.set('wizardController.stackConfigsLoaded', false);
       installerStep7Controller.loadStep();
       expect(installerStep7Controller.clearStep.called).to.equal(false);
     });
     it('should use App.config to map configs', function () {
       installerStep7Controller.loadStep();
       expect(App.config.mergePreDefinedWithStored.calledOnce).to.equal(true);
-      expect(App.config.addAdvancedConfigs.calledOnce).to.equal(true);
     });
     it('should call setInstalledServiceConfigs for addServiceController', function () {
       installerStep7Controller.set('wizardController.name', 'addServiceController');

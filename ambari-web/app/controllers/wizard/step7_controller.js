@@ -105,20 +105,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   serviceConfigTags: [],
 
   /**
-   * Are advanced configs loaded
-   * @type {bool}
-   */
-  isAdvancedConfigLoaded: true,
-
-  /**
    * Are applied to service configs loaded
    * @type {bool}
    */
   isAppliedConfigLoaded: true,
 
   isConfigsLoaded: function () {
-    return (this.get('isAdvancedConfigLoaded') && this.get('isAppliedConfigLoaded'));
-  }.property('isAdvancedConfigLoaded', 'isAppliedConfigLoaded'),
+    return (this.get('wizardController.stackConfigsLoaded') && this.get('isAppliedConfigLoaded'));
+  }.property('wizardController.stackConfigsLoaded', 'isAppliedConfigLoaded'),
 
   /**
    * Number of errors in the configs in the selected service
@@ -626,7 +620,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
     var self = this;
     //STEP 1: Load advanced configs
-    var advancedConfigs = this.get('content.advancedServiceConfig');
+    var advancedConfigs = App.StackConfigProperty.find();
     //STEP 2: Load on-site configs by service from local DB
     var storedConfigs = this.get('content.serviceConfigProperties');
     //STEP 3: Merge pre-defined configs with loaded on-site configs
@@ -636,8 +630,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       this.get('selectedServiceNames').concat(this.get('installedServiceNames'))
     );
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
-    //STEP 4: Add advanced configs
-    App.config.addAdvancedConfigs(configs, advancedConfigs);
 
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
     if (this.get('wizardController.name') === 'addServiceController') {

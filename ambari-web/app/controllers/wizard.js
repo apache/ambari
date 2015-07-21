@@ -833,43 +833,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   /**
-   * load advanced configs from server
-   */
-  loadAdvancedConfigs: function (dependentController) {
-    var self = this;
-    var loadServiceConfigsFn = function (clusterProperties) {
-      var stackServices = self.get('content.services').filter(function (service) {
-        return service.get('isInstalled') || service.get('isSelected');
-      });
-      var loadAdvancedConfigResult = [];
-      dependentController.set('isAdvancedConfigLoaded', false);
-
-      App.config.loadAdvancedConfigAll(stackServices.mapProperty('serviceName'), function (configMap) {
-        stackServices.forEach(function (service) {
-          var serviceName = service.get('serviceName');
-          var properties = configMap[serviceName];
-          var supportsFinal = App.config.getConfigTypesInfoFromService(service).supportsFinal;
-
-          properties.forEach(function (property) {
-            property.supportsFinal = Boolean(supportsFinal.find(function (configType) {
-              return property.filename.startsWith(configType);
-            }));
-            if (property.serviceName == 'MISC' && property.name == 'yarn_user') {
-               property.supportsFinal = false;
-            }
-          });
-          loadAdvancedConfigResult.pushObjects(properties);
-        });
-        loadAdvancedConfigResult.pushObjects(clusterProperties);
-        self.set('content.advancedServiceConfig', loadAdvancedConfigResult);
-        dependentController.set('isAdvancedConfigLoaded', true);
-      });
-    };
-    App.config.loadClusterConfig(loadServiceConfigsFn);
-  },
-
-
-  /**
    * Load serviceConfigProperties to model
    */
   loadServiceConfigProperties: function () {
@@ -912,7 +875,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
           isRequired: _configProperties.get('isRequired'), // flag that allow saving property with empty value
           group: !!_configProperties.get('group') ? _configProperties.get('group.name') : null,
           showLabel: _configProperties.get('showLabel'),
-          category: _configProperties.get('category')
+          category: _configProperties.get('category'),
+          configId: App.config.configId(_configProperties.get('name'),_configProperties.get('filename'))
         };
         serviceConfigProperties.push(configProperty);
       }, this);
@@ -1265,11 +1229,13 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         return s.get('isSelected') || s.get('isInstalled');
       }).mapProperty('serviceName');
       // Load stack configs before loading themes
-      App.config.loadConfigsFromStack(serviceNames).done(function () {
-        self.loadConfigThemeForServices(serviceNames).always(function () {
-          self.set('stackConfigsLoaded', true);
-          App.themesMapper.generateAdvancedTabs(serviceNames);
-          dfd.resolve();
+      App.config.loadClusterConfigsFromStack().always(function() {
+        App.config.loadConfigsFromStack(serviceNames).done(function () {
+          self.loadConfigThemeForServices(serviceNames).always(function () {
+            self.set('stackConfigsLoaded', true);
+            App.themesMapper.generateAdvancedTabs(serviceNames);
+            dfd.resolve();
+          });
         });
       });
     }
