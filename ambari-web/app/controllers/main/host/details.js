@@ -340,6 +340,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     this.removeHostComponentModel(data.componentName, data.hostName);
     if (data.componentName == 'ZOOKEEPER_SERVER') {
       this.set('fromDeleteZkServer', true);
+      this.updateStormConfigs();
       this.loadConfigs();
     } else if (data.componentName == 'HIVE_METASTORE') {
       this.set('deleteHiveMetaStore', true);
@@ -681,6 +682,19 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
+   * Update zk configs
+   * @param {object} configs
+   * @method updateZkConfigs
+   */
+  updateZkConfigs: function(configs) {
+    var zks = this.getZkServerHosts();
+    var portValue = configs['zoo.cfg'] && Em.get(configs['zoo.cfg'], 'clientPort');
+    var zkPort = typeof portValue === 'udefined' ? '2181' : portValue;
+    var zksWithPort = this.concatZkNames(zks, zkPort);
+    this.setZKConfigs(configs, zksWithPort, zks);
+  },
+
+  /**
    * update and save Storm related configs to server
    * @param {object} data
    * @method onLoadStormConfigs
@@ -695,6 +709,8 @@ App.MainHostDetailsController = Em.Controller.extend({
       configs[item.type] = item.properties;
       attributes[item.type] = item.properties_attributes || {};
     }, this);
+
+    this.updateZkConfigs(configs);
 
     configs['storm-site']['nimbus.seeds'] = JSON.stringify(stormNimbusHosts).replace(/"/g, "'");
     var groups = [
@@ -1001,6 +1017,16 @@ App.MainHostDetailsController = Em.Controller.extend({
     this.showBackgroundOperationsPopup();
   },
 
+   /**
+   * Update storm config
+   * @method updateStormConfigs
+   */
+  updateStormConfigs: function() {
+    if (App.Service.find().findProperty('serviceName', 'STORM')) {
+      this.loadConfigs("loadStormConfigs");
+    }
+  },
+
   /**
    * Load tags
    * @method checkZkConfigs
@@ -1011,6 +1037,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       var self = this;
       this.removeObserver('App.router.backgroundOperationsController.serviceTimestamp', this, this.checkZkConfigs);
       setTimeout(function () {
+        self.updateStormConfigs();
         self.loadConfigs();
       }, App.get('componentsUpdateInterval'));
     }
@@ -1099,11 +1126,8 @@ App.MainHostDetailsController = Em.Controller.extend({
       attributes[item.type] = item.properties_attributes || {};
     }, this);
 
-    var zks = this.getZkServerHosts();
-    var portValue = configs['zoo.cfg'] && Em.get(configs['zoo.cfg'], 'clientPort');
-    var zkPort = typeof portValue === 'udefined' ? '2181' : portValue;
-    var zksWithPort = this.concatZkNames(zks, zkPort);
-    this.setZKConfigs(configs, zksWithPort, zks);
+    this.updateZkConfigs(configs);
+
     var groups = [
       {
         properties: {
@@ -1840,7 +1864,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       nonDeletableComponents: [],
       unknownComponents: [],
       toDecommissionComponents: []
-    }; 
+    };
     var self = this;
     if (componentsOnHost && componentsOnHost.get('length') > 0) {
       componentsOnHost.forEach(function (cInstance) {

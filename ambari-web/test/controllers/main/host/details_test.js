@@ -1037,7 +1037,7 @@ describe('App.MainHostDetailsController', function () {
       var popup = controller.installComponent(event);
       expect(App.ModalPopup.show.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(App.ajax.send.called).to.be.true;
     });
   });
 
