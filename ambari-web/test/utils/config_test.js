@@ -379,6 +379,11 @@ describe('App.config', function () {
   describe('#preDefinedSiteProperties-bigtop', function () {
     before(function() {
       setups.setupStackVersion(this, 'BIGTOP-0.8');
+      sinon.stub(App.StackService, 'find').returns([
+        {
+          serviceName: 'HIVE'
+        }
+      ]);
     });
 
     it('bigtop should use New PostgreSQL Database as its default hive metastore database', function () {
@@ -386,13 +391,19 @@ describe('App.config', function () {
     });
 
     after(function() {
+      App.StackService.find.restore();
       setups.restoreStackVersion(this);
     });
   });
 
   describe('#preDefinedSiteProperties-hdp2', function () {
-    before(function() {
+    before(function () {
       setups.setupStackVersion(this, 'HDP-2.0');
+      sinon.stub(App.StackService, 'find').returns([
+        {
+          serviceName: 'HIVE'
+        }
+      ]);
     });
 
     it('HDP2 should use New MySQL Database as its default hive metastore database', function () {
@@ -400,6 +411,7 @@ describe('App.config', function () {
     });
 
     after(function() {
+      App.StackService.find.restore();
       setups.restoreStackVersion(this);
     });
   });

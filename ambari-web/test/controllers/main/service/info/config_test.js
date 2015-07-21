@@ -887,7 +887,20 @@ describe("App.MainServiceInfoConfigsController", function () {
   });
 
   describe('#setHiveHostName', function () {
+    beforeEach(function () {
+      sinon.stub(App.StackService, 'find').returns([
+        {
+          serviceName: 'HIVE'
+        },
+        {
+          serviceName: 'OOZIE'
+        }
+      ]);
+    });
 
+    afterEach(function () {
+      App.StackService.find.restore();
+    });
     Em.A([
         {
           globals: [
@@ -984,7 +997,20 @@ describe("App.MainServiceInfoConfigsController", function () {
   });
 
   describe('#setOozieHostName', function () {
+    beforeEach(function () {
+      sinon.stub(App.StackService, 'find').returns([
+        {
+          serviceName: 'HIVE'
+        },
+        {
+          serviceName: 'OOZIE'
+        }
+      ]);
+    });
 
+    afterEach(function () {
+      App.StackService.find.restore();
+    });
     Em.A([
         {
           globals: [

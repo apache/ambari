@@ -124,17 +124,44 @@ App.config = Em.Object.create({
 
   preDefinedSiteProperties: function () {
     var sitePropertiesForCurrentStack = this.preDefinedConfigFile('site_properties');
+    var serviceNames = App.StackService.find().mapProperty('serviceName').concat('MISC');
+    var properties = [];
     if (sitePropertiesForCurrentStack) {
-      return sitePropertiesForCurrentStack.configProperties;
+      properties =  sitePropertiesForCurrentStack.configProperties;
+    } else if (App.get('isHadoop23Stack')) {
+      properties = require('data/HDP2.3/site_properties').configProperties;
+    } else if (App.get('isHadoop22Stack')) {
+      properties = require('data/HDP2.2/site_properties').configProperties;
+    } else {
+      properties = require('data/HDP2/site_properties').configProperties;
     }
-    if (App.get('isHadoop23Stack')) {
-      return require('data/HDP2.3/site_properties').configProperties;
-    }
-    if (App.get('isHadoop22Stack')) {
-      return require('data/HDP2.2/site_properties').configProperties;
-    }
-    return require('data/HDP2/site_properties').configProperties;
+    return properties.filter(function(p) {
+      return serviceNames.contains(p.serviceName);
+    });
   }.property('App.isHadoop22Stack', 'App.isHadoop23Stack'),
+
+  /**
+   * map of <code>preDefinedSiteProperties</code> provide search by index
+   * @type {object}
+   */
+  preDefinedSitePropertiesMap: function () {
+    var map = {};
+
+    this.get('preDefinedSiteProperties').forEach(function (c) {
+      map[this.configId(c.name, c.filename)] = c;
+    }, this);
+    return map;
+  }.property('preDefinedSiteProperties'),
+
+  /**
+   *
+   * @param name
+   * @param fileName
+   * @returns {string}
+   */
+  configId: function(name, fileName) {
+    return name + "_" + App.config.getConfigTagFromFileName(fileName);
+  },
 
   preDefinedConfigFile: function(file) {
     try {
