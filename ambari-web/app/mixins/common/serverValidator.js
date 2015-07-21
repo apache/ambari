@@ -310,7 +310,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
 
   /**
    * warn user if some errors or warning were
-   * in seting up configs otherwise go to the nex operation
+   * in setting up configs otherwise go to the nex operation
    * @param deferred
    * @returns {*}
    */

@@ -104,7 +104,7 @@ App.updater = {
    * @param obj Object
    * @param name Method name
    * @param isWorking Property, which will be checked as a rule for working
-   * @param interval Interval between calls
+   * @param [interval] Interval between calls
    * @return {*}
    */
   run: function(obj, name, isWorking, interval){

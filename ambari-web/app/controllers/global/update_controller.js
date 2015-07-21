@@ -496,7 +496,7 @@ App.UpdateController = Em.Controller.extend({
   },
   updateServices: function (callback) {
     var testUrl = '/data/services/HDP2/services.json';
-    var componentConfigUrl = this.getUrl(testUrl, '/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state&minimal_response=true');
+    var componentConfigUrl = this.getUrl(testUrl, '/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state,components/ServiceComponentInfo/component_name&minimal_response=true');
     App.HttpClient.get(componentConfigUrl, App.serviceMapper, {
       complete: callback
     });
@@ -510,7 +510,7 @@ App.UpdateController = Em.Controller.extend({
   },
   updateComponentsState: function (callback) {
     var testUrl = '/data/services/HDP2/components_state.json';
-    var realUrl = '/components/?ServiceComponentInfo/category.in(SLAVE,CLIENT)&fields=ServiceComponentInfo/service_name,' +
+    var realUrl = '/components/?fields=ServiceComponentInfo/service_name,' +
       'ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/total_count,host_components/HostRoles/host_name&minimal_response=true';
     var url = this.getUrl(testUrl, realUrl);
 

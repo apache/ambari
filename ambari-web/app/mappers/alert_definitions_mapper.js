@@ -189,9 +189,6 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
       App.store.loadMany(this.get('metricsUriModel'), alertMetricsUriDefinitions);
       App.store.loadMany(this.get('model'), alertDefinitions);
       this.setAlertDefinitionsRawSourceData(rawSourceData);
-      if (App.router.get('mainAlertDefinitionsController')) {
-        App.router.set('mainAlertDefinitionsController.mapperTimestamp', (new Date()).getTime());
-      }
       App.store.commit();
     }
   },

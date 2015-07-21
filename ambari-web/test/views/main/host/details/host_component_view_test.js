@@ -36,6 +36,7 @@ describe('App.HostComponentView', function() {
       return Em.get(App.router, k);
     });
     hostComponentView = App.HostComponentView.create({
+      componentCounter: 1,
       startBlinking: function(){},
       doBlinking: function(){},
       getDesiredAdminState: function(){return $.ajax({});},
@@ -242,16 +243,12 @@ describe('App.HostComponentView', function() {
   describe('#isDeleteComponentDisabled', function() {
 
     beforeEach(function() {
-      sinon.stub(hostComponentView, 'componentCounter', function() {
-        return 1;
-      });
       sinon.stub(App.StackServiceComponent, 'find', function(component) {
         var min = component == 'comp0' ? 0 : 1;
         return Em.Object.create({minToInstall: min});
       });
     });
     afterEach(function() {
-      hostComponentView.componentCounter.restore();
       App.StackServiceComponent.find.restore();
     });
 
@@ -509,9 +506,7 @@ describe('App.HostComponentView', function() {
         });
       });
 
-      sinon.stub(hostComponentView, 'componentCounter', function() {
-        return 2;
-      });
+      hostComponentView.set('componentCounter', 2);
 
       sinon.stub(hostComponentView, 'runningComponentCounter', function () {
         return 1;
@@ -533,9 +528,7 @@ describe('App.HostComponentView', function() {
         });
       });
 
-      sinon.stub(hostComponentView, 'componentCounter', function() {
-        return 2;
-      });
+      hostComponentView.set('componentCounter', 2);
 
       sinon.stub(hostComponentView, 'runningComponentCounter', function () {
         return 0;
@@ -557,9 +550,7 @@ describe('App.HostComponentView', function() {
         });
       });
 
-      sinon.stub(hostComponentView, 'componentCounter', function() {
-        return 2;
-      });
+      hostComponentView.set('componentCounter', 2);
 
       sinon.stub(hostComponentView, 'runningComponentCounter', function () {
         return 2;
@@ -581,9 +572,7 @@ describe('App.HostComponentView', function() {
         });
       });
 
-      sinon.stub(hostComponentView, 'componentCounter', function() {
-        return 1;
-      });
+      hostComponentView.set('componentCounter', 1);
 
       sinon.stub(hostComponentView, 'runningComponentCounter', function () {
         return 1;
@@ -596,7 +585,6 @@ describe('App.HostComponentView', function() {
     afterEach(function() {
       App.HostComponentActionMap.getMap.restore();
       App.StackServiceComponent.find.restore();
-      hostComponentView.componentCounter.restore();
       hostComponentView.runningComponentCounter.restore();
     });
   });

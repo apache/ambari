@@ -47,7 +47,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                   App.clusterStatus.updateFromServer().complete(function () {
                     var currentClusterStatus = App.clusterStatus.get('value');
                     if (router.get('currentState.parentState.name') !== 'views'
-                        && currentClusterStatus && self.get('installerStatuses').contains(currentClusterStatus.clusterState)) {
+                      && currentClusterStatus && self.get('installerStatuses').contains(currentClusterStatus.clusterState)) {
                       if (App.isAccessible('ADMIN')) {
                         self.redirectToInstaller(router, currentClusterStatus, false);
                       } else {
@@ -181,7 +181,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     index: Ember.Route.extend({
       route: '/',
       connectOutlets: function (router, context) {
-        router.get('mainController').connectOutlet('mainHost');
+        router.get('mainController').connectOutlet('loading');
+        router.get('mainController').isLoading.call(router.get('clusterController'), 'isClusterNameLoaded').done(function () {
+          // `getSecurityStatus` call is required to retrieve information related to kerberos type: Manual or automated kerberos
+          router.get('mainAdminKerberosController').getSecurityStatus().always(function () {
+            router.get('mainController').connectOutlet('mainHost');
+          });
+        });
       }
     }),
 
@@ -207,7 +213,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
               controller.isOozieConfigLoaded.always(function () {
                 controller.connectOutlet('mainHostSummary');
               });
-            }else {
+            } else {
               controller.connectOutlet('mainHostSummary');
             }
           });
@@ -217,7 +223,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       configs: Em.Route.extend({
         route: '/configs',
         connectOutlets: function (router, context) {
-          router.get('mainHostDetailsController').connectOutlet('mainHostConfigs');
+          router.get('mainHostDetailsController').connectOutlet('loading');
+          router.get('mainController').isLoading.call(router.get('clusterController'), 'isConfigsPropertiesLoaded').done(function () {
+            router.get('mainHostDetailsController').connectOutlet('mainHostConfigs');
+          });
         }
       }),
 
@@ -340,10 +349,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
 
     index: Em.Route.extend({
-      /* enter: function(router, transition){
-       var controller = router.get('mainAdminController');
-       router.transitionTo('admin' + controller.get('category').capitalize());
-       }, */
       route: '/',
       redirectsTo: 'stackAndUpgrade.index'
     }),
@@ -371,7 +376,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         route: '/disableSecurity',
         enter: function (router) {
           App.router.get('updateController').set('isWorking', false);
-          router.get('mainController').dataLoading().done(function() {
+          router.get('mainController').dataLoading().done(function () {
             App.ModalPopup.show({
               classNames: ['full-width-modal'],
               header: Em.I18n.t('admin.removeSecurity.header'),
@@ -419,7 +424,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                   clusterState: 'DEFAULT',
                   localdb: App.db.data
                 }, {
-                  alwaysCallback: function() {
+                  alwaysCallback: function () {
                     self.hide();
                     router.transitionTo('adminKerberos.index');
                     location.reload();
@@ -649,7 +654,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           var item = router.get('mainServiceItemController.content');
           if (item.get('isLoaded')) {
             router.get('mainController').dataLoading().done(function () {
-              router.get('mainServiceInfoHeatmapController').loadRacks().done(function(data) {
+              router.get('mainServiceInfoHeatmapController').loadRacks().done(function (data) {
                 router.get('mainServiceInfoHeatmapController').loadRacksSuccessCallback(data);
                 router.get('mainServiceItemController').connectOutlet('mainServiceInfoHeatmap', item);
               });

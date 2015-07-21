@@ -59,7 +59,6 @@ App.ReassignMasterController = App.WizardController.extend({
     hasManualSteps: false,
     hasCheckDBStep: false,
     componentsWithCheckDBStep: ['HIVE_METASTORE', 'HIVE_SERVER', 'OOZIE_SERVER'],
-    securityEnabled: false,
     componentsWithoutSecurityConfigs: ['MYSQL_SERVER']
   }),
 
@@ -73,7 +72,6 @@ App.ReassignMasterController = App.WizardController.extend({
     'masterComponentHosts',
     'serviceComponents',
     'masterComponent',
-    'securityEnabled',
     'currentStep',
     'reassignHosts',
     'tasksStatuses',
@@ -88,55 +86,6 @@ App.ReassignMasterController = App.WizardController.extend({
   addCheckDBStep: function () {
     this.set('content.hasCheckDBStep', this.get('content.componentsWithCheckDBStep').contains(this.get('content.reassign.component_name')));
   }.observes('content.reassign.component_name'),
-
-  getSecurityStatus: function () {
-    if (App.get('testMode')) {
-      this.set('securityEnabled', !App.get('testEnableSecurity'));
-    } else {
-      //get Security Status From Server
-      App.ajax.send({
-        name: 'config.tags',
-        sender: this,
-        success: 'getSecurityStatusSuccessCallback',
-        error: 'errorCallback'
-      });
-    }
-  },
-
-  errorCallback: function () {
-    console.error('Cannot get security status from server');
-  },
-
-  getSecurityStatusSuccessCallback: function (data) {
-    var configs = data.Clusters.desired_configs;
-    if ('cluster-env' in configs) {
-      this.getServiceConfigsFromServer(configs['cluster-env'].tag);
-    }
-    else {
-      console.error('Cannot get security status from server');
-    }
-  },
-
-  getServiceConfigsFromServer: function (tag) {
-    var self = this;
-    var tags = [
-      {
-        siteName: "cluster-env",
-        tagName: tag
-      }
-    ];
-    App.router.get('configurationController').getConfigsByTags(tags).done(function (data) {
-      var configs = data.findProperty('tag', tag).properties;
-      var result = configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true);
-      self.saveSecurityEnabled(result);
-      App.clusterStatus.setClusterStatus({
-        clusterName: self.get('content.cluster.name'),
-        clusterState: 'DEFAULT',
-        wizardControllerName: 'reassignMasterController',
-        localdb: App.db.data
-      });
-    });
-  },
 
   /**
    * Load tasks statuses for step5 of Reassign Master Wizard to restore installation
@@ -248,17 +197,6 @@ App.ReassignMasterController = App.WizardController.extend({
   loadReassignHosts: function () {
     var reassignHosts = App.db.getReassignMasterWizardReassignHosts();
     this.set('content.reassignHosts', reassignHosts);
-  },
-
-
-  saveSecurityEnabled: function (securityEnabled) {
-    this.setDBProperty('securityEnabled', securityEnabled);
-    this.set('content.securityEnabled', securityEnabled);
-  },
-
-  loadSecurityEnabled: function () {
-    var securityEnabled = this.getDBProperty('securityEnabled');
-    this.set('content.securityEnabled', securityEnabled);
   },
 
   saveSecureConfigs: function (secureConfigs) {

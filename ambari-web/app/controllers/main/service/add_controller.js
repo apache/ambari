@@ -297,7 +297,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
   loadKerberosDescriptorConfigs: function() {
     var self = this,
         dfd = $.Deferred();
-    if (App.router.get('mainAdminKerberosController.securityEnabled')) {
+    if (App.get('isKerberosEnabled')) {
       this.getDescriptorConfigs().then(function(properties) {
         self.set('kerberosDescriptorConfigs', properties);
       }).always(function(){
@@ -589,7 +589,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
   },
 
   checkSecurityStatus: function() {
-    if (!App.router.get('mainAdminKerberosController.securityEnabled')) {
+    if (!App.get('isKerberosEnabled')) {
       this.set('skipConfigureIdentitiesStep', true);
       this.get('isStepDisabled').findProperty('step', 5).set('value', true);
     }

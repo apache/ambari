@@ -515,7 +515,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
         }
       };
       if (!!hostsWithoutComponents.length) {
-        componentsUtils.createServiceComponent(componentName).done(function () {
+        componentsUtils.updateAndCreateServiceComponent(componentName).done(function () {
           App.ajax.send({
             name: 'wizard.step8.register_host_to_component',
             sender: self,

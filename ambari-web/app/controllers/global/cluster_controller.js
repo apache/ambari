@@ -25,15 +25,21 @@ App.ClusterController = Em.Controller.extend({
   ambariProperties: null,
   clusterDataLoadedPercent: 'width:0', // 0 to 1
 
-  isGangliaUrlLoaded: false,
+  isClusterNameLoaded: false,
 
-  /**
-   * Provides the URL to use for Ganglia server. This URL
-   * is helpful in populating links in UI.
-   *
-   * If null is returned, it means GANGLIA service is not installed.
-   */
-  gangliaUrl: null,
+  isAlertsLoaded: false,
+
+  isComponentsStateLoaded: false,
+
+  isHostsLoaded: false,
+
+  isConfigsPropertiesLoaded: false,
+
+  isStackConfigsLoaded: false,
+
+  isHostContentLoaded: function () {
+    return this.get('isHostsLoaded') && this.get('isComponentsStateLoaded');
+  }.property('isHostsLoaded', 'isComponentsStateLoaded'),
 
   clusterName: function () {
     return App.get('clusterName');
@@ -62,18 +68,9 @@ App.ClusterController = Em.Controller.extend({
   },
 
   dataLoadList: Em.Object.create({
-    'hosts': false,
     'serviceMetrics': false,
     'stackComponents': false,
-    'services': false,
-    'cluster': false,
-    'clusterStatus': false,
-    'racks': false,
-    'componentConfigs': false,
-    'componentsState': false,
-    'rootService': false,
-    'alertDefinitions': false,
-    'securityStatus': false
+    'services': false
   }),
 
   /**
@@ -84,6 +81,7 @@ App.ClusterController = Em.Controller.extend({
 
     if (App.get('clusterName') && !reload) {
       App.set('clusterName', this.get('clusterName'));
+      this.set('isClusterNameLoaded', true);
       dfd.resolve();
     } else {
       App.ajax.send({
@@ -105,6 +103,8 @@ App.ClusterController = Em.Controller.extend({
     if (data.items && data.items.length > 0) {
       App.set('clusterName', data.items[0].Clusters.cluster_name);
       App.set('currentStackVersion', data.items[0].Clusters.version);
+      this.set('isClusterNameLoaded', true);
+      App.set('isKerberosEnabled', data.items[0].Clusters.security_type === 'KERBEROS');
     }
   },
 
@@ -151,51 +151,6 @@ App.ClusterController = Em.Controller.extend({
     return (App.get('testMode')) ? testUrl : App.get('apiPrefix') + '/clusters/' + App.get('clusterName') + url;
   },
 
-  setGangliaUrl: function () {
-    if (App.get('testMode')) {
-      this.set('gangliaUrl', 'http://gangliaserver/ganglia/?t=yes');
-      this.set('isGangliaUrlLoaded', true);
-    } else {
-      // We want live data here
-      var gangliaServer = App.HostComponent.find().findProperty('componentName', 'GANGLIA_SERVER');
-      if (this.get('isLoaded') && gangliaServer) {
-        this.set('isGangliaUrlLoaded', false);
-        App.ajax.send({
-          name: 'hosts.for_quick_links',
-          sender: this,
-          data: {
-            clusterName: App.get('clusterName'),
-            masterHosts: gangliaServer.get('hostName'),
-            urlParams: ''
-          },
-          success: 'setGangliaUrlSuccessCallback'
-        });
-      }
-    }
-  }.observes('App.router.updateController.isUpdated', 'dataLoadList.hosts', 'gangliaWebProtocol', 'isLoaded'),
-
-  setGangliaUrlSuccessCallback: function (response) {
-    var url = null;
-    if (response.items.length > 0) {
-      url = this.get('gangliaWebProtocol') + "://" + (App.singleNodeInstall ? App.singleNodeAlias + ":42080" : response.items[0].Hosts.public_host_name) + "/ganglia";
-    }
-    this.set('gangliaUrl', url);
-    this.set('isGangliaUrlLoaded', true);
-  },
-
-  gangliaWebProtocol: function () {
-    var properties = this.get('ambariProperties');
-    if (properties && properties.hasOwnProperty('ganglia.https') && properties['ganglia.https']) {
-      return "https";
-    } else {
-      return "http";
-    }
-  }.property('ambariProperties'),
-
-  isGangliaInstalled: function () {
-    return !!App.Service.find().findProperty('serviceName', 'GANGLIA');
-  }.property('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics'),
-
   /**
    *  load all data and update load status
    */
@@ -213,113 +168,88 @@ App.ClusterController = Em.Controller.extend({
     }
 
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
-    var racksUrl = "/data/racks/racks.json";
-
-
     var hostsController = App.router.get('mainHostController');
     hostsController.set('isCountersUpdating', true);
     hostsController.updateStatusCounters();
 
-    App.HttpClient.get(racksUrl, App.racksMapper, {
-      complete: function (jqXHR, textStatus) {
-        self.updateLoadStatus('racks');
-      }
-    }, function (jqXHR, textStatus) {
-      self.updateLoadStatus('racks');
-    });
-
     App.HttpClient.get(clusterUrl, App.clusterMapper, {
       complete: function (jqXHR, textStatus) {
-        self.updateLoadStatus('cluster');
       }
     }, function (jqXHR, textStatus) {
-      self.updateLoadStatus('cluster');
     });
 
-    if (App.get('testMode')) {
-      self.updateLoadStatus('clusterStatus');
-    } else {
-      App.clusterStatus.updateFromServer().complete(function () {
-        self.updateLoadStatus('clusterStatus');
-        if (App.get('supports.stackUpgrade')) {
-          self.restoreUpgradeState();
-        }
-      });
+
+    if (App.get('supports.stackUpgrade')) {
+      self.restoreUpgradeState();
     }
+
+
+    var updater = App.router.get('updateController');
 
     /**
      * Order of loading:
      * 1. load all created service components
-     * 2. request for service components supported by stack
-     * 3. load stack components to model
-     * 4. request for services
-     * 5. put services in cache
-     * 6. request for hosts and host-components (single call)
-     * 7. request for service metrics
-     * 8. load host-components to model
-     * 9. load hosts to model
-     * 10. load services from cache with metrics to model
-     * 11. update stale_configs of host-components (depends on App.supports.hostOverrides)
-     * 12. load root service (Ambari)
-     * 13. load alert definitions to model
-     * 14. load unhealthy alert instances
-     * 15. load security status
+     * 1. request for service components supported by stack
+     * 2. load stack components to model
+     * 3. request for services
+     * 4. put services in cache
+     * 5. request for hosts and host-components (single call)
+     * 6. request for service metrics
+     * 7. load host-components to model
+     * 8. load services from cache with metrics to model
      */
-    self.loadServiceComponents(function () {
-      self.loadStackServiceComponents(function (data) {
-        data.items.forEach(function (service) {
-          service.StackServices.is_selected = true;
-          service.StackServices.is_installed = false;
-        }, self);
-        App.stackServiceMapper.mapStackServices(data);
-        App.config.setPreDefinedServiceConfigs(true);
-        var updater = App.router.get('updateController');
-        self.updateLoadStatus('stackComponents');
-        updater.updateServices(function () {
-          self.updateLoadStatus('services');
-          //force clear filters  for hosts page to load all data
-          App.db.setFilterConditions('mainHostController', null);
-
-          updater.updateHost(function () {
-            self.updateLoadStatus('hosts');
+    self.loadStackServiceComponents(function (data) {
+      data.items.forEach(function (service) {
+        service.StackServices.is_selected = true;
+        service.StackServices.is_installed = false;
+      }, self);
+      App.stackServiceMapper.mapStackServices(data);
+      App.config.setPreDefinedServiceConfigs(true);
+      self.updateLoadStatus('stackComponents');
+      updater.updateServices(function () {
+        self.updateLoadStatus('services');
+        updater.updateServiceMetric(function () {
+          self.updateLoadStatus('serviceMetrics');
+          App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName')).complete(function () {
+            self.set('isConfigsPropertiesLoaded', true);
           });
-
-          updater.updateServiceMetric(function () {
-            App.config.loadClusterConfigsFromStack();
-            App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName')).complete(function () {
-              updater.updateComponentConfig(function () {
-                self.updateLoadStatus('componentConfigs');
-              });
-
-              updater.updateComponentsState(function () {
-                self.updateLoadStatus('componentsState');
-              });
-              self.updateLoadStatus('serviceMetrics');
-
-              updater.updateAlertGroups(function () {
-                updater.updateAlertDefinitions(function () {
-                  updater.updateAlertDefinitionSummary(function () {
-                    updater.updateUnhealthyAlertInstances(function () {
-                      self.updateLoadStatus('alertGroups');
-                      self.updateLoadStatus('alertDefinitions');
-                      self.updateLoadStatus('alertInstancesUnhealthy');
-                    });
-                  });
-                });
-              });
-            });
-          });
-        });
-        self.loadRootService().done(function (data) {
-          App.rootServiceMapper.map(data);
-          self.updateLoadStatus('rootService');
-        });
-        // load security status
-        App.router.get('mainAdminKerberosController').getSecurityStatus().always(function () {
-          self.updateLoadStatus('securityStatus');
         });
       });
     });
+
+    //force clear filters  for hosts page to load all data
+    App.db.setFilterConditions('mainHostController', null);
+
+    // hosts loading doesn't affect overall progress
+    updater.updateHost(function () {
+      self.set('isHostsLoaded', true);
+    });
+
+    // alerts loading doesn't affect overall progress
+    updater.updateAlertGroups(function () {
+      updater.updateAlertDefinitions(function () {
+        updater.updateAlertDefinitionSummary(function () {
+          updater.updateUnhealthyAlertInstances(function () {
+            self.set('isAlertsLoaded', true);
+          });
+        });
+      });
+    });
+    // components state and config loading doesn't affect overall progress
+    updater.updateComponentConfig(Em.K);
+    updater.updateComponentsState(function () {
+      self.set('isComponentsStateLoaded', true);
+    });
+
+    /*  Root service mapper maps all the data exposed under Ambari root service which includes ambari configurations i.e ambari-properties
+     ** This is useful information but its not being used in the code anywhere as of now
+
+     self.loadRootService().done(function (data) {
+     App.rootServiceMapper.map(data);
+     self.updateLoadStatus('rootService');
+     });
+
+     */
   },
 
   /**
@@ -327,7 +257,7 @@ App.ClusterController = Em.Controller.extend({
    * and make call to get latest status from server
    */
   restoreUpgradeState: function () {
-    this.getAllUpgrades().done(function (data) {
+    return this.getAllUpgrades().done(function (data) {
       var upgradeController = App.router.get('mainAdminStackAndUpgradeController');
       var lastUpgradeData = data.items.sortProperty('Upgrade.request_id').pop();
       var dbUpgradeState = App.db.get('MainAdminStackAndUpgrade', 'upgradeState');
@@ -368,36 +298,6 @@ App.ClusterController = Em.Controller.extend({
     App.HttpClient.get(url, App.hostsMapper, {
       complete: callback
     }, callback)
-  },
-
-  /**
-   * Load data about created service components
-   * @param callback
-   */
-  loadServiceComponents: function (callback) {
-    App.ajax.send({
-      name: 'service.components.load',
-      sender: this,
-      data: {
-        callback: callback
-      },
-      success: 'loadStackServiceComponentsSuccess'
-    });
-  },
-
-  /**
-   * Callback for load service components request
-   * @param data
-   * @param request
-   * @param params
-   */
-  loadStackServiceComponentsSuccess: function (data, request, params) {
-    var serviceComponents = [];
-    data.items.forEach(function (service) {
-      serviceComponents = serviceComponents.concat(service.components.mapProperty('ServiceComponentInfo.component_name'));
-    });
-    App.serviceComponents = serviceComponents;
-    params.callback();
   },
 
   /**

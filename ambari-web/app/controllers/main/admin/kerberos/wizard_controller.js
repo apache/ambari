@@ -190,7 +190,7 @@ App.KerberosWizardController = App.WizardController.extend({
   createKerberosResources: function (callback) {
     var self = this;
     this.createKerberosService().done(function () {
-      componentsUtils.createServiceComponent('KERBEROS_CLIENT').done(function () {
+      componentsUtils.updateAndCreateServiceComponent('KERBEROS_CLIENT').done(function () {
         self.createKerberosHostComponents().done(callback);
       });
     });

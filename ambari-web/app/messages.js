@@ -269,6 +269,7 @@ Em.I18n.translations = {
   'common.clone': 'Clone',
   'common.removed': 'Removed',
   'common.testing': 'Testing',
+  'common.noData': 'No Data',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -1471,7 +1472,6 @@ Em.I18n.translations = {
   'services.service.summary.viewHost':'View Host',
   'services.service.summary.viewHosts':'View Hosts',
   'services.service.summary.clientOnlyService.ToolTip':'Client-only service',
-  'services.service.summary.DataNodesLive':'DataNodes Live',
   'services.service.summary.JournalNodesLive':'JournalNodes Live',
   'services.service.summary.mapreduce2.client':'MapReduce2 Client',
   'services.service.summary.mapreduce2.clients':'MapReduce2 Clients',

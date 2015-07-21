@@ -32,7 +32,8 @@ describe('App.MainHostDetailsController', function () {
 
   beforeEach(function () {
     sinon.stub(App.ajax, 'send').returns({
-      then: Em.K
+      then: Em.K,
+      complete: Em.K
     });
     controller = App.MainHostDetailsController.create({
       content: Em.Object.create()
@@ -566,6 +567,26 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#primary()', function () {
+    beforeEach(function () {
+      sinon.stub(App.StackServiceComponent, 'find', function () {
+        return [
+          Em.Object.create({
+            componentName: 'COMP1',
+            serviceName: 's1'
+          })
+        ]
+      });
+      sinon.stub(App.router, "get").withArgs('updateController').returns({
+        updateComponentsState: function(callback) {
+          return callback();
+        }
+      });
+    });
+    afterEach(function () {
+      App.router.get.restore();
+      App.StackServiceComponent.find.restore();
+    });
+
     it('Query should be sent', function () {
       var component = Em.Object.create({
         componentName: 'COMP1',

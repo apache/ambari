@@ -113,7 +113,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     return App.StackConfigProperty.find().filter(function(scp) {
       return this.get('servicesToLoad').contains(scp.get('serviceName'));
     }, this);
-  }.property('content.serviceName'),
+  }.property('content.serviceName', 'App.router.clusterController.isStackConfigsLoaded'),
 
   /**
    * @type {boolean}
@@ -542,7 +542,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   onLoadOverrides: function (allConfigs) {
     this.get('servicesToLoad').forEach(function(serviceName) {
       var configGroups = serviceName == this.get('content.serviceName') ? this.get('configGroups') : this.get('dependentConfigGroups').filterProperty('serviceName', serviceName);
-      var serviceNames = [ serviceName ]
+      var serviceNames = [ serviceName ];
       if(serviceName === 'OOZIE') {
         // For Oozie, also add ELService properties which are marked as FALCON properties.
         serviceNames.push('FALCON')

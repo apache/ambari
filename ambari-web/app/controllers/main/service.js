@@ -37,11 +37,11 @@ App.MainServiceController = Em.ArrayController.extend({
    * @type {Ember.Object}
    */
   cluster: function () {
-    if (!App.router.get('clusterController.isLoaded')) {
+    if (!App.router.get('clusterController.isClusterDataLoaded')) {
       return null;
     }
     return App.Cluster.find().objectAt(0);
-  }.property('App.router.clusterController.isLoaded'),
+  }.property('App.router.clusterController.isClusterDataLoaded'),
 
   /**
    * Check if all services are installed

@@ -23,13 +23,6 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
   name: 'mainAlertDefinitionsController',
 
   /**
-   * Timestamp when <code>App.alertDefinitionsMapper</code> run last time
-   * Current <code>content</code> is updated on when it changed
-   * @type {number|null}
-   */
-  mapperTimestamp: null,
-
-  /**
    * Define whether restore filter conditions from local db
    * @type {Boolean}
    */

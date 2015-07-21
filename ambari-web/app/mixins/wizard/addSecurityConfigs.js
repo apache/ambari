@@ -360,7 +360,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
    * @returns {Boolean}
    */
   shouldLoadClusterDescriptor: function() {
-    return App.router.get('mainAdminKerberosController.securityEnabled') && !App.router.get('mainAdminKerberosController.defaultKerberosLoaded');
+    return App.get('isKerberosEnabled') && !App.router.get('mainAdminKerberosController.defaultKerberosLoaded');
   }.property('App.router.mainAdminKerberosController.securityEnabled', 'App.router.mainAdminKerberosController.defaultKerberosLoaded'),
 
   /**

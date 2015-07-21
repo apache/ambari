@@ -16,24 +16,13 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
-App.Cluster = DS.Model.extend({
-  clusterName: DS.attr('string'),
-  stackName: DS.attr('string'),
-  version: DS.attr('string'),
-  totalHosts:DS.attr('number'),
-  securityType: DS.attr('string'),
-  /**
-   * Array containing desired configs. New array
-   * should be set by instances of class.
-   */
-  desiredConfigs: null,
-
-  isKerberosEnabled: function() {
-    return this.get('securityType') === 'KERBEROS';
-  }.property('securityType')
+App.MasterComponent = App.ClientComponent.extend({
+  displayNamePluralized: function() {
+    return stringUtils.pluralize(this.get('startedCount'), this.get('displayName'));
+  }.property('startedCount')
 });
 
-App.Cluster.FIXTURES = [];
+App.MasterComponent.FIXTURES = [];

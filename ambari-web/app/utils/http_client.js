@@ -166,7 +166,7 @@ App.HttpClient = Em.Object.create({
    * @param {Object} data - ajax data property
    * @param {App.ServerDataMapper} mapper - json processor
    * @param {callback} errorHandler
-   * @param {number} interval - frequecy request
+   * @param {number} interval - frequency request
    */
   post: function (url, data, mapper, errorHandler, interval) {
     this.get(url, data, mapper, errorHandler, interval);

@@ -26,7 +26,14 @@ describe('App.wizardProgressPageControllerMixin', function() {
     beforeEach(function() {
       mixedObjectInstance = mixedObject.create({});
       sinon.stub(App.ajax, 'send', function(params) {
-        return params;
+        return $.extend(params,{complete: function(callback){
+          callback();
+        }});
+      });
+      sinon.stub(require('utils/components'), "updateAndCreateServiceComponent").returns({
+        done: function(callback) {
+          return callback();
+        }
       });
       sinon.spy(mixedObjectInstance, 'onCreateComponent');
       sinon.spy(mixedObjectInstance, 'updateComponent');
@@ -63,6 +70,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
     afterEach(function() {
       App.ajax.send.restore();
       App.StackServiceComponent.find.restore();
+      require('utils/components').updateAndCreateServiceComponent.restore();
       mixedObjectInstance.onCreateComponent.restore();
       mixedObjectInstance.updateComponent.restore();
       mixedObjectInstance.checkInstalledComponents.restore();
@@ -81,6 +89,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
     it('no ZooKeeper Servers installed. install on host1, host2. ajax request should be called with appropriate params', function() {
       mixedObjectInstance.createComponent('ZOOKEEPER_SERVER', ['host1', 'host2'], 'ZOOKEEPER');
       var args = App.ajax.send.args[0][0];
+
       var queryObject = JSON.parse(args.data.data);
       expect(args.data.hostName).to.be.eql(['host1', 'host2']);
       expect(queryObject.RequestInfo.query).to.be.eql('Hosts/host_name=host1|Hosts/host_name=host2');

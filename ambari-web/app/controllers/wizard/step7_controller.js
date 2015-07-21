@@ -58,11 +58,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   secureConfigs: require('data/HDP2/secure_mapping'),
 
   /**
-   * uses for add service - find out is security is enabled
+   * config categories with secure properties
+   * use only for add service wizard when security is enabled;
    */
-  securityEnabled: function () {
-    return App.router.get('mainAdminKerberosController.securityEnabled');
-  }.property('App.router.mainAdminKerberosController.securityEnabled'),
+  secureServices: function () {
+    return $.extend(true, [], require('data/HDP2/secure_configs'));
+  }.property(),
 
   /**
    * If configChangeObserver Modal is shown
@@ -653,7 +654,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }
     }, this);
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
-    if (this.get('securityEnabled') && this.get('wizardController.name') == 'addServiceController') {
+    if (App.get('isKerberosEnabled') && this.get('wizardController.name') == 'addServiceController') {
       this.addKerberosDescriptorConfigs(configs, this.get('wizardController.kerberosDescriptorConfigs') || []);
     }
     this.setStepConfigs(configs, storedConfigs);

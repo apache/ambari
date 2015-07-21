@@ -1458,6 +1458,7 @@ describe('App.WizardStep8Controller', function () {
     });
     afterEach(function() {
       installerStep8Controller.submitProceed.restore();
+      App.set('isKerberosEnabled', false);
       App.get('router.mainAdminKerberosController').getKDCSessionState.restore();
     });
     Em.A([
@@ -1478,7 +1479,8 @@ describe('App.WizardStep8Controller', function () {
         }
       ]).forEach(function (test) {
         it(test.controllerName + ' Kerberos enabled - ' + test.securityEnabled.toString() + ' manual kerberos - ' + test.isManualKerberos, function () {
-          installerStep8Controller.reopen({isSubmitDisabled: false, securityEnabled: test.securityEnabled, isManualKerberos: test.isManualKerberos, content: {controllerName: test.controllerName}});
+          App.set('isKerberosEnabled', test.securityEnabled);
+          installerStep8Controller.reopen({isSubmitDisabled: false, isManualKerberos: test.isManualKerberos, content: {controllerName: test.controllerName}});
           installerStep8Controller.submit();
           if (test.securityEnabled) {
             if (test.isManualKerberos) {
@@ -2332,6 +2334,7 @@ describe('App.WizardStep8Controller', function () {
       ];
 
     beforeEach(function () {
+      sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(false);
       stubbedNames.forEach(function (name) {
         sinon.stub(installerStep8Controller, name, Em.K);
       });
@@ -2344,6 +2347,7 @@ describe('App.WizardStep8Controller', function () {
     });
 
     afterEach(function () {
+      App.get.restore();
       stubbedNames.forEach(function (name) {
         installerStep8Controller[name].restore();
       });

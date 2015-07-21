@@ -56,7 +56,7 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
     if(!hasSecureConfigs) {
       secureConfigs = [];
     }
-    if (!this.get('controller.content.securityEnabled') || !secureConfigs.length) {
+    if (!App.get('isKerberosEnabled') || !secureConfigs.length) {
       return proceedMsg;
     }
     var formattedText = '<ul>';
@@ -66,5 +66,5 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
     }, this);
     formattedText += '</ul>';
     return Em.I18n.t('services.reassign.step5.body.securityNotice').format(formattedText) + proceedMsg;
-  }.property('controller.content.securityEnabled', 'controller.content.secureConfigs', 'controller.content.reassignHosts.target')
+  }.property('App.isKerberosEnabled','controller.content.secureConfigs', 'controller.content.reassignHosts.target')
 });

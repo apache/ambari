@@ -575,7 +575,6 @@ App.MainServiceItemController = Em.Controller.extend({
     if (component) {
       var reassignMasterController = App.router.get('reassignMasterController');
       reassignMasterController.saveComponentToReassign(component);
-      reassignMasterController.getSecurityStatus();
       reassignMasterController.setCurrentStep('1');
       App.router.transitionTo('reassign');
     }

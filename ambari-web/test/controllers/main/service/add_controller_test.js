@@ -453,12 +453,12 @@ describe('App.AddServiceController', function() {
     });
 
     afterEach(function () {
-      App.router.get.restore();
+      App.get.restore();
     });
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        sinon.stub(App.router, 'get').withArgs('mainAdminKerberosController.securityEnabled').returns(item.securityEnabled);
+        sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(item.securityEnabled);
         addServiceController.checkSecurityStatus();
         expect(addServiceController.get('skipConfigureIdentitiesStep')).to.equal(item.skipConfigureIdentitiesStep);
         expect(addServiceController.get('isStepDisabled').findProperty('step', 5).get('value')).to.equal(item.isStep5Disabled);

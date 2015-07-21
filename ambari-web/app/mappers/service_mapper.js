@@ -21,6 +21,8 @@ App.serviceMapper = App.QuickDataMapper.create({
   map: function (json) {
     console.time("App.serviceMapper execution time");
 
+    App.serviceComponents = [].concat.apply([], json.items.mapProperty('components').invoke('getEach', 'ServiceComponentInfo.component_name'));
+
     json.items.forEach(function (service) {
       var cachedService = App.cache['services'].findProperty('ServiceInfo.service_name', service.ServiceInfo.service_name);
       if (cachedService) {

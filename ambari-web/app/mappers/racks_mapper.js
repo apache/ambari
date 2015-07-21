@@ -21,10 +21,5 @@ App.racksMapper = App.QuickDataMapper.create({
   config: {
     id: "Racks.id",
     name: "Racks.name"
-    //$hosts: ["host01", "host06", "host05"],
-    //status: "Racks.status",
-    //live_hosts_count: "Racks.live_hosts_count",
-    //critical_hosts_count: "Racks.critical_hosts_count",
-    //dead_hosts_count: "Racks.dead_hosts_count"
   }
 });

@@ -207,7 +207,7 @@ App.HostComponentView = Em.View.extend({
    */
   isDeleteComponentDisabled: function () {
     var stackComponentCount = App.StackServiceComponent.find(this.get('hostComponent.componentName')).get('minToInstall');
-    var installedCount = this.componentCounter();
+    var installedCount = this.get('componentCounter');
     return (installedCount <= stackComponentCount)
       || ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
   }.property('workStatus'),
@@ -217,10 +217,20 @@ App.HostComponentView = Em.View.extend({
    * @returns {Number}
    */
   componentCounter: function() {
-    return App.StackServiceComponent.find(this.get('hostComponent.componentName')).get('isMaster')
-      ? App.HostComponent.find().filterProperty('componentName', this.get('content.componentName')).length
-      : App.SlaveComponent.find().findProperty('componentName', this.get('content.componentName')).get('totalCount');
-  },
+    var componentCounter = 0;
+    var stackServiceComponent =  App.StackServiceComponent.find(this.get('hostComponent.componentName'));
+    if (stackServiceComponent && App.get('router.clusterController.isHostContentLoaded')) {
+      if (stackServiceComponent.get('isMaster')) {
+          componentCounter = App.HostComponent.find().filterProperty('componentName', this.get('content.componentName')).length
+      } else {
+        var slaveComponent = App.SlaveComponent.find().findProperty('componentName', this.get('content.componentName'));
+        if (slaveComponent) {
+          componentCounter = slaveComponent.get('totalCount');
+        }
+      }
+    }
+    return componentCounter;
+  }.property('App.router.clusterController.isHostContentLoaded'),
 
   /**
    * Gets number of current running components that are applied to the cluster
@@ -386,7 +396,7 @@ App.HostComponentView = Em.View.extend({
 
     if (component.get('cardinality') !== '1') {
       if (!this.get('isStart')) {
-        if (this.componentCounter() > 1) {
+        if (this.get('componentCounter') > 1) {
           if (this.runningComponentCounter()) {
             return false;
           }

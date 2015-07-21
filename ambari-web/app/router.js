@@ -165,8 +165,15 @@ App.Router = Em.Router.extend({
     return dfd.promise();
   },
 
+  /**
+   * Response for <code>/clusters?fields=Clusters/provisioning_state</code>
+   * @type {null|object}
+   */
+  clusterData: null,
+
   onAuthenticationSuccess: function (data) {
     if (App.db.getAuthenticated() === true) {
+      this.set('clusterData', data);
       this.setAuthenticated(true);
       if (data.items.length) {
         this.setClusterInstalled(data);
@@ -265,17 +272,22 @@ App.Router = Em.Router.extend({
     console.log('login success');
     App.usersMapper.map({"items": [data]});
     this.setUserLoggedIn(decodeURIComponent(params.loginName));
-    App.router.get('mainViewsController').loadAmbariViews();
-    App.ajax.send({
-      name: 'router.login.clusters',
-      sender: this,
-      data: {
-        loginName: params.loginName,
-        loginData: data
-      },
-      success: 'loginGetClustersSuccessCallback',
-      error: 'loginGetClustersErrorCallback'
-    });
+    var requestData = {
+      loginName: params.loginName,
+      loginData: data
+    };
+    // no need to load cluster data if it's already loaded
+    if (this.get('clusterData')) {
+      this.loginGetClustersSuccessCallback(this.get('clusterData'), {}, requestData);
+    }
+    else {
+      App.ajax.send({
+        name: 'router.login.clusters',
+        sender: this,
+        data: requestData,
+        success: 'loginGetClustersSuccessCallback'
+      });
+    }
   },
 
   loginErrorCallback: function(request, ajaxOptions, error, opt) {
@@ -311,8 +323,7 @@ App.Router = Em.Router.extend({
           App.ajax.send({
             name: 'ambari.service.load_server_version',
             sender: this,
-            success: 'adminViewInfoSuccessCallback',
-            error: 'adminViewInfoErrorCallback'
+            success: 'adminViewInfoSuccessCallback'
           });
         }
       } else {
@@ -345,6 +356,7 @@ App.Router = Em.Router.extend({
           });
         }
       } else {
+        App.router.get('mainViewsController').loadAmbariViews();
         router.transitionTo('main.views.index');
         loginController.postLogin(true,true);
       }
@@ -361,14 +373,6 @@ App.Router = Em.Router.extend({
         latestVersion = sortedMappedVersions[sortedMappedVersions.length-1];
       window.location.replace('/views/ADMIN_VIEW/' + latestVersion + '/INSTANCE/#/');
     }
-  },
-
-  adminViewInfoErrorCallback: function (req) {
-    console.log("Get admin view version error: " + req.statusCode);
-  },
-
-  loginGetClustersErrorCallback: function (req) {
-    console.log("Get clusters error: " + req.statusCode);
   },
 
   getSection: function (callback) {
@@ -390,7 +394,13 @@ App.Router = Em.Router.extend({
               route =  wizardControllerRoute.route;
             }
           }
-          callback(route);
+          if (wizardControllerRoute && wizardControllerRoute.wizardControllerName === 'mainAdminStackAndUpgradeController')  {
+            App.router.get('clusterController').restoreUpgradeState().done(function(){
+              callback(route);
+            });
+          } else {
+            callback(route);
+          }
         });
       } else {
         callback('installer');
@@ -534,8 +544,7 @@ App.Router = Em.Router.extend({
           App.ajax.send({
             name: 'ambari.service.load_server_version',
             sender: router,
-            success: 'adminViewInfoSuccessCallback',
-            error: 'adminViewInfoErrorCallback'
+            success: 'adminViewInfoSuccessCallback'
           });
         }
       }

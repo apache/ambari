@@ -59,7 +59,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
 
   reconfigureHDFS: function () {
     var data = this.get('content.serviceConfigProperties');
-    if (App.router.get('mainAdminKerberosController.securityEnabled')) {
+    if (App.get('isKerberosEnabled')) {
       this.reconfigureSecureHDFS();
     } else {
       this.updateConfigProperties(data);

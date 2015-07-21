@@ -22,7 +22,7 @@ module.exports = {
     var self = this,
         componentName = component.get('componentName'),
         displayName = component.get('displayName');
-    this.createServiceComponent(componentName).done(function () {
+    this.updateAndCreateServiceComponent(componentName).done(function () {
       App.ajax.send({
         name: 'host.host_component.add_new_component',
         sender: self,
@@ -178,9 +178,29 @@ module.exports = {
    * @param componentName
    * @returns {*}
    */
-  createServiceComponent: function (componentName) {
+  updateAndCreateServiceComponent: function (componentName) {
+    var self = this;
     var dfd = $.Deferred();
-    if (App.serviceComponents.contains(componentName)) {
+    App.router.get('updateController').updateComponentsState(function() {
+      self.createServiceComponent(componentName, dfd);
+    });
+    return dfd.promise();
+  },
+
+  /**
+   *
+   * @param componentName
+   * @param dfd
+   * @returns {*}
+   */
+  createServiceComponent: function(componentName, dfd) {
+    var allServiceComponents = [];
+    var services = App.Service.find().mapProperty('serviceName');
+    services.forEach(function(_service){
+      var _serviceComponents = App.Service.find(_service).get('serviceComponents');
+      allServiceComponents = allServiceComponents.concat(_serviceComponents);
+    }, this);
+    if (allServiceComponents.contains(componentName)) {
       dfd.resolve();
     } else {
       App.ajax.send({
@@ -192,10 +212,7 @@ module.exports = {
         }
       }).complete(function () {
         dfd.resolve();
-        App.serviceComponents.push(componentName);
       });
     }
-    return dfd.promise();
   }
-
 };

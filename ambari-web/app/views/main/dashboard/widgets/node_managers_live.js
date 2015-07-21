@@ -46,6 +46,10 @@ App.NodeManagersLiveView = App.TextDashboardWidgetView.extend({
   thresh2: 70,
   maxValue: 100,
 
+  isDataAvailable: function() {
+    return !this.get('model.metricsNotAvailable') &&  App.get('router.clusterController.isComponentsStateLoaded');
+  }.property('App.router.clusterController.isComponentsStateLoaded'),
+
   nodeManagersLive: function () {
     return this.get('model.nodeManagersCountActive');
   }.property('model.nodeManagersCountActive'),
@@ -53,7 +57,7 @@ App.NodeManagersLiveView = App.TextDashboardWidgetView.extend({
   data: function () {
     var nodeManagers = this.get('model.nodeManagersTotal');
     var nodeManagersLive = this.get('nodeManagersLive');
-    if (nodeManagersLive == null) {
+    if (nodeManagersLive == null || !nodeManagers) {
       return null;
     } else {
       return (nodeManagersLive / nodeManagers).toFixed(2) * 100;
@@ -61,7 +65,7 @@ App.NodeManagersLiveView = App.TextDashboardWidgetView.extend({
   }.property('model.nodeManagersTotal', 'nodeManagersLive'),
 
   content: function () {
-    return this.get('nodeManagersLive') == null ? Em.I18n.t('services.service.summary.notAvailable') : this.get('nodeManagersLive') + '/' + this.get('model.nodeManagersTotal');
+    return this.get('nodeManagersLive') == null || !this.get('model.nodeManagersTotal') ? Em.I18n.t('services.service.summary.notAvailable') : this.get('nodeManagersLive') + '/' + this.get('model.nodeManagersTotal');
   }.property('model.nodeManagersTotal', 'nodeManagersLive'),
 
   editWidget: function (event) {

@@ -897,34 +897,37 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   describe('#setSecureConfigs()', function () {
     it('undefined component and security disabled', function () {
       var secureConfigs = [];
-      controller.set('content.securityEnabled', false);
+      sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(false);
       controller.set('secureConfigsMap', []);
       expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
       expect(secureConfigs).to.eql([]);
-    });
-    it('undefined component and security enabled', function () {
-      var secureConfigs = [];
-      controller.set('content.securityEnabled', true);
-      controller.set('secureConfigsMap', []);
-      expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
-      expect(secureConfigs).to.eql([]);
+      App.get.restore();
     });
     it('component exist and security disabled', function () {
       var secureConfigs = [];
-      controller.set('content.securityEnabled', false);
+      sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(false);
       controller.set('secureConfigsMap', [{
         componentName: 'COMP1'
       }]);
       expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
       expect(secureConfigs).to.eql([]);
+      App.get.restore();
+    });
+    it('undefined component and security enabled', function () {
+      var secureConfigs = [];
+      sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(true);
+      controller.set('secureConfigsMap', []);
+      expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
+      expect(secureConfigs).to.eql([]);
+      App.get.restore();
     });
     it('component exist and security enabled', function () {
       var secureConfigs = [];
+      sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(true);
       var configs = {'s1': {
         'k1': 'kValue',
         'p1': 'pValue'
       }};
-      controller.set('content.securityEnabled', true);
       controller.set('secureConfigsMap', [{
         componentName: 'COMP1',
         configs: [{
@@ -940,6 +943,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           "principal": "pValue"
         }
       ]);
+      App.get.restore();
     });
   });
 

@@ -40,6 +40,7 @@ App.Service = DS.Model.extend({
 
   clientComponents: DS.hasMany('App.ClientComponent'),
   slaveComponents: DS.hasMany('App.SlaveComponent'),
+  masterComponents: DS.hasMany('App.MasterComponent'),
 
   /**
    * @type {bool}
@@ -47,6 +48,13 @@ App.Service = DS.Model.extend({
   isInPassive: function() {
     return this.get('passiveState') === "ON";
   }.property('passiveState'),
+
+  serviceComponents: function() {
+    var clientComponents = this.get('clientComponents').mapProperty('componentName');
+    var slaveComponents = this.get('slaveComponents').mapProperty('componentName');
+    var masterComponents = this.get('masterComponents').mapProperty('componentName');
+    return clientComponents.concat(slaveComponents).concat(masterComponents);
+  }.property('clientComponents.@each', 'slaveComponents.@each','masterComponents.@each'),
 
   // Instead of making healthStatus a computed property that listens on hostComponents.@each.workStatus,
   // we are creating a separate observer _updateHealthStatus.  This is so that healthStatus is updated
