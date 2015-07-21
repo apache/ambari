@@ -34,6 +34,15 @@
       </priority>
     </group>
     
+    <group xsi:type="cluster" name="PRE_POST_CLUSTER" title="Run on All">
+      <execute-stage title="Host Finalize" service="HDFS" component="NAMENODE" >
+        <task xsi:type="execute" hosts="master">
+          <script>scripts/ru_run_all.py</script>
+          <function>actionexecute</function>
+        </task>
+      </execute-stage>      
+    </group>
+    
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize Upgrade">
       <execute-stage title="Direction Downgrade Only">
         <direction>DOWNGRADE</direction>
