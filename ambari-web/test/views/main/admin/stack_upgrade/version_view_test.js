@@ -318,14 +318,14 @@ describe('App.mainAdminStackVersionsView', function () {
 
   describe("#willInsertElement()", function() {
     before(function () {
-      sinon.stub(view, 'doPolling', Em.K);
+      sinon.stub(view, 'poll', Em.K);
     });
     after(function () {
-      view.doPolling.restore();
+      view.poll.restore();
     });
     it("", function() {
       view.willInsertElement();
-      expect(view.doPolling.calledOnce).to.be.true;
+      expect(view.poll.calledOnce).to.be.true;
     });
   });
 

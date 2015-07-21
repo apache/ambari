@@ -195,7 +195,7 @@ App.MainAdminStackVersionsView = Em.View.extend({
    * load ClusterStackVersions data
    */
   willInsertElement: function () {
-    this.doPolling();
+    this.poll();
   },
 
   /**
