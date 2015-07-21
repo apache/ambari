@@ -73,7 +73,8 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
     options = "-rollingUpgrade started" if rolling_restart else ""
 
     if rolling_restart:
-      # Must start Zookeeper Failover Controller if it exists on this host because it could have been killed in order to initiate the failover.
+      # Most likely, ZKFC is up since RU will initiate the failover command. However, if that failed, it would have tried
+      # to kill ZKFC manually, so we need to start it if not already running.
       safe_zkfc_op(action, env)
 
     service(
