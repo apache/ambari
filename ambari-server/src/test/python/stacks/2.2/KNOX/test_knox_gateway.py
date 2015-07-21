@@ -319,10 +319,7 @@ class TestKnoxGateway(RMFTestCase):
        mocks_dict['call'].call_args_list[0][0][0])
 
   @patch("os.path.islink")
-  @patch("os.path.realpath")
-  @patch("os.unlink")
-  @patch("os.symlink")
-  def test_start_default(self, symlink_mock, unlink_mock, realpath_mock, islink_mock):
+  def test_start_default(self, islink_mock):
 
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
@@ -409,12 +406,13 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               content = self.getConfig()['configurations']['users-ldif']['content']
     )
-
+    self.assertResourceCalled('Link', '/usr/hdp/current/knox-server/pids',
+        to = '/var/run/knox',
+    )
     self.assertResourceCalled("Execute", "/usr/hdp/current/knox-server/bin/gateway.sh start",
                               environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
                               not_if = u'ls /var/run/knox/gateway.pid >/dev/null 2>&1 && ps -p `cat /var/run/knox/gateway.pid` >/dev/null 2>&1',
                               user = u'knox',)
     self.assertTrue(islink_mock.called)
-    self.assertTrue(realpath_mock.called)
     self.assertNoMoreResources()
 
