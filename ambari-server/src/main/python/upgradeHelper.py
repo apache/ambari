@@ -160,6 +160,10 @@ class CatalogNotFoundException(Exception):
   pass
 
 
+class TemplateProcessingException(Exception):
+  pass
+
+
 class CatalogExistException(Exception):
   pass
 
@@ -501,12 +505,15 @@ class UpgradeCatalog(object):
     if CatConst.TEMPLATE_HANDLER in self._handlers and self._handlers is not None and \
                     CatConst.VALUE_TEMPLATE_TAG in catalog_property_item and catalog_property_item[
       CatConst.VALUE_TEMPLATE_TAG] == CatConst.TRUE_TAG:
-      parsed_value = self._handlers[CatConst.TEMPLATE_HANDLER](
-        self,
-        self._search_pattern.findall(catalog_property_item[CatConst.PROPERTY_VALUE_TAG]),
-        catalog_property_item[CatConst.PROPERTY_VALUE_TAG]
-      )
-      catalog_property_item[CatConst.PROPERTY_VALUE_TAG] = parsed_value
+      try:
+        parsed_value = self._handlers[CatConst.TEMPLATE_HANDLER](
+          self,
+          self._search_pattern.findall(catalog_property_item[CatConst.PROPERTY_VALUE_TAG]),
+          catalog_property_item[CatConst.PROPERTY_VALUE_TAG]
+        )
+        catalog_property_item[CatConst.PROPERTY_VALUE_TAG] = parsed_value
+      except TemplateProcessingException:
+        pass
 
   def __handle_add_new(self, catalog_item_name, catalog_property_item, properties):
     """
@@ -691,13 +698,15 @@ class ServerConfigFactory(object):
     """
     if CatConst.VALUE_TEMPLATE_TAG in item and CatConst.TEMPLATE_HANDLER in catalog.action_handlers and\
             CatConst.PROPERTY_DEFAULT in item and item[CatConst.VALUE_TEMPLATE_TAG] == CatConst.TRUE_TAG:
-
-      parsed_value = catalog.action_handlers[CatConst.TEMPLATE_HANDLER](
-        catalog,
-        catalog.tag_search_pattern.findall(item[CatConst.PROPERTY_DEFAULT]),
-        item[CatConst.PROPERTY_DEFAULT]
-      )
-      item[CatConst.PROPERTY_DEFAULT] = parsed_value
+      try:
+        parsed_value = catalog.action_handlers[CatConst.TEMPLATE_HANDLER](
+          catalog,
+          catalog.tag_search_pattern.findall(item[CatConst.PROPERTY_DEFAULT]),
+          item[CatConst.PROPERTY_DEFAULT]
+        )
+        item[CatConst.PROPERTY_DEFAULT] = parsed_value
+      except TemplateProcessingException:
+        pass
 
   def _process_property_value_transformation(self, catalog, property_map_definition, old_value):
     """
@@ -1105,9 +1114,16 @@ def get_zookeeper_quorum():
 
   return ",".join(zoo_quorum)
 
+
 def get_tez_history_url_base():
-  tez_view = curl(Options.TEZ_VIEW_URL, validate=False, simulate=False, parse=True)
+  try:
+    tez_view = curl(Options.TEZ_VIEW_URL, validate=False, simulate=False, parse=True)
+  except HTTPError as e:
+    raise TemplateProcessingException(str(e))
+
   version = ""
+
+
   if "versions" in tez_view and \
     len(tez_view['versions']) > 0 and \
     "ViewVersionInfo" in tez_view['versions'][0] and \
