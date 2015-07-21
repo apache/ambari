@@ -40,6 +40,8 @@ from ambari_agent.FileCache import FileCache
 from ambari_commons import OSCheck
 from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
+import logging
+
 class TestActionQueue(TestCase):
   def setUp(self):
     # save original open() method for later use
@@ -48,6 +50,8 @@ class TestActionQueue(TestCase):
 
   def tearDown(self):
     sys.stdout = sys.__stdout__
+
+  logger = logging.getLogger()
 
   datanode_install_command = {
     'commandType': 'EXECUTION_COMMAND',
@@ -253,7 +257,7 @@ class TestActionQueue(TestCase):
     actionQueue.stop()
     actionQueue.join()
     self.assertEqual(actionQueue.stopped(), True, 'Action queue is not stopped.')
-    self.assertTrue(process_command_mock.call_count > 1)
+    self.assertGreater(process_command_mock.call_count, 1)
 
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -372,9 +376,12 @@ class TestActionQueue(TestCase):
     # Continue command execution
     unfreeze_flag.set()
     # wait until ready
-    while actionQueue.tasks_in_progress_or_pending():
-      time.sleep(0.1)
+    check_queue = True
+    while check_queue:
       report = actionQueue.result()
+      if not actionQueue.tasks_in_progress_or_pending():
+        break
+      time.sleep(0.1)
 
     self.assertEqual(len(report['reports']), 0)
 
@@ -388,10 +395,11 @@ class TestActionQueue(TestCase):
     unfreeze_flag.set()
     #  check in progress report
     # wait until ready
-    report = actionQueue.result()
-    while actionQueue.tasks_in_progress_or_pending():
-      time.sleep(0.1)
+    while check_queue:
       report = actionQueue.result()
+      if not actionQueue.tasks_in_progress_or_pending():
+        break
+      time.sleep(0.1)
 
     self.assertEqual(len(report['reports']), 0)
 
@@ -839,7 +847,11 @@ class TestActionQueue(TestCase):
       'structuredOut': '',
       'status': 'FAILED'
     }
-    time_mock.side_effect = [4, 8, 10, 14, 18, 22]
+
+    times_arr = [8, 10, 14, 18, 22]
+    if self.logger.isEnabledFor(logging.INFO):
+      times_arr.insert(0, 4)
+    time_mock.side_effect = times_arr
 
     def side_effect(command, tmpoutfile, tmperrfile, override_output_files=True, retry=False):
       return python_execution_result_dict
@@ -954,7 +966,6 @@ class TestActionQueue(TestCase):
     report = actionQueue.result()
     self.assertEqual(len(report['reports']),1)
 
-  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(CustomServiceOrchestrator, "get_py_executor")
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
   @patch.object(StackVersionsFileHandler, "read_stack_version")

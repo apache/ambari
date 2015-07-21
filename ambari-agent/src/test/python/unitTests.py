@@ -154,9 +154,18 @@ def main():
 if __name__ == '__main__':
   import os
   import sys
-  sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-  sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + os.sep + 'main' + os.sep + 'python')
-  sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + os.sep + 'main' + os.sep + 'python' + os.sep + 'ambari_agent')
+
+  pwd = os.path.abspath(__file__)
+  ambari_agent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(pwd))))
+  src_dir = os.path.dirname(ambari_agent_dir)
+  ambari_common_dir = os.path.join(src_dir, "ambari-common")
+
+  sys.path.insert(0, os.path.join(ambari_agent_dir, "src", "main", "python"))
+  sys.path.insert(0, os.path.join(ambari_agent_dir, "src", "main", "python", "ambari_agent"))
+  sys.path.insert(0, os.path.join(ambari_common_dir, "src", "main", "python"))
+  sys.path.insert(0, os.path.join(ambari_common_dir, "src", "main", "python", "ambari_jinja2"))
+  sys.path.insert(0, os.path.join(ambari_common_dir, "src", "test", "python"))
+
   logger = logging.getLogger()
   logger.setLevel(logging.INFO)
   formatter = logging.Formatter("[%(levelname)s] %(message)s")

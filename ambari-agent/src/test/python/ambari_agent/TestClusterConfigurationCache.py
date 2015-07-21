@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import os
 import sys
 
 from ambari_agent.ClusterConfiguration import ClusterConfiguration
@@ -42,9 +43,9 @@ class TestClusterConfigurationCache(TestCase):
     open_mock = mock_open(read_data=configuration_json)
 
     with patch("__builtin__.open", open_mock):
-      cluster_configuration = ClusterConfiguration("/foo/bar/baz")
+      cluster_configuration = ClusterConfiguration(os.path.join(os.sep, "foo", "bar", "baz"))
 
-    open_mock.assert_called_with("/foo/bar/baz/configurations.json", 'r')
+    open_mock.assert_called_with(os.sep + "foo" + os.sep + "bar" + os.sep + "baz" + os.sep + "configurations.json", 'r')
 
     self.assertEqual('bar', cluster_configuration.get_configuration_value('c1', 'foo-site/foo') )
     self.assertEqual('baz', cluster_configuration.get_configuration_value('c1', 'foo-site/foobar') )
@@ -52,6 +53,7 @@ class TestClusterConfigurationCache(TestCase):
     self.assertEqual(None, cluster_configuration.get_configuration_value('c1', 'INVALID/INVALID') )
     self.assertEqual(None, cluster_configuration.get_configuration_value('INVALID', 'foo-site/foo') )
     self.assertEqual(None, cluster_configuration.get_configuration_value('INVALID', 'foo-site/foobar') )
+    pass
 
 
   @patch("ambari_simplejson.dump")
@@ -63,9 +65,10 @@ class TestClusterConfigurationCache(TestCase):
     }
 
     file_mock = self.__update_cluster_configuration(cluster_configuration, configuration)
-    file_mock.assert_called_with('/foo/bar/baz/configurations.json', 'w')
+    file_mock.assert_called_with(os.sep + "foo" + os.sep + "bar" + os.sep + "baz" + os.sep + "configurations.json", 'w')
 
     json_dump_mock.assert_called_with({'c1': {'foo-site': {'baz': 'rendered-baz', 'bar': 'rendered-bar'}}}, ANY, indent=2)
+    pass
 
   def __get_cluster_configuration(self):
     """
@@ -75,7 +78,7 @@ class TestClusterConfigurationCache(TestCase):
     """
     with patch("__builtin__.open") as open_mock:
       open_mock.side_effect = self.open_side_effect
-      cluster_configuration = ClusterConfiguration("/foo/bar/baz")
+      cluster_configuration = ClusterConfiguration(os.path.join(os.sep, "foo", "bar", "baz"))
       return cluster_configuration
 
 

@@ -28,6 +28,7 @@ import tempfile
 import ConfigParser
 
 from ambari_commons import OSCheck
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from only_for_platform import get_platform, not_for_platform, os_distro_value, PLATFORM_WINDOWS
 from mock.mock import MagicMock, patch, ANY, Mock
 
@@ -283,6 +284,16 @@ class TestMain(unittest.TestCase):
     self.assertTrue(sys_exit_mock.called)
 
 
+  @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
+  def init_ambari_config_mock(self):
+    return os.path.normpath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "conf", "windows", "ambari-agent.ini"))
+
+  @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+  def init_ambari_config_mock(self):
+    return os.path.normpath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "conf", "unix", "ambari-agent.ini"))
+
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(socket, "gethostbyname")
   @patch.object(main, "setup_logging")
@@ -315,7 +326,7 @@ class TestMain(unittest.TestCase):
     parse_args_mock.return_value = (options, MagicMock)
     try_to_connect_mock.return_value = (0, True)
     # use default unix config
-    ambari_config_mock.return_value = os.path.abspath("../../../conf/unix/ambari-agent.ini")
+    ambari_config_mock.return_value = self.init_ambari_config_mock()
     #testing call without command-line arguments
 
     main.main()
@@ -335,10 +346,12 @@ class TestMain(unittest.TestCase):
     self.assertTrue(data_clean_start_mock.called)
     self.assertTrue(ping_port_init_mock.called)
     self.assertTrue(ping_port_start_mock.called)
-    self.assertTrue(cleanup_mock.called)
+    if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
+      self.assertTrue(cleanup_mock.called)
     perform_prestart_checks_mock.reset_mock()
 
     # Testing call with --expected-hostname parameter
     options.expected_hostname = "test.hst"
     main.main()
     perform_prestart_checks_mock.assert_called_once_with(options.expected_hostname)
+    pass
