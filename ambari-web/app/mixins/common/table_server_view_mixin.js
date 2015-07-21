@@ -41,12 +41,12 @@ App.TableServerViewMixin = Em.Mixin.create({
   totalCount: function () {
     return this.get('controller.totalCount');
   }.property('controller.totalCount'),
+
   /**
    * data requested from server
    */
-  content: function () {
-    return this.get('controller.content');
-  }.property('controller.content'),
+  contentBinding: 'controller.content',
+
   /**
    * content already filtered on server-side
    */
@@ -57,7 +57,7 @@ App.TableServerViewMixin = Em.Mixin.create({
    * sort and slice recieved content by pagination parameters
    */
   pageContent: function () {
-    var content = this.get('filteredContent');
+    var content = this.get('filteredContent').toArray();
     if (content.length > ((this.get('endIndex') - this.get('startIndex')) + 1)) {
       content = content.slice(0, (this.get('endIndex') - this.get('startIndex')) + 1);
     }

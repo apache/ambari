@@ -216,7 +216,7 @@ describe('App.Host', function () {
     });
   });
 
-  describe('#componentsWithStaleConfigs', function () {
+  describe.skip('#componentsWithStaleConfigs', function () {
     it('One component with stale configs', function () {
       host1.set('hostComponents', [Em.Object.create({
         staleConfigs: true
@@ -235,7 +235,7 @@ describe('App.Host', function () {
     });
   });
 
-  describe('#componentsInPassiveStateCount', function () {
+  describe.skip('#componentsInPassiveStateCount', function () {
     it('No component in passive state', function () {
       host1.set('hostComponents', [Em.Object.create({
         passiveState: 'OFF'

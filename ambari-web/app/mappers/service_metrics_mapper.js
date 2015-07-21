@@ -19,7 +19,7 @@ var App = require('app');
 var misc = require('utils/misc');
 var stringUtils = require('utils/string_utils');
 var dateUtils = require('utils/date');
-var previousResponse = [];
+var previousMasterComponentIds = [];
 
 App.serviceMetricsMapper = App.QuickDataMapper.create({
 
@@ -44,6 +44,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     standby_name_node_id: 'standby_name_node_id',
     standby_name_node2_id: 'standby_name_node2_id',
     journal_nodes: 'journal_nodes',
+    name_node_id: 'name_node_id',
+    sname_node_id: 'sname_node_id',
     metrics_not_available: 'metrics_not_available',
     name_node_start_time: 'nameNodeComponent.host_components[0].metrics.runtime.StartTime',
     jvm_memory_heap_used: 'nameNodeComponent.host_components[0].metrics.jvm.HeapMemoryUsed',
@@ -95,14 +97,19 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     queue: 'resourceManagerComponent.queue',
     node_managers_started: 'node_managers_started',
     node_managers_installed: 'node_managers_installed',
-    node_managers_total: 'node_managers_total'
+    node_managers_total: 'node_managers_total',
+    app_timeline_server_id: 'app_timeline_server_id',
+    resource_manager_id: 'resource_manager_id',
+    active_resource_manager_id: 'active_resource_manager_id'
   },
   mapReduce2Config: {
-    map_reduce2_clients: 'map_reduce2_clients'
+    map_reduce2_clients: 'map_reduce2_clients',
+    job_history_server_id: 'job_history_server_id'
   },
   hbaseConfig: {
     master_start_time: 'masterComponent.host_components[0].metrics.hbase.master.MasterStartTime',
     master_active_time: 'masterComponent.host_components[0].metrics.hbase.master.MasterActiveTime',
+    master_id: 'master_id',
     average_load: 'masterComponent.host_components[0].metrics.hbase.master.AverageLoad',
     heap_memory_used: 'masterComponent.host_components[0].metrics.jvm.HeapMemoryUsed',
     heap_memory_max: 'masterComponent.host_components[0].metrics.jvm.HeapMemoryMax',
@@ -141,19 +148,23 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
 
   model3: App.HostComponent,
   config3: {
-    id: 'id',
     work_status: 'HostRoles.state',
     passive_state: 'HostRoles.maintenance_state',
-    desired_status: 'HostRoles.desired_state',
     component_name: 'HostRoles.component_name',
     host_id: 'HostRoles.host_name',
     host_name: 'HostRoles.host_name',
     stale_configs: 'HostRoles.stale_configs',
     ha_status: 'HostRoles.ha_state',
     display_name_advanced: 'display_name_advanced',
-    $service_id: 'none', /* will be set outside of parse function */
     admin_state: 'HostRoles.desired_admin_state'
   },
+
+  /**
+   * components which have additional relations and filtered for <code>computeAdditionalRelations</code>
+   * @type {Array}
+   * @const
+   */
+  ADVANCED_COMPONENTS: ['SECONDARY_NAMENODE', 'RESOURCEMANAGER', 'NAMENODE', 'HBASE_MASTER', 'RESOURCEMANAGER'],
 
   map: function (json) {
     console.time('App.serviceMetricsMapper execution time');
@@ -165,14 +176,13 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       var previousComponentStatuses = App.cache['previousComponentStatuses'];
       var previousComponentPassiveStates = App.cache['previousComponentPassiveStates'];
       var result = [];
+      var advancedHostComponents = [];
+      var hostComponentIdsMap = {};
+
       /**
        * services contains constructed service-components structure from components array
        */
-
-      services.forEach(function (service) {
-        service.host_components = [];
-        service.components = [];
-      });
+      services.setEach('components', []);
 
       json.items.forEach(function (component) {
         var serviceName = component.ServiceComponentInfo.service_name;
@@ -181,28 +191,38 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           service.components.push(component);
         }
         component.host_components.forEach(function (host_component) {
-          host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
+          var id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
+          hostComponentIdsMap[id] = true;
           previousComponentStatuses[host_component.id] = host_component.HostRoles.state;
           previousComponentPassiveStates[host_component.id] = host_component.HostRoles.maintenance_state;
           this.config3.ha_status = host_component.HostRoles.component_name == "HBASE_MASTER" ?
             'metrics.hbase.master.IsActiveMaster' : 'HostRoles.ha_state';
           var comp = this.parseIt(host_component, this.config3);
+          comp.id = id;
           comp.service_id = serviceName;
           hostComponents.push(comp);
+          if (this.get('ADVANCED_COMPONENTS').contains(comp.component_name)) {
+            advancedHostComponents.push(comp);
+          }
         }, this);
       }, this);
 
-      this.computeAdditionalRelations(hostComponents, services);
+      this.computeAdditionalRelations(advancedHostComponents, services);
       //load master components to model
-      App.HostComponent.find().filterProperty('isMaster').forEach(function (hostComponent) {
-        if (hostComponent && !hostComponents.someProperty('id', hostComponent.get('id'))) {
-          this.deleteRecord(hostComponent);
+      previousMasterComponentIds.forEach(function (id) {
+        if (!hostComponentIdsMap[id]) {
+          var hostComponent = App.HostComponent.find(id);
+          if (hostComponent.get('isLoaded')) {
+            this.deleteRecord(hostComponent);
+          }
           var serviceCache = services.findProperty('ServiceInfo.service_name', hostComponent.get('service.serviceName'));
           if (serviceCache) {
             serviceCache.host_components = serviceCache.host_components.without(hostComponent.get('id'));
           }
         }
       }, this);
+      previousMasterComponentIds = hostComponents.mapProperty('id');
+
       App.store.loadMany(this.get('model3'), hostComponents);
 
       //parse service metrics from components
@@ -261,24 +281,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
 
       //load services to model
       App.store.loadMany(this.get('model'), result);
-      /*if (previousResponse.length !== result.length) {
-       App.store.loadMany(this.get('model'), result);
-       } else {
-       result.forEach(function (serviceJson) {
-       var fields = ['passive_state','work_status', 'rand', 'alerts', 'quick_links', 'host_components', 'tool_tip_content', 'critical_alerts_count'];
-       var service = this.get('model').find(serviceJson.id);
-       var modifiedData = this.getDiscrepancies(serviceJson, previousResponse.findProperty('id', serviceJson.id), fields);
-       if (modifiedData.isLoadNeeded) {
-       App.store.load(this.get('model'), serviceJson);
-       } else {
-       for (var property in modifiedData) {
-       service.set(stringUtils.underScoreToCamelCase(property), modifiedData[property]);
-       }
-       }
-       }, this)
-       }
-
-       previousResponse = result;*/
     }
     console.timeEnd('App.serviceMetricsMapper execution time');
   },
@@ -447,6 +449,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         for (var host in liveNodesJson) {
           item.live_data_nodes.push('DATANODE' + '_' + host);
         }
+        item.name_node_id = "NAMENODE" + "_" + component.host_components[0].HostRoles.host_name;
       }
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "JOURNALNODE") {
         if (!item.journal_nodes) {
@@ -454,9 +457,14 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         }
         if (component.host_components) {
           component.host_components.forEach(function (hc) {
-            item.journal_nodes.push(hc.HostRoles.host_name);
+            item.journal_nodes.push("JOURNALNODE" + "_" + hc.HostRoles.host_name);
           });
         }
+      }
+      if (component.ServiceComponentInfo &&
+          component.ServiceComponentInfo.component_name == "SECONDARY_NAMENODE" &&
+          component.host_components.length > 0) {
+        item.sname_node_id = "SECONDARY_NAMENODE" + "_" + component.host_components[0].HostRoles.host_name;
       }
     });
     // Map
@@ -481,6 +489,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           var activeRM = component.host_components.findProperty('HostRoles.ha_state', 'ACTIVE');
           var activeHostComponentIndex = component.host_components.indexOf(activeRM);
           self.setActiveAsFirstHostComponent(component, activeHostComponentIndex);
+          if (activeRM) {
+            item.active_resource_manager_id = "RESOURCEMANAGER" + "_" + activeRM.HostRoles.host_name;
+          }
         }
 
         if (component.host_components[0].metrics && component.host_components[0].metrics.yarn) {
@@ -491,6 +502,10 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         }
         // extend config
         finalConfig = jQuery.extend(finalConfig, yarnConfig);
+        item.resource_manager_id = "RESOURCEMANAGER" + "_" + component.host_components[0].HostRoles.host_name;
+      }
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "APP_TIMELINE_SERVER") {
+        item.app_timeline_server_id = "APP_TIMELINE_SERVER" + "_" + component.host_components[0].HostRoles.host_name;
       }
     });
     // Map
@@ -520,6 +535,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "HISTORYSERVER") {
         item.jobHistoryServerComponent = component;
         finalConfig = jQuery.extend(finalConfig, mapReduce2Config);
+        item.job_history_server_id = "HISTORYSERVER" + "_" + component.host_components[0].HostRoles.host_name;
       }
     });
     // Map
@@ -552,6 +568,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
             item.regions_in_transition = regionsArray == null ? 0 : regionsArray;
           }
         }
+        item.master_id = "HBASE_MASTER" + "_" + component.host_components[0].HostRoles.host_name;
       }
     });
     // Map

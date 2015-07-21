@@ -21,44 +21,32 @@ var App = require('app');
 var modelSetup = require('test/init_model_test');
 require('models/service/hdfs');
 
-var hdfsService,
-  hdfsServiceData = {
-    id: 'hdfs'
-  },
-  hostComponentsData = [
-    {
-      id: 'journalnode',
-      componentName: 'JOURNALNODE'
-    }
-  ],
-  cases = [
-    {
-      propertyName: 'journalNodes',
-      componentId: 'journalnode'
-    }
-  ];
-
 describe('App.HDFSService', function () {
 
-  beforeEach(function () {
-    hdfsService = App.HDFSService.createRecord(hdfsServiceData);
-  });
-
-  afterEach(function () {
-    modelSetup.deleteRecord(hdfsService);
-  });
-
-  cases.forEach(function (item) {
-    var propertyName = item.propertyName;
-    describe('#' + propertyName, function () {
-      it('should take one component from hostComponents', function () {
-        hdfsService.reopen({
-          hostComponents: hostComponentsData
+    describe('#isNnHaEnabled', function () {
+      var record = App.HDFSService.createRecord({
+        id: 'hdfs'
+      });
+      it('ha disabled', function () {
+        record.reopen({
+          hostComponents: [Em.Object.create({componentName: 'NAMENODE'})],
+          snameNode: true
         });
-        expect(hdfsService.get(propertyName)).to.have.length(1);
-        expect(hdfsService.get(propertyName)[0].id).to.equal(item.componentId);
+        record.propertyDidChange('isNnHaEnabled');
+        expect(record.get('isNnHaEnabled')).to.be.false;
+      });
+      it('ha enabled', function () {
+        record.setProperties({
+          hostComponents: [
+            Em.Object.create({componentName: 'NAMENODE'}),
+            Em.Object.create({componentName: 'NAMENODE'})
+          ],
+          snameNode: null
+        });
+        record.propertyDidChange('isNnHaEnabled');
+        expect(record.get('isNnHaEnabled')).to.be.true;
       });
     });
-  });
+
 
 });

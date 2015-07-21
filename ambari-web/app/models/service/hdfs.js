@@ -19,12 +19,8 @@ var App = require('app');
 
 App.HDFSService = App.Service.extend({
   version: DS.attr('string'),
-  nameNode: function () {
-    return this.get('hostComponents').findProperty('componentName', 'NAMENODE');
-  }.property('hostComponents'),
-  snameNode: function () {
-    return this.get('hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE');
-  }.property('hostComponents'),
+  nameNode: DS.belongsTo('App.HostComponent'),
+  snameNode: DS.belongsTo('App.HostComponent'),
   activeNameNode: DS.belongsTo('App.HostComponent'),
   standbyNameNode: DS.belongsTo('App.HostComponent'),
   standbyNameNode2: DS.belongsTo('App.HostComponent'),
@@ -37,9 +33,7 @@ App.HDFSService = App.Service.extend({
   nfsGatewaysStarted: DS.attr('number'),
   nfsGatewaysInstalled: DS.attr('number'),
   nfsGatewaysTotal: DS.attr('number'),
-  journalNodes: function () {
-    return this.get('hostComponents').filterProperty('componentName', 'JOURNALNODE');
-  }.property('hostComponents.@each'),
+  journalNodes: DS.hasMany('App.HostComponent'),
   nameNodeStartTime: DS.attr('number'),
   jvmMemoryHeapUsed: DS.attr('number'),
   jvmMemoryHeapMax: DS.attr('number'),

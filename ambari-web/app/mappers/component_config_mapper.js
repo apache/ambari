@@ -42,7 +42,6 @@ App.componentConfigMapper = App.QuickDataMapper.create({
     // We do not want to parse JSON if there is no need to
     var hostComponentJsonMap = {};
     var hostComponentJsonIds = [];
-    var hostComponentLoaded = {};
 
     if (json.items.length > 0 || this.get('model').find().someProperty('staleConfigs', true)) {
       json.items.forEach(function (item) {
