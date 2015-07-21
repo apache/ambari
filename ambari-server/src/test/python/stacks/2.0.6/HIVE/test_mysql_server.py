@@ -20,6 +20,9 @@ limitations under the License.
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+
+@not_for_platform(PLATFORM_WINDOWS)
 class TestMySqlServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"

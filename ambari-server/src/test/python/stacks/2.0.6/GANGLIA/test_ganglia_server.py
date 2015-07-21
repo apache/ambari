@@ -21,6 +21,9 @@ limitations under the License.
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, call, patch
 
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+
+@not_for_platform(PLATFORM_WINDOWS)
 class TestGangliaServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "GANGLIA/3.5.0/package"
   STACK_VERSION = "2.0.6"

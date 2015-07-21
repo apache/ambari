@@ -34,10 +34,7 @@ from check_host import CheckHost
 from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 
-if get_platform() != PLATFORM_WINDOWS:
-  os_distro_value = ('Suse','11','Final')
-else:
-  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
+from only_for_platform import get_platform, not_for_platform, only_for_platform, os_distro_value, PLATFORM_LINUX, PLATFORM_WINDOWS
 
 
 @patch.object(HostCheckReportFileHandler, "writeHostChecksCustomActionsFile", new=MagicMock())

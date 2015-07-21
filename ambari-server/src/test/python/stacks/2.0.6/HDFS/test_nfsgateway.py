@@ -21,8 +21,11 @@ import os
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, patch
 
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+
 # NFS GATEWAY is always started by root using jsvc due to rpcbind bugs
 # on Linux such as CentOS6.2. https://bugzilla.redhat.com/show_bug.cgi?id=731542
+@not_for_platform(PLATFORM_WINDOWS)
 class TestNFSGateway(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"

@@ -21,6 +21,9 @@ import json
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+
+@not_for_platform(PLATFORM_WINDOWS)
 @patch("resource_management.libraries.functions.get_hdp_version", new=MagicMock(return_value="2.3.0.0-1597"))
 class TestJobHistoryServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.0.2.2/package"

@@ -22,6 +22,9 @@ import json
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+
+@not_for_platform(PLATFORM_WINDOWS)
 class TestRangerUsersync(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "RANGER/0.4.0/package"
   STACK_VERSION = "2.2"

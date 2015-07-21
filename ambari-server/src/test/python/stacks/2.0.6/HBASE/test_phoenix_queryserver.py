@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import json
+from unittest import SkipTest
 
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
@@ -142,8 +143,8 @@ class TestPhoenixQueryServer(RMFTestCase):
 
 
   def test_start_default_24(self):
-    # @skip("there's nothing to upgrade to yet")
-    return
+    raise SkipTest("there's nothing to upgrade to yet")
+
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
       classname = "PhoenixQueryServer",

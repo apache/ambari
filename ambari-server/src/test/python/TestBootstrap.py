@@ -33,9 +33,9 @@ from bootstrap import AMBARI_PASSPHRASE_VAR_NAME
 from mock.mock import MagicMock, call
 from mock.mock import patch
 from mock.mock import create_autospec
-from only_for_platform import only_for_platform, PLATFORM_LINUX
+from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
-@only_for_platform(PLATFORM_LINUX)
+@not_for_platform(PLATFORM_WINDOWS)
 class TestBootstrap(TestCase):
 
   def setUp(self):

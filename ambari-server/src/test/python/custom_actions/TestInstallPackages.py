@@ -19,7 +19,6 @@ limitations under the License.
 '''
 import json
 import os
-import pty
 import subprocess
 import select
 import install_packages
@@ -35,6 +34,11 @@ OLD_VERSION_STUB = '2.1.0.0-400'
 VERSION_STUB_WITHOUT_BUILD_NUMBER = '2.2.0.1'
 VERSION_STUB = '2.2.0.1-885'
 
+from only_for_platform import get_platform, not_for_platform, only_for_platform, os_distro_value, PLATFORM_WINDOWS
+
+if get_platform() != PLATFORM_WINDOWS:
+  import pty
+
 subproc_mock = MagicMock()
 subproc_mock.return_value = MagicMock()
 subproc_stdout = MagicMock()
@@ -42,7 +46,7 @@ subproc_mock.return_value.stdout = subproc_stdout
 
 @patch.object(os, "read", new=MagicMock(return_value=None))
 @patch.object(select, "select", new=MagicMock(return_value=([subproc_stdout], None, None)))
-@patch.object(pty, "openpty", new = MagicMock(return_value=(1,5)))
+@patch("pty.openpty", new = MagicMock(return_value=(1,5)))
 @patch.object(os, "close", new=MagicMock())
 @patch.object(subprocess, "Popen", new=subproc_mock)
 class TestInstallPackages(RMFTestCase):

@@ -22,6 +22,9 @@ import use_cases
 
 from stacks.utils.RMFTestCase import *
 
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+
+@not_for_platform(PLATFORM_WINDOWS)
 class TestKerberosServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "KERBEROS/1.10.3-10/package"
   STACK_VERSION = "2.2"

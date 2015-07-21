@@ -46,8 +46,15 @@ except:
   ams_monitor_conf_dir = None
   ams_monitor_home_dir = None
 
-hadoop_native_lib = os.path.join(os.environ["HADOOP_HOME"], "bin")
-hadoop_bin_dir = os.path.join(os.environ["HADOOP_HOME"], "bin")
-hadoop_conf_dir = os.path.join(os.environ["HADOOP_HOME"], "conf")
+hadoop_native_lib = None
+hadoop_bin_dir = None
+hadoop_conf_dir = None
+
+try:
+  hadoop_native_lib = os.path.join(os.environ["HADOOP_HOME"], "bin")
+  hadoop_bin_dir = os.path.join(os.environ["HADOOP_HOME"], "bin")
+  hadoop_conf_dir = os.path.join(os.environ["HADOOP_HOME"], "conf")
+except:
+  pass
 
 from service_mapping import *

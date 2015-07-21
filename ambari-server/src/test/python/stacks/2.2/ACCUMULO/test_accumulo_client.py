@@ -22,7 +22,9 @@ import json
 from mock.mock import patch
 from stacks.utils.RMFTestCase import *
 
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
+@not_for_platform(PLATFORM_WINDOWS)
 class TestAccumuloClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "ACCUMULO/1.6.1.2.2.0/package"
   STACK_VERSION = "2.1"

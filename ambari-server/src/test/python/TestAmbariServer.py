@@ -34,14 +34,10 @@ import StringIO
 import tempfile
 from unittest import TestCase
 
-from only_for_platform import get_platform, not_for_platform, only_for_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+from only_for_platform import get_platform, not_for_platform, only_for_platform, os_distro_value, PLATFORM_LINUX, PLATFORM_WINDOWS
 
 if get_platform() != PLATFORM_WINDOWS:
-  os_distro_value = ('Suse','11','Final')
   from pwd import getpwnam
-else:
-  #No Windows tests for now, but start getting prepared
-  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
 # We have to use this import HACK because the filename contains a dash
 with patch("platform.linux_distribution", return_value = os_distro_value):
@@ -4060,6 +4056,11 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       del args.database_name
       del args.database_username
       del args.database_password
+      del args.database_windows_auth
+      del args.default_database_host
+      del args.init_db_script_file
+      del args.cleanup_db_script_file
+      del args.must_set_database_options
       del args.sid_or_sname
       del args.jdbc_url
 

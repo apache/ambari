@@ -21,6 +21,9 @@ import json
 from stacks.utils.RMFTestCase import *
 from mock.mock import patch
 
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+
+@not_for_platform(PLATFORM_WINDOWS)
 class TestKafkaBroker(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "KAFKA/0.8.1.2.2/package"
   STACK_VERSION = "2.2"

@@ -23,7 +23,9 @@ from stacks.utils.RMFTestCase import *
 import json
 import sys
 
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
+@not_for_platform(PLATFORM_WINDOWS)
 class TestMetadataServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "ATLAS/0.1.0.2.3/package"
   STACK_VERSION = "2.3"

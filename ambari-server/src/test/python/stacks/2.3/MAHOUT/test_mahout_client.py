@@ -22,6 +22,9 @@ import json
 
 from stacks.utils.RMFTestCase import *
 
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+
+@not_for_platform(PLATFORM_WINDOWS)
 class TestMahoutClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "MAHOUT/1.0.0.2.3/package"
   STACK_VERSION = "2.3"
