@@ -927,6 +927,30 @@
               </mapper>
             </data>
             <data>
+              <src>target/classes/Ambari-DDL-SQLServer-CREATE.sql</src>
+              <type>file</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/var/lib/ambari-server/resources</prefix>
+              </mapper>
+            </data>
+            <data>
+              <src>target/classes/Ambari-DDL-SQLServer-CREATELOCAL.sql</src>
+              <type>file</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/var/lib/ambari-server/resources</prefix>
+              </mapper>
+            </data>
+            <data>
+              <src>src/main/resources/Ambari-DDL-SQLServer-DROP.sql</src>
+              <type>file</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/var/lib/ambari-server/resources</prefix>
+              </mapper>
+            </data>
+            <data>
               <src>${project.build.directory}/DBConnectionVerification.jar</src>
               <type>file</type>
               <mapper>
