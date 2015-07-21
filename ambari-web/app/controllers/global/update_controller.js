@@ -193,11 +193,10 @@ App.UpdateController = Em.Controller.extend({
       'stack_versions/repository_versions/RepositoryVersions/display_name',
       mainHostController = App.router.get('mainHostController'),
       sortProperties = mainHostController.getSortProps();
-
+    this.get('queryParams').set('Hosts', mainHostController.getQueryParameters(true));
     if (App.router.get('currentState.parentState.name') == 'hosts') {
       App.updater.updateInterval('updateHost', App.get('contentUpdateInterval'));
       hostDetailsParams = '';
-      this.get('queryParams').set('Hosts', mainHostController.getQueryParameters(true));
     }
     else {
       if (App.router.get('currentState.parentState.name') == 'hostDetails') {
