@@ -28,11 +28,14 @@ from ambari_commons.os_check import OSCheck
 from ambari_agent.Register import Register
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.Hardware import Hardware
+from ambari_agent.Facter import FacterLinux
 
 @not_for_platform(PLATFORM_WINDOWS)
 class TestRegistration(TestCase):
 
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
+  @patch.object(FacterLinux, "facterInfo", new = MagicMock(return_value={}))
+  @patch.object(FacterLinux, "__init__", new = MagicMock(return_value = None))
   @patch("ambari_commons.firewall.run_os_command")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")

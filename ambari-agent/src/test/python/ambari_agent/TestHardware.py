@@ -34,9 +34,15 @@ from ambari_commons import OSCheck
 @patch.object(platform,"linux_distribution", new = ('Suse','11','Final'))
 @patch.object(socket, "getfqdn", new = MagicMock(return_value = "ambari.apache.org"))
 @patch.object(socket, "gethostbyname", new = MagicMock(return_value = "192.168.1.1"))
+@patch.object(FacterLinux, "setDataIfConfigShortOutput", new = MagicMock(return_value ='''Iface   MTU Met    RX-OK RX-ERR RX-DRP RX-OVR    TX-OK TX-ERR TX-DRP TX-OVR Flg
+eth0   1500   0     9986      0      0      0     5490      0      0      0 BMRU
+eth1   1500   0        0      0      0      0        6      0      0      0 BMRU
+eth2   1500   0        0      0      0      0        6      0      0      0 BMRU
+lo    16436   0        2      0      0      0        2      0      0      0 LRU'''))
 class TestHardware(TestCase):
 
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
+  @patch.object(FacterLinux, "get_ip_address_by_ifname", new = MagicMock(return_value=None))
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
   def test_build(self, get_os_version_mock, get_os_type_mock):
@@ -123,6 +129,7 @@ class TestHardware(TestCase):
 
     self.assertEquals(result, None)
 
+  @patch.object(FacterLinux, "get_ip_address_by_ifname", new = MagicMock(return_value=None))
   @patch.object(hostname,"hostname")
   @patch.object(FacterLinux, "getFqdn")
   @patch.object(OSCheck, "get_os_type")
@@ -138,6 +145,7 @@ class TestHardware(TestCase):
     self.assertEquals(result['domain'], "apache.org")
     self.assertEquals(result['fqdn'], (result['hostname'] + '.' + result['domain']))
 
+  @patch.object(FacterLinux, "get_ip_address_by_ifname", new = MagicMock(return_value=None))
   @patch.object(FacterLinux, "setDataUpTimeOutput")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
@@ -152,6 +160,7 @@ class TestHardware(TestCase):
     self.assertEquals(result['uptime_hours'], '73')
     self.assertEquals(result['uptime_days'], '3')
 
+  @patch.object(FacterLinux, "get_ip_address_by_ifname", new = MagicMock(return_value=None))
   @patch.object(FacterLinux, "setMemInfoOutput")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
@@ -184,51 +193,14 @@ SwapFree:        1598676 kB
   @patch("socket.inet_ntoa")
   @patch.object(FacterLinux, "get_ip_address_by_ifname")
   @patch.object(Facter, "getIpAddress")
-  @patch.object(FacterLinux, "setDataIfConfigOutput")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
-  def test_facterDataIfConfigOutput(self, get_os_version_mock, get_os_type_mock, facter_setDataIfConfigOutput_mock,
+  def test_facterDataIfConfigOutput(self, get_os_version_mock, get_os_type_mock,
                                     getIpAddress_mock, get_ip_address_by_ifname_mock, inet_ntoa_mock, struct_pack_mock,
                                     socket_socket_mock, fcntl_ioctl_mock):
     getIpAddress_mock.return_value = "10.0.2.15"
     get_ip_address_by_ifname_mock.return_value = "10.0.2.15"
     inet_ntoa_mock.return_value = "255.255.255.0"
-    facter_setDataIfConfigOutput_mock.return_value = '''
-eth0      Link encap:Ethernet  HWaddr 08:00:27:C9:39:9E
-          inet6 addr: fe80::a00:27ff:fec9:399e/64 Scope:Link
-          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-          RX packets:7575 errors:0 dropped:0 overruns:0 frame:0
-          TX packets:3463 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:1000
-          RX bytes:9383574 (8.9 MiB)  TX bytes:231609 (226.1 KiB)
-
-eth1      Link encap:Ethernet  HWaddr 08:00:27:C9:39:9E
-          inet addr:10.0.2.15  Bcast:10.0.2.255  Mask:255.255.255.0
-          inet6 addr: fe80::a00:27ff:fec9:399e/64 Scope:Link
-          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-          RX packets:7575 errors:0 dropped:0 overruns:0 frame:0
-          TX packets:3463 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:1000
-          RX bytes:9383574 (8.9 MiB)  TX bytes:231609 (226.1 KiB)
-
-eth2      Link encap:Ethernet  HWaddr 08:00:27:9A:9A:45
-          inet addr:192.168.64.101  Bcast:192.168.64.255  Mask:255.255.255.0
-          inet6 addr: fe80::a00:27ff:fe9a:9a45/64 Scope:Link
-          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-          RX packets:180 errors:0 dropped:0 overruns:0 frame:0
-          TX packets:89 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:1000
-          RX bytes:18404 (17.9 KiB)  TX bytes:17483 (17.0 KiB)
-
-lo        Link encap:Local Loopback
-          inet addr:127.0.0.1  Mask:255.0.0.0
-          inet6 addr: ::1/128 Scope:Host
-          UP LOOPBACK RUNNING  MTU:16436  Metric:1
-          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
-          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:0
-          RX bytes:0 (0.0 b)  TX bytes:0 (0.0 b)
-    '''
 
     get_os_type_mock.return_value = "suse"
     get_os_version_mock.return_value = "11"
@@ -247,51 +219,14 @@ lo        Link encap:Local Loopback
   @patch("socket.inet_ntoa")
   @patch.object(FacterLinux, "get_ip_address_by_ifname")
   @patch.object(Facter, "getIpAddress")
-  @patch.object(FacterLinux, "setDataIfConfigOutput")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
-  def test_facterDataIfConfigOutputNone(self, get_os_version_mock, get_os_type_mock, facter_setDataIfConfigOutput_mock,
+  def test_facterDataIfConfigOutputNone(self, get_os_version_mock, get_os_type_mock,
                                     getIpAddress_mock, get_ip_address_by_ifname_mock, inet_ntoa_mock, struct_pack_mock,
                                     socket_socket_mock, fcntl_ioctl_mock):
     getIpAddress_mock.return_value = "10.0.2.15"
     get_ip_address_by_ifname_mock.return_value = ""
     inet_ntoa_mock.return_value = "255.255.255.0"
-    facter_setDataIfConfigOutput_mock.return_value = '''
-eth0      Link encap:Ethernet  HWaddr 08:00:27:C9:39:9E
-          inet6 addr: fe80::a00:27ff:fec9:399e/64 Scope:Link
-          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-          RX packets:7575 errors:0 dropped:0 overruns:0 frame:0
-          TX packets:3463 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:1000
-          RX bytes:9383574 (8.9 MiB)  TX bytes:231609 (226.1 KiB)
-
-eth1      Link encap:Ethernet  HWaddr 08:00:27:C9:39:9E
-          inet addr:10.0.2.15  Bcast:10.0.2.255  Mask:255.255.255.0
-          inet6 addr: fe80::a00:27ff:fec9:399e/64 Scope:Link
-          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-          RX packets:7575 errors:0 dropped:0 overruns:0 frame:0
-          TX packets:3463 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:1000
-          RX bytes:9383574 (8.9 MiB)  TX bytes:231609 (226.1 KiB)
-
-eth2      Link encap:Ethernet  HWaddr 08:00:27:9A:9A:45
-          inet addr:192.168.64.101  Bcast:192.168.64.255  Mask:255.255.255.0
-          inet6 addr: fe80::a00:27ff:fe9a:9a45/64 Scope:Link
-          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-          RX packets:180 errors:0 dropped:0 overruns:0 frame:0
-          TX packets:89 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:1000
-          RX bytes:18404 (17.9 KiB)  TX bytes:17483 (17.0 KiB)
-
-lo        Link encap:Local Loopback
-          inet addr:127.0.0.1  Mask:255.0.0.0
-          inet6 addr: ::1/128 Scope:Host
-          UP LOOPBACK RUNNING  MTU:16436  Metric:1
-          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
-          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:0
-          RX bytes:0 (0.0 b)  TX bytes:0 (0.0 b)
-    '''
 
     get_os_type_mock.return_value = "suse"
     get_os_version_mock.return_value = "11"
@@ -301,6 +236,7 @@ lo        Link encap:Local Loopback
     self.assertEquals(result['netmask'], None)
 
 
+  @patch.object(FacterLinux, "get_ip_address_by_ifname", new = MagicMock(return_value=None))
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_family")
   @patch.object(OSCheck, "get_os_version")

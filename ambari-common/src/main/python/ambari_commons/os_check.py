@@ -309,21 +309,6 @@ class OSCheck:
     return False    
 
   @staticmethod
-  def is_redhat7():
-    """
-     Return true if it is so or false if not
-
-     This is safe check for redhat7 , doesn't generate exception
-    """
-    try:
-      ostemp=OSCheck.get_os_family()+OSCheck().get_os_major_version()
-      if ostemp == 'redhat7':
-        return True
-    except Exception:
-      pass
-    return False
-
-  @staticmethod
   def is_windows_family():
     """
      Return true if it is so or false if not

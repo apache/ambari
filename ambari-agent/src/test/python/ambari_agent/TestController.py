@@ -39,6 +39,7 @@ from ambari_commons import OSCheck
 from ambari_agent.Hardware import Hardware
 from ambari_agent.ExitHelper import ExitHelper
 from ambari_agent.AmbariConfig import AmbariConfig
+from ambari_agent.Facter import FacterLinux
 import ambari_commons
 
 OPERATING_SYSTEM_DISTRO = ('Suse','11','Final')
@@ -183,6 +184,8 @@ class TestController(unittest.TestCase):
 
 
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
+  @patch.object(FacterLinux, "facterInfo", new = MagicMock(return_value={}))
+  @patch.object(FacterLinux, "__init__", new = MagicMock(return_value = None))
   @patch("urllib2.build_opener")
   @patch("urllib2.install_opener")
   @patch.object(Controller, "ActionQueue")
@@ -222,6 +225,8 @@ class TestController(unittest.TestCase):
 
 
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
+  @patch.object(FacterLinux, "facterInfo", new = MagicMock(return_value={}))
+  @patch.object(FacterLinux, "__init__", new = MagicMock(return_value = None))
   @patch("urllib2.build_opener")
   @patch("urllib2.install_opener")
   @patch.object(ActionQueue.ActionQueue, "run")

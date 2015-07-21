@@ -216,7 +216,7 @@ def get_postgre_hba_dir(OS_FAMILY):
     # Like: /etc/postgresql/9.1/main/
     return os.path.join(get_pg_hba_init_files(), get_ubuntu_pg_version(),
                         "main")
-  elif OSCheck.is_redhat7():
+  elif OSCheck.is_redhat_family() and int(OSCheck.get_os_major_version()) >= 7:
     return PG_HBA_ROOT_DEFAULT
   else:
     if not os.path.isfile(get_pg_hba_init_files()):
