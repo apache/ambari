@@ -21,10 +21,7 @@ var App = require('app');
 App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin, {
   name: 'mainConfigHistoryController',
 
-  dataSource: App.ServiceConfigVersion.find(),
-  content: function () {
-    return this.get('dataSource').filterProperty('isRequested');
-  }.property('dataSource.@each.isRequested'),
+  content: App.ServiceConfigVersion.find(),
   isPolling: false,
   totalCount: 0,
   filteredCount: 0,
