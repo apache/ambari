@@ -226,6 +226,7 @@ module.exports = App.WizardRoute.extend({
       addServiceController.saveServiceConfigProperties(wizardStep7Controller);
       addServiceController.saveServiceConfigGroups(wizardStep7Controller, true);
       if (router.get('mainAdminKerberosController.securityEnabled')) {
+        addServiceController.clearCachedStepConfigValues(router.get('kerberosWizardStep4Controller'));
         router.transitionTo('step5');
         return;
       }
@@ -272,6 +273,7 @@ module.exports = App.WizardRoute.extend({
         } else {
           router.get('kerberosWizardStep2Controller').createKerberosAdminSession(router.get('kerberosWizardStep4Controller.stepConfigs')[0].get('configs'));
         }
+        router.get('addServiceController').cacheStepConfigValues(router.get('kerberosWizardStep4Controller'));
       }
       router.transitionTo('step6');
     }
