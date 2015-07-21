@@ -172,7 +172,9 @@ public class Configuration {
   public static final String SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME = "server.jdbc.connection-pool.max-idle-time";
   public static final String SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS = "server.jdbc.connection-pool.max-idle-time-excess";
   public static final String SERVER_JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL = "server.jdbc.connection-pool.idle-test-interval";
-
+  public static final String SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_ATTEMPTS = "server.jdbc.connection-pool.acquisition-retry-attempts";
+  public static final String SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_DELAY = "server.jdbc.connection-pool.acquisition-retry-delay";
+  
   public static final String SERVER_JDBC_RCA_USER_NAME_KEY = "server.jdbc.rca.user.name";
   public static final String SERVER_JDBC_RCA_USER_PASSWD_KEY = "server.jdbc.rca.user.passwd";
   public static final String SERVER_JDBC_RCA_DRIVER_KEY = "server.jdbc.rca.driver";
@@ -382,6 +384,8 @@ public class Configuration {
   private static final String DEFAULT_JDBC_POOL_EXCESS_MAX_IDLE_TIME_SECONDS = "0";
   private static final String DEFAULT_JDBC_POOL_MAX_AGE_SECONDS = "0";
   private static final String DEFAULT_JDBC_POOL_IDLE_TEST_INTERVAL = "7200";
+  private static final String DEFAULT_JDBC_POOL_ACQUISITION_RETRY_ATTEMPTS = "30";
+  private static final String DEFAULT_JDBC_POOL_ACQUISITION_RETRY_DELAY = "1000";
 
   /**
    * The full path to the XML file that describes the different alert templates.
@@ -1668,7 +1672,7 @@ public class Configuration {
         SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS,
         DEFAULT_JDBC_POOL_EXCESS_MAX_IDLE_TIME_SECONDS));
   }
-
+  
   /**
    * Gets the number of connections that should be retrieved when the pool size
    * must increase. It's wise to set this higher than 1 since the assumption is
@@ -1681,6 +1685,30 @@ public class Configuration {
         SERVER_JDBC_CONNECTION_POOL_AQUISITION_SIZE,
         DEFAULT_JDBC_POOL_ACQUISITION_SIZE));
   }
+
+  /**
+   * Gets the number of times connections should be retried to be acquired from
+   * the database before giving up.
+   *
+   * @return default of {@value #DEFAULT_JDBC_POOL_AQUISITION_RETRY_ATTEMPTS}
+   */
+  public int getConnectionPoolAcquisitionRetryAttempts() {
+    return Integer.parseInt(properties.getProperty(
+        SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_ATTEMPTS,
+        DEFAULT_JDBC_POOL_ACQUISITION_RETRY_ATTEMPTS));
+  }
+  
+  /**
+   * Gets the delay in milliseconds between connection acquire attempts.
+   *
+   * @return default of {@value #DEFAULT_JDBC_POOL_AQUISITION_RETRY_DELAY}
+   */
+  public int getConnectionPoolAcquisitionRetryDelay() {
+    return Integer.parseInt(properties.getProperty(
+        SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_DELAY,
+        DEFAULT_JDBC_POOL_ACQUISITION_RETRY_DELAY));
+  }
+
 
   /**
    * Gets the number of seconds in between testing each idle connection in the
