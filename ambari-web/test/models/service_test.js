@@ -218,28 +218,22 @@ describe('App.Service', function () {
   });
 
   describe('#isRestartRequired', function () {
-    var mockHostComponentModel = function (mock) {
-      sinon.stub(App.HostComponent, 'find', function () {
-        return mock;
-      });
-    }
+
     beforeEach(function () {
       service.reopen({
-        serviceName: 'HDFS'
+        serviceName: 'HDFS',
+        hostComponents: []
       });
-    });
-    afterEach(function () {
-      App.HostComponent.find.restore();
     });
     hostComponentsDataFalse.forEach(function (item) {
       it('should be false', function () {
-        mockHostComponentModel(item);
+        service.set('hostComponents', item);
         expect(service.get('isRestartRequired')).to.be.false;
       });
     });
     hostComponentsDataTrue.forEach(function (item) {
       it('should be true', function () {
-        mockHostComponentModel(item);
+        service.set('hostComponents', item);
         expect(service.get('isRestartRequired')).to.be.true;
       });
     });

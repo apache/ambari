@@ -388,7 +388,6 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
         id:host.id,
         clusterId: host.cluster_id,
         passiveState: host.passive_state,
-        isRequested: host.is_requested,
         hostName: host.host_name,
         hostComponents: host.host_components
       })
@@ -569,29 +568,27 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
      * @returns {String}
      */
     restartRequiredComponentsMessage: function() {
-      var restartRequiredComponents = this.get('content.hostComponents').filterProperty('staleConfigs', true);
-      var count = restartRequiredComponents.length;
+      var restartRequiredComponents = this.get('content.componentsWithStaleConfigs');
+      var count = this.get('content.componentsWithStaleConfigsCount');
       if (count <= 5) {
         var word = (count == 1) ? Em.I18n.t('common.component') : Em.I18n.t('common.components');
         return Em.I18n.t('hosts.table.restartComponents.withNames').format(restartRequiredComponents.getEach('displayName').join(', ')) + ' ' + word.toLowerCase();
       }
       return Em.I18n.t('hosts.table.restartComponents.withoutNames').format(count);
-    }.property('content.hostComponents.@each.staleConfigs'),
+    }.property('content.componentsWithStaleConfigs'),
 
     /**
      * Tooltip message for "Maintenance" icon
      * @returns {String}
      */
     componentsInPassiveStateMessage: function() {
-      var componentsInPassiveState = this.get('content.hostComponents').filter(function(component) {
-        return component.get('passiveState') !== 'OFF';
-      });
-      var count = componentsInPassiveState.length;
+      var componentsInPassiveState = this.get('content.componentsInPassiveState');
+      var count = this.get('content.componentsInPassiveStateCount');
       if (count <= 5) {
         return Em.I18n.t('hosts.table.componentsInPassiveState.withNames').format(componentsInPassiveState.getEach('displayName').join(', '));
       }
       return Em.I18n.t('hosts.table.componentsInPassiveState.withoutNames').format(count);
-    }.property('content.hostComponents.@each.passiveState'),
+    }.property('content.componentsInPassiveState'),
 
     /**
      * true if host has only one repoversion

@@ -50,6 +50,9 @@ describe('App.serviceMetricsMapper', function () {
                         ritCount: 0
                       }
                     }
+                  },
+                  HostRoles: {
+                    host_name: 'host1'
                   }
                 }
               ]
@@ -78,6 +81,9 @@ describe('App.serviceMetricsMapper', function () {
                         ritCount: 0
                       }
                     }
+                  },
+                  HostRoles: {
+                    host_name: 'host1'
                   }
                 }
               ]
@@ -106,6 +112,9 @@ describe('App.serviceMetricsMapper', function () {
                         ritCount: 0
                       }
                     }
+                  },
+                  HostRoles: {
+                    host_name: 'host1'
                   }
                 }
               ]
@@ -134,6 +143,9 @@ describe('App.serviceMetricsMapper', function () {
                         ritCount: 0
                       }
                     }
+                  },
+                  HostRoles: {
+                    host_name: 'host1'
                   }
                 }
               ]

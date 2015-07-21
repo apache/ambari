@@ -95,8 +95,9 @@ App.Service = DS.Model.extend({
    * actual_configs, then a restart is required.
    */
   isRestartRequired: function () {
-    var rhc = App.HostComponent.find().filterProperty('service.serviceName', this.get('serviceName')).filterProperty('staleConfigs', true);
+    var rhc = this.get('hostComponents').filterProperty('staleConfigs', true);
     var hc = {};
+
     rhc.forEach(function(_rhc) {
       var hostName = _rhc.get('hostName');
       if (!hc[hostName]) {
@@ -105,9 +106,8 @@ App.Service = DS.Model.extend({
       hc[hostName].push(_rhc.get('displayName'));
     });
     this.set('restartRequiredHostsAndComponents', hc);
-    return (rhc.length>0);
-
-  }.property('serviceName', 'hostComponents.@each.staleConfigs'),
+    return (rhc.length > 0);
+  }.property('serviceName'),
   
   /**
    * Contains a map of which hosts and host_components

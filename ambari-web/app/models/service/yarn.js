@@ -19,18 +19,12 @@ var App = require('app');
 var objectUtils = require('utils/object_utils');
 
 App.YARNService = App.Service.extend({
-  resourceManager: function() {
-    return this.get('hostComponents').findProperty('componentName', 'RESOURCEMANAGER');
-  }.property('hostComponents'),
+  resourceManager: DS.belongsTo('App.HostComponent'),
   isRMHaEnabled: function() {
     return this.get('hostComponents').filterProperty('componentName', 'RESOURCEMANAGER').length > 1;
   }.property('hostComponents'),
-  activeResourceManager: function() {
-    return this.get('hostComponents').filterProperty('componentName', 'RESOURCEMANAGER').findProperty('haStatus', 'ACTIVE');
-  }.property('hostComponents'),
-  appTimelineServer: function() {
-    return this.get('hostComponents').findProperty('componentName', 'APP_TIMELINE_SERVER');
-  }.property('hostComponents'),
+  activeResourceManager: DS.belongsTo('App.HostComponent'),
+  appTimelineServer: DS.belongsTo('App.HostComponent'),
   nodeManagersStarted: DS.attr('number'),
   nodeManagersInstalled: DS.attr('number'),
   nodeManagersTotal: DS.attr('number'),

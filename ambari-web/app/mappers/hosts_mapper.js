@@ -92,27 +92,45 @@ App.hostsMapper = App.QuickDataMapper.create({
       var selectedHosts = App.db.getSelectedHosts('mainHostController');
       var stackUpgradeSupport = App.get('supports.stackUpgrade');
       var clusterName = App.get('clusterName');
+      var advancedHostComponents = [];
 
       json.items.forEach(function (item, index) {
+        var notStartedComponents = [];
+        var componentsInPassiveState = [];
+        var componentsWithStaleConfigs = [];
+
         item.host_components = item.host_components || [];
         item.host_components.forEach(function (host_component) {
-          host_component.id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
+          var id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
           var component = this.parseIt(host_component, this.hostComponentConfig);
           var serviceName = host_component.HostRoles.service_name;
 
-          component.id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
+          host_component.id = id;
+          component.id = id;
           component.host_id = item.Hosts.host_name;
           component.host_name = item.Hosts.host_name;
           components.push(component);
-          componentsIdMap[component.id] = component;
+          componentsIdMap[id] = component;
           if (!newHostComponentsMap[serviceName]) {
             newHostComponentsMap[serviceName] = [];
           }
           if (!currentServiceComponentsMap[serviceName]) {
             currentServiceComponentsMap[serviceName] = [];
           }
-          if (!currentServiceComponentsMap[serviceName][component.id]) {
-            newHostComponentsMap[serviceName].push(component.id);
+          if (!currentServiceComponentsMap[serviceName][id]) {
+            newHostComponentsMap[serviceName].push(id);
+          }
+          if (App.serviceMetricsMapper.get('ADVANCED_COMPONENTS').contains(host_component.HostRoles.component_name)) {
+            advancedHostComponents.push(id);
+          }
+          if (component.work_status !== App.HostComponentStatus.started) {
+            notStartedComponents.push(id);
+          }
+          if (component.stale_configs) {
+            componentsWithStaleConfigs.push(id);
+          }
+          if (component.passive_state !== 'OFF') {
+            componentsInPassiveState.push(id);
           }
         }, this);
 
@@ -145,6 +163,9 @@ App.hostsMapper = App.QuickDataMapper.create({
         var parsedItem = this.parseIt(item, this.config);
         parsedItem.is_requested = true;
         parsedItem.selected = selectedHosts.contains(parsedItem.host_name);
+        parsedItem.not_started_components = notStartedComponents;
+        parsedItem.components_in_passive_state = componentsInPassiveState;
+        parsedItem.components_with_stale_configs = componentsWithStaleConfigs;
 
         hostIds[item.Hosts.host_name] = parsedItem;
 
@@ -156,20 +177,15 @@ App.hostsMapper = App.QuickDataMapper.create({
       }
 
 
-      App.Host.find().filterProperty('isRequested', true)
-        .filter(function(item) {
-          return !hostIds[item.get('hostName')];
-        })
-        .setEach('isRequested', false);
-
-      App.HostComponent.find().filterProperty('isMaster').forEach(function(component) {
-        if (componentsIdMap[component.get('id')]) componentsIdMap[component.get('id')].display_name_advanced = component.get('displayNameAdvanced');
+      advancedHostComponents.forEach(function(id) {
+        if (componentsIdMap[id]) componentsIdMap[id].display_name_advanced = App.HostComponent.find(id).get('displayNameAdvanced');
       });
       App.store.commit();
       if (stackUpgradeSupport) {
         App.store.loadMany(App.HostStackVersion, stackVersions);
       }
       App.store.loadMany(App.HostComponent, components);
+      App.Host.find().clear();
       App.store.loadMany(App.Host, hostsWithFullInfo);
       var itemTotal = parseInt(json.itemTotal);
       if (!isNaN(itemTotal)) {
