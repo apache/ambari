@@ -384,7 +384,7 @@ public abstract class BaseProvider {
    *
    * @return true if the given property is a category for any of the requested ids
    */
-  private static boolean isPropertyEntryRequested(String propertyId, Set<String> requestedIds) {
+  protected static boolean isPropertyEntryRequested(String propertyId, Set<String> requestedIds) {
     for (String requestedId : requestedIds) {
       if (requestedId.startsWith(propertyId)) {
         return true;
@@ -403,7 +403,7 @@ public abstract class BaseProvider {
    *
    * @return true if the given property's category is part of the given set of requested ids
    */
-  private static boolean isPropertyCategoryRequested(String propertyId, Set<String> requestedIds) {
+  protected static boolean isPropertyCategoryRequested(String propertyId, Set<String> requestedIds) {
     String category = PropertyHelper.getPropertyCategory(propertyId);
     while (category != null ) {
       if (requestedIds.contains(category)) {

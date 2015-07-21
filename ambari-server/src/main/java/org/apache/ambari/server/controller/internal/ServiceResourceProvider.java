@@ -89,6 +89,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   public static final String SERVICE_SERVICE_STATE_PROPERTY_ID   = PropertyHelper.getPropertyId("ServiceInfo", "state");
   public static final String SERVICE_MAINTENANCE_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceInfo", "maintenance_state");
 
+  public static final String SERVICE_ATTRIBUTES_PROPERTY_ID = PropertyHelper.getPropertyId("Services", "attributes");
+
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID =
     "params/run_smoke_test";
@@ -200,7 +202,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           response.getMaintenanceState(), requestedIds);
 
       Map<String, Object> serviceSpecificProperties = getServiceSpecificProperties(
-          response.getClusterName(), response.getServiceName());
+          response.getClusterName(), response.getServiceName(), requestedIds);
 
       for (Map.Entry<String, Object> entry : serviceSpecificProperties.entrySet()) {
         setResourceProperty(resource, entry.getKey(), entry.getValue(), requestedIds);
@@ -1387,35 +1389,41 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
    *
    * @param clusterName  cluster name
    * @param serviceName  service name
+   * @param requestedIds relevant request property ids
    */
-  private Map<String, Object> getServiceSpecificProperties(String clusterName, String serviceName) {
+  private Map<String, Object> getServiceSpecificProperties(String clusterName, String serviceName, Set<String> requestedIds) {
     Map<String, Object> serviceSpecificProperties = new HashMap<String, Object>();
     if (serviceName.equals("KERBEROS")) {
-      Map<String, String> kerberosAttributes = new HashMap<String, String>();
-      String kdcValidationResult = "OK";
-      String failureDetails = "";
-      try {
-        kerberosHelper.validateKDCCredentials(
-            getManagementController().getClusters().getCluster(clusterName));
+      // Only include details on whether the KDC administrator credentials are set and correct if
+      // implicitly (Service/attributes) or explicitly (Service/attributes/kdc_...) queried
+      if (requestedIds.contains(SERVICE_ATTRIBUTES_PROPERTY_ID) ||
+          isPropertyCategoryRequested(SERVICE_ATTRIBUTES_PROPERTY_ID, requestedIds) ||
+          isPropertyEntryRequested(SERVICE_ATTRIBUTES_PROPERTY_ID, requestedIds)) {
+        Map<String, String> kerberosAttributes = new HashMap<String, String>();
+        String kdcValidationResult = "OK";
+        String failureDetails = "";
+        try {
+          kerberosHelper.validateKDCCredentials(
+              getManagementController().getClusters().getCluster(clusterName));
 
-      } catch (KerberosInvalidConfigurationException e) {
-        kdcValidationResult = "INVALID_CONFIGURATION";
-        failureDetails = e.getMessage();
-      } catch (KerberosAdminAuthenticationException e) {
-        kdcValidationResult = "INVALID_CREDENTIALS";
-        failureDetails = e.getMessage();
-      } catch (KerberosMissingAdminCredentialsException e) {
-        kdcValidationResult = "MISSING_CREDENTIALS";
-        failureDetails = e.getMessage();
-      } catch (AmbariException e) {
-        kdcValidationResult = "VALIDATION_ERROR";
-        failureDetails = e.getMessage();
+        } catch (KerberosInvalidConfigurationException e) {
+          kdcValidationResult = "INVALID_CONFIGURATION";
+          failureDetails = e.getMessage();
+        } catch (KerberosAdminAuthenticationException e) {
+          kdcValidationResult = "INVALID_CREDENTIALS";
+          failureDetails = e.getMessage();
+        } catch (KerberosMissingAdminCredentialsException e) {
+          kdcValidationResult = "MISSING_CREDENTIALS";
+          failureDetails = e.getMessage();
+        } catch (AmbariException e) {
+          kdcValidationResult = "VALIDATION_ERROR";
+          failureDetails = e.getMessage();
+        }
+
+        kerberosAttributes.put("kdc_validation_result", kdcValidationResult);
+        kerberosAttributes.put("kdc_validation_failure_details", failureDetails);
+        serviceSpecificProperties.put(SERVICE_ATTRIBUTES_PROPERTY_ID, kerberosAttributes);
       }
-
-      kerberosAttributes.put("kdc_validation_result", kdcValidationResult);
-      kerberosAttributes.put("kdc_validation_failure_details", failureDetails);
-      serviceSpecificProperties.put(PropertyHelper.getPropertyId(
-          "Services", "attributes"), kerberosAttributes);
     }
 
     return serviceSpecificProperties;
