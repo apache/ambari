@@ -31,7 +31,7 @@ from mock.mock import create_autospec
 import ambari_commons
 from ambari_commons import OSCheck
 import os
-from only_for_platform import not_for_platform, get_platform, PLATFORM_WINDOWS, PLATFORM_LINUX
+from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
 from ambari_commons.firewall import Firewall
 from ambari_commons.os_check import OSCheck, OSConst
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
@@ -42,7 +42,7 @@ from resource_management.core.system import System
 from resource_management.libraries.functions import packages_analyzer
 
 @not_for_platform(PLATFORM_WINDOWS)
-@patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = ('Suse','11','Final')))
+@patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
 class TestHostInfo(TestCase):
 
   @patch.object(OSCheck, 'get_os_family')

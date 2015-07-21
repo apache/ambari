@@ -24,7 +24,9 @@ import os
 import time
 from unittest import TestCase
 from mock.mock import patch, MagicMock
-from resource_management.core import Environment, sudo
+from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
+
+from resource_management.core import Environment
 from resource_management.core.system import System
 from resource_management.libraries import XmlConfig
 
@@ -37,9 +39,9 @@ class TestXmlConfigResource(TestCase):
   """
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch.object(sudo, "create_file")
-  @patch.object(sudo, "path_exists")
-  @patch.object(sudo, "path_isdir")
+  @patch("resource_management.core.sudo.create_file")
+  @patch("resource_management.core.sudo.path_exists")
+  @patch("resource_management.core.sudo.path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_empty_xml_config(self,
                                           time_asctime_mock,
@@ -66,9 +68,9 @@ class TestXmlConfigResource(TestCase):
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch.object(sudo, "create_file")
-  @patch.object(sudo, "path_exists")
-  @patch.object(sudo, "path_isdir")
+  @patch("resource_management.core.sudo.create_file")
+  @patch("resource_management.core.sudo.path_exists")
+  @patch("resource_management.core.sudo.path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_simple_xml_config(self,
                                            time_asctime_mock,
@@ -95,9 +97,9 @@ class TestXmlConfigResource(TestCase):
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch.object(sudo, "create_file")
-  @patch.object(sudo, "path_exists")
-  @patch.object(sudo, "path_isdir")
+  @patch("resource_management.core.sudo.create_file")
+  @patch("resource_management.core.sudo.path_exists")
+  @patch("resource_management.core.sudo.path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_xml_config_with_metacharacters(self,
                                                         time_asctime_mock,
@@ -147,9 +149,9 @@ class TestXmlConfigResource(TestCase):
     create_file_mock.assert_called_with('/dir/conf/file.xml', u'<!--Wed 2014-02-->\n    <configuration>\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>prop.1</name>\n      <value>&#39;.&#39;yyyy-MM-dd-HH</value>\n      <attr1>x</attr1>\n    </property>\n    \n    <property>\n      <name>prop.2</name>\n      <value>INFO, openjpa</value>\n    </property>\n    \n    <property>\n      <name>prop.3</name>\n      <value>%d{ISO8601} %5p %c{1}:%L - %m%n</value>\n      <attr2>value3</attr2>\n    </property>\n    \n    <property>\n      <name>prop.4</name>\n      <value>${oozie.log.dir}/oozie.log</value>\n      <attr_value_empty></attr_value_empty>\n      <attr2>value4</attr2>\n    </property>\n    \n    <property>\n      <name>prop.empty</name>\n      <value></value>\n      <attr_value_empty></attr_value_empty>\n    </property>\n    \n  </configuration>', encoding='UTF-8')
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch.object(sudo, "create_file")
-  @patch.object(sudo, "path_exists")
-  @patch.object(sudo, "path_isdir")
+  @patch("resource_management.core.sudo.create_file")
+  @patch("resource_management.core.sudo.path_exists")
+  @patch("resource_management.core.sudo.path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_xml_config_sorted_by_key(self,
                                                   time_asctime_mock,
@@ -180,8 +182,8 @@ class TestXmlConfigResource(TestCase):
     create_file_mock.assert_called_with('/dir/conf/file.xml', u'<!--Wed 2014-02-->\n    <configuration>\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>first</name>\n      <value>should be first</value>\n    </property>\n    \n    <property>\n      <name>second</name>\n      <value>should be second</value>\n    </property>\n    \n    <property>\n      <name>third</name>\n      <value>should be third</value>\n    </property>\n    \n    <property>\n      <name>z_last</name>\n      <value>should be last</value>\n    </property>\n    \n  </configuration>', encoding='UTF-8')
 
   @patch("resource_management.libraries.providers.xml_config.File")
-  @patch.object(sudo, "path_exists")
-  @patch.object(sudo, "path_isdir")
+  @patch("resource_management.core.sudo.path_exists")
+  @patch("resource_management.core.sudo.path_isdir")
   def test_action_create_arguments(self, os_path_isdir_mock ,os_path_exists_mock, file_mock):
 
     os_path_isdir_mock.side_effect = [False, True]

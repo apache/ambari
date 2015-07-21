@@ -30,24 +30,19 @@ import tempfile
 import time
 from threading import Thread
 
-from PythonExecutor import PythonExecutor
-from CustomServiceOrchestrator import CustomServiceOrchestrator
-from AmbariConfig import AmbariConfig
 from mock.mock import MagicMock, patch
 import StringIO
 import sys
-from AgentException import AgentException
-from FileCache import FileCache
-from LiveStatus import LiveStatus
-from BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
-from ambari_agent.ActionQueue import ActionQueue
-from ambari_commons import OSCheck
-from only_for_platform import get_platform, PLATFORM_WINDOWS
 
-if get_platform() != PLATFORM_WINDOWS:
-  os_distro_value = ('Suse','11','Final')
-else:
-  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
+from ambari_agent.ActionQueue import ActionQueue
+from ambari_agent.AgentException import AgentException
+from ambari_agent.AmbariConfig import AmbariConfig
+from ambari_agent.BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
+from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
+from ambari_agent.FileCache import FileCache
+from ambari_agent.PythonExecutor import PythonExecutor
+from ambari_commons import OSCheck
+from only_for_platform import get_platform, os_distro_value, PLATFORM_WINDOWS
 
 class TestCustomServiceOrchestrator(TestCase):
 
@@ -81,7 +76,7 @@ class TestCustomServiceOrchestrator(TestCase):
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(CustomServiceOrchestrator, 'decompressClusterHostInfo')
-  @patch("hostname.public_hostname")
+  @patch("ambari_agent.hostname.public_hostname")
   @patch("os.path.isfile")
   @patch("os.unlink")
   @patch.object(FileCache, "__init__")
@@ -144,7 +139,7 @@ class TestCustomServiceOrchestrator(TestCase):
 
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  @patch("hostname.public_hostname")
+  @patch("ambari_agent.hostname.public_hostname")
   @patch("os.path.isfile")
   @patch("os.unlink")
   @patch.object(FileCache, "__init__")

@@ -18,18 +18,21 @@ limitations under the License.
 
 from unittest import TestCase
 from mock.mock import patch, MagicMock, call
+from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
 
 from resource_management.core.system import System
 from resource_management.core.resources.system import Execute
 from resource_management.core.environment import Environment
-from resource_management.core import sudo
 
 import subprocess
 import logging
 import os
 from resource_management import Fail
-import grp
-import pwd
+
+if get_platform() != PLATFORM_WINDOWS:
+  import grp
+  import pwd
+
 import select
 
 
@@ -69,7 +72,7 @@ class TestExecuteResource(TestCase):
     self.assertTrue(popen_mock.called, 'subprocess.Popen should have been called!')
     self.assertFalse(proc_communicate_mock.called, 'proc.communicate should not have been called!')
 
-  @patch.object(sudo, "path_exists")
+  @patch("resource_management.core.sudo.path_exists")
   @patch.object(subprocess, "Popen")
   def test_attribute_creates(self, popen_mock, exists_mock):
     exists_mock.return_value = True
@@ -133,7 +136,7 @@ class TestExecuteResource(TestCase):
 
     self.assertTrue(call(10) in time_mock.call_args_list)
 
-  @patch.object(pwd, "getpwnam")
+  @patch("pwd.getpwnam")
   def test_attribute_group(self, getpwnam_mock):
     def error(argument):
       self.assertEqual(argument, "test_user")

@@ -22,15 +22,10 @@ limitations under the License.
 import unittest
 from mock.mock import patch, MagicMock, call, Mock
 from ambari_agent import DataCleaner
-import AmbariConfig
+from ambari_agent import AmbariConfig
 import os
 from ambari_commons import OSCheck
-from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
-
-if get_platform() != PLATFORM_WINDOWS:
-  os_distro_value = ('Suse','11','Final')
-else:
-  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
+from only_for_platform import os_distro_value
 
 class TestDataCleaner(unittest.TestCase):
 

@@ -24,7 +24,9 @@ import os
 import time
 from unittest import TestCase
 from mock.mock import patch, MagicMock
-from resource_management.core import Environment, sudo
+from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
+
+from resource_management.core import Environment
 from resource_management.core.system import System
 from resource_management.libraries import PropertiesFile
 
@@ -37,9 +39,9 @@ class TestPropertiesFIleResource(TestCase):
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch.object(sudo, "create_file")
-  @patch.object(sudo, "path_exists")
-  @patch.object(sudo, "path_isdir")
+  @patch("resource_management.core.sudo.create_file")
+  @patch("resource_management.core.sudo.path_exists")
+  @patch("resource_management.core.sudo.path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_empty_properties_without_dir(self,
                                                       time_asctime_mock,
@@ -70,9 +72,9 @@ class TestPropertiesFIleResource(TestCase):
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch.object(sudo, "create_file")
-  @patch.object(sudo, "path_exists")
-  @patch.object(sudo, "path_isdir")
+  @patch("resource_management.core.sudo.create_file")
+  @patch("resource_management.core.sudo.path_exists")
+  @patch("resource_management.core.sudo.path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_empty_properties_with_dir(self,
                                                    time_asctime_mock,
@@ -103,9 +105,9 @@ class TestPropertiesFIleResource(TestCase):
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch.object(sudo, "create_file")
-  @patch.object(sudo, "path_exists")
-  @patch.object(sudo, "path_isdir")
+  @patch("resource_management.core.sudo.create_file")
+  @patch("resource_management.core.sudo.path_exists")
+  @patch("resource_management.core.sudo.path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_properties_simple(self,
                                            time_asctime_mock,
@@ -136,9 +138,9 @@ class TestPropertiesFIleResource(TestCase):
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch.object(sudo, "create_file")
-  @patch.object(sudo, "path_exists")
-  @patch.object(sudo, "path_isdir")
+  @patch("resource_management.core.sudo.create_file")
+  @patch("resource_management.core.sudo.path_exists")
+  @patch("resource_management.core.sudo.path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_properties_with_metacharacters(self,
                                                         time_asctime_mock,
@@ -174,10 +176,10 @@ class TestPropertiesFIleResource(TestCase):
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch.object(sudo, "read_file")
-  @patch.object(sudo, "create_file")
-  @patch.object(sudo, "path_exists")
-  @patch.object(sudo, "path_isdir")
+  @patch("resource_management.core.sudo.read_file")
+  @patch("resource_management.core.sudo.create_file")
+  @patch("resource_management.core.sudo.path_exists")
+  @patch("resource_management.core.sudo.path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_properties_rewrite_content(self,
                                                     time_asctime_mock,

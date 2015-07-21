@@ -18,15 +18,19 @@ limitations under the License.
 
 from unittest import TestCase
 from mock.mock import patch, MagicMock
+from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
+
 from resource_management.core import Environment, Fail
 from resource_management.core.resources import Group
 from resource_management.core.system import System
 
 import subprocess
-import grp
 import os
-import pty
 import select
+
+if get_platform() != PLATFORM_WINDOWS:
+  import grp
+  import pty
 
 
 subproc_stdout = MagicMock()
@@ -35,11 +39,11 @@ subproc_stdout = MagicMock()
 @patch.object(select, "select", new=MagicMock(return_value=([subproc_stdout], None, None)))
 @patch.object(System, "os_family", new = 'redhat')
 @patch.object(os, "environ", new = {'PATH':'/bin'})
-@patch.object(pty, "openpty", new = MagicMock(return_value=(1,5)))
+@patch("pty.openpty", new = MagicMock(return_value=(1,5)))
 @patch.object(os, "close", new=MagicMock())
 class TestGroupResource(TestCase):
 
-  @patch.object(grp, "getgrnam")
+  @patch("grp.getgrnam")
   @patch.object(subprocess, "Popen")
   def test_action_create_nonexistent(self, popen_mock, getgrnam_mock):
     subproc_mock = MagicMock()
@@ -60,7 +64,7 @@ class TestGroupResource(TestCase):
     getgrnam_mock.assert_called_with('hadoop')
 
 
-  @patch.object(grp, "getgrnam")
+  @patch("grp.getgrnam")
   @patch.object(subprocess, "Popen")
   def test_action_create_existent(self, popen_mock, getgrnam_mock):
     subproc_mock = MagicMock()
@@ -82,7 +86,7 @@ class TestGroupResource(TestCase):
     getgrnam_mock.assert_called_with('mapred')
 
 
-  @patch.object(grp, "getgrnam")
+  @patch("grp.getgrnam")
   @patch.object(subprocess, "Popen")
   def test_action_create_fail(self, popen_mock, getgrnam_mock):
     subproc_mock = MagicMock()
@@ -107,7 +111,7 @@ class TestGroupResource(TestCase):
     getgrnam_mock.assert_called_with('mapred')
 
 
-  @patch.object(grp, "getgrnam")
+  @patch("grp.getgrnam")
   @patch.object(subprocess, "Popen")
   def test_action_remove(self, popen_mock, getgrnam_mock):
 
@@ -128,7 +132,7 @@ class TestGroupResource(TestCase):
     getgrnam_mock.assert_called_with('mapred')
 
 
-  @patch.object(grp, "getgrnam")
+  @patch("grp.getgrnam")
   @patch.object(subprocess, "Popen")
   def test_action_remove_fail(self, popen_mock, getgrnam_mock):
 

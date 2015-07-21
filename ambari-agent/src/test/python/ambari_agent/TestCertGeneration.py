@@ -21,18 +21,12 @@ import os
 import tempfile
 import shutil
 from unittest import TestCase
-import ConfigParser
-import security
-from security import CertificateManager
+
+from ambari_agent.security import CertificateManager
 from ambari_agent import AmbariConfig
 from mock.mock import patch, MagicMock
 from ambari_commons import OSCheck
-from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
-
-if get_platform() != PLATFORM_WINDOWS:
-  os_distro_value = ('Suse','11','Final')
-else:
-  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
+from only_for_platform import os_distro_value
 
 class TestCertGeneration(TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))

@@ -20,10 +20,16 @@ import os, sys
 import tempfile
 from unittest import TestCase
 from mock.mock import patch, MagicMock
+from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
 
-from resource_management import *
-from resource_management.libraries.providers import repository
+from resource_management.core.environment import Environment
+from resource_management.core.source import InlineTemplate
+from resource_management.core.system import System
+from resource_management.libraries.resources.repository import Repository
 from ambari_commons.os_check import OSCheck
+
+if get_platform() != PLATFORM_WINDOWS:
+  from resource_management.libraries.providers import repository
 
 class DummyTemplate(object):
 

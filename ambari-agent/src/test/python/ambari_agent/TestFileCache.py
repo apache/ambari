@@ -28,8 +28,8 @@ import tempfile
 import time
 from threading import Thread
 
-from FileCache import FileCache, CachingException
-from AmbariConfig import AmbariConfig
+from ambari_agent.FileCache import FileCache, CachingException
+from ambari_agent.AmbariConfig import AmbariConfig
 from mock.mock import MagicMock, patch
 import StringIO
 import sys

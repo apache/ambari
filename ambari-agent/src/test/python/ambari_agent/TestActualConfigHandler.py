@@ -24,12 +24,7 @@ import logging
 from mock.mock import patch, MagicMock, call
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_commons import OSCheck
-from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
-
-if get_platform() != PLATFORM_WINDOWS:
-  os_distro_value = ('Suse','11','Final')
-else:
-  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
+from only_for_platform import os_distro_value
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.AmbariConfig import AmbariConfig

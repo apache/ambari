@@ -18,15 +18,19 @@ limitations under the License.
 
 from unittest import TestCase
 from mock.mock import patch, MagicMock, PropertyMock
+from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
 
 from resource_management.core import Environment, Fail
 from resource_management.core.system import System
 from resource_management.core.resources import User
-import pwd
 import subprocess
 import os
-import pty
 import select
+
+if get_platform() != PLATFORM_WINDOWS:
+  import pwd
+  import pty
+
 
 subproc_stdout = MagicMock()
 
@@ -34,12 +38,12 @@ subproc_stdout = MagicMock()
 @patch.object(select, "select", new=MagicMock(return_value=([subproc_stdout], None, None)))
 @patch.object(System, "os_family", new = 'redhat')
 @patch.object(os, "environ", new = {'PATH':'/bin'})
-@patch.object(pty, "openpty", new = MagicMock(return_value=(1,5)))
+@patch("pty.openpty", new = MagicMock(return_value=(1,5)))
 @patch.object(os, "close", new=MagicMock())
 class TestUserResource(TestCase):
 
   @patch.object(subprocess, "Popen")
-  @patch.object(pwd, "getpwnam")
+  @patch("pwd.getpwnam")
   def test_action_create_nonexistent(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
@@ -53,7 +57,7 @@ class TestUserResource(TestCase):
     self.assertEqual(popen_mock.call_count, 1)
     
   @patch.object(subprocess, "Popen")
-  @patch.object(pwd, "getpwnam")
+  @patch("pwd.getpwnam")
   def test_action_create_existent(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
@@ -68,7 +72,7 @@ class TestUserResource(TestCase):
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
-  @patch.object(pwd, "getpwnam")
+  @patch("pwd.getpwnam")
   def test_action_delete(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
@@ -83,7 +87,7 @@ class TestUserResource(TestCase):
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
-  @patch.object(pwd, "getpwnam")
+  @patch("pwd.getpwnam")
   def test_attribute_comment(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
@@ -99,7 +103,7 @@ class TestUserResource(TestCase):
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
-  @patch.object(pwd, "getpwnam")
+  @patch("pwd.getpwnam")
   def test_attribute_home(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
@@ -115,7 +119,7 @@ class TestUserResource(TestCase):
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
-  @patch.object(pwd, "getpwnam")
+  @patch("pwd.getpwnam")
   def test_attribute_password(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
@@ -131,7 +135,7 @@ class TestUserResource(TestCase):
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
-  @patch.object(pwd, "getpwnam")
+  @patch("pwd.getpwnam")
   def test_attribute_shell(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
@@ -146,7 +150,7 @@ class TestUserResource(TestCase):
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
-  @patch.object(pwd, "getpwnam")
+  @patch("pwd.getpwnam")
   def test_attribute_uid(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
@@ -161,7 +165,7 @@ class TestUserResource(TestCase):
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
-  @patch.object(pwd, "getpwnam")
+  @patch("pwd.getpwnam")
   def test_attribute_gid(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
@@ -177,7 +181,7 @@ class TestUserResource(TestCase):
 
   @patch('resource_management.core.providers.accounts.UserProvider.user_groups', new_callable=PropertyMock)
   @patch.object(subprocess, "Popen")
-  @patch.object(pwd, "getpwnam")
+  @patch("pwd.getpwnam")
   def test_attribute_groups(self, getpwnam_mock, popen_mock, user_groups_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
@@ -194,7 +198,7 @@ class TestUserResource(TestCase):
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
-  @patch.object(pwd, "getpwnam")
+  @patch("pwd.getpwnam")
   def test_missing_shell_argument(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0

@@ -26,16 +26,11 @@ import tempfile
 import time
 from threading import Thread
 
-from PythonExecutor import PythonExecutor
-from AmbariConfig import AmbariConfig
+from ambari_agent.PythonExecutor import PythonExecutor
+from ambari_agent.AmbariConfig import AmbariConfig
 from mock.mock import MagicMock, patch
 from ambari_commons import OSCheck
-from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
-
-if get_platform() != PLATFORM_WINDOWS:
-  os_distro_value = ('Suse','11','Final')
-else:
-  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
+from only_for_platform import os_distro_value
 
 @patch.object(PythonExecutor, "open_subprocess_files", new=MagicMock(return_value =("", "")))
 class TestPythonExecutor(TestCase):

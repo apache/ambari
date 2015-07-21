@@ -28,12 +28,7 @@ import shutil
 import os, pprint, json,stat
 from mock.mock import patch, MagicMock
 from ambari_commons import OSCheck
-from only_for_platform import only_for_platform, get_platform, not_for_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
-
-if get_platform() != PLATFORM_WINDOWS:
-  os_distro_value = ('Suse','11','Final')
-else:
-  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
+from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
 class TestHostname(TestCase):
 
@@ -78,7 +73,7 @@ class TestHostname(TestCase):
       config.remove_option('server', 'hostname_script')
     pass
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   def test_hostname_override(self):
     hostname.cached_hostname = None
     hostname.cached_public_hostname = None
@@ -101,7 +96,7 @@ class TestHostname(TestCase):
       config.remove_option('agent', 'hostname_script')
     pass
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   def test_public_hostname_override(self):
     hostname.cached_hostname = None
     hostname.cached_public_hostname = None

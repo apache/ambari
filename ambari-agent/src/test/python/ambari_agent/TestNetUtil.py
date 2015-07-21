@@ -23,12 +23,7 @@ from mock.mock import MagicMock, patch
 import unittest
 import threading
 from ambari_commons import OSCheck
-from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
-
-if get_platform() != PLATFORM_WINDOWS:
-  os_distro_value = ('Suse','11','Final')
-else:
-  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
+from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
 class TestNetUtil(unittest.TestCase):
 
@@ -58,7 +53,7 @@ class TestNetUtil(unittest.TestCase):
     httpsConMock.side_effect = Exception("test")
     self.assertFalse(netutil.checkURL("url")[0])
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch("time.sleep")
   @patch.object(threading._Event, "wait")
   def test_try_to_connect(self, event_mock,

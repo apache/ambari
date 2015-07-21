@@ -18,9 +18,9 @@ limitations under the License.
 
 from unittest import TestCase
 from mock.mock import patch, MagicMock
+from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
 
 from resource_management.core import Environment, Fail
-from resource_management.core import sudo
 from resource_management.core.system import System
 from resource_management.core.resources.system import Link
 
@@ -30,10 +30,10 @@ import os
 class TestLinkResource(TestCase):
 
   @patch.object(os.path, "realpath")
-  @patch.object(sudo,  "path_lexists")
-  @patch.object(sudo,  "path_lexists")
-  @patch.object(sudo, "unlink")
-  @patch.object(sudo, "symlink")
+  @patch("resource_management.core.sudo.path_lexists")
+  @patch("resource_management.core.sudo.path_lexists")
+  @patch("resource_management.core.sudo.unlink")
+  @patch("resource_management.core.sudo.symlink")
   def test_action_create_relink(self, symlink_mock, unlink_mock, 
                          islink_mock, lexists_mock,
                          realmock):
@@ -49,7 +49,7 @@ class TestLinkResource(TestCase):
     symlink_mock.assert_called_with("/a/b/link_to_path", "/some_path")
     
   @patch.object(os.path, "realpath")
-  @patch.object(sudo,  "path_lexists")
+  @patch("resource_management.core.sudo.path_lexists")
   def test_action_create_failed_due_to_file_exists(self, 
                          lexists_mock, realmock):
     lexists_mock.side_effect = [True, False]
@@ -65,8 +65,8 @@ class TestLinkResource(TestCase):
         self.assertEqual("Link['/some_path'] trying to create a symlink with the same name as an existing file or directory",
                        str(e))
         
-  @patch.object(sudo,  "path_lexists")
-  @patch.object(sudo, "symlink")
+  @patch("resource_management.core.sudo.path_lexists")
+  @patch("resource_management.core.sudo.symlink")
   def test_action_create_symlink_clean_create(self, symlink_mock, lexists_mock):
     lexists_mock.return_value = False
     
@@ -78,9 +78,9 @@ class TestLinkResource(TestCase):
     symlink_mock.assert_called_with("/a/b/link_to_path", "/some_path")
     
   @patch.object(os.path, "isdir")
-  @patch.object(sudo, "path_exists")  
-  @patch.object(sudo,  "path_lexists")
-  @patch.object(sudo, "link")
+  @patch("resource_management.core.sudo.path_exists")
+  @patch("resource_management.core.sudo.path_lexists")
+  @patch("resource_management.core.sudo.link")
   def test_action_create_hardlink_clean_create(self, link_mock, lexists_mock,
                                         exists_mock, isdir_mock):
     lexists_mock.return_value = False
@@ -95,8 +95,8 @@ class TestLinkResource(TestCase):
       
     link_mock.assert_called_with("/a/b/link_to_path", "/some_path")
     
-  @patch.object(sudo, "path_exists")  
-  @patch.object(sudo,  "path_lexists")
+  @patch("resource_management.core.sudo.path_exists")
+  @patch("resource_management.core.sudo.path_lexists")
   def test_action_create_hardlink_target_doesnt_exist(self, lexists_mock,
                                         exists_mock):
     lexists_mock.return_value = False
@@ -113,9 +113,9 @@ class TestLinkResource(TestCase):
         self.assertEqual('Failed to apply Link[\'/some_path\'], linking to nonexistent location /a/b/link_to_path',
                        str(e))
         
-  @patch.object(sudo, "path_isdir") 
-  @patch.object(sudo, "path_exists")  
-  @patch.object(sudo,  "path_lexists")
+  @patch("resource_management.core.sudo.path_isdir")
+  @patch("resource_management.core.sudo.path_exists")
+  @patch("resource_management.core.sudo.path_lexists")
   def test_action_create_hardlink_target_is_dir(self, lexists_mock,
                                         exists_mock, isdir_mock):
     lexists_mock.return_value = False
@@ -133,8 +133,8 @@ class TestLinkResource(TestCase):
         self.assertEqual('Failed to apply Link[\'/some_path\'], cannot create hard link to a directory (/a/b/link_to_path)',
                        str(e)) 
         
-  @patch.object(sudo, "unlink")
-  @patch.object(sudo, "path_exists")
+  @patch("resource_management.core.sudo.unlink")
+  @patch("resource_management.core.sudo.path_exists")
   def test_action_delete(self, exists_mock, unlink_mock):     
     exists_mock.return_value = True
     

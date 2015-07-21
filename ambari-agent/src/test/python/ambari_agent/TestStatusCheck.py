@@ -28,12 +28,7 @@ import logging
 from mock.mock import patch
 from mock.mock import MagicMock
 
-from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
-
-if get_platform() != PLATFORM_WINDOWS:
-  os_distro_value = ('Suse','11','Final')
-else:
-  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
+from only_for_platform import os_distro_value
 
 USERNAME_LENGTH=10
 USERNAME_CHARS=string.ascii_uppercase +string.ascii_lowercase + string.digits + '-_'
