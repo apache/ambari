@@ -46,6 +46,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     'serviceComponents'
   ],
 
+  sensibleConfigs: ['admin_principal', 'admin_password'],
+
   init: function () {
     this.clusters = App.Cluster.find();
     this.setIsStepDisabled();
@@ -878,6 +880,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
           category: _configProperties.get('category'),
           configId: App.config.configId(_configProperties.get('name'),_configProperties.get('filename'))
         };
+
+        if (this.isExcludedConfig(configProperty)) {
+          configProperty.value = '';
+        }
         serviceConfigProperties.push(configProperty);
       }, this);
       // check for configs that need to update for installed services
@@ -900,6 +906,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.set('content.serviceConfigProperties', serviceConfigProperties);
     this.setDBProperty('fileNamesToUpdate', fileNamesToUpdate);
   },
+
+  isExcludedConfig: function (configProperty) {
+    return this.get('sensibleConfigs').indexOf(configProperty.name) > -1;
+  },
+
   /**
    * save Config groups
    * @param stepController
@@ -1246,15 +1257,18 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     return dfd.promise();
   },
 
-
   /**
-   * Cache all step config to local storage in name value pairs
+   * Cache "stepConfigs" to local storage in name value pairs
    * @param stepController
    */
   cacheStepConfigValues: function(stepController) {
+    var self = this;
     var stepConfigs = [];
     stepController.get("stepConfigs").forEach(function (category) {
       var configs = category.configs.map(function(config) {
+        if (self.isExcludedConfig(config)) {
+          config.set('value', '');
+        }
         return {
           name: config.name,
           value: config.value

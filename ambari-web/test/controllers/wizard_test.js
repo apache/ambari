@@ -922,6 +922,62 @@ describe('App.WizardController', function () {
       c.setDBProperty.restore();
     });
 
+    var kerberosStepController = Em.Object.create({
+      installedServiceNames: ['KERBEROS'],
+      stepConfigs: [
+        Em.Object.create({
+          serviceName: 'KERBEROS',
+          configs: [
+            Em.Object.create({
+              id: 'id',
+              name: 'admin_password',
+              value: 'value',
+              defaultValue: 'defaultValue',
+              description: 'description',
+              serviceName: 'serviceName',
+              domain: 'domain',
+              isVisible: true,
+              isNotDefaultValue: true,
+              isFinal: true,
+              defaultIsFinal: true,
+              supportsFinal: true,
+              filename: 'filename',
+              displayType: 'string',
+              isRequiredByAgent: true,
+              hasInitialValue: true,
+              isRequired: true,
+              group: {name: 'group'},
+              showLabel: true,
+              category: 'some_category'
+            }),
+
+            Em.Object.create({
+              id: 'id',
+              name: 'admin_principal',
+              value: 'value',
+              defaultValue: 'defaultValue',
+              description: 'description',
+              serviceName: 'serviceName',
+              domain: 'domain',
+              isVisible: true,
+              isNotDefaultValue: true,
+              isFinal: true,
+              defaultIsFinal: true,
+              supportsFinal: true,
+              filename: 'filename',
+              displayType: 'string',
+              isRequiredByAgent: true,
+              hasInitialValue: true,
+              isRequired: true,
+              group: {name: 'group'},
+              showLabel: true,
+              category: 'some_category'
+            })
+          ]
+        })
+      ]
+    });
+
     var stepController = Em.Object.create({
       installedServiceNames: ['HDFS'],
       stepConfigs: [
@@ -987,6 +1043,13 @@ describe('App.WizardController', function () {
       expect(saved[0].category).to.equal('some_category');
     });
 
+    it('should not save admin_principal or admin_password to the localStorage', function () {
+      c.saveServiceConfigProperties(kerberosStepController);
+      var saved = c.get('content.serviceConfigProperties');
+      saved.forEach(function(config) {
+        expect(config.value).to.equal('');
+      });
+    });
   });
 
   describe('#enableStep', function () {
