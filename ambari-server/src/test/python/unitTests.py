@@ -20,6 +20,7 @@ import unittest
 import multiprocessing
 import os
 import sys
+from Queue import Empty
 from random import shuffle
 import fnmatch
 import tempfile
@@ -187,11 +188,19 @@ def main():
                                             executor_result)
           )
     process.start()
-    process.join()
-    #for pretty output
-    sys.stdout.flush()
-    sys.stderr.flush()
-    variant_result = executor_result.get()
+    while process.is_alive():
+      process.join(10)
+
+      #for pretty output
+      sys.stdout.flush()
+      sys.stderr.flush()
+
+      try:
+        variant_result = executor_result.get_nowait()
+        break
+      except Empty as ex:
+        pass
+
     test_runs += variant_result['tests_run']
     test_errors.extend(variant_result['errors'])
     test_failures.extend(variant_result['failures'])
