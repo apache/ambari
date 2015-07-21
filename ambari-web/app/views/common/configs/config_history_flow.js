@@ -118,6 +118,17 @@ App.ConfigHistoryFlowView = Em.View.extend({
   }.property('serviceName', 'controller.selectedConfigGroup.name'),
 
   /**
+   * disable versions visible to the user to prevent actions on them
+   */
+  disableVersions: function () {
+    var allServiceVersions = App.ServiceConfigVersion.find().filterProperty('serviceName', this.get('serviceName'));
+
+    allServiceVersions.forEach(function (version) {
+      version.set('isDisabled', true);
+    }, this);
+  },
+
+  /**
    * service versions which in viewport and visible to user
    */
   visibleServiceVersion: function () {
@@ -309,11 +320,15 @@ App.ConfigHistoryFlowView = Em.View.extend({
       self[type].call(self, event);
     }
 
-    if (controller.hasUnsavedChanges()) {
-      controller.showSavePopup(null, callback);
-      return;
-    }
-    callback();
+    Em.run.next(function() {
+      if (controller.hasUnsavedChanges()) {
+        controller.showSavePopup(null, callback);
+        return;
+      }
+
+      self.disableVersions();
+      callback();
+    });
   },
 
   /**
