@@ -727,25 +727,80 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @return {void}
    */
   submit: function () {
-    var self = this;
     var wizardController;
     if (!this.get('isSubmitDisabled')) {
       wizardController = App.router.get(this.get('content.controllerName'));
+      wizardController.setLowerStepsDisable(wizardController.get('currentStep'));
       this.set('isSubmitDisabled', true);
       this.set('isBackBtnDisabled', true);
-      wizardController.setLowerStepsDisable(wizardController.get('currentStep'));
-      if (this.get('content.controllerName') != 'installerController' && App.get('isKerberosEnabled') && !this.get('isManualKerberos')) {
-        App.get('router.mainAdminKerberosController').getKDCSessionState(this.submitProceed.bind(this), function () {
-          self.set('isSubmitDisabled', false);
-          self.set('isBackBtnDisabled', false);
-          wizardController.setStepsEnable();
-          if (self.get('content.controllerName') === 'addServiceController') {
-            wizardController.setSkipSlavesStep(wizardController.getDBProperty('selectedServiceNames'), 3);
+      this.showRestartWarnings()
+        .then(this.checkKDCSession.bind(this));
+    }
+  },
+
+  /**
+   * Warn user about services that will be restarted during installation.
+   *
+   * @returns {$.Deferred}
+   */
+  showRestartWarnings: function() {
+    var self = this;
+    var dfd = $.Deferred();
+    var wizardController = App.router.get(this.get('content.controllerName'));
+    var selectedServiceNames = this.get('selectedServices').mapProperty('serviceName');
+    var installedServiceNames = this.get('installedServices').mapProperty('serviceName');
+
+    if (this.get('content.controllerName') === 'addServiceController' && selectedServiceNames.contains('OOZIE')) {
+      var affectedServices = ['HDFS', 'YARN'].filter(function(serviceName) {
+        return installedServiceNames.contains(serviceName);
+      });
+      if (affectedServices.length) {
+        var serviceNames = affectedServices.length > 1 ?
+            '<b>{0}</b> {1} <b>{2}</b>'.format(affectedServices[0], Em.I18n.t('and'), affectedServices[1]) : '<b>' + affectedServices[0] + '</b> ';
+        App.ModalPopup.show({
+          encodeBody: false,
+          header: Em.I18n.t('common.warning'),
+          body: Em.I18n.t('installer.step8.services.restart.required').format(serviceNames, stringUtils.pluralize(affectedServices.length, Em.I18n.t('common.service').toLowerCase())),
+          secondary: Em.I18n.t('common.cancel'),
+          primary: Em.I18n.t('common.proceedAnyway'),
+          onPrimary: function() {
+            this.hide();
+            dfd.resolve();
+          },
+          onClose: function() {
+            this.hide();
+            self.set('isSubmitDisabled', false);
+            self.set('isBackBtnDisabled', false);
+            wizardController.setStepsEnable();
+            dfd.reject();
+          },
+          onSecondary: function() {
+            this.onClose();
           }
         });
       } else {
-        this.submitProceed();
+        dfd.resolve();
       }
+    } else {
+      dfd.resolve();
+    }
+    return dfd.promise();
+  },
+
+  checkKDCSession: function() {
+    var self = this;
+    var wizardController = App.router.get(this.get('content.controllerName'));
+    if (this.get('content.controllerName') != 'installerController' && App.get('isKerberosEnabled') && !this.get('isManualKerberos')) {
+      App.get('router.mainAdminKerberosController').getKDCSessionState(this.submitProceed.bind(this), function () {
+        self.set('isSubmitDisabled', false);
+        self.set('isBackBtnDisabled', false);
+        wizardController.setStepsEnable();
+        if (self.get('content.controllerName') === 'addServiceController') {
+          wizardController.setSkipSlavesStep(wizardController.getDBProperty('selectedServiceNames'), 3);
+        }
+      });
+    } else {
+      this.submitProceed();
     }
   },
 
@@ -1696,7 +1751,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
 
       // exclude some configs if service wasn't selected
       var addProperty = optionalCoreSiteConfigs.every(function (config) {
-        var userValue = this.get('configs').someProperty('name', config.user) ? this.get('configs').findProperty('name', config.user).value : null
+        var userValue = this.get('configs').someProperty('name', config.user) ? this.get('configs').findProperty('name', config.user).value : null;
         return (installedAndSelectedServices.someProperty('serviceName', config.serviceName) ||
           (_coreSiteObj.name != 'hadoop.proxyuser.' + userValue + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + userValue + '.groups'))
       }, this);

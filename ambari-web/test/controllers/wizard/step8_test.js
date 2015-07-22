@@ -1454,10 +1454,12 @@ describe('App.WizardStep8Controller', function () {
   describe('#submit', function() {
     beforeEach(function() {
       sinon.stub(installerStep8Controller, 'submitProceed', Em.K);
+      sinon.stub(installerStep8Controller, 'showRestartWarnings').returns($.Deferred().resolve().promise());
       sinon.stub(App.get('router.mainAdminKerberosController'), 'getKDCSessionState', Em.K);
     });
     afterEach(function() {
       installerStep8Controller.submitProceed.restore();
+      installerStep8Controller.showRestartWarnings.restore();
       App.set('isKerberosEnabled', false);
       App.get('router.mainAdminKerberosController').getKDCSessionState.restore();
     });

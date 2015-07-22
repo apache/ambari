@@ -804,6 +804,7 @@ Em.I18n.translations = {
   'installer.step8.repoInfo.osType.redhat5':'RHEL 5/CentOS 5/Oracle Linux 5',
   'installer.step8.repoInfo.osType.sles11':'SLES 11/SUSE 11',
   'installer.step8.repoInfo.displayName':'Repositories',
+  'installer.step8.services.restart.required': '{0} {1} will be restarted during installation.',
   'installer.step9.header':'Install, Start and Test',
   'installer.step9.body':'Please wait while the selected services are installed and started.',
   'installer.step9.status.success':'Successfully installed and started the services.',

@@ -1340,7 +1340,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   showChangesWarningPopup: function(goToNextStep) {
-    var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
       body: Em.I18n.t('services.service.config.exitChangesPopup.body'),
@@ -1380,11 +1379,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   showOozieDerbyWarningPopup: function(callback) {
     var self = this;
     if (this.get('selectedServiceNames').contains('OOZIE')) {
-      var databaseType = Em.getWithDefault(this.findConfigProperty('oozie_database', 'oozie-env.xml'), 'value', '');
+      var databaseType = Em.getWithDefault(this.findConfigProperty('oozie_database', 'oozie-env.xml') || {}, 'value', '');
       if (databaseType == Em.I18n.t('installer.step7.oozie.database.new')) {
         return App.ModalPopup.show({
           header: Em.I18n.t('common.warning'),
           body: Em.I18n.t('installer.step7.popup.oozie.derby.warning'),
+          secondary: Em.I18n.t('common.cancel'),
+          primary: Em.I18n.t('common.proceedAnyway'),
           onPrimary: function() {
             this.hide();
             if (callback) {
