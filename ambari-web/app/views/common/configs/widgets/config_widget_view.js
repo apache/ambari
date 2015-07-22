@@ -352,6 +352,15 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     this.setValue(this.get('config.value'));
   }.observes('controller.recommendationTimeStamp'),
 
+  /**
+   * defines if config has same config group as selected
+   * @type {boolean}
+   */
+  referToSelectedGroup: function() {
+    return this.get('controller.selectedConfigGroup.isDefault') && this.get('config.group') === null
+    || this.get('controller.selectedConfigGroup.name') === this.get('config.group.name');
+  }.property('controller.selectedConfigGroup.name', 'controller.selectedConfigGroup.isDefault'),
+
   didInsertElement: function () {
     App.tooltip($(this.get('element')).find('span'));
     var self = this;
