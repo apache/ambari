@@ -83,8 +83,8 @@
       <service-check>false</service-check>
       <service name="HDFS">
         <component>JOURNALNODE</component>
-        <component>NAMENODE</component>
         <component>ZKFC</component>
+        <component>NAMENODE</component>
       </service>
 
       <service name="MAPREDUCE2">

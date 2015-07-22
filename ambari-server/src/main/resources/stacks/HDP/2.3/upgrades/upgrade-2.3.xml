@@ -99,6 +99,7 @@
       <service-check>false</service-check>
       <service name="HDFS">
         <component>JOURNALNODE</component>
+        <component>ZKFC</component>
         <component>NAMENODE</component>
       </service>
 
@@ -402,6 +403,12 @@
       </component>
 
       <component name="JOURNALNODE">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+
+      <component name="ZKFC">
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
