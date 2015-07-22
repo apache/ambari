@@ -783,6 +783,7 @@ Em.I18n.translations = {
   'installer.step7.popup.validation.request.failed.body': 'Config validation failed.',
   'installer.step7.popup.validation.warning.header': 'Configurations',
   'installer.step7.popup.validation.warning.body': 'Some service configurations are not configured properly. We recommend you review and change the highlighted configuration values. Are you sure you want to proceed without correcting configurations?',
+  'installer.step7.popup.oozie.derby.warning': 'Derby is not recommended for production use. With Derby, Oozie Server HA and concurrent connection support will not be available.',
   'installer.step7.oozie.database.new': 'New Derby Database',
   'installer.step7.hive.database.new.mysql': 'New MySQL Database',
   'installer.step7.hive.database.new.postgres': 'New PostgreSQL Database',

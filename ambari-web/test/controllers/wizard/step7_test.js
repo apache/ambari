@@ -2096,4 +2096,47 @@ describe('App.InstallerStep7Controller', function () {
     });
 
   });
+
+  describe('#showOozieDerbyWarning', function() {
+    var controller;
+    beforeEach(function() {
+      controller = App.WizardStep7Controller.create({});
+      sinon.stub(App.ModalPopup, 'show', Em.K);
+    });
+    afterEach(function() {
+      App.ModalPopup.show.restore();
+    });
+
+    Em.A([
+      {
+        selectedServiceNames: ['HDFS', 'OOZIE'],
+        databaseType: Em.I18n.t('installer.step7.oozie.database.new'),
+        e: true,
+        m: 'Oozie selected with derby database, warning popup should be shown'
+      },
+      {
+        selectedServiceNames: ['HDFS'],
+        databaseType: Em.I18n.t('installer.step7.oozie.database.new'),
+        e: false,
+        m: 'Oozie not selected warning popup should be skipped'
+      },
+      {
+        selectedServiceNames: ['HDFS', 'OOZIE'],
+        databaseType: 'New Mysql Database',
+        e: false,
+        m: 'Oozie selected, mysql database used, warning popup should be sk'
+      }
+    ]).forEach(function(test) {
+      it(test.m, function() {
+        var callback = sinon.spy();
+        sinon.stub(controller, 'findConfigProperty').returns(Em.Object.create({ value: test.databaseType}));
+        controller.reopen({
+          selectedServiceNames: test.selectedServiceNames
+        });
+        controller.showOozieDerbyWarningPopup(callback);
+        controller.findConfigProperty.restore();
+        expect(App.ModalPopup.show.calledOnce).to.equal(test.e);
+      });
+    });
+  });
 });

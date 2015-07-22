@@ -1376,6 +1376,37 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }
     });
   },
+
+  showOozieDerbyWarningPopup: function(callback) {
+    var self = this;
+    if (this.get('selectedServiceNames').contains('OOZIE')) {
+      var databaseType = Em.getWithDefault(this.findConfigProperty('oozie_database', 'oozie-env.xml'), 'value', '');
+      if (databaseType == Em.I18n.t('installer.step7.oozie.database.new')) {
+        return App.ModalPopup.show({
+          header: Em.I18n.t('common.warning'),
+          body: Em.I18n.t('installer.step7.popup.oozie.derby.warning'),
+          onPrimary: function() {
+            this.hide();
+            if (callback) {
+              callback();
+            }
+          },
+          onSecondary: function() {
+            self.set('submitButtonClicked', false);
+            this.hide();
+          },
+          onClose: function() {
+            this.onSecondary();
+          }
+        });
+      }
+    }
+    if (callback) {
+      callback();
+    }
+    return false;
+  },
+
   /**
    * Proceed to the next step
    **/
@@ -1394,22 +1425,30 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     }
     var self = this;
     this.set('submitButtonClicked', true);
-    this.serverSideValidation().done(function () {
-      self.checkDatabaseConnectionTest().done(function () {
-        self.resolveHiveMysqlDatabase();
-        self.set('submitButtonClicked', false);
-      });
-    }).fail(function (value) {
+    this.serverSideValidation().done(function() {
+      self.serverSideValidationCallback();
+    })
+    .fail(function (value) {
       if ("invalid_configs" == value) {
         self.set('submitButtonClicked', false);
       } else {
         // Failed due to validation mechanism failure.
         // Should proceed with other checks
-        self.checkDatabaseConnectionTest().done(function () {
-          self.resolveHiveMysqlDatabase();
-          self.set('submitButtonClicked', false);
-        });
+        self.serverSideValidationCallback();
       }
+    });
+  },
+
+  /**
+   * @method serverSideValidationCallback
+   */
+  serverSideValidationCallback: function() {
+    var self = this;
+    this.showOozieDerbyWarningPopup(function() {
+      self.checkDatabaseConnectionTest().done(function () {
+        self.resolveHiveMysqlDatabase();
+        self.set('submitButtonClicked', false);
+      });
     });
   },
 
