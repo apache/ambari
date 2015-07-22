@@ -23,7 +23,9 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.default import default
 from resource_management.core.exceptions import Fail
-from utils import get_jmx_data
+import utils
+from resource_management.libraries.functions.jmx import get_value_from_jmx
+import namenode_ha_state
 from namenode_ha_state import NAMENODE_STATE, NamenodeHAState
 
 
@@ -48,14 +50,14 @@ def post_upgrade_check():
     raise Fail("Need at least 3 Journalnodes to maintain a quorum")
 
   try:
-    namenode_ha = NamenodeHAState()
+    namenode_ha = namenode_ha_state.NamenodeHAState()
   except ValueError, err:
     raise Fail("Could not retrieve Namenode HA addresses. Error: " + str(err))
 
   Logger.info(str(namenode_ha))
   nn_address = namenode_ha.get_address(NAMENODE_STATE.ACTIVE)
 
-  nn_data = get_jmx_data(nn_address, 'org.apache.hadoop.hdfs.server.namenode.FSNamesystem', 'JournalTransactionInfo',
+  nn_data = utils.get_jmx_data(nn_address, 'org.apache.hadoop.hdfs.server.namenode.FSNamesystem', 'JournalTransactionInfo',
                          namenode_ha.is_encrypted(), params.security_enabled)
   if not nn_data:
     raise Fail("Could not retrieve JournalTransactionInfo from JMX")
@@ -121,7 +123,7 @@ def ensure_jns_have_new_txn(nodes, last_txn_id):
         continue
 
       url = '%s://%s:%s' % (protocol, node, params.journalnode_port)
-      data = get_jmx_data(url, 'Journal-', 'LastWrittenTxId', params.https_only, params.security_enabled)
+      data = utils.get_jmx_data(url, 'Journal-', 'LastWrittenTxId', params.https_only, params.security_enabled)
       if data:
         actual_txn_ids[node] = int(data)
         if actual_txn_ids[node] >= last_txn_id:

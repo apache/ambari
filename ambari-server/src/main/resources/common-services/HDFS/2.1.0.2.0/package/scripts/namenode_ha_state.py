@@ -57,7 +57,7 @@ class NamenodeHAState:
     policy = default("/configurations/hdfs-site/dfs.http.policy", "HTTP_ONLY")
     self.encrypted = policy.upper() == "HTTPS_ONLY"
 
-    jmx_uri_fragment = ("https" if self.encrypted else "http") + "://{0}/jmx?qry=Hadoop:service=NameNode,name=NameNodeStatus"
+    jmx_uri_fragment = ("https" if self.encrypted else "http") + "://{0}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem"
     namenode_http_fragment = "dfs.namenode.http-address.{0}.{1}"
     namenode_https_fragment = "dfs.namenode.https-address.{0}.{1}"
 
@@ -81,7 +81,7 @@ class NamenodeHAState:
           raise Exception("Could not retrieve hostname from address " + actual_value)
 
         jmx_uri = jmx_uri_fragment.format(actual_value)
-        state = get_value_from_jmx(jmx_uri, "State", params.security_enabled, params.hdfs_user, params.is_https_enabled)
+        state = get_value_from_jmx(jmx_uri, "tag.HAState", params.security_enabled, params.hdfs_user, params.is_https_enabled)
 
         if not state:
           raise Exception("Could not retrieve Namenode state from URL " + jmx_uri)

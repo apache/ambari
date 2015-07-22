@@ -29,7 +29,7 @@ HDFS_NN_STATE_STANDBY = 'standby'
 
 NAMENODE_HTTP_FRAGMENT = 'dfs.namenode.http-address.{0}.{1}'
 NAMENODE_HTTPS_FRAGMENT = 'dfs.namenode.https-address.{0}.{1}'
-JMX_URI_FRAGMENT = "{0}://{1}/jmx?qry=Hadoop:service=NameNode,name=NameNodeStatus"
+JMX_URI_FRAGMENT = "{0}://{1}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem"
   
 def get_namenode_states(hdfs_site, security_enabled, run_user):
   """
@@ -62,7 +62,7 @@ def get_namenode_states(hdfs_site, security_enabled, run_user):
 
       jmx_uri = JMX_URI_FRAGMENT.format(protocol, value)
       
-      state = get_value_from_jmx(jmx_uri, 'State', security_enabled, run_user, is_https_enabled)
+      state = get_value_from_jmx(jmx_uri, 'tag.HAState', security_enabled, run_user, is_https_enabled)
       
       if state == HDFS_NN_STATE_ACTIVE:
         active_namenodes.append((nn_unique_id, value))
