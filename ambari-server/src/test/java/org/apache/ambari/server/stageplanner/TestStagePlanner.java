@@ -17,13 +17,10 @@
  */
 package org.apache.ambari.server.stageplanner;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.List;
-
+import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -34,19 +31,23 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestStagePlanner {
 
   private Injector injector;
+  private static StageFactory stageFactory;
 
   @Inject
   StageUtils stageUtils;
@@ -59,6 +60,7 @@ public class TestStagePlanner {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
+    stageFactory = injector.getInstance(StageFactory.class);
   }
 
   @After
@@ -111,6 +113,36 @@ public class TestStagePlanner {
       System.out.println(s.toString());
     }
     assertEquals(3, outStages.size());
+  }
+
+  @Test
+  public void testRestartStagePlan() {
+    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
+    ClusterImpl cluster = mock(ClusterImpl.class);
+    when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+    rco.initialize(cluster);
+    RoleGraph rg = roleGraphFactory.createNew(rco);
+    long now = System.currentTimeMillis();
+    Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L,  "execution command wrapper test",
+            "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+    stage.setStageId(1);
+    stage.addServerActionCommand("RESTART", Role.HIVE_METASTORE,
+            RoleCommand.CUSTOM_COMMAND, "cluster1",
+            new ServiceComponentHostServerActionEvent("host2", System.currentTimeMillis()),
+            null, "command detail", null, null, false);
+    stage.addServerActionCommand("RESTART", Role.MYSQL_SERVER,
+            RoleCommand.CUSTOM_COMMAND, "cluster1",
+            new ServiceComponentHostServerActionEvent("host2", System.currentTimeMillis()),
+            null, "command detail", null, null, false);
+    System.out.println(stage.toString());
+
+    rg.build(stage);
+    System.out.println(rg.stringifyGraph());
+    List<Stage> outStages = rg.getStages();
+    for (Stage s: outStages) {
+      System.out.println(s.toString());
+    }
+    assertEquals(2, outStages.size());
   }
 
   @Test

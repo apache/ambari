@@ -28,6 +28,7 @@ public enum RoleCommand {
   INSTALL,
   UNINSTALL,
   START,
+  RESTART,
   STOP,
   EXECUTE,
   ABORT,

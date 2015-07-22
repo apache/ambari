@@ -17,19 +17,19 @@
  */
 package org.apache.ambari.server.stageplanner;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 import com.google.inject.Inject;
-import com.google.inject.Injector;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class RoleGraph {
 
@@ -72,7 +72,7 @@ public class RoleGraph {
         RoleGraphNode rgn;
         if (graph.get(role) == null) {
           rgn = new RoleGraphNode(hostRoleCommand.getRole(),
-              hostRoleCommand.getRoleCommand());
+              getRoleCommand(hostRoleCommand));
           graph.put(role, rgn);
         }
         rgn = graph.get(role);
@@ -97,6 +97,17 @@ public class RoleGraph {
         }
       }
     }
+  }
+  /**
+   * This method return more detailed RoleCommand type. For now, i've added code
+   * only for RESTART name of CUSTOM COMMAND, but in future i think all other will be added too.
+   * This method was implemented for fix in role_command_order.json, for RESTART commands.
+   */
+  private RoleCommand getRoleCommand(HostRoleCommand hostRoleCommand) {
+    if (hostRoleCommand.getRoleCommand().equals(RoleCommand.CUSTOM_COMMAND)) {
+      return hostRoleCommand.getCustomCommandName().equals("RESTART") ? RoleCommand.RESTART : RoleCommand.CUSTOM_COMMAND;
+    }
+    return hostRoleCommand.getRoleCommand();
   }
 
   /**
