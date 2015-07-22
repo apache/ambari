@@ -53,6 +53,7 @@
   <property>
     <name>SYNC_LDAP_BIND_PASSWORD</name>
     <value>admin321</value>
+    <property-type>PASSWORD</property-type>
     <description></description>
   </property>
   <property>
