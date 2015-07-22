@@ -113,7 +113,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#loadUpgradeData()", function() {
     beforeEach(function () {
       sinon.stub(App.ajax, 'send').returns({
-        then: Em.K
+        then: Em.K,
+        complete: Em.K
       });
     });
     afterEach(function () {
