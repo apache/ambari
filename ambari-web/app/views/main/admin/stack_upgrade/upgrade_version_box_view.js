@@ -49,6 +49,10 @@ App.UpgradeVersionBoxView = Em.View.extend({
     return (this.get('controller.upgradeVersion') === this.get('content.displayName') && App.get('upgradeState') !== 'INIT');
   }.property('App.upgradeState', 'content.displayName', 'controller.upgradeVersion'),
 
+  isRepoUrlsEditDisabled: function () {
+    return ['INSTALLING', 'UPGRADING'].contains(this.get('content.status')) || this.get('isUpgrading');
+  }.property('content.status', 'isUpgrading'),
+
   /**
    * @type {string}
    */
@@ -239,7 +243,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       })
     });
 
-    return App.ModalPopup.show({
+    return this.get('isRepoUrlsEditDisabled') ? null : App.ModalPopup.show({
       classNames: ['repository-list', 'sixty-percent-width-modal'],
       skipValidation: false,
       autoHeight: false,
