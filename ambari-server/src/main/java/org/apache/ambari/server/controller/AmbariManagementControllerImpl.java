@@ -60,6 +60,8 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -154,6 +156,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MultiMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -577,9 +580,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     persistServiceComponentHosts(requests);
   }
 
-  @Transactional
   void persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests)
     throws AmbariException {
+    Multimap<Cluster, ServiceComponentHost> schMap = ArrayListMultimap.create();
 
     for (ServiceComponentHostRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
@@ -598,8 +601,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       sch.setDesiredStackVersion(sc.getDesiredStackVersion());
 
-      sc.addServiceComponentHost(sch);
-      sch.persist();
+      schMap.put(cluster, sch);
+    }
+
+    for (Cluster cluster : schMap.keySet()) {
+      cluster.addServiceComponentHosts(schMap.get(cluster));
     }
   }
 
