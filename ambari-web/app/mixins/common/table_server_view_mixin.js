@@ -45,7 +45,9 @@ App.TableServerViewMixin = Em.Mixin.create({
   /**
    * data requested from server
    */
-  contentBinding: 'controller.content',
+  content: function () {
+    return this.get('controller.content');
+  }.property('controller.content'),
 
   /**
    * content already filtered on server-side
