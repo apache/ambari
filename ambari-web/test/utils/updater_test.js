@@ -22,6 +22,7 @@ describe('utils/updater', function() {
   describe('#App.updater', function() {
     beforeEach(function() {
       this.clock = sinon.useFakeTimers();
+      sinon.stub(App.router, "get").returns('test');
     });
 
     var tests = {
@@ -51,6 +52,13 @@ describe('utils/updater', function() {
           isWorking: true
         }),
         m: 'method call should be ignored if `isWorking` set to false'
+      },
+      t5: {
+        obj: Em.Object.create({
+          method4: sinon.spy(),
+          isWorking: true
+        }),
+        m: 'method call should be ignored if urlPattern is not matching router location'
       }
     };
 
@@ -79,9 +87,15 @@ describe('utils/updater', function() {
       expect(tests.t4.obj.method3.called).to.be.false;
     });
 
+    it(tests.t5.m, function () {
+      App.updater.run(tests.t5.obj, 'method4', 'isWorking', 15000, 'pattern');
+      this.clock.tick(15000);
+      expect(tests.t5.obj.method4.called).to.be.false;
+    });
 
     afterEach(function() {
       this.clock.restore();
+      App.router.get.restore();
     });
   });
 });

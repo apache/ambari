@@ -30,9 +30,6 @@ App.UpdateController = Em.Controller.extend({
   clusterName: function () {
     return App.router.get('clusterController.clusterName');
   }.property('App.router.clusterController.clusterName'),
-  location: function () {
-    return App.router.get('location.lastSetURL');
-  }.property('App.router.location.lastSetURL'),
 
   /**
    * keys which should be preloaded in order to filter hosts by host-components
@@ -145,33 +142,19 @@ App.UpdateController = Em.Controller.extend({
     if (this.get('isWorking')) {
       App.updater.run(this, 'updateServices', 'isWorking');
       App.updater.run(this, 'updateHost', 'isWorking');
-      App.updater.run(this, 'updateServiceMetricConditionally', 'isWorking', App.componentsUpdateInterval);
-      App.updater.run(this, 'updateComponentsState', 'isWorking', App.componentsUpdateInterval);
+      App.updater.run(this, 'updateServiceMetric', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services).*');
+      App.updater.run(this, 'updateComponentsState', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services|hosts).*');
       App.updater.run(this, 'graphsUpdate', 'isWorking');
       App.updater.run(this, 'updateComponentConfig', 'isWorking');
 
-      App.updater.run(this, 'updateAlertGroups', 'isWorking', App.alertGroupsUpdateInterval);
-      App.updater.run(this, 'updateAlertDefinitions', 'isWorking', App.alertDefinitionsUpdateInterval);
+      App.updater.run(this, 'updateAlertGroups', 'isWorking', App.alertGroupsUpdateInterval, '\/main\/alerts.*');
+      App.updater.run(this, 'updateAlertDefinitions', 'isWorking', App.alertDefinitionsUpdateInterval, '\/main\/alerts.*');
       App.updater.run(this, 'updateAlertDefinitionSummary', 'isWorking', App.alertDefinitionsUpdateInterval);
       if (!App.get('router.mainAlertInstancesController.isUpdating')) {
-        App.updater.run(this, 'updateUnhealthyAlertInstances', 'updateAlertInstances', App.alertInstancesUpdateInterval);
+        App.updater.run(this, 'updateUnhealthyAlertInstances', 'updateAlertInstances', App.alertInstancesUpdateInterval, '\/main\/alerts.*');
       }
     }
   }.observes('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
-  /**
-   * Update service metrics depending on which page is open
-   * Make a call only on follow pages:
-   * /main/dashboard
-   * /main/services/*
-   * @param callback
-   */
-  updateServiceMetricConditionally: function (callback) {
-    if (/\/main\/(dashboard|services).*/.test(this.get('location'))) {
-      this.updateServiceMetric(callback);
-    } else {
-      callback();
-    }
-  },
 
   /**
    *
