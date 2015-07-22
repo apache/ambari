@@ -17,7 +17,7 @@
  */
 var App = require('app');
 require('mixins/common/userPref');
-
+var LZString = require('utils/lz-string');
 App.clusterStatus = Em.Object.create(App.UserPref, {
 
   /**
@@ -125,6 +125,10 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
    */
   getUserPrefSuccessCallback: function (response, opt, params) {
     if (response) {
+      // decompress response
+      if (typeof response != 'object') {
+        response = JSON.parse(LZString.decompressFromBase64(response));
+      }
       if (response.clusterState) {
         this.set('clusterState', response.clusterState);
       }
@@ -239,6 +243,8 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
         App.db.setLoginName(login);
       }
       if (!$.mocho) {
+        // compress val
+        val = LZString.compressToBase64(JSON.stringify(val));
         this.postUserPref(this.get('key'), val)
             .done(function () {
               !!opt && Em.typeOf(opt.successCallback) === 'function' && opt.successCallback.call(opt.sender || this, opt.successCallbackData);

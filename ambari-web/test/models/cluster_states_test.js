@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-
+var LZString = require('utils/lz-string');
 require('models/cluster_states');
 
 var status = App.clusterStatus,
@@ -32,11 +32,16 @@ var status = App.clusterStatus,
     clusterState: 'DEFAULT',
     clusterName: 'cluster'
   },
+  response2 = {
+    clusterState: 'DEFAULT2',
+    clusterName: 'cluster2'
+  },
   newValue = {
     clusterName: 'name',
     clusterState: 'STACK_UPGRADING',
     wizardControllerName: 'wizardStep0Controller'
   };
+var compressedResponse = LZString.compressToBase64(JSON.stringify(response2));
 
 describe('App.clusterStatus', function () {
 
@@ -67,6 +72,10 @@ describe('App.clusterStatus', function () {
       status.getUserPrefSuccessCallback(response);
       Em.keys(response).forEach(function (key) {
         expect(status.get(key)).to.equal(response[key]);
+      });
+      status.getUserPrefSuccessCallback(compressedResponse);
+      Em.keys(response2).forEach(function (key) {
+        expect(status.get(key)).to.equal(response2[key]);
       });
     });
   });
