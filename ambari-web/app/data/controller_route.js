@@ -50,6 +50,10 @@ module.exports = [
     route: 'main.services.enableRMHighAvailability'
   },
   {
+    wizardControllerName: App.router.get('rAHighAvailabilityWizardController.name'),
+    route: 'main.services.enableRAHighAvailability'
+  },
+  {
     wizardControllerName: App.router.get('rollbackHighAvailabilityWizardController.name'),
     route: 'main.services.rollbackHighAvailability'
   },
