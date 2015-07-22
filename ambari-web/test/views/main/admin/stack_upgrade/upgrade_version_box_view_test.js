@@ -21,14 +21,19 @@ var App = require('app');
 require('views/main/admin/stack_upgrade/upgrade_version_box_view');
 
 describe('App.UpgradeVersionBoxView', function () {
-  var view = App.UpgradeVersionBoxView.create({
-    controller: Em.Object.create({
-      upgrade: Em.K
-    }),
-    content: Em.Object.create(),
-    parentView: Em.Object.create({
-      repoVersions: []
-    })
+
+  var view;
+
+  beforeEach(function () {
+    view = App.UpgradeVersionBoxView.create({
+      controller: Em.Object.create({
+        upgrade: Em.K
+      }),
+      content: Em.Object.create(),
+      parentView: Em.Object.create({
+        repoVersions: []
+      })
+    });
   });
 
   describe("#isUpgrading", function () {
@@ -212,6 +217,18 @@ describe('App.UpgradeVersionBoxView', function () {
   });
   
   describe("#editRepositories()", function () {
+    var cases = [
+      {
+        isRepoUrlsEditDisabled: true,
+        popupShowCallCount: 0,
+        title: 'edit repo URLS disabled, popup shouldn\'t be shown'
+      },
+      {
+        isRepoUrlsEditDisabled: false,
+        popupShowCallCount: 1,
+        title: 'edit repo URLS enabled, popup should be shown'
+      }
+    ];
     beforeEach(function () {
       sinon.stub(App.RepositoryVersion, 'find').returns(Em.Object.create({
         operatingSystems: []
@@ -222,9 +239,14 @@ describe('App.UpgradeVersionBoxView', function () {
       App.RepositoryVersion.find.restore();
       App.ModalPopup.show.restore();
     });
-    it("show popup", function () {
-      view.editRepositories();
-      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        view.reopen({
+          isRepoUrlsEditDisabled: item.isRepoUrlsEditDisabled
+        });
+        view.editRepositories();
+        expect(App.ModalPopup.show.callCount).to.equal(item.popupShowCallCount);
+      });
     });
   });
 
@@ -764,6 +786,47 @@ describe('App.UpgradeVersionBoxView', function () {
         expect(result).to.eql(item.expected);
       });
     }, this);
+
+  });
+
+  describe('#isRepoUrlsEditDisabled', function () {
+
+    var cases = [
+      {
+        status: 'INSTALLING',
+        isUpgrading: false,
+        isRepoUrlsEditDisabled: true,
+        title: 'installing packages'
+      },
+      {
+        status: 'UPGRADING',
+        isUpgrading: true,
+        isRepoUrlsEditDisabled: true,
+        title: 'upgrading'
+      },
+      {
+        status: 'INSTALLED',
+        isUpgrading: true,
+        isRepoUrlsEditDisabled: true,
+        title: 'upgrading just started'
+      },
+      {
+        status: 'INIT',
+        isUpgrading: false,
+        isRepoUrlsEditDisabled: false,
+        title: 'neither upgrading nor installing packages'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        view.reopen({
+          isUpgrading: item.isUpgrading
+        });
+        view.set('content.status', item.status);
+        expect(view.get('isRepoUrlsEditDisabled')).to.equal(item.isRepoUrlsEditDisabled);
+      });
+    });
 
   });
 

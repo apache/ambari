@@ -20,7 +20,7 @@
   <i class="icon-exclamation-sign out-of-sync-badge"></i>
 {{/if}}
 
-<p class="version">
+<p {{bindAttr class=":version view.isRepoUrlsEditDisabled:not-active-link"}}>
   <span>{{view.content.displayName}}</span>
   <a class="pull-right not-active link-tooltip" {{action editRepositories target="view"}}>
     <i class="icon-edit"></i>
