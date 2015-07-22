@@ -131,6 +131,7 @@ module.exports = App.WizardRoute.extend({
 
       var wizardStep5Controller = router.get('wizardStep5Controller');
       wizardStep5Controller.clearRecommendations(); // Force reload recommendation between steps 1 and 2
+      addServiceController.setDBProperty('recommendations', undefined);
       router.transitionTo('step2');
     }
   }),
@@ -158,6 +159,7 @@ module.exports = App.WizardRoute.extend({
       var wizardStep6Controller = router.get('wizardStep6Controller');
       addServiceController.saveMasterComponentHosts(wizardStep5Controller);
       addServiceController.setDBProperty('slaveComponentHosts', undefined);
+      addServiceController.setDBProperty('recommendations', wizardStep5Controller.get('content.recommendations'));
       wizardStep6Controller.set('isClientsSet', false);
       router.transitionTo('step3');
     }

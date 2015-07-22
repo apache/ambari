@@ -1481,5 +1481,22 @@ describe('App.WizardController', function () {
 
   });
 
+  describe('#loadRecommendations', function () {
+
+    beforeEach(function () {
+      sinon.stub(c, 'getDBProperty').returns({});
+    });
+
+    afterEach(function () {
+      c.getDBProperty.restore();
+    });
+
+    it('should set recommendations', function () {
+      c.set('content', {});
+      c.loadRecommendations();
+      expect(c.get('content.recommendations')).to.eql({});
+    });
+
+  });
 
 });
