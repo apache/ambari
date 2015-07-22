@@ -62,7 +62,7 @@ describe('App.UpdateController', function () {
 
     it('isWorking = true', function () {
       controller.set('isWorking', true);
-      expect(App.updater.run.callCount).to.equal(10);
+      expect(App.updater.run.callCount).to.equal(11);
     });
   });
 
@@ -263,4 +263,146 @@ describe('App.UpdateController', function () {
       expect(App.hostsMapper.setMetrics.calledWith({})).to.be.true;
     });
   });
+
+  describe('#updateUpgradeState()', function () {
+
+    var cases = [
+        {
+          currentStateName: 'versions',
+          parentStateName: 'stackAndUpgrade',
+          upgradeIsNotFinished: true,
+          isLoadUpgradeDataPending: true,
+          loadUpgradeDataCallCount: 0,
+          callbackCallCount: 1,
+          title: 'stack versions page'
+        },
+        {
+          currentStateName: 'stackUpgrade',
+          parentStateName: null,
+          upgradeIsNotFinished: true,
+          isLoadUpgradeDataPending: true,
+          loadUpgradeDataCallCount: 0,
+          callbackCallCount: 1,
+          title: 'upgrade popup open'
+        },
+        {
+          currentStateName: 'versions',
+          parentStateName: null,
+          upgradeIsNotFinished: true,
+          isLoadUpgradeDataPending: false,
+          loadUpgradeDataCallCount: 1,
+          callbackCallCount: 0,
+          title: 'another page with \'versions\' name'
+        },
+        {
+          currentStateName: 'versions',
+          parentStateName: null,
+          upgradeIsNotFinished: false,
+          isLoadUpgradeDataPending: false,
+          loadUpgradeDataCallCount: 0,
+          callbackCallCount: 1,
+          title: 'another page with \'versions\' name, upgrade finished'
+        },
+        {
+          currentStateName: 'versions',
+          parentStateName: null,
+          upgradeIsNotFinished: true,
+          isLoadUpgradeDataPending: true,
+          loadUpgradeDataCallCount: 0,
+          callbackCallCount: 1,
+          title: 'another page with \'versions\' name, another update upgrade request not completed'
+        },
+        {
+          currentStateName: 'services',
+          parentStateName: 'stackAndUpgrade',
+          upgradeIsNotFinished: true,
+          isLoadUpgradeDataPending: false,
+          loadUpgradeDataCallCount: 1,
+          callbackCallCount: 0,
+          title: 'another page from \'Stack and Versions\' section'
+        },
+        {
+          currentStateName: 'services',
+          parentStateName: 'stackAndUpgrade',
+          upgradeIsNotFinished: false,
+          isLoadUpgradeDataPending: false,
+          loadUpgradeDataCallCount: 0,
+          callbackCallCount: 1,
+          title: 'another page from \'Stack and Versions\' section, upgrade finished'
+        },
+        {
+          currentStateName: 'services',
+          parentStateName: 'stackAndUpgrade',
+          upgradeIsNotFinished: true,
+          isLoadUpgradeDataPending: true,
+          loadUpgradeDataCallCount: 0,
+          callbackCallCount: 1,
+          title: 'another page from \'Stack and Versions\' section, another update upgrade request not completed'
+        },
+        {
+          currentStateName: 'widgets',
+          parentStateName: 'dashboard',
+          upgradeIsNotFinished: true,
+          isLoadUpgradeDataPending: false,
+          loadUpgradeDataCallCount: 1,
+          callbackCallCount: 0,
+          title: 'not \'Stack and Versions\' section'
+        },
+        {
+          currentStateName: 'widgets',
+          parentStateName: 'dashboard',
+          upgradeIsNotFinished: false,
+          isLoadUpgradeDataPending: false,
+          loadUpgradeDataCallCount: 0,
+          callbackCallCount: 1,
+          title: 'not \'Stack and Versions\' section, upgrade finished'
+        },
+        {
+          currentStateName: 'widgets',
+          parentStateName: 'dashboard',
+          upgradeIsNotFinished: true,
+          isLoadUpgradeDataPending: true,
+          loadUpgradeDataCallCount: 0,
+          callbackCallCount: 1,
+          title: 'not \'Stack and Versions\' section, another update upgrade request not completed'
+        }
+      ],
+      mock = {
+        callback: Em.K,
+        loadUpgradeData: function () {
+          return {
+            done: Em.K
+          };
+        }
+      },
+      mainAdminStackAndUpgradeController = App.get('router.mainAdminStackAndUpgradeController'),
+      appGetMock;
+
+    beforeEach(function () {
+      sinon.spy(mock, 'callback');
+      sinon.spy(mock, 'loadUpgradeData');
+      appGetMock = sinon.stub(App, 'get');
+    });
+
+    afterEach(function () {
+      mock.callback.restore();
+      mock.loadUpgradeData.restore();
+      App.get.restore();
+      appGetMock.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        appGetMock.withArgs('router.mainAdminStackAndUpgradeController').returns(Em.Object.create({
+          loadUpgradeData: mock.loadUpgradeData,
+          isLoadUpgradeDataPending: item.isLoadUpgradeDataPending
+        })).withArgs('upgradeIsNotFinished').returns(item.upgradeIsNotFinished);
+        controller.updateUpgradeState(mock.callback);
+        expect(mock.loadUpgradeData.callCount).to.equal(item.loadUpgradeDataCallCount);
+        expect(mock.callback.callCount).to.equal(item.callbackCallCount);
+      });
+    });
+
+  });
+
 });

@@ -153,6 +153,7 @@ App.UpdateController = Em.Controller.extend({
       if (!App.get('router.mainAlertInstancesController.isUpdating')) {
         App.updater.run(this, 'updateUnhealthyAlertInstances', 'updateAlertInstances', App.alertInstancesUpdateInterval, '\/main\/alerts.*');
       }
+      App.updater.run(this, 'updateUpgradeState', 'isWorking', App.bgOperationsUpdateInterval);
     }
   }.observes('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
 
@@ -554,6 +555,17 @@ App.UpdateController = Em.Controller.extend({
     App.HttpClient.get(App.get('apiPrefix') + '/alert_targets?fields=*', App.alertNotificationMapper, {
       complete: callback
     });
+  },
+  
+  updateUpgradeState: function (callback) {
+    var currentStateName = App.get('router.currentState.name'),
+      parentStateName = App.get('router.parentState.name'),
+      mainAdminStackAndUpgradeController = App.get('router.mainAdminStackAndUpgradeController');
+    if (!(currentStateName === 'versions' && parentStateName === 'stackAndUpgrade') && currentStateName !== 'stackUpgrade' && App.get('upgradeIsNotFinished') && !mainAdminStackAndUpgradeController.get('isLoadUpgradeDataPending')) {
+      mainAdminStackAndUpgradeController.loadUpgradeData(true).done(callback);
+    } else {
+      callback();
+    }
   }
 
 });

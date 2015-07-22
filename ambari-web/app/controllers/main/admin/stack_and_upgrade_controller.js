@@ -83,6 +83,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   taskDetailsProperties: ['status', 'stdout', 'stderr', 'error_log', 'host_name', 'output_log'],
 
+  isLoadUpgradeDataPending: false,
+
   /**
    * path to the mock json
    * @type {String}
@@ -181,13 +183,15 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param {boolean} onlyState
    */
   loadUpgradeData: function (onlyState) {
-    var upgradeId = this.get('upgradeId');
-    var deferred = $.Deferred();
+    var upgradeId = this.get('upgradeId'),
+      deferred = $.Deferred(),
+      self = this;
 
     if (Em.isNone(upgradeId)) {
       deferred.resolve();
       console.log('Upgrade in INIT state');
     } else {
+      this.set('isLoadUpgradeDataPending', true);
       App.ajax.send({
         name: (onlyState) ? 'admin.upgrade.state' : 'admin.upgrade.data',
         sender: this,
@@ -195,7 +199,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
           id: upgradeId
         },
         success: 'loadUpgradeDataSuccessCallback'
-      }).then(deferred.resolve);
+      }).then(deferred.resolve).complete(function () {
+          self.set('isLoadUpgradeDataPending', false);
+        });
     }
     return deferred.promise();
   },
