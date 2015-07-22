@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -567,6 +569,16 @@ public class UpgradeResourceProviderTest {
     ActionManager am = injector.getInstance(ActionManager.class);
 
     List<HostRoleCommand> commands = am.getRequestTasks(id);
+
+    boolean foundOne = false;
+    for (HostRoleCommand hrc : commands) {
+      if (hrc.getRole().equals(Role.AMBARI_SERVER_ACTION)) {
+        assertEquals(-1L, hrc.getHostId());
+        assertNull(hrc.getHostName());
+        foundOne = true;
+      }
+    }
+    assertTrue("Expected at least one server-side action", foundOne);
 
     HostRoleCommand cmd = commands.get(commands.size()-1);
 

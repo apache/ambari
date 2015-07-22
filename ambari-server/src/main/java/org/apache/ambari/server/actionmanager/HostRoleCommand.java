@@ -137,7 +137,11 @@ public class HostRoleCommand {
     taskId = hostRoleCommandEntity.getTaskId();
     stageId = hostRoleCommandEntity.getStage().getStageId();
     requestId = hostRoleCommandEntity.getStage().getRequestId();
-    hostId = hostRoleCommandEntity.getHostId();
+
+    if (null != hostRoleCommandEntity.getHostEntity()) {
+      hostId = hostRoleCommandEntity.getHostId();
+    }
+
     hostName = hostRoleCommandEntity.getHostName();
     role = hostRoleCommandEntity.getRole();
     status = hostRoleCommandEntity.getStatus();

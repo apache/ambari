@@ -57,7 +57,9 @@ import org.apache.commons.lang.ArrayUtils;
 @NamedQueries({
     @NamedQuery(name = "HostRoleCommandEntity.findCountByCommandStatuses", query = "SELECT COUNT(command.taskId) FROM HostRoleCommandEntity command WHERE command.status IN :statuses"),
     @NamedQuery(name = "HostRoleCommandEntity.findByCommandStatuses", query = "SELECT command FROM HostRoleCommandEntity command WHERE command.status IN :statuses ORDER BY command.requestId, command.stageId"),
-    @NamedQuery(name = "HostRoleCommandEntity.findByHostId", query = "SELECT command FROM HostRoleCommandEntity command WHERE command.hostId=:hostId")
+    @NamedQuery(name = "HostRoleCommandEntity.findByHostId", query = "SELECT command FROM HostRoleCommandEntity command WHERE command.hostId=:hostId"),
+    @NamedQuery(name = "HostRoleCommandEntity.findByHostRole", query = "SELECT command FROM HostRoleCommandEntity command WHERE command.hostEntity.hostName=:hostName AND command.requestId=:requestId AND command.stageId=:stageId AND command.role=:role ORDER BY command.taskId"),
+    @NamedQuery(name = "HostRoleCommandEntity.findByHostRoleNullHost", query = "SELECT command FROM HostRoleCommandEntity command WHERE command.hostEntity IS NULL AND command.requestId=:requestId AND command.stageId=:stageId AND command.role=:role")
 })
 public class HostRoleCommandEntity {
 
@@ -76,7 +78,7 @@ public class HostRoleCommandEntity {
   @Basic
   private Long stageId;
 
-  @Column(name = "host_id", insertable = false, updatable = false, nullable = false)
+  @Column(name = "host_id", insertable = false, updatable = false, nullable = true)
   @Basic
   private Long hostId;
 
@@ -162,7 +164,7 @@ public class HostRoleCommandEntity {
   private StageEntity stage;
 
   @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH})
-  @JoinColumn(name = "host_id", referencedColumnName = "host_id", nullable = false)
+  @JoinColumn(name = "host_id", referencedColumnName = "host_id", nullable = true)
   private HostEntity hostEntity;
 
   @OneToOne(mappedBy = "hostRoleCommandEntity", cascade = CascadeType.REMOVE)

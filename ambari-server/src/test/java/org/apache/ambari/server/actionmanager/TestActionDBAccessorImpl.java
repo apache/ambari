@@ -23,13 +23,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-
-import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
@@ -39,7 +36,6 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.BaseRequest;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -68,6 +64,8 @@ import com.google.inject.Singleton;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
 import com.google.inject.util.Modules;
+
+import junit.framework.Assert;
 
 public class TestActionDBAccessorImpl {
   private static final Logger log = LoggerFactory.getLogger(TestActionDBAccessorImpl.class);
@@ -355,7 +353,6 @@ public class TestActionDBAccessorImpl {
     assertEquals(HostRoleStatus.QUEUED, stage.getHostRoleStatus(hostName, actionName));
     assertEquals(HostRoleStatus.PENDING, entities.get(0).getStatus());
 
-    long now = System.currentTimeMillis();
     db.hostRoleScheduled(stage, hostName, actionName);
 
     entities = hostRoleCommandDAO.findByHostRole(
@@ -383,25 +380,25 @@ public class TestActionDBAccessorImpl {
 
   @Test
   public void testServerActionScheduled() throws InterruptedException, AmbariException {
-    populateActionDBWithServerAction(db, serverHostName, requestId, stageId);
+    populateActionDBWithServerAction(db, null, requestId, stageId);
 
     final String roleName = Role.AMBARI_SERVER_ACTION.toString();
     Stage stage = db.getStage(StageUtils.getActionId(requestId, stageId));
-    assertEquals(HostRoleStatus.PENDING, stage.getHostRoleStatus(serverHostName, roleName));
+    assertEquals(HostRoleStatus.PENDING, stage.getHostRoleStatus(null, roleName));
     List<HostRoleCommandEntity> entities =
-        hostRoleCommandDAO.findByHostRole(serverHostName, requestId, stageId, roleName);
+        hostRoleCommandDAO.findByHostRole(null, requestId, stageId, roleName);
 
     assertEquals(HostRoleStatus.PENDING, entities.get(0).getStatus());
-    stage.setHostRoleStatus(serverHostName, roleName, HostRoleStatus.QUEUED);
+    stage.setHostRoleStatus(null, roleName, HostRoleStatus.QUEUED);
 
-    entities = hostRoleCommandDAO.findByHostRole(serverHostName, requestId, stageId, roleName);
-    assertEquals(HostRoleStatus.QUEUED, stage.getHostRoleStatus(serverHostName, roleName));
+    entities = hostRoleCommandDAO.findByHostRole(null, requestId, stageId, roleName);
+    assertEquals(HostRoleStatus.QUEUED, stage.getHostRoleStatus(null, roleName));
     assertEquals(HostRoleStatus.PENDING, entities.get(0).getStatus());
 
-    db.hostRoleScheduled(stage, serverHostName, roleName);
+    db.hostRoleScheduled(stage, null, roleName);
 
     entities = hostRoleCommandDAO.findByHostRole(
-        serverHostName, requestId, stageId, roleName);
+        null, requestId, stageId, roleName);
     assertEquals(HostRoleStatus.QUEUED, entities.get(0).getStatus());
 
 
@@ -409,8 +406,8 @@ public class TestActionDBAccessorImpl {
       @Override
       public void run() {
         Stage stage1 = db.getStage("23-31");
-        stage1.setHostRoleStatus(serverHostName, roleName, HostRoleStatus.COMPLETED);
-        db.hostRoleScheduled(stage1, serverHostName, roleName);
+        stage1.setHostRoleStatus(null, roleName, HostRoleStatus.COMPLETED);
+        db.hostRoleScheduled(stage1, null, roleName);
         injector.getInstance(EntityManager.class).clear();
       }
     };
@@ -419,7 +416,7 @@ public class TestActionDBAccessorImpl {
     thread.join();
 
     injector.getInstance(EntityManager.class).clear();
-    entities = hostRoleCommandDAO.findByHostRole(serverHostName, requestId, stageId, roleName);
+    entities = hostRoleCommandDAO.findByHostRole(null, requestId, stageId, roleName);
     assertEquals("Concurrent update failed", HostRoleStatus.COMPLETED, entities.get(0).getStatus());
   }
 
@@ -706,8 +703,6 @@ public class TestActionDBAccessorImpl {
     final RequestResourceFilter resourceFilter = new RequestResourceFilter("HBASE", "HBASE_MASTER", null);
     List<RequestResourceFilter> resourceFilters = new
       ArrayList<RequestResourceFilter>() {{ add(resourceFilter); }};
-    ExecuteActionRequest executeActionRequest = new ExecuteActionRequest
-        ("cluster1", null, actionName, resourceFilters, null, null, false);
     Request request = new Request(stages, clusters);
     db.persistActions(request);
   }
@@ -717,16 +712,10 @@ public class TestActionDBAccessorImpl {
     Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
         "", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
-    s.addServerActionCommand(serverActionName, Role.AMBARI_SERVER_ACTION, RoleCommand.ACTIONEXECUTE, clusterName, null, null, "command details", null, 300, false);
+    s.addServerActionCommand(serverActionName, null, Role.AMBARI_SERVER_ACTION,
+        RoleCommand.ACTIONEXECUTE, clusterName, null, null, "command details", null, 300, false);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    final RequestResourceFilter resourceFilter = new RequestResourceFilter("AMBARI", "SERVER", Arrays.asList(hostname));
-    List<RequestResourceFilter> resourceFilters = new
-        ArrayList<RequestResourceFilter>() {{
-          add(resourceFilter);
-        }};
-    ExecuteActionRequest executeActionRequest = new ExecuteActionRequest
-        ("cluster1", null, serverActionName, resourceFilters, null, null, false);
     Request request = new Request(stages, clusters);
     db.persistActions(request);
   }

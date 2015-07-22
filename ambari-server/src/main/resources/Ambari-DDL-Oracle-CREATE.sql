@@ -213,7 +213,7 @@ CREATE TABLE host_role_command (
   retry_allowed NUMBER(1) DEFAULT 0 NOT NULL,
   event CLOB NULL,
   exitcode NUMBER(10) NOT NULL,
-  host_id NUMBER(19) NOT NULL,
+  host_id NUMBER(19),
   last_attempt_time NUMBER(19) NOT NULL,
   request_id NUMBER(19) NOT NULL,
   role VARCHAR2(255) NULL,

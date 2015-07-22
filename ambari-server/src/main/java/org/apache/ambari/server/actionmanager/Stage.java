@@ -57,6 +57,14 @@ import com.google.inject.persist.Transactional;
 //required to persist an action.
 public class Stage {
 
+  /**
+   * Used because in-memory storage of commands requires a hostname for maps
+   * when the underlying store does not (host_id is {@code null}).  We also
+   * don't want stages getting confused with Ambari vs cluster hosts, so
+   * don't use {@link StageUtils#getHostName()}
+   */
+  private static final String INTERNAL_HOSTNAME = "_internal_ambari";
+
   private static Logger LOG = LoggerFactory.getLogger(Stage.class);
   private final long requestId;
   private String clusterName;
@@ -86,12 +94,6 @@ public class Stage {
   @Inject
   private HostRoleCommandFactory hostRoleCommandFactory;
 
-  @Inject
-  private HostRoleCommandDAO hostRoleCommandDAO;
-
-  @Inject
-  private ActionDBAccessor dbAccessor;
-
   @AssistedInject
   public Stage(@Assisted long requestId,
       @Assisted("logDir") String logDir,
@@ -119,8 +121,6 @@ public class Stage {
   public Stage(@Assisted StageEntity stageEntity, HostRoleCommandDAO hostRoleCommandDAO,
                ActionDBAccessor dbAccessor, Clusters clusters, HostRoleCommandFactory hostRoleCommandFactory) {
     this.hostRoleCommandFactory = hostRoleCommandFactory;
-    this.hostRoleCommandDAO = hostRoleCommandDAO;
-    this.dbAccessor = dbAccessor;
 
     requestId = stageEntity.getRequestId();
     stageId = stageEntity.getStageId();
@@ -146,7 +146,11 @@ public class Stage {
     Collection<HostRoleCommand> commands = dbAccessor.getTasks(taskIds);
 
     for (HostRoleCommand command : commands) {
-      String hostname = command.getHostName();
+      // !!! some commands won't have a hostname, because they are server-side and
+      // don't hold that information.  In that case, use the special key to
+      // use in the map
+      String hostname = getSafeHost(command.getHostName());
+
       if (!hostRoleCommands.containsKey(hostname)) {
         hostRoleCommands.put(hostname, new LinkedHashMap<String, HostRoleCommand>());
       }
@@ -356,42 +360,6 @@ public class Stage {
   }
 
   /**
-   * Creates server-side execution command.
-   * <p/>
-   * The action name for this command is expected to be the classname of a
-   * {@link org.apache.ambari.server.serveraction.ServerAction} implementation which will be
-   * instantiated and invoked as needed.
-   *
-   * @param actionName    a String declaring the action name (in the form of a classname) to execute
-   * @param role          the Role for this command
-   * @param command       the RoleCommand for this command
-   * @param clusterName   a String identifying the cluster on which to to execute this command
-   * @param event         a ServiceComponentHostServerActionEvent
-   * @param commandParams a Map of String to String data used to pass to the action - this may be
-   *                      empty or null if no data is relevant
-   * @param commandDetail a String declaring a descriptive name to pass to the action - null or an
-   *                      empty string indicates no value is to be set
-   * @param configTags    a Map of configuration tags to set for this command - if null, no
-   *                      configurations will be available for the command
-   * @param timeout       an Integer declaring the timeout for this action - if null, a default
-   * @param retryAllowed   indicates whether retry after failure is allowed
-   */
-  public synchronized void addServerActionCommand(String actionName, Role role, RoleCommand command,
-                                                  String clusterName, ServiceComponentHostServerActionEvent event,
-                                                  @Nullable Map<String, String> commandParams,
-                                                  @Nullable String commandDetail,
-                                                  @Nullable Map<String, Map<String,String>> configTags,
-                                                  @Nullable Integer timeout,
-                                                  boolean retryAllowed) {
-
-    addServerActionCommand(actionName, null, role, command, clusterName, StageUtils.getHostName(), event,
-        commandParams, commandDetail, configTags, timeout, retryAllowed);
-  }
-
-  /**
-   * THIS METHOD IS TO WORKAROUND A BUG!  The assumption of the framework
-   * is that the Ambari Server is installed on a host WITHIN the cluster, which
-   * is not always true.  This method adds a host parameter.
    * <p/>
    * Creates server-side execution command.
    * <p/>
@@ -404,7 +372,6 @@ public class Stage {
    * @param role          the Role for this command
    * @param command       the RoleCommand for this command
    * @param clusterName   a String identifying the cluster on which to to execute this command
-   * @param hostName      the name of the host
    * @param event         a ServiceComponentHostServerActionEvent
    * @param commandParams a Map of String to String data used to pass to the action - this may be
 *                      empty or null if no data is relevant
@@ -416,16 +383,17 @@ public class Stage {
    * @param retryAllowed  indicates whether retry after failure is allowed
    */
   public synchronized void addServerActionCommand(String actionName,
-                                                  @Nullable  String userName,
+                                                  @Nullable String userName,
                                                   Role role, RoleCommand command,
-                                                  String clusterName, String hostName,
+                                                  String clusterName,
                                                   ServiceComponentHostServerActionEvent event,
                                                   @Nullable Map<String, String> commandParams,
                                                   @Nullable String commandDetail,
                                                   @Nullable Map<String, Map<String, String>> configTags,
                                                   @Nullable Integer timeout, boolean retryAllowed) {
+
     ExecutionCommandWrapper commandWrapper =
-        addGenericExecutionCommand(clusterName, hostName, role, command, event, retryAllowed);
+        addGenericExecutionCommand(clusterName, INTERNAL_HOSTNAME, role, command, event, retryAllowed);
 
     ExecutionCommand cmd = commandWrapper.getExecutionCommand();
 
@@ -457,7 +425,7 @@ public class Stage {
     cmd.setRoleParams(roleParams);
 
     if(commandDetail != null) {
-      HostRoleCommand hostRoleCommand = getHostRoleCommand(hostName, role.toString());
+      HostRoleCommand hostRoleCommand = getHostRoleCommand(INTERNAL_HOSTNAME, role.toString());
       if (hostRoleCommand != null) {
         hostRoleCommand.setCommandDetail(commandDetail);
         hostRoleCommand.setCustomCommandName(actionName);
@@ -534,25 +502,49 @@ public class Stage {
     return requestContext;
   }
 
-  public long getLastAttemptTime(String host, String role) {
-    return hostRoleCommands.get(host).get(role).getLastAttemptTime();
+  /**
+   * @param hostname  the hostname; {@code null} for a server-side stage
+   * @param role      the role
+   * @return the last attempt time
+   */
+  public long getLastAttemptTime(String hostname, String role) {
+    return hostRoleCommands.get(getSafeHost(hostname)).get(role).getLastAttemptTime();
   }
 
-  public short getAttemptCount(String host, String role) {
-    return hostRoleCommands.get(host).get(role).getAttemptCount();
+  /**
+   * @param hostname    the hostname; {@code null} for a server-side stage
+   * @param role        the role
+   * @return the number of attempts
+   */
+  public short getAttemptCount(String hostname, String role) {
+    return hostRoleCommands.get(getSafeHost(hostname)).get(role).getAttemptCount();
   }
 
+  /**
+   * @param hostname    the hostname; {@code null} for a server-side stage
+   * @param role        the role
+   */
   public void incrementAttemptCount(String hostname, String role) {
-    hostRoleCommands.get(hostname).get(role).incrementAttemptCount();
+    hostRoleCommands.get(getSafeHost(hostname)).get(role).incrementAttemptCount();
   }
 
-  public void setLastAttemptTime(String host, String role, long t) {
-    hostRoleCommands.get(host).get(role).setLastAttemptTime(t);
+  /**
+   * @param hostname    the hostname; {@code null} for a server-side stage
+   * @param role        the role
+   * @param t           the last time the role was attempted
+   */
+  public void setLastAttemptTime(String hostname, String role, long t) {
+    hostRoleCommands.get(getSafeHost(hostname)).get(role).setLastAttemptTime(t);
   }
 
+  /**
+   * @param hostname    the hostname; {@code null} for a server-side stage
+   * @param role        the role
+   * @return            the wrapper
+   */
   public ExecutionCommandWrapper getExecutionCommandWrapper(String hostname,
       String role) {
-    HostRoleCommand hrc = hostRoleCommands.get(hostname).get(role);
+    HostRoleCommand hrc = hostRoleCommands.get(getSafeHost(hostname)).get(role);
     if (hrc != null) {
       return hrc.getExecutionCommandWrapper();
     } else {
@@ -560,47 +552,95 @@ public class Stage {
     }
   }
 
+  /**
+   * @param hostname    the hostname; {@code null} for a server-side stage
+   * @return  the list of commands for the host
+   */
   public List<ExecutionCommandWrapper> getExecutionCommands(String hostname) {
     checkWrappersLoaded();
-    return commandsToSend.get(hostname);
+    return commandsToSend.get(getSafeHost(hostname));
   }
 
+/**
+ * @param hostname    the hostname; {@code null} for a server-side stage
+ * @param role        the role
+ * @return the start time for the task
+ */
   public long getStartTime(String hostname, String role) {
-    return hostRoleCommands.get(hostname).get(role).getStartTime();
+    return hostRoleCommands.get(getSafeHost(hostname)).get(role).getStartTime();
   }
 
+  /**
+   * @param hostname    the hostname; {@code null} for a server-side stage
+   * @param role        the role
+   * @param startTime   the start time
+   */
   public void setStartTime(String hostname, String role, long startTime) {
-    hostRoleCommands.get(hostname).get(role).setStartTime(startTime);
+    hostRoleCommands.get(getSafeHost(hostname)).get(role).setStartTime(startTime);
   }
 
+  /**
+   * @param hostname    the hostname; {@code null} for a server-side stage
+   * @param role        the role
+   * @return the status
+   */
   public HostRoleStatus getHostRoleStatus(String hostname, String role) {
-    return hostRoleCommands.get(hostname).get(role).getStatus();
+    return hostRoleCommands.get(getSafeHost(hostname)).get(role).getStatus();
   }
 
-  public void setHostRoleStatus(String host, String role,
+  /**
+   * @param hostname    the hostname; {@code null} for a server-side stage
+   * @param role        the role
+   * @param status      the status
+   */
+  public void setHostRoleStatus(String hostname, String role,
       HostRoleStatus status) {
-    hostRoleCommands.get(host).get(role).setStatus(status);
+    hostRoleCommands.get(getSafeHost(hostname)).get(role).setStatus(status);
   }
 
+  /**
+   * @param hostname    the hostname; {@code null} for a server-side stage
+   * @param roleStr     the role name
+   * @return the wrapper event
+   */
   public ServiceComponentHostEventWrapper getFsmEvent(String hostname, String roleStr) {
-    return hostRoleCommands.get(hostname).get(roleStr).getEvent();
+    return hostRoleCommands.get(getSafeHost(hostname)).get(roleStr).getEvent();
   }
 
-
+  /**
+   * @param hostname    the hostname; {@code null} for a server-side stage
+   * @param role        the role
+   * @param exitCode    the exit code
+   */
   public void setExitCode(String hostname, String role, int exitCode) {
-    hostRoleCommands.get(hostname).get(role).setExitCode(exitCode);
+    hostRoleCommands.get(getSafeHost(hostname)).get(role).setExitCode(exitCode);
   }
 
+  /**
+   * @param hostname    the hostname; {@code null} for a server-side stage
+   * @param role        the role
+   * @return the exit code
+   */
   public int getExitCode(String hostname, String role) {
-    return hostRoleCommands.get(hostname).get(role).getExitCode();
+    return hostRoleCommands.get(getSafeHost(hostname)).get(role).getExitCode();
   }
 
+  /**
+   * @param hostname    the hostname; {@code null} for a server-side stage
+   * @param role        the role
+   * @param stdErr      the standard error string
+   */
   public void setStderr(String hostname, String role, String stdErr) {
-    hostRoleCommands.get(hostname).get(role).setStderr(stdErr);
+    hostRoleCommands.get(getSafeHost(hostname)).get(role).setStderr(stdErr);
   }
 
+  /**
+   * @param hostname    the hostname; {@code null} for a server-side stage
+   * @param role        the role
+   * @param stdOut      the standard output string
+   */
   public void setStdout(String hostname, String role, String stdOut) {
-    hostRoleCommands.get(hostname).get(role).setStdout(stdOut);
+    hostRoleCommands.get(getSafeHost(hostname)).get(role).setStdout(stdOut);
   }
 
   public synchronized boolean isStageInProgress() {
@@ -655,10 +695,16 @@ public class Stage {
    * This method should be used only in stage planner. To add
    * a new execution command use
    * {@link #addHostRoleExecutionCommand(String, org.apache.ambari.server.Role, org.apache.ambari.server.RoleCommand, org.apache.ambari.server.state.ServiceComponentHostEvent, String, String, boolean)}
+   * @param origStage the stage
+   * @param hostname  the hostname; {@code null} for a server-side stage
+   * @param r         the role
    */
   public synchronized void addExecutionCommandWrapper(Stage origStage,
       String hostname, Role r) {
     //used on stage creation only, no need to check if wrappers loaded
+
+    hostname = getSafeHost(hostname);
+
     String role = r.toString();
     if (commandsToSend.get(hostname) == null) {
       commandsToSend.put(hostname, new ArrayList<ExecutionCommandWrapper>());
@@ -673,8 +719,13 @@ public class Stage {
         origStage.getHostRoleCommand(hostname, role));
   }
 
+  /**
+   * @param hostname    the hostname; {@code null} for a server-side stage
+   * @param role        the role
+   * @return the role command
+   */
   public HostRoleCommand getHostRoleCommand(String hostname, String role) {
-    return hostRoleCommands.get(hostname).get(role);
+    return hostRoleCommands.get(getSafeHost(hostname)).get(role);
   }
 
   /**
@@ -761,4 +812,14 @@ public class Stage {
     builder.append("STAGE DESCRIPTION END\n");
     return builder.toString();
   }
+
+  /**
+   * Helper to make sure the hostname is non-null for internal command map.
+   * @param hostname  the hostname for the map key
+   * @return the hostname when not {@code null}, otherwise {@link #INTERNAL_HOSTNAME}
+   */
+  private static String getSafeHost(String hostname) {
+    return (null == hostname) ? INTERNAL_HOSTNAME : hostname;
+  }
+
 }

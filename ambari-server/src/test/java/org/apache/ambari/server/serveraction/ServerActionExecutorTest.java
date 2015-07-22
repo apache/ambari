@@ -122,9 +122,7 @@ public class ServerActionExecutorTest {
         "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
 
     stage.addServerActionCommand(ManualStageAction.class.getName(),
-        null, Role.AMBARI_SERVER_ACTION,
-        RoleCommand.EXECUTE,
-        "cluster1", SERVER_HOST_NAME,
+        null, Role.AMBARI_SERVER_ACTION, RoleCommand.EXECUTE, "cluster1",
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
         Collections.<String, String>emptyMap(), null, null, 1200, false);
 
@@ -321,8 +319,8 @@ public class ServerActionExecutorTest {
                 1L, requestContext, CLUSTER_HOST_INFO, "{}", "{}");
 
             stage.setStageId(stageId);
-            stage.addServerActionCommand(MockServerAction.class.getName(), Role.AMBARI_SERVER_ACTION,
-                RoleCommand.EXECUTE, "cluster1",
+            stage.addServerActionCommand(MockServerAction.class.getName(), null,
+                Role.AMBARI_SERVER_ACTION, RoleCommand.EXECUTE, "cluster1",
                 new ServiceComponentHostServerActionEvent(SERVER_HOST_NAME, System.currentTimeMillis()),
                 payload, "command detail", null, timeout, false);
 

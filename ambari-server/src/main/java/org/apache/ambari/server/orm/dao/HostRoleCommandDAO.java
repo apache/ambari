@@ -32,7 +32,6 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostEntity;
@@ -239,13 +238,21 @@ public class HostRoleCommandDAO {
 
   @RequiresSession
   public List<HostRoleCommandEntity> findByHostRole(String hostName, long requestId, long stageId, String role) {
-    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT command " +
-        "FROM HostRoleCommandEntity command " +
-        "WHERE command.hostEntity.hostName=?1 AND command.requestId=?2 " +
-        "AND command.stageId=?3 AND command.role=?4 " +
-        "ORDER BY command.taskId", HostRoleCommandEntity.class);
 
-    return daoUtils.selectList(query, hostName, requestId, stageId, role);
+    String queryName = (null == hostName) ? "HostRoleCommandEntity.findByHostRoleNullHost" :
+        "HostRoleCommandEntity.findByHostRole";
+
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createNamedQuery(
+        queryName, HostRoleCommandEntity.class);
+
+    if (null != hostName) {
+      query.setParameter("hostName", hostName);
+    }
+    query.setParameter("requestId", requestId);
+    query.setParameter("stageId", stageId);
+    query.setParameter("role", role);
+
+    return daoUtils.selectList(query);
   }
 
   @RequiresSession

@@ -18,9 +18,11 @@
 
 package org.apache.ambari.server.actionmanager;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import static org.junit.Assert.assertEquals;
+
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -32,10 +34,9 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * Stage tests.
@@ -67,11 +68,11 @@ public class StageTest {
     stage.addServerActionCommand(ConfigureAction.class.getName(),
         "user1", Role.AMBARI_SERVER_ACTION,
         RoleCommand.EXECUTE,
-        "cluster1", SERVER_HOST_NAME,
+        "cluster1",
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
         Collections.<String, String>emptyMap(), null, null, 1200, false);
 
-    List<ExecutionCommandWrapper> executionCommands = stage.getExecutionCommands(SERVER_HOST_NAME);
+    List<ExecutionCommandWrapper> executionCommands = stage.getExecutionCommands(null);
     assertEquals(1, executionCommands.size());
 
     String actionUserName = executionCommands.get(0).getExecutionCommand().getRoleParams().get(ServerAction.ACTION_USER_NAME);

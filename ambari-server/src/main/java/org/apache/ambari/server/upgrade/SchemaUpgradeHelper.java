@@ -17,20 +17,6 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.multibindings.Multibinder;
-import com.google.inject.persist.PersistService;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.ControllerModule;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.utils.VersionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -39,6 +25,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.utils.VersionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.multibindings.Multibinder;
+import com.google.inject.persist.PersistService;
 
 public class SchemaUpgradeHelper {
   private static final Logger LOG = LoggerFactory.getLogger
@@ -177,6 +177,7 @@ public class SchemaUpgradeHelper {
       catalogBinder.addBinding().to(UpgradeCatalog170.class);
       catalogBinder.addBinding().to(UpgradeCatalog200.class);
       catalogBinder.addBinding().to(UpgradeCatalog210.class);
+      catalogBinder.addBinding().to(UpgradeCatalog220.class);
       catalogBinder.addBinding().to(FinalUpgradeCatalog.class);
     }
   }

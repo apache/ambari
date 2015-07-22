@@ -23,7 +23,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -69,7 +68,6 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
-import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -97,7 +95,6 @@ import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
-import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -688,7 +685,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @param direction
    *          upgrade or downgrade
    * @param upgradePack
-   *          upgrade pack used for upgrade or downgrade. This is needed to determine 
+   *          upgrade pack used for upgrade or downgrade. This is needed to determine
    *          which services are effected.
    * @throws AmbariException
    */
@@ -1090,21 +1087,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     String itemDetail = entity.getText();
     String stageText = StringUtils.abbreviate(entity.getText(), 255);
 
-    String hostName = null;
-    Collection<Long> hostIds = cluster.getAllHostsDesiredConfigs().keySet();
-    if (!hostIds.isEmpty()) {
-      Long hostId = hostIds.iterator().next();
-      HostEntity hostEntity = s_hostDAO.findById(hostId);
-      if (hostEntity != null) {
-        hostName = hostEntity.getHostName();
-      }
-    }
-
-    if (StringUtils.isBlank(hostName)) {
-      throw new AmbariException(
-          "Could not retrieve an arbitrary host name to use for the server-side command.");
-    }
-
     switch (task.getType()) {
       case MANUAL: {
         ManualTask mt = (ManualTask) task;
@@ -1175,9 +1157,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     entity.setStageId(Long.valueOf(stageId));
 
     stage.addServerActionCommand(task.getImplementationClass(),
-        getManagementController().getAuthName(), Role.AMBARI_SERVER_ACTION, RoleCommand.EXECUTE,
-        cluster.getClusterName(), hostName,
-        new ServiceComponentHostServerActionEvent(StageUtils.getHostName(),
+        getManagementController().getAuthName(),
+        Role.AMBARI_SERVER_ACTION,
+        RoleCommand.EXECUTE,
+        cluster.getClusterName(),
+        new ServiceComponentHostServerActionEvent(null,
             System.currentTimeMillis()),
         commandParams, itemDetail, null, Integer.valueOf(1200), allowRetry);
 

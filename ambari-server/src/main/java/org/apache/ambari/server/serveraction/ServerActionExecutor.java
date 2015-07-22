@@ -304,7 +304,7 @@ public class ServerActionExecutor {
       commandReport = createErrorReport("Unknown error condition");
     }
 
-    db.updateHostRoleState(executionCommand.getHostname(), hostRoleCommand.getRequestId(),
+    db.updateHostRoleState(null, hostRoleCommand.getRequestId(),
         hostRoleCommand.getStageId(), executionCommand.getRole(), commandReport);
   }
 

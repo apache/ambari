@@ -17,10 +17,12 @@
  */
 package org.apache.ambari.server.stageplanner;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -38,11 +40,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class TestStagePlanner {
 
@@ -126,11 +127,11 @@ public class TestStagePlanner {
     Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L,  "execution command wrapper test",
             "clusterHostInfo", "commandParamsStage", "hostParamsStage");
     stage.setStageId(1);
-    stage.addServerActionCommand("RESTART", Role.HIVE_METASTORE,
+    stage.addServerActionCommand("RESTART", null, Role.HIVE_METASTORE,
             RoleCommand.CUSTOM_COMMAND, "cluster1",
             new ServiceComponentHostServerActionEvent("host2", System.currentTimeMillis()),
             null, "command detail", null, null, false);
-    stage.addServerActionCommand("RESTART", Role.MYSQL_SERVER,
+    stage.addServerActionCommand("RESTART", null, Role.MYSQL_SERVER,
             RoleCommand.CUSTOM_COMMAND, "cluster1",
             new ServiceComponentHostServerActionEvent("host2", System.currentTimeMillis()),
             null, "command detail", null, null, false);
