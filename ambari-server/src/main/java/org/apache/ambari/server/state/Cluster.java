@@ -108,6 +108,14 @@ public interface Cluster {
 
 
   /**
+   * Adds schs to cluster AND persists them
+   * TODO consider making persisting optional
+   * @param serviceComponentHosts
+   * @throws AmbariException
+   */
+  void addServiceComponentHosts(Collection<ServiceComponentHost> serviceComponentHosts) throws AmbariException;
+
+  /**
    * Remove ServiceComponentHost from cluster
    * @param svcCompHost
    */

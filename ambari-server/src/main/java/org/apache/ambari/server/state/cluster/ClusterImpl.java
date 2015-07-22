@@ -620,6 +620,28 @@ public class ClusterImpl implements Cluster {
     }
   }
 
+  @Override
+  public void addServiceComponentHosts(Collection<ServiceComponentHost> serviceComponentHosts) throws AmbariException {
+    clusterGlobalLock.writeLock().lock();
+    try {
+      for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
+        Service service = getService(serviceComponentHost.getServiceName());
+        ServiceComponent serviceComponent = service.getServiceComponent(serviceComponentHost.getServiceComponentName());
+        serviceComponent.addServiceComponentHost(serviceComponentHost);
+      }
+      persistServiceComponentHosts(serviceComponentHosts);
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
+  }
+
+  @Transactional
+  void persistServiceComponentHosts(Collection<ServiceComponentHost> serviceComponentHosts) {
+    for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
+      serviceComponentHost.persist();
+    }
+  }
+
   public void addServiceComponentHost(ServiceComponentHost svcCompHost)
       throws AmbariException {
     if (LOG.isDebugEnabled()) {
