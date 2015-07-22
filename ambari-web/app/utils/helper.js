@@ -592,6 +592,7 @@ App.popover = function (self, options) {
  * @param {object} options
  */
 App.tooltip = function (self, options) {
+  if (!self) return;
   self.tooltip(options);
   /* istanbul ignore next */
   self.on("remove", function () {
