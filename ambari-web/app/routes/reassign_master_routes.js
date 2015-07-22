@@ -90,7 +90,6 @@ module.exports = App.WizardRoute.extend({
             }
           });
           reassignMasterController.set('popup', popup);
-          reassignMasterController.loadSecurityEnabled();
           reassignMasterController.loadComponentToReassign();
           var currStep = reassignMasterController.get('currentStep');
           var currentClusterStatus = App.clusterStatus.get('value');
