@@ -25,6 +25,7 @@ from ambari_commons.os_check import OSCheck
 from resource_management.core.system import System
 from resource_management.core.resources.system import Execute
 from resource_management.core.environment import Environment
+from resource_management.core.shell import quote_bash_args
 
 import subprocess
 import logging
@@ -197,7 +198,7 @@ class TestExecuteResource(TestCase):
       )
       
 
-    expected_command = ['/bin/bash', '--login', '--noprofile', '-c', 'ambari-sudo.sh su test_user -l -s /bin/bash -c \'export  PATH=' + os.environ['PATH'] + ':/bin JAVA_HOME=/test/java/home ; echo "1"\'']
+    expected_command = ['/bin/bash', '--login', '--noprofile', '-c', 'ambari-sudo.sh su test_user -l -s /bin/bash -c ' + quote_bash_args('export  PATH=' + quote_bash_args(os.environ['PATH'] + ':/bin') + ' JAVA_HOME=/test/java/home ; echo "1"')]
     self.assertEqual(popen_mock.call_args_list[0][0][0], expected_command)
 
 
