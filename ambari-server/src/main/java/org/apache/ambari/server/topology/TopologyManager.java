@@ -181,10 +181,21 @@ public class TopologyManager {
       }
     }
 
-    if (! matchedToRequest) {
+    if (!matchedToRequest) {
       synchronized (availableHosts) {
-        LOG.info("TopologyManager: Queueing available host {}", hostName);
-        availableHosts.add(host);
+        boolean addToAvailableList = true;
+        for (HostImpl registered : availableHosts) {
+          if (registered.getHostId() == host.getHostId()) {
+            LOG.debug("Host {} re-registered, will not be added to the available hosts list", hostName);
+            addToAvailableList = false;
+            break;
+          }
+        }
+
+        if (addToAvailableList) {
+          LOG.info("TopologyManager: Queueing available host {}", hostName);
+          availableHosts.add(host);
+        }
       }
     }
   }

@@ -26,6 +26,8 @@ import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.NoSuchBlueprintException;
 import org.apache.ambari.server.topology.RequiredPasswordValidator;
 import org.apache.ambari.server.topology.TopologyValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -86,6 +88,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    * default password
    */
   private String defaultPassword;
+
+  private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
 
   /**
    * Constructor.
@@ -209,6 +213,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     if (hostGroupProperties.containsKey(HOSTGROUP_HOST_COUNT_PROPERTY)) {
       hostGroupInfo.setRequestedCount(Integer.valueOf(String.valueOf(
           hostGroupProperties.get(HOSTGROUP_HOST_COUNT_PROPERTY))));
+      LOG.info("Stored expected hosts count {} for group {}",
+               hostGroupInfo.getRequestedHostCount(), hostGroupInfo.getHostGroupName());
     }
 
     if (hostGroupProperties.containsKey(HOSTGROUP_HOST_PREDICATE_PROPERTY)) {
@@ -222,6 +228,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
       validateHostPredicateProperties(hostPredicate);
       try {
         hostGroupInfo.setPredicate(hostPredicate);
+        LOG.info("Compiled host predicate {} for group {}", hostPredicate, hostGroupInfo.getHostGroupName());
       } catch (InvalidQueryException e) {
         throw new InvalidTopologyTemplateException(
             String.format("Unable to compile host predicate '%s': %s", hostPredicate, e), e);
