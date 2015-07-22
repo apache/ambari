@@ -27,7 +27,7 @@
   {{/unless}}
 {{/if}}
 {{#if view.canEdit}}
-  <div class="widget-config-controls">
+  <div {{bindAttr class=":widget-config-controls view.referToSelectedGroup::clear-min-height"}}>
     <div {{bindAttr class=":widget-col :left view.config.isNotDefaultValue::not-show"}}>
       <a href="#"
         {{bindAttr class=":widget-action :widget-action-undo view.undoAllowed::not-show"}}
@@ -133,6 +133,7 @@
 
 {{#if view.isOriginalSCP}}
   {{#unless view.config.hasCompareDiffs}}
+    <div class="clearfix"></div>
     {{view App.ConfigWidgetOverrideView
     serviceConfigPropertyBinding="view.config"
     isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
@@ -141,7 +142,6 @@
 {{/if}}
 
 {{#if view.isComparison}}
+  <div class="clearfix"></div>
   {{view App.ConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
 {{/if}}
-
-<div class="clearfix"></div>
