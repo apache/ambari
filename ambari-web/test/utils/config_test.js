@@ -1326,4 +1326,56 @@ describe('App.config', function () {
     });
   });
 
+  describe('#updateHostsListValue', function() {
+    var tests = [
+      {
+        siteConfigs: {
+          'hadoop.registry.zk.quorum': 'host1,host2'
+        },
+        propertyName: 'hadoop.registry.zk.quorum',
+        hostsList: 'host1',
+        e: 'host1'
+      },
+      {
+        siteConfigs: {
+          'hadoop.registry.zk.quorum': 'host1:10,host2:10'
+        },
+        propertyName: 'hadoop.registry.zk.quorum',
+        hostsList: 'host2:10,host1:10',
+        e: 'host1:10,host2:10'
+      },
+      {
+        siteConfigs: {
+          'hadoop.registry.zk.quorum': 'host1:10,host2:10,host3:10'
+        },
+        propertyName: 'hadoop.registry.zk.quorum',
+        hostsList: 'host2:10,host1:10',
+        e: 'host2:10,host1:10'
+      },
+      {
+        siteConfigs: {
+          'hadoop.registry.zk.quorum': 'host1:10,host2:10,host3:10'
+        },
+        propertyName: 'hadoop.registry.zk.quorum',
+        hostsList: 'host2:10,host1:10,host3:10,host4:11',
+        e: 'host2:10,host1:10,host3:10,host4:11'
+      },
+      {
+        siteConfigs: {
+          'hive.zookeeper.quorum': 'host1'
+        },
+        propertyName: 'some.new.property',
+        hostsList: 'host2,host1:10',
+        e: 'host2,host1:10'
+      }
+    ];
+    tests.forEach(function(test) {
+      it('ZK located on {0}, current prop value is "{1}" "{2}" value should be "{3}"'.format(test.hostsList, ''+test.siteConfigs[test.propertyName], test.propertyName, test.e), function() {
+        var result = App.config.updateHostsListValue(test.siteConfigs, test.propertyName, test.hostsList);
+        expect(result).to.be.eql(test.e);
+        expect(test.siteConfigs[test.propertyName]).to.be.eql(test.e);
+      });
+    });
+  });
+
 });

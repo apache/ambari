@@ -1518,5 +1518,43 @@ App.config = Em.Object.create({
         }
       });
     }
+  },
+
+  /**
+   * Update config property value based on its current value and list of zookeeper server hosts.
+   * Used to prevent sort order issues.
+   * <code>siteConfigs</code> object formatted according server's persist format e.g.
+   *
+   * <code>
+   *   {
+   *     'yarn-site': {
+   *       'property_name1': 'property_value1'
+   *       'property_name2': 'property_value2'
+   *       .....
+   *     }
+   *   }
+   * </code>
+   *
+   * @method updateHostsListValue
+   * @param {Object} siteConfigs - prepared site config object to store
+   * @param {String} propertyName - name of the property to update
+   * @param {String} hostsList - list of ZooKeeper Server names to set as config property value
+   * @return {String} - result value
+   */
+  updateHostsListValue: function(siteConfigs, propertyName, hostsList) {
+    var value = hostsList;
+    var propertyHosts = (siteConfigs[propertyName] || '').split(',');
+    var hostsToSet = hostsList.split(',');
+
+    if (!Em.isEmpty(siteConfigs[propertyName])) {
+      var diffLength = propertyHosts.filter(function(hostName) {
+        return !hostsToSet.contains(hostName);
+      }).length;
+      if (diffLength == 0 && propertyHosts.length == hostsToSet.length) {
+        value = siteConfigs[propertyName];
+      }
+    }
+    siteConfigs[propertyName] = value;
+    return value;
   }
 });

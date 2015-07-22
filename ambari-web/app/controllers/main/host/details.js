@@ -1174,33 +1174,33 @@ App.MainHostDetailsController = Em.Controller.extend({
   setZKConfigs: function (configs, zksWithPort, zks) {
     if (typeof configs !== 'object' || !Array.isArray(zks)) return false;
     if (App.get('isHaEnabled')) {
-      configs['core-site']['ha.zookeeper.quorum'] = zksWithPort;
+      App.config.updateHostsListValue(configs['core-site'], 'ha.zookeeper.quorum', zksWithPort);
     }
     if (configs['hbase-site']) {
-      configs['hbase-site']['hbase.zookeeper.quorum'] = zks.join(',');
+      App.config.updateHostsListValue(configs['hbase-site'], 'hbase.zookeeper.quorum', zks.join(','));
     }
     if (configs['accumulo-site']) {
-      configs['accumulo-site']['instance.zookeeper.host'] = zksWithPort;
+      App.config.updateHostsListValue(configs['accumulo-site'], 'instance.zookeeper.host', zksWithPort);
     }
     if (configs['webhcat-site']) {
-      configs['webhcat-site']['templeton.zookeeper.hosts'] = zksWithPort;
+      App.config.updateHostsListValue(configs['webhcat-site'], 'templeton.zookeeper.hosts', zksWithPort);
     }
     if (configs['hive-site']) {
-      configs['hive-site']['hive.cluster.delegation.token.store.zookeeper.connectString'] = zksWithPort;
+      App.config.updateHostsListValue(configs['hive-site'], 'hive.cluster.delegation.token.store.zookeeper.connectString', zksWithPort);
     }
     if (configs['storm-site']) {
       configs['storm-site']['storm.zookeeper.servers'] = JSON.stringify(zks).replace(/"/g, "'");
     }
     if (App.get('isRMHaEnabled')) {
-      configs['yarn-site']['yarn.resourcemanager.zk-address'] = zksWithPort;
+      App.config.updateHostsListValue(configs['yarn-site'], 'yarn.resourcemanager.zk-address', zksWithPort);
     }
     if (App.get('isHadoop22Stack')) {
       if (configs['hive-site']) {
-        configs['hive-site']['hive.zookeeper.quorum'] = zksWithPort;
+        App.config.updateHostsListValue(configs['hive-site'], 'hive.zookeeper.quorum', zksWithPort);
       }
       if (configs['yarn-site']) {
-        configs['yarn-site']['hadoop.registry.zk.quorum'] = zksWithPort;
-        configs['yarn-site']['yarn.resourcemanager.zk-address'] = zksWithPort;
+        App.config.updateHostsListValue(configs['yarn-site'], 'hadoop.registry.zk.quorum', zksWithPort);
+        App.config.updateHostsListValue(configs['yarn-site'], 'yarn.resourcemanager.zk-address', zksWithPort);
       }
     }
     return true;
