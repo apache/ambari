@@ -54,6 +54,7 @@ App.MainChartsHeatmapRackView = Em.View.extend({
   },
 
   didInsertElement: function () {
+    this.set('hosts', []);
     this.get('controller').addRackView(this);
   },
   /**
