@@ -66,47 +66,6 @@ describe('App.UpdateController', function () {
     });
   });
 
-  describe('#updateServiceMetricConditionally()', function () {
-    var context = {
-      callback: function(){}
-    };
-
-    beforeEach(function () {
-      sinon.spy(controller, 'updateServiceMetric');
-      sinon.spy(context, 'callback');
-    });
-    afterEach(function () {
-      controller.updateServiceMetric.restore();
-      context.callback.restore();
-    });
-
-    it('location is empty', function () {
-      controller.set('location', '');
-      controller.updateServiceMetricConditionally(context.callback);
-      expect(controller.updateServiceMetric.called).to.equal(false);
-      expect(context.callback.called).to.equal(true);
-    });
-    it('location is "/main/hosts"', function () {
-      controller.set('location', '/main/hosts');
-      controller.updateServiceMetricConditionally(context.callback);
-      expect(controller.updateServiceMetric.called).to.equal(false);
-      expect(context.callback.called).to.equal(true);
-    });
-    it('location is "/main/dashboard"', function () {
-      controller.set('location', '/main/dashboard');
-      controller.updateServiceMetricConditionally(context.callback);
-      expect(controller.updateServiceMetric.called).to.equal(true);
-      expect(context.callback.called).to.equal(false);
-    });
-    it('location is "/main/services/HDFS"', function () {
-      controller.set('location', '/main/services/HDFS');
-      controller.updateServiceMetricConditionally(context.callback);
-      expect(controller.updateServiceMetric.called).to.equal(true);
-      expect(context.callback.called).to.equal(false);
-    });
-  });
-
-
   describe('#getConditionalFields()', function () {
 
     var testCases = [

@@ -19,7 +19,7 @@ var App = require('app');
 
 var states = {};
 
-function update(obj, name, isWorking, interval){
+function update(obj, name, isWorking, interval, urlPattern){
   if(typeof isWorking == 'string' && !obj.get(isWorking)){
     return false;
   }
@@ -28,15 +28,21 @@ function update(obj, name, isWorking, interval){
 
   if(!state){
     var callback = function(){
-      update(obj, name, isWorking, interval);
+      update(obj, name, isWorking, interval, urlPattern);
     };
     states[name] = state = {
       timeout: null,
       func: function(){
+        var urlRegExp = new RegExp(urlPattern);
         if(typeof isWorking == 'string' && !obj.get(isWorking)){
           return false;
         }
-        obj[name](callback);
+
+        if (urlRegExp.test(App.router.get('location.lastSetURL'))) {
+          obj[name](callback);
+        } else {
+          callback();
+        }
         return true;
       },
       interval: interval,
@@ -104,12 +110,14 @@ App.updater = {
    * @param obj Object
    * @param name Method name
    * @param isWorking Property, which will be checked as a rule for working
+   * @param interval Interval between calls
+   * @param urlPattern Pattern to match allowed urls
    * @param [interval] Interval between calls
    * @return {*}
    */
-  run: function(obj, name, isWorking, interval){
+  run: function(obj, name, isWorking, interval, urlPattern){
     interval = interval || App.contentUpdateInterval;
-    return update(obj, name, isWorking, interval);
+    return update(obj, name, isWorking, interval, urlPattern);
   },
 
   /**
