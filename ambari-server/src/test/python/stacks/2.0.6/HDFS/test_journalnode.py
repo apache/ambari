@@ -260,9 +260,7 @@ class TestJournalnode(RMFTestCase):
 
 
   @patch('time.sleep')
-  @patch("urllib2.urlopen")
-  @patch("utils.curl_krb_request")
-  def test_post_rolling_restart(self, curl_krb_request_mock, urlopen_mock, time_mock):
+  def test_post_rolling_restart(self, time_mock):
     # load the NN and JN JMX files so that the urllib2.urlopen mock has data
     # to return
     num_journalnodes = 3
@@ -283,33 +281,44 @@ class TestJournalnode(RMFTestCase):
     namenode_status_active = open(namenode_status_active_file, 'r').read()
     namenode_status_standby = open(namenode_status_standby_file, 'r').read()
 
+    import utils
+    import urllib2
+    from namenode_ha_state import NamenodeHAState
+
     url_stream_mock = MagicMock()
     url_stream_mock.read.side_effect = (num_journalnodes * [namenode_jmx, journalnode_jmx])
-
-    urlopen_mock.return_value = url_stream_mock
-
-    # run the post_rolling_restart using the data from above
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
-      classname = "JournalNode", command = "post_rolling_restart",
-      config_file = "journalnode-upgrade.json",
-      checked_call_mocks = [(0, str(namenode_status_active)), (0, str(namenode_status_standby))],
-      hdp_stack_version = self.UPGRADE_STACK_VERSION,
-      target = RMFTestCase.TARGET_COMMON_SERVICES )
+    urlopen_mock = MagicMock(return_value = url_stream_mock)
+    #urlopen_mock.return_value = url_stream_mock
+    curl_krb_request_mock = MagicMock(side_effect=(num_journalnodes * [(namenode_jmx, "", 1), (journalnode_jmx, "", 1)]))
+    get_address_mock = MagicMock(return_value="c6406.ambari.apache.org")
+    with patch.object(utils, "curl_krb_request", curl_krb_request_mock):
+      with patch.object(urllib2, "urlopen", urlopen_mock):
+       with patch.object(NamenodeHAState, "get_address", get_address_mock):
+         self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
+           classname = "JournalNode", command = "post_rolling_restart",
+           config_file = "journalnode-upgrade.json",
+           checked_call_mocks = [(0, str(namenode_status_active)), (0, str(namenode_status_standby))],
+           hdp_stack_version = self.UPGRADE_STACK_VERSION,
+           target = RMFTestCase.TARGET_COMMON_SERVICES )
 
     # ensure that the mock was called with the http-style version of the URL
     urlopen_mock.assert_called
     urlopen_mock.assert_called_with("http://c6407.ambari.apache.org:8480/jmx")
 
     url_stream_mock.reset_mock()
-    curl_krb_request_mock.side_effect = (num_journalnodes * [(namenode_jmx, "", 1), (journalnode_jmx, "", 1)])
+    curl_krb_request_mock.reset_mock()
+    get_address_mock.reset_mock()
 
     # now try with HDFS on SSL
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
-      classname = "JournalNode", command = "post_rolling_restart",
-      config_file = "journalnode-upgrade-hdfs-secure.json",
-      checked_call_mocks = [(0, str(namenode_status_active)), (0, str(namenode_status_standby))],
-      hdp_stack_version = self.UPGRADE_STACK_VERSION,
-      target = RMFTestCase.TARGET_COMMON_SERVICES )
+    with patch.object(utils, "curl_krb_request", curl_krb_request_mock):
+      with patch.object(urllib2, "urlopen", urlopen_mock):
+        with patch.object(NamenodeHAState, "get_address", get_address_mock):
+         self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
+           classname = "JournalNode", command = "post_rolling_restart",
+           config_file = "journalnode-upgrade-hdfs-secure.json",
+           checked_call_mocks = [(0, str(namenode_status_active)), (0, str(namenode_status_standby))],
+           hdp_stack_version = self.UPGRADE_STACK_VERSION,
+           target = RMFTestCase.TARGET_COMMON_SERVICES )
 
     # ensure that the mock was called with the http-style version of the URL
     curl_krb_request_mock.assert_called
