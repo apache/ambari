@@ -88,6 +88,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
           this.loadHosts().done(function () {
             self.loadMasterComponentHosts();
             self.load('hosts');
+            self.loadRecommendations();
             dfd.resolve();
           });
           return dfd.promise();

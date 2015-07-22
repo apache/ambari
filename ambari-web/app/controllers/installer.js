@@ -441,10 +441,6 @@ App.InstallerController = App.WizardController.extend({
     this.set("content.masterComponentHosts", masterComponentHosts);
   },
 
-  loadRecommendations: function () {
-    this.set("content.recommendations", this.getDBProperty('recommendations'));
-  },
-
   loadCurrentHostGroups: function () {
     this.set("content.recommendationsHostGroups", this.getDBProperty('recommendationsHostGroups'));
   },

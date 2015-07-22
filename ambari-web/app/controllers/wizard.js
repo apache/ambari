@@ -1323,5 +1323,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   loadRequestIds: function() {
     var requestIds = this.getDBProperty('requestIds');
     this.set('content.requestIds', requestIds);
+  },
+
+  loadRecommendations: function () {
+    this.set("content.recommendations", this.getDBProperty('recommendations'));
   }
 });
