@@ -91,10 +91,12 @@ class TestHookBeforeStart(RMFTestCase):
       owner = 'hdfs',
       content = Template('topology_mappings.data.j2'),
       group = 'hadoop',
+      only_if = 'test -d /etc/hadoop/conf',
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_script.py',
       content = StaticFile('topology_script.py'),
       mode = 0755,
+      only_if = 'test -d /etc/hadoop/conf',
     )
     self.assertNoMoreResources()
 
@@ -162,15 +164,17 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               content = Template('topology_mappings.data.j2'),
                               group = 'hadoop',
+                              only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_script.py',
                               content = StaticFile('topology_script.py'),
                               mode = 0755,
+                              only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertNoMoreResources()
 
   def test_hook_default_hdfs(self):
-    config_file = "stacks/2.0.6/configs/default.json"
+    config_file = self._getStackTestsFolder() + "/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       default_json = json.load(f)
 
@@ -238,10 +242,12 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               content = Template('topology_mappings.data.j2'),
                               group = 'hadoop',
+                              only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/topology_script.py',
                               content = StaticFile('topology_script.py'),
                               mode = 0755,
+                              only_if = 'test -d /etc/hadoop/conf',
                               )
     self.assertNoMoreResources()
 

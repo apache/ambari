@@ -19,6 +19,7 @@ limitations under the License.
 '''
 from resource_management.core.resources import File
 from resource_management.core.source import StaticFile, Template
+from resource_management.libraries.functions import format
 
 def create_topology_mapping():
   import params
@@ -27,7 +28,9 @@ def create_topology_mapping():
   File(params.net_topology_mapping_data_file_path,
        content=Template("topology_mappings.data.j2"),
        owner=params.hdfs_user,
-       group=params.user_group
+       group=params.user_group,
+       # if there is no hadoop components, don't create the script
+       only_if=format("test -d {net_topology_script_dir}"),
   )
 
 def create_topology_script():
@@ -35,7 +38,9 @@ def create_topology_script():
   # installing the topology script to the specified location
   File(params.net_topology_script_file_path,
        content=StaticFile('topology_script.py'),
-       mode=0755)
+       mode=0755,
+       only_if=format("test -d {net_topology_script_dir}"),
+  )
 
 def create_topology_script_and_mapping():
   create_topology_mapping()
