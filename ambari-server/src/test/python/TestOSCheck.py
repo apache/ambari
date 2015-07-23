@@ -28,13 +28,15 @@ from unittest import TestCase
 from mock.mock import patch
 from mock.mock import MagicMock
 
+from only_for_platform import os_distro_value, os_distro_value_linux
+
 from ambari_commons import OSCheck
 import os_check_type
 
 utils = __import__('ambari_server.utils').utils
 # We have to use this import HACK because the filename contains a dash
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
-  with patch.object(OSCheck, "os_distribution", return_value = ('Suse','11','Final')):
+with patch("platform.linux_distribution", return_value = os_distro_value_linux):
+  with patch.object(OSCheck, "os_distribution", return_value = os_distro_value):
     with patch.object(utils, "get_postgre_hba_dir"):
       ambari_server = __import__('ambari-server')
 
@@ -207,15 +209,21 @@ class TestOSCheck(TestCase):
     configDefaults.AMBARI_PROPERTIES_BACKUP_FILE = fn1
     serverConfiguration.AMBARI_PROPERTIES_FILE = fn2
 
-    with open(configDefaults.AMBARI_PROPERTIES_BACKUP_FILE, 'w') as f:
+    f = open(configDefaults.AMBARI_PROPERTIES_BACKUP_FILE, 'w')
+    try:
       for line in properties:
         f.write(line)
+    finally:
+      f.close()
 
     #Call tested method
     update_ambari_properties()
 
-    with open(serverConfiguration.AMBARI_PROPERTIES_FILE, 'r') as f:
+    f = open(serverConfiguration.AMBARI_PROPERTIES_FILE, 'r')
+    try:
       ambari_properties_content = f.readlines()
+    finally:
+      f.close()
 
     count = 0
     for line in ambari_properties_content:
@@ -230,6 +238,7 @@ class TestOSCheck(TestCase):
     # Command should not fail if *.rpmsave file is missing
     result = update_ambari_properties()
     self.assertEquals(result, 0)
+    pass
 
   @patch.object(OSCheck, "os_distribution")
   def test_os_type_check(self, mock_linux_distribution):

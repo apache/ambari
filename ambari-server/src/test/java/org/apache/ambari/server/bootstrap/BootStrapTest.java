@@ -72,7 +72,7 @@ public class BootStrapTest extends TestCase {
     }
 
     properties.setProperty(Configuration.BOOTSTRAP_DIR, bootdir);
-    properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, "echo");
+    properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, prepareEchoCommand(bootdir));
     properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, "target" + File.separator + "classes");
     properties.setProperty(Configuration.METADETA_DIR_PATH, metadetadir);
     properties.setProperty(Configuration.SERVER_VERSION_FILE, serverVersionFilePath);
@@ -111,6 +111,24 @@ public class BootStrapTest extends TestCase {
     Assert.assertFalse(new File(bootdir + File.separator + "1" + File.separator + "host_pass").exists());
   }
 
+  private static String prepareEchoCommand(String bootdir) throws IOException {
+    if (System.getProperty("os.name").contains("Windows")) {
+      //The command line becomes "python echo", so create a Python script in the current dir
+      String pythonEcho = "import sys;\nif __name__ == '__main__':\n" +
+          "  args = sys.argv\n" +
+          "  if len(args) > 1:\n" +
+          "    print args[1]";
+      File echo = new File(bootdir, "echo.py");
+      //Ensure the file wasn't there
+      echo.delete();
+      FileUtils.writeStringToFile(echo, pythonEcho);
+
+      return echo.getPath();
+    } else {
+      return "echo";
+    }
+  }
+
   @Test
   public void testHostFailure() throws Exception {
     Properties properties = new Properties();
@@ -129,7 +147,7 @@ public class BootStrapTest extends TestCase {
     }
 
     properties.setProperty(Configuration.BOOTSTRAP_DIR, bootdir);
-    properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, "echo");
+    properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, prepareEchoCommand(bootdir));
     properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, serverKSTRDir);
     properties.setProperty(Configuration.METADETA_DIR_PATH, metadetadir);
     properties.setProperty(Configuration.SERVER_VERSION_FILE, serverVersionFilePath);

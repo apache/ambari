@@ -181,8 +181,8 @@ public class ClientConfigResourceProviderTest {
 
     // create the request
     Request request = PropertyHelper.getReadRequest(ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "c1",
-            ClientConfigResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID,
-            ClientConfigResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID);
+        ClientConfigResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID,
+        ClientConfigResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID);
 
     Predicate predicate = new PredicateBuilder().property(ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("c1").
         toPredicate();
@@ -200,11 +200,10 @@ public class ClientConfigResourceProviderTest {
     String packageFolder="PIG/package";
 
     if (System.getProperty("os.name").contains("Windows")) {
-      stackRoot = "\\tmp\\stacks\\S1\\V1";
+      stackRoot = "C:\\tmp\\stacks\\S1\\V1";
       packageFolder = "PIG\\package";
     }
 
-    File stackRootFile = new File(stackRoot);
     HashMap<String, Host> hosts = new HashMap<String, Host>();
     hosts.put(hostName, host);
     HashMap<String, Service> services = new HashMap<String, Service>();
@@ -220,7 +219,7 @@ public class ClientConfigResourceProviderTest {
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
-    
+
     Map<String, String> returnConfigMap = new HashMap<String, String>();
     returnConfigMap.put(Configuration.SERVER_TMP_DIR_KEY, Configuration.SERVER_TMP_DIR_DEFAULT);
     returnConfigMap.put(Configuration.AMBARI_PYTHON_WRAP_KEY, Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
@@ -236,7 +235,7 @@ public class ClientConfigResourceProviderTest {
     expect(configMap.get(Configuration.SERVER_TMP_DIR_KEY)).andReturn(Configuration.SERVER_TMP_DIR_DEFAULT);
     expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP_KEY)).andReturn(Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
     expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
-    expect(configuration.getResourceDirPath()).andReturn("/tmp/stacks/S1/V1");
+    expect(configuration.getResourceDirPath()).andReturn(stackRoot);
     expect(configuration.getJavaVersion()).andReturn(8);
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.getExternalScriptTimeout()).andReturn(Integer.parseInt(Configuration.EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
@@ -300,10 +299,9 @@ public class ClientConfigResourceProviderTest {
             "INFO /var/lib/ambari-server/tmp";
 
     if (System.getProperty("os.name").contains("Windows")) {
-      String absoluteStackRoot = stackRootFile.getAbsolutePath();
-      commandLine = "ambari-python-wrap " + absoluteStackRoot +
+      commandLine = "ambari-python-wrap " + stackRoot +
               "\\PIG\\package\\null generate_configs null " +
-              absoluteStackRoot + "\\PIG\\package /var/lib/ambari-server/tmp\\structured-out.json " +
+              stackRoot + "\\PIG\\package /var/lib/ambari-server/tmp\\structured-out.json " +
               "INFO /var/lib/ambari-server/tmp";
     }
 
@@ -381,8 +379,8 @@ public class ClientConfigResourceProviderTest {
 
     // create the request
     Request request = PropertyHelper.getReadRequest(ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "c1",
-            ClientConfigResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID,
-            ClientConfigResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID);
+        ClientConfigResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID,
+        ClientConfigResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID);
 
     Predicate predicate = new PredicateBuilder().property(ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("c1").
         toPredicate();
@@ -398,14 +396,13 @@ public class ClientConfigResourceProviderTest {
 
     String stackRoot="/tmp/stacks/S1/V1";
     String packageFolder= StackManager.COMMON_SERVICES + "/PIG/package";
-    String commonServicesPath = "/var/lib/ambari-server/src/main/resources/common-services";
+    String commonServicesPath = "/var/lib/ambari-server/src/main/resources" + File.separator + "common-services";
 
     if (System.getProperty("os.name").contains("Windows")) {
-      stackRoot = "\\tmp\\stacks\\S1\\V1";
+      stackRoot = "C:\\tmp\\stacks\\S1\\V1";
       packageFolder = StackManager.COMMON_SERVICES + "\\PIG\\package";
     }
 
-    File stackRootFile = new File(stackRoot);
     HashMap<String, Host> hosts = new HashMap<String, Host>();
     hosts.put(hostName, host);
     HashMap<String, Service> services = new HashMap<String, Service>();
@@ -502,7 +499,6 @@ public class ClientConfigResourceProviderTest {
             "INFO /var/lib/ambari-server/tmp";
 
     if (System.getProperty("os.name").contains("Windows")) {
-      String absoluteStackRoot = stackRootFile.getAbsolutePath();
       commandLine = "ambari-python-wrap " + commonServicesPath +
               "\\PIG\\package\\null generate_configs null " +
               commonServicesPath + "\\PIG\\package /var/lib/ambari-server/tmp\\structured-out.json " +

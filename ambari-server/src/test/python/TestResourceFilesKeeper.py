@@ -29,37 +29,66 @@ from subprocess import Popen
 from mock.mock import MagicMock, call
 from mock.mock import patch
 from mock.mock import create_autospec
+from only_for_platform import get_platform, not_for_platform, only_for_platform, os_distro_value, PLATFORM_WINDOWS
+
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 
 
 class TestResourceFilesKeeper(TestCase):
 
-  TEST_RESOURCES_DIR = "../resources"
-  TEST_STACKS_DIR="../resources/stacks"
+  TEST_RESOURCES_DIR = ".." + os.sep + "resources"
+  TEST_STACKS_DIR = ".." + os.sep + "resources" + os.sep + "stacks"
 
   # Stack that is not expected to change
-  DUMMY_UNCHANGEABLE_STACK="../resources/TestAmbaryServer.samples/" \
-                           "dummy_stack/HIVE/"
+  DUMMY_UNCHANGEABLE_STACK = ".." + os.sep + "resources" + os.sep + "TestAmbaryServer.samples" + os.sep + \
+                           "dummy_stack" + os.sep + "HIVE"
 
-  DUMMY_ACTIVE_STACK="../resources/TestAmbaryServer.samples/" \
-                           "active_stack/"
+  DUMMY_ACTIVE_STACK = ".." + os.sep + "resources" + os.sep + "TestAmbaryServer.samples" + os.sep + \
+                           "active_stack"
 
-  DUMMY_INACTIVE_STACK="../resources/TestAmbaryServer.samples/" \
-                     "inactive_stack/"
+  DUMMY_INACTIVE_STACK = ".." + os.sep + "resources" + os.sep + "TestAmbaryServer.samples" + os.sep + \
+                     "inactive_stack"
 
   DUMMY_UNCHANGEABLE_PACKAGE=os.path.join(DUMMY_UNCHANGEABLE_STACK,
                                     ResourceFilesKeeper.PACKAGE_DIR)
 
-  DUMMY_UNCHANGEABLE_PACKAGE_HASH="33a5f7d3bb6e7b4545431fc07ae87fa2d59a09c4"
+  if get_platform() != PLATFORM_WINDOWS:
+    DUMMY_UNCHANGEABLE_PACKAGE_HASH="33a5f7d3bb6e7b4545431fc07ae87fa2d59a09c4"
+  else:
+    DUMMY_UNCHANGEABLE_PACKAGE_HASH="2e438f4f9862420ed8930a56b8809b8aca359e87"
   DUMMY_HASH="dummy_hash"
   YA_HASH="yet_another_hash"
   SOME_PATH="some-path"
 
-  DUMMY_UNCHANGEABLE_COMMON_SERVICES="../resources/TestAmbaryServer.samples/" \
-                                     "dummy_common_services/HIVE/0.11.0.2.0.5.0"
+  DUMMY_UNCHANGEABLE_COMMON_SERVICES=".." + os.sep + "resources" + os.sep + "TestAmbaryServer.samples" + os.sep + \
+                                     "dummy_common_services" + os.sep + "HIVE" + os.sep + "0.11.0.2.0.5.0"
 
   DUMMY_UNCHANGEABLE_COMMON_SERVICES_PACKAGE=os.path.join(DUMMY_UNCHANGEABLE_COMMON_SERVICES,
                                                           ResourceFilesKeeper.PACKAGE_DIR)
+
+  if get_platform() != PLATFORM_WINDOWS:
+    UPDATE_DIRECTORY_ARCHIVE_CALL_LIST = \
+      "[call('../resources/TestAmbaryServer.samples/" \
+      "dummy_stack/HIVE/package'),\n " \
+      "call('../resources/TestAmbaryServer.samples/" \
+      "dummy_stack/HIVE/package'),\n " \
+      "call('../resources/TestAmbaryServer.samples/" \
+      "dummy_stack/HIVE/package'),\n " \
+      "call('../resources/TestAmbaryServer.samples/" \
+      "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n " \
+      "call('../resources/TestAmbaryServer.samples/" \
+      "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n " \
+      "call('../resources/custom_actions'),\n " \
+      "call('../resources/host_scripts')]"
+  else:
+    UPDATE_DIRECTORY_ARCHIVE_CALL_LIST = \
+      "[call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_stack\\\\HIVE\\\\package'),\n " \
+      "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_stack\\\\HIVE\\\\package'),\n " \
+      "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_stack\\\\HIVE\\\\package'),\n " \
+      "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_common_services\\\\HIVE\\\\0.11.0.2.0.5.0\\\\package'),\n " \
+      "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_common_services\\\\HIVE\\\\0.11.0.2.0.5.0\\\\package'),\n " \
+      "call('..\\\\resources\\\\custom_actions'),\n " \
+      "call('..\\\\resources\\\\host_scripts')]"
 
   def setUp(self):
     logging.basicConfig(level=logging.ERROR)
@@ -67,7 +96,7 @@ class TestResourceFilesKeeper(TestCase):
 
   @patch.object(ResourceFilesKeeper, "update_directory_archieves")
   def test_perform_housekeeping(self, update_directory_archieves_mock):
-    resource_files_keeper = ResourceFilesKeeper("/dummy-resources", "/dummy-path")
+    resource_files_keeper = ResourceFilesKeeper(os.sep + "dummy-resources", os.sep + "dummy-path")
     resource_files_keeper.perform_housekeeping()
     update_directory_archieves_mock.assertCalled()
     pass
@@ -91,18 +120,7 @@ class TestResourceFilesKeeper(TestCase):
     resource_files_keeper.update_directory_archieves()
     self.assertEquals(pprint.pformat(
       update_directory_archive_mock.call_args_list),
-            "[call('../resources/TestAmbaryServer.samples/"
-            "dummy_stack/HIVE/package'),\n "
-            "call('../resources/TestAmbaryServer.samples/"
-            "dummy_stack/HIVE/package'),\n "
-            "call('../resources/TestAmbaryServer.samples/"
-            "dummy_stack/HIVE/package'),\n "
-            "call('../resources/TestAmbaryServer.samples/"
-            "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n "
-            "call('../resources/TestAmbaryServer.samples/"
-            "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n "
-            "call('../resources/custom_actions'),\n "
-            "call('../resources/host_scripts')]")
+      self.UPDATE_DIRECTORY_ARCHIVE_CALL_LIST)
     pass
 
 

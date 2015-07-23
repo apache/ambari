@@ -26,6 +26,7 @@ if get_platform() != PLATFORM_WINDOWS:
   from validate_configs import ValidateConfigs
 
 
+@not_for_platform(PLATFORM_WINDOWS)
 class TestValidateConfigs(TestCase):
 
   @patch("os.geteuid")

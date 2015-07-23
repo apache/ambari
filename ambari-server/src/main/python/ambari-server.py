@@ -433,6 +433,7 @@ def init_debug(options):
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def fix_database_options(options, parser):
+  _validate_database_port(options, parser)
   pass
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -450,18 +451,7 @@ def fix_database_options(options, parser):
   elif options.dbms is not None:
     options.dbms = options.dbms.lower()
 
-  # correct port
-  if options.database_port is not None:
-    correct = False
-    try:
-      port = int(options.database_port)
-      if 65536 > port > 0:
-        correct = True
-    except ValueError:
-      pass
-    if not correct:
-      parser.print_help()
-      parser.error("Incorrect database port " + options.database_port)
+  _validate_database_port(options, parser)
 
   # jdbc driver and db options validation
   if options.jdbc_driver is None and options.jdbc_db is not None:
@@ -475,6 +465,21 @@ def fix_database_options(options, parser):
     exit(-1)
   else:
     options.sid_or_sname = options.sid_or_sname.lower()
+
+
+def _validate_database_port(options, parser):
+  # correct port
+  if options.database_port is not None:
+    correct = False
+    try:
+      port = int(options.database_port)
+      if 65536 > port > 0:
+        correct = True
+    except ValueError:
+      pass
+    if not correct:
+      parser.print_help()
+      parser.error("Incorrect database port " + options.database_port)
 
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)

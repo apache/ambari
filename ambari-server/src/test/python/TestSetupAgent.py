@@ -22,13 +22,8 @@ from mock.mock import patch
 import sys
 
 from ambari_commons import OSCheck
-from only_for_platform import get_platform, not_for_platform, only_for_platform, PLATFORM_WINDOWS, PLATFORM_LINUX
+from only_for_platform import get_platform, not_for_platform, only_for_platform, os_distro_value, PLATFORM_WINDOWS
 from mock.mock import MagicMock, patch, ANY, Mock
-
-if get_platform() != PLATFORM_WINDOWS:
-  os_distro_value = ('Suse','11','Final')
-else:
-  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
 with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value)):
 #  from ambari_agent import NetUtil, security
@@ -69,6 +64,7 @@ class TestSetupAgent(TestCase):
     pass
 
 
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(setup_agent, 'execOsCommand')
   @patch("os.environ")
   @patch("subprocess.Popen")
@@ -127,6 +123,36 @@ class TestSetupAgent(TestCase):
     execOsCommand_mock.reset_mock()
     pass
 
+  @only_for_platform(PLATFORM_WINDOWS)
+  @patch.object(setup_agent, 'run_os_command')
+  @patch("os.environ")
+  @patch("time.sleep")
+  def test_runAgent(self, sleep_mock, environ_mock, run_os_command_mock):
+    expected_hostname = "test.hst"
+    passphrase = "passphrase"
+    run_os_command_mock.return_value = (0, "log", "")
+    # Test if expected_hostname is passed
+    ret = setup_agent.runAgent(passphrase, expected_hostname, "root", False)
+    self.assertEqual(run_os_command_mock.call_count, 1)
+    cmdStr = str(run_os_command_mock.call_args_list[0][0])
+    self.assertEqual(cmdStr, str((["cmd", "/c", "ambari-agent.cmd", "restart"],)))
+    self.assertFalse('-v' in cmdStr)
+    self.assertEqual(ret["exitstatus"], 0)
+    self.assertFalse(sleep_mock.called)
+
+    run_os_command_mock.reset_mock()
+    sleep_mock.reset_mock()
+
+    # Retry command
+    run_os_command_mock.side_effect = [(2, "log", "err"), (0, "log", "")]
+    ret = setup_agent.runAgent(passphrase, expected_hostname, "root", False)
+    self.assertEqual(run_os_command_mock.call_count, 2)
+    self.assertTrue("Retrying" in ret['log'][1])
+    self.assertEqual(ret["exitstatus"], 0)
+    self.assertTrue(sleep_mock.called)
+    pass
+
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(setup_agent, 'getAvailableAgentPackageVersions')
   @patch('ambari_commons.OSCheck.is_suse_family')
@@ -144,6 +170,7 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(setup_agent, 'getAvailableAgentPackageVersions')
   @patch('ambari_commons.OSCheck.is_suse_family')
@@ -161,6 +188,21 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
+  @only_for_platform(PLATFORM_WINDOWS)
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(setup_agent, 'getAvailableAgentPackageVersions')
+  @patch.object(setup_agent, 'findNearestAgentPackageVersion')
+  def test_returned_optimal_version_is_initial_on_suse(self, findNearestAgentPackageVersion_method,
+                                                       getAvailableAgentPackageVersions_method):
+    getAvailableAgentPackageVersions_method.return_value = {"exitstatus": 0, "log": "1.1.1"}
+
+    projectVersion = "1.1.1"
+    result_version = setup_agent.getOptimalVersion(projectVersion)
+    self.assertTrue(findNearestAgentPackageVersion_method.called)
+    self.assertTrue(result_version["exitstatus"] == 1)
+    pass
+
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch('ambari_commons.OSCheck.is_suse_family')
   @patch('ambari_commons.OSCheck.is_ubuntu_family')
@@ -183,6 +225,7 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch('ambari_commons.OSCheck.is_suse_family')
   @patch('ambari_commons.OSCheck.is_ubuntu_family')
@@ -199,6 +242,25 @@ class TestSetupAgent(TestCase):
       "exitstatus": 0,
       "log": [nearest_version, ""]
     }
+
+    result_version = setup_agent.getOptimalVersion(projectVersion)
+    self.assertTrue(findNearestAgentPackageVersion_method.called)
+    self.assertTrue(result_version["exitstatus"] == 1)
+    pass
+
+  @only_for_platform(PLATFORM_WINDOWS)
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(setup_agent, 'findNearestAgentPackageVersion')
+  @patch.object(setup_agent, 'getAvailableAgentPackageVersions')
+  def test_returned_optimal_version_is_nearest_on_windows(self, findNearestAgentPackageVersion_method,
+                                                          getAvailableAgentPackageVersions_method):
+    projectVersion = ""
+    nearest_version = projectVersion + "1.1.1"
+    findNearestAgentPackageVersion_method.return_value = {
+      "exitstatus": 0,
+      "log": [nearest_version, ""]
+    }
+    getAvailableAgentPackageVersions_method.return_value = {"exitstatus": 0, "log": nearest_version}
 
     result_version = setup_agent.getOptimalVersion(projectVersion)
     self.assertTrue(findNearestAgentPackageVersion_method.called)
@@ -239,17 +301,30 @@ class TestSetupAgent(TestCase):
       "log": ["1.1.1.1", ""]
     }
 
-    projectVersion = "1.1.1"
+    projectVersion = "1.1.2"
     result_version = setup_agent.getOptimalVersion(projectVersion)
 
     self.assertTrue(findNearestAgentPackageVersion_method.called)
-    self.assertTrue(result_version["exitstatus"] == 1)
+    self.assertEqual(result_version["exitstatus"], 1)
     pass
 
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(subprocess, 'Popen')
   def test_execOsCommand(self, Popen_mock):
     self.assertFalse(setup_agent.execOsCommand("hostname -f") == None)
+
+  @only_for_platform(PLATFORM_WINDOWS)
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(subprocess, 'Popen')
+  def test_execOsCommand(self, Popen_mock):
+    p = MagicMock()
+    p.communicate.return_value = ("", "")
+    p.returncode = 0
+    Popen_mock.return_value = p
+    retval = setup_agent.execOsCommand("hostname -f")
+    self.assertEqual(retval["exitstatus"], 0)
+    pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(setup_agent, 'checkVerbose')

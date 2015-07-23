@@ -20,11 +20,14 @@ import StringIO
 import sys
 from unittest import TestCase
 from mock.mock import patch, MagicMock
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+
 from ambari_commons.os_check import OSCheck, OSConst
 
 utils = __import__('ambari_server.utils').utils
 
 
+@not_for_platform(PLATFORM_WINDOWS)
 class TestUtils(TestCase):
 
   @patch.object(OSCheck, "get_os_family")
@@ -36,7 +39,7 @@ class TestUtils(TestCase):
     os_listdir_mock.return_value = ['8.4', '9.1']
 
     self.assertEqual('9.1', utils.get_ubuntu_pg_version())
-    
+
   @patch.object(OSCheck, "is_suse_family")
   @patch.object(OSCheck, "is_ubuntu_family")
   @patch.object(OSCheck, "is_redhat_family")

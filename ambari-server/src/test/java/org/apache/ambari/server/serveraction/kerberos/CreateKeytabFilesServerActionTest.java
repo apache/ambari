@@ -19,6 +19,7 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import junit.framework.Assert;
+import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -30,6 +31,8 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 
+import org.apache.ambari.server.utils.ShellCommandUtil;
+
 public class CreateKeytabFilesServerActionTest {
 
   @Rule
@@ -37,6 +40,8 @@ public class CreateKeytabFilesServerActionTest {
 
   @Test
   public void testEnsureAmbariOnlyAccess() throws Exception {
+    Assume.assumeTrue(ShellCommandUtil.UNIX_LIKE);
+
     Path path;
     Set<PosixFilePermission> permissions;
 

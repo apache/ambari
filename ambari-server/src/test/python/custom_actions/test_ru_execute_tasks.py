@@ -21,18 +21,21 @@ limitations under the License.
 # Python Imports
 import os
 import json
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 from mock.mock import patch
 from mock.mock import MagicMock
 
 # Module imports
 from stacks.utils.RMFTestCase import *
+from only_for_platform import not_for_platform, only_for_platform, os_distro_value, PLATFORM_WINDOWS
+
 from resource_management import Script, ConfigDictionary
 from resource_management.libraries.functions.default import default
 from resource_management.core.logger import Logger
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.FileCache import FileCache
-from ambari_commons.os_check import OSCheck
+from ambari_commons.os_check import OSCheck, OSConst
 
 
 def fake_call(command, **kwargs):
@@ -46,8 +49,9 @@ def fake_call(command, **kwargs):
 
 class TestRUExecuteTasks(RMFTestCase):
   def get_custom_actions_dir(self):
-    return os.path.join(self.get_src_folder(), "test/resources/custom_actions/")
+    return os.path.normpath(os.path.join(self.get_src_folder(), "test", "resources", "custom_actions"))
   
+  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
   @patch.object(OSCheck, "get_os_type")
@@ -55,6 +59,25 @@ class TestRUExecuteTasks(RMFTestCase):
     # Must patch the logger and get_os_type function.
     os_type_mock.return_value = "redhat"
 
+    self.CACHE_MOCK_DIR = "/var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package"
+    self.AGENT_INI_FILE_PATH = os.path.normpath(os.path.join(self.get_src_folder(), "../../ambari-agent/conf/unix/ambari-agent.ini"))
+
+    self.osIndependentSetUp()
+
+  @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+  @patch.object(Logger, "info")
+  @patch.object(Logger, "error")
+  @patch.object(OSCheck, "get_os_type")
+  def setUp(self, os_type_mock, error_mock, info_mock):
+    # Must patch the logger and get_os_type function.
+    os_type_mock.return_value = "Windows"
+
+    self.CACHE_MOCK_DIR = "/var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package"
+    self.AGENT_INI_FILE_PATH = os.path.normpath(os.path.join(self.get_src_folder(), "..", "..", "ambari-agent", "conf", "windows", "ambari-agent.ini"))
+
+    self.osIndependentSetUp()
+
+  def osIndependentSetUp(self):
     Logger.logger = MagicMock()
 
     # Import the class under test. This is done here as opposed to the rest of the imports because the get_os_type()
@@ -80,10 +103,11 @@ class TestRUExecuteTasks(RMFTestCase):
 
     config_dict = ConfigDictionary(json_payload)
 
-    cache_mock.return_value = "/var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package"
+    cache_mock.return_value = self.CACHE_MOCK_DIR
     get_config_mock.return_value = config_dict
     get_tmp_dir_mock.return_value = "/tmp"
-    ambari_agent_ini_file_path = os.path.join(self.get_src_folder(), "../../ambari-agent/conf/unix/ambari-agent.ini")
+
+    ambari_agent_ini_file_path = self.AGENT_INI_FILE_PATH
     self.assertTrue(os.path.isfile(ambari_agent_ini_file_path))
     get_config_file_mock.return_value = ambari_agent_ini_file_path
 
@@ -104,7 +128,10 @@ class TestRUExecuteTasks(RMFTestCase):
     ru_execute = ExecuteUpgradeTasks()
     ru_execute.actionexecute(None)
 
-    call_mock.assert_called_with("/usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package/scripts/namenode.py prepare_rolling_upgrade /tmp", logoutput=True, quiet=True)
+    call_mock.assert_called_with(
+        "/usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package" + os.sep +
+        "scripts/namenode.py prepare_rolling_upgrade /tmp", logoutput=True, quiet=True)
+    pass
 
   @patch("resource_management.core.shell.checked_call")
   @patch("os.path.exists")
@@ -149,4 +176,6 @@ class TestRUExecuteTasks(RMFTestCase):
     ru_execute = ExecuteUpgradeTasks()
     ru_execute.actionexecute(None)
 
-    call_mock.assert_called_with("/usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/custom_actions/scripts/namenode.py prepare_rolling_upgrade /tmp", logoutput=True, quiet=True)
+    call_mock.assert_called_with("/usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/custom_actions" + os.sep +
+                                 "scripts/namenode.py prepare_rolling_upgrade /tmp", logoutput=True, quiet=True)
+    pass

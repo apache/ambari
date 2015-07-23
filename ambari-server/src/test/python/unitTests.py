@@ -258,7 +258,11 @@ def main():
   sys.stderr.write("Total errors:{0}\n".format(len(test_errors)))
   sys.stderr.write("Total failures:{0}\n".format(len(test_failures)))
 
-  shutil.rmtree(newtmpdirpath)
+  try:
+    shutil.rmtree(newtmpdirpath)
+  except:
+    #Swallow the errors, nothing to do if the dir is being held by a dangling process
+    pass
   tempfile.tempdir = oldtmpdirpath
   tempfile.oldtmpdirpath = None
 

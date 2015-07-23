@@ -411,7 +411,8 @@ def get_ambari_properties():
   properties = None
   try:
     properties = Properties()
-    properties.load(open(conf_file))
+    with open(conf_file) as hfR:
+      properties.load(hfR)
   except (Exception), e:
     print 'Could not read "%s": %s' % (conf_file, e)
     return -1
@@ -571,7 +572,8 @@ def update_database_name_property(upgrade=False):
     properties.process_pair(JDBC_DATABASE_NAME_PROPERTY, configDefaults.DEFAULT_DB_NAME)
     conf_file = find_properties_file()
     try:
-      properties.store(open(conf_file, "w"))
+      with open(conf_file, "w") as hfW:
+        properties.store(hfW)
     except Exception, e:
       err = 'Could not write ambari config file "%s": %s' % (conf_file, e)
       raise FatalException(-1, err)
@@ -631,9 +633,8 @@ def read_passwd_for_alias(alias, masterKey=""):
     tempDir = tempfile.gettempdir()
     #create temporary file for writing
     tempFilePath = tempDir + os.sep + tempFileName
-    file = open(tempFilePath, 'w+')
-    os.chmod(tempFilePath, stat.S_IREAD | stat.S_IWRITE)
-    file.close()
+    with open(tempFilePath, 'w+'):
+      os.chmod(tempFilePath, stat.S_IREAD | stat.S_IWRITE)
 
     if masterKey is None or masterKey == "":
       masterKey = "None"
@@ -646,7 +647,8 @@ def read_passwd_for_alias(alias, masterKey=""):
     if retcode != 0:
       print 'ERROR: Unable to read password from store. alias = ' + alias
     else:
-      passwd = open(tempFilePath, 'r').read()
+      with open(tempFilePath, 'r') as hfRTemp:
+        passwd = hfRTemp.read()
       # Remove temporary file
     os.remove(tempFilePath)
     return passwd
@@ -783,7 +785,8 @@ def parse_properties_file(args):
   args.database_password_file = properties[JDBC_PASSWORD_PROPERTY]
   if args.database_password_file:
     if not is_alias_string(args.database_password_file):
-      args.database_password = open(properties[JDBC_PASSWORD_PROPERTY]).read()
+      with open(properties[JDBC_PASSWORD_PROPERTY]) as hfDbPwd:
+        args.database_password = hfDbPwd.read()
     else:
       args.database_password = args.database_password_file
   return 0
@@ -837,16 +840,18 @@ def update_ambari_properties():
     print_error_msg("Can't find %s file" % AMBARI_PROPERTIES_FILE)
     return -1
 
-  try:
-    old_properties = Properties()
-    old_properties.load(open(prev_conf_file))
-  except Exception, e:
-    print 'Could not read "%s": %s' % (prev_conf_file, e)
-    return -1
+  with open(prev_conf_file) as hfOld:
+    try:
+      old_properties = Properties()
+      old_properties.load(hfOld)
+    except Exception, e:
+      print 'Could not read "%s": %s' % (prev_conf_file, e)
+      return -1
 
   try:
     new_properties = Properties()
-    new_properties.load(open(conf_file))
+    with open(conf_file) as hfNew:
+      new_properties.load(hfNew)
 
     for prop_key, prop_value in old_properties.getPropertyDict().items():
       if "agent.fqdn.service.url" == prop_key:
@@ -866,7 +871,8 @@ def update_ambari_properties():
     if OS_FAMILY_PROPERTY not in new_properties.keys():
       new_properties.process_pair(OS_FAMILY_PROPERTY, OS_FAMILY + OS_VERSION)
 
-    new_properties.store(open(conf_file, 'w'))
+    with open(conf_file, 'w') as hfW:
+      new_properties.store(hfW)
 
   except Exception, e:
     print 'Could not write "%s": %s' % (conf_file, e)
@@ -874,7 +880,12 @@ def update_ambari_properties():
 
   timestamp = datetime.datetime.now()
   fmt = '%Y%m%d%H%M%S'
-  os.rename(prev_conf_file, prev_conf_file + '.' + timestamp.strftime(fmt))
+  new_conf_file = prev_conf_file + '.' + timestamp.strftime(fmt)
+  try:
+    os.rename(prev_conf_file, new_conf_file)
+  except Exception, e:
+    print 'Could not rename "%s" to "%s": %s' % (prev_conf_file, new_conf_file, e)
+    #Not critical, move on
 
   return 0
 
@@ -924,13 +935,15 @@ def write_property(key, value):
   conf_file = find_properties_file()
   properties = Properties()
   try:
-    properties.load(open(conf_file))
+    with open(conf_file, "r") as hfR:
+      properties.load(hfR)
   except Exception, e:
     print_error_msg('Could not read ambari config file "%s": %s' % (conf_file, e))
     return -1
   properties.process_pair(key, value)
   try:
-    properties.store(open(conf_file, "w"))
+    with open(conf_file, 'w') as hfW:
+      properties.store(hfW)
   except Exception, e:
     print_error_msg('Could not write ambari config file "%s": %s' % (conf_file, e))
     return -1

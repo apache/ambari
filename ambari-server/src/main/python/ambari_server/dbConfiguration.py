@@ -276,6 +276,9 @@ class DBMSConfigFactory(object):
   def get_supported_dbms(self):
     return []
 
+  def get_supported_jdbc_drivers(self):
+    return []
+
 #
 # Database configuration factory for Windows
 #

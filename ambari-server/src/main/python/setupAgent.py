@@ -206,7 +206,7 @@ def checkVerbose():
 def getOptimalVersion(initialProjectVersion):
   optimalVersion = initialProjectVersion
   ret = findNearestAgentPackageVersion(optimalVersion)
-  if ret["exitstatus"] == 0 and ret["log"][0].strip() != "" \
+  if ret["exitstatus"] == 0 and ret["log"][0].strip() != "" and initialProjectVersion \
      and ret["log"][0].strip().startswith(initialProjectVersion):
     optimalVersion = ret["log"][0].strip()
     retcode = 0

@@ -44,6 +44,7 @@ subproc_mock.return_value = MagicMock()
 subproc_stdout = MagicMock()
 subproc_mock.return_value.stdout = subproc_stdout
 
+@not_for_platform(PLATFORM_WINDOWS)
 @patch.object(os, "read", new=MagicMock(return_value=None))
 @patch.object(select, "select", new=MagicMock(return_value=([subproc_stdout], None, None)))
 @patch("pty.openpty", new = MagicMock(return_value=(1,5)))

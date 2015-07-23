@@ -532,8 +532,8 @@ class WinServiceController:
         win32serviceutil.StopServiceWithDeps(serviceName, waitSecs=waitSecs)
       else:
         win32serviceutil.StopService(serviceName)
-        if waitSecs:
-          win32serviceutil.WaitForServiceStatus(serviceName, win32service.SERVICE_STOPPED, waitSecs)
+      if waitSecs:
+        win32serviceutil.WaitForServiceStatus(serviceName, win32service.SERVICE_STOPPED, waitSecs)
     except win32service.error, exc:
       if exc.winerror != 1062:
         msg = "Error stopping service: %s (%d)" % (exc.strerror, exc.winerror)
