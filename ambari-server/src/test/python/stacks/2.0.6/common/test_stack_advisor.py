@@ -888,3 +888,107 @@ class TestHDP206StackAdvisor(TestCase):
 
     self.stackAdvisor.mergeValidators(parentValidators, childValidators)
     self.assertEquals(expected, parentValidators)
+
+  def test_getProperMountPoint(self):
+    hostInfo = None
+    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    hostInfo = {"some_key": []}
+    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    hostInfo["disk_info"] = []
+    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    # root mountpoint with low space available
+    hostInfo["disk_info"].append(
+      {
+        "available" : "1",
+        "type" : "ext4",
+        "mountpoint" : "/"
+      }
+    )
+    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    # tmpfs with more space available
+    hostInfo["disk_info"].append(
+      {
+        "available" : "2",
+        "type" : "tmpfs",
+        "mountpoint" : "/dev/shm"
+      }
+    )
+    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    # /boot with more space available
+    hostInfo["disk_info"].append(
+      {
+        "available" : "3",
+        "type" : "tmpfs",
+        "mountpoint" : "/boot/grub"
+      }
+    )
+    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    # /boot with more space available
+    hostInfo["disk_info"].append(
+      {
+        "available" : "4",
+        "type" : "tmpfs",
+        "mountpoint" : "/mnt/external_hdd"
+      }
+    )
+    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    # virtualbox fs with more space available
+    hostInfo["disk_info"].append(
+      {
+        "available" : "5",
+        "type" : "vboxsf",
+        "mountpoint" : "/vagrant"
+      }
+    )
+    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    # proper mountpoint with more space available
+    hostInfo["disk_info"].append(
+      {
+        "available" : "6",
+        "type" : "ext4",
+        "mountpoint" : "/grid/0"
+      }
+    )
+    self.assertEquals("/grid/0", self.stackAdvisor.getProperMountPoint(hostInfo))
+    # proper mountpoint with more space available
+    hostInfo["disk_info"].append(
+      {
+        "available" : "7",
+        "type" : "ext4",
+        "mountpoint" : "/grid/1"
+      }
+    )
+    self.assertEquals("/grid/1", self.stackAdvisor.getProperMountPoint(hostInfo))
+
+  def test_validateNonRootFs(self):
+    hostInfo = {"disk_info": [
+      {
+        "available" : "2",
+        "type" : "ext4",
+        "mountpoint" : "/"
+      }
+    ]}
+    properties = {"property1": "/var/dir"}
+    # only / mountpoint - no warning
+    self.assertIsNone(self.stackAdvisor.validatorNotRootFs(properties, 'property1', hostInfo))
+    # More preferable /grid/0 mountpoint - warning
+    hostInfo["disk_info"].append(
+      {
+        "available" : "3",
+        "type" : "ext4",
+        "mountpoint" : "/grid/0"
+      }
+    )
+    warn = self.stackAdvisor.validatorNotRootFs(properties, 'property1', hostInfo)
+    self.assertIsNotNone(warn)
+    self.assertEquals({'message': 'The root device should not be used for property1', 'level': 'WARN'}, warn)
+
+    # Set by user /var mountpoint, which is non-root , but not preferable - no warning
+    hostInfo["disk_info"].append(
+      {
+        "available" : "1",
+        "type" : "ext4",
+        "mountpoint" : "/var"
+      }
+    )
+    self.assertIsNone(self.stackAdvisor.validatorNotRootFs(properties, 'property1', hostInfo))

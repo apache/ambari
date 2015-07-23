@@ -1842,7 +1842,8 @@ class TestHDP22StackAdvisor(TestCase):
           }
 
         }]
-      }]
+      }],
+      "configurations": []
     }
     hosts = {
       "items": [{
@@ -1870,6 +1871,8 @@ class TestHDP22StackAdvisor(TestCase):
           "hbase.regionserver.global.memstore.lowerLimit": "0.3",
           "hbase.regionserver.global.memstore.upperLimit": "0.35",
           "hfile.block.cache.size": "0.3",
+          "hbase.rootdir": "file:///var/lib/ambari-metrics-collector/hbase",
+          "hbase.tmp.dir": "/var/lib/ambari-metrics-collector/hbase-tmp",
           "hbase_master_xmn_size" : "128m"
         }
       },

@@ -66,7 +66,7 @@ def get_mount_point_for_dir(dir):
       if dir.startswith(m['mount_point']):
         if best_mount_found is None:
           best_mount_found = m["mount_point"]
-        elif best_mount_found.count(os.path.sep) < m["mount_point"].count(os.path.sep):
+        elif best_mount_found.count(os.path.sep) < os.path.join(m["mount_point"]).count(os.path.sep):
           best_mount_found = m["mount_point"]
 
   Logger.info("Mount point for directory %s is %s" % (str(dir), str(best_mount_found)))

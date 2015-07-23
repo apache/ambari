@@ -155,10 +155,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putHbaseProperty('hbase_master_heapsize', int(clusterData['hbaseRam']) * 1024)
 
   def recommendAmsConfigurations(self, configurations, clusterData, services, hosts):
-    putAmsEnvProperty = self.putProperty(configurations, "ams-env")
-    putAmsHbaseSiteProperty = self.putProperty(configurations, "ams-hbase-site")
-    putTimelineServiceProperty = self.putProperty(configurations, "ams-site")
-    putHbaseEnvProperty = self.putProperty(configurations, "ams-hbase-env")
+    putAmsEnvProperty = self.putProperty(configurations, "ams-env", services)
+    putAmsHbaseSiteProperty = self.putProperty(configurations, "ams-hbase-site", services)
+    putTimelineServiceProperty = self.putProperty(configurations, "ams-site", services)
+    putHbaseEnvProperty = self.putProperty(configurations, "ams-hbase-env", services)
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
     putHbaseEnvProperty("hbase_regionserver_heapsize", "1024m")
@@ -207,6 +207,29 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         putAmsEnvProperty("metrics_collector_heapsize", "512m")
         putAmsHbaseSiteProperty("hbase_master_xmn_size", "128m")
       pass
+
+    rootDir = "file:///var/lib/ambari-metrics-collector/hbase"
+    tmpDir = "/var/lib/ambari-metrics-collector/hbase-tmp"
+    mountpoint = "/"
+    if "ams-hbase-site" in services["configurations"]:
+      if "hbase.rootdir" in services["configurations"]["ams-hbase-site"]["properties"]:
+        rootDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.rootdir"]
+      if "hbase.tmp.dir" in services["configurations"]["ams-hbase-site"]["properties"]:
+        tmpDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.tmp.dir"]
+    for collectorHostName in amsCollectorHosts:
+      for host in hosts["items"]:
+        if host["Hosts"]["host_name"] == collectorHostName:
+          mountpoint = self.getProperMountPoint(host["Hosts"])
+          break
+    if not rootDir.startswith("hdfs://") :
+      rootDir = re.sub("^file:///|/", "", rootDir, count=1)
+      rootDir = "file://" + os.path.join(mountpoint, rootDir)
+    tmpDir = re.sub("^file:///|/", "", tmpDir, count=1)
+    tmpDir = os.path.join(mountpoint, tmpDir)
+
+    putAmsHbaseSiteProperty("hbase.rootdir", rootDir)
+    putAmsHbaseSiteProperty("hbase.tmp.dir", tmpDir)
+
     pass
 
 
@@ -433,6 +456,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       for host in hosts["items"]:
         if host["Hosts"]["host_name"] == collectorHostName:
           validationItems.extend([ {"config-name": 'hbase.rootdir', "item": self.validatorEnoughDiskSpace(properties, 'hbase.rootdir', host["Hosts"], recommendedDiskSpace)}])
+          validationItems.extend([ {"config-name": 'hbase.rootdir', "item": self.validatorNotRootFs(properties, 'hbase.rootdir', host["Hosts"])}])
+          validationItems.extend([ {"config-name": 'hbase.tmp.dir', "item": self.validatorNotRootFs(properties, 'hbase.tmp.dir', host["Hosts"])}])
           break
 
     rootdir_item = None
@@ -524,12 +549,48 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
   def getErrorItem(self, message):
     return {"level": "ERROR", "message": message}
 
+  def getProperMountPoint(self, hostInfo):
+
+    # '/etc/resolv.conf', '/etc/hostname', '/etc/hosts' are docker specific mount points
+    undesirableMountPoints = ["/", "/home", "/etc/resolv.conf", "/etc/hosts",
+                              "/etc/hostname"]
+    undesirableFsTypes = ["devtmpfs", "tmpfs", "vboxsf", "CDFS"]
+    if hostInfo and "disk_info" in hostInfo:
+      mountPoints = {}
+      for mountpoint in hostInfo["disk_info"]:
+        if not (mountpoint["mountpoint"] in undesirableMountPoints or
+                mountpoint["mountpoint"].startswith(("/boot", "/mnt")) or
+                mountpoint["type"] in undesirableFsTypes or
+                mountpoint["available"] == str(0)):
+          mountPoints[mountpoint["mountpoint"]] = to_number(mountpoint["available"])
+      if mountPoints:
+        return max(mountPoints, key=mountPoints.get)
+    return "/"
+
+  def validatorNotRootFs(self, properties, propertyName, hostInfo):
+    if not propertyName in properties:
+      return self.getErrorItem("Value should be set")
+    dir = properties[propertyName]
+    if dir.startswith("hdfs://"):
+      return None
+
+    dir = re.sub("^file://", "", dir, count=1)
+    mountPoints = []
+    for mountPoint in hostInfo["disk_info"]:
+      mountPoints.append(mountPoint["mountpoint"])
+    mountPoint = getMountPointForDir(dir, mountPoints)
+
+    if "/" == mountPoint and self.getProperMountPoint(hostInfo) != mountPoint:
+      return self.getWarnItem("The root device should not be used for {0}".format(propertyName))
+
+    return None
+
   def validatorEnoughDiskSpace(self, properties, propertyName, hostInfo, reqiuredDiskSpace):
     if not propertyName in properties:
       return self.getErrorItem("Value should be set")
     dir = properties[propertyName]
     if dir.startswith("hdfs://"):
-      return None #TODO following code fails for hdfs://, is this valid check for hdfs?
+      return None
 
     dir = re.sub("^file://", "", dir, count=1)
     mountPoints = {}
@@ -806,7 +867,7 @@ def getMountPointForDir(dir, mountPoints):
       if dir.startswith(mountPoint):
         if bestMountFound is None:
           bestMountFound = mountPoint
-        elif bestMountFound.count(os.path.sep) < mountPoint.count(os.path.sep):
+        elif bestMountFound.count(os.path.sep) < os.path.join(mountPoint, "").count(os.path.sep):
           bestMountFound = mountPoint
 
   return bestMountFound
