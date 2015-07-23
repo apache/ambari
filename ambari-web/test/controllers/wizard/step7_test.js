@@ -1390,7 +1390,7 @@ describe('App.InstallerStep7Controller', function () {
           stackConfigsLoaded: true
         })
       });
-      sinon.stub(App.config, 'mergePreDefinedWithStored', Em.K);
+      sinon.stub(App.config, 'mergePreDefinedWithStack', Em.K);
       sinon.stub(App.config, 'fileConfigsIntoTextarea', Em.K);
       sinon.stub(installerStep7Controller, 'clearStep', Em.K);
       sinon.stub(installerStep7Controller, 'getConfigTags', Em.K);
@@ -1404,7 +1404,7 @@ describe('App.InstallerStep7Controller', function () {
       sinon.stub(App.router, 'send', Em.K);
     });
     afterEach(function () {
-      App.config.mergePreDefinedWithStored.restore();
+      App.config.mergePreDefinedWithStack.restore();
       App.config.fileConfigsIntoTextarea.restore();
       installerStep7Controller.clearStep.restore();
       installerStep7Controller.getConfigTags.restore();
@@ -1428,7 +1428,7 @@ describe('App.InstallerStep7Controller', function () {
     });
     it('should use App.config to map configs', function () {
       installerStep7Controller.loadStep();
-      expect(App.config.mergePreDefinedWithStored.calledOnce).to.equal(true);
+      expect(App.config.mergePreDefinedWithStack.calledOnce).to.equal(true);
     });
     it('should call setInstalledServiceConfigs for addServiceController', function () {
       installerStep7Controller.set('wizardController.name', 'addServiceController');

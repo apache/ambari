@@ -620,16 +620,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.clearStep();
 
     var self = this;
-    //STEP 1: Load advanced configs
-    var advancedConfigs = App.StackConfigProperty.find();
     //STEP 2: Load on-site configs by service from local DB
     var storedConfigs = this.get('content.serviceConfigProperties');
     //STEP 3: Merge pre-defined configs with loaded on-site configs
-    var configs = App.config.mergePreDefinedWithStored(
-      storedConfigs,
-      advancedConfigs,
-      this.get('selectedServiceNames').concat(this.get('installedServiceNames'))
-    );
+    var configs = (storedConfigs && storedConfigs.length)
+      ? storedConfigs
+      : App.config.mergePreDefinedWithStack(this.get('selectedServiceNames').concat(this.get('installedServiceNames')));
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
 
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
@@ -662,51 +658,37 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.activateSpecialConfigs();
     this.selectProperService();
     var self = this;
-    this.loadServerSideConfigsRecommendations().always(function () {
-      // format descriptor configs
-      var serviceConfigPropertiesNames = (self.get('content.serviceConfigProperties') || []).mapProperty('name'),
-       serviceConfigPropertiesFileNames = (self.get('content.serviceConfigProperties') || []).mapProperty('filename'),
-       recommendedToDelete = self.get('_dependentConfigValues').filterProperty('toDelete');
-      recommendedToDelete.forEach(function (c) {
-        var name = Em.get(c, 'propertyName'),
-         filename = Em.get(c, 'fileName');
-        if (serviceConfigPropertiesNames.contains(name) && serviceConfigPropertiesFileNames.contains(filename)) {
-          Em.set(c, 'toDelete', false);
-        }
-      });
-
-      var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
-      if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
-        App.config.removeRangerConfigs(self.get('stepConfigs'));
-      }
-      if (!self.get('content.serviceConfigProperties.length')) {
-        // for Add Service just remove or add dependent properties and ignore config values changes
-        // for installed services only
+    var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
+    if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
+      App.config.removeRangerConfigs(self.get('stepConfigs'));
+    }
+    if (this.get('content.serviceConfigProperties.length') > 0) {
+      this.completeConfigLoading();
+    } else {
+      this.loadServerSideConfigsRecommendations().always(function () {
         if (self.get('wizardController.name') == 'addServiceController') {
+          // for Add Service just remove or add dependent properties and ignore config values changes
+          // for installed services only
           self.addRemoveDependentConfigs(self.get('installedServiceNames'));
           self.clearDependenciesForInstalledServices(self.get('installedServiceNames'), self.get('stepConfigs'));
         }
         // * add dependencies based on recommendations
         // * update config values with recommended
-        // * remove properties recieved from recommendations
+        // * remove properties received from recommendations
         self.updateDependentConfigs();
-      } else {
-        // control flow for managing dependencies for stored configs,
-        // * Don't update values with recommended to save user's input
-        // * add dependencies based on user's input for parent configs
-        // * remove dependencies based on user's input for parent configs
-        self.addRemoveDependentConfigs();
-      }
-      self.restoreRecommendedConfigs();
-      self.clearDependentConfigsByService(App.StackService.find().filterProperty('isSelected').mapProperty('serviceName'));
-      self.set('isRecommendedLoaded', true);
-      if (self.get('content.skipConfigStep')) {
-        App.router.send('next');
-      }
-      self.set('hash', self.getHash());
-    });
+        self.completeConfigLoading();
+      });
+    }
   },
 
+  completeConfigLoading: function() {
+    this.clearDependentConfigsByService(App.StackService.find().filterProperty('isSelected').mapProperty('serviceName'));
+    this.set('isRecommendedLoaded', true);
+    if (this.get('content.skipConfigStep')) {
+      App.router.send('next');
+    }
+    this.set('hash', this.getHash());
+  },
   /**
    * After user navigates back to step7, values for depended configs should be set to values set by user and not to default values
    * @method restoreRecommendedConfigs

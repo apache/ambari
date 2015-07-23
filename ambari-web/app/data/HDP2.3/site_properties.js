@@ -46,7 +46,8 @@ var excludedConfigs = [
   'hbase.regionserver.global.memstore.upperLimit',
   "port",
   "hive.metastore.heapsize",
-  "hive.client.heapsize"
+  "hive.client.heapsize",
+  "SQL_COMMAND_INVOKER"
 ];
 
 var hdp23properties = hdp22properties.filter(function (item) {

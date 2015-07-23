@@ -45,21 +45,6 @@ describe('App.config', function () {
     });
   };
 
-  var setupContentForMergeWithStored = function(context) {
-    loadServiceModelsData(context.installedServiceNames);
-    loadAllServicesConfigs(context);
-    setups.setupStackVersion(this, 'HDP-2.1');
-    context.result = App.config.mergePreDefinedWithStored(context.storedConfigs, modelSetup.setupAdvancedConfigsObject(), context.installedServiceNames);
-  };
-
-  var removeServiceModelData = function(serviceIds) {
-    serviceIds.forEach(function(serviceId) {
-      var record = App.Service.find(serviceId);
-      record.deleteRecord();
-      record.get('stateManager').transitionTo('loading');
-    });
-  };
-
   describe('#handleSpecialProperties', function () {
     var config = {};
     it('value should be transformed to "1024" from "1024m"', function () {
@@ -1258,12 +1243,12 @@ describe('App.config', function () {
       isVisible: true,
       isUserProperty: false,
       isRequired: true,
+      group: null,
       id: 'site property',
       isRequiredByAgent:  true,
       isReconfigurable: true,
       isObserved: false,
       unit: null,
-      overrides: null,
       hasInitialValue: false,
       isOverridable: true,
       index: null,

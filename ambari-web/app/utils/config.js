@@ -370,12 +370,12 @@ App.config = Em.Object.create({
       isVisible: true,
       isUserProperty: !definedInStack,
       isRequired: definedInStack,
+      group: null,
       id: 'site property',
       isRequiredByAgent:  true,
       isReconfigurable: true,
       isObserved: false,
       unit: null,
-      overrides: null,
       hasInitialValue: false,
       isOverridable: true,
       index: null,
@@ -390,12 +390,12 @@ App.config = Em.Object.create({
    * This method merge properties form <code>stackConfigProperty<code> which are taken from stack
    * with <code>UIConfigProperty<code> which are hardcoded on UI
    * @param coreObject
-   * @param preDefined
    * @param stackProperty
+   * @param preDefined
    * @param [propertiesToSkip]
    * @param [preDefinedOnly]
    */
-  mergeStaticProperties: function(coreObject, preDefined, stackProperty, propertiesToSkip, preDefinedOnly) {
+  mergeStaticProperties: function(coreObject, stackProperty, preDefined, propertiesToSkip, preDefinedOnly) {
     propertiesToSkip = propertiesToSkip || ['name', 'filename', 'value', 'savedValue', 'isFinal', 'savedIsFinal'];
     preDefinedOnly = preDefinedOnly || ['id'];
     for (var k in coreObject) {
@@ -581,15 +581,10 @@ App.config = Em.Object.create({
 
   /**
    * merge stored configs with pre-defined
-   * @param storedConfigs
-   * @param advancedConfigs
-   * @param selectedServiceNames
    * @return {Array}
    */
-  mergePreDefinedWithStored: function (storedConfigs, advancedConfigs, selectedServiceNames) {
+  mergePreDefinedWithStack: function (selectedServiceNames) {
     var mergedConfigs = [];
-
-    storedConfigs = (storedConfigs) ? storedConfigs : [];
 
     var configTypes = App.StackService.find().filter(function(service) {
       return selectedServiceNames.contains(service.get('serviceName'));
@@ -598,60 +593,30 @@ App.config = Em.Object.create({
     }).reduce(function(p,c) { return p.concat(c); }).concat(['cluster-env', 'alert_notification'])
       .uniq().compact().filter(function(configType) { return !!configType; });
 
-    var storedIds = storedConfigs.map(function(s) { return this.configId(s.name, s.filename); }, this);
     var predefinedIds = Object.keys(this.get('preDefinedSitePropertiesMap'));
-    var stackIds = advancedConfigs.mapProperty('id');
+    var stackIds = App.StackConfigProperty.find().mapProperty('id');
 
-    var configIds = stackIds.concat(predefinedIds).concat(storedIds).uniq();
+    var configIds = stackIds.concat(predefinedIds).uniq();
 
     configIds.forEach(function(id) {
-      if (id) {
-        var stored = storedConfigs.findProperty('configId', id);
-        var preDefined = this.get('preDefinedSitePropertiesMap')[id];
-        var advanced = App.StackConfigProperty.find(id);
 
-        var name = this.getPropertyIfExists('name', stored && stored.name, advanced, preDefined);
-        var filename = this.getPropertyIfExists('filename', stored && stored.filename, advanced, preDefined);
-        if (configTypes.contains(this.getConfigTagFromFileName(filename))) {
+      var preDefined = this.get('preDefinedSitePropertiesMap')[id];
+      var advanced = App.StackConfigProperty.find(id);
 
-          var isAdvanced = advanced.get('id');
-          var core = stored || { value: this.getPropertyIfExists('value', '', advanced, preDefined), isFinal: this.getPropertyIfExists('isFinal', false, advanced, preDefined)};
-          var configData = this.createDefaultConfig(name, filename, isAdvanced || !!preDefined, core);
+      var name = preDefined ? preDefined.name : advanced.get('name');
+      var filename = preDefined ? preDefined.filename : advanced.get('filename');
+      if (configTypes.contains(this.getConfigTagFromFileName(filename))) {
+        var configData = this.createDefaultConfig(name, filename, true, preDefined || {});
 
-          if (preDefined && !stored) {
-            // skip property if predefined config doesn't exist or ignored in stack property definition for current stack.
-            // if `isRequiredByAgent` is set to `false` then this property used by UI only to display properties like
-            // host names or some misc properties that won't be persisted.
-            if (Em.get(preDefined, 'isRequiredByAgent') !== false && !isAdvanced &&
-             filename != 'alert_notification' && advanced.get('serviceName') != 'MISC' &&
-              !['hive_hostname',
-                'oozie_hostname',
-                'hive_existing_oracle_host',
-                'hive_existing_postgresql_host',
-                'hive_existing_mysql_host',
-                'hive_existing_mssql_server_host',
-                'hive_existing_mssql_server_2_host',
-                'oozie_existing_oracle_host',
-                'oozie_existing_postgresql_host',
-                'oozie_existing_mysql_host',
-                'oozie_existing_mssql_server_host',
-                'oozie_existing_mssql_server_2_host'
-              ].contains(Em.get(preDefined, 'name'))) {
-              return;
-            }
-          }
+        configData = this.mergeStaticProperties(configData, advanced.get('id') ? advanced : null, null, ['name', 'filename']);
 
-          configData = this.mergeStaticProperties(configData, preDefined, isAdvanced ? advanced : null);
-
-          if (configData.displayType === 'password') {
-            configData.value = stored ? stored.value : configData.recommendedValue || '';
-          } else if (configData.displayType == 'directory' || configData.displayType == 'directories') {
-            configData.value = configData.recommendedValue || configData.defaultDirectory || '';
-          }
-
-          mergedConfigs.push(configData);
+        if (['directory' ,'directories'].contains(configData.displayType)) {
+          configData.value = configData.recommendedValue || configData.defaultDirectory || '';
         }
+
+        mergedConfigs.push(configData);
       }
+
     }, this);
     return mergedConfigs;
   },

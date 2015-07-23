@@ -856,30 +856,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       }
 
       _content.get('configs').forEach(function (_configProperties) {
-        var configProperty = {
-          id: _configProperties.get('id'),
-          name: _configProperties.get('name'),
-          displayName: _configProperties.get('displayName'),
-          value: _configProperties.get('value'),
-          savedValue: _configProperties.get('savedValue'),
-          recommendedValue: _configProperties.get('recommendedValue'),
-          description: _configProperties.get('description'),
-          serviceName: _configProperties.get('serviceName'),
-          domain: _configProperties.get('domain'),
-          isVisible: _configProperties.get('isVisible'),
-          isFinal: _configProperties.get('isFinal'),
-          recommendedIsFinal: _configProperties.get('isFinal'),
-          supportsFinal: _configProperties.get('supportsFinal'),
-          filename: _configProperties.get('filename'),
-          displayType: _configProperties.get('displayType'),
-          isRequiredByAgent: _configProperties.get('isRequiredByAgent'),
-          hasInitialValue: !!_configProperties.get('hasInitialValue'),
-          isRequired: _configProperties.get('isRequired'), // flag that allow saving property with empty value
-          group: !!_configProperties.get('group') ? _configProperties.get('group.name') : null,
-          showLabel: _configProperties.get('showLabel'),
-          category: _configProperties.get('category'),
-          configId: App.config.configId(_configProperties.get('name'),_configProperties.get('filename'))
-        };
+        var configProperty = App.config.createDefaultConfig(_configProperties.get('name'), _configProperties.get('filename'), _configProperties.get('isUserProperty'), {value: _configProperties.get('value')});
+        configProperty = App.config.mergeStaticProperties(configProperty, _configProperties, ['name', 'filename']);
 
         if (this.isExcludedConfig(configProperty)) {
           configProperty.value = '';
