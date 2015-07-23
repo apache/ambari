@@ -43,7 +43,7 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.cpu[name];
         if (seriesData) {
           var s = this.transformData(seriesData, name);
-          if (name === 'Idle') {
+          if (name.indexOf("Idle") > -1) {
             //CPU idle metric should be the last in series array
             idle = s;
             continue;
