@@ -157,7 +157,11 @@ App.QuickViewLinks = Em.View.extend({
           var protocol = self.setProtocol(item.get('service_id'), self.get('configProperties'), self.ambariProperties());
           if (item.get('template')) {
             var port = item.get('http_config') && self.setPort(item, protocol);
-            newItem.url = item.get('template').fmt(protocol, host.publicHostName, port);
+            if (item.get('service_id')==='OOZIE') {
+              newItem.url = item.get('template').fmt(protocol, host.publicHostName, port, App.router.get('loginName'));
+            } else {
+              newItem.url = item.get('template').fmt(protocol, host.publicHostName, port);
+            }
             newItem.label = item.get('label');
           }
           quickLinks.push(newItem);
@@ -187,6 +191,20 @@ App.QuickViewLinks = Em.View.extend({
     }
     var hosts = [];
     switch (serviceName) {
+      case 'OOZIE':
+        // active OOZIE components
+        var components = this.get('content.hostComponents').filterProperty('componentName','OOZIE_SERVER').filterProperty('workStatus', 'STARTED');
+        if (components && components.length > 1) {
+          components.forEach(function (component) {
+            hosts.push({
+              'publicHostName': response.items.findProperty('Hosts.host_name', component.get('hostName')).Hosts.public_host_name,
+              'status': Em.I18n.t('quick.links.label.active')
+            });
+          });
+        } else if (components && components.length === 1) {
+          hosts[0] = this.findComponentHost(response.items, 'OOZIE_SERVER');
+        }
+        break;
       case "HDFS":
         if (this.get('content.snameNode')) {
           // not HA
