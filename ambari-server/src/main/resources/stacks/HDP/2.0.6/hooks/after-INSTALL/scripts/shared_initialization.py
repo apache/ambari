@@ -153,14 +153,16 @@ def _link_configs(package, version, dirs):
 
   # make /usr/hdp/[version]/[component]/conf point to the versioned config.
   # /usr/hdp/current is already set
-  conf_select.select("HDP", package, version)
+  try:
+    conf_select.select("HDP", package, version)
 
-  # no more references to /etc/[component]/conf
-  for dir_def in dirs:
-    Directory(dir_def['conf_dir'], action="delete")
+    # no more references to /etc/[component]/conf
+    for dir_def in dirs:
+      Directory(dir_def['conf_dir'], action="delete")
 
-    # link /etc/[component]/conf -> /usr/hdp/current/[component]-client/conf
-    Link(dir_def['conf_dir'], to = dir_def['current_dir'])
-      
+      # link /etc/[component]/conf -> /usr/hdp/current/[component]-client/conf
+      Link(dir_def['conf_dir'], to = dir_def['current_dir'])
+  except Exception, e:
+    Logger.warning("Could not select the directory: {0}".format(e.message))
+
   # should conf.install be removed?
-
