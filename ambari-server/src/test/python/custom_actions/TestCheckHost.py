@@ -288,3 +288,42 @@ class TestCheckHost(TestCase):
 
     #ensure the correct response is returned
     put_structured_out_mock.assert_called_with({'last_agent_env_check': {'message': 'test exception', 'exit_code': 1}})
+
+
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  @patch.object(Script, 'get_tmp_dir')
+  @patch.object(Script, 'get_config')
+  @patch("os.path.isfile")
+  @patch('__builtin__.open')
+  def testTransparentHugePage(self, open_mock, os_path_isfile_mock, mock_config, get_tmp_dir_mock, structured_out_mock):
+    context_manager_mock = MagicMock()
+    open_mock.return_value = context_manager_mock
+    file_mock = MagicMock()
+    file_mock.read.return_value = "[never] always"
+    enter_mock = MagicMock()
+    enter_mock.return_value = file_mock
+    enter_mock = MagicMock()
+    enter_mock.return_value = file_mock
+    exit_mock  = MagicMock()
+    setattr( context_manager_mock, '__enter__', enter_mock )
+    setattr( context_manager_mock, '__exit__', exit_mock )
+    os_path_isfile_mock.return_value = True
+    get_tmp_dir_mock.return_value = "/tmp"
+    mock_config.return_value = {"commandParams" : {"check_execute_list" : "transparentHugePage"}}
+
+    checkHost = CheckHost()
+    checkHost.actionexecute(None)
+
+    self.assertEquals(structured_out_mock.call_args[0][0], {'transparentHugePage' : {'message': 'never', 'exit_code': 0}})
+
+    # case 2, file not exists
+    os_path_isfile_mock.return_value = False
+    checkHost.actionexecute(None)
+
+    self.assertEquals(structured_out_mock.call_args[0][0], {'transparentHugePage' : {'message': '', 'exit_code': 0}})
+
+
+
+
+
+

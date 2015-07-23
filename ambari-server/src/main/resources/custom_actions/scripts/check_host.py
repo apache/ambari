@@ -21,6 +21,7 @@ Ambari Agent
 """
 
 import os
+import re
 import subprocess
 import socket
 import getpass
@@ -42,6 +43,7 @@ CHECK_HOST_RESOLUTION = "host_resolution_check"
 CHECK_LAST_AGENT_ENV = "last_agent_env_check"
 CHECK_INSTALLED_PACKAGES = "installed_packages"
 CHECK_EXISTING_REPOS = "existing_repos"
+CHECK_TRANSPARENT_HUGE_PAGE = "transparentHugePage"
 
 DB_MYSQL = "mysql"
 DB_ORACLE = "oracle"
@@ -58,6 +60,8 @@ JDBC_DRIVER_SYMLINK_ORACLE = "oracle-jdbc-driver.jar"
 JDBC_DRIVER_SYMLINK_POSTGRESQL = "postgres-jdbc-driver.jar"
 JDBC_DRIVER_SYMLINK_MSSQL = "sqljdbc4.jar"
 JDBC_AUTH_SYMLINK_MSSQL = "sqljdbc_auth.dll"
+
+THP_FILE = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
 
 class CheckHost(Script):
   # Packages that are used to find repos (then repos are used to find other packages)
@@ -146,7 +150,23 @@ class CheckHost(Script):
         print "There was an unknown error while checking installed packages and existing repositories: " + str(exception)
         structured_output[CHECK_INSTALLED_PACKAGES] = {"exit_code" : 1, "message": str(exception)}
         structured_output[CHECK_EXISTING_REPOS] = {"exit_code" : 1, "message": str(exception)}
-        
+
+    # Here we are checking transparent huge page if CHECK_TRANSPARENT_HUGE_PAGE is in check_execute_list
+    if CHECK_TRANSPARENT_HUGE_PAGE in check_execute_list:
+      try :
+        # This file exist only on redhat 6
+        thp_regex = "\[(.+)\]"
+        if os.path.isfile(THP_FILE):
+          with open(THP_FILE) as f:
+            file_content = f.read()
+            structured_output[CHECK_TRANSPARENT_HUGE_PAGE] = {"exit_code" : 0, "message": str(re.search(thp_regex,
+                                                                                            file_content).groups()[0])}
+        else:
+          structured_output[CHECK_TRANSPARENT_HUGE_PAGE] = {"exit_code" : 0, "message": ""}
+      except Exception, exception :
+        print "There was an unknown error while getting transparent huge page data: " + str(exception)
+        structured_output[CHECK_TRANSPARENT_HUGE_PAGE] = {"exit_code" : 1, "message": str(exception)}
+
     # this is necessary for HostCleanup to know later what were the results.
     self.reportFileHandler.writeHostChecksCustomActionsFile(structured_output)
     
