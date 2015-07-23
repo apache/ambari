@@ -22,6 +22,8 @@ from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.jmx import get_value_from_jmx
 from resource_management.core.base import Fail
+from resource_management.core import shell
+
 __all__ = ["get_namenode_states", "get_active_namenode", "get_property_for_active_namenode"]
 
 HDFS_NN_STATE_ACTIVE = 'active'
@@ -63,14 +65,23 @@ def get_namenode_states(hdfs_site, security_enabled, run_user):
       jmx_uri = JMX_URI_FRAGMENT.format(protocol, value)
       
       state = get_value_from_jmx(jmx_uri, 'tag.HAState', security_enabled, run_user, is_https_enabled)
-      
+      # If JMX parsing failed
+      if not state:
+        check_service_cmd = "hdfs haadmin -getServiceState {0}".format(nn_unique_id)
+        code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
+        if code == 0 and out:
+          if HDFS_NN_STATE_STANDBY in out:
+            state = HDFS_NN_STATE_STANDBY
+          elif HDFS_NN_STATE_ACTIVE in out:
+            state = HDFS_NN_STATE_ACTIVE
+
       if state == HDFS_NN_STATE_ACTIVE:
         active_namenodes.append((nn_unique_id, value))
       elif state == HDFS_NN_STATE_STANDBY:
         standby_namenodes.append((nn_unique_id, value))
       else:
         unknown_namenodes.append((nn_unique_id, value))
-        
+
   return active_namenodes, standby_namenodes, unknown_namenodes
 
 def is_ha_enabled(hdfs_site):
