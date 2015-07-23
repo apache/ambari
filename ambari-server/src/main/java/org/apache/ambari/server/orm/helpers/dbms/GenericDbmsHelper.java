@@ -137,15 +137,21 @@ public class GenericDbmsHelper implements DbmsHelper {
     return builder;
   }
 
-  public  StringBuilder writeDropPrimaryKeyStatement(StringBuilder builder, String constraintName){
+  /**
+   * @param builder String Builder passed by reference
+   * @param constraintName Constraint Name used by Postgres
+   * @param cascade In postgres, can perform a CASCADE delete. In the other DB flavors, this is ignored.
+   * @return Return the String Builder
+   */
+  public  StringBuilder writeDropPrimaryKeyStatement(StringBuilder builder, String constraintName, boolean cascade){
       // constraintName required only for postgres
       return builder.append("DROP PRIMARY KEY");
   }
 
   @Override
-  public String getDropPrimaryKeyStatement(String tableName, String constraintName){
+  public String getDropPrimaryKeyStatement(String tableName, String constraintName, boolean cascade){
       StringBuilder builder = writeAlterTableClause(new StringBuilder(), tableName);
-      return writeDropPrimaryKeyStatement(builder, constraintName).toString();
+      return writeDropPrimaryKeyStatement(builder, constraintName, cascade).toString();
   }
 
   /**

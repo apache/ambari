@@ -422,7 +422,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " DROP CONSTRAINT " + constraintName);
       }
     } else {
-      dbAccessor.dropPKConstraint(HOSTS_TABLE, "hosts_pkey", "host_name");
+      dbAccessor.dropPKConstraint(HOSTS_TABLE, "hosts_pkey", "host_name", true);
     }
 
     dbAccessor.addPKConstraint(HOSTS_TABLE, "PK_hosts_id", "host_id");
@@ -497,14 +497,14 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       }
     } else {
       // drop constrain only if existed constraint contains required column
-      dbAccessor.dropPKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "configgrouphostmapping_pkey", HOST_NAME_COL);
-      dbAccessor.dropPKConstraint(CLUSTER_HOST_MAPPING_TABLE, "clusterhostmapping_pkey",HOST_NAME_COL);
-      dbAccessor.dropPKConstraint(HOST_CONFIG_MAPPING_TABLE, "hostconfigmapping_pkey", HOST_NAME_COL);
-      dbAccessor.dropPKConstraint(HOST_COMPONENT_STATE_TABLE, "hostcomponentstate_pkey", HOST_NAME_COL);
-      dbAccessor.dropPKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "hostcomponentdesiredstate_pkey", HOST_NAME_COL);
-      dbAccessor.dropPKConstraint(HOST_STATE_TABLE, "hoststate_pkey", HOST_NAME_COL);
-      dbAccessor.dropPKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "kerberos_principal_host_pkey", HOST_NAME_COL);
-      dbAccessor.dropPKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "serviceconfighosts_pkey", "hostname");
+      dbAccessor.dropPKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "configgrouphostmapping_pkey", HOST_NAME_COL, true);
+      dbAccessor.dropPKConstraint(CLUSTER_HOST_MAPPING_TABLE, "clusterhostmapping_pkey",HOST_NAME_COL, true);
+      dbAccessor.dropPKConstraint(HOST_CONFIG_MAPPING_TABLE, "hostconfigmapping_pkey", HOST_NAME_COL, true);
+      dbAccessor.dropPKConstraint(HOST_COMPONENT_STATE_TABLE, "hostcomponentstate_pkey", HOST_NAME_COL, true);
+      dbAccessor.dropPKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "hostcomponentdesiredstate_pkey", HOST_NAME_COL, true);
+      dbAccessor.dropPKConstraint(HOST_STATE_TABLE, "hoststate_pkey", HOST_NAME_COL, true);
+      dbAccessor.dropPKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "kerberos_principal_host_pkey", HOST_NAME_COL, true);
+      dbAccessor.dropPKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "serviceconfighosts_pkey", "hostname", true);
     }
 
     // Finish by deleting the unnecessary host_name columns.

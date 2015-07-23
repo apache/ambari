@@ -765,9 +765,9 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
-  public void dropPKConstraint(String tableName, String constraintName, String columnName) throws SQLException {
+  public void dropPKConstraint(String tableName, String constraintName, String columnName, boolean cascade) throws SQLException {
     if (tableHasPrimaryKey(tableName, columnName)) {
-      String query = dbmsHelper.getDropPrimaryKeyStatement(convertObjectName(tableName), constraintName);
+      String query = dbmsHelper.getDropPrimaryKeyStatement(convertObjectName(tableName), constraintName, cascade);
       executeQuery(query, false);
     } else {
       LOG.warn("Primary key doesn't exists for {} table, skipping", tableName);
@@ -775,14 +775,14 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
-  public void dropPKConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException {
+  public void dropPKConstraint(String tableName, String constraintName, boolean ignoreFailure, boolean cascade) throws SQLException {
     /*
      * Note, this is un-safe implementation as constraint name checking will work only for PostgresSQL,
      * MySQL and Oracle doesn't use constraint name for drop primary key
      * Consider to use implementation with column name checking for existed constraint.
      */
     if (tableHasPrimaryKey(tableName, null)) {
-      String query = dbmsHelper.getDropPrimaryKeyStatement(convertObjectName(tableName), constraintName);
+      String query = dbmsHelper.getDropPrimaryKeyStatement(convertObjectName(tableName), constraintName, cascade);
       executeQuery(query, ignoreFailure);
     } else {
       LOG.warn("Primary key doesn't exists for {} table, skipping", tableName);
@@ -790,8 +790,8 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
-  public void dropPKConstraint(String tableName, String constraintName) throws SQLException {
-    dropPKConstraint(tableName, constraintName, false);
+  public void dropPKConstraint(String tableName, String constraintName, boolean cascade) throws SQLException {
+    dropPKConstraint(tableName, constraintName, false, cascade);
   }
 
   @Override

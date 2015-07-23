@@ -98,7 +98,7 @@ public interface DbmsHelper {
 
   String getDropSequenceStatement(String sequenceName);
 
-  String getDropPrimaryKeyStatement(String tableName, String constraintName);
+  String getDropPrimaryKeyStatement(String tableName, String constraintName, boolean cascade);
 
   /**
    * Gets the {@code SET NULL} or {@code SET NOT NULL} statement.
