@@ -708,7 +708,7 @@ public class ClustersImpl implements Clusters {
   @Override
   public void unmapHostFromCluster(String hostname, String clusterName) throws AmbariException {
     final Cluster cluster = getCluster(clusterName);
-    this.unmapHostFromClusters(hostname, new HashSet<Cluster>() {{ add(cluster); }});
+    unmapHostFromClusters(hostname, new HashSet<Cluster>() {{ add(cluster); }});
   }
 
   public void unmapHostFromClusters(String hostname, Set<Cluster> clusters) throws AmbariException {
@@ -803,7 +803,7 @@ public class ClustersImpl implements Clusters {
       // Remove from all clusters in the cluster_host_mapping table.
       // This will also remove from kerberos_principal_hosts, hostconfigmapping, and configgrouphostmapping 
       Set<Cluster> clusters = hostClusterMap.get(hostname);
-      this.unmapHostFromClusters(hostname, clusters);
+      unmapHostFromClusters(hostname, clusters);
       hostDAO.refresh(entity);
 
       hostVersionDAO.removeByHostName(hostname);

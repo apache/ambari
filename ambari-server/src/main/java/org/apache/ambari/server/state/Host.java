@@ -35,7 +35,7 @@ public interface Host {
   /**
    * @return the hostName
    */
-  public String getHostName();
+  String getHostName();
 
   /**
    * @return host id
@@ -45,81 +45,81 @@ public interface Host {
   /**
    * @param hostName the hostName to set
    */
-  public void setHostName(String hostName);
+  void setHostName(String hostName);
 
   /**
    * @return the currentPingPort
    */
-  public Integer getCurrentPingPort();
+  Integer getCurrentPingPort();
 
   /**
    * @param currentPingPort the currentPingPort to set
    */
-  public void setCurrentPingPort(Integer currentPingPort);
+  void setCurrentPingPort(Integer currentPingPort);
 
   /**
    * Gets the public-facing host name.
    */
-  public void setPublicHostName(String hostName);
-  
+  void setPublicHostName(String hostName);
+
   /**
    * Sets the public-facing host name.
    */
-  public String getPublicHostName();
-  
+  String getPublicHostName();
+
   /**
    * IPv4 assigned to the Host
    * @return the ip or null if no IPv4 interface
    */
-  public String getIPv4();
+  String getIPv4();
 
   /**
    * @param ip the ip to set
    */
-  public void setIPv4(String ip);
+  void setIPv4(String ip);
 
   /**
    * IPv6 assigned to the Host
    * @return the ip or null if no IPv6 interface
    */
-  public String getIPv6();
+  String getIPv6();
 
   /**
    * @param ip the ip to set
    */
-  public void setIPv6(String ip);
+  void setIPv6(String ip);
 
   /**
    * @return the cpuCount
    */
-  public int getCpuCount();
+  int getCpuCount();
 
   /**
    * @param cpuCount the cpuCount to set
    */
-  public void setCpuCount(int cpuCount);
+  void setCpuCount(int cpuCount);
 
   /**
    * @return the physical cpu cores
    */
-  public int getPhCpuCount();
+  int getPhCpuCount();
 
   /**
    * @param phCpuCount the physical cpu cores to set
    */
-  public void setPhCpuCount(int phCpuCount);
-  
+  void setPhCpuCount(int phCpuCount);
+
   /**
    * Get the Amount of physical memory for the Host.
    * @return the totalMemBytes
    */
-  public long getTotalMemBytes();
+  long getTotalMemBytes();
 
   /**
    * Set the Amount of physical memory for the Host.
    * @param totalMemBytes the totalMemBytes to set
    */
-  public void setTotalMemBytes(long totalMemBytes);
+  void setTotalMemBytes(long totalMemBytes);
 
   /**
    * Get the Amount of available memory for the Host.
@@ -128,213 +128,215 @@ public interface Host {
    * available memory
    * @return the availableMemBytes
    */
-  public long getAvailableMemBytes();
+  long getAvailableMemBytes();
 
   /**
    * Set the Amount of available memory for the Host.
    * @param availableMemBytes the availableMemBytes to set
    */
-  public void setAvailableMemBytes(long availableMemBytes);
+  void setAvailableMemBytes(long availableMemBytes);
 
   /**
    * Get the OS Architecture.
    * i386, x86_64, etc.
    * @return the osArch
    */
-  public String getOsArch();
+  String getOsArch();
 
   /**
    * @param osArch the osArch to set
    */
-  public void setOsArch(String osArch);
+  void setOsArch(String osArch);
 
   /**
    * Get the General OS information.
    * uname -a, /etc/*-release dump
    * @return the osInfo
    */
-  public String getOsInfo();
+  String getOsInfo();
 
   /**
    * @param osInfo the osInfo to set
    */
-  public void setOsInfo(String osInfo);
+  void setOsInfo(String osInfo);
 
   /**
    * Get the OS Type: RHEL6/CentOS6/...
    * Defined and match-able OS type
    * @return the osType
    */
-  public String getOsType();
-  
+  String getOsType();
+
   /**
-   * Get the os Family: 
+   * Get the os Family:
    * redhat6: for centos6, rhel6, oraclelinux6 ..
    * ubuntu12 : for ubuntu12
    * suse11: for sles11, suse11 ..
-   * 
+   *
    * @return the osFamily
    */
-  public String getOsFamily();
+  String getOsFamily();
 
   /**
    * @param osType the osType to set
    */
-  public void setOsType(String osType);
+  void setOsType(String osType);
 
   /**
    * Get information on disks available on the host.
    * @return the disksInfo
    */
-  public List<DiskInfo> getDisksInfo();
+  List<DiskInfo> getDisksInfo();
 
   /**
    * @param disksInfo the disksInfo to set
    */
-  public void setDisksInfo(List<DiskInfo> disksInfo);
+  void setDisksInfo(List<DiskInfo> disksInfo);
 
   /**
    * @return the healthStatus
    */
-  public HostHealthStatus getHealthStatus();
+  HostHealthStatus getHealthStatus();
 
   /**
    * Get detailed recovery report for the host
    * @return
    */
-  public RecoveryReport getRecoveryReport();
+  RecoveryReport getRecoveryReport();
 
   /**
    * Set detailed recovery report for the host
    */
-  public void setRecoveryReport(RecoveryReport recoveryReport);
+  void setRecoveryReport(RecoveryReport recoveryReport);
 
   /**
    * @param healthStatus the healthStatus to set
    */
-  public void setHealthStatus(HostHealthStatus healthStatus);
+  void setHealthStatus(HostHealthStatus healthStatus);
 
   /**
    * Get additional host attributes
    * For example, public/hostname/IP for AWS
    * @return the hostAttributes
    */
-  public Map<String, String> getHostAttributes();
+  Map<String, String> getHostAttributes();
 
   /**
    * @param hostAttributes the hostAttributes to set
    */
-  public void setHostAttributes(Map<String, String> hostAttributes);
+  void setHostAttributes(Map<String, String> hostAttributes);
+
   /**
    * @return the rackInfo
    */
-  public String getRackInfo();
+  String getRackInfo();
 
   /**
    * @param rackInfo the rackInfo to set
    */
-  public void setRackInfo(String rackInfo);
+  void setRackInfo(String rackInfo);
 
   /**
    * Last time the host registered with the Ambari Server
    * ( Unix timestamp )
    * @return the lastRegistrationTime
    */
-  public long getLastRegistrationTime();
+  long getLastRegistrationTime();
 
   /**
    * @param lastRegistrationTime the lastRegistrationTime to set
    */
-  public void setLastRegistrationTime(long lastRegistrationTime);
+  void setLastRegistrationTime(long lastRegistrationTime);
 
   /**
    * Last time the Ambari Server received a heartbeat from the Host
    * ( Unix timestamp )
    * @return the lastHeartbeatTime
    */
-  public long getLastHeartbeatTime();
+  long getLastHeartbeatTime();
 
   /**
    * @param lastHeartbeatTime the lastHeartbeatTime to set
    */
-  public void setLastHeartbeatTime(long lastHeartbeatTime);
+  void setLastHeartbeatTime(long lastHeartbeatTime);
 
   /**
    * Sets the latest agent environment that arrived in a heartbeat.
    */
-  public void setLastAgentEnv(AgentEnv env);
-  
+  void setLastAgentEnv(AgentEnv env);
+
   /**
    * Gets the latest agent environment that arrived in a heartbeat.
    */
-  public AgentEnv getLastAgentEnv();
-  
+  AgentEnv getLastAgentEnv();
+
   /**
    * Version of the Ambari Agent running on the host
    * @return the agentVersion
    */
-  public AgentVersion getAgentVersion();
+  AgentVersion getAgentVersion();
 
   /**
    * @param agentVersion the agentVersion to set
    */
-  public void setAgentVersion(AgentVersion agentVersion);
+  void setAgentVersion(AgentVersion agentVersion);
 
   /**
    * Get Current Host State
    * @return HostState
    */
-  public HostState getState();
+  HostState getState();
 
   /**
    * Set the State of the Host
    * @param state Host State
    */
-  public void setState(HostState state);
+  void setState(HostState state);
 
   /**
    * Get the prefix path of all logs
    * @return prefix
    */
-  public String getPrefix();
+  String getPrefix();
 
   /**
    * Set the prefix path of all logs of the host
    * @param prefix the prefix path to set
    */
-  public void setPrefix(String prefix);
+  void setPrefix(String prefix);
 
   /**
    * Send an event to the Host's StateMachine
    * @param event HostEvent
    * @throws InvalidStateTransitionException
    */
-  public void handleEvent(HostEvent event)
+  void handleEvent(HostEvent event)
       throws InvalidStateTransitionException;
 
   /**
    * Get time spent in the current state i.e. the time since last state change.
    * @return Time spent in current state.
    */
-  public long getTimeInState();
+  long getTimeInState();
 
   /**
    * @param timeInState the timeInState to set
    */
-  public void setTimeInState(long timeInState);
-  
+  void setTimeInState(long timeInState);
+
   /**
    * Get Current Host Status
    * @return String
    */
-  public String getStatus();
+  String getStatus();
+
   /**
    * Set the Status of the Host
    * @param status Host Status
    */
-  public void setStatus(String status);
+  void setStatus(String status);
 
-  public HostResponse convertToResponse();
+  HostResponse convertToResponse();
 
   boolean isPersisted();
 
@@ -354,13 +356,13 @@ public interface Host {
    * @return <code>true</code> if the config was added, or <code>false</code>
    * if the config is already set as the current
    */
-  public boolean addDesiredConfig(long clusterId, boolean selected, String user, Config config);
-  
+  boolean addDesiredConfig(long clusterId, boolean selected, String user, Config config);
+
   /**
    * Gets all the selected configurations for the host.
    * return a map of type-to-{@link DesiredConfig} instances.
    */
-  public Map<String, DesiredConfig> getDesiredConfigs(long clusterId);
+  Map<String, DesiredConfig> getDesiredConfigs(long clusterId);
 
   /**
    * Get the desired configurations for the host including overrides
@@ -368,24 +370,24 @@ public interface Host {
    * @return
    * @throws AmbariException
    */
-  public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster) throws AmbariException;
-  
+  Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster) throws AmbariException;
+
   /**
    * Sets the maintenance state for the host.
    * @param clusterId the cluster id
    * @param state the state
    */
-  public void setMaintenanceState(long clusterId, MaintenanceState state);
-  
+  void setMaintenanceState(long clusterId, MaintenanceState state);
+
   /**
    * @param clusterId the cluster id
    * @return the maintenance state
    */
-  public MaintenanceState getMaintenanceState(long clusterId);
+  MaintenanceState getMaintenanceState(long clusterId);
 
   /**
    * Get all of the HostVersionEntity objects for the host.
    * @return
    */
-  public List<HostVersionEntity> getAllHostVersions();
+  List<HostVersionEntity> getAllHostVersions();
 }

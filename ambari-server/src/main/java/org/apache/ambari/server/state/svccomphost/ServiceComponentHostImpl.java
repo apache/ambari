@@ -78,7 +78,6 @@ import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
-import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1053,11 +1052,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public void setStackVersion(StackId stackId) {
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+
     writeLock.lock();
     try {
-      StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
-          stackId.getStackVersion());
-
       getStateEntity().setCurrentStack(stackEntity);
       saveIfPersisted();
     } finally {
@@ -1215,6 +1213,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     return persisted;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p/>
+   * This method uses Java locks and then delegates to internal methods which
+   * perform the JPA merges inside of a transaction. Because of this, a
+   * transaction is not necessary before this calling this method.
+   */
   @Override
   public void persist() {
     boolean clusterWriteLockAcquired = false;
@@ -1230,6 +1235,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           // persist the new cluster topology and then release the cluster lock
           // as it has no more bearing on the rest of this persist() method
           persistEntities();
+          persisted = true;
+
           clusterGlobalLock.writeLock().unlock();
           clusterWriteLockAcquired = false;
 
@@ -1237,7 +1244,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           refresh();
           host.refresh();
           serviceComponent.refresh();
-          persisted = true;
 
           // publish the service component installed event
           StackId stackId = getDesiredStackVersion();
@@ -1297,6 +1303,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
   }
 
+  /**
+   * Merges the encapsulated {@link HostComponentStateEntity} and
+   * {@link HostComponentDesiredStateEntity} inside of a new transaction. This
+   * method assumes that the appropriate write lock has already been acquired
+   * from {@link #readWriteLock}.
+   */
   @Transactional
   private void saveIfPersisted() {
     if (isPersisted()) {

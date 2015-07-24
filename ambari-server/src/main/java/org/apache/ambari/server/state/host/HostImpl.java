@@ -1125,7 +1125,7 @@ public class HostImpl implements Host {
 
     Host that = (Host) o;
 
-    return this.getHostName().equals(that.getHostName());
+    return getHostName().equals(that.getHostName());
   }
 
   @Override
@@ -1136,7 +1136,7 @@ public class HostImpl implements Host {
   public int compareTo(HostEntity other) {
     return getHostName().compareTo(other.getHostName());
   }
-  
+
   @Override
   public HostResponse convertToResponse() {
     try {
@@ -1180,8 +1180,8 @@ public class HostImpl implements Host {
    */
   @Override
   public boolean isPersisted() {
+    readLock.lock();
     try {
-      readLock.lock();
       return persisted;
     } finally {
       readLock.unlock();
@@ -1428,7 +1428,7 @@ public class HostImpl implements Host {
    */
   @Override
   public List<HostVersionEntity> getAllHostVersions() {
-    return hostVersionDAO.findByHost(this.getHostName());
+    return hostVersionDAO.findByHost(getHostName());
   }
 
   // Get the cached host entity or load it fresh through the DAO.

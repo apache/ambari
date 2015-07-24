@@ -2500,68 +2500,92 @@ public class ClusterImpl implements Cluster {
     return clusterDAO.findNextConfigVersion(clusterEntity.getClusterId(), type);
   }
 
-  @Transactional
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Map<ServiceComponentHostEvent, String> processServiceComponentHostEvents(ListMultimap<String, ServiceComponentHostEvent> eventMap) {
-    Map<ServiceComponentHostEvent, String> failedEvents = new HashMap<ServiceComponentHostEvent, String>();
-
     clusterGlobalLock.readLock().lock();
+
     try {
-      for (Entry<String, ServiceComponentHostEvent> entry : eventMap.entries()) {
-        String serviceName = entry.getKey();
-        ServiceComponentHostEvent event = entry.getValue();
-        String serviceComponentName = event.getServiceComponentName();
-
-        // server-side events either don't have a service name or are AMBARI;
-        // either way they are not handled by this method since it expects a
-        // real service and component
-        if (StringUtils.isBlank(serviceName) || Services.AMBARI.name().equals(serviceName)) {
-          continue;
-        }
-
-        if (StringUtils.isBlank(serviceComponentName)) {
-          continue;
-        }
-
-        try {
-          Service service = getService(serviceName);
-          ServiceComponent serviceComponent = service.getServiceComponent(serviceComponentName);
-          ServiceComponentHost serviceComponentHost = serviceComponent.getServiceComponentHost(event.getHostName());
-          serviceComponentHost.handleEvent(event);
-        } catch (ServiceNotFoundException e) {
-          String message = String.format("ServiceComponentHost lookup exception. Service not found for Service: %s. Error: %s",
-                  serviceName, e.getMessage());
-          LOG.error(message);
-          failedEvents.put(event, message);
-        } catch (ServiceComponentNotFoundException e) {
-          String message = String.format("ServiceComponentHost lookup exception. Service Component not found for Service: %s, Component: %s. Error: %s",
-              serviceName, serviceComponentName, e.getMessage());
-          LOG.error(message);
-          failedEvents.put(event, message);
-        } catch (ServiceComponentHostNotFoundException e) {
-          String message = String.format("ServiceComponentHost lookup exception. Service Component Host not found for Service: %s, Component: %s, Host: %s. Error: %s",
-              serviceName, serviceComponentName, event.getHostName(), e.getMessage());
-          LOG.error(message);
-          failedEvents.put(event, message);
-        } catch (AmbariException e) {
-          String message = String.format("ServiceComponentHost lookup exception %s", e.getMessage());
-          LOG.error(message);
-          failedEvents.put(event, message);
-        } catch (InvalidStateTransitionException e) {
-          LOG.error("Invalid transition ", e);
-          if ((e.getEvent() == ServiceComponentHostEventType.HOST_SVCCOMP_START) &&
-            (e.getCurrentState() == State.STARTED)) {
-            LOG.warn("Component request for component = "
-                + serviceComponentName
-                + " to start is invalid, since component is already started. Ignoring this request.");
-            // skip adding this as a failed event, to work around stack ordering issues with Hive
-          } else {
-            failedEvents.put(event, String.format("Invalid transition. %s", e.getMessage()));
-          }
-        }
-      }
+      return processServiceComponentHostEventsInSingleTransaction(eventMap);
     } finally {
       clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  /**
+   * Bulk handle service component host events, wrapping all handling in a
+   * single transaction. This allows
+   * {@link #processServiceComponentHostEvents(ListMultimap)} to lock around the
+   * AoP {@link Transactional} annotation so that the lock is not released
+   * before the transaction is committed.
+   *
+   * @param eventMap
+   * @return the events which failed to be processed.
+   */
+  @Transactional
+  protected Map<ServiceComponentHostEvent, String> processServiceComponentHostEventsInSingleTransaction(
+      ListMultimap<String, ServiceComponentHostEvent> eventMap) {
+    Map<ServiceComponentHostEvent, String> failedEvents = new HashMap<ServiceComponentHostEvent, String>();
+
+    for (Entry<String, ServiceComponentHostEvent> entry : eventMap.entries()) {
+      String serviceName = entry.getKey();
+      ServiceComponentHostEvent event = entry.getValue();
+      String serviceComponentName = event.getServiceComponentName();
+
+      // server-side events either don't have a service name or are AMBARI;
+      // either way they are not handled by this method since it expects a
+      // real service and component
+      if (StringUtils.isBlank(serviceName) || Services.AMBARI.name().equals(serviceName)) {
+        continue;
+      }
+
+      if (StringUtils.isBlank(serviceComponentName)) {
+        continue;
+      }
+
+      try {
+        Service service = getService(serviceName);
+        ServiceComponent serviceComponent = service.getServiceComponent(serviceComponentName);
+        ServiceComponentHost serviceComponentHost = serviceComponent.getServiceComponentHost(
+            event.getHostName());
+        serviceComponentHost.handleEvent(event);
+      } catch (ServiceNotFoundException e) {
+        String message = String.format(
+            "ServiceComponentHost lookup exception. Service not found for Service: %s. Error: %s",
+            serviceName, e.getMessage());
+        LOG.error(message);
+        failedEvents.put(event, message);
+      } catch (ServiceComponentNotFoundException e) {
+        String message = String.format(
+            "ServiceComponentHost lookup exception. Service Component not found for Service: %s, Component: %s. Error: %s",
+            serviceName, serviceComponentName, e.getMessage());
+        LOG.error(message);
+        failedEvents.put(event, message);
+      } catch (ServiceComponentHostNotFoundException e) {
+        String message = String.format(
+            "ServiceComponentHost lookup exception. Service Component Host not found for Service: %s, Component: %s, Host: %s. Error: %s",
+            serviceName, serviceComponentName, event.getHostName(), e.getMessage());
+        LOG.error(message);
+        failedEvents.put(event, message);
+      } catch (AmbariException e) {
+        String message = String.format("ServiceComponentHost lookup exception %s", e.getMessage());
+        LOG.error(message);
+        failedEvents.put(event, message);
+      } catch (InvalidStateTransitionException e) {
+        LOG.error("Invalid transition ", e);
+        if ((e.getEvent() == ServiceComponentHostEventType.HOST_SVCCOMP_START)
+            && (e.getCurrentState() == State.STARTED)) {
+          LOG.warn("Component request for component = " + serviceComponentName
+              + " to start is invalid, since component is already started. Ignoring this request.");
+
+          // skip adding this as a failed event, to work around stack ordering
+          // issues with Hive
+        } else {
+          failedEvents.put(event, String.format("Invalid transition. %s", e.getMessage()));
+        }
+      }
     }
 
     return failedEvents;

@@ -430,6 +430,13 @@ public class ServiceImpl implements Service {
     return persisted;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p/>
+   * This method uses Java locks and then delegates to internal methods which
+   * perform the JPA merges inside of a transaction. Because of this, a
+   * transaction is not necessary before this calling this method.
+   */
   @Override
   public void persist() {
     clusterGlobalLock.writeLock().lock();

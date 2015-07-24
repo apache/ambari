@@ -18,19 +18,21 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
+
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.TypedQuery;
-import java.util.List;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class HostComponentStateDAO {
@@ -129,9 +131,19 @@ public class HostComponentStateDAO {
     entityManagerProvider.get().persist(hostComponentStateEntity);
   }
 
+  /**
+   * Merges the managed entity, calling {@link EntityManager#flush()}
+   * immediately after. This fixes concurrent transaction issues on SQL Server.
+   *
+   * @param hostComponentStateEntity
+   * @return
+   */
   @Transactional
   public HostComponentStateEntity merge(HostComponentStateEntity hostComponentStateEntity) {
-    return entityManagerProvider.get().merge(hostComponentStateEntity);
+    EntityManager entityManager = entityManagerProvider.get();
+    hostComponentStateEntity = entityManager.merge(hostComponentStateEntity);
+    entityManager.flush();
+    return hostComponentStateEntity;
   }
 
   @Transactional

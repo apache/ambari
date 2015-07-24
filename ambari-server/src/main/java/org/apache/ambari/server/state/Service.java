@@ -24,37 +24,35 @@ import java.util.concurrent.locks.ReadWriteLock;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceResponse;
 
-import com.google.inject.persist.Transactional;
-
 public interface Service {
 
-  public String getName();
+  String getName();
 
-  public long getClusterId();
+  long getClusterId();
 
-  public Cluster getCluster();
+  Cluster getCluster();
 
-  public ServiceComponent getServiceComponent(String componentName)
+  ServiceComponent getServiceComponent(String componentName)
       throws AmbariException;
 
-  public Map<String, ServiceComponent> getServiceComponents();
+  Map<String, ServiceComponent> getServiceComponents();
 
-  public void addServiceComponents(Map<String, ServiceComponent> components)
+  void addServiceComponents(Map<String, ServiceComponent> components)
       throws AmbariException;
 
-  public void addServiceComponent(ServiceComponent component)
+  void addServiceComponent(ServiceComponent component)
       throws AmbariException;
 
-  public State getDesiredState();
+  State getDesiredState();
 
-  public void setDesiredState(State state);
+  void setDesiredState(State state);
 
   /**
    * Gets this Service's security state.
    *
    * @return this services desired SecurityState
    */
-  public SecurityState getSecurityState();
+  SecurityState getSecurityState();
 
   /**
    * Sets this Service's desired security state
@@ -65,19 +63,18 @@ public interface Service {
    * @param securityState the desired SecurityState for this Service
    * @throws AmbariException if the new state is not an endpoint state
    */
-  public void setSecurityState(SecurityState securityState) throws AmbariException;
+  void setSecurityState(SecurityState securityState) throws AmbariException;
 
-  public StackId getDesiredStackVersion();
+  StackId getDesiredStackVersion();
 
-  public void setDesiredStackVersion(StackId stackVersion);
+  void setDesiredStackVersion(StackId stackVersion);
 
-  public ServiceResponse convertToResponse();
+  ServiceResponse convertToResponse();
 
-  public void debugDump(StringBuilder sb);
+  void debugDump(StringBuilder sb);
 
   boolean isPersisted();
 
-  @Transactional
   void persist();
 
   void refresh();
@@ -90,35 +87,35 @@ public interface Service {
    * are in a state that it can be removed from a cluster
    * @return
    */
-  public boolean canBeRemoved();
+  boolean canBeRemoved();
 
-  public void deleteAllComponents() throws AmbariException;
+  void deleteAllComponents() throws AmbariException;
 
-  public void deleteServiceComponent(String componentName)
+  void deleteServiceComponent(String componentName)
       throws AmbariException;
 
-  public boolean isClientOnlyService();
+  boolean isClientOnlyService();
 
-  public void delete() throws AmbariException;
+  void delete() throws AmbariException;
 
   /**
    * Get lock to control access to cluster structure
    * @return cluster-global lock
    */
   ReadWriteLock getClusterGlobalLock();
-  
+
   /**
    * Sets the maintenance state for the service
    * @param state the state
    */
-  public void setMaintenanceState(MaintenanceState state);
-  
+  void setMaintenanceState(MaintenanceState state);
+
   /**
    * @return the maintenance state
    */
-  public MaintenanceState getMaintenanceState();
+  MaintenanceState getMaintenanceState();
 
-  public enum Type {
+  enum Type {
     HDFS,
     GLUSTERFS,
     MAPREDUCE,
