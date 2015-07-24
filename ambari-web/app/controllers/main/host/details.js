@@ -382,7 +382,8 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   removeHostComponentModel: function(componentName, hostName) {
     var component = App.HostComponent.find().filterProperty('componentName', componentName).findProperty('hostName', hostName);
-    App.cache['services'].findProperty('ServiceInfo.service_name', component.get('serviceName')).host_components.without(component.get('id'));
+    var serviceInCache = App.cache['services'].findProperty('ServiceInfo.service_name', component.get('service.serviceName'));
+    serviceInCache.host_components = serviceInCache.host_components.without(component.get('id'));
     App.serviceMapper.deleteRecord(component);
   },
 
