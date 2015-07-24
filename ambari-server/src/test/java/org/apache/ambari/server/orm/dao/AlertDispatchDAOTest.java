@@ -456,7 +456,6 @@ public class AlertDispatchDAOTest {
   *
   */
   @Test
-  @Ignore
   public void testDeleteTargetWithNotices() throws Exception {
     AlertTargetEntity target = m_helper.createAlertTarget();
 
