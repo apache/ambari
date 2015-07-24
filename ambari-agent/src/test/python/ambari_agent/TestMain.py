@@ -131,8 +131,6 @@ class TestMain(unittest.TestCase):
     # Check if on SIGINT/SIGTERM agent is configured to terminate
     signal_mock.assert_any_call(signal.SIGINT, HeartbeatHandlers.signal_handler)
     signal_mock.assert_any_call(signal.SIGTERM, HeartbeatHandlers.signal_handler)
-    # Check if on SIGUSR1 agent is configured to fall into debug
-    signal_mock.assert_any_call(signal.SIGUSR1, HeartbeatHandlers.debug)
 
 
   @patch("platform.linux_distribution")
@@ -332,7 +330,6 @@ class TestMain(unittest.TestCase):
     main.main()
 
     self.assertTrue(setup_logging_mock.called)
-    self.assertTrue(bind_signal_handlers_mock.called)
     if OSCheck.get_os_family() != OSConst.WINSRV_FAMILY:
       self.assertTrue(stop_mock.called)
     #self.assertTrue(resolve_ambari_config_mock.called)

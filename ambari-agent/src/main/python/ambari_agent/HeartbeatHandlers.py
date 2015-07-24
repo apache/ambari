@@ -26,6 +26,8 @@ import signal
 import threading
 import traceback
 from ambari_commons.os_family_impl import OsFamilyImpl
+import sys
+
 logger = logging.getLogger()
 
 _handler = None
@@ -138,10 +140,15 @@ def bind_signal_handlers(agentPid):
     if os.getpid() == agentPid:
       signal.signal(signal.SIGINT, signal_handler)
       signal.signal(signal.SIGTERM, signal_handler)
-      signal.signal(signal.SIGUSR1, debug)
+      try:
+        import faulthandler  # This is not default module, has to be installed separately
+        faulthandler.enable(file=sys.stderr, all_threads=True)
+        faulthandler.register(signal.SIGUSR1, file=sys.stderr, all_threads=True, chain=False)
+        sys.stderr.write("Registered faulthandler\n")
+      except ImportError:
+        pass  # Module is not included into python distribution
+
     _handler = HeartbeatStopHandlersLinux()
   else:
     _handler = HeartbeatStopHandlersWindows()
   return _handler
-
-

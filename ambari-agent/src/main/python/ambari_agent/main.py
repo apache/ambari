@@ -240,8 +240,6 @@ def main(heartbeat_stop_callback=None):
   default_cfg = {'agent': {'prefix': '/home/ambari'}}
   config.load(default_cfg)
 
-  bind_signal_handlers(agentPid)
-
   if (len(sys.argv) > 1) and sys.argv[1] == 'stop':
     stop_agent()
 
