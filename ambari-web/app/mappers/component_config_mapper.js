@@ -70,7 +70,7 @@ App.componentConfigMapper = App.QuickDataMapper.create({
           if (!newHostComponentsMap[serviceName]) {
             newHostComponentsMap[serviceName] = [];
           }
-          if (!currentServiceComponentsMap[serviceName][newHostComponent.id]) {
+          if (currentServiceComponentsMap[serviceName] && !currentServiceComponentsMap[serviceName][newHostComponent.id]) {
             newHostComponentsMap[serviceName].push(newHostComponent.id);
           }
         }

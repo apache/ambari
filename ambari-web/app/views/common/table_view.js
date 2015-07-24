@@ -79,7 +79,7 @@ App.TableView = Em.View.extend(App.UserPref, {
   willInsertElement: function () {
     var self = this;
     var name = this.get('controller.name');
-    if (!this.get('displayLength')) {
+    if (!this.get('displayLength') && this.get('state') !== "inBuffer") {
       if (App.db.getDisplayLength(name)) {
         self.set('displayLength', App.db.getDisplayLength(name));
         Em.run.next(function () {
