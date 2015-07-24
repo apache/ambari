@@ -448,6 +448,13 @@ public class ServiceComponentImpl implements ServiceComponent {
     return persisted;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p/>
+   * This method uses Java locks and then delegates to internal methods which
+   * perform the JPA merges inside of a transaction. Because of this, a
+   * transaction is not necessary before this calling this method.
+   */
   @Override
   public void persist() {
     boolean clusterWriteLockAcquired = false;
@@ -513,15 +520,15 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
   }
 
+  /**
+   * Merges the encapsulated {@link ServiceComponentDesiredStateEntity} inside
+   * of a new transaction. This method assumes that the appropriate write lock
+   * has already been acquired from {@link #readWriteLock}.
+   */
   @Transactional
   private void saveIfPersisted() {
-    readWriteLock.writeLock().lock();
-    try {
-      if (isPersisted()) {
-        serviceComponentDesiredStateDAO.merge(desiredStateEntity);
-      }
-    } finally {
-      readWriteLock.writeLock().unlock();
+    if (isPersisted()) {
+      serviceComponentDesiredStateDAO.merge(desiredStateEntity);
     }
   }
 

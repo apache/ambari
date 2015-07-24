@@ -360,6 +360,7 @@ public class ConfigGroupImpl implements ConfigGroup {
    *
    * @throws Exception
    */
+  @Override
   @Transactional
   public void persistHostMapping() {
     if (isPersisted) {

@@ -24,65 +24,62 @@ import java.util.concurrent.locks.ReadWriteLock;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
 
-import com.google.inject.persist.Transactional;
-
 public interface ServiceComponent {
 
-  public String getName();
+  String getName();
 
-  public String getServiceName();
+  String getServiceName();
 
-  public long getClusterId();
+  long getClusterId();
 
-  public String getClusterName();
+  String getClusterName();
 
-  public State getDesiredState();
+  State getDesiredState();
 
-  public void setDesiredState(State state);
+  void setDesiredState(State state);
 
-  public StackId getDesiredStackVersion();
+  StackId getDesiredStackVersion();
 
-  public void setDesiredStackVersion(StackId stackVersion);
+  void setDesiredStackVersion(StackId stackVersion);
 
-  public Map<String, ServiceComponentHost> getServiceComponentHosts();
+  Map<String, ServiceComponentHost> getServiceComponentHosts();
 
-  public ServiceComponentHost getServiceComponentHost(String hostname)
+  ServiceComponentHost getServiceComponentHost(String hostname)
       throws AmbariException;
 
-  public void addServiceComponentHosts(Map<String, ServiceComponentHost>
+  void addServiceComponentHosts(Map<String, ServiceComponentHost>
       hostComponents) throws AmbariException ;
 
-  public void addServiceComponentHost(ServiceComponentHost hostComponent)
+  void addServiceComponentHost(ServiceComponentHost hostComponent)
       throws AmbariException ;
 
-  public ServiceComponentResponse convertToResponse();
+  ServiceComponentResponse convertToResponse();
 
-  public void refresh();
+  void refresh();
 
   boolean isPersisted();
 
-  @Transactional
   void persist();
 
-  public void debugDump(StringBuilder sb);
+  void debugDump(StringBuilder sb);
 
-  public boolean isClientComponent();
+  boolean isClientComponent();
 
-  public boolean isMasterComponent();
+  boolean isMasterComponent();
 
-  public boolean isVersionAdvertised();
+  boolean isVersionAdvertised();
 
-  public boolean canBeRemoved();
+  boolean canBeRemoved();
 
-  public void deleteAllServiceComponentHosts() throws AmbariException;
+  void deleteAllServiceComponentHosts() throws AmbariException;
 
-  public void deleteServiceComponentHosts(String hostname)
+  void deleteServiceComponentHosts(String hostname)
       throws AmbariException;
 
   ServiceComponentHost addServiceComponentHost(
       String hostName) throws AmbariException;
 
-  public void delete() throws AmbariException;
+  void delete() throws AmbariException;
 
   /**
    * Get lock to control access to cluster structure

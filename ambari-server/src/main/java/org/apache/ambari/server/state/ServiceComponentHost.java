@@ -26,8 +26,6 @@ import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 
-import com.google.inject.persist.Transactional;
-
 
 public interface ServiceComponentHost {
 
@@ -152,7 +150,6 @@ public interface ServiceComponentHost {
 
   boolean isPersisted();
 
-  @Transactional
   void persist();
 
   void refresh();

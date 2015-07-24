@@ -177,7 +177,6 @@ public class HostVersionOutOfSyncListener {
         }
       }
       for (RepositoryVersionEntity repositoryVersion : changedRepositoryVersions) {
-        StackId stackId = new StackId(repositoryVersion.getStackName(), repositoryVersion.getStackVersion());
         cluster.recalculateClusterVersionState(repositoryVersion);
       }
     } catch (AmbariException e) {
@@ -204,7 +203,6 @@ public class HostVersionOutOfSyncListener {
           HostVersionEntity missingHostVersion = new HostVersionEntity(hostEntity,
                   repositoryVersion, RepositoryVersionState.OUT_OF_SYNC);
           hostVersionDAO.get().create(missingHostVersion);
-          StackId stackId = new StackId(repositoryVersion.getStackName(), repositoryVersion.getStackVersion());
           cluster.recalculateClusterVersionState(repositoryVersion);
         }
       }
