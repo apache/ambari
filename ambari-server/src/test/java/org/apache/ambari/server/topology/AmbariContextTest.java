@@ -48,11 +48,13 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.easymock.Capture;
+import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -381,4 +383,48 @@ public class AmbariContextTest {
     // test
     context.registerHostWithConfigGroup(HOST1, topology, HOST_GROUP_1);
   }
+
+  @Test
+  public void testWaitForTopologyResolvedStateWithEmptyUpdatedSet() throws Exception {
+    replayAll();
+
+    // verify that wait returns successfully with empty updated list passed in
+    context.waitForConfigurationResolution(CLUSTER_NAME, Collections.<String>emptySet());
+  }
+
+  @Test
+  public void testWaitForTopologyResolvedStateWithRequiredUpdatedSet() throws Exception {
+    final String topologyResolvedState = "TOPOLOGY_RESOLVED";
+    DesiredConfig testHdfsDesiredConfig =
+      new DesiredConfig();
+    testHdfsDesiredConfig.setTag(topologyResolvedState);
+    DesiredConfig testCoreSiteDesiredConfig =
+      new DesiredConfig();
+    testCoreSiteDesiredConfig.setTag(topologyResolvedState);
+    DesiredConfig testClusterEnvDesiredConfig =
+      new DesiredConfig();
+    testClusterEnvDesiredConfig.setTag(topologyResolvedState);
+
+    Map<String, DesiredConfig> testDesiredConfigs =
+      new HashMap<String, DesiredConfig>();
+    testDesiredConfigs.put("hdfs-site", testHdfsDesiredConfig);
+    testDesiredConfigs.put("core-site", testCoreSiteDesiredConfig);
+    testDesiredConfigs.put("cluster-env", testClusterEnvDesiredConfig);
+
+    expect(cluster.getDesiredConfigs()).andReturn(testDesiredConfigs).atLeastOnce();
+
+    replayAll();
+
+    Set<String> testUpdatedConfigTypes =
+      new HashSet<String>();
+    testUpdatedConfigTypes.add("hdfs-site");
+    testUpdatedConfigTypes.add("core-site");
+    testUpdatedConfigTypes.add("cluster-env");
+
+    // verify that wait returns successfully with non-empty list
+    // with all configuration types tagged as "TOPOLOGY_RESOLVED"
+    context.waitForConfigurationResolution(CLUSTER_NAME, testUpdatedConfigTypes);
+  }
+
+
 }

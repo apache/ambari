@@ -1764,13 +1764,24 @@ public class BlueprintConfigurationProcessorTest {
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
-    updater.doUpdateForClusterCreate();
+    Set<String> configTypesUpdated =
+      updater.doUpdateForClusterCreate();
+
     String updatedVal = properties.get("yarn-site").get("yarn.resourcemanager.hostname");
     assertEquals("testhost", updatedVal);
     String updatedVal1 = properties.get("oozie-env").get("oozie_heapsize");
     assertEquals("1024m", updatedVal1);
     String updatedVal2 = properties.get("oozie-env").get("oozie_permsize");
     assertEquals("128m", updatedVal2);
+
+    assertEquals("Incorrect number of config types updated",
+      3, configTypesUpdated.size());
+    assertTrue("Expected config type not updated",
+      configTypesUpdated.contains("oozie-env"));
+    assertTrue("Expected config type not updated",
+      configTypesUpdated.contains("yarn-site"));
+    assertTrue("Expected config type not updated",
+      configTypesUpdated.contains("cluster-env"));
   }
 
   @Test
@@ -2190,7 +2201,8 @@ public class BlueprintConfigurationProcessorTest {
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
-    updater.doUpdateForClusterCreate();
+    Set<String> updatedConfigTypes =
+      updater.doUpdateForClusterCreate();
 
     // after update, verify that the retry properties for commands and installs are set as expected
     assertEquals("Incorrect number of properties added to cluster-env for retry",
@@ -2201,6 +2213,12 @@ public class BlueprintConfigurationProcessorTest {
       "INSTALL,START", clusterEnvProperties.get("commands_to_retry"));
     assertEquals("command_retry_max_time_in_sec was not set to the expected default",
       "600", clusterEnvProperties.get("command_retry_max_time_in_sec"));
+
+    assertEquals("Incorrect number of config types updated by this operation",
+      1, updatedConfigTypes.size());
+
+    assertTrue("Expected type not included in the updated set",
+      updatedConfigTypes.contains("cluster-env"));
   }
 
   @Test
@@ -2223,7 +2241,8 @@ public class BlueprintConfigurationProcessorTest {
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
-    updater.doUpdateForClusterCreate();
+    Set<String> updatedConfigTypes =
+      updater.doUpdateForClusterCreate();
 
     // after update, verify that the retry properties for commands and installs are set as expected
     // in this case, the customer-provided overrides should be honored, rather than the retry defaults
@@ -2235,6 +2254,9 @@ public class BlueprintConfigurationProcessorTest {
       "TEST", clusterEnvProperties.get("commands_to_retry"));
     assertEquals("command_retry_max_time_in_sec was not set to the expected default",
       "1", clusterEnvProperties.get("command_retry_max_time_in_sec"));
+
+    assertEquals("Incorrect number of config types updated",
+      0, updatedConfigTypes.size());
   }
 
   @Test
@@ -4405,7 +4427,8 @@ public class BlueprintConfigurationProcessorTest {
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
-    updater.doUpdateForClusterCreate();
+    Set<String> updatedConfigTypes =
+      updater.doUpdateForClusterCreate();
 
     // verify that the expected hostname was substituted for the host group name in the config
     assertEquals("HTTPS address HA property not properly exported",
@@ -4456,13 +4479,22 @@ public class BlueprintConfigurationProcessorTest {
     assertFalse("dfs.namenode.rpc-address should have been filtered out of this HA configuration",
       hdfsSiteProperties.containsKey("dfs.namenode.rpc-address"));
 
+
+    // verify that correct configuration types were listed as updated in the returned set
+    assertEquals("Incorrect number of updated config types returned, set = " + updatedConfigTypes,
+      3, updatedConfigTypes.size());
+    assertTrue("Expected config type not found in updated set",
+      updatedConfigTypes.contains("cluster-env"));
+    assertTrue("Expected config type not found in updated set",
+      updatedConfigTypes.contains("hdfs-site"));
+    assertTrue("Expected config type not found in updated set",
+      updatedConfigTypes.contains("hadoop-env"));
   }
 
   @Test
   public void testDoUpdateForClusterWithNameNodeHANotEnabled() throws Exception {
     final String expectedHostName = "c6401.apache.ambari.org";
     final String expectedHostNameTwo = "serverTwo";
-    final String expectedPortNum = "808080";
     final String expectedHostGroupName = "host_group_1";
 
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
@@ -4511,7 +4543,8 @@ public class BlueprintConfigurationProcessorTest {
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
-    updater.doUpdateForClusterCreate();
+    Set<String> updatedConfigTypes =
+      updater.doUpdateForClusterCreate();
 
     // verify that the non-HA properties are not filtered out in a non-HA cluster
     assertTrue("dfs.namenode.http-address should have been included in this HA configuration",
@@ -4521,6 +4554,13 @@ public class BlueprintConfigurationProcessorTest {
     assertTrue("dfs.namenode.rpc-address should have been included in this HA configuration",
       hdfsSiteProperties.containsKey("dfs.namenode.rpc-address"));
 
+    // verify that correct configuration types were listed as updated in the returned set
+    assertEquals("Incorrect number of updated config types returned, set = " + updatedConfigTypes,
+      2, updatedConfigTypes.size());
+    assertTrue("Expected config type 'cluster-env' not found in updated set",
+      updatedConfigTypes.contains("cluster-env"));
+    assertTrue("Expected config type 'hdfs-site' not found in updated set",
+      updatedConfigTypes.contains("hdfs-site"));
   }
 
   @Test

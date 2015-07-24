@@ -87,7 +87,7 @@ public class HostRequest implements Comparable<HostRequest> {
     this.topology = topology;
 
     createTasks();
-    System.out.println("HostRequest: Created request for host: " +
+    LOG.info("HostRequest: Created request for host: " +
         (hostname == null ? "Host Assignment Pending" : hostname));
   }
 
@@ -120,7 +120,7 @@ public class HostRequest implements Comparable<HostRequest> {
     isOutstanding = hostname == null || !topology.getAmbariContext().
         isHostRegisteredWithCluster(cluster, hostname);
 
-    System.out.println("HostRequest: Successfully recovered host request for host: " +
+    LOG.info("HostRequest: Successfully recovered host request for host: " +
         (hostname == null ? "Host Assignment Pending" : hostname));
   }
 
@@ -187,7 +187,7 @@ public class HostRequest implements Comparable<HostRequest> {
     HostGroup hostGroup = getHostGroup();
     for (String component : hostGroup.getComponents()) {
       if (component == null || component.equals("AMBARI_SERVER")) {
-        System.out.printf("Skipping component %s when creating request\n", component);
+        LOG.info("Skipping component %s when creating request\n", component);
         continue;
       }
 
@@ -469,7 +469,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
     @Override
     public void run() {
-      System.out.println("HostRequest.InstallHostTask: Executing INSTALL task for host: " + hostname);
+      LOG.info("HostRequest.InstallHostTask: Executing INSTALL task for host: " + hostname);
       RequestStatusResponse response = clusterTopology.installHost(hostname);
       // map logical install tasks to physical install tasks
       List<ShortTaskStatus> underlyingTasks = response.getTasks();
@@ -489,6 +489,8 @@ public class HostRequest implements Comparable<HostRequest> {
           }
         }
       }
+
+      LOG.info("HostRequest.InstallHostTask: Exiting INSTALL task for host: " + hostname);
     }
   }
 
@@ -508,7 +510,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
     @Override
     public void run() {
-      System.out.println("HostRequest.StartHostTask: Executing START task for host: " + hostname);
+      LOG.info("HostRequest.StartHostTask: Executing START task for host: " + hostname);
       RequestStatusResponse response = clusterTopology.startHost(hostname);
       // map logical install tasks to physical install tasks
       List<ShortTaskStatus> underlyingTasks = response.getTasks();
@@ -526,6 +528,8 @@ public class HostRequest implements Comparable<HostRequest> {
           }
         }
       }
+
+      LOG.info("HostRequest.StartHostTask: Exiting START task for host: " + hostname);
     }
   }
 

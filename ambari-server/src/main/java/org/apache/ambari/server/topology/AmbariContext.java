@@ -342,6 +342,51 @@ public class AmbariContext {
     }
   }
 
+  /**
+   * Verifies that all desired configurations have reached the resolved state
+   *   before proceeding with the install
+   *
+   * @param clusterName name of the cluster
+   * @param updatedConfigTypes set of config types that are required to be in the TOPOLOGY_RESOLVED state
+   *
+   * @throws AmbariException upon any system-level error that occurs
+   */
+  public void waitForConfigurationResolution(String clusterName, Set<String> updatedConfigTypes) throws AmbariException {
+    Cluster cluster = getController().getClusters().getCluster(clusterName);
+    boolean shouldWaitForResolution = true;
+    while (shouldWaitForResolution) {
+      int numOfRequestsStillRequiringResolution = 0;
+
+      // for all config types specified
+      for (String actualConfigType : updatedConfigTypes) {
+        // get the actual cluster config for comparison
+        DesiredConfig actualConfig = cluster.getDesiredConfigs().get(actualConfigType);
+        if (!actualConfig.getTag().equals(TopologyManager.TOPOLOGY_RESOLVED_TAG)) {
+          // if any expected config is not resolved, deployment must wait
+          LOG.info("Config type " + actualConfigType + " not resolved yet, Blueprint deployment will wait until configuration update is completed");
+          numOfRequestsStillRequiringResolution++;
+        } else {
+          LOG.info("Config type " + actualConfigType + " is resolved in the cluster config.");
+        }
+      }
+
+      if (numOfRequestsStillRequiringResolution == 0) {
+        // all configs are resolved, deployment can continue
+        LOG.info("All required configuration types are in the " + TopologyManager.TOPOLOGY_RESOLVED_TAG + " state.  Blueprint deployment can now continue.");
+        shouldWaitForResolution = false;
+      } else {
+        LOG.info("Waiting for " + numOfRequestsStillRequiringResolution + " configuration types to be resolved before Blueprint deployment can continue");
+
+        try {
+          // sleep before checking the config again
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+
   public boolean doesConfigurationWithTagExist(String clusterName, String tag) {
     boolean isTopologyResolved = false;
     try {
