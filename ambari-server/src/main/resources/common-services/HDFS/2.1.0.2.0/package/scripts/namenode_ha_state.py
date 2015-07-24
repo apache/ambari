@@ -17,7 +17,7 @@ limitations under the License.
 
 """
 
-
+from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.jmx import get_value_from_jmx
@@ -82,6 +82,17 @@ class NamenodeHAState:
 
         jmx_uri = jmx_uri_fragment.format(actual_value)
         state = get_value_from_jmx(jmx_uri, "tag.HAState", params.security_enabled, params.hdfs_user, params.is_https_enabled)
+
+        # If JMX parsing failed
+        if not state:
+          run_user = default("/configurations/hadoop-env/hdfs_user", "hdfs")
+          check_service_cmd = "hdfs haadmin -getServiceState {0}".format(nn_unique_id)
+          code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
+          if code == 0 and out:
+            if NAMENODE_STATE.STANDBY in out:
+              state = NAMENODE_STATE.STANDBY
+            elif NAMENODE_STATE.ACTIVE in out:
+              state = NAMENODE_STATE.ACTIVE
 
         if not state:
           raise Exception("Could not retrieve Namenode state from URL " + jmx_uri)
