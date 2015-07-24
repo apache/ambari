@@ -80,7 +80,11 @@ def oozie_service(action = 'start', rolling_restart=False):
         exit(1)
 
       if db_connection_check_command:
-        Execute( db_connection_check_command, tries=5, try_sleep=10)
+        Execute( db_connection_check_command, 
+                 tries=5, 
+                 try_sleep=10,
+                 user=params.oozie_user,
+        )
 
       Execute( format("cd {oozie_tmp_dir} && {oozie_home}/bin/ooziedb.sh create -sqlfile oozie.sql -run"), 
                user = params.oozie_user, not_if = no_op_test,
