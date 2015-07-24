@@ -49,6 +49,11 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
 
   private final static Logger LOG = LoggerFactory.getLogger(MITKerberosOperationHandler.class);
 
+  /**
+   * A String containing user-specified attributes used when creating principals
+   */
+  private String createAttributes = null;
+
   private String adminServerHost = null;
 
   /**
@@ -89,6 +94,12 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       setKeyEncryptionTypes(translateEncryptionTypes(kerberosConfiguration.get(KERBEROS_ENV_ENCRYPTION_TYPES), "\\s+"));
       setAdminServerHost(kerberosConfiguration.get(KERBEROS_ENV_ADMIN_SERVER_HOST));
       setExecutableSearchPaths(kerberosConfiguration.get(KERBEROS_ENV_EXECUTABLE_SEARCH_PATHS));
+      setCreateAttributes(kerberosConfiguration.get(KERBEROS_ENV_KDC_CREATE_ATTRIBUTES));
+    } else {
+      setKeyEncryptionTypes(null);
+      setAdminServerHost(null);
+      setExecutableSearchPaths((String) null);
+      setCreateAttributes(null);
     }
 
     // Pre-determine the paths to relevant Kerberos executables
@@ -170,8 +181,10 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
     } else if ((password == null) || password.isEmpty()) {
       throw new KerberosOperationException("Failed to create new principal - no password specified");
     } else {
-      // Create the kdamin query:  add_principal <-randkey|-pw <password>> <principal>
-      ShellCommandUtil.Result result = invokeKAdmin(String.format("add_principal -pw \"%s\" %s", password, principal));
+      String createAttributes = getCreateAttributes();
+      // Create the kdamin query:  add_principal <-randkey|-pw <password>> [<options>] <principal>
+      ShellCommandUtil.Result result = invokeKAdmin(String.format("add_principal -pw \"%s\" %s %s",
+          password, (createAttributes == null) ? "" : createAttributes, principal));
 
       // If there is data from STDOUT, see if the following string exists:
       //    Principal "<principal>" created
@@ -179,6 +192,8 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       if ((stdOut != null) && stdOut.contains(String.format("Principal \"%s\" created", principal))) {
         return getKeyNumber(principal);
       } else {
+        LOG.error("Failed to execute kadmin query: add_principal -pw \"********\" {} {}\nSTDOUT: {}\nSTDERR: {}",
+            (createAttributes == null) ? "" : createAttributes, principal, stdOut, result.getStderr());
         throw new KerberosOperationException(String.format("Failed to create service principal for %s\nSTDOUT: %s\nSTDERR: %s",
             principal, stdOut, result.getStderr()));
       }
@@ -248,6 +263,42 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
   }
 
   /**
+   * Sets the KDC administrator server host address
+   *
+   * @param adminServerHost the ip address or FQDN of the KDC administrator server
+   */
+  public void setAdminServerHost(String adminServerHost) {
+    this.adminServerHost = adminServerHost;
+  }
+
+  /**
+   * Gets the IP address or FQDN of the KDC administrator server
+   *
+   * @return the IP address or FQDN of the KDC administrator server
+   */
+  public String getAdminServerHost() {
+    return this.adminServerHost;
+  }
+
+  /**
+   * Sets the (additional) principal creation attributes
+   *
+   * @param createAttributes the additional principal creations attributes
+   */
+  public void setCreateAttributes(String createAttributes) {
+    this.createAttributes = createAttributes;
+  }
+
+  /**
+   * Gets the (additional) principal creation attributes
+   *
+   * @return the additional principal creations attributes or null
+   */
+  public String getCreateAttributes() {
+    return createAttributes;
+  }
+
+  /**
    * Retrieves the current key number assigned to the identity identified by the specified principal
    *
    * @param principal a String declaring the principal to look up
@@ -310,7 +361,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
    * @throws KerberosRealmException               if the realm does not map to a KDC
    * @throws KerberosOperationException           if an unexpected error occurred
    */
-  private ShellCommandUtil.Result invokeKAdmin(String query)
+  protected ShellCommandUtil.Result invokeKAdmin(String query)
       throws KerberosOperationException {
     ShellCommandUtil.Result result = null;
 
@@ -381,40 +432,15 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       command.add("-q");
       command.add(query);
 
+      if(LOG.isDebugEnabled()) {
+        LOG.debug(String.format("Executing: %s", createCleanCommand(command)));
+      }
+
       result = executeCommand(command.toArray(new String[command.size()]));
 
       if (!result.isSuccessful()) {
-        // Build command string, replacing administrator password with "********"
-        StringBuilder cleanCommand = new StringBuilder();
-        Iterator<String> iterator = command.iterator();
-
-        if (iterator.hasNext()) {
-          cleanCommand.append(iterator.next());
-        }
-
-        while (iterator.hasNext()) {
-          String part = iterator.next();
-
-          cleanCommand.append(' ');
-
-          if (part.contains(" ")) {
-            cleanCommand.append('"');
-            cleanCommand.append(part);
-            cleanCommand.append('"');
-          } else {
-            cleanCommand.append(part);
-          }
-
-          if ("-w".equals(part)) {
-            // Skip the password and use "********" instead
-            if (iterator.hasNext()) {
-              iterator.next();
-            }
-            cleanCommand.append(" ********");
-          }
-        }
         String message = String.format("Failed to execute kadmin:\n\tCommand: %s\n\tExitCode: %s\n\tSTDOUT: %s\n\tSTDERR: %s",
-            cleanCommand.toString(), result.getExitCode(), result.getStdout(), result.getStderr());
+            createCleanCommand(command), result.getExitCode(), result.getStdout(), result.getStderr());
         LOG.warn(message);
 
         // Test STDERR to see of any "expected" error conditions were encountered...
@@ -453,20 +479,41 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
   }
 
   /**
-   * Sets the KDC administrator server host address
+   * Build the kadmin command string, replacing administrator password with "********"
    *
-   * @param adminServerHost the ip address or FQDN of the KDC administrator server
+   * @param command a List of items making up the command
+   * @return the cleaned command string
    */
-  public void setAdminServerHost(String adminServerHost) {
-    this.adminServerHost = adminServerHost;
-  }
+  private String createCleanCommand(List<String> command) {
+    StringBuilder cleanedCommand = new StringBuilder();
+    Iterator<String> iterator = command.iterator();
 
-  /**
-   * Gets the IP address or FQDN of the KDC administrator server
-   *
-   * @return the IP address or FQDN of the KDC administrator server
-   */
-  public String getAdminServerHost() {
-    return adminServerHost;
+    if (iterator.hasNext()) {
+      cleanedCommand.append(iterator.next());
+    }
+
+    while (iterator.hasNext()) {
+      String part = iterator.next();
+
+      cleanedCommand.append(' ');
+
+      if (part.contains(" ")) {
+        cleanedCommand.append('"');
+        cleanedCommand.append(part);
+        cleanedCommand.append('"');
+      } else {
+        cleanedCommand.append(part);
+      }
+
+      if ("-w".equals(part)) {
+        // Skip the password and use "********" instead
+        if (iterator.hasNext()) {
+          iterator.next();
+        }
+        cleanedCommand.append(" ********");
+      }
+    }
+
+    return cleanedCommand.toString();
   }
 }

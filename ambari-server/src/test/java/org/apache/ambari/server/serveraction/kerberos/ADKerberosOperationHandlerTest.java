@@ -27,7 +27,6 @@ import org.junit.Test;
 
 import javax.naming.AuthenticationException;
 import javax.naming.CommunicationException;
-import javax.naming.InvalidNameException;
 import javax.naming.Name;
 import javax.naming.NamingEnumeration;
 import javax.naming.directory.Attributes;
@@ -344,7 +343,7 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
       {
         put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, DEFAULT_LDAP_URL);
         put(ADKerberosOperationHandler.KERBEROS_ENV_PRINCIPAL_CONTAINER_DN, DEFAULT_PRINCIPAL_CONTAINER_DN);
-        put(ADKerberosOperationHandler.KERBEROS_ENV_CREATE_ATTRIBUTES_TEMPLATE, "" +
+        put(ADKerberosOperationHandler.KERBEROS_ENV_AD_CREATE_ATTRIBUTES_TEMPLATE, "" +
             "#set( $user = \"${principal_primary}-${principal_digest}\" )" +
             "{" +
             "  \"objectClass\": [" +
@@ -508,7 +507,7 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
       handler.createPrincipal(evaluatedPrincipal, "some password", true);
     }
 
-    kerberosEnvMap.put(ADKerberosOperationHandler.KERBEROS_ENV_CREATE_ATTRIBUTES_TEMPLATE,
+    kerberosEnvMap.put(ADKerberosOperationHandler.KERBEROS_ENV_AD_CREATE_ATTRIBUTES_TEMPLATE,
         "#set( $user = \"${principal_primary}-${principal_digest}\" )" +
             "{" +
             "  \"objectClass\": [" +
