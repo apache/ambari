@@ -296,6 +296,21 @@ describe('validator', function () {
       })
     });
   });
+
+  describe('#isConfigValueLink', function() {
+    var tests = [
+      {m:'link valid',i:'${asd}',e:true},
+      {m:'empty link ${} -invalid',i:'${}',e:false},
+      {m:'${ just wrong',i:'${',e:false},
+      {m:'anything  just wrong',i:'anything',e:false}
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(validator.isConfigValueLink(test.i)).to.equal(test.e);
+      })
+    });
+  });
+
   describe('#isValidDataNodeDir(value)', function() {
     var tests = [
       {m:'"dir" - invalid',i:'dir',e:false},

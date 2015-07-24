@@ -356,7 +356,9 @@ App.ServiceConfigProperty = Em.Object.extend({
     if (!isError) {
       switch (this.get('displayType')) {
         case 'int':
-          if (!validator.isValidInt(value)) {
+          if (validator.isConfigValueLink(value)) {
+            isError = false;
+          } else if (!validator.isValidInt(value)) {
             this.set('errorMessage', 'Must contain digits only');
             isError = true;
           } else {
@@ -369,7 +371,9 @@ App.ServiceConfigProperty = Em.Object.extend({
           }
           break;
         case 'float':
-          if (!validator.isValidFloat(value)) {
+          if (validator.isConfigValueLink(value)) {
+            isError = false;
+          } else if (!validator.isValidFloat(value)) {
             this.set('errorMessage', 'Must be a valid number');
             isError = true;
           }
@@ -441,7 +445,9 @@ App.ServiceConfigProperty = Em.Object.extend({
           break;
         case 'advanced':
           if(this.get('name')=='javax.jdo.option.ConnectionURL' || this.get('name')=='oozie.service.JPAService.jdbc.url') {
-            if (validator.isNotTrimmed(value)) {
+            if (validator.isConfigValueLink(value)) {
+              isError = false;
+            } else if (validator.isNotTrimmed(value)) {
               this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
               isError = true;
             }

@@ -59,6 +59,15 @@ module.exports = {
   },
 
   /**
+   * defines if config value looks like link to other config
+   * @param value
+   * @returns {boolean}
+   */
+  isConfigValueLink: function(value) {
+    return /^\${.+}$/.test(value);
+  },
+
+  /**
    * validate directory with slash at the start
    * @param value
    * @returns {boolean}
