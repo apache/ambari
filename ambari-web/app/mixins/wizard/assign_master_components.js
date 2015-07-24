@@ -1016,7 +1016,10 @@ App.AssignMasterComponents = Em.Mixin.create({
 
       this.get("selectedServicesMasters").insertAt(this.get("selectedServicesMasters").indexOf(lastMaster) + 1, newMaster);
 
-      this.set('componentToRebalance', componentName);
+      this.setProperties({
+        componentToRebalance: componentName,
+        lastChangedComponent: componentName
+      });
       this.incrementProperty('rebalanceComponentHostsCounter');
       this.toggleProperty('hostNameCheckTrigger');
       return true;
@@ -1050,7 +1053,10 @@ App.AssignMasterComponents = Em.Mixin.create({
       currentMasters.set("lastObject.showRemoveControl", false);
     }
 
-    this.set('componentToRebalance', componentName);
+    this.setProperties({
+      componentToRebalance: componentName,
+      lastChangedComponent: componentName
+    });
     this.incrementProperty('rebalanceComponentHostsCounter');
     this.toggleProperty('hostNameCheckTrigger');
     return true;

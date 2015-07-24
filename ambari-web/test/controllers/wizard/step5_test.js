@@ -535,6 +535,8 @@ describe('App.WizardStep5Controller', function () {
         if (test.e) {
           expect(c.get('selectedServicesMasters.lastObject.showRemoveControl')).to.equal(test.showRemoveControl);
           expect(c.get('selectedServicesMasters.lastObject.showAddControl')).to.equal(test.showAddControl);
+          expect(c.get('componentToRebalance')).to.equal(test.componentName);
+          expect(c.get('lastChangedComponent')).to.equal(test.componentName);
         }
       })
     });
@@ -585,6 +587,10 @@ describe('App.WizardStep5Controller', function () {
         c.set('selectedServicesMasters', test.selectedServicesMasters);
         c.set('hosts', test.hosts);
         expect(c.addComponent(test.componentName)).to.equal(test.e);
+        if (test.e) {
+          expect(c.get('componentToRebalance')).to.equal(test.componentName);
+          expect(c.get('lastChangedComponent')).to.equal(test.componentName);
+        }
       });
     });
   });
