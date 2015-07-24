@@ -79,7 +79,7 @@
   </os>
   <os family="ubuntu14">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu14/2.x/updates/2.3.0.0</baseurl>
+      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu12/2.x/updates/2.3.0.0</baseurl>
       <repoid>HDP-2.3</repoid>
       <reponame>HDP</reponame>
     </repo>
