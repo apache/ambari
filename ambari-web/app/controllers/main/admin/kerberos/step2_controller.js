@@ -102,7 +102,8 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
    */
   filterConfigs: function (configs) {
     var kdcType = this.get('content.kerberosOption');
-    var configNames = ['ldap_url', 'container_dn', 'create_attributes_template'];
+    var adConfigNames = ['ldap_url', 'container_dn', 'ad_create_attributes_template'];
+    var mitConfigNames = ['kdc_create_attributes'];
     var kerberosWizardController = this.controllers.get('kerberosWizardController');
     var manageIdentitiesConfig = configs.findProperty('name', 'manage_identities');
 
@@ -116,10 +117,17 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
       manageIdentitiesConfig.value = 'true';
     }
 
-    configNames.forEach(function (_configName) {
+    adConfigNames.forEach(function (_configName) {
       var config = configs.findProperty('name', _configName);
       if (config) {
         config.isVisible = kdcType === Em.I18n.t('admin.kerberos.wizard.step1.option.ad');
+      }
+    }, this);
+
+    mitConfigNames.forEach(function (_configName) {
+      var config = configs.findProperty('name', _configName);
+      if (config) {
+        config.isVisible = kdcType === Em.I18n.t('admin.kerberos.wizard.step1.option.kdc');
       }
     }, this);
   },

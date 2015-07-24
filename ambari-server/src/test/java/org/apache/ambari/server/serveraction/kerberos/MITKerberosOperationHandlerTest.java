@@ -29,19 +29,22 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.ShellCommandUtil;
+import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.verify;
 
 public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTest {
 
@@ -56,6 +59,8 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
       put(MITKerberosOperationHandler.KERBEROS_ENV_ENCRYPTION_TYPES, null);
       put(MITKerberosOperationHandler.KERBEROS_ENV_KDC_HOST, "localhost");
       put(MITKerberosOperationHandler.KERBEROS_ENV_ADMIN_SERVER_HOST, "localhost");
+      put(MITKerberosOperationHandler.KERBEROS_ENV_AD_CREATE_ATTRIBUTES_TEMPLATE, "AD Create Template");
+      put(MITKerberosOperationHandler.KERBEROS_ENV_KDC_CREATE_ATTRIBUTES, "-attr1 -attr2 foo=345");
     }
   };
 
@@ -64,7 +69,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
     injector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        Configuration configuration =EasyMock.createNiceMock(Configuration.class);
+        Configuration configuration = EasyMock.createNiceMock(Configuration.class);
         expect(configuration.getServerOsFamily()).andReturn("redhat6").anyTimes();
         replay(configuration);
 
@@ -112,7 +117,38 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   }
 
   @Test
-  public void testCreateServicePrincipalExceptions() throws Exception {
+  public void testCreateServicePrincipal_AdditionalAttributes() throws Exception {
+    Method invokeKAdmin = MITKerberosOperationHandler.class.getDeclaredMethod("invokeKAdmin", String.class);
+
+    Capture<? extends String> query = new Capture<String>();
+
+    ShellCommandUtil.Result result1 = createNiceMock(ShellCommandUtil.Result.class);
+    expect(result1.getStderr()).andReturn("").anyTimes();
+    expect(result1.getStdout()).andReturn("Principal \"" + DEFAULT_ADMIN_PRINCIPAL + "\" created\"").anyTimes();
+
+    ShellCommandUtil.Result result2 = createNiceMock(ShellCommandUtil.Result.class);
+    expect(result2.getStderr()).andReturn("").anyTimes();
+    expect(result2.getStdout()).andReturn("Key: vno 1").anyTimes();
+
+    MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
+        .addMockedMethod(invokeKAdmin)
+        .createStrictMock();
+
+    expect(handler.invokeKAdmin(capture(query))).andReturn(result1).once();
+    expect(handler.invokeKAdmin("get_principal " + DEFAULT_ADMIN_PRINCIPAL)).andReturn(result2).once();
+
+    replay(handler, result1, result2);
+
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, KERBEROS_ENV_MAP);
+    handler.createPrincipal(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, false);
+
+    verify(handler, result1, result2);
+
+    Assert.assertTrue(query.getValue().contains(" " + KERBEROS_ENV_MAP.get(MITKerberosOperationHandler.KERBEROS_ENV_KDC_CREATE_ATTRIBUTES) + " "));
+  }
+
+  @Test
+  public void testCreateServicePrincipal_Exceptions() throws Exception {
     MITKerberosOperationHandler handler = new MITKerberosOperationHandler();
     handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, KERBEROS_ENV_MAP);
 

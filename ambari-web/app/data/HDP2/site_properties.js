@@ -2412,15 +2412,28 @@ var hdp2properties = [
   },
   {
     "id": "puppet var",
-    "name": "create_attributes_template",
-    "displayName": "Attribute template",
+    "name": "ad_create_attributes_template",
+    "displayName": "Account Attribute Template",
     "displayType": "content",
     "isOverridable": false,
     "isVisible": true,
+    "isRequired": false,
     "serviceName": "KERBEROS",
     "filename": "kerberos-env.xml",
     "category": "Advanced kerberos-env",
     "index" : 11
+  },
+  {
+    "id": "puppet var",
+    "name": "kdc_create_attributes",
+    "displayName": "Principal Attributes",
+    "isOverridable": false,
+    "isVisible": true,
+    "isRequired": false,
+    "serviceName": "KERBEROS",
+    "filename": "kerberos-env.xml",
+    "category": "Advanced kerberos-env",
+    "index" : 12
   },
   {
     "id": "puppet var",
@@ -2432,7 +2445,7 @@ var hdp2properties = [
     "serviceName": "KERBEROS",
     "filename": "kerberos-env.xml",
     "category": "Advanced kerberos-env",
-    "index" : 11
+    "index" : 13
   },
   {
     "id": "puppet var",

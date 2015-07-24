@@ -166,7 +166,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     this.ldapContext = createLdapContext();
     this.searchControls = createSearchControls();
 
-    this.createTemplate = kerberosConfiguration.get(KERBEROS_ENV_CREATE_ATTRIBUTES_TEMPLATE);
+    this.createTemplate = kerberosConfiguration.get(KERBEROS_ENV_AD_CREATE_ATTRIBUTES_TEMPLATE);
 
     this.gson = new Gson();
 

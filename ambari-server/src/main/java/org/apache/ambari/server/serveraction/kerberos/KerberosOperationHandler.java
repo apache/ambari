@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import org.apache.ambari.server.security.SecurePasswordHelper;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.directory.server.kerberos.shared.crypto.encryption.KerberosKeyFactory;
@@ -64,9 +63,14 @@ public abstract class KerberosOperationHandler {
   public final static String KERBEROS_ENV_PRINCIPAL_CONTAINER_DN = "container_dn";
 
   /**
-   * Kerberos-env configuration property name: create_attributes_template
+   * Kerberos-env configuration property name: ad_create_attributes_template
    */
-  public final static String KERBEROS_ENV_CREATE_ATTRIBUTES_TEMPLATE = "create_attributes_template";
+  public final static String KERBEROS_ENV_AD_CREATE_ATTRIBUTES_TEMPLATE = "ad_create_attributes_template";
+
+  /**
+   * Kerberos-env configuration property name: kdc_create_attributes
+   */
+  public final static String KERBEROS_ENV_KDC_CREATE_ATTRIBUTES = "kdc_create_attributes";
 
   /**
    * Kerberos-env configuration property name: encryption_types
