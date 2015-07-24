@@ -1360,9 +1360,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             !all.containsKey(cr.getVersionTag()) ||     // tag not set
             cr.getProperties().size() > 0) {            // properties to set
 
-          LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to cluster ''{1}''",
+          LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
               cr.getVersionTag(),
-              request.getClusterName()));
+              request.getClusterName(),
+              cr.getType()));
 
           cr.setClusterName(cluster.getClusterName());
           configurationResponses.add(createConfiguration(cr));

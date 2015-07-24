@@ -197,14 +197,17 @@ public class BlueprintConfigurationProcessor {
   /**
    * Update properties for cluster creation.  This involves updating topology related properties with
    * concrete topology information.
+   *
+   * @return Set of config type names that were updated by this update call
    */
-  public void doUpdateForClusterCreate() throws ConfigurationTopologyException {
+  public Set<String> doUpdateForClusterCreate() throws ConfigurationTopologyException {
+    Set<String> configTypesUpdated = new HashSet<String>();
     Configuration clusterConfig = clusterTopology.getConfiguration();
     Map<String, HostGroupInfo> groupInfoMap = clusterTopology.getHostGroupInfo();
 
     // filter out any properties that should not be included, based on the dependencies
     // specified in the stacks, and the filters defined in this class
-    doFilterPriorToClusterUpdate(clusterConfig);
+    doFilterPriorToClusterUpdate(clusterConfig, configTypesUpdated);
 
     // this needs to be called after doFilterPriorToClusterUpdate() to ensure that the returned
     // set of properties (copy) doesn't include the removed properties.  If an updater
@@ -221,8 +224,15 @@ public class BlueprintConfigurationProcessor {
           // topo cluster scoped configuration which also includes all default and BP properties
           Map<String, String> typeMap = clusterProps.get(type);
           if (typeMap != null && typeMap.containsKey(propertyName)) {
-            clusterConfig.setProperty(type, propertyName, updater.updateForClusterCreate(
-                propertyName, typeMap.get(propertyName), clusterProps, clusterTopology));
+            final String originalValue = typeMap.get(propertyName);
+            final String updatedValue =
+              updater.updateForClusterCreate(propertyName, originalValue, clusterProps, clusterTopology);
+
+            if (!updatedValue.equals(originalValue)) {
+              configTypesUpdated.add(type);
+            }
+
+            clusterConfig.setProperty(type, propertyName, updatedValue);
           }
 
           // host group configs
@@ -231,8 +241,15 @@ public class BlueprintConfigurationProcessor {
             Map<String, Map<String, String>> hgConfigProps = hgConfig.getFullProperties(1);
             Map<String, String> hgTypeMap = hgConfigProps.get(type);
             if (hgTypeMap != null && hgTypeMap.containsKey(propertyName)) {
-              hgConfig.setProperty(type, propertyName, updater.updateForClusterCreate(
-                  propertyName, hgTypeMap.get(propertyName), hgConfigProps, clusterTopology));
+              final String originalValue = hgTypeMap.get(propertyName);
+              final String updatedValue =
+                updater.updateForClusterCreate(propertyName, originalValue, hgConfigProps, clusterTopology);
+
+              if (!updatedValue.equals(originalValue)) {
+                configTypesUpdated.add(type);
+              }
+
+              hgConfig.setProperty(type, propertyName, updatedValue);
             }
           }
         }
@@ -254,9 +271,14 @@ public class BlueprintConfigurationProcessor {
         Iterator<String> nnHostIterator = nnHosts.iterator();
         clusterConfig.setProperty("hadoop-env", "dfs_ha_initial_namenode_active", nnHostIterator.next());
         clusterConfig.setProperty("hadoop-env", "dfs_ha_initial_namenode_standby", nnHostIterator.next());
+
+        configTypesUpdated.add("hadoop-env");
       }
     }
-    setMissingConfigurations(clusterConfig);
+
+    setMissingConfigurations(clusterConfig, configTypesUpdated);
+
+    return configTypesUpdated;
   }
 
   /**
@@ -340,7 +362,7 @@ public class BlueprintConfigurationProcessor {
     }
   }
 
-  private void doFilterPriorToClusterUpdate(Configuration configuration) {
+  private void doFilterPriorToClusterUpdate(Configuration configuration, Set<String> configTypesUpdated) {
     // getFullProperties returns a copy so changes to it are not reflected in config properties
     Map<String, Map<String, String>> properties = configuration.getFullProperties();
     for (Map.Entry<String, Map<String, String>> configEntry : properties.entrySet()) {
@@ -351,6 +373,7 @@ public class BlueprintConfigurationProcessor {
         String propName = propertyEntry.getKey();
         if (shouldPropertyBeExcludedForClusterUpdate(propName, propertyEntry.getValue(), configType, clusterTopology)) {
           configuration.removeProperty(configType, propName);
+          configTypesUpdated.add(configType);
         }
       }
     }
@@ -2038,11 +2061,11 @@ public class BlueprintConfigurationProcessor {
    *
    * @param configuration  configuration where properties are to be added
    */
-  void setMissingConfigurations(Configuration configuration) {
+  void setMissingConfigurations(Configuration configuration, Set<String> configTypesUpdated) {
     // AMBARI-5206
     final Map<String , String> userProps = new HashMap<String , String>();
 
-    setRetryConfiguration(configuration);
+    setRetryConfiguration(configuration, configTypesUpdated);
 
     Collection<String> services = clusterTopology.getBlueprint().getServices();
     // only add user properties to the map for
@@ -2074,8 +2097,8 @@ public class BlueprintConfigurationProcessor {
       if (configs != null) {
         String user = configs.get(property);
         if (user != null && !user.isEmpty()) {
-          ensureProperty(configuration, "core-site", String.format(proxyUserHosts, user), "*");
-          ensureProperty(configuration, "core-site", String.format(proxyUserGroups, user), "users");
+          ensureProperty(configuration, "core-site", String.format(proxyUserHosts, user), "*", configTypesUpdated);
+          ensureProperty(configuration, "core-site", String.format(proxyUserGroups, user), "users", configTypesUpdated);
         }
       } else {
         LOG.debug("setMissingConfigurations: no user configuration found for type = " + configType +
@@ -2096,18 +2119,26 @@ public class BlueprintConfigurationProcessor {
    *
    * @param configuration cluster configuration
    */
-  private static void setRetryConfiguration(Configuration configuration) {
+  private static void setRetryConfiguration(Configuration configuration, Set<String> configTypesUpdated) {
+    boolean wasUpdated = false;
 
     if (configuration.getPropertyValue(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMAND_RETRY_ENABLED_PROPERTY_NAME) == null) {
       configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMAND_RETRY_ENABLED_PROPERTY_NAME, COMMAND_RETRY_ENABLED_DEFAULT);
+      wasUpdated = true;
     }
 
     if (configuration.getPropertyValue(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMANDS_TO_RETRY_PROPERTY_NAME) == null) {
       configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMANDS_TO_RETRY_PROPERTY_NAME, COMMANDS_TO_RETRY_DEFAULT);
+      wasUpdated = true;
     }
 
     if (configuration.getPropertyValue(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMAND_RETRY_MAX_TIME_IN_SEC_PROPERTY_NAME) == null) {
       configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, COMMAND_RETRY_MAX_TIME_IN_SEC_PROPERTY_NAME, COMMAND_RETRY_MAX_TIME_IN_SEC_DEFAULT);
+      wasUpdated = true;
+    }
+
+    if (wasUpdated) {
+      configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
     }
   }
 
@@ -2121,9 +2152,10 @@ public class BlueprintConfigurationProcessor {
    * @param property       property name
    * @param defaultValue   default value
    */
-  private void ensureProperty(Configuration configuration, String type, String property, String defaultValue) {
+  private void ensureProperty(Configuration configuration, String type, String property, String defaultValue, Set<String> configTypesUpdated) {
     if (configuration.getPropertyValue(type, property) == null) {
       configuration.setProperty(type, property, defaultValue);
+      configTypesUpdated.add(type);
     }
   }
 
