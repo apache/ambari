@@ -57,7 +57,7 @@ import static org.easymock.EasyMock.replay;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ ProxyServiceTest.class, ProxyService.class, URLStreamProvider.class, Response.class,
         ResponseBuilderImpl.class, URI.class })
-class ProxyServiceTest extends BaseServiceTest {
+public class ProxyServiceTest extends BaseServiceTest {
 
   @Test
   public void testProxyGetRequest() throws Exception {
