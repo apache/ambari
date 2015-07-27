@@ -306,6 +306,8 @@ module.exports = App.WizardRoute.extend({
           controller.connectOutlet('wizardStep8', controller.get('content'));
         });
       });
+
+      router.get('kerberosWizardStep5Controller').getCSVData();
     },
     back: function (router) {
       var controller = router.get('addServiceController');
