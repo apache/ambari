@@ -3723,9 +3723,9 @@ public class AmbariManagementControllerTest {
       reqs.add(req4);
       reqs.add(req5);
       updateHostComponents(reqs, Collections.<String, String>emptyMap(), true);
-      fail("Expected failure for invalid states");
+      // Expected, now client components with STARTED status will be ignored
     } catch (Exception e) {
-      // Expected
+      fail("Failure for invalid states");
     }
 
     reqs.clear();

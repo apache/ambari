@@ -450,6 +450,7 @@ public class HostComponentResourceProviderTest {
         new TestHostComponentResourceProvider(PropertyHelper.getPropertyIds(type),
             PropertyHelper.getKeyPropertyIds(type),
             controller, injector);
+
     provider.setFieldValue("maintenanceStateHelper", injector.getInstance(MaintenanceStateHelper.class));
     provider.setFieldValue("hostVersionDAO", injector.getInstance(HostVersionDAO.class));
 
