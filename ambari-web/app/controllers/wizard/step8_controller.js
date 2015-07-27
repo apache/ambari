@@ -76,6 +76,10 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     return App.get('router.mainAdminKerberosController.kdc_type') === 'none';
   }.property('App.router.mainAdminKerberosController.kdc_type'),
 
+  showDownloadCsv: function () {
+    return !!App.get('router.mainAdminKerberosController.kdc_type')
+  }.property('App.router.mainAdminKerberosController.kdc_type'),
+
   /**
    * All configs
    * @type {Array}
