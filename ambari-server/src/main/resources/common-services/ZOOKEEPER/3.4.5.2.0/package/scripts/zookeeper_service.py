@@ -61,7 +61,7 @@ def zookeeper_service(action='start', rolling_restart=False):
     Execute(rm_pid)
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def zookeeper_service(action='start'):
+def zookeeper_service(action='start', rolling_restart=False):
   import params
   if action == 'start':
     Service(params.zookeeper_win_service_name, action="start")
