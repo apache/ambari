@@ -210,7 +210,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
   },
 
   onInitialLoad: function () {
-    if (!Em.isEmpty(this.get('filterConditions')) && this.get('tableFilteringComplete')) {
+    if (this.get('tableFilteringComplete')) {
       this.refresh();
     }
   }.observes('tableFilteringComplete'),
