@@ -345,12 +345,15 @@ class TestCheckHost(TestCase):
     pass
 
 
+  @patch.object(HostCheckReportFileHandler, "resolve_ambari_config")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch.object(Script, 'get_tmp_dir')
   @patch.object(Script, 'get_config')
   @patch("os.path.isfile")
   @patch('__builtin__.open')
-  def testTransparentHugePage(self, open_mock, os_path_isfile_mock, mock_config, get_tmp_dir_mock, structured_out_mock):
+  def testTransparentHugePage(self, open_mock, os_path_isfile_mock, mock_config,
+                              get_tmp_dir_mock, structured_out_mock,
+                              resolve_config_mock):
     context_manager_mock = MagicMock()
     open_mock.return_value = context_manager_mock
     file_mock = MagicMock()
