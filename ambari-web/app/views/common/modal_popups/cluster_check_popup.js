@@ -61,7 +61,7 @@ App.showClusterCheckPopup = function (data, header, failTitle, failAlert, warnin
     primary: fails.length ? Em.I18n.t('common.dismiss') : Em.I18n.t('common.proceedAnyway'),
     secondary: fails.length ? false : Em.I18n.t('common.cancel'),
     header: header,
-    classNames: hasConfigsMergeConflicts ? ['configs-merge-warnings'] : [],
+    classNames: ['cluster-check-popup'],
     bodyClass: Em.View.extend(popupBody),
     onPrimary: function () {
       if (!fails.length && callback) {
