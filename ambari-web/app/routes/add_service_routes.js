@@ -306,8 +306,9 @@ module.exports = App.WizardRoute.extend({
           controller.connectOutlet('wizardStep8', controller.get('content'));
         });
       });
-
-      router.get('kerberosWizardStep5Controller').getCSVData();
+      if(!!App.get('router.mainAdminKerberosController.kdc_type')){
+        router.get('kerberosWizardStep5Controller').getCSVData(true);
+      }
     },
     back: function (router) {
       var controller = router.get('addServiceController');
