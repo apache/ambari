@@ -947,6 +947,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
           self.set('forceTransition', true);
           App.router.route(path);
         } else if (callback) {
+          self.doCancel();
           // Prevent multiple popups
           self.set('hash', self.getHash());
           callback();
