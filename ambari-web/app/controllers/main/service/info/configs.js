@@ -150,6 +150,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @type {boolean}
    */
   isSubmitDisabled: function () {
+    if (!this.get('selectedService')) return true;
     return this.get('selectedService').get('errorCount') !==  0 || this.get('saveInProgress');
   }.property('selectedService.errorCount', 'saveInProgress'),
 
@@ -274,8 +275,15 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       serviceConfigVersionNote: ''
     });
     this.get('filterColumns').setEach('selected', false);
-    this.get('stepConfigs').clear();
-    this.get('allConfigs').clear();
+    this.clearConfigs();
+  },
+
+  clearConfigs: function() {
+    this.get('allConfigs').invoke('destroy');
+    this.get('stepConfigs').invoke('destroy');
+    this.set('stepConfigs', []);
+    this.set('allConfigs', []);
+    this.set('selectedService', null);
   },
 
   /**
