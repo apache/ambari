@@ -28,11 +28,13 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
   /**
    * get CSV data from the server
    */
-  getCSVData: function () {
+  getCSVData: function (skipDownload) {
     App.ajax.send({
       name: 'admin.kerberos.cluster.csv',
       sender: this,
-      data: {},
+      data: {
+        'skipDownload': skipDownload
+      },
       success: 'getCSVDataSuccessCallback',
       error: 'getCSVDataSuccessCallback'
     })
@@ -43,7 +45,9 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
    */
   getCSVDataSuccessCallback: function (data, opt, params) {
     this.set('csvData', this.prepareCSVData(data.split('\n')));
-    this.downloadCSV();
+    if(!Em.get(params, 'skipDownload')){
+      this.downloadCSV();
+    }
   },
 
   prepareCSVData: function (array) {
