@@ -463,7 +463,7 @@ App.ConfigOverridable = Em.Mixin.create({
         this._super();
       },
       onSecondary: function () {
-        App.router.get('manageConfigGroupsController').manageConfigurationGroups(null, self.get('content'));
+        App.router.get('manageConfigGroupsController').manageConfigurationGroups(null, self.get('controller.content'));
         this.hide();
       }
     });
