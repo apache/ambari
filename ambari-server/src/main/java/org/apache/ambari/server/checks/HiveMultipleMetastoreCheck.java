@@ -78,10 +78,12 @@ public class HiveMultipleMetastoreCheck extends AbstractCheckDescriptor {
       Map<String, ServiceComponentHost> metastores = metastore.getServiceComponentHosts();
 
       if (metastores.size() < 2) {
+        prerequisiteCheck.getFailedOn().add("HIVE");
         prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
         prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
       }
     } catch (ServiceComponentNotFoundException scnfe) {
+      prerequisiteCheck.getFailedOn().add("HIVE");
       prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
       prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
     }

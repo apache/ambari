@@ -18,6 +18,7 @@
 package org.apache.ambari.server.checks;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -38,7 +39,7 @@ import com.google.inject.Provider;
 /**
  * Tests {@link HiveMultipleMetastoreCheck}
  */
-public class TestHiveMultipleMetastoreCheck {
+public class HiveMultipleMetastoreCheckTest {
   private final Clusters m_clusters = Mockito.mock(Clusters.class);
   private final HiveMultipleMetastoreCheck m_check = new HiveMultipleMetastoreCheck();
 
@@ -120,5 +121,34 @@ public class TestHiveMultipleMetastoreCheck {
     m_check.perform(check, request);
 
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+  }
+
+  @Test
+  public void testPerformFail() throws Exception{
+    final Cluster cluster = Mockito.mock(Cluster.class);
+    final LinkedHashSet<String> failedOnExpected = new LinkedHashSet<String>();
+    Service hive = Mockito.mock(Service.class);
+    ServiceComponent metastore = Mockito.mock(ServiceComponent.class);
+    Map<String, ServiceComponentHost> metastores = new HashMap<String, ServiceComponentHost>();
+
+    failedOnExpected.add("HIVE");
+
+    Mockito.when(cluster.getClusterId()).thenReturn(1L);
+    Mockito.when(m_clusters.getCluster("cluster")).thenReturn(cluster);
+    Mockito.when(cluster.getService("HIVE")).thenReturn(hive);
+    Mockito.when(hive.getServiceComponent("HIVE_METASTORE")).thenReturn(metastore);
+    Mockito.when(metastore.getServiceComponentHosts()).thenReturn(metastores);
+
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
+    PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setRepositoryVersion("2.3.0.0");
+    m_check.perform(check, request);
+
+    Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
+
+    check = new PrerequisiteCheck(null, null);
+    m_check.perform(check, request);
+    Assert.assertEquals(failedOnExpected, check.getFailedOn());
+    Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
   }
 }
