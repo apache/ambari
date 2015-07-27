@@ -106,16 +106,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   }.property('content.serviceName', 'dependentServiceNames'),
 
   /**
-   * configs from stack for dependent services
-   * @type {App.StackConfigProperty[]}
-   */
-  advancedConfigs: function() {
-    return App.StackConfigProperty.find().filter(function(scp) {
-      return this.get('servicesToLoad').contains(scp.get('serviceName'));
-    }, this);
-  }.property('content.serviceName', 'App.router.clusterController.isStackConfigsLoaded'),
-
-  /**
    * @type {boolean}
    */
   isCurrentSelected: function () {
@@ -206,6 +196,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       caption: 'common.combobox.dropdown.issues'
     }
   ],
+
+  /**
+   * get array of config proerties that are shown in settings tab
+   * @type {App.StackConfigProperty[]}
+   */
+  settingsTabProperties: function() {
+    var properties = [];
+    App.Tab.find(this.get('content.serviceName') + '_settings').get('sections').forEach(function(s) {
+      s.get('subSections').forEach(function(ss) {
+        properties = ss.get('configProperties');
+      });
+    });
+    return properties;
+  }.property('content.serviceName', 'App.router.clusterController.isStackConfigsLoaded'),
 
   /**
    * Dropdown menu items in filter combobox
@@ -353,8 +357,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
         });
       }
     });
-    var configs = App.config.mergePredefinedWithSaved(configGroups, this.get('advancedConfigs'), serviceName, this.get('selectedConfigGroup'), this.get('canEdit'));
-    configs = App.config.syncOrderWithPredefined(configs);
+    var configs = App.config.mergePredefinedWithSaved(configGroups, serviceName, this.get('selectedConfigGroup'), this.get('canEdit'));
+    configs = App.config.sortConfigs(configs);
     /**
      * if property defined in stack but somehow it missed from cluster properties (can be after stack upgrade)
      * ui should add this properties to step configs
@@ -363,7 +367,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
     //put properties from capacity-scheduler.xml into one config with textarea view
     if (this.get('content.serviceName') === 'YARN') {
-      var configsToSkip = this.get('advancedConfigs').filterProperty('filename', 'capacity-scheduler.xml').filterProperty('subSection');
+      var configsToSkip = this.get('settingsTabProperties').filterProperty('filename', 'capacity-scheduler.xml');
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', configsToSkip);
     }
 
@@ -385,26 +389,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   },
 
   /**
-   * revert certain config values to their innital value
-   * i.e. don't save the KDC Type as "Existing MIT KDC", instead save it as mit-kdc
-   */
-  configValueRevert: function () {
-    var stepConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName'));
-    if (!stepConfigs) { return; }
-
-    var configs = stepConfigs.configs;
-    if (configs) {
-      var kdc_type = configs.findProperty('name', 'kdc_type');
-
-      if (!kdc_type) { return; };
-      if (App.router.get('mainAdminKerberosController.kdcTypesValues')[kdc_type.get('value')]) { return; }
-
-      kdc_type.set('value', kdc_type.get('savedValue'));
-    }
-
-  }.observes('saveInProgress'),
-
-  /**
    * adds properties form stack that doesn't belong to cluster
    * to step configs
    * also set recommended value if isn't exists
@@ -412,14 +396,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @return {App.ServiceConfigProperty[]}
    * @method mergeWithStackProperties
    */
-  mergeWithStackProperties: function(configs) {
-    this.get('advancedConfigs').forEach(function(advanced) {
-      var c = configs.findProperty('name', advanced.get('name'));
-      if (c) {
-        if (!c.get('recommendedValue')) {
-          c.set('recommendedValue', advanced.get('value'));
-        }
-      } else if (advanced.get('widget')) {
+  mergeWithStackProperties: function (configs) {
+    this.get('settingsTabProperties').forEach(function (advanced) {
+      if (!configs.someProperty('name', advanced.get('name'))) {
         configs.pushObject(App.ServiceConfigProperty.create({
           name: advanced.get('name'),
           displayName: advanced.get('displayName'),

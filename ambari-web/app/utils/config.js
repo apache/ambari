@@ -171,43 +171,6 @@ App.config = Em.Object.create({
     }
   },
 
-  /**
-   * Create array of service properties for Log4j files
-   * @returns {Array}
-   */
-  createContentProperties: function (configs) {
-    var services = App.StackService.find();
-    var contentProperties = [];
-    if (configs) {
-      services.forEach(function (service) {
-        if (service.get('configTypes')) {
-          Object.keys(service.get('configTypes')).forEach(function (type) {
-            var contentProperty = configs.filterProperty('filename', type + '.xml').someProperty('name', 'content');
-            if (contentProperty && (type.endsWith('-log4j') || type.endsWith('-env'))) {
-              var property = {
-                "id": "site property",
-                "name": "content",
-                "displayName": type.endsWith('-env') ? type + ' template' : "content",
-                "value": "",
-                "description": type + " properties",
-                "displayType": "content",
-                "isOverridable": true,
-                "isRequired": false,
-                "isVisible": true,
-                "showLabel": type.endsWith('-env'),
-                "serviceName": service.get('serviceName'),
-                "filename": type + '.xml',
-                "category": "Advanced " + type
-              };
-              contentProperties.pushObject(property);
-            }
-          }, this);
-        }
-      }, this);
-    }
-    return contentProperties;
-  },
-
   //configs with these filenames go to appropriate category not in Advanced
   customFileNames: ['flume-conf.xml'],
 
@@ -291,13 +254,12 @@ App.config = Em.Object.create({
   /**
    * generates config objects
    * @param configCategories
-   * @param advancedConfigs
    * @param serviceName
    * @param selectedConfigGroup
    * @param canEdit
    * @returns {Array}
    */
-  mergePredefinedWithSaved: function (configCategories, advancedConfigs, serviceName, selectedConfigGroup, canEdit) {
+  mergePredefinedWithSaved: function (configCategories, serviceName, selectedConfigGroup, canEdit) {
     var configs = [];
 
     configCategories.forEach(function (siteConfig) {
@@ -311,21 +273,19 @@ App.config = Em.Object.create({
       var properties = siteConfig.properties || {};
 
       for (var index in properties) {
-        var configsPropertyDef = this.get('preDefinedSitePropertiesMap')[this.configId(index, filename)];
-        var advancedConfig = advancedConfigs.filterProperty('name', index).findProperty('filename', filename);
-        var value = properties[index], isFinal = finalAttributes[index] === "true";
+        var id = this.configId(index, siteConfig.type);
+        var configsPropertyDef = this.get('preDefinedSitePropertiesMap')[id];
+        var advancedConfig = App.StackConfigProperty.find(id);
 
-        var template = this.createDefaultConfig(index, filename, !!advancedConfig, {value: value, savedValue: value, isFinal: isFinal, savedIsFinal: isFinal});
-        var serviceConfigObj = Em.Object.create(this.mergeStaticProperties(template, advancedConfig, configsPropertyDef));
+        var template = this.createDefaultConfig(index, filename, !!advancedConfig, configsPropertyDef);
+        var serviceConfigObj = this.mergeStaticProperties(template, advancedConfig);
 
-        if (serviceConfigObj.get('isRequiredByAgent') !== false) {
-          var formattedValue = this.formatPropertyValue(serviceConfigObj);
-          serviceConfigObj.setProperties({
-            'value': formattedValue,
-            'savedValue': formattedValue,
-            'isEditable': this.getIsEditable(serviceConfigObj, selectedConfigGroup, canEdit),
-            'isVisible': serviceName === 'MISC' ? true : serviceConfigObj.get('displayType') !== 'user'
-          });
+        if (serviceConfigObj.isRequiredByAgent !== false) {
+          var formattedValue = this.formatPropertyValue(serviceConfigObj, properties[index]);
+          serviceConfigObj.value = serviceConfigObj.savedValue = formattedValue;
+          serviceConfigObj.isFinal = serviceConfigObj.savedIsFinal = finalAttributes[index] === "true";
+          serviceConfigObj.isEditable = this.getIsEditable(serviceConfigObj, selectedConfigGroup, canEdit);
+          serviceConfigObj.isVisible = serviceConfigObj.isVisible === false ? false : serviceName === 'MISC' ? true : serviceConfigObj.displayType !== 'user';
         }
 
         var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);
@@ -472,13 +432,13 @@ App.config = Em.Object.create({
 
   /**
    * Calculate isEditable rely on controller state selected group and config restriction
-   * @param {Em.Object} serviceConfigProperty
-   * @param {Em.Object} selectedConfigGroup
+   * @param {Object} serviceConfigProperty
+   * @param {Object} selectedConfigGroup
    * @param {boolean} canEdit
    * @returns {boolean}
    */
   getIsEditable: function(serviceConfigProperty, selectedConfigGroup, canEdit) {
-    return canEdit && selectedConfigGroup.get('isDefault') && serviceConfigProperty.get('isReconfigurable')
+    return canEdit && Em.get(selectedConfigGroup, 'isDefault') && Em.get(serviceConfigProperty, 'isReconfigurable')
   },
 
   /**
@@ -494,10 +454,13 @@ App.config = Em.Object.create({
    * format property value depending on displayType
    * and one exception for 'kdc_type'
    * @param serviceConfigProperty
+   * @param [originalValue]
    * @returns {*}
    */
-  formatPropertyValue: function(serviceConfigProperty) {
-    var value = serviceConfigProperty.get('value'), displayType = serviceConfigProperty.get('displayType') || serviceConfigProperty.get('valueAttributes.type'), category = serviceConfigProperty.get('category');
+  formatPropertyValue: function(serviceConfigProperty, originalValue) {
+    var value = originalValue || Em.get(serviceConfigProperty, 'value'),
+        displayType = Em.get(serviceConfigProperty, 'displayType') || Em.get(serviceConfigProperty, 'valueAttributes.type'),
+        category = Em.get(serviceConfigProperty, 'category');
     switch (displayType) {
       case 'directories':
         if (['DataNode', 'NameNode'].contains(category)) {
@@ -526,7 +489,7 @@ App.config = Em.Object.create({
         var float = parseFloat(value);
         return isNaN(float) ? "" : float.toString();
     }
-    if (serviceConfigProperty.get('name') === 'kdc_type') {
+    if (Em.get(serviceConfigProperty, 'name') === 'kdc_type') {
       return App.router.get('mainAdminKerberosController.kdcTypesValues')[value];
     }
     return value;
@@ -552,31 +515,14 @@ App.config = Em.Object.create({
   },
 
   /**
-   * synchronize order of config properties with order, that on UI side
    *
-   * @method syncOrderWithPredefined
-   * @param {Object[]} siteConfigs
-   * @return {Object[]}
+   * @param configs
+   * @returns {Object[]}
    */
-  syncOrderWithPredefined: function (siteConfigs) {
-    var siteStart = [];
-    var preDefinedSiteProperties = this.get('preDefinedSiteProperties').mapProperty('name');
-    var contentProperties = this.createContentProperties(siteConfigs).mapProperty('name');
-    var siteProperties = preDefinedSiteProperties.concat(contentProperties);
-    siteProperties.forEach(function (name) {
-      var _site = siteConfigs.filterProperty('name', name);
-      if (_site.length == 1) {
-        siteStart.push(_site[0]);
-        siteConfigs = siteConfigs.without(_site[0]);
-      } else if (_site.length > 1) {
-        _site.forEach(function (site) {
-          siteStart.push(site);
-          siteConfigs = siteConfigs.without(site);
-        }, this);
-      }
-    }, this);
-
-    return siteStart.concat(siteConfigs.sortProperty('name'))
+  sortConfigs: function(configs) {
+    return configs.sort(function(a, b) {
+      return Em.get(a, 'index') == Em.get(b, 'index') ? Em.get(a, 'name') > Em.get(b, 'name') : Em.get(a, 'index') > Em.get(b, 'index');
+    });
   },
 
   /**
