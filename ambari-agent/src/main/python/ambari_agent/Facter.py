@@ -22,6 +22,7 @@ import logging
 import os
 import getpass
 import platform
+import hostname
 import re
 import shlex
 import socket
@@ -30,6 +31,7 @@ import subprocess
 from ambari_commons.shell import shellRunner
 import time
 import uuid
+from AmbariConfig import AmbariConfig
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 
@@ -50,11 +52,23 @@ def run_os_command(cmd):
 
 class Facter(object):
   def __init__(self):
-    pass
+    self.config = self.resolve_ambari_config()
+  
+  def resolve_ambari_config(self):
+    try:
+      config = AmbariConfig()
+      if os.path.exists(AmbariConfig.getConfigFile()):
+        config.read(AmbariConfig.getConfigFile())
+      else:
+        raise Exception("No config found, use default")
+
+    except Exception, err:
+      log.warn(err)
+    return config
 
   # Return first ip adress
   def getIpAddress(self):
-    return socket.gethostbyname(socket.getfqdn().lower())
+    return socket.gethostbyname(self.getFqdn().lower())
 
   # Returns the currently running user id
   def getId(self):
@@ -289,11 +303,8 @@ class FacterLinux(Facter):
   GET_UPTIME_CMD = "cat /proc/uptime"
   GET_MEMINFO_CMD = "cat /proc/meminfo"
 
-  # hostname command
-  GET_HOSTNAME_CMD = "/bin/hostname -f"
-
   def __init__(self):
-
+    super(FacterLinux,self).__init__()
     self.DATA_IFCONFIG_SHORT_OUTPUT = FacterLinux.setDataIfConfigShortOutput()
     self.DATA_UPTIME_OUTPUT = FacterLinux.setDataUpTimeOutput()
     self.DATA_MEMINFO_OUTPUT = FacterLinux.setMemInfoOutput()
@@ -330,17 +341,7 @@ class FacterLinux(Facter):
 
   # Returns the FQDN of the host
   def getFqdn(self):
-    # Try to use OS command to get hostname first due to Python Issue5004
-    try:
-      retcode, out, err = run_os_command(self.GET_HOSTNAME_CMD)
-      if (0 == retcode and 0 != len(out.strip())):
-        return out.strip()
-      else:
-        log.warn("Could not get fqdn using {0}".format(self.GET_HOSTNAME_CMD))
-    except OSError:
-      log.warn("Could not run {0} for fqdn".format(self.GET_HOSTNAME_CMD))
-    return socket.getfqdn().lower()
-
+    return hostname.hostname(self.config)
 
   def isSeLinux(self):
 
