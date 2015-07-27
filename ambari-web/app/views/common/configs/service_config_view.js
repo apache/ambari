@@ -250,6 +250,7 @@ App.ServiceConfigView = Em.View.extend({
    * @method filterEnhancedConfigs
    */
   filterEnhancedConfigs: function () {
+    if (!this.get('controller.selectedService')) return true;
     var self = this;
 
     var serviceConfigs = this.get('controller.selectedService.configs').filterProperty('isVisible', true);
