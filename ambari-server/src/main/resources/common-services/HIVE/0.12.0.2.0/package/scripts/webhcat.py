@@ -92,7 +92,7 @@ def webhcat():
   if Script.is_hdp_stack_greater_or_equal("2.3") and params.version:
     XmlConfig("hive-site.xml",
       conf_dir = format("/usr/hdp/{version}/hive/conf"),
-      configurations = params.config['configurations']['hive-site'],
+      configurations = params.hive_site_config,
       configuration_attributes = params.config['configuration_attributes']['hive-site'],
       owner = params.hive_user)
 
