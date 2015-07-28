@@ -18,6 +18,7 @@
 package org.apache.ambari.server.utils;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.getCurrentArguments;
@@ -28,6 +29,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,10 +50,15 @@ import javax.xml.bind.JAXBException;
 import com.google.inject.AbstractModule;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.actionmanager.StageFactoryImpl;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -105,6 +113,9 @@ public class StageUtilsTest extends EasyMockSupport {
         bind(Clusters.class).toInstance(createNiceMock(ClustersImpl.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
         bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
+        bind(StageFactory.class).to(StageFactoryImpl.class);
+        bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
+        bind(HostDAO.class).toInstance(createNiceMock(HostDAO.class));
       }
     });
 
@@ -136,8 +147,8 @@ public class StageUtilsTest extends EasyMockSupport {
   }
 
   @Test
-  @Ignore
   public void testGetATestStage() {
+    StageUtils stageUtils = new StageUtils(injector.getInstance(StageFactory.class));
     Stage s = StageUtils.getATestStage(1, 2, "host2", "", "hostParamsStage");
     String hostname = s.getHosts().get(0);
     List<ExecutionCommandWrapper> wrappers = s.getExecutionCommands(hostname);
@@ -149,8 +160,8 @@ public class StageUtilsTest extends EasyMockSupport {
   }
 
   @Test
-  @Ignore
   public void testJaxbToString() throws Exception {
+    StageUtils stageUtils = new StageUtils(injector.getInstance(StageFactory.class));
     Stage s = StageUtils.getATestStage(1, 2, "host1", "", "hostParamsStage");
     String hostname = s.getHosts().get(0);
     List<ExecutionCommandWrapper> wrappers = s.getExecutionCommands(hostname);
@@ -162,11 +173,11 @@ public class StageUtilsTest extends EasyMockSupport {
   }
 
   @Test
-  @Ignore
   public void testJasonToExecutionCommand() throws JsonGenerationException,
       JsonMappingException, JAXBException, IOException {
+    StageUtils stageUtils = new StageUtils(injector.getInstance(StageFactory.class));
     Stage s = StageUtils.getATestStage(1, 2, "host1", "clusterHostInfo", "hostParamsStage");
-    ExecutionCommand cmd = s.getExecutionCommands("host1").get(0).getExecutionCommand();
+    ExecutionCommand cmd = s.getExecutionCommands(getHostName()).get(0).getExecutionCommand();
     HashMap<String, Map<String, String>> configTags = new HashMap<String, Map<String, String>>();
     Map<String, String> globalTag = new HashMap<String, String>();
     globalTag.put("tag", "version1");
@@ -722,6 +733,16 @@ public class StageUtilsTest extends EasyMockSupport {
     }
 
     return new ArrayList<Integer>(sortedMap.values());
+  }
+
+  private String getHostName() {
+    String hostname;
+    try {
+      hostname = InetAddress.getLocalHost().getHostName();
+    } catch (UnknownHostException e) {
+      hostname = "host-dummy";
+    }
+    return hostname;
   }
 
 }
