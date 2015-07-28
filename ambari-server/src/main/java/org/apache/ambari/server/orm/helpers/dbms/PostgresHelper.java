@@ -61,7 +61,7 @@ public class PostgresHelper extends GenericDbmsHelper {
     StringBuilder statement = new StringBuilder()
       .append("SELECT ")
         .append("c.conname as CONSTRAINT_NAME,")
-        .append("c.contype as CONSTRAIN_TYPE ")
+        .append("c.contype as CONSTRAINT_TYPE ")
       .append("FROM pg_catalog.pg_constraint as c ")
       .append("JOIN pg_catalog.pg_namespace as namespace ")
         .append("on namespace.oid = c.connamespace ")
@@ -74,7 +74,7 @@ public class PostgresHelper extends GenericDbmsHelper {
   }
 
   @Override
-  public  StringBuilder writeDropPrimaryKeyStatement(StringBuilder builder, String constraintName){
-      return builder.append("DROP CONSTRAINT ").append(constraintName);
+  public  StringBuilder writeDropPrimaryKeyStatement(StringBuilder builder, String constraintName, boolean cascade){
+      return builder.append("DROP CONSTRAINT ").append(constraintName + (cascade ? " CASCADE" : ""));
   }
 }

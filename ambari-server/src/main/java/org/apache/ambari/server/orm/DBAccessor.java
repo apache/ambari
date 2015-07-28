@@ -326,26 +326,29 @@ public interface DBAccessor {
    * @param tableName
    * @param constraintName name of the constraint
    * @param ignoreFailure
+   * @param cascade cascade delete
    * @throws SQLException
    */
-  void dropPKConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException;
+  void dropPKConstraint(String tableName, String constraintName, boolean ignoreFailure, boolean cascade) throws SQLException;
 
   /**
    * Drop a PK constraint from table
    * @param tableName name of the table
    * @param constraintName name of the constraint
+   * @param cascade cascade delete
    * @throws SQLException
    */
-  void dropPKConstraint(String tableName, String constraintName) throws SQLException;
+  void dropPKConstraint(String tableName, String constraintName, boolean cascade) throws SQLException;
 
   /**
    * Drop a PK constraint from table
    * @param tableName name of the table
    * @param constraintName name of the constraint
    * @param columnName name of the column from the pk constraint
+   * @param cascade cascade delete
    * @throws SQLException
    */
-  void dropPKConstraint(String tableName, String constraintName, String columnName) throws SQLException;
+  void dropPKConstraint(String tableName, String constraintName, String columnName, boolean cascade) throws SQLException;
 
   /**
    * Drop a FK constraint from table
