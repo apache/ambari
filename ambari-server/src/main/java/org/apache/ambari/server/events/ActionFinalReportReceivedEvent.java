@@ -31,6 +31,7 @@ public final class ActionFinalReportReceivedEvent extends AmbariEvent {
   private String hostname;
   private CommandReport commandReport;
   private String role;
+  private Boolean emulated;
 
   /**
    * Constructor.
@@ -38,16 +39,24 @@ public final class ActionFinalReportReceivedEvent extends AmbariEvent {
    * @param clusterId (beware, may be null if action is not bound to cluster)
    * @param hostname host that is an origin for a command report
    * @param report full command report (may be null if action has been cancelled)
-   * @param role host command role. It is usually present at report entity, but
-   * if report is null, we still need some way to determine action type.
+   * @param emulated true, if event was generated without actually receiving
+   * data from agent (e.g. if we did not perform action, or action timed out,
+   * but we want to trigger event listener anyway). More loose checks against
+   * data will be performed in this case.
    */
   public ActionFinalReportReceivedEvent(Long clusterId, String hostname,
-                                        CommandReport report, String role) {
+                                        CommandReport report,
+                                        Boolean emulated) {
     super(AmbariEventType.ACTION_EXECUTION_FINISHED);
     this.clusterId = clusterId;
     this.hostname = hostname;
     this.commandReport = report;
-    this.role = role;
+    if (report.getRole() != null) {
+      this.role = report.getRole();
+    } else {
+      this.role = null;
+    }
+    this.emulated = emulated;
   }
 
   public Long getClusterId() {
@@ -64,6 +73,10 @@ public final class ActionFinalReportReceivedEvent extends AmbariEvent {
 
   public String getRole() {
     return role;
+  }
+
+  public Boolean isEmulated() {
+    return emulated;
   }
 
   @Override

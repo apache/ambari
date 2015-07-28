@@ -161,7 +161,8 @@ public class DistributeRepositoriesActionListener {
       // provide exact host stack version info) would be ignored
     for (HostVersionEntity hostVersion : hostVersions) {
 
-      if (repositoryVersion != null && !hostVersion.getRepositoryVersion().getVersion().equals(repositoryVersion)) {
+      if (! event.isEmulated() && // Emulated events anyway can not provide actual repo version
+              ! (repositoryVersion == null || hostVersion.getRepositoryVersion().getVersion().equals(repositoryVersion))) {
         continue;
       }
 

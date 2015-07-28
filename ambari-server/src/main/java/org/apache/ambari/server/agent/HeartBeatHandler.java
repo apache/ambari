@@ -462,7 +462,7 @@ public class HeartBeatHandler {
       if (RoleCommand.valueOf(report.getRoleCommand()) == RoleCommand.ACTIONEXECUTE &&
           HostRoleStatus.valueOf(report.getStatus()).isCompletedState()) {
         ActionFinalReportReceivedEvent event = new ActionFinalReportReceivedEvent(
-                clusterId, hostname, report, report.getRole());
+                clusterId, hostname, report, false);
         ambariEventPublisher.publish(event);
       }
 

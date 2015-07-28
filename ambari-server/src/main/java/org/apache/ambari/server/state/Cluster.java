@@ -96,7 +96,7 @@ public interface Cluster {
    *
    * @return collection of hosts that are associated with this cluster
    */
-  public Collection<Host> getHosts();
+  Collection<Host> getHosts();
 
   /**
    * Get all of the hosts running the provided service and component.

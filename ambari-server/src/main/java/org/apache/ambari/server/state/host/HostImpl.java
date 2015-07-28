@@ -263,6 +263,15 @@ public class HostImpl implements Host {
 
   }
 
+  @Override
+  public int compareTo(Object o) {
+    if ((o != null ) && (o instanceof Host)) {
+      return getHostName().compareTo(((Host) o).getHostName());
+    } else {
+      return -1;
+    }
+  }
+
   static class HostRegistrationReceived
       implements SingleArcTransition<HostImpl, HostEvent> {
 

@@ -39,6 +39,7 @@ import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.CancelCommand;
+import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
@@ -971,9 +972,15 @@ class ActionScheduler implements Runnable {
       // against a concrete host without binding to a cluster)
       Long clusterId = clusterName != null ?
               clusters.getCluster(clusterName).getClusterId() : null;
+      CommandReport report = new CommandReport();
+      report.setRole(role);
+      report.setStdOut("Action is dead");
+      report.setStdErr("Action is dead");
+      report.setStructuredOut("{}");
+      report.setExitCode(1);
+      report.setStatus(HostRoleStatus.ABORTED.toString());
       ActionFinalReportReceivedEvent event = new ActionFinalReportReceivedEvent(
-              clusterId, hostname, null,
-              role);
+              clusterId, hostname, report, true);
       ambariEventPublisher.publish(event);
     } catch (AmbariException e) {
       LOG.error(String.format("Can not get cluster %s", clusterName), e);

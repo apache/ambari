@@ -364,7 +364,7 @@ class TestInstallPackages(RMFTestCase):
   @patch("resource_management.libraries.functions.hdp_select.get_hdp_versions")
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
   @patch("resource_management.libraries.functions.repo_version_history.write_actual_version_to_history_file")
-  def test_version_reporting__build_number_defined__usr_hdp_present(self,
+  def test_version_reporting__build_number_defined(self,
                                                                                    write_actual_version_to_history_file_mock,
                                                                                    read_actual_version_from_history_file_mock,
                                                                                    hdp_versions_mock,
@@ -444,91 +444,6 @@ class TestInstallPackages(RMFTestCase):
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
   @patch("resource_management.libraries.functions.repo_version_history.write_actual_version_to_history_file")
   @patch("os.path.exists")
-  def test_version_reporting__build_number_defined__usr_hdp_not_present(self,
-                                                                    exists_mock,
-                                                                    write_actual_version_to_history_file_mock,
-                                                                    read_actual_version_from_history_file_mock,
-                                                                    hdp_versions_mock,
-                                                                    put_structured_out_mock, allInstalledPackages_mock, list_ambari_managed_repos_mock):
-    exists_mock.return_value = False
-    hdp_versions_mock.side_effect = [
-      [],  # before installation attempt
-      []
-    ]
-    read_actual_version_from_history_file_mock.return_value = None
-
-    config_file = self.get_src_folder() + "/test/python/custom_actions/configs/install_packages_config.json"
-    with open(config_file, "r") as f:
-      command_json = json.load(f)
-
-    command_json['roleParams']['repository_version'] = VERSION_STUB
-
-    allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
-    list_ambari_managed_repos_mock.return_value = []
-    self.executeScript("scripts/install_packages.py",
-                       classname="InstallPackages",
-                       command="actionexecute",
-                       config_dict=command_json,
-                       target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
-                       os_type=('Redhat', '6.4', 'Final'),
-                       )
-
-    self.assertTrue(put_structured_out_mock.called)
-    self.assertEquals(put_structured_out_mock.call_args[0][0],
-                      {'package_installation_result': 'SUCCESS',
-                       'stack_id': u'HDP-2.2',
-                       'installed_repository_version': VERSION_STUB,
-                       'actual_version': VERSION_STUB,
-                       'ambari_repositories': []})
-
-    self.assertFalse(write_actual_version_to_history_file_mock.called)
-
-    hdp_versions_mock.reset_mock()
-    write_actual_version_to_history_file_mock.reset_mock()
-    put_structured_out_mock.reset_mock()
-
-    # Test retrying install again
-
-    hdp_versions_mock.side_effect = [
-      [],  # before installation attempt
-      []
-    ]
-    read_actual_version_from_history_file_mock.return_value = None
-
-    config_file = self.get_src_folder() + "/test/python/custom_actions/configs/install_packages_config.json"
-    with open(config_file, "r") as f:
-      command_json = json.load(f)
-
-    command_json['roleParams']['repository_version'] = VERSION_STUB
-
-    allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
-    list_ambari_managed_repos_mock.return_value = []
-    self.executeScript("scripts/install_packages.py",
-                       classname="InstallPackages",
-                       command="actionexecute",
-                       config_dict=command_json,
-                       target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
-                       os_type=('Redhat', '6.4', 'Final'),
-                       )
-
-    self.assertTrue(put_structured_out_mock.called)
-    self.assertEquals(put_structured_out_mock.call_args[0][0],
-                      {'package_installation_result': 'SUCCESS',
-                       'stack_id': u'HDP-2.2',
-                       'installed_repository_version': VERSION_STUB,
-                       'actual_version': VERSION_STUB,
-                       'ambari_repositories': []})
-
-    self.assertFalse(write_actual_version_to_history_file_mock.called)
-
-
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
-  @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.hdp_select.get_hdp_versions")
-  @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
-  @patch("resource_management.libraries.functions.repo_version_history.write_actual_version_to_history_file")
-  @patch("os.path.exists")
   def test_version_reporting__build_number_not_defined__usr_hdp_present__no_components_installed(self,
                                                                             exists_mock,
                                                                             write_actual_version_to_history_file_mock,
@@ -563,6 +478,7 @@ class TestInstallPackages(RMFTestCase):
     except Fail:
       pass  # Expected
 
+
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args_list[-1][0][0],
                       { 'ambari_repositories': [],
@@ -584,7 +500,7 @@ class TestInstallPackages(RMFTestCase):
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
   @patch("resource_management.libraries.functions.repo_version_history.write_actual_version_to_history_file")
   @patch("os.path.exists")
-  def test_version_reporting__build_number_not_defined__usr_hdp_not_present(self,
+  def test_version_reporting__build_number_not_defined__usr_hdp_absent(self,
                                                                         exists_mock,
                                                                         write_actual_version_to_history_file_mock,
                                                                         read_actual_version_from_history_file_mock,
@@ -605,17 +521,21 @@ class TestInstallPackages(RMFTestCase):
 
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
     list_ambari_managed_repos_mock.return_value = []
-    self.executeScript("scripts/install_packages.py",
-                       classname="InstallPackages",
-                       command="actionexecute",
-                       config_dict=command_json,
-                       target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
-                       os_type=('Redhat', '6.4', 'Final'),
-                       )
+    try:
+      self.executeScript("scripts/install_packages.py",
+                         classname="InstallPackages",
+                         command="actionexecute",
+                         config_dict=command_json,
+                         target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
+                         os_type=('Redhat', '6.4', 'Final'),
+                         )
+      self.fail("Should throw exception")
+    except Fail:
+      pass  # Expected
 
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args_list[-1][0][0],
-                      {'package_installation_result': 'SUCCESS',
+                      {'package_installation_result': 'FAIL',
                        'stack_id': u'HDP-2.2',
                        'installed_repository_version': '2.2.0.1',
                        'ambari_repositories': []})
@@ -626,7 +546,7 @@ class TestInstallPackages(RMFTestCase):
     write_actual_version_to_history_file_mock.reset_mock()
     put_structured_out_mock.reset_mock()
 
-    # Test retrying install again
+    # Test retrying install again  (correct build number, provided by other nodes, is now received from server)
 
     hdp_versions_mock.side_effect = [
       [],  # before installation attempt
@@ -845,17 +765,21 @@ class TestInstallPackages(RMFTestCase):
 
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
     list_ambari_managed_repos_mock.return_value = []
-    self.executeScript("scripts/install_packages.py",
-                       classname="InstallPackages",
-                       command="actionexecute",
-                       config_dict=command_json,
-                       target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
-                       os_type=('Redhat', '6.4', 'Final'),
-                       )
+    try:
+      self.executeScript("scripts/install_packages.py",
+                         classname="InstallPackages",
+                         command="actionexecute",
+                         config_dict=command_json,
+                         target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
+                         os_type=('Redhat', '6.4', 'Final'),
+                         )
+      self.fail("Should throw exception")
+    except Fail:
+      pass  # Expected
 
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args_list[-1][0][0],
-                      {'package_installation_result': 'SUCCESS',
+                      {'package_installation_result': 'FAIL',
                        'stack_id': u'HDP-2.2',
                        'installed_repository_version': '2.2.0.1',
                        'ambari_repositories': []})
@@ -866,7 +790,7 @@ class TestInstallPackages(RMFTestCase):
     write_actual_version_to_history_file_mock.reset_mock()
     put_structured_out_mock.reset_mock()
 
-    # Test retrying install again
+    # Test retrying install again (correct build number, provided by other nodes, is now received from server)
 
     hdp_versions_mock.side_effect = [
       [],  # before installation attempt

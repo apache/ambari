@@ -199,17 +199,8 @@ class InstallPackages(Script):
         self.put_structured_out(self.structured_output)
         Logger.info("Found actual version {0} by parsing file {1}".format(self.actual_version, REPO_VERSION_HISTORY_FILE))
       elif self.repo_version_with_build_number is None:
-        # It's likely that this host does not have any Stack Components installed, so only contains AMS.
-        # So just use repo version value provided by server (we already put it to structured output)
-        if not os.path.exists(self.stack_root_folder):
-          # Special case when this host does not contain any HDP components, but still contains other components like AMS.
-          msg = "Could not determine actual version. This stack's root directory ({0}) is not present on this host, so this host does not contain any versionable components. " \
-                "Therefore, ignore this host and allow other hosts to report the correct repository version.".format(self.stack_root_folder)
-          Logger.info(msg)
-        else:
-          msg = "Could not determine actual version. This stack's root directory ({0}) exists but was not able to determine the actual repository version installed. " \
-                "Try reinstalling packages again.".format(self.stack_root_folder)
-          raise Fail(msg)
+        msg = "Could not determine actual version installed. Try reinstalling packages again."
+        raise Fail(msg)
 
 
   def install_packages(self, package_list):
