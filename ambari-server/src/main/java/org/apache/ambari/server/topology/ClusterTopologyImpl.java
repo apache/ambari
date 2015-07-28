@@ -20,6 +20,8 @@
 package org.apache.ambari.server.topology;
 
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,6 +45,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
   private Configuration configuration;
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
   private final AmbariContext ambariContext;
+
+  private final static Logger LOG = LoggerFactory.getLogger(ClusterTopologyImpl.class);
 
 
   //todo: will need to convert all usages of hostgroup name to use fully qualified name (BP/HG)
@@ -147,6 +151,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
       }
       // ok to add same host multiple times to same group
       existingHostGroupInfo.addHost(host);
+
+      LOG.info("ClusterTopologyImpl.addHostTopology: added host = " + host + " to host group = " + existingHostGroupInfo.getHostGroupName());
     }
   }
 

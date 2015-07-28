@@ -33,6 +33,8 @@ import org.apache.ambari.server.orm.entities.TopologyHostGroupEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
 import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
 import org.apache.ambari.server.state.host.HostImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,6 +61,8 @@ public class LogicalRequest extends Request {
   private static AmbariManagementController controller;
 
   private static final AtomicLong hostIdCounter = new AtomicLong(1);
+
+  private final static Logger LOG = LoggerFactory.getLogger(LogicalRequest.class);
 
 
   public LogicalRequest(Long id, TopologyRequest request, ClusterTopology topology)
@@ -90,6 +94,7 @@ public class LogicalRequest extends Request {
   public HostOfferResponse offer(HostImpl host) {
     // attempt to match to a host request with an explicit host reservation first
     synchronized (requestsWithReservedHosts) {
+      LOG.info("LogicalRequest.offer: attempting to match a request to a request for a reserved host to hostname = {}", host.getHostName());
       HostRequest hostRequest = requestsWithReservedHosts.remove(host.getHostName());
       if (hostRequest != null) {
         HostOfferResponse response = hostRequest.offer(host);
@@ -97,7 +102,12 @@ public class LogicalRequest extends Request {
           // host request rejected host that it explicitly requested
           throw new RuntimeException("LogicalRequest declined host offer of explicitly requested host: " +
               host.getHostName());
+        } else {
+          LOG.info("LogicalRequest.offer: request mapping ACCEPTED for host = {}", host.getHostName());
         }
+
+        LOG.info("LogicalRequest.offer returning response, reservedHost list size = {}", requestsWithReservedHosts.size());
+
         return response;
       }
     }
@@ -108,19 +118,29 @@ public class LogicalRequest extends Request {
       //todo: prioritization of master host requests
       Iterator<HostRequest> hostRequestIterator = outstandingHostRequests.iterator();
       while (hostRequestIterator.hasNext()) {
+        LOG.info("LogicalRequest.offer: attempting to match a request to a request for a reserved host to hostname = {}", host.getHostName());
         HostOfferResponse response = hostRequestIterator.next().offer(host);
         switch (response.getAnswer()) {
           case ACCEPTED:
             hostRequestIterator.remove();
+            LOG.info("LogicalRequest.offer: host request matched to non-reserved host, hostname = {}, host request has been removed from list", host.getHostName());
             return response;
           case DECLINED_DONE:
             //todo: should have been done on ACCEPT
             hostRequestIterator.remove();
+            LOG.info("LogicalRequest.offer: host request returned DECLINED_DONE for hostname = {}, host request has been removed from list", host.getHostName());
           case DECLINED_PREDICATE:
+            LOG.info("LogicalRequest.offer: host request returned DECLINED_PREDICATE for hostname = {}", host.getHostName());
             predicateRejected = true;
         }
       }
+
+      LOG.info("LogicalRequest.offer: outstandingHost request list size = " + outstandingHostRequests.size());
     }
+
+
+
+
     // if at least one outstanding host request rejected for predicate or we have an outstanding request
     // with a reserved host decline due to predicate, otherwise decline due to all hosts being resolved
     return predicateRejected || ! requestsWithReservedHosts.isEmpty() ?
@@ -301,6 +321,9 @@ public class LogicalRequest extends Request {
     }
     allHostRequests.addAll(outstandingHostRequests);
     allHostRequests.addAll(requestsWithReservedHosts.values());
+
+    LOG.info("LogicalRequest.createHostRequests: all host requests size {} , outstanding requests size = {}",
+      allHostRequests.size(), outstandingHostRequests.size());
   }
 
   private void createHostRequests(ClusterTopology topology,
@@ -326,8 +349,11 @@ public class LogicalRequest extends Request {
       if (! hostRequest.isCompleted()) {
         if (reservedHostName != null) {
           requestsWithReservedHosts.put(reservedHostName, hostRequest);
+          LOG.info("LogicalRequest.createHostRequests: created new request for a reserved request ID = {} for host name = {}",
+            hostRequest.getId(), reservedHostName);
         } else {
           outstandingHostRequests.add(hostRequest);
+          LOG.info("LogicalRequest.createHostRequests: created new outstanding host request ID = {}", hostRequest.getId());
         }
       }
     }
