@@ -27,7 +27,6 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -45,6 +44,7 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Arrays;
@@ -129,7 +129,7 @@ public class WidgetResourceProviderTest {
           .and().property(WidgetResourceProvider.WIDGET_ID_PROPERTY_ID).equals("1")
             .and().property(WidgetResourceProvider.WIDGET_AUTHOR_PROPERTY_ID).equals("username").toPredicate();
 
-    expect(dao.findById(1L)).andReturn(getMockEntities().get(0));
+    expect(dao.findById(1L)).andReturn(getMockEntities("CLUSTER").get(0));
 
     replay(amc, clusters, cluster, dao);
 
@@ -140,7 +140,7 @@ public class WidgetResourceProviderTest {
 
     Resource r = results.iterator().next();
     Assert.assertEquals("GAUGE", r.getPropertyValue(WidgetResourceProvider.WIDGET_WIDGET_TYPE_PROPERTY_ID));
-    Assert.assertEquals("USER", r.getPropertyValue(WidgetResourceProvider.WIDGET_SCOPE_PROPERTY_ID));
+    Assert.assertEquals("CLUSTER", r.getPropertyValue(WidgetResourceProvider.WIDGET_SCOPE_PROPERTY_ID));
     Assert.assertEquals("username", r.getPropertyValue(WidgetResourceProvider.WIDGET_AUTHOR_PROPERTY_ID));
     Assert.assertEquals("widget name", r.getPropertyValue(WidgetResourceProvider.WIDGET_WIDGET_NAME_PROPERTY_ID));
     Object metrics = r.getPropertyValue(WidgetResourceProvider.WIDGET_METRICS_PROPERTY_ID);
@@ -158,6 +158,51 @@ public class WidgetResourceProviderTest {
             "java.lang:type\\u003dMemory.HeapMemoryUsage[max]}\"}]",
             r.getPropertyValue(WidgetResourceProvider.WIDGET_VALUES_PROPERTY_ID));
     Assert.assertEquals("{\"name\":\"value\"}", r.getPropertyValue(WidgetResourceProvider.WIDGET_PROPERTIES_PROPERTY_ID));
+  }
+
+  /**
+   * @throws Exception
+   */
+  @Test
+  public void testGetResourceOfOtherUser() throws Exception {
+    Request request = PropertyHelper.getReadRequest(
+            WidgetResourceProvider.WIDGET_ID_PROPERTY_ID,
+            WidgetResourceProvider.WIDGET_WIDGET_NAME_PROPERTY_ID,
+            WidgetResourceProvider.WIDGET_WIDGET_TYPE_PROPERTY_ID,
+            WidgetResourceProvider.WIDGET_TIME_CREATED_PROPERTY_ID,
+            WidgetResourceProvider.WIDGET_CLUSTER_NAME_PROPERTY_ID,
+            WidgetResourceProvider.WIDGET_AUTHOR_PROPERTY_ID,
+            WidgetResourceProvider.WIDGET_DESCRIPTION_PROPERTY_ID,
+            WidgetResourceProvider.WIDGET_SCOPE_PROPERTY_ID,
+            WidgetResourceProvider.WIDGET_METRICS_PROPERTY_ID,
+            WidgetResourceProvider.WIDGET_VALUES_PROPERTY_ID,
+            WidgetResourceProvider.WIDGET_PROPERTIES_PROPERTY_ID);
+
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+    expect(amc.getClusters()).andReturn(clusters).atLeastOnce();
+    expect(clusters.getClusterById(1L)).andReturn(cluster).atLeastOnce();
+    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+
+    Predicate predicate = new PredicateBuilder().property(
+            WidgetResourceProvider.WIDGET_CLUSTER_NAME_PROPERTY_ID).equals("c1")
+            .and().property(WidgetResourceProvider.WIDGET_ID_PROPERTY_ID).equals("1")
+            .and().property(WidgetResourceProvider.WIDGET_AUTHOR_PROPERTY_ID).equals("username").toPredicate();
+
+    expect(dao.findById(1L)).andReturn(getMockEntities("USER").get(0));
+
+    replay(amc, clusters, cluster, dao);
+
+    WidgetResourceProvider provider = createProvider(amc);
+
+    try {
+      Set<Resource> results = provider.getResources(request, predicate);
+    } catch (AccessDeniedException ex) {
+      //Expected exception
+      Assert.assertEquals("User must be author of the widget or widget must have cluster scope", ex.getMessage());
+    }
+
   }
 
 
@@ -408,7 +453,7 @@ public class WidgetResourceProviderTest {
 
     try {
       widgetResourceProvider.createResources(request);
-    } catch (SystemException ex) {
+    } catch (AccessDeniedException ex) {
       //Expected exception
     }
 
@@ -425,14 +470,14 @@ public class WidgetResourceProviderTest {
   /**
    * @return
    */
-  private List<WidgetEntity> getMockEntities() throws Exception {
+  private List<WidgetEntity> getMockEntities(String scope) throws Exception {
 
     WidgetEntity widgetEntity = new WidgetEntity();
     widgetEntity.setClusterId(Long.valueOf(1L));
     widgetEntity.setWidgetName("widget name");
     widgetEntity.setWidgetType("GAUGE");
     widgetEntity.setAuthor("username");
-    widgetEntity.setScope("USER");
+    widgetEntity.setScope(scope);
     widgetEntity.setDefaultSectionName("default_section_name");
     widgetEntity.setDescription("Description");
     widgetEntity.setMetrics("[{\"widget_id\":\"metrics/jvm/HeapMemoryUsed\"," +

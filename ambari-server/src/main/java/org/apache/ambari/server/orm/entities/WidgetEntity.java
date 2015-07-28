@@ -46,6 +46,10 @@ import java.util.List;
 )
 @NamedQueries({
     @NamedQuery(name = "WidgetEntity.findAll", query = "SELECT widget FROM WidgetEntity widget"),
+    @NamedQuery(name = "WidgetEntity.findByScopeOrAuthor", query =
+            "SELECT widget FROM WidgetEntity widget " +
+                    "WHERE widget.author = :author " +
+                    "OR widget.scope = :scope"),
     @NamedQuery(name = "WidgetEntity.findByCluster", query = "SELECT widget FROM WidgetEntity widget WHERE widget.clusterId = :clusterId"),
     @NamedQuery(name = "WidgetEntity.findByName", query =
             "SELECT widget FROM WidgetEntity widget " +
