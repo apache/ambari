@@ -21,6 +21,7 @@ import urllib2
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 from resource_management.core import shell
 from resource_management.core.logger import Logger
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 
 def get_value_from_jmx(qry, property, security_enabled, run_user, is_https_enabled):
   try:
@@ -34,7 +35,7 @@ def get_value_from_jmx(qry, property, security_enabled, run_user, is_https_enabl
 
     cmd.append(qry)
 
-    _, data = shell.checked_call(cmd, user=run_user, quiet=False)
+    _, data, _ = get_user_call_output(cmd, user=run_user, quiet=False)
 
     if data:
       data_dict = json.loads(data)

@@ -30,6 +30,7 @@ from resource_management.core.logger import Logger
 from resource_management.core import shell
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions import namenode_ha_utils
 
@@ -185,7 +186,7 @@ class WebHDFSUtil:
       cmd += ["-k"]
       
     cmd.append(url)
-    _, out, err = shell.checked_call(cmd, user=self.run_user, logoutput=self.logoutput, quiet=False, stderr=subprocess.PIPE)
+    _, out, err = get_user_call_output(cmd, user=self.run_user, logoutput=self.logoutput, quiet=False)
     status_code = out[-3:]
     out = out[:-3] # remove last line from output which is status code
     
