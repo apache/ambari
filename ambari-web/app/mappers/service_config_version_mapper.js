@@ -92,6 +92,7 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
       });
 
       this.get('model').find().clear();
+      App.store.commit();
       App.store.loadMany(this.get('model'), result);
       console.timeEnd('App.serviceConfigVersionsMapper');
     }
