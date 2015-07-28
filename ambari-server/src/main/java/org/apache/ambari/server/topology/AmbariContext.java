@@ -87,7 +87,7 @@ public class AmbariContext {
   private static ComponentResourceProvider componentResourceProvider;
   private static HostComponentResourceProvider hostComponentResourceProvider;
 
-  private final static Logger LOG = LoggerFactory.getLogger(TopologyManager.class);
+  private final static Logger LOG = LoggerFactory.getLogger(AmbariContext.class);
 
   public boolean isClusterKerberosEnabled(String clusterName) {
     Cluster cluster;

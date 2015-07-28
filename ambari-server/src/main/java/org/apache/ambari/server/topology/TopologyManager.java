@@ -122,6 +122,7 @@ public class TopologyManager {
       throws InvalidTopologyException, AmbariException {
 
     ensureInitialized();
+    LOG.info("TopologyManager.scaleHosts: Entering");
     String clusterName = request.getClusterName();
     ClusterTopology topology = clusterTopologyMap.get(clusterName);
     if (topology == null) {
@@ -141,7 +142,9 @@ public class TopologyManager {
 
   public void onHostRegistered(HostImpl host, boolean associatedWithCluster) {
     ensureInitialized();
+    LOG.info("TopologyManager.onHostRegistered: Entering");
     if (associatedWithCluster || isHostIgnored(host.getHostName())) {
+      LOG.info("TopologyManager.onHostRegistered: host = {} is already associated with the cluster or is currently being processed", host.getHostName());
       return;
     }
 
@@ -154,6 +157,8 @@ public class TopologyManager {
         if (response.getAnswer() != HostOfferResponse.Answer.ACCEPTED) {
           throw new RuntimeException("LogicalRequest declined host offer of explicitly requested host: " + hostName);
         }
+
+        LOG.info("TopologyManager.onHostRegistered: processing accepted host offer for reserved host = {}", hostName);
         processAcceptedHostOffer(getClusterTopology(request.getClusterName()), response, host);
         matchedToRequest = true;
       }
@@ -169,12 +174,15 @@ public class TopologyManager {
           switch (hostOfferResponse.getAnswer()) {
             case ACCEPTED:
               matchedToRequest = true;
+              LOG.info("TopologyManager.onHostRegistered: processing accepted host offer for matched host = {}", hostName);
               processAcceptedHostOffer(getClusterTopology(request.getClusterName()), hostOfferResponse, host);
               break;
             case DECLINED_DONE:
+              LOG.info("TopologyManager.onHostRegistered: DECLINED_DONE received for host = {}", hostName);
               outstandingRequestIterator.remove();
               break;
             case DECLINED_PREDICATE:
+              LOG.info("TopologyManager.onHostRegistered: DECLINED_PREDICATE received for host = {}", hostName);
               break;
           }
         }
@@ -186,7 +194,7 @@ public class TopologyManager {
         boolean addToAvailableList = true;
         for (HostImpl registered : availableHosts) {
           if (registered.getHostId() == host.getHostId()) {
-            LOG.debug("Host {} re-registered, will not be added to the available hosts list", hostName);
+            LOG.info("Host {} re-registered, will not be added to the available hosts list", hostName);
             addToAvailableList = false;
             break;
           }
@@ -301,6 +309,8 @@ public class TopologyManager {
   private LogicalRequest processRequest(PersistedTopologyRequest request, ClusterTopology topology, Long requestId)
       throws AmbariException {
 
+    LOG.info("TopologyManager.processRequest: Entering");
+
     finalizeTopology(request.getRequest(), topology);
     LogicalRequest logicalRequest = createLogicalRequest(request, topology, requestId);
 
@@ -315,14 +325,21 @@ public class TopologyManager {
           if (reservedHosts.containsKey(hostname))  {
             if (logicalRequest.equals(reservedHosts.get(hostname))) {
               // host is registered to this request, remove it from reserved map
+              LOG.info("TopologyManager.processRequest: host name = {} is mapped to LogicalRequest ID = {} and will be removed from the reserved hosts.",
+                hostname, logicalRequest.getRequestId());
               reservedHosts.remove(hostname);
             } else {
               // host is registered with another request, don't offer
               //todo: clean up logic
+              LOG.info("TopologyManager.processRequest: host name = {} is registered with another request, and will not be offered to LogicalRequest ID = {}",
+                hostname, logicalRequest.getRequestId());
               continue;
             }
           }
         }
+
+        LOG.info("TopologyManager.processRequest: offering host name = {} to LogicalRequest ID = {}",
+          host.getHostName(), logicalRequest.getRequestId());
         HostOfferResponse response = logicalRequest.offer(host);
         switch (response.getAnswer()) {
           case ACCEPTED:
@@ -331,18 +348,26 @@ public class TopologyManager {
             //todo: deal specifically with outstanding hosts other than calling offer.  Also, failure handling
             //todo: may affect this behavior??
             hostIterator.remove();
+            LOG.info("TopologyManager.processRequest: host name = {} was ACCEPTED by LogicalRequest ID = {} , host has been removed from available hosts.",
+              host.getHostName(), logicalRequest.getRequestId());
             processAcceptedHostOffer(getClusterTopology(logicalRequest.getClusterName()), response, host);
             break;
           case DECLINED_DONE:
             requestHostComplete = true;
+            LOG.info("TopologyManager.processRequest: host name = {} was DECLINED_DONE by LogicalRequest ID = {}",
+              host.getHostName(), logicalRequest.getRequestId());
             break;
           case DECLINED_PREDICATE:
+            LOG.info("TopologyManager.processRequest: host name = {} was DECLINED_PREDICATE by LogicalRequest ID = {}",
+              host.getHostName(), logicalRequest.getRequestId());
             break;
         }
       }
 
       if (! requestHostComplete) {
         // not all required hosts have been matched (see earlier comment regarding outstanding logical requests)
+        LOG.info("TopologyManager.processRequest: not all required hosts have been matched, so adding LogicalRequest ID = {} to outstanding requests",
+          logicalRequest.getRequestId());
         outstandingRequests.add(logicalRequest);
       }
     }
@@ -358,6 +383,8 @@ public class TopologyManager {
     persistedState.persistLogicalRequest(logicalRequest, request.getId());
 
     allRequests.put(logicalRequest.getRequestId(), logicalRequest);
+    LOG.info("TopologyManager.createLogicalRequest: created LogicalRequest with ID = {} and completed persistence of this request.",
+      logicalRequest.getRequestId());
     synchronized (reservedHosts) {
       for (String host : logicalRequest.getReservedHosts()) {
         reservedHosts.put(host, logicalRequest);
@@ -381,13 +408,20 @@ public class TopologyManager {
     // persist the host request -> hostName association
     persistedState.registerHostName(response.getHostRequestId(), hostName);
 
+    LOG.info("TopologyManager.processAcceptedHostOffer: about to execute tasks for host = {}",
+      hostName);
+
     for (TopologyTask task : response.getTasks()) {
+      LOG.info("Processing accepted host offer for {} which responded {} and task {}",
+        hostName, response.getAnswer(), task.getType());
+
       task.init(topology, ambariContext);
       executor.execute(task);
     }
   }
 
   private void replayRequests(Map<ClusterTopology, List<LogicalRequest>> persistedRequests) {
+    LOG.info("TopologyManager.replayRequests: Entering");
     boolean configChecked = false;
     for (Map.Entry<ClusterTopology, List<LogicalRequest>> requestEntry : persistedRequests.entrySet()) {
       ClusterTopology topology = requestEntry.getKey();
@@ -407,6 +441,7 @@ public class TopologyManager {
               String hostName = hostRequest.getHostName();
               topology.addHostToTopology(hostRequest.getHostgroupName(), hostName);
               hostsToIgnore.add(hostName);
+              LOG.info("TopologyManager.replayRequests: host name = {} has been added to cluster and to ignore list.", hostName);
             } catch (InvalidTopologyException e) {
               LOG.warn("Attempted to add host to multiple host groups while replaying requests: " + e, e);
             } catch (NoSuchHostGroupException e) {
@@ -419,6 +454,7 @@ public class TopologyManager {
       if (! configChecked) {
         configChecked = true;
         if (! ambariContext.doesConfigurationWithTagExist(topology.getClusterName(), TOPOLOGY_RESOLVED_TAG)) {
+          LOG.info("TopologyManager.replayRequests: no config with TOPOLOGY_RESOLVED found, adding cluster config request");
           addClusterConfigRequest(topology, new ClusterConfigurationRequest(ambariContext, topology, false));
         }
       }
@@ -483,11 +519,14 @@ public class TopologyManager {
           Thread.sleep(100);
         } catch (InterruptedException e) {
           interrupted = true;
+          LOG.info("TopologyManager.ConfigureClusterTask: waiting thread interrupted by exception", e);
           // reset interrupted flag on thread
           Thread.interrupted();
         }
         completed = areRequiredHostGroupsResolved(requiredHostGroups);
       }
+
+      LOG.info("TopologyManager.ConfigureClusterTask: All Required host groups are completed, Cluster Configuration can now begin");
 
       if (! interrupted) {
         try {
@@ -515,7 +554,7 @@ public class TopologyManager {
         requiredHostGroups = configRequest.getRequiredHostGroups();
       } catch (RuntimeException e) {
         // just log error and allow config topology update
-        LOG.error("An exception occurred while attempting to determine required host groups for config update " + e);
+        LOG.error("TopologyManager.ConfigureClusterTask: An exception occurred while attempting to determine required host groups for config update " + e);
         e.printStackTrace();
         requiredHostGroups = Collections.emptyList();
       }
@@ -535,7 +574,14 @@ public class TopologyManager {
         HostGroupInfo groupInfo = hostGroupInfo.get(hostGroup);
         if (groupInfo == null || groupInfo.getHostNames().size() < groupInfo.getRequestedHostCount()) {
           configTopologyResolved = false;
+          if (groupInfo != null) {
+            LOG.info("TopologyManager.ConfigureClusterTask areHostGroupsResolved: host group name = {} requires {} hosts to be mapped, but only {} are available.",
+              groupInfo.getHostGroupName(), groupInfo.getRequestedHostCount(), groupInfo.getHostNames().size());
+          }
           break;
+        } else {
+          LOG.info("TopologyManager.ConfigureClusterTask areHostGroupsResolved: host group name = {} has been fully resolved, as all {} required hosts are mapped to {} physical hosts.",
+            groupInfo.getHostGroupName(), groupInfo.getRequestedHostCount(), groupInfo.getHostNames().size());
         }
       }
       return configTopologyResolved;

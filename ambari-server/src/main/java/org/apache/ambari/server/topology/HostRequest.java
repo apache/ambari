@@ -187,7 +187,7 @@ public class HostRequest implements Comparable<HostRequest> {
     HostGroup hostGroup = getHostGroup();
     for (String component : hostGroup.getComponents()) {
       if (component == null || component.equals("AMBARI_SERVER")) {
-        LOG.info("Skipping component %s when creating request\n", component);
+        LOG.info("Skipping component {} when creating request\n", component);
         continue;
       }
 
