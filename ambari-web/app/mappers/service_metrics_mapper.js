@@ -452,9 +452,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         item.name_node_id = "NAMENODE" + "_" + component.host_components[0].HostRoles.host_name;
       }
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "JOURNALNODE") {
-        if (!item.journal_nodes) {
-          item.journal_nodes = [];
-        }
+        item.journal_nodes = [];
         if (component.host_components) {
           component.host_components.forEach(function (hc) {
             item.journal_nodes.push("JOURNALNODE" + "_" + hc.HostRoles.host_name);
