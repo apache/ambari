@@ -433,7 +433,7 @@ App.TableView = Em.View.extend(App.UserPref, {
       });
     }
     return result;
-  }.property('filteredContent'),
+  }.property('filteredContent.length'),
   /**
    * Filter table by filterConditions
    */
