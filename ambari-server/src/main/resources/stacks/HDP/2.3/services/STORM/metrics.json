@@ -1,0 +1,1088 @@
+{
+  "STORM_UI_SERVER": {
+    "Component": [
+      {
+        "type": "org.apache.ambari.server.controller.metrics.RestMetricsPropertyProvider",
+        "properties": {
+          "default_port": "8744",
+          "port_config_type": "storm-site",
+          "port_property_name": "storm.port",
+          "protocol": "http"
+        },
+        "metrics": {
+          "default": {
+            "metrics/api/v1/cluster/summary/tasksTotal": {
+              "metric": "/api/v1/cluster/summary##tasksTotal",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/api/v1/topology/summary": {
+              "metric": "/api/v1/topology/summary?field=topologies##topologies",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/api/v1/cluster/summary/slotsTotal": {
+              "metric": "/api/v1/cluster/summary##slotsTotal",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/api/v1/cluster/summary/slotsFree": {
+              "metric": "/api/v1/cluster/summary##slotsFree",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/api/v1/cluster/summary/supervisors": {
+              "metric": "/api/v1/cluster/summary##supervisors",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/api/v1/cluster/summary/executorsTotal": {
+              "metric": "/api/v1/cluster/summary##executorsTotal",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/api/v1/cluster/summary/slotsUsed": {
+              "metric": "/api/v1/cluster/summary##slotsUsed",
+              "pointInTime": true,
+              "temporal": false
+            },
+              "metrics/api/v1/nimbus/summary": {
+              "metric": "/api/v1/nimbus/summary?field=nimbuses##nimbuses",
+              "pointInTime": true,
+              "temporal": false
+          }
+
+          }
+        }
+      }
+    ],
+    "HostComponent": [
+      {
+        "type": "org.apache.ambari.server.controller.metrics.RestMetricsPropertyProvider",
+        "properties": {
+          "default_port": "8744",
+          "port_config_type": "storm-site",
+          "port_property_name": "storm.port",
+          "protocol": "http"
+        },
+        "metrics": {
+          "default": {
+            "metrics/api/v1/cluster/summary/tasksTotal": {
+              "metric": "/api/v1/cluster/summary##tasksTotal",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/api/v1/topology/summary": {
+              "metric": "/api/v1/topology/summary?field=topologies##topologies",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/api/v1/cluster/summary/slotsTotal": {
+              "metric": "/api/v1/cluster/summary##slotsTotal",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/api/v1/cluster/summary/slotsFree": {
+              "metric": "/api/v1/cluster/summary##slotsFree",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/api/v1/cluster/summary/supervisors": {
+              "metric": "/api/v1/cluster/summary##supervisors",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/api/v1/cluster/summary/executorsTotal": {
+              "metric": "/api/v1/cluster/summary##executorsTotal",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/api/v1/cluster/summary/slotsUsed": {
+              "metric": "/api/v1/cluster/summary##slotsUsed",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/api/v1/cluster/summary/nimbusUptime": {
+              "metric": "/api/v1/cluster/summary##nimbusUptime",
+              "pointInTime": true,
+              "temporal": false
+            }
+          }
+        }
+      }
+    ]
+  },
+  "NIMBUS": {
+    "Component": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/boottime": {
+              "metric": "boottime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/bytes_in": {
+              "metric": "bytes_in",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/bytes_out": {
+              "metric": "bytes_out",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_aidle": {
+              "metric": "cpu_aidle",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_idle": {
+              "metric": "cpu_idle",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_nice": {
+              "metric": "cpu_nice",
+              "pointInTime": true,
+              "temporal": true
+            },
+
+            "metrics/cpu/cpu_num": {
+              "metric": "cpu_num",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_speed": {
+              "metric": "cpu_speed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_system": {
+              "metric": "cpu_system",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_user": {
+              "metric": "cpu_user",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_wio": {
+              "metric": "cpu_wio",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/disk_free": {
+              "metric": "disk_free",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/disk_total": {
+              "metric": "disk_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/load_fifteen": {
+              "metric": "load_fifteen",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/load_five": {
+              "metric": "load_five",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/load_one": {
+              "metric": "load_one",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_buffers": {
+              "metric": "mem_buffers",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_cached": {
+              "metric": "mem_cached",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_free": {
+              "metric": "mem_free",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_shared": {
+              "metric": "mem_shared",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_total": {
+              "metric": "mem_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/part_max_used": {
+              "metric": "part_max_used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/pkts_in": {
+              "metric": "pkts_in",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/pkts_out": {
+              "metric": "pkts_out",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/process/proc_run": {
+              "metric": "proc_run",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/process/proc_total": {
+              "metric": "proc_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/swap_free": {
+              "metric": "swap_free",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/swap_total": {
+              "metric": "swap_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/heap/committed": {
+              "metric": "Nimbus.JVM.Memory.Heap.committed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/heap/init": {
+              "metric": "Nimbus.JVM.Memory.Heap.init",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/heap/max": {
+              "metric": "Nimbus.JVM.Memory.Heap.max",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/heap/used": {
+              "metric": "Nimbus.JVM.Memory.Heap.used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/nonheap/committed": {
+              "metric": "Nimbus.JVM.Memory.NonHeap.committed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/nonheap/init": {
+              "metric": "Nimbus.JVM.Memory.NonHeap.init",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/nonheap/max": {
+              "metric": "Nimbus.JVM.Memory.NonHeap.max",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/nonheap/used": {
+              "metric": "Nimbus.JVM.Memory.NonHeap.used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/os/processcputime": {
+              "metric": "Nimbus.JVM.OS.ProcessCpuTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/threading/daemonthreadcount": {
+              "metric": "Nimbus.JVM.Threading.DaemonThreadCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/threading/threadcount": {
+              "metric": "Nimbus.JVM.Threading.ThreadCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+
+            "metrics/storm/nimbus/freeslots": {
+              "metric": "Free Slots",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/supervisors": {
+              "metric": "Supervisors",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/topologies": {
+              "metric": "Topologies",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/totalexecutors": {
+              "metric": "Total Executors",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/totalslots": {
+              "metric": "Total Slots",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/totaltasks": {
+              "metric": "Total Tasks",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/usedslots": {
+              "metric": "Used Slots",
+              "pointInTime": true,
+              "temporal": true
+            }
+          }
+        }
+      }
+    ],
+    "HostComponent": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/boottime": {
+              "metric": "boottime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/bytes_in": {
+              "metric": "bytes_in",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/bytes_out": {
+              "metric": "bytes_out",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_aidle": {
+              "metric": "cpu_aidle",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_idle": {
+              "metric": "cpu_idle",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_nice": {
+              "metric": "cpu_nice",
+              "pointInTime": true,
+              "temporal": true
+            },
+
+            "metrics/cpu/cpu_num": {
+              "metric": "cpu_num",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_speed": {
+              "metric": "cpu_speed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_system": {
+              "metric": "cpu_system",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_user": {
+              "metric": "cpu_user",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_wio": {
+              "metric": "cpu_wio",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/disk_free": {
+              "metric": "disk_free",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/disk_total": {
+              "metric": "disk_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/load_fifteen": {
+              "metric": "load_fifteen",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/load_five": {
+              "metric": "load_five",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/load_one": {
+              "metric": "load_one",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_buffers": {
+              "metric": "mem_buffers",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_cached": {
+              "metric": "mem_cached",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_free": {
+              "metric": "mem_free",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_shared": {
+              "metric": "mem_shared",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_total": {
+              "metric": "mem_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/part_max_used": {
+              "metric": "part_max_used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/pkts_in": {
+              "metric": "pkts_in",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/pkts_out": {
+              "metric": "pkts_out",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/process/proc_run": {
+              "metric": "proc_run",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/process/proc_total": {
+              "metric": "proc_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/swap_free": {
+              "metric": "swap_free",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/swap_total": {
+              "metric": "swap_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/heap/committed": {
+              "metric": "Nimbus.JVM.Memory.Heap.committed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/heap/init": {
+              "metric": "Nimbus.JVM.Memory.Heap.init",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/heap/max": {
+              "metric": "Nimbus.JVM.Memory.Heap.max",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/heap/used": {
+              "metric": "Nimbus.JVM.Memory.Heap.used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/nonheap/committed": {
+              "metric": "Nimbus.JVM.Memory.NonHeap.committed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/nonheap/init": {
+              "metric": "Nimbus.JVM.Memory.NonHeap.init",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/nonheap/max": {
+              "metric": "Nimbus.JVM.Memory.NonHeap.max",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/memory/nonheap/used": {
+              "metric": "Nimbus.JVM.Memory.NonHeap.used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/os/processcputime": {
+              "metric": "Nimbus.JVM.OS.ProcessCpuTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/threading/daemonthreadcount": {
+              "metric": "Nimbus.JVM.Threading.DaemonThreadCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/nimbus/jvm/threading/threadcount": {
+              "metric": "Nimbus.JVM.Threading.ThreadCount",
+              "pointInTime": true,
+              "temporal": true
+            }
+
+          }
+        }
+      }
+    ]
+  },
+  "SUPERVISOR": {
+    "Component": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/boottime": {
+              "metric": "boottime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/bytes_in": {
+              "metric": "bytes_in",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/bytes_out": {
+              "metric": "bytes_out",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_aidle": {
+              "metric": "cpu_aidle",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_idle": {
+              "metric": "cpu_idle",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_nice": {
+              "metric": "cpu_nice",
+              "pointInTime": true,
+              "temporal": true
+            },
+
+            "metrics/cpu/cpu_num": {
+              "metric": "cpu_num",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_speed": {
+              "metric": "cpu_speed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_system": {
+              "metric": "cpu_system",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_user": {
+              "metric": "cpu_user",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_wio": {
+              "metric": "cpu_wio",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/disk_free": {
+              "metric": "disk_free",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/disk_total": {
+              "metric": "disk_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/load_fifteen": {
+              "metric": "load_fifteen",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/load_five": {
+              "metric": "load_five",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/load_one": {
+              "metric": "load_one",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_buffers": {
+              "metric": "mem_buffers",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_cached": {
+              "metric": "mem_cached",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_free": {
+              "metric": "mem_free",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_shared": {
+              "metric": "mem_shared",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_total": {
+              "metric": "mem_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/part_max_used": {
+              "metric": "part_max_used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/pkts_in": {
+              "metric": "pkts_in",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/pkts_out": {
+              "metric": "pkts_out",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/process/proc_run": {
+              "metric": "proc_run",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/process/proc_total": {
+              "metric": "proc_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/swap_free": {
+              "metric": "swap_free",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/swap_total": {
+              "metric": "swap_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/heap/committed": {
+              "metric": "Supervisor.JVM.Memory.Heap.committed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/heap/init": {
+              "metric": "Supervisor.JVM.Memory.Heap.init",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/heap/max": {
+              "metric": "Supervisor.JVM.Memory.Heap.max",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/heap/used": {
+              "metric": "Supervisor.JVM.Memory.Heap.used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/nonheap/committed": {
+              "metric": "Supervisor.JVM.Memory.NonHeap.committed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/nonheap/init": {
+              "metric": "Supervisor.JVM.Memory.NonHeap.init",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/nonheap/max": {
+              "metric": "Supervisor.JVM.Memory.NonHeap.max",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/nonheap/used": {
+              "metric": "Supervisor.JVM.Memory.NonHeap.used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/os/processcputime": {
+              "metric": "Supervisor.JVM.OS.ProcessCpuTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/threading/daemonthreadcount": {
+              "metric": "Supervisor.JVM.Threading.DaemonThreadCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/threading/threadcount": {
+              "metric": "Supervisor.JVM.Threading.ThreadCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/heap/committed": {
+              "metric": "Worker.(.+).JVM.Memory.Heap.committed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/heap/init": {
+              "metric": "Worker.(.+).JVM.Memory.Heap.init",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/heap/max": {
+              "metric": "Worker.(.+).JVM.Memory.Heap.max",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/heap/used": {
+              "metric": "Worker.(.+).JVM.Memory.Heap.used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/nonheap/committed": {
+              "metric": "Worker.(.+).JVM.Memory.NonHeap.committed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/nonheap/init": {
+              "metric": "Worker.(.+).JVM.Memory.NonHeap.init",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/nonheap/max": {
+              "metric": "Worker.(.+).JVM.Memory.NonHeap.max",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/nonheap/used": {
+              "metric": "Worker.(.+).JVM.Memory.NonHeap.used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/os/processcputime": {
+              "metric": "Worker.(.+).JVM.OS.ProcessCpuTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/threading/daemonthreadcount": {
+              "metric": "Worker.(.+).JVM.Threading.DaemonThreadCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/threading/threadcount": {
+              "metric": "Worker.(.+).JVM.Threading.ThreadCount",
+              "pointInTime": true,
+              "temporal": true
+            }
+
+
+          }
+        }
+      }
+    ],
+    "HostComponent": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/boottime": {
+              "metric": "boottime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/bytes_in": {
+              "metric": "bytes_in",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/bytes_out": {
+              "metric": "bytes_out",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_aidle": {
+              "metric": "cpu_aidle",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_idle": {
+              "metric": "cpu_idle",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_nice": {
+              "metric": "cpu_nice",
+              "pointInTime": true,
+              "temporal": true
+            },
+
+            "metrics/cpu/cpu_num": {
+              "metric": "cpu_num",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_speed": {
+              "metric": "cpu_speed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_system": {
+              "metric": "cpu_system",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_user": {
+              "metric": "cpu_user",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_wio": {
+              "metric": "cpu_wio",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/disk_free": {
+              "metric": "disk_free",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/disk_total": {
+              "metric": "disk_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/load_fifteen": {
+              "metric": "load_fifteen",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/load_five": {
+              "metric": "load_five",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/load_one": {
+              "metric": "load_one",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_buffers": {
+              "metric": "mem_buffers",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_cached": {
+              "metric": "mem_cached",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_free": {
+              "metric": "mem_free",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_shared": {
+              "metric": "mem_shared",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/mem_total": {
+              "metric": "mem_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/part_max_used": {
+              "metric": "part_max_used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/pkts_in": {
+              "metric": "pkts_in",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/network/pkts_out": {
+              "metric": "pkts_out",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/process/proc_run": {
+              "metric": "proc_run",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/process/proc_total": {
+              "metric": "proc_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/swap_free": {
+              "metric": "swap_free",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/memory/swap_total": {
+              "metric": "swap_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/heap/committed": {
+              "metric": "Supervisor.JVM.Memory.Heap.committed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/heap/init": {
+              "metric": "Supervisor.JVM.Memory.Heap.init",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/heap/max": {
+              "metric": "Supervisor.JVM.Memory.Heap.max",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/heap/used": {
+              "metric": "Supervisor.JVM.Memory.Heap.used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/nonheap/committed": {
+              "metric": "Supervisor.JVM.Memory.NonHeap.committed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/nonheap/init": {
+              "metric": "Supervisor.JVM.Memory.NonHeap.init",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/nonheap/max": {
+              "metric": "Supervisor.JVM.Memory.NonHeap.max",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/memory/nonheap/used": {
+              "metric": "Supervisor.JVM.Memory.NonHeap.used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/os/processcputime": {
+              "metric": "Supervisor.JVM.OS.ProcessCpuTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/threading/daemonthreadcount": {
+              "metric": "Supervisor.JVM.Threading.DaemonThreadCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/supervisor/jvm/threading/threadcount": {
+              "metric": "Supervisor.JVM.Threading.ThreadCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/heap/committed": {
+              "metric": "Worker.(.+).JVM.Memory.Heap.committed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/heap/init": {
+              "metric": "Worker.(.+).JVM.Memory.Heap.init",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/heap/max": {
+              "metric": "Worker.(.+).JVM.Memory.Heap.max",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/heap/used": {
+              "metric": "Worker.(.+).JVM.Memory.Heap.used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/nonheap/committed": {
+              "metric": "Worker.(.+).JVM.Memory.NonHeap.committed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/nonheap/init": {
+              "metric": "Worker.(.+).JVM.Memory.NonHeap.init",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/nonheap/max": {
+              "metric": "Worker.(.+).JVM.Memory.NonHeap.max",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/memory/nonheap/used": {
+              "metric": "Worker.(.+).JVM.Memory.NonHeap.used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/os/processcputime": {
+              "metric": "Worker.(.+).JVM.OS.ProcessCpuTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/threading/daemonthreadcount": {
+              "metric": "Worker.(.+).JVM.Threading.DaemonThreadCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/storm/worker/$1/jvm/threading/threadcount": {
+              "metric": "Worker.(.+).JVM.Threading.ThreadCount",
+              "pointInTime": true,
+              "temporal": true
+            }
+          }
+        }
+      }
+    ]
+  }
+}
