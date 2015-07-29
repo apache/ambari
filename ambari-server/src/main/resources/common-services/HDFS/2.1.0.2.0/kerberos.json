@@ -46,7 +46,6 @@
             "hadoop.security.authentication": "kerberos",
             "hadoop.rpc.protection": "authentication",
             "hadoop.security.authorization": "true",
-            "hadoop.security.auth_to_local": "",
             "hadoop.proxyuser.HTTP.groups": "${hadoop-env/proxyuser_group}"
           }
         }
