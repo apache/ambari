@@ -233,7 +233,7 @@ App.AlertConfigProperties = {
 
   Interval: App.AlertConfigProperty.extend({
     name: 'interval',
-    label: 'Interval',
+    label: 'Check Interval',
     displayType: 'textField',
     unit: 'Minute',
     classNames: 'alert-interval-input',
