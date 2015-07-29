@@ -17,26 +17,28 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline;
 
-import java.io.IOException;
-import java.net.ConnectException;
-
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
+import java.io.IOException;
+import java.net.ConnectException;
 
 public abstract class AbstractTimelineMetricsSink {
   public static final String TAGS_FOR_PREFIX_PROPERTY_PREFIX = "tagsForPrefix.";
   public static final String MAX_METRIC_ROW_CACHE_SIZE = "maxRowCacheSize";
   public static final String METRICS_SEND_INTERVAL = "sendInterval";
+  public static final String METRICS_POST_TIMEOUT_SECONDS = "timeout";
   public static final String COLLECTOR_HOST_PROPERTY = "collector";
   public static final String COLLECTOR_PORT_PROPERTY = "port";
 
+  protected static final int DEFAULT_POST_TIMEOUT_SECONDS = 10;
   protected final Log LOG;
   private HttpClient httpClient = new HttpClient();
 
@@ -63,6 +65,7 @@ public abstract class AbstractTimelineMetricsSink {
 
       PostMethod postMethod = new PostMethod(connectUrl);
       postMethod.setRequestEntity(requestEntity);
+      postMethod.setParameter(HttpMethodParams.SO_TIMEOUT, String.valueOf(getTimeoutSeconds() * 1000));
       int statusCode = httpClient.executeMethod(postMethod);
       if (statusCode != 200) {
         LOG.info("Unable to POST metrics to collector, " + connectUrl);
@@ -79,4 +82,6 @@ public abstract class AbstractTimelineMetricsSink {
   }
 
   abstract protected String getCollectorUri();
+
+  abstract protected int getTimeoutSeconds();
 }

@@ -56,6 +56,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   private String collectorUri;
   private static final String SERVICE_NAME_PREFIX = "serviceName-prefix";
   private static final String SERVICE_NAME = "serviceName";
+  private int timeoutSeconds = 10;
 
   @Override
   public void init(SubsetConfiguration conf) {
@@ -90,6 +91,8 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     }
 
     LOG.info("Collector Uri: " + collectorUri);
+
+    timeoutSeconds = conf.getInt(METRICS_POST_TIMEOUT_SECONDS, DEFAULT_POST_TIMEOUT_SECONDS);
 
     int maxRowCacheSize = conf.getInt(MAX_METRIC_ROW_CACHE_SIZE,
       TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT);
@@ -148,6 +151,11 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   @Override
   protected String getCollectorUri() {
     return collectorUri;
+  }
+
+  @Override
+  protected int getTimeoutSeconds() {
+    return timeoutSeconds;
   }
 
   @Override

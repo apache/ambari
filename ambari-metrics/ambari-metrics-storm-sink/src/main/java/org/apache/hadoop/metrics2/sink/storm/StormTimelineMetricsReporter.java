@@ -49,6 +49,7 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private String collectorUri;
   private NimbusClient nimbusClient;
   private String applicationId;
+  private int timeoutSeconds;
 
   public StormTimelineMetricsReporter() {
 
@@ -57,6 +58,11 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   @Override
   protected String getCollectorUri() {
     return this.collectorUri;
+  }
+
+  @Override
+  protected int getTimeoutSeconds() {
+    return timeoutSeconds;
   }
 
   @Override
@@ -75,6 +81,9 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
       this.nimbusClient = NimbusClient.getConfiguredClient(stormConf);
       String collectorHostname = cf.get(COLLECTOR_HOST).toString();
       String port = cf.get(COLLECTOR_PORT).toString();
+      timeoutSeconds = cf.get(METRICS_POST_TIMEOUT_SECONDS) != null ?
+        Integer.parseInt(cf.get(METRICS_POST_TIMEOUT_SECONDS).toString()) :
+        DEFAULT_POST_TIMEOUT_SECONDS;
       applicationId = cf.get(APP_ID).toString();
       collectorUri = "http://" + collectorHostname + ":" + port + "/ws/v1/timeline/metrics";
     } catch (Exception e) {
