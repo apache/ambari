@@ -462,10 +462,6 @@ App.ServiceConfigProperty = Em.Object.extend({
       }
     }
 
-    if (!isError) {
-      isError = this._validateOverrides();
-    }
-
     if (!isWarn || isError) { // Errors get priority
       this.set('warnMessage', '');
       this.set('warn', false);
@@ -479,72 +475,6 @@ App.ServiceConfigProperty = Em.Object.extend({
     } else {
       this.set('error', true);
     }
-  }.observes('value', 'isFinal', 'retypedPassword'),
-
-  /**
-   * Check config overrides and parent config overrides (if exist)
-   * @returns {boolean}
-   * @private
-   * @method _validateOverrides
-   */
-  _validateOverrides: function () {
-    var isError = false;
-    var value = this._getValueForCheck(this.get('value'));
-    var isOriginalSCP = this.get('isOriginalSCP');
-    var supportsFinal = this.get('supportsFinal');
-    var isFinal = this.get('isFinal');
-    var parentSCP = this.get('parentSCP');
-    var overrides = this.get('overrides');
-    if (isOriginalSCP) {
-      if (overrides) {
-        overrides.forEach(function (override) {
-          if (value === this._getValueForCheck(override.get('value'))) {
-            if (supportsFinal) {
-              if (isFinal === override.get('isFinal')) {
-                this.set('errorMessage', Em.I18n.t('config.override.valueEqualToParentConfig'));
-                isError = true;
-              }
-            }
-            else {
-              this.set('errorMessage', Em.I18n.t('config.override.valueEqualToParentConfig'));
-              isError = true;
-            }
-          }
-        }, this);
-      }
-    } else {
-      if (!Em.isNone(parentSCP) && value === this._getValueForCheck(parentSCP.get('value'))) {
-        if (supportsFinal) {
-          if (isFinal === parentSCP.get('isFinal')) {
-            this.set('errorMessage', Em.I18n.t('config.override.valueEqualToParentConfig'));
-            isError = true;
-          }
-        }
-        else {
-          this.set('errorMessage', Em.I18n.t('config.override.valueEqualToParentConfig'));
-          isError = true;
-        }
-      }
-    }
-    return isError;
-  },
-
-  /**
-   * Some values should be little bit changed before checking for overrides values
-   * `directories`-values should be "trimmed" for multiple mew-line symbols
-   * @param {string} value
-   * @returns {string}
-   * @private
-   */
-  _getValueForCheck: function (value) {
-    value = '' + value;
-    switch(this.get('displayType')) {
-      case 'directories':
-        return value.replace(/(\n\r?)+/g, '\n').trim();
-        break;
-      default:
-        return value;
-    }
-  }
+  }.observes('value', 'isFinal', 'retypedPassword')
 
 });
