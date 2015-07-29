@@ -137,7 +137,8 @@ describe('App.UpdateController', function () {
           }
         ],
         result: ["metrics/api/v1/cluster/summary," +
-          "metrics/api/v1/topology/summary"]
+                 "metrics/api/v1/topology/summary," +
+                 "metrics/api/v1/nimbus/summary"]
       }
     ];
 
@@ -165,6 +166,18 @@ describe('App.UpdateController', function () {
         ],
         stackVersionNumber: '2.2',
         result: ["metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary"]
+      },
+      {
+        title: 'STORM service stack 2.3',
+        services: [
+          {
+            ServiceInfo: {
+              service_name: 'STORM'
+            }
+          }
+        ],
+        stackVersionNumber: '2.3',
+        result: ["metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary,metrics/api/v1/nimbus/summary"]
       }
     ];
     testCases.forEach(function(test){

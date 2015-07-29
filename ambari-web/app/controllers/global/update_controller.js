@@ -454,6 +454,12 @@ App.UpdateController = Em.Controller.extend({
    */
   getConditionalFields: function () {
     var conditionalFields = [];
+    var stormMetric = 'metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary,metrics/api/v1/nimbus/summary';
+    if (/^2.1/.test(App.get('currentStackVersionNumber'))) {
+      stormMetric = 'metrics/api/cluster/summary';
+    } else if (/^2.2/.test(App.get('currentStackVersionNumber'))) {
+      stormMetric = 'metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary';
+    }
     var serviceSpecificParams = {
       'FLUME': "host_components/processes/HostComponentProcess",
       'YARN': "host_components/metrics/yarn/Queue," +
@@ -467,7 +473,7 @@ App.UpdateController = Em.Controller.extend({
         "host_components/metrics/hbase/master/MasterActiveTime," +
         "host_components/metrics/hbase/master/AverageLoad," +
         "host_components/metrics/master/AssignmentManger/ritCount",
-      'STORM': /^2.1/.test(App.get('currentStackVersionNumber')) ? 'metrics/api/cluster/summary' : 'metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary'
+      'STORM': stormMetric
     };
     var services = App.cache['services'];
     services.forEach(function (service) {
