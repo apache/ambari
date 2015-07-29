@@ -158,8 +158,23 @@ public class ConfigurationTest {
     Assert.assertFalse(conf.getConfigsMap().get(Configuration.SRVR_CRT_NAME_KEY).
       equals(conf.getConfigsMap().get(Configuration.CLIENT_API_SSL_CRT_NAME_KEY)));
 
+    Assert.assertEquals("keystore.p12", conf.getConfigsMap().get(
+        Configuration.KSTR_NAME_KEY));
+    Assert.assertEquals("PKCS12", conf.getConfigsMap().get(
+        Configuration.KSTR_TYPE_KEY));
+    Assert.assertEquals("keystore.p12", conf.getConfigsMap().get(
+        Configuration.TSTR_NAME_KEY));
+    Assert.assertEquals("PKCS12", conf.getConfigsMap().get(
+        Configuration.TSTR_TYPE_KEY));
+
     Assert.assertEquals("https.keystore.p12", conf.getConfigsMap().get(
       Configuration.CLIENT_API_SSL_KSTR_NAME_KEY));
+    Assert.assertEquals("PKCS12", conf.getConfigsMap().get(
+        Configuration.CLIENT_API_SSL_KSTR_TYPE_KEY));
+    Assert.assertEquals("https.keystore.p12", conf.getConfigsMap().get(
+        Configuration.CLIENT_API_SSL_TSTR_NAME_KEY));
+    Assert.assertEquals("PKCS12", conf.getConfigsMap().get(
+        Configuration.CLIENT_API_SSL_TSTR_TYPE_KEY));
     Assert.assertEquals(passFile.getName(), conf.getConfigsMap().get(
       Configuration.CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY));
     Assert.assertEquals(password, conf.getConfigsMap().get(Configuration.CLIENT_API_SSL_CRT_PASS_KEY));
