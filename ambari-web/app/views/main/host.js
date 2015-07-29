@@ -538,6 +538,10 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
       App.tooltip(this.$("[rel='HealthTooltip'], [rel='UsageTooltip'], [rel='ComponentsTooltip']"));
     },
 
+    willDestroyElement: function() {
+      this.$("[rel='HealthTooltip'], [rel='UsageTooltip'], [rel='ComponentsTooltip']").remove();
+    },
+
     displayComponents: function () {
       if (this.get('hasNoComponents')) {
         return;
