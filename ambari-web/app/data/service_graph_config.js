@@ -28,40 +28,6 @@ var App = require('app');
  **/
 
 module.exports = {
-  allServices: {
-    'hdfs': [
-      'HDFS_SpaceUtilization',
-      'HDFS_FileOperations',
-      'HDFS_BlockStatus',
-      'HDFS_IO',
-      'HDFS_RPC',
-      'HDFS_GC',
-      'HDFS_JVMHeap',
-      'HDFS_JVMThreads'
-    ],
-
-    'yarn': [
-      'YARN_AllocatedMemory',
-      'YARN_QMR',
-      'YARN_AllocatedContainer',
-      'YARN_NMS',
-      'YARN_ApplicationCurrentStates',
-      'YARN_ApplicationFinishedStates',
-      'YARN_RPC',
-      'YARN_GC',
-      'YARN_JVMThreads',
-      'YARN_JVMHeap'
-    ],
-
-    'hbase': [
-      'HBASE_ClusterRequests',
-      'HBASE_RegionServerReadWriteRequests',
-      'HBASE_RegionServerRegions',
-      'HBASE_RegionServerQueueSize',
-      'HBASE_HlogSplitTime',
-      'HBASE_HlogSplitSize'
-    ],
-
     'ambari_metrics': [
       'AMS_MasterAverageLoad',
       'AMS_RegionServerStoreFiles',
@@ -95,15 +61,4 @@ module.exports = {
       'Kafka_LogFlush',
       'Kafka_ReplicaFetcher'
     ]
-  },
-
-  getServiceGraphConfig: function () {
-    var servicesWithEnhancedDashboard = ['hdfs', 'yarn', 'hbase'];
-    var newServiceObject = jQuery.extend(true, {}, this.allServices);
-    servicesWithEnhancedDashboard.forEach(function (_serviceName) {
-      newServiceObject[_serviceName] = [];
-    });
-    return newServiceObject;
-  }
-
 };

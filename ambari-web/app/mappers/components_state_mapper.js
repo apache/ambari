@@ -168,20 +168,20 @@ App.componentsStateMapper = App.QuickDataMapper.create({
           item.host_names = item.host_components.mapProperty('HostRoles.host_name');
           masters.push(this.parseIt(item, this.clientMap));
         }
-         if (cacheService) {
-           cacheService.client_components = clients.filterProperty('service_name', cacheService.ServiceInfo.service_name).mapProperty('component_name');
-           cacheService.slave_components = slaves.filterProperty('service_name', cacheService.ServiceInfo.service_name).mapProperty('component_name');
+        if (cacheService) {
+          cacheService.client_components = clients.filterProperty('service_name', cacheService.ServiceInfo.service_name).mapProperty('component_name');
+          cacheService.slave_components = slaves.filterProperty('service_name', cacheService.ServiceInfo.service_name).mapProperty('component_name');
 
-           for (var i in parsedItem) {
-             if (service.get('isLoaded')) {
-               cacheService[i] = parsedItem[i];
-               service.set(stringUtils.underScoreToCamelCase(i), parsedItem[i]);
-               if (extendedModel) {
-                 extendedModel.set(stringUtils.underScoreToCamelCase(i), parsedItem[i]);
-               }
-             }
-           }
-         }
+          for (var i in parsedItem) {
+            if (service.get('isLoaded')) {
+              cacheService[i] = parsedItem[i];
+              service.set(stringUtils.underScoreToCamelCase(i), parsedItem[i]);
+              if (extendedModel && extendedModel.get('isLoaded')) {
+                extendedModel.set(stringUtils.underScoreToCamelCase(i), parsedItem[i]);
+              }
+            }
+          }
+        }
       }, this)
     }
     App.store.loadMany(this.clientModel, clients);

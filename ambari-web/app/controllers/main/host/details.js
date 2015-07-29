@@ -347,14 +347,18 @@ App.MainHostDetailsController = Em.Controller.extend({
     if (data.componentName == 'ZOOKEEPER_SERVER') {
       this.set('fromDeleteZkServer', true);
       this.updateStormConfigs();
-      this.loadConfigs();
+      var self = this;
+      var callback =   function () {
+        self.loadConfigs();
+      };
+      self.isServiceMetricsLoaded(callback);
     } else if (data.componentName == 'HIVE_METASTORE') {
       this.set('deleteHiveMetaStore', true);
       this.loadConfigs('loadHiveConfigs');
-    } else if(data.componentName == 'NIMBUS') {
+    } else if (data.componentName == 'NIMBUS') {
       this.set('deleteNimbusHost', true);
       this.loadConfigs('loadStormConfigs');
-    } else if(data.componentName == 'RANGER_KMS_SERVER') {
+    } else if (data.componentName == 'RANGER_KMS_SERVER') {
       this.set('deleteRangerKMSServer', true);
       this.loadConfigs('loadRangerConfigs');
     }
@@ -380,7 +384,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param {String} componentName
    * @param {String} hostName
    */
-  removeHostComponentModel: function(componentName, hostName) {
+  removeHostComponentModel: function (componentName, hostName) {
     var component = App.HostComponent.find().filterProperty('componentName', componentName).findProperty('hostName', hostName);
     var serviceInCache = App.cache['services'].findProperty('ServiceInfo.service_name', component.get('service.serviceName'));
     serviceInCache.host_components = serviceInCache.host_components.without(component.get('id'));
@@ -491,7 +495,7 @@ App.MainHostDetailsController = Em.Controller.extend({
 
     if (!!missedComponents.length) {
       var popupMessage = Em.I18n.t('host.host.addComponent.popup.dependedComponents.body').format(component.get('displayName'),
-        stringUtils.getFormattedStringFromArray(missedComponents.map(function(cName) {
+        stringUtils.getFormattedStringFromArray(missedComponents.map(function (cName) {
           return App.StackServiceComponent.find(cName).get('displayName');
         })));
       return App.showAlertPopup(Em.I18n.t('host.host.addComponent.popup.dependedComponents.header'), popupMessage);
@@ -510,20 +514,20 @@ App.MainHostDetailsController = Em.Controller.extend({
         }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
         break;
       case 'NIMBUS':
-        returnFunc = App.showConfirmationPopup(function() {
-            self.set('nimbusHost', hostName);
-            self.loadConfigs("loadStormConfigs");
+        returnFunc = App.showConfirmationPopup(function () {
+          self.set('nimbusHost', hostName);
+          self.loadConfigs("loadStormConfigs");
         }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
         break;
       case 'RANGER_KMS_SERVER':
-        returnFunc = App.showConfirmationPopup(function() {
+        returnFunc = App.showConfirmationPopup(function () {
           self.set('rangerKMSServerHost', hostName);
           self.loadConfigs("loadRangerConfigs");
         }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
         break;
       default:
         returnFunc = this.addClientComponent(component, isManualKerberos);
-      }
+    }
     return returnFunc;
   },
   /**
@@ -617,7 +621,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           'App.router.backgroundOperationsController.serviceTimestamp',
           self,
           (params.componentName === 'ZOOKEEPER_SERVER' ? self.checkZkConfigs : self.checkHiveDone)
-          );
+        );
         params.componentName === 'ZOOKEEPER_SERVER' ? self.checkZkConfigs() : self.checkHiveDone();
       }
     });
@@ -675,7 +679,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   onLoadOozieConfigs: function (data) {
     var configs = {};
-    data.items.forEach(function(item) {
+    data.items.forEach(function (item) {
       $.extend(configs, item.properties);
     });
     this.set('isOozieServerAddable', !(Em.isEmpty(configs["oozie_database"]) || configs["oozie_database"] === 'New Derby Database'));
@@ -693,7 +697,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
-          urlParams: '(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag +')'
+        urlParams: '(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')'
       },
       success: 'onLoadStormConfigs'
     });
@@ -704,7 +708,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param {object} configs
    * @method updateZkConfigs
    */
-  updateZkConfigs: function(configs) {
+  updateZkConfigs: function (configs) {
     var zks = this.getZkServerHosts();
     var portValue = configs['zoo.cfg'] && Em.get(configs['zoo.cfg'], 'clientPort');
     var zkPort = typeof portValue === 'udefined' ? '2181' : portValue;
@@ -717,11 +721,11 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param {object} data
    * @method onLoadStormConfigs
    */
-   onLoadStormConfigs: function (data) {
+  onLoadStormConfigs: function (data) {
     var nimbusHost = this.get('nimbusHost'),
-        stormNimbusHosts = this.getStormNimbusHosts(),
-        configs = {},
-        attributes = {};
+      stormNimbusHosts = this.getStormNimbusHosts(),
+      configs = {},
+      attributes = {};
 
     data.items.forEach(function (item) {
       configs[item.type] = item.properties;
@@ -742,7 +746,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       }
     ];
     this.saveConfigsBatch(groups, 'NIMBUS', nimbusHost);
-   },
+  },
 
   /**
    * Success callback for load configs request
@@ -755,8 +759,8 @@ App.MainHostDetailsController = Em.Controller.extend({
       sender: this,
       data: {
         urlParams: '(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')|(type=webhcat-site&tag=' +
-          data.Clusters.desired_configs['webhcat-site'].tag + ')|(type=hive-env&tag=' + data.Clusters.desired_configs['hive-env'].tag +
-          ')|(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')'
+        data.Clusters.desired_configs['webhcat-site'].tag + ')|(type=hive-env&tag=' + data.Clusters.desired_configs['hive-env'].tag +
+        ')|(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')'
       },
       success: 'onLoadHiveConfigs'
     });
@@ -867,7 +871,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param opt
    * @param params
    */
-  installHostComponent: function(data, opt, params) {
+  installHostComponent: function (data, opt, params) {
     if (params.host) {
       componentsUtils.installHostComponent(params.host, App.StackServiceComponent.find(params.componentName));
     }
@@ -883,7 +887,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       hiveHosts = App.HostComponent.find().filterProperty('componentName', 'HIVE_METASTORE').mapProperty('hostName'),
       hiveMetastoreHost = this.get('hiveMetastoreHost');
 
-    if(!!hiveMetastoreHost){
+    if (!!hiveMetastoreHost) {
       hiveHosts.push(hiveMetastoreHost);
       this.set('hiveMetastoreHost', '');
     }
@@ -951,7 +955,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var rkmsHosts = App.HostComponent.find().filterProperty('componentName', 'RANGER_KMS_SERVER').mapProperty('hostName');
     var rangerKMSServerHost = this.get('rangerKMSServerHost');
 
-    if(!!rangerKMSServerHost){
+    if (!!rangerKMSServerHost) {
       rkmsHosts.push(rangerKMSServerHost);
       this.set('rangerKMSServerHost', '');
     }
@@ -975,7 +979,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       stormNimbusHosts = App.HostComponent.find().filterProperty('componentName', 'NIMBUS').mapProperty('hostName'),
       nimbusHost = this.get('nimbusHost');
 
-    if(!!nimbusHost){
+    if (!!nimbusHost) {
       stormNimbusHosts.push(nimbusHost);
       this.set('nimbusHost', '');
     }
@@ -1036,11 +1040,11 @@ App.MainHostDetailsController = Em.Controller.extend({
     this.showBackgroundOperationsPopup();
   },
 
-   /**
+  /**
    * Update storm config
    * @method updateStormConfigs
    */
-  updateStormConfigs: function() {
+  updateStormConfigs: function () {
     if (App.Service.find().findProperty('serviceName', 'STORM')) {
       this.loadConfigs("loadStormConfigs");
     }
@@ -1057,12 +1061,17 @@ App.MainHostDetailsController = Em.Controller.extend({
       this.removeObserver('App.router.backgroundOperationsController.serviceTimestamp', this, this.checkZkConfigs);
       setTimeout(function () {
         self.updateStormConfigs();
-        self.loadConfigs();
+        var callback =   function () {
+          self.loadConfigs();
+        };
+        self.isServiceMetricsLoaded(callback);
       }, App.get('componentsUpdateInterval'));
     }
   },
 
   /**
+   * This function should be always called from successcallback function of the promise `App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(promise)`
+   * This is required to make sure that service metrics API determining the HA state of components is loaded
    * Load configs
    * @method loadConfigs
    */
@@ -1503,7 +1512,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           "RequestInfo": {
             "context": Em.I18n.t('hosts.host.regionserver.decommission.batch1'),
             "command": "DECOMMISSION",
-            "exclusive" :"true",
+            "exclusive": "true",
             "parameters": {
               "slave_type": slaveType,
               "excluded_hosts": hostNames
@@ -1548,32 +1557,32 @@ App.MainHostDetailsController = Em.Controller.extend({
       id++;
     }
     batches.push({
-        "order_id": id,
-        "type": "POST",
-        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
-        "RequestBodyInfo": {
-          "RequestInfo": {
-            "context": Em.I18n.t('hosts.host.regionserver.decommission.batch3'),
-            "command": "DECOMMISSION",
-            "service_name": serviceName,
-            "component_name": componentName,
-            "parameters": {
-              "slave_type": slaveType,
-              "excluded_hosts": hostNames,
-              "mark_draining_only": true
-            },
-            'operation_level': {
-              level: "HOST_COMPONENT",
-              cluster_name: App.get('clusterName'),
-              host_name: hostNames,
-              service_name: serviceName
-            }
+      "order_id": id,
+      "type": "POST",
+      "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
+      "RequestBodyInfo": {
+        "RequestInfo": {
+          "context": Em.I18n.t('hosts.host.regionserver.decommission.batch3'),
+          "command": "DECOMMISSION",
+          "service_name": serviceName,
+          "component_name": componentName,
+          "parameters": {
+            "slave_type": slaveType,
+            "excluded_hosts": hostNames,
+            "mark_draining_only": true
           },
-          "Requests/resource_filters": [
-            {"service_name": serviceName, "component_name": componentName}
-          ]
-        }
-      });
+          'operation_level': {
+            level: "HOST_COMPONENT",
+            cluster_name: App.get('clusterName'),
+            host_name: hostNames,
+            service_name: serviceName
+          }
+        },
+        "Requests/resource_filters": [
+          {"service_name": serviceName, "component_name": componentName}
+        ]
+      }
+    });
     App.ajax.send({
       name: 'host.host_component.recommission_and_restart',
       sender: this,
@@ -1643,7 +1652,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           "RequestInfo": {
             "context": context_1,
             "command": "DECOMMISSION",
-            "exclusive":"true",
+            "exclusive": "true",
             "parameters": params,
             'operation_level': {
               level: "HOST_COMPONENT",
@@ -1660,7 +1669,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var id = 2;
     var hAray = hostNames.split(",");
     for (var i = 0; i < hAray.length; i++) {
-      batches.push(    {
+      batches.push({
         "order_id": id,
         "type": "PUT",
         "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hAray[i] + "/host_components/" + slaveType,
@@ -2073,10 +2082,13 @@ App.MainHostDetailsController = Em.Controller.extend({
       if (!!App.Service.find().findProperty('serviceName', 'HIVE')) {
         self.loadConfigs('loadHiveConfigs');
       }
-      self.loadConfigs();
+      var callback =   function () {
+        self.loadConfigs();
+      };
+      self.isServiceMetricsLoaded(callback);
       App.router.transitionTo('hosts.index');
     });
-    if(!!(requestBody && requestBody.hostName))
+    if (!!(requestBody && requestBody.hostName))
       App.hostsMapper.deleteRecord(App.Host.find().findProperty('hostName', requestBody.hostName));
     App.router.get('clusterController').getAllHostNames();
   },
@@ -2085,7 +2097,11 @@ App.MainHostDetailsController = Em.Controller.extend({
     console.log(textStatus);
     console.log(errorThrown);
     xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
-    this.loadConfigs();
+    var self = this;
+    var callback =   function () {
+      self.loadConfigs();
+    };
+    self.isServiceMetricsLoaded(callback);
     App.ajax.defaultErrorHandler(xhr, opt.url, 'DELETE', xhr.status);
   },
 
@@ -2151,7 +2167,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
 
-  installClients: function(event) {
+  installClients: function (event) {
     var clientsToInstall = [],
       clientsToAdd = [],
       missedComponents = [],
@@ -2169,8 +2185,8 @@ App.MainHostDetailsController = Em.Controller.extend({
         scope: 'host',
         installedComponents: this.get('content.hostComponents').mapProperty('componentName')
       }).reject(function (componentName) {
-          return array.mapProperty('componentName').contains(componentName);
-        });
+        return array.mapProperty('componentName').contains(componentName);
+      });
       if (dependencies.length) {
         missedComponents.pushObjects(dependencies);
         dependentComponents.push(component.get('displayName'));
@@ -2179,7 +2195,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     missedComponents = missedComponents.uniq();
     if (missedComponents.length) {
       var popupMessage = Em.I18n.t('host.host.addComponent.popup.clients.dependedComponents.body').format(stringUtils.getFormattedStringFromArray(dependentComponents),
-        stringUtils.getFormattedStringFromArray(missedComponents.map(function(componentName) {
+        stringUtils.getFormattedStringFromArray(missedComponents.map(function (componentName) {
           return App.StackServiceComponent.find(componentName).get('displayName');
         })));
       App.showAlertPopup(Em.I18n.t('host.host.addComponent.popup.dependedComponents.header'), popupMessage);
@@ -2212,40 +2228,41 @@ App.MainHostDetailsController = Em.Controller.extend({
    * On click handler for custom command from items menu
    * @param context
    */
-  executeCustomCommand: function(event) {
+  executeCustomCommand: function (event) {
     var controller = this;
     var context = event.context;
-    return App.showConfirmationPopup(function() {
+    return App.showConfirmationPopup(function () {
       App.ajax.send({
-        name : 'service.item.executeCustomCommand',
+        name: 'service.item.executeCustomCommand',
         sender: controller,
-        data : {
-          command : context.command,
-          context : context.context || Em.I18n.t('services.service.actions.run.executeCustomCommand.context').format(context.command),
-          hosts : context.hosts,
-          serviceName : context.service,
-          componentName : context.component
+        data: {
+          command: context.command,
+          context: context.context || Em.I18n.t('services.service.actions.run.executeCustomCommand.context').format(context.command),
+          hosts: context.hosts,
+          serviceName: context.service,
+          componentName: context.component
         },
-        success : 'executeCustomCommandSuccessCallback',
-        error : 'executeCustomCommandErrorCallback'
+        success: 'executeCustomCommandSuccessCallback',
+        error: 'executeCustomCommandErrorCallback'
       });
     });
   },
 
-  executeCustomCommandSuccessCallback  : function(data, ajaxOptions, params) {
+  executeCustomCommandSuccessCallback: function (data, ajaxOptions, params) {
     if (data.Requests.id) {
       App.router.get('backgroundOperationsController').showPopup();
     } else {
       console.warn('Error during execution of ' + params.command + ' custom command on' + params.componentName);
     }
   },
-  executeCustomCommandErrorCallback : function(data) {
+  executeCustomCommandErrorCallback: function (data) {
     var error = Em.I18n.t('services.service.actions.run.executeCustomCommand.error');
-    if(data && data.responseText){
+    if (data && data.responseText) {
       try {
         var json = $.parseJSON(data.responseText);
         error += json.message;
-      } catch (err) {}
+      } catch (err) {
+      }
     }
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.executeCustomCommand.error'), error);
     console.warn('Error during executing custom command');
@@ -2295,5 +2312,14 @@ App.MainHostDetailsController = Em.Controller.extend({
       wizardControllerName: this.get('name'),
       localdb: App.db.data
     });
+  },
+
+  /**
+   *
+   * @param callback
+   */
+  isServiceMetricsLoaded: function(callback) {
+    var self = this;
+    App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(callback);
   }
 });

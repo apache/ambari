@@ -273,7 +273,7 @@ App.HostComponentActionMap = {
         action: App.get('isHaEnabled') ? 'disableHighAvailability' : 'enableHighAvailability',
         label: App.get('isHaEnabled') ? Em.I18n.t('admin.highAvailability.button.disable') : Em.I18n.t('admin.highAvailability.button.enable'),
         cssClass: App.get('isHaEnabled') ? 'icon-arrow-down' : 'icon-arrow-up',
-        isHidden: (App.get('isHaEnabled') || (/^1.3/.test(App.get('currentStackVersionNumber')))),
+        isHidden: App.get('isHaEnabled'),
         disabled: App.get('isSingleNode')
       },
       TOGGLE_RM_HA: {

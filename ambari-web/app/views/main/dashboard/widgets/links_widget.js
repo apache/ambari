@@ -41,7 +41,7 @@ App.LinkDashboardWidgetView = App.DashboardWidgetView.extend({
     this.set('webUrl', this.calcWebUrl());
   },
   calcWebUrl: function() {
-    if (this.get('model')) {
+    if (this.get('model') && this.get('model').get(this.get('modelField'))) {
       return "http://" + this.get('model').get(this.get('modelField')).get('publicHostName') + ':' + this.get('port');
     }
     return '';

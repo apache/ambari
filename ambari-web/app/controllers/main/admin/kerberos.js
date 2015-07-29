@@ -366,7 +366,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   },
 
   getKDCSessionState: function(callback, kdcCancelHandler) {
-    if (this.get('securityEnabled')) {
+    if (this.get('securityEnabled') || App.get('isKerberosEnabled')) {
       App.ajax.send({
         name: 'kerberos.session.state',
         sender: this,
@@ -382,7 +382,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   },
 
   getSecurityType: function (callback) {
-    if (this.get('securityEnabled')) {
+    if (this.get('securityEnabled') || App.get('isKerberosEnabled')) {
       return App.ajax.send({
         name: 'admin.security.cluster_configs.kerberos',
         sender: this,

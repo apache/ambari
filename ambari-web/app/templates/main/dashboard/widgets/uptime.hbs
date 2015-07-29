@@ -18,29 +18,35 @@
 
 <div class="has-hidden-info">
   <ul>
-    <li class="thumbnail row" >
-      <a {{bindAttr class=":corner-icon :span1 view.parentView.isMoving:hidden"}} href="#" {{action deleteWidget target="view"}}>
+    <li class="thumbnail row">
+      <a {{bindAttr class=":corner-icon :span1 view.parentView.isMoving:hidden"}}
+              href="#" {{action deleteWidget target="view"}}>
         <i class="icon-remove-sign icon-large"></i>
       </a>
-      <div class="caption span11"> {{view.title}} </div>
-      <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass"}}>
-        <table align="center">
-          {{#each line in view.hiddenInfo}}
-            <tr>
-              <td>
-                {{line}}
-              </td>
-            </tr>
-          {{/each}}
-        </table>
-      </div>
 
-      {{#if view.isNA}}
-        <div class="widget-content-isNA uptime-content-isNA" >{{t services.service.summary.notAvailable}}</div>
-      {{else}}
-        <div class="widget-content uptime-content" >
-          {{view.content}}
+      <div class="caption span11"> {{view.title}} </div>
+      {{#if view.isDataLoaded}}
+        <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass"}}>
+          <table align="center">
+            {{#each line in view.hiddenInfo}}
+              <tr>
+                <td>
+                  {{line}}
+                </td>
+              </tr>
+            {{/each}}
+          </table>
         </div>
+
+        {{#if view.isNA}}
+          <div class="widget-content-isNA uptime-content-isNA">{{t services.service.summary.notAvailable}}</div>
+        {{else}}
+          <div class="widget-content uptime-content">
+            {{view.content}}
+          </div>
+        {{/if}}
+      {{else}}
+        <div class="spinner"></div>
       {{/if}}
     </li>
   </ul>

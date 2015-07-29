@@ -39,7 +39,7 @@ App.Decommissionable = Em.Mixin.create({
   isComponentDecommissioning: null,
 
   /**
-   * May conponent be decommissioned
+   * May component be decommissioned
    * @type {bool}
    */
   isComponentDecommissionAvailable: null,
@@ -54,7 +54,7 @@ App.Decommissionable = Em.Mixin.create({
    * Component with stopped masters can't be docommissioned
    * @type {bool}
    */
-  isComponentDecommissionDisable: function() {
+  isComponentDecommissionDisable: function () {
     var masterComponent = this.get('content.service.hostComponents').findProperty('componentName', this.get('componentForCheckDecommission'));
     if (masterComponent && masterComponent.get('workStatus') != App.HostComponentStatus.started) return true;
     return this.get('content.service.workStatus') != App.HostComponentStatus.started;
@@ -63,7 +63,7 @@ App.Decommissionable = Em.Mixin.create({
   /**
    * @override App.HostComponentView.isRestartableComponent
    */
-  isRestartableComponent: function() {
+  isRestartableComponent: function () {
     return this.get('isComponentDecommissionAvailable') && App.get('components.restartable').contains(this.get('content.componentName'));
   }.property('isComponentDecommissionAvailable'),
 
@@ -71,7 +71,7 @@ App.Decommissionable = Em.Mixin.create({
    * Tooltip message shows if decommission/recommission is disabled
    * when masters for current component is down
    */
-  decommissionTooltipMessage: function() {
+  decommissionTooltipMessage: function () {
     if (this.get('isComponentDecommissionDisable') && (this.get('isComponentRecommissionAvailable') || this.get('isComponentDecommissionAvailable'))) {
       var decom = this.get('isComponentRecommissionAvailable') ? Em.I18n.t('common.recommission') : Em.I18n.t('common.decommission');
       return Em.I18n.t('hosts.decommission.tooltip.warning').format(decom, App.format.role(this.get('componentForCheckDecommission')));
@@ -111,8 +111,8 @@ App.Decommissionable = Em.Mixin.create({
     var hostComponent = this.get('hostComponent');
     if (hostComponent) {
       componentTextStatus = hostComponent.get('componentTextStatus');
-      if(this.get('isComponentRecommissionAvailable')){
-        if(this.get('isComponentDecommissioning')){
+      if (this.get('isComponentRecommissionAvailable')) {
+        if (this.get('isComponentDecommissioning')) {
           componentTextStatus = Em.I18n.t('hosts.host.decommissioning');
         } else {
           componentTextStatus = Em.I18n.t('hosts.host.decommissioned');
@@ -120,7 +120,7 @@ App.Decommissionable = Em.Mixin.create({
       }
     }
     return componentTextStatus;
-  }.property('workStatus','isComponentRecommissionAvailable','isComponentDecommissioning'),
+  }.property('workStatus', 'isComponentRecommissionAvailable', 'isComponentDecommissioning'),
 
   /**
    * For Stopping or Starting states, also for decommissioning
@@ -142,7 +142,7 @@ App.Decommissionable = Em.Mixin.create({
   /**
    * Get desired_admin_state status from server
    */
-  getDesiredAdminState: function(){
+  getDesiredAdminState: function () {
     return App.ajax.send({
       name: 'host.host_component.slave_desired_admin_state',
       sender: this,
@@ -184,7 +184,7 @@ App.Decommissionable = Em.Mixin.create({
    * Get component decommission status from server
    * @returns {$.ajax}
    */
-  getDecommissionStatus: function() {
+  getDecommissionStatus: function () {
     return App.ajax.send({
       name: 'host.host_component.decommission_status',
       sender: this,
@@ -205,7 +205,7 @@ App.Decommissionable = Em.Mixin.create({
    */
   getDecommissionStatusSuccessCallback: function (response) {
     var statusObject = response.ServiceComponentInfo;
-    if ( statusObject != null) {
+    if (statusObject != null) {
       statusObject.component_state = response.host_components[0].HostRoles.state;
       this.setDecommissionStatus(statusObject);
       return statusObject;
@@ -283,18 +283,24 @@ App.Decommissionable = Em.Mixin.create({
     this.$('.components-health').stop(true, true);
     this.$('.components-health').css({opacity: 1.0});
     this.doBlinking();
-  }.observes('workStatus','isComponentRecommissionAvailable', 'isDecommissioning'),
+  }.observes('workStatus', 'isComponentRecommissionAvailable', 'isDecommissioning'),
 
-  didInsertElement: function() {
+  didInsertElement: function () {
+    var self = this;
     this._super();
-    this.loadComponentDecommissionStatus();
+    App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(function () {
+      self.loadComponentDecommissionStatus();
+    });
   },
 
   /**
    * Update Decommission status only one time when component was changed
    */
-  updateDecommissionStatus: function() {
-    Em.run.once(this, 'loadComponentDecommissionStatus');
+  updateDecommissionStatus: function () {
+    var self = this;
+    App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(function () {
+      Em.run.once(self, 'loadComponentDecommissionStatus');
+    });
   }.observes('content.workStatus', 'content.passiveState'),
 
 
@@ -302,16 +308,16 @@ App.Decommissionable = Em.Mixin.create({
 
     templateName: require('templates/main/host/decommission'),
 
-    text: function() {
+    text: function () {
       return this.get('parentView.isComponentDecommissionAvailable') ? Em.I18n.t('common.decommission') : Em.I18n.t('common.recommission');
     }.property('parentView.isComponentDecommissionAvailable'),
 
-    didInsertElement: function() {
+    didInsertElement: function () {
       this._super();
       App.tooltip($("[rel='decommissionTooltip']"));
     },
 
-    click: function() {
+    click: function () {
       if (!this.get('parentView.isComponentDecommissionDisable')) {
         if (this.get('parentView.isComponentDecommissionAvailable')) {
           this.get('controller').decommission(this.get('parentView.content'));

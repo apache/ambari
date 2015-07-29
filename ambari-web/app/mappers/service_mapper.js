@@ -18,11 +18,17 @@
 var App = require('app');
 
 App.serviceMapper = App.QuickDataMapper.create({
+  model: App.Service,
+  config: {
+    id: 'ServiceInfo.service_name',
+    service_name: 'ServiceInfo.service_name',
+    work_status: 'ServiceInfo.state',
+    passive_state: 'ServiceInfo.passive_state'
+  },
+  initialAppLoad: false,
   map: function (json) {
     console.time("App.serviceMapper execution time");
-
-    App.serviceComponents = [].concat.apply([], json.items.mapProperty('components').invoke('getEach', 'ServiceComponentInfo.component_name'));
-
+    var self = this;
     json.items.forEach(function (service) {
       var cachedService = App.cache['services'].findProperty('ServiceInfo.service_name', service.ServiceInfo.service_name);
       if (cachedService) {
@@ -30,11 +36,6 @@ App.serviceMapper = App.QuickDataMapper.create({
         App.Service.find(cachedService.ServiceInfo.service_name).set('workStatus', service.ServiceInfo.state);
         cachedService.ServiceInfo.state = service.ServiceInfo.state;
         cachedService.ServiceInfo.passive_state = service.ServiceInfo.maintenance_state;
-
-        //check whether Alerts installed and started
-        if (service.legacy_alerts) {
-          cachedService.ServiceInfo.critical_alerts_count = service.legacy_alerts.summary.CRITICAL + service.legacy_alerts.summary.WARNING;
-        }
       } else {
         var serviceData = {
           ServiceInfo: {
@@ -45,15 +46,18 @@ App.serviceMapper = App.QuickDataMapper.create({
           host_components: [],
           components: []
         };
-
-        //check whether Alerts installed and started
-        if (service.legacy_alerts) {
-          serviceData.ServiceInfo.critical_alerts_count = service.legacy_alerts.summary.CRITICAL + service.legacy_alerts.summary.WARNING;
-        }
         App.cache['services'].push(serviceData);
       }
     });
 
+    if (!this.get('initialAppLoad')) {
+      var parsedCacheServices = App.cache['services'].map(function(item){
+         return self.parseIt(item, self.get('config'));
+      });
+      App.store.loadMany(this.get('model'), parsedCacheServices);
+      App.store.commit();
+      this.set('initialAppLoad', true);
+    }
     console.timeEnd("App.serviceMapper execution time");
   }
 });

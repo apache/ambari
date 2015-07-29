@@ -270,6 +270,7 @@ Em.I18n.translations = {
   'common.removed': 'Removed',
   'common.testing': 'Testing',
   'common.noData': 'No Data',
+  'common.loading.eclipses': 'Loading...',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",

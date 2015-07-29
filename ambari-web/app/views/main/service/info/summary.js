@@ -521,7 +521,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
   }.property('App.router.clusterController.gangliaUrl', 'service.serviceName'),
 
   didInsertElement: function () {
-    var svcName = this.get('service.serviceName');
+    var svcName = this.get('controller.content.serviceName');
     var isMetricsSupported = svcName != 'STORM' || App.get('isStormMetricsSupported');
 
     this.get('controller').getActiveWidgetLayout();
@@ -530,7 +530,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     }
 
     if (svcName && isMetricsSupported) {
-      var allServices =  require('data/service_graph_config').getServiceGraphConfig();
+      var allServices =  require('data/service_graph_config');
       this.constructGraphObjects(allServices[svcName.toLowerCase()]);
     }
     // adjust the summary table height

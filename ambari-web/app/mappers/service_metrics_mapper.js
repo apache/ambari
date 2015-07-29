@@ -29,7 +29,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     service_name: 'ServiceInfo.service_name',
     work_status: 'ServiceInfo.state',
     passive_state: 'ServiceInfo.passive_state',
-    critical_alerts_count: 'ServiceInfo.critical_alerts_count',
     $rand: Math.random(),
     $alerts: [1, 2, 3],
     host_components: 'host_components',

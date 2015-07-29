@@ -217,7 +217,7 @@ module.exports = Em.Application.create({
   isHaEnabled: function () {
     var isHDFSInstalled = App.Service.find().findProperty('serviceName','HDFS');
     return !!isHDFSInstalled && !this.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
-  }.property('router.clusterController.isLoaded', 'router.clusterController.dataLoadList.serviceMetrics'),
+  }.property('router.clusterController.dataLoadList.services', 'router.clusterController.isServiceContentFullyLoaded'),
 
   /**
    * If ResourceManager High Availability is enabled

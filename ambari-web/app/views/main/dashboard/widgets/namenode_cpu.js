@@ -26,29 +26,31 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
   model_type: 'hdfs',
   widgetHtmlId: 'widget-nn-cpu',
   cpuWio: null,
-  nnHostName:"",
+  nnHostName: "",
   intervalId: null,
 
-  willDestroyElement: function() {
+  willDestroyElement: function () {
     clearInterval(this.get("intervalId"));
   },
 
-  didInsertElement: function() {
+  didInsertElement: function () {
     this._super();
     var self = this,
-    intervalId;
-    if (App.get('isHaEnabled')) {
-      this.set('nnHostName', this.get('model').get('activeNameNode.hostName'));
-    }else{
-     this.set('nnHostName', this.get('model').get('nameNode.hostName'));
-    }
-    if (this.get('nnHostName')) {
-      this.getValue();
-      intervalId = setInterval(function () {
-        self.getValue()
-      }, App.componentsUpdateInterval);
-      this.set('intervalId', intervalId);
-    }
+      intervalId;
+    App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(function () {
+      if (App.get('isHaEnabled')) {
+        self.set('nnHostName', self.get('model').get('activeNameNode.hostName'));
+      } else {
+        self.set('nnHostName', self.get('model').get('nameNode.hostName'));
+      }
+      if (self.get('nnHostName')) {
+        self.getValue();
+        intervalId = setInterval(function () {
+          self.getValue()
+        }, App.componentsUpdateInterval);
+        self.set('intervalId', intervalId);
+      }
+    });
   },
 
   getValue: function () {
@@ -72,14 +74,14 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
     this.calc();
   },
 
-  calcHiddenInfo: function() {
+  calcHiddenInfo: function () {
     var value = this.get('cpuWio');
     var obj1;
-    if( value == null) {
+    if (value == null) {
       obj1 = Em.I18n.t('services.service.summary.notAvailable');
     }
     else {
-      value = value >= 100 ? 100: value;
+      value = value >= 100 ? 100 : value;
       obj1 = (value + 0).toFixed(2) + '%';
     }
     var result = [];
@@ -88,7 +90,7 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
     return result;
   },
 
-  calcIsPieExists: function() {
+  calcIsPieExists: function () {
     return (!Em.isNone(this.get('cpuWio')));
   },
 
@@ -97,6 +99,6 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
     value = value >= 100 ? 100 : value;
     var percent = (value + 0).toFixed(1);
     var percent_precise = (value + 0).toFixed(2);
-    return [ percent, percent_precise];
+    return [percent, percent_precise];
   }
 });
