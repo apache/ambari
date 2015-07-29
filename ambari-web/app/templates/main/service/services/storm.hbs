@@ -24,14 +24,14 @@
     </a>
   </td>
   <td>
-    {{#if App.router.clusterController.isComponentsStateLoaded}}
+    {{#if App.router.clusterController.isServiceContentFullyLoaded}}
       <span>
         {{#view App.ComponentLiveTextView liveComponentsBinding="view.superVisorsLive" totalComponentsBinding="view.superVisorsTotal"}}
           {{view.liveComponents}}/{{view.totalComponents}}
         {{/view}}
       </span> {{t services.service.summary.SupervisorsLIVE}}
     {{else}}
-      {{t common.noData}}
+      {{t common.loading.eclipses}}
     {{/if}}
   </td>
 </tr>

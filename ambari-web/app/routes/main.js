@@ -181,13 +181,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     index: Ember.Route.extend({
       route: '/',
       connectOutlets: function (router, context) {
-        router.get('mainController').connectOutlet('loading');
-        router.get('mainController').isLoading.call(router.get('clusterController'), 'isClusterNameLoaded').done(function () {
-          // `getSecurityStatus` call is required to retrieve information related to kerberos type: Manual or automated kerberos
-          router.get('mainAdminKerberosController').getSecurityStatus().always(function () {
-            router.get('mainController').connectOutlet('mainHost');
-          });
-        });
+        router.get('mainController').connectOutlet('mainHost');
       }
     }),
 
@@ -223,7 +217,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       configs: Em.Route.extend({
         route: '/configs',
         connectOutlets: function (router, context) {
-          router.get('mainHostDetailsController').connectOutlet('loading');
           router.get('mainController').isLoading.call(router.get('clusterController'), 'isConfigsPropertiesLoaded').done(function () {
             router.get('mainHostDetailsController').connectOutlet('mainHostConfigs');
           });
@@ -576,6 +569,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
               }
               if (router.get('mainServiceItemController').get('routeToConfigs')) {
                 router.transitionTo('service.configs', service);
+              } else if (router.get('mainServiceItemController.routeToHeatmaps')) {
+                router.transitionTo('service.heatmaps', service);
               } else {
                 router.transitionTo('service.summary', service);
               }
@@ -591,10 +586,16 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       route: '/:service_id',
       connectOutlets: function (router, service) {
         router.get('mainServiceController').connectOutlet('mainServiceItem', service);
-        if (service && router.get('mainServiceItemController').get('routeToConfigs')) {
-          router.transitionTo('configs');
+        if (service.get('isLoaded')) {
+          if (router.get('mainServiceItemController').get('routeToConfigs')) {
+            router.transitionTo('configs');
+          } else if (router.get('mainServiceItemController.routeToHeatmaps')) {
+            router.transitionTo('heatmaps');
+          } else {
+            router.transitionTo('summary');
+          }
         } else {
-          router.transitionTo('summary');
+          router.transitionTo('index');
         }
       },
       index: Ember.Route.extend({
@@ -604,7 +605,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         route: '/summary',
         connectOutlets: function (router, context) {
           var item = router.get('mainServiceItemController.content');
-          if (router.get('clusterController.isLoaded')) router.get('updateController').updateServiceMetric(Em.K);
+          if (router.get('clusterController.isServiceMetricsLoaded')) router.get('updateController').updateServiceMetric(Em.K);
           //if service is not existed then route to default service
           if (item.get('isLoaded')) {
             router.get('mainServiceItemController').connectOutlet('mainServiceInfoSummary', item);
@@ -623,21 +624,29 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       configs: Em.Route.extend({
         route: '/configs',
         connectOutlets: function (router, context) {
-          var item = router.get('mainServiceItemController.content');
-          //if service is not existed then route to default service
-          if (item.get('isLoaded')) {
-            if (router.get('mainServiceItemController.isConfigurable')) {
-              router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
+          router.get('mainController').dataLoading().done(function () {
+            var item = router.get('mainServiceItemController.content');
+            //if service is not existed then route to default service
+            if (item.get('isLoaded')) {
+              if (router.get('mainServiceItemController.isConfigurable')) {
+                // HDFS service config page requires service metrics information to determine NameNode HA state and hide SNameNode category
+                if (item.get('serviceName') === 'HDFS') {
+                  router.get('mainController').isLoading.call(router.get('clusterController'), 'isServiceContentFullyLoaded').done(function () {
+                    router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
+                  });
+                } else {
+                  router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
+                }
+              }
+              else {
+                // if service doesn't have configs redirect to summary
+                router.transitionTo('summary');
+              }
+            } else {
+              item.set('routeToConfigs', true);
+              router.transitionTo('services.index');
             }
-            else {
-              // if service doesn't have configs redirect to summary
-              router.transitionTo('summary');
-            }
-          }
-          else {
-            item.set('routeToConfigs', true);
-            router.transitionTo('services.index');
-          }
+          });
         },
         unroutePath: function (router, context) {
           var controller = router.get('mainServiceInfoConfigsController');
@@ -651,15 +660,18 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       heatmaps: Em.Route.extend({
         route: '/heatmaps',
         connectOutlets: function (router, context) {
-          var item = router.get('mainServiceItemController.content');
-          if (item.get('isLoaded')) {
-            router.get('mainController').dataLoading().done(function () {
+          router.get('mainController').dataLoading().done(function () {
+            var item = router.get('mainServiceItemController.content');
+            if (item.get('isLoaded')) {
               router.get('mainServiceInfoHeatmapController').loadRacks().done(function (data) {
                 router.get('mainServiceInfoHeatmapController').loadRacksSuccessCallback(data);
                 router.get('mainServiceItemController').connectOutlet('mainServiceInfoHeatmap', item);
               });
-            });
-          }
+            } else {
+              item.set('routeToHeatmaps', true);
+              router.transitionTo('services.index');
+            }
+          });
         }
       }),
       audit: Em.Route.extend({

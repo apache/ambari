@@ -18,24 +18,31 @@
 
 <div class="has-hidden-info">
   <ul>
-    <li class="thumbnail row" >
-      <a {{bindAttr class=":corner-icon :span1 view.parentView.isMoving:hidden"}} href="#" {{action deleteWidget target="view"}}>
+    <li class="thumbnail row">
+      <a {{bindAttr class=":corner-icon :span1 view.parentView.isMoving:hidden"}}
+              href="#" {{action deleteWidget target="view"}}>
         <i class="icon-remove-sign icon-large"></i>
       </a>
+
       <div class="caption span10"> {{view.title}}</div>
-      <a class="corner-icon span1" href="#" {{action editWidget target="view"}}>
-        <i class="icon-edit"></i>
-      </a>
+      {{#if view.isDataLoaded}}
+        <a class="corner-icon span1" href="#" {{action editWidget target="view"}}>
+          <i class="icon-edit"></i>
+        </a>
 
-      <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass" }}>
-        <table align="center">
-          {{#each line in view.hiddenInfo}}
-            <tr><td>{{line}}</td></tr>
-          {{/each}}
-        </table>
-      </div>
-
-      <div {{bindAttr class=":widget-content view.hoverContentTopClass"}}>{{view.content}}</div>
+        <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass" }}>
+          <table align="center">
+            {{#each line in view.hiddenInfo}}
+              <tr>
+                <td>{{line}}</td>
+              </tr>
+            {{/each}}
+          </table>
+        </div>
+        <div {{bindAttr class=":widget-content view.hoverContentTopClass"}}>{{view.content}}</div>
+      {{else}}
+        <div class="spinner"></div>
+      {{/if}}
     </li>
   </ul>
 </div>

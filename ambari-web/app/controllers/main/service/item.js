@@ -739,7 +739,7 @@ App.MainServiceItemController = Em.Controller.extend({
       return false;
     }
     return (this.get('content.healthStatus') != 'green');
-  }.property('content.healthStatus','isPending'),
+  }.property('content.healthStatus','isPending', 'App.isHaEnabled'),
 
   /**
    * Determine if service has than one service client components

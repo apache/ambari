@@ -267,19 +267,23 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('No host-components in active state', function () {
-      controller.set('content', {hostComponents: [Em.Object.create({
-        service: {
-          isInPassive: true
-        }
-      })]});
+      controller.set('content', {
+        hostComponents: [Em.Object.create({
+          service: {
+            isInPassive: true
+          }
+        })]
+      });
       expect(controller.get('serviceActiveComponents')).to.be.empty;
     });
     it('Host-components in active state', function () {
-      controller.set('content', {hostComponents: [Em.Object.create({
-        service: {
-          isInPassive: false
-        }
-      })]});
+      controller.set('content', {
+        hostComponents: [Em.Object.create({
+          service: {
+            isInPassive: false
+          }
+        })]
+      });
       expect(controller.get('serviceActiveComponents')).to.eql([Em.Object.create({
         service: {
           isInPassive: false
@@ -299,15 +303,19 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('Active host-component is client', function () {
-      controller.reopen({serviceActiveComponents: [Em.Object.create({
-        isClient: true
-      })]});
+      controller.reopen({
+        serviceActiveComponents: [Em.Object.create({
+          isClient: true
+        })]
+      });
       expect(controller.get('serviceNonClientActiveComponents')).to.be.empty;
     });
     it('Active host-component is not client', function () {
-      controller.reopen({serviceActiveComponents: [Em.Object.create({
-        isClient: false
-      })]});
+      controller.reopen({
+        serviceActiveComponents: [Em.Object.create({
+          isClient: false
+        })]
+      });
       expect(controller.get('serviceNonClientActiveComponents')).to.eql([Em.Object.create({
         isClient: false
       })]);
@@ -453,9 +461,11 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('add ZOOKEEPER_SERVER', function () {
-      var event = {context: Em.Object.create({
-        componentName: 'ZOOKEEPER_SERVER'
-      })};
+      var event = {
+        context: Em.Object.create({
+          componentName: 'ZOOKEEPER_SERVER'
+        })
+      };
       var popup = controller.addComponent(event);
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
@@ -464,9 +474,11 @@ describe('App.MainHostDetailsController', function () {
       }))).to.be.true;
     });
     it('add slave component', function () {
-      var event = {context: Em.Object.create({
-        componentName: 'HIVE_CLIENT'
-      })};
+      var event = {
+        context: Em.Object.create({
+          componentName: 'HIVE_CLIENT'
+        })
+      };
       controller.set('securityEnabled', false);
       controller.addComponent(event);
       expect(controller.addClientComponent.calledWith(Em.Object.create({
@@ -577,7 +589,7 @@ describe('App.MainHostDetailsController', function () {
         ]
       });
       sinon.stub(App.router, "get").withArgs('updateController').returns({
-        updateComponentsState: function(callback) {
+        updateComponentsState: function (callback) {
           return callback();
         }
       });
@@ -856,17 +868,17 @@ describe('App.MainHostDetailsController', function () {
 
   });
 
-  describe("#saveConfigsBatch()", function() {
-    it("no groups", function() {
+  describe("#saveConfigsBatch()", function () {
+    it("no groups", function () {
       controller.saveConfigsBatch([]);
       expect(App.ajax.send.called).to.be.false;
     });
-    it("configs is empty", function() {
+    it("configs is empty", function () {
       controller.saveConfigsBatch([{}]);
       expect(App.ajax.send.called).to.be.false;
     });
-    it("configs is correct", function() {
-      controller.saveConfigsBatch([{'properties' : {'site': {}}, 'properties_attributes': {'site': {}}}]);
+    it("configs is correct", function () {
+      controller.saveConfigsBatch([{'properties': {'site': {}}, 'properties_attributes': {'site': {}}}]);
       expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
@@ -887,9 +899,11 @@ describe('App.MainHostDetailsController', function () {
       });
       App.propertyDidChange('isHaEnabled');
       expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
-      expect(configs).to.eql({"core-site": {
-        "ha.zookeeper.quorum": "host1:2181"
-      }});
+      expect(configs).to.eql({
+        "core-site": {
+          "ha.zookeeper.quorum": "host1:2181"
+        }
+      });
       App.store.load(App.HostComponent, {
         id: 'SECONDARY_NAMENODE_host1',
         component_name: 'SECONDARY_NAMENODE'
@@ -899,25 +913,31 @@ describe('App.MainHostDetailsController', function () {
     it('hbase-site is present', function () {
       var configs = {'hbase-site': {}};
       expect(controller.setZKConfigs(configs, '', ['host1', 'host2'])).to.be.true;
-      expect(configs).to.eql({"hbase-site": {
-        "hbase.zookeeper.quorum": "host1,host2"
-      }});
+      expect(configs).to.eql({
+        "hbase-site": {
+          "hbase.zookeeper.quorum": "host1,host2"
+        }
+      });
     });
     it('webhcat-site is present', function () {
       var configs = {'webhcat-site': {}};
       expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
-      expect(configs).to.eql({"webhcat-site": {
-        "templeton.zookeeper.hosts": "host1:2181"
-      }});
+      expect(configs).to.eql({
+        "webhcat-site": {
+          "templeton.zookeeper.hosts": "host1:2181"
+        }
+      });
     });
     it('hive-site is present and stack < 2.2', function () {
       var version = App.get('currentStackVersion');
       var configs = {'hive-site': {}};
       App.set('currentStackVersion', 'HDP-2.1.0');
       expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
-      expect(configs).to.eql({"hive-site": {
-        'hive.cluster.delegation.token.store.zookeeper.connectString': "host1:2181"
-      }});
+      expect(configs).to.eql({
+        "hive-site": {
+          'hive.cluster.delegation.token.store.zookeeper.connectString': "host1:2181"
+        }
+      });
       App.set('currentStackVersion', version);
     });
     it('hive-site is present and stack > 2.2', function () {
@@ -925,10 +945,12 @@ describe('App.MainHostDetailsController', function () {
       var configs = {'hive-site': {}};
       App.set('currentStackVersion', 'HDP-2.2.0');
       expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
-      expect(configs).to.eql({"hive-site": {
-        'hive.cluster.delegation.token.store.zookeeper.connectString': "host1:2181",
-        'hive.zookeeper.quorum': "host1:2181"
-      }});
+      expect(configs).to.eql({
+        "hive-site": {
+          'hive.cluster.delegation.token.store.zookeeper.connectString': "host1:2181",
+          'hive.zookeeper.quorum': "host1:2181"
+        }
+      });
       App.set('currentStackVersion', version);
     });
     it('yarn-site is present and stack > 2.2', function () {
@@ -936,26 +958,32 @@ describe('App.MainHostDetailsController', function () {
       var configs = {'yarn-site': {}};
       App.set('currentStackVersion', 'HDP-2.2.0');
       expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
-      expect(configs).to.eql({"yarn-site": {
-        'hadoop.registry.zk.quorum': "host1:2181",
-        'yarn.resourcemanager.zk-address': "host1:2181"
-      }});
+      expect(configs).to.eql({
+        "yarn-site": {
+          'hadoop.registry.zk.quorum': "host1:2181",
+          'yarn.resourcemanager.zk-address': "host1:2181"
+        }
+      });
       App.set('currentStackVersion', version);
     });
     it('storm-site is present', function () {
       var configs = {'storm-site': {}};
       expect(controller.setZKConfigs(configs, '', ["host1", 'host2'])).to.be.true;
-      expect(configs).to.eql({"storm-site": {
-        "storm.zookeeper.servers": "['host1','host2']"
-      }});
+      expect(configs).to.eql({
+        "storm-site": {
+          "storm.zookeeper.servers": "['host1','host2']"
+        }
+      });
     });
     it('isRMHaEnabled true', function () {
       var configs = {'yarn-site': {}};
       sinon.stub(App, 'get').withArgs('isRMHaEnabled').returns(true);
       expect(controller.setZKConfigs(configs, 'host1:2181', ['host1', 'host2'])).to.be.true;
-      expect(configs).to.eql({"yarn-site": {
-        "yarn.resourcemanager.zk-address": "host1:2181"
-      }});
+      expect(configs).to.eql({
+        "yarn-site": {
+          "yarn.resourcemanager.zk-address": "host1:2181"
+        }
+      });
       App.get.restore();
     });
   });
@@ -1003,7 +1031,8 @@ describe('App.MainHostDetailsController', function () {
       controller.set('fromDeleteHost', false);
       sinon.stub(App.HostComponent, 'find', function () {
         return [
-          {id: 'ZOOKEEPER_SERVER_host1',
+          {
+            id: 'ZOOKEEPER_SERVER_host1',
             componentName: 'ZOOKEEPER_SERVER',
             hostName: 'host1'
           }
@@ -1015,7 +1044,8 @@ describe('App.MainHostDetailsController', function () {
     it('One ZooKeeper host match current host name, fromDeleteHost = true', function () {
       sinon.stub(App.HostComponent, 'find', function () {
         return [
-          {id: 'ZOOKEEPER_SERVER_host1',
+          {
+            id: 'ZOOKEEPER_SERVER_host1',
             componentName: 'ZOOKEEPER_SERVER',
             hostName: 'host1'
           }
@@ -1030,7 +1060,8 @@ describe('App.MainHostDetailsController', function () {
     it('One ZooKeeper host does not match current host name, fromDeleteHost = true', function () {
       sinon.stub(App.HostComponent, 'find', function () {
         return [
-          {id: 'ZOOKEEPER_SERVER_host1',
+          {
+            id: 'ZOOKEEPER_SERVER_host1',
             componentName: 'ZOOKEEPER_SERVER',
             hostName: 'host1'
           }
@@ -1316,9 +1347,11 @@ describe('App.MainHostDetailsController', function () {
       expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
     });
     it('data has resources', function () {
-      var data = {resources: [
-        {RequestSchedule: {}}
-      ]};
+      var data = {
+        resources: [
+          {RequestSchedule: {}}
+        ]
+      };
       expect(controller.decommissionSuccessCallback(data)).to.be.true;
       expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
     });
@@ -1457,11 +1490,11 @@ describe('App.MainHostDetailsController', function () {
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
       expect(controller.sendComponentCommand.calledWith(
-        [
-          {}
-        ],
-        Em.I18n.t('hosts.host.maintainance.startAllComponents.context'),
-        App.HostComponentStatus.started)
+          [
+            {}
+          ],
+          Em.I18n.t('hosts.host.maintainance.startAllComponents.context'),
+          App.HostComponentStatus.started)
       ).to.be.true;
       controller.sendComponentCommand.restore();
     });
@@ -1496,11 +1529,11 @@ describe('App.MainHostDetailsController', function () {
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
       expect(controller.sendComponentCommand.calledWith(
-        [
-          {}
-        ],
-        Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'),
-        App.HostComponentStatus.stopped)
+          [
+            {}
+          ],
+          Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'),
+          App.HostComponentStatus.stopped)
       ).to.be.true;
       controller.sendComponentCommand.restore();
     });
@@ -1535,9 +1568,9 @@ describe('App.MainHostDetailsController', function () {
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
       expect(batchUtils.restartHostComponents.calledWith(
-        [
-          {}
-        ])
+          [
+            {}
+          ])
       ).to.be.true;
       batchUtils.restartHostComponents.restore();
 
@@ -1566,11 +1599,13 @@ describe('App.MainHostDetailsController', function () {
     });
     it('content.hostComponents has ZOOKEEPER_SERVER', function () {
       App.HostComponent.find().clear();
-      controller.set('content', {hostComponents: [Em.Object.create({
-        componentName: 'ZOOKEEPER_SERVER',
-        workStatus: 'INIT',
-        isDeletable: true
-      })]});
+      controller.set('content', {
+        hostComponents: [Em.Object.create({
+          componentName: 'ZOOKEEPER_SERVER',
+          workStatus: 'INIT',
+          isDeletable: true
+        })]
+      });
       expect(controller.getHostComponentsInfo().zkServerInstalled).to.be.true;
     });
     it('content.hostComponents has last component', function () {
@@ -1582,12 +1617,14 @@ describe('App.MainHostDetailsController', function () {
           }
         ];
       });
-      controller.set('content', {hostComponents: [Em.Object.create({
-        componentName: 'TASKTRACKER',
-        displayName: 'TaskTracker',
-        workStatus: 'INIT',
-        isDeletable: true
-      })]});
+      controller.set('content', {
+        hostComponents: [Em.Object.create({
+          componentName: 'TASKTRACKER',
+          displayName: 'TaskTracker',
+          workStatus: 'INIT',
+          isDeletable: true
+        })]
+      });
       expect(controller.getHostComponentsInfo().lastComponents).to.eql(['TaskTracker']);
       App.HostComponent.find.restore();
     });
@@ -1600,13 +1637,15 @@ describe('App.MainHostDetailsController', function () {
           }
         ];
       });
-      controller.set('content', {hostComponents: [Em.Object.create({
-        componentName: 'TASKTRACKER',
-        workStatus: 'INIT',
-        isDeletable: false,
-        isMaster: true,
-        displayName: 'ZK1'
-      })]});
+      controller.set('content', {
+        hostComponents: [Em.Object.create({
+          componentName: 'TASKTRACKER',
+          workStatus: 'INIT',
+          isDeletable: false,
+          isMaster: true,
+          displayName: 'ZK1'
+        })]
+      });
       expect(controller.getHostComponentsInfo().masterComponents).to.eql(['ZK1']);
       expect(controller.getHostComponentsInfo().nonDeletableComponents).to.eql(['ZK1']);
       App.HostComponent.find.restore();
@@ -1620,12 +1659,14 @@ describe('App.MainHostDetailsController', function () {
           }
         ];
       });
-      controller.set('content', {hostComponents: [Em.Object.create({
-        componentName: 'TASKTRACKER',
-        workStatus: 'STARTED',
-        isDeletable: true,
-        displayName: 'ZK1'
-      })]});
+      controller.set('content', {
+        hostComponents: [Em.Object.create({
+          componentName: 'TASKTRACKER',
+          workStatus: 'STARTED',
+          isDeletable: true,
+          displayName: 'ZK1'
+        })]
+      });
       expect(controller.getHostComponentsInfo().runningComponents).to.eql(['ZK1']);
       App.HostComponent.find.restore();
     });
@@ -1638,12 +1679,14 @@ describe('App.MainHostDetailsController', function () {
           }
         ];
       });
-      controller.set('content', {hostComponents: [Em.Object.create({
-        componentName: 'TASKTRACKER',
-        workStatus: 'INIT',
-        isDeletable: false,
-        displayName: 'ZK1'
-      })]});
+      controller.set('content', {
+        hostComponents: [Em.Object.create({
+          componentName: 'TASKTRACKER',
+          workStatus: 'INIT',
+          isDeletable: false,
+          displayName: 'ZK1'
+        })]
+      });
       expect(controller.getHostComponentsInfo().nonDeletableComponents).to.eql(['ZK1']);
       App.HostComponent.find.restore();
     });
@@ -1656,12 +1699,14 @@ describe('App.MainHostDetailsController', function () {
           }
         ];
       });
-      controller.set('content', {hostComponents: [Em.Object.create({
-        componentName: 'TASKTRACKER',
-        workStatus: 'UNKNOWN',
-        isDeletable: false,
-        displayName: 'ZK1'
-      })]});
+      controller.set('content', {
+        hostComponents: [Em.Object.create({
+          componentName: 'TASKTRACKER',
+          workStatus: 'UNKNOWN',
+          isDeletable: false,
+          displayName: 'ZK1'
+        })]
+      });
       expect(controller.getHostComponentsInfo().unknownComponents).to.eql(['ZK1']);
       App.HostComponent.find.restore();
     });
@@ -1685,9 +1730,11 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('masterComponents exist', function () {
-      controller.set('mockHostComponentsInfo', {masterComponents: [
-        {}
-      ]});
+      controller.set('mockHostComponentsInfo', {
+        masterComponents: [
+          {}
+        ]
+      });
       controller.validateAndDeleteHost();
       expect(controller.raiseDeleteComponentsError.calledWith({masterComponents: [
         {}
@@ -1824,9 +1871,11 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('popup should be displayed', function () {
-      controller.set('content', {componentsWithStaleConfigs: [
-        {}
-      ]});
+      controller.set('content', {
+        componentsWithStaleConfigs: [
+          {}
+        ]
+      });
       var popup = controller.restartAllStaleConfigComponents();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
@@ -2047,18 +2096,22 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#_doDeleteHostComponentSuccessCallback()', function () {
-    beforeEach(function() {
+    beforeEach(function () {
       sinon.stub(controller, 'removeHostComponentModel', Em.K);
+      sinon.stub(controller, 'isServiceMetricsLoaded', function (callback) {
+        callback();
+      });
     });
 
-    afterEach(function() {
+    afterEach(function () {
       controller.removeHostComponentModel.restore();
+      controller.isServiceMetricsLoaded.restore();
     });
 
     it('ZOOKEEPER_SERVER component', function () {
       var data = {
         componentName: 'ZOOKEEPER_SERVER'
-      }
+      };
       sinon.stub(controller, 'loadConfigs', Em.K);
       controller._doDeleteHostComponentSuccessCallback({}, {}, data);
       expect(controller.get('_deletedHostComponentResult')).to.be.null;
@@ -2069,13 +2122,13 @@ describe('App.MainHostDetailsController', function () {
     it('Not ZOOKEEPER_SERVER component', function () {
       var data = {
         componentName: 'COMP'
-      }
+      };
       controller.set('fromDeleteZkServer', false);
       controller._doDeleteHostComponentSuccessCallback({}, {}, data);
       expect(controller.get('_deletedHostComponentResult')).to.be.null;
       expect(controller.get('fromDeleteZkServer')).to.be.false;
     });
-    it('should call `removeHostComponentModel` with correct params', function() {
+    it('should call `removeHostComponentModel` with correct params', function () {
       var data = {
         componentName: 'COMPONENT',
         hostName: 'h1'
@@ -2123,10 +2176,14 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.stub(controller, 'removeObserver');
       sinon.stub(controller, 'loadConfigs');
+      sinon.stub(controller, 'isServiceMetricsLoaded', function (callback) {
+        callback();
+      });
     });
     afterEach(function () {
       controller.loadConfigs.restore();
       controller.removeObserver.restore();
+      controller.isServiceMetricsLoaded.restore();
       App.router.get.restore();
     });
     it('No operations of ZOOKEEPER_SERVER', function () {
@@ -2235,7 +2292,7 @@ describe('App.MainHostDetailsController', function () {
       var params = {
         component: Em.Object.create(),
         passive_state: 'state'
-      }
+      };
       controller.updateHostComponent({}, {}, params);
       expect(params.component.get('passiveState')).to.equal('state');
       expect(batchUtils.infoPassiveState.calledWith('state')).to.be.true;
@@ -2253,9 +2310,11 @@ describe('App.MainHostDetailsController', function () {
       controller.updateComponentPassiveState.restore();
     });
     it('passive state is ON', function () {
-      var event = {context: Em.Object.create({
-        passiveState: 'ON'
-      })};
+      var event = {
+        context: Em.Object.create({
+          passiveState: 'ON'
+        })
+      };
       var popup = controller.toggleMaintenanceMode(event);
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
@@ -2264,9 +2323,11 @@ describe('App.MainHostDetailsController', function () {
       }), 'OFF')).to.be.true;
     });
     it('passive state is OFF', function () {
-      var event = {context: Em.Object.create({
-        passiveState: 'OFF'
-      })};
+      var event = {
+        context: Em.Object.create({
+          passiveState: 'OFF'
+        })
+      };
       var popup = controller.toggleMaintenanceMode(event);
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
@@ -2459,25 +2520,25 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-  describe("#doDeleteHost()", function() {
-    beforeEach(function(){
+  describe("#doDeleteHost()", function () {
+    beforeEach(function () {
       controller.set('fromDeleteHost', false);
       controller.set('content.hostName', 'host1');
       sinon.stub(controller, '_doDeleteHostComponent', function (comp, callback) {
         callback();
       });
     });
-    afterEach(function(){
+    afterEach(function () {
       controller._doDeleteHostComponent.restore();
     });
-    it("Host has no components", function() {
+    it("Host has no components", function () {
       controller.set('content.hostComponents', Em.A([]));
       controller.doDeleteHost(Em.K);
       expect(controller.get('fromDeleteHost')).to.be.true;
       expect(App.ajax.send.getCall(0).args[0].data.hostName).to.be.equal('host1');
       expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.delete.host');
     });
-    it("Host has components", function() {
+    it("Host has components", function () {
       controller.set('content.hostComponents', Em.A([Em.Object.create({
         componentName: 'COMP1'
       })]));
@@ -2491,10 +2552,10 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-  describe("#deleteHostSuccessCallback", function() {
-    it("call updateHost", function() {
+  describe("#deleteHostSuccessCallback", function () {
+    it("call updateHost", function () {
       var mock = {
-        updateHost: function(callback){
+        updateHost: function (callback) {
           callback();
         },
         getAllHostNames: Em.K
@@ -2504,6 +2565,9 @@ describe('App.MainHostDetailsController', function () {
       sinon.spy(mock, 'getAllHostNames');
       sinon.stub(controller, 'loadConfigs', Em.K);
       sinon.stub(App.router, 'transitionTo', Em.K);
+      sinon.stub(controller, 'isServiceMetricsLoaded', function (callback) {
+        callback();
+      });
 
       controller.deleteHostSuccessCallback();
       expect(App.router.get.calledWith('updateController')).to.be.true;
@@ -2517,19 +2581,27 @@ describe('App.MainHostDetailsController', function () {
       mock.updateHost.restore();
       mock.getAllHostNames.restore();
       controller.loadConfigs.restore();
+      controller.isServiceMetricsLoaded.restore();
       App.router.transitionTo.restore();
     });
   });
 
-  describe("#deleteHostErrorCallback", function() {
-    it("call defaultErrorHandler", function() {
+  describe("#deleteHostErrorCallback", function () {
+    it("call defaultErrorHandler", function () {
       sinon.stub(controller, 'loadConfigs', Em.K);
       sinon.stub(App.ajax, 'defaultErrorHandler', Em.K);
-      controller.deleteHostErrorCallback({status: 'status', statusText: "statusText"}, 'textStatus', 'errorThrown', {url: 'url'});
+      sinon.stub(controller, 'isServiceMetricsLoaded', function (callback) {
+        callback();
+      });
+      controller.deleteHostErrorCallback({
+        status: 'status',
+        statusText: "statusText"
+      }, 'textStatus', 'errorThrown', {url: 'url'});
       expect(controller.loadConfigs.calledOnce).to.be.true;
       expect(App.ajax.defaultErrorHandler.calledOnce).to.be.true;
       App.ajax.defaultErrorHandler.restore();
       controller.loadConfigs.restore();
+      controller.isServiceMetricsLoaded.restore();
     });
   });
 
@@ -2554,8 +2626,8 @@ describe('App.MainHostDetailsController', function () {
   });
 
 
-  describe("#installVersion()", function() {
-    it("call App.ajax.send", function() {
+  describe("#installVersion()", function () {
+    it("call App.ajax.send", function () {
       controller.set('content.hostName', 'host1');
       controller.installVersion({context: {}});
       expect(App.ajax.send.getCall(0).args[0]).to.eql({
@@ -2587,7 +2659,7 @@ describe('App.MainHostDetailsController', function () {
         status: 'INIT'
       });
       this.mock.returns(version);
-      controller.installVersionSuccessCallback({Requests:{id: 1}}, {}, {version: version});
+      controller.installVersionSuccessCallback({Requests: {id: 1}}, {}, {version: version});
       expect(version.get('status')).to.equal('INSTALLING');
       expect(App.db.set.calledWith('repoVersionInstall', 'id', [1])).to.be.true;
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;

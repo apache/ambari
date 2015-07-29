@@ -171,7 +171,7 @@ module.exports = App.WizardRoute.extend({
       console.log('in addService.step3:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('3');
-      controller.dataLoading().done(function () {
+      router.get('mainController').isLoading.call(router.get('clusterController'), 'isServiceContentFullyLoaded').done(function () {
         controller.loadAllPriorSteps().done(function () {
           var wizardStep6Controller = router.get('wizardStep6Controller');
           wizardStep6Controller.set('wizardController', controller);
@@ -218,7 +218,9 @@ module.exports = App.WizardRoute.extend({
           wizardStep7Controller.set('wizardController', controller);
           controller.usersLoading().done(function () {
             router.get('mainController').isLoading.call(router.get('clusterController'), 'isClusterNameLoaded').done(function () {
-              controller.connectOutlet('wizardStep7', controller.get('content'));
+              router.get('mainController').isLoading.call(router.get('clusterController'), 'isServiceContentFullyLoaded').done(function () {
+                controller.connectOutlet('wizardStep7', controller.get('content'));
+              });
             });
           });
         });

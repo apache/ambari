@@ -35,11 +35,19 @@ App.ClusterController = Em.Controller.extend({
 
   isConfigsPropertiesLoaded: false,
 
+  isComponentsConfigLoaded: false,
+
   isStackConfigsLoaded: false,
+
+  isServiceMetricsLoaded: false,
 
   isHostContentLoaded: function () {
     return this.get('isHostsLoaded') && this.get('isComponentsStateLoaded');
   }.property('isHostsLoaded', 'isComponentsStateLoaded'),
+
+  isServiceContentFullyLoaded: function () {
+    return this.get('isServiceMetricsLoaded') && this.get('isComponentsStateLoaded') && this.get('isComponentsConfigLoaded');
+  }.property('isServiceMetricsLoaded', 'isComponentsStateLoaded', 'isComponentsConfigLoaded'),
 
   clusterName: function () {
     return App.get('clusterName');
@@ -68,7 +76,6 @@ App.ClusterController = Em.Controller.extend({
   },
 
   dataLoadList: Em.Object.create({
-    'serviceMetrics': false,
     'stackComponents': false,
     'services': false
   }),
@@ -208,10 +215,18 @@ App.ClusterController = Em.Controller.extend({
       self.updateLoadStatus('stackComponents');
       updater.updateServices(function () {
         self.updateLoadStatus('services');
+        App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName')).complete(function () {
+          self.set('isConfigsPropertiesLoaded', true);
+        });
+        // service metrics loading doesn't affect overall progress
         updater.updateServiceMetric(function () {
-          self.updateLoadStatus('serviceMetrics');
-          App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName')).complete(function () {
-            self.set('isConfigsPropertiesLoaded', true);
+          self.set('isServiceMetricsLoaded', true);
+          // components config and state loading doesn't affect overall progress
+          updater.updateComponentConfig(function () {
+            self.set('isComponentsConfigLoaded', true);
+          });
+          updater.updateComponentsState(function () {
+            self.set('isComponentsStateLoaded', true);
           });
         });
       });
@@ -234,11 +249,6 @@ App.ClusterController = Em.Controller.extend({
           });
         });
       });
-    });
-    // components state and config loading doesn't affect overall progress
-    updater.updateComponentConfig(Em.K);
-    updater.updateComponentsState(function () {
-      self.set('isComponentsStateLoaded', true);
     });
 
     /*  Root service mapper maps all the data exposed under Ambari root service which includes ambari configurations i.e ambari-properties

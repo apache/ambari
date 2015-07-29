@@ -174,7 +174,7 @@ describe('App.MainServiceInfoSummaryView', function() {
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        view.set('service.serviceName', item.serviceName);
+        view.set('controller.content.serviceName', item.serviceName);
         this.mock.withArgs('isStormMetricsSupported').returns(item.isStormMetricsSupported);
         view.didInsertElement();
         expect(view.constructGraphObjects.calledOnce).to.equal(item.isConstructGraphObjectsCalled);

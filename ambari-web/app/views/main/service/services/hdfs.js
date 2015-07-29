@@ -67,9 +67,6 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   didInsertElement: function() {
     App.tooltip($("[rel='tooltip']"));
   },
-  dataNodesLive: function () {
-    return this.get('service.dataNodesStarted');
-  }.property('service.dataNodesStarted'),
   dataNodesDead: function () {
     return this.get('service.dataNodesInstalled');
   }.property('service.dataNodesInstalled'),
@@ -132,21 +129,6 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
       numberUtils.bytesToSize(memMax, 1, 'parseFloat'),
       percent.toFixed(1));
   }.property('service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapMax'),
-
-  summaryHeader: function () {
-    var text = this.t("dashboard.services.hdfs.summary");
-    var service = this.get('service');
-    var liveCount = service.get('dataNodesStarted');
-    var totalCount = service.get('dataNodesTotal');
-    var total = service.get('capacityTotal') + 0;
-    var remaining = service.get('capacityRemaining') + 0;
-    var used = total - remaining;
-    var percent = total > 0 ? ((used * 100) / total).toFixed(1) : 0;
-    if (percent == "NaN" || percent < 0) {
-      percent = Em.I18n.t('services.service.summary.notAvailable') + " ";
-    }
-    return text.format(liveCount, totalCount, percent);
-  }.property('service.dataNodesStarted', 'service.dataNodesTotal', 'service.capacityUsed', 'service.capacityTotal'),
 
   dfsUsedDisk: function () {
     var text = this.t("dashboard.services.hdfs.capacityUsed");

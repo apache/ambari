@@ -503,6 +503,8 @@ App.ComponentActionsMixin = Em.Mixin.create({
 
   /**
    * Load configs
+   * This function when used without a callback should be always used from successcallback function of the promise `App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(promise)`
+   * This is required to make sure that service metrics API determining the HA state of components is loaded
    * @method loadConfigs
    */
   loadConfigs: function (callback, hostName) {
@@ -1102,6 +1104,13 @@ App.ComponentActionsMixin = Em.Mixin.create({
     }
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.executeCustomCommand.error'), error);
     console.warn('Error during executing custom command');
-  }
+  },
 
+  /**
+   *  Check that service metrics is loaded
+   * @param callback
+   */
+  isServiceMetricsLoaded: function(callback) {
+    App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(callback);
+  }
 });

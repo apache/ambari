@@ -106,6 +106,12 @@ App.DashboardWidgetView = Em.View.extend({
   thresh2: null,
 
   /**
+   * @type {Boolean}
+   * @default false
+   */
+  isDataLoadedBinding: 'App.router.clusterController.isServiceContentFullyLoaded',
+
+  /**
    * @type {Em.Object}
    * @class
    */

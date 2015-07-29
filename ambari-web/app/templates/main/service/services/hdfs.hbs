@@ -22,7 +22,7 @@
   <td class="summary-label"><a
           href="#" {{action filterHosts view.dataNodeComponent}}>{{t dashboard.services.hdfs.datanodes}}</a></td>
   <td>
-    {{#if App.router.clusterController.isComponentsStateLoaded}}
+    {{#if App.router.clusterController.isServiceContentFullyLoaded}}
       <span>
         {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.dataNodesStarted" totalComponentsBinding="view.service.dataNodesTotal"}}
           {{view.liveComponents}}/{{view.totalComponents}}
@@ -30,7 +30,7 @@
       </span>
       {{t common.started}}
     {{else}}
-      {{t common.noData}}
+      {{t common.loading.eclipses}}
     {{/if}}
   </td>
 </tr>
@@ -65,7 +65,7 @@
         </span>
         {{t services.service.summary.JournalNodesLive}}
       {{else}}
-        {{t common.noData}}
+        {{t common.loading.eclipses}}
       {{/if}}
     </td>
   </tr>
@@ -76,7 +76,7 @@
     <td class="summary-label"><a
             href="#" {{action filterHosts view.nfsGatewayComponent}}>{{t dashboard.services.hdfs.nfsgateways}}</a></td>
     <td>
-      {{#if App.router.clusterController.isComponentsStateLoaded}}
+      {{#if App.router.clusterController.isServiceContentFullyLoaded}}
         <span>
           {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nfsGatewaysStarted" totalComponentsBinding="view.service.nfsGatewaysTotal"}}
             {{view.liveComponents}}/{{view.totalComponents}}
@@ -84,7 +84,7 @@
         </span>
         {{t common.started}}
       {{else}}
-        {{t common.noData}}
+        {{t common.loading.eclipses}}
       {{/if}}
     </td>
   </tr>

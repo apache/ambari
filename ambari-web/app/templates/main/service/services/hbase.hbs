@@ -24,7 +24,7 @@
           href="#" {{action filterHosts view.regionServerComponent}}>{{t dashboard.services.hbase.regionServers}}</a>
   </td>
   <td>
-    {{#if App.router.clusterController.isComponentsStateLoaded}}
+    {{#if App.router.clusterController.isServiceContentFullyLoaded}}
       <span>
         {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.regionServersStarted" totalComponentsBinding="view.service.regionServersTotal"}}
           {{view.liveComponents}}/{{view.totalComponents}}
@@ -32,7 +32,7 @@
       </span>
       {{t services.service.summary.RegionServersLIVE}}
     {{else}}
-      {{t common.noData}}
+      {{t common.loading.eclipses}}
     {{/if}}
   </td>
 </tr>
@@ -45,7 +45,9 @@
     <td>
       <span>
         {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.phoenixServersStarted" totalComponentsBinding="view.service.phoenixServersTotal"}}
-          {{view.liveComponents}}/{{view.totalComponents}}
+          {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+            {{view.liveComponents}}/{{view.totalComponents}}
+          {{/if}}
         {{/view}}
       </span>
       {{t services.service.summary.PhoenixServersLIVE}}
