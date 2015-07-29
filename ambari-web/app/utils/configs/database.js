@@ -83,15 +83,8 @@ module.exports = {
           // set UI host names for each database type with value parsed from jdbc connection url
           // if value is not ip or hostname (in case of New Derby Database) for Oozie set <code>fallbackUrl</code>
           // from <code>dbServicePropertyMap</code>
-          var dbHostName;
-          if (self.isValidHostname(jdbcObject.location)) {
-            dbHostName = jdbcObject.location;
-          } else {
-            dbHostName = Em.get(configs.findProperty('name', self.dbServicePropertyMap[serviceName].fallbackHostName), 'recommendedValue');
-            dbHostName = Em.isArray(dbHostName) ? dbHostName[0] : dbHostName;
-          }
           Em.setProperties(property, {
-            value: dbHostName
+            value: jdbcObject.location || ''
           });
           self.addPropertyToServiceConfigs(property, serviceConfigs, databaseTypePropertyIndex);
         }
