@@ -631,20 +631,26 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       STORM_REST_API: 'metrics.api.cluster.summary',
       STORM_UI_SERVER: 'metrics.api.v1.cluster.summary'
     }[metricsInfoComponent];
+    var restApiMetrics = {};
 
     item.components.forEach(function (component) {
-      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == metricsInfoComponent) {
+      var componentName = component.ServiceComponentInfo.component_name;
+      if (component.ServiceComponentInfo && componentName == metricsInfoComponent) {
         if (Em.get(component, metricsPath)) {
-          item.restApiComponent = App.keysDottedToCamelCase(Em.get(component, metricsPath));
+          $.extend(restApiMetrics, App.keysDottedToCamelCase(Em.get(component, metricsPath)));
           if (metricsInfoComponent == 'STORM_UI_SERVER') {
-            item.restApiComponent.topologies = Em.get(component, 'metrics.api.v1.topology.summary.length');
+            restApiMetrics.topologies = Em.get(component, 'metrics.api.v1.topology.summary.length');
+            if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), '2.3') > -1) {
+              restApiMetrics.nimbusUptime = Em.getWithDefault(component, 'metrics.api.v1.nimbus.summary.0.nimbusUpTime', Em.I18n.t('services.service.summary.notRunning'));
+            }
           } else {
-            item.restApiComponent.nimbusUptime = dateUtils.timingFormat(item.restApiComponent.nimbusUptime * 1000);
+            restApiMetrics.nimbusUptime = dateUtils.timingFormat(restApiMetrics.nimbusUptime * 1000);
           }
         }
         finalConfig = jQuery.extend({}, finalConfig, stormConfig);
       }
     });
+    item.restApiComponent = restApiMetrics;
     return this.parseIt(item, finalConfig);
   }
 })
