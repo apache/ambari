@@ -179,4 +179,9 @@ class TestHookBeforeInstall(RMFTestCase):
         owner = 'hdfs',
         group = 'hadoop'
     )
+    self.assertResourceCalled('Directory', '/tmp/hadoop_java_io_tmpdir',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0777
+    )
     self.assertNoMoreResources()
