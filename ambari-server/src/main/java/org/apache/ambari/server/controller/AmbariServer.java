@@ -316,25 +316,27 @@ public class AmbariServer {
       Map<String, String> configsMap = configs.getConfigsMap();
       String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) +
           File.separator + configsMap.get(Configuration.KSTR_NAME_KEY);
+      String truststore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) +
+          File.separator + configsMap.get(Configuration.TSTR_NAME_KEY);
       String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS_KEY);
       sslConnectorTwoWay.setKeystore(keystore);
-      sslConnectorTwoWay.setTruststore(keystore);
+      sslConnectorTwoWay.setTruststore(truststore);
       sslConnectorTwoWay.setPassword(srvrCrtPass);
       sslConnectorTwoWay.setKeyPassword(srvrCrtPass);
       sslConnectorTwoWay.setTrustPassword(srvrCrtPass);
-      sslConnectorTwoWay.setKeystoreType("PKCS12");
-      sslConnectorTwoWay.setTruststoreType("PKCS12");
+      sslConnectorTwoWay.setKeystoreType(configsMap.get(Configuration.KSTR_TYPE_KEY));
+      sslConnectorTwoWay.setTruststoreType(configsMap.get(Configuration.TSTR_TYPE_KEY));
       sslConnectorTwoWay.setNeedClientAuth(configs.getTwoWaySsl());
 
       //SSL Context Factory
       SslContextFactory contextFactoryOneWay = new SslContextFactory(true);
       contextFactoryOneWay.setKeyStorePath(keystore);
-      contextFactoryOneWay.setTrustStore(keystore);
+      contextFactoryOneWay.setTrustStore(truststore);
       contextFactoryOneWay.setKeyStorePassword(srvrCrtPass);
       contextFactoryOneWay.setKeyManagerPassword(srvrCrtPass);
       contextFactoryOneWay.setTrustStorePassword(srvrCrtPass);
-      contextFactoryOneWay.setKeyStoreType("PKCS12");
-      contextFactoryOneWay.setTrustStoreType("PKCS12");
+      contextFactoryOneWay.setKeyStoreType(configsMap.get(Configuration.KSTR_TYPE_KEY));
+      contextFactoryOneWay.setTrustStoreType(configsMap.get(Configuration.TSTR_TYPE_KEY));
       contextFactoryOneWay.setNeedClientAuth(false);
       disableInsecureProtocols(contextFactoryOneWay);
 
@@ -427,6 +429,8 @@ public class AmbariServer {
       if (configs.getApiSSLAuthentication()) {
         String httpsKeystore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME_KEY) +
           File.separator + configsMap.get(Configuration.CLIENT_API_SSL_KSTR_NAME_KEY);
+        String httpsTruststore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME_KEY) +
+            File.separator + configsMap.get(Configuration.CLIENT_API_SSL_TSTR_NAME_KEY);
         LOG.info("API SSL Authentication is turned on. Keystore - " + httpsKeystore);
 
         String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS_KEY);
@@ -436,12 +440,12 @@ public class AmbariServer {
         SslSelectChannelConnector sapiConnector = new SslSelectChannelConnector(contextFactoryApi);
         sapiConnector.setPort(configs.getClientSSLApiPort());
         sapiConnector.setKeystore(httpsKeystore);
-        sapiConnector.setTruststore(httpsKeystore);
+        sapiConnector.setTruststore(httpsTruststore);
         sapiConnector.setPassword(httpsCrtPass);
         sapiConnector.setKeyPassword(httpsCrtPass);
         sapiConnector.setTrustPassword(httpsCrtPass);
-        sapiConnector.setKeystoreType("PKCS12");
-        sapiConnector.setTruststoreType("PKCS12");
+        sapiConnector.setKeystoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE_KEY));
+        sapiConnector.setTruststoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE_KEY));
         sapiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
         apiConnector = sapiConnector;
       }

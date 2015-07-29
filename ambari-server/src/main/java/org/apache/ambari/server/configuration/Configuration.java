@@ -96,6 +96,9 @@ public class Configuration {
   public static final String SRVR_CSR_NAME_KEY = "security.server.csr_name";
   public static final String SRVR_KEY_NAME_KEY = "security.server.key_name";
   public static final String KSTR_NAME_KEY = "security.server.keystore_name";
+  public static final String KSTR_TYPE_KEY = "security.server.keystore_type";
+  public static final String TSTR_NAME_KEY = "security.server.truststore_name";
+  public static final String TSTR_TYPE_KEY = "security.server.truststore_type";
   public static final String SRVR_CRT_PASS_FILE_KEY = "security.server.crt_pass_file";
   public static final String SRVR_CRT_PASS_KEY = "security.server.crt_pass";
   public static final String SRVR_CRT_PASS_LEN_KEY = "security.server.crt_pass.len";
@@ -117,6 +120,9 @@ public class Configuration {
   public static final String CLIENT_API_SSL_PORT_KEY = "client.api.ssl.port";
   public static final String CLIENT_API_SSL_KSTR_DIR_NAME_KEY = "client.api.ssl.keys_dir";
   public static final String CLIENT_API_SSL_KSTR_NAME_KEY = "client.api.ssl.keystore_name";
+  public static final String CLIENT_API_SSL_KSTR_TYPE_KEY = "client.api.ssl.keystore_type";
+  public static final String CLIENT_API_SSL_TSTR_NAME_KEY = "client.api.ssl.truststore_name";
+  public static final String CLIENT_API_SSL_TSTR_TYPE_KEY = "client.api.ssl.truststore_type";
   public static final String CLIENT_API_SSL_CRT_NAME_KEY = "client.api.ssl.cert_name";
   public static final String CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY = "client.api.ssl.cert_pass_file";
   public static final String CLIENT_API_SSL_CRT_PASS_KEY = "client.api.ssl.crt_pass";
@@ -207,7 +213,17 @@ public class Configuration {
   public static final String SRVR_KEY_NAME_DEFAULT = "ca.key";
   public static final String SRVR_CSR_NAME_DEFAULT = "ca.csr";
   public static final String KSTR_NAME_DEFAULT = "keystore.p12";
+  public static final String KSTR_TYPE_DEFAULT = "PKCS12";
+  // By default self-signed certificates are used and we can use keystore as truststore in PKCS12 format
+  // When CA signed certificates are used truststore should be created in JKS format (truststore.jks)
+  public static final String TSTR_NAME_DEFAULT = "keystore.p12";
+  public static final String TSTR_TYPE_DEFAULT = "PKCS12";
   public static final String CLIENT_API_SSL_KSTR_NAME_DEFAULT = "https.keystore.p12";
+  public static final String CLIENT_API_SSL_KSTR_TYPE_DEFAULT = "PKCS12";
+  // By default self-signed certificates are used and we can use keystore as truststore in PKCS12 format
+  // When CA signed certificates are used truststore should be created in JKS format (truststore.jks)
+  public static final String CLIENT_API_SSL_TSTR_NAME_DEFAULT = "https.keystore.p12";
+  public static final String CLIENT_API_SSL_TSTR_TYPE_DEFAULT = "PKCS12";
   public static final String CLIENT_API_SSL_CRT_PASS_FILE_NAME_DEFAULT = "https.pass.txt";
   public static final String CLIENT_API_SSL_KEY_NAME_DEFAULT = "https.key";
   public static final String CLIENT_API_SSL_CRT_NAME_DEFAULT = "https.crt";
@@ -532,6 +548,12 @@ public class Configuration {
       SRVR_CSR_NAME_KEY, SRVR_CSR_NAME_DEFAULT));
     configsMap.put(KSTR_NAME_KEY, properties.getProperty(
         KSTR_NAME_KEY, KSTR_NAME_DEFAULT));
+    configsMap.put(KSTR_TYPE_KEY, properties.getProperty(
+        KSTR_TYPE_KEY, KSTR_TYPE_DEFAULT));
+    configsMap.put(TSTR_NAME_KEY, properties.getProperty(
+        TSTR_NAME_KEY, TSTR_NAME_DEFAULT));
+    configsMap.put(TSTR_TYPE_KEY, properties.getProperty(
+        TSTR_TYPE_KEY, TSTR_TYPE_DEFAULT));
     configsMap.put(SRVR_CRT_PASS_FILE_KEY, properties.getProperty(
         SRVR_CRT_PASS_FILE_KEY, SRVR_CRT_PASS_FILE_DEFAULT));
     configsMap.put(PASSPHRASE_ENV_KEY, properties.getProperty(
@@ -551,6 +573,12 @@ public class Configuration {
       CLIENT_API_SSL_KSTR_DIR_NAME_KEY, configsMap.get(SRVR_KSTR_DIR_KEY)));
     configsMap.put(CLIENT_API_SSL_KSTR_NAME_KEY, properties.getProperty(
       CLIENT_API_SSL_KSTR_NAME_KEY, CLIENT_API_SSL_KSTR_NAME_DEFAULT));
+    configsMap.put(CLIENT_API_SSL_KSTR_TYPE_KEY, properties.getProperty(
+        CLIENT_API_SSL_KSTR_TYPE_KEY, CLIENT_API_SSL_KSTR_TYPE_DEFAULT));
+    configsMap.put(CLIENT_API_SSL_TSTR_NAME_KEY, properties.getProperty(
+        CLIENT_API_SSL_TSTR_NAME_KEY, CLIENT_API_SSL_TSTR_NAME_DEFAULT));
+    configsMap.put(CLIENT_API_SSL_TSTR_TYPE_KEY, properties.getProperty(
+        CLIENT_API_SSL_TSTR_TYPE_KEY, CLIENT_API_SSL_TSTR_TYPE_DEFAULT));
     configsMap.put(CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY, properties.getProperty(
       CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY, CLIENT_API_SSL_CRT_PASS_FILE_NAME_DEFAULT));
     configsMap.put(CLIENT_API_SSL_KEY_NAME_KEY, properties.getProperty(
