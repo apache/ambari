@@ -2495,7 +2495,7 @@ describe('App.WizardStep3Controller', function () {
       c.getHostCheckTasksSuccess(lastAgentEnvCheckComplete);
       expect(c.get('stopChecking')).to.be.true;
       expect(c.getHostInfo.calledOnce).to.be.true;
-      expect(c.get('hostsPackagesData')).eql([
+      expect(JSON.parse(JSON.stringify(c.get('hostsPackagesData')))).eql([
         {
           hostName: 'h1',
           installedPackages: [
