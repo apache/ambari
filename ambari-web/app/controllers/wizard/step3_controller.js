@@ -271,7 +271,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     var isHostsLoaded = this.get('hosts').length !== 0;
     var isPrevAndCurrStepsSetted = previousStep && currentStep;
     var isPrevStepSmallerThenCurrent = previousStep < currentStep;
-    if (!isHostsLoaded || isPrevStepSmallerThenCurrent || 
+    if (!isHostsLoaded || isPrevStepSmallerThenCurrent ||
         !wizardController || !isPrevAndCurrStepsSetted) {
       this.disablePreviousSteps();
       this.clearStep();
@@ -913,7 +913,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     if (App.get('testMode')) {
       this.getHostInfo();
     } else {
-      var data = this.getDataForCheckRequest("last_agent_env_check,installed_packages,existing_repos", false);
+      var data = this.getDataForCheckRequest("last_agent_env_check,installed_packages,existing_repos,transparentHugePage", false);
       data ? this.requestToPerformHostCheck(data) : this.stopHostCheck();
     }
   },
@@ -1044,8 +1044,9 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
           var installed_packages = Em.get(task, 'Tasks.structured_out.installed_packages');
           return {
             hostName: Em.get(task, 'Tasks.host_name'),
+            transparentHugePage: Em.get(task, 'Tasks.structured_out.transparentHugePage.message'),
             installedPackages: installed_packages ? installed_packages : []
-          }
+          };
         }));
         this.getHostInfo();
       } else if (data.Requests.inputs.indexOf("host_resolution_check") != -1) {
@@ -1145,7 +1146,13 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
             hostsDiskNames.push(host_name);
           }
           // "Transparent Huge Pages" check
-          context = self.checkTHP(host_name, Em.get(host, 'Hosts.last_agent_env.transparentHugePage'));
+          var _hostPackagesData = self.get('hostsPackagesData').findProperty('hostName', host.Hosts.host_name);
+          if (_hostPackagesData) {
+            var transparentHugePage = _hostPackagesData.transparentHugePage;
+            context = self.checkTHP(host_name, transparentHugePage);
+          } else {
+            context = self.checkTHP(host_name, Em.get(host, 'Hosts.last_agent_env.transparentHugePage'));
+          }
           if (context) {
             thpContext.push(context);
             thpHostsNames.push(host_name);
@@ -1378,6 +1385,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     var self = this;
     var currentProgress = 0;
     this.getHostNameResolution();
+    this.getGeneralHostCheck();
     this.checkHostJDK();
     var interval = setInterval(function () {
       currentProgress += 100000 / self.get('warningsTimeInterval');
@@ -1494,6 +1502,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
 
       //parse all package warnings for host
       var _hostPackagesData = hostsPackagesData.findProperty('hostName', _host.Hosts.host_name);
+
       if (_hostPackagesData) {
         _hostPackagesData.installedPackages.forEach(function (_package) {
           warning = warningCategories.packagesWarnings[_package.name];
