@@ -26,8 +26,6 @@ describe('App.ListConfigWidgetView', function () {
     view = App.ListConfigWidgetView.create({
       initPopover: Em.K,
       config: Em.Object.create({
-        _validateOverrides: App.ServiceConfigProperty.prototype._validateOverrides,
-        _getValueForCheck: App.ServiceConfigProperty.prototype._getValueForCheck,
         validate: App.ServiceConfigProperty.prototype.validate,
         name: 'a.b.c',
         savedValue: '2,1',
@@ -194,21 +192,6 @@ describe('App.ListConfigWidgetView', function () {
       view.get('options').setEach('isSelected', true);
       expect(view.get('config.errorMessage')).to.equal('');
     });
-
-    it('check override', function () {
-
-      view.get('config').setProperties({
-        isOriginalSCP: false,
-        parentSCP: Em.Object.create({
-          value: '2,1',
-          isFinal: false
-        })
-      });
-      view.checkSelectedItemsCount();
-      expect(view.get('config.errorMessage')).to.equal(Em.I18n.t('config.override.valueEqualToParentConfig'));
-
-    });
-
   });
 
 });
