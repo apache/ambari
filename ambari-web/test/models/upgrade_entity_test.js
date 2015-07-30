@@ -20,7 +20,11 @@ var App = require('app');
 require('models/upgrade_entity');
 
 describe('App.upgradeEntity', function () {
-  var model = App.upgradeEntity.create();
+  var model;
+
+  beforeEach(function () {
+    model = App.upgradeEntity.create();
+  });
 
   describe("#isRunning", function() {
     it("status IN_PROGRESS", function() {
@@ -59,5 +63,110 @@ describe('App.upgradeEntity', function () {
       model.propertyDidChange('isActive');
       expect(model.get('isActive')).to.be.false;
     });
+  });
+
+  describe('#isExpandableGroup', function () {
+
+    var cases = [
+      {
+        input: {
+          type: 'ITEM'
+        },
+        isExpandableGroup: false,
+        title: 'not upgrade group'
+      },
+      {
+        input: {
+          type: 'GROUP',
+          status: 'PENDING',
+          hasExpandableItems: false
+        },
+        isExpandableGroup: false,
+        title: 'pending upgrade group without expandable items'
+      },
+      {
+        input: {
+          type: 'GROUP',
+          status: 'ABORTED',
+          hasExpandableItems: false
+        },
+        isExpandableGroup: false,
+        title: 'aborted upgrade group without expandable items'
+      },
+      {
+        input: {
+          type: 'GROUP',
+          status: 'ABORTED',
+          hasExpandableItems: true
+        },
+        isExpandableGroup: true,
+        title: 'aborted upgrade group with expandable items'
+      },
+      {
+        input: {
+          type: 'GROUP',
+          status: 'IN_PROGRESS',
+          hasExpandableItems: false
+        },
+        isExpandableGroup: true,
+        title: 'active upgrade group'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        model.setProperties(item.input);
+        expect(model.get('isExpandableGroup')).to.equal(item.isExpandableGroup);
+      });
+    });
+
+  });
+
+  describe('#upgradeGroupStatus', function () {
+
+    var cases = [
+      {
+        input: {
+          type: 'ITEM'
+        },
+        upgradeGroupStatus: undefined,
+        title: 'not upgrade group'
+      },
+      {
+        input: {
+          type: 'GROUP',
+          status: 'PENDING',
+          hasExpandableItems: false
+        },
+        upgradeGroupStatus: 'PENDING',
+        title: 'pending upgrade group'
+      },
+      {
+        input: {
+          type: 'GROUP',
+          status: 'ABORTED',
+          hasExpandableItems: true
+        },
+        upgradeGroupStatus: 'SUBITEM_FAILED',
+        title: 'aborted upgrade group with expandable items'
+      },
+      {
+        input: {
+          type: 'GROUP',
+          status: 'IN_PROGRESS',
+          hasExpandableItems: false
+        },
+        upgradeGroupStatus: 'IN_PROGRESS',
+        title: 'active upgrade'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        model.setProperties(item.input);
+        expect(model.get('upgradeGroupStatus')).to.equal(item.upgradeGroupStatus);
+      });
+    });
+
   });
 });

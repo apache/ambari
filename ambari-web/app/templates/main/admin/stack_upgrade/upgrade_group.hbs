@@ -18,8 +18,8 @@
 
 
 <div class="row-fluid">
-  <div {{bindAttr class="view.content.isActive::not-active-link :span8"}}>
-    {{statusIcon view.content.status}}
+  <div {{bindAttr class="view.content.isExpandableGroup::not-active-link :span8"}}>
+    {{statusIcon view.content.upgradeGroupStatus}}
     <a href="#" {{action toggleExpanded view.content controller.upgradeData.upgradeGroups target="view"}}>{{view.content.title}}</a>
   </div>
   {{#if view.content.isRunning}}

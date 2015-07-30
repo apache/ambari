@@ -309,7 +309,7 @@ App.isEmptyObject = function(obj) {
   var empty = true;
   for (var prop in obj) { if (obj.hasOwnProperty(prop)) {empty = false; break;} }
   return empty;
-}
+};
 
 /**
  * Convert object under_score keys to camelCase
@@ -715,7 +715,7 @@ App.registerBoundHelper('pluralize', Em.View.extend({
       case 'controller':
         return Em.get(this, value);
       case 'view':
-        return Em.get(this, value.replace(/^view/, 'parentView'))
+        return Em.get(this, value.replace(/^view/, 'parentView'));
       default:
         break;
     }
@@ -809,7 +809,8 @@ App.registerBoundHelper('statusIcon', Em.View.extend({
     'HOLDING': 'icon-pause',
     'ABORTED': 'icon-minus aborted',
     'TIMEDOUT': 'icon-time timedout',
-    'HOLDING_TIMEDOUT': 'icon-time timedout'
+    'HOLDING_TIMEDOUT': 'icon-time timedout',
+    'SUBITEM_FAILED': 'icon-remove failed'
   },
 
   classNameBindings: ['iconClass'],
