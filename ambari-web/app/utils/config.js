@@ -1194,13 +1194,14 @@ App.config = Em.Object.create({
    * for directory or directories displayType format string for further using.
    * for password and values with spaces only do nothing.
    * @param {Object} property
+   * @param {Boolean} isEmberObject
    * @returns {*}
    */
-  trimProperty: function (property) {
-    var displayType = Em.get(property, 'displayType'),
-     value = Em.get(property, 'value'),
-     name = Em.get(property, 'name'),
-     rez;
+  trimProperty: function (property, isEmberObject) {
+    var displayType = (isEmberObject) ? property.get('displayType') : property.displayType;
+    var value = (isEmberObject) ? property.get('value') : property.value;
+    var name = (isEmberObject) ? property.get('name') : property.name;
+    var rez;
     switch (displayType) {
       case 'directories':
       case 'directory':
