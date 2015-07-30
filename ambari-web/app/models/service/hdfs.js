@@ -49,7 +49,7 @@ App.HDFSService = App.Service.extend({
   dfsMissingBlocks: DS.attr('number'),
   dfsUnderReplicatedBlocks: DS.attr('number'),
   dfsTotalFiles: DS.attr('number'),
-  upgradeStatus: DS.attr('boolean'),
+  upgradeStatus: DS.attr('string'),
   safeModeStatus: DS.attr('string'),
   nameNodeRpc: DS.attr('number'),
   metricsNotAvailable: DS.attr('boolean')
