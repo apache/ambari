@@ -1062,6 +1062,8 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   /**
    * Load configs
+   * This function when used without a callback should be always used from successcallback function of the promise `App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(promise)`
+   * This is required to make sure that service metrics API determining the HA state of components is loaded
    * @method loadConfigs
    */
   loadConfigs: function (callback) {
@@ -2318,5 +2320,14 @@ App.MainHostDetailsController = Em.Controller.extend({
       wizardControllerName: this.get('name'),
       localdb: App.db.data
     });
+  },
+
+  /**
+   *
+   * @param callback
+   */
+  isServiceMetricsLoaded: function(callback) {
+    var self = this;
+    App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(callback);
   }
 });
