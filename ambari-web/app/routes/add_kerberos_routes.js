@@ -210,7 +210,6 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var kerberosWizardController = router.get('kerberosWizardController');
       kerberosWizardController.setDBProperty('kerberosDescriptorConfigs', null);
-      kerberosWizardController.clearCachedStepConfigValues(router.get('kerberosWizardStep4Controller'));
       router.transitionTo('step4');
     }
   }),
@@ -245,7 +244,6 @@ module.exports = App.WizardRoute.extend({
       var kerberosWizardController = router.get('kerberosWizardController');
       var step5Controller = router.get('kerberosWizardStep5Controller');
       var kerberosDescriptor = kerberosWizardController.get('kerberosDescriptorConfigs');
-      kerberosWizardController.cacheStepConfigValues(router.get('kerberosWizardStep4Controller'));
       step5Controller.postKerberosDescriptor(kerberosDescriptor).always(function (data, result, request) {
         if (result === 'error' && data.status === 409) {
           step5Controller.putKerberosDescriptor(kerberosDescriptor);
