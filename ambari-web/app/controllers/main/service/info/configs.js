@@ -279,6 +279,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   },
 
   clearConfigs: function() {
+    this.get('selectedConfigGroup', null);
     this.get('allConfigs').invoke('destroy');
     this.get('stepConfigs').invoke('destroy');
     this.set('stepConfigs', []);

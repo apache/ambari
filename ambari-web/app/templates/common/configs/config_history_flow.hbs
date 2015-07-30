@@ -23,8 +23,8 @@
       {{bindAttr data-original-title="view.leftArrowTooltip"}}><i class="icon-chevron-left icon-3x"></i></div>
     <div {{bindAttr class=":icon-chevron-box :pull-left view.showRightArrow::disabled"}} {{action shiftForward target="view"}} data-toggle="arrow-tooltip"
       {{bindAttr data-original-title="view.rightArrowTooltip"}}><i class="icon-chevron-right icon-3x"></i></div>
-    {{#each serviceVersion in view.visibleServiceVersion}}
-      {{view view.serviceVersionBox serviceVersionBinding=serviceVersion}}
+    {{#each sV in view.visibleServiceVersion}}
+      {{view App.ConfigsServiceVersionBoxView serviceVersionBinding="sV"}}
     {{/each}}
 
   </div>

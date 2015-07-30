@@ -579,8 +579,7 @@ App.popover = function (self, options) {
   if (!self) return;
   self.popover(options);
   self.on("remove", function () {
-    $(this).trigger('mouseleave');
-    $(this).off();
+    $(this).trigger('mouseleave').off().removeData('popover');
   });
 };
 
@@ -597,8 +596,7 @@ App.tooltip = function (self, options) {
   self.tooltip(options);
   /* istanbul ignore next */
   self.on("remove", function () {
-    $(this).trigger('mouseleave');
-    $(this).off();
+    $(this).trigger('mouseleave').off().removeData('tooltip');
   });
 };
 
