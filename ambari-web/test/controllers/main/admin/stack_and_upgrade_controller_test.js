@@ -537,6 +537,17 @@ describe('App.MainAdminStackAndUpgradeController', function() {
                 stage_id: 1
               })
             ]
+          }),
+          Em.Object.create({
+            group_id: 2,
+            upgradeItems: [
+              Em.Object.create({
+                stage_id: 2
+              }),
+              Em.Object.create({
+                stage_id: 3
+              })
+            ]
           })
         ]
       });
@@ -561,6 +572,30 @@ describe('App.MainAdminStackAndUpgradeController', function() {
                 }
               }
             ]
+          },
+          {
+            UpgradeGroup: {
+              group_id: 2,
+              status: 'ABORTED',
+              progress_percent: 50,
+              completed_task_count: 1
+            },
+            upgrade_items: [
+              {
+                UpgradeItem: {
+                  stage_id: 2,
+                  status: 'ABORTED',
+                  progress_percent: 99
+                }
+              },
+              {
+                UpgradeItem: {
+                  stage_id: 3,
+                  status: 'PENDING',
+                  progress_percent: 0
+                }
+              }
+            ]
           }
         ]
       };
@@ -571,6 +606,15 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(controller.get('upgradeData.upgradeGroups')[0].get('completed_task_count')).to.equal(3);
       expect(controller.get('upgradeData.upgradeGroups')[0].get('upgradeItems')[0].get('status')).to.equal('COMPLETED');
       expect(controller.get('upgradeData.upgradeGroups')[0].get('upgradeItems')[0].get('progress_percent')).to.equal(100);
+      expect(controller.get('upgradeData.upgradeGroups')[0].get('hasExpandableItems')).to.be.true;
+      expect(controller.get('upgradeData.upgradeGroups')[1].get('status')).to.equal('ABORTED');
+      expect(controller.get('upgradeData.upgradeGroups')[1].get('progress_percent')).to.equal(50);
+      expect(controller.get('upgradeData.upgradeGroups')[1].get('completed_task_count')).to.equal(1);
+      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[0].get('status')).to.equal('ABORTED');
+      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[1].get('status')).to.equal('PENDING');
+      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[0].get('progress_percent')).to.equal(99);
+      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[1].get('progress_percent')).to.equal(0);
+      expect(controller.get('upgradeData.upgradeGroups')[1].get('hasExpandableItems')).to.be.false;
     });
   });
 
@@ -588,7 +632,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             upgrade_items: [
               {
                 UpgradeItem: {
-                  stage_id: 1
+                  stage_id: 1,
+                  status: 'IN_PROGRESS'
                 }
               },
               {
@@ -603,15 +648,38 @@ describe('App.MainAdminStackAndUpgradeController', function() {
               group_id: 2
             },
             upgrade_items: []
+          },
+          {
+            UpgradeGroup: {
+              group_id: 3
+            },
+            upgrade_items: [
+              {
+                UpgradeItem: {
+                  stage_id: 3,
+                  status: 'ABORTED'
+                }
+              },
+              {
+                UpgradeItem: {
+                  stage_id: 4,
+                  status: 'PENDING'
+                }
+              }
+            ]
           }
         ]
       };
       controller.initUpgradeData(newData);
       expect(controller.get('upgradeData.Upgrade.request_id')).to.equal(1);
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('group_id')).to.equal(2);
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('group_id')).to.equal(1);
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[0].get('stage_id')).to.equal(2);
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[1].get('stage_id')).to.equal(1);
+      expect(controller.get('upgradeData.upgradeGroups')[0].get('group_id')).to.equal(3);
+      expect(controller.get('upgradeData.upgradeGroups')[1].get('group_id')).to.equal(2);
+      expect(controller.get('upgradeData.upgradeGroups')[2].get('group_id')).to.equal(1);
+      expect(controller.get('upgradeData.upgradeGroups')[2].get('upgradeItems')[0].get('stage_id')).to.equal(2);
+      expect(controller.get('upgradeData.upgradeGroups')[2].get('upgradeItems')[1].get('stage_id')).to.equal(1);
+      expect(controller.get('upgradeData.upgradeGroups')[0].get('hasExpandableItems')).to.be.false;
+      expect(controller.get('upgradeData.upgradeGroups')[1].get('hasExpandableItems')).to.be.false;
+      expect(controller.get('upgradeData.upgradeGroups')[2].get('hasExpandableItems')).to.be.true;
     });
   });
 

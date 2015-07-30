@@ -135,6 +135,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   skippedServiceChecks: [],
 
+  /**
+   * status of tasks/items/groups which should be grayed out and disabled
+   * @type {Array}
+   */
+  nonActiveStates: ['PENDING', 'ABORTED'],
+
   init: function () {
     this.initDBProperties();
   },
@@ -231,6 +237,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   updateUpgradeData: function (newData) {
     var oldData = this.get('upgradeData'),
+      nonActiveStates = this.get('nonActiveStates'),
       groupsMap = {},
       itemsMap = {};
 
@@ -253,7 +260,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         oldGroup.upgradeItems.forEach(function (item) {
           item.set('status', itemsMap[item.get('stage_id')].status);
           item.set('progress_percent', itemsMap[item.get('stage_id')].progress_percent);
-        })
+        });
+        var hasExpandableItems = oldGroup.upgradeItems.some(function (item) {
+          return !nonActiveStates.contains(item.get('status'));
+        });
+        oldGroup.set('hasExpandableItems', hasExpandableItems);
       });
       oldData.set('Upgrade', newData.Upgrade);
     }
@@ -266,12 +277,16 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param {object} newData
    */
   initUpgradeData: function (newData) {
-    var upgradeGroups = [];
+    var upgradeGroups = [],
+      nonActiveStates = this.get('nonActiveStates');
 
     //wrap all entities into App.upgradeEntity
     newData.upgrade_groups.forEach(function (newGroup) {
-      var oldGroup = App.upgradeEntity.create({type: 'GROUP'}, newGroup.UpgradeGroup);
-      var upgradeItems = [];
+      var hasExpandableItems = newGroup.upgrade_items.some(function (item) {
+          return !nonActiveStates.contains(item.UpgradeItem.status);
+        }),
+        oldGroup = App.upgradeEntity.create({type: 'GROUP', hasExpandableItems: hasExpandableItems}, newGroup.UpgradeGroup),
+        upgradeItems = [];
       newGroup.upgrade_items.forEach(function (item) {
         var oldItem = App.upgradeEntity.create({type: 'ITEM'}, item.UpgradeItem);
         oldItem.set('tasks', []);

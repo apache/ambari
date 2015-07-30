@@ -37,6 +37,11 @@ App.upgradeEntity = Em.Object.extend({
   /**
    * @type {boolean}
    */
+  hasExpandableItems: false,
+
+  /**
+   * @type {boolean}
+   */
   isVisible: function () {
     return this.get('status') !== 'PENDING';
   }.property('status'),
@@ -67,5 +72,19 @@ App.upgradeEntity = Em.Object.extend({
    */
   isActive: function () {
     return !this.get('nonActiveStates').contains(this.get('status'));
-  }.property('status')
+  }.property('status'),
+
+  /**
+   * indicate whether upgrade group should be expanded
+   * @type {boolean}
+   */
+  isExpandableGroup: function () {
+    return this.get('type') === 'GROUP' && (this.get('isActive') || this.get('hasExpandableItems'));
+  }.property('isActive', 'hasExpandableItems'),
+
+  upgradeGroupStatus: function () {
+    if (this.get('type') === 'GROUP') {
+      return !this.get('isActive') && this.get('hasExpandableItems') ? 'SUBITEM_FAILED' : this.get('status');
+    }
+  }.property('isExpandableGroup')
 });
