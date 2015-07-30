@@ -9486,11 +9486,11 @@
           }
         },
         {
-          "href" : "http://c6401:8080/api/v1/stacks/HDP/versions/2.2/services/KERBEROS/configurations/create_attributes_template",
+          "href" : "http://c6401:8080/api/v1/stacks/HDP/versions/2.2/services/KERBEROS/configurations/ad_create_attributes_template",
           "StackConfigurations" : {
             "final" : "false",
-            "property_description" : "\n      A Velocity template to use to generate a JSON-formatted document containing the set of\n      attribute names and values needed to create a new Kerberos identity in the relevant KDC.\n      Variables include:\n      principal_name, principal_primary, principal_instance, realm, realm_lowercase,\n      normalized_principal, principal digest, password, is_service, container_dn\n    ",
-            "property_name" : "create_attributes_template",
+            "property_description" : "\n      A Velocity template to use to generate a JSON-formatted document containing the set of\n      attribute names and values needed to create a new Kerberos identity in the relevant\n      Active Directory.\n      Variables include:\n      principal_name, principal_primary, principal_instance, realm, realm_lowercase,\n      normalized_principal, principal digest, password, is_service, container_dn\n    ",
+            "property_name" : "ad_create_attributes_template",
             "property_type" : [ ],
             "property_value" : "\n{\n  \"objectClass\": [\"top\", \"person\", \"organizationalPerson\", \"user\"],\n  \"cn\": \"$principal_name\",\n  #if( $is_service )\n  \"servicePrincipalName\": \"$principal_name\",\n  #end\n  \"userPrincipalName\": \"$normalized_principal\",\n  \"unicodePwd\": \"$password\",\n  \"accountExpires\": \"0\",\n  \"userAccountControl\": \"66048\"\n}\n    ",
             "service_name" : "KERBEROS",
