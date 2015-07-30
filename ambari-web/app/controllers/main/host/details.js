@@ -1025,7 +1025,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.ComponentActionsMixin, 
    * @method updateStormConfigs
    */
   updateStormConfigs: function () {
-    if (App.Service.find().findProperty('serviceName', 'STORM')) {
+    if (App.Service.find('STORM').get('isLoaded') && App.get('isHadoop23Stack')) {
       this.loadConfigs("loadStormConfigs");
     }
   },

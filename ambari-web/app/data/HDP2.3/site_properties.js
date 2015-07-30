@@ -401,6 +401,17 @@ hdp23properties.push({
   },
   {
     "id": "site property",
+    "name": "nimbus.seeds",
+    "displayName": "nimbus.seeds",
+    "isReconfigurable": false,
+    "isOverridable": false,
+    "displayType": "masterHosts",
+    "serviceName": "STORM",
+    "filename": "storm-site.xml",
+    "category": "NIMBUS"
+  },
+  {
+    "id": "site property",
     "name": "xasecure.audit.destination.db",
     "displayName": "Audit to DB",
     "displayType": "checkbox",

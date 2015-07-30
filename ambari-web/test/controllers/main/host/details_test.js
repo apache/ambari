@@ -2819,4 +2819,75 @@ describe('App.MainHostDetailsController', function () {
     });
 
   });
+
+  describe("#removeHostComponentModel()", function () {
+    beforeEach(function () {
+      sinon.stub(App.HostComponent, 'find').returns([
+        Em.Object.create({
+          id: 'C1_host1',
+          componentName: 'C1',
+          hostName: 'host1',
+          service: Em.Object.create({
+            serviceName: 'S1'
+          })
+        })
+      ]);
+      sinon.stub(App.serviceMapper, 'deleteRecord', Em.K);
+    });
+    afterEach(function () {
+      App.HostComponent.find.restore();
+      App.serviceMapper.deleteRecord.restore();
+    });
+    it("", function () {
+      App.cache['services'] = [
+        {
+          ServiceInfo: {
+            service_name: 'S1'
+          },
+          host_components: ['C1_host1']
+        }
+      ];
+      controller.removeHostComponentModel('C1', 'host1');
+      expect(App.cache['services'][0].host_components).to.be.empty;
+      expect(App.HostComponent.find.calledOnce).to.be.true;
+      expect(App.serviceMapper.deleteRecord.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#updateStormConfigs()", function () {
+    beforeEach(function () {
+      this.serviceMock = sinon.stub(App.Service, 'find');
+      sinon.stub(controller, 'loadConfigs');
+      this.mock = sinon.stub(App, 'get')
+    });
+    afterEach(function () {
+      this.serviceMock.restore();
+      this.mock.restore();
+      controller.loadConfigs.restore();
+    });
+    it("storm not installed, hadoop stack is 2.2", function () {
+      this.serviceMock.returns(Em.Object.create({
+        isLoaded: false
+      }));
+      this.mock.returns(false);
+      controller.updateStormConfigs();
+      expect(controller.loadConfigs.called).to.be.false;
+    });
+    it("storm installed, hadoop stack is 2.2", function () {
+      this.serviceMock.returns(Em.Object.create({
+        isLoaded: true
+      }));
+      this.mock.returns(false);
+      controller.updateStormConfigs();
+      expect(controller.loadConfigs.called).to.be.false;
+    });
+    it("storm installed, hadoop stack is 2.3", function () {
+      this.serviceMock.returns(Em.Object.create({
+        isLoaded: true
+      }));
+      this.mock.returns(true);
+      controller.updateStormConfigs();
+      expect(controller.loadConfigs.calledWith('loadStormConfigs')).to.be.true;
+    });
+  });
 });
