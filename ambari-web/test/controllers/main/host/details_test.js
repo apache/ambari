@@ -2071,12 +2071,8 @@ describe('App.MainHostDetailsController', function () {
 
   describe('#_doDeleteHostComponent()', function () {
     it('single component', function () {
-      var component = Em.Object.create({
-        componentName: 'COMP',
-        host: {
-          hostName: 'host1'
-        }
-      });
+      controller.set('content.hostName', 'host1');
+      var component = Em.Object.create({componentName: 'COMP'});
       controller._doDeleteHostComponent(component);
       expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.delete.host_component');
       expect(App.ajax.send.getCall(0).args[0].data).to.be.eql({
@@ -2269,11 +2265,9 @@ describe('App.MainHostDetailsController', function () {
 
   describe('#updateComponentPassiveState()', function () {
     it('popup should be displayed', function () {
+      controller.set('content.hostName', 'host1');
       var component = Em.Object.create({
-        componentName: 'COMP1',
-        host: {
-          hostName: 'host1'
-        }
+        componentName: 'COMP1'
       });
       controller.updateComponentPassiveState(component, 'state', 'message');
       expect(App.ajax.send.getCall(0).args[0].data).to.be.eql({

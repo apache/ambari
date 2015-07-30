@@ -18,7 +18,6 @@
 var App = require('app');
 var date = require('utils/date');
 var numberUtils = require('utils/number_utils');
-var componentsUtils = require('utils/components');
 
 App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/hdfs'),
@@ -46,12 +45,9 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     mastersComp: function() {
       var masterComponents = [];
       var zkfcs = this.get('parentView.service.hostComponents').filterProperty('componentName', 'ZKFC');
-      var hostComponentViewMap = componentsUtils.hostComponentViewMap;
 
       this.get('parentView.service.hostComponents').forEach(function (comp) {
         if (comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE') {
-          var view = hostComponentViewMap[comp.get('componentName')] ? hostComponentViewMap[comp.get('componentName')] : App.HostComponentView;
-          comp.set('view', view);
           masterComponents.push(comp);
           var zkfc = zkfcs.findProperty('hostName', comp.get('hostName'));
           if (zkfc) {

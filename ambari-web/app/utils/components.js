@@ -18,24 +18,6 @@
 var App = require('app');
 
 module.exports = {
-  /**
-   * List of custom view for some host components
-   * @type {Em.Object}
-   * Format:
-   *  <code>
-   *    {
-   *      COMPONENT_NAME1: VIEW1,
-   *      COMPONENT_NAME2: VIEW2
-   *      ....
-   *    }
-   *  </code>
-   */
-  hostComponentViewMap: Em.Object.create({
-    'DATANODE': App.DataNodeComponentView,
-    'NODEMANAGER': App.NodeManagerComponentView,
-    'HBASE_REGIONSERVER': App.RegionServerComponentView,
-    'TASKTRACKER': App.TaskTrackerComponentView
-  }),
   installHostComponent: function(hostName, component) {
     var self = this,
         componentName = component.get('componentName'),

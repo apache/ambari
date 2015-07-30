@@ -17,7 +17,7 @@
 
 var App = require('app');
 
-App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMixin, App.ComponentActionsMixin, {
+App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMixin, {
   name: 'mainServiceInfoSummaryController',
 
   selectedFlumeAgent: null,
