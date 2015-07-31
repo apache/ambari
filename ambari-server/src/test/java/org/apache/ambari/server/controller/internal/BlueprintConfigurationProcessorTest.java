@@ -4073,8 +4073,18 @@ public class BlueprintConfigurationProcessorTest {
           }
         };
 
+    Stack.ConfigProperty configProperty3 =
+        new Stack.ConfigProperty("hbase-site", "hbase.coprocessor.region.classes", "") {
+          @Override
+          Set<PropertyDependencyInfo> getDependsOnProperties() {
+            PropertyDependencyInfo dependencyInfo = new PropertyDependencyInfo("hbase-site", "hbase.security.authorization");
+            return Collections.singleton(dependencyInfo);
+          }
+        };
+
     mapOfMetadata.put("hbase.coprocessor.regionserver.classes", configProperty1);
     mapOfMetadata.put("hbase.coprocessor.master.classes", configProperty2);
+    mapOfMetadata.put("hbase.coprocessor.region.classes", configProperty3);
 
     // defaults from init() method that we need
     expect(stack.getName()).andReturn("testStack").anyTimes();
@@ -4107,7 +4117,8 @@ public class BlueprintConfigurationProcessorTest {
                 hbaseSiteProperties.containsKey("hbase.coprocessor.regionserver.classes"));
     assertTrue("hbase.coprocessor.master.classes should not have been filtered out of configuration",
                hbaseSiteProperties.containsKey("hbase.coprocessor.master.classes"));
-
+    assertTrue("hbase.coprocessor.region.classes should not have been filtered out of configuration",
+               hbaseSiteProperties.containsKey("hbase.coprocessor.master.classes"));
   }
 
   @Test
