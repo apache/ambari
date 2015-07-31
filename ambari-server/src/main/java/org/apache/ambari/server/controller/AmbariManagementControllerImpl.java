@@ -100,12 +100,16 @@ import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
+import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.Group;
 import org.apache.ambari.server.security.authorization.User;
@@ -172,6 +176,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.springframework.security.core.GrantedAuthority;
 
 @Singleton
 public class AmbariManagementControllerImpl implements AmbariManagementController {
@@ -249,6 +254,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    * The KerberosHelper to help setup for enabling for disabling Kerberos
    */
   private KerberosHelper kerberosHelper;
+
+  @Inject
+  private SecurityHelper securityHelper;
 
   final private String masterHostname;
   final private Integer masterPort;
@@ -2647,6 +2655,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return serviceName;
   }
 
+  /**
+   * Updates the users specified.
+   *
+   * @param requests the users to modify
+   *
+   * @throws AmbariException if the resources cannot be updated
+   * @throws IllegalArgumentException if the authenticated user is not authorized to update all of
+   * the requested properties
+   */
   @Override
   public synchronized void updateUsers(Set<UserRequest> requests) throws AmbariException {
     for (UserRequest request : requests) {
@@ -2661,10 +2678,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       if (null != request.isActive()) {
+        // If this value is being set, make sure the authenticated user is an administrator before
+        // allowing to change it. Only administrators should be able to change a user's active state
+        verifyAuthorization();
         users.setUserActive(u.getUserName(), request.isActive());
       }
 
       if (null != request.isAdmin()) {
+        // If this value is being set, make sure the authenticated user is an administrator before
+        // allowing to change it. Only administrators should be able to change a user's administrative
+        // privileges
+        verifyAuthorization();
         if (request.isAdmin()) {
           users.grantAdminPrivilege(u.getUserId());
         } else {
@@ -4259,4 +4283,31 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
   }
+
+  /**
+   * Determine whether or not the authenticated user has administrator privileges
+   *
+   * @throws IllegalArgumentException if the authenticated user does not have administrator privileges.
+   */
+  protected void verifyAuthorization() throws AmbariException {
+    boolean isAuthorized = false;
+
+    for (GrantedAuthority grantedAuthority : securityHelper.getCurrentAuthorities()) {
+      if (grantedAuthority instanceof AmbariGrantedAuthority) {
+        AmbariGrantedAuthority authority = (AmbariGrantedAuthority) grantedAuthority;
+        PrivilegeEntity privilegeEntity = authority.getPrivilegeEntity();
+        Integer permissionId = privilegeEntity.getPermission().getId();
+
+        if (permissionId.equals(PermissionEntity.AMBARI_ADMIN_PERMISSION)) {
+          isAuthorized = true;
+          break;
+        }
+      }
+    }
+
+    if (!isAuthorized) {
+      throw new IllegalArgumentException("You do not have authorization to update the requested resource property.");
+    }
+  }
+
 }
