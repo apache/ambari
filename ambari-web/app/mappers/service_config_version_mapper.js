@@ -91,6 +91,10 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
         }
       });
 
+      // If on config history page, need to clear the model
+      if (App.router.get('currentState.name') === 'configHistory') {
+        this.get('model').find().clear();
+      }
       App.store.commit();
       App.store.loadMany(this.get('model'), result);
       console.timeEnd('App.serviceConfigVersionsMapper');
