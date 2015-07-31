@@ -66,6 +66,7 @@ public class BlueprintConfigurationProcessor {
   private final static String CLUSTER_ENV_CONFIG_TYPE_NAME = "cluster-env";
 
   private final static String HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES = "hbase.coprocessor.master.classes";
+  private final static String HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES = "hbase.coprocessor.region.classes";
 
   /**
    * Single host topology updaters
@@ -288,7 +289,9 @@ public class BlueprintConfigurationProcessor {
    * @return
    */
   private static boolean shouldPropertyBeStoredWithDefault(String propertyName) {
-    if (!StringUtils.isBlank(propertyName) && HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES.equals(propertyName)) {
+    if (!StringUtils.isBlank(propertyName) &&
+        (HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES.equals(propertyName) ||
+         HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES.equals(propertyName))) {
       return true;
     }
 
