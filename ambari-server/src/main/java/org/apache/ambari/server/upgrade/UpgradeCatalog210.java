@@ -1621,7 +1621,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          if (cluster.getDesiredConfigByType("hbase-site") != null) {
+          if (cluster.getDesiredConfigByType("hbase-site") != null && cluster.getDesiredConfigByType("hbase-env") != null) {
             Map<String, String> hbaseEnvProps = new HashMap<String, String>();
             Map<String, String> hbaseSiteProps = new HashMap<String, String>();
             Set<String> hbaseEnvRemoveProps = new HashSet<String>();
@@ -1660,7 +1660,10 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
             int threshold = 23;
             int totalMem = 0;
-            String hostName = cluster.getHosts("HBASE", "HBASE_MASTER").iterator().next();
+            String hostName = null;
+            if (cluster.getHosts("HBASE", "HBASE_MASTER").iterator().hasNext()) {
+              hostName = cluster.getHosts("HBASE", "HBASE_MASTER").iterator().next();
+            }
             for (Host host : cluster.getHosts()) {
               if(host.getHostName().equalsIgnoreCase(hostName)) {
                 totalMem = (int)(host.getTotalMemBytes() / (1024 * 1024));
