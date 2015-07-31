@@ -161,12 +161,19 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putHbaseEnvProperty = self.putProperty(configurations, "ams-hbase-env", services)
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
-    putHbaseEnvProperty("hbase_regionserver_heapsize", "1024m")
     # blockCache = 0.3, memstore = 0.35, phoenix-server = 0.15, phoenix-client = 0.25
     putAmsHbaseSiteProperty("hfile.block.cache.size", 0.3)
     putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.35)
     putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.3)
     putTimelineServiceProperty("timeline.metrics.host.aggregator.ttl", 86400)
+
+    rootDir = "file:///var/lib/ambari-metrics-collector/hbase"
+    tmpDir = "/var/lib/ambari-metrics-collector/hbase-tmp"
+    if "ams-hbase-site" in services["configurations"]:
+      if "hbase.rootdir" in services["configurations"]["ams-hbase-site"]["properties"]:
+        rootDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.rootdir"]
+      if "hbase.tmp.dir" in services["configurations"]["ams-hbase-site"]["properties"]:
+        tmpDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.tmp.dir"]
 
     # TODO recommend configuration for multiple AMBARI_METRICS collectors
     if len(amsCollectorHosts) > 1:
@@ -174,8 +181,9 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     else:
       totalHostsCount = len(hosts["items"])
       # blockCache = 0.3, memstore = 0.3, phoenix-server = 0.2, phoenix-client = 0.3
+      putHbaseEnvProperty("hbase_master_heapsize", "512m")
       if totalHostsCount >= 400:
-        putHbaseEnvProperty("hbase_regionserver_heapsize", "12288m")
+        hbase_heapsize = "12288m"
         putAmsEnvProperty("metrics_collector_heapsize", "8192m")
         putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
         putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
@@ -188,7 +196,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         putAmsHbaseSiteProperty("hbase_master_xmn_size", "512m")
         putAmsHbaseSiteProperty("regionserver_xmn_size", "512m")
       elif totalHostsCount >= 100:
-        putHbaseEnvProperty("hbase_regionserver_heapsize", "6144m")
+        hbase_heapsize = "6144m"
         putAmsEnvProperty("metrics_collector_heapsize", "4096m")
         putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
         putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
@@ -196,26 +204,22 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 268435456)
         putAmsHbaseSiteProperty("hbase_master_xmn_size", "512m")
       elif totalHostsCount >= 50:
-        putHbaseEnvProperty("hbase_regionserver_heapsize", "2048m")
-        putHbaseEnvProperty("hbase_master_heapsize", "512m")
+        hbase_heapsize = "2048m"
         putAmsEnvProperty("metrics_collector_heapsize", "2048m")
         putAmsHbaseSiteProperty("hbase_master_xmn_size", "256m")
       else:
         # Embedded mode heap size : master + regionserver
-        putHbaseEnvProperty("hbase_regionserver_heapsize", "512m")
-        putHbaseEnvProperty("hbase_master_heapsize", "512m")
+        hbase_heapsize = "512m"
         putAmsEnvProperty("metrics_collector_heapsize", "512m")
         putAmsHbaseSiteProperty("hbase_master_xmn_size", "128m")
       pass
 
-    rootDir = "file:///var/lib/ambari-metrics-collector/hbase"
-    tmpDir = "/var/lib/ambari-metrics-collector/hbase-tmp"
+      if rootDir.startswith("hdfs://"):
+        putHbaseEnvProperty("hbase_regionserver_heapsize", hbase_heapsize)
+      else:
+        putHbaseEnvProperty("hbase_master_heapsize", hbase_heapsize)
+
     mountpoint = "/"
-    if "ams-hbase-site" in services["configurations"]:
-      if "hbase.rootdir" in services["configurations"]["ams-hbase-site"]["properties"]:
-        rootDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.rootdir"]
-      if "hbase.tmp.dir" in services["configurations"]["ams-hbase-site"]["properties"]:
-        tmpDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.tmp.dir"]
     for collectorHostName in amsCollectorHosts:
       for host in hosts["items"]:
         if host["Hosts"]["host_name"] == collectorHostName:
