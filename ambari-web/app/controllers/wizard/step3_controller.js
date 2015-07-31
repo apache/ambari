@@ -1385,6 +1385,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     var self = this;
     var currentProgress = 0;
     this.getHostNameResolution();
+    this.set('stopChecking', false);
     this.getGeneralHostCheck();
     this.checkHostJDK();
     var interval = setInterval(function () {
