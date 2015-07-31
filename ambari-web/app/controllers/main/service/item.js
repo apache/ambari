@@ -49,14 +49,9 @@ App.MainServiceItemController = Em.Controller.extend({
 
   initHosts: function() {
     if (App.get('components.masters').length !== 0) {
-      var self = this;
-
-      var hostNames = App.Host.find().mapProperty('hostName');
-      this.set('allHosts', hostNames);
-
       ['HBASE_MASTER', 'HIVE_METASTORE', 'ZOOKEEPER_SERVER', 'FLUME_HANDLER', 'HIVE_SERVER', 'RANGER_KMS_SERVER', 'NIMBUS'].forEach(function(componentName) {
-        self.loadHostsWithoutComponent(componentName);
-      });
+        this.loadHostsWithoutComponent(componentName);
+      }, this);
     }
   }.observes('App.components.masters', 'content.hostComponents.length'),
 
@@ -64,7 +59,7 @@ App.MainServiceItemController = Em.Controller.extend({
     var self = this;
     var hostsWithComponent = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('hostName');
 
-    var hostsWithoutComponent = this.get('allHosts').filter(function(hostName) {
+    var hostsWithoutComponent = App.get('allHostNames').filter(function(hostName) {
       return !hostsWithComponent.contains(hostName);
     });
 
@@ -102,8 +97,6 @@ App.MainServiceItemController = Em.Controller.extend({
   isConfigurable: function () {
     return !App.get('services.noConfigTypes').contains(this.get('content.serviceName'));
   }.property('App.services.noConfigTypes','content.serviceName'),
-
-  allHosts: [],
 
   clientComponents: function () {
     var clientNames = [];
