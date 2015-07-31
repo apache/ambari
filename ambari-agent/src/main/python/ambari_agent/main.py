@@ -47,7 +47,6 @@ from HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 logger = logging.getLogger(__name__)
 
-is_logger_setup = False
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
 config = AmbariConfig.AmbariConfig()
@@ -240,7 +239,7 @@ def main(heartbeat_stop_callback=None):
   current_user = getpass.getuser()
 
   setup_logging(options.verbose)
-  
+
   default_cfg = {'agent': {'prefix': '/home/ambari'}}
   config.load(default_cfg)
 
@@ -305,12 +304,12 @@ def main(heartbeat_stop_callback=None):
   logger.info("finished")
 
 if __name__ == "__main__":
+  is_logger_setup = False
   try:
     heartbeat_stop_callback = bind_signal_handlers(agentPid)
   
     main(heartbeat_stop_callback)
   except:
-    global is_logger_setup
     if is_logger_setup:
       logger.exception("Fatal exception occurred:")
     raise
