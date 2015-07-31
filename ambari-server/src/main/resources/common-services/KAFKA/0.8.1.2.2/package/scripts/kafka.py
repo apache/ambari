@@ -91,6 +91,9 @@ def kafka():
         TemplateConfig(format("{conf_dir}/kafka_jaas.conf"),
                          owner=params.kafka_user)
 
+        TemplateConfig(format("{conf_dir}/kafka_client_jaas.conf"),
+                       owner=params.kafka_user)
+
 
     setup_symlink(params.kafka_managed_pid_dir, params.kafka_pid_dir)
     setup_symlink(params.kafka_managed_log_dir, params.kafka_log_dir)
