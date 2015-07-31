@@ -422,7 +422,9 @@ App.ServiceConfigProperty = Em.Object.extend({
             isError = true;
           }
           break;
+        case 'supportTextConnection':
         case 'host':
+          var connectionProperties = ['kdc_host'];
           var hiveOozieHostNames = ['hive_hostname','hive_existing_mysql_host','hive_existing_oracle_host','hive_ambari_host',
             'oozie_hostname','oozie_existing_mysql_host','oozie_existing_oracle_host','oozie_ambari_host'];
           if(hiveOozieHostNames.contains(this.get('name'))) {
@@ -431,7 +433,7 @@ App.ServiceConfigProperty = Em.Object.extend({
               isError = true;
             }
           } else {
-            if (validator.isNotTrimmed(value)) {
+            if ((validator.isNotTrimmed(value) && connectionProperties.contains(this.get('name')) || validator.isNotTrimmed(value))) {
               this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
               isError = true;
             }
