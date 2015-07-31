@@ -1857,8 +1857,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "ams-hbase-env": {
         "properties": {
-          "hbase_master_heapsize": "512m",
-          "hbase_regionserver_heapsize": "512m",
+          "hbase_master_heapsize": "512m"
           }
       },
       "ams-env": {
