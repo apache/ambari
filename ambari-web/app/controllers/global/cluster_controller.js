@@ -216,7 +216,9 @@ App.ClusterController = Em.Controller.extend({
       updater.updateServices(function () {
         self.updateLoadStatus('services');
         App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName')).complete(function () {
-          self.set('isConfigsPropertiesLoaded', true);
+          App.config.loadClusterConfigsFromStack().complete(function() {
+            self.set('isConfigsPropertiesLoaded', true);
+          });
         });
         // service metrics loading doesn't affect overall progress
         updater.updateServiceMetric(function () {

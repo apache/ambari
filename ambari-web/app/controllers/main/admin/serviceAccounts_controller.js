@@ -56,8 +56,7 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
     this.setServiceConfigTags(loadedClusterSiteToTagMap);
     // load server stored configurations
     App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (serverConfigs) {
-      var stackConfigs = App.StackConfigProperty.find().filterProperty('displayType', 'user');
-      self.createConfigObject(serverConfigs, stackConfigs);
+      self.createConfigObject(serverConfigs);
     });
   },
 
@@ -102,10 +101,9 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
    * Generate configuration object that will be rendered
    *
    * @param {Object[]} serverConfigs
-   * @param {Object[]} stackConfigs
    */
-  createConfigObject: function(serverConfigs, stackConfigs) {
-    var configs = App.config.mergePredefinedWithSaved(serverConfigs, stackConfigs, this.get('selectedService'));
+  createConfigObject: function(serverConfigs) {
+    var configs = App.config.mergePredefinedWithSaved(serverConfigs, this.get('selectedService'));
     var miscConfigs = configs.filterProperty('displayType', 'user').filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);
 
     miscConfigs = App.config.miscConfigVisibleProperty(miscConfigs, App.Service.find().mapProperty('serviceName').concat('MISC'));
