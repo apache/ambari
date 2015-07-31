@@ -211,10 +211,16 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
     var properties = {};
     var content = this.get('stepConfigs')[0].get('configs');
     var configs = content.filterProperty('filename', site + '.xml');
+    // properties that should be formated as hosts
+    var hostProperties = ['kdc_host', 'realm'];
     configs.forEach(function (_configProperty) {
       // do not pass any globals whose name ends with _host or _hosts
       if (_configProperty.isRequiredByAgent !== false) {
-        properties[_configProperty.name] = _configProperty.value;
+        if (hostProperties.contains(_configProperty.name)) {
+          properties[_configProperty.name] = App.config.trimProperty({displayType: 'host', value: _configProperty.value});
+        } else {
+          properties[_configProperty.name] = App.config.trimProperty(_configProperty);
+        }
       }
     }, this);
     this.tweakKdcTypeValue(properties);
