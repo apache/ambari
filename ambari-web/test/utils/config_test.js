@@ -227,14 +227,16 @@ describe('App.config', function () {
       },
       {
         config: {
-          displayType: 'datanodedirs',
+          displayType: 'directories',
+          name: 'dfs.datanode.data.dir',
           value: ' [DISK]/a [SSD]/b '
         },
         e: '[DISK]/a,[SSD]/b'
       },
       {
         config: {
-          displayType: 'datanodedirs',
+          displayType: 'directories',
+          name: 'dfs.datanode.data.dir',
           value: '/a,/b, /c\n/d,\n/e  /f'
         },
         e: '/a,/b,/c,/d,/e,/f'

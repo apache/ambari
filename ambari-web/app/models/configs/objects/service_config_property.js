@@ -304,7 +304,6 @@ App.ServiceConfigProperty = Em.Object.extend({
         return App.ServiceConfigRadioButtons;
         break;
       case 'directories':
-      case 'datanodedirs':
         return App.ServiceConfigTextArea;
         break;
       case 'content':
@@ -395,25 +394,20 @@ App.ServiceConfigProperty = Em.Object.extend({
           break;
         case 'checkbox':
           break;
-        case 'datanodedirs':
-          if (!validator.isValidDataNodeDir(value)) {
-            this.set('errorMessage', 'dir format is wrong, can be "[{storage type}]/{dir name}"');
-            isError = true;
-          }
-          else {
-            if (!validator.isAllowedDir(value)) {
-              this.set('errorMessage', 'Cannot start with "home(s)"');
+        case 'directories':
+        case 'directory':
+          if (this.get('configSupportHeterogeneous')) {
+            if (!validator.isValidDataNodeDir(value)) {
+              this.set('errorMessage', 'dir format is wrong, can be "[{storage type}]/{dir name}"');
+              isError = true;
+            }
+          } else {
+            if (!validator.isValidDir(value)) {
+              this.set('errorMessage', 'Must be a slash or drive at the start');
               isError = true;
             }
           }
-          break;
-        case 'directories':
-        case 'directory':
-          if (!validator.isValidDir(value)) {
-            this.set('errorMessage', 'Must be a slash or drive at the start');
-            isError = true;
-          }
-          else {
+          if (!isError) {
             if (!validator.isAllowedDir(value)) {
               this.set('errorMessage', 'Can\'t start with "home(s)"');
               isError = true;
@@ -475,6 +469,21 @@ App.ServiceConfigProperty = Em.Object.extend({
     } else {
       this.set('error', true);
     }
-  }.observes('value', 'isFinal', 'retypedPassword')
+  }.observes('value', 'isFinal', 'retypedPassword'),
+
+  /**
+   * defines specific directory properties that
+   * allows setting drive type before dir name
+   * ex: [SSD]/usr/local/my_dir
+   * @param config
+   * @returns {*|Boolean|boolean}
+   */
+  configSupportHeterogeneous: function() {
+    if (App.get('isHadoop22Stack')) {
+      return ['directories', 'directory'].contains(this.get('displayType')) && ['dfs.datanode.data.dir'].contains(this.get('name'));
+    } else {
+      return false;
+    }
+  }.property('displayType', 'name', 'App.isHadoop22Stack')
 
 });

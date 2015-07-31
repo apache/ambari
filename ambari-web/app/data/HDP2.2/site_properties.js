@@ -37,7 +37,6 @@ var excludedConfigs = [
   'tez.runtime.intermediate-input.is-compressed',
   'tez.runtime.intermediate-output.compress.codec',
   'tez.runtime.intermediate-output.should-compress',
-  'dfs.datanode.data.dir',
   'hive.heapsize'
 ];
 var hdp22properties = hdp2properties.filter(function (item) {
@@ -95,17 +94,6 @@ hdp22properties.push(
     "category": "APP_TIMELINE_SERVER",
     "serviceName": "YARN",
     "filename": "yarn-site.xml"
-  },
-  {
-    "id": "site property",
-    "name": "dfs.datanode.data.dir",
-    "displayName": "DataNode directories",
-    "defaultDirectory": "/hadoop/hdfs/data",
-    "displayType": "datanodedirs",
-    "category": "DATANODE",
-    "serviceName": "HDFS",
-    "filename": "hdfs-site.xml",
-    "index": 1
   },
   {
     "id": "site property",
