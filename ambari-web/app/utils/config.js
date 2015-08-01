@@ -1412,6 +1412,23 @@ App.config = Em.Object.create({
     return newOverride;
   },
 
+
+  /**
+   * Merge values in "stored" to "base" if name matches, it's a value only merge.
+   * @param base {Array} Em.Object
+   * @param stored {Array} Object
+   */
+  mergeStoredValue: function(base, stored) {
+    if (stored) {
+      base.forEach(function (p) {
+        var sp = stored.findProperty("name", p.name);
+        if (sp) {
+          p.set("value", sp.value);
+        }
+      });
+    }
+  },
+
   /**
    * Update config property value based on its current value and list of zookeeper server hosts.
    * Used to prevent sort order issues.
