@@ -26,5 +26,10 @@ App.MainChartsHeatmapView = Em.View.extend({
   },
   dropdownView: Em.View.extend({
     templateName: require('templates/main/charts/heatmap_dropdown')
-  })
+  }),
+
+  willDestroyElement: function () {
+    this._super();
+    this.get('controller').clearActiveWidgetLayout();
+  }
 });

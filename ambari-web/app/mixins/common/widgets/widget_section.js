@@ -263,5 +263,12 @@ App.WidgetSectionMixin = Ember.Mixin.create({
         data: data
       }
     });
+  },
+
+  /**
+   * After closing widget section, layout should be reset
+   */
+  clearActiveWidgetLayout: function () {
+    this.set('activeWidgetLayout', {});
   }
 });

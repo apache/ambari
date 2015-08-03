@@ -68,15 +68,15 @@ App.MainChartsHeatmapController = Em.Controller.extend(App.WidgetSectionMixin, {
 
 
   /**
-   * This function is called from the binded view of the controller
+   * This function is called from the bound view of the controller
    */
   loadPageData: function () {
     var self = this;
-    this.loadRacks().done(function (data) {
-      self.set('isLoaded', true);
-      self.loadRacksSuccessCallback(data);
+
+    this.loadRacks().always(function () {
       self.resetPageData();
       self.getAllHeatMaps().done(function (allHeatmapData) {
+        self.set('isLoaded', true);
         allHeatmapData.items.forEach(function (_allHeatmapData) {
           self.get('allHeatmaps').pushObject(_allHeatmapData.WidgetInfo);
         });
@@ -93,7 +93,7 @@ App.MainChartsHeatmapController = Em.Controller.extend(App.WidgetSectionMixin, {
    * @return {Array}
    */
   categorizeByServiceName: function(allHeatmaps) {
-  var categories = [];
+    var categories = [];
     allHeatmaps.forEach(function(_heatmap){
     var serviceNames = JSON.parse(_heatmap.metrics).mapProperty('service_name').uniq();
       serviceNames.forEach(function(_serviceName){
@@ -150,7 +150,8 @@ App.MainChartsHeatmapController = Em.Controller.extend(App.WidgetSectionMixin, {
       sender: this,
       data: {
         urlParams: urlParams
-      }
+      },
+      success: 'loadRacksSuccessCallback'
     });
   },
 
