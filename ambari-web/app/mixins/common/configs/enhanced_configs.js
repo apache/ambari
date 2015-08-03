@@ -555,7 +555,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
       var properties = configs[siteName].property_attributes || {};
       Em.keys(properties).forEach(function (propertyName) {
         var cp = configProperties.findProperty('name', propertyName);
-        var stackProperty = App.StackConfigProperty.find().findProperty('id', propertyName + '_' + siteName);
+        var stackProperty = App.StackConfigProperty.find().findProperty('id', App.config.configId(propertyName, siteName));
         var attributes = properties[propertyName] || {};
         Em.keys(attributes).forEach(function (attributeName) {
           if (attributeName == 'delete') {
@@ -684,7 +684,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             overriddenProperty.set('value', Em.get(propertyToAdd, 'recommendedValue'));
             overriddenProperty.set('recommendedValue', Em.get(propertyToAdd, 'recommendedValue'));
           } else {
-            this.addOverrideProperty(cp, selectedGroup, Em.get(propertyToAdd, 'recommendedValue'), !Em.get(propertyToAdd, 'isDeleted'));
+            var overridePlainObject = {
+              "value": Em.get(propertyToAdd, 'recommendedValue'),
+              "recommendedValue": Em.get(propertyToAdd, 'recommendedValue'),
+              "isNotSaved": !Em.get(propertyToAdd, 'isDeleted'),
+              "isEditable": true
+            };
+            App.config.createOverride(cp, overridePlainObject, selectedGroup);
           }
         }
         Em.setProperties(propertyToAdd, {

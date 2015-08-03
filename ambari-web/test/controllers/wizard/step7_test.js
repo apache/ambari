@@ -643,29 +643,6 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
-  describe('#addOverrideProperty', function () {
-    it('should add override property', function () {
-      var groupName = 'groupName',
-        selectedService = {configGroups: [Em.Object.create({name: groupName, properties: []})]},
-        selectedConfigGroup = {name: groupName},
-        serviceConfigProperty = Em.Object.create({overrides: []}),
-        expected = Em.Object.create({
-          value: '',
-          isOriginalSCP: false,
-          isEditable: true
-        });
-      installerStep7Controller.reopen({selectedService: selectedService, selectedConfigGroup: selectedConfigGroup});
-      var newSCP = installerStep7Controller.addOverrideProperty(serviceConfigProperty);
-      Em.keys(expected).forEach(function (k) {
-        expect(newSCP.get(k)).to.equal(expected.get(k));
-      });
-      var group = installerStep7Controller.get('selectedService.configGroups').findProperty('name', groupName);
-      expect(newSCP.get('group')).to.eql(group);
-      expect(newSCP.get('parentSCP')).to.eql(serviceConfigProperty);
-      expect(group.get('properties.length')).to.equal(1);
-    });
-  });
-
   describe('#resolveYarnConfigs', function () {
     it('should set property to true', function () {
       var allSelectedServiceNames = ['SLIDER', 'YARN'],
@@ -1409,11 +1386,11 @@ describe('App.InstallerStep7Controller', function () {
         wizardController: Em.Object.create({
           getDBProperty: function (k) {
             return this.get(k);
-          }
+          },
+          stackConfigsLoaded: true
         })
       });
-      sinon.stub(App.config, 'mergePreDefinedWithStored', Em.K);
-      sinon.stub(App.config, 'addAdvancedConfigs', Em.K);
+      sinon.stub(App.config, 'mergePreDefinedWithStack', Em.K);
       sinon.stub(App.config, 'fileConfigsIntoTextarea', Em.K);
       sinon.stub(installerStep7Controller, 'clearStep', Em.K);
       sinon.stub(installerStep7Controller, 'getConfigTags', Em.K);
@@ -1427,8 +1404,7 @@ describe('App.InstallerStep7Controller', function () {
       sinon.stub(App.router, 'send', Em.K);
     });
     afterEach(function () {
-      App.config.mergePreDefinedWithStored.restore();
-      App.config.addAdvancedConfigs.restore();
+      App.config.mergePreDefinedWithStack.restore();
       App.config.fileConfigsIntoTextarea.restore();
       installerStep7Controller.clearStep.restore();
       installerStep7Controller.getConfigTags.restore();
@@ -1446,14 +1422,13 @@ describe('App.InstallerStep7Controller', function () {
       expect(installerStep7Controller.clearStep.calledOnce).to.equal(true);
     });
     it('shouldn\'t do nothing if isAdvancedConfigLoaded is false', function () {
-      installerStep7Controller.set('isAdvancedConfigLoaded', false);
+      installerStep7Controller.set('wizardController.stackConfigsLoaded', false);
       installerStep7Controller.loadStep();
       expect(installerStep7Controller.clearStep.called).to.equal(false);
     });
     it('should use App.config to map configs', function () {
       installerStep7Controller.loadStep();
-      expect(App.config.mergePreDefinedWithStored.calledOnce).to.equal(true);
-      expect(App.config.addAdvancedConfigs.calledOnce).to.equal(true);
+      expect(App.config.mergePreDefinedWithStack.calledOnce).to.equal(true);
     });
     it('should call setInstalledServiceConfigs for addServiceController', function () {
       installerStep7Controller.set('wizardController.name', 'addServiceController');

@@ -89,11 +89,11 @@ App.showSelectGroupsPopup = function (selectedServiceName, selectedConfigGroup, 
                   selectedGroupOverride.set('recommendedValue', recommendedValue);
                   selectedGroupOverride.set('value', recommendedValue);
                 } else {
-                  App.get('router.mainServiceInfoConfigsController').addOverrideProperty(cp, configGroup, recommendedValue);
+                  App.config.createOverride(cp, {"value": recommendedValue, "recommendedValue": recommendedValue,"isEditable": true}, configGroup);
                 }
               }
             } else {
-              App.get('router.mainServiceInfoConfigsController').addOverrideProperty(cp, configGroup, recommendedValue);
+              App.config.createOverride(cp, {"value": recommendedValue, "recommendedValue": recommendedValue,"isEditable": true}, configGroup);
             }
           }, this)
         }

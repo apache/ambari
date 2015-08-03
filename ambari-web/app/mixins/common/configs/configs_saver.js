@@ -555,6 +555,8 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       return property.get('value').toString();
     }
     switch (name) {
+      case 'kdc_type':
+        return App.router.get('mainAdminKerberosController.kdcTypesValues')[property.get('value')];
       case 'storm.zookeeper.servers':
       case 'nimbus.seeds':
         if (Em.isArray(value)) {

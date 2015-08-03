@@ -41,7 +41,13 @@ var excludedConfigs = [
   'xa_ldap_ad_domain',
   'xa_ldap_ad_url',
   'policymgr_http_enabled',
-  'policymgr_external_url'
+  'policymgr_external_url',
+  'hbase.regionserver.global.memstore.lowerLimit',
+  'hbase.regionserver.global.memstore.upperLimit',
+  "port",
+  "hive.metastore.heapsize",
+  "hive.client.heapsize",
+  "SQL_COMMAND_INVOKER"
 ];
 
 var hdp23properties = hdp22properties.filter(function (item) {

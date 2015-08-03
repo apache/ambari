@@ -72,6 +72,10 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
   },
 
 
+  isConfigsLoaded: function () {
+    return this.get('wizardController.stackConfigsLoaded');
+  }.property('wizardController.stackConfigsLoaded'),
+
   /**
    * On load function
    * @method loadStep
@@ -82,18 +86,12 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
       return;
     }
     this.clearStep();
-    //STEP 1: Load advanced configs
-    var advancedConfigs = this.get('content.advancedServiceConfig');
     //STEP 2: Load on-site configs by service from local DB
     var storedConfigs = this.get('content.serviceConfigProperties');
     //STEP 3: Merge pre-defined configs with loaded on-site configs
-    this.set('configs', App.config.mergePreDefinedWithStored(
-      storedConfigs,
-      advancedConfigs,
-      this.get('selectedServiceNames')));
+    this.set('configs', App.config.mergePreDefinedWithStack(this.get('selectedServiceNames')));
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
-    //STEP 4: Add advanced configs
-    App.config.addAdvancedConfigs(this.get('configs'), advancedConfigs);
+
     this.filterConfigs(this.get('configs'));
     this.applyServicesConfigs(this.get('configs'), storedConfigs);
   },

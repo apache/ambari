@@ -640,6 +640,11 @@ var urls = {
 
   /*************************STACK CONFIGS**************************************/
 
+  'configs.stack_configs.load.cluster_configs': {
+    'real': '{stackVersionUrl}?fields=configurations/*,Versions/config_types/*',
+    'mock': '/data/stacks/HDP-2.2/configurations.json'
+  },
+
   'configs.stack_configs.load.all': {
     'real': '{stackVersionUrl}/services?fields=configurations/*,StackServices/config_types/*',
     'mock': '/data/stacks/HDP-2.2/configurations.json'

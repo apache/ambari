@@ -45,21 +45,6 @@ describe('App.config', function () {
     });
   };
 
-  var setupContentForMergeWithStored = function(context) {
-    loadServiceModelsData(context.installedServiceNames);
-    loadAllServicesConfigs(context);
-    setups.setupStackVersion(this, 'HDP-2.1');
-    context.result = App.config.mergePreDefinedWithStored(context.storedConfigs, modelSetup.setupAdvancedConfigsObject(), context.installedServiceNames);
-  };
-
-  var removeServiceModelData = function(serviceIds) {
-    serviceIds.forEach(function(serviceId) {
-      var record = App.Service.find(serviceId);
-      record.deleteRecord();
-      record.get('stateManager').transitionTo('loading');
-    });
-  };
-
   describe('#handleSpecialProperties', function () {
     var config = {};
     it('value should be transformed to "1024" from "1024m"', function () {
@@ -223,40 +208,6 @@ describe('App.config', function () {
     });
   });
 
-  describe('#addAvancedConfigs()', function() {
-    beforeEach(function() {
-      this.storedConfigs = modelSetup.setupStoredConfigsObject();
-    });
-
-    it('`custom.zoo.cfg` absent in stored configs', function() {
-      expect(this.storedConfigs.findProperty('name', 'custom.zoo.cfg')).to.be.undefined;
-    });
-
-    it('`custom.zoo.cfg.` from advanced configs should be added to stored configs', function() {
-      App.config.addAdvancedConfigs(this.storedConfigs, modelSetup.setupAdvancedConfigsObject(), 'ZOOKEEPER');
-      var property = this.storedConfigs.findProperty('name', 'custom.zoo.cfg');
-      expect(property).to.be.ok;
-      expect(property.category).to.eql('Advanced zoo.cfg');
-    });
-
-    it('`capacity-scheduler.xml` property with name `content` should have `displayType` `multiLine`', function() {
-      App.config.addAdvancedConfigs(this.storedConfigs, modelSetup.setupAdvancedConfigsObject(), 'YARN');
-      expect(this.storedConfigs.filterProperty('filename', 'capacity-scheduler.xml').findProperty('name','content').displayType).to.eql('multiLine');
-    });
-
-    it('storing different configs with the same name', function () {
-      App.config.addAdvancedConfigs(this.storedConfigs, modelSetup.setupAdvancedConfigsObject(), 'HBASE');
-      var properties = this.storedConfigs.filterProperty('name', 'hbase_log_dir');
-      var hbaseProperty = properties.findProperty('filename', 'hbase-env.xml');
-      var amsProperty = properties.findProperty('filename', 'ams-hbase-env.xml');
-      expect(properties).to.have.length(2);
-      expect(hbaseProperty.serviceName).to.equal('HBASE');
-      expect(hbaseProperty.value).to.equal('/hadoop/hbase');
-      expect(amsProperty.serviceName).to.equal('AMBARI_METRICS');
-      expect(amsProperty.value).to.equal('/hadoop/ams-hbase');
-    });
-  });
-
   describe('#trimProperty',function() {
     var testMessage = 'displayType `{0}`, value `{1}`{3} should return `{2}`';
     var tests = [
@@ -389,6 +340,7 @@ describe('App.config', function () {
     });
 
     it('bigtop should use New PostgreSQL Database as its default hive metastore database', function () {
+      App.StackService.createRecord({serviceName: 'HIVE'});
       expect(App.config.get('preDefinedSiteProperties').findProperty('recommendedValue', 'New PostgreSQL Database')).to.be.ok;
     });
 
@@ -409,6 +361,7 @@ describe('App.config', function () {
     });
 
     it('HDP2 should use New MySQL Database as its default hive metastore database', function () {
+      App.StackService.createRecord({serviceName: 'HIVE'});
       expect(App.config.get('preDefinedSiteProperties').findProperty('recommendedValue', 'New MySQL Database')).to.be.ok;
     });
 
@@ -522,185 +475,6 @@ describe('App.config', function () {
 
   });
 
-  describe('#createAdvancedPropertyObject', function() {
-    var tests = [
-      {
-        name: 'proxyuser_group',
-        cases: [
-          {
-            key: 'displayType',
-            e: 'user'
-          },
-          {
-            key: 'serviceName',
-            e: 'MISC'
-          },
-          {
-            key: 'belongsToService',
-            e: ['HIVE', 'OOZIE', 'FALCON']
-          }
-        ]
-      },
-      {
-        name: 'oozie.service.JPAService.jdbc.password',
-        cases: [
-          {
-            key: 'displayType',
-            e: 'password'
-          },
-          {
-            key: 'isVisible',
-            e: true
-          }
-        ]
-      },
-      {
-        name: 'ignore_groupsusers_create',
-        cases: [
-          {
-            key: 'isVisible',
-            e: false
-          }
-        ]
-      },
-      {
-        name: 'user_group',
-        cases: [
-          {
-            key: 'isVisible',
-            e: true
-          },
-          {
-            key: 'index',
-            e: 30
-          },
-          {
-            key: 'displayName',
-            e: 'Hadoop Group'
-          }
-        ]
-      },
-      {
-        name: 'zk_user',
-        cases: [
-          {
-            key: 'displayName',
-            e: 'ZooKeeper User'
-          }
-        ]
-      },
-      {
-        name: 'mapred_user',
-        cases: [
-          {
-            key: 'displayName',
-            e: 'MapReduce User'
-          }
-        ]
-      },
-      {
-        name: 'smokeuser',
-        cases: [
-          {
-            key: 'displayName',
-            e: 'Smoke Test User'
-          }
-        ]
-      }
-    ];
-
-    var properties = [];
-    modelSetup.advancedConfigs.items.forEach(function(item) {
-      properties.push(App.config.createAdvancedPropertyObject(item.StackConfigurations));
-    });
-    App.config.loadClusterConfigSuccess(modelSetup.advancedClusterConfigs, {url: '/cluster/configurations'}, {callback: function (items) {properties = properties.concat(items)}});
-
-    beforeEach(function () {
-      sinon.stub(App, 'get').withArgs('isHadoopWindowsStack').returns(false);
-    });
-
-    afterEach(function () {
-      App.get.restore();
-    });
-
-    tests.forEach(function(test) {
-      test.cases.forEach(function(testCase) {
-        it('config property `{0}` `{1}` key should be`{2}`'.format(test.name, testCase.key, testCase.e), function() {
-          var property = properties.findProperty('name', test.name);
-          expect(Em.get(property, testCase.key)).to.eql(testCase.e);
-        });
-      });
-    });
-  });
-
-  describe('#mergePreDefinedWithLoaded', function() {
-    var result;
-
-    before(function() {
-      sinon.stub(App.config, 'parseValue', function(value) {return value});
-      sinon.stub(App.config, 'getConfigTypesInfoFromService').returns({
-        supportsFinal: ['hdfs-site']
-      });
-      setups.setupStackVersion(this, 'HDP-2.2');
-      loadServiceModelsData(['HDFS', 'STORM']);
-      App.config.loadAdvancedConfigSuccess(modelSetup.advancedConfigs, { url: '/serviceName/configurations'}, {
-        callback: function(advancedConfigs) {
-          App.config.loadClusterConfigSuccess(modelSetup.advancedClusterConfigs, { url: '/cluster/configurations'}, {
-            callback: function(clusterConfigs) {
-              var configCategories = modelSetup.setupConfigGroupsObject();
-              var tags = [
-                {newTagName: null, tagName: 'version1', siteName: 'hadoop-env'},
-                {newTagName: null, tagName: 'version1', siteName: 'hdfs-site'},
-                {newTagName: null, tagName: 'version1', siteName: 'cluster-env'},
-                {newTagName: null, tagName: 'version1', siteName: 'storm-env'}
-              ];
-              var serviceName = 'STORM';
-              result = App.config.mergePreDefinedWithLoaded(configCategories, advancedConfigs.concat(clusterConfigs), tags, serviceName);
-            }
-          });
-        }
-      });
-    });
-
-    after(function() {
-      App.config.parseValue.restore();
-      App.config.getConfigTypesInfoFromService.restore();
-      setups.restoreStackVersion(this);
-      removeServiceModelData(['HDFS', 'STORM']);
-    });
-    
-    var propertyTests = [
-      {
-        name: 'hdfs_user',
-        cases: [
-          {
-            key: 'displayType',
-            e: 'user'
-          },
-          {
-            key: 'isVisible',
-            e: true
-          },
-          {
-            key: 'serviceName',
-            e: 'MISC'
-          },
-          {
-            key: 'category',
-            e: 'Users and Groups'
-          }
-        ]
-      }
-    ];
-    propertyTests.forEach(function(test) {
-      test.cases.forEach(function(testCase) {
-        it('config property `{0}` `{1}` key should be`{2}`'.format(test.name, testCase.key, testCase.e), function() {
-          var property = result.configs.findProperty('name', test.name);
-          expect(Em.get(property, testCase.key)).to.equal(testCase.e);
-        });
-      });
-    });
-  });
 
   describe('#replaceConfigValues', function () {
 
@@ -881,204 +655,6 @@ describe('App.config', function () {
         Em.keys(item.output).forEach(function (key) {
           expect(propertyData[key]).to.eql(item.output[key]);
         });
-      });
-    });
-
-  });
-
-  describe('#addUserProperty', function () {
-
-    var cases = [
-        {
-          stored: {
-            id: 0,
-            name: 'prop_name0',
-            serviceName: 's0',
-            value: 'v0',
-            savedValue: 'dv0',
-            filename: 'fn0.xml',
-            overrides: null,
-            isVisible: false,
-            isFinal: true,
-            savedIsFinal: false,
-            supportsFinal: true,
-            category: 'c0'
-          },
-          expected: {
-            id: 0,
-            name: 'prop_name0',
-            displayName: 'Prop Name0',
-            serviceName: 's0',
-            value: 'v0',
-            savedValue: 'dv0',
-            displayType: 'advanced',
-            filename: 'fn0.xml',
-            isUserProperty: false,
-            hasInitialValue: false,
-            isOverridable: true,
-            overrides: null,
-            isRequired: false,
-            isVisible: false,
-            isFinal: true,
-            savedIsFinal: false,
-            supportsFinal: true,
-            showLabel: true,
-            category: 'c0'
-          },
-          title: 'default case'
-        },
-        {
-          stored: {
-            name: 'n1',
-            value: 'multi\nline',
-            filename: 'fn1.xml',
-            isUserProperty: true,
-            hasInitialValue: true,
-            showLabel: false
-          },
-          expected: {
-            displayType: 'multiLine',
-            isUserProperty: true,
-            hasInitialValue: true,
-            showLabel: false
-          },
-          title: 'multiline user property with initial value, label not to be shown'
-        },
-        {
-          stored: {
-            name: 'n2',
-            filename: 'fn2.xml'
-          },
-          expected: {
-            isUserProperty: false,
-            showLabel: true
-          },
-          title: 'isUserProperty and showLabel not set'
-        },
-        {
-          stored: {
-            name: 'ignore_groupsusers_create',
-            category: 'Users and Groups',
-            filename: 'fn3.xml'
-          },
-          expected: {
-            displayName: 'dn0',
-            displayType: 'checkbox',
-            index: 0
-          }
-        },
-        {
-          stored: {
-            name: 'smokeuser',
-            category: 'Users and Groups',
-            filename: 'fn4.xml'
-          },
-          expected: {
-            displayName: 'dn1',
-            index: 1
-          }
-        },
-        {
-          stored: {
-            name: 'user_group',
-            category: 'Users and Groups',
-            filename: 'fn5.xml'
-          },
-          expected: {
-            displayName: 'dn1',
-            index: 2
-          }
-        },
-        {
-          stored: {
-            name: 'mapred_user',
-            category: 'Users and Groups',
-            filename: 'fn6.xml'
-          },
-          expected: {
-            displayName: 'dn1',
-            index: 3
-          }
-        },
-        {
-          stored: {
-            name: 'zk_user',
-            category: 'Users and Groups',
-            filename: 'fn7.xml'
-          },
-          expected: {
-            displayName: 'dn1',
-            index: 4
-          }
-        }
-      ],
-      advancedConfigs = [
-        {
-          name: 'ignore_groupsusers_create',
-          displayName: 'dn0',
-          displayType: 'checkbox',
-          index: 0
-        },
-        {
-          name: 'smokeuser',
-          displayName: 'dn1',
-          index: 1
-        },
-        {
-          name: 'user_group',
-          displayName: 'dn1',
-          index: 2
-        },
-        {
-          name: 'mapred_user',
-          displayName: 'dn1',
-          index: 3
-        },
-        {
-          name: 'zk_user',
-          displayName: 'dn1',
-          index: 4
-        }
-      ];
-
-    cases.forEach(function (item) {
-      it(item.title || item.stored.name, function () {
-        var configData = App.config.addUserProperty(item.stored, true, advancedConfigs);
-        Em.keys(item.expected).forEach(function (key) {
-          expect(configData[key]).to.equal(item.expected[key]);
-        });
-      });
-    });
-
-  });
-
-  describe('#getOriginalConfigAttribute', function () {
-
-    var stored = {
-        name: 'p',
-        displayName: 'dn'
-      },
-      cases = [
-        {
-          advancedConfigs: [
-            {
-              name: 'p',
-              displayName: 'dn0'
-            }
-          ],
-          expected: 'dn0',
-          title: 'should take attribute from advancedConfigs'
-        },
-        {
-          advancedConfigs: [],
-          expected: 'dn',
-          title: 'property is absent in advancedConfigs'
-        }
-      ];
-
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        expect(App.config.getOriginalConfigAttribute(stored, 'displayName', item.advancedConfigs)).to.equal(item.expected);
       });
     });
 
@@ -1363,6 +939,441 @@ describe('App.config', function () {
         expect(result).to.be.eql(test.e);
         expect(test.siteConfigs[test.propertyName]).to.be.eql(test.e);
       });
+    });
+  });
+
+  describe("#createOverride", function() {
+    var template = {
+      name: "p1",
+      filename: "f1",
+      value: "v1",
+      recommendedValue: "rv1",
+      savedValue: "sv1",
+      isFinal: true,
+      recommendedIsFinal: false,
+      savedIsFinal: true
+    };
+
+    var configProperty = App.ServiceConfigProperty.create(template);
+
+    var group = App.ConfigGroup.create({name: "group1"});
+
+    it('creates override with save properties as original config', function() {
+      var override = App.config.createOverride(configProperty, {}, group);
+      for (var key in template) {
+        expect(override.get(key)).to.eql(template[key]);
+      }
+    });
+
+    it('overrides some values that should be different for override', function() {
+      var override = App.config.createOverride(configProperty, {}, group);
+      expect(override.get('isOriginalSCP')).to.be.false;
+      expect(override.get('overrides')).to.be.null;
+      expect(override.get('group')).to.eql(group);
+      expect(override.get('parentSCP')).to.eql(configProperty);
+    });
+
+    it('overrides some specific values', function() {
+      var overridenTemplate = {
+        value: "v2",
+        recommendedValue: "rv2",
+        savedValue: "sv2",
+        isFinal: true,
+        recommendedIsFinal: false,
+        savedIsFinal: true
+      };
+
+      var override = App.config.createOverride(configProperty, overridenTemplate, group);
+      for (var key in overridenTemplate) {
+        expect(override.get(key)).to.eql(overridenTemplate[key]);
+      }
+    });
+
+    it('throws error due to undefined configGroup', function() {
+      expect(App.config.createOverride.bind(App.config, configProperty, {}, null)).to.throw(Error, 'configGroup can\' be null');
+    });
+
+    it('throws error due to undefined originalSCP', function() {
+      expect(App.config.createOverride.bind(App.config, null, {}, group)).to.throw(Error, 'serviceConfigProperty can\' be null');
+    });
+
+    it('updates originalSCP object ', function() {
+      configProperty.set('overrides', null);
+      configProperty.set('overrideValues', []);
+      configProperty.set('overrideIsFinalValues', []);
+
+      var overridenTemplate2 = {
+        value: "v12",
+        recommendedValue: "rv12",
+        savedValue: "sv12",
+        isFinal: true,
+        recommendedIsFinal: false,
+        savedIsFinal: false
+      };
+
+      var override = App.config.createOverride(configProperty, overridenTemplate2, group);
+
+      expect(configProperty.get('overrides')[0]).to.be.eql(override);
+      expect(configProperty.get('overrideValues')).to.be.eql([overridenTemplate2.value]);
+      expect(configProperty.get('overrideIsFinalValues')).to.be.eql([overridenTemplate2.isFinal]);
+    });
+  });
+
+  describe('#getIsEditable', function() {
+    [{
+        isDefaultGroup: true,
+        isReconfigurable: true,
+        canEdit: true,
+        res: true,
+        m: "isEditable is true"
+      },
+      {
+        isDefaultGroup: false,
+        isReconfigurable: true,
+        canEdit: true,
+        res: false,
+        m: "isEditable is false; config group is not default"
+      },
+      {
+        isDefaultGroup: true,
+        isReconfigurable: false,
+        canEdit: true,
+        res: false,
+        m: "isEditable is true; config is not reconfigurable"
+      },
+      {
+        isDefaultGroup: true,
+        isReconfigurable: true,
+        canEdit: false,
+        res: false,
+        m: "isEditable is true; edition restricted by controller state"
+    }].forEach(function(t) {
+        it(t.m, function() {
+          var configProperty = Ember.Object.create({isReconfigurable: t.isReconfigurable});
+          var configGroup = Ember.Object.create({isDefault: t.isDefaultGroup});
+          var isEditable = App.config.getIsEditable(configProperty, configGroup, t.canEdit);
+          expect(isEditable).to.equal(t.res);
+        })
+      });
+  });
+
+  describe('#getIsSecure', function() {
+    var secureConfigs = App.config.get('secureConfigs');
+    before(function() {
+      App.config.set('secureConfigs', [{name: 'secureConfig'}]);
+    });
+    after(function() {
+      App.config.set('secureConfigs', secureConfigs);
+    });
+
+    it('config is secure', function() {
+      expect(App.config.getIsSecure('secureConfig')).to.equal(true);
+    });
+    it('config is not secure', function() {
+      expect(App.config.getIsSecure('NotSecureConfig')).to.equal(false);
+    });
+  });
+
+  describe('#getDefaultCategory', function() {
+    it('returns custom category', function() {
+      expect(App.config.getDefaultCategory(null, 'filename.xml')).to.equal('Custom filename');
+    });
+    it('returns advanced category', function() {
+      expect(App.config.getDefaultCategory(Em.Object.create, 'filename.xml')).to.equal('Advanced filename');
+    });
+  });
+
+  describe('#getDefaultDisplayType', function() {
+    it('returns content displayType', function() {
+      sinon.stub(App.config, 'isContentProperty', function () {return true});
+      expect(App.config.getDefaultDisplayType('content','f1','anything')).to.equal('content');
+      App.config.isContentProperty.restore();
+    });
+    it('returns singleLine displayType', function() {
+      sinon.stub(App.config, 'isContentProperty', function () {return false});
+      expect(App.config.getDefaultDisplayType('n1','f1','v1')).to.equal('advanced');
+      App.config.isContentProperty.restore();
+    });
+    it('returns multiLine displayType', function() {
+      sinon.stub(App.config, 'isContentProperty', function () {return false});
+      expect(App.config.getDefaultDisplayType('n2', 'f2', 'v1\nv2')).to.equal('multiLine');
+      App.config.isContentProperty.restore();
+    });
+  });
+
+  describe('#getDefaultDisplayName', function() {
+    beforeEach(function() {
+      sinon.stub(App.config, 'getConfigTagFromFileName', function(fName) {return fName} );
+    });
+    afterEach(function() {
+      App.config.getConfigTagFromFileName.restore();
+    });
+
+    it('returns name', function() {
+      sinon.stub(App.config, 'isContentProperty', function() {return false} );
+      expect(App.config.getDefaultDisplayName('name')).to.equal('name');
+      App.config.isContentProperty.restore();
+    });
+    it('returns name for env content', function() {
+      sinon.stub(App.config, 'isContentProperty', function() {return true} );
+      expect(App.config.getDefaultDisplayName('name', 'fileName')).to.equal('fileName template');
+      App.config.isContentProperty.restore();
+    });
+  });
+
+  describe('#isContentProperty', function() {
+    beforeEach(function() {
+      sinon.stub(App.config, 'getConfigTagFromFileName', function(fName) {return fName} );
+    });
+    afterEach(function() {
+      App.config.getConfigTagFromFileName.restore();
+    });
+    var tests = [
+      {
+        name: 'content',
+        fileName: 'something-env',
+        tagEnds: null,
+        res: true,
+        m: 'returns true as it\'s content property'
+      },
+      {
+        name: 'content',
+        fileName: 'something-any-end',
+        tagEnds: ['-any-end'],
+        res: true,
+        m: 'returns true as it\'s content property with specific fileName ending'
+      },
+      {
+        name: 'notContent',
+        fileName: 'something-env',
+        tagEnds: ['-env'],
+        res: false,
+        m: 'returns false as name is not content'
+      },
+      {
+        name: 'content',
+        fileName: 'something-env1',
+        tagEnds: ['-env'],
+        res: false,
+        m: 'returns false as fileName is not correct'
+      }
+    ].forEach(function(t) {
+        it(t.m, function() {
+          expect(App.config.isContentProperty(t.name, t.fileName, t.tagEnds)).to.equal(t.res);
+        });
+      });
+  });
+
+  describe('#formatValue', function() {
+    it('formatValue for masterHosts', function () {
+      var serviceConfigProperty = Em.Object.create({'displayType': 'masterHosts', value: "['h1','h2']"});
+      expect(App.config.formatPropertyValue(serviceConfigProperty)).to.eql(['h1','h2']);
+    });
+
+    it('formatValue for int', function () {
+      var serviceConfigProperty = Em.Object.create({'displayType': 'int', value: '4.0'});
+      expect(App.config.formatPropertyValue(serviceConfigProperty)).to.equal('4');
+    });
+
+    it('formatValue for int with m', function () {
+      var serviceConfigProperty = Em.Object.create({'displayType': 'int', value: '4m'});
+      expect(App.config.formatPropertyValue(serviceConfigProperty)).to.equal('4');
+    });
+
+    it('formatValue for float', function () {
+      var serviceConfigProperty = Em.Object.create({'displayType': 'float', value: '0.40'});
+      expect(App.config.formatPropertyValue(serviceConfigProperty)).to.equal('0.4');
+    });
+
+    it('formatValue for kdc_type', function () {
+      var serviceConfigProperty = Em.Object.create({'name': 'kdc_type', value: 'mit-kdc'});
+      expect(App.config.formatPropertyValue(serviceConfigProperty)).to.equal(Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'));
+    });
+
+    it('don\'t format value', function () {
+      var serviceConfigProperty = Em.Object.create({'name': 'any', displayType: 'any', value: 'any'});
+      expect(App.config.formatPropertyValue(serviceConfigProperty)).to.equal('any');
+    });
+  });
+
+  describe('#getPropertyIfExists', function() {
+    [
+      {
+        propertyName: 'someProperty',
+        defaultValue: 'default',
+        firstObject: { someProperty: '1' },
+        secondObject: { someProperty: '2' },
+        res: '1',
+        m: 'use value from first object'
+      },
+      {
+        propertyName: 'someProperty',
+        defaultValue: 'default',
+        firstObject: { someOtherProperty: '1' },
+        secondObject: { someProperty: '2' },
+        res: '2',
+        m: 'use value from second object'
+      },
+      {
+        propertyName: 'someProperty',
+        defaultValue: 'default',
+        firstObject: { someOtherProperty: '1' },
+        secondObject: { someOtherProperty: '2' },
+        res: 'default',
+        m: 'use default value'
+      },
+      {
+        propertyName: 'someProperty',
+        defaultValue: 'default',
+        res: 'default',
+        m: 'use default value'
+      },
+      {
+        propertyName: 'someProperty',
+        defaultValue: true,
+        firstObject: { someProperty: false },
+        secondObject: { someProperty: true },
+        res: false,
+        m: 'use value from first object, check booleans'
+      },
+      {
+        propertyName: 'someProperty',
+        defaultValue: true,
+        firstObject: { someProperty: 0 },
+        secondObject: { someProperty: 1 },
+        res: 0,
+        m: 'use value from first object, check 0'
+      },
+      {
+        propertyName: 'someProperty',
+        defaultValue: true,
+        firstObject: { someProperty: '' },
+        secondObject: { someProperty: '1' },
+        res: '',
+        m: 'use value from first object, check empty string'
+      }
+    ].forEach(function (t) {
+        it(t.m, function () {
+          expect(App.config.getPropertyIfExists(t.propertyName, t.defaultValue, t.firstObject, t.secondObject)).to.equal(t.res);
+        })
+      });
+  });
+
+  describe('#createDefaultConfig', function() {
+    before(function () {
+      sinon.stub(App.config, 'getDefaultDisplayName', function () {
+        return 'pDisplayName';
+      });
+      sinon.stub(App.config, 'getDefaultDisplayType', function () {
+        return 'pDisplayType';
+      });
+      sinon.stub(App.config, 'getDefaultCategory', function () {
+        return 'pCategory';
+      });
+      sinon.stub(App.config, 'getIsSecure', function () {
+        return false;
+      });
+      sinon.stub(App.config, 'getDefaultIsShowLabel', function () {
+        return true;
+      });
+    });
+
+    after(function () {
+      App.config.getDefaultDisplayName.restore();
+      App.config.getDefaultDisplayType.restore();
+      App.config.getDefaultCategory.restore();
+      App.config.getIsSecure.restore();
+      App.config.getDefaultIsShowLabel.restore();
+    });
+
+    var res = {
+      /** core properties **/
+      name: 'pName',
+      filename: 'pFileName',
+      value: '',
+      savedValue: null,
+      isFinal: false,
+      savedIsFinal: null,
+      /** UI and Stack properties **/
+      recommendedValue: null,
+      recommendedIsFinal: null,
+      supportsFinal: false,
+      serviceName: 'MISC',
+      defaultDirectory: '',
+      displayName: 'pDisplayName',
+      displayType: 'pDisplayType',
+      description: null,
+      category: 'pCategory',
+      isSecureConfig: false,
+      showLabel: true,
+      isVisible: true,
+      isUserProperty: false,
+      isRequired: true,
+      group: null,
+      id: 'site property',
+      isRequiredByAgent: true,
+      isReconfigurable: true,
+      isObserved: false,
+      unit: null,
+      hasInitialValue: false,
+      isOverridable: true,
+      index: null,
+      dependentConfigPattern: null,
+      options: null,
+      radioName: null,
+      belongsToService: []
+    };
+    it('create default config object', function () {
+      expect(App.config.createDefaultConfig('pName', 'pFileName', true)).to.eql(res);
+    });
+    it('runs proper methods', function () {
+      expect(App.config.getDefaultDisplayName.calledWith('pName', 'pFileName')).to.be.true;
+      expect(App.config.getDefaultDisplayType.calledWith('pName', 'pFileName', '')).to.be.true;
+      expect(App.config.getDefaultCategory.calledWith(true, 'pFileName')).to.be.true;
+      expect(App.config.getIsSecure.calledWith('pName')).to.be.true;
+      expect(App.config.getDefaultIsShowLabel.calledWith('pName', 'pFileName')).to.be.true;
+    });
+  });
+
+  describe('#mergeStackConfigsWithUI', function() {
+    beforeEach(function() {
+      sinon.stub(App.config, 'getPropertyIfExists', function(key, value) {return 'res_' + value});
+    });
+
+    afterEach(function() {
+      App.config.getPropertyIfExists.restore();
+    });
+
+    var template = {
+      name: 'pName',
+      filename: 'pFileName',
+      value: 'pValue',
+      savedValue: 'pValue',
+      isFinal: true,
+      savedIsFinal: true,
+
+      serviceName: 'pServiceName',
+      displayName: 'pDisplayName',
+      displayType: 'pDisplayType',
+      category: 'pCategory'
+    };
+
+    var result = {
+      name: 'pName',
+      filename: 'pFileName',
+      value: 'pValue',
+      savedValue: 'pValue',
+      isFinal: true,
+      savedIsFinal: true,
+
+      serviceName: 'res_pServiceName',
+      displayName: 'res_pDisplayName',
+      displayType: 'res_pDisplayType',
+      category: 'res_pCategory'
+    };
+
+    it('called generate property object', function () {
+      expect(App.config.mergeStaticProperties(template, {}, {})).to.eql(result);
     });
   });
 

@@ -106,20 +106,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   serviceConfigTags: [],
 
   /**
-   * Are advanced configs loaded
-   * @type {bool}
-   */
-  isAdvancedConfigLoaded: true,
-
-  /**
    * Are applied to service configs loaded
    * @type {bool}
    */
   isAppliedConfigLoaded: true,
 
   isConfigsLoaded: function () {
-    return (this.get('isAdvancedConfigLoaded') && this.get('isAppliedConfigLoaded'));
-  }.property('isAdvancedConfigLoaded', 'isAppliedConfigLoaded'),
+    return (this.get('wizardController.stackConfigsLoaded') && this.get('isAppliedConfigLoaded'));
+  }.property('wizardController.stackConfigsLoaded', 'isAppliedConfigLoaded'),
 
   /**
    * Number of errors in the configs in the selected service
@@ -540,7 +534,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (overrideToAdd) {
       overrideToAdd = componentConfig.get('configs').findProperty('name', overrideToAdd.name);
       if (overrideToAdd) {
-        this.addOverrideProperty(overrideToAdd);
+        var group = this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name'));
+        var newSCP = App.config.createOverride(overrideToAdd, {isEditable: true}, group);
+        group.get('properties').pushObject(newSCP);
         component.set('overrideToAdd', null);
       }
     }
@@ -624,19 +620,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.clearStep();
 
     var self = this;
-    //STEP 1: Load advanced configs
-    var advancedConfigs = this.get('content.advancedServiceConfig');
     //STEP 2: Load on-site configs by service from local DB
     var storedConfigs = this.get('content.serviceConfigProperties');
     //STEP 3: Merge pre-defined configs with loaded on-site configs
-    var configs = App.config.mergePreDefinedWithStored(
-      storedConfigs,
-      advancedConfigs,
-      this.get('selectedServiceNames').concat(this.get('installedServiceNames'))
-    );
+    var configs = (storedConfigs && storedConfigs.length) ? storedConfigs
+      : App.config.mergePreDefinedWithStack(this.get('selectedServiceNames').concat(this.get('installedServiceNames')));
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
-    //STEP 4: Add advanced configs
-    App.config.addAdvancedConfigs(configs, advancedConfigs);
 
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
     if (this.get('wizardController.name') === 'addServiceController') {
@@ -668,51 +657,37 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.activateSpecialConfigs();
     this.selectProperService();
     var self = this;
-    this.loadServerSideConfigsRecommendations().always(function () {
-      // format descriptor configs
-      var serviceConfigPropertiesNames = (self.get('content.serviceConfigProperties') || []).mapProperty('name'),
-       serviceConfigPropertiesFileNames = (self.get('content.serviceConfigProperties') || []).mapProperty('filename'),
-       recommendedToDelete = self.get('_dependentConfigValues').filterProperty('toDelete');
-      recommendedToDelete.forEach(function (c) {
-        var name = Em.get(c, 'propertyName'),
-         filename = Em.get(c, 'fileName');
-        if (serviceConfigPropertiesNames.contains(name) && serviceConfigPropertiesFileNames.contains(filename)) {
-          Em.set(c, 'toDelete', false);
-        }
-      });
-
-      var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
-      if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
-        App.config.removeRangerConfigs(self.get('stepConfigs'));
-      }
-      if (!self.get('content.serviceConfigProperties.length')) {
-        // for Add Service just remove or add dependent properties and ignore config values changes
-        // for installed services only
+    var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
+    if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
+      App.config.removeRangerConfigs(self.get('stepConfigs'));
+    }
+    if (this.get('content.serviceConfigProperties.length') > 0) {
+      this.completeConfigLoading();
+    } else {
+      this.loadServerSideConfigsRecommendations().always(function () {
         if (self.get('wizardController.name') == 'addServiceController') {
+          // for Add Service just remove or add dependent properties and ignore config values changes
+          // for installed services only
           self.addRemoveDependentConfigs(self.get('installedServiceNames'));
           self.clearDependenciesForInstalledServices(self.get('installedServiceNames'), self.get('stepConfigs'));
         }
         // * add dependencies based on recommendations
         // * update config values with recommended
-        // * remove properties recieved from recommendations
+        // * remove properties received from recommendations
         self.updateDependentConfigs();
-      } else {
-        // control flow for managing dependencies for stored configs,
-        // * Don't update values with recommended to save user's input
-        // * add dependencies based on user's input for parent configs
-        // * remove dependencies based on user's input for parent configs
-        self.addRemoveDependentConfigs();
-      }
-      self.restoreRecommendedConfigs();
-      self.clearDependentConfigsByService(App.StackService.find().filterProperty('isSelected').mapProperty('serviceName'));
-      self.set('isRecommendedLoaded', true);
-      if (self.get('content.skipConfigStep')) {
-        App.router.send('next');
-      }
-      self.set('hash', self.getHash());
-    });
+        self.completeConfigLoading();
+      });
+    }
   },
 
+  completeConfigLoading: function() {
+    this.clearDependentConfigsByService(App.StackService.find().filterProperty('isSelected').mapProperty('serviceName'));
+    this.set('isRecommendedLoaded', true);
+    if (this.get('content.skipConfigStep')) {
+      App.router.send('next');
+    }
+    this.set('hash', this.getHash());
+  },
   /**
    * After user navigates back to step7, values for depended configs should be set to values set by user and not to default values
    * @method restoreRecommendedConfigs
@@ -1178,41 +1153,17 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       configOverrides = overrides.filterProperty('name', config.get('name'));
     if (!selectedGroup) return config;
     if (overrideToAdd && overrideToAdd.get('name') === config.get('name')) {
-      configOverrides.push(this.addOverrideProperty(config));
+      var valueForOverride = (config.get('widget') || config.get('displayType') == 'checkbox') ? config.get('value') : '';
+      var group = this.get('selectedService.configGroups').findProperty('name', selectedGroup.get('name'));
+      var newSCP = App.config.createOverride(config, {value: valueForOverride, recommendedValue: valueForOverride}, group);
+      configOverrides.push(newSCP);
+      group.get('properties').pushObject(newSCP);
       this.set('overrideToAdd', null);
     }
     configOverrides.setEach('isEditable', !selectedGroup.get('isDefault'));
     configOverrides.setEach('parentSCP', config);
     config.set('overrides', configOverrides);
     return config;
-  },
-
-  /**
-   * create overriden property and push it into Config group
-   * @param serviceConfigProperty
-   * @param group
-   * @param value
-   * @param isNotSaved
-   * @param {App.ServiceConfigProperty} serviceConfigProperty
-   * @return {App.ServiceConfigProperty}
-   * @method addOverrideProperty
-   */
-  addOverrideProperty: function (serviceConfigProperty, group, value, isNotSaved) {
-    var overrides = serviceConfigProperty.get('overrides') || [];
-    var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
-    group = group || this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name'));
-    var valueForOverride = (serviceConfigProperty.get('widget') || serviceConfigProperty.get('displayType') == 'checkbox') ? serviceConfigProperty.get('value') : '';
-    newSCP.set('group', group);
-    newSCP.set('value', value || valueForOverride);
-    newSCP.set('recommendedValue', value || valueForOverride);
-    newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
-    newSCP.set('parentSCP', serviceConfigProperty);
-    newSCP.set('isEditable', true);
-    newSCP.set('isNotSaved', isNotSaved);
-    group.get('properties').pushObject(newSCP);
-    overrides.pushObject(newSCP);
-    newSCP.validate();
-    return newSCP;
   },
 
   /**

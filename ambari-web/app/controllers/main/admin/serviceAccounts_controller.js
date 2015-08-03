@@ -45,9 +45,7 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
   },
   loadServiceTagSuccess: function (data, opt, params) {
     var self = this;
-    var installedServices = App.Service.find().mapProperty("serviceName");
     var serviceConfigsDef = params.serviceConfigsDef;
-    var serviceName = this.get('selectedService');
     var loadedClusterSiteToTagMap = {};
 
     for (var site in Em.get(data, 'Clusters.desired_configs')) {
@@ -58,15 +56,7 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
     this.setServiceConfigTags(loadedClusterSiteToTagMap);
     // load server stored configurations
     App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (serverConfigs) {
-      // load configurations list for installed services
-      App.config.loadAdvancedConfigPartial(installedServices, {
-        queryFilter: 'configurations/StackConfigurations/property_type.matches(.*[USER,GROUP].*)'
-      }, function(advancedConfigs) {
-        // load cluster configs
-        App.config.loadClusterConfig(function(clusterConfigs) {
-          self.createConfigObject(serverConfigs, advancedConfigs.concat(clusterConfigs));
-        });
-      });
+      self.createConfigObject(serverConfigs);
     });
   },
 
@@ -111,11 +101,10 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
    * Generate configuration object that will be rendered
    *
    * @param {Object[]} serverConfigs
-   * @param {Object[]} advancedConfigs
    */
-  createConfigObject: function(serverConfigs, advancedConfigs) {
-    var configSet = App.config.mergePreDefinedWithLoaded(serverConfigs, advancedConfigs, this.get('serviceConfigTags'), this.get('selectedService'));
-    var miscConfigs = configSet.configs.filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).rejectProperty('displayType', 'password').rejectProperty('displayType', 'checkbox');
+  createConfigObject: function(serverConfigs) {
+    var configs = App.config.mergePredefinedWithSaved(serverConfigs, this.get('selectedService'));
+    var miscConfigs = configs.filterProperty('displayType', 'user').filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);
 
     miscConfigs = App.config.miscConfigVisibleProperty(miscConfigs, App.Service.find().mapProperty('serviceName').concat('MISC'));
 

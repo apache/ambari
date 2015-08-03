@@ -86,7 +86,7 @@ App.StackConfigProperty = DS.Model.extend({
    * service name
    * @property {string}
    */
-  serviceName:  DS.attr('string'),
+  serviceName:  DS.attr('string', {defaultValue: 'MISC'}),
 
   /**
    * stack name
@@ -182,7 +182,12 @@ App.StackConfigProperty = DS.Model.extend({
    * config property isFinal value same as recommendedIsFinal
    * @property {boolean}
    */
-  isFinal: DS.attr('boolean', {defaultValue: false})
+  isFinal: DS.attr('boolean', {defaultValue: false}),
+
+  /**
+   * @type {boolean}
+   */
+  index: DS.attr('number', {defaultValue: null})
 });
 
 
