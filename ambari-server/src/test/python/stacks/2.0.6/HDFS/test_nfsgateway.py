@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import os
+import json
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, patch
 
@@ -380,3 +381,25 @@ class TestNFSGateway(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
+    self.assertNoMoreResources()
+
+  @patch("resource_management.core.shell.call")
+  def test_pre_rolling_restart(self, call_mock):
+    call_mock.side_effects = [(0, None), (0, None)]
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.3.1.0-3242'
+    json_content['commandParams']['version'] = version
+    stack_version = '2.3'
+    json_content['hostLevelParams']['stack_version'] = stack_version
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nfsgateway.py",
+                       classname = "NFSGateway",
+                       command = "pre_rolling_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None), (0, None), (0, None), (0, None)])
+    self.assertResourceCalled('Execute',
+                              ('hdp-select', 'set', 'hadoop-hdfs-nfs3', version), sudo=True,)
+    self.assertNoMoreResources()
