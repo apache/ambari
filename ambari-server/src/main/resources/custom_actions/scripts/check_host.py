@@ -66,31 +66,33 @@ THP_FILE = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
 class CheckHost(Script):
   # Packages that are used to find repos (then repos are used to find other packages)
   PACKAGES = [
-    "hadoop_2_2_*", "hadoop-2-2-.*", "zookeeper_2_2_*", "zookeeper-2-2-.*",
-    "hadoop", "zookeeper", "webhcat", "*-manager-server-db", "*-manager-daemons"
+    "hadoop", "zookeeper", "webhcat", "oozie", "ambari", "*-manager-server-db",
+    "*-manager-daemons", "mahout", "spark", "falcon", "hbase", "kafka", "knox",
+    "slider", "sqoop", "storm", "pig", "flume","hcatalog", "phoenix", "ranger",
+    "accumulo", "hive_*"
   ]
   
 
   # ignore packages from repos whose names start with these strings
   IGNORE_PACKAGES_FROM_REPOS = [
-    "ambari", "installed"
+    "installed"
   ]
   
 
   # ignore required packages
   IGNORE_PACKAGES = [
-    "epel-release"
+    "epel-release", "ambari-server", "ambari-agent"
   ]
   
   # Additional packages to look for (search packages that start with these)
   ADDITIONAL_PACKAGES = [
     "rrdtool", "rrdtool-python", "ganglia", "gmond", "gweb", "libconfuse",
-    "ambari-log4j", "hadoop", "zookeeper", "oozie", "webhcat"
+    "ambari-log4j"
   ]
   
   # ignore repos from the list of repos to be cleaned
   IGNORE_REPOS = [
-    "ambari", "HDP-UTILS"
+    "HDP-UTILS", "AMBARI", "BASE"
   ]
   
   def __init__(self):

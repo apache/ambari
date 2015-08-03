@@ -80,7 +80,7 @@ class HostCheckReportFileHandler:
       with open(self.hostCheckCustomActionsFilePath, 'wb') as configfile:
         config.write(configfile)
     except Exception, err:
-      logger.error("Can't write host check file at %s :%s " % (self.hostCheckFilePath, err.message))
+      logger.error("Can't write host check file at %s :%s " % (self.hostCheckCustomActionsFilePath, err.message))
       traceback.print_exc()
 
   def writeHostCheckFile(self, hostInfo):
@@ -117,6 +117,8 @@ class HostCheckReportFileHandler:
         items = []
         for itemDetail in hostInfo['stackFoldersAndFiles']:
           items.append(itemDetail['name'])
+        if os.path.exists('/usr/hdp'):
+          items.append('/usr/hdp')
         config.add_section('directories')
         config.set('directories', 'dir_list', ','.join(items))
 

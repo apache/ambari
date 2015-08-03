@@ -132,7 +132,7 @@ class HostInfoLinux(HostInfo):
     "rrdcached", "hcat", "ambari-qa", "sqoop-ambari-qa", "sqoop-ambari_qa",
     "webhcat", "hadoop-hdfs", "hadoop-yarn", "hadoop-mapreduce",
     "knox", "yarn", "hive-webhcat", "kafka", "slider", "storm-slider-client",
-    "ganglia-web"
+    "ganglia-web", "mahout", "spark", "pig", "phoenix", "ranger", "accumulo"
   ]
 
 
@@ -144,9 +144,10 @@ class HostInfoLinux(HostInfo):
   DEFAULT_USERS = [
     "hive", "ambari-qa", "oozie", "hbase", "hcat", "mapred",
     "hdfs", "rrdcached", "zookeeper", "flume", "sqoop", "sqoop2",
-    "hue", "yarn", "tez", "storm", "falcon", "kafka", "knox"
+    "hue", "yarn", "tez", "storm", "falcon", "kafka", "knox", "ams",
+    "hadoop", "spark", "accumulo", "atlas", "mahout", "ranger", "kms"
   ]
-
+  
   # Default set of directories that are checked for existence of files and folders
   DEFAULT_DIRS = [
     "/etc", "/var/run", "/var/log", "/usr/lib", "/var/lib", "/var/tmp", "/tmp", "/var",
