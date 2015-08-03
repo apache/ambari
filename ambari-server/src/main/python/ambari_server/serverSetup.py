@@ -54,6 +54,8 @@ SE_STATUS_ENABLED = "enabled"
 SE_MODE_ENFORCING = "enforcing"
 SE_MODE_PERMISSIVE = "permissive"
 
+PERSISTENCE_TYPE_PROPERTY = "server.persistence.type"
+
 # Non-root user setup commands
 NR_USER_COMMENT = "Ambari user"
 
@@ -928,11 +930,17 @@ def _reset_database(options):
   if properties == -1:
     print_error_msg("Error getting ambari properties")
     return -1
+  persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
+  if persistence_type == "remote":
+      err = 'Ambari doesn\'t support resetting exernal DB automatically. ' \
+            'To reset Ambari Server schema you must first drop and then create it ' \
+            'using DDL scripts from "\/var/lib/ambari-server/resources/\"'
+      raise FatalException(1, err)
+  else:
+    factory = DBMSConfigFactory()
 
-  factory = DBMSConfigFactory()
-
-  dbmsAmbari = factory.create(options, properties)
-  dbmsAmbari.reset_database()
+    dbmsAmbari = factory.create(options, properties)
+    dbmsAmbari.reset_database()
 
 
 #
