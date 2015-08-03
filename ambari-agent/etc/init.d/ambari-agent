@@ -36,7 +36,6 @@ case "$1" in
         ;;
   status)
         $command_prefx "/usr/sbin/ambari-agent $@"
-        exit $?
         ;;
   restart)
         $command_prefx "$0 stop"
@@ -50,4 +49,4 @@ case "$1" in
         exit 1
 esac
 
-exit 0
+exit $?
