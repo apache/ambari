@@ -145,23 +145,45 @@ class BaseAlert(object):
     
     if logger.isEnabledFor(logging.DEBUG):
       logger.debug("[Alert][{0}] result = {1}".format(self.get_name(), str(res)))
-      
+
     data = {}
     data['name'] = self._get_alert_meta_value_safely('name')
     data['label'] = self._get_alert_meta_value_safely('label')
-    data['state'] = res[0]
-    data['text'] = res_base_text.format(*res[1])
+    data['uuid'] = self._get_alert_meta_value_safely('uuid')
     data['cluster'] = self.cluster_name
     data['service'] = self._get_alert_meta_value_safely('serviceName')
     data['component'] = self._get_alert_meta_value_safely('componentName')
     data['timestamp'] = long(time.time() * 1000)
-    data['uuid'] = self._get_alert_meta_value_safely('uuid')
     data['enabled'] = self._get_alert_meta_value_safely('enabled')
 
-    if logger.isEnabledFor(logging.DEBUG):
-      logger.debug("[Alert][{0}] text = {1}".format(self.get_name(), data['text']))
-    
-    self.collector.put(self.cluster_name, data)
+    try:
+      data['state'] = res[0]
+
+      # * is the splat operator, which flattens a collection into positional arguments
+      # flatten the array and then try formatting it
+      try:
+        data['text'] = res_base_text.format(*res[1])
+      except ValueError, value_error:
+        logger.warn("[Alert][{0}] - {1}".format(self.get_name(), str(value_error)))
+
+        # if there is a ValueError, it's probably because the text doesn't match the type of
+        # positional arguemtns (ie {0:d} with a float)
+        res_base_text = res_base_text.replace("d}", "s}")
+        data_as_strings = map(str, res[1])
+        data['text'] = res_base_text.format(*data_as_strings)
+
+      if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("[Alert][{0}] text = {1}".format(self.get_name(), data['text']))
+    except Exception, exception:
+      logger.exception("[Alert][{0}] - The alert's data is not properly formatted".format(self.get_name()))
+
+      # if there's a problem with getting the data returned from collect() then mark this
+      # alert as UNKNOWN
+      data['state'] = self.RESULT_UNKNOWN
+      data['text'] = "There is a problem with the alert definition: {0}".format(str(exception))
+    finally:
+      # put the alert into the collector so it can be collected on the next run
+      self.collector.put(self.cluster_name, data)
 
 
   def _get_configuration_value(self, key):

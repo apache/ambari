@@ -96,7 +96,7 @@ class MetricAlert(BaseAlert):
         collect_result = self.RESULT_UNKNOWN
         value_list.append('HTTP {0} response (metrics unavailable)'.format(str(http_code)))
       elif not jmx_property_values and http_code not in [200, 307]:
-        raise Exception("[Alert][{0}] Unable to get json from jmx response!".format(self.get_name()))
+        raise Exception("[Alert][{0}] Unable to extract JSON from JMX response".format(self.get_name()))
       else:
         value_list.extend(jmx_property_values)
         check_value = self.metric_info.calculate(value_list)
