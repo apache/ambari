@@ -260,28 +260,33 @@ class AlertSchedulerHandler():
     converts the json that represents all aspects of a definition
     and makes an object that extends BaseAlert that is used for individual
     """
-    source = json_definition['source']
-    source_type = source.get('type', '')
-
-    if logger.isEnabledFor(logging.DEBUG):
-      logger.debug("[AlertScheduler] Creating job type {0} with {1}".format(source_type, str(json_definition)))
-
     alert = None
 
-    if source_type == AlertSchedulerHandler.TYPE_METRIC:
-      alert = MetricAlert(json_definition, source, self.config)
-    elif source_type == AlertSchedulerHandler.TYPE_PORT:
-      alert = PortAlert(json_definition, source)
-    elif source_type == AlertSchedulerHandler.TYPE_SCRIPT:
-      source['stacks_directory'] = self.stacks_dir
-      source['common_services_directory'] = self.common_services_dir
-      source['host_scripts_directory'] = self.host_scripts_dir
-      alert = ScriptAlert(json_definition, source, self.config)
-    elif source_type == AlertSchedulerHandler.TYPE_WEB:
-      alert = WebAlert(json_definition, source, self.config)
+    try:
+      source = json_definition['source']
+      source_type = source.get('type', '')
 
-    if alert is not None:
-      alert.set_cluster(clusterName, hostName)
+      if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("[AlertScheduler] Creating job type {0} with {1}".format(source_type, str(json_definition)))
+
+
+      if source_type == AlertSchedulerHandler.TYPE_METRIC:
+        alert = MetricAlert(json_definition, source, self.config)
+      elif source_type == AlertSchedulerHandler.TYPE_PORT:
+        alert = PortAlert(json_definition, source)
+      elif source_type == AlertSchedulerHandler.TYPE_SCRIPT:
+        source['stacks_directory'] = self.stacks_dir
+        source['common_services_directory'] = self.common_services_dir
+        source['host_scripts_directory'] = self.host_scripts_dir
+        alert = ScriptAlert(json_definition, source, self.config)
+      elif source_type == AlertSchedulerHandler.TYPE_WEB:
+        alert = WebAlert(json_definition, source, self.config)
+
+      if alert is not None:
+        alert.set_cluster(clusterName, hostName)
+
+    except Exception,exception:
+      logger.exception("[AlertScheduler] Unable to load an invalid alert definition. It will be skipped.")
 
     return alert
 

@@ -1037,6 +1037,82 @@ class TestAlerts(TestCase):
     self.assertEquals('(Unit Tests) OK: 10 5 2.0', alerts[0]['text'])
 
 
+
+  @patch.object(socket.socket,"connect")
+  def test_alert_definition_value_error_conversion(self, socket_connect_mock):
+    """
+    Tests that an alert definition with text that doesn't match the type of positional arguments
+    can recover and retry the ValueError.
+    :param socket_connect_mock:
+    :return:
+    """
+    definition_json = self._get_alert_definition_with_value_error_text()
+
+    configuration = {'hdfs-site' :
+      { 'my-key': 'c6401.ambari.apache.org:2181'}
+    }
+
+    collector = AlertCollector()
+    cluster_configuration = self.__get_cluster_configuration()
+    self.__update_cluster_configuration(cluster_configuration, configuration)
+
+    alert = PortAlert(definition_json, definition_json['source'])
+    alert.set_helpers(collector, cluster_configuration)
+    alert.set_cluster("c1", "c6402.ambari.apache.org")
+
+    # use a URI that has commas to verify that we properly parse it
+    alert.set_helpers(collector, cluster_configuration)
+    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    self.assertEquals(6, alert.interval())
+
+    # the collect should catch the invalid text in the definition
+    # ValueError: Unknown format code 'd' for object of type 'float'
+    alert.collect()
+
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+
+    self.assertEquals('OK', alerts[0]['state'])
+    self.assertTrue('(Unit Tests) TCP OK' in alerts[0]['text'])
+
+
+  @patch.object(socket.socket,"connect")
+  def test_alert_definition_too_many_positional_arguments(self, socket_connect_mock):
+    """
+    Tests that an alert definition with too many arguments produces an alert to collect after the
+    exceptioin is raised.
+    :param socket_connect_mock:
+    :return:
+    """
+    definition_json = self._get_alert_definition_with_too_many_positional_arguments()
+
+    configuration = {'hdfs-site' :
+      { 'my-key': 'c6401.ambari.apache.org:2181'}
+    }
+
+    collector = AlertCollector()
+    cluster_configuration = self.__get_cluster_configuration()
+    self.__update_cluster_configuration(cluster_configuration, configuration)
+
+    alert = PortAlert(definition_json, definition_json['source'])
+    alert.set_helpers(collector, cluster_configuration)
+    alert.set_cluster("c1", "c6402.ambari.apache.org")
+
+    # use a URI that has commas to verify that we properly parse it
+    alert.set_helpers(collector, cluster_configuration)
+    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    self.assertEquals(6, alert.interval())
+
+    # the collect should catch the invalid text in the definition
+    # ValueError: Unknown format code 'd' for object of type 'float'
+    alert.collect()
+
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+
+    self.assertEquals('UNKNOWN', alerts[0]['state'])
+    self.assertTrue('There is a problem with the alert definition' in alerts[0]['text'])
+
   def __get_cluster_configuration(self):
     """
     Gets an instance of the cluster cache where the file read and write
@@ -1246,6 +1322,64 @@ class TestAlerts(TestCase):
           },
           "critical": {
             "text": "(Unit Tests) critical: {1}. {3}",
+          }
+        }
+      }
+    }
+
+  def _get_alert_definition_with_value_error_text(self):
+    return { "name": "namenode_process",
+      "service": "HDFS",
+      "component": "NAMENODE",
+      "label": "NameNode process",
+      "interval": 6,
+      "scope": "host",
+      "enabled": True,
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
+      "source": {
+        "type": "PORT",
+        "uri": "{{hdfs-site/my-key}}",
+        "default_port": 50070,
+        "reporting": {
+          "ok": {
+            "text": "(Unit Tests) TCP OK {0:.4d}"
+          },
+          "warning": {
+            "text": "(Unit Tests) TCP Warning {0:.4d}",
+            "value": 1.5
+          },
+          "critical": {
+            "text": "(Unit Tests) TCP Critical {0:.4d}",
+            "value": 5.0
+          }
+        }
+      }
+    }
+
+  def _get_alert_definition_with_too_many_positional_arguments(self):
+    return { "name": "namenode_process",
+      "service": "HDFS",
+      "component": "NAMENODE",
+      "label": "NameNode process",
+      "interval": 6,
+      "scope": "host",
+      "enabled": True,
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
+      "source": {
+        "type": "PORT",
+        "uri": "{{hdfs-site/my-key}}",
+        "default_port": 50070,
+        "reporting": {
+          "ok": {
+            "text": "Bad Syntax Going To Mess You Up {0:.4d} {1} {2} {3} {4}"
+          },
+          "warning": {
+            "text": "Bad Syntax Going To Mess You Up {0:.4d} {1} {2} {3} {4}",
+            "value": 1.5
+          },
+          "critical": {
+            "text": "Bad Syntax Going To Mess You Up {0:.4d} {1} {2} {3} {4}",
+            "value": 5.0
           }
         }
       }
