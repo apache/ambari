@@ -24,6 +24,9 @@ from resource_management.libraries.functions.security_commons import build_expec
   FILE_TYPE_XML
 from hdfs_nfsgateway import nfsgateway
 from hdfs import hdfs
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 
 
 class NFSGateway(Script):
@@ -39,8 +42,12 @@ class NFSGateway(Script):
     self.install_packages(env, params.exclude_packages)
 
   def pre_rolling_restart(self, env):
-    # it does not need any Rolling Restart logic.
-    pass
+    import params
+    env.set_params(params)
+
+    if Script.is_hdp_stack_greater_or_equal('2.3.0.0'):
+      conf_select.select(params.stack_name, "hadoop", params.version)
+      hdp_select.select("hadoop-hdfs-nfs3", params.version)
 
   def start(self, env, rolling_restart=False):
     import params
