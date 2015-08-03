@@ -102,7 +102,6 @@ class TestUpgradeHelper(TestCase):
       resp = json.loads(resp)
     return resp
 
-
   def tearDown(self):
     sys.stdout = sys.__stdout__
 
@@ -120,6 +119,8 @@ class TestUpgradeHelper(TestCase):
       to_stack = "1.3"
       logfile = "test.log"
       report = "report.txt"
+      https = False
+      port = "8080"
       warnings = []
       printonly = False
 
@@ -130,6 +131,9 @@ class TestUpgradeHelper(TestCase):
     option_parser_mock.return_value = test_mock
 
     upgradeHelper.main()
+
+    self.assertEqual("8080", upgradeHelper.Options.API_PORT)
+    self.assertEqual("http", upgradeHelper.Options.API_PROTOCOL)
     self.assertEqual(1, modify_action_mock.call_count)
     self.assertEqual({"user": options.user, "pass": options.password}, upgradeHelper.Options.API_TOKENS)
     self.assertEqual(options.clustername, upgradeHelper.Options.CLUSTER_NAME)

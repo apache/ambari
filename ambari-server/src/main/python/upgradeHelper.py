@@ -1869,6 +1869,8 @@ def main():
   parser.add_option('--toStack', default=None, help="stack version to upgrade to", dest="to_stack")
 
   parser.add_option('--hostname', default=None, help="Hostname for Ambari server", dest="hostname")
+  parser.add_option('--port', default='8080', help="Port number for Ambari server", dest="port")
+  parser.add_option('--https', default=False, action="store_false", dest="https", help="Use https protocol for connection to the server")
   parser.add_option('--user', default=None, help="Ambari admin user", dest="user")
   parser.add_option('--password', default=None, help="Ambari admin password", dest="password")
   parser.add_option('--clustername', default=None, help="Cluster name", dest="clustername")
@@ -1890,6 +1892,13 @@ def main():
     options.password = getpass.getpass("Please enter Ambari admin password: ")
     if options.password == "":
       options.warnings.append("Ambari admin user's password name must be provided (e.g. admin)")
+
+  if options.https:
+    Options.API_PROTOCOL = "https"
+
+  if options.port:
+    Options.API_PORT = str(options.port)
+
   action = args[0]
 
   # check params according to executed action
@@ -1940,6 +1949,9 @@ if __name__ == "__main__":
     main()
   except (KeyboardInterrupt, EOFError):
     print("\nAborting ... Keyboard Interrupt.")
+    sys.exit(1)
+  except HTTPError as e:
+    print("\nResponse error, " + str(e))
     sys.exit(1)
   except FatalException as e:
     if e.reason is not None:
