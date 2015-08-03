@@ -52,15 +52,18 @@ App.componentConfigMapper = App.QuickDataMapper.create({
         });
       });
       this.get('model').find().forEach(function (hostComponent) {
-        var hostComponentJson = hostComponentJsonMap[hostComponent.get('id')];
+        var id = hostComponent.get('id');
+        var hostComponentJson = hostComponentJsonMap[id];
         var currentStaleConfigsState = Boolean(hostComponentJson);
         var stateChanged = hostComponent.get('staleConfigs') !== currentStaleConfigsState;
 
         if (stateChanged && !hostComponent.get('isMaster')) {
           hostComponent.set('staleConfigs', currentStaleConfigsState);
         }
-        //delete load host-components, so only new ones left
-        delete hostComponentJsonMap[hostComponent.get('id')];
+        //delete loaded host-components, so only new ones left
+        if (hostComponent.get('service.hostComponents').someProperty('id', id)) {
+          delete hostComponentJsonMap[id];
+        }
       });
       hostComponentJsonIds.forEach(function (hcId) {
         var newHostComponent = hostComponentJsonMap[hcId];
@@ -76,6 +79,7 @@ App.componentConfigMapper = App.QuickDataMapper.create({
         }
       }, this);
       if (hostComponents.length > 0) {
+        App.store.commit();
         App.store.loadMany(this.get('model'), hostComponents);
         this.addNewHostComponents(newHostComponentsMap, cacheServices);
       }
