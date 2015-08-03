@@ -40,6 +40,10 @@
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
     <ambari-admin-dir>${basedir}/../ambari-admin</ambari-admin-dir>
     <contrib-views-dir>${basedir}/../contrib/views</contrib-views-dir>
+    <resourceManagementSrcLocation>${project.basedir}/../ambari-common/src/main/python/resource_management</resourceManagementSrcLocation>
+    <commonServicesSrcLocation>target/classes/common-services</commonServicesSrcLocation>
+    <stacksSrcLocation>target/classes/stacks/${stack.distribution}</stacksSrcLocation>
+    <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
     <skipPythonTests>false</skipPythonTests>
   </properties>
   <build>
@@ -323,7 +327,7 @@
               <sources>
                 <source>
                   <location>
-                    ${project.basedir}/../ambari-common/src/main/python/resource_management
+                    ${resourceManagementSrcLocation}
                   </location>
                 </source>
               </sources>
@@ -575,7 +579,7 @@
               <directory>/var/lib/ambari-server/resources/common-services</directory>
               <sources>
                 <source>
-                  <location>target/classes/common-services</location>
+                  <location>${commonServicesSrcLocation}</location>
                 </source>
               </sources>
             </mapping>
@@ -591,7 +595,7 @@
               <directory>/var/lib/ambari-server/resources/stacks/${stack.distribution}</directory>
               <sources>
                 <source>
-                  <location>target/classes/stacks/${stack.distribution}</location>
+                  <location>${stacksSrcLocation}</location>
                 </source>
               </sources>
             </mapping>
@@ -1010,7 +1014,7 @@
               </mapper>
             </data>
             <data>
-              <src>target/classes/common-services</src>
+              <src>${commonServicesSrcLocation}</src>
               <type>directory</type>
               <mapper>
                 <type>perm</type>
@@ -1026,7 +1030,7 @@
               </mapper>
             </data>
             <data>
-              <src>target/classes/stacks/${stack.distribution}</src>
+              <src>${stacksSrcLocation}</src>
               <type>directory</type>
               <mapper>
                 <type>perm</type>
@@ -1141,7 +1145,7 @@
             </data>
             <data>
               <src>
-                ${project.basedir}/../ambari-common/src/main/python/resource_management
+                ${resourceManagementSrcLocation}
               </src>
               <type>directory</type>
               <mapper>
@@ -1505,6 +1509,55 @@
       <properties>
         <python.xml.package>python-xml</python.xml.package>
       </properties>
+    </profile>
+    <profile>
+      <id>pluggable-stack-definition</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>pluggableStackDefinitionConfig</name>
+        </property>
+      </activation>
+      <properties>
+        <resourceManagementSrcLocation>target/pluggable-stack-definition/python/resource_management</resourceManagementSrcLocation>
+        <commonServicesSrcLocation>target/pluggable-stack-definition/common-services</commonServicesSrcLocation>
+        <stacksSrcLocation>target/pluggable-stack-definition/stacks/${stack.distribution}</stacksSrcLocation>
+        <resourcesSrcLocation>src/main/resources</resourcesSrcLocation>
+        <tarballResourcesFolder>target/pluggable-stack-definition</tarballResourcesFolder>
+        <pluggableStackDefinitionScriptLocation>${project.basedir}/../ambari-common/src/main/python/pluggable_stack_definition/GenerateStackDefinition.py</pluggableStackDefinitionScriptLocation>
+        <pluggableStackDefinitionConfig>${project.basedir}/../ambari-common/src/main/python/pluggable_stack_definition/configs/${stack.distribution}.json</pluggableStackDefinitionConfig>
+        <pluggableStackDefinitionOutput>target/pluggable-stack-definition</pluggableStackDefinitionOutput>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.2.1</version>
+            <executions>
+              <execution>
+                <configuration>
+                  <executable>${executable.python}</executable>
+                  <arguments>
+                    <argument>${pluggableStackDefinitionScriptLocation}</argument>
+                    <argument>-c</argument>
+                    <argument>${pluggableStackDefinitionConfig}</argument>
+                    <argument>-r</argument>
+                    <argument>${resourcesSrcLocation}</argument>
+                    <argument>-o</argument>
+                    <argument>${pluggableStackDefinitionOutput}</argument>
+                  </arguments>
+                </configuration>
+                <id>pluggable-stack-definition-generate</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
   <dependencies>

@@ -90,7 +90,7 @@
       <outputDirectory>/ambari-server-${project.version}/etc/ambari-server/conf</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>src/main/resources</directory>
+      <directory>${tarballResourcesFolder}</directory>
       <outputDirectory>/ambari-server-${project.version}/var/lib/ambari-server/resources/</outputDirectory>
       <includes>
         <include>common-services/**</include>

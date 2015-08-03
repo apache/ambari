@@ -51,6 +51,8 @@
     <target.cache.dir>${project.build.directory}/cache/</target.cache.dir>
     <resource.keeper.script>${ambari.server.module}/src/main/python/ambari_server/resourceFilesKeeper.py</resource.keeper.script>
     <init.d.dir>/etc/rc.d/init.d</init.d.dir>
+    <resourceManagementSrcLocation>${project.basedir}/../ambari-common/src/main/python/resource_management</resourceManagementSrcLocation>
+    <resourcesFolder>${ambari.server.module}/src/main/resources</resourcesFolder>
   </properties>
   <build>
     <plugins>
@@ -266,7 +268,7 @@
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>${project.basedir}/../ambari-common/src/main/python/resource_management</location>
+                  <location>${resourceManagementSrcLocation}</location>
                 </source>
               </sources>
             </mapping>
@@ -661,7 +663,7 @@
             </data>
             <data>
               <src>
-                ${project.basedir}/../ambari-common/src/main/python/resource_management
+                ${resourceManagementSrcLocation}
               </src>
               <type>directory</type>
               <mapper>
@@ -691,11 +693,29 @@
                 <resource>
                   <directory>${ambari.server.module}/src/main/resources</directory>
                   <includes>
+                    <include>custom_actions/**/*</include>
+                    <include>host_scripts/**/*</include>
+                  </includes>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-common-resources</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${target.cache.dir}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${resourcesFolder}</directory>
+                  <includes>
                     <include>common-services/**</include>
                     <include>stacks/stack_advisor.py</include>
                     <include>stacks/${stack.distribution}/**/*</include>
-                    <include>custom_actions/**/*</include>
-                    <include>host_scripts/**/*</include>
                   </includes>
                   <filtering>false</filtering>
                 </resource>
@@ -898,6 +918,53 @@
       <properties>
         <init.d.dir>/etc/init.d</init.d.dir>
       </properties>
+    </profile>
+    <profile>
+      <id>pluggable-stack-definition</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>pluggableStackDefinitionConfig</name>
+        </property>
+      </activation>
+      <properties>
+        <resourceManagementSrcLocation>target/pluggable-stack-definition/python/resource_management</resourceManagementSrcLocation>
+        <resourcesFolder>target/pluggable-stack-definition</resourcesFolder>
+        <resourcesSrcLocation>${project.basedir}/../ambari-server/src/main/resources</resourcesSrcLocation>
+        <pluggableStackDefinitionScriptLocation>${project.basedir}/../ambari-common/src/main/python/pluggable_stack_definition/GenerateStackDefinition.py</pluggableStackDefinitionScriptLocation>
+        <pluggableStackDefinitionConfig>${project.basedir}/../ambari-common/src/main/python/pluggable_stack_definition/configs/${stack.distribution}.json</pluggableStackDefinitionConfig>
+        <pluggableStackDefinitionOutput>target/pluggable-stack-definition</pluggableStackDefinitionOutput>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.2.1</version>
+            <executions>
+              <execution>
+                <configuration>
+                  <executable>${executable.python}</executable>
+                  <arguments>
+                    <argument>${pluggableStackDefinitionScriptLocation}</argument>
+                    <argument>-c</argument>
+                    <argument>${pluggableStackDefinitionConfig}</argument>
+                    <argument>-r</argument>
+                    <argument>${resourcesSrcLocation}</argument>
+                    <argument>-o</argument>
+                    <argument>${pluggableStackDefinitionOutput}</argument>
+                  </arguments>
+                </configuration>
+                <id>pluggable-stack-definition-generate</id>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 </project>
