@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -36,11 +37,13 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExecutionCommandWrapper {
   @Inject
   static Injector injector;
-  private static Log LOG = LogFactory.getLog(ExecutionCommandWrapper.class);
+  private final static Logger LOG = LoggerFactory.getLogger(ExecutionCommandWrapper.class);
   private static String DELETED = "DELETED_";
   String jsonExecutionCommand = null;
   ExecutionCommand executionCommand = null;
@@ -51,6 +54,17 @@ public class ExecutionCommandWrapper {
 
   public ExecutionCommandWrapper(ExecutionCommand executionCommand) {
     this.executionCommand = executionCommand;
+  }
+
+  public ExecutionCommand getExecutionCommand(boolean forceRefreshAllConfig) {
+    // for Blueprint-based installs, force a refresh on the configuration
+    // prior to sending the commands down
+    if (forceRefreshAllConfig && (executionCommand != null)) {
+      executionCommand.setForceRefreshConfigTagsBeforeExecution(Collections.singleton("*"));
+    }
+
+    // delegate to main wrapper method to handle the configuration merging
+    return getExecutionCommand();
   }
 
   @SuppressWarnings("serial")
@@ -92,6 +106,7 @@ public class ExecutionCommandWrapper {
                 // if forcing a refresh of *, then clear out any existing
                 // configurations so that all of the new configurations are
                 // forcefully applied
+                LOG.info("ExecutionCommandWrapper.getExecutionCommand: refreshConfigTag set to {}, so clearing config for full refresh.", refreshConfigTag);
                 executionCommand.getConfigurations().clear();
 
                 for (final Entry<String, DesiredConfig> desiredConfig : desiredConfigs.entrySet()) {
