@@ -30,6 +30,28 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
   attributes:null,
 
   /**
+   * Contain array with list of master components from <code>App.Service.hostComponets</code> which are
+   * <code>App.HostComponent</code> models.
+   * @type {App.HostComponent[]}
+   */
+  mastersObj: [],
+  mastersLength: 0,
+
+  /**
+   * Contain array with list of slave components models <code>App.SlaveComponent</code>.
+   * @type {App.SlaveComponent[]}
+   */
+  slavesObj: [],
+  slavesLength: 0,
+
+  /**
+   * Contain array with list of client components models <code>App.ClientComponent</code>.
+   * @type {App.ClientComponent[]}
+   */
+  clientObj: [],
+  clientsLength: 0,
+
+  /**
    *  @property {String} templatePathPrefix - base path for custom templates
    *    if you want to add custom template, add <service_name>.hbs file to
    *    templates/main/service/info/summary folder.
@@ -129,6 +151,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     var service=this.get('controller.content');
     return (App.singleNodeInstall ? "http://" + App.singleNodeAlias + ":19888" : "http://" + service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName")+":19888");
   }.property('controller.content'),
+
   /**
    * Property related to ZOOKEEPER service, is unused for other services
    * @return {Object}
@@ -144,27 +167,55 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     return {};
   }.property('controller.content'),
 
-  mastersObj: function() {
-    return this.get('service.hostComponents').filterProperty('isMaster', true);
-  }.property('service'),
 
-  /**
-   * Contain array with list of client components models <code>App.ClientComponent</code>.
-   * @type {Array}
-   */
-  clientObj: function () {
-    var clientComponents = this.get('controller.content.clientComponents').toArray();
-    return clientComponents.get('length') ? clientComponents : [];
-  }.property('service.clientComponents.@each.totalCount'),
+  componentsLengthDidChange: function() {
+    var self = this;
+    if (!this.get('service')) return;
+    Em.run.once(self, 'setComponentsContent');
+  }.observes('service.hostComponents.length', 'service.slaveComponents.@each.totalCount', 'service.clientComponents.@each.totalCount'),
 
-  /**
-   * Contain array with list of slave components models <code>App.SlaveComponent</code>.
-   * @type {Array}
-   */
-  slavesObj: function() {
-    var slaveComponents = this.get('controller.content.slaveComponents').toArray();
-    return slaveComponents.get('length') ? slaveComponents : [];
-  }.property('service.slaveComponents.@each.totalCount', 'service.slaveComponents.@each.startedCount'),
+  setComponentsContent: function() {
+    Em.run.next(function() {
+      var masters = this.get('service.hostComponents').filterProperty('isMaster');
+      var slaves = this.get('service.slaveComponents').toArray();
+      var clients = this.get('service.clientComponents').toArray();
+
+      if (this.get('mastersLength') != masters.length) {
+        this.updateComponentList(this.get('mastersObj'), masters);
+        this.set('mastersLength', masters.length);
+      }
+      if (this.get('slavesLength') != slaves.length) {
+        this.updateComponentList(this.get('slavesObj'), slaves);
+        this.set('slavesLength', slaves.length);
+      }
+      if (this.get('clientsLength') != clients.length) {
+        this.updateComponentList(this.get('clientObj'), clients);
+        this.set('clientsLength', clients.length);
+      }
+    }.bind(this));
+  },
+
+
+  updateComponentList: function(source, data) {
+    var sourceIds = source.mapProperty('id');
+    var dataIds = data.mapProperty('id');
+    if (sourceIds.length == 0) {
+      source.pushObjects(data);
+    }
+    if (source.length > data.length) {
+      sourceIds.forEach(function(item, index) {
+        if (!dataIds.contains(item)) {
+          source.removeAt(index);
+        }
+      });
+    } else if (source.length < data.length) {
+      dataIds.forEach(function(item, index) {
+        if (!sourceIds.contains(item)) {
+          source.pushObject(data.objectAt(index));
+        }
+      });
+    }
+  },
 
   data:{
     hive:{
@@ -188,8 +239,10 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     }.property('comp')
   }),
 
-  service:function () {
-    var svc = this.get('controller.content');
+  service: null,
+
+  getServiceModel: function (serviceName) {
+    var svc = App.Service.find(serviceName);
     var svcName = svc.get('serviceName');
     if (svcName) {
       switch (svcName.toLowerCase()) {
@@ -213,7 +266,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       }
     }
     return svc;
-  }.property('controller.content.serviceName').volatile(),
+  },
 
   isHide:true,
   moreStatsView:Em.View.extend({
@@ -309,7 +362,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     var stackService = App.StackService.find().findProperty('serviceName', serviceName);
 
     if (!graphNames && !stackService.get('isServiceWithWidgets')) {
-      self.set('serviceMetricGraphs', []);
+      self.get('serviceMetricGraphs').clear();
       self.set('isServiceMetricLoaded', false);
       return;
     }
@@ -485,8 +538,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       });
     } else  {
       serviceSummaryView = Em.View.extend({
-        templateName: this.get('templatePathPrefix') + 'base',
-        content: this
+        templateName: this.get('templatePathPrefix') + 'base'
       });
     }
     this.set('serviceSummaryView', serviceSummaryView);
@@ -522,6 +574,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
 
   didInsertElement: function () {
     var svcName = this.get('controller.content.serviceName');
+    this.set('service', this.getServiceModel(svcName));
     var isMetricsSupported = svcName != 'STORM' || App.get('isStormMetricsSupported');
 
     this.get('controller').getActiveWidgetLayout();
@@ -551,16 +604,24 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       App.tooltip($("[rel='add-widget-tooltip']"));
       // enalble description show up on hover
       $('.thumbnail').hoverIntent(function() {
-        var self = this;
-        setTimeout(function() {
-          if ($(self).is(':hover')) {
-            $(self).find('.hidden-description').fadeIn(200);
-          }
-        }, 1000);
+        if ($(this).is(':hover')) {
+          $(this).find('.hidden-description').delay(1000).fadeIn(200).end();
+        }
       }, function() {
-        $(this).find('.hidden-description').hide();
+        $(this).find('.hidden-description').stop().hide().end();
       });
     }, 1000);
+  },
+
+  willDestroyElement: function() {
+    $("[rel='add-widget-tooltip']").tooltip('destroy');
+    $('.thumbnail').off();
+    $('#widget_layout').sortable('destroy');
+    this.get('serviceMetricGraphs').clear();
+    this.set('service', null);
+    this.get('mastersObj').clear();
+    this.get('slavesObj').clear();
+    this.get('clientObj').clear();
   },
 
   /**

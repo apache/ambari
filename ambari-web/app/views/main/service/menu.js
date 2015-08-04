@@ -33,7 +33,12 @@ App.MainServiceMenuView = Em.CollectionView.extend({
   didInsertElement:function () {
     App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');
     this.renderOnRoute();
-    App.tooltip($(".restart-required-service"), {html:true, placement:"right"});
+    App.tooltip(this.$(".restart-required-service"), {html:true, placement:"right"});
+  },
+
+  willDestroyElement: function() {
+    App.router.location.removeObserver('lastSetURL', this, 'renderOnRoute');
+    this.$(".restart-required-service").tooltip('destroy');
   },
 
   activeServiceId:null,
@@ -50,7 +55,6 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     var sub_url = reg.exec(last_url);
     var service_id = (null != sub_url) ? sub_url[1] : 1;
     this.set('activeServiceId', service_id);
-
   },
 
   tagName:'ul',
@@ -137,7 +141,12 @@ App.TopNavServiceMenuView = Em.CollectionView.extend({
   didInsertElement:function () {
     App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');
     this.renderOnRoute();
-    App.tooltip($(".restart-required-service"), {html:true, placement:"right"});
+    App.tooltip(this.$(".restart-required-service"), {html:true, placement:"right"});
+  },
+
+  willDestroyElement: function() {
+    App.router.location.removeObserver('lastSetURL', this, 'renderOnRoute');
+    this.$(".restart-required-service").tooltip('destroy');
   },
 
   activeServiceId:null,

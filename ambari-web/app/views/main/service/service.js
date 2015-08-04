@@ -132,7 +132,10 @@ App.MainDashboardServiceView = Em.View.extend({
     templateName: require('templates/main/service/info/summary/master_components'),
     mastersComp: function () {
       return this.get('parentView.service.hostComponents').filterProperty('isMaster', true);
-    }.property("service")
+    }.property("service"),
+    willDestroyElement: function() {
+      $('[rel=healthTooltip]').tooltip('destroy');
+    }
   }),
 
   formatUnavailable: function(value){

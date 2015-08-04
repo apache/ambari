@@ -109,6 +109,12 @@ App.QuickViewLinks = Em.View.extend({
     this.setQuickLinks();
   },
 
+  willDestroyElement: function() {
+    this.get('configProperties').clear();
+    this.get('actualTags').clear();
+    this.get('quickLinks').clear();
+  },
+
   findComponentHost: function (components, componentName) {
     var component = components.find(function (item) {
       return item.host_components.someProperty('HostRoles.component_name', componentName);

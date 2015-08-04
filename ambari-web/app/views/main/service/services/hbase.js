@@ -35,8 +35,6 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     return this.get('masters').filterProperty('haStatus', 'false');
   }.property('masters'),
 
-
-
   regionServesText: function () {
     if (this.get('service.regionServersTotal') == 0) {
       return '';

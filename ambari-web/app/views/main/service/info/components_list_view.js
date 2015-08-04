@@ -20,9 +20,33 @@ var App = require('app');
 
 App.SummaryMasterComponentsView = Em.View.extend({
   templateName: require('templates/main/service/info/summary/master_components'),
-  mastersComp: null,
+  mastersCurrentLength: 0,
+  mastersComp: [],
+  mastersCompWillChange: function() {
+    this.removeTooltips();
+  }.observesBefore('mastersComp.length'),
+  mastersCompDidChange: function() {
+    this.attachTooltip();
+  }.observes('mastersComp.length'),
+
+  removeTooltips: function() {
+    if ($('[rel=SummaryComponentHealthTooltip]').length) {
+      $('[rel=SummaryComponentHealthTooltip]').tooltip('destroy');
+    }
+  },
+
+  attachTooltip: function() {
+    if ($('[rel=SummaryComponentHealthTooltip]').length) {
+      App.tooltip($('[rel=SummaryComponentHealthTooltip]'));
+    }
+  },
+
   didInsertElement: function() {
-    App.tooltip($('[rel=healthTooltip]'));
+    this.attachTooltip();
+  },
+
+  willDestroyElement: function() {
+    $('[rel=SummaryComponentHealthTooltip]').tooltip('destroy');
   }
 });
 
