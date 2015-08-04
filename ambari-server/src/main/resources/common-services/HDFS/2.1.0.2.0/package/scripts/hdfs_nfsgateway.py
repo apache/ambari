@@ -46,8 +46,8 @@ def prepare_rpcbind():
 
   if p!=0 and q!=0 :
     Logger.info("no portmap or rpcbind running. starting one...")
-    p, output = shell.call("service rpcbind start")
-    q, output = shell.call("service portmap start")
+    p, output = shell.call(("service", "rpcbind", "start"), sudo=True)
+    q, output = shell.call(("service", "portmap", "start"), sudo=True)
     if p!=0 and q!=0 :
       raise Fail("Failed to start rpcbind or portmap")
 
