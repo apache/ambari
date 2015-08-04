@@ -24,6 +24,7 @@ from stacks.utils.RMFTestCase import *
 
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("sys.executable", new = '/usr/bin/python2.6')
+@patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new = MagicMock(return_value=(0, "{ \"app\": {\"state\": \"FINISHED\",\"finalStatus\": \"SUCCEEDED\"}}",'')))
 class TestServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -41,8 +42,7 @@ class TestServiceCheck(RMFTestCase):
                           hdp_stack_version = self.STACK_VERSION,
                           target = RMFTestCase.TARGET_COMMON_SERVICES,
                           checked_call_mocks = [(0, "some test text, appTrackingUrl=http:"
-                                "//c6402.ambari.apache.org:8088/proxy/application_1429885383763_0001/, some test text"),
-                                (0, "{ \"app\": {\"state\": \"FINISHED\",\"finalStatus\": \"SUCCEEDED\"}}")]
+                                "//c6402.ambari.apache.org:8088/proxy/application_1429885383763_0001/, some test text")]
     )
     self.assertNoMoreResources()
 
@@ -60,8 +60,7 @@ class TestServiceCheck(RMFTestCase):
                           hdp_stack_version = self.STACK_VERSION,
                           target = RMFTestCase.TARGET_COMMON_SERVICES,
                           checked_call_mocks = [(0, "some test text, appTrackingUrl=http:"
-                               "//c6402.ambari.apache.org:8088/proxy/application_1429885383763_0001/, some test text"),
-                               (0, "{ \"app\": {\"state\": \"FINISHED\",\"finalStatus\": \"SUCCEEDED\"}}")]
+                               "//c6402.ambari.apache.org:8088/proxy/application_1429885383763_0001/, some test text")]
     )
 
     self.assertNoMoreResources()

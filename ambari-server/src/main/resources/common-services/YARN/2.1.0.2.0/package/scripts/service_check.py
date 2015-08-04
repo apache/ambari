@@ -28,6 +28,7 @@ import subprocess
 from ambari_commons import os_utils
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 
 CURL_CONNECTION_TIMEOUT = '5'
 
@@ -118,9 +119,9 @@ class ServiceCheckDefault(ServiceCheck):
 
       get_app_info_cmd = "curl --negotiate -u : -ksL --connect-timeout " + CURL_CONNECTION_TIMEOUT + " " + info_app_url
 
-      return_code, stdout = shell.checked_call(get_app_info_cmd,
-                                            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+      return_code, stdout, _ = get_user_call_output(get_app_info_cmd,
                                             user=params.smokeuser,
+                                            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
                                             )
 
       try:
