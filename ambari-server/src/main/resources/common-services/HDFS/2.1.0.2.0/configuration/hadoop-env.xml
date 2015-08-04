@@ -155,6 +155,18 @@
     <description>File path that contains the last known mount point for each data dir. This file is used to avoid creating a DFS data dir on the root drive (and filling it up) if a path was previously mounted on a drive.</description>
   </property>
 
+  <property>
+    <name>hdfs_user_nofile_limit</name>
+    <value>128000</value>
+    <description>Max open files limit setting for HDFS user.</description>
+  </property>
+
+  <property>
+    <name>hdfs_user_nproc_limit</name>
+    <value>65536</value>
+    <description>Max number of processes limit setting for HDFS user.</description>
+  </property>
+
   <!-- hadoop-env.sh -->
   <property>
     <name>content</name>

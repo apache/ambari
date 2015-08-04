@@ -31,5 +31,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{mapred_user}}   - nofile 32768
-{{mapred_user}}   - nproc  65536
+{{mapred_user}}   - nofile {{mapred_user_nofile_limit}}
+{{mapred_user}}   - nproc  {{mapred_user_nproc_limit}}

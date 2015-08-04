@@ -42,6 +42,18 @@
     <value>900</value>
     <description>Value for JobHistoryServer heap_size variable in hadoop-env.sh</description>
   </property>
+
+  <property>
+    <name>mapred_user_nofile_limit</name>
+    <value>32768</value>
+    <description>Max open files limit setting for MAPREDUCE user.</description>
+  </property>
+
+  <property>
+    <name>mapred_user_nproc_limit</name>
+    <value>65536</value>
+    <description>Max number of processes limit setting for MAPREDUCE user.</description>
+  </property>
   
   <!-- mapred-env.sh -->
   <property>

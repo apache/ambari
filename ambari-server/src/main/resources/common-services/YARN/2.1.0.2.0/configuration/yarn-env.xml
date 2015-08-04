@@ -62,6 +62,19 @@
     <value>false</value>
     <description>Set to false by default,  needs to be set to true in stacks that use Ranger Yarn Plugin</description>
   </property>
+
+  <property>
+    <name>yarn_user_nofile_limit</name>
+    <value>32768</value>
+    <description>Max open files limit setting for YARN user.</description>
+  </property>
+
+  <property>
+    <name>yarn_user_nproc_limit</name>
+    <value>65536</value>
+    <description>Max number of processes limit setting for YARN user.</description>
+  </property>
+
   <!-- yarn-env.sh -->
   <property>
     <name>content</name>

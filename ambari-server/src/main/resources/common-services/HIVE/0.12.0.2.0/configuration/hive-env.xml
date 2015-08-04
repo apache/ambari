@@ -96,7 +96,19 @@
     <property-type>USER</property-type>
     <description>WebHCat User.</description>
   </property>
-  
+
+  <property>
+    <name>hive_user_nofile_limit</name>
+    <value>32000</value>
+    <description>Max open files limit setting for HIVE user.</description>
+  </property>
+
+  <property>
+    <name>hive_user_nproc_limit</name>
+    <value>16000</value>
+    <description>Max number of processes limit setting for HIVE user.</description>
+  </property>
+
   <!-- hive-env.sh -->
   <property>
     <name>content</name>

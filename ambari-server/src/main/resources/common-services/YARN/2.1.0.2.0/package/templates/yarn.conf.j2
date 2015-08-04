@@ -31,5 +31,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{yarn_user}}   - nofile 32768
-{{yarn_user}}   - nproc  65536
+{{yarn_user}}   - nofile {{yarn_user_nofile_limit}}
+{{yarn_user}}   - nproc  {{yarn_user_nproc_limit}}
