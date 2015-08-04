@@ -101,6 +101,9 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
 ambari_libs_dir = "/var/lib/ambari-agent/lib"
 limits_conf_dir = "/etc/security/limits.d"
 
+hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
+hdfs_user_nproc_limit = default("/configurations/hadoop-env/hdfs_user_nproc_limit", "65536")
+
 create_lib_snappy_symlinks = not Script.is_hdp_stack_greater_or_equal("2.2")
 
 if Script.is_hdp_stack_greater_or_equal("2.0") and Script.is_hdp_stack_less_than("2.1") and not OSCheck.is_suse_family():

@@ -101,6 +101,12 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
 hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 
 limits_conf_dir = "/etc/security/limits.d"
+yarn_user_nofile_limit = default("/configurations/yarn-env/yarn_user_nofile_limit", "32768")
+yarn_user_nproc_limit = default("/configurations/yarn-env/yarn_user_nproc_limit", "65536")
+
+mapred_user_nofile_limit = default("/configurations/mapred-env/mapred_user_nofile_limit", "32768")
+mapred_user_nproc_limit = default("/configurations/mapred-env/mapred_user_nproc_limit", "65536")
+
 execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir + os.pathsep + yarn_container_bin
 
 ulimit_cmd = "ulimit -c unlimited;"

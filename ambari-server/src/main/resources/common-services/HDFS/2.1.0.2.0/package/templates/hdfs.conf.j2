@@ -31,5 +31,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{hdfs_user}}   - nofile 32768
-{{hdfs_user}}   - nproc  65536
+{{hdfs_user}}   - nofile {{hdfs_user_nofile_limit}}
+{{hdfs_user}}   - nproc  {{hdfs_user_nproc_limit}}

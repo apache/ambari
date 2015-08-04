@@ -87,6 +87,9 @@ config_dir = '/etc/hcatalog/conf'
 hcat_lib = '/usr/lib/hcatalog/share/hcatalog'
 webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
 
+hive_user_nofile_limit = default("/configurations/hive-env/hive_user_nofile_limit", "32000")
+hive_user_nproc_limit = default("/configurations/hive-env/hive_user_nproc_limit", "16000")
+
 # use the directories from status_params as they are already calculated for
 # the correct version of HDP
 hadoop_conf_dir = status_params.hadoop_conf_dir
