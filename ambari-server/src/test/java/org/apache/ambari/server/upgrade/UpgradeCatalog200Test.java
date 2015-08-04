@@ -67,7 +67,6 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
@@ -579,12 +578,9 @@ public class UpgradeCatalog200Test {
     HostComponentDesiredStateEntity hcDesiredStateEntity = hostComponentDesiredStateDAO.findByPK(hcDesiredStateEntityPk);
     assertNotNull(hcDesiredStateEntity);
 
-    HostComponentStateEntityPK hcStateEntityPk = new HostComponentStateEntityPK();
-    hcStateEntityPk.setServiceName("NAGIOS");
-    hcStateEntityPk.setClusterId(clusterEntity.getClusterId());
-    hcStateEntityPk.setComponentName("NAGIOS_SERVER");
-    hcStateEntityPk.setHostId(hostEntity.getHostId());
-    HostComponentStateEntity hcStateEntity = hostComponentStateDAO.findByPK(hcStateEntityPk);
+    HostComponentStateEntity hcStateEntity = hostComponentStateDAO.findByIndex(
+        clusterEntity.getClusterId(), "NAGIOS", "NAGIOS_SERVER", hostEntity.getHostId());
+
     assertNotNull(hcStateEntity);
 
     ClusterServiceEntity clusterService = clusterServiceDao.findByClusterAndServiceNames(

@@ -110,6 +110,7 @@ CREATE TABLE hostcomponentdesiredstate (
 );
 
 CREATE TABLE hostcomponentstate (
+  id NUMBER(19) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
   component_name VARCHAR2(255) NOT NULL,
   version VARCHAR2(32) DEFAULT 'UNKNOWN' NOT NULL,
@@ -119,8 +120,10 @@ CREATE TABLE hostcomponentstate (
   service_name VARCHAR2(255) NOT NULL,
   upgrade_state VARCHAR2(32) DEFAULT 'NONE' NOT NULL,
   security_state VARCHAR2(32) DEFAULT 'UNSECURED' NOT NULL,
-  PRIMARY KEY (cluster_id, component_name, host_id, service_name)
+  CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id)
 );
+
+CREATE INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_name, cluster_id);
 
 CREATE TABLE hosts (
   host_id NUMBER(19) NOT NULL,
@@ -749,8 +752,8 @@ ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_principalname 
 
 -- Alerting Framework
 CREATE TABLE alert_definition (
-  definition_id NUMBER(19) NOT NULL, 
-  cluster_id NUMBER(19) NOT NULL, 
+  definition_id NUMBER(19) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
   definition_name VARCHAR2(255) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
   component_name VARCHAR2(255),
@@ -847,7 +850,7 @@ CREATE TABLE alert_notice (
   notify_state VARCHAR2(255) NOT NULL,
   uuid VARCHAR2(64) NOT NULL UNIQUE,
   PRIMARY KEY (notification_id),
-  FOREIGN KEY (target_id) REFERENCES alert_target(target_id),  
+  FOREIGN KEY (target_id) REFERENCES alert_target(target_id),
   FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)
 );
 
@@ -937,6 +940,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_lo
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_task_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_request_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_group_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostcomponentstate_id_seq', 0);
 
 INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariVersion}');
 
@@ -979,7 +983,7 @@ commit;
 
 CREATE TABLE workflow (
   workflowId VARCHAR2(4000), workflowName VARCHAR2(4000),
-  parentWorkflowId VARCHAR2(4000),  
+  parentWorkflowId VARCHAR2(4000),
   workflowContext VARCHAR2(4000), userName VARCHAR2(4000),
   startTime INTEGER, lastUpdateTime INTEGER,
   numJobsTotal INTEGER, numJobsCompleted INTEGER,
@@ -991,37 +995,37 @@ CREATE TABLE workflow (
 
 CREATE TABLE job (
   jobId VARCHAR2(4000), workflowId VARCHAR2(4000), jobName VARCHAR2(4000), workflowEntityName VARCHAR2(4000),
-  userName VARCHAR2(4000), queue CLOB, acls CLOB, confPath CLOB, 
-  submitTime INTEGER, launchTime INTEGER, finishTime INTEGER, 
-  maps INTEGER, reduces INTEGER, status VARCHAR2(4000), priority VARCHAR2(4000), 
-  finishedMaps INTEGER, finishedReduces INTEGER, 
-  failedMaps INTEGER, failedReduces INTEGER, 
+  userName VARCHAR2(4000), queue CLOB, acls CLOB, confPath CLOB,
+  submitTime INTEGER, launchTime INTEGER, finishTime INTEGER,
+  maps INTEGER, reduces INTEGER, status VARCHAR2(4000), priority VARCHAR2(4000),
+  finishedMaps INTEGER, finishedReduces INTEGER,
+  failedMaps INTEGER, failedReduces INTEGER,
   mapsRuntime INTEGER, reducesRuntime INTEGER,
-  mapCounters VARCHAR2(4000), reduceCounters VARCHAR2(4000), jobCounters VARCHAR2(4000), 
+  mapCounters VARCHAR2(4000), reduceCounters VARCHAR2(4000), jobCounters VARCHAR2(4000),
   inputBytes INTEGER, outputBytes INTEGER,
   PRIMARY KEY(jobId),
   FOREIGN KEY(workflowId) REFERENCES workflow(workflowId) ON DELETE CASCADE
 );
 
 CREATE TABLE task (
-  taskId VARCHAR2(4000), jobId VARCHAR2(4000), taskType VARCHAR2(4000), splits VARCHAR2(4000), 
-  startTime INTEGER, finishTime INTEGER, status VARCHAR2(4000), error CLOB, counters VARCHAR2(4000), 
-  failedAttempt VARCHAR2(4000), 
-  PRIMARY KEY(taskId), 
+  taskId VARCHAR2(4000), jobId VARCHAR2(4000), taskType VARCHAR2(4000), splits VARCHAR2(4000),
+  startTime INTEGER, finishTime INTEGER, status VARCHAR2(4000), error CLOB, counters VARCHAR2(4000),
+  failedAttempt VARCHAR2(4000),
+  PRIMARY KEY(taskId),
   FOREIGN KEY(jobId) REFERENCES job(jobId) ON DELETE CASCADE
 );
 
 CREATE TABLE taskAttempt (
-  taskAttemptId VARCHAR2(4000), taskId VARCHAR2(4000), jobId VARCHAR2(4000), taskType VARCHAR2(4000), taskTracker VARCHAR2(4000), 
-  startTime INTEGER, finishTime INTEGER, 
-  mapFinishTime INTEGER, shuffleFinishTime INTEGER, sortFinishTime INTEGER, 
-  locality VARCHAR2(4000), avataar VARCHAR2(4000), 
-  status VARCHAR2(4000), error CLOB, counters VARCHAR2(4000), 
+  taskAttemptId VARCHAR2(4000), taskId VARCHAR2(4000), jobId VARCHAR2(4000), taskType VARCHAR2(4000), taskTracker VARCHAR2(4000),
+  startTime INTEGER, finishTime INTEGER,
+  mapFinishTime INTEGER, shuffleFinishTime INTEGER, sortFinishTime INTEGER,
+  locality VARCHAR2(4000), avataar VARCHAR2(4000),
+  status VARCHAR2(4000), error CLOB, counters VARCHAR2(4000),
   inputBytes INTEGER, outputBytes INTEGER,
-  PRIMARY KEY(taskAttemptId), 
+  PRIMARY KEY(taskAttemptId),
   FOREIGN KEY(jobId) REFERENCES job(jobId) ON DELETE CASCADE,
   FOREIGN KEY(taskId) REFERENCES task(taskId) ON DELETE CASCADE
-); 
+);
 
 CREATE TABLE hdfsEvent (
   timestamp INTEGER,
@@ -1045,9 +1049,9 @@ CREATE TABLE mapreduceEvent (
 );
 
 CREATE TABLE clusterEvent (
-  timestamp INTEGER, 
-  service VARCHAR2(4000), status VARCHAR2(4000), 
-  error CLOB, data CLOB , 
+  timestamp INTEGER,
+  service VARCHAR2(4000), status VARCHAR2(4000),
+  error CLOB, data CLOB ,
   host VARCHAR2(4000), rack VARCHAR2(4000)
 );
 
@@ -1209,5 +1213,3 @@ create index idx_qrtz_ft_j_g on qrtz_fired_triggers(SCHED_NAME,JOB_NAME,JOB_GROU
 create index idx_qrtz_ft_jg on qrtz_fired_triggers(SCHED_NAME,JOB_GROUP);
 create index idx_qrtz_ft_t_g on qrtz_fired_triggers(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP);
 create index idx_qrtz_ft_tg on qrtz_fired_triggers(SCHED_NAME,TRIGGER_GROUP);
-
-

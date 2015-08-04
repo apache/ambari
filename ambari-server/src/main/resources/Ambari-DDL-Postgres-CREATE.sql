@@ -16,10 +16,6 @@
 -- limitations under the License.
 --
 
--- DEVELOPER COMMENT
--- Ambari is transitioning to make the host_id the FK instead of the host_name.
--- Please do not remove lines that are related to this change and are being staged.
-
 ------create tables and grant privileges to db user---------
 CREATE TABLE stack(
   stack_id BIGINT NOT NULL,
@@ -97,7 +93,7 @@ CREATE TABLE clusterstate (
   current_stack_id BIGINT NOT NULL,
   PRIMARY KEY (cluster_id)
 );
-  
+
 CREATE TABLE cluster_version (
   id BIGINT NOT NULL,
   repo_version_id BIGINT NOT NULL,
@@ -123,6 +119,7 @@ CREATE TABLE hostcomponentdesiredstate (
 );
 
 CREATE TABLE hostcomponentstate (
+  id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
@@ -132,8 +129,10 @@ CREATE TABLE hostcomponentstate (
   service_name VARCHAR(255) NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
-  PRIMARY KEY (cluster_id, component_name, host_id, service_name)
+  CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id)
 );
+
+CREATE INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_name, cluster_id);
 
 CREATE TABLE hosts (
   host_id BIGINT NOT NULL,
@@ -755,8 +754,8 @@ ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_principalname 
 
 -- Alerting Framework
 CREATE TABLE alert_definition (
-  definition_id BIGINT NOT NULL, 
-  cluster_id BIGINT NOT NULL, 
+  definition_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
   definition_name VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   component_name VARCHAR(255),
@@ -853,7 +852,7 @@ CREATE TABLE alert_notice (
   notify_state VARCHAR(255) NOT NULL,
   uuid VARCHAR(64) NOT NULL UNIQUE,
   PRIMARY KEY (notification_id),
-  FOREIGN KEY (target_id) REFERENCES alert_target(target_id),  
+  FOREIGN KEY (target_id) REFERENCES alert_target(target_id),
   FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)
 );
 
@@ -961,7 +960,7 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'service_config_id_seq', 1
   union all
-  select 'upgrade_id_seq', 0 
+  select 'upgrade_id_seq', 0
   union all
   select 'upgrade_group_id_seq', 0
   union all
@@ -985,7 +984,9 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'topology_request_id_seq', 0
   union all
-  select 'topology_host_group_id_seq', 0;
+  select 'topology_host_group_id_seq', 0
+  union all
+  select 'hostcomponentstate_id_seq', 0;
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name)
   SELECT 1, 'AMBARI'

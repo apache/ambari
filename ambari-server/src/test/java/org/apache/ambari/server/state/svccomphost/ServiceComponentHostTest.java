@@ -44,7 +44,6 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -1169,15 +1168,12 @@ public class ServiceComponentHostTest {
 
     HostComponentStateDAO daoHostComponentState = injector.getInstance(HostComponentStateDAO.class);
     HostComponentStateEntity entityHostComponentState;
-    HostComponentStateEntityPK pkHostComponentState = new HostComponentStateEntityPK();
-    pkHostComponentState.setClusterId(cluster.getClusterId());
-    pkHostComponentState.setComponentName(sch1.getServiceComponentName());
-    pkHostComponentState.setServiceName(sch1.getServiceName());
-    pkHostComponentState.setHostId(hostEntity.getHostId());
 
     for(SecurityState state: SecurityState.values()) {
       sch1.setSecurityState(state);
-      entityHostComponentState = daoHostComponentState.findByPK(pkHostComponentState);
+      entityHostComponentState = daoHostComponentState.findByIndex(cluster.getClusterId(),
+          sch1.getServiceName(), sch1.getServiceComponentName(), hostEntity.getHostId());
+
       Assert.assertNotNull(entityHostComponentState);
       Assert.assertEquals(state, entityHostComponentState.getSecurityState());
 
