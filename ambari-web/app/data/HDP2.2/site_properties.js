@@ -117,6 +117,14 @@ hdp22properties.push(
   },
   {
     "id": "site property",
+    "name": "keyserver_port",
+    "isRequired": false,
+    "category": "Advanced hadoop-env",
+    "serviceName": "HDFS",
+    "filename": "hadoop-env.xml"
+  },
+  {
+    "id": "site property",
     "name": "*.falcon.graph.blueprints.graph",
     "displayName": "*.falcon.graph.blueprints.graph",
     "category": "FalconStartupSite",

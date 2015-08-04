@@ -25,6 +25,7 @@ describe("App.MainServiceInfoConfigsController", function () {
   beforeEach(function () {
     sinon.stub(App.themesMapper, 'generateAdvancedTabs').returns(Em.K);
     mainServiceInfoConfigsController = App.MainServiceInfoConfigsController.create({
+      dependentServiceNames: [],
       loadDependentConfigs: function () {
         return {done: Em.K}
       },
@@ -734,11 +735,12 @@ describe("App.MainServiceInfoConfigsController", function () {
 
   describe("#trackRequest()", function () {
     after(function(){
-      mainServiceInfoConfigsController.set('requestInProgress', null);
+      mainServiceInfoConfigsController.get('requestsInProgress').clear();
     });
-    it("should set requestInProgress", function () {
+    it("should set requestsInProgress", function () {
+      mainServiceInfoConfigsController.get('requestsInProgress').clear();
       mainServiceInfoConfigsController.trackRequest({'request': {}});
-      expect(mainServiceInfoConfigsController.get('requestInProgress')).to.eql({'request': {}});
+      expect(mainServiceInfoConfigsController.get('requestsInProgress')[0]).to.eql({'request': {}});
     });
   });
 

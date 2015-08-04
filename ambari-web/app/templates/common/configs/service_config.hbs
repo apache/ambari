@@ -79,7 +79,11 @@
 {{/if}}
 
 {{#if view.showConfigHistoryFeature}}
-  {{view App.ConfigHistoryFlowView serviceBinding="selectedService"}}
+  {{#if allVersionsLoaded}}
+    {{view App.ConfigHistoryFlowView serviceBinding="selectedService"}}
+  {{else}}
+    <div class="spinner"></div>
+  {{/if}}
 {{/if}}
 
 {{#if versionLoaded}}
