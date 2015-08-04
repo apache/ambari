@@ -57,12 +57,20 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
         }
       });
       return masterComponents;
-    }.property('parentView.service.hostComponents.length')
+    }.property('parentView.service.hostComponents.length'),
+    willDestroyElement: function() {
+      $('[rel=healthTooltip]').tooltip('destroy')
+    }
   }),
 
   didInsertElement: function() {
     App.tooltip($("[rel='tooltip']"));
   },
+
+  willDestroyElement: function() {
+    $("[rel='tooltip']").tooltip('destroy');
+  },
+
   dataNodesDead: function () {
     return this.get('service.dataNodesInstalled');
   }.property('service.dataNodesInstalled'),

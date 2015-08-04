@@ -134,9 +134,12 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   queues: function() {
     return Em.I18n.t('dashboard.services.yarn.queues.msg').format(this.formatUnavailable(this.get('service.queuesCount')));
   }.property('service.queuesCount'),
-  
+
   didInsertElement: function(){
     App.tooltip($("[rel='queue-tooltip']"), {html: true, placement: "right"});
-  }
+  },
 
+  willDestroyElement: function(){
+    $("[rel='queue-tooltip']").tooltip('destroy');
+  }
 });

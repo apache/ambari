@@ -100,6 +100,7 @@ App.ChartLinearTimeView = Ember.View.extend({
    */
   _seriesPropertiesWidget: null,
 
+
   /**
    * Renderer type
    * See <code>Rickshaw.Graph.Renderer</code> for more info
@@ -150,6 +151,14 @@ App.ChartLinearTimeView = Ember.View.extend({
    */
   displayUnit: null,
 
+  _containerSelector: function() {
+    return ['#', this.get('id'), '-container'].join('');
+  }.property('id'),
+
+  _popupSelector: function() {
+    return [this.get('_containerSelector'), this.get('popupSuffix')].join('');
+  }.property('_containerSelector'),
+
   didInsertElement: function () {
     this.loadData();
     this.registerGraph();
@@ -157,6 +166,12 @@ App.ChartLinearTimeView = Ember.View.extend({
       placement: 'left',
       template: '<div class="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner graph-tooltip"></div></div>'
     });
+  },
+
+  willDestroyElement: function () {
+    this.$("[rel='ZoomInTooltip']").tooltip('destroy');
+    $(this.get('_containerSelector') + ' li.line').off();
+    $(this.get('_popupSelector') + ' li.line').off();
   },
 
   registerGraph: function() {
@@ -369,24 +384,25 @@ App.ChartLinearTimeView = Ember.View.extend({
     }
     var seriesData = this.transformToSeries(jsonData);
 
-      //if graph opened as modal popup
-      var popup_path = $("#" + this.get('id') + "-container" + this.get('popupSuffix'));
-      var graph_container = $("#" + this.get('id') + "-container");
-      if(popup_path.length) {
-        popup_path.children().each(function () {
-          $(this).children().remove();
-        });
-        this.set('isPopup', true);
-      }
-      else {
-        graph_container.children().each(function (index, value) {
-          $(value).children().remove();
-        });
-      }
+    //if graph opened as modal popup
+    var popup_path = $(this.get('_popupSelector'));
+    var graph_container = $(this.get('_containerSelector'));
+    var container;
+    if(popup_path.length) {
+      popup_path.children().each(function () {
+        $(this).children().remove();
+      });
+      this.set('isPopup', true);
+    }
+    else {
+      graph_container.children().each(function () {
+        $(this).children().remove();
+      });
+    }
     if (this.checkSeries(seriesData)) {
       // Check container exists (may be not, if we go to another page and wait while graphs loading)
       if (graph_container.length) {
-        var container = $("#" + this.get('id') + "-container");
+        container = $(this.get('_containerSelector'));
         this.draw(seriesData);
         this.set('hasData', true);
           //move yAxis value lower to make them fully visible
@@ -406,6 +422,9 @@ App.ChartLinearTimeView = Ember.View.extend({
       }
       this.set('isPopup', false);
     }
+    graph_container = null;
+    container = null;
+    popup_path = null;
   },
 
   /**
@@ -612,18 +631,22 @@ App.ChartLinearTimeView = Ember.View.extend({
     });
 
     if (!isPopup) {
-      overlayElement.addEventListener('mousemove', function () {
+      $(overlayElement).on('mousemove', function () {
         $(xaxisElement).removeClass('hide');
         $(legendElement).removeClass('hide');
         $(chartElement).children("div").removeClass('hide');
       });
-      overlayElement.addEventListener('mouseout', function () {
+      $(overlayElement).on('mouseout', function () {
         $(legendElement).addClass('hide');
       });
       _graph.onUpdate(function () {
         $(legendElement).addClass('hide');
       });
     }
+
+    this.$().on('remove', function() {
+      $(overlayElement).off();
+    });
 
     //show the graph when it's loaded
     _graph.onUpdate(function() {
@@ -654,10 +677,9 @@ App.ChartLinearTimeView = Ember.View.extend({
       });
       _graph.update();
 
-      var selector = '#'+this.get('id')+'-container'+this.get('popupSuffix');
-      $(selector + ' li.line').click(function() {
+      $(this.get('_popupSelector') + ' li.line').click(function() {
         var series = [];
-        $(selector + ' a.action').each(function(index, v) {
+        $(this.get('_popupSelector') + ' a.action').each(function(index, v) {
           series[index] = v.parentNode.classList;
         });
         self.set('_seriesProperties', series);
@@ -667,10 +689,9 @@ App.ChartLinearTimeView = Ember.View.extend({
     }
     else {
       _graph.update();
-      var selector = '#'+this.get('id')+'-container';
-      $(selector + ' li.line').click(function() {
+      $(this.get('_containerSelector') + ' li.line').click(function() {
         var series = [];
-        $(selector + ' a.action').each(function(index, v) {
+        $(this.get('_containerSelector') + ' a.action').each(function(index, v) {
           series[index] = v.parentNode.classList;
         });
         self.set('_seriesPropertiesWidget', series);
