@@ -42,7 +42,6 @@ import org.apache.ambari.server.security.authorization.Users;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.ldap.control.PagedResultsCookie;
 import org.springframework.ldap.control.PagedResultsDirContextProcessor;
@@ -1493,6 +1492,7 @@ public class AmbariLdapDataPopulatorTest {
     list.add(dto);
 
     expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties).anyTimes();
+    expect(ldapServerProperties.isPaginationEnabled()).andReturn(true).anyTimes();
     expect(ldapServerProperties.getUserObjectClass()).andReturn("objectClass").anyTimes();
     expect(ldapServerProperties.getDnAttribute()).andReturn("dn").anyTimes();
     expect(ldapServerProperties.getBaseDN()).andReturn("baseDN").anyTimes();
@@ -1500,6 +1500,42 @@ public class AmbariLdapDataPopulatorTest {
     expect(cookie.getCookie()).andReturn(null).anyTimes();
 
     expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(|(dn=foo)(uid=foo)))"), anyObject(SearchControls.class), capture(contextMapperCapture), eq(processor))).andReturn(list);
+
+    replay(ldapTemplate, ldapServerProperties, users, configuration, processor, cookie);
+
+    AmbariLdapDataPopulatorTestInstance populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
+
+    populator.setLdapTemplate(ldapTemplate);
+    populator.setProcessor(processor);
+
+    assertEquals(dto, populator.getLdapUserByMemberAttr("foo"));
+
+    verify(ldapTemplate, ldapServerProperties, users, configuration, processor, cookie);
+  }
+
+  @Test
+  public void testGetLdapUserByMemberAttrNoPagination() throws Exception {
+
+    Configuration configuration = createNiceMock(Configuration.class);
+    Users users = createNiceMock(Users.class);
+    LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
+    LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
+    Capture<ContextMapper> contextMapperCapture = new Capture<ContextMapper>();
+    Capture<SearchControls> searchControlsCapture = new Capture<SearchControls>();
+    PagedResultsDirContextProcessor processor = createNiceMock(PagedResultsDirContextProcessor.class);
+    PagedResultsCookie cookie = createNiceMock(PagedResultsCookie.class);
+    LdapUserDto dto = new LdapUserDto();
+
+    List<LdapUserDto> list = new LinkedList<LdapUserDto>();
+    list.add(dto);
+
+    expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties).anyTimes();
+    expect(ldapServerProperties.isPaginationEnabled()).andReturn(false).anyTimes();
+    expect(ldapServerProperties.getUserObjectClass()).andReturn("objectClass").anyTimes();
+    expect(ldapServerProperties.getDnAttribute()).andReturn("dn").anyTimes();
+    expect(ldapServerProperties.getBaseDN()).andReturn("baseDN").anyTimes();
+
+    expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(|(dn=foo)(uid=foo)))"), anyObject(SearchControls.class), capture(contextMapperCapture))).andReturn(list);
 
     replay(ldapTemplate, ldapServerProperties, users, configuration, processor, cookie);
 

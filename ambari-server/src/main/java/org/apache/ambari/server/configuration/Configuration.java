@@ -161,6 +161,7 @@ public class Configuration {
   public static final String LDAP_ADMIN_GROUP_MAPPING_RULES_KEY = "authorization.ldap.adminGroupMappingRules";
   public static final String LDAP_GROUP_SEARCH_FILTER_KEY = "authorization.ldap.groupSearchFilter";
   public static final String LDAP_REFERRAL_KEY = "authentication.ldap.referral";
+  public static final String LDAP_PAGINATION_ENABLED_KEY = "authentication.ldap.pagination.enabled";
   public static final String SERVER_EC_CACHE_SIZE = "server.ecCacheSize";
   public static final String SERVER_STALE_CONFIG_CACHE_ENABLED_KEY = "server.cache.isStale.enabled";
   public static final String SERVER_PERSISTENCE_TYPE_KEY = "server.persistence.type";
@@ -336,6 +337,7 @@ public class Configuration {
   private static final int CLIENT_API_PORT_DEFAULT = 8080;
   private static final int CLIENT_API_SSL_PORT_DEFAULT = 8443;
   private static final String LDAP_BIND_ANONYMOUSLY_DEFAULT = "true";
+  private static final String LDAP_PAGINATION_ENABLED_DEFAULT = "true";
 
   /**
    * Indicator for sys prepped host
@@ -1151,9 +1153,12 @@ public class Configuration {
     ldapServerProperties.setUsernameAttribute(properties.
         getProperty(LDAP_USERNAME_ATTRIBUTE_KEY, LDAP_USERNAME_ATTRIBUTE_DEFAULT));
 
-    ldapServerProperties.setUserBase(properties.getProperty(LDAP_USER_BASE_KEY, LDAP_USER_BASE_DEFAULT));
-    ldapServerProperties.setUserObjectClass(properties.getProperty(LDAP_USER_OBJECT_CLASS_KEY, LDAP_USER_OBJECT_CLASS_DEFAULT));
-    ldapServerProperties.setDnAttribute(properties.getProperty(LDAP_DN_ATTRIBUTE_KEY, LDAP_DN_ATTRIBUTE_DEFAULT));
+    ldapServerProperties.setUserBase(properties.getProperty(
+      LDAP_USER_BASE_KEY, LDAP_USER_BASE_DEFAULT));
+    ldapServerProperties.setUserObjectClass(properties.getProperty(
+      LDAP_USER_OBJECT_CLASS_KEY, LDAP_USER_OBJECT_CLASS_DEFAULT));
+    ldapServerProperties.setDnAttribute(properties.getProperty(
+      LDAP_DN_ATTRIBUTE_KEY, LDAP_DN_ATTRIBUTE_DEFAULT));
 
     ldapServerProperties.setGroupBase(properties.
         getProperty(LDAP_GROUP_BASE_KEY, LDAP_GROUP_BASE_DEFAULT));
@@ -1167,7 +1172,10 @@ public class Configuration {
         LDAP_ADMIN_GROUP_MAPPING_RULES_KEY, LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT));
     ldapServerProperties.setGroupSearchFilter(properties.getProperty(
         LDAP_GROUP_SEARCH_FILTER_KEY, LDAP_GROUP_SEARCH_FILTER_DEFAULT));
-    ldapServerProperties.setReferralMethod(properties.getProperty(LDAP_REFERRAL_KEY, LDAP_REFERRAL_DEFAULT));
+    ldapServerProperties.setReferralMethod(properties.getProperty(
+      LDAP_REFERRAL_KEY, LDAP_REFERRAL_DEFAULT));
+    ldapServerProperties.setPaginationEnabled("true".equalsIgnoreCase(
+      properties.getProperty(LDAP_PAGINATION_ENABLED_KEY, LDAP_PAGINATION_ENABLED_DEFAULT)));
 
     if (properties.containsKey(LDAP_GROUP_BASE_KEY) ||
         properties.containsKey(LDAP_GROUP_OBJECT_CLASS_KEY) ||

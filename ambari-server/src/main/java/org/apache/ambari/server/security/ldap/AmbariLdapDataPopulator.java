@@ -42,6 +42,7 @@ import org.springframework.ldap.control.PagedResultsDirContextProcessor;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.ContextMapper;
 import org.springframework.ldap.core.DirContextAdapter;
+import org.springframework.ldap.core.DirContextProcessor;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.ldap.filter.AndFilter;
@@ -543,14 +544,18 @@ public class AmbariLdapDataPopulator {
     searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     LdapUserContextMapper ldapUserContextMapper = new LdapUserContextMapper(ldapServerProperties);
     String encodedFilter = filter.encode();
-    
+
     do {
-      for (Object dto : ldapTemplate.search(baseDn, encodedFilter, searchControls, ldapUserContextMapper, processor)) {
+      List dtos = configuration.getLdapServerProperties().isPaginationEnabled() ?
+        ldapTemplate.search(baseDn, encodedFilter, searchControls, ldapUserContextMapper, processor) :
+        ldapTemplate.search(baseDn, encodedFilter, searchControls, ldapUserContextMapper);
+      for (Object dto : dtos) {
         if (dto != null) {
           users.add((LdapUserDto)dto);
         }
       }
-    } while (processor.getCookie().getCookie() != null);
+    } while (configuration.getLdapServerProperties().isPaginationEnabled()
+      && processor.getCookie().getCookie() != null);
     return users;
   }
 

@@ -55,6 +55,9 @@ public class LdapServerProperties {
   private String groupSearchFilter;
   private static final String userSearchFilter = "({attribute}={0})";
 
+  //LDAP pagination properties
+  private boolean paginationEnabled = true;
+
   public List<String> getLdapUrls() {
     String protocol = useSsl ? "ldaps://" : "ldap://";
 
@@ -234,6 +237,14 @@ public class LdapServerProperties {
     return referralMethod;
   }
 
+  public boolean isPaginationEnabled() {
+    return paginationEnabled;
+  }
+
+  public void setPaginationEnabled(boolean paginationEnabled) {
+    this.paginationEnabled = paginationEnabled;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (this == obj) return true;
@@ -270,6 +281,10 @@ public class LdapServerProperties {
     if (dnAttribute != null ? !dnAttribute.equals(
         that.dnAttribute) : that.dnAttribute != null) return false;
     if (referralMethod != null ? !referralMethod.equals(that.referralMethod) : that.referralMethod != null) return false;
+
+    if (groupMappingEnabled != that.isGroupMappingEnabled()) return false;
+
+    if (paginationEnabled != that.isPaginationEnabled()) return false;
 
     return true;
   }
