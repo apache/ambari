@@ -120,6 +120,7 @@ CREATE TABLE hostcomponentdesiredstate (
 );
 
 CREATE TABLE hostcomponentstate (
+  id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
@@ -129,8 +130,10 @@ CREATE TABLE hostcomponentstate (
   service_name VARCHAR(255) NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
-  PRIMARY KEY (cluster_id, component_name, host_id, service_name)
+  CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id)
 );
+
+CREATE INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_name, cluster_id);
 
 CREATE TABLE hosts (
   host_id BIGINT NOT NULL,
@@ -760,8 +763,8 @@ ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_principalname 
 
 -- Alerting Framework
 CREATE TABLE alert_definition (
-  definition_id BIGINT NOT NULL, 
-  cluster_id BIGINT NOT NULL, 
+  definition_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
   definition_name VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   component_name VARCHAR(255),
@@ -858,7 +861,7 @@ CREATE TABLE alert_notice (
   notify_state VARCHAR(255) NOT NULL,
   uuid VARCHAR(64) NOT NULL UNIQUE,
   PRIMARY KEY (notification_id),
-  FOREIGN KEY (target_id) REFERENCES alert_target(target_id),  
+  FOREIGN KEY (target_id) REFERENCES alert_target(target_id),
   FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)
 );
 
@@ -947,6 +950,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_lo
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_task_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_request_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_group_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostcomponentstate_id_seq', 0);
 
 insert into adminresourcetype (resource_type_id, resource_type_name)
   select 1, 'AMBARI'

@@ -17,7 +17,25 @@
  */
 package org.apache.ambari.server.orm;
 
-import com.google.inject.Inject;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.helpers.ScriptRunner;
 import org.apache.ambari.server.orm.helpers.dbms.DbmsHelper;
@@ -41,25 +59,9 @@ import org.eclipse.persistence.sessions.DatabaseLogin;
 import org.eclipse.persistence.sessions.DatabaseSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.support.JdbcUtils;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.sql.Blob;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Pattern;
+import com.google.inject.Inject;
 
 public class DBAccessorImpl implements DBAccessor {
   private static final Logger LOG = LoggerFactory.getLogger(DBAccessorImpl.class);
@@ -70,7 +72,7 @@ public class DBAccessorImpl implements DBAccessor {
   private DatabaseMetaData databaseMetaData;
   private static final String dbURLPatternString = "jdbc:(.*?):.*";
   private DbType dbType;
-  
+
   @Inject
   public DBAccessorImpl(Configuration configuration) {
     this.configuration = configuration;
@@ -93,8 +95,8 @@ public class DBAccessorImpl implements DBAccessor {
           LOG.debug(sessionLogEntry.getMessage());
         }
       });
-      this.databasePlatform = (DatabasePlatform) Class.forName(dbPlatform).newInstance();
-      this.dbmsHelper = loadHelper(databasePlatform);
+      databasePlatform = (DatabasePlatform) Class.forName(dbPlatform).newInstance();
+      dbmsHelper = loadHelper(databasePlatform);
     } catch (Exception e) {
       String message = "Error while creating database accessor ";
       LOG.error(message, e);
@@ -195,6 +197,7 @@ public class DBAccessorImpl implements DBAccessor {
     return result;
   }
 
+  @Override
   public DbType getDbType() {
     return dbType;
   }
@@ -541,7 +544,7 @@ public class DBAccessorImpl implements DBAccessor {
     ResultSet rs = null;
     try {
     dbStatement = getConnection().createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
-            ResultSet.CONCUR_UPDATABLE); 
+            ResultSet.CONCUR_UPDATABLE);
     rs = dbStatement.executeQuery(statement);
 
     while (rs.next()) {
@@ -980,6 +983,59 @@ public class DBAccessorImpl implements DBAccessor {
       }
     }
     return indexList;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getPrimaryKeyConstraintName(String tableName) throws SQLException {
+    String primaryKeyConstraintName = null;
+    Statement statement = null;
+    ResultSet resultSet = null;
+    Configuration.DatabaseType databaseType = configuration.getDatabaseType();
+
+    switch (databaseType) {
+      case ORACLE: {
+        String lookupPrimaryKeyNameSql = MessageFormat.format(
+            "SELECT constraint_name FROM all_constraints WHERE table_name = ''{0}'' AND constraint_type = ''P''",
+            tableName.toUpperCase());
+
+        try {
+          statement = getConnection().createStatement();
+          resultSet = statement.executeQuery(lookupPrimaryKeyNameSql);
+          if (resultSet.next()) {
+            primaryKeyConstraintName = resultSet.getString("constraint_name");
+          }
+        } finally {
+          JdbcUtils.closeResultSet(resultSet);
+          JdbcUtils.closeStatement(statement);
+        }
+
+        break;
+      }
+      case SQL_SERVER: {
+        String lookupPrimaryKeyNameSql = MessageFormat.format(
+            "SELECT constraint_name FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE OBJECTPROPERTY(OBJECT_ID(constraint_name), 'IsPrimaryKey') = 1 AND table_name = {0}",
+            tableName);
+
+        try {
+          statement = getConnection().createStatement();
+          resultSet = statement.executeQuery(lookupPrimaryKeyNameSql);
+          if (resultSet.next()) {
+            primaryKeyConstraintName = resultSet.getString("constraint_name");
+          }
+        } finally {
+          JdbcUtils.closeResultSet(resultSet);
+          JdbcUtils.closeStatement(statement);
+        }
+
+      }
+      default:
+        break;
+    }
+
+    return primaryKeyConstraintName;
   }
 
 }

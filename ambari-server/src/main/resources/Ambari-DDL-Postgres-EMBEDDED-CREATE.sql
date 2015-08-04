@@ -27,10 +27,6 @@ CREATE SCHEMA ambari AUTHORIZATION :username;
 ALTER SCHEMA ambari OWNER TO :username;
 ALTER ROLE :username SET search_path TO 'ambari';
 
--- DEVELOPER COMMENT
--- Ambari is transitioning to make the host_id the FK instead of the host_name.
--- Please do not remove lines that are related to this change and are being staged.
-
 ------create tables and grant privileges to db user---------
 CREATE TABLE ambari.stack(
   stack_id BIGINT NOT NULL,
@@ -145,6 +141,7 @@ CREATE TABLE ambari.hostcomponentdesiredstate (
 GRANT ALL PRIVILEGES ON TABLE ambari.hostcomponentdesiredstate TO :username;
 
 CREATE TABLE ambari.hostcomponentstate (
+  id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
@@ -154,9 +151,10 @@ CREATE TABLE ambari.hostcomponentstate (
   service_name VARCHAR(255) NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
-  PRIMARY KEY (cluster_id, component_name, host_id, service_name)
+  CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id)
 );
 GRANT ALL PRIVILEGES ON TABLE ambari.hostcomponentstate TO :username;
+CREATE INDEX idx_host_component_state on ambari.hostcomponentstate(host_id, component_name, service_name, cluster_id);
 
 CREATE TABLE ambari.hosts (
   host_id BIGINT NOT NULL,
@@ -837,8 +835,8 @@ ALTER TABLE ambari.kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_princip
 
 -- Alerting Framework
 CREATE TABLE ambari.alert_definition (
-  definition_id BIGINT NOT NULL, 
-  cluster_id BIGINT NOT NULL, 
+  definition_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
   definition_name VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   component_name VARCHAR(255),
@@ -917,7 +915,7 @@ CREATE TABLE ambari.alert_group_target (
   target_id BIGINT NOT NULL,
   PRIMARY KEY (group_id, target_id),
   FOREIGN KEY (group_id) REFERENCES ambari.alert_group(group_id),
-  FOREIGN KEY (target_id) REFERENCES ambari.alert_target(target_id)  
+  FOREIGN KEY (target_id) REFERENCES ambari.alert_target(target_id)
 );
 
 CREATE TABLE ambari.alert_grouping (
@@ -925,7 +923,7 @@ CREATE TABLE ambari.alert_grouping (
   group_id BIGINT NOT NULL,
   PRIMARY KEY (group_id, definition_id),
   FOREIGN KEY (definition_id) REFERENCES ambari.alert_definition(definition_id),
-  FOREIGN KEY (group_id) REFERENCES ambari.alert_group(group_id)  
+  FOREIGN KEY (group_id) REFERENCES ambari.alert_group(group_id)
 );
 
 CREATE TABLE ambari.alert_notice (
@@ -935,7 +933,7 @@ CREATE TABLE ambari.alert_notice (
   notify_state VARCHAR(255) NOT NULL,
   uuid VARCHAR(64) NOT NULL UNIQUE,
   PRIMARY KEY (notification_id),
-  FOREIGN KEY (target_id) REFERENCES ambari.alert_target(target_id),  
+  FOREIGN KEY (target_id) REFERENCES ambari.alert_target(target_id),
   FOREIGN KEY (history_id) REFERENCES ambari.alert_history(alert_id)
 );
 
@@ -1057,9 +1055,9 @@ INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
   union all
   select 'service_config_id_seq', 1
   union all
-  select 'upgrade_id_seq', 0 
+  select 'upgrade_id_seq', 0
   union all
-  select 'upgrade_group_id_seq', 0 
+  select 'upgrade_group_id_seq', 0
   union all
   select 'widget_id_seq', 0
   union all
@@ -1081,7 +1079,9 @@ INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
   union all
   select 'topology_request_id_seq', 0
   union all
-  select 'topology_host_group_id_seq', 0;
+  select 'topology_host_group_id_seq', 0
+  union all
+  select 'hostcomponentstate_id_seq', 0;
 
 INSERT INTO ambari.adminresourcetype (resource_type_id, resource_type_name)
   SELECT 1, 'AMBARI'

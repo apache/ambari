@@ -20,6 +20,7 @@ package org.apache.ambari.server.state.svccomphost;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +49,6 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
@@ -78,6 +78,7 @@ import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,11 +145,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   // TODO : caching the JPA entities here causes issues if they become stale and get re-merged.
   private HostComponentStateEntity stateEntity;
   private HostComponentDesiredStateEntity desiredStateEntity;
-
-  /**
-   * The component state entity PK.
-   */
-  private final HostComponentStateEntityPK stateEntityPK;
 
   /**
    * The desired component state entity PK.
@@ -722,8 +718,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     stateEntity.setUpgradeState(UpgradeState.NONE);
     stateEntity.setCurrentStack(stackEntity);
 
-    stateEntityPK = getHostComponentStateEntityPK(stateEntity);
-
     desiredStateEntity = new HostComponentDesiredStateEntity();
     desiredStateEntity.setClusterId(serviceComponent.getClusterId());
     desiredStateEntity.setComponentName(serviceComponent.getName());
@@ -756,7 +750,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     this.stateEntity = stateEntity;
 
     desiredStateEntityPK = getHostComponentDesiredStateEntityPK(desiredStateEntity);
-    stateEntityPK = getHostComponentStateEntityPK(stateEntity);
 
     //TODO implement State Machine init as now type choosing is hardcoded in above code
     if (serviceComponent.isClientComponent()) {
@@ -1381,13 +1374,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Transactional
   protected void removeEntities() {
-    HostComponentStateEntityPK pk = new HostComponentStateEntityPK();
-    pk.setClusterId(stateEntity.getClusterId());
-    pk.setComponentName(stateEntity.getComponentName());
-    pk.setServiceName(stateEntity.getServiceName());
-    pk.setHostId(stateEntity.getHostId());
-
-    hostComponentStateDAO.removeByPK(pk);
+    HostComponentStateEntity stateEntity = getStateEntity();
+    if (null != stateEntity) {
+      hostComponentStateDAO.remove(stateEntity);
+    }
 
     HostComponentDesiredStateEntityPK desiredPK = new HostComponentDesiredStateEntityPK();
     desiredPK.setClusterId(desiredStateEntity.getClusterId());
@@ -1608,11 +1598,33 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     return desiredStateEntity;
   }
 
-  // Get the cached state entity or load it fresh through the DAO.
+  /**
+   * Gets the state entity for this {@link ServiceComponentHost}.
+   *
+   * @return the {@link HostComponentStateEntity} for this
+   *         {@link ServiceComponentHost}, or {@code null} if there is none.
+   */
   private HostComponentStateEntity getStateEntity() {
     if (isPersisted()) {
-      stateEntity = hostComponentStateDAO.findByPK(stateEntityPK);
+      final HostEntity host = hostDAO.findById(stateEntity.getHostId());
+      Collection<HostComponentStateEntity> hostComponentStateEntities = host.getHostComponentStateEntities();
+      for (HostComponentStateEntity hostComponentStateEntity : hostComponentStateEntities) {
+        String serviceName = stateEntity.getServiceName();
+        String componentName = stateEntity.getComponentName();
+        Long clusterId = stateEntity.getClusterId();
+        Long hostId = stateEntity.getHostId();
+
+        if (StringUtils.equals(hostComponentStateEntity.getServiceName(), serviceName)
+            && StringUtils.equals(hostComponentStateEntity.getComponentName(), componentName)
+            && hostComponentStateEntity.getClusterId() == clusterId
+            && hostComponentStateEntity.getHostId() == hostId) {
+
+          stateEntity = hostComponentStateEntity;
+          return stateEntity;
+        }
+      }
     }
+
     return stateEntity;
   }
 
@@ -1626,15 +1638,5 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     dpk.setServiceName(desiredStateEntity.getServiceName());
     dpk.setHostId(desiredStateEntity.getHostId());
     return dpk;
-  }
-
-  // create a PK object from the given component state entity.
-  private static HostComponentStateEntityPK getHostComponentStateEntityPK(HostComponentStateEntity stateEntity) {
-    HostComponentStateEntityPK pk = new HostComponentStateEntityPK();
-    pk.setClusterId(stateEntity.getClusterId());
-    pk.setComponentName(stateEntity.getComponentName());
-    pk.setServiceName(stateEntity.getServiceName());
-    pk.setHostId(stateEntity.getHostId());
-    return pk;
   }
 }

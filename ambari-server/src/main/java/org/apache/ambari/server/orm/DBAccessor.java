@@ -19,10 +19,10 @@ package org.apache.ambari.server.orm;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.eclipse.persistence.sessions.DatabaseSession;
 
@@ -483,7 +483,7 @@ public interface DBAccessor {
 
   /**
    * Gets the column's SQL type
-   * 
+   *
    * @param tableName
    *          the name of the table (not {@code null}).
    * @param columnName
@@ -516,7 +516,7 @@ public interface DBAccessor {
 
   /**
    * Sets the specified column to either allow or prohibit {@code NULL}.
-   * 
+   *
    * @param tableName
    *          the name of the table (not {@code null}).
    * @param columnInfo
@@ -541,6 +541,18 @@ public interface DBAccessor {
    * @throws SQLException
    */
   void changeColumnType(String tableName, String columnName, Class fromType, Class toType) throws SQLException;
+
+  /**
+   * Queries the database to determine the name of the primary key constraint on
+   * the specified table. Currently, this is only implemented for
+   * {@link DatabaseType#ORACLE} and {@link DatabaseType#SQL_SERVER}.
+   *
+   * @param tableName
+   *          the name of the table to lookup the PK constraint.
+   * @return the name of the PK, or {@code null} if none.
+   * @throws SQLException
+   */
+  String getPrimaryKeyConstraintName(String tableName) throws SQLException;
 
   enum DbType {
     ORACLE,

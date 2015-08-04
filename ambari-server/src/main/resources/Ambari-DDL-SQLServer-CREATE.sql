@@ -138,6 +138,7 @@ CREATE TABLE hostcomponentdesiredstate (
 );
 
 CREATE TABLE hostcomponentstate (
+  id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
@@ -147,8 +148,10 @@ CREATE TABLE hostcomponentstate (
   service_name VARCHAR(255) NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
-  PRIMARY KEY CLUSTERED (cluster_id, component_name, host_id, service_name)
+  CONSTRAINT pk_hostcomponentstate PRIMARY KEY CLUSTERED (id)
 );
+
+CREATE NONCLUSTERED INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_name, cluster_id);
 
 CREATE TABLE hosts (
   host_id BIGINT NOT NULL,
@@ -324,7 +327,7 @@ CREATE TABLE requestoperationlevel (
   host_id BIGINT NULL,      -- unlike most host_id columns, this one allows NULLs because the request can be at the service level
   PRIMARY KEY CLUSTERED (operation_level_id)
   );
-  
+
 CREATE TABLE ClusterHostMapping (
   cluster_id BIGINT NOT NULL,
   host_id BIGINT NOT NULL,
@@ -1055,7 +1058,8 @@ BEGIN TRANSACTION
     ('topology_logical_request_id_seq', 0),
     ('topology_logical_task_id_seq', 0),
     ('topology_request_id_seq', 0),
-    ('topology_host_group_id_seq', 0);
+    ('topology_host_group_id_seq', 0),
+    ('hostcomponentstate_id_seq', 0);
 
   insert into adminresourcetype (resource_type_id, resource_type_name)
   values

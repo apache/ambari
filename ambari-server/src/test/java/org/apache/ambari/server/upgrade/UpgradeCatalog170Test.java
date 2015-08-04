@@ -100,8 +100,6 @@ import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.KeyValueEntity;
@@ -636,14 +634,6 @@ public class UpgradeCatalog170Test {
     hcDesiredStateEntityPk.setHostId(hostEntity.getHostId());
     HostComponentDesiredStateEntity hcDesiredStateEntity = hostComponentDesiredStateDAO.findByPK(hcDesiredStateEntityPk);
     assertNotNull(hcDesiredStateEntity);
-
-    HostComponentStateEntityPK hcStateEntityPk  = new HostComponentStateEntityPK();
-    hcStateEntityPk.setServiceName("HIVE");
-    hcStateEntityPk.setClusterId(clusterEntity.getClusterId());
-    hcStateEntityPk.setComponentName("HCAT");
-    hcStateEntityPk.setHostId(hostEntity.getHostId());
-    HostComponentStateEntity hcStateEntity = hostComponentStateDAO.findByPK(hcStateEntityPk);
-    assertNotNull(hcStateEntity);
   }
 
   @Test

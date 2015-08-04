@@ -24,8 +24,6 @@ import static org.junit.Assert.fail;
 import java.util.HashMap;
 import java.util.Map;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
@@ -39,7 +37,6 @@ import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
@@ -50,6 +47,8 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import junit.framework.Assert;
 
 public class ServiceComponentTest {
 
@@ -271,22 +270,17 @@ public class ServiceComponentTest {
 
     HostComponentDesiredStateEntityPK dPK =
         new HostComponentDesiredStateEntityPK();
-    HostComponentStateEntityPK lPK =
-        new HostComponentStateEntityPK();
 
     dPK.setClusterId(cluster.getClusterId());
     dPK.setComponentName(componentName);
     dPK.setHostId(hostEntity1.getHostId());
     dPK.setServiceName(serviceName);
-    lPK.setClusterId(cluster.getClusterId());
-    lPK.setComponentName(componentName);
-    lPK.setHostId(hostEntity1.getHostId());
-    lPK.setServiceName(serviceName);
 
     HostComponentDesiredStateEntity desiredStateEntity =
         desiredStateDAO.findByPK(dPK);
-    HostComponentStateEntity stateEntity =
-        liveStateDAO.findByPK(lPK);
+
+    HostComponentStateEntity stateEntity = liveStateDAO.findByIndex(cluster.getClusterId(),
+        serviceName, componentName, hostEntity1.getHostId());
 
     ServiceComponentHost sch = serviceComponentHostFactory.createExisting(sc,
         stateEntity, desiredStateEntity);
