@@ -30,6 +30,7 @@ from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from get_kinit_path import get_kinit_path
 from get_klist_path import get_klist_path
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 # hashlib is supplied as of Python 2.5 as the replacement interface for md5
 # and other secure hashes.  In 2.6, md5 is deprecated.  Import hashlib if
 # available, avoiding a deprecation warning under 2.6.  Import md5 otherwise,
@@ -98,14 +99,14 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
 
   try:
     if return_only_http_code:
-      _, curl_stdout, curl_stderr = shell.checked_call(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
+      _, curl_stdout, curl_stderr = get_user_call_output(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
                              '%{http_code}', url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout), '-o', '/dev/null'],
-                             stderr=subprocess.PIPE, env=kerberos_env, user=user)
+                             user=user, env=kerberos_env)
     else:
       # returns response body
-      _, curl_stdout, curl_stderr = shell.checked_call(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
+      _, curl_stdout, curl_stderr = get_user_call_output(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
                              url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout)],
-                             stderr=subprocess.PIPE, env=kerberos_env, user=user)
+                             user=user, env=kerberos_env)
   except Fail:
     if logger.isEnabledFor(logging.DEBUG):
       logger.exception("[Alert][{0}] Unable to make a web request.".format(alert_name))
