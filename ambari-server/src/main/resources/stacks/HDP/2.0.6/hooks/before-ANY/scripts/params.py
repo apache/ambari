@@ -19,7 +19,6 @@ limitations under the License.
 
 import collections
 import re
-import os
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -91,7 +90,6 @@ hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 hadoop_secure_dn_user = hdfs_user
 hadoop_dir = "/etc/hadoop"
 versioned_hdp_root = '/usr/hdp/current'
-hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
 
 # HDP 2.2+ params
 if Script.is_hdp_stack_greater_or_equal("2.2"):
