@@ -787,6 +787,7 @@ describe("App.MainServiceInfoConfigsController", function () {
 
     describe('#bodyClass', function () {
       beforeEach(function() {
+        sinon.stub(App.StackService, 'find').returns([{dependentServiceNames: []}]);
         sinon.stub(App.ajax, 'send', Em.K);
         // default implementation
         bodyView = mainServiceInfoConfigsController.showSaveConfigsPopup().get('bodyClass').create({
@@ -796,6 +797,7 @@ describe("App.MainServiceInfoConfigsController", function () {
 
       afterEach(function() {
         App.ajax.send.restore();
+        App.StackService.find.restore();
       });
 
       describe('#componentsFilterSuccessCallback', function () {
