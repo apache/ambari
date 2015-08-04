@@ -35,7 +35,7 @@ from ambari_commons.logging_utils import print_warning_msg, print_error_msg, pri
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.os_utils import is_root, set_file_permissions, \
-  run_os_command, search_file, is_valid_filepath, change_owner
+  run_os_command, search_file, is_valid_filepath, change_owner, get_ambari_repo_file_full_name, get_file_owner
 from ambari_server.serverConfiguration import configDefaults, \
   encrypt_password, find_jdk, find_properties_file, get_alias_string, get_ambari_properties, get_conf_dir, \
   get_credential_store_location, get_full_ambari_classpath, get_is_persisted, get_is_secure, get_master_key_location, \
@@ -164,6 +164,16 @@ def adjust_directory_permissions(ambari_user):
     if(os.path.exists(jdk_security_dir)):
       configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((jdk_security_dir, "644", "{0}", True))
       configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((jdk_security_dir, "755", "{0}", False))
+
+  # Grant read permissions to all users. This is required when a non-admin user is configured to setup ambari-server.
+  # However, do not change ownership of the repo file to ambari user.
+
+  ambari_repo_file = get_ambari_repo_file_full_name()
+
+  if ambari_repo_file:
+    ambari_repo_file_owner = get_file_owner(ambari_repo_file)
+    configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((ambari_repo_file, "644", ambari_repo_file_owner, False))
+
 
   print "Adjusting ambari-server permissions and ownership..."
 

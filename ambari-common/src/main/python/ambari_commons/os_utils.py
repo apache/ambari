@@ -21,6 +21,8 @@ limitations under the License.
 import os
 import shutil
 import string
+import pwd
+import stat
 
 from ambari_commons import OSCheck
 
@@ -143,3 +145,22 @@ def extract_path_component(path, path_fragment):
     return path_component
   else:
     return None
+
+# Gets the full path of the ambari repo file for the current OS
+def get_ambari_repo_file_full_name():
+  if OSCheck.is_ubuntu_family():
+    ambari_repo_file = "/etc/apt/sources.list.d/ambari.list"
+  elif OSCheck.is_redhat_family():
+    ambari_repo_file = "/etc/yum.repos.d/ambari.repo"
+  elif OSCheck.is_suse_family():
+    ambari_repo_file = "/etc/zypp/repos.d/ambari.repo"
+  elif OSCheck.is_windows_family():
+    ambari_repo_file = ""
+  else:
+    raise Exception('Ambari repo file path not set for current OS.')
+
+  return ambari_repo_file
+
+# Gets the owner of the specified file
+def get_file_owner(file_full_name):
+  return pwd.getpwuid(os.stat(file_full_name).st_uid).pw_name

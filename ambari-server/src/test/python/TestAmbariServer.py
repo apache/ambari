@@ -1136,6 +1136,8 @@ class TestAmbariServer(TestCase):
     self.assertEquals(user, None)
     pass
 
+  @patch("ambari_server.setupSecurity.get_file_owner")
+  @patch("ambari_server.setupSecurity.get_ambari_repo_file_full_name")
   @patch("os.path.exists")
   @patch("ambari_server.setupSecurity.set_file_permissions")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
@@ -1147,7 +1149,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.change_owner")
   def test_adjust_directory_permissions(self, change_owner_mock, print_info_msg_mock, rmtree_mock, mkdir_mock,
                                         get_value_from_properties_mock, get_resources_location_mock,
-                                        get_ambari_properties_mock, set_file_permissions_mock, exists_mock):
+                                        get_ambari_properties_mock, set_file_permissions_mock, exists_mock,
+                                        get_ambari_repo_file_full_name_mock, get_file_owner_mock):
     # Testing boostrap dir wipe
     properties_mock = Properties()
     properties_mock.process_pair(JDK_NAME_PROPERTY, "dummy_jdk")
@@ -1188,6 +1191,64 @@ class TestAmbariServer(TestCase):
     finally:
       configDefaults.NR_ADJUST_OWNERSHIP_LIST = old_adjust_owner_list
       configDefaults.NR_CHANGE_OWNERSHIP_LIST = old_change_owner_list
+    pass
+
+    #
+    # Test ambari repo file permission change call
+    #
+
+    # Reset the set_file_permissions() mock function
+    set_file_permissions_mock.reset_mock()
+
+    # Save the existing permissions list
+    old_adjust_owner_list = configDefaults.NR_ADJUST_OWNERSHIP_LIST
+
+    # Set up the mock function for os_utils.get_ambari_repo_file_full_name()
+    get_ambari_repo_file_full_name_mock.return_value = "ambari.dummy.repo"
+
+    # Set up the mock function for os_utils.get_file_owner()
+    get_file_owner_mock.return_value = "dummy.root"
+
+    try:
+      # Clear the list of files whose permissions are to be changed
+      configDefaults.NR_ADJUST_OWNERSHIP_LIST = [
+      ]
+
+      # Call the function to be tested.
+      adjust_directory_permissions("dummy_user")
+
+      # Assert that set_file_permissions() was called
+      self.assertTrue(set_file_permissions_mock.called)
+
+      # One of the entries in NR_ADJUST_OWNERSHIP_LIST should be the full path to the ambari repo file.
+      # These are the expected values:
+
+      ambari_repo_file_entry = (
+          get_ambari_repo_file_full_name_mock(),
+          '644',
+          get_file_owner_mock(),
+          False
+      )
+
+      # Assert the arguments to the call set_file_permissions() - got from NR_ADJUST_OWNERSHIP_LIST
+      # Flag to ensure we found our entry in the set_file_permissions() call
+      entry_found = False
+
+      for args_entry in set_file_permissions_mock.call_args_list:
+        if args_entry[0][0] == ambari_repo_file_entry[0]:  # File name
+          # ambari repo file name matched; assert the rest of the entries
+          self.assertEquals(args_entry[0][1], ambari_repo_file_entry[1]) # Permissions
+          self.assertEquals(args_entry[0][2], ambari_repo_file_entry[2]) # File owner
+          self.assertEquals(args_entry[0][3], ambari_repo_file_entry[3]) # Non-recursive
+          entry_found = True
+          break
+
+      # Ensure that the ambari repo file entry was found
+      self.assertTrue(entry_found)
+
+    finally:
+      # Restore the permissions list
+      configDefaults.NR_ADJUST_OWNERSHIP_LIST = old_adjust_owner_list
     pass
 
   @not_for_platform(PLATFORM_WINDOWS)
