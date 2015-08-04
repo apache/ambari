@@ -37,7 +37,6 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
@@ -52,11 +51,9 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 import static org.easymock.EasyMock.*;
-import static org.easymock.EasyMock.createNiceMock;
 
 
 /**
@@ -166,12 +163,9 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
     Method updateKerberosConfigurations =
         UpgradeCatalog211.class.getDeclaredMethod("updateKerberosConfigurations", Cluster.class);
 
-    Method addMissingConfigs = UpgradeCatalog211.class.getDeclaredMethod("addMissingConfigs");
-
     UpgradeCatalog211 upgradeCatalog211 = createMockBuilder(UpgradeCatalog211.class)
         .addMockedMethod(addNewConfigurationsFromXml)
         .addMockedMethod(updateKerberosConfigurations)
-        .addMockedMethod(addMissingConfigs)
         .createMock();
 
     setInjector(upgradeCatalog211, injector);
@@ -180,9 +174,6 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
     expectLastCall().once();
 
     upgradeCatalog211.updateKerberosConfigurations(anyObject(Cluster.class));
-    expectLastCall().once();
-
-    upgradeCatalog211.addMissingConfigs();
     expectLastCall().once();
 
     replayAll();

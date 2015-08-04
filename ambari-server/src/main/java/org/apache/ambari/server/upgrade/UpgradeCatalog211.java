@@ -26,13 +26,9 @@ import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.commons.lang.StringUtils;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -98,7 +94,6 @@ public class UpgradeCatalog211 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
-    addMissingConfigs();
     updateExistingConfigurations();
   }
 
@@ -152,41 +147,6 @@ public class UpgradeCatalog211 extends AbstractUpgradeCatalog {
       Set<String> removes = Collections.singleton("create_attributes_template");
 
       updateConfigurationPropertiesForCluster(cluster, "kerberos-env", updates, removes, true, false);
-    }
-  }
-
-  protected void addMissingConfigs() throws AmbariException {
-    updateHdfsConfigs();
-  }
-
-  protected void updateHdfsConfigs() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(
-        AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-
-    if (clusters != null) {
-      Map<String, Cluster> clusterMap = clusters.getClusters();
-      Map<String, String> prop = new HashMap<String, String>();
-      String content = null;
-
-      if (clusterMap != null && !clusterMap.isEmpty()) {
-        for (final Cluster cluster : clusterMap.values()) {
-          content = null;
-          if (cluster.getDesiredConfigByType("hadoop-env") != null) {
-            content = cluster.getDesiredConfigByType(
-                "hadoop-env").getProperties().get("content");
-          }
-
-          if (content != null) {
-            content += "\nexport JAVA_LIBRARY_PATH=\"${JAVA_LIBRARY_PATH}:{{hadoop_java_io_tmpdir}}\"";
-            content += "\nexport _JAVA_OPTIONS=\"${_JAVA_OPTIONS} -Djava.io.tmpdir={{hadoop_java_io_tmpdir}}\"\n";
-
-            prop.put("content", content);
-            updateConfigurationPropertiesForCluster(cluster, "hadoop-env",
-                prop, true, false);
-          }
-        }
-      }
     }
   }
 }

@@ -46,10 +46,6 @@ export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
 # Path to jsvc required by secure HDP 2.0 datanode
 export JSVC_HOME={{jsvc_path}}
 
-# Handle a situation when /tmp is set to noexec
-export JAVA_LIBRARY_PATH="${JAVA_LIBRARY_PATH}:{{hadoop_java_io_tmpdir}}"
-export _JAVA_OPTIONS="${_JAVA_OPTIONS} -Djava.io.tmpdir={{hadoop_java_io_tmpdir}}"
-
 
 # The maximum amount of heap to use, in MB. Default is 1000.
 export HADOOP_HEAPSIZE="{{hadoop_heapsize}}"
