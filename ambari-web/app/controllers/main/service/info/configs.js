@@ -295,8 +295,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    */
   loadStep: function () {
     var serviceName = this.get('content.serviceName');
-    this.set('dependentServiceNames', App.StackService.find(serviceName).get('dependentServiceNames'));
     this.clearStep();
+    this.set('dependentServiceNames', App.StackService.find(serviceName).get('dependentServiceNames'));
     if (App.get('isClusterSupportsEnhancedConfigs')) {
       this.loadConfigTheme(serviceName).always(function() {
         App.themesMapper.generateAdvancedTabs([serviceName]);
