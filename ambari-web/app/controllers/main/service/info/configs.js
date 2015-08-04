@@ -39,7 +39,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
   selectedConfigGroup: null,
 
-  requestInProgress: null,
+  requestsInProgress: [],
 
   groupsStore: App.ServiceConfigGroup.find(),
 
@@ -98,14 +98,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   }.property('content.serviceName', 'dependentServiceNames.length'),
 
   /**
-   * defines which config groups need to be loaded
-   * @type {object[]}
-   */
-  configGroupsToLoad: function() {
-    return this.get('configGroups').concat(this.get('dependentConfigGroups')).uniq();
-  }.property('content.serviceName', 'dependentServiceNames'),
-
-  /**
    * @type {boolean}
    */
   isCurrentSelected: function () {
@@ -123,10 +115,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   serviceConfigs: function () {
     return App.config.get('preDefinedServiceConfigs');
   }.property('App.config.preDefinedServiceConfigs'),
-
-  configs: function () {
-    return  App.config.get('preDefinedSiteProperties');
-  }.property('App.config.preDefinedSiteProperties'),
 
   showConfigHistoryFeature: true,
 
@@ -161,8 +149,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   isPropertiesChanged: function(){
     return this.get('stepConfigs').someProperty('isPropertiesChanged', true);
   }.property('stepConfigs.@each.isPropertiesChanged'),
-
-  slaveComponentGroups: null,
 
   /**
    * Filter text will be located here
@@ -199,14 +185,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   ],
 
   /**
-   * get array of config proerties that are shown in settings tab
+   * get array of config properties that are shown in settings tab
    * @type {App.StackConfigProperty[]}
    */
   settingsTabProperties: function() {
     var properties = [];
     App.Tab.find(this.get('content.serviceName') + '_settings').get('sections').forEach(function(s) {
       s.get('subSections').forEach(function(ss) {
-        properties = ss.get('configProperties');
+        properties = properties.concat(ss.get('configProperties').filterProperty('id'));
       });
     });
     return properties;
@@ -249,7 +235,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method trackRequest
    */
   trackRequest: function (request) {
-    this.set('requestInProgress', request);
+    this.get('requestsInProgress').push(request);
   },
 
   /**
@@ -257,10 +243,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method clearStep
    */
   clearStep: function () {
-    if (this.get('requestInProgress') && this.get('requestInProgress').readyState !== 4) {
-      this.get('requestInProgress').abort();
-      this.set('requestInProgress', null);
-    }
+    this.get('requestsInProgress').forEach(function(r) {
+      if (r && r.readyState !== 4) {
+        r.abort();
+      }
+    });
+    this.get('requestsInProgress').clear();
     this.clearLoadInfo();
     this.clearSaveInfo();
     this.clearDependentConfigs();
@@ -272,7 +260,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       dataIsLoaded: false,
       versionLoaded: false,
       filter: '',
-      serviceConfigVersionNote: ''
+      serviceConfigVersionNote: '',
+      dependentServiceNames: []
     });
     this.get('filterColumns').setEach('selected', false);
     this.clearConfigs();
@@ -286,13 +275,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     this.set('allConfigs', []);
     this.set('selectedService', null);
   },
-
-  /**
-   * @type {object[]}
-   */
-  serviceConfigProperties: function () {
-    return App.db.getServiceConfigProperties();
-  }.property('content'),
 
   /**
    * "Finger-print" of the <code>stepConfigs</code>. Filled after first configGroup selecting
@@ -320,6 +302,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
         App.themesMapper.generateAdvancedTabs([serviceName]);
       });
     }
+    if (!this.get('preSelectedConfigVersion')) {
+      this.loadCurrentVersions();
+    }
     this.loadServiceConfigVersions();
   },
 
@@ -330,17 +315,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method getHash
    */
   getHash: function () {
-    if (!this.get('stepConfigs')[0]) {
+    if (!this.get('selectedService.configs.length')) {
       return null;
     }
     var hash = {};
     this.get('selectedService.configs').forEach(function (config) {
-      hash[config.get('name')] = {value: config.get('value'), overrides: [], isFinal: config.get('isFinal')};
+      hash[config.get('name')] = {value: App.config.formatPropertyValue(config), overrides: [], isFinal: config.get('isFinal')};
       if (!config.get('overrides')) return;
       if (!config.get('overrides.length')) return;
 
       config.get('overrides').forEach(function (override) {
-        hash[config.get('name')].overrides.push(override.get('value'));
+        hash[config.get('name')].overrides.push(App.config.formatPropertyValue(override));
       });
     });
     return JSON.stringify(hash);
@@ -571,17 +556,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method _getRecommendationsForDependenciesCallback
    */
   _onLoadComplete: function () {
-    var self = this;
     this.get('stepConfigs').forEach(function(serviceConfig){
       serviceConfig.set('initConfigsLength', serviceConfig.get('configs.length'));
     });
     this.setProperties({
       dataIsLoaded: true,
       versionLoaded: true,
-      isInit: false
-    });
-    Em.run.next(function() {
-      self.set('hash', self.getHash());
+      isInit: false,
+      hash: this.getHash()
     });
   },
 

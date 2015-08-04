@@ -121,7 +121,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
     c.service_name = App.config.getPropertyIfExists('serviceName', c.service_name, advancedData, uiConfigProperty);
 
     config.category = App.config.getPropertyIfExists('category', App.config.getDefaultCategory(true, c.type), advancedData, uiConfigProperty);
-    config.display_type = App.config.getPropertyIfExists('displayType', App.config.getDefaultDisplayType(c.property_name, c.type, c.property_value), advancedData, uiConfigProperty);
+    config.display_type = App.config.getPropertyIfExists('displayType', Em.get(c, 'property_value_attributes.type') || App.config.getDefaultDisplayType(c.property_name, c.type, c.property_value), advancedData, uiConfigProperty);
     config.index = App.config.getPropertyIfExists('index', null, advancedData, uiConfigProperty);
   },
 
