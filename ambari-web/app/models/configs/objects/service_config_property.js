@@ -355,6 +355,11 @@ App.ServiceConfigProperty = Em.Object.extend({
     if (!isError) {
       switch (this.get('displayType')) {
         case 'int':
+          if (('' + value).trim().length === 0) {
+            this.set('errorMessage', '');
+            isError = false;
+            return;
+          }
           if (validator.isConfigValueLink(value)) {
             isError = false;
           } else if (!validator.isValidInt(value)) {
