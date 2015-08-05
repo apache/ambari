@@ -108,27 +108,29 @@ def setup_ranger_db(rolling_upgrade=False):
   import params
   
   File(params.downloaded_custom_connector,
-    content = DownloadSource(params.driver_curl_source)
+    content = DownloadSource(params.driver_curl_source),
+    mode = 0644
   )
 
   Directory(params.java_share_dir,
     mode=0755
   )
 
-  if not os.path.isfile(params.driver_curl_target):
-    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
-      path=["/bin", "/usr/bin/"],
-      not_if=format("test -f {driver_curl_target}"),
-      sudo=True)
+  Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
+    path=["/bin", "/usr/bin/"],
+    sudo=True)
+
+  File(params.driver_curl_target, mode=0644)
 
   ranger_home = params.ranger_home
   if rolling_upgrade:
     ranger_home = format("/usr/hdp/{version}/ranger-admin")
 
-  if not os.path.isfile(os.path.join(params.ranger_home, 'ews', 'lib',params.jdbc_jar_name)):
-    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(params.ranger_home, 'ews', 'lib')),
-      path=["/bin", "/usr/bin/"],
-      sudo=True)
+  Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(params.ranger_home, 'ews', 'lib')),
+    path=["/bin", "/usr/bin/"],
+    sudo=True)
+
+  File(os.path.join(params.ranger_home, 'ews', 'lib',params.jdbc_jar_name), mode=0644)
 
   ModifyPropertiesFile(format("{ranger_home}/install.properties"),
     properties = params.config['configurations']['admin-properties'],

@@ -39,13 +39,16 @@ def setup_ranger_plugin(component_select_name, service_name,
                         policy_user, policymgr_mgr_url,
                         plugin_enabled,api_version=None, **kwargs):
   File(downloaded_custom_connector,
-       content = DownloadSource(driver_curl_source)
+      content = DownloadSource(driver_curl_source),
+      mode = 0644
   )
 
   Execute(('cp', '--remove-destination', downloaded_custom_connector, driver_curl_target),
-          not_if=format("test -f {driver_curl_target}"),
+          path=["/bin", "/usr/bin/"],
           sudo=True
   )
+
+  File(driver_curl_target, mode=0644)
 
   hdp_version = get_hdp_version(component_select_name)
   file_path = format('/usr/hdp/{hdp_version}/ranger-{service_name}-plugin/install.properties')

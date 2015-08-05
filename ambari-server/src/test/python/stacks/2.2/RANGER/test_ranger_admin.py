@@ -115,14 +115,17 @@ class TestRangerAdmin(RMFTestCase):
                               environment = {})
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar'),
+        mode = 0644
     )
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
      '/tmp/mysql-connector-java.jar',
      '/usr/share/java/mysql-connector-java.jar'),
-        not_if = 'test -f /usr/share/java/mysql-connector-java.jar',
         sudo = True,
         path = ['/bin', '/usr/bin/'],
+    )
+    self.assertResourceCalled('File', '/usr/share/java/mysql-connector-java.jar',
+      mode = 0644
     )
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
         properties = self.getConfig()['configurations']['admin-properties'],
@@ -144,14 +147,17 @@ class TestRangerAdmin(RMFTestCase):
                               environment = {})
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar'),
+        mode = 0644
     )
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
      '/tmp/mysql-connector-java.jar',
      '/usr/share/java/mysql-connector-java.jar'),
-        not_if = 'test -f /usr/share/java/mysql-connector-java.jar',
         sudo = True,
         path = ['/bin', '/usr/bin/'],
+    )
+    self.assertResourceCalled('File', '/usr/share/java/mysql-connector-java.jar',
+      mode = 0644
     )
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
         properties = self.getConfig()['configurations']['admin-properties'],
