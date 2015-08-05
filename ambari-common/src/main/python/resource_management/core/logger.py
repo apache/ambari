@@ -24,6 +24,7 @@ __all__ = ["Logger"]
 import sys
 import logging
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
+from resource_management.core.utils import PasswordString
 
 MESSAGE_MAX_LEN = 512
 DICTIONARY_MAX_LEN = 5
@@ -71,19 +72,19 @@ class Logger:
 
   @staticmethod
   def error_resource(resource):
-    Logger.error(Logger.filter_text(resource.get_function_repr()))
+    Logger.error(Logger.filter_text(Logger._get_resource_repr(resource)))
 
   @staticmethod
   def warning_resource(resource):
-    Logger.warning(Logger.filter_text(resource.get_function_repr()))
+    Logger.warning(Logger.filter_text(Logger._get_resource_repr(resource)))
 
   @staticmethod
   def info_resource(resource):
-    Logger.info(Logger.filter_text(resource.get_function_repr()))
+    Logger.info(Logger.filter_text(Logger._get_resource_repr(resource)))
 
   @staticmethod
   def debug_resource(resource):
-    Logger.debug(Logger.filter_text(resource.get_function_repr()))
+    Logger.debug(Logger.filter_text(Logger._get_resource_repr(resource)))
     
   @staticmethod    
   def filter_text(text):
@@ -99,47 +100,48 @@ class Logger:
       text = text.replace(placeholder, '')
 
     return text
-
+  
   @staticmethod
-  def get_function_repr(name, arguments):
+  def _get_resource_repr(resource):
+    return Logger.get_function_repr(repr(resource), resource.arguments, resource)
+  
+  @staticmethod
+  def get_function_repr(name, arguments, resource=None):
     logger_level = logging._levelNames[Logger.logger.level]
 
     arguments_str = ""
     for x,y in arguments.iteritems():
-      val = Logger.get_arg_repr(x, y)
+      # for arguments which want to override the output
+      if resource and 'log_str' in dir(resource._arguments[x]):
+        val = resource._arguments[x].log_str(x, y)
+      # don't show long arguments
+      elif isinstance(y, basestring) and len(y) > MESSAGE_MAX_LEN:
+        val = '...'
+      # strip unicode 'u' sign
+      elif isinstance(y, unicode):
+        val = repr(y).lstrip('u')
+      # don't show dicts of configurations
+      # usually too long
+      elif isinstance(y, dict) and len(y) > DICTIONARY_MAX_LEN:
+        val = "..."
+      # for configs which didn't come
+      elif isinstance(y, UnknownConfiguration):
+        val = "[EMPTY]"
+      # correctly output 'mode' (as they are octal values like 0755)
+      elif y and x == 'mode':
+        try:
+          val = oct(y)
+        except:
+          val = repr(y)
+      # for functions show only function name
+      elif hasattr(y, '__call__') and hasattr(y, '__name__'):
+        val = y.__name__
+      else:
+        val = repr(y)
 
       arguments_str += "'{0}': {1}, ".format(x, val)
 
     if arguments_str:
       arguments_str = arguments_str[:-2]
-
-    return unicode("{0} {{{1}}}").format(name, arguments_str)
-
-  @staticmethod
-  def get_arg_repr(x, y):
-    if isinstance(y, basestring) and len(y) > MESSAGE_MAX_LEN:
-      y = '...'
         
-    # strip unicode 'u' sign
-    if isinstance(y, unicode):
-      # don't show long messages
-      val = repr(y).lstrip('u')
-    # don't show dicts of configurations
-    # usually too long
-    elif isinstance(y, dict) and len(y) > DICTIONARY_MAX_LEN:
-      val = "..."
-    # for configs which didn't come
-    elif isinstance(y, UnknownConfiguration):
-      val = "[EMPTY]"
-    # correctly output 'mode' (as they are octal values like 0755)
-    elif y and x == 'mode':
-      try:
-        val = oct(y)
-      except:
-        val = repr(y)
-    # for functions show only function name
-    elif hasattr(y, '__call__') and hasattr(y, '__name__'):
-      val = y.__name__
-    else:
-      val = repr(y)
-    return val
+    return unicode("{0} {{{1}}}").format(name, arguments_str)

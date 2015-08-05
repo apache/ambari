@@ -33,6 +33,7 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.ranger_functions import Rangeradmin
+from resource_management.core.utils import PasswordString
 
 def setup_kms_db():
   import params
@@ -99,7 +100,7 @@ def do_keystore_setup(cred_provider_path, credential_alias, credential_password)
   import params
 
   if cred_provider_path is not None:
-    cred_setup = params.cred_setup_prefix + ('-f', cred_provider_path, '-k', credential_alias, '-v', credential_password, '-c', '1')
+    cred_setup = params.cred_setup_prefix + ('-f', cred_provider_path, '-k', credential_alias, '-v', PasswordString(credential_password), '-c', '1')
     Execute(cred_setup, 
             environment={'JAVA_HOME': params.java_home}, 
             logoutput=True, 
@@ -270,13 +271,13 @@ def enable_kms_plugin():
       mode=0744)
 
     if params.xa_audit_db_is_enabled:
-      cred_setup = params.cred_setup_prefix + ('-f', params.credential_file, '-k', 'auditDBCred', '-v', params.xa_audit_db_password, '-c', '1')
+      cred_setup = params.cred_setup_prefix + ('-f', params.credential_file, '-k', 'auditDBCred', '-v', PasswordString(params.xa_audit_db_password), '-c', '1')
       Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
-    cred_setup = params.cred_setup_prefix + ('-f', params.credential_file, '-k', 'sslKeyStore', '-v', params.ssl_keystore_password, '-c', '1')
+    cred_setup = params.cred_setup_prefix + ('-f', params.credential_file, '-k', 'sslKeyStore', '-v', PasswordString(params.ssl_keystore_password), '-c', '1')
     Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
-    cred_setup = params.cred_setup_prefix + ('-f', params.credential_file, '-k', 'sslTrustStore', '-v', params.ssl_truststore_password, '-c', '1')
+    cred_setup = params.cred_setup_prefix + ('-f', params.credential_file, '-k', 'sslTrustStore', '-v', PasswordString(params.ssl_truststore_password), '-c', '1')
     Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
     File(params.credential_file,

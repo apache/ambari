@@ -42,7 +42,7 @@ class TestMonitorWebserverResource(TestCase):
                          '/etc/httpd/conf/httpd.conf && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E sed -i ' \
                          '\'s/KeepAlive Off/KeepAlive On/\' /etc/httpd/conf/httpd.conf || echo \'KeepAlive On\' ' \
                          '| ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E tee --append /etc/httpd/conf/httpd.conf > /dev/null\']' \
-                         ', Execute[\'(\'/etc/init.d/httpd\', \'start\')\']]'
+                         ', Execute[(\'/etc/init.d/httpd\', \'start\')]]'
     self.assertEqual(str(defined_resources), expected_resources)
 
   @patch.object(OSCheck, "is_suse_family")
@@ -62,7 +62,7 @@ class TestMonitorWebserverResource(TestCase):
                          '/etc/apache2/httpd.conf && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E sed -i ' \
                          '\'s/KeepAlive Off/KeepAlive On/\' /etc/apache2/httpd.conf || echo \'KeepAlive On\' ' \
                          '| ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E tee --append /etc/apache2/httpd.conf > /dev/null\'],' \
-                         ' Execute[\'(\'/etc/init.d/apache2\', \'start\')\']]'
+                         ' Execute[(\'/etc/init.d/apache2\', \'start\')]]'
     self.assertEqual(str(defined_resources), expected_resources)
 
   @patch.object(OSCheck, "is_suse_family")
@@ -76,7 +76,7 @@ class TestMonitorWebserverResource(TestCase):
     with Environment(test_mode=True) as env:
       MonitorWebserverProvider(MonitorWebserver("stop")).action_stop()
     defined_resources = env.resource_list
-    expected_resources = '[MonitorWebserver[\'stop\'], Execute[\'(\'/etc/init.d/httpd\', \'stop\')\']]'
+    expected_resources = '[MonitorWebserver[\'stop\'], Execute[(\'/etc/init.d/httpd\', \'stop\')]]'
     self.assertEqual(str(defined_resources), expected_resources)
 
   @patch.object(OSCheck, "is_suse_family")
@@ -91,5 +91,5 @@ class TestMonitorWebserverResource(TestCase):
     with Environment(test_mode=True) as env:
       MonitorWebserverProvider(MonitorWebserver("stop")).action_stop()
     defined_resources = env.resource_list
-    expected_resources = '[MonitorWebserver[\'stop\'], Execute[\'(\'/etc/init.d/apache2\', \'stop\')\']]'
+    expected_resources = '[MonitorWebserver[\'stop\'], Execute[(\'/etc/init.d/apache2\', \'stop\')]]'
     self.assertEqual(str(defined_resources), expected_resources)

@@ -28,6 +28,7 @@ from resource_management.core.utils import checked_unite
 from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from resource_management.core.shell import quote_bash_args
+from resource_management.core import utils
 
 
 class ConfigurationFormatter(Formatter):
@@ -74,9 +75,9 @@ class ConfigurationFormatter(Formatter):
     if conversion == 'e':
       return quote_bash_args(unicode(value))
     elif conversion == 'h':
-      return "[PROTECTED]" if is_protected else value
+      return utils.PASSWORDS_HIDE_STRING if is_protected else value
     elif conversion == 'p':
-      return "[PROTECTED]" if is_protected else self._convert_field(value, 'e', is_protected)
+      return utils.PASSWORDS_HIDE_STRING if is_protected else self._convert_field(value, 'e', is_protected)
       
     return super(ConfigurationFormatter, self).convert_field(value, conversion)
 

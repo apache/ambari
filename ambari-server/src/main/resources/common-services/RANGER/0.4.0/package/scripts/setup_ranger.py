@@ -92,9 +92,9 @@ def check_db_connnection():
   Logger.info('Checking DB connection')
   env_dict = {}
   if params.db_flavor.lower() == 'mysql':
-    cmd = format('{sql_command_invoker} -u {db_root_user} --password={db_root_password} -h {db_host}  -s -e "select version();"')
+    cmd = format('{sql_command_invoker} -u {db_root_user} --password={db_root_password!p} -h {db_host}  -s -e "select version();"')
   elif params.db_flavor.lower() == 'oracle':
-    cmd = format('{sql_command_invoker} {db_root_user}/{db_root_password}@{db_host} AS SYSDBA')
+    cmd = format('{sql_command_invoker} {db_root_user}/{db_root_password!p}@{db_host} AS SYSDBA')
     env_dict = {'ORACLE_HOME':params.oracle_home, 'LD_LIBRARY_PATH':params.oracle_home}
   elif params.db_flavor.lower() == 'postgres':
     cmd = 'true'

@@ -26,6 +26,7 @@ __all__ = ["Resource", "ResourceArgument", "ForcedListArgument",
 from resource_management.core.exceptions import Fail, InvalidArgument
 from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
+from resource_management.core.utils import PasswordString
 
 class ResourceArgument(object):
   def __init__(self, default=None, required=False):
@@ -40,10 +41,6 @@ class ResourceArgument(object):
     if self.required and value is None:
       raise InvalidArgument("Required argument %s missing" % self.name)
     return value
-
-  def log_str(self, key, value):
-    return Logger.get_arg_repr(key, value)
-
 
 class ForcedListArgument(ResourceArgument):
   def validate(self, value):
@@ -65,7 +62,7 @@ class BooleanArgument(ResourceArgument):
 class PasswordArgument(ResourceArgument):
   def log_str(self, key, value):
     # Hide the passwords from text representations
-    return "********"
+    return repr(PasswordString(value))
 
 
 class Accessor(object):
@@ -159,30 +156,16 @@ class Resource(object):
   def validate(self):
     pass
 
-  def get_function_repr(self):
-    name = repr(self)
-
-    arguments_str = ""
-    for x, y in self.arguments.iteritems():
-      try:
-        arg = self._arguments[x]
-      except KeyError:
-        raise Fail("%s received unsupported argument %s" % (self, x))
-
-      val = arg.log_str(x, y)
-
-      arguments_str += "'{0}': {1}, ".format(x, val)
-
-    if arguments_str:
-      arguments_str = arguments_str[:-2]
-
-    return unicode("{0} {{{1}}}").format(name, arguments_str)
-
   def __repr__(self):
     return unicode(self)
 
   def __unicode__(self):
-    return u"%s['%s']" % (self.__class__.__name__, self.name)
+    if isinstance(self.name, basestring) and not isinstance(self.name, PasswordString):
+      name = "'" + self.name + "'" # print string cutely not with repr
+    else:
+      name = repr(self.name)
+    
+    return u"%s[%s]" % (self.__class__.__name__, name)
 
   def __getstate__(self):
     return dict(
