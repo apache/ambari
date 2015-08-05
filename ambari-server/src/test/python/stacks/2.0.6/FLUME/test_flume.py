@@ -73,6 +73,40 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assertNoMoreResources()
 
+  @patch("os.path.isfile")
+  @patch("flume.cmd_target_names")
+  @patch("flume._set_desired_state")
+  def test_start_flume_only(self, set_desired_mock, cmd_target_names_mock, os_path_isfile_mock):
+    # 1st call is to check if the conf file is there - that should be True
+    # 2nd call is to check if the process is live - that should be False
+    os_path_isfile_mock.side_effect = [True, False]
+    cmd_target_names_mock.return_value = ["a1"]
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/flume_handler.py",
+                       classname = "FlumeHandler",
+                       command = "start",
+                       config_file="flume_only.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    self.assert_configure_default(check_mc=False)
+
+    self.assertTrue(set_desired_mock.called)
+    self.assertTrue(set_desired_mock.call_args[0][0] == 'STARTED')
+
+
+    self.assertResourceCalled('Execute', "ambari-sudo.sh su flume -l -s /bin/bash -c 'export  PATH=/bin JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/bin/flume-ng agent --name a1 --conf /etc/flume/conf/a1 --conf-file /etc/flume/conf/a1/flume.conf  > /var/log/flume/a1.out 2>&1' &",
+                              environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+                              wait_for_finish = False,
+                              )
+    self.assertResourceCalled('Execute', "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -o -u flume -f '^/usr/jdk64/jdk1.7.0_45.*a1.*' | ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E tee /var/run/flume/a1.pid  && test ${PIPESTATUS[0]} -eq 0",
+                              logoutput = True,
+                              tries = 20,
+                              try_sleep = 10,
+                              )
+
+    self.assertNoMoreResources()
+
   @patch("glob.glob")
   @patch("flume._set_desired_state")
   @patch("flume.await_flume_process_termination")
@@ -179,7 +213,7 @@ class TestFlumeHandler(RMFTestCase):
     self.assertTrue(struct_out.has_key('processes'))
     self.assertNoMoreResources()
 
-  def assert_configure_default(self):
+  def assert_configure_default(self, check_mc=True):
     self.assertResourceCalled('Directory', '/var/run/flume',)
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf',
@@ -217,10 +251,12 @@ class TestFlumeHandler(RMFTestCase):
                               owner="flume",
                               content=InlineTemplate(self.getConfig()['configurations']['flume-env']['content'])
     )
-    self.assertResourceCalled('File', "/etc/flume/conf/a1/flume-metrics2.properties",
-                              owner="flume",
-                              content=Template("flume-metrics2.properties.j2")
-    )
+
+    if check_mc:
+      self.assertResourceCalled('File', "/etc/flume/conf/a1/flume-metrics2.properties",
+                                owner="flume",
+                                content=Template("flume-metrics2.properties.j2")
+      )
 
   def assert_configure_many(self):
     self.assertResourceCalled('Directory', '/var/run/flume')
