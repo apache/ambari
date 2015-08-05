@@ -32,166 +32,190 @@ describe('App.mainAdminStackVersionsView', function () {
 
   describe("#filterBy()", function () {
     var versions = [
-      Em.Object.create({
-        status: "INIT",
-        repositoryVersion: "2.2.1.1"
-      }),
-      Em.Object.create({
-        status: "INSTALLING",
-        repositoryVersion: "2.2.1.1"
-      }),
-      Em.Object.create({
-        status: "INSTALLED",
-        repositoryVersion: "2.2.0.1"
-      }),
-      Em.Object.create({
-        status: "INSTALLED",
-        repositoryVersion: "2.2.2.1"
-      }),
-      Em.Object.create({
-        status: "INSTALL_FAILED",
-        repositoryVersion: "2.2.1.1"
-      }),
-      Em.Object.create({
-        status: "OUT_OF_SYNC",
-        repositoryVersion: "2.2.1.1"
-      }),
-      Em.Object.create({
-        status: "UPGRADING",
-        repositoryVersion: "2.2.1.1"
-      }),
-      Em.Object.create({
-        status: "UPGRADED",
-        repositoryVersion: "2.2.1.1"
-      }),
-      Em.Object.create({
-        status: "CURRENT",
-        repositoryVersion: "2.2.1.1"
-      })
-    ];
+        Em.Object.create({
+          status: "INIT",
+          repositoryVersion: "2.2.1.1"
+        }),
+        Em.Object.create({
+          status: "INSTALLING",
+          repositoryVersion: "2.2.1.1"
+        }),
+        Em.Object.create({
+          status: "INSTALLED",
+          repositoryVersion: "2.2.0.1"
+        }),
+        Em.Object.create({
+          status: "INSTALLED",
+          repositoryVersion: "2.2.2.1"
+        }),
+        Em.Object.create({
+          status: "INSTALL_FAILED",
+          repositoryVersion: "2.2.1.1"
+        }),
+        Em.Object.create({
+          status: "OUT_OF_SYNC",
+          repositoryVersion: "2.2.1.1"
+        }),
+        Em.Object.create({
+          status: "UPGRADING",
+          repositoryVersion: "2.2.1.1"
+        }),
+        Em.Object.create({
+          status: "UPGRADED",
+          repositoryVersion: "2.2.1.1"
+        }),
+        Em.Object.create({
+          status: "CURRENT",
+          repositoryVersion: "2.2.1.1"
+        })
+      ],
+      testCases = [
+        {
+          filter:  Em.Object.create({
+            value: ''
+          }),
+          filteredVersions: [
+            Em.Object.create({
+              status: "INIT",
+              repositoryVersion: "2.2.1.1"
+            }),
+            Em.Object.create({
+              status: "INSTALLING",
+              repositoryVersion: "2.2.1.1"
+            }),
+            Em.Object.create({
+              status: "INSTALLED",
+              repositoryVersion: "2.2.2.1"
+            }),
+            Em.Object.create({
+              status: "INSTALL_FAILED",
+              repositoryVersion: "2.2.1.1"
+            }),
+            Em.Object.create({
+              status: "OUT_OF_SYNC",
+              repositoryVersion: "2.2.1.1"
+            }),
+            Em.Object.create({
+              status: "UPGRADING",
+              repositoryVersion: "2.2.1.1"
+            }),
+            Em.Object.create({
+              status: "UPGRADED",
+              repositoryVersion: "2.2.1.1"
+            }),
+            Em.Object.create({
+              status: "CURRENT",
+              repositoryVersion: "2.2.1.1"
+            })
+          ]
+        },
+        {
+          filter:  Em.Object.create({
+            value: 'NOT_INSTALLED'
+          }),
+          filteredVersions: [
+            Em.Object.create({
+              status: "INIT",
+              repositoryVersion: "2.2.1.1"
+            }),
+            Em.Object.create({
+              status: "INSTALLING",
+              repositoryVersion: "2.2.1.1"
+            }),
+            Em.Object.create({
+              status: "INSTALL_FAILED",
+              repositoryVersion: "2.2.1.1"
+            }),
+            Em.Object.create({
+              status: "OUT_OF_SYNC",
+              repositoryVersion: "2.2.1.1"
+            })
+          ]
+        },
+        {
+          filter:  Em.Object.create({
+            value: 'INSTALLED'
+          }),
+          filteredVersions: [
 
-    var testCases = [
-      {
-        filter:  Em.Object.create({
-          value: ''
-        }),
-        filteredVersions: [
-          Em.Object.create({
-            status: "INIT",
-            repositoryVersion: "2.2.1.1"
+          ]
+        },
+        {
+          filter:  Em.Object.create({
+            value: 'UPGRADE_READY'
           }),
-          Em.Object.create({
-            status: "INSTALLING",
-            repositoryVersion: "2.2.1.1"
+          filteredVersions: [
+            Em.Object.create({
+              status: "INSTALLED",
+              repositoryVersion: "2.2.2.1"
+            })
+          ]
+        },
+        {
+          filter:  Em.Object.create({
+            value: 'CURRENT'
           }),
-          Em.Object.create({
-            status: "INSTALLED",
-            repositoryVersion: "2.2.2.1"
+          filteredVersions: [
+            Em.Object.create({
+              status: "CURRENT",
+              repositoryVersion: "2.2.1.1"
+            })
+          ]
+        },
+        {
+          filter:  Em.Object.create({
+            value: 'UPGRADING'
           }),
-          Em.Object.create({
-            status: "INSTALL_FAILED",
-            repositoryVersion: "2.2.1.1"
+          filteredVersions: [
+            Em.Object.create({
+              status: "UPGRADING",
+              repositoryVersion: "2.2.1.1"
+            })
+          ]
+        },
+        {
+          filter:  Em.Object.create({
+            value: 'UPGRADED'
           }),
-          Em.Object.create({
-            status: "OUT_OF_SYNC",
-            repositoryVersion: "2.2.1.1"
+          filteredVersions: [
+            Em.Object.create({
+              status: "UPGRADED",
+              repositoryVersion: "2.2.1.1"
+            })
+          ]
+        },
+        {
+          noCurrentVersion: true,
+          filter:  Em.Object.create({
+            value: ''
           }),
-          Em.Object.create({
-            status: "UPGRADING",
-            repositoryVersion: "2.2.1.1"
+          filteredVersions: versions,
+          message: 'no current version'
+        },
+        {
+          displayOlderVersions: true,
+          filter:  Em.Object.create({
+            value: ''
           }),
-          Em.Object.create({
-            status: "UPGRADED",
-            repositoryVersion: "2.2.1.1"
-          }),
-          Em.Object.create({
-            status: "CURRENT",
-            repositoryVersion: "2.2.1.1"
-          })
-        ]
-      },
-      {
-        filter:  Em.Object.create({
-          value: 'NOT_INSTALLED'
-        }),
-        filteredVersions: [
-          Em.Object.create({
-            status: "INIT",
-            repositoryVersion: "2.2.1.1"
-          }),
-          Em.Object.create({
-            status: "INSTALLING",
-            repositoryVersion: "2.2.1.1"
-          }),
-          Em.Object.create({
-            status: "INSTALL_FAILED",
-            repositoryVersion: "2.2.1.1"
-          }),
-          Em.Object.create({
-            status: "OUT_OF_SYNC",
-            repositoryVersion: "2.2.1.1"
-          })
-        ]
-      },
-      {
-        filter:  Em.Object.create({
-          value: 'INSTALLED'
-        }),
-        filteredVersions: [
+          filteredVersions: versions,
+          message: 'display older versions'
+        }
+      ];
 
-        ]
-      },
-      {
-        filter:  Em.Object.create({
-          value: 'UPGRADE_READY'
-        }),
-        filteredVersions: [
-          Em.Object.create({
-            status: "INSTALLED",
-            repositoryVersion: "2.2.2.1"
-          })
-        ]
-      },
-      {
-        filter:  Em.Object.create({
-          value: 'CURRENT'
-        }),
-        filteredVersions: [
-          Em.Object.create({
-            status: "CURRENT",
-            repositoryVersion: "2.2.1.1"
-          })
-        ]
-      },
-      {
-        filter:  Em.Object.create({
-          value: 'UPGRADING'
-        }),
-        filteredVersions: [
-          Em.Object.create({
-            status: "UPGRADING",
-            repositoryVersion: "2.2.1.1"
-          })
-        ]
-      },
-      {
-        filter:  Em.Object.create({
-          value: 'UPGRADED'
-        }),
-        filteredVersions: [
-          Em.Object.create({
-            status: "UPGRADED",
-            repositoryVersion: "2.2.1.1"
-          })
-        ]
-      }
-    ].forEach(function(t) {
-        var msg = t.filter.get('value') ? t.filter.get('value') : "All";
-        it("filter By " + msg, function () {
-          view.set('controller.currentVersion', {repository_version: '2.2.1.1'});
-          expect(view.filterBy(versions, t.filter)).to.eql(t.filteredVersions);
+    afterEach(function () {
+      App.get.restore();
+    });
+
+    testCases.forEach(function(t) {
+      var msg = t.filter.get('value') ? t.filter.get('value') : "All";
+      it(t.message || "filter By " + msg, function () {
+        sinon.stub(App, 'get', function (key) {
+          return key == 'supports.displayOlderVersions' ? Boolean(t.displayOlderVersions) : Em.get(App, key);
         });
+        view.set('controller.currentVersion', t.noCurrentVersion ? null : {repository_version: '2.2.1.1'});
+        expect(view.filterBy(versions, t.filter)).to.eql(t.filteredVersions);
       });
+    });
   });
 
   describe("#didInsertElement()", function() {
