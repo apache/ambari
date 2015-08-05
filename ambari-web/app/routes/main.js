@@ -663,10 +663,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           router.get('mainController').dataLoading().done(function () {
             var item = router.get('mainServiceItemController.content');
             if (item.get('isLoaded')) {
-              router.get('mainServiceInfoHeatmapController').loadRacks().done(function (data) {
-                router.get('mainServiceInfoHeatmapController').loadRacksSuccessCallback(data);
-                router.get('mainServiceItemController').connectOutlet('mainServiceInfoHeatmap', item);
-              });
+              router.get('mainServiceItemController').connectOutlet('mainServiceInfoHeatmap', item);
             } else {
               item.set('routeToHeatmaps', true);
               router.transitionTo('services.index');
