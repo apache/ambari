@@ -26,6 +26,7 @@ from resource_management.libraries.resources.modify_properties_file import Modif
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.core.utils import PasswordString
 
 # This file contains functions used for setup/configure of Ranger Admin and Ranger Usersync.
 # The design is to mimic what is done by the setup.sh script bundled by Ranger component currently.
@@ -183,7 +184,7 @@ def do_keystore_setup(rolling_upgrade=False):
 
   if not is_empty(params.ranger_credential_provider_path):    
     jceks_path = params.ranger_credential_provider_path
-    cred_setup = cred_setup_prefix + ('-f', jceks_path, '-k', params.ranger_jpa_jdbc_credential_alias, '-v', params.ranger_ambari_db_password, '-c', '1')
+    cred_setup = cred_setup_prefix + ('-f', jceks_path, '-k', params.ranger_jpa_jdbc_credential_alias, '-v', PasswordString(params.ranger_ambari_db_password), '-c', '1')
 
     Execute(cred_setup, 
             environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, 
@@ -197,7 +198,7 @@ def do_keystore_setup(rolling_upgrade=False):
 
   if not is_empty(params.ranger_credential_provider_path) and (params.ranger_audit_source_type).lower() == 'db' and not is_empty(params.ranger_ambari_audit_db_password):
     jceks_path = params.ranger_credential_provider_path
-    cred_setup = cred_setup_prefix + ('-f', jceks_path, '-k', params.ranger_jpa_audit_jdbc_credential_alias, '-v', params.ranger_ambari_db_password, '-c', '1')
+    cred_setup = cred_setup_prefix + ('-f', jceks_path, '-k', params.ranger_jpa_audit_jdbc_credential_alias, '-v', PasswordString(params.ranger_ambari_db_password), '-c', '1')
     Execute(cred_setup, 
             environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, 
             logoutput=True, 
@@ -239,13 +240,13 @@ def setup_usersync():
   cred_lib = os.path.join(params.usersync_home,"lib","*")
   cred_setup_prefix = (format('{ranger_home}/ranger_credential_helper.py'), '-l', cred_lib)
 
-  cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'usersync.ssl.key.password', '-v', params.ranger_usersync_keystore_password, '-c', '1')
+  cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'usersync.ssl.key.password', '-v', PasswordString(params.ranger_usersync_keystore_password), '-c', '1')
   Execute(cred_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
-  cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'ranger.usersync.ldap.bindalias', '-v', params.ranger_usersync_ldap_ldapbindpassword, '-c', '1')
+  cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'ranger.usersync.ldap.bindalias', '-v', PasswordString(params.ranger_usersync_ldap_ldapbindpassword), '-c', '1')
   Execute(cred_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
-  cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'usersync.ssl.truststore.password', '-v', params.ranger_usersync_truststore_password, '-c', '1')
+  cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'usersync.ssl.truststore.password', '-v', PasswordString(params.ranger_usersync_truststore_password), '-c', '1')
   Execute(cred_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
   File(params.ugsync_jceks_path,

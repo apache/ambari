@@ -25,6 +25,8 @@ import sys
 import cStringIO
 from resource_management.core.exceptions import Fail
 
+PASSWORDS_HIDE_STRING = "[PROTECTED]"
+
 class AttributeDictionary(object):
   def __init__(self, *args, **kwargs):
     d = kwargs
@@ -116,3 +118,18 @@ def suppress_stdout():
   sys.stdout = cStringIO.StringIO()
   yield
   sys.stdout = save_stdout
+
+class PasswordString(unicode):
+  """
+  Logger replaces this strings with [PROTECTED]
+  """
+  
+  def __init__(self, value):
+    self.value = value
+    
+  def __str__(self):
+    return value
+  
+  def __repr__(self):
+    return PASSWORDS_HIDE_STRING
+  
