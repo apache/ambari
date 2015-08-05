@@ -286,6 +286,7 @@ App.config = Em.Object.create({
           serviceConfigObj.isFinal = serviceConfigObj.savedIsFinal = finalAttributes[index] === "true";
           serviceConfigObj.isEditable = this.getIsEditable(serviceConfigObj, selectedConfigGroup, canEdit);
           serviceConfigObj.isVisible = serviceConfigObj.isVisible === false ? false : serviceName === 'MISC' ? true : serviceConfigObj.displayType !== 'user';
+          serviceConfigObj.serviceName = serviceName;
         }
 
         var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);

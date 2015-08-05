@@ -47,7 +47,8 @@ var excludedConfigs = [
   "port",
   "hive.metastore.heapsize",
   "hive.client.heapsize",
-  "SQL_COMMAND_INVOKER"
+  "SQL_COMMAND_INVOKER",
+  "SYNC_LDAP_USER_SEARCH_FILTER"
 ];
 
 var hdp23properties = hdp22properties.filter(function (item) {
@@ -754,6 +755,7 @@ hdp23properties.push({
     "displayType": "",
     "isOverridable": false,
     "isVisible": true,
+    "isRequired": false,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "RangerSettings"

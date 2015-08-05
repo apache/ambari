@@ -94,7 +94,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @type {string[]}
    */
   servicesToLoad: function() {
-    return this.get('dependentServiceNames').concat([this.get('content.serviceName')]).uniq();
+    return [this.get('content.serviceName')].concat(this.get('dependentServiceNames')).uniq();
   }.property('content.serviceName', 'dependentServiceNames.length'),
 
   /**
