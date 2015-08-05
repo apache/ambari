@@ -1,0 +1,81 @@
+{
+    "roleCommand": "SERVICE_CHECK", 
+    "clusterName": "c1", 
+    "hostname": "c6401.ambari.apache.org", 
+    "hostLevelParams": {
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
+        "ambari_db_rca_password": "mapred", 
+        "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca",
+        "repo_info": "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]",
+        "jce_name": "UnlimitedJCEPolicyJDK7.zip", 
+        "stack_version": "2.0",
+        "stack_name": "HDP", 
+        "ambari_db_rca_driver": "org.postgresql.Driver", 
+        "jdk_name": "jdk-7u67-linux-x64.tar.gz",
+        "ambari_db_rca_username": "mapred", 
+        "java_home": "/usr/jdk64/jdk1.7.0_45",
+        "java_version": "8",
+        "db_name": "ambari",
+        "group_list": "[\"hadoop\",\"nobody\",\"users\"]",
+        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]"
+    }, 
+    "commandType": "EXECUTION_COMMAND", 
+    "roleParams": {}, 
+    "serviceName": "HIVE",
+    "role": "HIVE_SERVER",
+    "commandParams": {
+        "command_timeout": "300", 
+        "service_package_folder": "OOZIE",
+        "script_type": "PYTHON",
+        "script": "scripts/service_check.py",
+        "excluded_hosts": "host1,host2",
+        "mark_draining_only" : "false",
+        "update_exclude_file_only" : "false",
+        "xml_configs_list":[{"hdfs-site.xml":"hdfs-site"}],
+        "env_configs_list":[{"hadoop-env.sh":"hadoop-env"},{"log4j.properties":"hdfs-log4j,yarn-log4j"}],
+        "properties_configs_list":[{"runtime.properties":"falcon-runtime.properties"},{"startup.properties":"falcon-startup.properties"}],
+        "output_file":"HDFS_CLIENT-configs.tar.gz",
+        "refresh_topology": "True"
+    },
+    "taskId": 152, 
+    "public_hostname": "c6401.ambari.apache.org", 
+    "configurations": {
+        "flume-env": {
+             "content": "export JAVA_HOME={{java64_home}}\nexport HIVE_HOME={{flume_hive_home}}",
+             "flume_user": "flume",
+             "flume_log_dir": "/var/log/flume",
+             "flume_run_dir": "/var/run/flume"
+        },
+        "flume-conf": {
+          "content": "a1.sources = r1\n a1.sinks = k1\n a1.channels = c1\n # Describe/configure the source\n a1.sources.r1.type = netcat\n a1.sources.r1.bind = localhost\n a1.sources.r1.port = 44444\n \n # Describe the sink\n a1.sinks.k1.type = logger\n \n # Use a channel which buffers events in memory\n a1.channels.c1.type = memory\n a1.channels.c1.capacity = 1000\n a1.channels.c1.transactionCapacity = 100\n \n # Bind the source and sink to the channel\n a1.sources.r1.channels = c1\n a1.sinks.k1.channel = c1\n"
+        },
+        "flume-log4j": {
+          "content": "log4jproperties\nline2"
+        }
+    },
+    "configuration_attributes": {
+    },
+    "configurationTags": {
+    },
+    "commandId": "7-1", 
+    "clusterHostInfo": {
+      "all_ping_ports": [
+        "8670"
+      ],
+      "flume_hosts": [
+        "c6401.ambari.apache.org"
+      ],
+      "all_hosts": [
+        "c6401.ambari.apache.org"
+      ],
+      "all_racks": [
+        "/default-rack"
+      ],
+      "all_ipv4_ips": [
+        "192.168.64.101"
+      ],
+      "ambari_server_host": [
+        "c6401.ambari.apache.org"
+      ]
+    }
+}

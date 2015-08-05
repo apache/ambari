@@ -56,6 +56,7 @@ current_service = config['serviceName']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 #users and groups
+has_hadoop_env = 'hadoop-env' in config['configurations']
 mapred_user = config['configurations']['mapred-env']['mapred_user']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 yarn_user = config['configurations']['yarn-env']['yarn_user']
