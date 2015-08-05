@@ -435,7 +435,7 @@ def restore_custom_services():
     if os.path.isdir(service) and not os.path.basename(service) in managed_services:
       managed_services.append(os.path.basename(service))
   # add deprecated managed services
-  managed_services.extend(["NAGIOS","GANGLIA","MAPREDUCE"])
+  managed_services.extend(["NAGIOS","GANGLIA","MAPREDUCE","WEBHCAT"])
 
   stack_backup_dirs = glob.glob(os.path.join(resources_dir,"stacks_*.old"))
   if stack_backup_dirs:
