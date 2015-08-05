@@ -139,9 +139,11 @@ class TestLiveStatus(TestCase):
     # enable stdout
     sys.stdout = sys.__stdout__
 
+  @patch("os.path.isdir")
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActualConfigHandler.ActualConfigHandler, "read_actual_component")
-  def test_build(self, read_actual_component_mock):
+  def test_build(self, read_actual_component_mock, isdir_mock):
+    isdir_mock.return_value = False
     for component in LiveStatus.COMPONENTS:
       config = AmbariConfig().getConfig()
       config.set('agent', 'prefix', "ambari_agent" + os.sep + "dummy_files")

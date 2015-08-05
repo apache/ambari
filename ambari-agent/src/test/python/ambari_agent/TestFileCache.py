@@ -274,17 +274,20 @@ class TestFileCache(TestCase):
         self.fail('Unexpected exception thrown:' + str(e))
 
 
+  @patch("os.path.exists")
   @patch("os.path.isfile")
   @patch("os.path.isdir")
   @patch("os.unlink")
   @patch("shutil.rmtree")
   @patch("os.makedirs")
   def test_invalidate_directory(self, makedirs_mock, rmtree_mock,
-                                unlink_mock, isdir_mock, isfile_mock):
+                                unlink_mock, isdir_mock, isfile_mock,
+                                exists_mock):
     fileCache = FileCache(self.config)
     # Test execution flow if path points to file
     isfile_mock.return_value = True
     isdir_mock.return_value = False
+    exists_mock.return_value = True
 
     fileCache.invalidate_directory("dummy-dir")
 
@@ -299,11 +302,27 @@ class TestFileCache(TestCase):
     # Test execution flow if path points to dir
     isfile_mock.return_value = False
     isdir_mock.return_value = True
+    exists_mock.return_value = True
 
     fileCache.invalidate_directory("dummy-dir")
 
     self.assertFalse(unlink_mock.called)
     self.assertTrue(rmtree_mock.called)
+    self.assertTrue(makedirs_mock.called)
+
+    unlink_mock.reset_mock()
+    rmtree_mock.reset_mock()
+    makedirs_mock.reset_mock()
+
+    # Test execution flow if path points nowhere
+    isfile_mock.return_value = False
+    isdir_mock.return_value = False
+    exists_mock.return_value = False
+
+    fileCache.invalidate_directory("dummy-dir")
+
+    self.assertFalse(unlink_mock.called)
+    self.assertFalse(rmtree_mock.called)
     self.assertTrue(makedirs_mock.called)
 
     unlink_mock.reset_mock()
