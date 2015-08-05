@@ -171,7 +171,7 @@ App.componentsStateMapper = App.QuickDataMapper.create({
         if (cacheService) {
           cacheService.client_components = clients.filterProperty('service_name', cacheService.ServiceInfo.service_name).mapProperty('component_name');
           cacheService.slave_components = slaves.filterProperty('service_name', cacheService.ServiceInfo.service_name).mapProperty('component_name');
-
+          cacheService.master_components = masters.filterProperty('service_name', cacheService.ServiceInfo.service_name).mapProperty('component_name');
           for (var i in parsedItem) {
             if (service.get('isLoaded')) {
               cacheService[i] = parsedItem[i];

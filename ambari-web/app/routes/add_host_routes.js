@@ -21,7 +21,7 @@ var App = require('app');
 module.exports = App.WizardRoute.extend({
   route: '/host/add',
 
-  leaveWizard: function (router,context) {
+  leaveWizard: function (router, context) {
     var addHostController = router.get('addHostController');
     App.router.get('updateController').set('isWorking', true);
     addHostController.finish();
@@ -30,7 +30,7 @@ module.exports = App.WizardRoute.extend({
       clusterState: 'DEFAULT',
       localdb: App.db.data
     }, {
-      alwaysCallback: function() {
+      alwaysCallback: function () {
         context.hide();
         App.router.transitionTo('hosts.index');
         location.reload();
@@ -48,34 +48,34 @@ module.exports = App.WizardRoute.extend({
       App.router.get('updateController').set('isWorking', false);
       App.ModalPopup.show({
         classNames: ['full-width-modal'],
-        header:Em.I18n.t('hosts.add.header'),
-        bodyClass:  App.AddHostView.extend({
+        header: Em.I18n.t('hosts.add.header'),
+        bodyClass: App.AddHostView.extend({
           controllerBinding: 'App.router.addHostController'
         }),
-        primary:Em.I18n.t('form.cancel'),
+        primary: Em.I18n.t('form.cancel'),
         secondary: null,
         showFooter: false,
 
-        onPrimary:function () {
+        onPrimary: function () {
           this.hide();
           App.router.get('updateController').set('isWorking', true);
           router.transitionTo('hosts.index');
         },
-        onClose: function() {
+        onClose: function () {
           var popupContext = this;
           if (addHostController.get('currentStep') == '6') {
             App.ModalPopup.show({
               header: Em.I18n.t('hosts.add.exit.header'),
               body: Em.I18n.t('hosts.add.exit.body'),
               onPrimary: function () {
-                self.leaveWizard(router,popupContext);
+                self.leaveWizard(router, popupContext);
               }
             });
           } else {
-            self.leaveWizard(router,this);
+            self.leaveWizard(router, this);
           }
         },
-        didInsertElement: function(){
+        didInsertElement: function () {
           this.fitHeight();
         }
       });
@@ -151,7 +151,7 @@ module.exports = App.WizardRoute.extend({
         controller.connectOutlet('wizardStep3', controller.get('content'));
       });
     },
-    back: function(router){
+    back: function (router) {
       router.transitionTo('step1');
     },
     exit: function (router) {
@@ -200,8 +200,8 @@ module.exports = App.WizardRoute.extend({
       var addHostController = router.get('addHostController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
 
-      wizardStep6Controller.callValidation(function() {
-        wizardStep6Controller.showValidationIssuesAcceptBox(function() {
+      wizardStep6Controller.callValidation(function () {
+        wizardStep6Controller.showValidationIssuesAcceptBox(function () {
           addHostController.saveSlaveComponentHosts(wizardStep6Controller);
           if (wizardStep6Controller.isAllCheckboxesEmpty()) {
             router.transitionTo('step5');
@@ -233,7 +233,7 @@ module.exports = App.WizardRoute.extend({
         });
       });
     },
-    back: function(router){
+    back: function (router) {
       router.transitionTo('step3');
     },
     next: function (router) {
@@ -250,11 +250,13 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('addHostController');
       controller.setCurrentStep('5');
       controller.dataLoading().done(function () {
-        controller.loadAllPriorSteps();
-        controller.getServiceConfigGroups();
-        var wizardStep8Controller = router.get('wizardStep8Controller');
-        wizardStep8Controller.set('wizardController', controller);
-        controller.connectOutlet('wizardStep8', controller.get('content'));
+        router.get('mainController').isLoading.call(router.get('clusterController'), 'isServiceContentFullyLoaded').done(function () {
+          controller.loadAllPriorSteps();
+          controller.getServiceConfigGroups();
+          var wizardStep8Controller = router.get('wizardStep8Controller');
+          wizardStep8Controller.set('wizardController', controller);
+          controller.connectOutlet('wizardStep8', controller.get('content'));
+        });
       });
     },
     back: function(router){
@@ -297,7 +299,7 @@ module.exports = App.WizardRoute.extend({
       });
     },
     back: Em.Router.transitionTo('step5'),
-    retry: function(router,context) {
+    retry: function (router, context) {
       var addHostController = router.get('addHostController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       wizardStep9Controller.set('wizardController', addHostController);
@@ -316,7 +318,7 @@ module.exports = App.WizardRoute.extend({
         }
       }
     },
-    unroutePath: function() {
+    unroutePath: function () {
       return false;
     },
     next: function (router) {

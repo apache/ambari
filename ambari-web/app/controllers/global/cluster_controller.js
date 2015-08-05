@@ -216,19 +216,21 @@ App.ClusterController = Em.Controller.extend({
       updater.updateServices(function () {
         self.updateLoadStatus('services');
         App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName')).complete(function () {
-          App.config.loadClusterConfigsFromStack().complete(function() {
+          App.config.loadClusterConfigsFromStack().complete(function () {
             self.set('isConfigsPropertiesLoaded', true);
           });
         });
-        // service metrics loading doesn't affect overall progress
-        updater.updateServiceMetric(function () {
-          self.set('isServiceMetricsLoaded', true);
-          // components config and state loading doesn't affect overall progress
-          updater.updateComponentConfig(function () {
-            self.set('isComponentsConfigLoaded', true);
-          });
-          updater.updateComponentsState(function () {
-            self.set('isComponentsStateLoaded', true);
+        // components state loading doesn't affect overall progress
+        updater.updateComponentsState(function () {
+          self.set('isComponentsStateLoaded', true);
+          // service metrics should be loaded after components state for mapping service components to service in the DS model
+          // service metrics loading doesn't affect overall progress
+          updater.updateServiceMetric(function () {
+            self.set('isServiceMetricsLoaded', true);
+            // components config loading doesn't affect overall progress
+            updater.updateComponentConfig(function () {
+              self.set('isComponentsConfigLoaded', true);
+            });
           });
         });
       });

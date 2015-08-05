@@ -588,10 +588,16 @@ describe('App.MainHostDetailsController', function () {
           })
         ]
       });
-      sinon.stub(App.router, "get").withArgs('updateController').returns({
-        updateComponentsState: function (callback) {
-          return callback();
-        }
+
+      sinon.stub(App.router, 'get', function () {
+        return Em.Object.create({
+          updateComponentsState: function (callback) {
+            return callback();
+          },
+          updateServiceMetric: function (callback) {
+            return callback();
+          }
+        })
       });
     });
     afterEach(function () {
