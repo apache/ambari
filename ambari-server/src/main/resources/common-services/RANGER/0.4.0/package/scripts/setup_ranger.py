@@ -36,13 +36,15 @@ def setup_ranger_admin():
   check_db_connnection()
   
   File(params.downloaded_custom_connector,
-       content = DownloadSource(params.driver_curl_source)
+      content = DownloadSource(params.driver_curl_source),
+      mode = 0644
   )
 
   Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
           path=["/bin", "/usr/bin/"],
-          not_if=format("test -f {driver_curl_target}"),
           sudo=True)
+
+  File(params.driver_curl_target, mode=0644)
   
   ModifyPropertiesFile(format("{ranger_home}/install.properties"),
     properties = params.config['configurations']['admin-properties']
