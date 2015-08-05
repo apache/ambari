@@ -233,12 +233,17 @@ public class KerberosHelperImpl implements KerberosHelper {
                 throw new AmbariException(String.format("Custom operation %s can only be requested with the security type cluster property: %s", operation.name(), SecurityType.KERBEROS.name()));
               }
 
+              CreatePrincipalsAndKeytabsHandler handler = null;
+
               if ("true".equalsIgnoreCase(value) || "all".equalsIgnoreCase(value)) {
-                requestStageContainer = handle(cluster, getKerberosDetails(cluster, manageIdentities), null, null, null,
-                    requestStageContainer, new CreatePrincipalsAndKeytabsHandler(true));
+                handler = new CreatePrincipalsAndKeytabsHandler(true, true);
               } else if ("missing".equalsIgnoreCase(value)) {
-                requestStageContainer = handle(cluster, getKerberosDetails(cluster, manageIdentities), null, null, null,
-                    requestStageContainer, new CreatePrincipalsAndKeytabsHandler(false));
+                handler = new CreatePrincipalsAndKeytabsHandler(false, true);
+              }
+
+              if (handler != null) {
+                requestStageContainer = handle(cluster, getKerberosDetails(cluster, manageIdentities),
+                    null, null, null, requestStageContainer, handler);
               } else {
                 throw new AmbariException(String.format("Unexpected directive value: %s", value));
               }
@@ -262,7 +267,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                                                 RequestStageContainer requestStageContainer, Boolean manageIdentities)
       throws AmbariException, KerberosOperationException {
     return handle(cluster, getKerberosDetails(cluster, manageIdentities), serviceComponentFilter, identityFilter,
-        hostsToForceKerberosOperations, requestStageContainer, new CreatePrincipalsAndKeytabsHandler(false));
+        hostsToForceKerberosOperations, requestStageContainer, new CreatePrincipalsAndKeytabsHandler(false, false));
   }
 
   @Override
@@ -331,7 +336,7 @@ public class KerberosHelperImpl implements KerberosHelper {
   public RequestStageContainer createTestIdentity(Cluster cluster, Map<String, String> commandParamsStage,
                                                   RequestStageContainer requestStageContainer)
       throws KerberosOperationException, AmbariException {
-    return handleTestIdentity(cluster, getKerberosDetails(cluster, null), commandParamsStage, requestStageContainer, new CreatePrincipalsAndKeytabsHandler(false));
+    return handleTestIdentity(cluster, getKerberosDetails(cluster, null), commandParamsStage, requestStageContainer, new CreatePrincipalsAndKeytabsHandler(false, false));
   }
 
   @Override
@@ -2390,10 +2395,11 @@ public class KerberosHelperImpl implements KerberosHelper {
                              Map<String, ? extends Collection<String>> serviceComponentFilter, Collection<String> identityFilter, Set<String> hostsWithValidKerberosClient)
         throws AmbariException {
       // If there are principals, keytabs, and configurations to process, setup the following sages:
-      //  1) generate principals
-      //  2) generate keytab files
-      //  3) distribute keytab files
-      //  4) update configurations
+      //  1) prepare identities
+      //  2) generate principals
+      //  3) generate keytab files
+      //  4) distribute keytab files
+      //  5) update configurations
 
       // If a RequestStageContainer does not already exist, create a new one...
       if (requestStageContainer == null) {
@@ -2406,6 +2412,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       Map<String, String> commandParameters = new HashMap<String, String>();
       commandParameters.put(KerberosServerAction.AUTHENTICATED_USER_NAME, ambariManagementController.getAuthName());
+      commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATION_NOTE, "Enabling Kerberos");
+      commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATIONS, "true");
       commandParameters.put(KerberosServerAction.DEFAULT_REALM, kerberosDetails.getDefaultRealm());
       if (dataDirectory != null) {
         commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
@@ -2511,6 +2519,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       Map<String, String> commandParameters = new HashMap<String, String>();
       commandParameters.put(KerberosServerAction.AUTHENTICATED_USER_NAME, ambariManagementController.getAuthName());
+      commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATION_NOTE, "Disabling Kerberos");
+      commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATIONS, "true");
       commandParameters.put(KerberosServerAction.DEFAULT_REALM, kerberosDetails.getDefaultRealm());
       if (dataDirectory != null) {
         commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
@@ -2577,15 +2587,25 @@ public class KerberosHelperImpl implements KerberosHelper {
     private boolean regenerateAllKeytabs;
 
     /**
+     * A boolean value indicating whether to update service configurations (<code>true</code>)
+     * or ignore any potential configuration changes (<code>false</code>).
+     */
+    private boolean updateConfigurations;
+
+    /**
      * CreatePrincipalsAndKeytabsHandler constructor to set whether this instance should be used to
      * regenerate all keytabs or just the ones that have not been distributed
      *
      * @param regenerateAllKeytabs A boolean value indicating whether to create keytabs for all
      *                             principals (<code>true</code> or only the ones that are missing
      *                             (<code>false</code>)
+     * @param updateConfigurations A boolean value indicating whether to update service configurations
+     *                             (<code>true</code>) or ignore any potential configuration changes
+     *                             (<code>false</code>)
      */
-    public CreatePrincipalsAndKeytabsHandler(boolean regenerateAllKeytabs) {
+    public CreatePrincipalsAndKeytabsHandler(boolean regenerateAllKeytabs, boolean updateConfigurations) {
       this.regenerateAllKeytabs = regenerateAllKeytabs;
+      this.updateConfigurations = updateConfigurations;
     }
 
     @Override
@@ -2617,6 +2637,12 @@ public class KerberosHelperImpl implements KerberosHelper {
                              List<ServiceComponentHost> serviceComponentHosts,
                              Map<String, ? extends Collection<String>> serviceComponentFilter, Collection<String> identityFilter, Set<String> hostsWithValidKerberosClient)
         throws AmbariException {
+      // If there are principals and keytabs to process, setup the following sages:
+      //  1) prepare identities
+      //  2) generate principals
+      //  3) generate keytab files
+      //  4) distribute keytab files
+      //  5) update configurations (optional)
 
       // If a RequestStageContainer does not already exist, create a new one...
       if (requestStageContainer == null) {
@@ -2627,34 +2653,35 @@ public class KerberosHelperImpl implements KerberosHelper {
             actionManager);
       }
 
+
+      Map<String, String> commandParameters = new HashMap<String, String>();
+      commandParameters.put(KerberosServerAction.AUTHENTICATED_USER_NAME, ambariManagementController.getAuthName());
+      commandParameters.put(KerberosServerAction.DEFAULT_REALM, kerberosDetails.getDefaultRealm());
+      if (dataDirectory != null) {
+        commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
+      }
+      if (serviceComponentFilter != null) {
+        commandParameters.put(KerberosServerAction.SERVICE_COMPONENT_FILTER, StageUtils.getGson().toJson(serviceComponentFilter));
+      }
+      if (identityFilter != null) {
+        commandParameters.put(KerberosServerAction.IDENTITY_FILTER, StageUtils.getGson().toJson(identityFilter));
+      }
+
+      commandParameters.put(KerberosServerAction.REGENERATE_ALL, (regenerateAllKeytabs) ? "true" : "false");
+
+      if(updateConfigurations) {
+        commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATION_NOTE, "Updated Kerberos-related configurations");
+        commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATIONS, "true");
+      }
+
+      // *****************************************************************
+      // Create stage to create principals
+      addPrepareKerberosIdentitiesStage(cluster, clusterHostInfoJson, hostParamsJson, event,
+          commandParameters, roleCommandOrder, requestStageContainer);
+
       if (kerberosDetails.manageIdentities()) {
-        // If there are principals and keytabs to process, setup the following sages:
-        //  1) prepare identities
-        //  2) generate principals
-        //  3) generate keytab files
-        //  4) distribute keytab files
-
-        Map<String, String> commandParameters = new HashMap<String, String>();
-        commandParameters.put(KerberosServerAction.AUTHENTICATED_USER_NAME, ambariManagementController.getAuthName());
-        commandParameters.put(KerberosServerAction.DEFAULT_REALM, kerberosDetails.getDefaultRealm());
-        if (dataDirectory != null) {
-          commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
-        }
-        if (serviceComponentFilter != null) {
-          commandParameters.put(KerberosServerAction.SERVICE_COMPONENT_FILTER, StageUtils.getGson().toJson(serviceComponentFilter));
-        }
-        if (identityFilter != null) {
-          commandParameters.put(KerberosServerAction.IDENTITY_FILTER, StageUtils.getGson().toJson(identityFilter));
-        }
-
         commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
         commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
-        commandParameters.put(KerberosServerAction.REGENERATE_ALL, (regenerateAllKeytabs) ? "true" : "false");
-
-        // *****************************************************************
-        // Create stage to create principals
-        addPrepareKerberosIdentitiesStage(cluster, clusterHostInfoJson, hostParamsJson, event,
-            commandParameters, roleCommandOrder, requestStageContainer);
 
         // *****************************************************************
         // Create stage to create principals
@@ -2666,9 +2693,17 @@ public class KerberosHelperImpl implements KerberosHelper {
         addCreateKeytabFilesStage(cluster, clusterHostInfoJson, hostParamsJson, event,
             commandParameters, roleCommandOrder, requestStageContainer);
 
+        // *****************************************************************
         // Create stage to distribute keytabs
         addDistributeKeytabFilesStage(cluster, serviceComponentHosts, clusterHostInfoJson,
             hostParamsJson, commandParameters, roleCommandOrder, requestStageContainer, hostsWithValidKerberosClient);
+      }
+
+      if(updateConfigurations) {
+        // *****************************************************************
+        // Create stage to update configurations of services
+        addUpdateConfigurationsStage(cluster, clusterHostInfoJson, hostParamsJson, event, commandParameters,
+            roleCommandOrder, requestStageContainer);
       }
 
       return requestStageContainer.getLastStageId();
