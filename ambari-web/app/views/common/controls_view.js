@@ -923,7 +923,13 @@ App.checkConnectionView = App.ServiceConfigTextField.extend({
     this._super();
     var kdc = this.get('categoryConfigsAll').findProperty('name', 'kdc_type');
     var propertyAppendTo = this.get('categoryConfigsAll').findProperty('name', 'domains');
-    if (propertyAppendTo && propertyAppendTo.get('state') === 'inDOM') propertyAppendTo.set('additionalView', App.CheckDBConnectionView.extend({databaseName: kdc && kdc.get('value')}));
+    if (propertyAppendTo) {
+      try {
+        propertyAppendTo.set('additionalView', App.CheckDBConnectionView.extend({databaseName: kdc && kdc.get('value')}));
+      } catch (e) {
+        console.error('error while adding "Test connection button"');
+      }
+    }
   }
 });
 
