@@ -120,9 +120,13 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
           }
 
           if (!configTypes.isEmpty()) {
-            String configNote = cluster.getSecurityType() == SecurityType.KERBEROS
-                ? "Enabling Kerberos"
-                : "Disabling Kerberos";
+            String configNote = getCommandParameterValue(getCommandParameters(), KerberosServerAction.UPDATE_CONFIGURATION_NOTE);
+
+            if((configNote == null) || configNote.isEmpty()) {
+              configNote = cluster.getSecurityType() == SecurityType.KERBEROS
+                  ? "Enabling Kerberos"
+                  : "Disabling Kerberos";
+            }
 
             for (String configType : configTypes) {
               configHelper.updateConfigType(cluster, controller, configType,

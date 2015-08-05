@@ -78,11 +78,24 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    * A (command parameter) property name used to hold the (serialized) identity filter list.
    */
   public static final String IDENTITY_FILTER = "identity_filter";
+
   /**
    * A (command parameter) property name used to hold the relevant KDC type value.  See
    * {@link org.apache.ambari.server.serveraction.kerberos.KDCType} for valid values
    */
   public static final String KDC_TYPE = "kdc_type";
+
+  /**
+   * A (command parameter) property name used to hold a boolean value indicating whether configurations
+   * should be process to see if they need to be updated
+   */
+  public static final String UPDATE_CONFIGURATIONS = "update_configurations";
+
+  /**
+   * A (command parameter) property name used to hold the note to set when applying any
+   * configuration changes
+   */
+  public static final String UPDATE_CONFIGURATION_NOTE = "update_configuration_note";
 
   /**
    * The prefix to use for the data directory name.
