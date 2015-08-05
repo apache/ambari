@@ -45,7 +45,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     'serviceComponents'
   ],
 
-  sensibleConfigs: ['admin_principal', 'admin_password'],
+  sensibleConfigs: [
+    { name: 'admin_principal', filename: 'krb5-conf.xml'},
+    { name: 'admin_password',  filename: 'krb5-conf.xml' }
+  ],
 
   init: function () {
     this.clusters = App.Cluster.find();
@@ -884,7 +887,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   isExcludedConfig: function (configProperty) {
-    return this.get('sensibleConfigs').indexOf(configProperty.name) > -1;
+    return this.get('sensibleConfigs').mapProperty('name').indexOf(configProperty.name) > -1
+      && this.get('sensibleConfigs').mapProperty('filename').indexOf(configProperty.filename) > -1;
   },
 
   /**
