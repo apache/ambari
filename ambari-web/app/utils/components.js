@@ -18,10 +18,10 @@
 var App = require('app');
 
 module.exports = {
-  installHostComponent: function(hostName, component) {
+  installHostComponent: function (hostName, component) {
     var self = this,
-        componentName = component.get('componentName'),
-        displayName = component.get('displayName');
+      componentName = component.get('componentName'),
+      displayName = component.get('displayName');
     this.updateAndCreateServiceComponent(componentName).done(function () {
       App.ajax.send({
         name: 'host.host_component.add_new_component',
@@ -151,7 +151,7 @@ module.exports = {
    * @param {Object} opt - options. Allowed options are `hostName`, `installedComponents`, `scope`.
    * @return {Array} - names of missed components
    */
-  checkComponentDependencies: function(componentName, opt) {
+  checkComponentDependencies: function (componentName, opt) {
     opt = opt || {};
     opt.scope = opt.scope || '*';
     var installedComponents;
@@ -168,7 +168,7 @@ module.exports = {
         installedComponents = opt.installedComponents || App.HostComponent.find().mapProperty('componentName').uniq();
         break;
     }
-    return dependencies.filter(function(dependency) {
+    return dependencies.filter(function (dependency) {
       return !installedComponents.contains(dependency.componentName);
     }).mapProperty('componentName');
   },
@@ -181,8 +181,11 @@ module.exports = {
   updateAndCreateServiceComponent: function (componentName) {
     var self = this;
     var dfd = $.Deferred();
-    App.router.get('updateController').updateComponentsState(function() {
-      self.createServiceComponent(componentName, dfd);
+    var updater =  App.router.get('updateController');
+    updater.updateComponentsState(function () {
+      updater.updateServiceMetric(function () {
+        self.createServiceComponent(componentName, dfd);
+      });
     });
     return dfd.promise();
   },
@@ -193,10 +196,10 @@ module.exports = {
    * @param dfd
    * @returns {*}
    */
-  createServiceComponent: function(componentName, dfd) {
+  createServiceComponent: function (componentName, dfd) {
     var allServiceComponents = [];
     var services = App.Service.find().mapProperty('serviceName');
-    services.forEach(function(_service){
+    services.forEach(function (_service) {
       var _serviceComponents = App.Service.find(_service).get('serviceComponents');
       allServiceComponents = allServiceComponents.concat(_serviceComponents);
     }, this);
