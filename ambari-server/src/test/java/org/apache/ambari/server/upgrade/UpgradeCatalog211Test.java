@@ -18,15 +18,25 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.ConfigurationResponse;
@@ -43,17 +53,13 @@ import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.easymock.EasyMock.*;
+import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
 
 
 /**
@@ -75,6 +81,7 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
       Statement statement = createNiceMock(Statement.class);
       ResultSet resultSet = createNiceMock(ResultSet.class);
       expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
+      expect(configuration.getDatabaseType()).andReturn(DatabaseType.DERBY).anyTimes();
       dbAccessor.getConnection();
       expectLastCall().andReturn(connection).anyTimes();
       connection.createStatement();
@@ -136,7 +143,7 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
   public void testExecuteDMLUpdates() throws Exception {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     final OsFamily osFamily = createNiceMock(OsFamily.class);
-    
+
     final Cluster cluster = createMock(Cluster.class);
 
     final Clusters clusters = createMock(Clusters.class);
