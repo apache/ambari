@@ -18,19 +18,37 @@
 {{#if dataIsLoaded}}
   {{#if securityEnabled}}
     <div>
-      <p class="text-success">{{t admin.security.enabled}}
-        {{#isAccessible ADMIN}}
-          <a class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isSubmitDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.kerberos.button.disable}} </a>
-          {{#unless isManualKerberos}}
-            <button class="btn btn-success"{{action regenerateKeytabs target="controller"}}><i class="icon-repeat"></i> {{t admin.kerberos.button.regenerateKeytabs}}</button>
-          {{/unless}}
-          <br/>
-        {{/isAccessible}}
+    <p class="text-success">{{t admin.security.enabled}}
+      {{#isAccessible ADMIN}}
+        <a class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isSubmitDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.kerberos.button.disable}} </a>
+        <br/>
+        {{#unless isManualKerberos}}
+          {{#if isEditMode}}
+            <a class="pull-right" href="#" {{action makeConfigsNonEditable target="controller"}}>
+                <span class="icon-stack">
+                <i class="icon-pencil"></i>
+                <i class="icon-ban-circle icon-rotate-90 text-error"></i>
+                </span>
+            </a>
+          {{else}}
+            <a class="pull-right" href="#" {{action makeConfigsEditable target="controller"}}>
+              <i class="icon-edit"></i>
+            </a>
+          {{/if}}
+        {{/unless}}
+      {{/isAccessible}}
       </p>
     </div>
     <div id="serviceConfig">
       {{view App.ServicesConfigView}}
     </div>
+    {{#if isEditMode}}
+      <div class="btn-area">
+        <button id="submit-kerberos-reconfigure-identities"
+                class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
+          {{action submit target="controller"}}>{{t common.save}}</button>
+      </div>
+    {{/if}}
   {{else}}
     <div>
       <p class="muted">{{t admin.security.disabled}}

@@ -164,7 +164,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
         configObject.referenceProperty = name.substring(1) + ':' + item;
         configObject.isEditable = false;
       }
-      configObject.defaultValue = configObject.value = itemValue;
+      configObject.defaultValue = configObject.savedValue = configObject.value = itemValue;
       configObject.filename = prop.configuration ? prop.configuration.split('/')[0] : 'cluster-env';
       configObject.name = prop.configuration ? prop.configuration.split('/')[1] : name + '_' + item;
       configObject.displayName = configObject.filename == "cluster-env" ? App.format.normalizeName(configObject.name) : configObject.name;
@@ -189,6 +189,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
         name: propertyName,
         value: kerberosProperties[propertyName],
         defaultValue: kerberosProperties[propertyName],
+        savedValue: kerberosProperties[propertyName],
         serviceName: serviceName,
         filename: filename,
         displayName: serviceName == "Cluster" ? App.format.normalizeName(propertyName) : propertyName,
