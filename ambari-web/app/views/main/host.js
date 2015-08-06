@@ -180,7 +180,8 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    */
   willInsertElement: function () {
     if (!this.get('controller.showFilterConditionsFirstLoad')) {
-      this.clearFilterCondition();
+      var didClearedSomething = this.clearFilterCondition();
+      this.set('controller.filterClearHappened', didClearedSomething);
     }
     this._super();
     this.set('startIndex', this.get('controller.startIndex'));
@@ -211,9 +212,21 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
 
   onInitialLoad: function () {
     if (this.get('tableFilteringComplete')) {
-      this.refresh();
+      if (this.get('controller.fromTopBarClicking') && !this.get('controller.filterClearHappened') && !this.get('controller.needQuickInitLoad')) {
+        Em.run.later(this, this.refresh, App.get('contentUpdateInterval'));
+        this.clearLoadRelatedStates();
+      } else {
+        this.refresh();
+        this.clearLoadRelatedStates();
+      }
     }
   }.observes('tableFilteringComplete'),
+
+  clearLoadRelatedStates: function() {
+    this.set('controller.filterClearHappened', false);
+    this.set('controller.fromTopBarClicking', false);
+    this.set('controller.needQuickInitLoad', false);
+  },
 
   /**
    * Set <code>selected</code> property for each App.Host

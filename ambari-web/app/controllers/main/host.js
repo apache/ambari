@@ -45,6 +45,24 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   startIndex: 1,
 
   /**
+   * true if any host filter got cleared
+   */
+  filterClearHappened: false,
+
+  /**
+   * true if user click "Hosts" on top menu bar
+   */
+  fromTopBarClicking: false,
+  /**
+   * if true, do not clean stored filter before hosts page rendering.
+   */
+  showFilterConditionsFirstLoad: false,
+
+  /**
+   * if true, fire host loading immediately with out any postpone.
+   */
+  needQuickInitLoad: false,
+  /**
    * Components which will be shown in component filter
    * @returns {Array}
    */
