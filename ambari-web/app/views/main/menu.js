@@ -101,6 +101,7 @@ App.MainMenuView = Em.CollectionView.extend({
     goToSection: function (event) {
       if (event.context === 'hosts') {
         App.router.set('mainHostController.showFilterConditionsFirstLoad', false);
+        App.router.set('mainHostController.fromTopBarClicking', true);
       } else if (event.context === 'views') {
         App.router.route('views');
         return;
