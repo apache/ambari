@@ -106,7 +106,7 @@ public class ExecutionCommandWrapper {
                 // if forcing a refresh of *, then clear out any existing
                 // configurations so that all of the new configurations are
                 // forcefully applied
-                LOG.info("ExecutionCommandWrapper.getExecutionCommand: refreshConfigTag set to {}, so clearing config for full refresh.", refreshConfigTag);
+                LOG.debug("ExecutionCommandWrapper.getExecutionCommand: refreshConfigTag set to {}, so clearing config for full refresh.", refreshConfigTag);
                 executionCommand.getConfigurations().clear();
 
                 for (final Entry<String, DesiredConfig> desiredConfig : desiredConfigs.entrySet()) {
