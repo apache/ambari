@@ -38,7 +38,8 @@ export default Ember.Object.create({
       udfs: 'udfs',
       logs: 'logs',
       results: 'results',
-      explain: 'explain'
+      explain: 'explain',
+      visualization: 'visualization'
     },
 
     subroutes: {
@@ -219,5 +220,7 @@ export default Ember.Object.create({
 
   globalSettings: {
     comment: "--Global Settings--\n\n"
-  }
+  },
+
+  visualizationRowCount: 30000
 });

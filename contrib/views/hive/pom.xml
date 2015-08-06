@@ -240,7 +240,6 @@
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
@@ -316,6 +315,16 @@
       <resource>
         <directory>src/main/resources/ui/hive-web/dist</directory>
         <filtering>false</filtering>
+      </resource>
+      <resource>
+        <directory>src/main/resources/ui/hive-web/bower_components/polestar</directory>
+        <filtering>false</filtering>
+        <targetPath>polestar</targetPath>
+      </resource>
+      <resource>
+        <directory>src/main/resources/ui/hive-web/bower_components/voyager</directory>
+        <filtering>false</filtering>
+        <targetPath>voyager</targetPath>
       </resource>
       <resource>
         <targetPath>WEB-INF/lib</targetPath>

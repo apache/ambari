@@ -28,10 +28,13 @@ import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.apache.commons.collections4.map.PassiveExpiringMap;
 
 import javax.ws.rs.core.Response;
+import java.lang.Object;
+import java.lang.String;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -110,7 +113,7 @@ public class ResultsPaginationController {
     return getResultsCache().get(key);
   }
 
-  public Response.ResponseBuilder request(String key, String searchId, boolean canExpire, String fromBeginning, Integer count, Callable<Cursor> makeResultsSet) throws HiveClientException {
+  public Response.ResponseBuilder request(String key, String searchId, boolean canExpire, String fromBeginning, Integer count, String format, Callable<Cursor> makeResultsSet) throws HiveClientException {
     if (searchId == null)
       searchId = DEFAULT_SEARCH_ID;
     key = key + "?" + searchId;
@@ -123,17 +126,33 @@ public class ResultsPaginationController {
     if (count == null)
       count = DEFAULT_FETCH_COUNT;
 
-    ResultsResponse resultsResponse = new ResultsResponse();
-    resultsResponse.setSchema(resultSet.getSchema());
+    ArrayList<ColumnDescription> schema = resultSet.getSchema();
     ArrayList<Object[]> rows = new ArrayList<Object[]>(count);
     int read = resultSet.readRaw(rows, count);
-    resultsResponse.setRows(rows);
-    resultsResponse.setReadCount(read);
-    resultsResponse.setHasNext(resultSet.hasNext());
-//      resultsResponse.setSize(resultSet.size());
-    resultsResponse.setOffset(resultSet.getOffset());
-    resultsResponse.setHasResults(true);
-    return Response.ok(resultsResponse);
+    if(format != null && format.equalsIgnoreCase("d3")) {
+      List<Map<String,Object>> results = new ArrayList<Map<String,Object>>();
+      for(int i=0; i<rows.size(); i++) {
+        Object[] row = rows.get(i);
+        Map<String, Object> keyValue = new HashMap<String, Object>(row.length);
+        for(int j=0; j<row.length; j++) {
+          //Replace dots in schema with underscore
+          String schemaName = schema.get(j).getName();
+          keyValue.put(schemaName.replace('.','_'), row[j]);
+        }
+        results.add(keyValue);
+      }
+      return Response.ok(results);
+    } else {
+      ResultsResponse resultsResponse = new ResultsResponse();
+      resultsResponse.setSchema(schema);
+      resultsResponse.setRows(rows);
+      resultsResponse.setReadCount(read);
+      resultsResponse.setHasNext(resultSet.hasNext());
+      //      resultsResponse.setSize(resultSet.size());
+      resultsResponse.setOffset(resultSet.getOffset());
+      resultsResponse.setHasResults(true);
+      return Response.ok(resultsResponse);
+    }
   }
 
   public static Response.ResponseBuilder emptyResponse() {

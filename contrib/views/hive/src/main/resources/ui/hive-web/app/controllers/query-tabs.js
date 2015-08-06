@@ -41,6 +41,16 @@ export default Ember.Controller.extend({
       tooltip: Ember.I18n.t('tooltips.settings')
     }),
     Ember.Object.create({
+      iconClass: 'fa-area-chart',
+      id: 'visualization-icon',
+      action: 'toggleOverlay',
+      tooltip: Ember.I18n.t('tooltips.visualization'),
+      into: 'index',
+      outlet: 'overlay',
+      template: 'visualization-ui',
+      onTabOpen: 'onTabOpen'
+    }),
+    Ember.Object.create({
       iconClass: 'fa-link',
       id: 'visual-explain-icon',
       action: 'toggleOverlay',
