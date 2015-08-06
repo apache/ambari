@@ -24,9 +24,9 @@ App.MainViewsDetailsView = Em.View.extend({
 
   tagName: "iframe",
   classNames: ["views_sizes"],
-  attributeBindings: ['src','seamless'],
+  attributeBindings: ['src','seamless','allowfullscreen'],
   seamless: "seamless",
-
+  allowfullscreen: "true",
   interval: null,
 
   /**

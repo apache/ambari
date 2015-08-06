@@ -269,6 +269,7 @@ public class JobService extends BaseService {
                              @QueryParam("first") String fromBeginning,
                              @QueryParam("count") Integer count,
                              @QueryParam("searchId") String searchId,
+                             @QueryParam("format") String format,
                              @QueryParam("columns") final String requestedColumns) {
     try {
       final JobController jobController = getResourceManager().readController(jobId);
@@ -277,7 +278,7 @@ public class JobService extends BaseService {
       }
 
       return ResultsPaginationController.getInstance(context)
-           .request(jobId, searchId, true, fromBeginning, count,
+           .request(jobId, searchId, true, fromBeginning, count, format,
                new Callable<Cursor>() {
                  @Override
                  public Cursor call() throws Exception {

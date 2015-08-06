@@ -113,6 +113,7 @@ public class HiveBrowserService {
                             @QueryParam("first") String fromBeginning,
                             @QueryParam("count") Integer count,
                             @QueryParam("searchId") String searchId,
+                            @QueryParam("format") String format,
                             @QueryParam("columns") final String requestedColumns) {
     if (like == null)
       like = "*";
@@ -122,14 +123,14 @@ public class HiveBrowserService {
     try {
       final String finalLike = like;
       return ResultsPaginationController.getInstance(context)
-          .request("databases", searchId, false, fromBeginning, count,
-              new Callable<Cursor>() {
-                @Override
-                public Cursor call() throws Exception {
-                  TSessionHandle session = getConnectionFactory().getHiveConnection().getOrCreateSessionByTag("DDL");
-                  return getConnectionFactory().getHiveConnection().ddl().getDBListCursor(session, finalLike);
-                }
-              }).build();
+          .request("databases", searchId, false, fromBeginning, count, format,
+                  new Callable<Cursor>() {
+                    @Override
+                    public Cursor call() throws Exception {
+                      TSessionHandle session = getConnectionFactory().getHiveConnection().getOrCreateSessionByTag("DDL");
+                      return getConnectionFactory().getHiveConnection().ddl().getDBListCursor(session, finalLike);
+                    }
+                  }).build();
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (IllegalArgumentException ex) {
@@ -182,6 +183,7 @@ public class HiveBrowserService {
                                    @QueryParam("first") String fromBeginning,
                                    @QueryParam("count") Integer count,
                                    @QueryParam("searchId") String searchId,
+                                   @QueryParam("format") String format,
                                    @QueryParam("columns") final String requestedColumns) {
     if (like == null)
       like = "*";
@@ -191,16 +193,16 @@ public class HiveBrowserService {
     try {
       final String finalLike = like;
       return ResultsPaginationController.getInstance(context)
-          .request(db + ":tables", searchId, false, fromBeginning, count,
-              new Callable<Cursor>() {
-                @Override
-                public Cursor call() throws Exception {
-                  TSessionHandle session = getConnectionFactory().getHiveConnection().getOrCreateSessionByTag("DDL");
-                  Cursor cursor = getConnectionFactory().getHiveConnection().ddl().getTableListCursor(session, db, finalLike);
-                  cursor.selectColumns(requestedColumns);
-                  return cursor;
-                }
-              }).build();
+          .request(db + ":tables", searchId, false, fromBeginning, count, format,
+                  new Callable<Cursor>() {
+                    @Override
+                    public Cursor call() throws Exception {
+                      TSessionHandle session = getConnectionFactory().getHiveConnection().getOrCreateSessionByTag("DDL");
+                      Cursor cursor = getConnectionFactory().getHiveConnection().ddl().getTableListCursor(session, db, finalLike);
+                      cursor.selectColumns(requestedColumns);
+                      return cursor;
+                    }
+                  }).build();
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (IllegalArgumentException ex) {
@@ -253,11 +255,12 @@ public class HiveBrowserService {
                                          @QueryParam("first") String fromBeginning,
                                          @QueryParam("searchId") String searchId,
                                          @QueryParam("count") Integer count,
+                                         @QueryParam("format") String format,
                                          @QueryParam("columns") final String requestedColumns) {
     String curl = null;
     try {
       return ResultsPaginationController.getInstance(context)
-          .request(db + ":tables:" + table + ":columns", searchId, false, fromBeginning, count,
+          .request(db + ":tables:" + table + ":columns", searchId, false, fromBeginning, count, format,
               new Callable<Cursor>() {
                 @Override
                 public Cursor call() throws Exception {

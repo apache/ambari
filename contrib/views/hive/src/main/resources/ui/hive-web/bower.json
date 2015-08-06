@@ -17,7 +17,9 @@
     "blanket": "~1.1.5",
     "jquery-ui": "~1.11.2",
     "selectize": "~0.12.0",
-    "pretender": "0.1.0"
+    "pretender": "0.1.0",
+    "polestar": "https://github.com/vivekratnavel/polestar.git",
+    "voyager": "https://github.com/vivekratnavel/voyager.git"
   },
   "resolutions": {
     "ember": "1.10.0"
