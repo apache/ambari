@@ -41,26 +41,29 @@ def setup_kms_db():
   if params.has_ranger_admin:
 
     File(params.downloaded_custom_connector,
-      content = DownloadSource(params.driver_curl_source)
+      content = DownloadSource(params.driver_curl_source),
+      mode = 0644
     )
 
     Directory(params.java_share_dir,
       mode=0755
     )
+    
+    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
+        path=["/bin", "/usr/bin/"],
+        sudo=True)
 
-    if not os.path.isfile(params.driver_curl_target):
-      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
-            path=["/bin", "/usr/bin/"],
-            sudo=True)
+    File(params.driver_curl_target, mode=0644)
 
     Directory(os.path.join(params.kms_home, 'ews', 'lib'),
       mode=0755
     )
+    
+    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(params.kms_home, 'ews', 'webapp', 'lib')),
+      path=["/bin", "/usr/bin/"],
+      sudo=True)
 
-    if not os.path.isfile(os.path.join(params.kms_home, 'ews', 'webapp', 'lib', params.jdbc_jar_name)):
-      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(params.kms_home, 'ews', 'webapp', 'lib')),
-        path=["/bin", "/usr/bin/"],
-        sudo=True)     
+    File(os.path.join(params.kms_home, 'ews', 'webapp', 'lib', params.jdbc_jar_name), mode=0644)
 
     ModifyPropertiesFile(format("/usr/hdp/current/ranger-kms/install.properties"),
       properties = params.config['configurations']['kms-properties']
@@ -118,13 +121,15 @@ def kms():
   if params.has_ranger_admin:
 
     File(params.downloaded_connector_path,
-      content = DownloadSource(params.driver_source)
+      content = DownloadSource(params.driver_source),
+      mode = 0644
     )
 
-    if not os.path.isfile(params.driver_target):
-      Execute(('cp', '--remove-destination', params.downloaded_connector_path, params.driver_target),
-              path=["/bin", "/usr/bin/"],
-              sudo=True)
+    Execute(('cp', '--remove-destination', params.downloaded_connector_path, params.driver_target),
+        path=["/bin", "/usr/bin/"],
+        sudo=True)
+
+    File(params.driver_target, mode=0644)
 
     Directory(os.path.join(params.kms_home, 'ews', 'webapp', 'WEB-INF', 'classes', 'lib'),
         mode=0755,
@@ -178,7 +183,8 @@ def kms():
       configurations=params.config['configurations']['dbks-site'],
       configuration_attributes=params.config['configuration_attributes']['dbks-site'],
       owner=params.kms_user,
-      group=params.kms_group      
+      group=params.kms_group,
+      mode=0644
     )
 
     XmlConfig("ranger-kms-site.xml",
@@ -186,7 +192,8 @@ def kms():
       configurations=params.config['configurations']['ranger-kms-site'],
       configuration_attributes=params.config['configuration_attributes']['ranger-kms-site'],
       owner=params.kms_user,
-      group=params.kms_group      
+      group=params.kms_group,
+      mode=0644
     )
 
     XmlConfig("kms-site.xml",
@@ -194,13 +201,15 @@ def kms():
       configurations=params.config['configurations']['kms-site'],
       configuration_attributes=params.config['configuration_attributes']['kms-site'],
       owner=params.kms_user,
-      group=params.kms_group
+      group=params.kms_group,
+      mode=0644
     )
 
     File(os.path.join(params.kms_conf_dir, "kms-log4j.properties"),
       owner=params.kms_user,
       group=params.kms_group,
-      content=params.kms_log4j
+      content=params.kms_log4j,
+      mode=0644
     )
 
 def enable_kms_plugin():
