@@ -27,7 +27,12 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import re
 from os.path import join
+import random
+import string
 
+
+def generate_random_string(size=7, chars=string.ascii_uppercase + string.digits):
+  return ''.join(random.choice(chars) for _ in range(size))
 
 class _named_dict(dict):
   """
@@ -95,9 +100,17 @@ def copy_tree(src, dest, exclude=None, post_copy=None):
     if post_copy:
       post_copy(_src, _dest)
 
-# TODO: Add support for default text replacements based on stack version mapping
 def process_replacements(file_path, config_data, stack_version_changes):
   file_data = open(file_path, 'r').read().decode(encoding='utf-8')
+
+  # save user-defined text before replacements
+  preserved_map = {}
+  if "preservedText" in config_data:
+    for preserved in config_data.preservedText:
+      rnd = generate_random_string()
+      file_data = file_data.replace(preserved, rnd)
+      preserved_map[rnd] = preserved
+
   # replace user defined values
   if 'textReplacements' in config_data:
     for _from, _to in config_data['textReplacements']:
@@ -115,6 +128,9 @@ def process_replacements(file_path, config_data, stack_version_changes):
       file_data = file_data.replace('HDP '+from_version, config_data.stackName+" "+to_version)
     file_data = file_data.replace('hdp', config_data.stackName.lower())
     file_data = file_data.replace('HDP', config_data.stackName)
+  if preserved_map:
+    for _from, _to in preserved_map.iteritems():
+      file_data = file_data.replace(_from, _to)
   with open(file_path, "w") as target:
     target.write(file_data.encode(encoding='utf-8'))
   return file_path
