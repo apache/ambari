@@ -521,13 +521,13 @@
             },
             {
               "name": "dfs.datanode.TotalReadTime",
-              "metric_path": "metrics/dfs/datanode/total_read_time",
+              "metric_path": "metrics/dfs/datanode/TotalReadTime",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             },
             {
               "name": "dfs.datanode.TotalWriteTime",
-              "metric_path": "metrics/dfs/datanode/total_write_time",
+              "metric_path": "metrics/dfs/datanode/TotalWriteTime",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             }
@@ -535,7 +535,7 @@
           "values": [
             {
               "name": "DataNode Process Disk I/O Utilization",
-              "value": "${(((dfs.datanode.BytesRead/dfs.datanode.TotalReadTime)+(dfs.datanode.BytesWritten/dfs.datanode.TotalWriteTime))*50}"
+              "value": "${((dfs.datanode.BytesRead/dfs.datanode.TotalReadTime)+(dfs.datanode.BytesWritten/dfs.datanode.TotalWriteTime))*50}"
             }
           ],
           "properties": {
@@ -551,7 +551,7 @@
           "metrics": [
             {
               "name": "dfs.datanode.RemoteBytesRead",
-              "metric_path": "metrics/dfs/datanode/remote_bytes_read",
+              "metric_path": "metrics/dfs/datanode/RemoteBytesRead",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             },
@@ -563,7 +563,7 @@
             },
             {
               "name": "dfs.datanode.RemoteBytesWritten",
-              "metric_path": "metrics/dfs/datanode/remote_bytes_written",
+              "metric_path": "metrics/dfs/datanode/RemoteBytesWritten",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             },
