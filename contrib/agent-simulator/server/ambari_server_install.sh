@@ -14,7 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script will install Weave on a CentOS 7 machine
+# This script will install and start the ambari-server on a CentOS 7 machine
 
-sudo curl -s -L git.io/weave -o /usr/bin/weave
-sudo chmod a+x /usr/bin/weave
+yum install -y -q wget
+wget -q -O /etc/yum.repos.d/ambari.repo http://s3.amazonaws.com/dev.hortonworks.com/ambari/centos7/2.x/latest/2.1.1/ambaribn.repo
+yum install -y -q ambari-server
+sudo ambari-server setup -s

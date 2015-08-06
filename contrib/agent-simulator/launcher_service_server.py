@@ -16,15 +16,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-# configure the VM to set Docker, Weave network, run Ambari-agent inside the Docker
+# configure the VM to set Weave network, run Ambari-agent directly inside VM
 # argv 1: the external IP of this VM
 # argv 2: the Weave IP of the Ambari-server
 # argv 3: the external IP of the Ambari-server
 # argv 4: the name of the cluster
 
-import sys
 from config import Config
 from cluster import Cluster
+import sys
 
 
 if __name__ == "__main__":
@@ -45,12 +45,5 @@ if __name__ == "__main__":
 
     cluster = Cluster.load_from_json(cluster_name)
 
-    vm_ip_list = []
-    vm_ip_list.append(server_external_ip)
-    for vm in cluster.ambari_agent_vm_list:
-        vm_ip_list.append(vm.external_ip)
-    for vm in cluster.service_server_vm_list:
-        vm_ip_list.append(vm.external_ip)
-
-    vm = cluster.get_agent_vm(my_external_ip)
-    vm.run_docker(server_weave_ip, vm_ip_list)
+    vm = cluster.get_service_server_vm(my_external_ip)
+    vm.run_service_server(server_weave_ip, server_external_ip)

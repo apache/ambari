@@ -1,3 +1,4 @@
+#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information rega4rding copyright ownership.
@@ -13,5 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/bin/bash
-wget -qO- https://get.docker.com/ | sh
+# this script will start Ambari agent on Centos 7
+
+ambari-agent start

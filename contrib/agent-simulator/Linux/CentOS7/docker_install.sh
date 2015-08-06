@@ -1,3 +1,4 @@
+#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information rega4rding copyright ownership.
@@ -13,8 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/bin/bash
-sudo curl -O -sSL https://get.docker.com/rpm/1.7.0/centos-7/RPMS/x86_64/docker-engine-1.7.0-1.el7.centos.x86_64.rpm
-sudo yum localinstall -y --nogpgcheck docker-engine-1.7.0-1.el7.centos.x86_64.rpm
-sudo yum update -y device-mapper
+# This script will install and start the Docker service on a CentOS 7 machine
+
+sudo curl -s -O -sSL https://get.docker.com/rpm/1.7.0/centos-7/RPMS/x86_64/docker-engine-1.7.0-1.el7.centos.x86_64.rpm
+sudo yum localinstall -y -q --nogpgcheck docker-engine-1.7.0-1.el7.centos.x86_64.rpm
+sudo yum update -y -q device-mapper
 sudo service docker start

@@ -1,3 +1,4 @@
+#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information rega4rding copyright ownership.
@@ -13,30 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/bin/bash
-# run this script with root
-# $1 <Weave internal IP with mask>
-# $2 <hostname files with all agents>
+# This script will set the docker use a new partition as its storage
 
-if [ $# -lt 2 ]; then
-    echo "usage: ./sever_setup.sh <Weave internal IP with mask> <hostname file with all agents>"
-    echo "example: ./server_setup.sh 192.168.10.10/16 /user/simulator-script/hosts.txt"
-    echo "note: the hostname file is generated automatically when you request a cluster"
-    exit 1
-fi
+# $1 mount point to other part
 
-# install weave
-chmod 755 ./Linux/CentOS7/weave_install.sh
-./Linux/CentOS7/weave_install.sh
+mount_point=$1
+docker_dir=/var/lib/docker
 
-# reset weave
-weave reset
+while [ ! -d "$docker_dir" ]; do
+    echo "$docker_dir does not exist, wait for docker service to create the directory"
+    sleep 5
+done
 
-# launch weave
-weave launch
+echo "move $docker_dir to partition $mount_point"
 
-# expose IP
-weave expose $1
-
-# add hosname of all agents
-cat $2 >> /etc/hosts3
+service docker stop
+cp -r ${docker_dir}/* $mount_point
+rm -rf $docker_dir
+ln -s $mount_point $docker_dir
+service docker start

@@ -1,3 +1,4 @@
+#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information rega4rding copyright ownership.
@@ -13,6 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This script will clear all the data in the ambari-server
 
-1. Ambari-agent and Ambari-server have to be the same version to successfully register. The command used to install Ambari-agent is in the Dockerfile
-2. Use CTRL + P, then CTRL + Q to exit Docker container without terminate the container.
+ambari-server stop
+sudo -u postgres psql -c "drop database ambari;"
+sudo -u postgres psql -c "drop database ambarirca;"
+ambari-server setup << _EOF_
+y
+n
+n
+n
+_EOF_
+ambari-server start
