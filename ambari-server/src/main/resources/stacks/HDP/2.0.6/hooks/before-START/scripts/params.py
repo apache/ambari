@@ -42,7 +42,6 @@ hadoop_lib_home = hdp_select.get_hadoop_dir("lib")
 hadoop_bin = hdp_select.get_hadoop_dir("sbin")
 hadoop_home = '/usr'
 create_lib_snappy_symlinks = True
-default_topology_script_file_path = "/etc/hadoop/conf/topology_script.py"
 
 # HDP 2.2+ params
 if Script.is_hdp_stack_greater_or_equal("2.2"):
@@ -194,7 +193,7 @@ all_ipv4_ips = default("/clusterHostInfo/all_ipv4_ips", [])
 slave_hosts = default("/clusterHostInfo/slave_hosts", [])
 
 #topology files
-net_topology_script_file_path = default("/configurations/core-site/net.topology.script.file.name",default_topology_script_file_path)
+net_topology_script_file_path = "/etc/hadoop/conf/topology_script.py"
 net_topology_script_dir = os.path.dirname(net_topology_script_file_path)
 net_topology_mapping_data_file_name = 'topology_mappings.data'
 net_topology_mapping_data_file_path = os.path.join(net_topology_script_dir, net_topology_mapping_data_file_name)
