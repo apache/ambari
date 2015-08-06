@@ -26,12 +26,13 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   defaultKerberosLoaded: false,
   dataIsLoaded: false,
   isRecommendedLoaded: true,
+  isEditMode: false,
   kdc_type: '',
 
   kdcTypesValues: {
-    'mit-kdc'         : Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'),
+    'mit-kdc': Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'),
     'active-directory': Em.I18n.t('admin.kerberos.wizard.step1.option.ad'),
-    'none'            : Em.I18n.t('admin.kerberos.wizard.step1.option.manual')
+    'none': Em.I18n.t('admin.kerberos.wizard.step1.option.manual')
   },
 
   getAddSecurityWizardStatus: function () {
@@ -71,9 +72,10 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   /**
    * Show confirmation popup for regenerate keytabs
    * @method regenerateKeytabs
+   * @param callback function (optional)
    * @return {App.ModalPopup}
    */
-  regenerateKeytabs: function () {
+  regenerateKeytabs: function (callback) {
     var self = this;
 
     return App.ModalPopup.show({
@@ -92,7 +94,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
 
       onPrimary: function () {
         this._super();
-        return self.restartServicesAfterRegenerate(this.get('regenerateKeytabsOnlyForMissing'));
+        return self.restartServicesAfterRegenerate(this.get('regenerateKeytabsOnlyForMissing'), callback);
       }
     });
   },
@@ -101,9 +103,10 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
    * Show confirmation popup for restarting all services and after confirmation regenerate keytabs
    *
    * @param regenerateKeytabsOnlyForMissing {Boolean}
+   * @param callback (optional)
    * @returns {*}
    */
-  restartServicesAfterRegenerate: function (regenerateKeytabsOnlyForMissing) {
+  restartServicesAfterRegenerate: function (regenerateKeytabsOnlyForMissing, callback) {
     var self = this;
 
     return App.ModalPopup.show({
@@ -122,7 +125,15 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
 
       onPrimary: function () {
         this._super();
-        self.regenerateKeytabsRequest(regenerateKeytabsOnlyForMissing, this.get('restartComponents'));
+        var popupContext = this;
+        // Keytabs can either be regenerated directly or after updating kerberos descriptor in the callback function
+        if (Em.typeOf(callback) === 'function') {
+          callback().done(function () {
+            self.regenerateKeytabsRequest(regenerateKeytabsOnlyForMissing, popupContext.get('restartComponents'));
+          });
+        } else {
+          self.regenerateKeytabsRequest(regenerateKeytabsOnlyForMissing, popupContext.get('restartComponents'));
+        }
       }
     });
   },
@@ -192,7 +203,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
    * otherwise runs <code>startKerberosWizard<code>
    * @method checkAndStartKerberosWizard
    */
-  checkAndStartKerberosWizard: function() {
+  checkAndStartKerberosWizard: function () {
     if (App.get('supports.preKerberizeCheck')) {
       App.ajax.send({
         name: "admin.kerberos_security.checks",
@@ -262,31 +273,31 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
         success: 'getSecurityStatusSuccessCallback',
         error: 'errorCallback'
       })
-      .always(this.getSecurityType.bind(this))
-      .always(function() {
-        // check for kerberos descriptor artifact
-        if (self.get('securityEnabled')) {
-          self.loadClusterDescriptorConfigs().then(function() {
-            dfd.resolve();
-          }, function() {
-            // if kerberos descriptor doesn't exist in cluster artifacts get the default descriptor
-            self.loadStackDescriptorConfigs().then(function() {
-              self.set('defaultKerberosLoaded', true);
+        .always(this.getSecurityType.bind(this))
+        .always(function () {
+          // check for kerberos descriptor artifact
+          if (self.get('securityEnabled')) {
+            self.loadClusterDescriptorConfigs().then(function () {
               dfd.resolve();
-            }, function() {
-              self.set('securityEnabled', false);
-              dfd.resolve();
+            }, function () {
+              // if kerberos descriptor doesn't exist in cluster artifacts get the default descriptor
+              self.loadStackDescriptorConfigs().then(function () {
+                self.set('defaultKerberosLoaded', true);
+                dfd.resolve();
+              }, function () {
+                self.set('securityEnabled', false);
+                dfd.resolve();
+              });
             });
-          });
-        } else {
-          dfd.resolve();
-        }
-      });
+          } else {
+            dfd.resolve();
+          }
+        });
     }
     return dfd.promise();
   },
 
-  getSecurityStatusSuccessCallback: function(data) {
+  getSecurityStatusSuccessCallback: function (data) {
     this.set('dataIsLoaded', true);
     var securityType = data.Clusters.security_type;
     this.set('securityEnabled', securityType === 'KERBEROS');
@@ -319,6 +330,9 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   setStepConfigs: function (properties) {
     this.get('stepConfigs').clear();
     this._super(properties);
+    this.get('stepConfigs').forEach(function (serviceConfig) {
+      serviceConfig.set('initConfigsLength', serviceConfig.get('configs.length'));
+    });
   },
 
   /**
@@ -327,15 +341,19 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
    * @param {App.ServiceConfigProperty[]} configs
    * @returns {App.ServiceConfigProperty[]}
    */
-  prepareConfigProperties: function(configs) {
+  prepareConfigProperties: function (configs) {
+    var self = this;
     var configProperties = configs.slice(0);
     var siteProperties = App.config.get('preDefinedSiteProperties');
     var installedServiceNames = ['Cluster'].concat(App.Service.find().mapProperty('serviceName'));
-    configProperties = configProperties.filter(function(item) {
+    configProperties = configProperties.filter(function (item) {
       return installedServiceNames.contains(item.get('serviceName'));
     });
     configProperties.setEach('isSecureConfig', false);
-    configProperties.forEach(function(property, item, allConfigs) {
+    configProperties.forEach(function (property, item, allConfigs) {
+      if (['spnego_keytab', 'spnego_principal'].contains(property.get('name'))) {
+        property.addObserver('value', self, 'spnegoPropertiesObserver');
+      }
       if (property.get('observesValueFrom')) {
         var observedValue = allConfigs.findProperty('name', property.get('observesValueFrom')).get('value');
         property.set('value', observedValue);
@@ -351,7 +369,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
       var siteProperty = siteProperties.findProperty('name', property.get('name'));
       if (siteProperty) {
         if (siteProperty.category === property.get('category')) {
-          property.set('displayName',siteProperty.displayName);
+          property.set('displayName', siteProperty.displayName);
           if (siteProperty.index) {
             property.set('index', siteProperty.index);
           }
@@ -365,7 +383,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     return configProperties;
   },
 
-  getKDCSessionState: function(callback, kdcCancelHandler) {
+  getKDCSessionState: function (callback, kdcCancelHandler) {
     if (this.get('securityEnabled') || App.get('isKerberosEnabled')) {
       App.ajax.send({
         name: 'kerberos.session.state',
@@ -392,7 +410,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
         },
         success: 'getSecurityTypeSuccess'
       });
-    } else if (Em.typeOf(callback)=== 'function') {
+    } else if (Em.typeOf(callback) === 'function') {
       callback();
     } else {
       return $.Deferred().resolve().promise;
@@ -412,7 +430,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     return this.get('kdc_type') === 'none';
   }.property('kdc_type'),
 
-  checkState: function(data, opt, params) {
+  checkState: function (data, opt, params) {
     var res = Em.get(data, 'Services.attributes.kdc_validation_result');
     var message = Em.get(data, 'Services.attributes.kdc_validation_failure_details');
     if (res.toUpperCase() === "OK") {
@@ -420,5 +438,102 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     } else {
       App.showInvalidKDCPopup(opt, App.format.kdcErrorMsg(message, false));
     }
-  }
+  },
+
+  /**
+   * @Override   <code>App.AddSecurityConfigs</code>
+   * Wrap kerberos properties to App.ServiceConfigProperty model class instances.
+   *
+   * @param {object} kerberosProperties
+   * @param {string} serviceName
+   * @param {string} filename
+   * @returns {App.ServiceConfigProperty[]}
+   */
+  expandKerberosStackDescriptorProps: function (kerberosProperties, serviceName, filename) {
+    var configs = [];
+
+    for (var propertyName in kerberosProperties) {
+      var propertyObject = {
+        name: propertyName,
+        value: kerberosProperties[propertyName],
+        defaultValue: kerberosProperties[propertyName],
+        savedValue: kerberosProperties[propertyName],
+        serviceName: serviceName,
+        filename: filename,
+        displayName: serviceName == "Cluster" ? App.format.normalizeName(propertyName) : propertyName,
+        isOverridable: false,
+        isEditable: true,
+        isSecureConfig: true
+      };
+      configs.push(App.ServiceConfigProperty.create(propertyObject));
+    }
+
+    return configs;
+  },
+
+  /**
+   * Determines if some config value is changed
+   * @type {boolean}
+   */
+  isPropertiesChanged: function () {
+    return this.get('stepConfigs').someProperty('isPropertiesChanged', true);
+  }.property('stepConfigs.@each.isPropertiesChanged'),
+
+  /**
+   * Determines if the save button is disabled
+   */
+  isSaveButtonDisabled: function () {
+    return this.get('isSubmitDisabled') || !this.get('isPropertiesChanged');
+  }.property('isSubmitDisabled', 'isPropertiesChanged'),
+
+
+  makeConfigsEditable: function () {
+    this.set('isEditMode', true);
+    this.get('stepConfigs').forEach(function(_stepConfig){
+      _stepConfig.get('configs').setEach('isEditable', true);
+    }, this);
+  },
+
+  makeConfigsNonEditable: function () {
+    this.set('isEditMode', false);
+    this.loadStep();
+  },
+
+  /**
+   * Update kerberos descriptor and regenerate keytabs
+   */
+  submit: function (context) {
+    var callback;
+    var self = this;
+    if (this.get('isPropertiesChanged')) {
+      var kerberosDescriptor = this.get('kerberosDescriptor');
+      var configs = [];
+      this.get('stepConfigs').forEach(function (_stepConfig) {
+        configs = configs.concat(_stepConfig.get('configs'));
+      });
+      this.updateKerberosDescriptor(kerberosDescriptor, configs);
+      callback = function () {
+        return App.ajax.send({
+          name: 'admin.kerberos.cluster.artifact.update',
+          sender: self,
+          data: {
+            artifactName: 'kerberos_descriptor',
+            data: {
+              artifact_data: kerberosDescriptor
+            }
+          },
+          success: 'makeConfigsNonEditable'
+        });
+      };
+    } else {
+      callback = function() {
+        var dfd = $.Deferred();
+        self.makeConfigsNonEditable();
+        dfd.resolve();
+        return dfd.promise();
+      }
+    }
+    this.regenerateKeytabs(callback);
+  },
+
 });

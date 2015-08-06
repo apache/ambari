@@ -204,6 +204,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     if (this.get('wizardController.name') != 'addServiceController') {
       var realmValue = storedServiceConfigs.findProperty('name', 'realm').value;
       configProperties.findProperty('name', 'realm').set('value', realmValue);
+      configProperties.findProperty('name', 'realm').set('savedValue', realmValue);
       configProperties.findProperty('name', 'realm').set('recommendedValue', realmValue);
     }
 
