@@ -264,7 +264,7 @@ module.exports = {
         var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
         var zkHostPort = zkHosts;
         var regex = "\\w*:(\\d+)";   //regex to fetch the port
-        var portValue = configProperty.get('recommendedValue').match(new RegExp(regex));
+        var portValue = configProperty.get('recommendedValue') && configProperty.get('recommendedValue').match(new RegExp(regex));
         if (!portValue) return;
         if (portValue[1]) {
           for ( var i = 0; i < zkHosts.length; i++ ) {
