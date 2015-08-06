@@ -92,7 +92,7 @@ App.ConfigsComparator = Em.Mixin.create({
     json.items.forEach(function (item) {
       item.configurations.forEach(function (configuration) {
         if (serviceName == 'YARN' && configuration.type == 'capacity-scheduler') {
-          var configsToSkip = this.get('advancedConfigs').filterProperty('filename', 'capacity-scheduler.xml').filterProperty('subSection').mapProperty('name');
+          var configsToSkip = this.get('settingsTabProperties').filterProperty('filename', 'capacity-scheduler.xml').filterProperty('subSection').mapProperty('name');
           // put all properties in a single textarea for capacity-scheduler
           var value = '';
           for (var prop in configuration.properties) {
