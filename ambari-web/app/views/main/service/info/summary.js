@@ -617,6 +617,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     $("[rel='add-widget-tooltip']").tooltip('destroy');
     $('.thumbnail').off();
     $('#widget_layout').sortable('destroy');
+    $('.widget.span2p4').detach().remove();
     this.get('serviceMetricGraphs').clear();
     this.set('service', null);
     this.get('mastersObj').clear();
