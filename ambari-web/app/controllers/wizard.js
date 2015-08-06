@@ -1217,18 +1217,23 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   loadConfigThemes: function () {
     var self = this;
     var dfd = $.Deferred();
-    if (App.get('isClusterSupportsEnhancedConfigs') && !this.get('stackConfigsLoaded')) {
+    if (!this.get('stackConfigsLoaded')) {
       var serviceNames = App.StackService.find().filter(function (s) {
         return s.get('isSelected') || s.get('isInstalled');
       }).mapProperty('serviceName');
       // Load stack configs before loading themes
       App.config.loadClusterConfigsFromStack().always(function() {
         App.config.loadConfigsFromStack(serviceNames).done(function () {
-          self.loadConfigThemeForServices(serviceNames).always(function () {
+          if (App.get('isClusterSupportsEnhancedConfigs')) {
+            self.loadConfigThemeForServices(serviceNames).always(function () {
+              self.set('stackConfigsLoaded', true);
+              App.themesMapper.generateAdvancedTabs(serviceNames);
+              dfd.resolve();
+            });
+          } else {
             self.set('stackConfigsLoaded', true);
-            App.themesMapper.generateAdvancedTabs(serviceNames);
             dfd.resolve();
-          });
+          }
         });
       });
     }
