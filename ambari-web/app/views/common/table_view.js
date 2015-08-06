@@ -104,7 +104,7 @@ App.TableView = Em.View.extend(App.UserPref, {
     var name = this.get('controller.name');
     var self = this;
     var filterConditions = App.db.getFilterConditions(name);
-    if (filterConditions) {
+    if (!Em.isEmpty(filterConditions)) {
       this.set('filterConditions', filterConditions);
 
       var childViews = this.get('childViews');
@@ -367,6 +367,8 @@ App.TableView = Em.View.extend(App.UserPref, {
       };
       this.get('filterConditions').push(filterCondition);
     }
+    // remove empty entries
+    this.set('filterConditions', this.get('filterConditions').filter(function(item){ return !Em.isEmpty(item.value); }));
     App.db.setFilterConditions(this.get('controller.name'), this.get('filterConditions'));
   },
 
@@ -383,7 +385,13 @@ App.TableView = Em.View.extend(App.UserPref, {
   },
 
   clearFilterCondition: function() {
-    App.db.setFilterConditions(this.get('controller.name'), null);
+    var result = false;
+    var currentFCs = App.db.getFilterConditions(this.get('controller.name'));
+    if (currentFCs != null) {
+      App.db.setFilterConditions(this.get('controller.name'), null);
+      result = true;
+    }
+    return result;
   },
 
   /**

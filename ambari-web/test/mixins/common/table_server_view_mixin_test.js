@@ -147,18 +147,18 @@ describe('App.MainConfigHistoryView', function() {
       this.clock = sinon.useFakeTimers();
 
       view.set('filteringComplete', false);
-      view.updateFilter(1, '', 'string');
+      view.updateFilter(1, '1', 'string');
       expect(view.get('controller.resetStartIndex')).to.be.false;
-      expect(view.saveFilterConditions.calledWith(1, '', 'string', false)).to.be.true;
+      expect(view.saveFilterConditions.calledWith(1, '1', 'string', false)).to.be.true;
       view.set('filteringComplete', true);
       this.clock.tick(view.get('filterWaitingTime'));
-      expect(view.updateFilter.calledWith(1, '', 'string')).to.be.true;
+      expect(view.updateFilter.calledWith(1, '1', 'string')).to.be.true;
       this.clock.restore();
     });
     it('filteringComplete is true', function() {
       view.set('filteringComplete', true);
 
-      view.updateFilter(1, '', 'string');
+      view.updateFilter(1, '1', 'string');
       expect(view.get('controller.resetStartIndex')).to.be.true;
       expect(view.refresh.calledOnce).to.be.true;
     });
