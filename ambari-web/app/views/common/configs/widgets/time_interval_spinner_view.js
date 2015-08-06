@@ -22,7 +22,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/time_interval_spinner'),
   classNames: ['widget-config', 'spinner-input-widget'],
 
-  supportSwitchToCheckBox: true,
+  supportSwitchToTextBox: true,
 
   /**
    * @property isValid

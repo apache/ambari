@@ -41,7 +41,7 @@ var configOption = Em.Object.extend({
  */
 App.ListConfigWidgetView = App.ConfigWidgetView.extend({
   classNames: ['widget-config', 'list-widget'],
-  supportSwitchToCheckBox: true,
+  supportSwitchToTextBox: true,
 
   /**
    * Counter used to determine order of options selection (<code>order<code>-field in the <code>configOption</code>)

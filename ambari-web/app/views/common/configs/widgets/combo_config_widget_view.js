@@ -25,7 +25,7 @@ var App = require('app');
 App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/combo_config_widget'),
   classNames: ['widget-config', 'combo-widget'],
-  supportSwitchToCheckBox: true,
+  supportSwitchToTextBox: true,
   /**
    * Object with following structure:
    * {String} .value - value in widget format

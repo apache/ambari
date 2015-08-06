@@ -249,6 +249,7 @@ describe('App.ConfigWidgetView', function () {
 
     it('fail validation', function() {
       view.set('config.isValid', false);
+      view.set('supportSwitchToTextBox', true);
       expect(view.isValueCompatibleWithWidget()).to.be.false;
     });
   });
