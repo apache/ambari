@@ -101,14 +101,14 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * Determines if user can switch custom widget-view to the input-field
    * @type {boolean}
    */
-  supportSwitchToCheckBox: false,
+  supportSwitchToTextBox: false,
 
   /**
    * @type {boolean}
    */
   showPencil: function () {
-    return this.get('supportSwitchToCheckBox') && !this.get('disabled');
-  }.property('supportSwitchToCheckBox', 'disabled'),
+    return this.get('supportSwitchToTextBox') && !this.get('disabled');
+  }.property('supportSwitchToTextBox', 'disabled'),
 
   /**
    * Alias to <code>config.isOriginalSCP</code>
@@ -432,7 +432,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * @returns {boolean}
    */
   isValueCompatibleWithWidget: function() {
-    return (this.get('isOverrideEqualityError') && !this.get('config.isValid')) || this.get('config.isValid');
+    return (this.get('isOverrideEqualityError') && !this.get('config.isValid')) || this.get('config.isValid') || !this.get('supportSwitchToTextBox');
   },
 
   /**

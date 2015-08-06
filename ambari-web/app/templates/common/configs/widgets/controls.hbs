@@ -19,7 +19,7 @@
 <div {{bindAttr class="view.isPropertyUndefined::hide :left :widget-config-raw"}}>
   <i>{{t common.property.undefined}}</i>
 </div>
-{{#if view.supportSwitchToCheckBox}}
+{{#if view.supportSwitchToTextBox}}
   {{#unless view.isPropertyUndefined}}
     <div {{bindAttr class="view.config.showAsTextBox::hide :left :widget-config-raw"}}>
       {{view App.PlainConfigTextField sectionBinding="view.section" subSectionBinding="view.subSection" configBinding="view.config" disabledBinding="view.canNotEdit"}}

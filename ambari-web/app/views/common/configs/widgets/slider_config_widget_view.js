@@ -31,7 +31,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
 
   templateName: require('templates/common/configs/widgets/slider_config_widget'),
 
-  supportSwitchToCheckBox: true,
+  supportSwitchToTextBox: true,
 
   /**
    * Slider-object created on the <code>initSlider</code>

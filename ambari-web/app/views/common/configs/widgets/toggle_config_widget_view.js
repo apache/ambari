@@ -58,7 +58,7 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
    */
   skipRequestForDependencies: false,
 
-  supportSwitchToCheckBox: true,
+  supportSwitchToTextBox: true,
 
   /**
    * Update config value using <code>switcherValue</code>.
