@@ -56,11 +56,8 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   }.property("service"),
 
   showPhoenixInfo: function () {
-    if (this.get('service.phoenixServersTotal') > 0) {
-      return true;
-    }
-    return false;
-  }.property("service"),
+    return !!this.get('service.phoenixServersTotal');
+  }.property("service.phoenixServersTotal"),
 
   /**
    * One(!) active master component

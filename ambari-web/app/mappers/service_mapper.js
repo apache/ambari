@@ -52,7 +52,8 @@ App.serviceMapper = App.QuickDataMapper.create({
 
     if (!this.get('initialAppLoad')) {
       var parsedCacheServices = App.cache['services'].map(function(item){
-         return self.parseIt(item, self.get('config'));
+        App.serviceMetricsMapper.mapExtendedModel(item);
+        return self.parseIt(item, self.get('config'));
       });
       App.store.loadMany(this.get('model'), parsedCacheServices);
       App.store.commit();
