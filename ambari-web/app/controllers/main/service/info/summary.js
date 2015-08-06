@@ -84,6 +84,12 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
       type: 'ranger-yarn-plugin-properties',
       propertyName: 'ranger-yarn-plugin-enabled',
       valueForEnable: 'Yes'
+    },
+    {
+      serviceName: 'KAFKA',
+      type: 'ranger-kafka-plugin-properties',
+      propertyName: 'ranger-kafka-plugin-enabled',
+      valueForEnable: 'Yes'
     }
   ],
 
