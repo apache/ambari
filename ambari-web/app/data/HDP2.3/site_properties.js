@@ -531,7 +531,7 @@ hdp23properties.push({
   {
     "name": "ranger_mysql_host",
     "id": "puppet var",
-    "displayName": "MYSQL database Host",
+    "displayName": "Ranger DB host",
     "description": "Specify the host on which the existing database is hosted",
     "recommendedValue": "",
     "value": "",
@@ -547,7 +547,7 @@ hdp23properties.push({
   {
     "name": "ranger_oracle_host",
     "id": "puppet var",
-    "displayName": "Oracle database Host",
+    "displayName": "Ranger DB host",
     "description": "Specify the host on which the existing database is hosted",
     "recommendedValue": "",
     "value": "",
@@ -563,7 +563,7 @@ hdp23properties.push({
   {
     "name": "ranger_postgres_host",
     "id": "puppet var",
-    "displayName": "Database Host",
+    "displayName": "Ranger DB host",
     "description": "Specify the host on which the existing database is hosted",
     "recommendedValue": "",
     "value": "",
@@ -579,7 +579,7 @@ hdp23properties.push({
   {
     "name": "ranger_mssql_host",
     "id": "puppet var",
-    "displayName": "Database Host",
+    "displayName": "Ranger DB host",
     "description": "Specify the host on which the existing database is hosted",
     "recommendedValue": "",
     "value": "",
@@ -754,7 +754,7 @@ hdp23properties.push({
     "isReconfigurable": true,
     "displayType": "",
     "isOverridable": false,
-    "isVisible": true,
+    "isVisible": false,
     "isRequired": false,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
