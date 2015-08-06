@@ -275,7 +275,7 @@ App.config = Em.Object.create({
       for (var index in properties) {
         var id = this.configId(index, siteConfig.type);
         var configsPropertyDef = this.get('preDefinedSitePropertiesMap')[id];
-        var advancedConfig = App.StackConfigProperty.find(id);
+        var advancedConfig = App.StackConfigProperty.find().findProperty('id', id);
 
         var template = this.createDefaultConfig(index, filename, !!advancedConfig, configsPropertyDef);
         var serviceConfigObj = this.mergeStaticProperties(template, advancedConfig);
