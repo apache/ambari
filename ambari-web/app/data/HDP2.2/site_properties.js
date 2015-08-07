@@ -419,7 +419,7 @@ hdp22properties.push(
     "id": "site property",
     "name": "ranger_admin_password",
     "displayName": "Ranger Admin user's password for Ambari",
-    "recommendedValue": "ambari",
+    "recommendedValue": "",
     "isReconfigurable": true,
     "displayType": "password",
     "isOverridable": false,

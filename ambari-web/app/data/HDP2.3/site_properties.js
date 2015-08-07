@@ -678,19 +678,6 @@ hdp23properties.push({
   },
   {
     "id": "puppet var",
-    "name": "ranger.external.url",
-    "displayName": "External URL",
-    "recommendedValue": "http://localhost:6080",
-    "isReconfigurable": true,
-    "displayType": "",
-    "isOverridable": false,
-    "isVisible": true,
-    "serviceName": "RANGER",
-    "filename": "ranger-admin-site.xml",
-    "category": "RangerSettings"
-  },
-  {
-    "id": "puppet var",
     "name": "ranger.externalurl",
     "displayName": "External URL",
     "recommendedValue": "http://localhost:6080",
@@ -747,15 +734,10 @@ hdp23properties.push({
     "category": "RangerSettings"
   },
   {
-    "id": "puppet var",
+    "id": "site property",
     "name": "policymgr_external_url",
     "displayName": "External URL",
-    "recommendedValue": "http://localhost:6080",
-    "isReconfigurable": true,
-    "displayType": "",
     "isOverridable": false,
-    "isVisible": false,
-    "isRequired": false,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "RangerSettings"

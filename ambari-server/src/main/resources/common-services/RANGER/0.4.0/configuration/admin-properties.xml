@@ -47,7 +47,7 @@
 
   <property require-input="true">
     <name>db_root_password</name>
-    <value>vagrant</value>
+    <value></value>
     <property-type>PASSWORD</property-type>
     <description>Database password for the database admin user-id</description>
   </property>
@@ -72,7 +72,7 @@
 
   <property require-input="true">
     <name>db_password</name>
-    <value>rangeradmin</value>
+    <value></value>
     <property-type>PASSWORD</property-type>
     <description>Database password for the Ranger schema</description>
   </property>
@@ -91,7 +91,7 @@
 
   <property require-input="true">
     <name>audit_db_password</name>
-    <value>rangerlogger</value>
+    <value></value>
     <property-type>PASSWORD</property-type>
     <description>Database password for storing auditlog information</description>
   </property>

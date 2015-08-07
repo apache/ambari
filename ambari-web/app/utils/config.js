@@ -285,7 +285,10 @@ App.config = Em.Object.create({
           serviceConfigObj.value = serviceConfigObj.savedValue = formattedValue;
           serviceConfigObj.isFinal = serviceConfigObj.savedIsFinal = finalAttributes[index] === "true";
           serviceConfigObj.isEditable = this.getIsEditable(serviceConfigObj, selectedConfigGroup, canEdit);
-          serviceConfigObj.isVisible = serviceConfigObj.isVisible === false ? false : serviceName === 'MISC' ? true : serviceConfigObj.displayType !== 'user';
+          serviceConfigObj.isVisible = serviceConfigObj.isVisible !== false || serviceName === 'MISC';
+          if (serviceName!='MISC' && serviceConfigObj.category === "Users and Groups") {
+            serviceConfigObj.category = this.getDefaultCategory(advancedConfig, filename);
+          }
           serviceConfigObj.serviceName = serviceName;
         }
 
