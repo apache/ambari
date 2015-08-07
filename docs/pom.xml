@@ -42,7 +42,7 @@
         <package.pid.dir>/var/run/ambari</package.pid.dir>
         <package.release>1</package.release>
         <package.type>tar.gz</package.type>
-        <ambari.version>2.0.1</ambari.version>
+        <ambari.version>2.1.0</ambari.version>
         <final.name>${project.artifactId}-${ambari.version}</final.name>
     </properties>
 
