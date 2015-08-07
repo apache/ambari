@@ -1416,8 +1416,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                 && RangerHBaseConfig.getProperties().containsKey("ranger-hbase-plugin-enabled")
                 && cluster.getDesiredConfigByType("hbase-site") != null) {
             Map<String, String> newHBaseSiteProperties = new HashMap<String, String>();
-            Set<String> removeRangerHiveProperties = new HashSet<String>();
-            removeRangerHiveProperties.add("ranger-hbase-plugin-enabled");
 
             if (RangerHBaseConfig.getProperties().get("ranger-hbase-plugin-enabled") != null
                   && RangerHBaseConfig.getProperties().get("ranger-hbase-plugin-enabled").equalsIgnoreCase("yes")) {
@@ -1426,8 +1424,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             }
             boolean updateProperty = cluster.getDesiredConfigByType("hbase-site").getProperties().containsKey("hbase.security.authorization");
             updateConfigurationPropertiesForCluster(cluster, "hbase-site", newHBaseSiteProperties, updateProperty, true);
-            updateConfigurationPropertiesForCluster(cluster, "ranger-hbase-plugin-properties", new HashMap<String, String>(),
-                                                     removeRangerHiveProperties, false, true);
           }
         }
       }
