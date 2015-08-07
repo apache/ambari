@@ -22,32 +22,32 @@ App.serviceMapper = App.QuickDataMapper.create({
   config: {
     id: 'ServiceInfo.service_name',
     service_name: 'ServiceInfo.service_name',
-    work_status: 'ServiceInfo.state',
-    passive_state: 'ServiceInfo.passive_state'
+    work_status: 'ServiceInfo.state'
   },
   initialAppLoad: false,
+  passiveStateMap: {},
   map: function (json) {
     console.time("App.serviceMapper execution time");
     var self = this;
+    var passiveStateMap = this.get('passiveStateMap');
     json.items.forEach(function (service) {
       var cachedService = App.cache['services'].findProperty('ServiceInfo.service_name', service.ServiceInfo.service_name);
       if (cachedService) {
         // restore service workStatus
         App.Service.find(cachedService.ServiceInfo.service_name).set('workStatus', service.ServiceInfo.state);
         cachedService.ServiceInfo.state = service.ServiceInfo.state;
-        cachedService.ServiceInfo.passive_state = service.ServiceInfo.maintenance_state;
       } else {
         var serviceData = {
           ServiceInfo: {
             service_name: service.ServiceInfo.service_name,
-            state: service.ServiceInfo.state,
-            passive_state: service.ServiceInfo.maintenance_state
+            state: service.ServiceInfo.state
           },
           host_components: [],
           components: []
         };
         App.cache['services'].push(serviceData);
       }
+      passiveStateMap[service.ServiceInfo.service_name] = service.ServiceInfo.maintenance_state;
     });
 
     if (!this.get('initialAppLoad')) {
@@ -58,6 +58,12 @@ App.serviceMapper = App.QuickDataMapper.create({
       App.store.loadMany(this.get('model'), parsedCacheServices);
       App.store.commit();
       this.set('initialAppLoad', true);
+    }
+
+    for (var service in passiveStateMap) {
+      if (passiveStateMap.hasOwnProperty(service)) {
+        App.Service.find(service).set('passiveState', passiveStateMap[service]);
+      }
     }
     console.timeEnd("App.serviceMapper execution time");
   }

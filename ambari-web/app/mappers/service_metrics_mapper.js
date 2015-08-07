@@ -236,6 +236,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
 
         var extendedModelInfo = this.mapExtendedModel(item);
         if (extendedModelInfo) {
+          extendedModelInfo.passive_state = App.Service.find(item.ServiceInfo.service_name).get('passiveState');
           result.push(extendedModelInfo);
         }
       }, this);
