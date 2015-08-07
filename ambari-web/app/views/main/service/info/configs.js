@@ -30,6 +30,10 @@ App.MainServiceInfoConfigsView = Em.View.extend({
     });
   },
 
+  willDestroyElement: function() {
+    this.get('controller').clearStep();
+  },
+
   /**
    * Number of components that should be restarted
    * @type {number}
