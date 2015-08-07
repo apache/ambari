@@ -55,7 +55,8 @@
           "hive_security_authorization": {
             "value": "{HIVE_SECURITY_AUTHORIZATION}",
             "template": "yes",
-            "override": "no"
+            "override": "no",
+            "resolve-dependency": "yes"
           }
         },
         "falcon-startup.properties": {
