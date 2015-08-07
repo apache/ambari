@@ -269,9 +269,6 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
       stack_name = stack_info[0]
       stack_version = stack_info[1]
 
-      # ensure the new HDP stack is conf-selected
-      select(stack_name, "hadoop", stack_version)
-
       # determine if hdp-select has been run and if not, then use the current
       # hdp version until this component is upgraded
       if not force_latest_on_upgrade:
@@ -281,6 +278,11 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
 
       # only change the hadoop_conf_dir path, don't conf-select this older version
       hadoop_conf_dir = "/usr/hdp/{0}/hadoop/conf".format(stack_version)
+
+      # ensure the new HDP stack is conf-selected, but only if it exists
+      # there are cases where hadoop might not be installed, such as on a host with only ZK
+      if os.path.exists(hadoop_conf_dir):
+        select(stack_name, "hadoop", stack_version)
 
   return hadoop_conf_dir
 
