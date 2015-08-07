@@ -433,6 +433,23 @@ class Cluster:
         else:
             Log.write("VM ", vm_external_ip, " file upload fail")
 
+    def _set_executable_permission(self, vm_external_ip):
+        """
+        Set all shell file to be executable
+        :param vm_external_ip: the external IP of the VM
+        :return: None
+        """
+        vm_ssh_login = "{0}@{1}".format(Config.ATTRIBUTES["vm_user"], vm_external_ip)
+        vm_ssh_cd_cmd = "cd {0}".format(Config.ATTRIBUTES["vm_code_directory"])
+        vm_ssh_chmod_cmd = "chmod a+x **/*.sh"
+        vm_ssh_cmd = "{0};{1}".format(vm_ssh_cd_cmd, vm_ssh_chmod_cmd)
+        vm_key = Config.ATTRIBUTES["vm_key_file"]
+
+        with open(os.devnull, 'w') as shutup:
+            subprocess.Popen(["ssh", "-o", "StrictHostKeyChecking=no", "-t", "-i", vm_key,
+                              vm_ssh_login, vm_ssh_cmd],
+                             stdout=shutup, stderr=shutup)
+
     def run_cluster(self, server_weave_ip, server_external_ip):
         """
         Run all Ambari-agents and Ambari-server in the cluster in parallel
@@ -463,8 +480,8 @@ class Cluster:
                     if returncode is None:
                         continue
                     else:
-                        Log.write("VM ", hostname, " configuration completed, return code: ", str(returncode) \
-                                  , ", output file path: ", output_file_path)
+                        Log.write("VM ", hostname, " configuration completed, return code: ", str(returncode),
+                                  ", output file path: ", output_file_path)
                         terminate_state_list[hostname] = True
                         output_file.close()
                 else:
@@ -490,6 +507,7 @@ class Cluster:
         for vm in self.ambari_server_vm:
             vm_external_ip = vm.external_ip
             self._scp_upload(vm_external_ip)
+            self._set_executable_permission(vm_external_ip)
 
             vm_output_file_path = vm.get_ssh_output_file_path()
             vm_output_file = open(vm_output_file_path, "w")
@@ -525,6 +543,7 @@ class Cluster:
         for vm in self.service_server_vm_list:
             vm_external_ip = vm.external_ip
             self._scp_upload(vm_external_ip)
+            self._set_executable_permission(vm_external_ip)
 
             vm_output_file_path = vm.get_ssh_output_file_path()
             vm_output_file = open(vm_output_file_path, "w")
@@ -563,6 +582,7 @@ class Cluster:
         for vm in self.ambari_agent_vm_list:
             vm_external_ip = vm.external_ip
             self._scp_upload(vm_external_ip)
+            self._set_executable_permission(vm_external_ip)
 
             vm_output_file_path = vm.get_ssh_output_file_path()
             vm_output_file = open(vm_output_file_path, "w")

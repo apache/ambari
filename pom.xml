@@ -263,6 +263,7 @@
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
             <exclude>contrib/fast-hdfs-resource/dependency-reduced-pom.xml</exclude>
             <exclude>contrib/agent-simulator/docker_image/package_list.txt</exclude>
+            <exclude>contrib/agent-simulator/config/cluster.txt</exclude>
             <exclude>version</exclude>
             <!--IDE and GIT files-->
             <exclude>**/.idea/</exclude>

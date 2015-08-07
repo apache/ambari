@@ -13,199 +13,354 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-Ambari-agent Simulator
+Ambari Cluster Provision with Docker
 ============
-This project provides a tool to create a large Ambari-agent cluster in a convenient way.
+This project presents a tool to quickly provide a large Ambari cluster on a cloud environment, 
+with all Ambari-Agents running inside Docker containers. 
+And each Virtual Machine is used to hold many Docker containers running Ambari-Agents.
+It's supposed to be a complementary to the work of Cloudbreak.
+
+All of the Docker containers and VMs are part of the same Weave network, 
+so they can all communicate with each other. SSH service is provided to log into Docker containers from the
+VMs inside the cluster.
+All of the master services are on VMs with a public IP, 
+so that you can still use the UIs for services like NameNode, ResourceManager, etc.
+
+Because of multiple Docker containers in one VM, we end up saving a lot of resources on cloud environments. 
+And the Docker image can be pre-installed with HDP bits to save space and time during the Ambari installation 
+(which can be done via UI or blueprints).
 
 ## Usage:
+Only the command "request" depends on Google Compute Engine. Other parts of this tool are platform independent.
+See section "[Extend to Any Other Platform](#extend)" for more information
 Run python launcher_cluster.py to see usage
 
-python launcher_cluster.py request    
+python launcher_cluster.py request
 
-    request a cluster from GCE, generate the configuration for the cluster. Parameters:
-	<the name of the cluster>, suggestion: {yourname}-group-a)
+    --request a cluster from GCE, generate the configuration for the cluster. Parameters:
+	<the name of the cluster>, suggestion: {yourname}-group-a
 	<number of VMs>
 	<number of dockers each VMs>
-	<number of service servers inside VM>
+	<number of service servers>, directly install Ambari-Agent, not inside Dockers
 	<number of ambari-server>, either 0 or 1
 		
 python launcher_cluster.py up
         
-    run one cluster, and add to another cluster. Parameters:
+    --run all Ambari-agents and Ambari-server of the cluster. Parameters:
 	<the name of the cluster>
-		
+
 python launcher_cluster.py merge    
 
-    run Docker containers with Ambari-agent in all VMs of the cluster. Parameters:
+    --run all Ambari-agents in the cluster, use the Ambari-Server in another cluster. Parameters:
 	<the name of the cluster to be merged>
 	<the name of the cluster to be extended>
 
-python launcher_cluster.py merge 
+python launcher_cluster.py merge
 
-    run Docker containers with Ambari-agent in all VMs of the cluster. Parameters:
+    --run all Ambari-agents in the cluster, providing the Ambari-Server. Parameters:
     <the name of the cluster to be merged>
     <Weave IP of the Ambari-server>
     <External IP of the Ambari-server>
 
-python launcher_cluster.py list    
+python launcher_cluster.py list
         
-    list all the cluster
+    --list all the cluster
     
 python launcher_cluster.py show
     
-    show cluster information. Parameters:
+    --show cluster information. Parameters:
     <the name of the cluster>
     
 python launcher_cluster.py help    
         
     show help info
 
+## Quick Start
+* Step 1: Download the code to your own computer, or anywhere has the access to GCE controller
+
+* Step 2: Copy example/config.ini to config/config.ini
+
+* Step 3: Modify the following values in config/config.ini
+    * output_folder
+    * gce_controller_ip
+    * gce_controller_key_file
+    * vm_key_file
+    
+* Step 4: Add SSH key and password for your Ambari-Agents in Docker
+    * open file: docker_image/Yum_Dockerfile
+    * change the two lines: {ENV AUTHORIZED_KEYS} and {ENV ROOT_PASS}
+    
+* Step 5: Use the command line to request 2 Virtual Machine from GCE, 
+each Virtual Machine is configured to have 6 Docker containers (which means 6 Ambari-Agents). 
+Also this command request 2 Virtual Machine to install Ambari-Agent directly (not in Docker), 
+these 2 Virtual Machines are supposed to hold Masters like NameNode or HBase Master. Finally this command
+request 1 Virtual Machine to install Ambari-Server
+
+        python launcher_cluster.py request {yourname}-group-a 2 6 2 1
+
+* Step 6: Run all configuration for this cluster
+
+        python launcher_cluster.py up {yourname}-group-a
+        
+* Step 7: This is supposed to be a bug, see section "[Issues](#issues)" for more information
+    * Log into your Ambari-server machine, run "ambari-server start".
+    
+* Step 8: Operate on Ambari-server web GUI
+    * Add agents: docker-[0-11]-{yourname}-group-a.weave.local
+    * Add agents: {yourname}-group-a-service-server-[1-2].weave.local
+    * Choose manual registration
+    * Choose to install HDFS, YARN, HBase, Zookeeper, Ambari-Metrics
+
+#### Add More Ambari-Agents
+* Step 9: Use the following command to request 2 Virtual Machine, each with 5 Ambari-agents.
+
+        python launcher_cluster.py request {yourname}-group-b 2 5 0 0
+
+* Step 10: Merge this new cluster to existing one
+        
+        python launcher_cluster.py merge {yourname}-group-b {yourname}-group-a
+
+* Step 11: Operate on Ambari-server web GUI
+    * Add agents: docker-[0-9]-{yourname}-group-b.weave.local
+
 ## Introduction to Weave Networking
 [Weave](https://github.com/weaveworks/weave) is a tool to connect Docker containers distributed across different hosts. 
-This project use Weave to assign each Docker container (with Ambari-agent) a unique internal IP and a domain name.
+This project uses Weave to assign each Docker container (with Ambari-agent) a unique internal IP and a domain name.
 In each VM, a special Docker container will be launched by Weave to act as a Router, 
 and to connect all the Docker containers in this VM with other Docker containers in other VMs.
 Also, another special Docker container will be launched by Weave to act as a DNS for this VM.
 Each Docker container can connect with each other by using the internal IP, host name or domain name.
 
-All the Weave internal IP should be configured by the user. 
-In this following document, we use subnet 192.168.#.#/16, and use the IP within this subnet to configure Weave. 
-Actually, You can use any IP as you wish, even public IP, in which case, 
-it will replace the connection to the real outside connection, and redirect the connection to the internal Docker container.
+All the Weave internal IP will be configured by this tool automatically. You can also modify Weave internal IP
+by hand in the cluster.txt file, but usually you won't like to do it.
 
-## Quick Start
-With the following 6 steps, you can create a cluster with Ambari-agents, and connect them to your Ambari-server. 
-Among all the steps, the step 3 is to configure this program, the step 4 is the one which really matters, 
-and other steps act as a one-time configuration or suggestion for your Ambari-server.
+This is the networking architecture of the cluster.
 
-You can start with this guide by downloading the code to your own computer or any computers which can access the GCE controller.
+![Network Architecture](/docs/architecture.png)
 
-* Step 1: Mark down IP of the GCE VM which installed Ambari-server, Ambari_Server_IP=104.196.81.81
-* Step 2: Copy example/config.ini to config/config.ini
-* Step 3: Modify the following values in config/config.ini
-    * Output_folder
-    * GCE_controller_key_file
-    * VM_key_file
-    * cluster_info_file, use {yourname}-group-a
-* Step 4: Use the command line to run 3 VMs, each VM has 5 Ambari-agents.
+## Virtual Machine Type
+There are three types of Virtual Machines inside the cluster.
 
-        python launcher_cluster.py all {yourname}-group-a 3 5 192.168.255.1 Ambari_Server_IP
+Agent Virtual Machine installs Docker, and run multiple Docker containers to hold multiple Ambari-Agents
 
-* Step 5: Log into your Ambari-server machine, run the following command line to set up Weave internal network 
+Service Server will install Ambari-Agent directly, not inside Docker container. 
+This type of machine is supposed to hold the master of different Hadoop Service, like NameNode.
+Installing Ambari-Agent directly enables service server to have all the resource of this machine, 
+and provide a convenient way to access its web UI from the outside.
 
-        cd agent-simulator/network
-        ./set_ambari_server_network.sh 192.168.255.1 192.168.255.2 16
+Ambari Server will install Ambari-Server directly inside the machine.
 
-* Step 6: Operate on Ambari-server web GUI
-    * Add all agents: docker-[0-14]-{yourname}-group-a.weave.local
-    * Choose manual registration
-    * Choose to install HDFS, YARN, HBase, Zookeeper, Ambari-Metrics
-    
+## Request, Up and Merge
+The command "request" is very simple. It will ask for a number of Virtual Machine from GCE,
+then it will generate the information about the cluster. Up this time, we have 2 things.
+First, we have a bunch of VMs, which are ready to use and have nothing installed.
+Second, we have made a "plan" about how we are going to configure the VMs.
+This "plan" is saved into JSON file config/cluster.txt.
+You can modify the JSON cluster.txt file to change the "plan" of the cluster before using command "up" or "merge".
 
-#### More on Quick Start
-* Step 7: Add one more cluster to your Ambari-server
-    * Modify cluster_info_file in config/config.ini, use {yourname}-group-b
-    * Modify Docker_IP_base in config.config.ini, use 192.168.2.1
-    * Use the command line to run 2 VMs, each VM has 10 Ambari-agents:
+The command "request" is only used for GCE. This command is not necessary.
+As long as we have the 2 things, mentioned above, we can then use "up" command. 
+For more information, see section "[Extend to Any Other Platform](#extend)"
 
-                python launcher_cluster.py all {yourname}-group-b 2 10 192.168.255.1 Ambari_Server_IP
+The command "up" is supplied with the name of the cluster. 
+This command will fetch the information about this cluster, 
+and actually configure and install everything according to the "plan"
+The command "up" is platform independent
 
-    * On Ambari-server web GUI, add all agents: docker-[0-19]-{yourname}-group-b.weave.local
-* Step 8: Add one VM with Ambari-agent installed to your Ambari-server
-    * Log into your VM, set Ambari_Server_IP as the value of server hostname in the file /etc/ambari-agent/conf/ambari-agent.ini
-    * On the VM, Run the following command set up Weave internal network
+The command "merge" is the same as "up", except one difference. 
+The command "up" requires that the cluster defines one VM to be Ambari-Server.
+While, the command "merge" simply set the Ambari-Server of other cluster as the Ambari-Server of this cluster.
 
-                cd agent-simulator/network
-                ./set_host_network.sh 192.168.254.1 192.168.254.2 16 Ambari_Server_IP
+## Cluster Information and History
+By default, the file config/cluster.txt is used to store the information of clusters. 
+The file is in JSON format. Every time you use "request" command, 
+the information about the new cluster will be saved into this JSON file.
 
+The command "list" will list brief information about all clusters you created by simply reading this JSON file.
+The command "show" will print more detail about one cluster specified by a name.
+For more detail information, you can just open the JSON file and search, for example, when you try to
+find out which Virtual Machine hold a specific Ambari-Agent.
 
-## Detail Work Flow:
-* Step 1: Install Ambari-server
-    * Use existing Ambari-server, or, install and launch a new one
-    * agent-simulator/server/ambari_server_install.sh: this shell might help you install the Ambari-server
-    * agent-simulator/server/ambari_server-_reset_data.sh: this shell might help you set Ambari-server to initial state
-        
-* Step 2: Decide IP in your mind
-    * Mark down the IP of the Ambari-server, say {IP of Ambari-server = 104.196.81.81}
-    * Come up a subnet say, {subnet = 192.168.#.#/16} {Docker_IP_mask = 16}
-    * Pick one address closer to the END of the subnet as the Weave INTERNAL IP of Ambari-server, 
-    and another one as the Weave DNS IP of Ambari-server, 
-    say {Weave IP of Ambari-server = 192.168.255.1} {Weave DNS IP of Ambari-server = 192.168.255.2}
-    * Pick one address closer to the START of the subnet as the Weave INTERNAL IP of the FIRST Ambari-agent, 
-    say {Docker_IP_base = 192.168.1.1}
-    * Other Weave INTERNAL IP of Amari-agent will be automatically assigned based on the FIRST one (increasingly).
-    
-* Step 3: First time set up Ambari-server       
-    * Copy all the agent-simulator code base to Ambari-server
-    * cd agent-simulator/network
-    * Run set_ambari_server_network.sh
-    * In this example, use parameters: {Weave IP of Ambari-server = 192.168.255.1} {Weave DNS IP of Ambari-server = 192.168.255.2} {Docker_IP_mask = 16}
-    
-* Step 4: Modify config.ini
-    * Modify attributes: Output_folder, GCE_controller_key_file, GCE_VM_key_file, cluster_info_file
-    * Change Docker_IP_base and Docker_IP_mask, in this example {Docker_IP_base = 192.168.1.1} {Docker_IP_mask = 16}
-    
-* Step 5: Request Ambari-agent cluster
-    * Run python launcher_cluster.py request
-    * Use {your name}-group-a as the cluster name. In case you wanna add more cluster to your Ambari-server, change the last letter
-    
-* Step 6: Modify Cluster Information File
-    * A TXT file will appear under directory ./config within 1 minutes, which has the information about the cluster
-    * Typically, you would like NameNode, RegionServer, ResourceManager, etc.. to dominate one VM. 
-    * In this example, change the configuration of the first and the second VM, make each of them only have one Docker. 
-    You can install different server services only into these two Docker containers later on the Ambari-server web GUI.
+Remember the data in config/cluster.txt will continue to grow, 
+and all your history data will remain in the file, even if you destroy a cluster and no longer use it.
+In this case, the data in config/cluster.txt becomes stale.
+You may want to delete config/cluster.txt when you no longer need your history cluster.
 
-* Step 7: Run Ambari-agent Cluster
-    Run python launcher_cluster.py run
-    In this exmaple, use parameters: {Weave IP of Ambari-server = 192.168.255.1} {IP of Ambari-server = 104.196.81.81}
-    
-* Step 8: Operate on Ambari-server web GUI
+If there are two clusters with the same name in the JSON file config/cluster.txt, 
+only the latest one will take effect. Say, you use "up" command to run a cluster named "cluster-D",
+only the latest "cluster-D" will be run.
 
+## Log into Docker Container
+Inside each Docker container, there is a SSH service running.
+You can log into the Docker container from Ambari-Server or Service-Server.
 
-## Expand Cluster With This Script
-Be careful if you wanna use this script to add more Ambari-agents AGAIN to your Ambari-server
+Do not use "docker attach" to access the container.
 
-* Use different Cluster Name when providing parameters to launcher_cluster.py
-* In config.ini, use the same Docker_IP_mask, make sure the same subnet
-* Change config.ini to use different Docker_IP_base, make sure that all new IPs never overlap with the existing IPs
-* Change config.ini to use different cluster_info_file, make sure the existing cluster information is not overwritten
-   
-## Expand Cluster By Adding other Hosts/VMs
-   
+## Access Server Web UI
+Use the public IP of the Service-Server to access the web UI. 
+The list of accessible ports is defined by value "server_port_list" in config/config.ini.
+
+If you want to access more ports after running the cluster, 
+you can use the script network/set_ui_port_forward.sh
+
+## Image for Docker Container
+The Docker image can be either downloaded from Docker Hub or built alive inside Virtual Machine.
+
+With "pull_docker_hub=yes", the program will pull Docker image named by "docker_image_name" from Docker Hub.
+This Docker image has to be built in the same way as this program builds the image.
+
+Typical, use "pull_docker_hub=no" to build the image alive. You can add more yum package into file
+docker_image/package_list.txt. These packages will be pre-installed into the image, 
+and will be shared by all Docker containers inside this Virtual Machine, 
+therefore saving disk space and accelerating the actual Hadoop service installation steps.
+
+## Use Different Partition for Docker Container
+The value "use_partition" will set the Docker to use the disk space of another partition. 
+Make sure that partition is available
+
 ## Naming Convention
-Cluster Name: the name of the cluster must be unique to make sure every VM on GCE has its unique name. The suggestion is using {your name}-group-{a-z}
+Cluster Name: the name of the cluster must be unique to make sure every VM on GCE has its unique name. 
+The suggestion is using {your name}-group-{a-z}
 
 VM Name: each VM has a domain name assigned by GCE, its host name is {cluster name}-{index}
 
 Docker Container Name: the domain name of Docker container is docker-{index}-{cluster name}.weave.local, 
-the prefix "docker" can be configured by value Container_hostname_fix in config/config.ini, 
-you can find out which VM has which Docker container in the cluster information file.
+the prefix "docker" can be configured by value container_hostname_fix in config/config.ini.
+
+## The Weave Internal IP Assign Mechanism
+Basically, you don't have to worry about IP. The maximum number of IP is limited by weave_ip_base and weave_ip_mask
+in config/config.ini. The program will automatically assign and increase the IP to make sure everyone has a unique 
+Weave internal IP.
+
+By fault in the configuration file, the subnet is 192.168.#.#/16. 
+Once you have already created 256*256 agents (the real number is smaller, since the DNS on the VM also uses IP address),
+The IP assigned will continue to increase to 192.169.#.#/16.
+some address might fall into subnet 192.168.#.#/16, and others fall into subnet 192.169.#.#/16.
+This causes a connection issue. The function related is cluster._increase_ip(). 
+You might want to wrap the IP around, but corner cases are always there, there is no silver bullet.
 
 
-## Image for Docker Container
+## <a name="extend"></a>Extend to Any Other Platform
+We can use the command "up" to set up any machines on any platform, even hybrid, 
+as long as we meet the following requirements:
 
-## Use Different Partition for Docker Container
+* A list of machines (or Virtual Machines)
+* All machines are CentOS 7
+* All machines use the same SSH key
+* All machines are accessible from where you run this program by IP
+* All machines are accessible by each other using IP
+* All machines can access the Internet
+* The information about the Ambari cluster (the "plan")
 
-## The IP assign mechanism.
-Basically, you don't have to worry about IP. The maximum number of IP is limited by weave_ip_base and weave_ip_mask.
-By fault, the subnet is 192.168.#.#/16. Once you have already created 256*256 agents (the real number is smaller, 
-since the DNS on the VM also uses IP address), some address might fall out side of subnet and some fall inside,
-which causes a connection issue. The function related is cluster._increase_ip(). You might want to wrap the IP around, 
-but corner cases are always there, there is no silver bullet.
+The above requirements are met using command "request" on Google Compute Engine.
+On other platform, we can do it manually. 
 
+Let's go through the following example. We assume that you have 3 machines, they are:
 
-## Issues
-* This tool do NOT support parallel usage
-* If GCE has no enough resource, the cluster returned to you will have a smaller number of VM
-* Don't merge your cluster into someone else's cluster. Actually you can do it, but you have to dig into the network, and
-make sure the IP configuration is right.
+* east-1.aws.net, 111.1.1.1
+* east-2.aws.net, 122.2.2.2
+* east-3.aws.net, 133.3.3.3
 
-## Suggestions:
-* Make sure your cluster name is unique, or you might cause trouble to other people's VM
-* Use CTRL + P, then CTRL + Q to exit Docker container. Use "exit" will terminate the container.
-* Remove ~/.ssh/know_hosts files, especially if you run a large cluster. 
-You might get a warning from SSH, because the new GCE VM assigned to you might have the same IP with the VMs you saved in know_hosts file. 
-Remove .ssh/know_hosts before run this script.
-* Ambari-agent and Ambari-server have to be the same version to successfully register. 
-The command used to install Ambari-agent is in the Dockerfile
+If these machines do not have domain names, just make up one for each of them. It is just for naming issue,
+the program will not use domain name of the machine to do connection. 
+
+First, modify the value of vm_key_file in the file config/config.ini. 
+And, of course, modify other attributes specified in "Quick Start". 
+You also need to check the value of "use_partition".
+
+Then, we decide the structure of the Ambari cluster in Docker containers, use the following JSON object
+
+    {       
+        "cluster_name": "tutorial",
+        "state": "FREE",
+        "create_time": "2015-08-06 10:35:51.913465",
+        "ambari_agent_vm_list": [
+            {
+                "external_ip": "111.1.1.1",
+                "weave_dns_ip": "192.168.1.1",
+                "weave_internal_ip": "192.168.1.2",
+                "domain_name": "east-1.aws.net",
+                "weave_domain_name": "east-1.weave.local",
+                "weave_ip_mask": "16",
+                "docker_list": [
+                    {
+                        "weave_domain_name": "docker-0-tutorial.weave.local",
+                        "weave_ip": "192.168.1.3/16"
+                    },
+                    {
+                        "weave_domain_name": "docker-1-tutorial.weave.local",
+                        "weave_ip": "192.168.1.4/16"
+                    }
+                ]
+            }
+        ],
+        "ambari_server_vm": [
+            {
+                "external_ip": "122.2.2.2",
+                "weave_dns_ip": "192.168.1.5",
+                "weave_internal_ip": "192.168.1.6",
+                "domain_name": "east-2.aws.net",
+                "weave_domain_name": "east-2.weave.local",
+                "weave_ip_mask": "16",
+                "docker_list": []
+            }
+        ],
+        "service_server_vm_list": [
+            {
+                "external_ip": "133.3.3.3",
+                "weave_dns_ip": "192.168.1.7",
+                "weave_internal_ip": "192.168.1.8",
+                "domain_name": "east-3.aws.net",
+                "weave_domain_name": "east-3.weave.local",
+                "weave_ip_mask": "16",
+                "docker_list": []
+            }
+        ]
+    }
+
+According to this JSON object, machine 122.2.2.2 is the Ambari-Server. 
+Machine 133.3.3.3 will have Ambari-Agent directly installed, 
+which is supposed to accommodate, for example, NameNode.
+Machine 111.1.1.1 will have 2 Docker containers.
+
+The regulation about the above attributes:
+
+* The "state" must be "FREE"
+* "weave_domain_name" must end up with "weave.local"
+* To make command "show" work properly, use the pattern "docker-{index}-{cluster name}.weave.local"
+for "weave_domain_name" inside "docker_list"
+* All the IP and the mask related to "weave" are just made up. 
+Just make sure, all of the IP related to "weave" are different.
+And make sure, with the mask, all IP related to "weave" are inside the same subnet.
+
+Next, we add this JSON object into config/cluster.txt. 
+This JSON object must be a child of the root "clusters". This is non-trivial.
+Notice that the root of the JSON file config/cluster.txt is
+
+    {
+        "clusters": [
+        ]
+    }
     
+Finally, we use "up" command to run this cluster.
+
+## <a name="issues"></a>Issues
+* After use command "up", you need to log into Ambari-Server, 
+and use "ambari-server start" to manually start Ambari-Server,
+This is supposed to be a bug. If you check the log of Ambari-Server, you will see that, 
+actually Ambari-Server has run for a short time, but then gets terminated. The reason might be related to SSH.
+* This tool does NOT support parallel usage
+* If GCE has no enough resource, the cluster returned to you will have a smaller number of VM
+* Don't merge your cluster into someone else's cluster. 
+Actually you can do it, but you have to dig into the network, 
+and make sure the IP configuration is right (all in one subnet and no overlap).
+
+## Suggestions
+* Make sure your cluster name is unique, or you might cause trouble to other people's VM on GCE
+* Do NOT use "docker attach" any more, just use SSH. 
+If you did it, Use CTRL + P, then CTRL + Q to exit Docker container.
+* Remove ~/.ssh/know_hosts files, especially if you run a large cluster. 
+You might get a warning from SSH, because the new GCE VM assigned to you might have the same IP with
+the VMs you saved in know_hosts file. Remove .ssh/know_hosts before run this script.
+* Ambari-agent and Ambari-server have to be the same version to successfully register.
+

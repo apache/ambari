@@ -19,4 +19,12 @@
 yum install -y -q wget
 wget -q -O /etc/yum.repos.d/ambari.repo http://s3.amazonaws.com/dev.hortonworks.com/ambari/centos7/2.x/latest/2.1.1/ambaribn.repo
 yum install -y -q ambari-server
-sudo ambari-server setup -s
+yum install -y -q java-1.8.0-openjdk.x86_64
+yum install -y -q java-1.8.0-openjdk-devel.x86_64
+# ambari-server setup -s
+# ambari-server setup -j <path to JDK on all hosts>
+ambari-server setup -j /usr/lib/jvm/java-openjdk << _EOF_
+y
+n
+n
+_EOF_

@@ -47,8 +47,15 @@ if __name__ == "__main__":
 
     vm_ip_list = []
     vm_ip_list.append(server_external_ip)
-    for vm in cluster.ambari_agent_vm_list:
-        vm_ip_list.append(vm.external_ip)
+
+    # This will decide the topology of the Weave network.
+
+    # This connect all agents to other agents,
+    # which is not necessary, connecting to ambari-server and service server is enough.
+    # for vm in cluster.ambari_agent_vm_list:
+    #     vm_ip_list.append(vm.external_ip)
+
+    # This connect all agents to all service server
     for vm in cluster.service_server_vm_list:
         vm_ip_list.append(vm.external_ip)
 

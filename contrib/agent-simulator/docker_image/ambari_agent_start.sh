@@ -17,3 +17,4 @@
 # this script will start Ambari agent on Centos 7
 
 ambari-agent start
+echo "ambari-agent start"

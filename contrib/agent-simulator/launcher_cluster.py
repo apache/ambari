@@ -47,12 +47,13 @@ def request_cluster(argv):
     cluster.request_gce_cluster(ambari_agent_vm_num, docker_num, service_server_num,
                                 with_ambari_server, cluster_name)
 
-    data = Data()
-    data.add_new_cluster(cluster)
-
     time_to_wait = Config.ATTRIBUTES["gce_boot_time"]
     print "wait ", str(time_to_wait), " seconds for the cluster to boot ... ..."
     time.sleep(int(time_to_wait))
+
+    data = Data()
+    data.add_new_cluster(cluster)
+
     print "complete"
 
 
@@ -203,7 +204,7 @@ def print_help():
     print "\t\t", "<the name of the cluster>"
     print "\t\t", "<number of VMs>"
     print "\t\t", "<number of dockers each VM>"
-    print "\t\t", "<number of service servers inside VM>"
+    print "\t\t", "<number of service servers>, directly install Ambari-Agent, not inside Dockers"
     print "\t\t", "<number of ambari-server>, either 0 or 1"
     print
 

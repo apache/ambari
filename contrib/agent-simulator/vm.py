@@ -117,7 +117,6 @@ class VM:
         install Weave on this VM
         :return: None
         """
-        subprocess.call(["sudo", "chmod", "755", "Linux/CentOS7/weave_install.sh"])
         subprocess.call("./Linux/CentOS7/weave_install.sh")
 
     def _set_weave_network(self, vm_external_ip_list, weave_dns_ip):
@@ -146,7 +145,6 @@ class VM:
         install Docker on this VM
         :return: None
         """
-        subprocess.call(["sudo", "chmod", "755", "Linux/CentOS7/docker_install.sh"])
         subprocess.call("./Linux/CentOS7/docker_install.sh")
 
     def _build_docker_image(self, image_name):
@@ -193,7 +191,6 @@ class VM:
         :param mount_point: the mount point of the partition to be used
         :return: None
         """
-        subprocess.call(["sudo", "chmod", "755", "./Linux/CentOS7/set_docker_partition.sh"])
         subprocess.call(["./Linux/CentOS7/set_docker_partition.sh", mount_point])
 
     def run_ambari_server(self):
@@ -203,17 +200,15 @@ class VM:
         """
         # set up network, run script inside the network directory
         os.chdir("network")
-        subprocess.call(["sudo", "chmod", "755", "set_ambari_server_network.sh"])
         subprocess.call(["./set_ambari_server_network.sh", self.weave_internal_ip,
                          self.weave_dns_ip, self.weave_ip_mask])
         os.chdir("..")
 
         # install ambari server and start service
-        subprocess.call(["sudo", "chmod", "755", "./server/ambari_server_install.sh"])
         subprocess.call(["./server/ambari_server_install.sh"])
 
         # start service
-        subprocess.call(["sudo", "ambari-server", "start"])
+        subprocess.call(["./server/ambari_server_start.sh"])
 
     def run_service_server(self, ambari_server_weave_ip, ambari_server_external_ip):
         """
@@ -224,19 +219,23 @@ class VM:
         """
         # set up network, run script inside the network directory
         os.chdir("network")
-        subprocess.call(["sudo", "chmod", "755", "set_host_network.sh"])
         subprocess.call(["./set_host_network.sh", self.weave_internal_ip,
                          self.weave_dns_ip, self.weave_ip_mask, self.hostname,
                          self.weave_domain_name, ambari_server_external_ip])
         os.chdir("..")
 
         # install ambari agent and start service
-        subprocess.call(["sudo", "chmod", "755", "./docker_image/ambari_agent_install.sh"])
         subprocess.call(["./docker_image/ambari_agent_install.sh"])
         replace_conf(ambari_server_weave_ip)
 
         # start service
-        subprocess.call(["sudo", "ambari-agent", "start"])
+        subprocess.call(["./docker_image/ambari_agent_start.sh"])
+
+        # forward public IP to Weave IP for server UI access
+        port_list = Config.ATTRIBUTES["server_port_list"].split(",")
+        for port in port_list:
+            subprocess.call(["./network/set_ui_port_forward.sh", self.external_ip, self.weave_internal_ip, port])
+
 
     def run_docker(self, server_weave_ip, vm_ip_list):
         """

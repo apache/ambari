@@ -16,5 +16,5 @@
 
 # This script will install and start the ambari-server on a CentOS 7 machine
 
-sudo ambari-server start
+ambari-server start
 echo "ambari-server start"

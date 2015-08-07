@@ -17,7 +17,7 @@
 FROM centos:7
 
 #====================================set SSH service====================================================================
-RUN yum -y -q install openssh-server epel-release openssh-clients&& \
+RUN yum -y -q install openssh-server epel-release openssh-clients && \
     yum -y -q install pwgen && \
     rm -f /etc/ssh/ssh_host_ecdsa_key /etc/ssh/ssh_host_rsa_key && \
     ssh-keygen -q -N "" -t dsa -f /etc/ssh/ssh_host_ecdsa_key && \
@@ -28,8 +28,8 @@ ADD ssh_service/set_root_pw.sh /set_root_pw.sh
 ADD ssh_service/run.sh /run_ssh.sh
 RUN chmod +x /*.sh
 
-ENV AUTHORIZED_KEYS **None**
-ENV ROOT_PASS ambariagent
+ENV AUTHORIZED_KEYS "SSH_docker_container_public_key_STRING"
+ENV ROOT_PASS SSH_docker_container_password
 #====================================set SSH service====================================================================
 
 
@@ -48,8 +48,9 @@ RUN /ambari_agent_install.sh
 # Set Hadoop Repo
 RUN wget -O /etc/yum.repos.d/hdp.repo http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos7/2.x/updates/2.3.0.0/hdp.repo
 
-# Install all package
+# Install all package including YARN, HDFS, HBase, Zookeeper, Ambari-Metrics Monitor, etc..
 RUN yum install -y -q $(cat package_list.txt)
+
 RUN yum update -y -q
 
 # Clean yum download cache

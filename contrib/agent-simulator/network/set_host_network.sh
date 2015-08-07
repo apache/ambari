@@ -60,7 +60,7 @@ weave launch-dns ${weave_dns_ip}/${mask}
 weave expose ${weave_internal_ip}/${mask} -h $weave_domain_name
 
 # set domain name resolution
-python dns_editor.py $weave_dns_ip
+python dns_edit.py $weave_dns_ip
 
 # add Weave local IP, host name, domain name mapping
 content="$(cat /etc/hosts)"
