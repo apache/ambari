@@ -77,7 +77,7 @@ public class HostRoleCommandDAO {
    * SQL template to get all requests which have had all of their tasks
    * COMPLETED
    */
-  private static final String COMPLETED_REQUESTS_SQL = "SELECT DISTINCT task.requestId FROM HostRoleCommandEntity task WHERE task.status NOT IN :notCompletedStatuses ORDER BY task.requestId {0}";
+  private static final String COMPLETED_REQUESTS_SQL = "SELECT DISTINCT task.requestId FROM HostRoleCommandEntity task WHERE NOT EXISTS (SELECT task.requestId FROM HostRoleCommandEntity task WHERE task.status IN :notCompletedStatuses) ORDER BY task.requestId {0}";
 
   @Inject
   Provider<EntityManager> entityManagerProvider;
@@ -383,9 +383,9 @@ public class HostRoleCommandDAO {
 
   @Transactional
   public void removeByHostId(Long hostId) {
-    Collection<HostRoleCommandEntity> commands = findByHostId(hostId);
+    Collection<HostRoleCommandEntity> commands = this.findByHostId(hostId);
     for (HostRoleCommandEntity cmd : commands) {
-      remove(cmd);
+      this.remove(cmd);
     }
   }
 
