@@ -152,8 +152,8 @@ App.AddSecurityConfigs = Em.Mixin.create({
   parseIdentityObject: function (identity) {
     var result = [];
     var name = identity.name;
-    var keys = Em.keys(identity).without('name');
-    keys.forEach(function (item) {
+    var self = this;
+    Em.keys(identity).without('name').forEach(function (item) {
       var configObject = {};
       var prop = identity[item];
       var itemValue = prop[{keytab: 'file', principal: 'value'}[item]];
@@ -167,10 +167,30 @@ App.AddSecurityConfigs = Em.Mixin.create({
       configObject.defaultValue = configObject.savedValue = configObject.value = itemValue;
       configObject.filename = prop.configuration ? prop.configuration.split('/')[0] : 'cluster-env';
       configObject.name = prop.configuration ? prop.configuration.split('/')[1] : name + '_' + item;
-      configObject.displayName = configObject.filename == "cluster-env" ? App.format.normalizeName(configObject.name) : configObject.name;
+      
+      configObject.displayName = self._getDisplayNameForConfig(configObject.name, configObject.filename);
       result.push(configObject);
     });
     return result;
+  },
+
+  /**
+   * Get new config display name basing on its name and filename
+   * If config <code>fileName</code> is `cluster-env`, normalizing for its <code>name</code> is used (@see App.format.normalizeName)
+   * If config is predefined in the <code>secureProperties</code> (and it's displayName isn't empty there), predefined displayName is used
+   * Otherwise - config <code>name</code> is returned
+   *
+   * @param {string} name config name
+   * @param {string} fileName config filename
+   * @returns {String} new config display name
+   * @method _getDisplayNameForConfig
+   * @private
+   */
+  _getDisplayNameForConfig: function(name, fileName) {
+    var c = App.config.get('allPreDefinedSiteProperties').findProperty('name', name);
+    var dName = c ? Em.get(c, 'displayName') : '';
+    dName = Em.isEmpty(dName) ? name : dName;
+    return fileName == 'cluster-env' ? App.format.normalizeName(name) : dName;
   },
 
   /**

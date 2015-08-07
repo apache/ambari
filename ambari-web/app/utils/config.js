@@ -132,23 +132,25 @@ App.config = Em.Object.create({
 
   configMapping: require('data/HDP2/config_mapping'),
 
-  preDefinedSiteProperties: function () {
+  allPreDefinedSiteProperties: function() {
     var sitePropertiesForCurrentStack = this.preDefinedConfigFile('site_properties');
-    var serviceNames = App.StackService.find().mapProperty('serviceName').concat('MISC');
-    var properties = [];
     if (sitePropertiesForCurrentStack) {
-      properties =  sitePropertiesForCurrentStack.configProperties;
+      return sitePropertiesForCurrentStack.configProperties;
     } else if (App.get('isHadoop23Stack')) {
-      properties = require('data/HDP2.3/site_properties').configProperties;
+      return require('data/HDP2.3/site_properties').configProperties;
     } else if (App.get('isHadoop22Stack')) {
-      properties = require('data/HDP2.2/site_properties').configProperties;
+      return require('data/HDP2.2/site_properties').configProperties;
     } else {
-      properties = require('data/HDP2/site_properties').configProperties;
+      return require('data/HDP2/site_properties').configProperties;
     }
-    return properties.filter(function(p) {
+  }.property('App.isHadoop22Stack', 'App.isHadoop23Stack'),
+
+  preDefinedSiteProperties: function () {
+    var serviceNames = App.StackService.find().mapProperty('serviceName').concat('MISC');
+    return this.get('allPreDefinedSiteProperties').filter(function(p) {
       return serviceNames.contains(p.serviceName);
     });
-  }.property('App.isHadoop22Stack', 'App.isHadoop23Stack'),
+  }.property('allPreDefinedSiteProperties'),
 
   /**
    * map of <code>preDefinedSiteProperties</code> provide search by index
