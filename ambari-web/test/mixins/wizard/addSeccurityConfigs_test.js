@@ -17,29 +17,32 @@
  */
 
 var App = require('app');
+
 var stackDescriptorData = require('test/mock_data_setup/stack_descriptors');
 var stackDescriptor = stackDescriptorData.artifact_data;
-
+var controller;
 require('mixins/wizard/addSecurityConfigs');
 
 describe('App.AddSecurityConfigs', function () {
 
-  var controller = Em.Object.extend(App.AddSecurityConfigs,{}).create({
-    content: {},
-    enableSubmit: function () {
-      this._super();
-    },
-    secureMapping: [],
-    secureProperties: []
+  beforeEach(function () {
+    controller = Em.Object.create(App.AddSecurityConfigs, {
+      content: {
+        services: []
+      },
+      enableSubmit: function () {
+        this._super();
+      },
+      configs: [],
+      secureMapping: [],
+      secureProperties: []
+    });
   });
 
   describe('#secureServices', function() {
     it('content.services is correct', function() {
       controller.set('content.services', [{}]);
       expect(controller.get('secureServices')).to.eql([{}]);
-      controller.reopen({
-        secureServices: []
-      });
     });
   });
 
@@ -53,6 +56,7 @@ describe('App.AddSecurityConfigs', function () {
       sinon.stub(controller, 'formatConfigName', Em.K);
       sinon.stub(App.Service, 'find').returns([{serviceName: 'SOME_SERVICE'}]);
     });
+
     afterEach(function(){
       controller.checkServiceForConfigValue.restore();
       controller.setConfigValue.restore();
@@ -65,6 +69,7 @@ describe('App.AddSecurityConfigs', function () {
 
       expect(controller.loadUiSideSecureConfigs()).to.be.empty;
     });
+
     it('Config does not have dependedServiceName', function() {
       controller.set('secureMapping', [{
         name: 'config1',
@@ -81,6 +86,7 @@ describe('App.AddSecurityConfigs', function () {
         "filename": 'file1'
       }]);
     });
+
     it('Config has dependedServiceName', function() {
       controller.set('secureMapping', [{
         name: 'config1',
@@ -98,6 +104,7 @@ describe('App.AddSecurityConfigs', function () {
         "filename": 'file1'
       }]);
     });
+
     it('Config has non-existent serviceName', function() {
       controller.set('secureMapping', [{
         name: 'config1',
@@ -109,6 +116,7 @@ describe('App.AddSecurityConfigs', function () {
 
       expect(controller.loadUiSideSecureConfigs()).to.be.empty;
     });
+
     it('Config has correct serviceName', function() {
       controller.set('secureMapping', [{
         name: 'config1',
@@ -127,14 +135,17 @@ describe('App.AddSecurityConfigs', function () {
       expect(controller.setConfigValue.calledOnce).to.be.true;
       expect(controller.formatConfigName.calledOnce).to.be.true;
     });
+
   });
 
   describe('#checkServiceForConfigValue()', function() {
+
     it('services is empty', function() {
       var services = [];
 
       expect(controller.checkServiceForConfigValue('value1', services)).to.equal('value1');
     });
+
     it('Service is loaded', function() {
       var services = [{}];
       sinon.stub(App.Service, 'find', function () {
@@ -145,6 +156,7 @@ describe('App.AddSecurityConfigs', function () {
 
       App.Service.find.restore();
     });
+
     it('Service is not loaded', function() {
       var services = [{
         replace: 'val'
@@ -157,9 +169,11 @@ describe('App.AddSecurityConfigs', function () {
 
       App.Service.find.restore();
     });
+
   });
 
   describe('#formatConfigName()', function() {
+
     it('config.value is null', function() {
       var config = {
         value: null
@@ -167,6 +181,7 @@ describe('App.AddSecurityConfigs', function () {
 
       expect(controller.formatConfigName([], config)).to.be.false;
     });
+
     it('config.name does not contain foreignKey', function() {
       var config = {
         value: 'value1',
@@ -175,6 +190,7 @@ describe('App.AddSecurityConfigs', function () {
 
       expect(controller.formatConfigName([], config)).to.be.false;
     });
+
     it('globalProperties is empty, use uiConfig', function() {
       var config = {
         value: 'value1',
@@ -194,6 +210,7 @@ describe('App.AddSecurityConfigs', function () {
   });
 
   describe('#setConfigValue()', function() {
+
     it('config.value is null', function() {
       var config = {
         value: null
@@ -201,6 +218,7 @@ describe('App.AddSecurityConfigs', function () {
 
       expect(controller.setConfigValue(config)).to.be.false;
     });
+
     it('config.value does not match "templateName"', function() {
       var config = {
         value: ''
@@ -208,6 +226,7 @@ describe('App.AddSecurityConfigs', function () {
 
       expect(controller.setConfigValue(config)).to.be.false;
     });
+
     it('No such property in global configs', function() {
       var config = {
         value: '<templateName[0]>',
@@ -252,6 +271,7 @@ describe('App.AddSecurityConfigs', function () {
 
       expect(controller.addHostConfig('service1', 'comp1', 'config1')).to.be.false;
     });
+
     it('No such service in secureServices', function() {
       sinon.stub(App.Service, 'find', function(){
         return Em.Object.create({isLoaded: true});
@@ -260,6 +280,7 @@ describe('App.AddSecurityConfigs', function () {
 
       expect(controller.addHostConfig('service1', 'comp1', 'config1')).to.be.false;
     });
+
     it('Service does not have such host-component', function() {
       sinon.stub(App.Service, 'find', function(){
         return Em.Object.create({
@@ -278,37 +299,46 @@ describe('App.AddSecurityConfigs', function () {
   describe('#getPrincipalNames()', function() {
 
     beforeEach(function () {
-      controller.set('globalProperties', []);
-      controller.set('secureProperties', []);
+      controller.setProperties({
+        globalProperties: [],
+        secureProperties: []
+      });
     });
 
     it('globalProperties and secureProperties are empty', function() {
       expect(controller.getPrincipalNames()).to.be.empty;
     });
+
     it('global property name does not match "principal_name"', function() {
       controller.set('globalProperties', [{
         name: 'config1'
       }]);
       expect(controller.getPrincipalNames()).to.be.empty;
     });
+
     it('secure property name does not match "principal_name"', function() {
       controller.set('secureProperties', [{
         name: 'config1'
       }]);
       expect(controller.getPrincipalNames()).to.be.empty;
     });
+
     it('property with such name already exists', function() {
-      controller.set('globalProperties', [{
-        name: 'principal_name'
-      }]);
-      controller.set('secureProperties', [{
-        name: 'principal_name'
-      }]);
+      controller.setProperties({
+        globalProperties: [{
+          name: 'principal_name'
+        }],
+        secureProperties: [{
+          name: 'principal_name'
+        }]
+      });
       expect(controller.getPrincipalNames().mapProperty('name')).to.eql(['principal_name']);
     });
+
   });
 
   describe('#loadUsersFromServer()', function() {
+
     it('testMode = true', function() {
       controller.set('testModeUsers', [{
         name: 'user1',
@@ -328,6 +358,7 @@ describe('App.AddSecurityConfigs', function () {
       }]);
       App.get.restore();
     });
+
     it('testMode = false', function() {
       sinon.stub(App.router, 'set', Em.K);
       sinon.stub(App.db, 'getSecureUserInfo', function(){
@@ -346,11 +377,17 @@ describe('App.AddSecurityConfigs', function () {
       App.get.restore();
       App.db.getSecureUserInfo.restore();
     });
+
   });
 
   describe('#createServicesStackDescriptorConfigs', function() {
-    var result = controller.createServicesStackDescriptorConfigs(stackDescriptorData);
-    var propertyValidationTests = [
+
+    var result;
+    beforeEach(function() {
+      result = controller.createServicesStackDescriptorConfigs(stackDescriptorData);
+    });
+
+    Em.A([
       {
         property: 'spnego_keytab',
         e: [
@@ -376,9 +413,7 @@ describe('App.AddSecurityConfigs', function () {
           { key: 'observesValueFrom', value: 'spnego_keytab' }
         ]
       }
-    ];
-
-    propertyValidationTests.forEach(function(test) {
+    ]).forEach(function(test) {
       it('property {0} should be created'.format(test.property), function() {
         expect(result.findProperty('name', test.property)).to.be.ok;
       });
@@ -392,24 +427,26 @@ describe('App.AddSecurityConfigs', function () {
 
   describe('#expandKerberosStackDescriptorProps', function() {
     var serviceName = 'Cluster';
-    var result = controller.expandKerberosStackDescriptorProps(stackDescriptor.properties, serviceName);
-    var testCases = [
+    var result;
+    beforeEach(function() {
+      result = controller.expandKerberosStackDescriptorProps(stackDescriptor.properties, serviceName);
+    });
+    Em.A([
       {
         property: 'realm',
         e: [
           { key: 'isEditable', value: false },
-          { key: 'serviceName', value: 'Cluster' },
+          { key: 'serviceName', value: 'Cluster' }
         ]
       },
       {
         property: 'keytab_dir',
         e: [
           { key: 'isEditable', value: true },
-          { key: 'serviceName', value: 'Cluster' },
+          { key: 'serviceName', value: 'Cluster' }
         ]
       }
-    ];
-    testCases.forEach(function(test) {
+    ]).forEach(function(test) {
       it('property {0} should be created'.format(test.property), function() {
         expect(result.findProperty('name', test.property)).to.be.ok;
       });
@@ -423,7 +460,13 @@ describe('App.AddSecurityConfigs', function () {
 
   describe('#createConfigsByIdentity', function() {
     var identitiesData = stackDescriptor.services[0].components[0].identities;
-    var tests = [
+    var properties;
+
+    beforeEach(function () {
+      properties = controller.createConfigsByIdentities(identitiesData, 'HDFS');
+    });
+
+    Em.A([
       {
         property: 'dfs.namenode.kerberos.principal',
         e: [
@@ -436,10 +479,8 @@ describe('App.AddSecurityConfigs', function () {
           { key: 'referenceProperty', value: 'spnego:principal' },
           { key: 'isEditable', value: false }
         ]
-      }     
-    ];
-    var properties = controller.createConfigsByIdentities(identitiesData, 'HDFS');
-    tests.forEach(function(test) {
+      }
+    ]).forEach(function(test) {
       it('property {0} should be created'.format(test.property), function() {
         expect(properties.findProperty('name', test.property)).to.be.ok;
       });
@@ -459,7 +500,7 @@ describe('App.AddSecurityConfigs', function () {
           {
             property: 'dfs.namenode.kerberos.principal',
             e: [
-              { key: 'filename', value: 'hdfs-site' },
+              { key: 'filename', value: 'hdfs-site' }
             ]
           },
           {
@@ -509,12 +550,13 @@ describe('App.AddSecurityConfigs', function () {
     
     testCases.forEach(function(testCase) {
       testCase.tests.forEach(function(test) {
-        var result = controller.parseIdentityObject(testCase.identity);
         it('property `{0}` should be present'.format(test.property), function() {
+          var result = controller.parseIdentityObject(testCase.identity);
           expect(result.findProperty('name', test.property)).to.be.ok;
         });
         test.e.forEach(function(expected) {
           it('property `{0}` should have `{1}` with value `{2}`'.format(test.property, expected.key, expected.value), function() {
+            var result = controller.parseIdentityObject(testCase.identity);
             expect(result.findProperty('name', test.property)).to.have.deep.property(expected.key, expected.value);
           });
         });
@@ -523,6 +565,7 @@ describe('App.AddSecurityConfigs', function () {
   });
 
   describe('#processConfigReferences', function() {
+
     var generateProperty = function(name, reference) {
       return Em.Object.create({ name: name, referenceProperty: reference});
     };
@@ -571,7 +614,7 @@ describe('App.AddSecurityConfigs', function () {
       generateProperty('component_prop1_inherited_principal', 'component_prop1:principal'),
       generateProperty('component_prop1_inherited_keytab', 'component_prop1:keytab'),
       generateProperty('component_prop2_inherited_keytab', 'component_prop2:keytab'),
-      generateProperty('component_prop2_inherited_principal', 'component_prop2:principal'),
+      generateProperty('component_prop2_inherited_principal', 'component_prop2:principal')
     ]);
     var tests = [
       { name: 'spnego_inherited_keytab', e: 'spnego_keytab' },
@@ -583,6 +626,7 @@ describe('App.AddSecurityConfigs', function () {
       { name: 'component_prop2_inherited_keytab', e: 'component2.keytab' },
       { name: 'component_prop2_inherited_principal', e: 'component2.principal' }
     ];
+
     before(function() {
       controller.processConfigReferences(descriptor, configs);
     });
@@ -593,5 +637,40 @@ describe('App.AddSecurityConfigs', function () {
       });
     });
   });
+
+  describe('#_getDisplayNameForConfig', function () {
+
+    beforeEach(function () {
+      controller.set('secureProperties', require('data/HDP2/secure_properties').configProperties);
+    });
+
+    it('config from `cluster-env`', function() {
+      var config = {
+        fileName: 'cluster-env',
+        name: 'someCoolName'
+      };
+      var displayName = controller._getDisplayNameForConfig(config.name, config.fileName);
+      expect(displayName).to.equal(App.format.normalizeName(config.name));
+    });
+
+    it('config does not exist in the secure_properties', function() {
+      var config = {
+        fileName: '',
+        name: 'someCoolFakeName'
+      };
+      var displayName = controller._getDisplayNameForConfig(config.name, config.fileName);
+      expect(displayName).to.equal(config.name);
+    });
+
+    it('config exists in the secure_properties', function() {
+      var config = {
+        fileName: '',
+        name: 'storm_ui_keytab'
+      };
+      var displayName = controller._getDisplayNameForConfig(config.name, config.fileName);
+      expect(displayName).to.equal(controller.get('secureProperties').findProperty('name', config.name).displayName);
+    });
+
+  })
 
 });
