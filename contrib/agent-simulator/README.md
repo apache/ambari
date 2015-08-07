@@ -136,7 +136,7 @@ by hand in the cluster.txt file, but usually you won't like to do it.
 
 This is the networking architecture of the cluster.
 
-![Network Architecture](/docs/architecture.png)
+![Network Architecture](https://raw.githubusercontent.com/apache/ambari/trunk/contrib/agent-simulator/docs/architecture.png)
 
 ## Virtual Machine Type
 There are three types of Virtual Machines inside the cluster.
