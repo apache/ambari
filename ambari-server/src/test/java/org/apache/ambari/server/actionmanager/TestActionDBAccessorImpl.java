@@ -468,6 +468,39 @@ public class TestActionDBAccessorImpl {
     assertEquals("Request IDs not matches", requestIds, requestIdsResult);
   }
 
+  /**
+   * Tests getting requests which are fully COMPLETED out the database. This
+   * will test for partial completions as well.
+   *
+   * @throws AmbariException
+   */
+  @Test
+  public void testGetCompletedRequests() throws AmbariException {
+    List<Long> requestIds = new ArrayList<Long>();
+    requestIds.add(requestId);
+    requestIds.add(requestId + 1);
+
+    // populate with a completed request
+    populateActionDBWithCompletedRequest(db, hostName, requestId, stageId);
+
+    // only 1 should come back
+    List<Long> requestIdsResult = db.getRequestsByStatus(RequestStatus.COMPLETED,
+        BaseRequest.DEFAULT_PAGE_SIZE, false);
+
+    assertEquals(1, requestIdsResult.size());
+    assertTrue(requestIdsResult.contains(requestId));
+
+    // populate with a partially completed request
+    populateActionDBWithPartiallyCompletedRequest(db, hostName, requestId + 1, stageId);
+
+    // the new request should not come back
+    requestIdsResult = db.getRequestsByStatus(RequestStatus.COMPLETED,
+        BaseRequest.DEFAULT_PAGE_SIZE, false);
+
+    assertEquals(1, requestIdsResult.size());
+    assertTrue(requestIdsResult.contains(requestId));
+  }
+
   @Test
   public void testGetRequestsByStatusWithParams() throws AmbariException {
     List<Long> ids = new ArrayList<Long>();
@@ -669,6 +702,33 @@ public class TestActionDBAccessorImpl {
     }
 
     Request request = new Request(stages, clusters);
+    db.persistActions(request);
+  }
+
+  private void populateActionDBWithCompletedRequest(ActionDBAccessor db, String hostname,
+      long requestId, long stageId) throws AmbariException {
+
+    Stage s = createStubStage(hostname, requestId, stageId);
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(s);
+    Request request = new Request(stages, clusters);
+
+    s.setHostRoleStatus(hostname, Role.HBASE_REGIONSERVER.name(), HostRoleStatus.COMPLETED);
+    s.setHostRoleStatus(hostname, Role.HBASE_MASTER.name(), HostRoleStatus.COMPLETED);
+    db.persistActions(request);
+  }
+
+  private void populateActionDBWithPartiallyCompletedRequest(ActionDBAccessor db, String hostname,
+      long requestId, long stageId) throws AmbariException {
+
+    Stage s = createStubStage(hostname, requestId, stageId);
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(s);
+
+    Request request = new Request(stages, clusters);
+
+    s.setHostRoleStatus(hostname, Role.HBASE_REGIONSERVER.name(), HostRoleStatus.PENDING);
+    s.setHostRoleStatus(hostname, Role.HBASE_MASTER.name(), HostRoleStatus.COMPLETED);
     db.persistActions(request);
   }
 
