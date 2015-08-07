@@ -55,7 +55,7 @@
 
   <property>
     <name>ranger_admin_password</name>
-    <value>ambari123</value>
+    <value></value>
     <property-type>PASSWORD</property-type>
     <description>This is the ambari user password created for creating repositories and policies in Ranger Admin for each plugin</description>
   </property>
