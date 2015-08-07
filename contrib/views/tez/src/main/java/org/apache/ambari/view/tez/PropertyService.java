@@ -18,6 +18,8 @@
 package org.apache.ambari.view.tez;
 
 import org.apache.ambari.view.ViewContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.Map;
@@ -27,13 +29,20 @@ import java.util.Map;
  */
 public abstract class PropertyService {
 
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyService.class);
+
+
   /**
-   * The view context.
-   */
+ * The view context.
+ */
   @Inject
   protected ViewContext context;
 
   protected String getResponse(String ... propertyNames) {
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("PropertyService getResponse for view: " + context.getInstanceName());
+    }
 
     Map<String, String> properties = context.getProperties();
 
@@ -42,6 +51,12 @@ public abstract class PropertyService {
 
     buffer.append("[");
     for (String propertyName : propertyNames) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("PropertyService, instanceName=" + context.getInstanceName()
+            + ", propName=" + propertyName
+            + ", val=" + properties.get(propertyName));
+      }
+
       if (count++ > 0) {
         buffer.append(",\n");
       }
