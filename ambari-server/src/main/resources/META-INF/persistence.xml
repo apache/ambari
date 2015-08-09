@@ -9,8 +9,7 @@
   License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
   OF ANY KIND, either express or implied. See the License for the specific 
   language governing permissions and limitations under the License. -->
-<persistence xmlns="http://java.sun.com/xml/ns/persistence"
-  version="2.0">
+<persistence xmlns="http://java.sun.com/xml/ns/persistence" version="2.0">
 
   <persistence-unit name="ambari-server" transaction-type="RESOURCE_LOCAL">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
@@ -96,6 +95,8 @@
       <property name="eclipselink.connection-pool.sequence" value="true" />
       <property name="eclipselink.weaving" value="static" />
       <property name="eclipselink.session.customizer" value="org.apache.ambari.server.orm.EclipseLinkSessionCustomizer"/>
+      <property name="eclipselink.logging.logger" value="org.apache.ambari.server.logging.EclipseLinkLogger"/>
+      <property name="eclipselink.logging.level" value="INFO"/>
     </properties>
   </persistence-unit>
 
@@ -107,6 +108,8 @@
       <property name="eclipselink.cache.size.default" value="10000" />
       <property name="eclipselink.jdbc.batch-writing" value="JDBC"/>
       <property name="eclipselink.weaving" value="static" />
+      <property name="eclipselink.logging.logger" value="org.apache.ambari.server.logging.EclipseLinkLogger"/>
+      <property name="eclipselink.logging.level" value="INFO"/>
     </properties>
   </persistence-unit>
 </persistence>
