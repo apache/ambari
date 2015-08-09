@@ -16,6 +16,8 @@
     "gulp-size": "0.3.0",
     "gulp-uglify": "0.2.1",
     "gulp-useref": "0.4.2",
+    "gulp-concat": "2.6.0",
+    "gulp-order": "1.1.1",
     "http-server": "0.6.1",
     "karma": "0.12.16",
     "karma-chrome-launcher": "0.1.4",

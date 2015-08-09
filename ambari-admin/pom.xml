@@ -202,6 +202,7 @@
             <exclude>src/main/resources/ui/admin-web/.bowerrc</exclude>
             <exclude>src/main/resources/ui/admin-web/package.json</exclude>
             <exclude>src/main/resources/ui/admin-web/.jshintrc</exclude>
+            <exclude>src/main/resources/ui/admin-web/.idea/**</exclude>
           </excludes>
         </configuration>
         <executions>
