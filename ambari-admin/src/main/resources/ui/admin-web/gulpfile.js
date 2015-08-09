@@ -24,60 +24,65 @@ var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
 
 gulp.task('styles', function () {
-    return gulp.src('app/styles/main.css')
-        .pipe($.autoprefixer('last 1 version'))
-        .pipe(gulp.dest('.tmp/styles'))
-        .pipe($.size());
+  return gulp.src('app/styles/*.css')
+    .pipe($.order([
+      'app/styles/main.css',
+      'app/styles/custom-admin-ui.css'   // This should always be the last stylesheet. So it can be dropped and be effective on build time
+    ], { base: './' }))
+    .pipe($.concat('main.css'))
+    .pipe($.autoprefixer('last 1 version'))
+    .pipe(gulp.dest('.tmp/styles'))
+    .pipe($.size());
 });
 
 gulp.task('html', ['styles'], function () {
-    var jsFilter = $.filter('**/*.js');
-    var cssFilter = $.filter('**/*.css');
+  var jsFilter = $.filter('**/*.js');
+  var cssFilter = $.filter('**/*.css');
 
-    return gulp.src('app/*.html')
-        .pipe($.plumber())
-        .pipe($.useref.assets({searchPath: '{.tmp,app}'}))
-        .pipe(jsFilter)
-        .pipe($.uglify())
-        .pipe(jsFilter.restore())
-        .pipe(cssFilter)
-        .pipe(cssFilter.restore())
-        .pipe($.useref.restore())
-        .pipe($.useref())
-        .pipe(gulp.dest('dist'))
-        .pipe($.size());
+  return gulp.src('app/*.html')
+    .pipe($.plumber())
+    .pipe($.useref.assets({searchPath: '{.tmp,app}'}))
+    .pipe(jsFilter)
+    .pipe($.uglify())
+    .pipe(jsFilter.restore())
+    .pipe(cssFilter)
+    .pipe(cssFilter.restore())
+    .pipe($.useref.restore())
+    .pipe($.useref())
+    .pipe(gulp.dest('dist'))
+    .pipe($.size());
 });
 
-gulp.task('views', function() {
-    return gulp.src('app/views/**/*.html')
-        .pipe(gulp.dest('dist/views'));
+gulp.task('views', function () {
+  return gulp.src('app/views/**/*.html')
+    .pipe(gulp.dest('dist/views'));
 });
 
 gulp.task('images', function () {
-    return gulp.src('app/images/**/*')
-        .pipe(gulp.dest('dist/images'))
-        .pipe($.size());
+  return gulp.src('app/images/**/*')
+    .pipe(gulp.dest('dist/images'))
+    .pipe($.size());
 });
 
 gulp.task('fonts', function () {
-    return $.bowerFiles()
-        .pipe($.filter('**/*.{eot,svg,ttf,woff}'))
-        .pipe($.flatten())
-        .pipe(gulp.dest('dist/fonts'))
-        .pipe($.size());
+  return $.bowerFiles()
+    .pipe($.filter('**/*.{eot,svg,ttf,woff}'))
+    .pipe($.flatten())
+    .pipe(gulp.dest('dist/fonts'))
+    .pipe($.size());
 });
 
 gulp.task('extras', function () {
-    return gulp.src(['app/*.*', '!app/*.html'], { dot: true })
-        .pipe(gulp.dest('dist'));
+  return gulp.src(['app/*.*', '!app/*.html'], {dot: true})
+    .pipe(gulp.dest('dist'));
 });
 
 gulp.task('clean', function () {
-    return gulp.src(['.tmp', 'dist'], { read: false }).pipe($.clean());
+  return gulp.src(['.tmp', 'dist'], {read: false}).pipe($.clean());
 });
 
 gulp.task('build', ['html', 'views', 'images', 'fonts', 'extras']);
 
 gulp.task('default', ['clean'], function () {
-    gulp.start('build');
+  gulp.start('build');
 });
