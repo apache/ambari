@@ -100,6 +100,11 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
     App.tooltip($("[rel='button-info-dropdown']"), {placement: 'left'});
   },
 
+  willDestroyElement: function () {
+    this.get('controller.configGroups').clear();
+    this.get('controller.originalConfigGroups').clear();
+  },
+
   /**
    * Disable actions remove and rename for Default config group
    * @method buttonObserver

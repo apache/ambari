@@ -321,7 +321,30 @@ describe('utils/helper', function() {
           })
         });
 
-      })
+      });
+
+      describe("#role()", function() {
+        beforeEach(function () {
+          sinon.stub(App.StackService, 'find').returns([Em.Object.create({
+            id: 'S1',
+            displayName: 's1'
+          })]);
+          sinon.stub(App.StackServiceComponent, 'find').returns([Em.Object.create({
+            id: 'C1',
+            displayName: 'c1'
+          })])
+        });
+        afterEach(function () {
+          App.StackService.find.restore();
+          App.StackServiceComponent.find.restore();
+        });
+        it("", function() {
+          App.format.stackRolesMap = {};
+          expect(App.format.role('S1')).to.equal('s1');
+          expect(App.format.role('C1')).to.equal('c1');
+          expect(App.format.stackRolesMap).to.not.be.empty;
+        });
+      });
     });
   });
   describe('#App.permit()', function() {
@@ -329,7 +352,7 @@ describe('utils/helper', function() {
       a1: 'v1',
       a2: 'v2',
       a3: 'v3'
-    }
+    };
 
     var tests = [
       {

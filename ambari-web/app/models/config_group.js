@@ -140,7 +140,7 @@ App.ConfigGroup = Ember.Object.extend({
       }
     });
     return availableHosts;
-  }.property('isDefault', 'parentConfigGroup', 'childConfigGroups', 'parentConfigGroup.hosts.@each'),
+  }.property('isDefault', 'parentConfigGroup', 'childConfigGroups', 'parentConfigGroup.hosts.@each', 'clusterHosts'),
 
   isAddHostsDisabled: function () {
     return (this.get('isDefault') || this.get('availableHosts.length') === 0);
