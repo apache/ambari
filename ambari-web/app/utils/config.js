@@ -132,8 +132,33 @@ App.config = Em.Object.create({
 
   configMapping: require('data/HDP2/config_mapping'),
 
+  customStackMapping: require('data/custom_stack_map'),
+
+  mapCustomStack: function () {
+    var
+      baseStackFolder = App.get('currentStackName'),
+      singMap = {
+        "1": ">",
+        "-1": "<",
+        "0": "="
+      };
+
+    this.get('customStackMapping').every(function (stack) {
+      if(stack.stackName == App.get('currentStackName')){
+        var versionCompare = Em.compare(App.get('currentStackVersionNumber'), stack.stackVersionNumber);
+        if(singMap[versionCompare+""] === stack.sign){
+          baseStackFolder = stack.baseStackFolder;
+          return false;
+        }
+      }
+      return true;
+    });
+
+    return baseStackFolder;
+  },
+
   allPreDefinedSiteProperties: function() {
-    var sitePropertiesForCurrentStack = this.preDefinedConfigFile('site_properties');
+    var sitePropertiesForCurrentStack = this.preDefinedConfigFile(this.mapCustomStack(), 'site_properties');
     if (sitePropertiesForCurrentStack) {
       return sitePropertiesForCurrentStack.configProperties;
     } else if (App.get('isHadoop23Stack')) {
@@ -165,9 +190,9 @@ App.config = Em.Object.create({
     return map;
   }.property('preDefinedSiteProperties'),
 
-  preDefinedConfigFile: function(file) {
+  preDefinedConfigFile: function(folder, file) {
     try {
-      return require('data/{0}/{1}'.format(App.get('currentStackName'), file));
+      return require('data/{0}/{1}'.format(folder, file));
     } catch (err) {
       // the file doesn't exist, which might be expected.
     }
