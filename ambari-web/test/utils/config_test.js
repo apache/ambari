@@ -315,7 +315,7 @@ describe('App.config', function () {
     });
 
     it('bigtop site properties should be ok.', function() {
-      var bigtopSiteProperties = App.config.preDefinedConfigFile('site_properties');
+      var bigtopSiteProperties = App.config.preDefinedConfigFile('BIGTOP', 'site_properties');
       expect(bigtopSiteProperties).to.be.ok;
     });
 
