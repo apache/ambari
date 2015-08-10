@@ -17,7 +17,7 @@
 }}
 {{#if view.instance.serviceDisplayName}}
   {{#if view.serviceIsLink}}
-    <a {{action goToService view.instance.service target="view.parentView"}} href="#">{{view.instance.serviceDisplayName}}</a>
+    <a {{action goToService view.instance.service target="controller"}} href="#">{{view.instance.serviceDisplayName}}</a>
   {{else}}
     {{view.instance.serviceDisplayName}}
   {{/if}}
@@ -26,7 +26,7 @@
   &nbsp;/&nbsp;
 {{/if}}
 {{#if view.instance.hostName}}
-  <a {{action goToHostAlerts view.instance.host target="view.parentView"}} href="#">
+  <a {{action goToHostAlerts view.instance.host target="controller"}} href="#">
     {{view.instance.hostName}}
   </a>
 {{/if}}
