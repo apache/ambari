@@ -441,37 +441,6 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   },
 
   /**
-   * @Override   <code>App.AddSecurityConfigs</code>
-   * Wrap kerberos properties to App.ServiceConfigProperty model class instances.
-   *
-   * @param {object} kerberosProperties
-   * @param {string} serviceName
-   * @param {string} filename
-   * @returns {App.ServiceConfigProperty[]}
-   */
-  expandKerberosStackDescriptorProps: function (kerberosProperties, serviceName, filename) {
-    var configs = [];
-
-    for (var propertyName in kerberosProperties) {
-      var propertyObject = {
-        name: propertyName,
-        value: kerberosProperties[propertyName],
-        defaultValue: kerberosProperties[propertyName],
-        savedValue: kerberosProperties[propertyName],
-        serviceName: serviceName,
-        filename: filename,
-        displayName: serviceName == "Cluster" ? App.format.normalizeName(propertyName) : propertyName,
-        isOverridable: false,
-        isEditable: true,
-        isSecureConfig: true
-      };
-      configs.push(App.ServiceConfigProperty.create(propertyObject));
-    }
-
-    return configs;
-  },
-
-  /**
    * Determines if some config value is changed
    * @type {boolean}
    */
@@ -486,17 +455,41 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     return this.get('isSubmitDisabled') || !this.get('isPropertiesChanged');
   }.property('isSubmitDisabled', 'isPropertiesChanged'),
 
+  /**
+   * Determines if the `Disbale Kerberos` and `Regenerate Keytabs` button are disabled
+   */
+  isKerberosButtonsDisabled: function () {
+    return !this.get('isSaveButtonDisabled');
+  }.property('isSaveButtonDisabled'),
+
 
   makeConfigsEditable: function () {
     this.set('isEditMode', true);
-    this.get('stepConfigs').forEach(function(_stepConfig){
+    this.get('stepConfigs').forEach(function (_stepConfig) {
       _stepConfig.get('configs').setEach('isEditable', true);
+        _stepConfig.get('configs').forEach(function (_config) {
+          _config.set('isEditable', _config.get('name') != 'realm');
+        });
     }, this);
   },
 
-  makeConfigsNonEditable: function () {
+  _updateConfigs: function () {
+    this.makeConfigsUneditable(true);
+  },
+
+  makeConfigsUneditable: function (configsUpdated) {
     this.set('isEditMode', false);
-    this.loadStep();
+    this.get('stepConfigs').forEach(function (_stepConfig) {
+      _stepConfig.get('configs').forEach(function (_config) {
+        if (configsUpdated === true) {  // configsUpdated should be checked for boolean true
+          _config.set('savedValue', _config.get('value'));
+          _config.set('defaultValue', _config.get('value'));
+        } else {
+          _config.set('value', _config.get('savedValue'));
+        }
+        _config.set('isEditable', false);
+      });
+    }, this);
   },
 
   /**
@@ -505,35 +498,26 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   submit: function (context) {
     var callback;
     var self = this;
-    if (this.get('isPropertiesChanged')) {
-      var kerberosDescriptor = this.get('kerberosDescriptor');
-      var configs = [];
-      this.get('stepConfigs').forEach(function (_stepConfig) {
-        configs = configs.concat(_stepConfig.get('configs'));
-      });
-      this.updateKerberosDescriptor(kerberosDescriptor, configs);
-      callback = function () {
-        return App.ajax.send({
-          name: 'admin.kerberos.cluster.artifact.update',
-          sender: self,
+    var kerberosDescriptor = this.get('kerberosDescriptor');
+    var configs = [];
+    this.get('stepConfigs').forEach(function (_stepConfig) {
+      configs = configs.concat(_stepConfig.get('configs'));
+    });
+    callback = function () {
+      return App.ajax.send({
+        name: 'admin.kerberos.cluster.artifact.update',
+        sender: self,
+        data: {
+          artifactName: 'kerberos_descriptor',
           data: {
-            artifactName: 'kerberos_descriptor',
-            data: {
-              artifact_data: kerberosDescriptor
-            }
-          },
-          success: 'makeConfigsNonEditable'
-        });
-      };
-    } else {
-      callback = function() {
-        var dfd = $.Deferred();
-        self.makeConfigsNonEditable();
-        dfd.resolve();
-        return dfd.promise();
-      }
-    }
-    this.regenerateKeytabs(callback);
-  },
+            artifact_data: kerberosDescriptor
+          }
+        },
+        success: '_updateConfigs'
+      });
+    };
+    this.updateKerberosDescriptor(kerberosDescriptor, configs);
+    this.restartServicesAfterRegenerate(false, callback);
+  }
 
 });
