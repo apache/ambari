@@ -257,7 +257,7 @@ class TestActionQueue(TestCase):
     actionQueue.stop()
     actionQueue.join()
     self.assertEqual(actionQueue.stopped(), True, 'Action queue is not stopped.')
-    self.assertGreater(process_command_mock.call_count, 1)
+    self.assertTrue(process_command_mock.call_count > 1)
 
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
