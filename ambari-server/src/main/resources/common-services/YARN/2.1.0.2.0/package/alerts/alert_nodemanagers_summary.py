@@ -37,6 +37,7 @@ KERBEROS_KEYTAB = '{{yarn-site/yarn.nodemanager.webapp.spnego-keytab-file}}'
 KERBEROS_PRINCIPAL = '{{yarn-site/yarn.nodemanager.webapp.spnego-principal}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
+EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
 
 CONNECTION_TIMEOUT_KEY = 'connection.timeout'
 CONNECTION_TIMEOUT_DEFAULT = 5.0
@@ -48,7 +49,7 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return NODEMANAGER_HTTP_ADDRESS_KEY, NODEMANAGER_HTTPS_ADDRESS_KEY, \
+  return NODEMANAGER_HTTP_ADDRESS_KEY, NODEMANAGER_HTTPS_ADDRESS_KEY, EXECUTABLE_SEARCH_PATHS, \
     YARN_HTTP_POLICY_KEY, SMOKEUSER_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY
 
 
@@ -73,6 +74,10 @@ def execute(configurations={}, parameters={}, host_name=None):
   security_enabled = False
   if SECURITY_ENABLED_KEY in configurations:
     security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
+
+  executable_paths = None
+  if EXECUTABLE_SEARCH_PATHS in configurations:
+    executable_paths = configurations[EXECUTABLE_SEARCH_PATHS]
 
   kerberos_keytab = None
   if KERBEROS_KEYTAB in configurations:
@@ -120,7 +125,7 @@ def execute(configurations={}, parameters={}, host_name=None):
       curl_connection_timeout = int(connection_timeout)
 
       url_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
-        live_nodemanagers_qry, "nm_health_summary_alert", None, False,
+        live_nodemanagers_qry, "nm_health_summary_alert", executable_paths, False,
         "NodeManager Health Summary", smokeuser, connection_timeout=curl_connection_timeout)
 
       try:
@@ -134,7 +139,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
       if convert_to_json_failed:
         response_code, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
-          live_nodemanagers_qry, "nm_health_summary_alert", None, True,
+          live_nodemanagers_qry, "nm_health_summary_alert", executable_paths, True,
           "NodeManager Health Summary", smokeuser, connection_timeout=curl_connection_timeout)
     else:
       live_nodemanagers = json.loads(get_value_from_jmx(live_nodemanagers_qry,

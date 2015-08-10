@@ -43,6 +43,7 @@ KERBEROS_KEYTAB = '{{hdfs-site/dfs.web.authentication.kerberos.keytab}}'
 KERBEROS_PRINCIPAL = '{{hdfs-site/dfs.web.authentication.kerberos.principal}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
+EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
 
 CONNECTION_TIMEOUT_KEY = 'connection.timeout'
 CONNECTION_TIMEOUT_DEFAULT = 5.0
@@ -54,7 +55,7 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (HDFS_SITE_KEY, NAMESERVICE_KEY, NN_HTTP_ADDRESS_KEY,
+  return (HDFS_SITE_KEY, NAMESERVICE_KEY, NN_HTTP_ADDRESS_KEY, EXECUTABLE_SEARCH_PATHS,
   NN_HTTPS_ADDRESS_KEY, DFS_POLICY_KEY, SMOKEUSER_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY)
   
 
@@ -80,6 +81,10 @@ def execute(configurations={}, parameters={}, host_name=None):
   
   if SMOKEUSER_KEY in configurations:
     smokeuser = configurations[SMOKEUSER_KEY]
+
+  executable_paths = None
+  if EXECUTABLE_SEARCH_PATHS in configurations:
+    executable_paths = configurations[EXECUTABLE_SEARCH_PATHS]
 
   # parse script arguments
   connection_timeout = CONNECTION_TIMEOUT_DEFAULT
@@ -147,7 +152,7 @@ def execute(configurations={}, parameters={}, host_name=None):
           curl_connection_timeout = int(connection_timeout)
 
           state_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir,
-            kerberos_keytab, kerberos_principal, jmx_uri,"ha_nn_health", None, False,
+            kerberos_keytab, kerberos_principal, jmx_uri,"ha_nn_health", executable_paths, False,
             "NameNode High Availability Health", smokeuser, connection_timeout=curl_connection_timeout)
 
           state = _get_ha_state_from_json(state_response)

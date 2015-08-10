@@ -44,6 +44,7 @@ KERBEROS_KEYTAB = '{{yarn-site/yarn.nodemanager.webapp.spnego-keytab-file}}'
 KERBEROS_PRINCIPAL = '{{yarn-site/yarn.nodemanager.webapp.spnego-principal}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
+EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
 
 NODEMANAGER_DEFAULT_PORT = 8042
 
@@ -55,7 +56,7 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (NODEMANAGER_HTTP_ADDRESS_KEY,NODEMANAGER_HTTPS_ADDRESS_KEY,
+  return (NODEMANAGER_HTTP_ADDRESS_KEY,NODEMANAGER_HTTPS_ADDRESS_KEY, EXECUTABLE_SEARCH_PATHS,
   YARN_HTTP_POLICY_KEY, SMOKEUSER_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY)
   
 
@@ -80,7 +81,11 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   if SMOKEUSER_KEY in configurations:
     smokeuser = configurations[SMOKEUSER_KEY]
-    
+
+  executable_paths = None
+  if EXECUTABLE_SEARCH_PATHS in configurations:
+    executable_paths = configurations[EXECUTABLE_SEARCH_PATHS]
+
   security_enabled = False
   if SECURITY_ENABLED_KEY in configurations:
     security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
@@ -146,7 +151,7 @@ def execute(configurations={}, parameters={}, host_name=None):
       curl_connection_timeout = int(connection_timeout)
 
       url_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
-        query, "nm_health_alert", None, False, "NodeManager Health", smokeuser,
+        query, "nm_health_alert", executable_paths, False, "NodeManager Health", smokeuser,
         connection_timeout=curl_connection_timeout)
 
       json_response = json.loads(url_response)
