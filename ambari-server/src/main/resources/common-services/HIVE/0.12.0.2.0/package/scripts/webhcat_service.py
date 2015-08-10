@@ -55,6 +55,21 @@ def webhcat_service(action='start', rolling_restart=False):
     Execute(daemon_cmd,
             user = params.webhcat_user,
             environment = environ)
+
+    pid_expression = "`" + as_user(format("cat {webhcat_pid_file}"), user=params.webhcat_user) + "`"
+    process_id_exists_command = format("ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p {pid_expression} >/dev/null 2>&1")
+    daemon_hard_kill_cmd = format("{sudo} kill -9 {pid_expression}")
+    wait_time = 10
+    Execute(daemon_hard_kill_cmd,
+            not_if = format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )")
+    )
+
+    # check if stopped the process, else fail the task
+    Execute(format("! ({process_id_exists_command})"),
+            tries=20,
+            try_sleep=3,
+    )
+
     File(params.webhcat_pid_file,
          action="delete",
     )
