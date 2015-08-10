@@ -1130,7 +1130,7 @@ App.ChartLinearTimeView.LoadAggregator = Em.Object.create({
       if (Em.isNone(bulks[id])) {
         bulks[id] = {
           name: request.name,
-          fields: request.fields,
+          fields: request.fields.slice(),
           context: request.context
         };
         bulks[id].subRequests = [{
