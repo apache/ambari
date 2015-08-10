@@ -99,34 +99,19 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
   instanceTableRow: Em.View.extend({
     tagName: 'tr',
     didInsertElement: function () {
-      App.tooltip($("[rel=tooltip]"));
-      App.tooltip($(".alert-text"), {
+      App.tooltip(this.$("[rel=tooltip]"));
+      App.tooltip(this.$(".alert-text"), {
         placement: 'left',
         delay: { "show": 0, "hide": 1500 },
         template: '<div class="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner alert-def-detail-tooltip"></div></div>'
-      });    },
-
-    /**
-     * Router transition to service page
-     * @param event
-     */
-    goToService: function (event) {
-      if (event && event.context) {
-        App.router.transitionTo('main.services.service.summary', event.context);
-      }
+      });
     },
 
-    /**
-     * Router transition to host level alerts page
-     * @param {object} event
-     * @method goToHostAlerts
-     */
-    goToHostAlerts: function (event) {
-      if (event && event.context) {
-        App.router.get('mainHostDetailsController').set('referer', App.router.location.lastSetURL);
-        App.router.transitionTo('main.hosts.hostDetails.alerts', event.context);
-      }
+    willDestroyElement: function() {
+      this.$("[rel=tooltip]").tooltip('destroy');
+      this.$(".alert-text").tooltip('destroy');
     }
+
   }),
 
   paginationLeftClass: function () {
