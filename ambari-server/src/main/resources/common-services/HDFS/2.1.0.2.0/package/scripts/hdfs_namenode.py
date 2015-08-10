@@ -365,6 +365,13 @@ def bootstrap_standby_namenode(params):
   try:
     iterations = 50
     bootstrap_cmd = "hdfs namenode -bootstrapStandby -nonInteractive"
+    # Blue print based deployments start both NN in parallel and occasionally
+    # the first attempt to bootstrap may fail. Depending on how it fails the
+    # second attempt may not succeed (e.g. it may find the folder and decide that
+    # bootstrap succeeded). The solution is to call with -force option but only
+    # during initial start
+    if params.command_phase == "INITIAL_START":
+      bootstrap_cmd = "hdfs namenode -bootstrapStandby -nonInteractive -force"
     Logger.info("Boostrapping standby namenode: %s" % (bootstrap_cmd))
     for i in range(iterations):
       Logger.info('Try %d out of %d' % (i+1, iterations))
