@@ -297,7 +297,7 @@ App.ConfigOverridable = Em.Mixin.create({
     var sendData = {
       name: 'config_groups.update',
       data: {
-        id: configGroup.get('id'),
+        id: Em.isNone(configGroup.get('configGroupId')) ? configGroup.get('id') : configGroup.get('configGroupId'),
         data: putConfigGroup
       },
       success: 'successFunction',
