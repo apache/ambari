@@ -163,13 +163,15 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    * @method loadAlertNotifications
    */
   loadAlertNotifications: function () {
-    this.set('isLoaded', false);
-    this.set('alertGroups', []);
-    this.set('originalAlertGroups', []);
-    this.set('selectedAlertGroup', null);
-    this.set('isRemoveButtonDisabled', true);
-    this.set('isRenameButtonDisabled', true);
-    this.set('isDuplicateButtonDisabled', true);
+    this.setProperties({
+      isLoaded: false,
+      alertGroups: [],
+      originalAlertGroups: [],
+      selectedAlertGroup: null,
+      isRemoveButtonDisabled: true,
+      isRenameButtonDisabled: true,
+      isDuplicateButtonDisabled: true
+    });
     return App.ajax.send({
       name: 'alerts.notifications',
       sender: this,
@@ -244,10 +246,12 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         notifications: targets
       });
     });
-    this.set('alertGroups', alertGroups);
-    this.set('isLoaded', true);
-    this.set('originalAlertGroups', this.copyAlertGroups(this.get('alertGroups')));
-    this.set('selectedAlertGroup', this.get('alertGroups')[0]);
+    this.setProperties({
+      alertGroups: alertGroups,
+      isLoaded: true,
+      originalAlertGroups: this.copyAlertGroups(alertGroups),
+      selectedAlertGroup: this.get('alertGroups')[0]
+    });
   },
 
   /**
@@ -257,9 +261,11 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   buttonObserver: function () {
     var selectedAlertGroup = this.get('selectedAlertGroup');
     var flag = selectedAlertGroup && selectedAlertGroup.get('default');
-    this.set('isRemoveButtonDisabled', flag);
-    this.set('isRenameButtonDisabled', flag);
-    this.set('isDuplicateButtonDisabled', false);
+    this.setProperties({
+      isRemoveButtonDisabled: flag,
+      isRenameButtonDisabled: flag,
+      isDuplicateButtonDisabled: false
+    });
   }.observes('selectedAlertGroup'),
 
   /**
@@ -433,10 +439,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   addDefinitionsCallback: function (selectedDefs) {
     var group = this.get('selectedAlertGroup');
     if (selectedDefs) {
-      var alertGroupDefs = group.get('definitions');
-      selectedDefs.forEach(function (defObj) {
-        alertGroupDefs.pushObject(defObj);
-      }, this);
+      group.get('definitions').pushObjects(selectedDefs);
     }
   },
 
