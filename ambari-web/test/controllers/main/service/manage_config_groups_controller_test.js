@@ -18,12 +18,14 @@
 
 var App = require('app');
 var c;
+
 describe('App.ManageConfigGroupsController', function() {
   var controller = App.ManageConfigGroupsController.create({});
 
   beforeEach(function() {
     c = App.ManageConfigGroupsController.create({});
   });
+
 	var manageConfigGroupsController = App.ManageConfigGroupsController.create({});
 
 	describe('#addConfigGroup', function() {
@@ -154,6 +156,36 @@ describe('App.ManageConfigGroupsController', function() {
           expect(c.get('isHostsModified')).to.equal(test.e);
         });
       });
+
+  });
+
+  describe('#deleteConfigGroup', function () {
+
+    beforeEach(function() {
+
+      var defaultGroup = Em.Object.create({
+        hosts: ['h2', 'h3'],
+        isDefault: true
+      });
+
+      var selectedGroup = Em.Object.create({
+        hosts: ['h1'],
+        parentConfigGroup: defaultGroup
+      });
+
+      c.reopen({
+        configGroups: [defaultGroup, selectedGroup],
+        selectedConfigGroup: selectedGroup
+      });
+    });
+
+    it('after deleting some config group, Default should be selected', function () {
+
+      c.deleteConfigGroup();
+
+      expect(c.get('selectedConfigGroup.hosts')).to.include.members(['h1','h2','h3']);
+      expect(c.get('selectedConfigGroup.isDefault')).to.be.true;
+    });
 
   });
 
