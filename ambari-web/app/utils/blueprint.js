@@ -17,17 +17,23 @@
  */
 
 module.exports = {
+
   mergeBlueprints: function(masterBlueprint, slaveBlueprint) {
+    console.time('mergeBlueprints');
     var self = this;
 
     // Check edge cases
     if (!slaveBlueprint && !masterBlueprint) {
       throw 'slaveBlueprint or masterBlueprint should not be empty';
-    } else if (slaveBlueprint && !masterBlueprint) {
-      return slaveBlueprint;
-    } else if (!slaveBlueprint && masterBlueprint) {
-      return masterBlueprint;
     }
+    else
+      if (slaveBlueprint && !masterBlueprint) {
+        return slaveBlueprint;
+      }
+      else
+        if (!slaveBlueprint && masterBlueprint) {
+          return masterBlueprint;
+        }
 
     // Work with main case (both blueprint are presented)
     var matches = self.matchGroups(masterBlueprint, slaveBlueprint);
@@ -37,53 +43,109 @@ module.exports = {
       blueprint_cluster_binding: { host_groups: [] }
     };
 
-    matches.forEach(function(match, i){
-      var group_name = 'host-group-' + (i+1);
+    var tmpObj = {hosts: [], components: []};
+    var masterBluePrintHostGroupsCluster = this.blueprintToObject(masterBlueprint, 'blueprint_cluster_binding.host_groups');
+    var slaveBluePrintHostGroupsCluster = this.blueprintToObject(slaveBlueprint, 'blueprint_cluster_binding.host_groups');
+    var masterBluePrintHostGroupsBlueprint = this.blueprintToObject(masterBlueprint, 'blueprint.host_groups');
+    var slaveBluePrintHostGroupsBlueprint = this.blueprintToObject(slaveBlueprint, 'blueprint.host_groups');
 
-      var masterComponents = self.getComponentsFromBlueprintByGroupName(masterBlueprint, match.g1);
-      var slaveComponents = self.getComponentsFromBlueprintByGroupName(slaveBlueprint, match.g2);
+    matches.forEach(function (match, i) {
+      var group_name = 'host-group-' + (i + 1);
+
+      var masterComponents = match.g1 ? Em.getWithDefault(masterBluePrintHostGroupsBlueprint, match.g1, tmpObj).components : [];
+      var slaveComponents = match.g2 ? Em.getWithDefault(slaveBluePrintHostGroupsBlueprint, match.g2, tmpObj).components : [];
 
       res.blueprint.host_groups.push({
         name: group_name,
         components: masterComponents.concat(slaveComponents)
       });
 
+      var hosts = match.g1 ? Em.getWithDefault(masterBluePrintHostGroupsCluster, match.g1, tmpObj).hosts :
+        Em.getWithDefault(slaveBluePrintHostGroupsCluster, match.g2, tmpObj).hosts;
+
       res.blueprint_cluster_binding.host_groups.push({
         name: group_name,
-        hosts: self.getHostsFromBlueprintByGroupName(match.g1 ? masterBlueprint : slaveBlueprint, match.g1 ? match.g1 : match.g2)
+        hosts: hosts
       });
     });
+    console.timeEnd('mergeBlueprints');
     return res;
   },
 
-  getHostsFromBlueprint: function(blueprint) {
-    return blueprint.blueprint_cluster_binding.host_groups.mapProperty("hosts").reduce(function(prev, curr){ return prev.concat(curr); }, []).mapProperty("fqdn");
-  },
-
-  getHostsFromBlueprintByGroupName: function(blueprint, groupName) {
-    if (groupName) {
-      var group = blueprint.blueprint_cluster_binding.host_groups.find(function(g) {
-        return g.name === groupName;
-      });
-
-      if (group) {
-        return group.hosts;
-      }
+  /**
+   * Convert <code>blueprint</code>-object to the array with keys equal to the host-groups names
+   * Used to improve performance when user try to search value in the blueprint using host-group name as search-field
+   * Example:
+   *  Before:
+   *  <pre>
+   *    // blueprint
+   *    {
+   *      blueprint: {
+   *        host_groups: [
+   *          {
+   *            components: [{}, {}, ...],
+   *            name: 'n1'
+   *          },
+   *          {
+   *            components: [{}, {}, ...],
+   *            name: 'n2'
+   *          }
+   *        ]
+   *      },
+   *      blueprint_cluster_binding: {
+   *        host_groups: [
+   *          {
+   *            hosts: [{}, {}, ...],
+   *            name: 'n1'
+   *          },
+   *          {
+   *            hosts: [{}, {}, ...],
+   *            name: 'n2'
+   *          }
+   *        ]
+   *      }
+   *    }
+   *  </pre>
+   *  Return:
+   *  <pre>
+   *    // field = 'blueprint_cluster_binding.host_groups'
+   *    {
+   *      n1: {
+   *        hosts: [{}, {}, ...],
+   *        name: 'n1'
+   *      },
+   *      n2: {
+   *        hosts: [{}, {}, ...],
+   *        name: 'n2'
+   *      }
+   *    }
+   *
+   *    // field = 'blueprint.host_groups'
+   *    {
+   *      n1: {
+   *        components: [{}, {}, ...],
+   *        name: 'n1'
+   *      },
+   *      n2: {
+   *        components: [{}, {}, ...],
+   *        name: 'n2'
+   *      }
+   *    }
+   *  </pre>
+   * @param {object} blueprint
+   * @param {string} field
+   * @returns {object}
+   */
+  blueprintToObject: function(blueprint, field) {
+    var ret = {};
+    var valueToMap = Em.get(blueprint, field);
+    if (!Array.isArray(valueToMap)) {
+      return ret;
     }
-    return [];
-  },
-
-  getComponentsFromBlueprintByGroupName: function(blueprint, groupName) {
-    if (groupName) {
-      var group = blueprint.blueprint.host_groups.find(function(g) {
-        return g.name === groupName;
-      });
-
-      if (group) {
-        return group.components;
-      }
-    }
-    return [];
+    valueToMap.forEach(function(n) {
+      ret[Em.get(n, 'name')] = n;
+    });
+    return ret;
   },
 
   matchGroups: function(masterBlueprint, slaveBlueprint) {
@@ -103,6 +165,7 @@ module.exports = {
   },
 
   matchGroupsWithLeft: function(groups1, groups2, groups1_used, groups2_used, res, inverse) {
+    var gs2 = this.groupsToObject(groups2);
     for (var i = 0; i < groups1.length; i++) {
       if (groups1_used[i]) {
         continue;
@@ -111,20 +174,10 @@ module.exports = {
       var group1 = groups1[i];
       groups1_used[i] = true;
 
-      var group2 = groups2.find(function(g2, index) {
-        if (group1.hosts.length != g2.hosts.length) {
-          return false;
-        }
-
-        for (var gi = 0; gi < group1.hosts.length; gi++) {
-          if (group1.hosts[gi].fqdn != g2.hosts[gi].fqdn) {
-            return false;
-          }
-        }
-
-        groups2_used[index] = true;
-        return true;
-      });
+      var group2 = gs2[group1.hosts.mapProperty('fqdn').join(',')];
+      if (group2) {
+        groups2_used[group2.index] = true;
+      }
 
       var item = {};
 
@@ -133,7 +186,8 @@ module.exports = {
         if (group2) {
           item.g1 = group2.name;
         }
-      } else {
+      }
+      else {
         item.g1 = group1.name;
         if (group2) {
           item.g2 = group2.name;
@@ -141,12 +195,69 @@ module.exports = {
       }
       res.push(item);
     }
+
+    // remove unneeded property
+    groups2.forEach(function(group) {
+      delete group.index;
+    });
+  },
+
+  /**
+   * Convert array of objects to the one object to improve performance with searching objects in the provided array
+   * Example:
+   *  Before:
+   *  <pre>
+   *    // groups
+   *    [
+   *      {
+   *        hosts: [
+   *          {fqdn: 'h1'}, {fqdn: 'h2'}
+   *        ],
+   *        name: 'n1'
+   *      },
+   *      {
+   *        hosts: [
+   *          {fqdn: 'h3'}, {fqdn: 'h4'}
+   *        ]
+   *      }
+   *    ]
+   *  </pre>
+   *  Return:
+   *  <pre>
+   *    {
+   *      'h1,h2': {
+   *        hosts: [
+   *          {fqdn: 'h1'}, {fqdn: 'h2'}
+   *        ],
+   *        name: 'n1',
+   *        index: 0
+   *      },
+   *      'h3,h4': {
+   *        hosts: [
+   *          {fqdn: 'h3'}, {fqdn: 'h4'}
+   *        ],
+   *        name: 'n2',
+   *        index: 1
+   *      }
+   *    }
+   *  </pre>
+   * @param {{hosts: object[], name: string}[]} groups
+   * @returns {object}
+   */
+  groupsToObject: function (groups) {
+    var ret = {};
+    groups.forEach(function (group, index) {
+      var key = group.hosts.mapProperty('fqdn').join(',');
+      ret[key] = group;
+      ret[key].index = index;
+    });
+    return ret;
   },
 
   /**
    * Remove from blueprint all components expect given components
-   * @param blueprint
-   * @param [string] components
+   * @param {object} blueprint
+   * @param {string[]} components
    */
   filterByComponents: function(blueprint, components) {
     if (!blueprint) {
@@ -178,7 +289,7 @@ module.exports = {
   },
 
   addComponentsToBlueprint: function(blueprint, components) {
-    var res = JSON.parse(JSON.stringify(blueprint))
+    var res = JSON.parse(JSON.stringify(blueprint));
 
     res.blueprint.host_groups.forEach(function(group) {
       components.forEach(function(component) {

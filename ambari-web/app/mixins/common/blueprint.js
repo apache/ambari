@@ -53,16 +53,16 @@ App.BlueprintMixin = Em.Mixin.create({
   },
 
   /**
-   * returns blueprint for all currenlty installed slave and client components
+   * Returns blueprint for all currently installed slave and client components
    */
   getCurrentSlaveBlueprint: function () {
     var self = this;
     var fullBlueprint = self.getCurrentMasterSlaveBlueprint();
 
-    var slaveComponents = App.StackServiceComponent.find().filterProperty("isSlave").mapProperty("componentName");
-    var clientComponents = App.StackServiceComponent.find().filterProperty("isClient").mapProperty("componentName");
-    var slaveAndClientComponents = slaveComponents.concat(clientComponents);
+    var components = App.StackServiceComponent.find().filter(function (c) {
+      return c.get('isSlave') || c.get('isClient');
+    }).mapProperty("componentName");
 
-    return blueprintUtils.filterByComponents(fullBlueprint, slaveAndClientComponents);
+    return blueprintUtils.filterByComponents(fullBlueprint, components);
   }
 });

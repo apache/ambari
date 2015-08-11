@@ -17,15 +17,15 @@
 }}
 
 <div id="step6">
-  <h2>{{view.title}}</h2>
+  <h2>{{t installer.step6.header}}</h2>
 
   <div class="alert alert-info">{{{view.label}}}</div>
   {{#if anyGeneralIssues}}
-  <div class="alert alert-error">
-    {{t installer.step6.validationSlavesAndClients.hasIssues}}
-    <a href="javascript:void(null);" {{action openSlavesAndClientsIssues target="controller"}}>{{t installer.step6.validationSlavesAndClients.click}}</a>
-    {{t installer.step6.validationSlavesAndClients.forDetails}}
-  </div>
+    <div class="alert alert-error">
+      {{t installer.step6.validationSlavesAndClients.hasIssues}}
+      <a href="javascript:void(null);" {{action openSlavesAndClientsIssues target="controller"}}>{{t installer.step6.validationSlavesAndClients.click}}</a>
+      {{t installer.step6.validationSlavesAndClients.forDetails}}
+    </div>
   {{/if}}
 
   <div class="pre-scrollable">
@@ -46,7 +46,6 @@
       </tr>
       </thead>
       <tbody>
-      {{#if view.pageContent}}
         {{#each host in view.pageContent}}
           <tr>
             {{#view App.WizardStep6HostView hostBinding="host" }}
@@ -64,18 +63,19 @@
               </td>
             {{/each}}
           </tr>
-          <tr {{bindAttr class="host.anyMessage::hidden"}}>
-            <td {{bindAttr colspan="view.columnCount"}} class="no-borders">
-              {{#each errorMsg in host.errorMessages}}
-                  <div class="alert alert-error">{{errorMsg}}</div>
-              {{/each}}
-              {{#each warnMsg in host.warnMessages}}
-                <div class="alert alert-warning">{{warnMsg}}</div>
-              {{/each}}
-            </td>
-          </tr>
+          {{#if host.anyMessage}}
+            <tr>
+              <td {{bindAttr colspan="view.columnCount"}} class="no-borders">
+                {{#each errorMsg in host.errorMessages}}
+                    <div class="alert alert-error">{{errorMsg}}</div>
+                {{/each}}
+                {{#each warnMsg in host.warnMessages}}
+                  <div class="alert alert-warning">{{warnMsg}}</div>
+                {{/each}}
+              </td>
+            </tr>
+          {{/if}}
         {{/each}}
-      {{/if}}
       </tbody>
     </table>
   </div>
