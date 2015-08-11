@@ -443,16 +443,16 @@ public class PhoenixTransactSQL {
       stmtStr = condition.getStatement();
     } else {
       //if not a single metric for a single host
-      if (condition.getHostnames().size() > 1
-        && condition.getMetricNames().size() > 1) {
-        stmtStr = String.format(GET_LATEST_METRIC_SQL,
-          METRICS_RECORD_TABLE_NAME,
-          METRICS_RECORD_TABLE_NAME,
-          condition.getConditionClause());
-      } else {
+      if (condition.getHostnames().size() == 1
+        && condition.getMetricNames().size() == 1) {
         stmtStr = String.format(GET_LATEST_METRIC_SQL_SINGLE_HOST,
           METRICS_RECORD_TABLE_NAME,
           condition.getConditionClause(),
+          METRICS_RECORD_TABLE_NAME,
+          condition.getConditionClause());
+      } else {
+        stmtStr = String.format(GET_LATEST_METRIC_SQL,
+          METRICS_RECORD_TABLE_NAME,
           METRICS_RECORD_TABLE_NAME,
           condition.getConditionClause());
       }

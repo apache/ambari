@@ -225,7 +225,7 @@ public class TestPhoenixTransactSQL {
   @Test
   public void testPrepareGetLatestMetricSqlStmtSingleHostName() throws SQLException {
     Condition condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      Arrays.asList("cpu_user"), Collections.singletonList("h1"),
       "a1", "i1", null, null, null, null, false);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
@@ -235,10 +235,10 @@ public class TestPhoenixTransactSQL {
         .andReturn(preparedStatement);
     expect(preparedStatement.getParameterMetaData())
       .andReturn(parameterMetaData).times(2);
-    // 10 = (1 instance_id + 1 appd_id + 1 hostname + 2 metric names) * 2,
+    // 8 = (1 instance_id + 1 appd_id + 1 hostname + 1 metric name) * 2,
     // For GET_LATEST_METRIC_SQL_SINGLE_HOST parameters should be set 2 times
     expect(parameterMetaData.getParameterCount())
-      .andReturn(10).times(2);
+      .andReturn(8).times(2);
 
     replay(connection, preparedStatement, parameterMetaData);
     PhoenixTransactSQL.prepareGetLatestMetricSqlStmt(connection, condition);
