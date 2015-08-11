@@ -42,10 +42,10 @@
                       {{alertInstance.text}}
                     </div>
                   </div>
-                  <div class="status-col" rel="alert-status-tooltip" {{bindAttr title="alertInstance.lastTriggered"}}>
+                  <div class="status-col" {{bindAttr title="alertInstance.lastTriggered"}}>
                     <span>
                       <span class="status-icon">{{{alertInstance.status}}}</span>
-                      <time class="timeago" {{bindAttr data-original-title="alertInstance.lastTriggeredVerboseDisplay"}}>{{alertInstance.lastTriggeredForFormatted}}</time>
+                      <time>{{alertInstance.lastTriggeredForFormatted}}</time>
                     </span>
                   </div>
               </div>
