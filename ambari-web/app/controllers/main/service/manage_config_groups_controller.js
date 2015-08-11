@@ -63,6 +63,21 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
   originalConfigGroups: [],
 
   /**
+   * map of <code>originalConfigGroups</code>
+   * @type {object}
+   */
+  originalConfigGroupsMap: function() {
+    var map = {};
+
+    this.get('originalConfigGroups').forEach(function (item) {
+      if (!item.get('isDefault')) {
+        map[item.get('id')] = item;
+      }
+    }, this);
+    return map;
+  }.property('originalConfigGroups'),
+
+  /**
    * @type {App.ConfigGroup}
    */
   selectedConfigGroup: null,
@@ -115,7 +130,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
   isDeleteHostsDisabled: function () {
     var selectedConfigGroup = this.get('selectedConfigGroup');
     if (selectedConfigGroup) {
-      return selectedConfigGroup.isDefault || this.get('selectedHosts').length === 0;
+      return selectedConfigGroup.get('isDefault') || this.get('selectedHosts').length === 0;
     }
     return true;
   }.property('selectedConfigGroup', 'selectedConfigGroup.hosts.length', 'selectedHosts.length'),
@@ -139,12 +154,14 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     var groupsToCreate = [];
     var groups = this.get('configGroups');
     var originalGroups = this.get('originalConfigGroups');
+    var originalGroupsMap = this.get('originalConfigGroupsMap');
+
     // remove default group
     var originalGroupsCopy = originalGroups.without(originalGroups.findProperty('isDefault'));
     var originalGroupsIds = originalGroupsCopy.mapProperty('id');
     groups.forEach(function (group) {
       if (!group.get('isDefault')) {
-        var originalGroup = originalGroupsCopy.findProperty('id', group.get('id'));
+        var originalGroup = originalGroupsMap[group.get('id')];
         if (originalGroup) {
           if (!(JSON.stringify(group.get('hosts').slice().sort()) === JSON.stringify(originalGroup.get('hosts').sort()))) {
             groupsToClearHosts.push(group.set('id', originalGroup.get('id')));
@@ -162,7 +179,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       }
     });
     originalGroupsIds.forEach(function (id) {
-      groupsToDelete.push(originalGroupsCopy.findProperty('id', id));
+      groupsToDelete.push(originalGroupsMap[id]);
     }, this);
     return {
       toClearHosts: groupsToClearHosts,
@@ -221,6 +238,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     }
     else {
       this.loadHostsFromServer();
+      this.loadConfigGroups(this.get('serviceName'));
     }
   },
 
@@ -286,7 +304,6 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     }, this);
 
     this.set('clusterHosts', wrappedHosts);
-    this.loadConfigGroups(this.get('serviceName'));
   },
 
   /**
@@ -297,7 +314,6 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
   _loadHostsFromServerErrorCallback: function () {
     console.warn('ERROR: request to fetch all hosts failed');
     this.set('clusterHosts', []);
-    this.loadConfigGroups(this.get('serviceName'));
   },
 
   /**
@@ -340,10 +356,9 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     var usedHosts = [];
     var unusedHosts = [];
     var serviceName = this.get('serviceName');
-    var serviceDisplayName =  App.StackService.find().findProperty('serviceName', this.get('serviceName')).get('displayName');
     var defaultConfigGroup = App.ConfigGroup.create({
-      name: serviceDisplayName + " Default",
-      description: "Default cluster level " + this.get('serviceName') + " configuration",
+      name: App.format.role(serviceName) + " Default",
+      description: "Default cluster level " + serviceName + " configuration",
       isDefault: true,
       parentConfigGroup: null,
       service: this.get('content'),
@@ -363,27 +378,26 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           description: configGroup.description,
           isDefault: false,
           parentConfigGroup: defaultConfigGroup,
-          service: App.Service.find().findProperty('serviceName', configGroup.tag),
+          service: App.Service.find(configGroup.tag),
           hosts: hostNames,
-          configSiteTags: [],
+          configSiteTags: configGroup.desired_configs.map(function (config) {
+            if (!groupToTypeToTagMap[configGroup.group_name]) {
+              groupToTypeToTagMap[configGroup.group_name] = {}
+            }
+            groupToTypeToTagMap[configGroup.group_name][config.type] = config.tag;
+
+            return App.ConfigSiteTag.create({
+              site: config.type,
+              tag: config.tag
+            });
+          }),
           properties: [],
           apiResponse: configGroup
         });
-        usedHosts = usedHosts.concat(newConfigGroup.get('hosts'));
+        usedHosts = usedHosts.concat(hostNames);
         configGroups.push(newConfigGroup);
-        var newConfigGroupSiteTags = newConfigGroup.get('configSiteTags');
-        configGroup.desired_configs.forEach(function (config) {
-          newConfigGroupSiteTags.push(App.ConfigSiteTag.create({
-            site: config.type,
-            tag: config.tag
-          }));
-          if (!groupToTypeToTagMap[configGroup.group_name]) {
-            groupToTypeToTagMap[configGroup.group_name] = {}
-          }
-          groupToTypeToTagMap[configGroup.group_name][config.type] = config.tag;
-        });
       }, this);
-      unusedHosts = this.get('clusterHosts').mapProperty('hostName');
+      unusedHosts = App.get('allHostNames').slice(0);
       usedHosts.uniq().forEach(function (host) {
         unusedHosts = unusedHosts.without(host);
       }, this);
@@ -881,7 +895,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
 
       updateConfigGroupOnServicePage: function () {
         var selectedConfigGroup = configsController.get('selectedConfigGroup');
-        var managedConfigGroups = configsController.get('configGroups');
+        var managedConfigGroups = configsController.get('configGroups').slice(0);
         if (!controller) {
           controller = App.router.get('mainServiceInfoConfigsController');
           //controller.set('configGroups', managedConfigGroups);

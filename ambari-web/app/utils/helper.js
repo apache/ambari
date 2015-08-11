@@ -414,6 +414,12 @@ App.format = {
   },
 
   /**
+   * cached map of service and component names
+   * @type {object}
+   */
+  stackRolesMap: {},
+
+  /**
    * convert role to readable string
    *
    * @memberof App.format
@@ -421,19 +427,21 @@ App.format = {
    * @param {string} role
    * return {string}
    */
-  role:function (role) {
-    var result;
+  role: function (role) {
     var models = [App.StackService, App.StackServiceComponent];
-    models.forEach(function(model){
-      var instance =  model.find().findProperty('id',role);
-      if (instance) {
-        result = instance.get('displayName');
-      }
-    },this);
-    if (!result)  {
-      result =  this.normalizeName(role);
+
+    if (App.isEmptyObject(this.stackRolesMap)) {
+      models.forEach(function (model) {
+        model.find().forEach(function (item) {
+          this.stackRolesMap[item.get('id')] = item.get('displayName');
+        }, this);
+      }, this);
     }
-    return result;
+
+    if (this.stackRolesMap[role]) {
+      return this.stackRolesMap[role];
+    }
+    return this.normalizeName(role);
   },
 
   /**

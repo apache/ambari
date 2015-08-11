@@ -44,10 +44,25 @@ App.ServiceConfigGroup = DS.Model.extend({
   hostNames: DS.attr('array'),
   configVersions: DS.hasMany('App.ConfigVersion'),
   service: DS.belongsTo('App.Service'),
+  desiredConfigs: DS.attr('array'),
 
   /**
-   * same as hostNames
-   * @type {String[]}
+   * all hosts that belong to cluster
+   */
+  clusterHostsBinding: 'App.router.manageConfigGroupsController.clusterHosts',
+
+  /**
+   * Hosts on which this configuration-group
+   * is to be applied. For a service, a host can
+   * belong to only one non-default configuration-group.
+   *
+   * When {#isDefault} is false, this contains hosts
+   * for which the overrides will apply.
+   *
+   * When {#isDefault} is true, this value is empty, as
+   * it dynamically reflects hosts not belonging to other
+   * non-default groups.
+   * @type {Array}
    */
   hosts: function() {
     return this.get('hostNames');
@@ -83,21 +98,6 @@ App.ServiceConfigGroup = DS.Model.extend({
    * configuration groups that override the default.
    */
   childConfigGroups: DS.hasMany('App.ServiceConfigGroup'),
-
-  /**
-   * Hosts on which this configuration-group
-   * is to be applied. For a service, a host can
-   * belong to only one non-default configuration-group.
-   *
-   * When {#isDefault} is false, this contains hosts
-   * for which the overrides will apply.
-   *
-   * When {#isDefault} is true, this value is empty, as
-   * it dynamically reflects hosts not belonging to other
-   * non-default groups.
-   *
-   */
-  properties: DS.attr('array'),
 
   hash: DS.attr('string'),
   /**
@@ -143,11 +143,16 @@ App.ServiceConfigGroup = DS.Model.extend({
       }
     });
     return availableHosts;
-  }.property('isDefault', 'parentConfigGroup', 'childConfigGroups', 'parentConfigGroup.hosts.@each'),
+  }.property('isDefault', 'parentConfigGroup', 'childConfigGroups', 'parentConfigGroup.hosts.@each', 'clusterHosts'),
 
   isAddHostsDisabled: function () {
     return (this.get('isDefault') || this.get('availableHosts.length') === 0);
   }.property('availableHosts.length'),
+
+  /**
+   * @type {Array}
+   */
+  properties: [],
 
   propertiesList: function () {
     var result = '';
