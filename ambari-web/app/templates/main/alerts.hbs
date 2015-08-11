@@ -23,7 +23,9 @@
 {{/isAccessible}}
 
 <div id="alert-groups-filter" class="pull-left advanced-header-table groups-filter">
+{{#if App.router.clusterController.isAlertsLoaded}}
   {{view view.alertGroupFilterView}}
+{{/if}}
 </div>
 
 <div id="alerts">
