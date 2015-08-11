@@ -256,11 +256,13 @@ public class JobImpl implements Job {
   }
 
   @Override
+  @Transient
   public String getStatusMessage() {
     return statusMessage;
   }
 
   @Override
+  @Transient
   public void setStatusMessage(String statusMessage) {
     this.statusMessage = statusMessage;
   }
