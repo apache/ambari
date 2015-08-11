@@ -493,32 +493,32 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
   },
 
   /**
-   * add hosts callback
+   * Remove selected hosts from default group (<code>selectedConfigGroup.parentConfigGroup</code>) and add them to the <code>selectedConfigGroup</code>
    * @param {string[]} selectedHosts
    * @method addHostsCallback
    */
   addHostsCallback: function (selectedHosts) {
     if (selectedHosts) {
       var group = this.get('selectedConfigGroup');
-      selectedHosts.forEach(function (hostName) {
-        group.get('hosts').pushObject(hostName);
-        group.get('parentConfigGroup.hosts').removeObject(hostName);
+      var parentGroupHosts = group.get('parentConfigGroup.hosts');
+      var newHostsForParentGroup = parentGroupHosts.filter(function(hostName) {
+        return !selectedHosts.contains(hostName);
       });
+      group.get('hosts').pushObjects(selectedHosts);
+      group.set('parentConfigGroup.hosts', newHostsForParentGroup);
     }
   },
 
   /**
-   * delete hosts from group
+   * Delete hosts from <code>selectedConfigGroup</code> and move them to the Default group (<code>selectedConfigGroup.parentConfigGroup</code>)
    * @method deleteHosts
    */
   deleteHosts: function () {
     if (this.get('isDeleteHostsDisabled')) {
       return;
     }
-    this.get('selectedHosts').slice().forEach(function (hostName) {
-      this.get('selectedConfigGroup.parentConfigGroup.hosts').pushObject(hostName);
-      this.get('selectedConfigGroup.hosts').removeObject(hostName);
-    }, this);
+    var hosts = this.get('selectedHosts').slice();
+    this.get('selectedConfigGroup.parentConfigGroup.hosts').pushObjects(hosts);
     this.set('selectedHosts', []);
   },
 
