@@ -532,9 +532,6 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   callServerSideValidation: function (successCallback) {
     var self = this;
 
-    // We do not want to disable Next due to server validation issues - hence commented out line below
-    // self.set('submitDisabled', true);
-
     var selectedServices = App.StackService.find().filterProperty('isSelected').mapProperty('serviceName');
     var installedServices = App.StackService.find().filterProperty('isInstalled').mapProperty('serviceName');
     var services = installedServices.concat(selectedServices).uniq();
@@ -552,9 +549,11 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
       var invisibleMasters = [];
       if (this.get('isInstallerWizard')) {
         invisibleMasters = App.StackServiceComponent.find().filterProperty("isMaster").filterProperty("isShownOnInstallerAssignMasterPage", false).mapProperty("componentName");
-      } else if (this.get('isAddServiceWizard')) {
-        invisibleMasters = App.StackServiceComponent.find().filterProperty("isMaster").filterProperty("isShownOnAddServiceAssignMasterPage", false).mapProperty("componentName");
       }
+      else
+        if (this.get('isAddServiceWizard')) {
+          invisibleMasters = App.StackServiceComponent.find().filterProperty("isMaster").filterProperty("isShownOnAddServiceAssignMasterPage", false).mapProperty("componentName");
+        }
 
       var selectedClientComponents = self.get('content.clients').mapProperty('component_name');
       var alreadyInstalledClients = App.get('components.clients').reject(function (c) {
@@ -565,16 +564,18 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
 
       var invisibleBlueprint = blueprintUtils.filterByComponents(this.get('content.recommendations'), invisibleComponents);
       masterBlueprint = blueprintUtils.mergeBlueprints(masterBlueprint, invisibleBlueprint);
-    } else if (this.get('isAddHostWizard')) {
-      masterBlueprint = self.getCurrentMasterSlaveBlueprint();
-      hostNames = hostNames.concat(App.Host.find().mapProperty("hostName")).uniq();
-      slaveBlueprint = blueprintUtils.addComponentsToBlueprint(slaveBlueprint, invisibleSlavesAndClients);
     }
+    else
+      if (this.get('isAddHostWizard')) {
+        masterBlueprint = self.getCurrentMasterSlaveBlueprint();
+        hostNames = hostNames.concat(App.Host.find().mapProperty("hostName")).uniq();
+        slaveBlueprint = blueprintUtils.addComponentsToBlueprint(slaveBlueprint, invisibleSlavesAndClients);
+      }
 
     var bluePrintsForValidation = blueprintUtils.mergeBlueprints(masterBlueprint, slaveBlueprint);
     this.set('content.recommendationsHostGroups', bluePrintsForValidation);
 
-    App.ajax.send({
+    return App.ajax.send({
       name: 'config.validations',
       sender: self,
       data: {

@@ -50,29 +50,30 @@ describe('App.WizardStep6View', function() {
   });
 
   describe('#didInsertElement', function() {
+
     beforeEach(function() {
       sinon.stub(view.get('controller'), 'loadStep', Em.K);
       sinon.stub(App, 'tooltip', Em.K);
       sinon.stub(view, 'setLabel', Em.K);
     });
+
     afterEach(function() {
       view.get('controller').loadStep.restore();
       App.tooltip.restore();
       view.setLabel.restore();
     });
+
     it('should call loadStep', function() {
       view.didInsertElement();
       expect(view.get('controller').loadStep.calledOnce).to.equal(true);
     });
-    it('should create tooltip', function() {
-      view.didInsertElement();
-      expect(App.tooltip.calledOnce).to.equal(true);
-    });
+
     it('should call setLabel if not controller.isMasters', function() {
       view.set('controller.isMasters', false);
       view.didInsertElement();
       expect(view.setLabel.calledOnce).to.equal(true);
     });
+
   });
 
   describe('#setLabel', function() {
