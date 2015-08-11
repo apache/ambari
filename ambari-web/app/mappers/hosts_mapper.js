@@ -185,7 +185,9 @@ App.hostsMapper = App.QuickDataMapper.create({
         App.store.loadMany(App.HostStackVersion, stackVersions);
       }
       App.store.loadMany(App.HostComponent, components);
-      App.Host.find().clear();
+      if (App.router.get('currentState.parentState.name') != 'hostDetails') {
+        App.Host.find().clear();
+      }
       App.store.loadMany(App.Host, hostsWithFullInfo);
       var itemTotal = parseInt(json.itemTotal);
       if (!isNaN(itemTotal)) {

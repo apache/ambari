@@ -62,6 +62,11 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    * if true, fire host loading immediately with out any postpone.
    */
   needQuickInitLoad: false,
+
+  /**
+   * true if from details page
+   */
+  isDrillUp: false,
   /**
    * Components which will be shown in component filter
    * @returns {Array}
