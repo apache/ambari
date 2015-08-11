@@ -101,7 +101,7 @@ public abstract class ComparisonPredicate<T> extends PropertyPredicate implement
     }
     ParsePosition parsePosition = new ParsePosition(0);
     NumberFormat  numberFormat  = NumberFormat.getInstance();
-    Number        parsedNumber  = numberFormat.parse((String) value, parsePosition);
+    Number        parsedNumber  = numberFormat.parse(stringValue, parsePosition);
 
     return parsePosition.getIndex() == stringValue.length() ? parsedNumber.doubleValue() : null;
   }

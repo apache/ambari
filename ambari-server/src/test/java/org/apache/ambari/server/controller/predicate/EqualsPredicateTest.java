@@ -73,4 +73,19 @@ public class EqualsPredicateTest {
     Assert.assertEquals(1, ids.size());
     Assert.assertTrue(ids.contains(propertyId));
   }
+
+  @Test
+  public void testApplyNumberValues() throws Exception {
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+    String propertyId = PropertyHelper.getPropertyId("propertyId1", "1");
+    Predicate predicate = new EqualsPredicate<String>(propertyId, "1");
+    resource.setProperty(propertyId, "1");
+    Assert.assertTrue(predicate.evaluate(resource));
+
+    resource.setProperty(propertyId, "2");
+    Assert.assertFalse(predicate.evaluate(resource));
+
+    resource.setProperty(propertyId, "5");
+    Assert.assertFalse(predicate.evaluate(resource));
+  }
 }
