@@ -20,7 +20,7 @@ import Ember from 'ember';
 import FilterableMixin from 'hive/mixins/filterable';
 import constants from 'hive/utils/constants';
 
-export default Ember.Controller.extend(FilterableMixin, {
+export default Ember.ArrayController.extend(FilterableMixin, {
   fileResources: [],
 
   sortAscending: true,
