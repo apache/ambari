@@ -42,6 +42,8 @@ export default Ember.Controller.extend({
         //this condition should be changed once we change the way of retrieving this json
         if (json['STAGE PLANS']['Stage-1']) {
           self.set('json', json);
+        } else{
+          self.set('json', {})
         }
       }, function (error) {
         self.get('notifyService').error(error);
