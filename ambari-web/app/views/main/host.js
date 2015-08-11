@@ -212,7 +212,8 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
 
   onInitialLoad: function () {
     if (this.get('tableFilteringComplete')) {
-      if (this.get('controller.fromTopBarClicking') && !this.get('controller.filterClearHappened') && !this.get('controller.needQuickInitLoad')) {
+      if (this.get('controller.fromTopBarClicking') && !this.get('controller.filterClearHappened')
+      && !this.get('controller.needQuickInitLoad') || this.get('controller.isDrillUp')) {
         Em.run.later(this, this.refresh, App.get('contentUpdateInterval'));
         this.clearLoadRelatedStates();
       } else {
@@ -226,6 +227,8 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     this.set('controller.filterClearHappened', false);
     this.set('controller.fromTopBarClicking', false);
     this.set('controller.needQuickInitLoad', false);
+    this.set('controller.isDrillUp', false);
+
   },
 
   /**
