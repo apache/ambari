@@ -559,11 +559,16 @@ App.config = Em.Object.create({
       var filename = preDefined ? preDefined.filename : advanced.get('filename');
       if (configTypes.contains(this.getConfigTagFromFileName(filename))) {
         var configData = this.createDefaultConfig(name, filename, true, preDefined || {});
+        if (configData.recommendedValue) {
+          configData.value = configData.recommendedValue;
+        }
 
-        configData = this.mergeStaticProperties(configData, advanced.get('id') ? advanced : null, null, ['name', 'filename']);
+        if (advanced.get('id')) {
+          configData = this.mergeStaticProperties(configData, advanced, null, ['name', 'filename']);
+        }
 
-        if (['directory' ,'directories'].contains(configData.displayType)) {
-          configData.value = configData.recommendedValue || configData.defaultDirectory || '';
+        if (['directory' ,'directories'].contains(configData.displayType) && configData.defaultDirectory) {
+          configData.value = configData.defaultDirectory;
         }
 
         mergedConfigs.push(configData);
