@@ -1212,6 +1212,9 @@ describe('App.config', function () {
       sinon.stub(App.config, 'getDefaultIsShowLabel', function() {
         return true;
       });
+      sinon.stub(App.config, 'shouldSupportFinal', function() {
+        return true;
+      });
     });
 
     after(function() {
@@ -1220,6 +1223,7 @@ describe('App.config', function () {
       App.config.getDefaultCategory.restore();
       App.config.getIsSecure.restore();
       App.config.getDefaultIsShowLabel.restore();
+      App.config.shouldSupportFinal.restore();
     });
 
     var res = {
@@ -1233,8 +1237,8 @@ describe('App.config', function () {
       /** UI and Stack properties **/
       recommendedValue: null,
       recommendedIsFinal: null,
-      supportsFinal: false,
-      serviceName: 'MISC',
+      supportsFinal: true,
+      serviceName: 'pServiceName',
       defaultDirectory: '',
       displayName: 'pDisplayName',
       displayType: 'pDisplayType',
@@ -1259,8 +1263,8 @@ describe('App.config', function () {
       radioName: null,
       belongsToService: []
     };
-    it('create default config object', function() {
-      expect(App.config.createDefaultConfig('pName','pFileName', true)).to.eql(res);
+    it('create default config object', function () {
+      expect(App.config.createDefaultConfig('pName', 'pServiceName', 'pFileName', true)).to.eql(res);
     });
     it('runs proper methods', function() {
       expect(App.config.getDefaultDisplayName.calledWith('pName','pFileName')).to.be.true;
@@ -1268,6 +1272,7 @@ describe('App.config', function () {
       expect(App.config.getDefaultCategory.calledWith(true, 'pFileName')).to.be.true;
       expect(App.config.getIsSecure.calledWith('pName')).to.be.true;
       expect(App.config.getDefaultIsShowLabel.calledWith('pName', 'pFileName')).to.be.true;
+      expect(App.config.shouldSupportFinal.calledWith('pServiceName', 'pFileName')).to.be.true;
     });
   });
 

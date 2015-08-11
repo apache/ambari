@@ -304,7 +304,7 @@ App.config = Em.Object.create({
         var configsPropertyDef = this.get('preDefinedSitePropertiesMap')[id];
         var advancedConfig = App.StackConfigProperty.find(id);
         var isStackProperty = !!advancedConfig.get('id');
-        var template = this.createDefaultConfig(index, filename, isStackProperty, configsPropertyDef);
+        var template = this.createDefaultConfig(index, serviceName, filename, isStackProperty, configsPropertyDef);
         var serviceConfigObj = isStackProperty ? this.mergeStaticProperties(template, advancedConfig) : template;
 
         if (serviceConfigObj.isRequiredByAgent !== false) {
@@ -332,12 +332,13 @@ App.config = Em.Object.create({
    * These property values has the lowest priority and can be overriden be stack/UI
    * config property but is used when such properties are absent in stack/UI configs
    * @param {string} name
+   * @param {string} serviceName
    * @param {string} fileName
    * @param {boolean} definedInStack
    * @param {Object} [coreObject]
    * @returns {Object}
    */
-  createDefaultConfig: function(name, fileName, definedInStack, coreObject) {
+  createDefaultConfig: function(name, serviceName, fileName, definedInStack, coreObject) {
     return $.extend({
       /** core properties **/
       name: name,
@@ -349,8 +350,8 @@ App.config = Em.Object.create({
       /** UI and Stack properties **/
       recommendedValue: null,
       recommendedIsFinal: null,
-      supportsFinal: false,
-      serviceName: 'MISC',
+      supportsFinal: this.shouldSupportFinal(serviceName, fileName),
+      serviceName: serviceName,
       defaultDirectory: '',
       displayName: this.getDefaultDisplayName(name, fileName),
       displayType: this.getDefaultDisplayType(name, fileName, coreObject ? coreObject.value : ''),
@@ -595,8 +596,9 @@ App.config = Em.Object.create({
       if (!(uiPersistentProperties.contains(id) || isUIOnly || advanced.get('id')) && filename != 'alert_notification') {
         return;
       }
+      var serviceName = preDefined ? preDefined.serviceName : advanced.get('serviceName');
       if (configTypes.contains(this.getConfigTagFromFileName(filename))) {
-        var configData = this.createDefaultConfig(name, filename, true, preDefined || {});
+        var configData = this.createDefaultConfig(name, serviceName, filename, true, preDefined || {});
         if (configData.recommendedValue) {
           configData.value = configData.recommendedValue;
         }
@@ -1120,7 +1122,7 @@ App.config = Em.Object.create({
         isVisible: stored.isVisible,
         isFinal: stored.isFinal,
         savedIsFinal: stored.savedIsFinal,
-        supportsFinal: stored.supportsFinal,
+        supportsFinal: this.shouldSupportFinal(stored.serviceName, stored.filename),
         showLabel: stored.showLabel !== false,
         category: stored.category
       };

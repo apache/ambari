@@ -859,7 +859,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       }
 
       _content.get('configs').forEach(function (_configProperties) {
-        var configProperty = App.config.createDefaultConfig(_configProperties.get('name'), _configProperties.get('filename'), _configProperties.get('isUserProperty'), {value: _configProperties.get('value')});
+        var configProperty = App.config.createDefaultConfig(_configProperties.get('name'), _configProperties.get('serviceName'), _configProperties.get('filename'), _configProperties.get('isUserProperty'), {value: _configProperties.get('value')});
         configProperty = App.config.mergeStaticProperties(configProperty, _configProperties, ['name', 'filename']);
 
         if (this.isExcludedConfig(configProperty)) {
