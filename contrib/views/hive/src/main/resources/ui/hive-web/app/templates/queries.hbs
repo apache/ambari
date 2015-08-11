@@ -42,7 +42,7 @@
   <tbody>
     {{#if queries.length}}
       {{#if model.length}}
-        {{#each query in model}}
+        {{#each query in this}}
           {{#unless query.isNew}}
             <tr>
               <td>
