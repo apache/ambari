@@ -25,6 +25,7 @@ import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
 import java.sql.Connection;
+import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -219,6 +220,57 @@ public class TestPhoenixTransactSQL {
     String stmt = stmtCapture.getValue();
     Assert.assertTrue(stmt.contains("FROM METRIC_RECORD"));
     verify(connection, preparedStatement);
+  }
+
+  @Test
+  public void testPrepareGetLatestMetricSqlStmtSingleHostName() throws SQLException {
+    Condition condition = new DefaultCondition(
+      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      "a1", "i1", null, null, null, null, false);
+    Connection connection = createNiceMock(Connection.class);
+    PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
+    ParameterMetaData parameterMetaData = createNiceMock(ParameterMetaData.class);
+    Capture<String> stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+        .andReturn(preparedStatement);
+    expect(preparedStatement.getParameterMetaData())
+      .andReturn(parameterMetaData).times(2);
+    // 10 = (1 instance_id + 1 appd_id + 1 hostname + 2 metric names) * 2,
+    // For GET_LATEST_METRIC_SQL_SINGLE_HOST parameters should be set 2 times
+    expect(parameterMetaData.getParameterCount())
+      .andReturn(10).times(2);
+
+    replay(connection, preparedStatement, parameterMetaData);
+    PhoenixTransactSQL.prepareGetLatestMetricSqlStmt(connection, condition);
+    String stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD"));
+    Assert.assertTrue(stmt.contains("ANY"));
+    verify(connection, preparedStatement, parameterMetaData);
+  }
+
+  @Test
+  public void testPrepareGetLatestMetricSqlStmtMultipleHostNames() throws SQLException {
+    Condition condition = new DefaultCondition(
+      Arrays.asList("cpu_user", "mem_free"), Arrays.asList("h1", "h2"),
+      "a1", "i1", null, null, null, null, false);
+    Connection connection = createNiceMock(Connection.class);
+    PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
+    ParameterMetaData parameterMetaData = createNiceMock(ParameterMetaData.class);
+    Capture<String> stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+        .andReturn(preparedStatement);
+    expect(preparedStatement.getParameterMetaData())
+      .andReturn(parameterMetaData).once();
+    // 6 = 1 instance_id + 1 appd_id + 2 hostnames + 2 metric names
+    expect(parameterMetaData.getParameterCount())
+      .andReturn(6).once();
+
+    replay(connection, preparedStatement, parameterMetaData);
+    PhoenixTransactSQL.prepareGetLatestMetricSqlStmt(connection, condition);
+    String stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD"));
+    Assert.assertTrue(stmt.contains("JOIN"));
+    verify(connection, preparedStatement, parameterMetaData);
   }
 
   @Test
