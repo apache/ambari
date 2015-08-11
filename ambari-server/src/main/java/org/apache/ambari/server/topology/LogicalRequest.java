@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -178,11 +179,15 @@ public class LogicalRequest extends Request {
     return new ArrayList<HostRequest>(allHostRequests);
   }
 
-  public Map<String, Collection<String>> getProjectedTopology() {
+  public Map<String, Collection<String>> getPendingHostComponents() {
     Map<String, Collection<String>> hostComponentMap = new HashMap<String, Collection<String>>();
 
+    Set<HostRequest> pendingRequests =
+      new HashSet<HostRequest>(requestsWithReservedHosts.values());
+    pendingRequests.addAll(outstandingHostRequests);
+
     //todo: synchronization
-    for (HostRequest hostRequest : allHostRequests) {
+    for (HostRequest hostRequest : pendingRequests) {
       HostGroup hostGroup = hostRequest.getHostGroup();
       for (String host : topology.getHostGroupInfo().get(hostGroup.getName()).getHostNames()) {
         Collection<String> hostComponents = hostComponentMap.get(host);
