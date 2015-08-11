@@ -95,43 +95,6 @@ describe('utils/blueprint', function() {
     }
   };
 
-  describe('#getHostsFromBlueprint', function() {
-    it('should extract all hosts from blueprint', function() {
-      expect(blueprintUtils.getHostsFromBlueprint(masterBlueprint)).to.deep.equal(["host1", "host2", "host3"]);
-    });
-  });
-
-  describe('#getHostsFromBlueprintByGroupName', function() {
-    it('should extract hosts from blueprint by given group name', function() {
-      expect(blueprintUtils.getHostsFromBlueprintByGroupName(masterBlueprint, "host-group-1")).to.deep.equal([
-        { fqdn: "host1" },
-        { fqdn: "host2" }
-      ]);
-    });
-
-    it('should return empty array if group with given name doesn\'t exist', function() {
-      expect(blueprintUtils.getHostsFromBlueprintByGroupName(masterBlueprint, "not an existing group")).to.deep.equal([]);
-    });
-  });
-
-  describe('#getComponentsFromBlueprintByGroupName', function() {
-    it('should extract all components from blueprint for given host', function() {
-      expect(blueprintUtils.getComponentsFromBlueprintByGroupName(masterBlueprint, "host-group-1")).to.deep.equal([
-        { name: "ZOOKEEPER_SERVER" },
-        { name: "NAMENODE" },
-        { name: "HBASE_MASTER" }
-      ]);
-    });
-
-    it('should return empty array if group doesn\'t exists', function() {
-      expect(blueprintUtils.getComponentsFromBlueprintByGroupName(masterBlueprint, "not an existing group")).to.deep.equal([]);
-    });
-
-    it('should return empty array if group name isn\'t valid', function() {
-      expect(blueprintUtils.getComponentsFromBlueprintByGroupName(masterBlueprint, undefined)).to.deep.equal([]);
-    });
-  });
-
   describe('#matchGroups', function() {
     it('should compose same host group into pairs', function() {
       expect(blueprintUtils.matchGroups(masterBlueprint, slaveBlueprint)).to.deep.equal([
