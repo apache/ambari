@@ -209,11 +209,11 @@ class TestOozieServer(RMFTestCase):
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
         sudo = True,
     )
-    self.assertResourceCalled('Execute', ('chown', u'oozie:hadoop', '/usr/lib/oozie/libext/ext-2.2.zip'),
+    self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/lib/oozie/libext/ext-2.2.zip'),
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
         sudo = True,
     )
-    self.assertResourceCalled('Execute', ('chown', '-RL', u'oozie:hadoop', '/var/lib/oozie/oozie-server/conf'),
+    self.assertResourceCalled('Execute', ('chown', '-RL', 'oozie:hadoop', '/var/lib/oozie/oozie-server/conf'),
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
         sudo = True,
     )
@@ -249,7 +249,7 @@ class TestOozieServer(RMFTestCase):
         content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
         mode = 0644,
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'oozie:hadoop', '/var/lib/oozie/oozie-server'),
+    self.assertResourceCalled('Execute', ('chown', '-R', 'oozie:hadoop', '/var/lib/oozie/oozie-server'),
         sudo = True,
     )
 
@@ -558,11 +558,11 @@ class TestOozieServer(RMFTestCase):
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
         sudo = True,
     )
-    self.assertResourceCalled('Execute', ('chown', u'oozie:hadoop', '/usr/lib/oozie/libext/ext-2.2.zip'),
+    self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/lib/oozie/libext/ext-2.2.zip'),
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
         sudo = True,
     )
-    self.assertResourceCalled('Execute', ('chown', '-RL', u'oozie:hadoop', '/var/lib/oozie/oozie-server/conf'),
+    self.assertResourceCalled('Execute', ('chown', '-RL', 'oozie:hadoop', '/var/lib/oozie/oozie-server/conf'),
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
         sudo = True,
     )
@@ -584,7 +584,7 @@ class TestOozieServer(RMFTestCase):
         content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war ',
         mode = 0644,
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'oozie:hadoop', '/var/lib/oozie/oozie-server'),
+    self.assertResourceCalled('Execute', ('chown', '-R', 'oozie:hadoop', '/var/lib/oozie/oozie-server'),
         sudo = True,
     )
 
@@ -734,11 +734,11 @@ class TestOozieServer(RMFTestCase):
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
         sudo = True,
     )
-    self.assertResourceCalled('Execute', ('chown', u'oozie:hadoop', '/usr/lib/oozie/libext/ext-2.2.zip'),
+    self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/lib/oozie/libext/ext-2.2.zip'),
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
         sudo = True,
     )
-    self.assertResourceCalled('Execute', ('chown', '-RL', u'oozie:hadoop', '/var/lib/oozie/oozie-server/conf'),
+    self.assertResourceCalled('Execute', ('chown', '-RL', 'oozie:hadoop', '/var/lib/oozie/oozie-server/conf'),
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
         sudo = True,
     )
@@ -760,7 +760,7 @@ class TestOozieServer(RMFTestCase):
         content = 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war -secure',
         mode = 0644,
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'oozie:hadoop', '/var/lib/oozie/oozie-server'),
+    self.assertResourceCalled('Execute', ('chown', '-R', 'oozie:hadoop', '/var/lib/oozie/oozie-server'),
         sudo = True,
     )
 
@@ -943,8 +943,7 @@ class TestOozieServer(RMFTestCase):
      classname = "OozieServer", command = "pre_rolling_restart", config_file = "oozie-upgrade.json",
      hdp_stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
-     call_mocks = [(0, prepare_war_stdout)]
-    )
+     call_mocks = [(0, prepare_war_stdout)])
     
     self.assertTrue(isfile_mock.called)
     self.assertEqual(isfile_mock.call_count,3)
@@ -954,28 +953,21 @@ class TestOozieServer(RMFTestCase):
     self.assertEqual(glob_mock.call_count,1)
     glob_mock.assert_called_with('/usr/hdp/2.2.1.0-2135/hadoop/lib/hadoop-lzo*.jar')
 
-    self.assertResourceCalled('Execute', ('tar',
-     '-zcvhf',
-     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
-     '/usr/hdp/current/oozie-server/conf/'),
-        sudo = True,
-    )
+    self.assertResourceCalled('Execute',
+      ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
+      sudo = True)
+
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', u'2.2.1.0-2135'),
-        sudo = True,
-    )
-    self.assertResourceCalled('Execute', ('tar',
-     '-xvf',
-     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
-     '-C',
-     '/usr/hdp/current/oozie-server/conf//'),
-        sudo = True,
-    )
-    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup',
-        action = ['delete'],
-    )
-    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext',
-        mode = 0777,
-    )
+      sudo = True )
+
+    self.assertResourceCalled('Execute',
+      ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
+        sudo = True)
+
+    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
+    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
+    self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
+    self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
     self.assertNoMoreResources()
 
   @patch("os.path.isdir")
@@ -1026,32 +1018,26 @@ class TestOozieServer(RMFTestCase):
     self.assertEqual(glob_mock.call_count,1)
     glob_mock.assert_called_with('/usr/hdp/2.3.0.0-1234/hadoop/lib/hadoop-lzo*.jar')
 
-    self.assertResourceCalled('Execute', ('tar',
-     '-zcvhf',
-     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
-     '/usr/hdp/current/oozie-server/conf/'),
-        sudo = True)
+    self.assertResourceCalled('Execute',
+      ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
+      sudo = True)
 
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'),
-        sudo = True)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo = True)
 
-    self.assertResourceCalled('Execute', ('tar',
-     '-xvf',
-     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
-     '-C',
-     '/usr/hdp/current/oozie-server/conf//'),
-        sudo = True)
+    self.assertResourceCalled('Execute',
+      ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
+      sudo = True)
 
-    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup',
-        action = ['delete'])
+    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
+    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
 
-    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext',
-        mode = 0777)
+    self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
+    self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
 
     self.assertNoMoreResources()
 
     self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(1, mocks_dict['checked_call'].call_count)
+    self.assertEquals(2, mocks_dict['checked_call'].call_count)
 
     self.assertEquals(
       ('conf-select', 'set-conf-dir', '--package', 'oozie', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
@@ -1087,28 +1073,21 @@ class TestOozieServer(RMFTestCase):
     self.assertTrue(isfile_mock.called)
     self.assertEqual(isfile_mock.call_count,2)
     isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
-    self.assertResourceCalled('Execute', ('tar',
-     '-zcvhf',
-     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
-     '/usr/hdp/current/oozie-server/conf/'),
-        sudo = True,
-    )
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', u'2.2.0.0-0000'),
-        sudo = True,
-    )
-    self.assertResourceCalled('Execute', ('tar',
-     '-xvf',
-     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
-     '-C',
-     '/usr/hdp/current/oozie-server/conf//'),
-        sudo = True,
-    )
-    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup',
-        action = ['delete'],
-    )
-    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext',
-        mode = 0777,
-    )
+
+    self.assertResourceCalled('Execute',
+      ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
+      sudo = True)
+
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', u'2.2.0.0-0000'), sudo = True)
+
+    self.assertResourceCalled('Execute',
+      ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
+      sudo = True)
+
+    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
+    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext',mode = 0777)
+    self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
+    self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
     self.assertNoMoreResources()
 
 
@@ -1288,27 +1267,21 @@ class TestOozieServer(RMFTestCase):
     self.assertEqual(glob_mock.call_count,1)
     glob_mock.assert_called_with('/usr/hdp/2.3.0.0-1234/hadoop/lib/hadoop-lzo*.jar')
 
-    self.assertResourceCalled('Execute', ('tar',
-     '-zcvhf',
-     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
-     '/usr/hdp/current/oozie-server/conf/'),
-        sudo = True)
+    self.assertResourceCalled('Execute',
+      ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
+      sudo = True)
 
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'),
-        sudo = True)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo = True)
 
-    self.assertResourceCalled('Execute', ('tar',
-     '-xvf',
-     '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar',
-     '-C',
-     '/usr/hdp/current/oozie-server/conf//'),
-        sudo = True)
+    self.assertResourceCalled('Execute',
+      ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
+      sudo = True)
 
-    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup',
-        action = ['delete'])
+    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
+    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
 
-    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext',
-        mode = 0777)
+    self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
+    self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
 
     self.assertResourceCalled('Execute', 'ambari-sudo.sh cp /usr/hdp/2.3.0.0-1234/falcon/oozie/ext/falcon-oozie-el-extension-*.jar /usr/hdp/current/oozie-server/libext')
     self.assertResourceCalled('Execute', 'ambari-sudo.sh chown oozie:hadoop /usr/hdp/current/oozie-server/libext/falcon-oozie-el-extension-*.jar')
@@ -1316,7 +1289,7 @@ class TestOozieServer(RMFTestCase):
     self.assertNoMoreResources()
 
     self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(1, mocks_dict['checked_call'].call_count)
+    self.assertEquals(2, mocks_dict['checked_call'].call_count)
 
     self.assertEquals(
       ('conf-select', 'set-conf-dir', '--package', 'oozie', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),

@@ -19,13 +19,14 @@ limitations under the License.
 import glob
 import os
 import shutil
-import tarfile
 import tempfile
 
 from resource_management.core import shell
+from resource_management.core import sudo
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
-from resource_management.core.resources.system import Execute, Directory
+from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Directory
 from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import compare_versions
@@ -143,11 +144,17 @@ class OozieUpgrade(Script):
 
     # copy ext ZIP to libext dir
     oozie_ext_zip_file = '/usr/share/HDP-oozie/ext-2.2.zip'
+
+    # something like /usr/hdp/current/oozie-server/libext/ext-2.2.zip
+    oozie_ext_zip_target_path = os.path.join(params.oozie_libext_dir, "ext-2.2.zip")
+
     if not os.path.isfile(oozie_ext_zip_file):
       raise Fail("Unable to copy {0} because it does not exist".format(oozie_ext_zip_file))
 
     Logger.info("Copying {0} to {1}".format(oozie_ext_zip_file, params.oozie_libext_dir))
-    shutil.copy2(oozie_ext_zip_file, params.oozie_libext_dir)
+    Execute(("cp", oozie_ext_zip_file, params.oozie_libext_dir), sudo=True)
+    Execute(("chown", format("{oozie_user}:{user_group}"), oozie_ext_zip_target_path), sudo=True)
+    sudo.chmod(oozie_ext_zip_target_path, 0644)
 
     # Redownload jdbc driver to a new current location
     oozie.download_database_library_if_needed()
