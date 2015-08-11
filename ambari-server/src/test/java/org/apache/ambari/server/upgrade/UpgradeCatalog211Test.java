@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.upgrade;
 
+import static org.easymock.EasyMock.anyBoolean;
+import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
@@ -86,6 +88,8 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
       expectLastCall().andReturn(connection).anyTimes();
       connection.createStatement();
       expectLastCall().andReturn(statement).anyTimes();
+      statement.executeQuery("SELECT COUNT(*) from ambari_sequences where sequence_name='hostcomponentstate_id_seq'");
+      expectLastCall().andReturn(resultSet).atLeastOnce();
       statement.executeQuery(anyObject(String.class));
       expectLastCall().andReturn(resultSet).anyTimes();
 

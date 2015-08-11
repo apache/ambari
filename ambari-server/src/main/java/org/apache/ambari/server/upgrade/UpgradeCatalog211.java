@@ -230,6 +230,9 @@ public class UpgradeCatalog211 extends AbstractUpgradeCatalog {
     dbAccessor.alterColumn(HOST_COMPONENT_STATE_TABLE,
         new DBColumnInfo(HOST_COMPONENT_STATE_ID_COLUMN, Long.class, null, null, false));
 
+    // Add sequence for hostcomponentstate id
+    addSequence("hostcomponentstate_id_seq", id.get(), false);
+
     // drop the current PK
     String primaryKeyConstraintName = null;
     Configuration.DatabaseType databaseType = configuration.getDatabaseType();
