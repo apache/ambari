@@ -105,7 +105,7 @@
 
           <td class="name">
             <span class="trim_hostname">
-              <a title="{{unbound host.hostName}}" href="#" {{action "showDetails" host}}>{{unbound host.hostName}}</a>
+              <a  rel="UsageTooltip" data-original-title="{{unbound host.hostName}}" href="#" {{action "showDetails" host}}>{{unbound host.hostName}}</a>
             </span>
             {{#if host.criticalWarningAlertsCount}}
               {{#if host.alertsSummary.CRITICAL}}
@@ -124,14 +124,14 @@
               <span rel="ComponentsTooltip" {{bindAttr data-original-title="view.componentsInPassiveStateMessage" class="host.componentsInPassiveStateCount:icon-medkit"}}></span>
           </td>
           <td class="host-ip">{{host.ip}}</td>
-          <td rel="UsageTooltip" {{bindAttr title="host.rack"}} class="rack-id">
+          <td rel="UsageTooltip" {{bindAttr data-original-title="host.rack"}} class="rack-id">
             {{host.rack}}
           </td>
           <td class="cores-formatted">{{host.coresFormatted}}</td>
           <td class="memory-formatted">{{host.memoryFormatted}}</td>
 
           <td class="disk-info">
-            <div class="progress progress-info" {{bindAttr title="host.diskInfoBar"}} rel="UsageTooltip">
+            <div class="progress progress-info" {{bindAttr data-original-title="host.diskInfoBar"}} rel="UsageTooltip">
               <div class="bar" {{bindAttr style="view.usageStyle"}}></div>
             </div>
           </td>
