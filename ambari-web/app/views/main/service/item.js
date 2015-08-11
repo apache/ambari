@@ -192,10 +192,12 @@ App.MainServiceItemView = Em.View.extend({
         });
       }
       self.addActionMap().filterProperty('service', serviceName).forEach(function(item) {
-        item.action = 'add' + item.component;
-        item.disabled = self.get('controller.isAddDisabled-' + item.component);
-        item.tooltip = self.get('controller.addDisabledTooltip' + item.component);
-        options.push(item);
+        if (App.get('components.addableToHost').contains(item.component)) {
+          item.action = 'add' + item.component;
+          item.disabled = self.get('controller.isAddDisabled-' + item.component);
+          item.tooltip = self.get('controller.addDisabledTooltip' + item.component);
+          options.push(item);
+        }
       });
 
       allMasters.forEach(function(master) {
