@@ -563,6 +563,7 @@ App.config = Em.Object.create({
   mergePreDefinedWithStack: function (selectedServiceNames) {
     var mergedConfigs = [];
 
+    var uiPersistentProperties = ['oozie_hostname__oozie-env', 'oozie_ambari_database__oozie-env'];
     var configTypes = App.StackService.find().filter(function(service) {
       return selectedServiceNames.contains(service.get('serviceName'));
     }).map(function(item) {
@@ -582,6 +583,18 @@ App.config = Em.Object.create({
 
       var name = preDefined ? preDefined.name : advanced.get('name');
       var filename = preDefined ? preDefined.filename : advanced.get('filename');
+      var isUIOnly = Em.getWithDefault(preDefined || {}, 'isRequiredByAgent', true) === false;
+      /*
+        Take properties that:
+          - UI specific only, marked with <code>isRequiredByAgent: false</code>
+          - Present in stack definition, mapped to <code>App.StackConfigProperty</code>
+          - Related to configuration for alerts notification, marked with <code>filename: "alert_notification"</code>
+          - Property that filename supported by Service's config type, <code>App.StackService:configType</code>
+          - Property that not defined in stack but should be saved, see <code>uiPersistentProperties</code>
+       */
+      if (!(uiPersistentProperties.contains(id) || isUIOnly || advanced.get('id')) && filename != 'alert_notification') {
+        return;
+      }
       if (configTypes.contains(this.getConfigTagFromFileName(filename))) {
         var configData = this.createDefaultConfig(name, filename, true, preDefined || {});
         if (configData.recommendedValue) {
