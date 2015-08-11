@@ -390,6 +390,26 @@ describe('App.MainServiceItemView', function () {
             {"action": "stopLdapKnox", "customCommand": "STOPDEMOLDAP", "context": "Stop Demo LDAP", "label": "Stop Demo LDAP", "cssClass": "icon-stop", "disabled": false},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": true, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
           ]
+        },
+        {
+          serviceName: "STORM",
+          displayName: "Storm",
+          serviceTypes: [],
+          slaveComponents: [],
+          clientComponents: [],
+          hostComponents: [
+            Em.Object.create({
+              componentName: 'NIMBUS',
+              isMaster: true,
+              isSlave: false
+            })
+          ],
+          result: [
+            {"action": "restartAllHostComponents", "context": "STORM", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
+            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
+            {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for Storm", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
+            {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": true, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
+          ]
         }
       ];
 
@@ -411,6 +431,8 @@ describe('App.MainServiceItemView', function () {
             return ["NAMENODE", "SECONDARY_NAMENODE", "APP_TIMELINE_SERVER", "RESOURCEMANAGER", "WEBHCAT_SERVER", "OOZIE_SERVER"];
           case 'services.supportsServiceCheck':
             return ["HDFS", "MAPREDUCE2", "YARN", "HIVE", "HBASE", "PIG", "SQOOP", "OOZIE", "ZOOKEEPER", "FALCON", "STORM", "FLUME", "SLIDER", "KNOX", "KAFKA"];
+          case 'components.addableToHost':
+            return ["DATANODE", "HDFS_CLIENT", "MAPREDUCE2_CLIENT", "NODEMANAGER", "YARN_CLIENT", "TEZ_CLIENT", "GANGLIA_MONITOR", "HCAT", "HIVE_CLIENT", "HIVE_METASTORE", "HIVE_SERVER", "WEBHCAT_SERVER", "HBASE_CLIENT", "HBASE_MASTER", "HBASE_REGIONSERVER", "PIG", "SQOOP", "OOZIE_CLIENT", "OOZIE_SERVER", "ZOOKEEPER_CLIENT", "ZOOKEEPER_SERVER", "FALCON_CLIENT", "SUPERVISOR", "FLUME_HANDLER", "METRICS_MONITOR", "KAFKA_BROKER", "KERBEROS_CLIENT", "KNOX_GATEWAY", "SLIDER", "SPARK_CLIENT"];
           default:
             return Em.get(App, k);
         }
@@ -457,6 +479,7 @@ describe('App.MainServiceItemView', function () {
           case 'APP_TIMELINE_SERVER':
           case 'KAFKA_BROKER':
           case 'OOZIE_SERVER':
+          case 'NIMBUS':
             return Em.Object.create({ customCommands: [] });
           default:
             return [
