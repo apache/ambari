@@ -194,7 +194,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     setClusterController();
     //todo: StageUtils shouldn't be called for this test
     StageUtils.setTopologyManager(topologyManager);
-    expect(topologyManager.getPendingHostComponents()).andReturn(
+    expect(topologyManager.getProjectedTopology()).andReturn(
         Collections.<String, Collection<String>>emptyMap()).anyTimes();
   }
 
