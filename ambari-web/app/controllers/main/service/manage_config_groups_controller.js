@@ -534,7 +534,14 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       return;
     }
     var hosts = this.get('selectedHosts').slice();
+    var newHosts = [];
     this.get('selectedConfigGroup.parentConfigGroup.hosts').pushObjects(hosts);
+    this.get('selectedConfigGroup.hosts').forEach(function(host) {
+      if (!hosts.contains(host)) {
+        newHosts.pushObject(host);
+      }
+    });
+    this.set('selectedConfigGroup.hosts', newHosts);
     this.set('selectedHosts', []);
   },
 
