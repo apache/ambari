@@ -84,7 +84,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "YARN": self.recommendYARNConfigurations,
       "MAPREDUCE2": self.recommendMapReduce2Configurations,
       "HDFS": self.recommendHDFSConfigurations,
-      "HBASE": self.recommendHbaseEnvConfigurations,
+      "HBASE": self.recommendHbaseConfigurations,
       "AMBARI_METRICS": self.recommendAmsConfigurations
     }
 
@@ -149,10 +149,19 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
     putHDFSProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
 
-  def recommendHbaseEnvConfigurations(self, configurations, clusterData, services, hosts):
+  def recommendHbaseConfigurations(self, configurations, clusterData, services, hosts):
+    # recommendations for HBase env config
     putHbaseProperty = self.putProperty(configurations, "hbase-env", services)
     putHbaseProperty('hbase_regionserver_heapsize', int(clusterData['hbaseRam']) * 1024)
     putHbaseProperty('hbase_master_heapsize', int(clusterData['hbaseRam']) * 1024)
+
+    # recommendations for HBase site config
+    putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
+
+    if 'hbase-site' in services['configurations'] and 'hbase.superuser' in services['configurations']['hbase-site']['properties'] \
+      and 'hbase-env' in services['configurations'] and 'hbase_user' in services['configurations']['hbase-env']['properties'] \
+      and services['configurations']['hbase-env']['properties']['hbase_user'] != services['configurations']['hbase-site']['properties']['hbase.superuser']:
+      putHbaseSiteProperty("hbase.superuser", services['configurations']['hbase-env']['properties']['hbase_user'])
 
   def recommendAmsConfigurations(self, configurations, clusterData, services, hosts):
     putAmsEnvProperty = self.putProperty(configurations, "ams-env", services)
@@ -706,8 +715,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
   def validateHbaseEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    hbase_site = getSiteProperties(configurations, "hbase-site")
     validationItems = [ {"config-name": 'hbase_regionserver_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_regionserver_heapsize')},
-                        {"config-name": 'hbase_master_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_master_heapsize')} ]
+                        {"config-name": 'hbase_master_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_master_heapsize')},
+                        {"config-name": "hbase_user", "item": self.validatorEqualsPropertyItem(properties, "hbase_user", hbase_site, "hbase.superuser")} ]
     return self.toConfigurationValidationProblems(validationItems, "hbase-env")
 
   def validateHDFSConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):

@@ -477,7 +477,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
-    super(HDP22StackAdvisor, self).recommendHbaseEnvConfigurations(configurations, clusterData, services, hosts)
+    super(HDP22StackAdvisor, self).recommendHbaseConfigurations(configurations, clusterData, services, hosts)
     putHbaseEnvPropertyAttributes = self.putPropertyAttribute(configurations, "hbase-env")
 
     hmaster_host = self.getHostWithComponent("HBASE", "HBASE_MASTER", services, hosts)
