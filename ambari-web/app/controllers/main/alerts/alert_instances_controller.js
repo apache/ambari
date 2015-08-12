@@ -27,18 +27,11 @@ App.MainAlertInstancesController = Em.Controller.extend({
   /**
    * @type {App.AlertInstance[]}
    */
-  unhealthyAlertInstances: [],
-
-  updateUnhealthyAlertInstances: function () {
-    Em.run.once(this, this.updateUnhealthyAlertInstancesOnce);
-  }.observes('content.[]'),
-
-  updateUnhealthyAlertInstancesOnce: function() {
-    var alertInstances = App.AlertInstance.find().filter(function (item) {
+  unhealthyAlertInstances: function () {
+    return App.AlertInstance.find().filter(function (item) {
       return ['CRITICAL', 'WARNING'].contains(item.get('state'));
     });
-    this.set('unhealthyAlertInstances', alertInstances);
-  },
+  }.property('content.[]'),
 
   /**
    * Are alertInstances loaded
@@ -124,11 +117,9 @@ App.MainAlertInstancesController = Em.Controller.extend({
    * @method loadAlertInstances
    */
   loadAlertInstances: function () {
-    this.setProperties({
-      isLoaded: false,
-      sourceType: null,
-      sourceName: null
-    });
+    this.set('isLoaded', false);
+    this.set('sourceType', null);
+    this.set('sourceName', null);
     this.fetchAlertInstances();
   },
 
@@ -139,11 +130,9 @@ App.MainAlertInstancesController = Em.Controller.extend({
    * @method loadAlertInstancesByHost
    */
   loadAlertInstancesByHost: function (hostName) {
-    this.setProperties({
-      isLoaded: false,
-      sourceType: 'HOST',
-      sourceName: hostName
-    });
+    this.set('isLoaded', false);
+    this.set('sourceType', 'HOST');
+    this.set('sourceName', hostName);
     this.fetchAlertInstances();
   },
 
@@ -154,11 +143,9 @@ App.MainAlertInstancesController = Em.Controller.extend({
    * @method loadAlertInstancesByAlertDefinition
    */
   loadAlertInstancesByAlertDefinition: function (definitionId) {
-    this.setProperties({
-      isLoaded: false,
-      sourceType: 'ALERT_DEFINITION',
-      sourceName: definitionId
-    });
+    this.set('isLoaded', false);
+    this.set('sourceType', 'ALERT_DEFINITION');
+    this.set('sourceName', definitionId);
     this.fetchAlertInstances();
   },
 
@@ -184,7 +171,7 @@ App.MainAlertInstancesController = Em.Controller.extend({
   getAlertInstancesSuccessCallback: function (json) {
     App.alertInstanceMapper.map(json);
     this.set('isLoaded', true);
-    this.toggleProperty('reload');
+    this.set('reload', !this.get('reload'));
   },
 
   /**
@@ -211,6 +198,8 @@ App.MainAlertInstancesController = Em.Controller.extend({
       header: function () {
         return Em.I18n.t('alerts.fastAccess.popup.header').format(this.get('alertsNumber'));
       }.property('alertsNumber'),
+
+      definitionsController: this,
 
       classNames: ['sixty-percent-width-modal', 'alerts-popup'],
 
@@ -354,6 +343,7 @@ App.MainAlertInstancesController = Em.Controller.extend({
 
         didInsertElement: function () {
           this.filter();
+          this.ensureTooltip();
           this.addObserver('filteringComplete', this, this.overlayObserver);
           this.overlayObserver();
           return this._super();
