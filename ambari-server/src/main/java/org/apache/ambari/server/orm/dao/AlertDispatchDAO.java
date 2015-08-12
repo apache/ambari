@@ -406,7 +406,7 @@ public class AlertDispatchDAO {
    *          the predicate to apply, or {@code null} for none.
    * @return the total count of rows that would be returned in a result set.
    */
-  @Transactional
+  @RequiresSession
   public int getNoticesCount(Predicate predicate) {
     return 0;
   }
@@ -457,6 +457,7 @@ public class AlertDispatchDAO {
    * @param serviceName
    *          the name of the group which is also the service name.
    */
+  @Transactional
   public AlertGroupEntity createDefaultGroup(long clusterId, String serviceName)
       throws AmbariException {
     // AMBARI is a special service that we let through, otherwise we need to

@@ -125,14 +125,16 @@ public class AlertServiceStateListener {
     String stackVersion = event.getStackVersion();
     String serviceName = event.getServiceName();
 
-    // create the default alert group for the new service; this MUST be done
-    // before adding definitions so that they are properly added to the
+    // create the default alert group for the new service if absent; this MUST
+    // be done before adding definitions so that they are properly added to the
     // default group
-    try {
-      m_alertDispatchDao.createDefaultGroup(clusterId, serviceName);
-    } catch (AmbariException ambariException) {
-      LOG.error("Unable to create a default alert group for {}", event.getServiceName(),
-          ambariException);
+    if (null == m_alertDispatchDao.findDefaultServiceGroup(clusterId, serviceName)) {
+      try {
+        m_alertDispatchDao.createDefaultGroup(clusterId, serviceName);
+      } catch (AmbariException ambariException) {
+        LOG.error("Unable to create a default alert group for {}",
+          event.getServiceName(), ambariException);
+      }
     }
 
     // populate alert definitions for the new service from the database, but
