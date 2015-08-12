@@ -184,7 +184,7 @@ App.ChartLinearTimeView = Ember.View.extend({
   },
 
   loadData: function() {
-    if (this.get('loadGroup')) {
+    if (this.get('loadGroup') && !this.get('isPopup')) {
       App.ChartLinearTimeView.LoadAggregator.add(this, this.get('loadGroup'));
     } else {
       App.ajax.send({
@@ -225,7 +225,6 @@ App.ChartLinearTimeView = Ember.View.extend({
       textStatus = xhr.status + " " + textStatus;
     }
     this._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
-    this.set('isPopup', false);
     this.set('hasData', false);
   },
 
@@ -420,7 +419,6 @@ App.ChartLinearTimeView = Ember.View.extend({
       else {
         this._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noDataAtTime.message'));
       }
-      this.set('isPopup', false);
     }
     graph_container = null;
     container = null;
@@ -792,6 +790,7 @@ App.ChartLinearTimeView = Ember.View.extend({
       graph: self,
       secondary: null,
       onPrimary: function() {
+        self.set('currentTimeIndex', 0);
         this.hide();
         self.set('isPopup', false);
       },
