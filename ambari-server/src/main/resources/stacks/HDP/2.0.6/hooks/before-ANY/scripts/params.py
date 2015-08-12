@@ -31,6 +31,7 @@ from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.version import compare_versions
 from ambari_commons.os_check import OSCheck
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 
 config = Script.get_config()
@@ -40,6 +41,9 @@ artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jdk_name = default("/hostLevelParams/jdk_name", None)
 java_home = config['hostLevelParams']['java_home']
 java_version = int(config['hostLevelParams']['java_version'])
+jdk_location = config['hostLevelParams']['jdk_location']
+
+sudo = AMBARI_SUDO_BINARY
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 

@@ -19,6 +19,7 @@ limitations under the License.
 
 import os
 import re
+import getpass
 from copy import copy
 from resource_management.libraries.functions.version import compare_versions
 from resource_management import *
@@ -152,3 +153,59 @@ def setup_hadoop_env():
       File(os.path.join(params.hadoop_conf_dir, 'hadoop-env.sh'), owner=tc_owner,
         group=params.user_group,
         content=InlineTemplate(params.hadoop_env_sh_template))
+
+
+def setup_java():
+  """
+  Installs jdk using specific params, that comes from ambari-server
+  """
+  import params
+
+  java_exec = format("{java_home}/bin/java")
+
+  if not os.path.isfile(java_exec):
+
+    jdk_curl_target = format("{tmp_dir}/{jdk_name}")
+    java_dir = os.path.dirname(params.java_home)
+    tmp_java_dir = format("{tmp_dir}/jdk")
+
+    if not params.jdk_name:
+      return
+
+    Directory(params.artifact_dir,
+              recursive = True,
+              )
+
+    File(jdk_curl_target,
+         content = DownloadSource(format("{jdk_location}/{jdk_name}")),
+         not_if = format("test -f {jdk_curl_target}")
+    )
+
+    if params.jdk_name.endswith(".bin"):
+      chmod_cmd = ("chmod", "+x", jdk_curl_target)
+      install_cmd = format("mkdir -p {tmp_java_dir} && cd {tmp_java_dir} && echo A | {jdk_curl_target} -noregister && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
+    elif params.jdk_name.endswith(".gz"):
+      chmod_cmd = ("chmod","a+x", java_dir)
+      install_cmd = format("mkdir -p {tmp_java_dir} && cd {tmp_java_dir} && tar -xf {jdk_curl_target} && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
+
+    Directory(java_dir
+    )
+
+    Execute(chmod_cmd,
+            sudo = True,
+            )
+
+    Execute(install_cmd,
+            )
+
+    File(format("{java_home}/bin/java"),
+         mode=0755,
+         cd_access="a",
+         )
+
+    Execute(("chgrp","-R", params.user_group, params.java_home),
+            sudo = True,
+            )
+    Execute(("chown","-R", getpass.getuser(), params.java_home),
+            sudo = True,
+            )
