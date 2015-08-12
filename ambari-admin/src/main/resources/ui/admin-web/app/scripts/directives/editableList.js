@@ -138,7 +138,7 @@ angular.module('ambariAdminConsole')
           var newValue = newValue.split(',').filter(function(i){ 
             i = i.replace('&nbsp;', ''); // Sanitize from spaces
             return !!i.trim();
-          });
+          }).map(function(i) { return i.trim(); });
           if( newValue.length > 1){
             // If someone paste coma separated string, then just add all items to list
             angular.forEach(newValue, function(item) {
