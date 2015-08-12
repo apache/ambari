@@ -21,11 +21,13 @@ limitations under the License.
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, call, patch
 from resource_management import Hook
+import getpass
 
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
 class TestHookBeforeInstall(RMFTestCase):
   TMP_PATH = '/tmp/hbase-hbase'
 
+  @patch.object(getpass, "getuser", new = MagicMock(return_value='some_user'))
   @patch("os.path.exists")
   def test_hook_default(self, os_path_exists_mock):
 
@@ -200,7 +202,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Execute', ('chgrp', '-R', u'hadoop', u'/usr/jdk64/jdk1.7.0_45'),
                               sudo = True,
                               )
-    self.assertResourceCalled('Execute', ('chown', '-R', 'root', u'/usr/jdk64/jdk1.7.0_45'),
+    self.assertResourceCalled('Execute', ('chown', '-R', 'some_user', u'/usr/jdk64/jdk1.7.0_45'),
                               sudo = True,
                               )
 
