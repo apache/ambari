@@ -564,7 +564,10 @@ App.config = Em.Object.create({
   mergePreDefinedWithStack: function (selectedServiceNames) {
     var mergedConfigs = [];
 
-    var uiPersistentProperties = ['oozie_hostname_oozie-env', 'oozie_ambari_database_oozie-env'];
+    var uiPersistentProperties = [
+      this.configId('oozie_hostname', 'oozie-env.xml'),
+      this.configId('oozie_ambari_database', 'oozie-env.xml')
+    ];
     var configTypes = App.StackService.find().filter(function(service) {
       return selectedServiceNames.contains(service.get('serviceName'));
     }).map(function(item) {
