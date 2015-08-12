@@ -106,7 +106,7 @@ def copy_tree(src, dest, exclude=None, post_copy=None):
       post_copy(_src, _dest)
 
 def process_replacements(file_path, config_data, stack_version_changes):
-  file_data = open(file_path, 'r').read().decode(encoding='utf-8')
+  file_data = open(file_path, 'r').read().decode('utf-8')
 
   # save user-defined text before replacements
   preserved_map = {}
@@ -137,7 +137,7 @@ def process_replacements(file_path, config_data, stack_version_changes):
     for _from, _to in preserved_map.iteritems():
       file_data = file_data.replace(_from, _to)
   with open(file_path, "w") as target:
-    target.write(file_data.encode(encoding='utf-8'))
+    target.write(file_data.encode('utf-8'))
   return file_path
 
 
