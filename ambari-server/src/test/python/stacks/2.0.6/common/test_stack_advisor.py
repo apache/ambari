@@ -615,7 +615,7 @@ class TestHDP206StackAdvisor(TestCase):
       actualItems.append(next)
     self.checkEqual(expectedItems, actualItems)
 
-  def test_recommendHbaseEnvConfigurations(self):
+  def test_recommendHbaseConfigurations(self):
     servicesList = ["HBASE"]
     configurations = {}
     components = []
@@ -637,7 +637,28 @@ class TestHDP206StackAdvisor(TestCase):
         }
       ]
     }
+    services = {
+      "services" : [
+      ],
+      "configurations": {
+        "hbase-site": {
+          "properties": {
+            "hbase.superuser": "hbase"
+          }
+        },
+        "hbase-env": {
+          "properties": {
+            "hbase_user": "hbase123"
+          }
+        }
+      }
+    }
     expected = {
+      'hbase-site': {
+        'properties': {
+          'hbase.superuser': 'hbase123'
+        }
+      },
       "hbase-env": {
         "properties": {
           "hbase_master_heapsize": "8192",
@@ -649,7 +670,7 @@ class TestHDP206StackAdvisor(TestCase):
     clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
     self.assertEquals(clusterData['hbaseRam'], 8)
 
-    self.stackAdvisor.recommendHbaseEnvConfigurations(configurations, clusterData, None, None)
+    self.stackAdvisor.recommendHbaseConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendHDFSConfigurations(self):
