@@ -127,6 +127,8 @@ public class Configuration {
   public static final String CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY = "client.api.ssl.cert_pass_file";
   public static final String CLIENT_API_SSL_CRT_PASS_KEY = "client.api.ssl.crt_pass";
   public static final String CLIENT_API_SSL_KEY_NAME_KEY = "client.api.ssl.key_name";
+  public static final String ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY = "agent.auto.cache.update";
+  public static final String ENABLE_AUTO_AGENT_CACHE_UPDATE_DEFAULT = "true";
   public static final String CHECK_REMOTE_MOUNTS_KEY = "agent.check.remote.mounts";
   public static final String CHECK_REMOTE_MOUNTS_DEFAULT = "true";
   public static final String CHECK_MOUNTS_TIMEOUT_KEY = "agent.check.mounts.timeout";
@@ -529,6 +531,9 @@ public class Configuration {
       CHECK_REMOTE_MOUNTS_KEY, CHECK_REMOTE_MOUNTS_DEFAULT));
     agentConfigsMap.put(CHECK_MOUNTS_TIMEOUT_KEY, properties.getProperty(
       CHECK_MOUNTS_TIMEOUT_KEY, CHECK_MOUNTS_TIMEOUT_DEFAULT));
+
+    agentConfigsMap.put(ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY, properties.getProperty(
+        ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY, ENABLE_AUTO_AGENT_CACHE_UPDATE_DEFAULT));
 
     configsMap = new HashMap<String, String>();
     configsMap.putAll(agentConfigsMap);

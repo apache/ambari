@@ -46,9 +46,11 @@ class TestFileCache(TestCase):
     tmpdir = tempfile.gettempdir()
     self.config = ConfigParser.RawConfigParser()
     self.config.add_section('agent')
+    self.config.add_section('agentConfig')
     self.config.set('agent', 'prefix', tmpdir)
     self.config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
     self.config.set('agent', 'tolerate_download_failures', "true")
+    self.config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY, "true")
 
 
   def test_reset(self):
@@ -115,6 +117,21 @@ class TestFileCache(TestCase):
       "('/var/lib/ambari-agent/cache', 'custom_actions', 'server_url_pref')")
     self.assertEquals(res, "dummy value")
 
+  @patch.object(FileCache, "build_download_url")
+  def test_provide_directory_no_update(self, build_download_url_mock):
+    try:
+      self.config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY, "false")
+      fileCache = FileCache(self.config)
+
+      # Test uptodate dirs after start
+      path = os.path.join("cache_path", "subdirectory")
+      res = fileCache.provide_directory("cache_path", "subdirectory",
+                                        "server_url_prefix")
+      self.assertEquals(res, path)
+      self.assertFalse(build_download_url_mock.called)
+    finally:
+      self.config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY, "true")
+    pass
 
   @patch.object(FileCache, "build_download_url")
   @patch.object(FileCache, "fetch_url")
