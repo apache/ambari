@@ -41,6 +41,7 @@
     <ambari-admin-dir>${basedir}/../ambari-admin</ambari-admin-dir>
     <contrib-views-dir>${basedir}/../contrib/views</contrib-views-dir>
     <resourceManagementSrcLocation>${project.basedir}/../ambari-common/src/main/python/resource_management</resourceManagementSrcLocation>
+    <customStackMap>${basedir}/../ambari-web/app/data/custom_stack_map.js</customStackMap>
     <commonServicesSrcLocation>target/classes/common-services</commonServicesSrcLocation>
     <stacksSrcLocation>target/classes/stacks/${stack.distribution}</stacksSrcLocation>
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
@@ -292,6 +293,14 @@
               <directory>/usr/lib/ambari-server</directory>
               <dependency>
               </dependency>
+            </mapping>
+            <mapping>
+              <directory>/usr/lib/ambari-server/app/data</directory>
+              <sources>
+                <source>
+                  <location>${customStackMap}</location>
+                </source>
+              </sources>
             </mapping>
             <mapping>
               <directory>/usr/lib/ambari-server/web</directory>
@@ -1082,6 +1091,14 @@
               </mapper>
             </data>
             <data>
+              <src>${customStackMap}</src>
+              <type>file</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/usr/lib/ambari-server/app/data</prefix>
+              </mapper>
+            </data>
+            <data>
               <src>src/main/python/os_check_type.py</src>
               <type>file</type>
               <mapper>
@@ -1519,6 +1536,7 @@
         </property>
       </activation>
       <properties>
+        <customStackMap>target/pluggable-stack-definition/custom_stack_map.js</customStackMap>
         <resourceManagementSrcLocation>target/pluggable-stack-definition/python/resource_management</resourceManagementSrcLocation>
         <commonServicesSrcLocation>target/pluggable-stack-definition/common-services</commonServicesSrcLocation>
         <stacksSrcLocation>target/pluggable-stack-definition/stacks/${stack.distribution}</stacksSrcLocation>
