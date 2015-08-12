@@ -18,10 +18,6 @@
 
 package org.apache.ambari.server;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -46,12 +42,12 @@ import com.google.inject.Singleton;
  * It has two potential clients.
  * <ul>
  * <li>Ambari Agent:
- * 		Uses it to make sure host can talk to specified KDC Server
+ * Uses it to make sure host can talk to specified KDC Server
  * </li>
- *
+ * <p/>
  * <li>Ambari Server:
- * 		Uses it for connection check, like agent, and also validates
- * 		the credentials provided on Server side.
+ * Uses it for connection check, like agent, and also validates
+ * the credentials provided on Server side.
  * </li>
  * </ul>
  * </p>
@@ -64,9 +60,9 @@ public class KdcServerConnectionVerification {
   private Configuration config;
 
   /**
-   * UDP connection timeout in seconds.
+   * The connection timeout in seconds.
    */
-  private int udpTimeout = 10;
+  private int connectionTimeout = 10;
 
   @Inject
   public KdcServerConnectionVerification(Configuration config) {
@@ -88,7 +84,7 @@ public class KdcServerConnectionVerification {
         throw new IllegalArgumentException("Invalid hostname for KDC server");
       }
       String[] kdcDetails = kdcHost.split(":");
-      if (kdcDetails.length == 1)  {
+      if (kdcDetails.length == 1) {
         return isKdcReachable(kdcDetails[0], parsePort(config.getDefaultKdcPort()));
       } else {
         return isKdcReachable(kdcDetails[0], parsePort(kdcDetails[1]));
@@ -107,70 +103,47 @@ public class KdcServerConnectionVerification {
    * process for the give host and port.
    *
    * @param server KDC server IP or hostname
-   * @param port	 KDC port
-   * @return	true, if server is accepting connection given port; false otherwise.
+   * @param port   KDC port
+   * @return true, if server is accepting connection given port; false otherwise.
    */
   public boolean isKdcReachable(String server, int port) {
-    return isKdcReachableViaTCP(server, port) || isKdcReachableViaUDP(server, port);
-  }
+    boolean success = isKdcReachable(server, port, ConnectionProtocol.TCP) || isKdcReachable(server, port, ConnectionProtocol.UDP);
 
-  /**
-   * Attempt to connect to KDC server over TCP.
-   *
-   * @param server KDC server IP or hostname
-   * @param port	 KDC server port
-   * @return	true, if server is accepting connection given port; false otherwise.
-   */
-  public boolean isKdcReachableViaTCP(String server, int port) {
-    Socket socket = null;
-    try {
-      socket = new Socket();
-      socket.connect(new InetSocketAddress(server, port), config.getKdcConnectionCheckTimeout());
-    } catch (UnknownHostException e) {
-      LOG.error("Unable to resolve Kerberos Server hostname");
-      return false;
-    } catch (IOException e) {
-      LOG.error("Unable to connect to Kerberos Server");
-      return false;
-    } finally {
-      if (socket != null) {
-        try {
-          socket.close();
-        } catch (IOException e) {
-          LOG.debug("Error while closing socket connection to Kerberos Server. Can be ignored.");
-        }
-      }
+    if (!success) {
+      LOG.error("Failed to connect to the KDC at {}:{} using either TCP or UDP", server, port);
     }
 
-    return true;
+    return success;
   }
 
   /**
-   * Attempt to communicate with KDC server over UDP.
-   * @param server KDC hostname or IP address
-   * @param port   KDC server port
-   * @return  true if communication is successful; false otherwise
+   * Attempt to communicate with KDC server over a specified communication protocol (TCP or UDP).
+   *
+   * @param server         KDC hostname or IP address
+   * @param port           KDC server port
+   * @param connectionProtocol the type of connection to use
+   * @return true if communication is successful; false otherwise
    */
-  public boolean isKdcReachableViaUDP(final String server, final int port) {
-    int timeoutMillis = udpTimeout * 1000;
+  public boolean isKdcReachable(final String server, final int port, final ConnectionProtocol connectionProtocol) {
+    int timeoutMillis = connectionTimeout * 1000;
     final KdcConfig config = KdcConfig.getDefaultConfig();
     config.setHostName(server);
     config.setKdcPort(port);
-    config.setUseUdp(true);
+    config.setUseUdp(ConnectionProtocol.UDP == connectionProtocol);
     config.setTimeout(timeoutMillis);
 
-    final KdcConnection connection = getKdcUdpConnection(config);
     FutureTask<Boolean> future = new FutureTask<Boolean>(new Callable<Boolean>() {
       @Override
       public Boolean call() {
         try {
+          KdcConnection connection = getKdcConnection(config);
           // we are only testing whether we can communicate with server and not
           // validating credentials
           connection.getTgt("noUser@noRealm", "noPassword");
         } catch (KerberosException e) {
           // unfortunately, need to look at msg as error 60 is a generic error code
-          return ! (e.getErrorCode() == ErrorType.KRB_ERR_GENERIC.getValue() &&
-                    e.getMessage().contains("TimeOut"));
+          return !(e.getErrorCode() == ErrorType.KRB_ERR_GENERIC.getValue() &&
+              e.getMessage().contains("TimeOut"));
           //todo: evaluate other error codes to provide better information
           //todo: as there may be other error codes where we should return false
         } catch (Exception e) {
@@ -186,15 +159,44 @@ public class KdcServerConnectionVerification {
     try {
       // timeout after specified timeout
       result = future.get(timeoutMillis, TimeUnit.MILLISECONDS);
+
+      if (result) {
+        LOG.info(String.format("Successfully connected to the KDC server at %s:%d over %s",
+            server, port, connectionProtocol.name()));
+      } else {
+        LOG.warn(String.format("Failed to connect to the KDC server at %s:%d over %s",
+            server, port, connectionProtocol.name()));
+      }
     } catch (InterruptedException e) {
-      LOG.error("Interrupted while trying to communicate with KDC server over UDP");
+      String message = String.format("Interrupted while trying to communicate with KDC server at %s:%d over %s",
+          server, port, connectionProtocol.name());
+      if (LOG.isDebugEnabled()) {
+        LOG.warn(message, e);
+      } else {
+        LOG.warn(message);
+      }
+
       result = false;
       future.cancel(true);
     } catch (ExecutionException e) {
-      LOG.error("An unexpected exception occurred while attempting to communicate with the KDC server over UDP", e);
+      String message = String.format("An unexpected exception occurred while attempting to communicate with the KDC server at %s:%d over %s",
+          server, port, connectionProtocol.name());
+      if (LOG.isDebugEnabled()) {
+        LOG.warn(message, e);
+      } else {
+        LOG.warn(message);
+      }
+
       result = false;
     } catch (TimeoutException e) {
-      LOG.error("Timeout occurred while attempting to to communicate with KDC server over UDP");
+      String message = String.format("Timeout occurred while attempting to to communicate with KDC server at %s:%d over %s",
+          server, port, connectionProtocol.name());
+      if (LOG.isDebugEnabled()) {
+        LOG.warn(message, e);
+      } else {
+        LOG.warn(message);
+      }
+
       result = false;
       future.cancel(true);
     }
@@ -210,40 +212,49 @@ public class KdcServerConnectionVerification {
    * @param config KDC connection configuration
    * @return new KDC connection
    */
-  protected KdcConnection getKdcUdpConnection(KdcConfig config) {
+  protected KdcConnection getKdcConnection(KdcConfig config) {
     return new KdcConnection(config);
   }
 
   /**
-   * Set the UDP connection timeout.
-   * This is the amount of time that we will attempt to read data from UDP connection.
+   * Set the connection timeout.
+   * This is the amount of time that we will attempt to read data from connection.
    *
-   * @param timeoutSeconds  timeout in seconds
+   * @param timeoutSeconds timeout in seconds
    */
-  public void setUdpTimeout(int timeoutSeconds) {
-    udpTimeout = (timeoutSeconds < 1) ? 1 : timeoutSeconds;
+  public void setConnectionTimeout(int timeoutSeconds) {
+    connectionTimeout = (timeoutSeconds < 1) ? 1 : timeoutSeconds;
   }
 
   /**
-   * Get the UDP timeout value.
+   * Get the timeout value.
    *
-   * @return the UDP connection timeout value in seconds
+   * @return the connection timeout value in seconds
    */
-  public int getUdpTimeout() {
-    return udpTimeout;
+  public int getConnectionTimeout() {
+    return connectionTimeout;
   }
 
   /**
    * Parses port number from given string.
+   *
    * @param port port number string
-   * @throws NumberFormatException if given string cannot be parsed
-   * @throws IllegalArgumentException if given string is null or empty
    * @return parsed port number
+   * @throws NumberFormatException    if given string cannot be parsed
+   * @throws IllegalArgumentException if given string is null or empty
    */
-  private int parsePort(String port) {
+  protected int parsePort(String port) {
     if (StringUtils.isEmpty(port)) {
       throw new IllegalArgumentException("Port number must be non-empty, non-null positive integer");
     }
     return Integer.parseInt(port);
+  }
+
+  /**
+   * A connection protocol to use to for connecting to the KDC
+   */
+  public enum ConnectionProtocol {
+    TCP,
+    UDP
   }
 }
