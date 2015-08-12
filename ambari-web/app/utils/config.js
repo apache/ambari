@@ -1393,10 +1393,14 @@ App.config = Em.Object.create({
    * @returns {boolean}
    */
   shouldSupportFinal: function (serviceName, filename) {
-    if (!serviceName || serviceName == 'MISC' || !filename) {
+    var unsupportedServiceNames = ['MISC', 'Cluster'];
+    if (!serviceName || unsupportedServiceNames.contains(serviceName) || !filename) {
       return false;
     } else {
       var stackService = App.StackService.find().findProperty('serviceName', serviceName);
+      if (!stackService) {
+        return false;
+      }
       var supportsFinal = this.getConfigTypesInfoFromService(stackService).supportsFinal;
       var matchingConfigType = supportsFinal.find(function (configType) {
         return filename.startsWith(configType);

@@ -818,6 +818,12 @@ describe('App.config', function () {
         filename: 's0-env',
         shouldSupportFinal: false,
         title: 'final attribute not supported'
+      },
+      {
+        serviceName: 'Cluster',
+        filename: 'krb5-conf.xml',
+        shouldSupportFinal: false,
+        title: 'kerberos descriptor identities don\'t support final'
       }
     ];
 
