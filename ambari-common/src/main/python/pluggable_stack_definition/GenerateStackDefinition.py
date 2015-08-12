@@ -30,6 +30,11 @@ from os.path import join
 import random
 import string
 
+UI_MAPPING_TEMPLATE = """var App = require('app');
+module.exports = {0};
+"""
+UI_MAPPING_MAP = {"2.2":"HDP2.2",
+                  "2.3":"HDP2.3"}
 
 def generate_random_string(size=7, chars=string.ascii_uppercase + string.digits):
   return ''.join(random.choice(chars) for _ in range(size))
@@ -359,6 +364,8 @@ def process_py_files(file_path, config_data, stack_version_changes):
 def process_xml_files(file_path, config_data, stack_version_changes):
   return process_replacements(file_path, config_data, stack_version_changes)
 
+
+
 class GeneratorHelper(object):
   def __init__(self, config_data, resources_folder, output_folder):
     self.config_data = config_data
@@ -469,6 +476,23 @@ class GeneratorHelper(object):
 
     copy_tree(source_folder, target_folder, ignored_files, post_copy=post_copy)
 
+  def generate_ui_mapping(self):
+    stack_name = self.config_data.stackName
+    records = []
+    for _from, _to in self.stack_version_changes.iteritems():
+      base_stack_folder = UI_MAPPING_MAP[_from] if _from in UI_MAPPING_MAP else "HDP2"
+      record = {"stackName": stack_name,
+                "stackVersionNumber": _to,
+                "sign": "=",
+                "baseStackFolder": base_stack_folder}
+      records.append(record)
+    if "uiMapping" in self.config_data:
+      for mapping in self.config_data.uiMapping:
+        mapping["stackName"] = stack_name
+        records.append(mapping)
+    js_file_content = UI_MAPPING_TEMPLATE.format(json.dumps(records, indent=2))
+    open(os.path.join(self.output_folder, "custom_stack_map.js"),"w").write(js_file_content)
+    pass
 
 def main(argv):
   HELP_STRING = 'GenerateStackDefinition.py -c <config> -r <resources_folder> -o <output_folder>'
@@ -499,6 +523,7 @@ def main(argv):
   gen_helper.copy_stacks()
   gen_helper.copy_resource_management()
   gen_helper.copy_common_services()
+  gen_helper.generate_ui_mapping()
 
 
 if __name__ == "__main__":

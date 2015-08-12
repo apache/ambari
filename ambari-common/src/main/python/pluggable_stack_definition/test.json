@@ -7,6 +7,13 @@
     ["conf-select", "phd-conf-select"]
    ],
   "preservedText": ["ext-2.2", "HDP-oozie", "hdp.version", "HDP_VERSION"],
+  "uiMapping": [
+    {
+      "stackVersionNumber": "3.0",
+      "sign": "<",
+      "baseStackFolder": "HDP2"
+    }
+  ],
   "versions": [
     {
       "version": "2.0.6",
