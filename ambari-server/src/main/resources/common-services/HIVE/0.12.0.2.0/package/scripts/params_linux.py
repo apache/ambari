@@ -261,6 +261,8 @@ hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 yarn_user = config['configurations']['yarn-env']['yarn_user']
 user_group = config['configurations']['cluster-env']['user_group']
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
+# Need this for yarn.nodemanager.recovery.dir in yarn-site
+yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 
 target = format("{hive_lib}/{jdbc_jar_name}")
 
