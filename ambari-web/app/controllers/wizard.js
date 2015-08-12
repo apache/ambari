@@ -56,12 +56,38 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.setIsStepDisabled();
   },
 
+  connectOutlet:function(name, context) {
+    if (name !== 'loading') this.set('isStepDisabled.isLocked', false);
+    return this._super.apply(this,arguments);
+  },
+
   /**
    * Set <code>isStepDisabled</code> with list of available steps (basing on <code>totalSteps</code>)
    * @method setIsStepDisabled
    */
   setIsStepDisabled: function () {
-      this.set('isStepDisabled', []);
+      this.set('isStepDisabled', Ember.ArrayProxy.create({
+        content:[],
+        isLocked:true,
+        objectAtContent: function(idx) {
+            var obj = this.get('content').objectAt(idx);
+            if (obj && !obj.hasOwnProperty('isLocked')) {
+              obj.reopen({
+                isLocked:true,
+                get:function (key) {
+                  return (key === 'value' && this.get('isLocked')) || this._super.apply(this,arguments);
+                },
+                notifyValues:function () {
+                  this.notifyPropertyChange('value');
+                }.observes('isLocked')
+              });
+            }
+            return obj;
+        },
+        toggleLock:function () {
+          this.setEach('isLocked',this.get('isLocked'));
+        }.observes('isLocked')
+      }));
       this.get('isStepDisabled').pushObject(Em.Object.create({
         step: 1,
         value: false
