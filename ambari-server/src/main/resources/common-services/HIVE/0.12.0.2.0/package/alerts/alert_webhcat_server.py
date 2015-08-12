@@ -19,7 +19,6 @@ limitations under the License.
 """
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
-import subprocess
 import socket
 import time
 import urllib2
@@ -30,6 +29,7 @@ from resource_management.core import shell
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import get_klist_path
+from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from os import getpid, sep
 
 RESULT_CODE_OK = "OK"
@@ -46,6 +46,9 @@ TEMPLETON_PORT_KEY = '{{webhcat-site/templeton.port}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 WEBHCAT_PRINCIPAL_KEY = '{{webhcat-site/templeton.kerberos.principal}}'
 WEBHCAT_KEYTAB_KEY = '{{webhcat-site/templeton.kerberos.keytab}}'
+
+SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
+SMOKEUSER_PRINCIPAL_KEY = '{{cluster-env/smokeuser_principal_name}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 
 # The configured Kerberos executable search paths, if any
@@ -58,8 +61,15 @@ CONNECTION_TIMEOUT_KEY = 'connection.timeout'
 CONNECTION_TIMEOUT_DEFAULT = 5.0
 CURL_CONNECTION_TIMEOUT_DEFAULT = str(int(CONNECTION_TIMEOUT_DEFAULT))
 
+# default keytab location
+SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY = 'default.smoke.keytab'
+SMOKEUSER_KEYTAB_DEFAULT = '/etc/security/keytabs/smokeuser.headless.keytab'
+
+# default smoke principal
+SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY = 'default.smoke.principal'
+SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
+
 # default smoke user
-SMOKEUSER_SCRIPT_PARAM_KEY = 'default.smoke.user'
 SMOKEUSER_DEFAULT = 'ambari-qa'
 
 def get_tokens():
@@ -67,9 +77,9 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (TEMPLETON_PORT_KEY, SECURITY_ENABLED_KEY, WEBHCAT_KEYTAB_KEY,
-    WEBHCAT_PRINCIPAL_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY, SMOKEUSER_KEY)
-  
+  return (TEMPLETON_PORT_KEY, SECURITY_ENABLED_KEY, SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,
+          KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY, SMOKEUSER_KEY)
+
 
 def execute(configurations={}, parameters={}, host_name=None):
   """
@@ -119,51 +129,33 @@ def execute(configurations={}, parameters={}, host_name=None):
   json_response = {}
 
   if security_enabled:
-    if WEBHCAT_KEYTAB_KEY not in configurations or WEBHCAT_PRINCIPAL_KEY not in configurations:
-      return (RESULT_CODE_UNKNOWN, [str(configurations)])
-
     try:
-      webhcat_keytab = configurations[WEBHCAT_KEYTAB_KEY]
-      webhcat_principal = configurations[WEBHCAT_PRINCIPAL_KEY]
+      # defaults
+      smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
+      smokeuser_principal = SMOKEUSER_PRINCIPAL_DEFAULT
 
-      # substitute _HOST in kerberos principal with actual fqdn
-      webhcat_principal = webhcat_principal.replace('_HOST', host_name)
+      # check script params
+      if SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY in parameters:
+        smokeuser_principal = parameters[SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY]
+      if SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY in parameters:
+        smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY]
 
-      # Create the kerberos credentials cache (ccache) file and set it in the environment to use
-      # when executing curl
-      env = Environment.get_instance()
-      ccache_file = "{0}{1}webhcat_alert_cc_{2}".format(env.tmp_dir, sep, getpid())
-      kerberos_env = {'KRB5CCNAME': ccache_file}
+      # check configurations last as they should always take precedence
+      if SMOKEUSER_PRINCIPAL_KEY in configurations:
+        smokeuser_principal = configurations[SMOKEUSER_PRINCIPAL_KEY]
+      if SMOKEUSER_KEYTAB_KEY in configurations:
+        smokeuser_keytab = configurations[SMOKEUSER_KEYTAB_KEY]
 
       # Get the configured Kerberos executable search paths, if any
+      kerberos_executable_search_paths = None
       if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in configurations:
         kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
-      else:
-        kerberos_executable_search_paths = None
 
-      klist_path_local = get_klist_path(kerberos_executable_search_paths)
-      klist_command = format("{klist_path_local} -s {ccache_file}")
-
-      # Determine if we need to kinit by testing to see if the relevant cache exists and has
-      # non-expired tickets.  Tickets are marked to expire after 5 minutes to help reduce the number
-      # it kinits we do but recover quickly when keytabs are regenerated
-      return_code, _ = shell.call(klist_command, user=smokeuser)
-      if return_code != 0:
-        kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
-        kinit_command = format("{kinit_path_local} -l 5m -c {ccache_file} -kt {webhcat_keytab} {webhcat_principal}; ")
-
-        # kinit so that curl will work with --negotiate
-        Execute(kinit_command,
-                user=smokeuser,
-        )
-
-      # make a single curl call to get just the http code
-      _, stdout, stderr = shell.checked_call(['curl', '--negotiate', '-u', ':', '-sL', '-w',
-        '%{http_code}', '--connect-timeout', curl_connection_timeout,
-        '-o', '/dev/null', query_url], stderr=subprocess.PIPE, env=kerberos_env)
-
-      if stderr != '':
-        raise Exception(stderr)
+      env = Environment.get_instance()
+      stdout, stderr, time_millis = curl_krb_request(env.tmp_dir, smokeuser_keytab, smokeuser_principal,
+                                                      query_url, "webhcat_alert_cc_", kerberos_executable_search_paths, True,
+                                                      "WebHCat Server Status", smokeuser,
+                                                      connection_timeout=curl_connection_timeout)
 
       # check the response code
       response_code = int(stdout)
@@ -179,22 +171,16 @@ def execute(configurations={}, parameters={}, host_name=None):
         return (RESULT_CODE_CRITICAL, [label])
 
       # now that we have the http status and it was 200, get the content
-      start_time = time.time()
-      _, stdout, stderr = shell.checked_call(['curl', '--negotiate', '-u', ':', '-sL',
-        '--connect-timeout', curl_connection_timeout, query_url, ],
-        stderr=subprocess.PIPE, env=kerberos_env)
-
-      total_time = time.time() - start_time
-
-      if stderr != '':
-        raise Exception(stderr)
-
+      stdout, stderr, total_time = curl_krb_request(env.tmp_dir, smokeuser_keytab, smokeuser_principal,
+                                                      query_url, "webhcat_alert_cc_", kerberos_executable_search_paths,
+                                                      False, "WebHCat Server Status", smokeuser,
+                                                      connection_timeout=curl_connection_timeout)
       json_response = json.loads(stdout)
     except Exception, exception:
       return (RESULT_CODE_CRITICAL, [str(exception)])
   else:
     url_response = None
-    
+
     try:
       # execute the query for the JSON that includes WebHCat status
       start_time = time.time()
