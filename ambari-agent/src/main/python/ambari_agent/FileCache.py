@@ -25,6 +25,7 @@ import shutil
 import zipfile
 import urllib2
 import urllib
+from AmbariConfig import AmbariConfig
 
 logger = logging.getLogger()
 
@@ -44,6 +45,7 @@ class FileCache():
   HOST_SCRIPTS_CACHE_DIRECTORY="host_scripts"
   HASH_SUM_FILE=".hash"
   ARCHIVE_NAME="archive.zip"
+  ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY = "agent.auto.cache.update"
 
   BLOCK_SIZE=1024*16
   SOCKET_TIMEOUT=10
@@ -104,6 +106,13 @@ class FileCache():
                                   server_url_prefix)
 
 
+  def auto_cache_update_enabled(self):
+    if self.config and \
+        self.config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY) and \
+            self.config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY).lower() == "false":
+      return False
+    return True
+
   def provide_directory(self, cache_path, subdirectory, server_url_prefix):
     """
     Ensures that directory at cache is up-to-date. Throws a CachingException
@@ -113,8 +122,14 @@ class FileCache():
       subdirectory: subpath inside cache
       server_url_prefix: url of "resources" folder at the server
     """
+
     full_path = os.path.join(cache_path, subdirectory)
     logger.debug("Trying to provide directory {0}".format(subdirectory))
+
+    if not self.auto_cache_update_enabled():
+      logger.debug("Auto cache update is disabled.")
+      return full_path
+
     try:
       if full_path not in self.uptodate_paths:
         logger.debug("Checking if update is available for "
@@ -138,7 +153,7 @@ class FileCache():
     except CachingException, e:
       if self.tolerate_download_failures:
         # ignore
-        logger.warn("Error occured during cache update. "
+        logger.warn("Error occurred during cache update. "
                     "Error tolerate setting is set to true, so"
                     " ignoring this error and continuing with current cache. "
                     "Error details: {0}".format(str(e)))

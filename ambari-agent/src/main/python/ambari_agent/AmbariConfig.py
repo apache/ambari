@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import logging
 import ConfigParser
 import StringIO
 import hostname
@@ -27,6 +28,7 @@ import os
 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+logger = logging.getLogger(__name__)
 
 content = """
 
@@ -255,6 +257,7 @@ class AmbariConfig:
         self.add_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY)
       for k,v in reg_resp[AmbariConfig.AMBARI_PROPERTIES_CATEGORY].items():
         self.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, k, v)
+        logger.info("Updating config property (%s) with value (%s)", k, v)
     pass
 
 def updateConfigServerHostname(configFile, new_host):

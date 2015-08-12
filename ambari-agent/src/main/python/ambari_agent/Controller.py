@@ -173,6 +173,7 @@ class Controller(threading.Thread):
         self.recovery_manager.update_configuration_from_registration(ret)
         self.config.update_configuration_from_registration(ret)
         logger.debug("Updated config:" + str(self.config))
+
         # always update alert definitions on registration
         self.alert_scheduler_handler.update_definitions(ret)
       except ssl.SSLError:
