@@ -23,8 +23,10 @@ App.WizardStep6View = App.TableView.extend({
 
   templateName: require('templates/wizard/step6'),
 
+  title: '',
+
   /**
-   * Number of visible rows
+   * Numbe rof visible rows
    * @type {string}
    */
   displayLength: "25",
@@ -46,12 +48,16 @@ App.WizardStep6View = App.TableView.extend({
   }.property('content'),
 
   /**
-   * Set <code>label</code> and do <code>loadStep</code>
+   * Set <code>label</code>, <code>title</code> and do <code>loadStep</code>
    * @method didInsertElement
    */
   didInsertElement: function () {
+    var controller = this.get('controller');
+    this.set('title', Em.I18n.t('installer.step6.header'));
     this.setLabel();
-    this.get('controller').loadStep();
+
+    App.tooltip($('body'), {selector: '[rel=tooltip]'});
+    controller.loadStep();
   },
 
   /**
@@ -89,14 +95,18 @@ App.WizardStep6View = App.TableView.extend({
 
   columnCount: function() {
     var hosts = this.get('controller.hosts');
-    return (hosts && hosts.length > 0) ? hosts[0].get('checkboxes').length + 1 : 1;
+    if  (hosts && hosts.length > 0) {
+      var checkboxes = hosts[0].get('checkboxes');
+      return checkboxes.length + 1;
+    }
+    return 1;
   }.property('controller.hosts.@each.checkboxes')
 });
 
 App.WizardStep6HostView = Em.View.extend({
 
   /**
-   * Bound <code>host</code> object
+   * Binded <code>host</code> object
    * @type {object}
    */
   host: null,
@@ -108,18 +118,16 @@ App.WizardStep6HostView = Em.View.extend({
    * @method didInsertElement
    */
   didInsertElement: function () {
+    var components = this.get('controller').getMasterComponentsForHost(this.get('host.hostName'));
+    components = components.map(function (_component) {
+      return App.format.role(_component);
+    });
+    components = components.join(" /\n");
     App.popover(this.$(), {
       title: Em.I18n.t('installer.step6.wizardStep6Host.title').format(this.get('host.hostName')),
-      content: this.get('controller').getMasterComponentsForHost(this.get('host.hostName')).map(function (_component) {
-        return App.format.role(_component);
-      }).join("<br />"),
+      content: components,
       placement: 'right',
       trigger: 'hover'
     });
-  },
-
-  willDestroyElement: function() {
-    this.$().popover('destroy');
   }
-
 });
