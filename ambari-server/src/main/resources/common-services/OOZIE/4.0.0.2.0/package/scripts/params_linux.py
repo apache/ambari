@@ -129,6 +129,8 @@ oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.Had
 oozie_principal = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal']
 http_principal = config['configurations']['oozie-site']['oozie.authentication.kerberos.principal']
 oozie_site = config['configurations']['oozie-site']
+# Need this for yarn.nodemanager.recovery.dir in yarn-site
+yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 
 if security_enabled and Script.is_hdp_stack_less_than("2.2"):
   #older versions of oozie have problems when using _HOST in principal
