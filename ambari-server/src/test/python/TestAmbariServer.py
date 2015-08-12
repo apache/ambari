@@ -4630,7 +4630,9 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverConfiguration.get_ambari_classpath")
   @patch("ambari_server.serverUpgrade.run_os_command")
   @patch("ambari_server.serverUpgrade.get_java_exe_path")
-  def test_run_schema_upgrade(self, java_exe_path_mock, run_os_command_mock,
+  @patch("ambari_server.serverUpgrade.get_ambari_properties")
+  @patch("ambari_server.serverUpgrade.get_YN_input")
+  def test_run_schema_upgrade(self, get_YN_input_mock, get_ambari_properties_mock, java_exe_path_mock, run_os_command_mock,
                               get_ambari_classpath_mock, get_conf_dir_mock,
                               read_ambari_user_mock, generate_env_mock,
                               ensure_can_start_under_current_user_mock):
@@ -4645,6 +4647,10 @@ class TestAmbariServer(TestCase):
     generate_env_mock.return_value = environ
     ensure_can_start_under_current_user_mock.return_value = "root"
     read_ambari_user_mock.return_value = "ambari"
+    properties = Properties()
+    properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "local")
+    get_ambari_properties_mock.return_value = properties
+    get_YN_input_mock.return_value = True
 
     run_schema_upgrade()
 
@@ -4656,8 +4662,6 @@ class TestAmbariServer(TestCase):
     self.assertTrue(get_conf_dir_mock.called)
     self.assertTrue(run_os_command_mock.called)
     run_os_command_mock.assert_called_with(command, env=environ)
-    pass
-
 
   @patch("ambari_server.serverConfiguration.get_conf_dir")
   @patch("ambari_server.serverConfiguration.get_ambari_classpath")

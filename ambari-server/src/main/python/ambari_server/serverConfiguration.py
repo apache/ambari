@@ -171,6 +171,87 @@ SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server s
 
 DEFAULT_DB_NAME = "ambari"
 
+class ServerDatabaseType(object):
+  internal = 0
+  remote = 1
+
+
+class ServerDatabaseEntry(object):
+  def __init__(self, name, title, db_type, aliases=None):
+    """
+    :type name str
+    :type title str
+    :type db_type int
+    :type aliases list
+    """
+    self.__name = name
+    self.__title = title
+    self.__type = db_type
+    if aliases is None:
+      aliases = []
+
+    self.__aliases = aliases
+
+  @property
+  def name(self):
+    return self.__name
+
+  @property
+  def title(self):
+    return self.__title
+
+  @property
+  def dbtype(self):
+    return self.__type
+
+  def __str__(self):
+    return self.name
+
+  def __eq__(self, other):
+    if other is None:
+      return False
+
+    if isinstance(other, ServerDatabaseEntry):
+      return self.name == other.name and self.dbtype == other.dbtype
+    elif isinstance(other, str):
+      return self.name == other or other in self.__aliases
+
+    raise RuntimeError("Not compatible type")
+
+
+class ServerDatabases(object):
+  postgres = ServerDatabaseEntry("postgres", "Postgres", ServerDatabaseType.remote)
+  oracle = ServerDatabaseEntry("oracle", "Oracle", ServerDatabaseType.remote)
+  mysql = ServerDatabaseEntry("mysql", "MySQL", ServerDatabaseType.remote)
+  mssql = ServerDatabaseEntry("mssql", "MSSQL", ServerDatabaseType.remote)
+  derby = ServerDatabaseEntry("derby", "Derby", ServerDatabaseType.remote)
+  postgres_internal = ServerDatabaseEntry("postgres", "Embedded Postgres", ServerDatabaseType.internal, aliases=['embedded'])
+
+  @staticmethod
+  def databases():
+    props = ServerDatabases.__dict__
+    r_props = []
+    for p in props:
+      if isinstance(props[p], ServerDatabaseEntry):
+        r_props.append(props[p].name)
+
+    return set(r_props)
+
+  @staticmethod
+  def match(name):
+    """
+    :type name str
+    :rtype ServerDatabaseEntry
+    """
+    props = ServerDatabases.__dict__
+
+    for p in props:
+      if isinstance(props[p], ServerDatabaseEntry):
+        if name == props[p]:
+          return props[p]
+
+    return None
+
 class ServerConfigDefaults(object):
   def __init__(self):
     self.JAVA_SHARE_PATH = "/usr/share/java"
@@ -501,19 +582,32 @@ def get_ambari_version(properties):
   return version
 
 def get_db_type(properties):
+  """
+  :rtype ServerDatabaseEntry
+  """
   db_type = None
-  if properties[JDBC_URL_PROPERTY]:
+  persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
+
+  if properties[JDBC_DATABASE_PROPERTY]:
+    db_type = ServerDatabases.match(properties[JDBC_DATABASE_PROPERTY])
+    if db_type == ServerDatabases.postgres and persistence_type == "local":
+      db_type = ServerDatabases.postgres_internal
+
+  if properties[JDBC_URL_PROPERTY] and db_type is None:
     jdbc_url = properties[JDBC_URL_PROPERTY].lower()
-    if "postgres" in jdbc_url:
-      db_type = "postgres"
-    elif "oracle" in jdbc_url:
-      db_type = "oracle"
-    elif "mysql" in jdbc_url:
-      db_type = "mysql"
-    elif "sqlserver" in jdbc_url:
-      db_type = "mssql"
-    elif "derby" in jdbc_url:
-      db_type = "derby"
+    if str(ServerDatabases.postgres) in jdbc_url:
+      db_type = ServerDatabases.postgres
+    elif str(ServerDatabases.oracle) in jdbc_url:
+      db_type = ServerDatabases.oracle
+    elif str(ServerDatabases.mysql) in jdbc_url:
+      db_type = ServerDatabases.mysql
+    elif str(ServerDatabases.mssql) in jdbc_url:
+      db_type = ServerDatabases.mssql
+    elif str(ServerDatabases.derby) in jdbc_url:
+      db_type = ServerDatabases.derby
+
+  if persistence_type == "local" and db_type is None:
+    db_type = ServerDatabases.postgres_internal
 
   return db_type
 
@@ -528,19 +622,19 @@ def check_database_name_property(upgrade=False):
     return -1
 
   version = get_ambari_version(properties)
-  if upgrade and (properties[JDBC_DATABASE_PROPERTY] not in ["postgres", "oracle", "mysql", "mssql", "derby"]
+  if upgrade and (properties[JDBC_DATABASE_PROPERTY] not in ServerDatabases.databases()
                     or properties.has_key(JDBC_RCA_SCHEMA_PROPERTY)):
     # This code exists for historic reasons in which property names changed from Ambari 1.6.1 to 1.7.0
     persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
     if persistence_type == "remote":
-      db_name = properties["server.jdbc.schema"]  # this was a property in Ambari 1.6.1, but not after 1.7.0
+      db_name = properties[JDBC_RCA_SCHEMA_PROPERTY]  # this was a property in Ambari 1.6.1, but not after 1.7.0
       if db_name:
         write_property(JDBC_DATABASE_NAME_PROPERTY, db_name)
 
       # If DB type is missing, attempt to reconstruct it from the JDBC URL
       db_type = properties[JDBC_DATABASE_PROPERTY]
-      if db_type is None or db_type.strip().lower() not in ["postgres", "oracle", "mysql", "mssql", "derby"]:
-        db_type = get_db_type(properties)
+      if db_type is None or db_type.strip().lower() not in ServerDatabases.databases():
+        db_type = get_db_type(properties).name
         if db_type:
           write_property(JDBC_DATABASE_PROPERTY, db_type)
 
