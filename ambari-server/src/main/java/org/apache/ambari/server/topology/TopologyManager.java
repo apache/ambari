@@ -287,13 +287,12 @@ public class TopologyManager {
     return clusterTopologyMap.get(clusterName);
   }
 
-  public Map<String, Collection<String>> getPendingHostComponents() {
+  public Map<String, Collection<String>> getProjectedTopology() {
     ensureInitialized();
     Map<String, Collection<String>> hostComponentMap = new HashMap<String, Collection<String>>();
 
     for (LogicalRequest logicalRequest : allRequests.values()) {
-      Map<String, Collection<String>> requestTopology =
-        logicalRequest.getPendingHostComponents();
+      Map<String, Collection<String>> requestTopology = logicalRequest.getProjectedTopology();
       for (Map.Entry<String, Collection<String>> entry : requestTopology.entrySet()) {
         String host = entry.getKey();
         Collection<String> hostComponents = hostComponentMap.get(host);

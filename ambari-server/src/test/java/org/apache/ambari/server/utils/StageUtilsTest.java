@@ -32,7 +32,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -297,7 +296,7 @@ public class StageUtilsTest extends EasyMockSupport {
     final ServiceComponentHost nns7ServiceComponentHost = createMock(ServiceComponentHost.class);
     expect(nns7ServiceComponentHost.getComponentAdminState()).andReturn(HostComponentAdminState.INSERVICE).anyTimes();
 
-    Map<String, Collection<String>> pendingHostComponents = new HashMap<String, Collection<String>>();
+    Map<String, Collection<String>> projectedTopology = new HashMap<String, Collection<String>>();
 
 
     final HashMap<String, ServiceComponentHost> nnServiceComponentHosts = new HashMap<String, ServiceComponentHost>() {
@@ -305,14 +304,14 @@ public class StageUtilsTest extends EasyMockSupport {
         put("h0", nnh0ServiceComponentHost);
       }
     };
-    insertTopology(pendingHostComponents, "NAMENODE", nnServiceComponentHosts.keySet());
+    insertTopology(projectedTopology, "NAMENODE", nnServiceComponentHosts.keySet());
 
     final HashMap<String, ServiceComponentHost> snnServiceComponentHosts = new HashMap<String, ServiceComponentHost>() {
       {
         put("h1", snnh1ServiceComponentHost);
       }
     };
-    insertTopology(pendingHostComponents, "SECONDARY_NAMENODE", snnServiceComponentHosts.keySet());
+    insertTopology(projectedTopology, "SECONDARY_NAMENODE", snnServiceComponentHosts.keySet());
 
     final Map<String, ServiceComponentHost> dnServiceComponentHosts = new HashMap<String, ServiceComponentHost>() {
       {
@@ -326,14 +325,14 @@ public class StageUtilsTest extends EasyMockSupport {
         put("h9", dnh9ServiceComponentHost);
       }
     };
-    insertTopology(pendingHostComponents, "DATANODE", dnServiceComponentHosts.keySet());
+    insertTopology(projectedTopology, "DATANODE", dnServiceComponentHosts.keySet());
 
     final Map<String, ServiceComponentHost> hbmServiceComponentHosts = new HashMap<String, ServiceComponentHost>() {
       {
         put("h5", hbm5ServiceComponentHost);
       }
     };
-    insertTopology(pendingHostComponents, "HBASE_MASTER", hbmServiceComponentHosts.keySet());
+    insertTopology(projectedTopology, "HBASE_MASTER", hbmServiceComponentHosts.keySet());
 
     final Map<String, ServiceComponentHost> hbrsServiceComponentHosts = new HashMap<String, ServiceComponentHost>() {
       {
@@ -344,14 +343,14 @@ public class StageUtilsTest extends EasyMockSupport {
         put("h9", hbrs9ServiceComponentHost);
       }
     };
-    insertTopology(pendingHostComponents, "HBASE_REGIONSERVER", hbrsServiceComponentHosts.keySet());
+    insertTopology(projectedTopology, "HBASE_REGIONSERVER", hbrsServiceComponentHosts.keySet());
 
     final Map<String, ServiceComponentHost> mrjtServiceComponentHosts = new HashMap<String, ServiceComponentHost>() {
       {
         put("h5", mrjt5ServiceComponentHost);
       }
     };
-    insertTopology(pendingHostComponents, "JOBTRACKER", mrjtServiceComponentHosts.keySet());
+    insertTopology(projectedTopology, "JOBTRACKER", mrjtServiceComponentHosts.keySet());
 
     final Map<String, ServiceComponentHost> mrttServiceComponentHosts = new HashMap<String, ServiceComponentHost>() {
       {
@@ -364,7 +363,7 @@ public class StageUtilsTest extends EasyMockSupport {
         put("h9", mrtt9ServiceComponentHost);
       }
     };
-    insertTopology(pendingHostComponents, "TASKTRACKER", mrttServiceComponentHosts.keySet());
+    insertTopology(projectedTopology, "TASKTRACKER", mrttServiceComponentHosts.keySet());
 
 
     final Map<String, ServiceComponentHost> nnsServiceComponentHosts = new HashMap<String, ServiceComponentHost>() {
@@ -372,7 +371,7 @@ public class StageUtilsTest extends EasyMockSupport {
         put("h7", nns7ServiceComponentHost);
       }
     };
-    insertTopology(pendingHostComponents, "NONAME_SERVER", nnsServiceComponentHosts.keySet());
+    insertTopology(projectedTopology, "NONAME_SERVER", nnsServiceComponentHosts.keySet());
 
     final ServiceComponent nnComponent = createMock(ServiceComponent.class);
     expect(nnComponent.getName()).andReturn("NAMENODE").anyTimes();
@@ -518,8 +517,8 @@ public class StageUtilsTest extends EasyMockSupport {
 
 
     final TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
-    topologyManager.getPendingHostComponents();
-    expectLastCall().andReturn(Collections.emptyMap()).once();
+    topologyManager.getProjectedTopology();
+    expectLastCall().andReturn(projectedTopology).once();
 
     replayAll();
 
@@ -538,14 +537,14 @@ public class StageUtilsTest extends EasyMockSupport {
       assertTrue(allHosts.contains(host.getHostName()));
     }
 
-    checkServiceHostIndexes(info, "DATANODE", "slave_hosts", pendingHostComponents, hostNames);
-    checkServiceHostIndexes(info, "NAMENODE", "namenode_host", pendingHostComponents, hostNames);
-    checkServiceHostIndexes(info, "SECONDARY_NAMENODE", "snamenode_host", pendingHostComponents, hostNames);
-    checkServiceHostIndexes(info, "HBASE_MASTER", "hbase_master_hosts", pendingHostComponents, hostNames);
-    checkServiceHostIndexes(info, "HBASE_REGIONSERVER", "hbase_rs_hosts", pendingHostComponents, hostNames);
-    checkServiceHostIndexes(info, "JOBTRACKER", "jtnode_host", pendingHostComponents, hostNames);
-    checkServiceHostIndexes(info, "TASKTRACKER", "mapred_tt_hosts", pendingHostComponents, hostNames);
-    checkServiceHostIndexes(info, "NONAME_SERVER", "noname_server_hosts", pendingHostComponents, hostNames);
+    checkServiceHostIndexes(info, "DATANODE", "slave_hosts", projectedTopology, hostNames);
+    checkServiceHostIndexes(info, "NAMENODE", "namenode_host", projectedTopology, hostNames);
+    checkServiceHostIndexes(info, "SECONDARY_NAMENODE", "snamenode_host", projectedTopology, hostNames);
+    checkServiceHostIndexes(info, "HBASE_MASTER", "hbase_master_hosts", projectedTopology, hostNames);
+    checkServiceHostIndexes(info, "HBASE_REGIONSERVER", "hbase_rs_hosts", projectedTopology, hostNames);
+    checkServiceHostIndexes(info, "JOBTRACKER", "jtnode_host", projectedTopology, hostNames);
+    checkServiceHostIndexes(info, "TASKTRACKER", "mapred_tt_hosts", projectedTopology, hostNames);
+    checkServiceHostIndexes(info, "NONAME_SERVER", "noname_server_hosts", projectedTopology, hostNames);
 
     Set<String> actualPingPorts = info.get(StageUtils.PORTS);
     if (pingPorts.contains(null)) {
@@ -579,14 +578,14 @@ public class StageUtilsTest extends EasyMockSupport {
     // Validate substitutions...
     info = StageUtils.substituteHostIndexes(info);
 
-    checkServiceHostNames(info, "DATANODE", "slave_hosts", pendingHostComponents);
-    checkServiceHostNames(info, "NAMENODE", "namenode_host", pendingHostComponents);
-    checkServiceHostNames(info, "SECONDARY_NAMENODE", "snamenode_host", pendingHostComponents);
-    checkServiceHostNames(info, "HBASE_MASTER", "hbase_master_hosts", pendingHostComponents);
-    checkServiceHostNames(info, "HBASE_REGIONSERVER", "hbase_rs_hosts", pendingHostComponents);
-    checkServiceHostNames(info, "JOBTRACKER", "jtnode_host", pendingHostComponents);
-    checkServiceHostNames(info, "TASKTRACKER", "mapred_tt_hosts", pendingHostComponents);
-    checkServiceHostNames(info, "NONAME_SERVER", "noname_server_hosts", pendingHostComponents);
+    checkServiceHostNames(info, "DATANODE", "slave_hosts", projectedTopology);
+    checkServiceHostNames(info, "NAMENODE", "namenode_host", projectedTopology);
+    checkServiceHostNames(info, "SECONDARY_NAMENODE", "snamenode_host", projectedTopology);
+    checkServiceHostNames(info, "HBASE_MASTER", "hbase_master_hosts", projectedTopology);
+    checkServiceHostNames(info, "HBASE_REGIONSERVER", "hbase_rs_hosts", projectedTopology);
+    checkServiceHostNames(info, "JOBTRACKER", "jtnode_host", projectedTopology);
+    checkServiceHostNames(info, "TASKTRACKER", "mapred_tt_hosts", projectedTopology);
+    checkServiceHostNames(info, "NONAME_SERVER", "noname_server_hosts", projectedTopology);
   }
 
   private void insertTopology(Map<String, Collection<String>> projectedTopology, String componentName, Set<String> hostNames) {
@@ -604,12 +603,8 @@ public class StageUtilsTest extends EasyMockSupport {
     }
   }
 
-  private void checkServiceHostIndexes(Map<String, Set<String>> info,
-                                       String componentName,
-                                       String mappedComponentName,
-                                       Map<String, Collection<String>> serviceTopology,
-                                       List<String> hostList) {
-
+  private void checkServiceHostIndexes(Map<String, Set<String>> info, String componentName, String mappedComponentName,
+                                       Map<String, Collection<String>> serviceTopology, List<String> hostList) {
     Set<Integer> expectedHostsList = new HashSet<Integer>();
     Set<Integer> actualHostsList = new HashSet<Integer>();
 

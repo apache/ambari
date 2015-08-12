@@ -277,8 +277,7 @@ public class StageUtils {
     }
 
     // add hosts from topology manager
-    Map<String, Collection<String>> pendingHostComponents =
-      topologyManager.getPendingHostComponents();
+    Map<String, Collection<String>> pendingHostComponents = topologyManager.getProjectedTopology();
     for (String hostname : pendingHostComponents.keySet()) {
       if (!hostsSet.contains(hostname)) {
         hostsSet.add(hostname);
