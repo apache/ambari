@@ -37,7 +37,7 @@ from ambari_server.serverConfiguration import configDefaults, \
   get_java_exe_path, get_stack_location, parse_properties_file, read_ambari_user, update_ambari_properties, \
   update_database_name_property, get_admin_views_dir, \
   AMBARI_PROPERTIES_FILE, IS_LDAP_CONFIGURED, LDAP_PRIMARY_URL_PROPERTY, RESOURCES_DIR_PROPERTY, \
-  SETUP_OR_UPGRADE_MSG, update_krb_jaas_login_properties, AMBARI_KRB_JAAS_LOGIN_FILE
+  SETUP_OR_UPGRADE_MSG, update_krb_jaas_login_properties, AMBARI_KRB_JAAS_LOGIN_FILE, get_db_type
 from ambari_server.setupSecurity import adjust_directory_permissions, \
   generate_env, ensure_can_start_under_current_user
 from ambari_server.utils import compare_versions
@@ -216,6 +216,14 @@ def upgrade_local_repo(args):
 #
 
 def run_schema_upgrade():
+  db_title = get_db_type(get_ambari_properties()).title
+  confirm = get_YN_input("Ambari Server configured for %s. Confirm "
+                        "you have made a backup of the Ambari Server database [y/n] (y)? " % db_title, True)
+
+  if not confirm:
+    print_error_msg("Database backup is not confirmed")
+    return 1
+
   jdk_path = get_java_exe_path()
   if jdk_path is None:
     print_error_msg("No JDK found, please run the \"setup\" "
@@ -278,7 +286,6 @@ def upgrade(args):
   if not is_root():
     err = configDefaults.MESSAGE_ERROR_UPGRADE_NOT_ROOT
     raise FatalException(4, err)
-
   print 'Updating properties in ' + AMBARI_PROPERTIES_FILE + ' ...'
   retcode = update_ambari_properties()
   if not retcode == 0:
