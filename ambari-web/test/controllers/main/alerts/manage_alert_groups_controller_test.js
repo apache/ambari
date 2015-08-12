@@ -212,7 +212,8 @@ describe('App.ManageAlertGroupsController', function () {
     };
 
     var result = function (originalDefs, addedDefs) {
-      return originalDefs.concat(addedDefs);
+      var result = originalDefs.concat(addedDefs);
+      return result;
     };
 
     var tests = [
