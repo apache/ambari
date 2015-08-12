@@ -144,7 +144,23 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    *  toCreate: App.ConfigGroup[]
    * }}
    */
-  hostsModifiedConfigGroups: function () {
+  hostsModifiedConfigGroups: {},
+
+  /**
+   * Check when some config group was changed and updates <code>hostsModifiedConfigGroups</code> once
+   * @method hostsModifiedConfigGroupsObs
+   */
+  hostsModifiedConfigGroupsObs: function() {
+    Em.run.once(this, this.hostsModifiedConfigGroupsObsOnce);
+  }.observes('selectedConfigGroup.hosts.@each', 'selectedConfigGroup.hosts.length', 'selectedConfigGroup.description', 'configGroups', 'isLoaded'),
+
+  /**
+   * Update <code>hostsModifiedConfigGroups</code>-value
+   * Called once in the <code>hostsModifiedConfigGroupsObs</code>
+   * @method hostsModifiedConfigGroupsObsOnce
+   * @returns {boolean}
+   */
+  hostsModifiedConfigGroupsObsOnce: function() {
     if (!this.get('isLoaded')) {
       return false;
     }
@@ -181,14 +197,14 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     originalGroupsIds.forEach(function (id) {
       groupsToDelete.push(originalGroupsMap[id]);
     }, this);
-    return {
+    this.set('hostsModifiedConfigGroups', {
       toClearHosts: groupsToClearHosts,
       toDelete: groupsToDelete,
       toSetHosts: groupsToSetHosts,
       toCreate: groupsToCreate,
       initialGroups: originalGroupsCopy
-    };
-  }.property('selectedConfigGroup.hosts.@each', 'selectedConfigGroup.hosts.length', 'selectedConfigGroup.description', 'configGroups', 'isLoaded'),
+    });
+  },
 
   /**
    * Determines if some changes were done with config groups
