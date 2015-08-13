@@ -48,23 +48,10 @@
 {{#if view.supportsHostOverrides}}
   <div class="alert alert-info">
     {{t common.group}}&nbsp;
-	  <span class="btn-group">
-		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle"
-                                                                    data-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
-		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle" data-toggle="dropdown">
-        <span class="caret"></span>
-      </button>
-		  <ul class="dropdown-menu">
-        <!-- available config group menu links -->
-        {{#each configGroup in configGroups}}
-          <li>
-            <a href="#" {{action "selectConfigGroup" configGroup target="controller"}}>
-              {{configGroup.displayNameHosts}}
-            </a>
-          </li>
-        {{/each}}
-      </ul>
-		</span>
+    <div class="config-groups-dropdown">
+      {{view App.ConfigGroupDropdownView}}
+    </div>
+
     {{#isAccessible ADMIN}}
       {{#if controller.isHostsConfigsPage}}
         &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
