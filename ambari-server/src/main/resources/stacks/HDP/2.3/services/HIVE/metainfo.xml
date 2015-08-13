@@ -30,9 +30,6 @@
               <name>mysql-connector-java</name>
               <skipUpgrade>true</skipUpgrade>
             </package>
-            <package>
-              <name>atlas-metadata*-hive-plugin</name>
-            </package>
           </packages>
         </osSpecific>
         <osSpecific>
@@ -46,6 +43,9 @@
             </package>
             <package>
               <name>hive_2_3_*-webhcat</name>
+            </package>
+            <package>
+              <name>atlas-metadata*-hive-plugin</name>
             </package>
           </packages>
         </osSpecific>
@@ -82,6 +82,9 @@
             </package>
             <package>
               <name>hive-2-3-.*-webhcat</name>
+            </package>
+            <package>
+              <name>atlas-metadata.*-hive-plugin</name>
             </package>
           </packages>
         </osSpecific>

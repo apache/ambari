@@ -383,9 +383,11 @@ atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
 has_atlas = len(atlas_hosts) > 0
 classpath_addition = ""
 atlas_plugin_package = "atlas-metadata*-hive-plugin"
+atlas_ubuntu_plugin_package = "atlas-metadata.*-hive-plugin"
 
 if not has_atlas:
   hive_exclude_packages.append(atlas_plugin_package)
+  hive_exclude_packages.append(atlas_ubuntu_plugin_package)
 else:
   # hive-site
   hive_site_config['atlas.cluster.name'] = config['clusterName']
