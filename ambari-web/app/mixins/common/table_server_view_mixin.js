@@ -123,6 +123,7 @@ App.TableServerViewMixin = Em.Mixin.create({
     clearTimeout(this.get('timeOut'));
     this.set('filteringComplete', true);
     this.propertyDidChange('pageContent');
+    App.loadTimer.finish('Hosts Page');
   },
 
   /**

@@ -81,6 +81,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    * called when trigger property(<code>refreshTriggers</code>) is changed
    */
   refresh: function () {
+    App.loadTimer.start('Hosts Page');
     this.set('filteringComplete', false);
     var updaterMethodName = this.get('updater.tableUpdaterMap')[this.get('tableName')];
     this.get('updater')[updaterMethodName](this.updaterSuccessCb.bind(this), this.updaterErrorCb.bind(this), true);

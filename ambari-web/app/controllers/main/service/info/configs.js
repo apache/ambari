@@ -550,6 +550,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     this.get('configGroups').forEach(function (configGroup) {
       this.getRecommendationsForDependencies(null, true, Em.K, configGroup);
     }, this);
+    App.loadTimer.finish('Service Configs Page');
   },
 
   /**
@@ -801,6 +802,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method selectConfigGroup
    */
   doSelectConfigGroup: function (event) {
+    App.loadTimer.start('Service Configs Page');
     var configGroupVersions = App.ServiceConfigVersion.find().filterProperty('groupId', event.context.get('configGroupId'));
     //check whether config group has config versions
     if (event.context.get('configGroupId') == -1) {

@@ -120,6 +120,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     widgets: Em.Route.extend({
       route: '/metrics',
       connectOutlets: function (router, context) {
+        App.loadTimer.start('Dashboard Metrics Page');
         router.set('mainDashboardController.selectedCategory', 'widgets');
         router.get('mainDashboardController').connectOutlet('mainDashboardWidgets');
       }
@@ -127,6 +128,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     charts: Em.Route.extend({
       route: '/charts',
       connectOutlets: function (router, context) {
+        App.loadTimer.start('Heatmaps Page');
         router.set('mainDashboardController.selectedCategory', 'charts');
         router.get('mainDashboardController').connectOutlet('mainCharts');
       },
@@ -162,6 +164,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     configHistory: Em.Route.extend({
       route: '/config_history',
       connectOutlets: function (router, context) {
+        App.loadTimer.start('Config History Page');
         router.set('mainDashboardController.selectedCategory', 'configHistory');
         router.get('mainDashboardController').connectOutlet('mainConfigHistory');
       }
@@ -181,6 +184,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     index: Ember.Route.extend({
       route: '/',
       connectOutlets: function (router, context) {
+        App.loadTimer.start('Hosts Page');
         router.get('mainController').connectOutlet('mainHost');
       }
     }),
@@ -605,6 +609,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       summary: Em.Route.extend({
         route: '/summary',
         connectOutlets: function (router, context) {
+          App.loadTimer.start('Service Summary Page');
           var item = router.get('mainServiceItemController.content');
           if (router.get('clusterController.isServiceMetricsLoaded')) router.get('updateController').updateServiceMetric(Em.K);
           //if service is not existed then route to default service
@@ -625,6 +630,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       configs: Em.Route.extend({
         route: '/configs',
         connectOutlets: function (router, context) {
+          App.loadTimer.start('Service Configs Page');
           router.get('mainController').dataLoading().done(function () {
             var item = router.get('mainServiceItemController.content');
             //if service is not existed then route to default service
@@ -661,6 +667,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       heatmaps: Em.Route.extend({
         route: '/heatmaps',
         connectOutlets: function (router, context) {
+          App.loadTimer.start('Service Heatmaps Page');
           router.get('mainController').dataLoading().done(function () {
             var item = router.get('mainServiceItemController.content');
             if (item.get('isLoaded')) {

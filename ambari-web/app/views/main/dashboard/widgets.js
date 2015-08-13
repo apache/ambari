@@ -30,6 +30,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
     this.setInitPrefObject();
     this.setOnLoadVisibleWidgets();
     this.set('isDataLoaded', true);
+    App.loadTimer.finish('Dashboard Metrics Page');
     Em.run.next(this, 'makeSortable');
   },
 

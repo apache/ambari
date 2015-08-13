@@ -611,6 +611,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
         $(this).find('.hidden-description').stop().hide().end();
       });
     }, 1000);
+    App.loadTimer.finish('Service Summary Page');
   },
 
   willDestroyElement: function() {
