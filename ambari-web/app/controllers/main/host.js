@@ -67,15 +67,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    * true if from details page
    */
   isDrillUp: false,
-  /**
-   * Components which will be shown in component filter
-   * @returns {Array}
-   */
-  componentsForFilter: function () {
-    var installedComponents = App.StackServiceComponent.find().toArray();
-    installedComponents.setEach('checkedForHostFilter', false);
-    return installedComponents;
-  }.property('App.router.clusterController.isLoaded'),
 
   content: App.Host.find(),
 
@@ -489,7 +480,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       return;
     var id = component.get('componentName');
     var column = 6;
-    this.get('componentsForFilter').setEach('checkedForHostFilter', false);
 
     var filterForComponent = {
       iColumn: column,

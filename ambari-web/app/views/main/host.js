@@ -927,40 +927,35 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     filterView: filters.componentFieldView.extend({
       templateName: require('templates/main/host/component_filter'),
 
-
-      /**
-       * Components which will be shown in component filter
-       * @returns {Array}
-       */
-      componentsForFilter: function () {
-        var installedComponents = App.StackServiceComponent.find().toArray();
-        installedComponents.setEach('checkedForHostFilter', false);
-        return installedComponents;
-      }.property('App.router.clusterController.isLoaded'),
-
       /**
        * Master components
        * @returns {Array}
        */
       masterComponents: function () {
-        return this.get('componentsForFilter').filterProperty('isMaster', true);
-      }.property('componentsForFilter'),
+        var components = App.MasterComponent.find().rejectProperty('totalCount', 0);
+        components.setEach('checkedForHostFilter', false);
+        return components;
+      }.property('App.router.clusterController.isComponentsStateLoaded'),
 
       /**
        * Slave components
        * @returns {Array}
        */
       slaveComponents: function () {
-        return this.get('componentsForFilter').filterProperty('isSlave', true);
-      }.property('componentsForFilter'),
+        var components = App.SlaveComponent.find().rejectProperty('totalCount', 0);
+        components.setEach('checkedForHostFilter', false);
+        return components;
+      }.property('App.router.clusterController.isComponentsStateLoaded'),
 
       /**
        * Client components
        * @returns {Array}
        */
       clientComponents: function () {
-        return this.get('componentsForFilter').filterProperty('isClient', true);
-      }.property('componentsForFilter'),
+        var components = App.ClientComponent.find().rejectProperty('totalCount', 0);
+        components.setEach('checkedForHostFilter', false);
+        return components;
+      }.property('App.router.clusterController.isComponentsStateLoaded'),
 
       /**
        * Checkbox for quick selecting/deselecting of master components
