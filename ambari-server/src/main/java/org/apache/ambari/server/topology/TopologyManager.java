@@ -150,47 +150,49 @@ public class TopologyManager {
 
     boolean matchedToRequest = false;
     String hostName = host.getHostName();
-    synchronized(reservedHosts) {
-      if (reservedHosts.containsKey(hostName)) {
-        LogicalRequest request = reservedHosts.remove(hostName);
-        HostOfferResponse response = request.offer(host);
-        if (response.getAnswer() != HostOfferResponse.Answer.ACCEPTED) {
-          throw new RuntimeException("LogicalRequest declined host offer of explicitly requested host: " + hostName);
+    // The lock ordering in this method must always be the same ordering as TopologyManager.processRequest
+    // TODO: Locking strategies for TopologyManager should be reviewed and possibly rewritten in a future release
+    synchronized (availableHosts) {
+      synchronized(reservedHosts) {
+        if (reservedHosts.containsKey(hostName)) {
+          LogicalRequest request = reservedHosts.remove(hostName);
+          HostOfferResponse response = request.offer(host);
+          if (response.getAnswer() != HostOfferResponse.Answer.ACCEPTED) {
+            throw new RuntimeException("LogicalRequest declined host offer of explicitly requested host: " + hostName);
+          }
+
+          LOG.info("TopologyManager.onHostRegistered: processing accepted host offer for reserved host = {}", hostName);
+          processAcceptedHostOffer(getClusterTopology(request.getClusterName()), response, host);
+          matchedToRequest = true;
         }
-
-        LOG.info("TopologyManager.onHostRegistered: processing accepted host offer for reserved host = {}", hostName);
-        processAcceptedHostOffer(getClusterTopology(request.getClusterName()), response, host);
-        matchedToRequest = true;
       }
-    }
 
-    // can be true if host was reserved
-    if (! matchedToRequest) {
-      synchronized (outstandingRequests) {
-        Iterator<LogicalRequest> outstandingRequestIterator = outstandingRequests.iterator();
-        while (! matchedToRequest && outstandingRequestIterator.hasNext()) {
-          LogicalRequest request = outstandingRequestIterator.next();
-          HostOfferResponse hostOfferResponse = request.offer(host);
-          switch (hostOfferResponse.getAnswer()) {
-            case ACCEPTED:
-              matchedToRequest = true;
-              LOG.info("TopologyManager.onHostRegistered: processing accepted host offer for matched host = {}", hostName);
-              processAcceptedHostOffer(getClusterTopology(request.getClusterName()), hostOfferResponse, host);
-              break;
-            case DECLINED_DONE:
-              LOG.info("TopologyManager.onHostRegistered: DECLINED_DONE received for host = {}", hostName);
-              outstandingRequestIterator.remove();
-              break;
-            case DECLINED_PREDICATE:
-              LOG.info("TopologyManager.onHostRegistered: DECLINED_PREDICATE received for host = {}", hostName);
-              break;
+      // can be true if host was reserved
+      if (!matchedToRequest) {
+        synchronized (outstandingRequests) {
+          Iterator<LogicalRequest> outstandingRequestIterator = outstandingRequests.iterator();
+          while (!matchedToRequest && outstandingRequestIterator.hasNext()) {
+            LogicalRequest request = outstandingRequestIterator.next();
+            HostOfferResponse hostOfferResponse = request.offer(host);
+            switch (hostOfferResponse.getAnswer()) {
+              case ACCEPTED:
+                matchedToRequest = true;
+                LOG.info("TopologyManager.onHostRegistered: processing accepted host offer for matched host = {}", hostName);
+                processAcceptedHostOffer(getClusterTopology(request.getClusterName()), hostOfferResponse, host);
+                break;
+              case DECLINED_DONE:
+                LOG.info("TopologyManager.onHostRegistered: DECLINED_DONE received for host = {}", hostName);
+                outstandingRequestIterator.remove();
+                break;
+              case DECLINED_PREDICATE:
+                LOG.info("TopologyManager.onHostRegistered: DECLINED_PREDICATE received for host = {}", hostName);
+                break;
+            }
           }
         }
       }
-    }
 
-    if (!matchedToRequest) {
-      synchronized (availableHosts) {
+      if (!matchedToRequest) {
         boolean addToAvailableList = true;
         for (HostImpl registered : availableHosts) {
           if (registered.getHostId() == host.getHostId()) {
@@ -316,6 +318,9 @@ public class TopologyManager {
 
     boolean requestHostComplete = false;
     //todo: overall synchronization. Currently we have nested synchronization here
+
+    // The lock ordering in this method must always be the same ordering as TopologyManager.onHostRegistered
+    // TODO: Locking strategies for TopologyManager should be reviewed and possibly rewritten in a future release
     synchronized(availableHosts) {
       Iterator<HostImpl> hostIterator = availableHosts.iterator();
       while (! requestHostComplete && hostIterator.hasNext()) {
@@ -368,7 +373,9 @@ public class TopologyManager {
         // not all required hosts have been matched (see earlier comment regarding outstanding logical requests)
         LOG.info("TopologyManager.processRequest: not all required hosts have been matched, so adding LogicalRequest ID = {} to outstanding requests",
           logicalRequest.getRequestId());
-        outstandingRequests.add(logicalRequest);
+        synchronized (outstandingRequests) {
+          outstandingRequests.add(logicalRequest);
+        }
       }
     }
     return logicalRequest;
