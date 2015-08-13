@@ -597,9 +597,9 @@ App.AssignMasterComponents = Em.Mixin.create({
 
   /**
    * Get recommendations info from API
-   * @return {undefined}
-   * @param function(componentInstallationobjects, this) callback
-   * @param bool includeMasters
+   * @param {function}callback
+   * @param {boolean} includeMasters
+   * @method loadComponentsRecommendationsFromServer
    */
   loadComponentsRecommendationsFromServer: function(callback, includeMasters) {
     var self = this;
@@ -608,7 +608,8 @@ App.AssignMasterComponents = Em.Mixin.create({
       // Don't do AJAX call if recommendations has been already received
       // But if user returns to previous step (selecting services), stored recommendations will be cleared in routers' next handler and AJAX call will be made again
       callback(self.createComponentInstallationObjects(), self);
-    } else {
+    }
+    else {
       var selectedServices = App.StackService.find().filterProperty('isSelected').mapProperty('serviceName');
       var installedServices = App.StackService.find().filterProperty('isInstalled').mapProperty('serviceName');
       var services = installedServices.concat(selectedServices).uniq();
@@ -625,9 +626,11 @@ App.AssignMasterComponents = Em.Mixin.create({
       if (includeMasters) {
         // Made partial recommendation request for reflect in blueprint host-layout changes which were made by user in UI
         data.recommendations = self.getCurrentBlueprint();
-      } else if (!self.get('isInstallerWizard')) {
-        data.recommendations = self.getCurrentMasterSlaveBlueprint();
       }
+      else
+        if (!self.get('isInstallerWizard')) {
+          data.recommendations = self.getCurrentMasterSlaveBlueprint();
+        }
 
       return App.ajax.send({
         name: 'wizard.loadrecommendations',
@@ -636,8 +639,8 @@ App.AssignMasterComponents = Em.Mixin.create({
         success: 'loadRecommendationsSuccessCallback',
         error: 'loadRecommendationsErrorCallback'
       }).then(function () {
-            callback(self.createComponentInstallationObjects(), self);
-          });
+          callback(self.createComponentInstallationObjects(), self);
+        });
     }
   },
 

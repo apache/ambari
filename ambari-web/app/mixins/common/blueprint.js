@@ -18,14 +18,18 @@
 
 var App = require('app');
 var blueprintUtils = require('utils/blueprint');
+var dataManipulation = require('utils/data_manipulation');
 
 App.BlueprintMixin = Em.Mixin.create({
+
   /**
-   * returns blueprint for all currenlty installed master, slave and client components
+   * returns blueprint for all currently installed master, slave and client components
+   * @method getCurrentMasterSlaveBlueprint
    */
   getCurrentMasterSlaveBlueprint: function () {
     var components = App.HostComponent.find();
     var hosts = components.mapProperty("hostName").uniq();
+    var mappedComponents = dataManipulation.groupPropertyValues(components, 'hostName');
 
     var res = {
       blueprint: { host_groups: [] },
@@ -33,13 +37,13 @@ App.BlueprintMixin = Em.Mixin.create({
     };
 
     hosts.forEach(function (host, i) {
-      var group_name = 'host-group-' + (i+1);
+      var group_name = 'host-group-' + (i + 1);
 
       res.blueprint.host_groups.push({
         name: group_name,
-        components: components.filterProperty("hostName", host).mapProperty("componentName").map(function (c) {
-          return { name: c };
-        })
+        components: mappedComponents[host] ? mappedComponents[host].map(function (c) {
+          return { name: Em.get(c, 'componentName') };
+        }) : []
       });
 
       res.blueprint_cluster_binding.host_groups.push({
