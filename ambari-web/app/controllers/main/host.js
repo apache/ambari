@@ -50,23 +50,19 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   filterClearHappened: false,
 
   /**
-   * true if user click "Hosts" on top menu bar
-   */
-  fromTopBarClicking: false,
-  /**
    * if true, do not clean stored filter before hosts page rendering.
    */
   showFilterConditionsFirstLoad: false,
 
   /**
-   * if true, fire host loading immediately with out any postpone.
+   * Components which will be shown in component filter
+   * @returns {Array}
    */
-  needQuickInitLoad: false,
-
-  /**
-   * true if from details page
-   */
-  isDrillUp: false,
+  componentsForFilter: function () {
+    var installedComponents = App.StackServiceComponent.find().toArray();
+    installedComponents.setEach('checkedForHostFilter', false);
+    return installedComponents;
+  }.property('App.router.clusterController.isLoaded'),
 
   content: App.Host.find(),
 

@@ -267,7 +267,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     back: function (router, event) {
       var referer = router.get('mainHostDetailsController.referer');
       if (referer) {
-        router.set('mainHostController.isDrillUp', true);
         router.route(referer);
       }
       else {
