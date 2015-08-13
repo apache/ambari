@@ -44,11 +44,6 @@ describe('App.MainHostView', function () {
           callCount: 1
         },
         {
-          methodName: 'overlayObserver',
-          propertyToChange: 'filteringComplete',
-          callCount: 2
-        },
-        {
           methodName: 'updatePagination',
           propertyToChange: 'displayLength',
           callCount: 1

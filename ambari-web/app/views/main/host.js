@@ -204,7 +204,6 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     this.addObserver('startIndex', this, 'updatePagination');
     this.addObserver('displayLength', this, 'updatePagination');
     this.addObserver('filteredCount', this, this.updatePaging);
-    this.overlayObserver();
   },
 
   willDestroyElement: function () {
@@ -213,24 +212,16 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
 
   onInitialLoad: function () {
     if (this.get('tableFilteringComplete')) {
-      if (this.get('controller.fromTopBarClicking') && !this.get('controller.filterClearHappened')
-      && !this.get('controller.needQuickInitLoad') || this.get('controller.isDrillUp')) {
-        Em.run.later(this, this.refresh, App.get('contentUpdateInterval'));
-        this.clearLoadRelatedStates();
-      } else {
+      if (this.get('controller.filterClearHappened')) {
         this.refresh();
-        this.clearLoadRelatedStates();
+      } else {
+        // no refresh but still need to enable pagination controls
+        this.propertyDidChange('filteringComplete');
       }
     }
-  }.observes('tableFilteringComplete'),
-
-  clearLoadRelatedStates: function() {
+    // reset filter cleaning marker
     this.set('controller.filterClearHappened', false);
-    this.set('controller.fromTopBarClicking', false);
-    this.set('controller.needQuickInitLoad', false);
-    this.set('controller.isDrillUp', false);
-
-  },
+  }.observes('tableFilteringComplete'),
 
   /**
    * Set <code>selected</code> property for each App.Host
