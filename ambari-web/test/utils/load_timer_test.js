@@ -26,7 +26,12 @@ describe('App.loadTimer', function () {
     }
   };
 
+  beforeEach(function() {
+    App.set('supports.showPageLoadTime', true);
+  });
+
   afterEach(function () {
+    App.set('supports.showPageLoadTime', false);
     App.loadTimer.set('timeStampCache', {});
   });
 
