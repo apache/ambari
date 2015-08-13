@@ -62,6 +62,8 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
       });
 
       this.set('controller.selectedMetric', metricObject);
+      App.loadTimer.finish('Heatmaps Page');
+      App.loadTimer.finish('Service Heatmaps Page');
     }
   },
 

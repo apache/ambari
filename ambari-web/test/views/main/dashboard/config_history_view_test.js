@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('views/main/dashboard/config_history_view');
+require('utils/load_timer');
 
 describe('App.MainConfigHistoryView', function() {
   var view = App.MainConfigHistoryView.create({

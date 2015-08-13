@@ -46,6 +46,8 @@
           <div class="active-widget" {{bindAttr id="activeWidget.id"}}>
             {{view activeWidget.viewClass contentBinding="activeWidget" racksBinding = "racks" idBinding="activeWidget.id"}}
           </div>
+        {{else}}
+          <div class="spinner"></div>
         {{/if}}
       </div>
     </div>

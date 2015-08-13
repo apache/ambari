@@ -197,6 +197,7 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     this.set('filteringComplete', true);
     this.propertyDidChange('pageContent');
     this.set('controller.resetStartIndex', false);
+    App.loadTimer.finish('Config History Page');
   },
 
   /**

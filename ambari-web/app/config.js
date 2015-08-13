@@ -72,7 +72,8 @@ App.supports = {
   installGanglia: false,
   opsDuringRollingUpgrade: false,
   customizedWidgetLayout: false,
-  enhancedConfigs: true
+  enhancedConfigs: true,
+  showPageLoadTime: false
 };
 
 if (App.enableExperimental) {
