@@ -904,6 +904,7 @@ Em.I18n.translations = {
   'form.validator.configKey':'Invalid Key. Only alphanumerics, hyphens, underscores, asterisks and periods are allowed.',
   'form.validator.configGroupName':'Invalid Group Name. Only alphanumerics, hyphens, spaces and underscores are allowed.',
   'form.validator.alertGroupName':'Invalid Alert Group Name. Only alphanumerics, hyphens, spaces and underscores are allowed.',
+  'form.validator.alertGroupPlaceHolder':'Alert Group Name',
   'form.validator.configKey.specific':'"{0}" is invalid Key. Only alphanumerics, hyphens, underscores, asterisks and periods are allowed.',
 
   'alerts.add.header': 'Create Alert Definition',
@@ -1774,6 +1775,7 @@ Em.I18n.translations = {
     'on the Ambari Server host to make the JDBC driver available and to enable testing the database connection.',
 
   'services.service.config.configHistory.configGroup': 'Config Group',
+  'services.service.config.configHistory.configGroup.name': 'Config Group Name',
   'services.service.config.configHistory.rightArrow.tooltip': 'Show earlier versions',
   'services.service.config.configHistory.leftArrow.tooltip': 'Show later versions',
   'services.service.config.configHistory.dismissIcon.tooltip': 'Dismiss',

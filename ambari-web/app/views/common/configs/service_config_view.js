@@ -298,3 +298,68 @@ App.ServiceConfigView = Em.View.extend({
   }.observes('filter', 'columns.@each.selected', 'tabs.@each.isHiddenByFilter')
 
 });
+
+
+App.ConfigGroupDropdownView = Ember.TextField.extend({
+  classNames: ['typeahead'],
+
+  /**
+   * @type {string}
+   */
+  placeholder: Em.I18n.t('services.service.config.configHistory.configGroup.name'),
+
+  /**
+   * @type {boolean}
+   */
+  disabled: function () {
+    if (this.get('controller.isInstaller')) return false;
+    return !this.get('controller.versionLoaded');
+  }.property('controller.versionLoaded', 'controller.isInstaller'),
+
+  didInsertElement: function() {
+    var self = this;
+    var node = $(this.get('element'));
+    node.typeahead({
+      name: 'config groups',
+      source: self.get('controller.configGroups').mapProperty('displayNameHosts'),
+      updater: function (value) {
+        if (self.get('controller.selectedConfigGroup.displayNameHosts') !==  value
+          && self.get('controller.configGroups').findProperty('displayNameHosts', value)) {
+          self.get('controller').selectConfigGroup({
+            context: self.get('controller.configGroups').findProperty('displayNameHosts', value)
+          });
+          node.trigger('blur');
+        }
+        return value;
+      },
+      items: 9999,
+      minLength: 0,
+      matcher: function (item) {
+        if (this.query === '_SHOW_ALL_') return true;
+        return ~item.toLowerCase().indexOf(this.query.toLowerCase());
+      }
+    });
+    node.val(self.get('controller.selectedConfigGroup.displayNameHosts'));
+    node.on('keyup focus', function (e) {
+      /**
+       * don't update group list on up arrow(38) or down arrow(40) event
+       * since Typeahead ignore filtering by empty query, "_SHOW_ALL_" pseudo key used in order
+       * to force filtering and show all items
+       */
+      if ($(this).val().length === 0 && [40, 38].indexOf(e.keyCode) === -1) {
+        $(this).val('_SHOW_ALL_');
+        $(this).trigger('keyup');
+        $(this).val('');
+      }
+    });
+    node.on('blur', function (e) {
+      $(self.get('element')).val(self.get('controller.selectedConfigGroup.displayNameHosts'));
+    });
+  },
+
+  updateConfigGroupsList: function() {
+    if ($(this.get('element'))) {
+      $(this.get('element')).data('typeahead').source = this.get('controller.configGroups').mapProperty('displayNameHosts');
+    }
+  }.observes('controller.configGroups.length')
+});

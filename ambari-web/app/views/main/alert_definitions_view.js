@@ -366,27 +366,61 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     column: 7,
     fieldType: 'filter-input-width',
     template: Ember.Handlebars.compile(
-      '<div class="btn-group display-inline-block">' +
-        '<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">' +
-          '<span class="filters-label">Groups:&nbsp;&nbsp;</span>' +
-          '<span>{{view.selected.label}}&nbsp;<span class="caret"></span></span>' +
-        '</a>' +
-          '<ul class="dropdown-menu">' +
-            '{{#each category in view.content}}' +
-              '<li {{bindAttr class=":category-item category.selected:active"}}>' +
-                '<a {{action selectCategory category target="view"}} href="#">' +
-                   '<span {{bindAttr class="category.class"}}></span>{{category.label}}</a>' +
-              '</li>'+
-            '{{/each}}' +
-          '</ul>'+
+      '<div class="display-inline-block">' +
+       '<input type="text" class="typeahead" {{bindAttr placeholder="view.alertGroupPlaceholder" }}/>' +
       '</div>'
     ),
     content: [],
+
+    alertGroupPlaceholder: Em.I18n.t('form.validator.alertGroupPlaceHolder'),
 
     didInsertElement: function() {
       this._super();
       this.updateContent();
       this.set('value', '');
+      this.attachAlertGroupDropdown();
+    },
+
+    attachAlertGroupDropdown: function() {
+      var self = this;
+      var node = this.$('.typeahead');
+      this.set('typeahead', node.typeahead({
+        name: 'alert groups',
+        source: self.get('content').mapProperty('label'),
+        updater: function (label) {
+          var current = self.get('content').findProperty('value', self.get('value')).get('label');
+          var entered = self.get('content').findProperty('label', label);
+          if (current !==  label && entered) {
+            self.selectCategory({
+              context: entered
+            });
+            node.trigger('blur');
+          }
+          return label;
+        },
+        items: 9999,
+        minLength: 0,
+        matcher: function (item) {
+          if (this.query === '_SHOW_ALL_') return true;
+          return ~item.toLowerCase().indexOf(this.query.toLowerCase());
+        }
+      }));
+      node.val(self.get('content').findProperty('value', '').get('label'));
+      node.on('keyup focus', function (e) {
+        /**
+         * don't update group list on up arrow(38) or down arrow(40) event
+         * since Typeahead ignore filtering by empty query, "_SHOW_ALL_" pseudo key used in order
+         * to force filtering and show all items
+         */
+        if ($(this).val().length === 0 && [40, 38].indexOf(e.keyCode) === -1) {
+          $(this).val('_SHOW_ALL_');
+          $(this).trigger('keyup');
+          $(this).val('');
+        }
+      });
+      node.on('blur', function (e) {
+        $(self.get('.typeahead')).val(self.get('content').findProperty('value', self.get('value')).get('label'));
+      });
     },
 
     emptyValue: '',
@@ -418,6 +452,9 @@ App.MainAlertDefinitionsView = App.TableView.extend({
           label: Em.I18n.t('common.all') + ' (' + this.get('parentView.controller.content.length') + ')'
         })
       ].concat(defaultGroups, customGroups));
+      if (this.get('typeahead')) {
+        this.get('typeahead').data('typeahead').source = this.get('content').mapProperty('label');
+      }
       this.onValueChange();
     }.observes('App.router.clusterController.isLoaded', 'App.router.manageAlertGroupsController.changeTrigger'),
 
