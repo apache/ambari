@@ -519,6 +519,14 @@ def get_value_from_properties(properties, key, default=""):
     return default
   return value
 
+def get_views_dir(properties):
+  views_dir = properties.get_property(VIEWS_DIR_PROPERTY)
+  if views_dir is None or views_dir == "":
+    views_dirs = glob.glob("/var/lib/ambari-server/resources/views/work")
+  else:
+    views_dirs = glob.glob(views_dir + "/work")
+  return views_dirs
+
 def get_admin_views_dir(properties):
   views_dir = properties.get_property(VIEWS_DIR_PROPERTY)
   if views_dir is None or views_dir == "":

@@ -35,7 +35,7 @@ from ambari_server.properties import Properties
 from ambari_server.serverConfiguration import configDefaults, \
   check_database_name_property, get_ambari_properties, get_ambari_version, get_full_ambari_classpath, \
   get_java_exe_path, get_stack_location, parse_properties_file, read_ambari_user, update_ambari_properties, \
-  update_database_name_property, get_admin_views_dir, \
+  update_database_name_property, get_admin_views_dir, get_views_dir,\
   AMBARI_PROPERTIES_FILE, IS_LDAP_CONFIGURED, LDAP_PRIMARY_URL_PROPERTY, RESOURCES_DIR_PROPERTY, \
   SETUP_OR_UPGRADE_MSG, update_krb_jaas_login_properties, AMBARI_KRB_JAAS_LOGIN_FILE, get_db_type
 from ambari_server.setupSecurity import adjust_directory_permissions, \
@@ -349,6 +349,11 @@ def upgrade(args):
   admin_views_dirs = get_admin_views_dir(properties)
   for admin_views_dir in admin_views_dirs:
     shutil.rmtree(admin_views_dir)
+
+  # Remove ambari views directory for the rest of the jars, at the time of upgrade. At restart all jars present in Ambari will be extracted into work directory
+  views_dir =  get_views_dir(properties)
+  for views in views_dir:
+    shutil.rmtree(views)
 
   # check if ambari has obsolete LDAP configuration
   if properties.get_property(LDAP_PRIMARY_URL_PROPERTY) and not properties.get_property(IS_LDAP_CONFIGURED):
