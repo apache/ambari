@@ -41,6 +41,12 @@ module.exports = {
       connectionUrl: 'oozie.service.JPAService.jdbc.url',
       databaseName: 'oozie.db.schema.name',
       fallbackHostName: 'oozieserver_host'
+    },
+    RANGER: {
+      dbType: 'DB_FLAVOR',
+      connectionUrl: 'ranger.jpa.jdbc.url',
+      databaseName: 'db_name',
+      fallbackHostName: 'db_host'
     }
   },
 
