@@ -21,6 +21,7 @@ limitations under the License.
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.core.resources.packaging import Package
 from resource_management.libraries.functions.format import format
+from ambari_commons import OSCheck
 
 def setup_atlas_hive(configuration_directory=None):
   import params
@@ -30,7 +31,7 @@ def setup_atlas_hive(configuration_directory=None):
       configuration_directory = format("{hive_config_dir}")
 
     if not params.host_sys_prepped:
-      Package(params.atlas_plugin_package, # FIXME HACK: install the package during RESTART/START when install_packages is not triggered.
+      Package(params.atlas_ubuntu_plugin_package if OSCheck.is_ubuntu_family() else params.atlas_plugin_package, # FIXME HACK: install the package during RESTART/START when install_packages is not triggered.
       )
 
     PropertiesFile(format('{configuration_directory}/client.properties'),
