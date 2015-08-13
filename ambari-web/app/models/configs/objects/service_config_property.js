@@ -197,10 +197,11 @@ App.ServiceConfigProperty = Em.Object.extend({
   isRemovable: function() {
     var isOriginalSCP = this.get('isOriginalSCP');
     var isUserProperty = this.get('isUserProperty');
+    var isRequiredByAgent = this.get('isRequiredByAgent');
     var isEditable = this.get('isEditable');
     var hasOverrides = this.get('overrides.length') > 0;
     // Removable when this is a user property, or it is not an original property and it is editable
-    return isEditable && !hasOverrides && (isUserProperty || !isOriginalSCP);
+    return isEditable && !hasOverrides && isRequiredByAgent && (isUserProperty || !isOriginalSCP);
   }.property('isUserProperty', 'isOriginalSCP', 'overrides.length'),
 
   init: function () {
