@@ -75,7 +75,7 @@ App.QuickViewLinks = Em.View.extend({
   /**
    * list of files that contains properties for enabling/disabling ssl
    */
-  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','storm-env', 'falcon-env', 'core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site', 'storm-site', 'spark-defaults', 'accumulo-site', 'application-properties', 'ranger-admin-site'],
+  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','storm-env', 'falcon-env', 'core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site', 'storm-site', 'spark-defaults', 'accumulo-site', 'application-properties', 'ranger-site'],
   /**
    * Get public host name by its host name.
    *
@@ -379,8 +379,8 @@ App.QuickViewLinks = Em.View.extend({
         return "http";
         break;
       case "RANGER":
-        var rangerProperties = configProperties && configProperties.findProperty('type', 'ranger-admin-site');
-        if (rangerProperties && rangerProperties.properties && rangerProperties.properties['ranger.service.https.attrib.ssl.enabled'] == "true") {
+        var rangerProperties = configProperties && configProperties.findProperty('type', 'ranger-site');
+        if (rangerProperties && rangerProperties.properties && rangerProperties.properties['HTTP_ENABLED'] == "false") {
           return "https";
         } else {
           return "http";
@@ -433,6 +433,7 @@ App.QuickViewLinks = Em.View.extend({
       case "falcon":
       case "accumulo":
       case "atlas":
+      case "ranger":
         return "_blank";
         break;
       default:

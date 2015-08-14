@@ -297,13 +297,13 @@ App.QuickLinks.FIXTURES = [
   {
     id: 33,
     label:'Ranger Admin UI',
-    url:'%@://%@:6080/',
+    url:'%@://%@:%@/',
     service_id: 'RANGER',
     template:'%@://%@:%@/',
-    http_config: 'ranger.service.http.port',
-    https_config: 'ranger.service.https.port',
+    http_config: 'http.service.port',
+    https_config: 'https.service.port',
     regex: '(\\d*)+',
-    site: 'ranger-admin-site',
+    site: 'ranger-site',
     default_http_port: 6080,
     default_https_port: 6182
   },
