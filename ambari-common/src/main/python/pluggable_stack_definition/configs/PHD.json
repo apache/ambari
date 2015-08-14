@@ -1,0 +1,199 @@
+{
+  "stackName": "PHD",
+  "baseStackName": "HDP",
+  "performCommonReplacements": true,
+  "textReplacements": [
+    ["hdp-select", "distro-select"],
+    ["conf-select", "phd-conf-select"]
+   ],
+  "preservedText": ["ext-2.2", "HDP-oozie", "hdp.version", "HDP_VERSION"],
+  "uiMapping": [
+    {
+      "stackVersionNumber": "3.0",
+      "sign": "<",
+      "baseStackFolder": "HDP2"
+    }
+  ],
+  "versions": [
+    {
+      "version": "2.0.6",
+      "baseVersion": "2.0.6",
+      "active": "false",
+      "services": [
+        {
+          "name": "HDFS"
+
+        },
+        {
+          "name": "ZOOKEEPER"
+        },
+        {
+          "name": "HBASE"
+        },
+        {
+          "name": "YARN"
+        },
+        {
+          "name": "MAPREDUCE2"
+        },
+        {
+          "name": "HIVE"
+        },
+        {
+          "name": "TEZ"
+        },
+        {
+          "name": "OOZIE"
+        },
+        {
+          "name": "KNOX"
+        },
+        {
+          "name": "PIG"
+        }
+      ]
+    },
+    {
+      "version": "2.1",
+      "baseVersion": "2.1",
+      "active": "false",
+      "services": [
+        {
+          "name": "HDFS"
+        },
+        {
+          "name": "ZOOKEEPER"
+        },
+        {
+          "name": "HBASE"
+        },
+        {
+          "name": "YARN"
+        },
+        {
+          "name": "MAPREDUCE2"
+        },
+        {
+          "name": "HIVE"
+        },
+        {
+          "name": "TEZ"
+        },
+        {
+          "name": "OOZIE"
+        },
+        {
+          "name": "KNOX"
+        },
+        {
+          "name": "PIG"
+        }
+      ]
+    },
+    {
+      "version": "3.0",
+      "baseVersion": "2.2",
+      "active": "true",
+      "services": [
+        {
+          "name": "HDFS"
+        },
+        {
+          "name": "ZOOKEEPER"
+        },
+        {
+          "name": "HBASE",
+          "packages":[
+            {
+              "family": "redhat6,suse11",
+              "packages": [
+                "hbase_3_0_*"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "YARN"
+        },
+        {
+          "name": "MAPREDUCE2"
+        },
+        {
+          "name": "HIVE"
+        },
+        {
+          "name": "TEZ"
+        },
+        {
+          "name": "OOZIE",
+          "packages":[
+            {
+              "family": "redhat6,suse11",
+              "packages": [
+                "oozie_3_0_*"
+              ]
+            },
+            {
+              "family": "any",
+              "packages": [
+                "zip",
+                "extjs"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "KNOX",
+          "packages":[
+            {
+              "family": "redhat6,suse11",
+              "packages": [
+                "knox_3_0_*"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "PIG"
+        }
+      ]
+    },
+    {
+      "version": "3.1",
+      "baseVersion": "2.3",
+      "active": "true",
+      "services": [
+        {
+          "name": "HDFS"
+        },
+        {
+          "name": "ZOOKEEPER"
+        },
+        {
+          "name": "HBASE"
+        },
+        {
+          "name": "YARN"
+        },
+        {
+          "name": "MAPREDUCE2"
+        },
+        {
+          "name": "HIVE"
+        },
+        {
+          "name": "TEZ"
+        },
+        {
+          "name": "OOZIE"
+        },
+        {
+          "name": "KNOX"
+        },
+        {
+          "name": "PIG"
+        }
+      ]
+    }
+  ]
+}
