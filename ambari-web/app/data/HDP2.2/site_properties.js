@@ -486,7 +486,7 @@ hdp22properties.push(
     "isReconfigurable": true,
     "displayType": "",
     "isOverridable": false,
-    "isVisible": false,
+    "isVisible": true,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "DBSettings",

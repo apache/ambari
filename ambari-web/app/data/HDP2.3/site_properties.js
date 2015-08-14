@@ -26,6 +26,7 @@ var excludedConfigs = [
   'db_root_user',
   'db_root_password',
   'nimbus.host',
+  'db_host',
   'XAAUDIT.DB.IS_ENABLED',
   'XAAUDIT.HDFS.IS_ENABLED',
   'UPDATE_XAPOLICIES_ON_GRANT_REVOKE',
@@ -89,6 +90,20 @@ hdp23properties.push({
     "filename": "admin-properties.xml",
     "category": "DBSettings",
     "index": 1
+  },
+  {
+    "id": "site property",
+    "name": "db_host",
+    "displayName": "Ranger DB host",
+    "recommendedValue": "",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": false,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings",
+    "index": 2
   },
   {
     "name": "ranger_mysql_database",
