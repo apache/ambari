@@ -326,5 +326,5 @@ def create_config_links(stack_id, stack_version):
           select(args[0], k, stack_version)
         except Exception, err:
           # don't ruin someone's day
-          Logger.logger.exception("Conf-select set failed to link '{k}'. Error: {0}".format(k, str(err)))
+          Logger.logger.exception("'conf-select set' failed to link '{k}'. Error: {0}".format(k, str(err)))
 
