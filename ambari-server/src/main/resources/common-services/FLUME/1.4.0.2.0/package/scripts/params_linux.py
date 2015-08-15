@@ -16,11 +16,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from resource_management.libraries.functions import format
+from resource_management.libraries.functions.constants import Direction
+from resource_management.libraries.functions import default
 from resource_management.libraries.script.script import Script
 
 # server configurations
 config = Script.get_config()
+
+# upgrade params
+stack_name = default("/hostLevelParams/stack_name", None)
+upgrade_direction = default("/commandParams/upgrade_direction", Direction.UPGRADE)
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 
 flume_conf_dir = '/etc/flume/conf'
 if Script.is_hdp_stack_greater_or_equal("2.2"):

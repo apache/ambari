@@ -76,6 +76,7 @@ def pre_start_restore():
     if os.path.exists(os.path.join(tempfile.gettempdir(), BACKUP_TEMP_DIR)):
       shutil.rmtree(os.path.join(tempfile.gettempdir(), BACKUP_TEMP_DIR))
 
+
 def _get_directory_mappings():
   """
   Gets a dictionary of directory to archive name that represents the
