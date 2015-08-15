@@ -62,8 +62,30 @@
           <function>prepare</function>
         </task>
       </execute-stage>
-
     </group>
+
+    <!--
+    On an HDP 2.3 to 2.2 downgrade, the /etc/component/conf must be turned back from a symlink
+    into a normal directory. This will avoid the circular symbolic link that will happen after
+    hdp-select sets /usr/hdp/current/component back to 2.2:
+
+    # new symlink created for 2.3
+    /etc/flume/conf -> /usr/hdp/current/flume-server/conf
+
+    # circular reference from 2.2 (current)
+    /usr/hdp/2.2.0.0-1234/flume/conf -> /etc/flume/conf
+    /usr/hdp/current/flume-server/conf -> /etc/flume/conf
+    -->
+    <group xsi:type="cluster" name="RESTORE_CONFIG_DIRS" title="Restore Configuration Directories">
+      <direction>DOWNGRADE</direction>
+      <execute-stage title="Restore configuration directories and remove HDP 2.3 symlinks">
+        <task xsi:type="execute">
+          <script>scripts/ru_set_all.py</script>
+          <function>unlink_all_configs</function>
+        </task>
+      </execute-stage>
+    </group>
+
 
     <group name="ZOOKEEPER" title="ZooKeeper">
       <service name="ZOOKEEPER">

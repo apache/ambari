@@ -63,19 +63,19 @@ class FlumeHandler(Script):
     env.set_params(params)
     self.configure(env)
     Service(service_mapping.flume_win_service_name, action="start")
-    # flume(action='start')
 
   @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     flume(action='stop')
-    if rolling_restart:
+
+    # only backup data on upgrade
+    if rolling_restart and params.upgrade_direction == Direction.UPGRADE:
       flume_upgrade.post_stop_backup()
 
   @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
   def stop(self, env):
-    import params
     Service(service_mapping.flume_win_service_name, action="stop")
 
   def configure(self, env):
@@ -123,7 +123,10 @@ class FlumeHandler(Script):
     Logger.info("Executing Flume Rolling Upgrade pre-restart")
     conf_select.select(params.stack_name, "flume", params.version)
     hdp_select.select("flume-server", params.version)
-    flume_upgrade.pre_start_restore()
+
+    # only restore on upgrade, not downgrade
+    if params.upgrade_direction == Direction.UPGRADE:
+      flume_upgrade.pre_start_restore()
 
 if __name__ == "__main__":
   FlumeHandler().execute()
