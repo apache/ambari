@@ -381,8 +381,21 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
               print("SiteName: %s, method: %s\n" % (siteName, method.__name__))
               print("Site properties: %s\n" % str(siteProperties))
               print("Recommendations: %s\n********\n" % str(siteRecommendations))
-              resultItems = method(siteProperties, siteRecommendations, configurations, services, hosts)
-              items.extend(resultItems)
+              try:
+                resultItems = method(siteProperties, siteRecommendations, configurations, services, hosts)
+                items.extend(resultItems)
+              except (AttributeError, TypeError, LookupError) as e:
+                msg = "Failed to validate configuration "
+                print msg
+                print e
+                items.extend([{
+                                'message': msg,
+                                'level': 'ERROR',
+                                'config-type': siteName,
+                                'config-name': '',
+                                'type': 'configuration'
+                              }])
+
     clusterWideItems = self.validateClusterConfigurations(configurations, services, hosts)
     items.extend(clusterWideItems)
     self.validateMinMax(items, recommendedDefaults, configurations)
@@ -482,7 +495,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     distributed_item = None
     distributed = properties.get("hbase.cluster.distributed")
-    if hbase_rootdir.startswith("hdfs://") and not distributed.lower() == "true":
+    if hbase_rootdir and hbase_rootdir.startswith("hdfs://") and not distributed.lower() == "true":
       distributed_item = self.getErrorItem("Distributed property should be set to true if hbase.rootdir points to HDFS.")
 
     validationItems.extend([{"config-name":'hbase.rootdir', "item": rootdir_item },
@@ -532,7 +545,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     hbase_site = getSiteProperties(configurations, "ams-hbase-site")
     hbase_rootdir = hbase_site.get("hbase.rootdir")
     regionServerMinMemItem = None
-    if hbase_rootdir.startswith("hdfs://"):
+    if hbase_rootdir and hbase_rootdir.startswith("hdfs://"):
       regionServerMinMemItem = self.validateMinMemorySetting(properties, 1024, 'hbase_regionserver_heapsize')
 
     validationItems = [{"config-name": "hbase_regionserver_heapsize", "item": regionServerItem},

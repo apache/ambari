@@ -242,14 +242,14 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       if ranger_plugin_enabled:
         prop_name = 'hive.security.authorization.manager'
         prop_val = "org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory"
-        if hive_server2[prop_name] != prop_val:
+        if prop_name in hive_server2 and hive_server2[prop_name] != prop_val:
           validationItems.append({"config-name": prop_name,
                                   "item": self.getWarnItem(
                                   "If Ranger Hive Plugin is enabled."\
                                   " {0} needs to be set to {1}".format(prop_name,prop_val))})
         prop_name = 'hive.security.authenticator.manager'
         prop_val = "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
-        if hive_server2[prop_name] != prop_val:
+        if prop_name in hive_server2 and hive_server2[prop_name] != prop_val:
           validationItems.append({"config-name": prop_name,
                                   "item": self.getWarnItem(
                                   "If Ranger Hive Plugin is enabled."\
