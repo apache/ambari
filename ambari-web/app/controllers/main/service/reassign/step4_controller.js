@@ -59,6 +59,12 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   hostComponents: [],
 
   /**
+   * List of components, that do not need reconfiguration for moving to another host
+   * Reconfigure command will be skipped
+   */
+  componentsWithoutReconfiguration: ['METRICS_COLLECTOR'],
+
+  /**
    * Map with lists of unrelated services.
    * Used to define list of services to stop/start.
    */
@@ -329,12 +335,13 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * remove unneeded tasks
    */
   removeUnneededTasks: function () {
-    if(this.isComponentWithDB()) {
+    var componentName = this.get('content.reassign.component_name');
+    if (this.isComponentWithDB()) {
       var db_type = this.get('content.databaseType');
       var is_remote_db = this.get('content.serviceProperties.is_remote_db');
 
 
-      if(is_remote_db || db_type !== 'mysql') {
+      if (is_remote_db || db_type !== 'mysql') {
         this.removeTasks(['configureMySqlServer', 'startMySqlServer', 'restartMySqlServer', 'cleanMySqlServer', 'configureMySqlServer']);
       }
 
@@ -343,16 +350,16 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       }
     }
 
-    if ( this.get('content.reassign.component_name') !== 'MYSQL_SERVER' && !this.isComponentWithDB()) {
+    if (componentName !== 'MYSQL_SERVER' && !this.isComponentWithDB()) {
       this.removeTasks(['configureMySqlServer', 'startMySqlServer', 'restartMySqlServer', 'cleanMySqlServer', 'startNewMySqlServer', 'configureMySqlServer']);
     }
 
-    if ( this.get('content.reassign.component_name') === 'MYSQL_SERVER' ) {
+    if (componentName === 'MYSQL_SERVER') {
       this.removeTasks(['cleanMySqlServer']);
     }
 
     if (this.get('content.hasManualSteps')) {
-      if (this.get('content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled')) {
+      if (componentName === 'NAMENODE' && App.get('isHaEnabled')) {
         // Only for reassign NameNode with HA enabled
         this.removeTasks(['deleteHostComponents', 'startRequiredServices']);
       } else {
@@ -360,6 +367,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       }
     } else {
       this.removeTasks(['startZooKeeperServers', 'startNameNode']);
+    }
+
+    if (this.get('componentsWithoutReconfiguration').contains(componentName)) {
+      this.removeTasks(['reconfigure']);
     }
   },
 
