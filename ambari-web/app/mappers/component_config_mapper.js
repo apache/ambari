@@ -57,13 +57,11 @@ App.componentConfigMapper = App.QuickDataMapper.create({
         var currentStaleConfigsState = Boolean(hostComponentJson);
         var stateChanged = hostComponent.get('staleConfigs') !== currentStaleConfigsState;
 
-        if (stateChanged && !hostComponent.get('isMaster')) {
+        if (stateChanged) {
           hostComponent.set('staleConfigs', currentStaleConfigsState);
         }
         //delete loaded host-components, so only new ones left
-        if (hostComponent.get('service.hostComponents').someProperty('id', id)) {
-          delete hostComponentJsonMap[id];
-        }
+        delete hostComponentJsonMap[id];
       });
       hostComponentJsonIds.forEach(function (hcId) {
         var newHostComponent = hostComponentJsonMap[hcId];

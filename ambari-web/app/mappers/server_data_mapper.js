@@ -159,5 +159,42 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
       return result;
     }
     return current;
+  },
+
+  /**
+   * Binary search <code>searchElement</code> in the array (should be sorted!)
+   * @param {number[]|string[]} array
+   * @param {number|string} searchElement
+   * @returns {number} position of the needed element or negative value, if value wasn't found
+   * @method binaryIndexOf
+   */
+  binaryIndexOf: function (array, searchElement) {
+    var minIndex = 0;
+    var maxIndex = array.length - 1;
+    var currentIndex;
+    var currentElement;
+    var resultIndex;
+
+    if (array[0] > searchElement || array[array.length - 1] < searchElement) {
+      return -1;
+    }
+    while (minIndex <= maxIndex) {
+      resultIndex = currentIndex = (minIndex + maxIndex) / 2 | 0;
+      currentElement = array[currentIndex];
+
+      if (currentElement < searchElement) {
+        minIndex = currentIndex + 1;
+      }
+      else
+      if (currentElement > searchElement) {
+        maxIndex = currentIndex - 1;
+      }
+      else {
+        return currentIndex;
+      }
+    }
+
+    return ~maxIndex;
   }
+
 });
