@@ -81,6 +81,14 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
   }.property('isRegistrationInProgress', 'isWarningsLoaded'),
 
   /**
+   * Controller is using in Add Host Wizard
+   * @return {bool}
+   */
+  isAddHostWizard: function () {
+    return this.get('content.controllerName') === 'addHostController';
+  }.property('content.controllerName'),
+
+  /**
    * @type {bool}
    */
   isLoaded: false,
@@ -940,12 +948,14 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @param {string} checkExecuteList - for now supported:
    *  <code>"last_agent_env_check"<code>
    *  <code>"host_resolution_check"<code>
-   * @param {boolean} addHosts - true
+   * @param {boolean} addHostsParameter - define whether add hosts parameter to RequestInfo
    * @return {object|null}
    * @method getDataForCheckRequest
    */
-  getDataForCheckRequest: function (checkExecuteList, addHosts) {
-    var hosts = this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name').join(",");
+  getDataForCheckRequest: function (checkExecuteList, addHostsParameter) {
+    var newHosts = this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name');
+    var hosts = this.get('isAddHostWizard') ? [].concat.apply([], App.MasterComponent.find().mapProperty('hostNames')).concat(newHosts).uniq() : newHosts;
+    hosts = hosts.join(',');
     if (hosts.length == 0) return null;
     var jdk_location = App.router.get('clusterController.ambariProperties.jdk_location');
     var RequestInfo = {
@@ -957,7 +967,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         "threshold": "20"
       }
     };
-    if (addHosts) {
+    if (addHostsParameter) {
       RequestInfo.parameters.hosts = hosts;
     }
     var resource_filters = {
