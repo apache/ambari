@@ -4880,7 +4880,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverUpgrade.upgrade_local_repo")
   @patch("ambari_server.serverUpgrade.move_user_custom_actions")
   @patch("ambari_server.serverUpgrade.update_krb_jaas_login_properties")
-  def test_upgrade_from_161(self, update_krb_jaas_login_properties_mock, move_user_custom_actions_mock, upgrade_local_repo_mock, get_ambari_properties_mock,
+  @patch("ambari_server.serverUpgrade.update_ambari_env")
+  def test_upgrade_from_161(self, update_ambari_env_mock, update_krb_jaas_login_properties_mock, move_user_custom_actions_mock, upgrade_local_repo_mock, get_ambari_properties_mock,
                             get_ambari_properties_2_mock, get_ambari_properties_3_mock, get_ambari_version_mock, write_property_mock,
                             is_root_mock, update_ambari_properties_mock, find_properties_file_mock, run_os_command_mock,
                             run_schema_upgrade_mock, read_ambari_user_mock, print_warning_msg_mock,
@@ -4925,6 +4926,7 @@ class TestAmbariServer(TestCase):
 
     is_root_mock.return_value = True
     update_ambari_properties_mock.return_value = 0
+    update_ambari_env_mock.return_value = 0
     get_ambari_version_mock.return_value = "1.7.0"
     move_user_custom_actions_mock.return_value = None
     update_krb_jaas_login_properties_mock.return_value = -2
@@ -5097,7 +5099,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverUpgrade.upgrade_local_repo")
   @patch("ambari_server.serverUpgrade.move_user_custom_actions")
   @patch("ambari_server.serverUpgrade.update_krb_jaas_login_properties")
-  def test_upgrade(self, update_krb_jaas_login_properties_mock, move_user_custom_actions, upgrade_local_repo_mock,
+  @patch("ambari_server.serverUpgrade.update_ambari_env")
+  def test_upgrade(self, update_ambari_env_mock, update_krb_jaas_login_properties_mock, move_user_custom_actions, upgrade_local_repo_mock,
                    get_ambari_properties_mock, get_ambari_properties_2_mock, get_ambari_properties_3_mock,
                    is_root_mock, get_ambari_version_mock, get_ambari_version_2_mock,
                    parse_properties_file_mock,
@@ -5132,6 +5135,7 @@ class TestAmbariServer(TestCase):
     get_ambari_properties_3_mock.return_value = get_ambari_properties_2_mock.return_value = \
       get_ambari_properties_mock.return_value = properties
     update_ambari_properties_mock.return_value = 0
+    update_ambari_env_mock.return_value = 0
     run_schema_upgrade_mock.return_value = 0
     isfile_mock.return_value = False
     get_ambari_version_2_mock.return_value = get_ambari_version_mock.return_value = CURR_AMBARI_VERSION

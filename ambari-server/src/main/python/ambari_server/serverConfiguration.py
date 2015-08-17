@@ -60,6 +60,7 @@ BOOTSTRAP_DIR_PROPERTY = "bootstrap.dir"
 
 AMBARI_CONF_VAR = "AMBARI_CONF_DIR"
 AMBARI_PROPERTIES_FILE = "ambari.properties"
+AMBARI_ENV_FILE = "ambari-env.sh"
 AMBARI_KRB_JAAS_LOGIN_FILE = "krb5JAASLogin.conf"
 GET_FQDN_SERVICE_URL = "server.fqdn.service.url"
 
@@ -270,8 +271,10 @@ class ServerConfigDefaults(object):
     self.DEFAULT_CONF_DIR = ""
     self.PID_DIR = os.sep + os.path.join("var", "run", "ambari-server")
     self.DEFAULT_LIBS_DIR = ""
+    self.DEFAULT_VLIBS_DIR = ""
 
     self.AMBARI_PROPERTIES_BACKUP_FILE = ""
+    self.AMBARI_ENV_BACKUP_FILE = ""
     self.AMBARI_KRB_JAAS_LOGIN_BACKUP_FILE = ""
 
     # ownership/permissions mapping
@@ -369,8 +372,10 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     # Configuration defaults
     self.DEFAULT_CONF_DIR = "/etc/ambari-server/conf"
     self.DEFAULT_LIBS_DIR = "/usr/lib/ambari-server"
+    self.DEFAULT_VLIBS_DIR = "/var/lib/ambari-server"
 
     self.AMBARI_PROPERTIES_BACKUP_FILE = "ambari.properties.rpmsave"
+    self.AMBARI_ENV_BACKUP_FILE = "ambari-env.sh.rpmsave"
     self.AMBARI_KRB_JAAS_LOGIN_BACKUP_FILE = "krb5JAASLogin.conf.rpmsave"
     # ownership/permissions mapping
     # path - permissions - user - group - recursive
@@ -927,6 +932,26 @@ def update_krb_jaas_login_properties():
 
   return 0
 
+def update_ambari_env():
+  prev_env_file = search_file(configDefaults.AMBARI_ENV_BACKUP_FILE, configDefaults.DEFAULT_VLIBS_DIR)
+  env_file = search_file(AMBARI_ENV_FILE, configDefaults.DEFAULT_VLIBS_DIR)
+
+  # Previous env file does not exist
+  if (not prev_env_file) or (prev_env_file is None):
+    print_warning_msg("Can not find %s file from previous version, skipping restore of environment settings" %
+                      configDefaults.AMBARI_ENV_BACKUP_FILE)
+    return 0
+
+  try:
+    if env_file is not None:
+      os.remove(env_file)
+      os.rename(prev_env_file, env_file)
+      print_warning_msg("Original file %s kept" % AMBARI_ENV_FILE)
+  except OSError as e:
+    print "Couldn't move %s file: %s" % (prev_env_file, e)
+    return -1
+
+  return 0
 
 def update_ambari_properties():
   prev_conf_file = search_file(configDefaults.AMBARI_PROPERTIES_BACKUP_FILE, get_conf_dir())
