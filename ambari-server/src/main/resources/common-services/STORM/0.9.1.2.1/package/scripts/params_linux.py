@@ -103,11 +103,11 @@ if len(nimbus_hosts) > 1:
 else:
   # for non-HA Nimbus
   actual_topology_max_replication_wait_time_sec = default_topology_max_replication_wait_time_sec
-  actual_topology_min_replication_count = default_topology_min_replication_count 
-  
+  actual_topology_min_replication_count = default_topology_min_replication_count
+
 if 'topology.max.replication.wait.time.sec.default' in config['configurations']['storm-site']:
   del config['configurations']['storm-site']['topology.max.replication.wait.time.sec.default']
-if 'topology.min.replication.count.default' in config['configurations']['storm-site']:  
+if 'topology.min.replication.count.default' in config['configurations']['storm-site']:
   del config['configurations']['storm-site']['topology.min.replication.count.default']
 
 rest_api_port = "8745"
@@ -145,11 +145,17 @@ if security_enabled:
     nimbus_bare_jaas_principal = get_bare_principal(_nimbus_principal_name)
     nimbus_keytab_path = config['configurations']['storm-env']['nimbus_keytab']
 
+kafka_bare_jaas_principal = None
 if stack_is_hdp22_or_further:
   if security_enabled:
     storm_thrift_transport = config['configurations']['storm-site']['_storm.thrift.secure.transport']
+    # generate KafkaClient jaas config if kafka is kerberoized
+    _kafka_principal_name = default("/configurations/kafka-env/kafka_principal_name", None)
+    kafka_bare_jaas_principal = get_bare_principal(_kafka_principal_name)
+
   else:
     storm_thrift_transport = config['configurations']['storm-site']['_storm.thrift.nonsecure.transport']
+
 
 ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
 has_metric_collector = not len(ams_collector_hosts) == 0
@@ -195,7 +201,7 @@ if has_ranger_admin:
   xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
   repo_config_password = unicode(config['configurations']['ranger-storm-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
-  
+
   if xa_audit_db_flavor == 'mysql':
     jdbc_symlink_name = "mysql-jdbc-driver.jar"
     jdbc_jar_name = "mysql-connector-java.jar"
@@ -218,7 +224,7 @@ if has_ranger_admin:
     jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
 
   downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
-  
+
   driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
   driver_curl_target = format("{storm_component_home_dir}/lib/{jdbc_jar_name}")
 
@@ -228,7 +234,7 @@ if has_ranger_admin:
     'nimbus.url': 'http://' + storm_ui_host[0].lower() + ':' + str(storm_ui_port),
     'commonNameForCertificate': common_name_for_certificate
   }
-  
+
   storm_ranger_plugin_repo = {
     'isActive': 'true',
     'config': json.dumps(storm_ranger_plugin_config),
@@ -237,7 +243,7 @@ if has_ranger_admin:
     'repositoryType': 'storm',
     'assetType': '6'
   }
-   
+
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
   xa_audit_db_is_enabled = config['configurations']['ranger-storm-audit']['xasecure.audit.destination.db'] if xml_configurations_supported else None
   ssl_keystore_password = unicode(config['configurations']['ranger-storm-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
