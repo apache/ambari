@@ -18,6 +18,7 @@
 
 var Ember = require('ember');
 var App = require('app');
+var mapper;
 
 require('mappers/server_data_mapper');
 
@@ -47,6 +48,10 @@ describe('App.QuickDataMapper', function () {
     }
   };
 
+  beforeEach(function () {
+    mapper = App.QuickDataMapper.create();
+  });
+
   describe('#getJsonProperty', function() {
     var tests = [
       {i:'a1.b1.c1',e:'val1'},
@@ -57,7 +62,6 @@ describe('App.QuickDataMapper', function () {
     ];
     tests.forEach(function(test) {
       it(test.i, function() {
-        var mapper = App.QuickDataMapper.create();
         expect(mapper.getJsonProperty(test_json, test.i)).to.equal(test.e);
       });
     });
@@ -75,8 +79,12 @@ describe('App.QuickDataMapper', function () {
         item: 'c2'
       }
     };
-    var mapper = App.QuickDataMapper.create();
-    var result = mapper.parseIt(test_json, config);
+    var result;
+
+    beforeEach(function () {
+      result = mapper.parseIt(test_json, config);
+    });
+
     it('Property starts with $', function() {
       expect(result.a2).to.equal('a2');
     });
@@ -92,6 +100,41 @@ describe('App.QuickDataMapper', function () {
     it('Generate array of json fields', function() {
       expect(result.f4).to.eql(['val1','val4','val5']);
     });
+  });
+
+  describe('#binaryIndexOf', function () {
+
+    var array1 = [1,2,3,4,5,6,7,8,9];
+    var array2 = ['b','c','d','e','f','g'];
+
+    array1.forEach(function(item, index) {
+      it('numeric array. test ' + (index + 1), function () {
+        expect(mapper.binaryIndexOf(array1, item)).to.equal(index);
+      });
+    });
+
+    it('numeric array. element doesn\'t exists', function () {
+      expect(mapper.binaryIndexOf(array1, 0) < 0).to.be.true;
+    });
+
+    it('numeric array. element doesn\'t exists 2', function () {
+      expect(mapper.binaryIndexOf(array1, 10) < 0).to.be.true;
+    });
+
+    array2.forEach(function(item, index) {
+      it('string array. test ' + (index + 1), function () {
+        expect(mapper.binaryIndexOf(array2, item)).to.equal(index);
+      });
+    });
+
+    it('string array. element doesn\'t exists', function () {
+      expect(mapper.binaryIndexOf(array2, 'a') < 0).to.be.true;
+    });
+
+    it('string array. element doesn\'t exists 2', function () {
+      expect(mapper.binaryIndexOf(array2, 'q') < 0).to.be.true;
+    });
+
   });
 
 });

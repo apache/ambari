@@ -45,7 +45,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
   },
 
   map: function (json) {
-    console.time('stackConfigPropertiesMapper execution time');
+    console.time('App.stackConfigPropertiesMapper execution time');
     if (json && json.Versions) {
       //hack for cluster versions
       json = {items: [json]};
@@ -99,7 +99,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
       }, this);
       App.store.loadMany(this.get('model'), configs);
     }
-    console.timeEnd('stackConfigPropertiesMapper execution time');
+    console.timeEnd('App.stackConfigPropertiesMapper execution time');
   },
 
   /******************* METHODS TO MERGE STACK PROPERTIES WITH STORED ON UI *********************************/
