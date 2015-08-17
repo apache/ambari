@@ -1566,10 +1566,10 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             }
             //hive metastore and client_heapsize are added for HDP2, we should check if it exists and not add it for HDP1
             if (!cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive.client.heapsize")) {
-              hiveEnvProps.put("hive.client.heapsize", "512m");
+              hiveEnvProps.put("hive.client.heapsize", "512");
             }
             if (!cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive.metastore.heapsize")) {
-              hiveEnvProps.put("hive.metastore.heapsize", "1024m");
+              hiveEnvProps.put("hive.metastore.heapsize", "1024");
             }
             if (cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive_security_authorization") &&
                     "none".equalsIgnoreCase(cluster.getDesiredConfigByType("hive-env").getProperties().get("hive_security_authorization"))) {
