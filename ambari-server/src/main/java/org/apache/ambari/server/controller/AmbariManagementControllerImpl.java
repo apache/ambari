@@ -89,6 +89,7 @@ import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.internal.WidgetLayoutResourceProvider;
 import org.apache.ambari.server.controller.internal.WidgetResourceProvider;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -734,7 +735,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     handleGlobalsBackwardsCompability(request, propertiesAttributes);
 
     Config config = createConfig(cluster, request.getType(), request.getProperties(),
-        request.getVersionTag(), propertiesAttributes);
+      request.getVersionTag(), propertiesAttributes);
 
     return new ConfigurationResponse(cluster.getClusterName(), config);
   }
@@ -782,7 +783,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private Config createConfig(Cluster cluster, String type, Map<String, String> properties,
       String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
     Config config = configFactory.createNew(cluster, type,
-        properties, propertiesAttributes);
+      properties, propertiesAttributes);
 
     if (!StringUtils.isEmpty(versionTag)) {
       config.setTag(versionTag);
@@ -889,10 +890,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String logDir = BASE_LOG_DIR + File.pathSeparator + requestId;
     Stage stage =
         stageFactory.createNew(requestId, logDir,
-            null == cluster ? null : cluster.getClusterName(),
-            null == cluster ? -1L : cluster.getClusterId(),
-            requestContext, clusterHostInfo, commandParamsStage,
-            hostParamsStage);
+          null == cluster ? null : cluster.getClusterName(),
+          null == cluster ? -1L : cluster.getClusterId(),
+          requestContext, clusterHostInfo, commandParamsStage,
+          hostParamsStage);
     stage.setStageId(id);
     return stage;
   }
@@ -904,9 +905,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Received a getClusters request"
-          + ", clusterName=" + request.getClusterName()
-          + ", clusterId=" + request.getClusterId()
-          + ", stackInfo=" + request.getStackVersion());
+        + ", clusterName=" + request.getClusterName()
+        + ", clusterId=" + request.getClusterId()
+        + ", stackInfo=" + request.getStackVersion());
     }
 
     Cluster singleCluster = null;
@@ -2474,7 +2475,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // Add attributes
     Map<String, Map<String, Map<String, String>>> configAttributes =
         configHelper.getEffectiveConfigAttributes(cluster,
-                                                  ec.getConfigurationTags());
+          ec.getConfigurationTags());
 
     for (Map.Entry<String, Map<String, Map<String, String>>> attributesOccurrence : configAttributes.entrySet()) {
       String type = attributesOccurrence.getKey();
@@ -2606,7 +2607,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                                       boolean runSmokeTest, boolean reconfigureClients) throws AmbariException {
 
     RequestStageContainer request = addStages(null, cluster, requestProperties, requestParameters, changedServices,
-        changedComponents, changedHosts, ignoredHosts, runSmokeTest, reconfigureClients);
+      changedComponents, changedHosts, ignoredHosts, runSmokeTest, reconfigureClients);
 
     request.persist();
     return request.getRequestStatusResponse();
@@ -3227,15 +3228,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                     final Resource.Type level)
                                     throws AmbariException {
     Set<String> ignoredHosts = maintenanceStateHelper.filterHostsInMaintenanceState(
-            candidateHosts, new MaintenanceStateHelper.HostPredicate() {
-              @Override
-              public boolean shouldHostBeRemoved(final String hostname)
-                      throws AmbariException {
-                Host host = clusters.getHost(hostname);
-                return !maintenanceStateHelper.isOperationAllowed(
-                        host, cluster.getClusterId(), level);
-              }
-            }
+      candidateHosts, new MaintenanceStateHelper.HostPredicate() {
+        @Override
+        public boolean shouldHostBeRemoved(final String hostname)
+          throws AmbariException {
+          Host host = clusters.getHost(hostname);
+          return !maintenanceStateHelper.isOperationAllowed(
+            host, cluster.getClusterId(), level);
+        }
+      }
     );
     LOG.debug("Ignoring hosts when selecting available hosts for action" +
             " due to maintenance state." +
@@ -4188,7 +4189,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                           String user, long createTime) {
     List<WidgetEntity> createdEntities =
       widgetDAO.findByName(clusterEntity.getClusterId(), layoutInfo.getWidgetName(),
-              user, layoutInfo.getDefaultSectionName());
+        user, layoutInfo.getDefaultSectionName());
 
     if (createdEntities == null || createdEntities.isEmpty()) {
       WidgetEntity widgetEntity = new WidgetEntity();
@@ -4329,4 +4330,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
+  @Override
+  public TimelineMetricCacheProvider getTimelineMetricCacheProvider() {
+    return injector.getInstance(TimelineMetricCacheProvider.class);
+  }
 }

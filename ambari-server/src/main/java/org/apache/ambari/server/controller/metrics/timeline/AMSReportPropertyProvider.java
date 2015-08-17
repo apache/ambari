@@ -23,6 +23,9 @@ import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.MetricsPaddingMethod;
 import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricsReportPropertyProvider;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineAppMetricCacheKey;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCache;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -33,49 +36,37 @@ import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.http.client.utils.URIBuilder;
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.SocketTimeoutException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.ambari.server.controller.metrics.MetricsPaddingMethod.ZERO_PADDING_PARAM;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
-import static org.apache.ambari.server.controller.utilities.PropertyHelper.updateMetricsWithAggregateFunctionSupport;
 
 public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
-  private static ObjectMapper mapper;
-  private final static ObjectReader timelineObjectReader;
   private MetricsPaddingMethod metricsPaddingMethod;
-
-  static {
-    mapper = new ObjectMapper();
-    AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
-    mapper.setAnnotationIntrospector(introspector);
-    //noinspection deprecation
-    mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-    timelineObjectReader = mapper.reader(TimelineMetrics.class);
-  }
+  private final TimelineMetricCache metricCache;
+  MetricsRequestHelper requestHelper;
+  private static AtomicInteger printSkipPopulateMsgHostCounter = new AtomicInteger(0);
+  private static AtomicInteger printSkipPopulateMsgHostCompCounter = new AtomicInteger(0);
 
   public AMSReportPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
                                  StreamProvider streamProvider,
                                  ComponentSSLConfiguration configuration,
+                                 TimelineMetricCacheProvider cacheProvider,
                                  MetricHostProvider hostProvider,
                                  String clusterNamePropertyId) {
 
     super(componentPropertyInfoMap, streamProvider, configuration,
       hostProvider, clusterNamePropertyId);
+
+    this.metricCache = cacheProvider.getTimelineMetricsCache();
+    this.requestHelper = new MetricsRequestHelper(streamProvider);
   }
 
   /**
@@ -144,17 +135,33 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
 
     // Check liveliness of host
     if (!hostProvider.isCollectorHostLive(clusterName, TIMELINE_METRICS)) {
-      LOG.info("METRICS_COLLECTOR host is not live. Skip populating " +
-        "resources with metrics.");
+      if (printSkipPopulateMsgHostCounter.getAndIncrement() == 0) {
+        LOG.info("METRICS_COLLECTOR host is not live. Skip populating " +
+          "resources with metrics, next message will be logged after 1000 " +
+          "attempts.");
+      } else {
+        printSkipPopulateMsgHostCounter.compareAndSet(1000, 0);
+      }
+
       return true;
     }
+    // reset
+    printSkipPopulateMsgHostCompCounter.set(0);
 
     // Check liveliness of Collector
     if (!hostProvider.isCollectorComponentLive(clusterName, TIMELINE_METRICS)) {
-      LOG.info("METRICS_COLLECTOR is not live. Skip populating resources" +
-        " with metrics.");
+      if (printSkipPopulateMsgHostCompCounter.getAndIncrement() == 0) {
+        LOG.info("METRICS_COLLECTOR is not live. Skip populating resources" +
+          " with metrics, next message will be logged after 1000 " +
+          "attempts.");
+      } else {
+        printSkipPopulateMsgHostCompCounter.compareAndSet(1000, 0);
+      }
+
       return true;
     }
+    // reset
+    printSkipPopulateMsgHostCompCounter.set(0);
 
     setProperties(resource, clusterName, request, getRequestPropertyIds(request, predicate));
 
@@ -191,48 +198,34 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
         uriBuilder.setParameter("endTime", String.valueOf(endTime));
       }
 
-      BufferedReader reader = null;
-      String spec = uriBuilder.toString();
-      try {
-        LOG.debug("Metrics request url =" + spec);
-        reader = new BufferedReader(new InputStreamReader(streamProvider.readFrom(spec)));
+      TimelineAppMetricCacheKey metricCacheKey =
+        new TimelineAppMetricCacheKey(propertyIdMap.keySet(), "HOST", temporalInfo);
 
-        TimelineMetrics timelineMetrics = timelineObjectReader.readValue(reader);
-        LOG.debug("Timeline metrics response => " + timelineMetrics);
+      metricCacheKey.setSpec(uriBuilder.toString());
 
+      // Self populating cache updates itself on every get with latest results
+      TimelineMetrics timelineMetrics;
+      if (metricCache != null && metricCacheKey.getTemporalInfo() != null) {
+        timelineMetrics = metricCache.getAppTimelineMetricsFromCache(metricCacheKey);
+      } else {
+        try {
+          timelineMetrics = requestHelper.fetchTimelineMetrics(uriBuilder.toString());
+        } catch (IOException e) {
+          timelineMetrics = null;
+        }
+      }
+
+      if (timelineMetrics != null) {
         for (TimelineMetric metric : timelineMetrics.getMetrics()) {
           if (metric.getMetricName() != null && metric.getMetricValues() != null) {
-            // Pad zeros or nulls if needed
-            metricsPaddingMethod.applyPaddingStrategy(metric, temporalInfo);
+            // Pad zeros or nulls if needed to a clone so we do not cache
+            // padded values
+            TimelineMetric timelineMetricClone = new TimelineMetric(metric);
+            metricsPaddingMethod.applyPaddingStrategy(timelineMetricClone, temporalInfo);
 
             String propertyId = propertyIdMap.get(metric.getMetricName());
             if (propertyId != null) {
-              resource.setProperty(propertyId, getValue(metric, temporalInfo));
-            }
-          }
-        }
-
-      } catch (IOException io) {
-        String errorMsg = "Error getting timeline metrics.";
-        if (LOG.isDebugEnabled()) {
-          LOG.error(errorMsg, io);
-        } else {
-          if (io instanceof SocketTimeoutException) {
-            errorMsg += " Can not connect to collector, socket error.";
-          }
-          LOG.error(errorMsg);
-        }
-      } finally {
-        if (reader != null) {
-          try {
-            reader.close();
-          } catch (IOException e) {
-            if (LOG.isWarnEnabled()) {
-              if (LOG.isDebugEnabled()) {
-                LOG.warn("Unable to close http input steam : spec=" + spec, e);
-              } else {
-                LOG.warn("Unable to close http input steam : spec=" + spec);
-              }
+              resource.setProperty(propertyId, getValue(timelineMetricClone, temporalInfo));
             }
           }
         }

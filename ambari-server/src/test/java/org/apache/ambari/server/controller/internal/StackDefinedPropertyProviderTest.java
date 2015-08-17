@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,11 +28,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.inject.Binder;
+import com.google.inject.Module;
+import com.google.inject.util.Modules;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.jmx.TestStreamProvider;
 import org.apache.ambari.server.controller.metrics.JMXPropertyProviderTest;
 import org.apache.ambari.server.controller.metrics.MetricsServiceProvider;
 import org.apache.ambari.server.controller.metrics.ganglia.GangliaPropertyProviderTest.TestGangliaHostProvider;
 import org.apache.ambari.server.controller.metrics.ganglia.GangliaPropertyProviderTest.TestGangliaServiceProvider;
+import org.apache.ambari.server.controller.metrics.timeline.MetricsRequestHelper;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheEntryFactory;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
@@ -52,6 +60,7 @@ import org.apache.ambari.server.state.stack.Metric;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.inject.Guice;
@@ -70,11 +79,29 @@ public class StackDefinedPropertyProviderTest {
   private Injector injector = null;
   private OrmTestHelper helper = null;
 
+  private static TimelineMetricCacheEntryFactory cacheEntryFactory;
+  private static TimelineMetricCacheProvider cacheProvider;
+
+  @BeforeClass
+  public static void setupCache() {
+    cacheEntryFactory = new TimelineMetricCacheEntryFactory(new Configuration());
+    cacheProvider = new TimelineMetricCacheProvider(new Configuration(), cacheEntryFactory);
+  }
+
+  public class TestModuleWithCacheProvider implements Module {
+    @Override
+    public void configure(Binder binder) {
+      binder.bind(TimelineMetricCacheProvider.class).toInstance(cacheProvider);
+    }
+  }
+
   @Before
   public void setup() throws Exception {
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
-
-    injector = Guice.createInjector(module);
+    // Use the same cache provider to ensure there is only once instance of
+    // Cache available. The @net.sf.ehcache.CacheManager is a singleton and
+    // does not allow multiple instance with same cache name to be registered.
+    injector = Guice.createInjector(Modules.override(module).with(new TestModuleWithCacheProvider()));
     injector.getInstance(GuiceJpaInitializer.class);
     StackDefinedPropertyProvider.init(injector);
 
@@ -404,10 +431,10 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertEquals(12,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AggregateContainersReleased")));
     Assert.assertEquals(8192, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AvailableMB")));
     Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AvailableVCores")));
-    Assert.assertEquals(47,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AppsSubmitted")));
+    Assert.assertEquals(47, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AppsSubmitted")));
 
-    Assert.assertEquals(4,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AggregateContainersAllocated")));
-    Assert.assertEquals(4,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AggregateContainersReleased")));
+    Assert.assertEquals(4, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AggregateContainersAllocated")));
+    Assert.assertEquals(4, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AggregateContainersReleased")));
     Assert.assertEquals(6048, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AvailableMB")));
     Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AvailableVCores")));
     Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AppsSubmitted")));
@@ -688,8 +715,6 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertEquals(8444, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/journalnode/cluster/mycluster", "lastWrittenTxId")));
   }
 
-
-
   @Test
   public void testPopulateResources_jmx_Storm() throws Exception {
     // Adjust stack version for cluster
@@ -817,7 +842,6 @@ public class StackDefinedPropertyProviderTest {
     // uses 'tag.isActiveMaster' (name with a dot)
     Assert.assertTrue(map.get("metrics/hbase/master").containsKey("IsActiveMaster"));
   }
-
 
   @Test
   public void testPopulateResources_params_category5() throws Exception {
@@ -1042,7 +1066,7 @@ public class StackDefinedPropertyProviderTest {
 
     org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider streamProvider =
       new org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider("ams/aggregate_component_metric.json");
-
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
     JMXPropertyProviderTest.TestJMXHostProvider jmxHostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(true);
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
     MetricsServiceProvider serviceProvider = new MetricsServiceProvider() {
@@ -1085,4 +1109,10 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertEquals(32, metricsArray.length);
   }
 
+  /* Since streamProviders are not injected this hack becomes necessary */
+  private void injectCacheEntryFactoryWithStreamProvider(StreamProvider streamProvider) throws Exception {
+    Field field = TimelineMetricCacheEntryFactory.class.getDeclaredField("requestHelperForGets");
+    field.setAccessible(true);
+    field.set(cacheEntryFactory, new MetricsRequestHelper(streamProvider));
+  }
 }

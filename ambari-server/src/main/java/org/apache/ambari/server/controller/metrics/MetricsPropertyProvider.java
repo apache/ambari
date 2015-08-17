@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.metrics;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -81,6 +82,7 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
         Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
         StreamProvider streamProvider,
         ComponentSSLConfiguration configuration,
+        TimelineMetricCacheProvider cacheProvider,
         MetricHostProvider hostProvider,
         MetricsServiceProvider serviceProvider,
         String clusterNamePropertyId,
@@ -93,6 +95,7 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
         componentPropertyInfoMap,
         streamProvider,
         configuration,
+        cacheProvider,
         hostProvider,
         serviceProvider,
         clusterNamePropertyId,

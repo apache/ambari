@@ -28,6 +28,7 @@ import org.apache.ambari.server.controller.metrics.timeline.AMSComponentProperty
 import org.apache.ambari.server.controller.metrics.timeline.AMSHostComponentPropertyProvider;
 import org.apache.ambari.server.controller.metrics.timeline.AMSHostPropertyProvider;
 import org.apache.ambari.server.controller.metrics.timeline.AMSPropertyProvider;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -46,12 +47,14 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
   private final MetricsServiceProvider metricsServiceProvider;
   private AMSPropertyProvider amsPropertyProvider;
   private GangliaPropertyProvider gangliaPropertyProvider;
+  private TimelineMetricCacheProvider cacheProvider;
 
   public MetricsPropertyProviderProxy(
     InternalType type,
     Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
     StreamProvider streamProvider,
     ComponentSSLConfiguration configuration,
+    TimelineMetricCacheProvider cacheProvider,
     MetricHostProvider hostProvider,
     MetricsServiceProvider serviceProvider,
     String clusterNamePropertyId,
@@ -60,6 +63,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
 
     super(componentPropertyInfoMap);
     this.metricsServiceProvider = serviceProvider;
+    this.cacheProvider = cacheProvider;
 
     switch (type) {
       case Host:
@@ -108,6 +112,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
     this.amsPropertyProvider = new AMSHostPropertyProvider(componentPropertyInfoMap,
                                             streamProvider,
                                             configuration,
+                                            cacheProvider,
                                             hostProvider,
                                             clusterNamePropertyId,
                                             hostNamePropertyId);
@@ -132,6 +137,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
                                             componentPropertyInfoMap,
                                             streamProvider,
                                             configuration,
+                                            cacheProvider,
                                             hostProvider,
                                             clusterNamePropertyId,
                                             hostNamePropertyId,
@@ -158,6 +164,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
                                             componentPropertyInfoMap,
                                             streamProvider,
                                             configuration,
+                                            cacheProvider,
                                             hostProvider,
                                             clusterNamePropertyId,
                                             componentNamePropertyId);

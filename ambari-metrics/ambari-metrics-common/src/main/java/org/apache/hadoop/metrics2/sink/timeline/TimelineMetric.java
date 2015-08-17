@@ -43,6 +43,23 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
   private String type;
   private Map<Long, Double> metricValues = new TreeMap<Long, Double>();
 
+  // default
+  public TimelineMetric() {
+
+  }
+
+  // copy constructor
+  public TimelineMetric(TimelineMetric metric) {
+    setMetricName(metric.getMetricName());
+    setType(metric.getType());
+    setTimestamp(metric.getTimestamp());
+    setAppId(metric.getAppId());
+    setInstanceId(metric.getInstanceId());
+    setHostName(metric.getHostName());
+    setStartTime(metric.getStartTime());
+    setMetricValues(new TreeMap<Long, Double>(metric.getMetricValues()));
+  }
+
   @XmlElement(name = "metricname")
   public String getMetricName() {
     return metricName;

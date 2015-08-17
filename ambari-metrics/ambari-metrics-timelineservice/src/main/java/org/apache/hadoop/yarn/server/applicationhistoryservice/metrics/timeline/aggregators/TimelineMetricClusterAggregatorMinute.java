@@ -227,13 +227,6 @@ public class TimelineMetricClusterAggregatorMinute extends AbstractTimelineAggre
           sum = oldValue + metric.getValue();
         }
         timelineClusterMetricMap.put(clusterMetric, (sum / count));
-      } else {
-        if (timelineMetric.getMetricName().equals("tserver.general.entries")) {
-          LOG.info("--- Fallen off: serverTs = " + timelineMetric.getTimestamp() +
-            ", timeShift: " + timeShift +
-            ", timestamp: " + Long.parseLong(metric.getKey().toString()) +
-            ", host = " + timelineMetric.getHostName());
-        }
       }
     }
 

@@ -20,6 +20,8 @@ package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 
+import java.util.Date;
+
 /**
 * Temporal query data.
 */
@@ -74,6 +76,15 @@ public class TemporalInfoImpl implements TemporalInfo {
   }
 
   @Override
+  public String toString() {
+    return "TemporalInfoImpl{" +
+      "m_startTime = " + new Date(getStartTimeMillis()) +
+      ", m_endTime = " + new Date(getEndTimeMillis()) +
+      ", m_step = " + m_step +
+      '}';
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
@@ -82,7 +93,6 @@ public class TemporalInfoImpl implements TemporalInfo {
     return m_endTime == that.m_endTime &&
            m_startTime == that.m_startTime &&
            m_step == that.m_step;
-
   }
 
   @Override
