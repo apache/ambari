@@ -750,19 +750,22 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                         {"config-name": 'yarn.app.mapreduce.am.resource.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.resource.mb')},
                         {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')}]
 
-    if checkXmxValueFormat(properties['mapreduce.map.java.opts']):
+    if 'mapreduce.map.java.opts' in properties and \
+      checkXmxValueFormat(properties['mapreduce.map.java.opts']):
       mapreduceMapJavaOpts = formatXmxSizeToBytes(getXmxSize(properties['mapreduce.map.java.opts'])) / (1024.0 * 1024)
       mapreduceMapMemoryMb = to_number(properties['mapreduce.map.memory.mb'])
       if mapreduceMapJavaOpts > mapreduceMapMemoryMb:
         validationItems.append({"config-name": 'mapreduce.map.java.opts', "item": self.getWarnItem("mapreduce.map.java.opts Xmx should be less than mapreduce.map.memory.mb ({0})".format(mapreduceMapMemoryMb))})
 
-    if checkXmxValueFormat(properties['mapreduce.reduce.java.opts']):
+    if 'mapreduce.reduce.java.opts' in properties and \
+      checkXmxValueFormat(properties['mapreduce.reduce.java.opts']):
       mapreduceReduceJavaOpts = formatXmxSizeToBytes(getXmxSize(properties['mapreduce.reduce.java.opts'])) / (1024.0 * 1024)
       mapreduceReduceMemoryMb = to_number(properties['mapreduce.reduce.memory.mb'])
       if mapreduceReduceJavaOpts > mapreduceReduceMemoryMb:
         validationItems.append({"config-name": 'mapreduce.reduce.java.opts', "item": self.getWarnItem("mapreduce.reduce.java.opts Xmx should be less than mapreduce.reduce.memory.mb ({0})".format(mapreduceReduceMemoryMb))})
 
-    if checkXmxValueFormat(properties['yarn.app.mapreduce.am.command-opts']):
+    if 'yarn.app.mapreduce.am.command-opts' in properties and \
+      checkXmxValueFormat(properties['yarn.app.mapreduce.am.command-opts']):
       yarnAppMapreduceAmCommandOpts = formatXmxSizeToBytes(getXmxSize(properties['yarn.app.mapreduce.am.command-opts'])) / (1024.0 * 1024)
       yarnAppMapreduceAmResourceMb = to_number(properties['yarn.app.mapreduce.am.resource.mb'])
       if yarnAppMapreduceAmCommandOpts > yarnAppMapreduceAmResourceMb:
@@ -822,13 +825,16 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()):
-      if hdfs_site['dfs.permissions.enabled'] != 'true':
+      if 'dfs.permissions.enabled' in hdfs_site and \
+        hdfs_site['dfs.permissions.enabled'] != 'true':
         validationItems.append({"config-name": 'dfs.permissions.enabled',
                                     "item": self.getWarnItem(
                                       "dfs.permissions.enabled needs to be set to true if Ranger HDFS Plugin is enabled.")})
 
     if (not wire_encryption_enabled and   # If wire encryption is enabled at Hadoop, it disables all our checks
+          'hadoop.security.authentication' in core_site and
           core_site['hadoop.security.authentication'] == 'kerberos' and
+          'hadoop.security.authorization' in core_site and
           core_site['hadoop.security.authorization'] == 'true'):
       # security is enabled
 
@@ -961,7 +967,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     validationItems = []
     hive_env = properties
     hive_site = getSiteProperties(configurations, "hive-site")
-    if str(hive_env["hive_security_authorization"]).lower() == "none" \
+    if "hive_security_authorization" in hive_env and \
+        str(hive_env["hive_security_authorization"]).lower() == "none" \
       and str(hive_site["hive.security.authorization.enabled"]).lower() == "true":
       authorization_item = self.getErrorItem("hive_security_authorization should not be None "
                                              "if hive.security.authorization.enabled is set")
@@ -976,7 +983,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
     hive_env_properties = getSiteProperties(configurations, "hive-env")
-    ranger_plugin_enabled = 'hive_security_authorization' in hive_env_properties and hive_env_properties['hive_security_authorization'].lower() == 'ranger'
+    ranger_plugin_enabled = hive_env_properties \
+                            and 'hive_security_authorization' in hive_env_properties \
+                            and hive_env_properties['hive_security_authorization'].lower() == 'ranger'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ##Add stack validations only if Ranger is enabled.
     if ("RANGER" in servicesList):
@@ -984,7 +993,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       if ranger_plugin_enabled:
         prop_name = 'hive.security.authorization.enabled'
         prop_val = 'true'
-        if hive_site[prop_name] != prop_val:
+        if hive_site and \
+            prop_name in hive_site and \
+          hive_site[prop_name] != prop_val:
           validationItems.append({"config-name": prop_name,
                                   "item": self.getWarnItem(
                                     "If Ranger Hive Plugin is enabled." \
@@ -992,7 +1003,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
         prop_name = 'hive.conf.restricted.list'
         prop_vals = 'hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager'.split(',')
-        current_vals = hive_site[prop_name].split(',')
+        current_vals = []
+        if hive_site and prop_name in hive_site:
+          current_vals = hive_site[prop_name].split(',')
+
         missing_vals = []
 
         for val in prop_vals:
@@ -1006,7 +1020,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                   " {0} needs to contain {1}".format(prop_name, ','.join(missing_vals)))})
     stripe_size_values = [8388608, 16777216, 33554432, 67108864, 134217728, 268435456]
     stripe_size_property = "hive.exec.orc.default.stripe.size"
-    if int(properties[stripe_size_property]) not in stripe_size_values:
+    if stripe_size_property in properties and \
+        int(properties[stripe_size_property]) not in stripe_size_values:
       validationItems.append({"config-name": stripe_size_property,
                               "item": self.getWarnItem("Correct values are {0}".format(stripe_size_values))
                              }
@@ -1023,15 +1038,16 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     prop_name2 = 'hfile.block.cache.size'
     props_max_sum = 0.8
 
-    if not is_number(hbase_site[prop_name1]):
+    if prop_name1 in hbase_site and not is_number(hbase_site[prop_name1]):
       validationItems.append({"config-name": prop_name1,
                               "item": self.getWarnItem(
                               "{0} should be float value".format(prop_name1))})
-    elif not is_number(hbase_site[prop_name2]):
+    elif prop_name2 in hbase_site and not is_number(hbase_site[prop_name2]):
       validationItems.append({"config-name": prop_name2,
                               "item": self.getWarnItem(
                               "{0} should be float value".format(prop_name2))})
-    elif float(hbase_site[prop_name1]) + float(hbase_site[prop_name2]) > props_max_sum:
+    elif prop_name1 in hbase_site and prop_name2 in hbase_site and \
+          float(hbase_site[prop_name1]) + float(hbase_site[prop_name2]) > props_max_sum:
       validationItems.append({"config-name": prop_name1,
                               "item": self.getWarnItem(
                               "{0} and {1} sum should not exceed {2}".format(prop_name1, prop_name2, props_max_sum))})

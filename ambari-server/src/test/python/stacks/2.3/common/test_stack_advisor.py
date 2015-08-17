@@ -731,3 +731,84 @@ class TestHDP23StackAdvisor(TestCase):
     res = self.stackAdvisor.validateHiveConfigurations(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)
 
+  # This test intentionally calls all validate methods with
+  # incorrect parameters (empty configs)
+  def test_noRiskyDictLookups(self):
+    properties = {}
+    recommendedDefaults = {}
+    configurations = {"core-site": {"properties": {}}}
+    services = {
+      "services": [],
+      "Versions": {
+        "stack_name": "HDP",
+        "stack_version": "2.3"
+      },
+      "configurations": configurations
+    }
+
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "disk_info" : [
+              {
+                "available" : "4564632",
+                "used" : "5230344",
+                "percent" : "54%",
+                "size" : "10319160",
+                "type" : "ext4",
+                "mountpoint" : "/"
+              },
+              {
+                "available" : "1832436",
+                "used" : "0",
+                "percent" : "0%",
+                "size" : "1832436",
+                "type" : "tmpfs",
+                "mountpoint" : "/dev/shm"
+              }
+            ],
+            "host_name" : "c6401.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6401.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }
+      ]
+    }
+
+    def return_c6401_hostname(services, service_name, component_name):
+      return ["c6401.ambari.apache.org"]
+    self.stackAdvisor.getComponentHostNames = return_c6401_hostname
+
+    validators = self.stackAdvisor.getServiceConfigurationValidators()
+
+    # Setting up empty configs and services info
+    for serviceName, validator in validators.items():
+      services["services"].extend([{"StackServices": {"service_name": serviceName},
+                                    "components": []}])
+      for siteName in validator.keys():
+        configurations[siteName] = {"properties": {}}
+
+    # Emulate enabled RANGER
+    services["services"].extend([{"StackServices": {"service_name": "RANGER"},
+                                "components": []}])
+    configurations["ranger-hbase-plugin-properties"] = {
+      "ranger-hbase-plugin-enabled": "Yes"
+    }
+
+    recommendations = self.stackAdvisor.recommendConfigurations(services, hosts)
+
+    for serviceName, validator in validators.items():
+      recommendedDefaults = recommendations["recommendations"]["blueprint"]["configurations"]
+      for siteName, method in validator.items():
+        if siteName in recommendedDefaults:
+          siteRecommendations = recommendedDefaults[siteName]["properties"]
+          method(properties, siteRecommendations, configurations, services, hosts)
+
+    pass
