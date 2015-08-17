@@ -22,6 +22,7 @@ import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.metrics.ganglia.GangliaReportPropertyProvider;
 import org.apache.ambari.server.controller.metrics.timeline.AMSReportPropertyProvider;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -39,11 +40,13 @@ public class MetricsReportPropertyProviderProxy extends AbstractPropertyProvider
   private MetricsReportPropertyProvider amsMetricsReportProvider;
   private MetricsReportPropertyProvider gangliaMetricsReportProvider;
   private final MetricsServiceProvider metricsServiceProvider;
+  private TimelineMetricCacheProvider cacheProvider;
 
   public MetricsReportPropertyProviderProxy(
     Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
     StreamProvider streamProvider,
     ComponentSSLConfiguration configuration,
+    TimelineMetricCacheProvider cacheProvider,
     MetricHostProvider hostProvider,
     MetricsServiceProvider serviceProvider,
     String clusterNamePropertyId) {
@@ -51,6 +54,7 @@ public class MetricsReportPropertyProviderProxy extends AbstractPropertyProvider
 
     super(componentPropertyInfoMap);
     this.metricsServiceProvider = serviceProvider;
+    this.cacheProvider = cacheProvider;
 
     createReportPropertyProviders(componentPropertyInfoMap,
       streamProvider,
@@ -69,6 +73,7 @@ public class MetricsReportPropertyProviderProxy extends AbstractPropertyProvider
       componentPropertyInfoMap,
       streamProvider,
       configuration,
+      cacheProvider,
       hostProvider,
       clusterNamePropertyId);
 

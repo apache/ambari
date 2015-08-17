@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.metrics.timeline;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
@@ -27,29 +28,34 @@ import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheEntryFactory;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
-import org.junit.Ignore;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,6 +72,7 @@ import static org.mockito.Mockito.mock;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AMSPropertyProvider.class, AmbariServer.class})
+@PowerMockIgnore({"javax.xml.parsers.*", "org.xml.sax.*", "net.sf.ehcache.*", "org.apache.log4j.*"})
 public class AMSPropertyProviderTest {
   private static final String PROPERTY_ID1 = PropertyHelper.getPropertyId("metrics/cpu", "cpu_user");
   private static final String PROPERTY_ID2 = PropertyHelper.getPropertyId("metrics/memory", "mem_free");
@@ -82,10 +89,20 @@ public class AMSPropertyProviderTest {
   private static final String EMBEDDED_METRICS_FILE_PATH = FILE_PATH_PREFIX + "embedded_host_metric.json";
   private static final String AGGREGATE_METRICS_FILE_PATH = FILE_PATH_PREFIX + "aggregate_component_metric.json";
 
+  private static TimelineMetricCacheEntryFactory cacheEntryFactory;
+  private static TimelineMetricCacheProvider cacheProvider;
+
+  @BeforeClass
+  public static void setupCache() {
+    cacheEntryFactory = new TimelineMetricCacheEntryFactory(new Configuration());
+    cacheProvider = new TimelineMetricCacheProvider(new Configuration(), cacheEntryFactory);
+  }
+
   @Test
   public void testPopulateResourcesForSingleHostMetric() throws Exception {
     setUpCommonMocks();
     TestStreamProvider streamProvider = new TestStreamProvider(SINGLE_HOST_METRICS_FILE_PATH);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
 
@@ -94,6 +111,7 @@ public class AMSPropertyProviderTest {
       propertyIds,
       streamProvider,
       sslConfiguration,
+      cacheProvider,
       metricHostProvider,
       CLUSTER_NAME_PROPERTY_ID,
       HOST_NAME_PROPERTY_ID
@@ -129,6 +147,7 @@ public class AMSPropertyProviderTest {
 
     // given
     TestStreamProvider streamProvider = new TestStreamProvider(SINGLE_HOST_METRICS_FILE_PATH);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
     Map<String, Map<String, PropertyInfo>> propertyIds = PropertyHelper.getMetricPropertyIds(Resource.Type.Host);
@@ -136,6 +155,7 @@ public class AMSPropertyProviderTest {
       propertyIds,
       streamProvider,
       sslConfiguration,
+      cacheProvider,
       metricHostProvider,
       CLUSTER_NAME_PROPERTY_ID,
       HOST_NAME_PROPERTY_ID
@@ -169,6 +189,7 @@ public class AMSPropertyProviderTest {
   public void testPopulateResourcesForMultipleHostMetricscPointInTime() throws Exception {
     setUpCommonMocks();
     TestStreamProvider streamProvider = new TestStreamProvider(MULTIPLE_HOST_METRICS_FILE_PATH);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
 
@@ -177,6 +198,7 @@ public class AMSPropertyProviderTest {
       propertyIds,
       streamProvider,
       sslConfiguration,
+      cacheProvider,
       metricHostProvider,
       CLUSTER_NAME_PROPERTY_ID,
       HOST_NAME_PROPERTY_ID
@@ -217,6 +239,7 @@ public class AMSPropertyProviderTest {
   public void testPopulateResourcesForMultipleHostMetrics() throws Exception {
     setUpCommonMocks();
     TestStreamProvider streamProvider = new TestStreamProvider(MULTIPLE_HOST_METRICS_FILE_PATH);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
 
@@ -225,6 +248,7 @@ public class AMSPropertyProviderTest {
       propertyIds,
       streamProvider,
       sslConfiguration,
+      cacheProvider,
       metricHostProvider,
       CLUSTER_NAME_PROPERTY_ID,
       HOST_NAME_PROPERTY_ID
@@ -276,6 +300,7 @@ public class AMSPropertyProviderTest {
   public void testPopulateResourcesForRegexpMetrics() throws Exception {
     setUpCommonMocks();
     TestStreamProvider streamProvider = new TestStreamProvider(MULTIPLE_COMPONENT_REGEXP_METRICS_FILE_PATH);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
 
@@ -291,6 +316,7 @@ public class AMSPropertyProviderTest {
         propertyIds,
         streamProvider,
         sslConfiguration,
+        cacheProvider,
         metricHostProvider,
         CLUSTER_NAME_PROPERTY_ID,
         COMPONENT_NAME_PROPERTY_ID
@@ -327,6 +353,7 @@ public class AMSPropertyProviderTest {
   public void testPopulateResourcesForSingleComponentMetric() throws Exception {
     setUpCommonMocks();
     TestStreamProvider streamProvider = new TestStreamProvider(SINGLE_COMPONENT_METRICS_FILE_PATH);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
 
@@ -337,6 +364,7 @@ public class AMSPropertyProviderTest {
       propertyIds,
       streamProvider,
       sslConfiguration,
+      cacheProvider,
       metricHostProvider,
       CLUSTER_NAME_PROPERTY_ID,
       COMPONENT_NAME_PROPERTY_ID
@@ -394,6 +422,7 @@ public class AMSPropertyProviderTest {
     PowerMock.replayAll();
 
     TestStreamProvider streamProvider = new TestStreamProvider(EMBEDDED_METRICS_FILE_PATH);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
 
@@ -404,6 +433,7 @@ public class AMSPropertyProviderTest {
       propertyIds,
       streamProvider,
       sslConfiguration,
+      cacheProvider,
       metricHostProvider,
       CLUSTER_NAME_PROPERTY_ID,
       COMPONENT_NAME_PROPERTY_ID
@@ -460,6 +490,7 @@ public class AMSPropertyProviderTest {
     PowerMock.replayAll();
 
     TestStreamProvider streamProvider = new TestStreamProvider(AGGREGATE_METRICS_FILE_PATH);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
 
@@ -471,6 +502,7 @@ public class AMSPropertyProviderTest {
       propertyIds,
       streamProvider,
       sslConfiguration,
+      cacheProvider,
       metricHostProvider,
       CLUSTER_NAME_PROPERTY_ID,
       COMPONENT_NAME_PROPERTY_ID
@@ -504,6 +536,7 @@ public class AMSPropertyProviderTest {
   public void testFilterOutOfBandMetricData() throws Exception {
     setUpCommonMocks();
     TestStreamProvider streamProvider = new TestStreamProvider(SINGLE_HOST_METRICS_FILE_PATH);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
 
@@ -512,6 +545,7 @@ public class AMSPropertyProviderTest {
       propertyIds,
       streamProvider,
       sslConfiguration,
+      cacheProvider,
       metricHostProvider,
       CLUSTER_NAME_PROPERTY_ID,
       HOST_NAME_PROPERTY_ID
@@ -571,6 +605,7 @@ public class AMSPropertyProviderTest {
     setUpCommonMocks();
     TestStreamProviderForHostComponentHostMetricsTest streamProvider =
       new TestStreamProviderForHostComponentHostMetricsTest(null);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
 
@@ -579,6 +614,7 @@ public class AMSPropertyProviderTest {
       propertyIds,
       streamProvider,
       sslConfiguration,
+      cacheProvider,
       metricHostProvider,
       CLUSTER_NAME_PROPERTY_ID,
       HOST_NAME_PROPERTY_ID,
@@ -696,7 +732,16 @@ public class AMSPropertyProviderTest {
     expect(ambariMetaInfo.getComponent(anyObject(String.class),anyObject(String.class),
             anyObject(String.class), anyObject(String.class)))
             .andReturn(componentInfo).anyTimes();
+
     replay(ams, clusters, cluster, ambariMetaInfo);
     PowerMock.replayAll();
   }
+
+  /* Since streamProviders are not injected this hack becomes necessary */
+  private void injectCacheEntryFactoryWithStreamProvider(StreamProvider streamProvider) throws Exception {
+    Field field = TimelineMetricCacheEntryFactory.class.getDeclaredField("requestHelperForGets");
+    field.setAccessible(true);
+    field.set(cacheEntryFactory, new MetricsRequestHelper(streamProvider));
+  }
+
 }

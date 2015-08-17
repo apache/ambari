@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.metrics.timeline;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 
@@ -30,12 +31,13 @@ public class AMSComponentPropertyProvider extends AMSPropertyProvider {
   public AMSComponentPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
                                           StreamProvider streamProvider,
                                           ComponentSSLConfiguration configuration,
+                                          TimelineMetricCacheProvider cacheProvider,
                                           MetricHostProvider hostProvider,
                                           String clusterNamePropertyId,
                                           String componentNamePropertyId) {
 
-    super(componentPropertyInfoMap, streamProvider, configuration, hostProvider,
-      clusterNamePropertyId, null, componentNamePropertyId);
+    super(componentPropertyInfoMap, streamProvider, configuration,
+      cacheProvider, hostProvider, clusterNamePropertyId, null, componentNamePropertyId);
   }
 
   @Override

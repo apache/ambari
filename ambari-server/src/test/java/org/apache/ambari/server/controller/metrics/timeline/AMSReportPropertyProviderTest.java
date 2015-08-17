@@ -18,18 +18,24 @@
 package org.apache.ambari.server.controller.metrics.timeline;
 
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheEntryFactory;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,9 +50,19 @@ public class AMSReportPropertyProviderTest {
   private static final String SINGLE_HOST_METRICS_FILE_PATH = FILE_PATH_PREFIX + "single_host_metric.json";
   private static final String AGGREGATE_CLUSTER_METRICS_FILE_PATH = FILE_PATH_PREFIX + "aggregate_cluster_metrics.json";
 
+  private static TimelineMetricCacheEntryFactory cacheEntryFactory;
+  private static TimelineMetricCacheProvider cacheProvider;
+
+  @BeforeClass
+  public static void setupCache() {
+    cacheEntryFactory = new TimelineMetricCacheEntryFactory(new Configuration());
+    cacheProvider = new TimelineMetricCacheProvider(new Configuration(), cacheEntryFactory);
+  }
+
   @Test
   public void testPopulateResources() throws Exception {
     TestStreamProvider streamProvider = new TestStreamProvider(SINGLE_HOST_METRICS_FILE_PATH);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
 
@@ -58,6 +74,7 @@ public class AMSReportPropertyProviderTest {
         propertyIds,
         streamProvider,
         sslConfiguration,
+        cacheProvider,
         metricHostProvider,
         CLUSTER_NAME_PROPERTY_ID
     );
@@ -88,6 +105,7 @@ public class AMSReportPropertyProviderTest {
   @Test
   public void testPopulateResourceWithAggregateFunction() throws Exception {
     TestStreamProvider streamProvider = new TestStreamProvider(AGGREGATE_CLUSTER_METRICS_FILE_PATH);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
 
@@ -99,6 +117,7 @@ public class AMSReportPropertyProviderTest {
         propertyIds,
         streamProvider,
         sslConfiguration,
+        cacheProvider,
         metricHostProvider,
         CLUSTER_NAME_PROPERTY_ID
     );
@@ -124,5 +143,12 @@ public class AMSReportPropertyProviderTest {
     Assert.assertEquals(uriBuilder.toString(), streamProvider.getLastSpec());
     Number[][] val = (Number[][]) res.getPropertyValue("metrics/cpu/User._sum");
     Assert.assertEquals(90, val.length);
+  }
+
+  /* Since streamProviders are not injected this hack becomes necessary */
+  private void injectCacheEntryFactoryWithStreamProvider(StreamProvider streamProvider) throws Exception {
+    Field field = TimelineMetricCacheEntryFactory.class.getDeclaredField("requestHelperForGets");
+    field.setAccessible(true);
+    field.set(cacheEntryFactory, new MetricsRequestHelper(streamProvider));
   }
 }

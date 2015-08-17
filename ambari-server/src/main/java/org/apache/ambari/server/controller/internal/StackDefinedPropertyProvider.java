@@ -26,6 +26,7 @@ import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricsServiceProvider;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
@@ -81,6 +82,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
   private final MetricHostProvider metricHostProvider;
   private final MetricsServiceProvider metricsServiceProvider;
   private MetricsService metricsService = MetricsService.GANGLIA;
+  private TimelineMetricCacheProvider cacheProvider;
 
   /**
    * PropertyHelper/AbstractPropertyProvider expect map of maps,
@@ -126,6 +128,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
     this.streamProvider = streamProvider;
     defaultJmx = defaultJmxPropertyProvider;
     defaultGanglia = defaultGangliaPropertyProvider;
+    cacheProvider = injector.getInstance(TimelineMetricCacheProvider.class);
   }
 
 
@@ -147,6 +150,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
       jmxStatePropertyId, defaultJmxPropertyProvider, defaultGangliaPropertyProvider);
 
     this.metricsService = metricsService;
+    cacheProvider = injector.getInstance(TimelineMetricCacheProvider.class);
   }
 
 
@@ -201,7 +205,9 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
       if (gangliaMap.size() > 0) {
         PropertyProvider propertyProvider =
           MetricsPropertyProvider.createInstance(type, gangliaMap,
-            streamProvider, sslConfig, metricHostProvider,
+            streamProvider, sslConfig,
+            cacheProvider,
+            metricHostProvider,
             metricsServiceProvider, clusterNamePropertyId,
             hostNamePropertyId, componentNamePropertyId);
 

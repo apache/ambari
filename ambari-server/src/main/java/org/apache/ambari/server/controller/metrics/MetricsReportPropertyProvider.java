@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.metrics;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +64,7 @@ public abstract class MetricsReportPropertyProvider extends AbstractPropertyProv
           Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
           StreamProvider streamProvider,
           ComponentSSLConfiguration configuration,
+          TimelineMetricCacheProvider cacheProvider,
           MetricHostProvider hostProvider,
           MetricsServiceProvider serviceProvider,
           String clusterNamePropertyId) {
@@ -70,6 +72,7 @@ public abstract class MetricsReportPropertyProvider extends AbstractPropertyProv
     return new MetricsReportPropertyProviderProxy(componentPropertyInfoMap,
                                                   streamProvider,
                                                   configuration,
+                                                  cacheProvider,
                                                   hostProvider,
                                                   serviceProvider,
                                                   clusterNamePropertyId);

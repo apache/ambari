@@ -407,6 +407,23 @@ public class Configuration {
   private static final String DEFAULT_JDBC_POOL_ACQUISITION_RETRY_ATTEMPTS = "30";
   private static final String DEFAULT_JDBC_POOL_ACQUISITION_RETRY_DELAY = "1000";
 
+  // Timeline Metrics Cache settings
+  private static final String TIMELINE_METRICS_CACHE_DISABLE = "server.timeline.metrics.cache.disabled";
+  private static final String TIMELINE_METRICS_CACHE_MAX_ENTRIES = "server.timeline.metrics.cache.max.entries";
+  private static final String DEFAULT_TIMELINE_METRICS_CACHE_MAX_ENTRIES = "50";
+  private static final String TIMELINE_METRICS_CACHE_TTL = "server.timeline.metrics.cache.entry.ttl.seconds";
+  private static final String DEFAULT_TIMELINE_METRICS_CACHE_TTL = "3600";
+  private static final String TIMELINE_METRICS_CACHE_IDLE_TIME = "server.timeline.metrics.cache.entry.idle.seconds";
+  private static final String DEFAULT_TIMELINE_METRICS_CACHE_IDLE_TIME = "300";
+  private static final String TIMELINE_METRICS_REQUEST_READ_TIMEOUT = "server.timeline.metrics.cache.read.timeout.millis";
+  private static final String DEFAULT_TIMELINE_METRICS_REQUEST_READ_TIMEOUT = "10000";
+  private static final String TIMELINE_METRICS_REQUEST_INTERVAL_READ_TIMEOUT = "server.timeline.metrics.cache.interval.read.timeout.millis";
+  private static final String DEFAULT_TIMELINE_METRICS_REQUEST_INTERVAL_READ_TIMEOUT = "5000";
+  private static final String TIMELINE_METRICS_REQUEST_CONNECT_TIMEOUT = "server.timeline.metrics.cache.connect.timeout.millis";
+  private static final String DEFAULT_TIMELINE_METRICS_REQUEST_CONNECT_TIMEOUT = "5000";
+  private static final String TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL = "server.timeline.metrics.cache.catchup.interval";
+  private static final String DEFAULT_TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL = "300000";
+
   /**
    * The full path to the XML file that describes the different alert templates.
    */
@@ -676,6 +693,15 @@ public class Configuration {
    */
   public String getProperty(String key) {
     return properties.getProperty(key);
+  }
+
+  /**
+   * Get the property value for the given key.
+   *
+   * @return the property value
+   */
+  public String getProperty(String key, String defaultValue) {
+    return properties.getProperty(key, defaultValue);
   }
 
   /**
@@ -1001,7 +1027,7 @@ public class Configuration {
    */
   public String getApiGzipMinSize() {
     return properties.getProperty(API_GZIP_MIN_COMPRESSION_SIZE_KEY,
-        API_GZIP_MIN_COMPRESSION_SIZE_DEFAULT);
+      API_GZIP_MIN_COMPRESSION_SIZE_DEFAULT);
   }
 
   /**
@@ -1244,7 +1270,7 @@ public class Configuration {
 
   public int getConnectionMaxIdleTime() {
     return Integer.parseInt(properties.getProperty
-        (SERVER_CONNECTION_MAX_IDLE_TIME, String.valueOf("900000")));
+      (SERVER_CONNECTION_MAX_IDLE_TIME, String.valueOf("900000")));
   }
 
   /**
@@ -1283,7 +1309,7 @@ public class Configuration {
 
   public int getOneWayAuthPort() {
     return Integer.parseInt(properties.getProperty(SRVR_ONE_WAY_SSL_PORT_KEY,
-                                                   String.valueOf(SRVR_ONE_WAY_SSL_PORT_DEFAULT)));
+      String.valueOf(SRVR_ONE_WAY_SSL_PORT_DEFAULT)));
   }
 
   public int getTwoWayAuthPort() {
@@ -1376,7 +1402,7 @@ public class Configuration {
 
   public Integer getRequestReadTimeout() {
     return Integer.parseInt(properties.getProperty(REQUEST_READ_TIMEOUT,
-        REQUEST_READ_TIMEOUT_DEFAULT));
+      REQUEST_READ_TIMEOUT_DEFAULT));
   }
 
   public Integer getRequestConnectTimeout() {
@@ -1386,7 +1412,7 @@ public class Configuration {
 
   public String getExecutionSchedulerConnections() {
     return properties.getProperty(EXECUTION_SCHEDULER_CONNECTIONS,
-                                  DEFAULT_SCHEDULER_MAX_CONNECTIONS);
+      DEFAULT_SCHEDULER_MAX_CONNECTIONS);
   }
 
   public Long getExecutionSchedulerMisfireToleration() {
@@ -1412,7 +1438,7 @@ public class Configuration {
 
   public String getCustomActionDefinitionPath() {
     return properties.getProperty(CUSTOM_ACTION_DEFINITION_KEY,
-                                  CUSTOM_ACTION_DEFINITION_DEF_VALUE);
+      CUSTOM_ACTION_DEFINITION_DEF_VALUE);
   }
 
   public int getAgentPackageParallelCommandsLimit() {
@@ -1461,7 +1487,7 @@ public class Configuration {
    */
   public int getClientThreadPoolSize() {
     return Integer.parseInt(properties.getProperty(
-        CLIENT_THREADPOOL_SIZE_KEY, String.valueOf(CLIENT_THREADPOOL_SIZE_DEFAULT)));
+      CLIENT_THREADPOOL_SIZE_KEY, String.valueOf(CLIENT_THREADPOOL_SIZE_DEFAULT)));
   }
 
   /**
@@ -1499,7 +1525,7 @@ public class Configuration {
    */
   public long getViewExtractionThreadPoolTimeout() {
     return Long.parseLong(properties.getProperty(
-        VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT)));
+      VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT)));
   }
 
   /**
@@ -1512,7 +1538,7 @@ public class Configuration {
    */
   public int getHttpSessionInactiveTimeout() {
     return Integer.parseInt(properties.getProperty(
-        SERVER_HTTP_SESSION_INACTIVE_TIMEOUT,
+      SERVER_HTTP_SESSION_INACTIVE_TIMEOUT,
         "1800"));
   }
 
@@ -1531,7 +1557,7 @@ public class Configuration {
    */
   public int getAlertEventPublisherPoolSize() {
     return Integer.parseInt(properties.getProperty(
-        ALERTS_EXECUTION_SCHEDULER_THREADS_KEY, ALERTS_EXECUTION_SCHEDULER_THREADS_DEFAULT));
+      ALERTS_EXECUTION_SCHEDULER_THREADS_KEY, ALERTS_EXECUTION_SCHEDULER_THREADS_DEFAULT));
   }
 
   /**
@@ -1594,7 +1620,7 @@ public class Configuration {
    */
   public int getKdcConnectionCheckTimeout() {
     return Integer.parseInt(properties.getProperty(
-        KDC_CONNECTION_CHECK_TIMEOUT_KEY, KDC_CONNECTION_CHECK_TIMEOUT_DEFAULT));
+      KDC_CONNECTION_CHECK_TIMEOUT_KEY, KDC_CONNECTION_CHECK_TIMEOUT_DEFAULT));
   }
 
   /**
@@ -1779,4 +1805,73 @@ public class Configuration {
     }
   }
 
+  /**
+   * Max allowed entries in metrics cache.
+   */
+  public int getMetricCacheMaxEntries() {
+    return Integer.parseInt(properties.getProperty(TIMELINE_METRICS_CACHE_MAX_ENTRIES,
+      DEFAULT_TIMELINE_METRICS_CACHE_MAX_ENTRIES));
+  }
+
+  /**
+   * Eviction time for entries in metrics cache.
+   */
+  public int getMetricCacheTTLSeconds() {
+    return Integer.parseInt(properties.getProperty(TIMELINE_METRICS_CACHE_TTL,
+      DEFAULT_TIMELINE_METRICS_CACHE_TTL));
+  }
+
+  /**
+   * Max time to idle for entries in the cache.
+   */
+  public int getMetricCacheIdleSeconds() {
+    return Integer.parseInt(properties.getProperty(TIMELINE_METRICS_CACHE_IDLE_TIME,
+        DEFAULT_TIMELINE_METRICS_CACHE_IDLE_TIME));
+  }
+
+  /**
+   * Separate timeout settings for metrics cache.
+   * @return milliseconds
+   */
+  public int getMetricsRequestReadTimeoutMillis() {
+    return Integer.parseInt(properties.getProperty(TIMELINE_METRICS_REQUEST_READ_TIMEOUT,
+      DEFAULT_TIMELINE_METRICS_REQUEST_READ_TIMEOUT));
+  }
+
+  /**
+   * Separate timeout settings for metrics cache.
+   * Timeout on reads for update requests made for smaller time intervals.
+   *
+   * @return milliseconds
+   */
+  public int getMetricsRequestIntervalReadTimeoutMillis() {
+    return Integer.parseInt(properties.getProperty(TIMELINE_METRICS_REQUEST_INTERVAL_READ_TIMEOUT,
+      DEFAULT_TIMELINE_METRICS_REQUEST_INTERVAL_READ_TIMEOUT));
+  }
+
+  /**
+   * Separate timeout settings for metrics cache.
+   * @return milliseconds
+   */
+  public int getMetricsRequestConnectTimeoutMillis() {
+    return Integer.parseInt(properties.getProperty(TIMELINE_METRICS_REQUEST_CONNECT_TIMEOUT,
+      DEFAULT_TIMELINE_METRICS_REQUEST_CONNECT_TIMEOUT));
+  }
+
+  /**
+   * Diable metrics caching.
+   * @return true / false
+   */
+  public boolean isMetricsCacheDisabled() {
+    return Boolean.parseBoolean(properties.getProperty(TIMELINE_METRICS_CACHE_DISABLE, "false"));
+  }
+
+  /**
+   * Constant fudge factor subtracted from the cache update requests to
+   * account for unavailability of data on the trailing edge due to buffering.
+   */
+  public Long getMetricRequestBufferTimeCatchupInterval() {
+    return Long.parseLong(properties.getProperty(TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL,
+        DEFAULT_TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL));
+  }
 }

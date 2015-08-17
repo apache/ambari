@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.metrics;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.TreeMap;
 
 public class MetricsPaddingMethod {
@@ -51,8 +52,15 @@ public class MetricsPaddingMethod {
       return;
     }
 
-    // TODO: JSON dser returns LinkedHashMap that is not Navigable
-    TreeMap<Long, Double> values = new TreeMap<Long, Double>(metric.getMetricValues());
+    TreeMap<Long, Double> values;
+    Map<Long, Double> metricValuesMap = metric.getMetricValues();
+    if (metricValuesMap instanceof TreeMap) {
+      values = (TreeMap<Long, Double>) metricValuesMap;
+    }
+    else {
+      // JSON dser returns LinkedHashMap that is not Navigable
+      values = new TreeMap<Long, Double>(metricValuesMap);
+    }
 
     long dataInterval = getTimelineMetricInterval(values);
 
