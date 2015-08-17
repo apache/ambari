@@ -43,3 +43,15 @@ Client {
    serviceName="zookeeper"
    principal="{{storm_jaas_principal}}";
 };
+
+{% if kafka_bare_jaas_principal %}
+KafkaClient {
+   com.sun.security.auth.module.Krb5LoginModule required
+   useKeyTab=true
+   keyTab="{{storm_keytab_path}}"
+   storeKey=true
+   useTicketCache=false
+   serviceName="{{kafka_bare_jaas_principal}}"
+   principal="{{storm_jaas_principal}}";
+};
+{% endif %}
