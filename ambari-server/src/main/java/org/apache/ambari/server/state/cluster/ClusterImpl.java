@@ -1250,6 +1250,8 @@ public class ClusterImpl implements Cluster {
     }
 
     // Also returns when have a mix of CURRENT and INSTALLING|INSTALLED|UPGRADING|UPGRADED
+    LOG.warn("have a mix of CURRENT and INSTALLING|INSTALLED|UPGRADING|UPGRADED host versions, " +
+            "returning OUT_OF_SYNC as cluster version. Host version states: " + stateToHosts.toString());
     return RepositoryVersionState.OUT_OF_SYNC;
   }
 

@@ -131,7 +131,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('text', Em.I18n.t('hosts.host.stackVersions.status.installing'));
       element.set('action', 'showProgressPopup');
     } else if (status === 'INSTALLED' && !this.get('isUpgrading')) {
-      if (stringUtils.compareVersions(this.get('content.repositoryVersion'), currentVersion.repository_version) === 1) {
+      if (stringUtils.compareVersions(this.get('content.repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1) {
         var isDisabled = !App.isAccessible('ADMIN') || this.get('controller.requestInProgress') || isInstalling;
         element.set('isButtonGroup', true);
         element.set('text', Em.I18n.t('admin.stackVersions.version.performUpgrade'));

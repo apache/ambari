@@ -153,7 +153,7 @@ App.MainAdminStackVersionsView = Em.View.extend({
         }
       }, this);
     }
-    if (App.get('supports.displayOlderVersions')) {
+    if (App.get('supports.displayOlderVersions') || Em.isNone(currentVersion)) {
       return versions.toArray();
     } else {
       return versions.filter(function(v) {
