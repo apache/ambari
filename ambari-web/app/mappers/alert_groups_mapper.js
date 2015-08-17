@@ -20,6 +20,7 @@ var App = require('app');
 /**
  * Mapper for <code>App.AlertGroup</code>
  * Save general information
+ * Doesn't save not changed data (check it using <code>App.cache['previousAlertGroupsFullMap']</code>)
  * Use <code>App.cache['previousAlertGroupsMap']</code> to store map alertDefinitions-alertGroups. This map is used
  * in the <code>App.AlertDefinitionsMapper</code> to correctly link alertDefinitions and alertGroups
  */
@@ -39,10 +40,14 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
   },
 
   map: function (json) {
+    if(Em.isNone(App.cache['previousAlertGroupsFullMap'])) {
+      App.cache['previousAlertGroupsFullMap'] = {};
+    }
     if (!Em.isNone(json, 'items')) {
-
+      console.time('App.alertGroupsMapper execution time');
       var alertGroups = [],
         self = this,
+        groupsMap = {},
         groupsToDelete = App.AlertGroup.find().mapProperty('id'),
         /**
          * AlertGroups-map for <code>App.AlertDefinitionsMappers</code>
@@ -65,7 +70,7 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
         group.targets = [];
         group.definitions = [];
         if (item.AlertGroup.definitions) {
-          item.AlertGroup.definitions.forEach(function(definition) {
+          item.AlertGroup.definitions.forEach(function (definition) {
             if (!group.definitions.contains(definition.id)) {
               group.definitions.push(definition.id);
             }
@@ -76,7 +81,7 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
           });
         }
         if (item.AlertGroup.targets) {
-          item.AlertGroup.targets.forEach(function(target) {
+          item.AlertGroup.targets.forEach(function (target) {
             if (!group.targets.contains(target.id)) {
               group.targets.push(target.id);
             }
@@ -86,7 +91,14 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
             alertNotificationsGroupsMap[target.id].push(group.id);
           });
         }
-        alertGroups.push(group);
+
+        groupsMap[group.id] = group;
+        var previousGroup = App.cache['previousAlertGroupsFullMap'][group.id] ? App.cache['previousAlertGroupsFullMap'][group.id] : {};
+        var changedFields = self.getDiscrepancies(group, previousGroup, ['name', 'description', 'default', 'targets', 'definitions']);
+        if (Object.keys(changedFields).length) {
+          alertGroups.push(group);
+        }
+
       }, this);
 
       groupsToDelete.forEach(function(groupId) {
@@ -94,9 +106,11 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
       });
 
       App.cache['previousAlertGroupsMap'] = alertDefinitionsGroupsMap;
+      App.cache['previousAlertGroupsFullMap'] = groupsMap;
       App.cache['alertNotificationsGroupsMap'] = alertNotificationsGroupsMap;
       App.store.loadMany(this.get('model'), alertGroups);
       App.store.commit();
+      console.timeEnd('App.alertGroupsMapper execution time');
     }
   }
 });
