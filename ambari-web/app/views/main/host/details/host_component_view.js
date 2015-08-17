@@ -210,26 +210,23 @@ App.HostComponentView = Em.View.extend({
     var installedCount = this.get('componentCounter');
     return (installedCount <= stackComponentCount)
       || ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
-  }.property('workStatus'),
+  }.property('workStatus', 'componentCounter'),
 
   /**
    * gets number of current component that are applied to the cluster;
    * @returns {Number}
    */
   componentCounter: function() {
-    var componentCounter = 0;
+    var component;
     var stackServiceComponent =  App.StackServiceComponent.find(this.get('hostComponent.componentName'));
     if (stackServiceComponent && App.get('router.clusterController.isHostContentLoaded')) {
       if (stackServiceComponent.get('isMaster')) {
-          componentCounter = App.HostComponent.find().filterProperty('componentName', this.get('content.componentName')).length
+        component = App.MasterComponent.find().findProperty('componentName', this.get('content.componentName'))
       } else {
-        var slaveComponent = App.SlaveComponent.find().findProperty('componentName', this.get('content.componentName'));
-        if (slaveComponent) {
-          componentCounter = slaveComponent.get('totalCount');
-        }
+        component = App.SlaveComponent.find().findProperty('componentName', this.get('content.componentName'));
       }
     }
-    return componentCounter;
+    return component ? component.get('totalCount') : 0;
   }.property('App.router.clusterController.isHostContentLoaded'),
 
   /**
