@@ -235,10 +235,11 @@ class FileCache():
     """
     logger.debug("Invalidating directory {0}".format(directory))
     try:
-      if os.path.isfile(directory): # It would be a strange situation
-        os.unlink(directory)
-      elif os.path.isdir(directory):
-        shutil.rmtree(directory)
+      if os.path.exists(directory):
+        if os.path.isfile(directory): # It would be a strange situation
+          os.unlink(directory)
+        elif os.path.isdir(directory):
+          shutil.rmtree(directory)
       # create directory itself and any parent directories
       os.makedirs(directory)
     except Exception, err:

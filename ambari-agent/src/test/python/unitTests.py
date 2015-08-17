@@ -25,6 +25,9 @@ python unitTests.py
 python unitTests.py NameOfFile.py
 python unitTests.py NameOfFileWithoutExtension  (this will append .* to the end, so it can match other file names too)
 
+prepend _ to test file name(s) and run "python unitTests.py": execute only
+  test files whose name begins with _ (useful for quick debug)
+
 SETUP:
 To run in Linux from command line,
 cd to this same directory. Then make sure PYTHONPATH is correct.
@@ -38,6 +41,7 @@ $(pwd)/ambari-agent/src/test/python/resource_management:
 $(pwd)/ambari-common/src/main/python/ambari_jinja2
 """
 
+import re
 import unittest
 import fnmatch
 from os.path import isdir
@@ -54,8 +58,6 @@ if get_platform() == PLATFORM_WINDOWS:
   IGNORE_FOLDERS = ["resource_management"]
 else:
   IGNORE_FOLDERS = ["resource_management_windows"]
-
-TEST_MASK = '[Tt]est*.py'
 
 class TestAgent(unittest.TestSuite):
   def run(self, result):
@@ -80,7 +82,7 @@ def get_test_files(path, mask=None, recursive=True):
   """
   # Must convert mask so it can match a file
   if mask and mask != "" and not mask.endswith("*"):
-    mask = mask + "*"
+    mask=mask+"*"
 
   file_list = []
   directory_items = os.listdir(path)
@@ -89,9 +91,10 @@ def get_test_files(path, mask=None, recursive=True):
     add_to_pythonpath = False
     p = os.path.join(path, item)
     if os.path.isfile(p):
-      if fnmatch.fnmatch(item, mask):
-        add_to_pythonpath = True
-        file_list.append(item)
+      if mask is not None and fnmatch.fnmatch(item, mask) or \
+        mask is None and re.search(r"^_?[Tt]est.*\.py$", item):
+          add_to_pythonpath = True
+          file_list.append(item)
     elif os.path.isdir(p)and p not in IGNORE_FOLDERS:
       if recursive:
         file_list.extend(get_test_files(p, mask=mask))
@@ -102,7 +105,7 @@ def get_test_files(path, mask=None, recursive=True):
 
 
 def all_tests_suite(custom_test_mask):
-  test_mask = custom_test_mask if custom_test_mask else TEST_MASK
+  test_mask = custom_test_mask if custom_test_mask else None
 
   src_dir = os.getcwd()
   files_list = get_test_files(src_dir, mask=test_mask)
