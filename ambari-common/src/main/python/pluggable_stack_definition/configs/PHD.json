@@ -184,13 +184,40 @@
           "name": "TEZ"
         },
         {
-          "name": "OOZIE"
+          "name": "OOZIE",
+          "packages":[
+            {
+              "family": "redhat6,redhat7,suse11",
+              "packages": [
+                "oozie_3_3_*"
+              ]
+            },
+            {
+              "family": "any",
+              "packages": [
+                "zip",
+                {
+                  "name": "mysql-connector-java",
+                  "skipUpgrade": "true"
+                },
+                "extjs"
+              ]
+            }
+          ]
         },
         {
           "name": "KNOX"
         },
         {
-          "name": "PIG"
+          "name": "PIG",
+          "packages":[
+            {
+              "family": "redhat6,redhat7,suse11",
+              "packages": [
+                "pig_3_3_*"
+              ]
+            }
+          ]
         }
       ]
     }
