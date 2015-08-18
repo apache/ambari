@@ -39,7 +39,7 @@ from ambari_server.serverConfiguration import configDefaults, JDKRelease, \
   get_resources_location, get_value_from_properties, read_ambari_user, update_properties, validate_jdk, write_property, \
   JAVA_HOME, JAVA_HOME_PROPERTY, JCE_NAME_PROPERTY, JDBC_RCA_URL_PROPERTY, JDBC_URL_PROPERTY, \
   JDK_NAME_PROPERTY, JDK_RELEASES, NR_USER_PROPERTY, OS_FAMILY, OS_FAMILY_PROPERTY, OS_TYPE, OS_TYPE_PROPERTY, OS_VERSION, \
-  VIEWS_DIR_PROPERTY, JDBC_DATABASE_PROPERTY
+  VIEWS_DIR_PROPERTY, JDBC_DATABASE_PROPERTY, JDK_DOWNLOAD_SUPPORTED_PROPERTY, JCE_DOWNLOAD_SUPPORTED_PROPERTY
 from ambari_server.serverUtils import is_server_runing
 from ambari_server.setupSecurity import adjust_directory_permissions
 from ambari_server.userInput import get_YN_input, get_validated_string_input
@@ -472,6 +472,12 @@ class JDKSetup(object):
     dest_file = os.path.abspath(os.path.join(resources_dir, jdk_cfg.dest_file))
     if os.path.exists(dest_file):
       print "JDK already exists, using " + dest_file
+    elif properties[JDK_DOWNLOAD_SUPPORTED_PROPERTY].upper() == "FALSE":
+      print "ERROR: Oracle JDK is not found in {1}. JDK download is not supported in this distribution. Please download Oracle JDK " \
+            "archive ({0}) manually from Oracle site, place it into {1} and re-run this script.".format(jdk_cfg.dest_file, dest_file)
+      print "NOTE: If you have already downloaded the file, please verify if the name is exactly same as {0}.".format(jdk_cfg.dest_file)
+      print 'Exiting...'
+      sys.exit(1)
     else:
       ok = get_YN_input("To download the Oracle JDK and the Java Cryptography Extension (JCE) "
                         "Policy Files you must accept the "
@@ -606,6 +612,11 @@ class JDKSetup(object):
     dest_file = os.path.abspath(os.path.join(resources_dir, dest_jcpol_file))
 
     if not os.path.exists(dest_file):
+      if properties[JCE_DOWNLOAD_SUPPORTED_PROPERTY].upper() == "FALSE":
+        print "ERROR: JCE Policy archive is not found in {1}. JCE Policy archive download is not supported in this distribution. " \
+          "Please download JCE Policy archive ({0}) from Oracle site, place it into {1} and re-run this script.".format(dest_jcpol_file, dest_file)
+        print 'Exiting...'
+        sys.exit(1)
       print 'Downloading JCE Policy archive from ' + jcpol_url + ' to ' + dest_file
       try:
         force_download_file(jcpol_url, dest_file)
