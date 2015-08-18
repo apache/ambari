@@ -429,11 +429,11 @@ public class JMXHostProviderTest {
     Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER"));
   }
 
-  private static class JMXHostProviderModule extends
-    AbstractProviderModule {
+  private static class JMXHostProviderModule extends AbstractProviderModule {
 
-    ResourceProvider clusterResourceProvider = new
-      ClusterResourceProvider(controller);
+
+
+    ResourceProvider clusterResourceProvider = new ClusterResourceProvider(controller);
 
     Injector injector = createNiceMock(Injector.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);

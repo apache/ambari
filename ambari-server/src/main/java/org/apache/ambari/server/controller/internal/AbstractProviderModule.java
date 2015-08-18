@@ -34,7 +34,6 @@ import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricsReportPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricsServiceProvider;
-import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheEntryFactory;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -205,7 +204,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     if (managementController == null) {
       managementController = AmbariServer.getController();
     }
-    if (metricCacheProvider == null) {
+    if (metricCacheProvider == null && managementController != null) {
       metricCacheProvider = managementController.getTimelineMetricCacheProvider();
     }
   }
