@@ -757,7 +757,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
           label: function () {
             return this.get('displayName') + ' (' + this.get('definitions.length') + ')';
           }.property('displayName', 'definitions.length'),
-          definitions: [],
+          definitions: self.get('selectedAlertGroup.definitions').slice(0),
           notifications: self.get('alertGlobalNotifications'),
           isAddDefinitionsDisabled: false
         });
