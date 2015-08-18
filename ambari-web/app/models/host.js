@@ -272,7 +272,7 @@ App.Host = DS.Model.extend({
         break;
     }
     return output;
-  }.property('notStartedComponents')
+  }.property('passiveState', 'healthClass', 'notStartedComponents.@each')
 });
 
 App.Host.FIXTURES = [];

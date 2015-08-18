@@ -62,11 +62,11 @@ App.MainHostDetailsView = Em.View.extend({
     this.set('isLoaded', App.Host.find(this.get('content.id')).get('isLoaded'));
     App.router.get('updateController').updateHost(function () {
       self.set('isLoaded', true);
+      App.tooltip($("[rel='HealthTooltip']"));
       if (!self.get('content.isLoaded')) {
         //if host is not existed then route to list of hosts
         App.router.transitionTo('main.hosts.index');
       }
     });
-    App.tooltip($("[rel='HealthTooltip']"));
   }
 });
