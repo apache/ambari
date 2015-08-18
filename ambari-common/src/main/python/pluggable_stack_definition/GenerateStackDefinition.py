@@ -335,6 +335,15 @@ def process_repoinfo_xml(file_path, config_data, stack_version_changes, stack):
     #########################################################################################
     tree = ET.parse(file_path)
     root = tree.getroot()
+    remove_list = list()
+    if 'family' in stack:
+      for os_tag in root.iter("os"):
+        os_family = os_tag.get('family')
+        if os_family not in stack.family:
+          remove_list.append(os_tag)
+    for os_tag in remove_list:
+      root.remove(os_tag)
+
     # Update all base urls
     for baseurl_tag in root.getiterator('baseurl'):
       baseurl_tag.text = 'http://SET_REPO_URL'
