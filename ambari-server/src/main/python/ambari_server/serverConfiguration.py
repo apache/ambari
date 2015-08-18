@@ -80,6 +80,8 @@ AMBARI_VERSION_VAR = "AMBARI_VERSION_VAR"
 JAVA_HOME_PROPERTY = "java.home"
 JDK_NAME_PROPERTY = "jdk.name"
 JCE_NAME_PROPERTY = "jce.name"
+JDK_DOWNLOAD_SUPPORTED_PROPERTY = "jdk.download.supported"
+JCE_DOWNLOAD_SUPPORTED_PROPERTY = "jce.download.supported"
 
 # JDBC
 JDBC_PATTERNS = {"oracle": "*ojdbc*.jar", "mysql": "*mysql*.jar", "mssql": "*sqljdbc*.jar"}

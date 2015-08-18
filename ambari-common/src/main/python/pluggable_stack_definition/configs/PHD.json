@@ -13,6 +13,14 @@
       "baseStackFolder": "HDP2"
     }
   ],
+  "ambariProperties": {
+    "jdk.download.supported" : "false",
+    "jce.download.supported" : "false",
+    "jdk1.7.url" : "http://DOWNLOAD_NOT_SUPPORTED",
+    "jdk1.8.url" : "http://DOWNLOAD_NOT_SUPPORTED",
+    "jdk1.7.jcpol-url" : "http://DOWNLOAD_NOT_SUPPORTED",
+    "jdk1.8.jcpol-url" : "http://DOWNLOAD_NOT_SUPPORTED"
+  },
   "versions": [
     {
       "version": "2.0.6",

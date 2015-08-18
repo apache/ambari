@@ -2112,6 +2112,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     p.process_pair("jdk1.jcpol-file", "some-jcpol.tar.gz")
     p.process_pair("jdk1.home", "/jdk1")
     p.process_pair("jdk1.re", "(jdk.*)/jre")
+    p.process_pair("jdk.download.supported", "true")
+    p.process_pair("jce.download.supported", "true")
 
     validate_jdk_mock.return_value = False
     path_existsMock.return_value = False

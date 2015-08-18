@@ -67,7 +67,6 @@ class _named_dict(dict):
     else:
       dict.__getattr__(self, item)
 
-
 def copy_tree(src, dest, exclude=None, post_copy=None):
   """
   Copy files form src to dest.
@@ -139,7 +138,6 @@ def process_replacements(file_path, config_data, stack_version_changes):
   with open(file_path, "w") as target:
     target.write(file_data.encode('utf-8'))
   return file_path
-
 
 def process_metainfo(file_path, config_data, stack_version_changes, common_services = []):
   tree = ET.parse(file_path)
@@ -364,8 +362,6 @@ def process_py_files(file_path, config_data, stack_version_changes):
 def process_xml_files(file_path, config_data, stack_version_changes):
   return process_replacements(file_path, config_data, stack_version_changes)
 
-
-
 class GeneratorHelper(object):
   def __init__(self, config_data, resources_folder, output_folder):
     self.config_data = config_data
@@ -460,7 +456,6 @@ class GeneratorHelper(object):
         self.copy_common_services(parent_services)
     pass
 
-
   def copy_resource_management(self):
     source_folder = join(os.path.abspath(join(self.resources_folder, "..", "..", "..", "..")),
                          'ambari-common', 'src', 'main', 'python', 'resource_management')
@@ -475,6 +470,28 @@ class GeneratorHelper(object):
         return
 
     copy_tree(source_folder, target_folder, ignored_files, post_copy=post_copy)
+
+  def copy_ambari_properties(self):
+    source_ambari_properties = join(os.path.abspath(join(self.resources_folder, "..", "..", "..", "..")),
+                         'ambari-server', 'conf', 'unix', "ambari.properties")
+    target_ambari_properties = join(self.output_folder, 'conf', 'unix', 'ambari.properties')
+    target_dirname = os.path.dirname(target_ambari_properties)
+
+    if not os.path.exists(target_dirname):
+      os.makedirs(target_dirname)
+    propertyMap = {}
+    if "ambariProperties" in self.config_data:
+      propertyMap = self.config_data.ambariProperties
+
+    with open(source_ambari_properties, 'r') as in_file:
+      with open(target_ambari_properties, 'w') as out_file:
+        for line in in_file:
+          property = line.split('=')[0]
+          if property in propertyMap:
+            out_file.write('='.join([property, propertyMap[property]]))
+            out_file.write(os.linesep)
+          else:
+            out_file.write(line)
 
   def generate_ui_mapping(self):
     stack_name = self.config_data.stackName
@@ -523,6 +540,7 @@ def main(argv):
   gen_helper.copy_stacks()
   gen_helper.copy_resource_management()
   gen_helper.copy_common_services()
+  gen_helper.copy_ambari_properties()
   gen_helper.generate_ui_mapping()
 
 
