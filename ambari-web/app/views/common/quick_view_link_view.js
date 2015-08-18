@@ -123,8 +123,10 @@ App.QuickViewLinks = Em.View.extend({
   },
 
   setQuickLinks: function () {
-    this.loadTags();
-  }.observes('App.currentStackVersionNumber', 'App.singleNodeInstall'),
+    if (App.get('router.clusterController.isServiceMetricsLoaded')) {
+      this.loadTags();
+    }
+  }.observes('App.currentStackVersionNumber', 'App.singleNodeInstall', 'App.router.clusterController.isServiceMetricsLoaded'),
 
   setQuickLinksSuccessCallback: function (response) {
     var self = this;
