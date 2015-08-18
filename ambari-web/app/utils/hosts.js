@@ -50,11 +50,17 @@ module.exports = {
       popupDescription = $.extend(true, defaultPopupDescription, popupDescription);
     }
     App.ModalPopup.show({
+
       classNames: [ 'sixty-percent-width-modal' ],
+
       header: popupDescription.header,
+
       dialogMessage: popupDescription.dialogMessage,
+
       warningMessage: null,
+
       availableHosts: [],
+
       onPrimary: function () {
         this.set('warningMessage', null);
         var arrayOfSelectedHosts = this.get('availableHosts').filterProperty('selected', true).mapProperty('host.id');
@@ -63,26 +69,43 @@ module.exports = {
           return;
         }
         callback(arrayOfSelectedHosts);
-        console.debug('(new-selectedHosts)=', arrayOfSelectedHosts);
         this.hide();
       },
+
       disablePrimary: function () {
         return !this.get('isLoaded');
       }.property('isLoaded'),
+
       onSecondary: function () {
         callback(null);
         this.hide();
       },
+
       bodyClass: App.TableView.extend({
+
         templateName: require('templates/common/configs/overrideWindow'),
+
         controllerBinding: 'App.router.mainServiceInfoConfigsController',
+
         isPaginate: true,
-        filteredContent: function() {
-          return this.get('parentView.availableHosts').filterProperty('filtered') || [];
-        }.property('parentView.availableHosts.@each.filtered'),
+
+        filteredContent: [],
+
+        filteredContentObs: function() {
+          Em.run.once(this, this.filteredContentObsOnce);
+        }.observes('parentView.availableHosts.@each.filtered'),
+
+        filteredContentObsOnce: function() {
+          var filteredContent = this.get('parentView.availableHosts').filterProperty('filtered') || [];
+          this.set('filteredContent', filteredContent);
+        },
+
         filterText: '',
+
         filterTextPlaceholder: Em.I18n.t('hosts.selectHostsDialog.filter.placeHolder'),
+
         filterColumn: null,
+
         filterColumns: Ember.A([
           Ember.Object.create({id: 'ip', name: 'IP Address', selected: true}),
           Ember.Object.create({id: 'cpu', name: 'CPU', selected: false}),
@@ -92,19 +115,25 @@ module.exports = {
           Ember.Object.create({id: 'diskTotal', name: 'Total Disks Capacity', selected: false}),
           Ember.Object.create({id: 'disksMounted', name: '# of Disk Mounts', selected: false})
         ]),
+
         showOnlySelectedHosts: false,
+
         filterComponents: validComponents,
+
         filterComponent: null,
+
         isDisabled: function () {
           return !this.get('parentView.isLoaded');
         }.property('parentView.isLoaded'),
-        didInsertElement: function(){
+
+        didInsertElement: function() {
           var defaultFilterColumn = this.get('filterColumns').findProperty('selected');
           this.set('filterColumn', defaultFilterColumn);
           initialHosts.setEach('filtered', true);
           this.set('parentView.availableHosts', initialHosts);
           this.set('parentView.isLoaded', true);
         },
+
         filterHosts: function () {
           var filterText = this.get('filterText');
           var showOnlySelectedHosts = this.get('showOnlySelectedHosts');
@@ -133,11 +162,13 @@ module.exports = {
 
           this.set('startIndex', 1);
         }.observes('parentView.availableHosts', 'filterColumn', 'filterText', 'filterComponent', 'filterComponent.componentName', 'showOnlySelectedHosts'),
+
         hostSelectMessage: function () {
           var hosts = this.get('parentView.availableHosts');
           var selectedHosts = hosts.filterProperty('selected', true);
           return this.t('hosts.selectHostsDialog.selectedHostsLink').format(selectedHosts.get('length'), hosts.get('length'))
         }.property('parentView.availableHosts.@each.selected'),
+
         selectFilterColumn: function (event) {
           if (event != null && event.context != null && event.context.id != null) {
             var filterColumn = this.get('filterColumn');
@@ -148,6 +179,7 @@ module.exports = {
             this.set('filterColumn', event.context);
           }
         },
+
         selectFilterComponent: function (event) {
           if (event != null && event.context != null && event.context.componentName != null) {
             var currentFilter = this.get('filterComponent');
@@ -163,18 +195,23 @@ module.exports = {
             }
           }
         },
+
         allHostsSelected: false,
+
         toggleSelectAllHosts: function (event) {
           this.get('parentView.availableHosts').filterProperty('filtered').setEach('selected', this.get('allHostsSelected'));
         }.observes('allHostsSelected'),
+
         toggleShowSelectedHosts: function () {
           var currentFilter = this.get('filterComponent');
           if (currentFilter != null) {
             currentFilter.set('selected', false);
           }
-          this.set('filterComponent', null);
-          this.set('filterText', null);
-          this.set('showOnlySelectedHosts', !this.get('showOnlySelectedHosts'));
+          this.setProperties({
+            filterComponent: null,
+            filterText: null
+          });
+          this.toggleProperty('showOnlySelectedHosts');
         }
       })
     });
