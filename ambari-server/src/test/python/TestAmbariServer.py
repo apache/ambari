@@ -2578,6 +2578,8 @@ class TestAmbariServer(TestCase):
       p.process_pair("jdk1.jcpol-file", "some-jcpol.zip")
       p.process_pair("jdk1.home", "C:\\jdk1")
       p.process_pair("jdk1.re", "(jdk.*)/jre")
+      p.process_pair("jdk.download.supported", "true")
+      p.process_pair("jce.download.supported", "true")
 
       pem_side_effect1 = [False, True, False]
 
@@ -2598,6 +2600,8 @@ class TestAmbariServer(TestCase):
       p.process_pair("jdk1.jcpol-file", "some-jcpol.tar.gz")
       p.process_pair("jdk1.home", "/jdk1")
       p.process_pair("jdk1.re", "(jdk.*)/jre")
+      p.process_pair("jdk.download.supported", "true")
+      p.process_pair("jce.download.supported", "true")
 
       pem_side_effect1 = [True, False, True, False]
 
