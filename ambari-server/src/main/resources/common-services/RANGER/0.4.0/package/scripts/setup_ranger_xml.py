@@ -195,12 +195,13 @@ def do_keystore_setup(rolling_upgrade=False):
     )
     File(params.ranger_credential_provider_path,
       owner = params.unix_user,
-      group = params.unix_group
+      group = params.unix_group,
+      mode = 0640
     )
 
   if not is_empty(params.ranger_credential_provider_path) and (params.ranger_audit_source_type).lower() == 'db' and not is_empty(params.ranger_ambari_audit_db_password):
     jceks_path = params.ranger_credential_provider_path
-    cred_setup = cred_setup_prefix + ('-f', jceks_path, '-k', params.ranger_jpa_audit_jdbc_credential_alias, '-v', PasswordString(params.ranger_ambari_db_password), '-c', '1')
+    cred_setup = cred_setup_prefix + ('-f', jceks_path, '-k', params.ranger_jpa_audit_jdbc_credential_alias, '-v', PasswordString(params.ranger_ambari_audit_db_password), '-c', '1')
     Execute(cred_setup, 
             environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, 
             logoutput=True, 
@@ -209,7 +210,8 @@ def do_keystore_setup(rolling_upgrade=False):
 
     File(params.ranger_credential_provider_path,
       owner = params.unix_user,
-      group = params.unix_group
+      group = params.unix_group,
+      mode = 0640
     )
 
  
@@ -253,7 +255,8 @@ def setup_usersync():
 
   File(params.ugsync_jceks_path,
        owner = params.unix_user,
-       group = params.unix_group
+       group = params.unix_group,
+       mode = 0640
   )
   
   File([params.usersync_start, params.usersync_stop],
@@ -277,5 +280,6 @@ def setup_usersync():
 
     File(params.ranger_usersync_keystore_file,
         owner = params.unix_user,
-        group = params.unix_group
+        group = params.unix_group,
+        mode = 0640
     )
