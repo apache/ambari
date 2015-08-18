@@ -191,12 +191,6 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     }
   }.observes('controllers.backgroundOperationsController.allOperationsCount'),
 
-
-  getUpdatedSecurityStatus: function () {
-    this.getSecurityStatus();
-    return this.get('securityEnabled');
-  },
-
   /**
    * performs cluster check before kerbefos security
    * wizard starts if <code>preKerberizeCheck<code> supports is true
@@ -320,6 +314,14 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
         template: Ember.Handlebars.compile('<p>{{t admin.security.status.error}}</p>')
       })
     });
+  },
+
+  /**
+   * Override <code>App.KerberosWizardStep4Controller</code>
+   */
+  clearStep: function() {
+    this.set('isEditMode', false);
+    this._super();
   },
 
   /**
