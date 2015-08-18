@@ -2323,11 +2323,10 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
-   *
+   * Call callback after loading service metrics
    * @param callback
    */
   isServiceMetricsLoaded: function(callback) {
-    var self = this;
     App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(callback);
   }
 });
