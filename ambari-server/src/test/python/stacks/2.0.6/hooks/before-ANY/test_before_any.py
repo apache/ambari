@@ -22,14 +22,16 @@ from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, call, patch
 from resource_management import Hook
 import getpass
+import os
 
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
 class TestHookBeforeInstall(RMFTestCase):
   TMP_PATH = '/tmp/hbase-hbase'
 
+  @patch("os.path.isfile")
   @patch.object(getpass, "getuser", new = MagicMock(return_value='some_user'))
   @patch("os.path.exists")
-  def test_hook_default(self, os_path_exists_mock):
+  def test_hook_default(self, os_path_exists_mock, os_path_isfile_mock):
 
     def side_effect(path):
       if path == "/etc/hadoop/conf":
@@ -37,6 +39,7 @@ class TestHookBeforeInstall(RMFTestCase):
       return False
 
     os_path_exists_mock.side_effect = side_effect
+    os_path_isfile_mock.side_effect = [False, True, True, True, True]
 
     self.executeScript("2.0.6/hooks/before-ANY/scripts/hook.py",
                        classname="BeforeAnyHook",
