@@ -31,6 +31,10 @@ def accumulo_service( name,
     pid_exists = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
 
     if action == 'start':
+      Execute(as_sudo(['chown','-R',params.accumulo_user+":"+params.user_group,
+                       format("$(getent passwd {accumulo_user} | cut -d: -f6)")],
+                      auto_escape=False),
+              ignore_failures=True)
       if name != 'tserver':
         Execute(format("{daemon_script} org.apache.accumulo.master.state.SetGoalState NORMAL"),
                 not_if=pid_exists,
