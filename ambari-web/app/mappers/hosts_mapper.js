@@ -94,13 +94,16 @@ App.hostsMapper = App.QuickDataMapper.create({
       var clusterName = App.get('clusterName');
       var advancedHostComponents = [];
 
-      json.items.forEach(function (item, index) {
+      // Use normal for loop instead of foreach to enhance performance
+      for (var index = 0; index < json.items.length; index++) {
+        var item = json.items[index];
         var notStartedComponents = [];
         var componentsInPassiveState = [];
         var componentsWithStaleConfigs = [];
 
         item.host_components = item.host_components || [];
-        item.host_components.forEach(function (host_component) {
+        for (var i = 0; i < item.host_components.length; i++){
+          var host_component = item.host_components[i];
           var id = host_component.HostRoles.component_name + "_" + item.Hosts.host_name;
           var component = this.parseIt(host_component, this.hostComponentConfig);
           var serviceName = host_component.HostRoles.service_name;
@@ -132,18 +135,19 @@ App.hostsMapper = App.QuickDataMapper.create({
           if (component.passive_state !== 'OFF') {
             componentsInPassiveState.push(id);
           }
-        }, this);
+        }
 
         if (stackUpgradeSupport) {
           var currentVersion = item.stack_versions.findProperty('HostStackVersions.state', 'CURRENT');
           var currentVersionNumber = currentVersion && currentVersion.repository_versions
             ? Em.get(currentVersion.repository_versions[0], 'RepositoryVersions.repository_version') : '';
-          item.stack_versions.forEach(function (stackVersion) {
+          for (var j = 0; j < item.stack_versions.length; j++) {
+            var stackVersion = item.stack_versions[j];
             stackVersion.host_name = item.Hosts.host_name;
             stackVersion.is_visible = stringUtils.compareVersions(Em.get(stackVersion.repository_versions[0], 'RepositoryVersions.repository_version'), currentVersionNumber) >= 0
               || App.get('supports.displayOlderVersions') || !currentVersionNumber;
             stackVersions.push(this.parseIt(stackVersion, this.stackVersionConfig));
-          }, this);
+          }
         }
 
         var alertsSummary = item.alerts_summary;
@@ -170,16 +174,17 @@ App.hostsMapper = App.QuickDataMapper.create({
         hostIds[item.Hosts.host_name] = parsedItem;
 
         hostsWithFullInfo.push(parsedItem);
-      }, this);
+      }
 
       if(returnMapped){
         return hostsWithFullInfo;
       }
 
 
-      advancedHostComponents.forEach(function(id) {
+      for (var k = 0; k < advancedHostComponents.length; k++) {
+        var id = advancedHostComponents[k];
         if (componentsIdMap[id]) componentsIdMap[id].display_name_advanced = App.HostComponent.find(id).get('displayNameAdvanced');
-      });
+      };
       App.store.commit();
       if (stackUpgradeSupport) {
         App.store.loadMany(App.HostStackVersion, stackVersions);
@@ -204,7 +209,9 @@ App.hostsMapper = App.QuickDataMapper.create({
    * @param {object} data
    */
   setMetrics: function (data) {
-    this.get('model').find().forEach(function (host) {
+    var hosts = this.get('model').find();
+    for (var i = 0; i < hosts.length; i++) {
+      var host = hosts[i];
       if (host.get('isRequested')) {
         var hostMetrics = data.items.findProperty('Hosts.host_name', host.get('hostName'));
         host.setProperties({
@@ -213,6 +220,6 @@ App.hostsMapper = App.QuickDataMapper.create({
           loadOne: Em.get(hostMetrics, 'metrics.load.load_one')
         });
       }
-    }, this);
+    }
   }
 });
