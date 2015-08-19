@@ -103,6 +103,26 @@ if has_namenode:
     if 'dfs.namenode.rpc-address' in config['configurations']['hdfs-site']:
       namenode_rpc_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.rpc-address'])
 
+webhdfs_service_urls = ""
+
+
+def buildUrlElement(protocol, hdfs_host, port, servicePath) :
+  openTag = "<url>"
+  closeTag = "</url>"
+  proto = protocol + "://"
+  newLine = "\n"
+  if hdfs_host is None or port is None:
+      return ""
+  else:
+    return openTag + proto + hdfs_host + ":" + port + servicePath + closeTag + newLine
+
+if type(namenode_hosts) is list:
+    for host in namenode_hosts:
+      webhdfs_service_urls += buildUrlElement("http", host, namenode_http_port, "/webhdfs")
+else:
+  webhdfs_service_urls = buildUrlElement("http", namenode_hosts, namenode_http_port, "/webhdfs")
+
+
 rm_hosts = default("/clusterHostInfo/rm_host", None)
 if type(rm_hosts) is list:
   rm_host = rm_hosts[0]

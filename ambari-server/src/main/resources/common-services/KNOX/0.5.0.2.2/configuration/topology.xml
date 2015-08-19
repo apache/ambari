@@ -86,7 +86,7 @@
 
             &lt;service&gt;
                 &lt;role&gt;WEBHDFS&lt;/role&gt;
-                &lt;url&gt;http://{{namenode_host}}:{{namenode_http_port}}/webhdfs&lt;/url&gt;
+                {{webhdfs_service_urls}}
             &lt;/service&gt;
 
             &lt;service&gt;
