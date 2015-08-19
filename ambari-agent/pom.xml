@@ -53,6 +53,7 @@
     <init.d.dir>/etc/rc.d/init.d</init.d.dir>
     <resourceManagementSrcLocation>${project.basedir}/../ambari-common/src/main/python/resource_management</resourceManagementSrcLocation>
     <resourcesFolder>${ambari.server.module}/src/main/resources</resourcesFolder>
+    <customActionsLocation>${target.cache.dir}/custom_actions</customActionsLocation>
   </properties>
   <build>
     <plugins>
@@ -438,6 +439,20 @@
               <sources>
                 <source>
                   <location>${target.cache.dir}</location>
+                  <excludes>
+                    <exclude>custom_actions/scripts/*</exclude>
+                  </excludes>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/ambari-agent/cache/custom_actions</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${customActionsLocation}</location>
                 </source>
               </sources>
             </mapping>
@@ -640,9 +655,21 @@
             <data>
               <src>${target.cache.dir}</src>
               <type>directory</type>
+              <excludes>custom_actions/scripts/*</excludes>
               <mapper>
                 <type>perm</type>
                 <prefix>/var/lib/ambari-agent/cache</prefix>
+                <user>root</user>
+                <group>root</group>
+                <filemode>755</filemode>
+              </mapper>
+            </data>
+            <data>
+              <src>${customActionsLocation}</src>
+              <type>directory</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/var/lib/ambari-agent/cache/custom_actions</prefix>
                 <user>root</user>
                 <group>root</group>
                 <filemode>755</filemode>
@@ -934,6 +961,7 @@
         <pluggableStackDefinitionScriptLocation>${project.basedir}/../ambari-common/src/main/python/pluggable_stack_definition/GenerateStackDefinition.py</pluggableStackDefinitionScriptLocation>
         <pluggableStackDefinitionConfig>${project.basedir}/../ambari-common/src/main/python/pluggable_stack_definition/configs/${stack.distribution}.json</pluggableStackDefinitionConfig>
         <pluggableStackDefinitionOutput>target/pluggable-stack-definition</pluggableStackDefinitionOutput>
+        <customActionsLocation>${pluggableStackDefinitionOutput}/custom_actions</customActionsLocation>
       </properties>
       <build>
         <plugins>

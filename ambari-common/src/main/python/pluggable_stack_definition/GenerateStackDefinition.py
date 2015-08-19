@@ -125,6 +125,7 @@ def process_replacements(file_path, config_data, stack_version_changes):
   if not file_path.endswith(".xml"):
     for _from, _to in stack_version_changes.iteritems():
       file_data = file_data.replace(_from, _to)
+      file_data = process_version_replace(file_data, _from, _to)
   # preform common replacements
   if 'performCommonReplacements' in config_data and config_data.performCommonReplacements:
     for from_version, to_version in stack_version_changes.iteritems():
@@ -138,6 +139,18 @@ def process_replacements(file_path, config_data, stack_version_changes):
   with open(file_path, "w") as target:
     target.write(file_data.encode('utf-8'))
   return file_path
+
+def process_version_replace(text, base_version, version):
+  dash_base_version = base_version.replace('.', '-')
+  dash_version = version.replace('.', '-')
+  underscore_base_version = base_version.replace('.', '_')
+  underscore_version = version.replace('.', '_')
+  if dash_base_version in text:
+    text = text.replace(dash_base_version, dash_version)
+  if underscore_base_version in text:
+    text = text.replace(underscore_base_version, underscore_version)
+  return text
+
 
 def process_metainfo(file_path, config_data, stack_version_changes, common_services = []):
   tree = ET.parse(file_path)
@@ -247,16 +260,7 @@ def process_metainfo(file_path, config_data, stack_version_changes, common_servi
                       name_tag = package_tag.find('name')
                       for base_version in stack_version_changes:
                         version = stack_version_changes[base_version]
-                        dash_base_version = base_version.replace('.', '-')
-                        dash_version = version.replace('.', '-')
-                        underscore_base_version = base_version.replace('.', '_')
-                        underscore_version = version.replace('.', '_')
-                        if dash_base_version in name_tag.text:
-                          name_tag.text = name_tag.text.replace(dash_base_version, dash_version)
-                          break
-                        elif underscore_base_version in name_tag.text:
-                          name_tag.text = name_tag.text.replace(underscore_base_version, underscore_version)
-                          break
+                        name_tag.text = process_version_replace(name_tag.text, base_version, version)
     tree.write(file_path)
   return file_path
 
@@ -520,6 +524,20 @@ class GeneratorHelper(object):
     open(os.path.join(self.output_folder, "custom_stack_map.js"),"w").write(js_file_content)
     pass
 
+  def copy_custom_actions(self):
+    original_folder = os.path.join(self.resources_folder, 'custom_actions')
+    target_folder = os.path.join(self.output_folder, 'custom_actions')
+    ignored_files = ['.pyc']
+
+    def post_copy(src, target):
+      # process python files
+      if target.endswith('.py'):
+        # process script.py
+        process_py_files(target, self.config_data, self.stack_version_changes)
+        return
+
+    copy_tree(original_folder, target_folder, ignored_files, post_copy=post_copy)
+
 def main(argv):
   HELP_STRING = 'GenerateStackDefinition.py -c <config> -r <resources_folder> -o <output_folder>'
   config = ''
@@ -551,6 +569,7 @@ def main(argv):
   gen_helper.copy_common_services()
   gen_helper.copy_ambari_properties()
   gen_helper.generate_ui_mapping()
+  gen_helper.copy_custom_actions()
 
 
 if __name__ == "__main__":
