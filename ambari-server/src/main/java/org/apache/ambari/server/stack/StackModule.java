@@ -590,7 +590,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
     // Stack-definition has 'depends-on' relationship specified.
     // We have a map to construct the 'depended-by' relationship.
-    Map<PropertyDependencyInfo, Set<PropertyDependencyInfo>> dependedByMap = new HashMap<PropertyDependencyInfo, Set<PropertyDependencyInfo>>();
+    Map<PropertyDependencyInfo, Set<PropertyDependencyInfo>> dependedByMap =
+      new HashMap<PropertyDependencyInfo, Set<PropertyDependencyInfo>>();
 
     // Go through all service-configs and gather the reversed 'depended-by'
     // relationship into map. Since we do not have the reverse {@link PropertyInfo},
@@ -616,14 +617,26 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
     // Go through all service-configs again and set their 'depended-by' if necessary.
     for (ServiceModule serviceModule : serviceModules.values()) {
-      for (PropertyInfo pi : serviceModule.getModuleInfo().getProperties()) {
-        String type = ConfigHelper.fileNameToConfigType(pi.getFilename());
-        String name = pi.getName();
-        Set<PropertyDependencyInfo> set =
-          dependedByMap.remove(new PropertyDependencyInfo(type, name));
-        if (set != null) {
-          pi.getDependedByProperties().addAll(set);
-        }
+      addDependedByProperties(dependedByMap, serviceModule.getModuleInfo().getProperties());
+    }
+    // Go through all stack-configs again and set their 'depended-by' if necessary.
+    addDependedByProperties(dependedByMap, stackInfo.getProperties());
+  }
+
+  /**
+   * Add dependendByProperties to property info's
+   * @param dependedByMap Map containing the 'depended-by' relationships
+   * @param properties properties to check against dependedByMap
+   */
+  private void addDependedByProperties(Map<PropertyDependencyInfo, Set<PropertyDependencyInfo>> dependedByMap,
+                                  Collection<PropertyInfo> properties) {
+    for (PropertyInfo pi : properties) {
+      String type = ConfigHelper.fileNameToConfigType(pi.getFilename());
+      String name = pi.getName();
+      Set<PropertyDependencyInfo> set =
+        dependedByMap.remove(new PropertyDependencyInfo(type, name));
+      if (set != null) {
+        pi.getDependedByProperties().addAll(set);
       }
     }
   }

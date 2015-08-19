@@ -202,6 +202,7 @@ class TestHDP206StackAdvisor(TestCase):
 
     expectedItems = [
       {"message": "Value is less than the recommended default of 512", "level": "WARN"},
+      {'message': 'Value should be set for yarn.nodemanager.linux-container-executor.group', 'level': 'ERROR'},
       {"message": "Value should be integer", "level": "ERROR"},
       {"message": "Value should be set", "level": "ERROR"}
     ]
@@ -466,6 +467,7 @@ class TestHDP206StackAdvisor(TestCase):
 
   def test_recommendYARNConfigurations(self):
     configurations = {}
+    services = {"configurations": configurations}
     clusterData = {
       "containers" : 5,
       "ramPerContainer": 256
@@ -478,6 +480,7 @@ class TestHDP206StackAdvisor(TestCase):
       },
       "yarn-site": {
         "properties": {
+          "yarn.nodemanager.linux-container-executor.group": "hadoop",
           "yarn.nodemanager.resource.memory-mb": "1280",
           "yarn.scheduler.minimum-allocation-mb": "256",
           "yarn.scheduler.maximum-allocation-mb": "1280"
@@ -485,7 +488,7 @@ class TestHDP206StackAdvisor(TestCase):
       }
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, None, None)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendMapReduce2Configurations_mapMemoryLessThan2560(self):

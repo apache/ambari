@@ -883,7 +883,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var serviceConfigTags = [];
     for (var site in data.Clusters.desired_configs) {
       if (data.Clusters.desired_configs.hasOwnProperty(site)) {
-        if (installedServiceSites.contains(site)) {
+        if (installedServiceSites.contains(site) || site == 'cluster-env') {
           serviceConfigTags.push({
             siteName: site,
             tagName: data.Clusters.desired_configs[site].tag,
@@ -1183,8 +1183,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       var serviceToShow = this.get('selectedServiceNames').concat('MISC');
       var miscConfigs = this.get('stepConfigs').findProperty('serviceName', 'MISC').configs;
       if (this.get('wizardController.name') == "addServiceController") {
-        miscConfigs.findProperty('name', 'smokeuser').set('value', this.get('content.smokeuser')).set('isEditable', false);
-        miscConfigs.findProperty('name', 'user_group').set('value', this.get('content.group')).set('isEditable', false);
+        miscConfigs.findProperty('name', 'smokeuser').set('isEditable', false);
+        miscConfigs.findProperty('name', 'user_group').set('isEditable', false);
+        if (this.get('content.smokeuser')) {
+          miscConfigs.findProperty('name', 'smokeuser').set('value', this.get('content.smokeuser'));
+        }
+        if (this.get('content.group')) {
+          miscConfigs.findProperty('name', 'user_group').set('value', this.get('content.group'));
+        }
       }
       App.config.miscConfigVisibleProperty(miscConfigs, serviceToShow);
     }

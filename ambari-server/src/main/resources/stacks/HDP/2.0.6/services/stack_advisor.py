@@ -130,6 +130,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
     putYarnEnvProperty('min_user_id', self.get_system_min_uid())
+    containerExecutorGroup = 'hadoop'
+    if 'cluster-env' in services['configurations'] and 'user_group' in services['configurations']['cluster-env']['properties']:
+      containerExecutorGroup = services['configurations']['cluster-env']['properties']['user_group']
+    putYarnProperty("yarn.nodemanager.linux-container-executor.group", containerExecutorGroup)
 
   def recommendMapReduce2Configurations(self, configurations, clusterData, services, hosts):
     putMapredProperty = self.putProperty(configurations, "mapred-site", services)
@@ -722,8 +726,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "mapred-site")
 
   def validateYARNConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    clusterEnv = getSiteProperties(configurations, "cluster-env")
     validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
                         {"config-name": 'yarn.scheduler.minimum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
+                        {"config-name": 'yarn.nodemanager.linux-container-executor.group', "item": self.validatorEqualsPropertyItem(properties, "yarn.nodemanager.linux-container-executor.group", clusterEnv, "user_group")},
                         {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
     return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 

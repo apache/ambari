@@ -631,7 +631,10 @@ public class AmbariMetaInfo {
 
   public Set<PropertyInfo> getPropertiesByName(String stackName, String version, String serviceName, String propertyName)
       throws AmbariException {
-    Set<PropertyInfo> properties = getServiceProperties(stackName, version, serviceName);
+
+    Set<PropertyInfo> properties = serviceName == null ?
+      getStackProperties(stackName, version)
+      : getServiceProperties(stackName, version, serviceName);
 
     if (properties.size() == 0) {
       throw new StackAccessException("stackName=" + stackName

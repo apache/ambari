@@ -70,6 +70,7 @@
     "StackVersion": "StackConfigurationDependency/stack_version",
     "StackService": "StackConfigurationDependency/service_name",
     "StackConfiguration": "StackConfigurationDependency/property_name",
+    "StackLevelConfiguration": "StackConfigurationDependency/property_name",
     "StackConfigurationDependency": "StackConfigurationDependency/dependency_name"
   },
   "StackServiceComponent": {
