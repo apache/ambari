@@ -42,6 +42,7 @@
     <contrib-views-dir>${basedir}/../contrib/views</contrib-views-dir>
     <resourceManagementSrcLocation>${project.basedir}/../ambari-common/src/main/python/resource_management</resourceManagementSrcLocation>
     <customStackMap>${basedir}/../ambari-web/app/data/custom_stack_map.js</customStackMap>
+    <customActionsRoot>src/main/resources/custom_actions</customActionsRoot>
     <ambariProperties>conf/unix/ambari.properties</ambariProperties>
     <commonServicesSrcLocation>target/classes/common-services</commonServicesSrcLocation>
     <stacksSrcLocation>target/classes/stacks/${stack.distribution}</stacksSrcLocation>
@@ -668,7 +669,7 @@
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>src/main/resources/custom_actions</location>
+                  <location>${customActionsRoot}</location>
                 </source>
               </sources>
             </mapping>
@@ -1127,7 +1128,7 @@
               </mapper>
             </data>
             <data>
-              <src>src/main/resources/custom_actions</src>
+              <src>${customActionsRoot}</src>
               <type>directory</type>
               <mapper>
                 <type>perm</type>
@@ -1537,6 +1538,7 @@
         </property>
       </activation>
       <properties>
+        <customActionsRoot>target/pluggable-stack-definition/custom_actions</customActionsRoot>
         <customStackMap>target/pluggable-stack-definition/custom_stack_map.js</customStackMap>
         <ambariProperties>target/pluggable-stack-definition/conf/unix/ambari.properties</ambariProperties>
         <resourceManagementSrcLocation>target/pluggable-stack-definition/python/resource_management</resourceManagementSrcLocation>
