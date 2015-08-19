@@ -423,7 +423,7 @@
   </property>
   <property>
     <name>topology.max.spout.pending</name>
-    <value>null</value>
+    <value>1000</value>
     <description>The maximum number of tuples that can be pending on a spout task at any given time.
        This config applies to individual tasks, not to spouts or topologies as a whole.
 

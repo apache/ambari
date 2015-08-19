@@ -98,7 +98,7 @@
             "logviewer.childopts": "-Xmx128m", 
             "transactional.zookeeper.port": "null", 
             "topology.worker.childopts": "null", 
-            "topology.max.spout.pending": "null", 
+            "topology.max.spout.pending": "1000",
             "nimbus.cleanup.inbox.freq.secs": "600", 
             "storm.messaging.netty.min_wait_ms": "100", 
             "nimbus.task.timeout.secs": "30", 
