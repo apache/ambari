@@ -27,7 +27,8 @@ from ambari_commons.logging_utils import get_debug_mode, print_warning_msg, prin
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.os_utils import is_root
-from ambari_server.dbConfiguration import ensure_dbms_is_running, ensure_jdbc_driver_is_installed
+from ambari_server.dbConfiguration import ensure_dbms_is_running, ensure_jdbc_driver_is_installed, \
+  get_native_libs_path, get_jdbc_driver_path
 from ambari_server.serverConfiguration import configDefaults, find_jdk, get_ambari_classpath, get_ambari_properties, \
   get_conf_dir, get_is_persisted, get_is_secure, get_java_exe_path, get_original_master_key, read_ambari_user, \
   PID_NAME, SECURITY_KEY_ENV_VAR_NAME, SECURITY_MASTER_KEY_LOCATION, \
@@ -94,6 +95,7 @@ SERVER_PING_TIMEOUT_WINDOWS = 5
 SERVER_PING_ATTEMPTS_WINDOWS = 4
 
 SERVER_CLASSPATH_KEY = "SERVER_CLASSPATH"
+LIBRARY_PATH_KEY = "LD_LIBRARY_PATH"
 
 SERVER_SEARCH_PATTERN = "org.apache.ambari.server.controller.AmbariServer"
 
@@ -256,8 +258,18 @@ def server_process_main(options, scmStatus=None):
 
   class_path = get_conf_dir()
   class_path = os.path.abspath(class_path) + os.pathsep + get_ambari_classpath()
+  jdbc_driver_path = get_jdbc_driver_path(options, properties)
+  if jdbc_driver_path not in class_path:
+    class_path = class_path + os.pathsep + get_ambari_classpath()
+
   if SERVER_CLASSPATH_KEY in os.environ:
       class_path =  os.environ[SERVER_CLASSPATH_KEY] + os.pathsep + class_path
+
+  native_libs_path = get_native_libs_path(options, properties)
+  if native_libs_path is not None:
+    if LIBRARY_PATH_KEY in os.environ:
+      native_libs_path = os.environ[LIBRARY_PATH_KEY] + os.pathsep + native_libs_path
+    os.environ[LIBRARY_PATH_KEY] = native_libs_path
 
   debug_mode = get_debug_mode()
   debug_start = (debug_mode & 1) or SERVER_START_DEBUG

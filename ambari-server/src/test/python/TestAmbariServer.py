@@ -929,7 +929,7 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverConfiguration.print_info_msg")
   def test_get_share_jars(self, printInfoMsg_mock, globMock):
     globMock.return_value = ["one", "two"]
-    expected = "one:two:one:two:one:two"
+    expected = "one:two:one:two:one:two:one:two"
     result = get_share_jars()
     self.assertEqual(expected, result)
     globMock.return_value = []
@@ -4190,7 +4190,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_mock.return_value = properties
     get_ambari_properties_3_mock.side_effect = get_ambari_properties_2_mock.side_effect = [properties, properties2, properties2]
 
-    isfile_mock.side_effect = [False, True, False]
+    isfile_mock.side_effect = [False, True, False, False]
 
     try:
       upgrade(args)
@@ -4402,7 +4402,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       get_ambari_properties_mock.return_value = props
     exists_mock.return_value = True
     lexists_mock.return_value = True
-    isfile_mock.side_effect = [True, False, False]
+    isfile_mock.side_effect = [True, False, False, False]
 
     upgrade(args)
     self.assertTrue(os_remove_mock.called)
@@ -5129,7 +5129,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     isdir_mock.return_value = True
 
-    isfile_mock.side_effect = [True, False, False]
+    isfile_mock.side_effect = [True, False, False, False]
 
     del args.database_index
     del args.persistence_type
@@ -5151,7 +5151,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_mock.reset_mock()
     os_symlink_mock.reset_mock()
 
-    isfile_mock.side_effect = [False, False, False]
+    isfile_mock.side_effect = [False, False, False, False]
 
     check_jdbc_drivers(args)
 

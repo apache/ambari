@@ -465,7 +465,8 @@ public class Configuration {
     ORACLE("oracle"),
     MYSQL("mysql"),
     DERBY("derby"),
-    SQL_SERVER("sqlserver");
+    SQL_SERVER("sqlserver"),
+    SQL_ANYWHERE("sqlanywhere");
 
     private static final Map<String, DatabaseType> m_mappedTypes =
         new HashMap<String, Configuration.DatabaseType>(5);
@@ -1667,6 +1668,8 @@ public class Configuration {
       databaseType = DatabaseType.DERBY;
     } else if (dbUrl.contains(DatabaseType.SQL_SERVER.getName())) {
       databaseType = DatabaseType.SQL_SERVER;
+    } else if (dbUrl.contains(DatabaseType.SQL_ANYWHERE.getName())) {
+      databaseType = DatabaseType.SQL_ANYWHERE;
     } else {
       throw new RuntimeException(
           "The database type could be not determined from the JDBC URL "

@@ -950,7 +950,7 @@ def _reset_database(options):
   if persistence_type == "remote":
       err = 'Ambari doesn\'t support resetting exernal DB automatically. ' \
             'To reset Ambari Server schema you must first drop and then create it ' \
-            'using DDL scripts from "\/var/lib/ambari-server/resources/\"'
+            'using DDL scripts from "/var/lib/ambari-server/resources/"'
       raise FatalException(1, err)
   else:
     factory = DBMSConfigFactory()
