@@ -19,6 +19,8 @@
 var App = require('app');
 var validator = require('utils/validator');
 
+var dbInfo = require('data/db_properties_info') || {};
+
 var delay = (function(){
   var timer = 0;
   return function(callback, ms){
@@ -426,17 +428,16 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
   didInsertElement: function () {
     // on page render, automatically populate JDBC URLs only for default database settings
     // so as to not lose the user's customizations on these fields
-    if (['addServiceController', 'installerController'].contains(this.get('controller.wizardController.name'))) {
-      if (/^New\s\w+\sDatabase$/.test(this.get('serviceConfig.value')) ||
-        this.get('dontUseHandleDbConnection').contains(this.get('serviceConfig.name'))) {
+    //if (['addServiceController', 'installerController'].contains(this.get('controller.wizardController.name'))) {
+      if (this.get('isNewDb') || this.get('dontUseHandleDbConnection').contains(this.get('serviceConfig.name'))) {
         this.onOptionsChange();
       } else {
-        if ((App.get('isHadoopWindowsStack') && /SQL\sauthentication/.test(this.get('serviceConfig.value'))) || this.get('serviceConfig.name') === 'DB_FLAVOR') {
+        if ((App.get('isHadoopWindowsStack') && this.get('inMSSQLWithIA')) || this.get('serviceConfig.name') === 'DB_FLAVOR') {
           this.onOptionsChange();
         }
         this.handleDBConnectionProperty();
       }
-    }
+    //}
   },
 
   /**
@@ -454,312 +455,168 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     return ['DB_FLAVOR', 'authentication_method'];
   }.property('App.currentStackName'),
 
-  configs: function () {
-    if (this.get('controller.name') == 'mainServiceInfoConfigsController') return this.get('categoryConfigsAll');
-    return this.get('categoryConfigsAll').filterProperty('isObserved', true);
-  }.property('categoryConfigsAll'),
-
-  ignoreRangerHostChange: false,
-  dbTypeChanged: false,
   serviceConfig: null,
   categoryConfigsAll: null,
 
-  onOptionsChange: function () {
-    // The following if condition will be satisfied only for installer wizard flow
-    if (this.get('configs').length) {
-      var connectionUrl = this.get('connectionUrl');
-      if (connectionUrl) {
-        var dbClass = this.get('dbClass');
-        var hostName = this.get('hostName');
-        var databaseName = this.get('databaseName');
-        var hostNameDefault;
-        var databaseNameDefault;
-        var connectionUrlValue = connectionUrl.get('value');
-        var connectionUrlDefaultValue = connectionUrl.get('recommendedValue');
-        var dbClassValue = dbClass.get('value');
-        var serviceName = this.get('serviceConfig.serviceName');
-        var isServiceInstalled = App.Service.find().someProperty('serviceName', serviceName);
-        var postgresUrl = 'jdbc:postgresql://{0}:5432/{1}';
-        var oracleUrl = 'jdbc:oracle:thin:@//{0}:1521/{1}';
-        var mssqlUrl = 'jdbc:sqlserver://{0};databaseName={1}';
-        var mssqlIntegratedAuthUrl = 'jdbc:sqlserver://{0};databaseName={1};integratedSecurity=true';
-        var isNotExistingMySQLServer = this.get('serviceConfig.value') !== 'Existing MSSQL Server database with integrated authentication';
-        var categoryConfigsAll = this.get('categoryConfigsAll');
-        if (isServiceInstalled) {
-          hostNameDefault = this.get('hostNameProperty.recommendedValue');
-          databaseNameDefault = this.get('databaseNameProperty.recommendedValue');
-        } else {
-          hostNameDefault = hostName;
-          databaseNameDefault = databaseName;
-        }
-        switch (serviceName) {
-          case 'HIVE':
-            var hiveDbType = this.get('parentView.serviceConfigs').findProperty('name', 'hive_database_type');
-            var mysqlUrl = 'jdbc:mysql://{0}/{1}?createDatabaseIfNotExist=true';
-            switch (this.get('serviceConfig.value')) {
-              case 'New MySQL Database':
-              case 'Existing MySQL Database':
-                connectionUrlValue = mysqlUrl.format(hostName, databaseName);
-                connectionUrlDefaultValue = mysqlUrl.format(hostNameDefault, databaseNameDefault);
-                dbClassValue = 'com.mysql.jdbc.Driver';
-                Em.set(hiveDbType, 'value', 'mysql');
-                break;
-              case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
-                connectionUrlValue = postgresUrl.format(hostName, databaseName);
-                connectionUrlDefaultValue = postgresUrl.format(hostNameDefault, databaseNameDefault);
-                dbClassValue = 'org.postgresql.Driver';
-                Em.set(hiveDbType, 'value', 'postgres');
-                break;
-              case 'Existing Oracle Database':
-                connectionUrlValue = oracleUrl.format(hostName, databaseName);
-                connectionUrlDefaultValue = oracleUrl.format(hostNameDefault, databaseNameDefault);
-                dbClassValue = 'oracle.jdbc.driver.OracleDriver';
-                Em.set(hiveDbType, 'value', 'oracle');
-                break;
-              case 'Existing MSSQL Server database with SQL authentication':
-                connectionUrlValue = mssqlUrl.format(hostName, databaseName);
-                connectionUrlDefaultValue = mssqlUrl.format(hostNameDefault, databaseNameDefault);
-                dbClassValue = 'com.microsoft.sqlserver.jdbc.SQLServerDriver';
-                Em.set(hiveDbType, 'value', 'mssql');
-                break;
-              case 'Existing MSSQL Server database with integrated authentication':
-                connectionUrlValue = mssqlIntegratedAuthUrl.format(hostName, databaseName);
-                connectionUrlDefaultValue = mssqlIntegratedAuthUrl.format(hostNameDefault, databaseNameDefault);
-                dbClassValue = 'com.microsoft.sqlserver.jdbc.SQLServerDriver';
-                Em.set(hiveDbType, 'value', 'mssql');
-                break;
-            }
-            categoryConfigsAll.findProperty('name', 'javax.jdo.option.ConnectionUserName').setProperties({
-              isVisible: isNotExistingMySQLServer,
-              isRequired: isNotExistingMySQLServer
-            });
-            categoryConfigsAll.findProperty('name', 'javax.jdo.option.ConnectionPassword').setProperties({
-              isVisible: isNotExistingMySQLServer,
-              isRequired: isNotExistingMySQLServer
-            });
-            break;
-          case 'OOZIE':
-            var derbyUrl = 'jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true';
-            var mysqlUrl = 'jdbc:mysql://{0}/{1}';
-            switch (this.get('serviceConfig.value')) {
-              case 'New Derby Database':
-                connectionUrlValue = derbyUrl;
-                connectionUrlDefaultValue = derbyUrl;
-                dbClassValue = 'org.apache.derby.jdbc.EmbeddedDriver';
-                break;
-              case 'Existing MySQL Database':
-                connectionUrlValue = mysqlUrl.format(hostName, databaseName);
-                connectionUrlDefaultValue = mysqlUrl.format(hostNameDefault, databaseNameDefault);
-                dbClassValue = 'com.mysql.jdbc.Driver';
-                break;
-              case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
-                connectionUrlValue = postgresUrl.format(hostName, databaseName);
-                connectionUrlDefaultValue = postgresUrl.format(hostNameDefault, databaseNameDefault);
-                dbClassValue = 'org.postgresql.Driver';
-                break;
-              case 'Existing Oracle Database':
-                connectionUrlValue = oracleUrl.format(hostName, databaseName);
-                connectionUrlDefaultValue = oracleUrl.format(hostNameDefault, databaseNameDefault);
-                dbClassValue = 'oracle.jdbc.driver.OracleDriver';
-                break;
-              case 'Existing MSSQL Server database with SQL authentication':
-                connectionUrlValue = mssqlUrl.format(hostName, databaseName);
-                connectionUrlDefaultValue = mssqlUrl.format(hostNameDefault, databaseNameDefault);
-                dbClassValue = 'com.microsoft.sqlserver.jdbc.SQLServerDriver';
-                break;
-              case 'Existing MSSQL Server database with integrated authentication':
-                connectionUrlValue = mssqlIntegratedAuthUrl.format(hostName, databaseName);
-                connectionUrlDefaultValue = mssqlIntegratedAuthUrl.format(hostNameDefault, databaseNameDefault);
-                dbClassValue = 'com.microsoft.sqlserver.jdbc.SQLServerDriver';
-                break;
-            }
-            categoryConfigsAll.findProperty('name', 'oozie.service.JPAService.jdbc.username').setProperties({
-              isVisible: isNotExistingMySQLServer,
-              isRequired: isNotExistingMySQLServer
-            });
-            categoryConfigsAll.findProperty('name', 'oozie.service.JPAService.jdbc.password').setProperties({
-              isVisible: isNotExistingMySQLServer,
-              isRequired: isNotExistingMySQLServer
-            });
-            break;
-          case 'RANGER':
-            var mysqlUrl = 'jdbc:mysql://{0}/{1}',
-              sqlConnectorJARValue = '/usr/share/java/mysql-connector-java.jar',
-              sqlConnectorJAR = this.get('parentView.serviceConfigs').findProperty('name', 'SQL_CONNECTOR_JAR'),
-              dbFlavor = this.get('serviceConfig.value'),
-              databasesTypes = /MYSQL|POSTGRES|ORACLE|MSSQL/gi,
-              currentDBFlavor = dbFlavor.match(databasesTypes).length?dbFlavor.match(databasesTypes)[0]:'';
+  /**
+   * defines if new db is selected;
+   * @type {boolean}
+   */
+  isNewDb: function() {
+    return /New /g.test(this.get('serviceConfig.value'));
+  }.property('serviceConfig.serviceName', 'serviceConfig.value'),
 
-            switch (currentDBFlavor.toUpperCase()) {
-              case 'ORACLE':
-                connectionUrlValue = oracleUrl.format(hostName, databaseName);
-                connectionUrlDefaultValue = oracleUrl.format(hostNameDefault, databaseNameDefault);
-                dbClassValue = 'oracle.jdbc.driver.OracleDriver';
-                sqlConnectorJARValue = '/usr/share/java/ojdbc6.jar';
-                break;
-              case 'MYSQL':
-                connectionUrlValue = mysqlUrl.format(hostName, databaseName);
-                connectionUrlDefaultValue = mysqlUrl.format(hostNameDefault, databaseNameDefault);
-                dbClassValue = 'com.mysql.jdbc.Driver';
-                sqlConnectorJARValue = '/usr/share/java/mysql-connector-java.jar';
-                break;
-              case 'POSTGRES':
-                connectionUrlValue = postgresUrl.format(hostName, databaseName);
-                connectionUrlDefaultValue = postgresUrl.format(hostNameDefault, databaseNameDefault);
-                dbClassValue = 'org.postgresql.Driver';
-                sqlConnectorJARValue = '/usr/share/java/postgresql.jar';
-                break;
-              case 'MSSQL':
-                connectionUrlValue = mssqlUrl.format(hostName, databaseName);
-                connectionUrlDefaultValue = mssqlUrl.format(hostNameDefault, databaseNameDefault);
-                dbClassValue = 'com.microsoft.sqlserver.jdbc.SQLServerDriver';
-                sqlConnectorJARValue = '/usr/share/java/sqljdbc4.jar';
-                break;
-            }
-            this.get('categoryConfigsAll').findProperty('name', 'db_host').set('value', this.get('hostNameProperty.value'));
-            if(!this.get('ignoreRangerHostChange')) {
-              sqlConnectorJAR.set('value',sqlConnectorJARValue);
-              sqlConnectorJAR.set('recommendedValue',sqlConnectorJARValue);
-            }
-            break;
-        }
-        connectionUrl.set('value', connectionUrlValue);
-        connectionUrl.set('recommendedValue', connectionUrlDefaultValue);
-        dbClass.set('value', dbClassValue);
+  /**
+   * defines if 'Existing MSSQL Server database with integrated authentication' is selected
+   * in this case some properties can have different behaviour
+   * @type {boolean}
+   */
+  inMSSQLWithIA: function() {
+    return this.get('serviceConfig.value') === 'Existing MSSQL Server database with integrated authentication';
+  }.property('serviceConfig.value'),
+
+  /**
+   * Radio button has very uncomfortable values for managing it's state
+   * so it's better to use code values that easier to manipulate. Ex:
+   * "Existing MySQL Database" transforms to "MYSQL"
+   * @type {string}
+   */
+  getDbTypeFromRadioValue: function() {
+    var currentValue = this.get('serviceConfig.value');
+    var databases = /MySQL|Postgres|Oracle|Derby|MSSQL|SQLA/gi;
+    if (this.get('inMSSQLWithIA')) {
+      return 'MSSQL2';
+    } else {
+      var matches = currentValue.match(databases);
+      if (matches) {
+        return currentValue.match(databases)[0].toUpperCase();
+      } else {
+        return "MYSQL";
       }
     }
-  }.observes('databaseName', 'hostName'),
+  }.property('serviceConfig.serviceName', 'serviceConfig.value'),
+
+  onOptionsChange: function () {
+    // The following if condition will be satisfied only for installer wizard flow
+    if (this.getPropertyByType('connection_url') && this.get('hostNameProperty')) {
+      /** if new db is selected host name must be same as master of selected service (and can't be changed)**/
+      if (this.get('isNewDb')) {
+        var initProperty = this.get('hostNameProperty.recommendedValue') || this.get('hostNameProperty.savedValue');
+        this.get('hostNameProperty').set('value', initProperty.toString());
+        this.get('hostNameProperty').set('isEditable', false);
+      } else {
+        this.get('hostNameProperty').set('isEditable', true);
+      }
+      this.setRequiredProperties(['driver', 'sql_jar_connector', 'db_type']);
+      this.setConnectionUrl(this.get('hostNameProperty.value'), this.get('databaseProperty.value'));
+      this.handleSpecialUserPassProperties();
+    }
+  }.observes('databaseProperty.value', 'hostNameProperty.value', 'serviceConfig.value'),
 
   nameBinding: 'serviceConfig.radioName',
 
-  databaseNameProperty: function () {
-    var databaseNameConfig = {
-      'HIVE': 'ambari.hive.db.schema.name',
-      'OOZIE':'oozie.db.schema.name',
-      'RANGER': 'db_name'
-    };
-    return Object.keys(databaseNameConfig).contains(this.get('serviceConfig.serviceName'))?
-      this.get('categoryConfigsAll').findProperty('name', databaseNameConfig[this.get('serviceConfig.serviceName')]):
-      null;
+  /**
+   * Just property object for database name
+   * @type {App.ServiceConfigProperty}
+   */
+  databaseProperty: function () {
+    return this.getPropertyByType('db_name');
   }.property('serviceConfig.serviceName'),
 
-  databaseName: function () {
-    return this.get('databaseNameProperty.value');
-  }.property('databaseNameProperty.value'),
-
+  /**
+   * Just property object for host name
+   * @type {App.ServiceConfigProperty}
+   */
   hostNameProperty: function () {
-    this.set('dbTypeChanged', true);
-    var value = this.get('serviceConfig.value');
-    var returnValue;
-    var hostname;
-    if (this.get('serviceConfig.serviceName') === 'HIVE') {
-      switch (value) {
-        case 'New MySQL Database':
-          hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_ambari_host');
-          break;
-        case 'Existing MySQL Database':
-          hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_existing_mysql_host');
-          break;
-        case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
-          hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_existing_postgresql_host');
-          break;
-        case 'Existing Oracle Database':
-          hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_existing_oracle_host');
-          break;
-        case 'Existing MSSQL Server database with SQL authentication':
-          hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_existing_mssql_server_host');
-          break;
-        case 'Existing MSSQL Server database with integrated authentication':
-          hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_existing_mssql_server_2_host');
-          break;
-      }
-      if (hostname) {
-        Em.set(hostname, 'isUserProperty', false);
-        returnValue = hostname;
-      } else {
-        returnValue = this.get('categoryConfigsAll').findProperty('name', 'hive_hostname');
-      }
-    } else if (this.get('serviceConfig.serviceName') === 'OOZIE') {
-      switch (value) {
-        case 'New Derby Database':
-          hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_ambari_host');
-          break;
-        case 'Existing MySQL Database':
-          hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_mysql_host');
-          break;
-        case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
-          hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_postgresql_host');
-          break;
-        case 'Existing Oracle Database':
-          hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_oracle_host');
-          break;
-        case 'Existing MSSQL Server database with SQL authentication':
-          hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_mssql_server_host');
-          break;
-        case 'Existing MSSQL Server database with integrated authentication':
-          hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_mssql_server_2_host');
-          break;
-      }
-      if (hostname) {
-        Em.set(hostname, 'isUserProperty', false);
-        returnValue = hostname;
-      } else {
-        returnValue = this.get('categoryConfigsAll').findProperty('name', 'oozie_hostname');
-      }
-    } else if (this.get('serviceConfig.serviceName') === 'RANGER') {
-      if (value) {
-        var databasesTypes = /MYSQL|POSTGRES|ORACLE|MSSQL/gi,
-          currentDBFlavor = value.match(databasesTypes),
-          dbHost = this.get('categoryConfigsAll').findProperty('name', 'db_host'),
-          hostnameConfig = {
-            'MYSQL': 'ranger_mysql_host',
-            'ORACLE': 'ranger_oracle_host',
-            'POSTGRES': 'ranger_postgres_host',
-            'MSSQL': 'ranger_mssql_host'
-          };
-        if (currentDBFlavor) {
-          hostname = this.get('categoryConfigsAll').findProperty('name', hostnameConfig[currentDBFlavor[0].toUpperCase()]);
-        }
-        if (hostname) {
-          if (!hostname.value) {
-            hostname.set('value', this.get('categoryConfigsAll').findProperty('name', 'db_host').get('value'));
-          }
-          Em.set(hostname, 'isUserProperty', false);
-          if (dbHost) {
-            dbHost.set('value', hostname.value);
-          }
-          returnValue = hostname;
-        } else {
-          returnValue = this.get('categoryConfigsAll').findProperty('name', 'db_host');
-        }
+    var host = this.getPropertyByType('host_name');
+    if (host && !host.get('value')) {
+      if (host.get('savedValue')) {
+        host.set('value', host.get('savedValue'));
+      } else if (host.get('recommendedValue')) {
+        host.set('value', host.get('recommendedValue'));
       }
     }
-    return returnValue;
+    return host;
   }.property('serviceConfig.serviceName', 'serviceConfig.value'),
 
-  hostName: function () {
-    this.set('ignoreRangerHostChange', !this.get('dbTypeChanged'));
-    this.set('dbTypeChanged', false);
-    return this.get('hostNameProperty.value');
-  }.property('hostNameProperty.value'),
+  /**
+   *
+   * @param propertyType
+   * @returns {*}
+   */
+  getDefaultPropertyValue: function(propertyType) {
+    var dbProperties = dbInfo.dpPropertiesMap[this.get('getDbTypeFromRadioValue')],
+      serviceName = this.get('serviceConfig.serviceName');
+    return dbProperties[serviceName] && dbProperties[serviceName][propertyType]
+      ? dbProperties[serviceName][propertyType] : dbProperties[propertyType];
+  },
 
-  connectionUrl: function () {
-    var connectionUrlConfig = {
-      'HIVE': 'javax.jdo.option.ConnectionURL',
-      'OOZIE':'oozie.service.JPAService.jdbc.url',
-      'RANGER': App.get('isHadoop23Stack') ? 'ranger.jpa.jdbc.url' : 'ranger_jdbc_connection_url'
-    };
-    return this.get('categoryConfigsAll').findProperty('name', connectionUrlConfig[this.get('serviceConfig.serviceName')]);
-  }.property('serviceConfig.serviceName', 'App.isHadoop23Stack'),
+  /**
+   *
+   * @param propertyType
+   * @returns {*|Object}
+   */
+  getPropertyByType: function(propertyType) {
+    if (dbInfo.dpPropertiesByServiceMap[this.get('serviceConfig.serviceName')]) {
+      /** check if selected service has db properties**/
+      return this.get('categoryConfigsAll').findProperty('name', dbInfo.dpPropertiesByServiceMap[this.get('serviceConfig.serviceName')][propertyType]);
+    }
+    return null;
+  },
 
-  dbClass: function () {
-    var dbClassConfig = {
-      'HIVE': 'javax.jdo.option.ConnectionDriverName',
-      'OOZIE':'oozie.service.JPAService.jdbc.driver',
-      'RANGER': App.get('isHadoop23Stack') ? 'ranger.jpa.jdbc.driver' : 'ranger_jdbc_driver'
-    };
-    return this.get('categoryConfigsAll').findProperty('name', dbClassConfig[this.get('serviceConfig.serviceName')]);
-  }.property('serviceConfig.serviceName', 'App.isHadoop23Stack'),
+  /**
+   * This method update <code>connection_url<code> property, using template described in <code>dpPropertiesMap<code>
+   * and sets hostName as dbName in appropriate position of <code>connection_url<code> string
+   * @param {String} hostName
+   * @param {String} dbName
+   * @method setConnectionUrl
+   */
+  setConnectionUrl: function(hostName, dbName) {
+    var connectionUrlProperty = this.getPropertyByType('connection_url');
+    var connectionUrlTemplate = this.getDefaultPropertyValue('connection_url');
+    try {
+      var connectionUrlValue = connectionUrlTemplate.format(hostName, dbName);
+      connectionUrlProperty.set('value', connectionUrlValue);
+      connectionUrlProperty.set('recommendedValue', connectionUrlValue);
+    } catch(e) {
+      console.error('connection url property or connection url template is missing');
+    }
+    return connectionUrlProperty;
+  },
+
+  /**
+   * This method sets recommended values for properties <code>propertiesToUpdate<code> when radio button is changed
+   * @param {String[]} propertiesToUpdate - contains type of properties that should be updated;
+   * @method setRequiredProperties
+   * @returns App.ServiceConfigProperty[]
+   */
+  setRequiredProperties: function (propertiesToUpdate) {
+    propertiesToUpdate.forEach(function(pType) {
+      var property = this.getPropertyByType(pType);
+      var value = this.getDefaultPropertyValue(pType);
+      if (property && value) {
+        property.set('value', value);
+        property.set('recommendedValue', value);
+      }
+    }, this);
+  },
+
+  /**
+   * This method hides properties <code>user_name<code> and <code>password<code> in case selected db is
+   * "Existing MSSQL Server database with integrated authentication" or similar
+   * @method handleSpecialUserPassProperties
+   */
+  handleSpecialUserPassProperties: function() {
+    ['user_name', 'password'].forEach(function(pType) {
+      var property = this.getPropertyByType(pType);
+      if (property) {
+        property.setProperties({
+          'isVisible': !this.get('inMSSQLWithIA'),
+          'isRequired': !this.get('inMSSQLWithIA')
+        });
+      }
+    }, this);
+  },
 
   /**
    * `Observer` that add <code>additionalView</code> to <code>App.ServiceConfigProperty</code>
@@ -775,9 +632,9 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     }
     var handledProperties = ['oozie_database', 'hive_database', 'DB_FLAVOR'];
     var currentValue = this.get('serviceConfig.value');
-    var databases = /MySQL|PostgreSQL|Postgres|Oracle|Derby|MSSQL/gi;
+    var databases = /MySQL|PostgreSQL|Postgres|Oracle|Derby|MSSQL|SQLA/gi;
     var currentDB = currentValue.match(databases)[0];
-    var databasesTypes = /MySQL|Postgres|Oracle|Derby|MSSQL/gi;
+    var databasesTypes = /MySQL|Postgres|Oracle|Derby|MSSQL|SQLA/gi;
     var currentDBType = currentValue.match(databasesTypes)[0];
     var checkDatabase = /existing/gi.test(currentValue);
     // db connection check button show up if existed db selected
@@ -1249,9 +1106,9 @@ App.CheckDBConnectionView = Ember.View.extend({
   /** @property {String} masterHostName - host name location of Master Component related to Service **/
   masterHostName: function() {
     var serviceMasterMap = {
-      'OOZIE': 'oozie_ambari_host',
+      'OOZIE': 'oozie_hostname',
       'HDFS': 'hadoop_host',
-      'HIVE': 'hive_ambari_host',
+      'HIVE': 'hive_hostname',
       'KERBEROS': 'kdc_host',
       'RANGER': 'rangerserver_host'
     };
@@ -1266,7 +1123,7 @@ App.CheckDBConnectionView = Ember.View.extend({
 
     if (this.get('parentView.service.serviceName') === 'RANGER') {
       var dbFlavor = this.get('parentView.categoryConfigsAll').findProperty('name','DB_FLAVOR').get('value'),
-        databasesTypes = /MYSQL|POSTGRES|ORACLE|MSSQL/gi,
+        databasesTypes = /MYSQL|POSTGRES|ORACLE|MSSQL|SQLA/gi,
         dbType = dbFlavor.match(databasesTypes)?dbFlavor.match(databasesTypes)[0].toLowerCase():'';
 
       if (dbType==='oracle') {

@@ -303,7 +303,7 @@ App.config = Em.Object.create({
         var id = this.configId(index, siteConfig.type);
         var configsPropertyDef = this.get('preDefinedSitePropertiesMap')[id];
         var advancedConfig = App.StackConfigProperty.find(id);
-        var isStackProperty = !!advancedConfig.get('id');
+        var isStackProperty = !!advancedConfig.get('id') || !!configsPropertyDef;
         var template = this.createDefaultConfig(index, serviceName, filename, isStackProperty, configsPropertyDef);
         var serviceConfigObj = isStackProperty ? this.mergeStaticProperties(template, advancedConfig) : template;
 
@@ -366,7 +366,6 @@ App.config = Em.Object.create({
       id: 'site property',
       isRequiredByAgent:  true,
       isReconfigurable: true,
-      isObserved: false,
       unit: null,
       hasInitialValue: false,
       isOverridable: true,

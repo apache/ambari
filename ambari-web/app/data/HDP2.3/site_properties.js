@@ -65,27 +65,25 @@ hdp23properties.push({
     "isReconfigurable": true,
     "options": [
       {
-        displayName: 'MYSQL',
-        foreignKeys: ['ranger_mysql_database', 'ranger_mysql_host']
+        displayName: 'MYSQL'
       },
       {
-        displayName: 'ORACLE',
-        foreignKeys: ['ranger_oracle_database', 'ranger_oracle_host']
+        displayName: 'ORACLE'
       },
       {
-        displayName: 'POSTGRES',
-        foreignKeys: ['ranger_postgres_database', 'ranger_postgres_host']
+        displayName: 'POSTGRES'
       },
       {
-        displayName: 'MSSQL',
-        foreignKeys: ['ranger_mssql_database', 'ranger_mssql_host']
+        displayName: 'MSSQL'
+      },
+      {
+        displayName: 'SQLA'
       }
     ],
     "displayType": "radio button",
     "radioName": "RANGER DB_FLAVOR",
     "isOverridable": false,
     "isVisible": true,
-    "isObserved": true,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "DBSettings",
@@ -99,79 +97,11 @@ hdp23properties.push({
     "isReconfigurable": true,
     "displayType": "",
     "isOverridable": false,
-    "isVisible": false,
+    "isVisible": true,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "DBSettings",
     "index": 2
-  },
-  {
-    "name": "ranger_mysql_database",
-    "id": "puppet var",
-    "displayName": "Database Type",
-    "value": "",
-    "recommendedValue": "MySQL",
-    "description": "Using a MySQL database for Ranger",
-    "displayType": "masterHost",
-    "isOverridable": false,
-    "isVisible": false,
-    "isReconfigurable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 1
-  },
-  {
-    "name": "ranger_oracle_database",
-    "id": "puppet var",
-    "displayName": "Database Type",
-    "value": "",
-    "recommendedValue": "ORACLE",
-    "description": "Using an Oracle database for Ranger",
-    "displayType": "masterHost",
-    "isOverridable": false,
-    "isVisible": false,
-    "isReconfigurable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 2
-  },
-  {
-    "name": "ranger_postgres_database",
-    "id": "puppet var",
-    "displayName": "Database Type",
-    "value": "",
-    "recommendedValue": "Postgres",
-    "description": "Using a Postgres database for Ranger",
-    "displayType": "masterHost",
-    "isOverridable": false,
-    "isVisible": false,
-    "isReconfigurable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 3
-  },
-  {
-    "name": "ranger_mssql_database",
-    "id": "puppet var",
-    "displayName": "Database Type",
-    "value": "",
-    "recommendedValue": "MSSQL",
-    "description": "Using a MS SQL database for Ranger",
-    "displayType": "masterHost",
-    "isOverridable": false,
-    "isVisible": false,
-    "isReconfigurable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 4
   },
   {
     "name": "rangerserver_host",
@@ -548,74 +478,6 @@ hdp23properties.push({
     "serviceName": "KAFKA"
   },
   {
-    "name": "ranger_mysql_host",
-    "id": "puppet var",
-    "displayName": "Ranger DB host",
-    "description": "Specify the host on which the existing database is hosted",
-    "recommendedValue": "",
-    "value": "",
-    "displayType": "host",
-    "isOverridable": false,
-    "isVisible": false,
-    "isObserved": true,
-    "isRequiredByAgent": false,
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 6
-  },
-  {
-    "name": "ranger_oracle_host",
-    "id": "puppet var",
-    "displayName": "Ranger DB host",
-    "description": "Specify the host on which the existing database is hosted",
-    "recommendedValue": "",
-    "value": "",
-    "displayType": "host",
-    "isOverridable": false,
-    "isVisible": false,
-    "isObserved": true,
-    "isRequiredByAgent": false,
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 7
-  },
-  {
-    "name": "ranger_postgres_host",
-    "id": "puppet var",
-    "displayName": "Ranger DB host",
-    "description": "Specify the host on which the existing database is hosted",
-    "recommendedValue": "",
-    "value": "",
-    "displayType": "host",
-    "isOverridable": false,
-    "isVisible": false,
-    "isObserved": true,
-    "isRequiredByAgent": false,
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 8
-  },
-  {
-    "name": "ranger_mssql_host",
-    "id": "puppet var",
-    "displayName": "Ranger DB host",
-    "description": "Specify the host on which the existing database is hosted",
-    "recommendedValue": "",
-    "value": "",
-    "displayType": "host",
-    "isOverridable": false,
-    "isVisible": false,
-    "isObserved": true,
-    "isRequiredByAgent": false,
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 9
-  },
-  {
     "name": "ranger.jpa.jdbc.url",
     "id": "site property",
     "displayName": "JDBC connect string for a Ranger database",
@@ -623,7 +485,6 @@ hdp23properties.push({
     "isReconfigurable": true,
     "displayType": "",
     "isOverridable": false,
-    "isObserved": true,
     "isVisible": true,
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
@@ -636,7 +497,6 @@ hdp23properties.push({
     "displayName": "Driver class name for a JDBC Ranger database",
     "recommendedValue": "",
     "isReconfigurable": true,
-    "isObserved": true,
     "displayType": "",
     "isOverridable": false,
     "isVisible": true,
@@ -651,7 +511,6 @@ hdp23properties.push({
     "displayName": "Ranger DB root user",
     "recommendedValue": "",
     "isReconfigurable": true,
-    "isObserved": true,
     "displayType": "",
     "isOverridable": false,
     "isVisible": true,
@@ -666,7 +525,6 @@ hdp23properties.push({
     "displayName": "Ranger DB root password",
     "recommendedValue": "",
     "isReconfigurable": true,
-    "isObserved": true,
     "displayType": "password",
     "isOverridable": false,
     "isVisible": true,
@@ -681,7 +539,6 @@ hdp23properties.push({
     "displayName": "Ranger DB name",
     "recommendedValue": "",
     "isReconfigurable": true,
-    "isObserved": true,
     "displayType": "",
     "isOverridable": false,
     "isVisible": true,
@@ -733,15 +590,15 @@ hdp23properties.push({
     "options": [
       {
         displayName: 'LDAP',
-        foreignKeys: ['xa_ldap_userDNpattern', 'xa_ldap_groupRoleAttribute', 'xa_ldap_url', 'xa_ldap_groupSearchBase', 'xa_ldap_groupSearchFilter']
+        foreignKeys: ['ranger.ldap.group.roleattribute', 'ranger.ldap.url', 'ranger.ldap.user.dnpattern']
       },
       {
         displayName: 'ACTIVE_DIRECTORY',
-        foreignKeys: ['xa_ldap_ad_domain', 'xa_ldap_ad_url']
+        foreignKeys: ['ranger.ldap.ad.domain', 'ranger.ldap.ad.url']
       },
       {
         displayName: 'UNIX',
-        foreignKeys: ['remoteLoginEnabled', 'authServiceHostName', 'authServicePort']
+        foreignKeys: ['ranger.unixauth.service.port', 'ranger.unixauth.service.hostname', 'ranger.unixauth.remote.login.enabled']
       },
       {
         displayName: 'NONE'

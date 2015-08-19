@@ -331,8 +331,8 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    * @method saveSiteConfigs
    */
   saveSiteConfigs: function (configs) {
-    configs = this.setHiveHostName(configs);
-    configs = this.setOozieHostName(configs);
+    //configs = this.setHiveHostName(configs);
+    //configs = this.setOozieHostName(configs);
     this.formatConfigValues(configs);
     return configs;
   },

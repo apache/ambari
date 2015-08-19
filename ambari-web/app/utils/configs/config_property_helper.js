@@ -139,6 +139,8 @@ module.exports = {
       case 'hivemetastore_host':
         configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'HIVE_METASTORE').mapProperty('hostName'));
         break;
+      case 'hive_hostname':
+        configProperty.set('recommendedValue', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
       case 'hive_ambari_host':
         configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
         break;
@@ -159,6 +161,8 @@ module.exports = {
           Em.set(newMySQLDBOption, 'hidden', isNewMySQLDBOptionHidden);
         }
         break;
+      case 'oozie_hostname':
+        configProperty.set('recommendedValue', masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER').mapProperty('hostName'));
       case 'oozieserver_host':
         configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER').mapProperty('hostName'));
         break;
@@ -315,11 +319,15 @@ module.exports = {
         }
         break;
       case 'db_host':
+        var masterComponent =  masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN');
+        if (masterComponent) {
+          configProperty.set('recommendedValue', masterComponent.hostName);
+        }
       case 'rangerserver_host':
         var masterComponent =  masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN');
         if (masterComponent) {
           configProperty.set('value', masterComponent.hostName);
-        };
+        }
         break;
       case 'ranger_mysql_host':
       case 'ranger_oracle_host':

@@ -380,8 +380,24 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     this.set('allConfigs', configs);
     //add configs as names of host components
     this.addHostNamesToConfig();
+    this.addDBProperties(configs);
   },
 
+  /**
+   * This method should add UI properties that are market as <code>'isRequiredByAgent': false<code>
+   * @param configs
+   */
+  addDBProperties: function(configs) {
+    if (this.get('content.serviceName') === 'HIVE') {
+      var propertyToAdd = App.config.get('preDefinedSitePropertiesMap')[App.config.configId('hive_hostname','hive-env')],
+        cfg = App.config.createDefaultConfig(propertyToAdd.name, propertyToAdd.serviceName, propertyToAdd.filename, true, propertyToAdd),
+        connectionUrl = configs.findProperty('name', 'javax.jdo.option.ConnectionURL');
+      if (cfg && connectionUrl) {
+        cfg.savedValue = cfg.value = databaseUtils.getDBLocationFromJDBC(connectionUrl.get('value'));
+        configs.pushObject(App.ServiceConfigProperty.create(cfg));
+      }
+    }
+  },
   /**
    * adds properties form stack that doesn't belong to cluster
    * to step configs
@@ -523,7 +539,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       var configsByService = this.get('allConfigs').filter(function (c) {
         return serviceNames.contains(c.get('serviceName'));
       });
-      databaseUtils.bootstrapDatabaseProperties(configsByService, serviceName);
+      //databaseUtils.bootstrapDatabaseProperties(configsByService, serviceName);
       var serviceConfig = App.config.createServiceConfig(serviceName, configGroups, configsByService, configsByService.length);
       if (serviceConfig.get('serviceName') === 'HDFS') {
         if (App.get('isHaEnabled')) {
@@ -540,7 +556,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     var selectedService = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName'));
     this.set('selectedService', selectedService);
     this.checkOverrideProperty(selectedService);
-    this.checkDatabaseProperties(selectedService);
+    //this.checkDatabaseProperties(selectedService);
     if (!App.Service.find().someProperty('serviceName', 'RANGER')) {
       App.config.removeRangerConfigs(this.get('stepConfigs'));
     } else {
