@@ -345,12 +345,12 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   loadConfigs: function () {
     //storedConfigs contains custom configs as well
     var configs = this.get('content.serviceConfigProperties');
-    if (configs.someProperty('name', 'hive_database')) {
+    /*if (configs.someProperty('name', 'hive_database')) {
       configs = this.removeHiveConfigs(configs);
     }
     if (configs.someProperty('name', 'oozie_database')) {
       configs = this.removeOozieConfigs(configs);
-    }
+    }*/
     configs.forEach(function (_config) {
       _config.value = (typeof _config.value === "boolean") ? _config.value.toString() : _config.value;
     });

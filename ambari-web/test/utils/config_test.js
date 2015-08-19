@@ -1323,7 +1323,6 @@ describe('App.config', function () {
       id: 'site property',
       isRequiredByAgent: true,
       isReconfigurable: true,
-      isObserved: false,
       unit: null,
       hasInitialValue: false,
       isOverridable: true,
