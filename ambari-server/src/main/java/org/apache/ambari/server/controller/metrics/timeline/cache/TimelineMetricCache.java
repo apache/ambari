@@ -63,7 +63,7 @@ public class TimelineMetricCache extends UpdatingSelfPopulatingCache {
 
     Element element = get(key);
     TimelineMetrics timelineMetrics = new TimelineMetrics();
-    if (element != null) {
+    if (element != null && element.getObjectValue() != null) {
       TimelineMetricsCacheValue value = (TimelineMetricsCacheValue) element.getObjectValue();
       if (LOG.isDebugEnabled()) {
         LOG.debug("Returning value from cache: " + value);
