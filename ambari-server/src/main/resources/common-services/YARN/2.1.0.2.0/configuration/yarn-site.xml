@@ -178,6 +178,12 @@
     <name>yarn.nodemanager.linux-container-executor.group</name>
     <value>hadoop</value>
     <description>Unix group of the NodeManager</description>
+    <depends-on>
+      <property>
+        <type>cluster-env</type>
+        <name>user_group</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>

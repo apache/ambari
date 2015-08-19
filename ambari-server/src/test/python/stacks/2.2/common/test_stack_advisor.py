@@ -690,6 +690,7 @@ class TestHDP22StackAdvisor(TestCase):
 
   def test_recommendYARNConfigurations(self):
     configurations = {}
+    services = {"configurations": configurations}
     clusterData = {
       "cpu": 4,
       "containers" : 5,
@@ -703,6 +704,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "yarn-site": {
         "properties": {
+          "yarn.nodemanager.linux-container-executor.group": "hadoop",
           "yarn.nodemanager.resource.memory-mb": "1280",
           "yarn.scheduler.minimum-allocation-mb": "256",
           "yarn.scheduler.maximum-allocation-mb": "1280",
@@ -713,7 +715,7 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, None, None)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendYARNConfigurationAttributes(self):
@@ -745,6 +747,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "yarn-site": {
         "properties": {
+          "yarn.nodemanager.linux-container-executor.group": "hadoop",
           "yarn.nodemanager.resource.memory-mb": "1280",
           "yarn.scheduler.minimum-allocation-mb": "256",
           "yarn.scheduler.maximum-allocation-vcores": "2",
@@ -1303,7 +1306,12 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.scheduler.maximum-allocation-mb": "2048",
           "yarn.nodemanager.resource.cpu-vcores": "2"
         },
-        }
+      },
+      "cluster-env": {
+        "properties": {
+          "user_group": "hadoopcustom",
+          }
+      }
     }
     clusterData = {
       "cpu": 4,
@@ -1312,6 +1320,11 @@ class TestHDP22StackAdvisor(TestCase):
       "totalAvailableRam": 4096,
     }
     expected = {
+      "cluster-env": {
+        "properties": {
+          "user_group": "hadoopcustom"
+        }
+      },
       "yarn-env": {
         "properties": {
           "min_user_id": "500"
@@ -1339,6 +1352,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "yarn-site": {
         "properties": {
+          "yarn.nodemanager.linux-container-executor.group": "hadoopcustom",
           "yarn.nodemanager.resource.memory-mb": "1792",
           "yarn.scheduler.minimum-allocation-mb": "100",
           "yarn.scheduler.maximum-allocation-vcores": "1",
@@ -1597,6 +1611,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "yarn-site": {
         "properties": {
+          "yarn.nodemanager.linux-container-executor.group": "hadoop",
           "yarn.nodemanager.resource.memory-mb": "1280",
           "yarn.scheduler.minimum-allocation-mb": "100",
           "yarn.scheduler.maximum-allocation-vcores": "1",
@@ -1807,6 +1822,7 @@ class TestHDP22StackAdvisor(TestCase):
         },
         "yarn-site": {
             "properties": {
+                "yarn.nodemanager.linux-container-executor.group": "hadoop",
                 "yarn.nodemanager.resource.memory-mb": "1280",
                 "yarn.scheduler.minimum-allocation-mb": "700",
                 "yarn.scheduler.maximum-allocation-vcores": "1",
@@ -2687,6 +2703,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "yarn-site": {
         "properties": {
+          "yarn.nodemanager.linux-container-executor.group": "hadoop",
           "yarn.nodemanager.container-executor.group": "hadoop",
           "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor",
           "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
@@ -2743,6 +2760,7 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.container-executor.group": "hadoop",
           "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor",
           "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
+          "yarn.nodemanager.linux-container-executor.group": "hadoop",
           "yarn.nodemanager.container-executor.cgroups.mount": "true",
           "yarn.nodemanager.resource.memory-mb": "39424",
           "yarn.scheduler.minimum-allocation-mb": "3584",

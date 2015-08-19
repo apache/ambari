@@ -129,7 +129,17 @@ App.ServerValidatorMixin = Em.Mixin.create({
       recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs').filter(function(serviceConfigs) {
         return self.get('installedServiceNames').contains(serviceConfigs.get('serviceName'));
       }));
+      // include cluster-env site to recommendations call
+      var miscService = this.get('services').findProperty('serviceName', 'MISC');
+      if (miscService) {
+        var miscConfigs = blueprintUtils.buildConfigsJSON([miscService], [this.get('stepConfigs').findProperty('serviceName', 'MISC')]);
+        var clusterEnv = App.permit(miscConfigs, 'cluster-env');
+        if (!App.isEmptyObject(clusterEnv)) {
+          $.extend(recommendations.blueprint.configurations, clusterEnv);
+        }
+      }
     }
+
     return App.ajax.send({
       'name': 'config.recommendations',
       'sender': this,

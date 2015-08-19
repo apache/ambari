@@ -27,7 +27,7 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 public class StackLevelConfigurationResourceDefinition extends BaseResourceDefinition {
 
   public StackLevelConfigurationResourceDefinition(Type resourceType) {
-    super(Resource.Type.StackLevelConfiguration);
+    super(resourceType);
   }
 
   public StackLevelConfigurationResourceDefinition() {
@@ -43,11 +43,12 @@ public class StackLevelConfigurationResourceDefinition extends BaseResourceDefin
   public String getSingularName() {
     return "configuration";
   }
-  /*
+
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> setChildren = new HashSet<SubResourceDefinition>();
-    return setChildren;
+    Set<SubResourceDefinition> subs = new HashSet<SubResourceDefinition>();
+    subs.add(new SubResourceDefinition(Resource.Type.StackConfigurationDependency));
+
+    return subs;
   }
-  */
 }
