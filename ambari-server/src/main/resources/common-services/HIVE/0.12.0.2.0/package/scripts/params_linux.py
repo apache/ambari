@@ -274,13 +274,12 @@ start_metastore_path = format("{tmp_dir}/start_metastore_script")
 
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 
-if Script.is_hdp_stack_less_than("2.2"):
-  if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
-    hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
-  else:
-    hive_heapsize = config['configurations']['hive-env']['hive.client.heapsize']
+if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
+  hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
+else:
+  hive_heapsize = config['configurations']['hive-env']['hive.client.heapsize']
 
-  hive_metastore_heapsize = config['configurations']['hive-env']['hive.metastore.heapsize']
+hive_metastore_heapsize = config['configurations']['hive-env']['hive.metastore.heapsize']
 
 java64_home = config['hostLevelParams']['java_home']
 
