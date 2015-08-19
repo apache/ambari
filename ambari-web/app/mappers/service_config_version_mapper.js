@@ -51,7 +51,7 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
 
       json.items.forEach(function (item, index) {
         var parsedItem = this.parseIt(item, this.get('config'));
-        parsedItem.id = parsedItem.service_name + '_' + parsedItem.version;
+        parsedItem.id = this.makeId(parsedItem.service_name, parsedItem.version);
         parsedItem.is_requested = true;
         itemIds[parsedItem.id] = true;
         parsedItem.index = index;
@@ -99,5 +99,17 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
       App.store.loadMany(this.get('model'), result);
       console.timeEnd('App.serviceConfigVersionsMapper');
     }
+  },
+
+  /**
+   * Conventional method to generate id for instances of <code>App.ServiceConfigVersion</code> model.
+   *
+   * @param {String} serviceName
+   * @param {Number|String} version
+   * @returns {String}
+   */
+  makeId: function(serviceName, version) {
+    return serviceName + '_' + version;
   }
+
 });

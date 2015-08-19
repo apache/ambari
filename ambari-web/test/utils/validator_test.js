@@ -283,8 +283,10 @@ describe('validator', function () {
   describe('#isValidDir(value)', function() {
     var tests = [
       {m:'"dir" - invalid',i:'dir',e:false},
+      {m:'" /dir" - invalid',i:' /dir',e:false},
       {m:'"/dir" - valid',i:'/dir',e:true},
       {m:'"/dir1,dir2" - invalid',i:'/dir1,dir2',e:false},
+      {m:'"/dir1, /dir2" - invalid',i:'/dir1,dir2',e:false},
       {m:'"/dir1,/dir2" - valid',i:'/dir1,/dir2',e:true},
       {m:'"/123" - valid',i:'/111',e:true},
       {m:'"/abc" - valid',i:'/abc',e:true},
@@ -317,6 +319,8 @@ describe('validator', function () {
       {m:'"/dir" - valid',i:'/dir',e:true},
       {m:'"/dir1,dir2" - invalid',i:'/dir1,dir2',e:false},
       {m:'"/dir1,/dir2" - valid',i:'/dir1,/dir2',e:true},
+      {m:'" /dir1,/dir2" - valid',i:' /dir1,/dir2',e:false},
+      {m:'"/dir1, /dir2" - valid',i:' /dir1,/dir2',e:false},
       {m:'"/123" - valid',i:'/111',e:true},
       {m:'"/abc" - valid',i:'/abc',e:true},
       {m:'"/1a2b3c" - valid',i:'/1a2b3c',e:true},
@@ -325,9 +329,8 @@ describe('validator', function () {
       {m:'"[] /1a2b3c" - invalid',i:'[] /1a2b3c',e:false},
       {m:'"[ssd] /1a2b3c" - invalid',i:'[ssd] /1a2b3c',e:false},
       {m:'"[/1a2b3c]" - invalid',i:'[/1a2b3c]',e:false},
-      {m:'"[s]ss /sd" - invalid',i:'[s]ss /sd',e:false}
-
-
+      {m:'"[s]ss /sd" - invalid',i:'[s]ss /sd',e:false},
+      {m:'" [s]ss/sd" - invalid',i:' [s]ss/sd',e:false}
     ];
     tests.forEach(function(test) {
       it(test.m + ' ', function () {

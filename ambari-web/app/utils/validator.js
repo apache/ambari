@@ -49,7 +49,10 @@ module.exports = {
     var floatRegex = /^\/[0-9a-z]*/;
     var winRegex = /^[a-z]:\\[0-9a-zA-Z]*/;
     var winUrlRegex = /^file:\/\/\/[a-zA-Z]:\/[0-9a-zA-Z]*/;
-    var dirs = value.replace(/,/g,' ').trim().split(new RegExp("\\s+", "g"));
+    var dirs = value.split(',');
+    if (dirs.some(function(i) { return i.startsWith(' '); })) {
+      return false;
+    }
     for(var i = 0; i < dirs.length; i++){
       if(!floatRegex.test(dirs[i]) && !winRegex.test(dirs[i]) && !winUrlRegex.test(dirs[i])){
         return false;
@@ -76,7 +79,10 @@ module.exports = {
     var dirRegex = /^(\[[0-9a-zA-Z]+\])?(\/[0-9a-z]*)/;
     var winRegex = /^(\[[0-9a-zA-Z]+\])?[a-zA-Z]:\\[0-9a-zA-Z]*/;
     var winUrlRegex = /^(\[[0-9a-zA-Z]+\])?file:\/\/\/[a-zA-Z]:\/[0-9a-zA-Z]*/;
-    var dirs = value.replace(/,/g,' ').trim().split(new RegExp("\\s+", "g"));
+    var dirs = value.split(',');
+    if (dirs.some(function (i) {return i.startsWith(' '); })) {
+      return false;
+    }
     for(var i = 0; i < dirs.length; i++){
       if(!dirRegex.test(dirs[i]) && !winRegex.test(dirs[i]) && !winUrlRegex.test(dirs[i])){
         return false;
@@ -129,6 +135,19 @@ module.exports = {
     var regex = /(^\s+|\s+$)/;
     return regex.test(value);
   },
+
+  /**
+   * Check if string ends with spaces.
+   * For multiline content only last line will be checked.
+   *
+   * @method isNotTrimmedLeft
+   * @param {String} value
+   * @returns {Boolean} - <code>true</code> if ends with spaces
+   */
+  isNotTrimmedRight: function(value) {
+    return /\s+$/.test(("" + value).split(/\n/).slice(-1)[0]);
+  },
+
   /**
    * validate domain name with port
    * @param value
