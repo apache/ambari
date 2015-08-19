@@ -337,7 +337,7 @@ def process_repoinfo_xml(file_path, config_data, stack_version_changes, stack):
     root = tree.getroot()
     remove_list = list()
     if 'family' in stack:
-      for os_tag in root.iter("os"):
+      for os_tag in root.getiterator("os"):
         os_family = os_tag.get('family')
         if os_family not in stack.family:
           remove_list.append(os_tag)
