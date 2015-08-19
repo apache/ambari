@@ -91,11 +91,11 @@ def allInstalledPackages(allInstalledPackages):
 
   if OSCheck.is_suse_family():
     return _lookUpZypperPackages(
-      ["zypper", "search", "--installed-only", "--details"],
+      ["sudo", "zypper", "search", "--installed-only", "--details"],
       allInstalledPackages)
   elif OSCheck.is_redhat_family():
     return _lookUpYumPackages(
-      ["yum", "list", "installed"],
+      ["sudo", "yum", "list", "installed"],
       'Installed Packages',
       allInstalledPackages)
   elif OSCheck.is_ubuntu_family():
@@ -109,11 +109,11 @@ def allAvailablePackages(allAvailablePackages):
 
   if OSCheck.is_suse_family():
     return _lookUpZypperPackages(
-      ["zypper", "search", "--uninstalled-only", "--details"],
+      ["sudo", "zypper", "search", "--uninstalled-only", "--details"],
       allAvailablePackages)
   elif OSCheck.is_redhat_family():
     return _lookUpYumPackages(
-      ["yum", "list", "available"],
+      ["sudo", "yum", "list", "available"],
       'Available Packages',
       allAvailablePackages)
   elif OSCheck.is_ubuntu_family():
@@ -121,7 +121,7 @@ def allAvailablePackages(allAvailablePackages):
       LIST_AVAILABLE_PACKAGES_UBUNTU,
       allAvailablePackages)
 
-
+# ToDo: add execution via sudo for ubuntu (currently Ubuntu is not supported)
 def _lookUpAptPackages(command, allPackages):
   try:
     result = subprocessWithTimeout(command)
