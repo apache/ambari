@@ -417,6 +417,12 @@ App.ServiceConfigProperty = Em.Object.extend({
             if (!validator.isAllowedDir(value)) {
               this.set('errorMessage', 'Can\'t start with "home(s)"');
               isError = true;
+            } else {
+              // Invalidate values which end with spaces.
+              if (value !== ' ' && validator.isNotTrimmedRight(value)) {
+                this.set('errorMessage', Em.I18n.t('form.validator.error.trailingSpaces'));
+                isError = true;
+              }
             }
           }
           break;
@@ -445,12 +451,21 @@ App.ServiceConfigProperty = Em.Object.extend({
             }
           }
           break;
+        case 'multiLine':
+        case 'content':
         case 'advanced':
           if(this.get('name')=='javax.jdo.option.ConnectionURL' || this.get('name')=='oozie.service.JPAService.jdbc.url') {
             if (validator.isConfigValueLink(value)) {
               isError = false;
             } else if (validator.isNotTrimmed(value)) {
               this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
+              isError = true;
+            }
+          } else {
+            // Avoid single space values which is work around for validate empty properties.
+            // Invalidate values which end with spaces.
+            if (value !== ' ' && validator.isNotTrimmedRight(value)) {
+              this.set('errorMessage', Em.I18n.t('form.validator.error.trailingSpaces'));
               isError = true;
             }
           }

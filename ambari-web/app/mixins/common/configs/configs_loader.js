@@ -68,17 +68,22 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
     }
     this.set('allVersionsLoaded', true);
     if (this.get('preSelectedConfigVersion')) {
+      var preSelectedId = App.serviceConfigVersionsMapper.makeId(this.get('preSelectedConfigVersion.serviceName'), this.get('preSelectedConfigVersion.version'));
+      var defaultConfigVersion = App.ServiceConfigVersion.find(App.serviceConfigVersionsMapper.makeId(this.get('content.serviceName'), this.get('currentDefaultVersion')));
+      var preSelectedVersion = App.ServiceConfigVersion.find().someProperty('id', preSelectedId) ? this.get('preSelectedConfigVersion') : defaultConfigVersion;
+
       this.set('selectedVersion', this.get('preSelectedConfigVersion.version'));
       /** handling redirecting from config history page **/
       var self = this;
       this.loadConfigGroups(this.get('servicesToLoad')).done(function() {
         var selectedGroup = App.ServiceConfigGroup.find().find(function(g) {
-          return g.get('serviceName') == self.get('preSelectedConfigVersion.serviceName')
-            && (g.get('name') == self.get('preSelectedConfigVersion.groupName') || (self.get('preSelectedConfigVersion.groupName') == 'default' && g.get('isDefault')));
+          return g.get('serviceName') == preSelectedVersion.get('serviceName')
+            && (g.get('name') == preSelectedVersion.get('groupName') || (preSelectedVersion.get('groupName') == 'default' && g.get('isDefault')));
         });
         self.set('selectedConfigGroup', selectedGroup);
-        self.loadSelectedVersion(self.get('preSelectedConfigVersion.version'), selectedGroup);
+        self.loadSelectedVersion(preSelectedVersion.get('version'), selectedGroup);
         self.set('preSelectedConfigVersion', null);
+        preSelectedVersion = null;
       });
     } else {
       this.set('selectedVersion', this.get('currentDefaultVersion'));

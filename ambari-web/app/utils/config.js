@@ -494,6 +494,11 @@ App.config = Em.Object.create({
         displayType = Em.get(serviceConfigProperty, 'displayType') || Em.get(serviceConfigProperty, 'valueAttributes.type'),
         category = Em.get(serviceConfigProperty, 'category');
     switch (displayType) {
+      case 'content':
+      case 'advanced':
+      case 'multiLine':
+        return this.trimProperty({ displayType: displayType, value: value });
+        break;
       case 'directories':
         if (['DataNode', 'NameNode'].contains(category)) {
           return value.split(',').sort().join(',');//TODO check if this code is used
@@ -612,6 +617,10 @@ App.config = Em.Object.create({
 
         if (['directory' ,'directories'].contains(configData.displayType) && configData.defaultDirectory) {
           configData.value = configData.defaultDirectory;
+        } else if (advanced && advanced.get('id')) {
+          var configValue = this.formatPropertyValue(advanced, advanced.get('value'));
+          // for property which value is single/multiple spaces set single space as well
+          configData.value = configData.recommendedValue = /^\s+$/.test("" + configValue) ? " " : configValue;
         }
 
         mergedConfigs.push(configData);
