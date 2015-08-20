@@ -1284,6 +1284,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         }
         return {
           name: config.name,
+          filename: config.filename,
           value: config.value
         };
       });

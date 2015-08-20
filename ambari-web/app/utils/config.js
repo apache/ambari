@@ -1487,7 +1487,7 @@ App.config = Em.Object.create({
   mergeStoredValue: function(base, stored) {
     if (stored) {
       base.forEach(function (p) {
-        var sp = stored.findProperty("name", p.name);
+        var sp = stored.filterProperty("filename", p.filename).findProperty("name", p.name);
         if (sp) {
           p.set("value", sp.value);
         }
