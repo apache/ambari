@@ -529,6 +529,9 @@ public class DBAccessorImpl implements DBAccessor {
       dropColumn(tableName, columnInfo.getName());
       renameColumn(tableName, columnInfoTmp.getName(), columnInfo);
     }
+    if (isColumnNullable(tableName, columnInfo.getName()) != columnInfo.isNullable()) {
+      setColumnNullable(tableName, columnInfo, columnInfo.isNullable());
+    }
   }
 
   @Override
