@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -54,6 +55,11 @@ public class ServicesTezDistributedCacheCheckTest {
         return clusters;
       }
     };
+    Configuration config = Mockito.mock(Configuration.class);
+    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
+    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
+    servicesTezDistributedCacheCheck.config = config;
+
   }
 
   @Test

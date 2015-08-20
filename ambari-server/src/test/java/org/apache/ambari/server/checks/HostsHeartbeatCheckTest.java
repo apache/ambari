@@ -20,6 +20,7 @@ package org.apache.ambari.server.checks;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -49,8 +50,13 @@ public class HostsHeartbeatCheckTest {
     checkRequest.setRepositoryVersion("HDP-2.2.0.0");
     checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
     checkRequest.setTargetStackId(new StackId("HDP", "2.2"));
+    HostsHeartbeatCheck hhc = new HostsHeartbeatCheck();
+    Configuration config = Mockito.mock(Configuration.class);
+    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
+    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
+    hhc.config = config;
 
-    Assert.assertTrue(new HostsHeartbeatCheck().isApplicable(checkRequest));
+    Assert.assertTrue(hhc.isApplicable(checkRequest));
   }
 
   @Test
