@@ -326,6 +326,8 @@ class TestSetupAgent(TestCase):
     self.assertEqual(retval["exitstatus"], 0)
     pass
 
+  @patch("os.path.exists")
+  @patch.object(setup_agent, "get_ambari_repo_file_full_name")
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(setup_agent, 'checkVerbose')
   @patch.object(setup_agent, 'isAgentPackageAlreadyInstalled')
@@ -342,7 +344,8 @@ class TestSetupAgent(TestCase):
   def test_setup_agent_main(self, dirname_mock, realpath_mock, exit_mock, checkServerReachability_mock,
                             getOptimalVersion_mock, is_ubuntu_family_mock, is_suse_family_mock,
                             installAgent_mock, configureAgent_mock, runAgent_mock,
-                            isAgentPackageAlreadyInstalled_mock, checkVerbose_mock):
+                            isAgentPackageAlreadyInstalled_mock, checkVerbose_mock,
+                            get_ambari_repo_file_full_name_mock, os_path_exists_mock):
     checkServerReachability_mock.return_value = {'log': 'log', 'exitstatus': 0}
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 0}
     configureAgent_mock.return_value = {'log': 'log', 'exitstatus': 0}
@@ -355,6 +358,7 @@ class TestSetupAgent(TestCase):
     self.assertEqual(ret["exitstatus"], 1)
     self.assertTrue(getOptimalVersion_mock.called)
 
+    # A version of ambari-agent was installed or available in the repo file
     exit_mock.reset_mock()
     getOptimalVersion_mock.reset_mock()
 
@@ -362,6 +366,16 @@ class TestSetupAgent(TestCase):
     isAgentPackageAlreadyInstalled_mock.return_value = False
     is_suse_family_mock.return_value = True
     is_ubuntu_family_mock.return_value = False
+    get_ambari_repo_file_full_name_mock.return_value = "Ambari_Repo_File"
+
+    def os_path_exists_side_effect(*args, **kwargs):
+      # Ambari repo file exists
+      if (args[0] == get_ambari_repo_file_full_name_mock()):
+        return True
+      else:
+        return False
+
+    os_path_exists_mock.side_effect = os_path_exists_side_effect
     ret = setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
     self.assertFalse(exit_mock.called)
     self.assertTrue(getOptimalVersion_mock.called)
@@ -471,6 +485,50 @@ class TestSetupAgent(TestCase):
     self.assertFalse(exit_mock.called)
     self.assertTrue("exitstatus" in ret)
     self.assertEqual(ret["exitstatus"], 1)
+
+    # A version of ambari-agent was installed and ambari repo file was not found
+    exit_mock.reset_mock()
+    installAgent_mock.reset_mock()
+    getOptimalVersion_mock.reset_mock()
+    os_path_exists_mock.side_effect = None
+    os_path_exists_mock.return_value = False #ambari repo file was not found
+    getOptimalVersion_mock.return_value = {'log': '1.1.1', 'exitstatus': 0}
+    isAgentPackageAlreadyInstalled_mock.return_value = False
+    is_suse_family_mock.return_value = True
+    is_ubuntu_family_mock.return_value = False
+    get_ambari_repo_file_full_name_mock.return_value = "Ambari_Repo_File"
+
+    ret = setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
+    self.assertFalse(exit_mock.called)
+    self.assertTrue(getOptimalVersion_mock.called)
+    self.assertTrue(isAgentPackageAlreadyInstalled_mock.called)
+    self.assertFalse(installAgent_mock.called) # ambari repo file is missing, so installAgent() will not be called
+    self.assertFalse(is_suse_family_mock.called)
+    self.assertFalse(is_ubuntu_family_mock.called)
+    self.assertTrue("exitstatus" in ret)
+    self.assertEqual(ret["exitstatus"], 2) # ambari repo file not found error code
+    self.assertTrue(get_ambari_repo_file_full_name_mock() in ret["log"]) # ambari repo file not found message
+
+    # ambari-agent was not installed and ambari repo file was not found
+    exit_mock.reset_mock()
+    os_path_exists_mock.side_effect = None
+    os_path_exists_mock.return_value = False # ambari repo file not found
+    getOptimalVersion_mock.reset_mock()
+    isAgentPackageAlreadyInstalled_mock.reset_mock()
+    is_suse_family_mock.reset_mock()
+    is_ubuntu_family_mock.reset_mock()
+    installAgent_mock.reset_mock()
+
+    getOptimalVersion_mock.return_value = {'log': '', 'exitstatus': 1}     #ambari-agent not installed
+    ret = setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
+    self.assertFalse(exit_mock.called)
+    self.assertTrue(getOptimalVersion_mock.called)
+    self.assertFalse(isAgentPackageAlreadyInstalled_mock.called)
+    self.assertFalse(is_suse_family_mock.called)
+    self.assertFalse(is_ubuntu_family_mock.called)
+    self.assertTrue("exitstatus" in ret)
+    self.assertEqual(ret["exitstatus"], 1)
+    self.assertTrue(get_ambari_repo_file_full_name_mock() in ret["log"]) # ambari repo file not found message
     pass
 
   @patch.object(setup_agent, 'execOsCommand')

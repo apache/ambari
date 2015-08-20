@@ -171,8 +171,9 @@ def adjust_directory_permissions(ambari_user):
   ambari_repo_file = get_ambari_repo_file_full_name()
 
   if ambari_repo_file:
-    ambari_repo_file_owner = get_file_owner(ambari_repo_file)
-    configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((ambari_repo_file, "644", ambari_repo_file_owner, False))
+    if (os.path.exists(ambari_repo_file)):
+        ambari_repo_file_owner = get_file_owner(ambari_repo_file)
+        configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((ambari_repo_file, "644", ambari_repo_file_owner, False))
 
 
   print "Adjusting ambari-server permissions and ownership..."

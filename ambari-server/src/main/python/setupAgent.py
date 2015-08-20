@@ -27,6 +27,7 @@ import subprocess
 
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons.os_utils import get_ambari_repo_file_full_name
 
 if OSCheck.is_windows_family():
   import urllib2
@@ -348,14 +349,29 @@ def run_setup(argv=None):
   if retcode["exitstatus"] == 0 and retcode["log"] != None and retcode["log"] != "" and retcode["log"][0].strip() != "":
     availableProjectVersion = retcode["log"].strip()
     if not isAgentPackageAlreadyInstalled(availableProjectVersion):
-      retcode = installAgent(availableProjectVersion)
-      if (not retcode["exitstatus"] == 0):
-        return retcode
-  elif retcode["exitstatus"] == 1 and retcode["log"][0].strip() != "":
-    return {"exitstatus": 1, "log": "Desired version ("+projectVersion+") of ambari-agent package"
+      # Verify that the ambari repo file is available before trying to install ambari-agent
+      ambari_repo_file = get_ambari_repo_file_full_name()
+      if os.path.exists(ambari_repo_file):
+        retcode = installAgent(availableProjectVersion)
+        if (not retcode["exitstatus"] == 0):
+          return retcode
+      else:
+        return {"exitstatus": 2, "log": "Ambari repo file not found: {0}".format(ambari_repo_file)}
+        pass
+  elif retcode["exitstatus"] == 1:
+    if retcode["log"] != None and retcode["log"] != "" and retcode["log"][0].strip() != "":
+      return {"exitstatus": 1, "log": "Desired version ("+projectVersion+") of ambari-agent package"
                                         " is not available."
                                         " Repository has following "
                                         "versions of ambari-agent:"+retcode["log"][0].strip()}
+    else:
+      # We are here because ambari-agent is not installed and version cannot be obtained from the repo file
+      logmessage = "Desired version ("+projectVersion+") of ambari-agent package is not available."
+      ambari_repo_file = get_ambari_repo_file_full_name()
+      if not os.path.exists(ambari_repo_file):
+        logmessage = logmessage + " " + "Ambari repo file not found: {0}".format(ambari_repo_file)
+      return {"exitstatus": retcode["exitstatus"], "log": logmessage}
+      pass
   else:
     return retcode
 

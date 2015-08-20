@@ -312,7 +312,7 @@ class BootstrapWindows(Bootstrap):
 
   def copyChocolateyConfig(self):
     # Copying chocolatey.config file
-    fileToCopy = os.path.join(os.environ[self.CHOCOLATEY_INSTALL_VAR_NAME], self.CHOCOLATEY_CONFIG_DIR, self.CHOCOLATEY_CONFIG_FILENAME)
+    fileToCopy = getConfigFile()
     target = os.path.join(self.getTempFolder(), self.CHOCOLATEY_CONFIG_FILENAME)
     self.host_log.write("==========================\n")
     self.host_log.write("Copying chocolatey config file...")
@@ -349,6 +349,9 @@ class BootstrapWindows(Bootstrap):
     self.host_log.write("\n")
     return retcode
 
+  def getConfigFile(self):
+    return os.path.join(os.environ[self.CHOCOLATEY_INSTALL_VAR_NAME], self.CHOCOLATEY_CONFIG_DIR, self.CHOCOLATEY_CONFIG_FILENAME)
+
   def run(self):
     """ Copy files and run commands on remote host """
     self.status["start_time"] = time.time()
@@ -360,15 +363,25 @@ class BootstrapWindows(Bootstrap):
                     self.configureChocolatey,
                     self.runSetupAgent
     ]
-    # Execution of action queue
+
     last_retcode = 0
-    while action_queue and last_retcode == 0:
-      action = action_queue.pop(0)
-      ret = self.try_to_execute(action)
+
+    if os.path.exists(getConfigFile()) :
+    # Checking execution result   # Execution of action queue
+      while action_queue and last_retcode == 0:
+        action = action_queue.pop(0)
+        ret = self.try_to_execute(action)
+        last_retcode = ret["exitstatus"]
+        err_msg = ret["errormsg"]
+        std_out = ret["log"]
+    else:
+      # If config file is not found, then assume that the hosts have
+      # already been provisioned. Attempt to run the setupAgent script alone.
+      ret = self.try_to_execute(self.runSetupAgent)
       last_retcode = ret["exitstatus"]
       err_msg = ret["errormsg"]
       std_out = ret["log"]
-    # Checking execution result
+      pass
     if last_retcode != 0:
       message = "ERROR: Bootstrap of host {0} fails because previous action " \
                 "finished with non-zero exit code ({1})\nERROR MESSAGE: {2}\nSTDOUT: {3}".format(self.host, last_retcode, err_msg, std_out)
@@ -484,47 +497,59 @@ class BootstrapDefault(Bootstrap):
     return "sudo chmod 644 {0}".format(self.getRepoFile())
 
   def copyNeededFiles(self):
+    # get the params
+    params = self.shared_state
+
     # Copying the files
     fileToCopy = self.getRepoFile()
     target = self.getRemoteName(self.AMBARI_REPO_FILENAME)
 
-    self.host_log.write("==========================\n")
-    self.host_log.write("Copying repo file to 'tmp' folder...")
-    params = self.shared_state
-    scp = SCP(params.user, params.sshkey_file, self.host, fileToCopy,
-              target, params.bootdir, self.host_log)
-    retcode1 = scp.run()
-    self.host_log.write("\n")
-
-    # Move file to repo dir
-    self.host_log.write("==========================\n")
-    self.host_log.write("Moving file to repo dir...")
-    targetDir = self.getRepoDir()
-    command = self.getMoveRepoFileCommand(targetDir)
-    ssh = SSH(params.user, params.sshkey_file, self.host, command,
-              params.bootdir, self.host_log)
-    retcode2 = ssh.run()
-    self.host_log.write("\n")
-    
-    # Change permissions on ambari.repo
-    self.host_log.write("==========================\n")
-    self.host_log.write("Changing permissions for ambari.repo...")
-    command = self.getRepoFileChmodCommand()
-    ssh = SSH(params.user, params.sshkey_file, self.host, command,
-              params.bootdir, self.host_log)
-    retcode4 = ssh.run()
-    self.host_log.write("\n")
-
-    # Update repo cache for ubuntu OS
-    if OSCheck.is_ubuntu_family():
+    if (os.path.exists(fileToCopy)):
       self.host_log.write("==========================\n")
-      self.host_log.write("Update apt cache of repository...")
-      command = self.getAptUpdateCommand()
+      self.host_log.write("Copying repo file to 'tmp' folder...")
+      scp = SCP(params.user, params.sshkey_file, self.host, fileToCopy,
+                target, params.bootdir, self.host_log)
+      retcode1 = scp.run()
+      self.host_log.write("\n")
+
+      # Move file to repo dir
+      self.host_log.write("==========================\n")
+      self.host_log.write("Moving file to repo dir...")
+      targetDir = self.getRepoDir()
+      command = self.getMoveRepoFileCommand(targetDir)
       ssh = SSH(params.user, params.sshkey_file, self.host, command,
                 params.bootdir, self.host_log)
       retcode2 = ssh.run()
       self.host_log.write("\n")
 
+      # Change permissions on ambari.repo
+      self.host_log.write("==========================\n")
+      self.host_log.write("Changing permissions for ambari.repo...")
+      command = self.getRepoFileChmodCommand()
+      ssh = SSH(params.user, params.sshkey_file, self.host, command,
+                params.bootdir, self.host_log)
+      retcode4 = ssh.run()
+      self.host_log.write("\n")
+
+      # Update repo cache for ubuntu OS
+      if OSCheck.is_ubuntu_family():
+        self.host_log.write("==========================\n")
+        self.host_log.write("Update apt cache of repository...")
+        command = self.getAptUpdateCommand()
+        ssh = SSH(params.user, params.sshkey_file, self.host, command,
+                  params.bootdir, self.host_log)
+        retcode2 = ssh.run()
+        self.host_log.write("\n")
+
+      retcode = max(retcode1["exitstatus"], retcode2["exitstatus"], retcode4["exitstatus"])
+    else:
+      self.host_log.write("==========================\n")
+      self.host_log.write("Copying required files...")
+      self.host_log.write("Ambari repo file not found: {0}".format(self.getRepoFile()))
+      retcode = -1
+      pass
+
+    # copy the setup script file
     self.host_log.write("==========================\n")
     self.host_log.write("Copying setup script file...")
     fileToCopy = params.setup_agent_file
@@ -534,7 +559,7 @@ class BootstrapDefault(Bootstrap):
     retcode3 = scp.run()
     self.host_log.write("\n")
 
-    return max(retcode1["exitstatus"], retcode2["exitstatus"], retcode3["exitstatus"], retcode4["exitstatus"])
+    return max(retcode, retcode3["exitstatus"])
 
   def getAmbariPort(self):
     server_port = self.shared_state.server_port

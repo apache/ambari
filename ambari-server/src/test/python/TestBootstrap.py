@@ -407,7 +407,7 @@ class TestBootstrap(TestCase):
     rf = bootstrap_obj.getMoveRepoFileCommand("target")
     self.assertEquals(rf, "sudo -S mv RemoteName target/ambari.repo < RemoteName")
 
-
+  @patch("os.path.exists")
   @patch.object(OSCheck, "is_suse_family")
   @patch.object(OSCheck, "is_ubuntu_family")
   @patch.object(OSCheck, "is_redhat_family")
@@ -423,7 +423,20 @@ class TestBootstrap(TestCase):
   def test_copyNeededFiles(self, write_mock, ssh_run_mock, ssh_init_mock,
                            scp_run_mock, scp_init_mock,
                            getRemoteName_mock, getRepoFile_mock, getRepoDir,
-                           getMoveRepoFileCommand, is_redhat_family, is_ubuntu_family, is_suse_family):
+                           getMoveRepoFileCommand, is_redhat_family, is_ubuntu_family, is_suse_family,
+                           os_path_exists_mock):
+    #
+    # Ambari repo file exists
+    #
+    def os_path_exists_side_effect(*args, **kwargs):
+      if args[0] == getRepoFile_mock():
+        return True
+      else:
+        return False
+
+    os_path_exists_mock.side_effect = os_path_exists_side_effect
+    os_path_exists_mock.return_value = None
+
     shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
@@ -471,6 +484,22 @@ class TestBootstrap(TestCase):
     res = bootstrap_obj.copyNeededFiles()
     self.assertEquals(res, expected3["exitstatus"])
 
+    #
+    #Ambari repo file does not exist
+    #
+    os_path_exists_mock.side_effect = None
+    os_path_exists_mock.return_value = False
+
+    #Expectations:
+    # SSH will not be called at all
+    # SCP will be called once for copying the setup script file
+    scp_run_mock.reset_mock()
+    ssh_run_mock.reset_mock()
+    expectedResult = {"exitstatus": 33, "log": "log33", "errormsg": "errorMsg"}
+    scp_run_mock.side_effect = [expectedResult]
+    res = bootstrap_obj.copyNeededFiles()
+    self.assertFalse(ssh_run_mock.called)
+    self.assertEquals(res, expectedResult["exitstatus"])
 
   @patch.object(BootstrapDefault, "getOsCheckScriptRemoteLocation")
   @patch.object(SSH, "__init__")

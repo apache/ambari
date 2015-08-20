@@ -21,10 +21,12 @@ limitations under the License.
 import os
 import shutil
 import string
-import pwd
-import stat
-
 from ambari_commons import OSCheck
+
+if OSCheck.is_windows_family():
+  pass
+else:
+  import pwd
 
 if OSCheck.is_windows_family():
   from ambari_commons.os_windows import os_change_owner, os_getpass, os_is_root, os_run_os_command, \
@@ -155,7 +157,8 @@ def get_ambari_repo_file_full_name():
   elif OSCheck.is_suse_family():
     ambari_repo_file = "/etc/zypp/repos.d/ambari.repo"
   elif OSCheck.is_windows_family():
-    ambari_repo_file = ""
+    ambari_repo_file = os.path.join(os.environ[ChocolateyConsts.CHOCOLATEY_INSTALL_VAR_NAME],
+                                    ChocolateyConsts.CHOCOLATEY_CONFIG_DIR, ChocolateyConsts.CHOCOLATEY_CONFIG_FILENAME)
   else:
     raise Exception('Ambari repo file path not set for current OS.')
 
@@ -163,4 +166,15 @@ def get_ambari_repo_file_full_name():
 
 # Gets the owner of the specified file
 def get_file_owner(file_full_name):
-  return pwd.getpwuid(os.stat(file_full_name).st_uid).pw_name
+  if OSCheck.is_windows_family():
+    return ""
+  else:
+      return pwd.getpwuid(os.stat(file_full_name).st_uid).pw_name
+
+#
+# Chololatey package manager constants for Windows
+#
+class ChocolateyConsts:
+  CHOCOLATEY_INSTALL_VAR_NAME = "ChocolateyInstall"
+  CHOCOLATEY_CONFIG_DIR = "config"
+  CHOCOLATEY_CONFIG_FILENAME = "chocolatey.config"
