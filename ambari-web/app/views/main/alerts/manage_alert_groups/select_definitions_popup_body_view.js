@@ -26,9 +26,16 @@ App.SelectDefinitionsPopupBodyView = App.TableView.extend({
 
   isPaginate: true,
 
-  filteredContent: function () {
-    return this.get('parentView.availableDefs').filterProperty('filtered') || [];
-  }.property('parentView.availableDefs.@each.filtered'),
+  filteredContent: [],
+
+  filteredContentObs: function () {
+    Em.run.once(this, this.filteredContentObsOnce);
+  }.observes('parentView.availableDefs.@each.filtered'),
+
+  filteredContentObsOnce: function () {
+    var filtered = this.get('parentView.availableDefs').filterProperty('filtered') || [];
+    this.set('filteredContent', filtered);
+  },
 
   showOnlySelectedDefs: false,
 
@@ -45,6 +52,7 @@ App.SelectDefinitionsPopupBodyView = App.TableView.extend({
     initialDefs.setEach('filtered', true);
     this.set('parentView.availableDefs', initialDefs);
     this.set('parentView.isLoaded', true);
+    this.filteredContentObsOnce();
   },
 
   filterDefs: function () {

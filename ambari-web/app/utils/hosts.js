@@ -132,6 +132,7 @@ module.exports = {
           initialHosts.setEach('filtered', true);
           this.set('parentView.availableHosts', initialHosts);
           this.set('parentView.isLoaded', true);
+          this.filteredContentObsOnce();
         },
 
         filterHosts: function () {
