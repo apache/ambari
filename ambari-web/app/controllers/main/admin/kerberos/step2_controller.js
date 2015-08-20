@@ -163,6 +163,12 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
    */
   deleteKerberosService: function () {
     var serviceName = this.selectedServiceNames[0];
+    if (App.cache.services.someProperty('ServiceInfo.service_name', 'KERBEROS')) {
+      App.cache.services.removeAt(App.cache.services.indexOf(App.cache.services.findProperty('ServiceInfo.service_name', 'KERBEROS')));
+    }
+    if (App.Service.find().someProperty('serviceName', 'KERBEROS')) {
+      App.serviceMapper.deleteRecord(App.Service.find('KERBEROS'));
+    }
     return App.ajax.send({
       name: 'common.delete.service',
       sender: this,

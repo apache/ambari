@@ -135,8 +135,6 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var kerberosWizardController = router.get('kerberosWizardController');
       var kerberosStep1controller = router.get('kerberosWizardStep1Controller');
-      var skipClientInstall = kerberosStep1controller.get('selectedOption.value') === Em.I18n.t('admin.kerberos.wizard.step1.option.manual');
-      kerberosWizardController.set('skipClientInstall', skipClientInstall);
 
       kerberosWizardController.saveKerberosOption(kerberosStep1controller);
       kerberosWizardController.setDBProperty('serviceConfigProperties', null);

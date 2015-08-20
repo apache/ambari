@@ -36,7 +36,18 @@ App.KerberosWizardController = App.WizardController.extend({
    */
   hideBackButton: true,
 
-  skipClientInstall: false,
+  /**
+   * Check if Kerberos Clients should be installed.
+   * Clients installation will be skipped if Manual Kerberization was selected.
+   *
+   * @type {Boolean}
+   */
+  skipClientInstall: function() {
+    if (this.get('content.kerberosOption')) {
+      return this.get('content.kerberosOption') === Em.I18n.t('admin.kerberos.wizard.step1.option.manual');
+    }
+    return false;
+  }.property('content.kerberosOption'),
 
   kerberosDescriptorConfigs: null,
 
@@ -87,28 +98,6 @@ App.KerberosWizardController = App.WizardController.extend({
    */
   getCluster: function () {
     return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.get('router').getClusterName()});
-  },
-
-  /**
-   *  Gets the
-   * @returns {*} jquery promise
-   */
-  getClusterEnvData: function () {
-    var dfd = $.Deferred();
-    var self = this;
-    var siteName = 'cluster-env';
-    var tags = [{siteName: siteName}];
-    App.get('router.configurationController').getConfigsByTags(tags).done(function (data) {
-      var properties = self.updateClusterEnvData(data[0].properties);
-      var clusterConfig = {"type": siteName, "tag": 'version' + (new Date).getTime(), "properties": properties};
-      var clusterConfigData = {
-        Clusters: {
-          desired_config: clusterConfig
-        }
-      };
-      dfd.resolve(clusterConfigData);
-    });
-    return dfd;
   },
 
   updateClusterEnvData: function (configs) {
