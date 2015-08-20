@@ -411,7 +411,7 @@ App.QuickViewLinks = Em.View.extend({
       }
     }
     var site = configProperties.findProperty('type', item.get('site'));
-    var propertyValue = site && site.properties[config];
+    var propertyValue = site && site.properties && site.properties[config];
     if (!propertyValue) {
       return defaultPort;
     }
