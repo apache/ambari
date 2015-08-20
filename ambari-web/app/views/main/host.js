@@ -182,7 +182,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
   willInsertElement: function () {
     if (!this.get('controller.showFilterConditionsFirstLoad')) {
       var didClearedSomething = this.clearFilterCondition();
-      this.set('controller.filterClearHappened', didClearedSomething);
+      this.set('controller.filterChangeHappened', didClearedSomething);
     }
     this._super();
     this.set('startIndex', this.get('controller.startIndex'));
@@ -212,15 +212,15 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
 
   onInitialLoad: function () {
     if (this.get('tableFilteringComplete')) {
-      if (this.get('controller.filterClearHappened')) {
+      if (this.get('controller.filterChangeHappened')) {
         this.refresh();
       } else {
         // no refresh but still need to enable pagination controls
         this.propertyDidChange('filteringComplete');
       }
     }
-    // reset filter cleaning marker
-    this.set('controller.filterClearHappened', false);
+    // reset filter change marker
+    this.set('controller.filterChangeHappened', false);
   }.observes('tableFilteringComplete'),
 
   /**
