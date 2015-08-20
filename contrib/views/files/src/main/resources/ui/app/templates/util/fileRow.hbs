@@ -35,16 +35,16 @@
           </a>
         </span>
       {{/file-shaker}}
-        <span class="help-block mod-time allow-open">
-          <small class='allow-open'>
-            Updated {{showDate modificationTime 'YYYY-MM-DD HH:mm'}}
-          </small>
-        </span>
       </div>
     {{/rename-input}}
   </td>
   <td>
     {{#unless content.isDirectory}}{{humanSize content.size}}{{else}}-{{/unless}}
+  </td>
+  <td>
+    <small class='allow-open'>
+      {{showDate modificationTime 'YYYY-MM-DD HH:mm'}}
+    </small>
   </td>
   <td >{{content.owner}}</td>
   <td>{{content.group}}</td>

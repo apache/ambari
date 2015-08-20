@@ -162,6 +162,10 @@ App.FilesController = Ember.ArrayController.extend({
     return this.get('selectedFiles').filterProperty('isDirectory').get('length')===0;
   }.property('selectedFiles.length'),
 
+  isSortPropertyEqualsDate: function() {
+    return this.get('sortProperties').get('firstObject') === 'date';
+  }.property('sortProperties.firstObject'),
+
   searchString:'',
   fileList: function () {
     var fileList = this.get('arrangedContent');

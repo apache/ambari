@@ -63,6 +63,7 @@
         <th class="icon"></th>
         <th class="path" {{action 'sort' 'name'}}> Name {{sort-arrow sPs=sortProperties sA=sortAscending sP='name'}} </th>
         <th class="size" {{action 'sort' 'size'}}>Size {{sort-arrow sPs=sortProperties sA=sortAscending sP='size'}}</th>
+        <th class="date" {{action 'sort' 'date'}}>Last Modified {{sort-arrow sPs=sortProperties sA=sortAscending sP='date'}}</th>
         <th class="owner" {{action 'sort' 'owner'}}>Owner {{sort-arrow sPs=sortProperties sA=sortAscending sP='owner'}}</th>
         <th class="grp" {{action 'sort' 'group'}} >Group {{sort-arrow sPs=sortProperties sA=sortAscending sP='group'}}</th>
         <th class="perm" {{action 'sort' 'permission'}} >Permission {{sort-arrow sPs=sortProperties sA=sortAscending sP='permission'}}</th>
@@ -74,17 +75,21 @@
 
             <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown">
               <span>
-              {{capitalize sortProperties.firstObject}}
+                {{#if isSortPropertyEqualsDate}}
+                  Last Modified
+                {{else}}
+                  {{capitalize sortProperties.firstObject}}
+                {{/if}}
               </span>
               <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" role="menu">
               <li><a href="#" {{action 'sort' 'name'}} >Name</a></li>
               <li><a href="#" {{action 'sort' 'size'}} >Size</a></li>
+              <li><a href="#" {{action 'sort' 'date'}} >Last Modified</a></li>
               <li><a href="#" {{action 'sort' 'owner'}} >Owner</a></li>
               <li><a href="#" {{action 'sort' 'group'}} >Group</a></li>
               <li><a href="#" {{action 'sort' 'permission'}} >Permission</a></li>
-              <li><a href="#" {{action 'sort' 'date'}} >Date</a></li>
             </ul>
           </div>
         </th>
