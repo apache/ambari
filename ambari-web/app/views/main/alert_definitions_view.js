@@ -25,9 +25,16 @@ App.MainAlertDefinitionsView = App.TableView.extend({
 
   templateName: require('templates/main/alerts'),
 
-  content: function() {
-    return this.get('controller.content') ? this.get('controller.content').toArray().sort(App.AlertDefinition.getSortDefinitionsByStatus(true)) : [];
-  }.property('controller.content.@each'),
+  content: [],
+
+  contentObs: function () {
+    Em.run.once(this, this.contentObsOnce);
+  }.observes('controller.content.[]'),
+
+  contentObsOnce: function() {
+    var content = this.get('controller.content') ? this.get('controller.content').toArray().sort(App.AlertDefinition.getSortDefinitionsByStatus(true)) : [];
+    this.set('content', content);
+  },
 
   willInsertElement: function () {
     if (!this.get('controller.showFilterConditionsFirstLoad')) {
@@ -40,6 +47,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     var self = this;
     Em.run.next(function () {
       self.set('isInitialRendering', false);
+      self.contentObsOnce();
       self.tooltipsUpdater();
     });
   },

@@ -41,6 +41,7 @@ App.alertInstanceMapper = App.QuickDataMapper.create({
   },
 
   map: function(json) {
+    console.time('App.alertInstanceMapper execution time');
     if (json.items) {
       var alertInstances = [];
       var model = this.get('model');
@@ -57,6 +58,7 @@ App.alertInstanceMapper = App.QuickDataMapper.create({
       }
 
       App.store.loadMany(this.get('model'), alertInstances);
+      console.timeEnd('App.alertInstanceMapper execution time');
     }
   }
 });

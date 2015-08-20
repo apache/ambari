@@ -16,16 +16,24 @@
  */
 
 var App = require('app');
+var dataManipulation = require('utils/data_manipulation');
 
 App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
 
   config: {},
 
   map: function(data) {
+    console.time('App.alertDefinitionSummaryMapper execution time');
+
     if (!data.alerts_summary_grouped) return;
     var alertDefinitions = App.AlertDefinition.find();
+    var alertDefinitionsMap = {};
+    alertDefinitions.forEach(function (definition) {
+      alertDefinitionsMap[definition.get('id')] = definition;
+    });
+    var summaryMap = {};
     data.alerts_summary_grouped.forEach(function(alertDefinitionSummary) {
-      var alertDefinition = alertDefinitions.findProperty('id', alertDefinitionSummary.definition_id);
+      var alertDefinition = alertDefinitionsMap[alertDefinitionSummary.definition_id];
       if (alertDefinition) {
         var summary = {},
           timestamp = 0;
@@ -41,19 +49,53 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
             timestamp = alertDefinitionSummary.summary[status].original_timestamp;
           }
         });
-        alertDefinition.setProperties({
+        summaryMap[alertDefinitionSummary.definition_id] = {
           summary: summary,
           lastTriggered: parseInt(timestamp)
+        };
+      }
+    });
+
+    alertDefinitions.forEach(function (d) {
+      var id = d.get('id');
+      alertDefinitionsMap[id].setProperties(summaryMap[id]);
+      if (!alertDefinitionsMap[id].get('enabled')) {
+        // clear summary for disabled alert definitions
+        alertDefinitionsMap[id].set('summary', {});
+      }
+    });
+    // set alertsCount and hasCriticalAlerts for each service
+    var groupedByServiceName = dataManipulation.groupPropertyValues(alertDefinitions, 'service.serviceName');
+    var services = App.Service.find();
+    var servicesMap = {};
+    services.forEach(function (service) {
+      servicesMap[service.get('id')] = service;
+    });
+    Object.keys(groupedByServiceName).forEach(function(serviceName) {
+      var service = servicesMap[serviceName];
+      if (service) {
+        var hasCriticalAlerts = false;
+
+        var alertsCount = groupedByServiceName[serviceName].map(function (alertDefinition) {
+
+          var criticalCount = alertDefinition.getWithDefault('summary.CRITICAL.count', 0);
+          var warningCount = alertDefinition.getWithDefault('summary.WARNING.count', 0);
+
+          if (criticalCount) {
+            hasCriticalAlerts = true;
+          }
+          return criticalCount + warningCount;
+
+        }).reduce(Em.sum, 0);
+
+        service.setProperties({
+          alertsCount: alertsCount,
+          hasCriticalAlerts: hasCriticalAlerts
         });
       }
     });
 
-    // clear summary for disabled alert definitions
-    alertDefinitions.forEach(function (definition) {
-      if (!definition.get('enabled')) {
-        definition.set('summary', {});
-      }
-    });
+    console.timeEnd('App.alertDefinitionSummaryMapper execution time');
 
   }
 });
