@@ -263,16 +263,22 @@ public class ServiceTest {
 
     for (State state : State.values()) {
       service.setDesiredState(state);
-
-      if (state.isRemovableState()) {
-        org.junit.Assert.assertTrue(service.canBeRemoved());
-      }
-      else {
-        org.junit.Assert.assertFalse(service.canBeRemoved());
-      }
+      // service does not have any components, so it can be removed,
+      // even if the service is in non-removable state.
+      org.junit.Assert.assertTrue(service.canBeRemoved());
     }
 
     ServiceComponent component = service.addServiceComponent("NAMENODE");
+
+    // component can be removed
+    component.setDesiredState(State.INSTALLED);
+
+    for (State state : State.values()) {
+      service.setDesiredState(state);
+      // should always be true if the sub component can be removed
+      org.junit.Assert.assertTrue(service.canBeRemoved());
+    }
+
     // can't remove a STARTED component
     component.setDesiredState(State.STARTED);
 

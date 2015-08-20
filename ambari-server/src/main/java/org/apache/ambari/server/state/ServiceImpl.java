@@ -515,10 +515,11 @@ public class ServiceImpl implements Service {
     try {
       readWriteLock.readLock().lock();
       try {
-        if (!getDesiredState().isRemovableState()) {
-          return false;
-        }
-
+        //
+        // A service can be deleted if all it's components
+        // can be removed, irrespective of the state of
+        // the service itself.
+        //
         for (ServiceComponent sc : components.values()) {
           if (!sc.canBeRemoved()) {
             LOG.warn("Found non removable component when trying to delete service"

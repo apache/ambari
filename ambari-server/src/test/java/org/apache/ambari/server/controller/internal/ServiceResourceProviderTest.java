@@ -793,7 +793,7 @@ public class ServiceResourceProviderTest {
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
-    
+
     String serviceName = "Service100";
 
     // set expectations
@@ -802,6 +802,9 @@ public class ServiceResourceProviderTest {
     expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
     expect(service.getDesiredState()).andReturn(State.STARTED).anyTimes();
     expect(service.getName()).andReturn(serviceName).anyTimes();
+    expect(service.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+    expect(service.getCluster()).andReturn(cluster);
+    cluster.deleteService(serviceName);
 
     // replay
     replay(managementController, clusters, cluster, service);
@@ -815,13 +818,18 @@ public class ServiceResourceProviderTest {
     // delete the service named Service100
     Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
         .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
-    
-    try {
-      provider.deleteResources(predicate);
-      Assert.fail("Expected exception deleting a service in a non-removable state.");
-    } catch (SystemException e) {
-      // expected
-    }
+    provider.deleteResources(predicate);
+
+
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    Assert.assertNotNull(lastEvent);
+    Assert.assertEquals(Resource.Type.Service, lastEvent.getResourceType());
+    Assert.assertEquals(ResourceProviderEvent.Type.Delete, lastEvent.getType());
+    Assert.assertEquals(predicate, lastEvent.getPredicate());
+    Assert.assertNull(lastEvent.getRequest());
+
+    // verify
+    verify(managementController, clusters, cluster, service);
   }  
 
   @Test
@@ -833,8 +841,8 @@ public class ServiceResourceProviderTest {
     ServiceComponent sc = createNiceMock(ServiceComponent.class);
     Map<String, ServiceComponent> scMap = new HashMap<String, ServiceComponent>();
     scMap.put("Component100", sc);
-    
-    
+    State componentState = State.STARTED;
+
     String serviceName = "Service100";
 
     // set expectations
@@ -844,7 +852,9 @@ public class ServiceResourceProviderTest {
     expect(service.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(scMap);
-    expect(sc.getDesiredState()).andReturn(State.STARTED);
+    expect(sc.getDesiredState()).andReturn(componentState).anyTimes();
+    expect(sc.getName()).andReturn("Component100").anyTimes();
+    expect(sc.canBeRemoved()).andReturn(componentState.isRemovableState()).anyTimes();
 
     // replay
     replay(managementController, clusters, cluster, service, sc);
@@ -858,16 +868,97 @@ public class ServiceResourceProviderTest {
     // delete the service named Service100
     Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
         .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
-    
+
     try {
       provider.deleteResources(predicate);
       Assert.fail("Expected exception deleting a service in a non-removable state.");
     } catch (SystemException e) {
       // expected
     }
-  }  
-  
-  
+  }
+
+  /*
+  If the components of a service are in a removable state, the service should be removable even if it's state is non-removable
+ */
+  @Test
+  public void testDeleteResourcesStoppedComponentState() throws Exception {
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service = createNiceMock(Service.class);
+
+    //
+    // Data structure for holding ServiceComponent information
+    //
+    class TestComponent {
+      public String Name;
+      public ServiceComponent Component;
+      public State DesiredState;
+
+      public TestComponent(String name, ServiceComponent component, State desiredState) {
+        Name = name;
+        Component = component;
+        DesiredState = desiredState;
+      }
+    };
+
+    //
+    // Set up three components in INSTALLED state, so that the service can be deleted, no matter what state the service is in
+    //
+    TestComponent component1 = new TestComponent("Component100", createNiceMock(ServiceComponent.class), State.INSTALLED);
+    TestComponent component2 = new TestComponent("Component101", createNiceMock(ServiceComponent.class), State.INSTALLED);
+    TestComponent component3 = new TestComponent("Component102", createNiceMock(ServiceComponent.class), State.INSTALLED);
+    Map<String, ServiceComponent> scMap = new HashMap<String, ServiceComponent>();
+
+    scMap.put(component1.Name, component1.Component);
+    scMap.put(component2.Name, component2.Component);
+    scMap.put(component3.Name, component3.Component);
+
+    String clusterName = "Cluster100";
+    String serviceName = "Service100";
+
+    // set expectations
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
+    expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
+    expect(service.getDesiredState()).andReturn(State.STARTED).anyTimes();  // Service is in a non-removable state
+    expect(service.getName()).andReturn(serviceName).anyTimes();
+    expect(service.getServiceComponents()).andReturn(scMap).anyTimes();
+    expect(component1.Component.getDesiredState()).andReturn(component1.DesiredState).anyTimes();
+    expect(component2.Component.getDesiredState()).andReturn(component2.DesiredState).anyTimes();
+    expect(component3.Component.getDesiredState()).andReturn(component3.DesiredState).anyTimes();
+    expect(component1.Component.canBeRemoved()).andReturn(component1.DesiredState.isRemovableState()).anyTimes();
+    expect(component2.Component.canBeRemoved()).andReturn(component2.DesiredState.isRemovableState()).anyTimes();
+    expect(component3.Component.canBeRemoved()).andReturn(component3.DesiredState.isRemovableState()).anyTimes();
+    expect(service.getCluster()).andReturn(cluster);
+    cluster.deleteService(serviceName);
+
+    // replay
+    replay(managementController, clusters, cluster, service, component1.Component, component2.Component, component3.Component);
+
+    ResourceProvider provider = getServiceProvider(managementController);
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    // delete the service named Service100
+    Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and()
+            .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
+    provider.deleteResources(predicate);
+
+
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    Assert.assertNotNull(lastEvent);
+    Assert.assertEquals(Resource.Type.Service, lastEvent.getResourceType());
+    Assert.assertEquals(ResourceProviderEvent.Type.Delete, lastEvent.getType());
+    Assert.assertEquals(predicate, lastEvent.getPredicate());
+    Assert.assertNull(lastEvent.getRequest());
+
+    // verify
+    verify(managementController, clusters, cluster, service, component1.Component, component2.Component, component3.Component);
+  }
+
   @Test
   public void testCheckPropertyIds() throws Exception {
     Set<String> propertyIds = new HashSet<String>();
