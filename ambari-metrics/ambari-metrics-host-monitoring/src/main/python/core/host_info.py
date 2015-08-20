@@ -55,19 +55,16 @@ class HostInfo():
     cpu_times = psutil.cpu_times_percent()
     cpu_count = self.__host_static_info.get('cpu_num', 1)
 
-    # Divide by number of cpu's on the system
-    number2percents = lambda x: ((x / int(cpu_count)) * 100)
-
     result = {
       'cpu_num': int(cpu_count),
-      'cpu_user': number2percents(cpu_times.user) if hasattr(cpu_times, 'user') else 0,
-      'cpu_system': number2percents(cpu_times.system) if hasattr(cpu_times, 'system') else 0,
-      'cpu_idle': number2percents(cpu_times.idle) if hasattr(cpu_times, 'idle') else 0,
-      'cpu_nice': number2percents(cpu_times.nice) if hasattr(cpu_times, 'nice') else 0,
-      'cpu_wio': number2percents(cpu_times.iowait) if hasattr(cpu_times, 'iowait') else 0,
-      'cpu_intr': number2percents(cpu_times.irq) if hasattr(cpu_times, 'irq') else 0,
-      'cpu_sintr': number2percents(cpu_times.softirq) if hasattr(cpu_times, 'softirq') else 0,
-      'cpu_steal': number2percents(cpu_times.steal) if hasattr(cpu_times, 'steal') else 0
+      'cpu_user': cpu_times.user*100 if hasattr(cpu_times, 'user') else 0,
+      'cpu_system': cpu_times.system*100 if hasattr(cpu_times, 'system') else 0,
+      'cpu_idle': cpu_times.idle*100 if hasattr(cpu_times, 'idle') else 0,
+      'cpu_nice': cpu_times.nice*100 if hasattr(cpu_times, 'nice') else 0,
+      'cpu_wio': cpu_times.iowait*100 if hasattr(cpu_times, 'iowait') else 0,
+      'cpu_intr': cpu_times.irq*100 if hasattr(cpu_times, 'irq') else 0,
+      'cpu_sintr': cpu_times.softirq*100 if hasattr(cpu_times, 'softirq') else 0,
+      'cpu_steal': cpu_times.steal*100 if hasattr(cpu_times, 'steal') else 0
     }
     if platform.system() != "Windows":
       load_avg = os.getloadavg()
