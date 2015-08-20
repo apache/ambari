@@ -92,6 +92,10 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
       expectLastCall().andReturn(resultSet).atLeastOnce();
       statement.executeQuery(anyObject(String.class));
       expectLastCall().andReturn(resultSet).anyTimes();
+      dbAccessor.setColumnNullable("viewinstanceproperty", "value", true);
+      expectLastCall().once();
+      dbAccessor.setColumnNullable("viewinstancedata", "value", true);
+      expectLastCall().once();
 
       // Create DDL sections with their own capture groups
       // Example: AlertSectionDDL alertSectionDDL = new AlertSectionDDL();

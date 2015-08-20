@@ -101,6 +101,11 @@ public class UpgradeCatalog211 extends AbstractUpgradeCatalog {
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     // change out the PK on hostcomponentstate
     executeHostComponentStateDDLUpdates();
+
+    // make viewinstanceproperty.value & viewinstancedata.value nullable
+    dbAccessor.setColumnNullable("viewinstanceproperty", "value", true);
+    dbAccessor.setColumnNullable("viewinstancedata", "value", true);
+
   }
 
   /**
