@@ -30,7 +30,7 @@ from resource_management.libraries.functions.get_hdp_version import get_hdp_vers
 from resource_management.core.logger import Logger
 from resource_management.core.source import DownloadSource, InlineTemplate
 from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
-
+from resource_management.core.utils import PasswordString
 
 def setup_ranger_plugin(component_select_name, service_name,
                         component_downloaded_custom_connector, component_driver_curl_source,
@@ -97,7 +97,8 @@ def setup_ranger_plugin(component_select_name, service_name,
       owner = component_user,
       group = component_group,
       mode=0775,
-      recursive = True
+      recursive = True,
+      cd_access = 'a'
     )
 
     for cache_service in cache_service_list:
@@ -168,19 +169,20 @@ def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, hdp_version,
                                 ssl_truststore_password, ssl_keystore_password, component_user, component_group, java_home):
 
   cred_lib_path = format('/usr/hdp/{hdp_version}/ranger-{service_name}-plugin/install/lib/*')
-  cred_setup_prefix = format('python /usr/hdp/{hdp_version}/ranger-{service_name}-plugin/ranger_credential_helper.py -l "{cred_lib_path}"')
+  cred_setup_prefix = (format('/usr/hdp/{hdp_version}/ranger-{service_name}-plugin/ranger_credential_helper.py'), '-l', cred_lib_path)
 
   if audit_db_is_enabled:
-    cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "auditDBCred" -v {xa_audit_db_password!p} -c 1')
-    Execute(cred_setup, environment={'JAVA_HOME': java_home}, logoutput=True)
+    cred_setup = cred_setup_prefix + ('-f', credential_file, '-k', 'auditDBCred', '-v', PasswordString(xa_audit_db_password), '-c', '1')
+    Execute(cred_setup, environment={'JAVA_HOME': java_home}, logoutput=True, sudo=True)
 
-  cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "sslKeyStore" -v {ssl_keystore_password!p} -c 1')
-  Execute(cred_setup, environment={'JAVA_HOME': java_home}, logoutput=True)
+  cred_setup = cred_setup_prefix + ('-f', credential_file, '-k', 'sslKeyStore', '-v', PasswordString(ssl_keystore_password), '-c', '1')
+  Execute(cred_setup, environment={'JAVA_HOME': java_home}, logoutput=True, sudo=True)
 
-  cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "sslTrustStore" -v {ssl_truststore_password!p} -c 1')
-  Execute(cred_setup, environment={'JAVA_HOME': java_home}, logoutput=True)
+  cred_setup = cred_setup_prefix + ('-f', credential_file, '-k', 'sslTrustStore', '-v', PasswordString(ssl_truststore_password), '-c', '1')
+  Execute(cred_setup, environment={'JAVA_HOME': java_home}, logoutput=True, sudo=True)
 
   File(credential_file,
     owner = component_user,
-    group = component_group
+    group = component_group,
+    mode = 0640
   )

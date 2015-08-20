@@ -112,7 +112,8 @@ def do_keystore_setup(cred_provider_path, credential_alias, credential_password)
 
     File(cred_provider_path,
       owner = params.kms_user,
-      group = params.kms_group
+      group = params.kms_group,
+      mode = 0640
     )
 
 def kms():
@@ -291,7 +292,9 @@ def enable_kms_plugin():
 
     File(params.credential_file,
       owner = params.kms_user,
-      group = params.kms_group)
+      group = params.kms_group,
+      mode = 0640
+      )
   
 
 def create_repo(url, data, usernamepassword):
