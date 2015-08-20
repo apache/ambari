@@ -42,7 +42,7 @@
   <tbody>
     {{#if history.length}}
       {{#if model.length}}
-        {{#each item in model}}
+        {{#each item in this}}
           {{job-tr-view job=item onStopJob="interruptJob" onFileRequested="loadFile"}}
         {{/each}}
       {{else}}
