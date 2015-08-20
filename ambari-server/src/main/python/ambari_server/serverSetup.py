@@ -56,6 +56,8 @@ SE_MODE_PERMISSIVE = "permissive"
 
 PERSISTENCE_TYPE_PROPERTY = "server.persistence.type"
 
+TAR_GZ_ARCHIVE_TYPE = ".tar.gz"
+
 # Non-root user setup commands
 NR_USER_COMMENT = "Ambari user"
 
@@ -858,7 +860,10 @@ def _cache_jdbc_driver(args):
 
   resources_dir = get_resources_location(properties)
 
-  symlink_name = args.jdbc_db + "-jdbc-driver.jar"
+  if args.jdbc_driver.endswith(TAR_GZ_ARCHIVE_TYPE):
+    symlink_name = args.jdbc_db + "-jdbc-driver" + TAR_GZ_ARCHIVE_TYPE
+  else:
+    symlink_name = args.jdbc_db + "-jdbc-driver.jar"
   jdbc_symlink = os.path.join(resources_dir, symlink_name)
   path, jdbc_name = os.path.split(args.jdbc_driver)
 

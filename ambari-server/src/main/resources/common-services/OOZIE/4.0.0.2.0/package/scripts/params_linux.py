@@ -190,7 +190,9 @@ else:
   put_shared_lib_to_hdfs_cmd = format("{oozie_setup_sh} sharelib create -fs {fs_root} -locallib {oozie_shared_lib}")
 
 jdbc_driver_name = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.driver", "")
-
+# NOT SURE THAT IT'S A GOOD IDEA TO USE PATH TO CLASS IN DRIVER, MAYBE IT WILL BE BETTER TO USE DB TYPE.
+# BECAUSE PATH TO CLASSES COULD BE CHANGED
+sqla_db_used = False
 if jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
   jdbc_driver_jar = "sqljdbc4.jar"
   jdbc_symlink_name = "mssql-jdbc-driver.jar"
@@ -203,6 +205,10 @@ elif jdbc_driver_name == "org.postgresql.Driver":
 elif jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
   jdbc_driver_jar = "ojdbc.jar"
   jdbc_symlink_name = "oracle-jdbc-driver.jar"
+elif jdbc_driver_name == "sap.jdbc4.sqlanywhere.IDriver":
+  jdbc_driver_jar = "sajdbc4.jar"
+  jdbc_symlink_name = "sqlanywhere-jdbc-driver.tar.gz"
+  sqla_db_used = True
 else:
   jdbc_driver_jar = ""
   jdbc_symlink_name = ""
@@ -215,6 +221,12 @@ if jdbc_driver_name == "org.postgresql.Driver":
 else:
   target = format("{oozie_libext_dir}/{jdbc_driver_jar}")
 
+#constants for type2 jdbc
+if sqla_db_used:
+  jars_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/java/*")
+  libs_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/native/lib64/*")
+  downloaded_custom_connector = format("{tmp_dir}/sqla-client-jdbc.tar.gz")
+  jdbc_libs_dir = format("{oozie_libext_dir}/native/lib64")
 
 hdfs_share_dir = "/user/oozie/share"
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]

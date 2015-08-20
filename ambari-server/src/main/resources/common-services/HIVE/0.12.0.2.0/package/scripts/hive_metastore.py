@@ -20,7 +20,7 @@ limitations under the License.
 import os
 
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, Directory
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
@@ -33,6 +33,7 @@ from resource_management.libraries.functions.security_commons import get_params_
 from resource_management.libraries.functions.security_commons import validate_security_config_properties
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
 from resource_management.core.resources.system import File
+from resource_management.core.shell import as_sudo
 
 from hive import hive
 from hive import jdbc_connector
@@ -176,8 +177,20 @@ class HiveMetastoreDefault(HiveMetastore):
         # download it
         jdbc_connector()
 
-      Execute(('cp', params.target, target_directory),
-        path=["/bin", "/usr/bin/"], sudo = True)
+      if params.sqla_db_used:
+        target_native_libs_directory = format("{target_directory}/native/lib64")
+
+        Execute(as_sudo(['yes', '|', 'cp', params.jars_in_hive_lib, target_directory], auto_escape=False),
+                path=["/bin", "/usr/bin/"])
+
+        Directory(target_native_libs_directory,
+                  recursive=True)
+
+        Execute(as_sudo(['yes', '|', 'cp', params.libs_in_hive_lib, target_native_libs_directory], auto_escape=False),
+                path=["/bin", "/usr/bin/"])
+      else:
+        Execute(('cp', params.target, target_directory),
+                path=["/bin", "/usr/bin/"], sudo = True)
 
       File(os.path.join(target_directory, os.path.basename(params.target)),
         mode = 0644,

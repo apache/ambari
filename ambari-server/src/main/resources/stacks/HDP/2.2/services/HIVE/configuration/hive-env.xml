@@ -69,6 +69,10 @@ elif [ -d "/usr/hdp/current/hive-webhcat/share/hcatalog" ]; then
 fi      
 
 export METASTORE_PORT={{hive_metastore_port}}
+
+{% if sqla_db_used %}
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:{{jdbc_libs_dir}}"
+{% endif %}
     </value>
   </property>
 
