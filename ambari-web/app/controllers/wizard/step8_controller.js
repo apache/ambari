@@ -611,46 +611,25 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         hostsCount + ' ' + Em.I18n.t('installer.step8.hosts'));
   },
 
+  loadHiveDbValue: function() {
+    return this.loadDbValue('HIVE');
+  },
+
+  loadOozieDbValue: function() {
+    return this.loadDbValue('OOZIE');
+  },
+
   /**
    * Set displayed Hive DB value based on DB type
    * @method loadHiveDbValue
    */
-  loadHiveDbValue: function () {
-    var db, serviceConfigProperties = this.get('wizardController').getDBProperty('serviceConfigProperties'),
-      hiveDb = serviceConfigProperties.findProperty('name', 'hive_database');
-    if (hiveDb.value === 'New MySQL Database') {
-      return 'MySQL (New Database)';
-    } else if (hiveDb.value === 'New PostgreSQL Database') {
-      return 'Postgres (New Database)';
-    }
-    else {
-      if (hiveDb.value === 'Existing MySQL Database') {
-        db = serviceConfigProperties.findProperty('name', 'hive_existing_mysql_database');
-        return db.value + ' (' + hiveDb.value + ')';
-      }
-      else {
-        if (hiveDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
-          db = serviceConfigProperties.findProperty('name', 'hive_existing_postgresql_database');
-          return db.value + ' (' + hiveDb.value + ')';
-        }
-        else {
-          if (hiveDb.value === 'Existing MSSQL Server database with SQL authentication') {
-            db = serviceConfigProperties.findProperty('name', 'hive_existing_mssql_server_database');
-            return db.value + ' (' + hiveDb.value + ')';
-          }
-          else {
-            if (hiveDb.value === 'Existing MSSQL Server database with integrated authentication') {
-              db = serviceConfigProperties.findProperty('name', 'hive_existing_mssql_server_2_database');
-              return db.value + ' (' + hiveDb.value + ')';
-            }
-            else {
-              // existing oracle database
-              db = serviceConfigProperties.findProperty('name', 'hive_existing_oracle_database');
-              return db.value + ' (' + hiveDb.value + ')';
-            }
-          }
-        }
-      }
+  loadDbValue: function (serviceName) {
+    var dbFull = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', serviceName.toLowerCase() + '_database'),
+      db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', serviceName.toLowerCase() + '_ambari_database');
+    if (db && dbFull) {
+      return db.value + ' (' + dbFull.value + ')';
+    } else {
+      return '';
     }
   },
 
@@ -682,47 +661,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       hostSuffix = Em.I18n.t('installer.step8.hosts');
     }
     serverComponent.set('component_value', zkHostNames + hostSuffix);
-  },
-
-  /**
-   * Set displayed Oozie DB value based on DB type
-   * @method loadOozieDbValue
-   */
-  loadOozieDbValue: function () {
-    var db, oozieDb = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_database');
-    if (oozieDb.value === 'New Derby Database') {
-      db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_derby_database');
-      return db.value + ' (' + oozieDb.value + ')';
-    }
-    else {
-      if (oozieDb.value === 'Existing MySQL Database') {
-        db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_mysql_database');
-        return db.value + ' (' + oozieDb.value + ')';
-      }
-      else {
-        if (oozieDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
-          db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_postgresql_database');
-          return db.value + ' (' + oozieDb.value + ')';
-        }
-        else {
-          if (oozieDb.value === 'Existing MSSQL Server database with SQL authentication') {
-            db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_mssql_server_database');
-            return db.value + ' (' + oozieDb.value + ')';
-          }
-          else {
-            if (oozieDb.value === 'Existing MSSQL Server database with integrated authentication') {
-              db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_mssql_server_2_database');
-              return db.value + ' (' + oozieDb.value + ')';
-            }
-            else {
-              // existing oracle database
-              db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_oracle_database');
-              return db.value + ' (' + oozieDb.value + ')';
-            }
-          }
-        }
-      }
-    }
   },
 
   /**
