@@ -85,6 +85,7 @@ describe('App.ServiceConfigRadioButtons', function () {
       cases = [
         {
           dbType: 'mysql',
+          driver: 'mysql-connector-java.jar',
           serviceConfig: {
             name: 'hive_database',
             value: 'New MySQL Database',
@@ -109,6 +110,7 @@ describe('App.ServiceConfigRadioButtons', function () {
         },
         {
           dbType: 'postgres',
+          driver: 'postgresql.jar',
           serviceConfig: {
             name: 'hive_database',
             value: 'Existing PostgreSQL Database',
@@ -133,6 +135,7 @@ describe('App.ServiceConfigRadioButtons', function () {
         },
         {
           dbType: 'derby',
+          driver: 'driver.jar',
           serviceConfig: {
             name: 'oozie_database',
             value: 'New Derby Database',
@@ -157,6 +160,7 @@ describe('App.ServiceConfigRadioButtons', function () {
         },
         {
           dbType: 'oracle',
+          driver: 'ojdbc6.jar',
           serviceConfig: {
             name: 'oozie_database',
             value: 'Existing Oracle Database',
@@ -181,6 +185,7 @@ describe('App.ServiceConfigRadioButtons', function () {
         },
         {
           dbType: 'mysql',
+          driver: 'mysql-connector-java.jar',
           serviceConfig: {
             name: 'DB_FLAVOR',
             value: 'MYSQL',
@@ -203,6 +208,7 @@ describe('App.ServiceConfigRadioButtons', function () {
         },
         {
           dbType: 'mssql',
+          driver: 'sqljdbc4.jar',
           serviceConfig: {
             name: 'DB_FLAVOR',
             value: 'MSSQL',
@@ -255,7 +261,7 @@ describe('App.ServiceConfigRadioButtons', function () {
         expect(Em.isNone(additionalView1)).to.equal(item.isAdditionalView1Null);
         expect(Em.isNone(additionalView2)).to.equal(item.isAdditionalView2Null);
         if (!item.isAdditionalView2Null) {
-          expect(additionalView2.create().get('message')).to.equal(Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(item.dbType, item.dbType));
+          expect(additionalView2.create().get('message')).to.equal(Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(item.dbType, item.driver));
         }
       });
     });

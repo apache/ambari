@@ -508,10 +508,10 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
         this.get('hostNameProperty').set('isEditable', true);
       }
       this.setRequiredProperties(['driver', 'sql_jar_connector', 'db_type']);
-      this.setConnectionUrl(this.get('hostNameProperty.value'), this.get('databaseProperty.value'));
+      this.setConnectionUrl(this.get('hostNameProperty.value'), this.get('databaseProperty.value'), this.get('userProperty.value'), this.get('passwordProperty.value'));
       this.handleSpecialUserPassProperties();
     }
-  }.observes('databaseProperty.value', 'hostNameProperty.value', 'serviceConfig.value'),
+  }.observes('databaseProperty.value', 'hostNameProperty.value', 'serviceConfig.value', 'userProperty.value', 'passwordProperty.value'),
 
   nameBinding: 'serviceConfig.radioName',
 
@@ -538,6 +538,22 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     }
     return host;
   }.property('serviceConfig.serviceName', 'serviceConfig.value'),
+
+  /**
+   * Just property object for database name
+   * @type {App.ServiceConfigProperty}
+   */
+  userProperty: function () {
+    return this.getPropertyByType('user_name');
+  }.property('serviceConfig.serviceName'),
+
+  /**
+   * Just property object for database name
+   * @type {App.ServiceConfigProperty}
+   */
+  passwordProperty: function () {
+    return this.getPropertyByType('password');
+  }.property('serviceConfig.serviceName'),
 
   /**
    *
@@ -569,13 +585,15 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
    * and sets hostName as dbName in appropriate position of <code>connection_url<code> string
    * @param {String} hostName
    * @param {String} dbName
+   * @param {String} user
+   * @param {String} password
    * @method setConnectionUrl
    */
-  setConnectionUrl: function(hostName, dbName) {
+  setConnectionUrl: function(hostName, dbName, user, password) {
     var connectionUrlProperty = this.getPropertyByType('connection_url');
     var connectionUrlTemplate = this.getDefaultPropertyValue('connection_url');
     try {
-      var connectionUrlValue = connectionUrlTemplate.format(hostName, dbName);
+      var connectionUrlValue = connectionUrlTemplate.format(hostName, dbName, user, password);
       connectionUrlProperty.set('value', connectionUrlValue);
       connectionUrlProperty.set('recommendedValue', connectionUrlValue);
     } catch(e) {
@@ -657,10 +675,12 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
       propertyAppendTo2.set('additionalView', null);
     }
     var shouldAdditionalViewsBeSet = currentDB && checkDatabase && handledProperties.contains(this.get('serviceConfig.name')),
+      driver = this.getDefaultPropertyValue('sql_jar_connector') ? this.getDefaultPropertyValue('sql_jar_connector').split("/").pop() : 'driver.jar',
+      dbType = this.getDefaultPropertyValue('db_type'),
       additionalView1 = shouldAdditionalViewsBeSet ? App.CheckDBConnectionView.extend({databaseName: currentDB}) : null,
       additionalView2 = shouldAdditionalViewsBeSet ? Ember.View.extend({
         template: Ember.Handlebars.compile('<div class="alert">{{{view.message}}}</div>'),
-        message: Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(currentDBType.toLowerCase(), currentDBType.toLowerCase())
+        message: Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(dbType, driver)
       }) : null;
     if (propertyAppendTo1) {
       Em.run.next(function () {

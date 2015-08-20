@@ -1281,79 +1281,6 @@ describe('App.WizardStep8Controller', function () {
     });
   });
 
-  describe('#loadHiveDbValue', function() {
-    beforeEach(function() {
-      installerStep8Controller.set('wizardController', Em.Object.create({
-        getDBProperty: Em.K
-      }));
-    });
-    Em.A([
-        {
-          serviceConfigProperties: [
-            {name: 'hive_database', value: 'New MySQL Database'}
-          ],
-          m: 'New MySQL Database',
-          e: 'MySQL (New Database)'
-        },
-        {
-          serviceConfigProperties: [
-            {name: 'hive_database', value: 'Existing MSSQL Server database with SQL authentication'},
-            {name: 'hive_existing_mssql_server_database', value: 'dbname'}
-          ],
-          m: 'Existing MSSQL Server database with SQL authentication',
-          e: 'dbname (Existing MSSQL Server database with SQL authentication)'
-        },
-        {
-          serviceConfigProperties: [
-            {name: 'hive_database', value: 'Existing MSSQL Server database with integrated authentication'},
-            {name: 'hive_existing_mssql_server_2_database', value: 'dbname'}
-          ],
-          m: 'Existing MSSQL Server database with integrated authentication',
-          e: 'dbname (Existing MSSQL Server database with integrated authentication)'
-        },
-        {
-          serviceConfigProperties: [
-            {name: 'hive_database', value: 'New PostgreSQL Database'}
-          ],
-          m: 'New PostgreSQL Database',
-          e: 'Postgres (New Database)'
-        },
-        {
-          serviceConfigProperties: [
-            {name: 'hive_database', value: 'Existing MySQL Database'},
-            {name: 'hive_existing_mysql_database', value: 'dbname'}
-          ],
-          m: 'Existing MySQL Database',
-          e: 'dbname (Existing MySQL Database)'
-        },
-        {
-          serviceConfigProperties: [
-            {name: 'hive_database', value: 'Existing PostgreSQL Database'},
-            {name: 'hive_existing_postgresql_database', value: 'dbname'}
-          ],
-          m: 'Existing PostgreSQL Database',
-          e: 'dbname (Existing PostgreSQL Database)'
-        },
-        {
-          serviceConfigProperties: [
-            {name: 'hive_database', value: 'Existing Oracle Database'},
-            {name: 'hive_existing_oracle_database', value: 'dbname'}
-          ],
-          m: 'Existing Oracle Database',
-          e: 'dbname (Existing Oracle Database)'
-        }
-      ]).forEach(function(test) {
-        it(test.m, function() {
-          sinon.stub(installerStep8Controller.get('wizardController'), 'getDBProperty', function() {
-            return test.serviceConfigProperties;
-          });
-          var dbComponent = installerStep8Controller.loadHiveDbValue();
-          expect(dbComponent).to.equal(test.e);
-          installerStep8Controller.get('wizardController').getDBProperty.restore();
-        });
-      });
-  });
-
   describe('#loadHbaseMasterValue', function () {
     Em.A([
         {
@@ -1396,57 +1323,6 @@ describe('App.WizardStep8Controller', function () {
           installerStep8Controller.set('content', {masterComponentHosts: test.masterComponentHosts});
           installerStep8Controller.loadZkServerValue(test.component);
           expect(test.component.component_value).to.equal(test.e);
-        });
-      });
-  });
-
-  describe('#loadOozieDbValue', function() {
-    beforeEach(function() {
-      installerStep8Controller.set('wizardController', Em.Object.create({
-        getDBProperty: Em.K
-      }));
-    });
-    Em.A([
-        {
-          serviceConfigProperties: [
-            {name: 'oozie_database', value: 'New Derby Database'},
-            {name: 'oozie_derby_database', value: 'dbname'}
-          ],
-          m: 'New Derby Database',
-          e: 'dbname (New Derby Database)'
-        },
-        {
-          serviceConfigProperties: [
-            {name: 'oozie_database', value: 'Existing MySQL Database'},
-            {name: 'oozie_existing_mysql_database', value: 'dbname'}
-          ],
-          m: 'Existing MySQL Database',
-          e: 'dbname (Existing MySQL Database)'
-        },
-        {
-          serviceConfigProperties: [
-            {name: 'oozie_database', value: 'Existing PostgreSQL Database'},
-            {name: 'oozie_existing_postgresql_database', value: 'dbname'}
-          ],
-          m: 'Existing PostgreSQL Database',
-          e: 'dbname (Existing PostgreSQL Database)'
-        },
-        {
-          serviceConfigProperties: [
-            {name: 'oozie_database', value: 'Existing Oracle Database'},
-            {name: 'oozie_existing_oracle_database', value: 'dbname'}
-          ],
-          m: 'Existing Oracle Database',
-          e: 'dbname (Existing Oracle Database)'
-        }
-      ]).forEach(function(test) {
-        it(test.m, function() {
-          sinon.stub(installerStep8Controller.get('wizardController'), 'getDBProperty', function() {
-            return test.serviceConfigProperties;
-          });
-          var dbComponent = installerStep8Controller.loadOozieDbValue();
-          expect(dbComponent).to.equal(test.e);
-          installerStep8Controller.get('wizardController').getDBProperty.restore();
         });
       });
   });

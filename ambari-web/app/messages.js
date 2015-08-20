@@ -1772,7 +1772,7 @@ Em.I18n.translations = {
   'services.service.config.kdc.btn.idle': 'Test KDC Connection',
   'services.service.config.database.btn.connecting': 'Connecting...',
   'services.service.config.database.msg.jdbcSetup': 'Be sure you have run:<br/>' +
-    '<b>ambari-server setup --jdbc-db={0} --jdbc-driver=/path/to/{1}/driver.jar</b> ' +
+    '<b>ambari-server setup --jdbc-db={0} --jdbc-driver=/path/to/{0}/{1}</b> ' +
     'on the Ambari Server host to make the JDBC driver available and to enable testing the database connection.',
 
   'services.service.config.configHistory.configGroup': 'Config Group',

@@ -103,16 +103,16 @@ module.exports = {
       'db_type': 'mssql'
     },
     'MSSQL2': {
-      'connection_url': 'jdbc:sqlserver://{0};databaseName={1}',
+      'connection_url': 'jdbc:sqlserver://{0};databaseName={1};integratedSecurity=true',
       'driver': 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
-      'sql_jar_connector': 'jdbc:sqlserver://{0};databaseName={1};integratedSecurity=true',
+      'sql_jar_connector': '/usr/share/java/sqljdbc4.jar',
       'db_type': 'mssql'
     },
     'SQLA': {
-      'connection_url': 'jdbc:sqlanywhere:database={1};host={0}',
+      'connection_url': 'jdbc:sqlanywhere:uid={2};pwd={3};database={1};host={0}',
       'driver': 'sap.jdbc4.sqlanywhere.IDriver',
-      'sql_jar_connector': '/path_to_driver/sajdbc4.jar',
-      'db_type': 'sqla'
+      'sql_jar_connector': '/path_to_driver/sqla-client-jdbc.tar.gz',
+      'db_type': 'sqlanywhere'
     },
     'DERBY': {
       'connection_url': 'jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true',
