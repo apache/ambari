@@ -499,7 +499,7 @@ public interface DBAccessor {
    * Get type class of the column
    * @param tableName name of the table
    * @param columnName name of the column
-   * @return
+   * @return type class of the column
    * @throws SQLException
    * @throws ClassNotFoundException
    */
