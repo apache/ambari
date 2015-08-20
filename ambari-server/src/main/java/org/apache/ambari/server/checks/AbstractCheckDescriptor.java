@@ -23,6 +23,7 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.Cluster;
@@ -47,8 +48,6 @@ import com.google.inject.Provider;
 public abstract class AbstractCheckDescriptor {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractCheckDescriptor.class);
-  protected static final StackId STACK_HDP_22 = new StackId("HDP", "2.2");
-  protected static final StackId STACK_HDP_23 = new StackId("HDP", "2.3");
 
   protected static final String DEFAULT = "default";
 
@@ -66,6 +65,9 @@ public abstract class AbstractCheckDescriptor {
 
   @Inject
   Provider<AmbariMetaInfo> ambariMetaInfo;
+
+  @Inject
+  Configuration config;
 
   private CheckDescription m_description;
 
@@ -116,27 +118,36 @@ public abstract class AbstractCheckDescriptor {
 
   /**
    * Gets the earliest stack that the upgrade check is compatible with. By
-   * default, all checks will return {@link #STACK_HDP_22} since this is the
-   * first version of HDP that supports automated upgrades.
+   * default, all checks will return rolling.upgrade.min.stack since this is the
+   * first stack version that supports automated upgrades.
    *
    * @return the earliest stack that the upgrade check is compatible with, or
    *         {@code null} for all.
    */
   public StackId getSourceStack(){
-    return STACK_HDP_22;
+    String minStackId = config.getRollingUpgradeMinStack();
+    if(minStackId == null || minStackId.isEmpty()) {
+      return null;
+    }
+    return new StackId(minStackId);
   }
 
   /**
    * Gets the most recent stack that the upgrade check is compatible with. By
-   * default, this will return {@code null} to indicate all future stacks are
-   * compatible. If an upgrade check is not compatible with a future stack, then
+   * default, this will return rolling.upgrade.max.stack, which is typically
+   * set to null to indicate all future stacks are compatible.
+   * If an upgrade check is not compatible with a future stack, then
    * this method should be overridden.
    *
    * @return the most recent stack that the upgrade check is compatible with, or
    *         {@code null} for all.
    */
   public StackId getTargetStack() {
-    return null;
+    String maxStackId = config.getRollingUpgradeMaxStack();
+    if(maxStackId == null || maxStackId.isEmpty()) {
+      return null;
+    }
+    return new StackId(maxStackId);
   }
 
   /**

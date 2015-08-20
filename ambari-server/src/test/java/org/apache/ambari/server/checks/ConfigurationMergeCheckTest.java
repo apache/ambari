@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -88,6 +89,12 @@ public class ConfigurationMergeCheckTest {
     request.setTargetStackId(stackId_1_0);
 
     ConfigurationMergeCheck cmc = new ConfigurationMergeCheck();
+    Configuration config = EasyMock.createMock(Configuration.class);
+    expect(config.getRollingUpgradeMinStack()).andReturn("HDP-2.2").anyTimes();
+    expect(config.getRollingUpgradeMaxStack()).andReturn("").anyTimes();
+    replay(config);
+    cmc.config = config;
+
     Assert.assertFalse(cmc.isApplicable(request));
 
     final RepositoryVersionDAO repositoryVersionDAO = EasyMock.createMock(RepositoryVersionDAO.class);

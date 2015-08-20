@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.Cluster;
@@ -53,10 +54,17 @@ public class HostsMasterMaintenanceCheckTest {
   public void testIsApplicable() throws Exception {
     final PrereqCheckRequest request = new PrereqCheckRequest("cluster");
     request.setRepositoryVersion("not null");
-    Assert.assertTrue(new HostsMasterMaintenanceCheck().isApplicable(request));
+    HostsMasterMaintenanceCheck hmmc = new HostsMasterMaintenanceCheck();
+    Configuration config = Mockito.mock(Configuration.class);
+    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
+    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
+    hmmc.config = config;
+    Assert.assertTrue(hmmc.isApplicable(request));
 
     request.setRepositoryVersion(null);
-    Assert.assertFalse(new HostsMasterMaintenanceCheck().isApplicable(request));
+    HostsMasterMaintenanceCheck hmmc2 = new HostsMasterMaintenanceCheck();
+    hmmc2.config = config;
+    Assert.assertFalse(hmmc2.isApplicable(request));
   }
 
   @Test

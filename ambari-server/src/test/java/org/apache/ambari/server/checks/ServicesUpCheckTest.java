@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.models.HostComponentSummary;
 import org.apache.ambari.server.state.Cluster;
@@ -64,8 +65,13 @@ public class ServicesUpCheckTest {
     checkRequest.setRepositoryVersion("HDP-2.2.0.0");
     checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
     checkRequest.setTargetStackId(new StackId("HDP", "2.2"));
+    ServicesUpCheck suc = new ServicesUpCheck();
+    Configuration config = Mockito.mock(Configuration.class);
+    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
+    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
+    suc.config = config;
 
-    Assert.assertTrue(new ServicesUpCheck().isApplicable(checkRequest));
+    Assert.assertTrue(suc.isApplicable(checkRequest));
   }
 
   @Test

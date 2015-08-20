@@ -20,6 +20,7 @@ package org.apache.ambari.server.checks;
 import java.util.Collections;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -48,7 +49,12 @@ public class ServicesMaintenanceModeCheckTest {
     checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
     checkRequest.setTargetStackId(new StackId("HDP", "2.2"));
 
-    Assert.assertTrue(new ServicesMaintenanceModeCheck().isApplicable(checkRequest));
+    ServicesMaintenanceModeCheck smmc = new ServicesMaintenanceModeCheck();
+    Configuration config = Mockito.mock(Configuration.class);
+    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
+    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
+    smmc.config = config;
+    Assert.assertTrue(smmc.isApplicable(checkRequest));
   }
 
   @Test
