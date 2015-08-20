@@ -724,6 +724,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       return;
     router.get('mainHostController').filterByComponent(component.context);
     router.get('mainHostController').set('showFilterConditionsFirstLoad', true);
+    router.get('mainHostController').set('filterChangeHappened', true);
     router.transitionTo('hosts.index');
   },
   showDetails: function (router, event) {
