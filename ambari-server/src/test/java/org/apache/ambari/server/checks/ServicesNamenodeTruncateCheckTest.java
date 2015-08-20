@@ -25,6 +25,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -62,6 +63,12 @@ public class ServicesNamenodeTruncateCheckTest {
     expect(m_clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
 
     replay(m_clusters, cluster, config);
+
+    Configuration configuration = EasyMock.createMock(Configuration.class);
+    expect(configuration.getRollingUpgradeMinStack()).andReturn("HDP-2.2").anyTimes();
+    expect(configuration.getRollingUpgradeMaxStack()).andReturn("").anyTimes();
+    replay(configuration);
+    m_check.config = configuration;
 
     m_check.clustersProvider = new Provider<Clusters>() {
       @Override

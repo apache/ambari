@@ -18,6 +18,7 @@
 package org.apache.ambari.server.checks;
 
 import com.google.inject.Provider;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -57,6 +58,10 @@ public class MapReduce2JobHistoryStatePreservingCheckTest {
         return m_clusters;
       }
     };
+    Configuration config = Mockito.mock(Configuration.class);
+    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
+    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
+    m_check.config = config;
   }
 
   /**
@@ -156,7 +161,7 @@ public class MapReduce2JobHistoryStatePreservingCheckTest {
     Mockito.when(m_clusters.getCluster("c1")).thenReturn(cluster);
     PrereqCheckRequest request = new PrereqCheckRequest("c1");
 
-    Mockito.when(repositoryVersionEntity.getVersion()).thenReturn("2.2.0.1");
+    Mockito.when(repositoryVersionEntity.getVersion()).thenReturn("2.0.0.1");
     boolean isApplicable = m_check.isApplicable(request);
     Assert.assertTrue(isApplicable);
   }

@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -54,10 +55,17 @@ public class HostsRepositoryVersionCheckTest {
   public void testIsApplicable() throws Exception {
     final PrereqCheckRequest request = new PrereqCheckRequest("cluster");
     request.setRepositoryVersion("not null");
-    Assert.assertTrue(new HostsMasterMaintenanceCheck().isApplicable(request));
+    HostsRepositoryVersionCheck hrvc = new HostsRepositoryVersionCheck();
+    Configuration config = Mockito.mock(Configuration.class);
+    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
+    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
+    hrvc.config = config;
+    Assert.assertTrue(hrvc.isApplicable(request));
 
     request.setRepositoryVersion(null);
-    Assert.assertFalse(new HostsMasterMaintenanceCheck().isApplicable(request));
+    HostsRepositoryVersionCheck hrvc2 = new HostsRepositoryVersionCheck();
+    hrvc2.config = config;
+    Assert.assertFalse(hrvc2.isApplicable(request));
   }
 
   @Test

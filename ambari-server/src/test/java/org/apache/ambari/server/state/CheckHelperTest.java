@@ -29,9 +29,11 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.CheckDescription;
 import org.apache.ambari.server.checks.ServicesUpCheck;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
@@ -116,6 +118,8 @@ public class CheckHelperTest {
       }
     });
 
+    final OsFamily osFamily = Mockito.mock(OsFamily.class);
+
     final Injector injector = Guice.createInjector(new AbstractModule() {
 
       @Override
@@ -126,6 +130,7 @@ public class CheckHelperTest {
         bind(RepositoryVersionHelper.class).toProvider(Providers.<RepositoryVersionHelper>of(null));
         bind(AmbariMetaInfo.class).toProvider(Providers.<AmbariMetaInfo>of(null));
         bind(ServicesUpCheck.class).toInstance(new ServicesUpCheck());
+        bind(OsFamily.class).toInstance(osFamily);
       }
     });
 

@@ -21,6 +21,7 @@ import java.util.Collections;
 
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.state.Cluster;
@@ -64,6 +65,10 @@ public class SecondaryNamenodeDeletedCheckTest {
     };
 
     secondaryNamenodeDeletedCheck.hostComponentStateDao = hostComponentStateDAO;
+    Configuration config = Mockito.mock(Configuration.class);
+    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
+    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
+    secondaryNamenodeDeletedCheck.config = config;
   }
 
   @Test
