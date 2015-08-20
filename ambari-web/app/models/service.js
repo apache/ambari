@@ -150,15 +150,18 @@ App.Service = DS.Model.extend({
     return this.t('services.service.config.restartService.TooltipMessage').format(hcCount, hostCount, hostsMsg);
   }.property('restartRequiredHostsAndComponents'),
 
-  hasCriticalAlerts: function () {
-    var controller = App.router.get('mainAlertDefinitionsController');
-    return controller.getCriticalAlertsCountForService(this.get('serviceName')) > 0;
-  }.property('alertsCount'),
+  /**
+   * Does service have Critical Alerts
+   * @type {boolean}
+   */
+  hasCriticalAlerts: false,
 
-  alertsCount: function () {
-    var controller = App.router.get('mainAlertDefinitionsController');
-    return controller.getCriticalOrWarningAlertsCountForService(this.get('serviceName'));
-  }.property('App.router.mainAlertDefinitionsController.content.@each.isCriticalOrWarning')
+  /**
+   * Number of the Critical and Warning alerts for current service
+   * @type {number}
+   */
+  alertsCount: 0
+
 });
 
 App.Service.Health = {

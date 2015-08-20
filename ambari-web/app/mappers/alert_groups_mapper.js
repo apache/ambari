@@ -108,6 +108,7 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
       App.cache['previousAlertGroupsMap'] = alertDefinitionsGroupsMap;
       App.cache['previousAlertGroupsFullMap'] = groupsMap;
       App.cache['alertNotificationsGroupsMap'] = alertNotificationsGroupsMap;
+      // initial load takes much more time than others, but it's OK (all data should be saved first time)
       App.store.loadMany(this.get('model'), alertGroups);
       App.store.commit();
       console.timeEnd('App.alertGroupsMapper execution time');

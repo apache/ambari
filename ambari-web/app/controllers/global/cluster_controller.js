@@ -245,10 +245,12 @@ App.ClusterController = Em.Controller.extend({
     });
 
     // alerts loading doesn't affect overall progress
+    console.time('Overall alerts loading time');
     updater.updateAlertGroups(function () {
       updater.updateAlertDefinitions(function () {
         updater.updateAlertDefinitionSummary(function () {
           updater.updateUnhealthyAlertInstances(function () {
+            console.timeEnd('Overall alerts loading time');
             self.set('isAlertsLoaded', true);
           });
         });

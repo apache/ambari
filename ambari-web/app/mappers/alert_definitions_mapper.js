@@ -70,8 +70,8 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
   },
 
   map: function (json) {
+    console.time('App.alertDefinitionsMapper execution time');
     if (json && json.items) {
-
       var self = this,
           alertDefinitions = [],
           alertReportDefinitions = [],
@@ -79,8 +79,13 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           alertMetricsUriDefinitions = [],
           alertGroupsMap = App.cache['previousAlertGroupsMap'],
           existingAlertDefinitions = App.AlertDefinition.find(),
+          existingAlertDefinitionsMap = {},
           alertDefinitionsToDelete = existingAlertDefinitions.mapProperty('id'),
           rawSourceData = {};
+
+      existingAlertDefinitions.forEach(function (d) {
+        existingAlertDefinitionsMap[d.get('id')] = d;
+      });
 
       json.items.forEach(function (item) {
         var convertedReportDefinitions = [];
@@ -116,7 +121,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           alertDefinition.groups = alertGroupsMap[alertDefinition.id];
         }
 
-        var oldAlertDefinition = existingAlertDefinitions.findProperty('id', alertDefinition.id);
+        var oldAlertDefinition = existingAlertDefinitionsMap[alertDefinition.id];
         if (oldAlertDefinition) {
           // new values will be parsed in the another mapper, so for now just use old values
           alertDefinition.summary = oldAlertDefinition.get('summary');
@@ -187,10 +192,12 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
       App.store.loadMany(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
       this.setMetricsSourcePropertyLists(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
       App.store.loadMany(this.get('metricsUriModel'), alertMetricsUriDefinitions);
+      // this loadMany takes too much time
       App.store.loadMany(this.get('model'), alertDefinitions);
       this.setAlertDefinitionsRawSourceData(rawSourceData);
       App.store.commit();
     }
+    console.timeEnd('App.alertDefinitionsMapper execution time');
   },
 
   /**
@@ -199,8 +206,15 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
    * @param data
    */
   setMetricsSourcePropertyLists: function (model, data) {
+    var modelsMap = {};
+    model.find().forEach(function (m) {
+      modelsMap[m.get('id')] = m;
+    });
     data.forEach(function (record) {
-      model.find().findProperty('id', record.id).set('propertyList', record.property_list);
+      var m = modelsMap[record.id];
+      if (m) {
+        m.set('propertyList', record.property_list);
+      }
     });
   },
 
@@ -210,9 +224,16 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
    */
   setAlertDefinitionsRawSourceData: function (rawSourceData) {
     var allDefinitions = App.AlertDefinition.find();
+    var allDefinitionsMap = {};
+    allDefinitions.forEach(function(d) {
+      allDefinitionsMap[d.get('id')] = d;
+    });
     for (var alertDefinitionId in rawSourceData) {
       if (rawSourceData.hasOwnProperty(alertDefinitionId)) {
-        allDefinitions.findProperty('id', +alertDefinitionId).set('rawSourceData', rawSourceData[alertDefinitionId]);
+        var m = allDefinitionsMap[+alertDefinitionId];
+        if (m) {
+          m.set('rawSourceData', rawSourceData[alertDefinitionId]);
+        }
       }
     }
   }
