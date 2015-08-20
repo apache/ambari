@@ -359,10 +359,13 @@ def init_parser_options(parser):
   parser.add_option('--databasepassword', default=None, help="Database user password", dest="database_password")
   parser.add_option('--sidorsname', default="sname", help="Oracle database identifier type, Service ID/Service "
                                                           "Name sid|sname", dest="sid_or_sname")
-  parser.add_option('--jdbc-driver', default=None, help="Specifies the path to the JDBC driver JAR file for the " \
-                                                        "database type specified with the --jdbc-db option. Used only with --jdbc-db option.",
+  parser.add_option('--jdbc-driver', default=None, help="Specifies the path to the JDBC driver JAR file or archive " \
+                                                        "with all required files(jdbc jar, libraries and etc), for the " \
+                                                        "database type specified with the --jdbc-db option. " \
+                                                        "Used only with --jdbc-db option. Archive is supported only for" \
+                                                        " sqlanywhere database." ,
                     dest="jdbc_driver")
-  parser.add_option('--jdbc-db', default=None, help="Specifies the database type [postgres|mysql|mssql|oracle|hsqldb] for the " \
+  parser.add_option('--jdbc-db', default=None, help="Specifies the database type [postgres|mysql|mssql|oracle|hsqldb|sqlanywhere] for the " \
                                                     "JDBC driver specified with the --jdbc-driver option. Used only with --jdbc-driver option.",
                     dest="jdbc_db")
   parser.add_option('--cluster-name', default=None, help="Cluster name", dest="cluster_name")
@@ -458,6 +461,7 @@ def fix_database_options(options, parser):
     parser.error("Option --jdbc-db is used only in pair with --jdbc-driver")
   elif options.jdbc_driver is not None and options.jdbc_db is None:
     parser.error("Option --jdbc-driver is used only in pair with --jdbc-db")
+
   if options.sid_or_sname.lower() not in ["sid", "sname"]:
     print "WARNING: Valid values for sid_or_sname are 'sid' or 'sname'. Use 'sid' if the db identifier type is " \
           "Service ID. Use 'sname' if the db identifier type is Service Name"

@@ -34,6 +34,7 @@ from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.functions.format import format
 from resource_management.core.exceptions import Fail
+from resource_management.core.shell import as_sudo
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -371,10 +372,25 @@ def jdbc_connector():
             sudo = True)
     
     File(params.downloaded_custom_connector,
-         content = DownloadSource(params.driver_curl_source),
-    )
+         content = DownloadSource(params.driver_curl_source))
 
-    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.target),
+    # maybe it will be more correcvly to use db type
+    if params.sqla_db_used:
+      untar_sqla_type2_driver = ('tar', '-xvf', params.downloaded_custom_connector, '-C', params.tmp_dir)
+
+      Execute(untar_sqla_type2_driver, sudo = True)
+
+      Execute(as_sudo(['yes', '|', 'cp', params.jars_path_in_archive, params.hive_lib], auto_escape=False),
+              path=["/bin", "/usr/bin/"])
+
+      Directory(params.jdbc_libs_dir,
+                recursive=True)
+
+      Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
+              path=["/bin", "/usr/bin/"])
+
+    else:
+      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.target),
             #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
             path=["/bin", "/usr/bin/"],
             sudo = True)

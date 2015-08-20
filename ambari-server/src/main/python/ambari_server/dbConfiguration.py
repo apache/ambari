@@ -333,7 +333,8 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
       'mysql',
       'postgres',
       'mssql',
-      'hsqldb'
+      'hsqldb',
+      'sqlanywhere'
     ]
 
     self.DBMS_LIST = [
