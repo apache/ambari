@@ -21,6 +21,8 @@ App.alertInstanceMapper = App.QuickDataMapper.create({
 
   model : App.AlertInstance,
 
+  modelLocal: App.AlertInstanceLocal,
+
   config : {
     id: 'Alert.id',
     label: 'Alert.label',
@@ -41,10 +43,17 @@ App.alertInstanceMapper = App.QuickDataMapper.create({
   },
 
   map: function(json) {
+    return this.parse(json, this.get('model'));
+  },
+
+  mapLocal: function(json) {
+    return this.parse(json, this.get('modelLocal'));
+  },
+
+  parse: function(json, model) {
     console.time('App.alertInstanceMapper execution time');
     if (json.items) {
       var alertInstances = [];
-      var model = this.get('model');
       var alertsToDelete = model.find().mapProperty('id');
 
       json.items.forEach(function (item) {
@@ -57,8 +66,9 @@ App.alertInstanceMapper = App.QuickDataMapper.create({
         model.find().clear();
       }
 
-      App.store.loadMany(this.get('model'), alertInstances);
+      App.store.loadMany(model, alertInstances);
       console.timeEnd('App.alertInstanceMapper execution time');
     }
   }
+
 });

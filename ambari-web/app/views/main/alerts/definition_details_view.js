@@ -163,7 +163,7 @@ App.AlertInstanceServiceHostView = Em.View.extend({
    * Define whether show link for transition to service page
    */
   serviceIsLink: function () {
-    return App.Service.find().someProperty('serviceName', this.get('instance.service.serviceName'));
+    return App.get('services.all').contains(this.get('instance.service.serviceName'));
   }.property('instance.service.serviceName'),
 
   /**

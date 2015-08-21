@@ -21,7 +21,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
   name: 'mainAlertDefinitionDetailsController',
 
   alerts: function () {
-    return App.AlertInstance.find().toArray()
+    return App.AlertInstanceLocal.find().toArray()
         .filterProperty('definitionId', this.get('content.id'));
   }.property('App.router.mainAlertInstancesController.isLoaded', 'App.router.mainAlertInstancesController.reload'),
 

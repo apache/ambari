@@ -30,7 +30,7 @@ App.MainHostAlertsController = Em.ArrayController.extend({
    * @type {App.AlertInstance[]}
    */
   content: function () {
-    return App.AlertInstance.find().toArray().filterProperty('host', this.get('selectedHost'));
+    return App.AlertInstanceLocal.find().toArray().filterProperty('host', this.get('selectedHost'));
   }.property('App.router.mainAlertInstancesController.isLoaded', 'selectedHost'),
 
   /**

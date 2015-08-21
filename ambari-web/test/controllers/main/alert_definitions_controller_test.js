@@ -19,7 +19,7 @@
 var App = require('app');
 
 require('controllers/main/alert_definitions_controller');
-require('models/alert_definition');
+require('models/alerts/alert_definition');
 
 var controller;
 describe('App.MainAlertDefinitionsController', function() {
