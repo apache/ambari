@@ -118,6 +118,8 @@ ams_checkpoint_dir = config['configurations']['ams-site']['timeline.metrics.aggr
 hbase_pid_dir = status_params.hbase_pid_dir
 _hbase_tmp_dir = config['configurations']['ams-hbase-site']['hbase.tmp.dir']
 hbase_tmp_dir = substitute_vars(_hbase_tmp_dir, config['configurations']['ams-hbase-site'])
+_zookeeper_data_dir = config['configurations']['ams-hbase-site']['hbase.zookeeper.property.dataDir']
+zookeeper_data_dir = substitute_vars(_zookeeper_data_dir, config['configurations']['ams-hbase-site'])
 # TODO UPGRADE default, update site during upgrade
 _local_dir_conf = default('/configurations/ams-hbase-site/hbase.local.dir', "${hbase.tmp.dir}/local")
 local_dir = substitute_vars(_local_dir_conf, config['configurations']['ams-hbase-site'])

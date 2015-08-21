@@ -771,7 +771,7 @@
             "hbase_master_xmn_size": "128m",
             "phoenix.query.spoolThresholdBytes": "12582912",
             "zookeeper.session.timeout": "120000",
-            "hbase.tmp.dir": "hdfs://localhost:8020/apps/hbase/data/tmp",
+            "hbase.tmp.dir": "/var/lib/ambari-metrics-collector/hbase-tmp",
             "hfile.block.cache.size": "0.3",
             "hbase.regionserver.port": "61320",
             "hbase.regionserver.thread.compaction.small": "3",
