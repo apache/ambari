@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,13 +32,16 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
 import javax.persistence.metamodel.SingularAttribute;
 
+import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
 import org.apache.ambari.server.api.query.JpaSortBuilder;
+import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.orm.entities.StageEntity_;
@@ -53,10 +57,37 @@ import com.google.inject.persist.Transactional;
 @Singleton
 public class StageDAO {
 
+  /**
+   * Mapping of valid status transitions that that are driven by manual input.
+   */
+  private static Map<HostRoleStatus, EnumSet<HostRoleStatus>> manualTransitionMap = new HashMap<HostRoleStatus, EnumSet<HostRoleStatus>>();
+
+  static {
+    manualTransitionMap.put(HostRoleStatus.HOLDING,
+        EnumSet.of(HostRoleStatus.COMPLETED, HostRoleStatus.ABORTED));
+
+    manualTransitionMap.put(HostRoleStatus.HOLDING_FAILED,
+        EnumSet.of(HostRoleStatus.PENDING, HostRoleStatus.FAILED, HostRoleStatus.ABORTED));
+
+    manualTransitionMap.put(HostRoleStatus.HOLDING_TIMEDOUT,
+        EnumSet.of(HostRoleStatus.PENDING, HostRoleStatus.TIMEDOUT, HostRoleStatus.ABORTED));
+
+    // todo: perhaps add a CANCELED status that just affects a stage and wont
+    // abort the request
+    // todo: so, if I scale 10 nodes and actually provision 5 and then later
+    // decide I don't want those
+    // todo: additional 5 nodes I can cancel them and the corresponding request
+    // will have a status of COMPLETED
+  }
+
   @Inject
   Provider<EntityManager> entityManagerProvider;
+
   @Inject
   DaoUtils daoUtils;
+
+  @Inject
+  HostRoleCommandDAO hostRoleCommandDao;
 
   @RequiresSession
   public StageEntity findByPK(StageEntityPK stageEntityPK) {
@@ -215,6 +246,63 @@ public class StageDAO {
     typedQuery.setHint(QueryHints.REFRESH, HintValues.TRUE);
 
     return daoUtils.selectList(typedQuery);
+  }
+
+  /**
+   * Update the given stage entity with the desired status.
+   *
+   * @param stage
+   *          the stage entity to update
+   * @param desiredStatus
+   *          the desired stage status
+   * @param controller
+   *          the ambari management controller
+   *
+   * @throws java.lang.IllegalArgumentException
+   *           if the transition to the desired status is not a legal transition
+   */
+  @Transactional
+  public void updateStageStatus(StageEntity stage, HostRoleStatus desiredStatus,
+      ActionManager actionManager) {
+    Collection<HostRoleCommandEntity> tasks = stage.getHostRoleCommands();
+
+    HostRoleStatus currentStatus = CalculatedStatus.statusFromTaskEntities(tasks,
+        stage.isSkippable()).getStatus();
+
+    if (!isValidManualTransition(currentStatus, desiredStatus)) {
+      throw new IllegalArgumentException(
+          "Can not transition a stage from " + currentStatus + " to " + desiredStatus);
+    }
+    if (desiredStatus == HostRoleStatus.ABORTED) {
+      actionManager.cancelRequest(stage.getRequestId(), "User aborted.");
+    } else {
+      for (HostRoleCommandEntity hostRoleCommand : tasks) {
+        HostRoleStatus hostRoleStatus = hostRoleCommand.getStatus();
+        if (hostRoleStatus.equals(currentStatus)) {
+          hostRoleCommand.setStatus(desiredStatus);
+
+          if (desiredStatus == HostRoleStatus.PENDING) {
+            hostRoleCommand.setStartTime(-1L);
+          }
+          hostRoleCommandDao.merge(hostRoleCommand);
+        }
+      }
+    }
+  }
+
+  /**
+   * Determine whether or not it is valid to transition from this stage status
+   * to the given status.
+   *
+   * @param status
+   *          the stage status being transitioned to
+   *
+   * @return true if it is valid to transition to the given stage status
+   */
+  private static boolean isValidManualTransition(HostRoleStatus status,
+      HostRoleStatus desiredStatus) {
+    EnumSet<HostRoleStatus> stageStatusSet = manualTransitionMap.get(status);
+    return stageStatusSet != null && stageStatusSet.contains(desiredStatus);
   }
 
   /**

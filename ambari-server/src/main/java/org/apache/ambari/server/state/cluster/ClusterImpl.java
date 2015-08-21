@@ -2577,14 +2577,35 @@ public class ClusterImpl implements Cluster {
         failedEvents.put(event, message);
       } catch (InvalidStateTransitionException e) {
         LOG.error("Invalid transition ", e);
-        if ((e.getEvent() == ServiceComponentHostEventType.HOST_SVCCOMP_START)
-            && (e.getCurrentState() == State.STARTED)) {
-          LOG.warn("Component request for component = " + serviceComponentName
-              + " to start is invalid, since component is already started. Ignoring this request.");
 
-          // skip adding this as a failed event, to work around stack ordering
-          // issues with Hive
-        } else {
+        boolean isFailure = true;
+
+        Enum<?> currentState = e.getCurrentState();
+        Enum<?> failedEvent = e.getEvent();
+
+        // skip adding this as a failed event, to work around stack ordering
+        // issues with Hive
+        if (currentState == State.STARTED &&
+            failedEvent == ServiceComponentHostEventType.HOST_SVCCOMP_START){
+          isFailure = false;
+          LOG.warn(
+              "The start request for {} is invalid since the component is already started. Ignoring the request.",
+              serviceComponentName);
+        }
+
+        // unknown hosts should be able to be put back in progress and let the
+        // action scheduler fail it; don't abort the entire stage just because
+        // this happens
+        if (currentState == State.UNKNOWN
+            && failedEvent == ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS) {
+          isFailure = false;
+          LOG.warn("The host {} is in an unknown state; attempting to put {} back in progress.",
+              event.getHostName(),
+              serviceComponentName);
+        }
+
+        // fail the event, causing it to automatically abort
+        if (isFailure) {
           failedEvents.put(event, String.format("Invalid transition. %s", e.getMessage()));
         }
       }

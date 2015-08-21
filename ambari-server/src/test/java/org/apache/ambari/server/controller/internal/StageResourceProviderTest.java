@@ -18,10 +18,8 @@
 package org.apache.ambari.server.controller.internal;
 
 import static org.easymock.EasyMock.anyLong;
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -207,25 +205,27 @@ public class StageResourceProviderTest {
 
   @Test
   public void testUpdateStageStatus_aborted() throws Exception {
-
+    StageResourceProvider provider = new StageResourceProvider(managementController);
     ActionManager actionManager = createNiceMock(ActionManager.class);
 
     Predicate predicate = new PredicateBuilder().property(StageResourceProvider.STAGE_STAGE_ID).equals(2L).and().
         property(StageResourceProvider.STAGE_REQUEST_ID).equals(1L).toPredicate();
 
-    Request request = PropertyHelper.getReadRequest();
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(StageResourceProvider.STAGE_STATUS, HostRoleStatus.ABORTED.name());
+    Request request = PropertyHelper.getUpdateRequest(requestProps, null);
 
     List<StageEntity> entities = getStageEntities(HostRoleStatus.HOLDING);
 
     expect(dao.findAll(request, predicate)).andReturn(entities);
-
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
 
-    actionManager.cancelRequest(eq(1L), anyObject(String.class));
+    dao.updateStageStatus(entities.get(0), HostRoleStatus.ABORTED, actionManager);
+    EasyMock.expectLastCall().atLeastOnce();
 
     replay(dao, clusters, cluster, actionManager, managementController);
 
-    StageResourceProvider.updateStageStatus(1L, 2L, HostRoleStatus.ABORTED, managementController);
+    provider.updateResources(request, predicate);
 
     verify(dao, clusters, cluster, actionManager, managementController);
   }

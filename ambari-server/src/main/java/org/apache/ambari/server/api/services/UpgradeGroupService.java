@@ -65,13 +65,11 @@ public class UpgradeGroupService extends BaseService {
   }
 
   @Path("{upgradeGroupId}/upgrade_items")
-  public UpgradeItemService getUpgradeItems(
+  public UpgradeItemService getUpgradeItemService(
       @Context HttpHeaders headers,
       @PathParam("upgradeGroupId") Long groupId) {
     return new UpgradeItemService(m_clusterName, m_upgradeId, groupId.toString());
   }
-
-
 
   /**
    * @param groupId the specific group id

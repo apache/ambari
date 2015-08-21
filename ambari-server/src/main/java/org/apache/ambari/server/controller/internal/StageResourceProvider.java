@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -45,12 +44,9 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.StageDAO;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -130,21 +126,6 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     KEY_PROPERTY_IDS.put(Resource.Type.Request, STAGE_REQUEST_ID);
   }
 
-  /**
-   * Mapping of valid status transitions that that are driven by manual input.
-   */
-  private static Map<HostRoleStatus, EnumSet<HostRoleStatus>> manualTransitionMap = new HashMap<HostRoleStatus, EnumSet<HostRoleStatus>>();
-
-  static {
-    manualTransitionMap.put(HostRoleStatus.HOLDING, EnumSet.of(HostRoleStatus.COMPLETED, HostRoleStatus.ABORTED));
-    manualTransitionMap.put(HostRoleStatus.HOLDING_FAILED, EnumSet.of(HostRoleStatus.PENDING, HostRoleStatus.FAILED, HostRoleStatus.ABORTED));
-    manualTransitionMap.put(HostRoleStatus.HOLDING_TIMEDOUT, EnumSet.of(HostRoleStatus.PENDING, HostRoleStatus.TIMEDOUT, HostRoleStatus.ABORTED));
-    //todo: perhaps add a CANCELED status that just affects a stage and wont abort the request
-    //todo: so, if I scale 10 nodes and actually provision 5 and then later decide I don't want those
-    //todo: additional 5 nodes I can cancel them and the corresponding request will have a status of COMPLETED
-  }
-
-
   // ----- Constructors ------------------------------------------------------
 
   /**
@@ -189,7 +170,8 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
         String stageStatus = (String) updateProperties.get(STAGE_STATUS);
         if (stageStatus != null) {
           HostRoleStatus desiredStatus = HostRoleStatus.valueOf(stageStatus);
-          updateStageStatus(entity, desiredStatus, getManagementController());
+          dao.updateStageStatus(entity, desiredStatus,
+              getManagementController().getActionManager());
         }
       }
     }
@@ -247,67 +229,6 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     Set<Resource> results = getResources(request, predicate);
 
     return new QueryResponseImpl(results, request.getSortRequest() != null, false, results.size());
-  }
-
-  // ----- StageResourceProvider ---------------------------------------------
-
-  /**
-   * Update the stage identified by the given stage id with the desired status.
-   *
-   * @param requestId      the request id
-   * @param stageId        the stage id
-   * @param desiredStatus  the desired stage status
-   * @param controller     the ambari management controller
-   */
-  public static void updateStageStatus(long requestId, long stageId, HostRoleStatus desiredStatus,
-                                       AmbariManagementController controller) {
-    Predicate predicate = new PredicateBuilder().property(STAGE_STAGE_ID).equals(stageId).and().
-        property(STAGE_REQUEST_ID).equals(requestId).toPredicate();
-
-    List<StageEntity> entityList = dao.findAll(PropertyHelper.getReadRequest(), predicate);
-    for (StageEntity stageEntity : entityList) {
-      updateStageStatus(stageEntity, desiredStatus, controller);
-    }
-  }
-
-
-  // ----- helper methods ----------------------------------------------------
-
-  /**
-   * Update the given stage entity with the desired status.
-   *
-   * @param stage          the stage entity to update
-   * @param desiredStatus  the desired stage status
-   * @param controller     the ambari management controller
-   *
-   * @throws java.lang.IllegalArgumentException if the transition to the desired status is not a
-   *         legal transition
-   */
-  private static void updateStageStatus(StageEntity stage, HostRoleStatus desiredStatus,
-                                        AmbariManagementController controller) {
-    Collection<HostRoleCommandEntity> tasks = stage.getHostRoleCommands();
-
-    HostRoleStatus currentStatus = CalculatedStatus.statusFromTaskEntities(tasks, stage.isSkippable()).getStatus();
-
-    if (!isValidManualTransition(currentStatus, desiredStatus)) {
-      throw new IllegalArgumentException("Can not transition a stage from " +
-          currentStatus + " to " + desiredStatus);
-    }
-    if (desiredStatus == HostRoleStatus.ABORTED) {
-      controller.getActionManager().cancelRequest(stage.getRequestId(), "User aborted.");
-    } else {
-      for (HostRoleCommandEntity hostRoleCommand : tasks) {
-        HostRoleStatus hostRoleStatus = hostRoleCommand.getStatus();
-        if (hostRoleStatus.equals(currentStatus)) {
-          hostRoleCommand.setStatus(desiredStatus);
-
-          if (desiredStatus == HostRoleStatus.PENDING) {
-            hostRoleCommand.setStartTime(-1L);
-          }
-          hostRoleCommandDAO.merge(hostRoleCommand);
-        }
-      }
-    }
   }
 
   /**
@@ -446,17 +367,5 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     setResourceProperty(resource, STAGE_STATUS, status.getStatus().toString(), requestedIds);
 
     return resource;
-  }
-
-  /**
-   * Determine whether or not it is valid to transition from this stage status to the given status.
-   *
-   * @param status  the stage status being transitioned to
-   *
-   * @return true if it is valid to transition to the given stage status
-   */
-  private static boolean isValidManualTransition(HostRoleStatus status, HostRoleStatus desiredStatus) {
-    EnumSet<HostRoleStatus> stageStatusSet = manualTransitionMap.get(status);
-    return stageStatusSet != null && stageStatusSet.contains(desiredStatus);
   }
 }

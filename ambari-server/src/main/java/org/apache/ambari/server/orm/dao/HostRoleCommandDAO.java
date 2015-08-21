@@ -81,6 +81,7 @@ public class HostRoleCommandDAO {
 
   @Inject
   Provider<EntityManager> entityManagerProvider;
+
   @Inject
   DaoUtils daoUtils;
 
@@ -442,5 +443,4 @@ public class HostRoleCommandDAO {
 
     return map;
   }
-
 }

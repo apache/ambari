@@ -159,14 +159,14 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    throw new SystemException("Upgrade Items cannot be modified at this time");
+    throw new SystemException("Upgrade groups cannot be modified");
   }
 
   @Override
   public RequestStatus deleteResources(Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
-    throw new SystemException("Cannot delete upgrade items");
+    throw new SystemException("Upgrade groups cannot be removed");
   }
 
   @Override
