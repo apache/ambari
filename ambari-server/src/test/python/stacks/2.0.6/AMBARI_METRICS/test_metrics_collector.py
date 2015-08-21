@@ -50,6 +50,8 @@ class TestOozieClient(RMFTestCase):
                               not_if = 'ls /var/run/ambari-metrics-collector//hbase-ams-regionserver.pid >/dev/null 2>&1 && ps `cat /var/run/ambari-metrics-collector//hbase-ams-regionserver.pid` >/dev/null 2>&1',
                               user = 'ams'
     )
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh rm -rf /var/lib/ambari-metrics-collector/hbase-tmp/*.tmp /var/lib/ambari-metrics-collector/hbase-tmp/zookeeper/*',
+    )
     self.assertResourceCalled('Execute', '/usr/sbin/ambari-metrics-collector --config /etc/ambari-metrics-collector/conf --distributed start',
                               user = 'ams'
     )
@@ -162,12 +164,12 @@ class TestOozieClient(RMFTestCase):
                               group = 'hadoop',
                               recursive = True
     )
-    self.assertResourceCalled('Directory', 'hdfs://localhost:8020/apps/hbase/data/tmp',
+    self.assertResourceCalled('Directory', '/var/lib/ambari-metrics-collector/hbase-tmp',
                               owner = 'ams',
                               cd_access = 'a',
                               recursive = True
     )
-    self.assertResourceCalled('Directory', 'hdfs://localhost:8020/apps/hbase/data/tmp/local/jars',
+    self.assertResourceCalled('Directory', '/var/lib/ambari-metrics-collector/hbase-tmp/local/jars',
                               owner = 'ams',
                               cd_access = 'a',
                               group = 'hadoop',
@@ -181,7 +183,7 @@ class TestOozieClient(RMFTestCase):
                               configurations = self.getConfig()['configurations']['ams-hbase-site'],
                               configuration_attributes = self.getConfig()['configuration_attributes']['ams-hbase-site']
                               )
-    self.assertResourceCalled('Directory', 'hdfs://localhost:8020/apps/hbase/data/tmp/phoenix-spool',
+    self.assertResourceCalled('Directory', '/var/lib/ambari-metrics-collector/hbase-tmp/phoenix-spool',
                               owner = 'ams',
                               cd_access = 'a',
                               group = 'hadoop',
