@@ -75,7 +75,7 @@ App.QuickViewLinks = Em.View.extend({
   /**
    * list of files that contains properties for enabling/disabling ssl
    */
-  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','storm-env', 'falcon-env', 'core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site', 'storm-site', 'spark-defaults', 'accumulo-site', 'application-properties', 'ranger-site'],
+  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','storm-env', 'falcon-env', 'core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site', 'storm-site', 'spark-defaults', 'accumulo-site', 'application-properties', 'ranger-admin-site', 'ranger-site'],
   /**
    * Get public host name by its host name.
    *
@@ -381,8 +381,20 @@ App.QuickViewLinks = Em.View.extend({
         return "http";
         break;
       case "RANGER":
-        var rangerProperties = configProperties && configProperties.findProperty('type', 'ranger-site');
-        if (rangerProperties && rangerProperties.properties && rangerProperties.properties['HTTP_ENABLED'] == "false") {
+        var rangerProperties = configProperties && configProperties.findProperty('type', 'ranger-admin-site');
+        var rangerSiteProperties = configProperties && configProperties.findProperty('type', 'ranger-site');
+        if (rangerProperties && rangerProperties.properties &&
+          rangerProperties.properties['ranger.service.https.attrib.ssl.enabled'] == "true" &&
+          rangerProperties.properties['ranger.service.http.enabled'] == "false") {
+          //HDP2.3
+          return "https";
+        } else if (rangerProperties && rangerProperties.properties &&
+          rangerProperties.properties['ranger.service.https.attrib.ssl.enabled'] == "false" &&
+          rangerProperties.properties['ranger.service.http.enabled'] == "true") {
+          //HDP2.3
+          return "http";
+        } else if (rangerSiteProperties && rangerSiteProperties.properties && rangerSiteProperties.properties['http.enabled'] == "false") {
+          //HDP2.2
           return "https";
         } else {
           return "http";
@@ -413,11 +425,22 @@ App.QuickViewLinks = Em.View.extend({
     var site = configProperties.findProperty('type', item.get('site'));
     var propertyValue = site && site.properties && site.properties[config];
     if (!propertyValue) {
+      if (item.get('service_id') == 'RANGER') {
+        // HDP 2.3
+        var adminSite = configProperties.findProperty('type', 'ranger-admin-site');
+        if (protocol === 'https') {
+          propertyValue = adminSite && adminSite.properties && adminSite.properties['ranger.service.https.port'];
+        } else {
+          propertyValue = adminSite && adminSite.properties && adminSite.properties['ranger.service.http.port'];
+        }
+      }
+    }
+
+    if (!propertyValue) {
       return defaultPort;
     }
 
     var re = new RegExp(item.get('regex'));
-
     var portValue = propertyValue.match(re);
     return  portValue[1];
   },
