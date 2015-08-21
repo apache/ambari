@@ -39,7 +39,10 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
@@ -67,7 +70,10 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
   private static Map<String, String> STAGE_MAPPED_IDS = new HashMap<String, String>();
 
   @Inject
-  private static UpgradeDAO m_dao = null;
+  private static UpgradeDAO s_dao;
+
+  @Inject
+  private static StageDAO s_stageDao;
 
   /**
    * Used to generated the correct tasks and stages during an upgrade.
@@ -113,28 +119,42 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
     // the request should contain a single map of update properties...
     Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
     if (iterator.hasNext()) {
-
       Map<String,Object> updateProperties = iterator.next();
 
       String statusPropertyId = STAGE_MAPPED_IDS.get(StageResourceProvider.STAGE_STATUS);
-      String stageStatus      = (String) updateProperties.get(statusPropertyId);
+      String stageStatus = (String) updateProperties.get(statusPropertyId);
 
-      if (stageStatus != null) {
+      if (null == stageStatus) {
+        throw new IllegalArgumentException("Upgrade items can only have their status changed.");
+      }
 
-        HostRoleStatus desiredStatus = HostRoleStatus.valueOf(stageStatus);
-        Set<Resource>  resources     = getResources(PropertyHelper.getReadRequest(), predicate);
+      HostRoleStatus desiredStatus = HostRoleStatus.valueOf(stageStatus);
+      Set<Resource> resources = getResources(PropertyHelper.getReadRequest(), predicate);
 
-        for (Resource resource : resources) {
-          // Set the desired status on the underlying stage.
-          Long requestId = (Long) resource.getPropertyValue(UPGRADE_REQUEST_ID);
-          Long stageId   = (Long) resource.getPropertyValue(UPGRADE_ITEM_STAGE_ID);
+      for (Resource resource : resources) {
+        // Set the desired status on the underlying stage.
+        Long requestId = (Long) resource.getPropertyValue(UPGRADE_REQUEST_ID);
+        Long stageId = (Long) resource.getPropertyValue(UPGRADE_ITEM_STAGE_ID);
 
-          StageResourceProvider.updateStageStatus(requestId, stageId, desiredStatus, getManagementController());
+        StageEntityPK primaryKey = new StageEntityPK();
+        primaryKey.setRequestId(requestId);
+        primaryKey.setStageId(stageId);
+
+        StageEntity stageEntity = s_stageDao.findByPK(primaryKey);
+        if (null == stageEntity) {
+          LOG.warn(
+              "Unable to change the status of request {} and stage {} to {} because it does not exist",
+              requestId, stageId, desiredStatus);
+
+          return getRequestStatus(null);
         }
+
+        s_stageDao.updateStageStatus(stageEntity, desiredStatus,
+            getManagementController().getActionManager());
       }
     }
-    notifyUpdate(Resource.Type.UpgradeItem, request, predicate);
 
+    notifyUpdate(Resource.Type.UpgradeItem, request, predicate);
     return getRequestStatus(null);
   }
 
@@ -169,7 +189,7 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
 
       List<UpgradeItemEntity> entities = new ArrayList<UpgradeItemEntity>();
       if (null == stageId) {
-        UpgradeGroupEntity group = m_dao.findUpgradeGroup(groupId);
+        UpgradeGroupEntity group = s_dao.findUpgradeGroup(groupId);
 
         if (null == group || null == group.getItems()) {
           throw new NoSuchResourceException(String.format("Cannot load upgrade for %s", requestIdStr));
@@ -178,7 +198,7 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
         entities = group.getItems();
 
       } else {
-        UpgradeItemEntity entity = m_dao.findUpgradeItemByRequestAndStage(requestId, stageId);
+        UpgradeItemEntity entity = s_dao.findUpgradeItemByRequestAndStage(requestId, stageId);
         if (null != entity) {
           entities.add(entity);
         }

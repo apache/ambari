@@ -170,242 +170,276 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   // define the state machine of a HostServiceComponent for runnable
   // components
 
-     .addTransition(State.INIT,
-         State.INSTALLING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
-         new ServiceComponentHostOpStartedTransition())
+  .addTransition(State.INIT, 
+      State.INSTALLING, 
+      ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
+      new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(State.INSTALLING,
-         State.INSTALLED,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
-         new ServiceComponentHostOpCompletedTransition())
+  .addTransition(State.INSTALLING,
+      State.INSTALLED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+      new ServiceComponentHostOpCompletedTransition())
 
-  .addTransition(State.INSTALLING, State.INSTALLED,
+  .addTransition(State.INSTALLING,
+      State.INSTALLED,
       ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
       new AlertDefinitionCommandTransition())
 
-     .addTransition(State.INSTALLED,
-         State.INSTALLED,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
-         new ServiceComponentHostOpCompletedTransition())
+  .addTransition(State.INSTALLED,
+      State.INSTALLED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+      new ServiceComponentHostOpCompletedTransition())
 
-     .addTransition(State.INSTALLING,
-         State.INSTALLING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
-         new ServiceComponentHostOpInProgressTransition())
-     .addTransition(State.INSTALLING,
-         State.INSTALLING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
-         new ServiceComponentHostOpStartedTransition())
+  .addTransition(State.INSTALLING,
+      State.INSTALLING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+      new ServiceComponentHostOpInProgressTransition())
 
-     .addTransition(State.INSTALLING,
-         State.INSTALL_FAILED,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
-         new ServiceComponentHostOpCompletedTransition())
+  .addTransition(State.INSTALLING, 
+      State.INSTALLING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
+      new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(State.INSTALL_FAILED,
-         State.INSTALLING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
-         new ServiceComponentHostOpStartedTransition())
-     .addTransition(State.INSTALL_FAILED,
-         State.INSTALLING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
-         new ServiceComponentHostOpStartedTransition())
+  .addTransition(State.INSTALLING, 
+      State.INSTALL_FAILED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+      new ServiceComponentHostOpCompletedTransition())
 
-       // Allow transition on abort
-     .addTransition(State.INSTALL_FAILED, State.INSTALL_FAILED,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
-         new ServiceComponentHostOpCompletedTransition())
+  .addTransition(State.INSTALL_FAILED,
+      State.INSTALLING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
+      new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(State.INSTALLED,
-         State.STARTING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_START,
-         new ServiceComponentHostOpStartedTransition())
-     .addTransition(State.INSTALLED,
-         State.UNINSTALLING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
-         new ServiceComponentHostOpStartedTransition())
-     .addTransition(State.INSTALLED,
-         State.INSTALLING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
-         new ServiceComponentHostOpStartedTransition())
-     .addTransition(State.INSTALLED,
-         State.STOPPING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
-         new ServiceComponentHostOpStartedTransition())
-     .addTransition(State.INSTALLED,
-         State.UPGRADING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_UPGRADE,
-         new ServiceComponentHostOpStartedTransition())
-     .addTransition(State.INSTALLED,
-          State.INSTALLED,
-          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
-          new ServiceComponentHostOpInProgressTransition())
-     .addTransition(State.INSTALLED,
-          State.STARTED,
-          ServiceComponentHostEventType.HOST_SVCCOMP_STARTED,
-          new ServiceComponentHostOpCompletedTransition())
-     .addTransition(State.INSTALLED,
-          State.INSTALLED,
-          ServiceComponentHostEventType.HOST_SVCCOMP_STOPPED,
-          new ServiceComponentHostOpCompletedTransition())
+  .addTransition(State.INSTALL_FAILED, 
+      State.INSTALLING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
+      new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(State.STARTING,
-         State.STARTING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
-         new ServiceComponentHostOpInProgressTransition())
+  // Allow transition on abort
+  .addTransition(State.INSTALL_FAILED, 
+      State.INSTALL_FAILED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+      new ServiceComponentHostOpCompletedTransition())
 
-     .addTransition(State.STARTING,
-         State.STARTING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_START,
-         new ServiceComponentHostOpStartedTransition())
-     .addTransition(State.STARTING,
-         State.STARTED,
-         ServiceComponentHostEventType.HOST_SVCCOMP_STARTED,
-         new ServiceComponentHostOpCompletedTransition())
+  .addTransition(State.INSTALLED, 
+      State.STARTING, 
+      ServiceComponentHostEventType.HOST_SVCCOMP_START,
+      new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(State.STARTING,
-         State.INSTALLED,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
-         new ServiceComponentHostOpCompletedTransition())
+  .addTransition(State.INSTALLED, 
+      State.UNINSTALLING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
+      new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(State.INSTALLED,
-         State.STARTING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
-         new ServiceComponentHostOpStartedTransition())
+  .addTransition(State.INSTALLED, 
+      State.INSTALLING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
+      new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(State.STARTED,
-          State.STARTED,
-          ServiceComponentHostEventType.HOST_SVCCOMP_STARTED,
-          new ServiceComponentHostOpCompletedTransition())
-     .addTransition(State.STARTED,
-         State.STOPPING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
-         new ServiceComponentHostOpStartedTransition())
-     .addTransition(State.STARTED,
-          State.STARTED,
-          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
-          new ServiceComponentHostOpInProgressTransition())
-     .addTransition(State.STARTED,
-          State.INSTALLED,
-          ServiceComponentHostEventType.HOST_SVCCOMP_STOPPED,
-          new ServiceComponentHostOpCompletedTransition())
+  .addTransition(State.INSTALLED, 
+      State.STOPPING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
+      new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(State.STOPPING,
-         State.STOPPING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
-         new ServiceComponentHostOpInProgressTransition())
-     .addTransition(State.STOPPING,
-         State.INSTALLED,
-         ServiceComponentHostEventType.HOST_SVCCOMP_STOPPED,
-         new ServiceComponentHostOpCompletedTransition())
-     .addTransition(State.STOPPING,
-         State.STARTED,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
-         new ServiceComponentHostOpCompletedTransition())
+  .addTransition(State.INSTALLED, 
+      State.UPGRADING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_UPGRADE,
+      new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(State.STARTED,
-         State.STOPPING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
-         new ServiceComponentHostOpStartedTransition())
+  .addTransition(State.INSTALLED, 
+      State.INSTALLED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+      new ServiceComponentHostOpInProgressTransition())
 
-     .addTransition(State.UNINSTALLING,
-         State.UNINSTALLING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
-         new ServiceComponentHostOpInProgressTransition())
-     .addTransition(State.UNINSTALLING,
-         State.UNINSTALLED,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
-         new ServiceComponentHostOpCompletedTransition())
-     .addTransition(State.UNINSTALLING,
-         State.UNINSTALLING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
-         new ServiceComponentHostOpCompletedTransition())
+  .addTransition(State.INSTALLED,
+      State.STARTED, 
+      ServiceComponentHostEventType.HOST_SVCCOMP_STARTED,
+      new ServiceComponentHostOpCompletedTransition())
 
-     .addTransition(State.UPGRADING,
-         State.UPGRADING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
-         new ServiceComponentHostOpInProgressTransition())
-     .addTransition(State.UPGRADING,
-         State.INSTALLED,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
-         new ServiceComponentHostOpCompletedTransition())
-     .addTransition(State.UPGRADING,
-         State.UPGRADING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
-         new ServiceComponentHostOpCompletedTransition())
-     .addTransition(State.UPGRADING,
-         State.UPGRADING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_UPGRADE,
-         new ServiceComponentHostOpStartedTransition())
-     .addTransition(State.UPGRADING,
-         State.UPGRADING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_UPGRADE,
-         new ServiceComponentHostOpInProgressTransition())
+  .addTransition(State.INSTALLED,
+      State.INSTALLED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_STOPPED,
+      new ServiceComponentHostOpCompletedTransition())
 
-     .addTransition(State.UNINSTALLING,
-         State.UNINSTALLING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
-         new ServiceComponentHostOpStartedTransition())
-     .addTransition(State.UNINSTALLING,
-         State.UNINSTALLING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
-         new ServiceComponentHostOpStartedTransition())
+  .addTransition(State.STARTING,
+      State.STARTING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+      new ServiceComponentHostOpInProgressTransition())
 
-     .addTransition(State.UNINSTALLED,
-         State.INSTALLING,
-         ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
-         new ServiceComponentHostOpStartedTransition())
+  .addTransition(State.STARTING,
+      State.STARTING, 
+      ServiceComponentHostEventType.HOST_SVCCOMP_START,
+      new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(State.UNINSTALLED,
-         State.WIPING_OUT,
-         ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
-         new ServiceComponentHostOpStartedTransition())
+  .addTransition(State.STARTING,
+      State.STARTED, 
+      ServiceComponentHostEventType.HOST_SVCCOMP_STARTED,
+      new ServiceComponentHostOpCompletedTransition())
 
-     .addTransition(State.WIPING_OUT,
-         State.WIPING_OUT,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
-         new ServiceComponentHostOpInProgressTransition())
-     .addTransition(State.WIPING_OUT,
-         State.INIT,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
-         new ServiceComponentHostOpCompletedTransition())
-     .addTransition(State.WIPING_OUT,
-         State.WIPING_OUT,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
-         new ServiceComponentHostOpCompletedTransition())
+  .addTransition(State.STARTING,
+      State.INSTALLED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+      new ServiceComponentHostOpCompletedTransition())
 
-     .addTransition(State.WIPING_OUT,
-         State.WIPING_OUT,
-         ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
-         new ServiceComponentHostOpStartedTransition())
-     .addTransition(State.WIPING_OUT,
-         State.WIPING_OUT,
-         ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
-         new ServiceComponentHostOpStartedTransition())
+  .addTransition(State.INSTALLED,
+      State.STARTING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
+      new ServiceComponentHostOpStartedTransition())
 
-      .addTransition(State.INSTALLED,
-          State.DISABLED,
-          ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
-          new ServiceComponentHostOpCompletedTransition())
-      .addTransition(State.DISABLED,
-          State.DISABLED,
-          ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
-          new ServiceComponentHostOpCompletedTransition())
-      .addTransition(State.UNKNOWN,
-                  State.DISABLED,
-                  ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
-                  new ServiceComponentHostOpCompletedTransition())
-      .addTransition(State.INSTALL_FAILED,
-                  State.DISABLED,
-                  ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
-                  new ServiceComponentHostOpCompletedTransition())
+  .addTransition(State.STARTED,
+      State.STARTED, 
+      ServiceComponentHostEventType.HOST_SVCCOMP_STARTED,
+      new ServiceComponentHostOpCompletedTransition())
 
-      .addTransition(State.DISABLED,
-          State.INSTALLED,
-          ServiceComponentHostEventType.HOST_SVCCOMP_RESTORE,
-          new ServiceComponentHostOpCompletedTransition())
+  .addTransition(State.STARTED,
+      State.STOPPING, 
+      ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
+      new ServiceComponentHostOpStartedTransition())
 
+  .addTransition(State.STARTED,
+      State.STARTED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+      new ServiceComponentHostOpInProgressTransition())
+
+  .addTransition(State.STARTED,
+      State.INSTALLED, 
+      ServiceComponentHostEventType.HOST_SVCCOMP_STOPPED,
+      new ServiceComponentHostOpCompletedTransition())
+
+  .addTransition(State.STOPPING,
+      State.STOPPING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+      new ServiceComponentHostOpInProgressTransition())
+
+  .addTransition(State.STOPPING,
+      State.INSTALLED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_STOPPED,
+      new ServiceComponentHostOpCompletedTransition())
+
+  .addTransition(State.STOPPING,
+      State.STARTED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+      new ServiceComponentHostOpCompletedTransition())
+
+  .addTransition(State.STARTED,
+      State.STOPPING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
+      new ServiceComponentHostOpStartedTransition())
+
+  .addTransition(State.UNINSTALLING,
+      State.UNINSTALLING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+      new ServiceComponentHostOpInProgressTransition())
+
+  .addTransition(State.UNINSTALLING,
+      State.UNINSTALLED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+      new ServiceComponentHostOpCompletedTransition())
+
+  .addTransition(State.UNINSTALLING,
+      State.UNINSTALLING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+      new ServiceComponentHostOpCompletedTransition())
+
+  .addTransition(State.UPGRADING,
+      State.UPGRADING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+      new ServiceComponentHostOpInProgressTransition())
+
+  .addTransition(State.UPGRADING, 
+      State.INSTALLED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+      new ServiceComponentHostOpCompletedTransition())
+
+  .addTransition(State.UPGRADING,
+      State.UPGRADING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+      new ServiceComponentHostOpCompletedTransition())
+
+  .addTransition(State.UPGRADING,
+      State.UPGRADING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_UPGRADE,
+      new ServiceComponentHostOpStartedTransition())
+
+  .addTransition(State.UPGRADING,
+      State.UPGRADING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_UPGRADE,
+      new ServiceComponentHostOpInProgressTransition())
+
+  .addTransition(State.UNINSTALLING,
+      State.UNINSTALLING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
+      new ServiceComponentHostOpStartedTransition())
+
+  .addTransition(State.UNINSTALLING,
+      State.UNINSTALLING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
+      new ServiceComponentHostOpStartedTransition())
+
+  .addTransition(State.UNINSTALLED,
+      State.INSTALLING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
+      new ServiceComponentHostOpStartedTransition())
+
+  .addTransition(State.UNINSTALLED,
+      State.WIPING_OUT,
+      ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
+      new ServiceComponentHostOpStartedTransition())
+
+  .addTransition(State.WIPING_OUT,
+      State.WIPING_OUT,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+      new ServiceComponentHostOpInProgressTransition())
+
+  .addTransition(State.WIPING_OUT,
+      State.INIT,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+      new ServiceComponentHostOpCompletedTransition())
+
+  .addTransition(State.WIPING_OUT,
+      State.WIPING_OUT,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+      new ServiceComponentHostOpCompletedTransition())
+
+  .addTransition(State.WIPING_OUT,
+      State.WIPING_OUT,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
+      new ServiceComponentHostOpStartedTransition())
+
+  .addTransition(State.WIPING_OUT,
+      State.WIPING_OUT,
+      ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
+      new ServiceComponentHostOpStartedTransition())
+
+  .addTransition(State.INSTALLED,
+      State.DISABLED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
+      new ServiceComponentHostOpCompletedTransition())
+
+  .addTransition(State.DISABLED,
+      State.DISABLED, 
+      ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
+      new ServiceComponentHostOpCompletedTransition())
+
+  .addTransition(State.UNKNOWN,
+      State.DISABLED, 
+      ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
+      new ServiceComponentHostOpCompletedTransition())
+
+  .addTransition(State.UNKNOWN,
+      State.UNKNOWN,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+      new ServiceComponentHostOpCompletedTransition())
+
+  .addTransition(State.INSTALL_FAILED, 
+      State.DISABLED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
+      new ServiceComponentHostOpCompletedTransition())
+
+  .addTransition(State.DISABLED,
+      State.INSTALLED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_RESTORE,
+      new ServiceComponentHostOpCompletedTransition())
 
      .installTopology();
 
