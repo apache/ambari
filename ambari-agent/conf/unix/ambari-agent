@@ -55,7 +55,12 @@ if [ "$?" != "0" ] && [ "$EUID" -ne 0 ] ; then
  exit 0
 fi
 
+keysdir=$(awk -F "=" '/keysdir/ {print $2}' /etc/ambari-agent/conf/ambari-agent.ini)
+
 change_files_permissions() {
+    if [ ! -z "$keysdir" ]; then
+        ambari-sudo.sh chown -R $current_user "$keysdir"
+    fi
 	ambari-sudo.sh chown -R $current_user "/var/run/ambari-agent/"
 	ambari-sudo.sh chown -R $current_user "/var/log/ambari-agent/"
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/data/"
