@@ -109,7 +109,7 @@ module.exports = {
       'db_type': 'mssql'
     },
     'SQLA': {
-      'connection_url': 'jdbc:sqlanywhere:uid={2};pwd={3};database={1};host={0}',
+      'connection_url': 'jdbc:sqlanywhere:host={0};database={1};uid={2};pwd={3}',
       'driver': 'sap.jdbc4.sqlanywhere.IDriver',
       'sql_jar_connector': '/path_to_driver/sqla-client-jdbc.tar.gz',
       'db_type': 'sqlanywhere'

@@ -677,7 +677,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     var shouldAdditionalViewsBeSet = currentDB && checkDatabase && handledProperties.contains(this.get('serviceConfig.name')),
       driver = this.getDefaultPropertyValue('sql_jar_connector') ? this.getDefaultPropertyValue('sql_jar_connector').split("/").pop() : 'driver.jar',
       dbType = this.getDefaultPropertyValue('db_type'),
-      additionalView1 = shouldAdditionalViewsBeSet ? App.CheckDBConnectionView.extend({databaseName: currentDB}) : null,
+      additionalView1 = shouldAdditionalViewsBeSet ? App.CheckDBConnectionView.extend({databaseName: dbType}) : null,
       additionalView2 = shouldAdditionalViewsBeSet ? Ember.View.extend({
         template: Ember.Handlebars.compile('<div class="alert">{{{view.message}}}</div>'),
         message: Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(dbType, driver)
@@ -1321,8 +1321,7 @@ App.CheckDBConnectionView = Ember.View.extend({
    * @method createCustomAction
    **/
   createCustomAction: function() {
-    var dbName = this.get('databaseName').toLowerCase() === 'postgresql' ? 'postgres' : this.get('databaseName').toLowerCase();
-    var params = $.extend(true, {}, { db_name: dbName }, this.get('connectionProperties'), this.get('ambariProperties'));
+    var params = $.extend(true, {}, { db_name: this.get('databaseName').toLowerCase() }, this.get('connectionProperties'), this.get('ambariProperties'));
     App.ajax.send({
       name: 'custom_action.create',
       sender: this,
