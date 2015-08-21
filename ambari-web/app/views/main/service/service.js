@@ -118,7 +118,12 @@ App.ComponentLiveTextView =  Em.View.extend({
   }.property("liveComponents", 'totalComponents')
 });
 
-App.MainDashboardServiceView = Em.View.extend({
+App.MainDashboardServiceViewWrapper = Em.Mixin.create({
+  layoutName: require('templates/main/service/service'),
+  isFullWidth: false
+});
+
+App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrapper, {
   classNames: ['service', 'clearfix'],
 
   data: function () {

@@ -72,14 +72,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       STORM: App.MainDashboardServiceStormView,
       YARN: App.MainDashboardServiceYARNView,
       RANGER: App.MainDashboardServiceRangerView,
-      FLUME: Em.View.extend({
-        template: Em.Handlebars.compile('' +
-          '<tr>' +
-            '<td>' +
-              '{{view App.MainDashboardServiceFlumeView serviceBinding="view.service"}}' +
-            '</td>' +
-          '</tr>')
-      })
+      FLUME: App.MainDashboardServiceFlumeView
     }
   }.property('serviceName'),
   /** @property collapsedMetrics {object[]} - metrics list for collapsed section
@@ -537,7 +530,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
         service: this.get('service')
       });
     } else  {
-      serviceSummaryView = Em.View.extend({
+      serviceSummaryView = Em.View.extend(App.MainDashboardServiceViewWrapper, {
         templateName: this.get('templatePathPrefix') + 'base'
       });
     }

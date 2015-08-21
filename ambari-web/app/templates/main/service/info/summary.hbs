@@ -62,15 +62,7 @@
       {{/if}}
     </div>
     {{#if view.serviceSummaryView}}
-      <div class="service-content row-fluid">
-        <div class="span6">
-          <table class="summary-info table no-borders table-condensed">
-            <tbody>
-            {{view view.serviceSummaryView}}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {{view view.serviceSummaryView}}
     {{else}}
       <div class="spinner"></div>
     {{/if}}
