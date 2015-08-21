@@ -180,7 +180,7 @@ class TestController(unittest.TestCase):
     self.assertTrue(actionQueue.put_status.called)
 
 
-
+  @patch("subprocess.Popen")
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(FacterLinux, "facterInfo", new = MagicMock(return_value={}))
   @patch.object(FacterLinux, "__init__", new = MagicMock(return_value = None))
@@ -189,7 +189,7 @@ class TestController(unittest.TestCase):
   @patch.object(Controller, "ActionQueue")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
-  def test_run(self, get_os_version_mock, get_os_type_mock, ActionQueue_mock, installMock, buildMock):
+  def test_run(self, get_os_version_mock, get_os_type_mock, ActionQueue_mock, installMock, buildMock, Popen_mock):
     aq = MagicMock()
     ActionQueue_mock.return_value = aq
     get_os_type_mock.return_value = "suse"
@@ -222,6 +222,7 @@ class TestController(unittest.TestCase):
     self.assertTrue(aq.start.called)
 
 
+  @patch("subprocess.Popen")
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(FacterLinux, "facterInfo", new = MagicMock(return_value={}))
   @patch.object(FacterLinux, "__init__", new = MagicMock(return_value = None))
@@ -231,7 +232,7 @@ class TestController(unittest.TestCase):
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
   def test_repeatRegistration(self, get_os_version_mock, get_os_type_mock,
-                              run_mock, installMock, buildMock):
+                              run_mock, installMock, buildMock, Popen_mock):
 
     registerAndHeartbeat = MagicMock(name="registerAndHeartbeat")
     get_os_type_mock.return_value = "suse"

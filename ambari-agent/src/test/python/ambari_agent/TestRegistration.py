@@ -33,13 +33,14 @@ from ambari_agent.Facter import FacterLinux
 @not_for_platform(PLATFORM_WINDOWS)
 class TestRegistration(TestCase):
 
+  @patch("subprocess.Popen")
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(FacterLinux, "facterInfo", new = MagicMock(return_value={}))
   @patch.object(FacterLinux, "__init__", new = MagicMock(return_value = None))
   @patch("ambari_commons.firewall.run_os_command")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
-  def test_registration_build(self, get_os_version_mock, get_os_type_mock, run_os_cmd_mock):
+  def test_registration_build(self, get_os_version_mock, get_os_type_mock, run_os_cmd_mock, Popen_mock):
     config = AmbariConfig().getConfig()
     tmpdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tmpdir)

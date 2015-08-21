@@ -40,7 +40,8 @@ eth1   1500   0        0      0      0      0        6      0      0      0 BMRU
 eth2   1500   0        0      0      0      0        6      0      0      0 BMRU
 lo    16436   0        2      0      0      0        2      0      0      0 LRU'''))
 class TestHardware(TestCase):
-
+ 
+  @patch.object(Hardware, "osdisks", new = MagicMock(return_value=[]))
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(FacterLinux, "get_ip_address_by_ifname", new = MagicMock(return_value=None))
   @patch.object(OSCheck, "get_os_type")

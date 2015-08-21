@@ -76,11 +76,11 @@ class TestHeartbeat(TestCase):
     self.assertEquals((len(result) is 6) or (len(result) is 7), True)
     self.assertEquals(not heartbeat.reports, True, "Heartbeat should not contain task in progress")
 
-
+  @patch("subprocess.Popen")
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(ActionQueue, "result")
   @patch.object(HostInfoLinux, "register")
-  def test_no_mapping(self, register_mock, result_mock):
+  def test_no_mapping(self, register_mock, result_mock, Popen_mock):
     result_mock.return_value = {
       'reports': [{'status': 'IN_PROGRESS',
                    'stderr': 'Read from /tmp/errors-3.txt',
@@ -201,10 +201,10 @@ class TestHeartbeat(TestCase):
     self.assertEqual.__self__.maxDiff = None
     self.assertEquals(hb, expected)
 
-
+  @patch("subprocess.Popen")
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(HostInfoLinux, 'register')
-  def test_heartbeat_no_host_check_cmd_in_queue(self, register_mock):
+  def test_heartbeat_no_host_check_cmd_in_queue(self, register_mock, Popen_mock):
     config = AmbariConfig.AmbariConfig()
     config.set('agent', 'prefix', 'tmp')
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
@@ -229,9 +229,10 @@ class TestHeartbeat(TestCase):
     self.assertFalse(args[1])
 
 
+  @patch("subprocess.Popen")
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(HostInfoLinux, 'register')
-  def test_heartbeat_host_check_no_cmd(self, register_mock):
+  def test_heartbeat_host_check_no_cmd(self, register_mock, Popen_mock):
     config = AmbariConfig.AmbariConfig()
     config.set('agent', 'prefix', 'tmp')
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
