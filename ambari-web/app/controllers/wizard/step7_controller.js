@@ -978,7 +978,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }
       var propertyName = propertyPrefix + '_existing_' + dbPrefix + '_host';
       var existingDBConfig = configs.findProperty('name', propertyName);
-      if (!existingDBConfig.value)
+      if (existingDBConfig && !existingDBConfig.value)
         existingDBConfig.value = existingDBConfig.savedValue = configs.findProperty('name', dbHostName).value;
     }, this);
   },
