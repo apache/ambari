@@ -450,10 +450,12 @@ hdp22properties.push(
     "isReconfigurable": true,
     "options": [
       {
-        displayName: 'MYSQL'
+        displayName: 'MYSQL',
+        foreignKeys: ['ranger_mysql_database', 'ranger_mysql_host']
       },
       {
-        displayName: 'ORACLE'
+        displayName: 'ORACLE',
+        foreignKeys: ['ranger_oracle_database', 'ranger_oracle_host']
       }
     ],
     "displayType": "radio button",
@@ -505,6 +507,74 @@ hdp22properties.push(
     "filename": "admin-properties.xml",
     "category": "DBSettings",
     "index": 5
+  },
+  {
+    "name": "ranger_mysql_database",
+    "id": "puppet var",
+    "displayName": "Database Type",
+    "value": "",
+    "recommendedValue": "MySQL",
+    "description": "Using a MySQL database for Ranger",
+    "displayType": "masterHost",
+    "isOverridable": false,
+    "isVisible": false,
+    "isReconfigurable": false,
+    "isRequiredByAgent": false,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings",
+    "index": 1
+  },
+  {
+    "name": "ranger_oracle_database",
+    "id": "puppet var",
+    "displayName": "Database Type",
+    "value": "",
+    "recommendedValue": "ORACLE",
+    "description": "Using an Oracle database for Ranger",
+    "displayType": "masterHost",
+    "isOverridable": false,
+    "isVisible": false,
+    "isReconfigurable": false,
+    "isRequiredByAgent": false,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings",
+    "index": 2
+  },
+  {
+    "name": "ranger_mysql_host",
+    "id": "puppet var",
+    "displayName": "Ranger DB host",
+    "description": "Specify the host on which the existing database is hosted",
+    "recommendedValue": "",
+    "value": "",
+    "displayType": "host",
+    "isOverridable": false,
+    "isVisible": false,
+    "isObserved": true,
+    "isRequiredByAgent": false,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings",
+    "index": 6
+  },
+  {
+    "name": "ranger_oracle_host",
+    "id": "puppet var",
+    "displayName": "Ranger DB host",
+    "description": "Specify the host on which the existing database is hosted",
+    "recommendedValue": "",
+    "value": "",
+    "displayType": "host",
+    "isOverridable": false,
+    "isVisible": false,
+    "isObserved": true,
+    "isRequiredByAgent": false,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings",
+    "index": 7
   },
   {
     "id": "site property",

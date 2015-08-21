@@ -70,12 +70,12 @@ module.exports = {
    * @param {App.ServiceConfigProperty[]} serviceConfigs
    * @param {string} [serviceName=false]
    */
-  bootstrapDatabaseProperties: function(serviceConfigs, serviceName) {
+  bootstrapDatabaseProperties: function (serviceConfigs, serviceName) {
     var self = this;
     var supportedServices = Em.keys(this.dbServicePropertyMap);
     if (serviceName && !supportedServices.contains(serviceName)) return;
     var serviceNames = serviceName ? [serviceName] : serviceConfigs.mapProperty('serviceName').uniq();
-    serviceNames.forEach(function(serviceName) {
+    serviceNames.forEach(function (serviceName) {
       if (!supportedServices.contains(serviceName)) return;
       var configs = serviceConfigs.filterProperty('serviceName', serviceName) || [];
       var connectionConfigs = self.dbServicePropertyMap[serviceName];
@@ -83,14 +83,24 @@ module.exports = {
       if (!databaseTypeProperty) return;
       var databaseTypePropertyIndex = configs.indexOf(databaseTypeProperty);
       var generatedProperties = self.getPropsByOptions(databaseTypeProperty, configs);
-      var jdbcObject = self.parseJdbcUrl(Em.get(configs.findProperty('name', connectionConfigs.connectionUrl), 'value'));
-      generatedProperties.forEach(function(property) {
+      var connectionUrlProperty = configs.findProperty('name', connectionConfigs.connectionUrl);
+      if (connectionUrlProperty) {
+        var jdbcObject = self.parseJdbcUrl(connectionUrlProperty.get('value'));
+      }
+      generatedProperties.forEach(function (property) {
+        var dbHostName;
         if (Em.get(property, 'name').endsWith('_host')) {
-          // set UI host names for each database type with value parsed from jdbc connection url
-          // if value is not ip or hostname (in case of New Derby Database) for Oozie set <code>fallbackUrl</code>
-          // from <code>dbServicePropertyMap</code>
+          if (jdbcObject) {
+            dbHostName = jdbcObject.location;
+          } else {
+            var fallbackHostNameProperty =  configs.findProperty('name', self.dbServicePropertyMap[serviceName].fallbackHostName);
+            if (fallbackHostNameProperty) {
+              dbHostName = fallbackHostNameProperty.get('recommendedValue');
+              dbHostName = Em.isArray(dbHostName) ? dbHostName[0] : dbHostName;
+            }
+          }
           Em.setProperties(property, {
-            value: jdbcObject.location || ''
+            value: dbHostName || ''
           });
           self.addPropertyToServiceConfigs(property, serviceConfigs, databaseTypePropertyIndex);
         }
@@ -98,7 +108,7 @@ module.exports = {
     });
   },
 
-  isValidHostname: function(value) {
+  isValidHostname: function (value) {
     return validators.isHostname(value) || validators.isIpAddress(value);
   },
 
@@ -110,7 +120,7 @@ module.exports = {
    * @param {App.ServiceConfigProperty[]} configs - loaded and processed service configs
    * @param {integer} index of first occurrence of database type in config
    */
-  addPropertyToServiceConfigs: function(property, configs, index) {
+  addPropertyToServiceConfigs: function (property, configs, index) {
     var configProperty = configs.findProperty('name', Em.get(property, 'name'));
     if (configProperty) {
       Em.set(configProperty, 'value', Em.get(property, 'value'));
@@ -131,11 +141,11 @@ module.exports = {
    * @param {App.ServiceConfigProperty[]} configs - loaded and processed configs
    * @returns {object[]} - hardcoded properties from site_properties.js related to database name and location
    */
-  getPropsByOptions: function(databaseTypeProperty) {
+  getPropsByOptions: function (databaseTypeProperty) {
     Em.assert('Property related to database type should contains `options` attribute', databaseTypeProperty.get('options'));
-    return databaseTypeProperty.options.mapProperty('foreignKeys').reduce(function(p,c) {
+    return databaseTypeProperty.options.mapProperty('foreignKeys').reduce(function (p, c) {
       return p.concat(c);
-    }).uniq().map(function(name) {
+    }).uniq().map(function (name) {
       return App.config.get('preDefinedSiteProperties').findProperty('name', name) || null;
     }).compact();
   },
@@ -145,11 +155,11 @@ module.exports = {
    *
    * @method getDBLocationFromJDBC
    * @param {string} jdbcUrl - url to parse
-   * @returns {string|null} 
+   * @returns {string|null}
    */
-  getDBLocationFromJDBC: function(jdbcUrl) {
+  getDBLocationFromJDBC: function (jdbcUrl) {
     var self = this;
-    var matches = Em.keys(this.DB_JDBC_PATTERNS).map(function(key) {
+    var matches = Em.keys(this.DB_JDBC_PATTERNS).map(function (key) {
       var reg = new RegExp(self.DB_JDBC_PATTERNS[key].format('(.*)', '(.*)'));
       return jdbcUrl.match(reg);
     }).compact();
@@ -164,7 +174,7 @@ module.exports = {
     }
   },
 
-  parseJdbcUrl: function(jdbcUrl) {
+  parseJdbcUrl: function (jdbcUrl) {
     var self = this;
     var result = {
       dbType: null,
@@ -173,14 +183,14 @@ module.exports = {
     };
     var dbName;
 
-    result.dbType = Em.keys(this.DB_JDBC_PATTERNS).filter(function(key) {
+    result.dbType = Em.keys(this.DB_JDBC_PATTERNS).filter(function (key) {
       var scheme = self.DB_JDBC_PATTERNS[key].match(/^jdbc:(\w+):/)[1];
       return new RegExp('jdbc:' + scheme).test(jdbcUrl);
     })[0];
 
     result.location = this.getDBLocationFromJDBC(jdbcUrl);
     if (!jdbcUrl.endsWith('{1}')) {
-      dbName = jdbcUrl.replace(new RegExp(this.DB_JDBC_PATTERNS[result.dbType].format(stringUtils.escapeRegExp(result.location),'')), '');
+      dbName = jdbcUrl.replace(new RegExp(this.DB_JDBC_PATTERNS[result.dbType].format(stringUtils.escapeRegExp(result.location), '')), '');
       if (dbName) {
         result.databaseName = dbName.split(/[;|?]/)[0];
       }
