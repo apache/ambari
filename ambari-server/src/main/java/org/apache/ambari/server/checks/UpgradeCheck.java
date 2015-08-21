@@ -55,4 +55,12 @@ public @interface UpgradeCheck {
    * @return the order, or {@code 1.0f} if not specified.
    */
   float order() default 1.0f;
+
+  /**
+   * Gets whether the pre-upgrade check is required.
+   * By default, a pre-upgrade check needs to be declared in the upgrade pack. This flag will override that setting.
+   *
+   * @return  flag state, or {@code true} if not specified
+   */
+  boolean required() default false;
 }

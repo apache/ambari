@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
@@ -81,15 +82,11 @@ public class YarnTimelineServerStatePreservingCheck extends AbstractCheckDescrip
    */
   @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request)) {
+    if (!super.isApplicable(request, Arrays.asList("YARN"), true)) {
       return false;
     }
 
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    Map<String, Service> services = cluster.getServices();
-    if (!services.containsKey("YARN")) {
-      return false;
-    }
 
     // Applicable only if stack not defined in MinimumApplicableStackVersion, or
     // version equals or exceeds the enumerated version.

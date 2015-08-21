@@ -43,21 +43,17 @@ import com.google.inject.persist.Transactional;
  * {@link org.apache.ambari.server.state.RepositoryVersionState#UPGRADING}.
  */
 @Singleton
-public class HostVersionDAO {
+public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
   @Inject
   Provider<EntityManager> entityManagerProvider;
   @Inject
   DaoUtils daoUtils;
 
   /**
-   * Get the object with the given id.
-   *
-   * @param id Primary key id
-   * @return Return the object with the given primary key
+   * Constructor.
    */
-  @RequiresSession
-  public HostVersionEntity findByPK(long id) {
-    return entityManagerProvider.get().find(HostVersionEntity.class, id);
+  public HostVersionDAO() {
+    super(HostVersionEntity.class);
   }
 
   /**
@@ -189,41 +185,11 @@ public class HostVersionDAO {
     return daoUtils.selectSingle(query);
   }
 
-  @RequiresSession
-  public List<HostVersionEntity> findAll() {
-    return daoUtils.selectAll(entityManagerProvider.get(), HostVersionEntity.class);
-  }
-
-  @Transactional
-  public void refresh(HostVersionEntity hostVersionEntity) {
-    entityManagerProvider.get().refresh(hostVersionEntity);
-  }
-
-  @Transactional
-  public void create(HostVersionEntity hostVersionEntity) {
-    entityManagerProvider.get().persist(hostVersionEntity);
-  }
-
-  @Transactional
-  public HostVersionEntity merge(HostVersionEntity hostVersionEntity) {
-    return entityManagerProvider.get().merge(hostVersionEntity);
-  }
-
-  @Transactional
-  public void remove(HostVersionEntity hostVersionEntity) {
-    entityManagerProvider.get().remove(merge(hostVersionEntity));
-  }
-
   @Transactional
   public void removeByHostName(String hostName) {
     Collection<HostVersionEntity> hostVersions = this.findByHost(hostName);
     for (HostVersionEntity hostVersion : hostVersions) {
       this.remove(hostVersion);
     }
-  }
-
-  @Transactional
-  public void removeByPK(long id) {
-    remove(findByPK(id));
   }
 }

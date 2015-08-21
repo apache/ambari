@@ -41,7 +41,7 @@ import com.google.inject.Singleton;
  * orchstration, so no warning is required.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.REPOSITORY_VERSION)
+@UpgradeCheck(group = UpgradeCheckGroup.REPOSITORY_VERSION, required = true)
 public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
 
   static final String KEY_NO_REPO_VERSION = "no_repo_version";
@@ -51,15 +51,6 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
    */
   public HostsRepositoryVersionCheck() {
     super(CheckDescription.HOSTS_REPOSITORY_VERSION);
-  }
-
-  @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request)) {
-      return false;
-    }
-
-    return request.getRepositoryVersion() != null;
   }
 
   @Override

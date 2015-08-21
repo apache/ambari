@@ -24,7 +24,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 /**
  * Base class to identify the items that could possibly occur during an upgrade
  */
-@XmlSeeAlso(value={ExecuteTask.class, ConfigureTask.class, ManualTask.class, RestartTask.class, ServerActionTask.class})
+@XmlSeeAlso(value={ExecuteTask.class, ConfigureTask.class, ManualTask.class, RestartTask.class, StartTask.class, StopTask.class, ServerActionTask.class})
 public abstract class Task {
 
   /**
@@ -37,6 +37,16 @@ public abstract class Task {
    * @return the type of the task
    */
   public abstract Type getType();
+
+  /**
+   * @return when a single Task is constructed, this is the type of stage it should belong to.
+   */
+  public abstract StageWrapper.Type getStageWrapperType();
+
+  /**
+   * @return a verb to display that describes the type of task, e.g., "executing".
+   */
+  public abstract String getActionVerb();
 
   @Override
   public String toString() {
@@ -64,6 +74,14 @@ public abstract class Task {
      */
     RESTART,
     /**
+     * Task that is a start command.
+     */
+    START,
+    /**
+     * Task that is a stop command.
+     */
+    STOP,
+    /**
      * Task that is a service check
      */
     SERVICE_CHECK,
@@ -83,7 +101,7 @@ public abstract class Task {
      * @return {@code true} if the task is a command type (as opposed to an action)
      */
     public boolean isCommand() {
-      return this == RESTART || this == SERVICE_CHECK;
+      return this == RESTART || this == START || this == STOP || this == SERVICE_CHECK;
     }
   }
 }

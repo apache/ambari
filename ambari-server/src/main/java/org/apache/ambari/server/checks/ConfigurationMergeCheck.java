@@ -39,7 +39,7 @@ import com.google.inject.Singleton;
  * Checks for configuration merge conflicts.
  */
 @Singleton
-@UpgradeCheck(order = 99.0f)
+@UpgradeCheck(order = 99.0f, required = true)
 public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
 
   @Inject
@@ -48,33 +48,6 @@ public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
   public ConfigurationMergeCheck() {
     super(CheckDescription.CONFIG_MERGE);
   }
-
-  @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request)) {
-      return false;
-    }
-
-    String stackName = request.getTargetStackId().getStackName();
-    String repoVersion = request.getRepositoryVersion();
-    if (null == repoVersion) {
-      return false;
-    }
-
-    RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().findByStackNameAndVersion(stackName, repoVersion);
-    if (null == rve) {
-      return false;
-    }
-
-    Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-
-    if (rve.getStackId().equals(cluster.getCurrentStackVersion())) {
-      return false;
-    }
-
-    return true;
-  }
-
 
   /**
    * The following logic determines if a warning is generated for config merge

@@ -16,8 +16,21 @@
    limitations under the License.
 -->
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <target>2.2.*</target>
-  
+  <target>2.2.*.*</target>
+  <target-stack>HDP-2.2.0</target-stack>
+  <type>ROLLING</type>
+  <prerequisite-checks>
+    <check>org.apache.ambari.server.checks.HiveMultipleMetastoreCheck</check>
+    <check>org.apache.ambari.server.checks.MapReduce2JobHistoryStatePreservingCheck</check>
+    <check>org.apache.ambari.server.checks.SecondaryNamenodeDeletedCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesMapReduceDistributedCacheCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesNamenodeHighAvailabilityCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesNamenodeTruncateCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesTezDistributedCacheCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck</check>
+    <check>org.apache.ambari.server.checks.YarnRMHighAvailabilityCheck</check>
+    <check>org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck</check>
+  </prerequisite-checks>
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Pre Upgrade" stage="pre">
       <execute-stage title="Confirm 1">
@@ -120,10 +133,10 @@
           </task>
         </pre-upgrade>
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
         <post-upgrade>
-          <task xsi:type="configure" />
+          <task xsi:type="configure" id="hdp_2_1_1_zk_post_upgrade"/>
         </post-upgrade>
       </component>
     </service>
@@ -133,16 +146,13 @@
           <task xsi:type="execute" hosts="master">
             <command>su - {hdfs-user} -c 'dosomething'</command>
           </task>
-          <task xsi:type="configure">
-            <type>hdfs-site</type>
-            <set key="myproperty" value="mynewvalue"/>
-          </task>
+          <task xsi:type="configure" id="hdp_2_1_1_nn_pre_upgrade"/>
           <task xsi:type="manual">
             <message>Update your database</message>
           </task>
         </pre-upgrade>
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
         <post-upgrade>
           <task xsi:type="execute">
@@ -153,7 +163,7 @@
       <component name="DATANODE">
         <pre-downgrade />
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
         <post-downgrade>
           <task xsi:type="manual">

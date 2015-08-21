@@ -19,8 +19,21 @@
 
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <target>2.2.*.*</target>
+  <type>ROLLING</type>
   <skip-failures>false</skip-failures>
   <skip-service-check-failures>false</skip-service-check-failures>
+  <prerequisite-checks>
+    <check>org.apache.ambari.server.checks.HiveMultipleMetastoreCheck</check>
+    <check>org.apache.ambari.server.checks.MapReduce2JobHistoryStatePreservingCheck</check>
+    <check>org.apache.ambari.server.checks.SecondaryNamenodeDeletedCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesMapReduceDistributedCacheCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesNamenodeHighAvailabilityCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesNamenodeTruncateCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesTezDistributedCacheCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck</check>
+    <check>org.apache.ambari.server.checks.YarnRMHighAvailabilityCheck</check>
+    <check>org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck</check>
+  </prerequisite-checks>
 
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
@@ -35,7 +48,7 @@
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Pre Upgrade HBase">
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>
-          <function>snapshot</function>
+          <function>take_snapshot</function>
         </task>
       </execute-stage>
 
@@ -314,13 +327,13 @@
     <service name="ZOOKEEPER">
       <component name="ZOOKEEPER_SERVER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="ZOOKEEPER_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -328,13 +341,13 @@
     <service name="RANGER">
       <component name="RANGER_ADMIN">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="RANGER_USERSYNC">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -342,31 +355,31 @@
     <service name="HDFS">
       <component name="NAMENODE">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="DATANODE">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="HDFS_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="JOURNALNODE">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="ZKFC">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -374,13 +387,13 @@
     <service name="MAPREDUCE2">
       <component name="HISTORYSERVER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="MAPREDUCE2_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -388,44 +401,44 @@
     <service name="YARN">
       <component name="APP_TIMELINE_SERVER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="RESOURCEMANAGER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="NODEMANAGER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="YARN_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
     <service name="HBASE">
       <component name="HBASE_MASTER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="HBASE_REGIONSERVER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="HBASE_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -433,7 +446,7 @@
     <service name="TEZ">
       <component name="TEZ_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -441,7 +454,7 @@
     <service name="PIG">
       <component name="PIG">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -449,7 +462,7 @@
     <service name="SQOOP">
       <component name="SQOOP">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -457,7 +470,7 @@
     <service name="HIVE">
       <component name="HIVE_METASTORE">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
@@ -468,18 +481,7 @@
             <message>Please note that the HiveServer port will now change to 10010 if hive is using a binary transfer mode or 10011 if hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
-          <task xsi:type="configure">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10010</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10011</value>
-            </condition>
-          </task>
+          <task xsi:type="configure" id="hdp_2_2_0_0_hive_server_set_transport_modes" />
         </pre-upgrade>
 
         <pre-downgrade>
@@ -488,40 +490,29 @@
             <message>Please note that the HiveServer port will now change to 10000 if hive is using a binary transfer mode or 10001 if hive is using an http transport mode. You can use "netstat -anp | grep 1000[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
-          <task xsi:type="configure">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10000</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10001</value>
-            </condition>
-          </task>
+          <task xsi:type="configure" id="hdp_2_2_0_0_hive_server_restore_transport_mode_on_downgrade" />
         </pre-downgrade>
 
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="WEBHCAT_SERVER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="HIVE_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="HCAT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -529,7 +520,7 @@
     <service name="SLIDER">
       <component name="SLIDER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -537,12 +528,12 @@
     <service name="SPARK">
       <component name="SPARK_JOBHISTORYSERVER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
       <component name="SPARK_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -574,13 +565,13 @@
         </pre-downgrade>
 
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="OOZIE_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -588,12 +579,12 @@
     <service name="FALCON">
       <component name="FALCON_SERVER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
       <component name="FALCON_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -601,7 +592,7 @@
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -609,7 +600,7 @@
     <service name="KNOX">
       <component name="KNOX_GATEWAY">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>
@@ -622,27 +613,27 @@
           </task>
         </pre-upgrade>
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
       <component name="STORM_REST_API">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
       <component name="SUPERVISOR">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
       <component name="STORM_UI_SERVER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
       <component name="DRPC_SERVER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
         <post-upgrade>
           <task xsi:type="manual">
@@ -655,7 +646,7 @@
     <service name="FLUME">
       <component name="FLUME_HANDLER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
       </component>
     </service>

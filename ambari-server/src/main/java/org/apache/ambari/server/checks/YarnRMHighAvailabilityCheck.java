@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
@@ -49,17 +50,7 @@ public class YarnRMHighAvailabilityCheck extends AbstractCheckDescriptor {
    */
   @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request)) {
-      return false;
-    }
-
-    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    Map<String, Service> services = cluster.getServices();
-    if (!services.containsKey("YARN")) {
-      return false;
-    }
-
-    return true;
+    return super.isApplicable(request, Arrays.asList("YARN"), true);
   }
 
   /**

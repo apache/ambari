@@ -23,8 +23,11 @@ import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 
@@ -152,5 +155,25 @@ public class ClusterVersionDAO extends CrudDAO<ClusterVersionEntity, Long>{
     query.setParameter("state", state);
 
     return daoUtils.selectList(query);
+  }
+
+  /**
+   * Construct a Cluster Version and return it. This is primarily used to be able to construct the object and mock
+   * the function call.
+   * @param cluster Cluster
+   * @param repositoryVersion Repository Version
+   * @param state Initial State
+   * @param startTime Start Time
+   * @param endTime End Time
+   * @param userName Username, such as "admin"
+   * @return Return new ClusterVersion object.
+   */
+  @Transactional
+  public ClusterVersionEntity create(ClusterEntity cluster, RepositoryVersionEntity repositoryVersion,
+                                     RepositoryVersionState state, long startTime, long endTime, String userName) {
+    ClusterVersionEntity clusterVersionEntity = new ClusterVersionEntity(cluster,
+        repositoryVersion, state, startTime, endTime, userName);
+    this.create(clusterVersionEntity);
+    return clusterVersionEntity;
   }
 }

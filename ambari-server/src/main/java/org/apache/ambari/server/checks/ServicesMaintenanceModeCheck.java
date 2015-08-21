@@ -24,7 +24,6 @@ import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
@@ -34,7 +33,7 @@ import com.google.inject.Singleton;
  * Checks that services are in the maintenance mode.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.MAINTENANCE_MODE, order = 2.0f)
+@UpgradeCheck(group = UpgradeCheckGroup.MAINTENANCE_MODE, order = 2.0f, required = true)
 public class ServicesMaintenanceModeCheck extends AbstractCheckDescriptor {
 
   /**

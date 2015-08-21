@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
@@ -46,17 +47,7 @@ public class ServicesNamenodeHighAvailabilityCheck extends AbstractCheckDescript
 
   @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request)) {
-      return false;
-    }
-
-    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    try {
-      cluster.getService("HDFS");
-    } catch (ServiceNotFoundException ex) {
-      return false;
-    }
-    return true;
+    return super.isApplicable(request, Arrays.asList("HDFS"), true);
   }
 
   @Override

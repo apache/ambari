@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.google.inject.Singleton;
+import org.apache.ambari.server.state.stack.UpgradePack;
 
 /**
  * The {@link UpgradeCheckRegistry} contains the ordered list of all pre-upgrade
@@ -56,6 +57,24 @@ public class UpgradeCheckRegistry {
    */
   public List<AbstractCheckDescriptor> getUpgradeChecks() {
     return new ArrayList<AbstractCheckDescriptor>(m_upgradeChecks);
+  }
+
+  /**
+   * Gets an ordered and filtered list of the upgrade checks.
+   * @param upgradePack Upgrade pack object with the list of required checks to be included
+   * @return
+   */
+  public List<AbstractCheckDescriptor> getFilteredUpgradeChecks(UpgradePack upgradePack){
+    List<String> prerequisiteChecks = upgradePack.getPrerequisiteChecks();
+    List<AbstractCheckDescriptor> resultCheckDescriptor = new ArrayList<AbstractCheckDescriptor>();
+    for (AbstractCheckDescriptor descriptor: m_upgradeChecks){
+      if (descriptor.isRequired()){
+        resultCheckDescriptor.add(descriptor);
+      } else if (prerequisiteChecks.contains(descriptor.getClass().getName())){
+        resultCheckDescriptor.add(descriptor);
+      }
+    }
+    return resultCheckDescriptor;
   }
 
   /**

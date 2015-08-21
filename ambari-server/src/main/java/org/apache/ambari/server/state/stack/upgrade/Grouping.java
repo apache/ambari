@@ -36,7 +36,7 @@ import org.apache.commons.lang.StringUtils;
 /**
  *
  */
-@XmlSeeAlso(value = { ColocatedGrouping.class, ClusterGrouping.class, ServiceCheckGrouping.class })
+@XmlSeeAlso(value = { ColocatedGrouping.class, ClusterGrouping.class, UpdateStackGrouping.class, ServiceCheckGrouping.class, RestartGrouping.class, StartGrouping.class, StopGrouping.class })
 public class Grouping {
 
   @XmlAttribute(name="name")
@@ -60,7 +60,6 @@ public class Grouping {
   @XmlElement(name="direction")
   public Direction intendedDirection = null;
 
-
   /**
    * Gets the default builder.
    */
@@ -68,11 +67,11 @@ public class Grouping {
     return new DefaultBuilder(this, performServiceCheck);
   }
 
-
   private static class DefaultBuilder extends StageWrapperBuilder {
 
     private List<StageWrapper> m_stages = new ArrayList<StageWrapper>();
     private Set<String> m_servicesToCheck = new HashSet<String>();
+
     private boolean m_serviceCheck = true;
 
     private DefaultBuilder(Grouping grouping, boolean serviceCheck) {
@@ -85,14 +84,14 @@ public class Grouping {
      * E.g., preupgrade, restart hosts(0), ..., restart hosts(n-1), postupgrade
      * @param hostsType the order collection of hosts, which may have a master and secondary
      * @param service the service name
-     * @param pc the ProcessingComponent derived from the upgrade pack.
+     * @param pc the AffectedComponent derived from the upgrade pack.
      */
     @Override
     public void add(UpgradeContext ctx, HostsType hostsType, String service,
        boolean clientOnly, ProcessingComponent pc) {
-
       boolean forUpgrade = ctx.getDirection().isUpgrade();
 
+      // Construct the pre tasks during Upgrade/Downgrade direction.
       List<TaskBucket> buckets = buckets(resolveTasks(forUpgrade, true, pc));
       for (TaskBucket bucket : buckets) {
         List<TaskWrapper> preTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks);
@@ -108,19 +107,20 @@ public class Grouping {
       }
 
       // !!! FIXME upgrade definition have only one step, and it better be a restart
+      // Add the processing component
       if (null != pc.tasks && 1 == pc.tasks.size()) {
         Task t = pc.tasks.get(0);
-        if (RestartTask.class.isInstance(t)) {
-          for (String hostName : hostsType.hosts) {
-            StageWrapper stage = new StageWrapper(
-                StageWrapper.Type.RESTART,
-                getStageText("Restarting", ctx.getComponentDisplay(service, pc.name), Collections.singleton(hostName)),
-                new TaskWrapper(service, pc.name, Collections.singleton(hostName), t));
-            m_stages.add(stage);
-          }
+
+        for (String hostName : hostsType.hosts) {
+          StageWrapper stage = new StageWrapper(
+              t.getStageWrapperType(),
+              getStageText(t.getActionVerb(), ctx.getComponentDisplay(service, pc.name), Collections.singleton(hostName)),
+              new TaskWrapper(service, pc.name, Collections.singleton(hostName), t));
+          m_stages.add(stage);
         }
       }
 
+      // Construct the post tasks during Upgrade/Downgrade direction.
       buckets = buckets(resolveTasks(forUpgrade, false, pc));
       for (TaskBucket bucket : buckets) {
         List<TaskWrapper> postTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks);
@@ -135,7 +135,8 @@ public class Grouping {
         }
       }
 
-      if (!clientOnly) {
+      // Potentially add a service check
+      if (this.m_serviceCheck && !clientOnly) {
         m_servicesToCheck.add(service);
       }
     }
@@ -163,7 +164,6 @@ public class Grouping {
 
       if (upgradeContext.getDirection().isUpgrade() && m_serviceCheck
           && m_servicesToCheck.size() > 0) {
-
         StageWrapper wrapper = new StageWrapper(StageWrapper.Type.SERVICE_CHECK,
             "Service Check " + StringUtils.join(displays, ", "), tasks.toArray(new TaskWrapper[0]));
 
@@ -202,12 +202,14 @@ public class Grouping {
     }
 
     return holders;
-
   }
 
   private static class TaskBucket {
+
     private StageWrapper.Type type;
+
     private List<Task> tasks = new ArrayList<Task>();
+
     private TaskBucket(Task initial) {
       switch (initial.getType()) {
         case CONFIGURE:
@@ -220,6 +222,12 @@ public class Grouping {
           break;
         case RESTART:
           type = StageWrapper.Type.RESTART;
+          break;
+        case START:
+          type = StageWrapper.Type.START;
+          break;
+        case STOP:
+          type = StageWrapper.Type.STOP;
           break;
         case SERVICE_CHECK:
           type = StageWrapper.Type.SERVICE_CHECK;

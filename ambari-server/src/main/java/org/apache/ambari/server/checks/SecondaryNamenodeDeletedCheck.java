@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,14 +54,7 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
 
   @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request)) {
-      return false;
-    }
-
-    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    try {
-      cluster.getService("HDFS");
-    } catch (ServiceNotFoundException ex) {
+    if (!super.isApplicable(request, Arrays.asList("HDFS"), true)) {
       return false;
     }
 
@@ -72,6 +66,11 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
     return true;
   }
 
+  // TODO AMBARI-12698, there are 2 ways to filter the prechecks.
+  // 1. Explictly mention them in each upgrade pack, which is more flexible, but requires adding the name of checks
+  //   to perform in each upgrade pack.
+  // 2. Make each upgrade check class call a function before perform() that will determine if the check is appropriate
+  //   given the type of upgrade. The PrereqCheckRequest object has a field for the type of upgrade.
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     Set<String> hosts = new HashSet<String>();

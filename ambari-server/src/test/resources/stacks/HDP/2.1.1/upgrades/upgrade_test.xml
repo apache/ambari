@@ -16,7 +16,9 @@
    limitations under the License.
 -->
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <target>2.2.*</target>
+  <target>2.2.*.*</target>
+  <target-stack>HDP-2.1.1</target-stack>
+  <type>ROLLING</type>
   
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Pre {{direction.text.proper}}">
@@ -125,10 +127,10 @@
           </task>
         </pre-upgrade>
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
         <post-upgrade>
-          <task xsi:type="configure" />
+          <task xsi:type="configure" id="2.2.0" />
         </post-upgrade>
       </component>
     </service>
@@ -139,16 +141,13 @@
           <task xsi:type="execute" hosts="master">
             <command>su - {hdfs-user} -c 'dosomething'</command>
           </task>
-          <task xsi:type="configure">
-            <type>hdfs-site</type>
-            <set key="myproperty" value="mynewvalue"/>
-          </task>
+          <task xsi:type="configure" id="hdp_2_1_1_nn_pre_upgrade" />
           <task xsi:type="manual">
             <message>{{direction.verb.proper}} your database</message>
           </task>
         </pre-upgrade>
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
         <post-upgrade>
           <task xsi:type="execute">
@@ -159,7 +158,7 @@
       <component name="DATANODE">
         <pre-downgrade />
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
         <post-downgrade>
           <task xsi:type="manual">
@@ -182,15 +181,7 @@
           <task xsi:type="execute">
             <command>ls</command>
           </task>
-          <task xsi:type="configure">
-            <type>core-site</type>
-            <transfer operation="copy" from-key="copy-key" to-key="copy-key-to" />
-            <transfer operation="copy" from-type="my-site" from-key="my-copy-key" to-key="my-copy-key-to" />
-            <transfer operation="move" from-key="move-key" to-key="move-key-to" />
-            <transfer operation="delete" delete-key="delete-key" preserve-edits="true">
-            <keep-key>important-key</keep-key>
-            </transfer>
-          </task>
+          <task xsi:type="configure" id="hdp_2_1_1_nm_pre_upgrade"/>
         </pre-upgrade>
       </component>
     </service>
@@ -203,36 +194,10 @@
             <message>The HiveServer port will now change to 10010 if hive is using a binary transfer mode or 10011 if hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
-          <task xsi:type="configure">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10010</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10011</value>
-            </condition>
-          </task>
-          
-          <task xsi:type="configure">
-            <type>hive-site</type>
-            <set key="fooKey" value="fooValue"/>
-            <set key="fooKey2" value="fooValue2"/>
-            <set key="fooKey3" value="fooValue3"/>
-            <transfer operation="copy" from-key="copy-key" to-key="copy-key-to" />
-            <transfer operation="move" from-key="move-key" to-key="move-key-to" />
-            <transfer operation="delete" delete-key="delete-key" />
-            <transfer operation="delete" delete-key="delete-http" if-key="hive.server2.transport.mode" if-type="hive-site" if-value="http" />
-            <transfer operation="delete" delete-key="delete-https-fail" if-key="hive.server2.transport.mode" if-type="hive-site" if-value="https" />
-            <transfer operation="delete" delete-key="delete-prop-fail" if-key="non.existent" if-type="hive-site" if-value="https" />
-            <transfer operation="delete" delete-key="delete-type-fail" if-key="non.existent" if-type="non.existent" if-value="" />
-            <transfer operation="delete" delete-key="delete-null-if-value" if-key="non.existent" if-type="non.existent" />
-            <transfer operation="delete" delete-key="delete-blank-if-key" if-key="" if-type="non.existent" />
-            <transfer operation="delete" delete-key="delete-blank-if-type" if-key="non.existent" if-type="" />
-            <transfer operation="delete" delete-key="delete-thrift" if-key="hive.server2.thrift.port" if-type="hive-site" if-value="10001" />
-          </task>
+          <task xsi:type="configure" id="hdp_2_1_1_set_transport_mode"/>
+
+          <task xsi:type="configure" id="hdp_2_1_1_hive_server_foo"/>
+
         </pre-upgrade>
        </component>
      </service>    

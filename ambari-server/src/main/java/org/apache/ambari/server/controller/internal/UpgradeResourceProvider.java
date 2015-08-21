@@ -90,6 +90,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
+import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
@@ -100,6 +101,8 @@ import org.apache.ambari.server.state.stack.upgrade.ServerSideActionTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
+import org.apache.ambari.server.state.stack.upgrade.UpdateStackGrouping;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -117,6 +120,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   protected static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
   protected static final String UPGRADE_VERSION = "Upgrade/repository_version";
+  protected static final String UPGRADE_TYPE = "Upgrade/type";
+  protected static final String UPGRADE_PACK = "Upgrade/pack";
   protected static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
   protected static final String UPGRADE_FROM_VERSION = "Upgrade/from_version";
   protected static final String UPGRADE_TO_VERSION = "Upgrade/to_version";
@@ -156,6 +161,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final String COMMAND_PARAM_VERSION = VERSION;
   private static final String COMMAND_PARAM_CLUSTER_NAME = "clusterName";
   private static final String COMMAND_PARAM_DIRECTION = "upgrade_direction";
+  // TODO AMBARI-12698, change this variable name since it is no longer always a restart. Possible values are rolling_upgrade or nonrolling_upgrade
+  // This will involve changing Script.py
   private static final String COMMAND_PARAM_RESTART_TYPE = "restart_type";
   private static final String COMMAND_PARAM_TASKS = "tasks";
   private static final String COMMAND_PARAM_STRUCT_OUT = "structured_out";
@@ -222,6 +229,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // properties
     PROPERTY_IDS.add(UPGRADE_CLUSTER_NAME);
     PROPERTY_IDS.add(UPGRADE_VERSION);
+    PROPERTY_IDS.add(UPGRADE_TYPE);
+    PROPERTY_IDS.add(UPGRADE_PACK);
     PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
     PROPERTY_IDS.add(UPGRADE_FROM_VERSION);
     PROPERTY_IDS.add(UPGRADE_TO_VERSION);
@@ -443,6 +452,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     ResourceImpl resource = new ResourceImpl(Resource.Type.Upgrade);
 
     setResourceProperty(resource, UPGRADE_CLUSTER_NAME, clusterName, requestedIds);
+    setResourceProperty(resource, UPGRADE_TYPE, entity.getUpgradeType().toString(), requestedIds);
+    setResourceProperty(resource, UPGRADE_PACK, entity.getUpgradePackage(), requestedIds);
     setResourceProperty(resource, UPGRADE_REQUEST_ID, entity.getRequestId(), requestedIds);
     setResourceProperty(resource, UPGRADE_FROM_VERSION, entity.getFromVersion(), requestedIds);
     setResourceProperty(resource, UPGRADE_TO_VERSION, entity.getToVersion(), requestedIds);
@@ -467,6 +478,16 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     boolean skipPrereqChecks = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_PREREQUISITE_CHECKS));
     boolean failOnCheckWarnings = Boolean.parseBoolean((String) requestMap.get(UPGRADE_FAIL_ON_CHECK_WARNINGS));
 
+    /**
+     * For the unit tests tests, there are multiple upgrade packs for the same type, so
+     * allow picking one of them. In prod, this is empty.
+     */
+    String preferredUpgradePackName = (String) requestMap.get(UPGRADE_PACK);
+
+    // Default to ROLLING upgrade, but attempt to read from properties.
+    final UpgradeType upgradeType = requestMap.containsKey(UPGRADE_TYPE) ?
+        UpgradeType.valueOf((String) requestMap.get(UPGRADE_TYPE)) : UpgradeType.ROLLING;
+
     if (null == clusterName) {
       throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
     }
@@ -475,6 +496,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       throw new AmbariException(String.format("%s is required", UPGRADE_VERSION));
     }
 
+    return s_upgradeHelper.suggestUpgradePack(clusterName, versionForUpgradePack, version, direction, upgradeType);
+    // TODO AMBARI-12698, reconcile these changes.
+    /*
     Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
 
     // !!! find upgrade packs based on current stack. This is where to upgrade
@@ -494,26 +518,33 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     Map<String, UpgradePack> packs = s_metaProvider.get().getUpgradePacks(stack.getStackName(),
-        stack.getStackVersion());
+            stack.getStackVersion());
 
-    UpgradePack up = packs.get(versionEntity.getUpgradePackage());
+    UpgradePack pack = null;
+    if (preferredUpgradePackName != null && !preferredUpgradePackName.isEmpty() && packs.containsKey(preferredUpgradePackName)) {
+      pack = packs.get(preferredUpgradePackName);
+    }
 
-    if (null == up) {
+    if (null == pack) {
       // !!! in case there is an upgrade pack that doesn't match the name
       String repoStackId = versionEntity.getStackId().getStackId();
       for (UpgradePack upgradePack : packs.values()) {
-        if (null != upgradePack.getTargetStack()
-            && upgradePack.getTargetStack().equals(repoStackId)) {
-          up = upgradePack;
-          break;
+        if (null != upgradePack.getTargetStack() && upgradePack.getTargetStack().equals(repoStackId) && upgradeType == upgradePack.getType()) {
+          if (null == pack) {
+            pack = upgradePack;
+          } else {
+            throw new AmbariException(
+                String.format("Unable to perform %s. Found multiple upgrade packs for type %s and target version %s",
+                    direction.getText(false), upgradeType.toString(), repoVersion));
+          }
         }
       }
     }
 
-    if (null == up) {
+    if (null == pack) {
       throw new AmbariException(
-          String.format("Unable to perform %s.  Could not locate upgrade pack %s for version %s",
-              direction.getText(false), versionEntity.getUpgradePackage(), repoVersion));
+          String.format("Unable to perform %s. Could not locate %s upgrade pack for version %s",
+              direction.getText(false), upgradeType.toString(), repoVersion));
     }
 
     // Validate there isn't an direction == upgrade/downgrade already in progress.
@@ -572,7 +603,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
     }
 
-    return up;
+    return pack;
+    */
   }
 
   /**
@@ -648,7 +680,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     UpgradeContext ctx = new UpgradeContext(resolver, sourceStackId, targetStackId, version,
-        direction);
+        direction, pack.getType());
 
     if (direction.isDowngrade()) {
       if (requestMap.containsKey(UPGRADE_FROM_VERSION)) {
@@ -688,9 +720,39 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     List<UpgradeGroupEntity> groupEntities = new ArrayList<UpgradeGroupEntity>();
     RequestStageContainer req = createRequest(direction, version);
 
-    // desired configs must be set before creating stages because the config tag
-    // names are read and set on the command for filling in later
-    processConfigurations(targetStackId.getStackName(), cluster, version, direction, pack);
+    /**
+    During a Rolling Upgrade, change the desired Stack Id if jumping across
+    major stack versions (e.g., HDP 2.2 -> 2.3), and then set config changes
+    so they are applied on the newer stack.
+
+    During a {@link UpgradeType.NON_ROLLING} upgrade, the stack is applied during the middle of the upgrade (after
+    stopping all services), and the configs are applied immediately before starting the services.
+    The Upgrade Pack is responsible for calling {@link org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction}
+    at the appropriate moment during the orchestration.
+    **/
+    if (pack.getType() == UpgradeType.ROLLING) {
+      // Desired configs must be set before creating stages because the config tag
+      // names are read and set on the command for filling in later
+      applyStackAndProcessConfigurations(targetStackId.getStackName(), cluster, version, direction, pack);
+    }
+
+    // Resolve or build a proper config upgrade pack
+    List<UpgradePack.IntermediateStack> intermediateStacks = pack.getIntermediateStacks();
+    ConfigUpgradePack configUpgradePack;
+    if (intermediateStacks == null || intermediateStacks.isEmpty()) { // No intermediate stacks
+      configUpgradePack = s_metaProvider.get().getConfigUpgradePack(
+              targetStackId.getStackName(), targetStackId.getStackVersion());
+    } else {
+      // For cross-stack upgrade, follow all major stacks and merge a new config upgrade pack from all
+      // target stacks involved into upgrade
+      ArrayList<ConfigUpgradePack> intermediateConfigUpgradePacks = new ArrayList<>();
+      for (UpgradePack.IntermediateStack intermediateStack : intermediateStacks) {
+        ConfigUpgradePack intermediateConfigUpgradePack = s_metaProvider.get().getConfigUpgradePack(
+                targetStackId.getStackName(), intermediateStack.version);
+        intermediateConfigUpgradePacks.add(intermediateConfigUpgradePack);
+      }
+      configUpgradePack = ConfigUpgradePack.merge(intermediateConfigUpgradePacks);
+    }
 
     for (UpgradeGroupHolder group : groups) {
       UpgradeGroupEntity groupEntity = new UpgradeGroupEntity();
@@ -713,11 +775,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
               itemEntity.setTasks(wrapper.getTasksJson());
               itemEntity.setHosts(wrapper.getHostsJson());
               itemEntities.add(itemEntity);
+              
+              // At this point, need to change the effective Stack Id so that subsequent tasks run on the newer value.
+              // TODO AMBARI-12698, check if this works during a Stop-the-World Downgrade.
+              if (UpdateStackGrouping.class.equals(group.groupClass)) {
+                ctx.setEffectiveStackId(ctx.getTargetStackId());
+              }
 
               injectVariables(configHelper, cluster, itemEntity);
 
               makeServerSideStage(ctx, req, itemEntity, (ServerSideActionTask) task, skippable,
-                  allowRetry);
+                  allowRetry, configUpgradePack);
             }
           }
         } else {
@@ -742,8 +810,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     entity.setFromVersion(cluster.getCurrentClusterVersion().getRepositoryVersion().getVersion());
     entity.setToVersion(version);
     entity.setUpgradeGroups(groupEntities);
-    entity.setClusterId(Long.valueOf(cluster.getClusterId()));
+    entity.setClusterId(cluster.getClusterId());
     entity.setDirection(direction);
+    entity.setUpgradePackage(pack.getName());
+    entity.setUpgradeType(pack.getType());
 
     req.getRequestStatusResponse();
 
@@ -790,7 +860,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    *          which services are effected.
    * @throws AmbariException
    */
-  void processConfigurations(String stackName, Cluster cluster, String version, Direction direction, UpgradePack upgradePack)
+  void applyStackAndProcessConfigurations(String stackName, Cluster cluster, String version, Direction direction, UpgradePack upgradePack)
       throws AmbariException {
     RepositoryVersionEntity targetRve = s_repoVersionDAO.findByStackNameAndVersion(stackName, version);
     if (null == targetRve) {
@@ -822,6 +892,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Map<String, Map<String, String>> newConfigurationsByType = null;
     ConfigHelper configHelper = getManagementController().getConfigHelper();
 
+    // TODO AMBARI-12698, handle jumping across several stacks
     if (direction == Direction.UPGRADE) {
       // populate a map of default configurations for the old stack (this is
       // used when determining if a property has been customized and should be
@@ -890,7 +961,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           continue;
         }
 
-        // NPE sanity, althought shouldn't even happen since we are iterating
+        // NPE sanity, although shouldn't even happen since we are iterating
         // over the desired configs to start with
         Config currentClusterConfig = cluster.getDesiredConfigByType(configurationType);
         if (null == currentClusterConfig) {
@@ -977,8 +1048,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           throws AmbariException {
 
     switch (wrapper.getType()) {
+      case START:
+      case STOP:
       case RESTART:
-        makeRestartStage(context, request, entity, wrapper, skippable, allowRetry);
+        makeCommandStage(context, request, entity, wrapper, skippable, allowRetry);
         break;
       case RU_TASKS:
         makeActionStage(context, request, entity, wrapper, skippable, allowRetry);
@@ -1018,7 +1091,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // service, it is necessary to set the
     // service_package_folder and hooks_folder params.
     AmbariMetaInfo ambariMetaInfo = s_metaProvider.get();
-    StackId stackId = cluster.getDesiredStackVersion();
+    StackId stackId = context.getEffectiveStackId();
 
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
@@ -1041,7 +1114,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster);
+        cluster, context.getEffectiveStackId());
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(),
@@ -1070,7 +1143,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     request.addStages(Collections.singletonList(stage));
   }
 
-  private void makeRestartStage(UpgradeContext context, RequestStageContainer request,
+  /**
+   * Used to create a stage for restart, start, or stop.
+   * @param context Upgrade Context
+   * @param request Container for stage
+   * @param entity Upgrade Item
+   * @param wrapper Stage
+   * @param skippable Whether the item can be skipped
+   * @param allowRetry Whether the item is allowed to be retried
+   * @throws AmbariException
+   */
+  private void makeCommandStage(UpgradeContext context, RequestStageContainer request,
       UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable, boolean allowRetry)
           throws AmbariException {
 
@@ -1084,23 +1167,43 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           new ArrayList<String>(tw.getHosts())));
     }
 
-    Map<String, String> restartCommandParams = getNewParameterMap();
-    restartCommandParams.put(COMMAND_PARAM_RESTART_TYPE, "rolling_upgrade");
-    restartCommandParams.put(COMMAND_PARAM_VERSION, context.getVersion());
-    restartCommandParams.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
-    restartCommandParams.put(COMMAND_PARAM_ORIGINAL_STACK,context.getOriginalStackId().getStackId());
-    restartCommandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
-    restartCommandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
+    String function = null;
+    switch (wrapper.getType()) {
+      case START:
+      case STOP:
+      case RESTART:
+        function = wrapper.getType().name();
+        break;
+      default:
+        function = "UNKNOWN";
+        break;
+    }
+
+    Map<String, String> commandParams = getNewParameterMap();
+
+    // TODO AMBARI-12698, change COMMAND_PARAM_RESTART_TYPE to something that isn't "RESTART" specific.
+    if (context.getType() == UpgradeType.ROLLING) {
+      commandParams.put(COMMAND_PARAM_RESTART_TYPE, "rolling_upgrade");
+    }
+    if (context.getType() == UpgradeType.NON_ROLLING) {
+      commandParams.put(COMMAND_PARAM_RESTART_TYPE, "nonrolling_upgrade");
+    }
+
+    commandParams.put(COMMAND_PARAM_VERSION, context.getVersion());
+    commandParams.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
+    commandParams.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
+    commandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
+    commandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
-        "RESTART", filters, restartCommandParams);
+        function, filters, commandParams);
     actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(false)));
     actionContext.setIgnoreMaintenance(true);
     actionContext.setRetryAllowed(allowRetry);
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster);
+        cluster, context.getEffectiveStackId());
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(),
@@ -1118,7 +1221,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     entity.setStageId(Long.valueOf(stageId));
 
     Map<String, String> requestParams = new HashMap<String, String>();
-    requestParams.put("command", "RESTART");
+    requestParams.put("command", function);
 
     s_commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams);
 
@@ -1153,7 +1256,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setAutoSkipFailures(context.isServiceCheckFailureAutoSkipped());
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster);
+        cluster, context.getEffectiveStackId());
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(),
@@ -1176,8 +1279,22 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     request.addStages(Collections.singletonList(stage));
   }
 
+  /**
+   * Creates a stage consisting of server side actions
+   * @param context upgrade context
+   * @param request upgrade request
+   * @param entity a single of upgrade
+   * @param task server-side task (if any)
+   * @param skippable if user can skip stage on failure
+   * @param allowRetry if user can retry running stage on failure
+   * @param configUpgradePack a runtime-generated config upgrade pack that
+   * contains all config change definitions from all stacks involved into
+   * upgrade
+   * @throws AmbariException
+   */
   private void makeServerSideStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, ServerSideActionTask task, boolean skippable, boolean allowRetry)
+      UpgradeItemEntity entity, ServerSideActionTask task, boolean skippable, boolean allowRetry,
+      ConfigUpgradePack configUpgradePack)
           throws AmbariException {
 
     Cluster cluster = context.getCluster();
@@ -1225,7 +1342,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
       case CONFIGURE: {
         ConfigureTask ct = (ConfigureTask) task;
-        Map<String, String> configurationChanges = ct.getConfigurationChanges(cluster);
+        Map<String, String> configurationChanges =
+                ct.getConfigurationChanges(cluster, configUpgradePack);
 
         // add all configuration changes to the command params
         commandParams.putAll(configurationChanges);
@@ -1262,7 +1380,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster);
+        cluster, context.getEffectiveStackId());
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), stageText, jsons.getClusterHostInfo(),

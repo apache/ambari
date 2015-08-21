@@ -92,7 +92,7 @@ public class StageWrapper {
   }
 
   /**
-   * @param text the new text for the stage
+   * @param newText the new text for the stage
    */
   public void setText(String newText) {
     text = newText;
@@ -113,6 +113,8 @@ public class StageWrapper {
     SERVER_SIDE_ACTION,
     RESTART,
     RU_TASKS,
-    SERVICE_CHECK
+    SERVICE_CHECK,
+    STOP,
+    START
   }
 }

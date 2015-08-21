@@ -43,7 +43,7 @@ import com.google.inject.Singleton;
  * {@link PrereqCheckStatus#WARNING} for any hosts in maintenance mode.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.LIVELINESS, order = 1.0f)
+@UpgradeCheck(group = UpgradeCheckGroup.LIVELINESS, order = 1.0f, required = true)
 public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
 
   static final String KEY_HOSTS_IN_MM_WARNING = "key.hosts.in.mm.warning";

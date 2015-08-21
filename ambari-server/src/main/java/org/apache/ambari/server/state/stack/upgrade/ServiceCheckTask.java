@@ -34,8 +34,20 @@ public class ServiceCheckTask extends Task {
   @XmlTransient
   private Task.Type type = Task.Type.SERVICE_CHECK;
 
+  public static final String actionVerb = "Running";
+
   @Override
   public Task.Type getType() {
     return type;
+  }
+
+  @Override
+  public StageWrapper.Type getStageWrapperType() {
+    return StageWrapper.Type.SERVICE_CHECK;
+  }
+
+  @Override
+  public String getActionVerb() {
+    return actionVerb;
   }
 }

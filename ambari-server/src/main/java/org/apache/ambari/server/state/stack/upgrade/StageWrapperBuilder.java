@@ -28,7 +28,7 @@ import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 
 /**
- * Defines how to build stages.
+ * Defines how to build stages for an Upgrade or Downgrade.
  */
 public abstract class StageWrapperBuilder {
 
@@ -55,7 +55,7 @@ public abstract class StageWrapperBuilder {
   /**
    * Adds a processing component that will be built into stage wrappers.
    *
-   * @param upgradeContext
+   * @param ctx
    *          the upgrade context
    * @param hostsType
    *          the hosts, along with their type
@@ -64,9 +64,9 @@ public abstract class StageWrapperBuilder {
    * @param clientOnly
    *          whether the service is client only, no service checks
    * @param pc
-   *          the ProcessingComponent derived from the upgrade pack
+   *          the AffectedComponent derived from the upgrade pack
    */
-  public abstract void add(UpgradeContext upgradeContext, HostsType hostsType, String service,
+  public abstract void add(UpgradeContext ctx, HostsType hostsType, String service,
       boolean clientOnly, ProcessingComponent pc);
 
   /**
@@ -182,9 +182,14 @@ public abstract class StageWrapperBuilder {
    * @param forUpgrade  {@code true} if resolving for an upgrade, {@code false} for downgrade
    * @param preTasks    {@code true} if loading pre-upgrade or pre-downgrade
    * @param pc          the processing component holding task definitions
-   * @return
+   * @return A collection, potentially empty, of the tasks to run, which may contain either
+   * pre or post tasks if they exist, and the order depends on whether it's an upgrade or downgrade.
    */
   protected List<Task> resolveTasks(boolean forUpgrade, boolean preTasks, ProcessingComponent pc) {
+    if (null == pc) {
+      return Collections.emptyList();
+    }
+
     if (forUpgrade) {
       return preTasks ? pc.preTasks : pc.postTasks;
     } else {
@@ -193,6 +198,4 @@ public abstract class StageWrapperBuilder {
         (null == pc.postDowngradeTasks ? pc.postTasks : pc.postDowngradeTasks);
     }
   }
-
-
 }

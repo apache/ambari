@@ -16,7 +16,9 @@
    limitations under the License.
 -->
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <target>2.2.*</target>
+  <target>2.2.*.*</target>
+  <target-stack>HDP-2.2.5</target-stack>
+  <type>ROLLING</type>
   
   <order>
     <group name="ZOOKEEPER" title="Zookeeper">
@@ -75,7 +77,7 @@
           </task>
         </pre-upgrade>
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task" />
         </upgrade>
         <post-upgrade>
           <task xsi:type="configure" />

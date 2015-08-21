@@ -43,7 +43,7 @@ public class StageWrapperBuilderTest {
    */
   @Test
   public void testBuildOrder() throws Exception {
-    UpgradeContext upgradeContext = new UpgradeContext(null, null, null, null, Direction.UPGRADE);
+    UpgradeContext upgradeContext = new UpgradeContext(null, null, null, null, Direction.UPGRADE, UpgradeType.ROLLING);
     MockStageWrapperBuilder builder = new MockStageWrapperBuilder(null);
     List<StageWrapper> stageWrappers = builder.build(upgradeContext);
     List<Integer> invocationOrder = builder.getInvocationOrder();
@@ -64,7 +64,7 @@ public class StageWrapperBuilderTest {
    */
   @Test
   public void testAutoSkipCheckInserted() throws Exception {
-    UpgradeContext upgradeContext = new UpgradeContext(null, null, null, null, Direction.UPGRADE);
+    UpgradeContext upgradeContext = new UpgradeContext(null, null, null, null, Direction.UPGRADE, UpgradeType.ROLLING);
     upgradeContext.setAutoSkipComponentFailures(true);
     upgradeContext.setAutoSkipServiceCheckFailures(true);
 

@@ -56,7 +56,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
-import org.apache.ambari.server.state.stack.upgrade.ConfigureTask.ConfigurationKeyValue;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.*;
 import org.apache.ambari.server.state.stack.upgrade.TransferCoercionType;
 import org.apache.ambari.server.state.stack.upgrade.TransferOperation;
 import org.junit.After;
@@ -131,7 +131,7 @@ public class ConfigureActionTest {
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
-    List<ConfigurationKeyValue> configurations = new ArrayList<ConfigureTask.ConfigurationKeyValue>();
+    List<ConfigurationKeyValue> configurations = new ArrayList<ConfigurationKeyValue>();
     ConfigurationKeyValue keyValue = new ConfigurationKeyValue();
     configurations.add(keyValue);
     keyValue.key = "initLimit";
@@ -206,8 +206,8 @@ public class ConfigureActionTest {
     commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
 
     // delete all keys, preserving edits or additions
-    List<ConfigureTask.Transfer> transfers = new ArrayList<ConfigureTask.Transfer>();
-    ConfigureTask.Transfer transfer = new ConfigureTask.Transfer();
+    List<Transfer> transfers = new ArrayList<>();
+    Transfer transfer = new Transfer();
     transfer.operation = TransferOperation.DELETE;
     transfer.deleteKey = "*";
     transfer.preserveEdits = true;
@@ -266,7 +266,7 @@ public class ConfigureActionTest {
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
-    List<ConfigurationKeyValue> configurations = new ArrayList<ConfigureTask.ConfigurationKeyValue>();
+    List<ConfigurationKeyValue> configurations = new ArrayList<>();
     ConfigurationKeyValue keyValue = new ConfigurationKeyValue();
     configurations.add(keyValue);
     keyValue.key = "initLimit";
@@ -280,15 +280,15 @@ public class ConfigureActionTest {
     commandParams.put(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS, new Gson().toJson(configurations));
 
     // normal copy
-    List<ConfigureTask.Transfer> transfers = new ArrayList<ConfigureTask.Transfer>();
-    ConfigureTask.Transfer transfer = new ConfigureTask.Transfer();
+    List<Transfer> transfers = new ArrayList<>();
+    Transfer transfer = new Transfer();
     transfer.operation = TransferOperation.COPY;
     transfer.fromKey = "copyIt";
     transfer.toKey = "copyKey";
     transfers.add(transfer);
 
     // copy with default
-    transfer = new ConfigureTask.Transfer();
+    transfer = new Transfer();
     transfer.operation = TransferOperation.COPY;
     transfer.fromKey = "copiedFromMissingKeyWithDefault";
     transfer.toKey = "copiedToMissingKeyWithDefault";
@@ -296,14 +296,14 @@ public class ConfigureActionTest {
     transfers.add(transfer);
 
     // normal move
-    transfer = new ConfigureTask.Transfer();
+    transfer = new Transfer();
     transfer.operation = TransferOperation.MOVE;
     transfer.fromKey = "moveIt";
     transfer.toKey = "movedKey";
     transfers.add(transfer);
 
     // move with default
-    transfer = new ConfigureTask.Transfer();
+    transfer = new Transfer();
     transfer.operation = TransferOperation.MOVE;
     transfer.fromKey = "movedFromKeyMissingWithDefault";
     transfer.toKey = "movedToMissingWithDefault";
@@ -311,7 +311,7 @@ public class ConfigureActionTest {
     transfer.mask = true;
     transfers.add(transfer);
 
-    transfer = new ConfigureTask.Transfer();
+    transfer = new Transfer();
     transfer.operation = TransferOperation.DELETE;
     transfer.deleteKey = "deleteIt";
     transfers.add(transfer);
@@ -357,7 +357,7 @@ public class ConfigureActionTest {
     assertEquals("defaultValue2", map.get("movedToMissingWithDefault"));
 
     transfers.clear();
-    transfer = new ConfigureTask.Transfer();
+    transfer = new Transfer();
     transfer.operation = TransferOperation.DELETE;
     transfer.deleteKey = "*";
     transfer.preserveEdits = true;
@@ -404,8 +404,8 @@ public class ConfigureActionTest {
     commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
 
     // copy with coerce
-    List<ConfigureTask.Transfer> transfers = new ArrayList<ConfigureTask.Transfer>();
-    ConfigureTask.Transfer transfer = new ConfigureTask.Transfer();
+    List<Transfer> transfers = new ArrayList<Transfer>();
+    Transfer transfer = new Transfer();
     transfer.operation = TransferOperation.COPY;
     transfer.coerceTo = TransferCoercionType.YAML_ARRAY;
     transfer.fromKey = "zoo.server.csv";
@@ -472,14 +472,14 @@ public class ConfigureActionTest {
     commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
 
     // Replacement task
-    List<ConfigureTask.Replace> replacements = new ArrayList<ConfigureTask.Replace>();
-    ConfigureTask.Replace replace = new ConfigureTask.Replace();
+    List<Replace> replacements = new ArrayList<Replace>();
+    Replace replace = new Replace();
     replace.key = "key_to_replace";
     replace.find = "New Cat";
     replace.replaceWith = "Wet Dog";
     replacements.add(replace);
 
-    replace = new ConfigureTask.Replace();
+    replace = new Replace();
     replace.key = "key_with_no_match";
     replace.find = "abc";
     replace.replaceWith = "def";
@@ -538,7 +538,7 @@ public class ConfigureActionTest {
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
     // create several configurations
-    List<ConfigurationKeyValue> configurations = new ArrayList<ConfigureTask.ConfigurationKeyValue>();
+    List<ConfigurationKeyValue> configurations = new ArrayList<ConfigurationKeyValue>();
     ConfigurationKeyValue fooKey2 = new ConfigurationKeyValue();
     configurations.add(fooKey2);
     fooKey2.key = "fooKey2";
@@ -633,8 +633,7 @@ public class ConfigureActionTest {
     String urlInfo = "[{'repositories':["
         + "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'HDP-2.2.0'}"
         + "], 'OperatingSystems/os_type':'redhat6'}]";
-    repoVersionDAO.create(stackEntity, HDP_2_2_0_1, String.valueOf(System.currentTimeMillis()),
-        "pack", urlInfo);
+    repoVersionDAO.create(stackEntity, HDP_2_2_0_1, String.valueOf(System.currentTimeMillis()), urlInfo);
 
 
     c.createClusterVersion(HDP_220_STACK, HDP_2_2_0_1, "admin", RepositoryVersionState.INSTALLING);
