@@ -182,7 +182,7 @@ App.MainAlertInstancesController = Em.Controller.extend({
    * @method getAlertInstancesSuccessCallback
    */
   getAlertInstancesSuccessCallback: function (json) {
-    App.alertInstanceMapper.map(json);
+    App.alertInstanceMapper.mapLocal(json);
     this.set('isLoaded', true);
     this.toggleProperty('reload');
   },
@@ -309,15 +309,6 @@ App.MainAlertInstancesController = Em.Controller.extend({
           this.set('filteredContent', this.get('content'));
         }.observes('content.length'),
 
-        refreshTooltips: function () {
-          this.ensureTooltip();
-        }.observes('contents.[]', 'filteringComplete'),
-
-        ensureTooltip: function () {
-          Em.run.next(this, function () {
-            App.tooltip($(".timeago"));
-          });
-        },
         /**
          * Router transition to alert definition details page
          * @param event
@@ -354,8 +345,6 @@ App.MainAlertInstancesController = Em.Controller.extend({
 
         didInsertElement: function () {
           this.filter();
-          this.addObserver('filteringComplete', this, this.overlayObserver);
-          this.overlayObserver();
           return this._super();
         }
       })

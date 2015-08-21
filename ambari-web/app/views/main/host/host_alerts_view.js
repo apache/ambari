@@ -253,10 +253,15 @@ App.MainHostAlertsView = App.TableView.extend({
    * @method tooltipsUpdater
    */
   tooltipsUpdater: function () {
-    Em.run.next(this, function () {
-      App.tooltip($(".enable-disable-button, .timeago, .alert-text"));
-    });
+    Em.run.once(this,this.tooltipsUpdaterOnce);
   }.observes('pageContent.@each'),
+
+  tooltipsUpdaterOnce: function() {
+    var self = this;
+    Em.run.next(this, function () {
+      App.tooltip(self.$(".enable-disable-button, .timeago, .alert-text"));
+    });
+  },
 
   /**
    * Run <code>clearFilter</code> in the each child filterView
@@ -268,6 +273,10 @@ App.MainHostAlertsView = App.TableView.extend({
         childView.clearFilter();
       }
     });
+  },
+
+  willDestroyElement: function() {
+    this.$(".enable-disable-button, .timeago, .alert-text").tooltip('destroy');
   }
 
 });

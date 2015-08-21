@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-require('models/alert_definition');
+require('models/alerts/alert_definition');
 
 var model;
 
