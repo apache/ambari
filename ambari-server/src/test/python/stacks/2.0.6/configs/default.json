@@ -538,7 +538,8 @@
             "kerberos_domain": "EXAMPLE.COM",
             "user_group": "hadoop",
             "repo_suse_rhel_template": "[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0",
-            "repo_ubuntu_template": "{{package_type}} {{base_url}} {{components}}"
+            "repo_ubuntu_template": "{{package_type}} {{base_url}} {{components}}",
+          "override_uid" : "true"
       },
       "hbase-env": {
             "hbase_pid_dir": "/var/run/hbase", 
@@ -548,8 +549,7 @@
             "hbase_regionserver_heapsize": "1024m",
             "hbase_regionserver_xmn_max": "512",
             "hbase_regionserver_xmn_ratio": "0.2",
-            "hbase_log_dir": "/var/log/hbase",
-            "override_hbase_uid" : "true"
+            "hbase_log_dir": "/var/log/hbase"
         },
         "ganglia-env": {
             "gmond_user": "nobody", 
