@@ -27,7 +27,6 @@ module.exports = App.ServiceConfigModificationHandler.create({
     var rangerPluginEnabledName = "ranger-hdfs-plugin-enabled";
     var affectedPropertyName = changedConfig.get("name");
     if (App.get('isHadoop23Stack') && affectedPropertyName == rangerPluginEnabledName) {
-      var configDfsPermissionsEnabled = this.getConfig(allConfigs, 'dfs.permissions.enabled', 'hdfs-site.xml', 'HDFS');
       var configAttributesProviderClass = this.getConfig(allConfigs, 'dfs.namenode.inode.attributes.provider.class', 'hdfs-site.xml', 'HDFS');
       var isAttributesProviderClassSet = typeof configAttributesProviderClass !== 'undefined';
 
@@ -35,20 +34,6 @@ module.exports = App.ServiceConfigModificationHandler.create({
       var newDfsPermissionsEnabled = rangerPluginEnabled ? "true" : "false";
       var newAttributesProviderClass = 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer';
 
-      // Add HDFS-Ranger configs
-      if (configDfsPermissionsEnabled != null && newDfsPermissionsEnabled !== configDfsPermissionsEnabled.get('value')) {
-        affectedProperties.push({
-          serviceName : "HDFS",
-          sourceServiceName : "HDFS",
-          propertyName : 'dfs.permissions.enabled',
-          propertyDisplayName : 'dfs.permissions.enabled',
-          newValue : newDfsPermissionsEnabled,
-          curValue : configDfsPermissionsEnabled.get('value'),
-          changedPropertyName : rangerPluginEnabledName,
-          removed : false,
-          filename : 'hdfs-site.xml'
-        });
-      }
       if (rangerPluginEnabled && (!isAttributesProviderClassSet || newAttributesProviderClass != configAttributesProviderClass.get('value'))) {
         affectedProperties.push({
           serviceName : "HDFS",
