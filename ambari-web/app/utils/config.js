@@ -808,9 +808,9 @@ App.config = Em.Object.create({
       'zk_user': 'ZooKeeper User',
       'metadata_user': 'Atlas User',
       'ignore_groupsusers_create': 'Skip group modifications during install',
-      'override_hbase_uid': 'Have Ambari manage UIDs'
+      'override_uid': 'Have Ambari manage UIDs'
     };
-    var checkboxProperties = ['ignore_groupsusers_create', 'override_hbase_uid'];
+    var checkboxProperties = ['ignore_groupsusers_create', 'override_uid'];
     if (Em.isArray(config.property_type)) {
       if (config.property_type.contains('USER') || config.property_type.contains('ADDITIONAL_USER_PROPERTY') || config.property_type.contains('GROUP')) {
         propertyData.id = "puppet var";

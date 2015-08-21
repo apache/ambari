@@ -43,7 +43,10 @@ def setup_users():
           ignore_failures = params.ignore_groupsusers_create
       )
 
-    set_uid(params.smoke_user, params.smoke_user_dirs)
+    if params.override_uid == "true":
+      set_uid(params.smoke_user, params.smoke_user_dirs)
+    else:
+      print 'Skipping setting uid for smoke user as host is sys prepped'
   else:
     print 'Skipping creation of User and Group as host is sys prepped'
     pass
@@ -56,7 +59,7 @@ def setup_users():
                recursive = True,
                cd_access="a",
     )
-    if not params.host_sys_prepped and params.override_hbase_uid:
+    if not params.host_sys_prepped and params.override_uid == "true":
       set_uid(params.hbase_user, params.hbase_user_dirs)
     else:
       print 'Skipping setting uid for hbase user as host is sys prepped'

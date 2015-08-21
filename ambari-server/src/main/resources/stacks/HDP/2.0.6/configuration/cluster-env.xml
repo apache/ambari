@@ -70,4 +70,12 @@ gpgcheck=0</value>
         <value>{{package_type}} {{base_url}} {{components}}</value>
         <description>Template of repositories for ubuntu.</description>
     </property>
+
+    <property>
+        <name>override_uid</name>
+        <value>true</value>
+        <property-type>ADDITIONAL_USER_PROPERTY</property-type>
+        <description>Have Ambari manage UIDs</description>
+    </property>
+
 </configuration>

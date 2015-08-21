@@ -121,6 +121,36 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
 
   protected void addMissingConfigs() throws AmbariException {
     updateHiveConfigs();
+    updateHbaseAndClusterConfigurations();
+  }
+
+  protected void updateHbaseAndClusterConfigurations() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if ((clusterMap != null) && !clusterMap.isEmpty()) {
+        // Iterate through the clusters and perform any configuration updates
+        for (final Cluster cluster : clusterMap.values()) {
+          Config config = cluster.getDesiredConfigByType("hbase-env");
+
+          if (config != null) {
+            // Remove override_hbase_uid from hbase-env and add override_uid to cluster-env
+            String value = config.getProperties().get("override_hbase_uid");
+            if (value != null) {
+              Map<String, String> updates = new HashMap<String, String>();
+              Set<String> removes = new HashSet<String>();
+              updates.put("override_uid", value);
+              removes.add("override_hbase_uid");
+              updateConfigurationPropertiesForCluster(cluster, "hbase-env", new HashMap<String, String>(), removes, false, true);
+              updateConfigurationPropertiesForCluster(cluster, "cluster-env", updates, true, false);
+            }
+          }
+        }
+      }
+    }
   }
 
   protected void updateHiveConfigs() throws AmbariException {

@@ -4134,13 +4134,13 @@ var hdp2properties = [
   },
   {
     "id": "puppet var",
-    "name": "override_hbase_uid",
+    "name": "override_uid",
     "displayName": "Have Ambari manage UIDs",
     "displayType": "checkbox",
     "isReconfigurable": true,
     "isOverridable": false,
     "isVisible": true,
-    "filename": "hbase-env.xml",
+    "filename": "cluster-env.xml",
     "category": "Users and Groups"
   },
   {
