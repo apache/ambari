@@ -51,6 +51,21 @@ OOZIE_CONF_DIR_LEGACY = '/etc/oozie/conf'
 OOZIE_HTTPS_PORT = '{{oozie-site/oozie.https.port}}'
 OOZIE_ENV_CONTENT = '{{oozie-env/content}}'
 
+SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
+SMOKEUSER_PRINCIPAL_KEY = '{{cluster-env/smokeuser_principal_name}}'
+SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
+
+# default keytab location
+SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY = 'default.smoke.keytab'
+SMOKEUSER_KEYTAB_DEFAULT = '/etc/security/keytabs/smokeuser.headless.keytab'
+
+# default smoke principal
+SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY = 'default.smoke.principal'
+SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
+
+# default smoke user
+SMOKEUSER_DEFAULT = 'ambari-qa'
+
 class KerberosPropertiesNotFound(Exception): pass
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -67,8 +82,8 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (OOZIE_URL_KEY, OOZIE_PRINCIPAL, SECURITY_ENABLED, OOZIE_KEYTAB, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY,
-          OOZIE_USER, OOZIE_HTTPS_PORT, OOZIE_ENV_CONTENT)
+  return (OOZIE_URL_KEY, SMOKEUSER_PRINCIPAL_KEY, SECURITY_ENABLED, SMOKEUSER_KEYTAB_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY,
+          SMOKEUSER_KEY, OOZIE_HTTPS_PORT, OOZIE_ENV_CONTENT)
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def get_check_command(oozie_url, host_name, configurations):
@@ -80,25 +95,33 @@ def get_check_command(oozie_url, host_name, configurations):
   return (command, None, None)
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def get_check_command(oozie_url, host_name, configurations):
-  if OOZIE_USER in configurations:
-    oozie_user = configurations[OOZIE_USER]
-  else:
-    raise Exception("Oozie user is required")
-    
+def get_check_command(oozie_url, host_name, configurations, parameters):
+  kerberos_env = None
+
+  smokeuser = SMOKEUSER_DEFAULT
+  if SMOKEUSER_KEY in configurations:
+    smokeuser = configurations[SMOKEUSER_KEY]
+
   security_enabled = False
   if SECURITY_ENABLED in configurations:
     security_enabled = str(configurations[SECURITY_ENABLED]).upper() == 'TRUE'
-  kerberos_env = None
-  if security_enabled:
-    if OOZIE_KEYTAB in configurations and OOZIE_PRINCIPAL in configurations:
-      oozie_keytab = configurations[OOZIE_KEYTAB]
-      oozie_principal = configurations[OOZIE_PRINCIPAL]
 
-      # substitute _HOST in kerberos principal with actual fqdn
-      oozie_principal = oozie_principal.replace('_HOST', host_name)
-    else:
-      raise KerberosPropertiesNotFound('The Oozie keytab and principal are required configurations when security is enabled.')
+  if security_enabled:
+    # defaults
+    smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
+    smokeuser_principal = SMOKEUSER_PRINCIPAL_DEFAULT
+
+    # check script params
+    if SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY in parameters:
+      smokeuser_principal = parameters[SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY]
+    if SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY in parameters:
+      smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY]
+
+    # check configurations last as they should always take precedence
+    if SMOKEUSER_PRINCIPAL_KEY in configurations:
+      smokeuser_principal = configurations[SMOKEUSER_PRINCIPAL_KEY]
+    if SMOKEUSER_KEYTAB_KEY in configurations:
+      smokeuser_keytab = configurations[SMOKEUSER_KEYTAB_KEY]
 
     # Create the kerberos credentials cache (ccache) file and set it in the environment to use
     # when executing curl
@@ -107,10 +130,9 @@ def get_check_command(oozie_url, host_name, configurations):
     kerberos_env = {'KRB5CCNAME': ccache_file}
 
     # Get the configured Kerberos executable search paths, if any
+    kerberos_executable_search_paths = None
     if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in configurations:
       kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
-    else:
-      kerberos_executable_search_paths = None
 
     klist_path_local = get_klist_path(kerberos_executable_search_paths)
     klist_command = format("{klist_path_local} -s {ccache_file}")
@@ -118,16 +140,13 @@ def get_check_command(oozie_url, host_name, configurations):
     # Determine if we need to kinit by testing to see if the relevant cache exists and has
     # non-expired tickets.  Tickets are marked to expire after 5 minutes to help reduce the number
     # it kinits we do but recover quickly when keytabs are regenerated
-    return_code, _ = call(klist_command, user=oozie_user)
+    return_code, _ = call(klist_command, user=smokeuser)
     if return_code != 0:
       kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
-      kinit_command = format("{kinit_path_local} -l 5m -kt {oozie_keytab} {oozie_principal}; ")
+      kinit_command = format("{kinit_path_local} -l 5m -kt {smokeuser_keytab} {smokeuser_principal}; ")
 
       # kinit
-      Execute(kinit_command, 
-              environment=kerberos_env,
-              user=oozie_user,
-      )
+      Execute(kinit_command, environment=kerberos_env, user=smokeuser)
 
   # oozie configuration directory uses a symlink when > HDP 2.2
   oozie_config_directory = OOZIE_CONF_DIR_LEGACY
@@ -137,7 +156,7 @@ def get_check_command(oozie_url, host_name, configurations):
   command = "source {0}/oozie-env.sh ; oozie admin -oozie {1} -status".format(
     oozie_config_directory, oozie_url)
 
-  return (command, kerberos_env, oozie_user)
+  return (command, kerberos_env, smokeuser)
 
 def execute(configurations={}, parameters={}, host_name=None):
   """
@@ -187,12 +206,9 @@ def execute(configurations={}, parameters={}, host_name=None):
     oozie_url = oozie_url.replace(urlparse(oozie_url).hostname, localhost_address)
 
   try:
-    command, env, oozie_user = get_check_command(oozie_url, host_name, configurations)
+    command, env, smokeuser = get_check_command(oozie_url, host_name, configurations, parameters)
     # execute the command
-    Execute(command, 
-            environment=env,
-            user=oozie_user,
-    )
+    Execute(command, environment=env, user=smokeuser)
 
     return (RESULT_CODE_OK, ["Successful connection to {0}".format(oozie_url)])
   except KerberosPropertiesNotFound, ex:
