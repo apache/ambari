@@ -3393,7 +3393,7 @@ var hdp2properties = [
       },
       {
         displayName: 'Existing SQLA Database',
-        hidden: false
+        hidden: !App.get('isHadoop23Stack')
       }
     ],
     "description": "MySQL will be installed by Ambari",
@@ -3636,7 +3636,7 @@ var hdp2properties = [
       },
       {
         displayName: 'Existing SQLA Database',
-        hidden: false
+        hidden: !App.get('isHadoop23Stack')
       }
     ],
     "description": "Current Derby Database will be installed by Ambari",

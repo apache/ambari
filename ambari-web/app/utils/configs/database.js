@@ -60,7 +60,8 @@ module.exports = {
     mssql: 'jdbc:sqlserver://{0};databaseName={1}',
     postgres: 'jdbc:postgresql://{0}:5432/{1}',
     derby: 'jdbc:derby:{0}/{1}',
-    oracle: 'jdbc:oracle:thin:@(?:\/?\/?){0}:1521(\:|\/){1}'
+    oracle: 'jdbc:oracle:thin:@(?:\/?\/?){0}:1521(\:|\/){1}',
+    sqla: 'jdbc:sqlanywhere:host={0};database={1};uid={2};pwd={3}'
   },
 
   /**
@@ -150,7 +151,7 @@ module.exports = {
   getDBLocationFromJDBC: function(jdbcUrl) {
     var self = this;
     var matches = Em.keys(this.DB_JDBC_PATTERNS).map(function(key) {
-      var reg = new RegExp(self.DB_JDBC_PATTERNS[key].format('(.*)', '(.*)'));
+      var reg = new RegExp(self.DB_JDBC_PATTERNS[key].format('(.*)', '(.*)', '(.*)', '(.*)'));
       return jdbcUrl.match(reg);
     }).compact();
     if (matches.length) {
