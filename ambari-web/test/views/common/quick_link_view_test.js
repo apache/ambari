@@ -48,7 +48,19 @@ describe('App.QuickViewLinks', function () {
       ], m: "http for mapreduce2", result: "http" },
       { serviceName: "ANYSERVICE", configProperties: [
         { type: 'hdfs-site', properties: { 'dfs.http.policy': 'HTTPS_ONLY' }}
-      ], m: "https for anyservice", servicesSupportsHttps: ["ANYSERVICE"], result: "https" }
+      ], m: "https for anyservice", servicesSupportsHttps: ["ANYSERVICE"], result: "https" },
+      { serviceName: "RANGER", configProperties: [
+        { type: 'ranger-site', properties: { 'http.enabled': 'true' }}
+      ], m: "http for ranger (HDP2.2)", result: "http" },
+      { serviceName: "RANGER", configProperties: [
+        { type: 'ranger-site', properties: { 'http.enabled': 'false' }}
+      ], m: "https for ranger (HDP2.2)", result: "https" },
+      { serviceName: "RANGER", configProperties: [
+        { type: 'ranger-admin-site', properties: { 'ranger.service.http.enabled': 'true', 'ranger.service.https.attrib.ssl.enabled': 'false'}}
+      ], m: "http for ranger (HDP2.3)", result: "http" },
+      { serviceName: "RANGER", configProperties: [
+        { type: 'ranger-admin-site', properties: { 'ranger.service.http.enabled': 'false', 'ranger.service.https.attrib.ssl.enabled': 'true'}}
+      ], m: "https for ranger (HDP2.3)", result: "https" }
     ];
 
     tests.forEach(function(t) {
@@ -86,6 +98,26 @@ describe('App.QuickViewLinks', function () {
         'default_http_port': '8088',
         'default_https_port': '8090',
         'regex': '\\w*:(\\d+)'
+      }),
+      Em.Object.create({
+        'service_id': 'RANGER',
+        'protocol': 'http',
+        'http_config': 'http_config',
+        'https_config': 'https_config',
+        'result': '6080',
+        'default_http_port': '6080',
+        'default_https_port': '6182',
+        'regex': '(\\d*)+'
+      }),
+      Em.Object.create({
+        'service_id': 'RANGER',
+        'protocol': 'https',
+        'http_config': 'http_config',
+        'https_config': 'https_config',
+        'result': '6182',
+        'default_http_port': '6080',
+        'default_https_port': '6182',
+        'regex': '(\\d*)+'
       })
     ];
 
