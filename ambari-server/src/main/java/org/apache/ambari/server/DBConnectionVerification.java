@@ -18,9 +18,8 @@
 
 package org.apache.ambari.server;
 
-import org.apache.commons.lang.StringUtils;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
 
 public class DBConnectionVerification {
   public static void main(String[] args) throws Exception {
@@ -38,7 +37,7 @@ public class DBConnectionVerification {
          conn = DriverManager.getConnection(url, username, password);
        }
        System.out.println("Connected to DB Successfully!");
-    } catch (Exception e) {
+    } catch (Throwable e) {
        System.out.println("ERROR: Unable to connect to the DB. Please check DB connection properties.");
        System.out.println(e);
        System.exit(1);

@@ -49,17 +49,25 @@ DB_MYSQL = "mysql"
 DB_ORACLE = "oracle"
 DB_POSTGRESQL = "postgres"
 DB_MSSQL = "mssql"
+DB_SQLA = "sqlanywhere"
 
-JDBC_DRIVER_MYSQL = "com.mysql.jdbc.Driver"
-JDBC_DRIVER_ORACLE = "oracle.jdbc.driver.OracleDriver"
-JDBC_DRIVER_POSTGRESQL = "org.postgresql.Driver"
-JDBC_DRIVER_MSSQL = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+JDBC_DRIVER_CLASS_MYSQL = "com.mysql.jdbc.Driver"
+JDBC_DRIVER_CLASS_ORACLE = "oracle.jdbc.driver.OracleDriver"
+JDBC_DRIVER_CLASS_POSTGRESQL = "org.postgresql.Driver"
+JDBC_DRIVER_CLASS_MSSQL = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+JDBC_DRIVER_CLASS_SQLA = "sap.jdbc4.sqlanywhere.IDriver"
 
 JDBC_DRIVER_SYMLINK_MYSQL = "mysql-jdbc-driver.jar"
 JDBC_DRIVER_SYMLINK_ORACLE = "oracle-jdbc-driver.jar"
 JDBC_DRIVER_SYMLINK_POSTGRESQL = "postgres-jdbc-driver.jar"
 JDBC_DRIVER_SYMLINK_MSSQL = "sqljdbc4.jar"
 JDBC_AUTH_SYMLINK_MSSQL = "sqljdbc_auth.dll"
+JDBC_DRIVER_SYMLINK_SQLA = "sqlanywhere-jdbc-driver.tar.gz"
+
+JDBC_DRIVER_SQLA_JAR = "sajdbc4.jar"
+JARS_PATH_IN_ARCHIVE_SQLA = "/sqla-client-jdbc/java"
+LIBS_PATH_IN_ARCHIVE_SQLA = "/sqla-client-jdbc/native/lib64"
+JDBC_DRIVER_SQLA_JAR_PATH_IN_ARCHIVE = "/sqla-client-jdbc/java/" + JDBC_DRIVER_SQLA_JAR
 
 THP_FILE = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
 
@@ -226,20 +234,24 @@ class CheckHost(Script):
 
     if db_name == DB_MYSQL:
       jdbc_url = jdk_location + JDBC_DRIVER_SYMLINK_MYSQL
-      jdbc_driver = JDBC_DRIVER_MYSQL
+      jdbc_driver_class = JDBC_DRIVER_CLASS_MYSQL
       jdbc_name = JDBC_DRIVER_SYMLINK_MYSQL
     elif db_name == DB_ORACLE:
       jdbc_url = jdk_location + JDBC_DRIVER_SYMLINK_ORACLE
-      jdbc_driver = JDBC_DRIVER_ORACLE
+      jdbc_driver_class = JDBC_DRIVER_CLASS_ORACLE
       jdbc_name = JDBC_DRIVER_SYMLINK_ORACLE
     elif db_name == DB_POSTGRESQL:
       jdbc_url = jdk_location + JDBC_DRIVER_SYMLINK_POSTGRESQL
-      jdbc_driver = JDBC_DRIVER_POSTGRESQL
+      jdbc_driver_class = JDBC_DRIVER_CLASS_POSTGRESQL
       jdbc_name = JDBC_DRIVER_SYMLINK_POSTGRESQL
     elif db_name == DB_MSSQL:
       jdbc_url = jdk_location + JDBC_DRIVER_SYMLINK_MSSQL
-      jdbc_driver = JDBC_DRIVER_MSSQL
+      jdbc_driver_class = JDBC_DRIVER_CLASS_MSSQL
       jdbc_name = JDBC_DRIVER_SYMLINK_MSSQL
+    elif db_name == DB_SQLA:
+      jdbc_url = jdk_location + JDBC_DRIVER_SYMLINK_SQLA
+      jdbc_driver_class = JDBC_DRIVER_CLASS_SQLA
+      jdbc_name = JDBC_DRIVER_SYMLINK_SQLA
   
     db_connection_url = config['commandParams']['db_connection_url']
     user_name = config['commandParams']['user_name']
@@ -247,10 +259,18 @@ class CheckHost(Script):
     agent_cache_dir = os.path.abspath(config["hostLevelParams"]["agentCacheDir"])
     check_db_connection_url = jdk_location + check_db_connection_jar_name
     jdbc_path = os.path.join(agent_cache_dir, jdbc_name)
+    class_path_delimiter = ":"
+    if db_name == DB_SQLA:
+      jdbc_jar_path = agent_cache_dir + JDBC_DRIVER_SQLA_JAR_PATH_IN_ARCHIVE
+      java_library_path = agent_cache_dir + JARS_PATH_IN_ARCHIVE_SQLA + class_path_delimiter + agent_cache_dir + \
+                          LIBS_PATH_IN_ARCHIVE_SQLA
+    else:
+      jdbc_jar_path = jdbc_path
+      java_library_path = agent_cache_dir
+
     check_db_connection_path = os.path.join(agent_cache_dir, check_db_connection_jar_name)
 
     java_bin = "java"
-    class_path_delimiter = ":"
     if OSCheck.is_windows_family():
       java_bin = "java.exe"
       class_path_delimiter = ";"
@@ -332,6 +352,10 @@ class CheckHost(Script):
         jdbc_auth_path = os.path.join(agent_cache_dir, JDBC_AUTH_SYMLINK_MSSQL)
         jdbc_auth_url = jdk_location + JDBC_AUTH_SYMLINK_MSSQL
         download_file(jdbc_auth_url, jdbc_auth_path)
+      elif db_name == DB_SQLA:
+        # unpack tar.gz jdbc which was donaloaded
+        untar_sqla_type2_driver = ('tar', '-xvf', jdbc_path, '-C', agent_cache_dir)
+        Execute(untar_sqla_type2_driver, sudo = True)
     except Exception, e:
       message = format("Error: Ambari Server cannot download the database JDBC driver and is unable to test the " \
                 "database connection. You must run ambari-server setup --jdbc-db={db_name} " \
@@ -344,8 +368,12 @@ class CheckHost(Script):
 
     # try to connect to db
     db_connection_check_command = format("{java_exec} -cp {check_db_connection_path}{class_path_delimiter}" \
-           "{jdbc_path} -Djava.library.path={agent_cache_dir} org.apache.ambari.server.DBConnectionVerification \"{db_connection_url}\" " \
-           "{user_name} {user_passwd!p} {jdbc_driver}")
+           "{jdbc_jar_path} -Djava.library.path={java_library_path} org.apache.ambari.server.DBConnectionVerification \"{db_connection_url}\" " \
+           "{user_name} {user_passwd!p} {jdbc_driver_class}")
+
+    if db_name == DB_SQLA:
+      db_connection_check_command = "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{0}{1} {2}".format(agent_cache_dir,
+                                                                LIBS_PATH_IN_ARCHIVE_SQLA, db_connection_check_command)
 
     code, out = shell.call(db_connection_check_command)
 
