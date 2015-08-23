@@ -39,8 +39,9 @@ SETUP_DB_CONNECT_ATTEMPTS = 3
 
 USERNAME_PATTERN = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
 PASSWORD_PATTERN = "^[a-zA-Z0-9_-]*$"
-DATABASE_NAMES = ["postgres", "oracle", "mysql", "mssql"]
-DATABASE_FULL_NAMES = {"oracle": "Oracle", "mysql": "MySQL", "mssql": "Microsoft SQL Server", "postgres": "PostgreSQL"}
+DATABASE_NAMES = ["postgres", "oracle", "mysql", "mssql", "sqlanywhere"]
+DATABASE_FULL_NAMES = {"oracle": "Oracle", "mysql": "MySQL", "mssql": "Microsoft SQL Server", "postgres":
+  "PostgreSQL", "sqlanywhere": "SQL Anywhere"}
 
 AMBARI_DATABASE_NAME = "ambari"
 AMBARI_DATABASE_TITLE = "ambari"
@@ -318,14 +319,16 @@ class DBMSConfigFactoryWindows(DBMSConfigFactory):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class DBMSConfigFactoryLinux(DBMSConfigFactory):
   def __init__(self):
-    from ambari_server.dbConfiguration_linux import createPGConfig, createOracleConfig, createMySQLConfig, createMSSQLConfig
+    from ambari_server.dbConfiguration_linux import createPGConfig, createOracleConfig, createMySQLConfig, \
+      createMSSQLConfig, createSQLAConfig
 
     self.DBMS_KEYS_LIST = [
       'embedded',
       'oracle',
       'mysql',
       'postgres',
-      'mssql'
+      'mssql',
+      'sqlanywhere'
     ]
 
     self.DRIVER_KEYS_LIST = [
@@ -342,23 +345,26 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
       DBMSDesc(self.DBMS_KEYS_LIST[1], STORAGE_TYPE_REMOTE, 'Oracle', '', createOracleConfig),
       DBMSDesc(self.DBMS_KEYS_LIST[2], STORAGE_TYPE_REMOTE, 'MySQL', '', createMySQLConfig),
       DBMSDesc(self.DBMS_KEYS_LIST[3], STORAGE_TYPE_REMOTE, 'PostgreSQL', '', createPGConfig),
-      DBMSDesc(self.DBMS_KEYS_LIST[4], STORAGE_TYPE_REMOTE, 'Microsoft SQL Server', 'Tech Preview', createMSSQLConfig)
+      DBMSDesc(self.DBMS_KEYS_LIST[4], STORAGE_TYPE_REMOTE, 'Microsoft SQL Server', 'Tech Preview', createMSSQLConfig),
+      DBMSDesc(self.DBMS_KEYS_LIST[5], STORAGE_TYPE_REMOTE, 'SQL Anywhere', '', createSQLAConfig)
     ]
 
     self.DBMS_DICT = \
     {
-      '-' : 0,
-      '-' + STORAGE_TYPE_LOCAL : 0,
-      self.DBMS_KEYS_LIST[0] + '-' : 0,
-      self.DBMS_KEYS_LIST[2] + '-'  : 2,
-      self.DBMS_KEYS_LIST[2] + '-' + STORAGE_TYPE_REMOTE : 2,
-      self.DBMS_KEYS_LIST[4] + '-'  : 4,
-      self.DBMS_KEYS_LIST[4] + '-' + STORAGE_TYPE_REMOTE : 4,
-      self.DBMS_KEYS_LIST[1] + '-' : 1,
-      self.DBMS_KEYS_LIST[1] + '-' + STORAGE_TYPE_REMOTE : 1,
-      self.DBMS_KEYS_LIST[3] + '-' : 3,
-      self.DBMS_KEYS_LIST[3] + '-' + STORAGE_TYPE_LOCAL : 0,
-      self.DBMS_KEYS_LIST[3] + '-' + STORAGE_TYPE_REMOTE : 3,
+      '-': 0,
+      '-' + STORAGE_TYPE_LOCAL: 0,
+      self.DBMS_KEYS_LIST[0] + '-': 0,
+      self.DBMS_KEYS_LIST[2] + '-': 2,
+      self.DBMS_KEYS_LIST[2] + '-' + STORAGE_TYPE_REMOTE: 2,
+      self.DBMS_KEYS_LIST[4] + '-': 4,
+      self.DBMS_KEYS_LIST[4] + '-' + STORAGE_TYPE_REMOTE: 4,
+      self.DBMS_KEYS_LIST[1] + '-': 1,
+      self.DBMS_KEYS_LIST[1] + '-' + STORAGE_TYPE_REMOTE: 1,
+      self.DBMS_KEYS_LIST[3] + '-': 3,
+      self.DBMS_KEYS_LIST[3] + '-' + STORAGE_TYPE_LOCAL: 0,
+      self.DBMS_KEYS_LIST[3] + '-' + STORAGE_TYPE_REMOTE: 3,
+      self.DBMS_KEYS_LIST[5] + '-': 5,
+      self.DBMS_KEYS_LIST[5] + '-' + STORAGE_TYPE_REMOTE: 5,
     }
 
     self.DBMS_PROMPT_PATTERN = "[{0}] - {1}{2}\n"
@@ -450,7 +456,7 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
     except KeyError:
       # Unsupported database type (e.g. local Oracle, MySQL or MSSQL)
       raise FatalException(15, "Invalid database selection: {0} {1}".format(
-          getattr(options, "persistence_type", ""), getattr(options, "options.dbms", "")))
+          getattr(options, "persistence_type", ""), getattr(options, "dbms", "")))
 
     return def_index
 
@@ -514,3 +520,14 @@ def ensure_jdbc_driver_is_installed(options, properties):
   result = dbms._is_jdbc_driver_installed(properties)
   if result == -1:
     raise FatalException(-1, dbms.JDBC_DRIVER_INSTALL_MSG)
+  dbms._extract_client_tarball(properties)
+
+def get_native_libs_path(options, properties):
+  factory = DBMSConfigFactory()
+  dbms = factory.create(options, properties)
+  return dbms._get_native_libs(properties)
+
+def get_jdbc_driver_path(options, properties):
+  factory = DBMSConfigFactory()
+  dbms = factory.create(options, properties)
+  return dbms._get_default_driver_path(properties)

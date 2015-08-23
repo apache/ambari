@@ -44,7 +44,7 @@ from ambari_server.serverConfiguration import encrypt_password, store_password_f
     JDBC_RCA_DRIVER_PROPERTY, JDBC_RCA_URL_PROPERTY, \
     PERSISTENCE_TYPE_PROPERTY, JDBC_CONNECTION_POOL_TYPE, JDBC_CONNECTION_POOL_ACQUISITION_SIZE, \
     JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL, JDBC_CONNECTION_POOL_MAX_AGE, JDBC_CONNECTION_POOL_MAX_IDLE_TIME, \
-    JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS
+    JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS, JDBC_SQLA_SERVER_NAME
 
 from ambari_server.userInput import get_YN_input, get_validated_string_input, read_password
 from ambari_server.utils import get_postgre_hba_dir, get_postgre_running_status
@@ -154,6 +154,9 @@ class LinuxDBMSConfig(DBMSConfig):
                       'against the database to create the schema: ' + os.linesep +
                       client_usage_cmd_init + os.linesep)
 
+  def _get_default_driver_path(self, properties):
+    return os.path.join(configDefaults.JAVA_SHARE_PATH, self.driver_file_name)
+
   def _install_jdbc_driver(self, properties, files_list):
     if type(files_list) is not int:
       print 'Copying JDBC drivers to server resources...'
@@ -162,7 +165,7 @@ class LinuxDBMSConfig(DBMSConfig):
       db_name = self.dbms_full_name.lower()
       symlink_name = db_name + "-jdbc-driver.jar"
       jdbc_symlink = os.path.join(resources_dir, symlink_name)
-      db_default_driver_path = os.path.join(configDefaults.JAVA_SHARE_PATH, self.driver_file_name)
+      db_default_driver_path = self._get_default_driver_path(properties)
 
       if os.path.lexists(jdbc_symlink):
         os.remove(jdbc_symlink)
@@ -231,6 +234,12 @@ class LinuxDBMSConfig(DBMSConfig):
       return drivers
     return -1
 
+  def _extract_client_tarball(self, properties):
+    pass
+
+  def _get_native_libs(self, properties):
+    return None
+
   # Let the console user initialize the remote database schema
   def _setup_remote_db(self):
     setup_msg = "Before starting Ambari Server, you must run the following DDL " \
@@ -251,6 +260,22 @@ class LinuxDBMSConfig(DBMSConfig):
       if encrypted_password != self.database_password:
         properties.process_pair(property_name, encrypted_password)
 
+  def _get_database_hostname(self):
+    # fully qualify the hostname to make sure all the other hosts can connect
+    # to the jdbc hostname since its passed onto the agents for RCA
+    jdbc_hostname = self.database_host
+    if (self.database_host == "localhost"):
+      jdbc_hostname = socket.getfqdn()
+    return jdbc_hostname
+
+  def _get_jdbc_connection_string(self):
+    jdbc_hostname = self._get_database_hostname()
+
+    connectionStringFormat = self.database_url_pattern
+    if self.sid_or_sname == "sid":
+      connectionStringFormat = self.database_url_pattern_alt
+    return connectionStringFormat.format(jdbc_hostname, self.database_port, self.database_name)
+
   # Store set of properties for remote database connection
   def _store_remote_properties(self, properties):
     properties.process_pair(PERSISTENCE_TYPE_PROPERTY, self.persistence_type)
@@ -262,16 +287,8 @@ class LinuxDBMSConfig(DBMSConfig):
 
     properties.process_pair(JDBC_DRIVER_PROPERTY, self.driver_class_name)
 
-    # fully qualify the hostname to make sure all the other hosts can connect
-    # to the jdbc hostname since its passed onto the agents for RCA
-    jdbc_hostname = self.database_host
-    if (self.database_host == "localhost"):
-      jdbc_hostname = socket.getfqdn()
-
-    connectionStringFormat = self.database_url_pattern
-    if self.sid_or_sname == "sid":
-      connectionStringFormat = self.database_url_pattern_alt
-    properties.process_pair(JDBC_URL_PROPERTY, connectionStringFormat.format(jdbc_hostname, self.database_port, self.database_name))
+    connection_string = self._get_jdbc_connection_string()
+    properties.process_pair(JDBC_URL_PROPERTY, connection_string)
     properties.process_pair(JDBC_USER_NAME_PROPERTY, self.database_username)
 
     self._store_password_property(properties, JDBC_PASSWORD_PROPERTY)
@@ -281,7 +298,7 @@ class LinuxDBMSConfig(DBMSConfig):
       properties.process_pair(JDBC_PROPERTIES_PREFIX + pair[0], pair[1])
 
     properties.process_pair(JDBC_RCA_DRIVER_PROPERTY, self.driver_class_name)
-    properties.process_pair(JDBC_RCA_URL_PROPERTY, connectionStringFormat.format(jdbc_hostname, self.database_port, self.database_name))
+    properties.process_pair(JDBC_RCA_URL_PROPERTY, connection_string)
     properties.process_pair(JDBC_RCA_USER_NAME_PROPERTY, self.database_username)
 
     self._store_password_property(properties, JDBC_RCA_PASSWORD_FILE_PROPERTY)
@@ -937,6 +954,10 @@ class MSSQLConfig(LinuxDBMSConfig):
   def _is_jdbc_driver_installed(self, properties):
     return LinuxDBMSConfig._find_jdbc_driver("*sqljdbc*.jar")
 
+  def _get_jdbc_driver_path(self, properties):
+    super(MSSQLConfig, self)._get_jdbc_driver_path(properties)
+
+
   def _configure_database_name(self):
     self.database_name = LinuxDBMSConfig._get_validated_db_name(self.database_storage_name, self.database_name)
     return True
@@ -946,3 +967,114 @@ class MSSQLConfig(LinuxDBMSConfig):
 
 def createMSSQLConfig(options, properties, storage_type, dbId):
   return MSSQLConfig(options, properties, storage_type)
+
+class SQLAConfig(LinuxDBMSConfig):
+  EXTRACT_CMD="tar xzf {0} -C {1}"
+
+  def __init__(self, options, properties, storage_type):
+    super(SQLAConfig, self).__init__(options, properties, storage_type)
+
+    #Init the database configuration data here, if any
+    self.dbms = "sqlanywhere"
+    self.dbms_full_name = "SQL Anywhere"
+    self.driver_class_name = "sap.jdbc4.sqlanywhere.IDriver" #TODO sybase.* for v < 17, check requirements
+    self.driver_file_name = "sajdbc4.jar"
+    self.server_name = DBMSConfig._init_member_with_prop_default(options, "sqla_server_name", properties,
+                                                                 JDBC_SQLA_SERVER_NAME, "ambari")
+    self.driver_symlink_name = "sqlanywhere-jdbc-driver.jar"
+    self.client_tarball_pattern = "*sqla-client-jdbc*.tar.gz"
+    self.client_folder = "sqla-client-jdbc"
+
+    self.database_storage_name = "Database"
+    self.database_port = DBMSConfig._init_member_with_prop_default(options, "database_port",
+                                                                   properties, JDBC_PORT_PROPERTY, "2638")
+
+    self.database_url_pattern = "jdbc:sqlanywhere:eng={0};dbf={1};host={2};port={3}"
+    self.database_url_pattern_alt = "jdbc:sqlanywhere:eng={0};dbf={1};host={2};port={3}"
+
+    self.JDBC_DRIVER_INSTALL_MSG = 'Before starting Ambari Server, ' \
+                                   'you must copy the {0} jdbc client tarball to {1}.'.format(
+      self.dbms_full_name, configDefaults.SHARE_PATH)
+
+    self.init_script_file = "/var/lib/ambari-server/resources/Ambari-DDL-SQLAnywhere-CREATE.sql"
+    self.drop_tables_script_file = "/var/lib/ambari-server/resources/Ambari-DDL-SQLAnywhere-DROP.sql"
+    self.client_tool_usage_pattern = 'stub string'
+
+  #
+  # Private implementation
+  #
+
+  def _get_jdbc_connection_string(self):
+    jdbc_hostname = self._get_database_hostname()
+
+    connectionStringFormat = self.database_url_pattern
+    return connectionStringFormat.format(self.server_name, self.database_name, jdbc_hostname, self.database_port)
+
+  def _reset_remote_database(self):
+    super(SQLAConfig, self)._reset_remote_database()
+
+    raise NonFatalException("Please replace '*' symbols with password before running DDL`s!")
+
+  def _is_jdbc_driver_installed(self, properties):
+    drivers = []
+    drivers.extend(glob.glob(configDefaults.SHARE_PATH + os.sep + self.client_tarball_pattern))
+    if drivers:
+      return drivers
+    return -1
+
+  def _install_jdbc_driver(self, properties, files_list):
+    return True
+
+  def _configure_database_name(self):
+    self.server_name = get_validated_string_input("Server name (" + str(self.server_name) + "): ",
+                                                  self.server_name, ".*",
+                                                  "Invalid server name",
+                                                  False)
+    self.database_name = LinuxDBMSConfig._get_validated_db_name(self.database_storage_name, self.database_name)
+    return True
+
+  def _get_remote_script_line(self, scriptFile):
+    return "stub script line" #TODO not used anymore, investigate if it can be removed
+
+  def _store_remote_properties(self, properties):
+    """
+    Override the remote properties written for MySQL, inheriting those from the parent first.
+    :param properties:  the properties object to set MySQL specific properties on
+    :return:
+    """
+    super(SQLAConfig, self)._store_remote_properties(properties)
+    properties.process_pair(JDBC_SQLA_SERVER_NAME, self.server_name)
+
+  def _extract_client_tarball(self, properties):
+    files = []
+    files.extend(glob.glob(configDefaults.SHARE_PATH + os.sep + self.client_tarball_pattern))
+    
+    if len(files) > 1:
+      raise FatalException(-1, "More than One SQl Anywhere client tarball detected")
+    elif len(files) == 0:
+      raise FatalException(-1, self.JDBC_DRIVER_INSTALL_MSG)
+
+    cmd = SQLAConfig.EXTRACT_CMD.format(files[0], get_resources_location(properties))
+
+
+    process = subprocess.Popen(cmd.split(' '),
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE,
+                               stderr=subprocess.PIPE
+    )
+
+    out, err = process.communicate()
+    retcode =  process.returncode
+
+    if retcode != 0:
+      raise FatalException(-1, "Error extracting SQL Anywhere client tarball: " + str(err))
+
+  def _get_native_libs(self, properties):
+    return os.path.join(get_resources_location(properties), self.client_folder, "native", "lib64")
+
+  def _get_default_driver_path(self, properties):
+    return os.path.join(get_resources_location(properties), self.client_folder, "java", self.driver_file_name)
+
+
+def createSQLAConfig(options, properties, storage_type, dbId):
+  return SQLAConfig(options, properties, storage_type)

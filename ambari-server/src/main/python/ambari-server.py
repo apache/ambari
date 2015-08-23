@@ -348,7 +348,7 @@ def init_parser_options(parser):
                     dest="ldap_sync_users")
   parser.add_option('--groups', default=None, help="LDAP sync groups option.  Specifies the path to a CSV file of group names to be synchronized.",
                     dest="ldap_sync_groups")
-  parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|mssql|postgres", dest="dbms")
+  parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|mssql|postgres|sqlanywhere", dest="dbms")
   parser.add_option('--databasehost', default=None, help="Hostname of database server", dest="database_host")
   parser.add_option('--databaseport', default=None, help="Database port", dest="database_port")
   parser.add_option('--databasename', default=None, help="Database/Service name or ServiceID",
@@ -359,6 +359,7 @@ def init_parser_options(parser):
   parser.add_option('--databasepassword', default=None, help="Database user password", dest="database_password")
   parser.add_option('--sidorsname', default="sname", help="Oracle database identifier type, Service ID/Service "
                                                           "Name sid|sname", dest="sid_or_sname")
+  parser.add_option('--sqla-server-name', default=None, help="SQL Anywhere server name", dest="sqla_server_name")
   parser.add_option('--jdbc-driver', default=None, help="Specifies the path to the JDBC driver JAR file or archive " \
                                                         "with all required files(jdbc jar, libraries and etc), for the " \
                                                         "database type specified with the --jdbc-db option. " \

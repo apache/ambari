@@ -93,6 +93,7 @@ JDBC_DATABASE_NAME_PROPERTY = "server.jdbc.database_name"       # E.g., ambari. 
 JDBC_HOSTNAME_PROPERTY = "server.jdbc.hostname"
 JDBC_PORT_PROPERTY = "server.jdbc.port"
 JDBC_POSTGRES_SCHEMA_PROPERTY = "server.jdbc.postgres.schema"   # Only for postgres, defaults to same value as DB name
+JDBC_SQLA_SERVER_NAME = "server.jdbc.sqla.server_name"
 
 JDBC_USER_NAME_PROPERTY = "server.jdbc.user.name"
 JDBC_PASSWORD_PROPERTY = "server.jdbc.user.passwd"
@@ -228,6 +229,7 @@ class ServerDatabases(object):
   mysql = ServerDatabaseEntry("mysql", "MySQL", ServerDatabaseType.remote)
   mssql = ServerDatabaseEntry("mssql", "MSSQL", ServerDatabaseType.remote)
   derby = ServerDatabaseEntry("derby", "Derby", ServerDatabaseType.remote)
+  sqlanywhere = ServerDatabaseEntry("sqlanywhere", "SQL Anywhere", ServerDatabaseType.remote)
   postgres_internal = ServerDatabaseEntry("postgres", "Embedded Postgres", ServerDatabaseType.internal, aliases=['embedded'])
 
   @staticmethod
@@ -258,6 +260,7 @@ class ServerDatabases(object):
 class ServerConfigDefaults(object):
   def __init__(self):
     self.JAVA_SHARE_PATH = "/usr/share/java"
+    self.SHARE_PATH = "/usr/share"
     self.OUT_DIR = os.sep + os.path.join("var", "log", "ambari-server")
     self.SERVER_OUT_FILE = os.path.join(self.OUT_DIR, "ambari-server.out")
     self.SERVER_LOG_FILE = os.path.join(self.OUT_DIR, "ambari-server.log")
@@ -620,6 +623,8 @@ def get_db_type(properties):
       db_type = ServerDatabases.mssql
     elif str(ServerDatabases.derby) in jdbc_url:
       db_type = ServerDatabases.derby
+    elif str(ServerDatabases.sqlanywhere) in jdbc_url:
+      db_type = ServerDatabases.sqlanywhere
 
   if persistence_type == "local" and db_type is None:
     db_type = ServerDatabases.postgres_internal
@@ -1204,6 +1209,7 @@ def get_share_jars():
   file_list.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + "*mysql*"))
   file_list.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + "*sqljdbc*"))
   file_list.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + "*ojdbc*"))
+  file_list.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + "*sajdbc4*"))
   if len(file_list) > 0:
     share_jars = string.join(file_list, os.pathsep)
   return share_jars
