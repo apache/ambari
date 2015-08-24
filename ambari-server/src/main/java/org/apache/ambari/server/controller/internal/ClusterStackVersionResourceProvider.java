@@ -58,11 +58,9 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
@@ -79,6 +77,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -93,16 +92,29 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   // ----- Property ID constants ---------------------------------------------
 
-  protected static final String CLUSTER_STACK_VERSION_ID_PROPERTY_ID                   = PropertyHelper.getPropertyId("ClusterStackVersions", "id");
-  protected static final String CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID         = PropertyHelper.getPropertyId("ClusterStackVersions", "cluster_name");
-  protected static final String CLUSTER_STACK_VERSION_STACK_PROPERTY_ID                = PropertyHelper.getPropertyId("ClusterStackVersions", "stack");
-  protected static final String CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID              = PropertyHelper.getPropertyId("ClusterStackVersions", "version");
-  protected static final String CLUSTER_STACK_VERSION_STATE_PROPERTY_ID                = PropertyHelper.getPropertyId("ClusterStackVersions", "state");
-  protected static final String CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID          = PropertyHelper.getPropertyId("ClusterStackVersions", "host_states");
-  protected static final String CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID   = PropertyHelper.getPropertyId("ClusterStackVersions", "repository_version");
+  protected static final String CLUSTER_STACK_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "id");
+  protected static final String CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "cluster_name");
+  protected static final String CLUSTER_STACK_VERSION_STACK_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "stack");
+  protected static final String CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "version");
+  protected static final String CLUSTER_STACK_VERSION_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "state");
+  protected static final String CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "host_states");
+  protected static final String CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID  = PropertyHelper.getPropertyId("ClusterStackVersions", "repository_version");
+  protected static final String CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR  = PropertyHelper.getPropertyId("ClusterStackVersions", "success_factor");
 
   protected static final String INSTALL_PACKAGES_ACTION = "install_packages";
   protected static final String INSTALL_PACKAGES_FULL_NAME = "Install version";
+
+  /**
+   * The default success factor that will be used when determining if a stage's
+   * failure should cause other stages to abort. Consider a scenario with 1000
+   * hosts, broken up into 10 stages. Each stage would have 100 hosts. If the
+   * success factor was 100%, then any failure in stage 1 woudl cause all 9
+   * other stages to abort. If set to 90%, then 10 hosts would need to fail for
+   * the other stages to abort. This is necessary to prevent the abortion of
+   * stages based on 1 or 2 errant hosts failing in a large cluster's stack
+   * distribution.
+   */
+  private static final float INSTALL_PACKAGES_SUCCESS_FACTOR = 0.85f;
 
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {
@@ -126,6 +138,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       add(CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
+      add(CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR);
     }
   };
 
@@ -147,9 +160,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   private static HostVersionDAO hostVersionDAO;
 
   @Inject
-  private static StackDAO stackDAO;
-
-  @Inject
   private static RepositoryVersionDAO repositoryVersionDAO;
 
   @Inject
@@ -162,9 +172,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   @Inject
   private static StageFactory stageFactory;
-
-  @Inject
-  private static ClusterDAO clusterDAO;
 
   @Inject
   private static RequestFactory requestFactory;
@@ -272,14 +279,14 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     if (request.getProperties().size() != 1) {
       throw new UnsupportedOperationException("Multiple requests cannot be executed at the same time.");
     }
+
     Map<String, Object> propertyMap = iterator.next();
 
-    Set<String> requiredProperties = new HashSet<String>(){{
-      add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
-    }};
+    Set<String> requiredProperties = new HashSet<String>();
+    requiredProperties.add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
+    requiredProperties.add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
+    requiredProperties.add(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
+    requiredProperties.add(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
 
     for (String requiredProperty : requiredProperties) {
       if (! propertyMap.containsKey(requiredProperty)) {
@@ -319,13 +326,22 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       stackId = currentStackVersion;
     }
 
+    // why does the JSON body parser convert JSON primitives into strings!?
+    Float successFactor = INSTALL_PACKAGES_SUCCESS_FACTOR;
+    String successFactorProperty = (String) propertyMap.get(CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR);
+    if (StringUtils.isNotBlank(successFactorProperty)) {
+      successFactor = Float.valueOf(successFactorProperty);
+    }
+
     RepositoryVersionEntity repoVersionEnt = repositoryVersionDAO.findByStackAndVersion(
         stackId, desiredRepoVersion);
+
     if (repoVersionEnt == null) {
       throw new IllegalArgumentException(String.format(
               "Repo version %s is not available for stack %s",
               desiredRepoVersion, stackId));
     }
+
     List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
     Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<String, List<RepositoryEntity>>();
     for (OperatingSystemEntity operatingSystem : operatingSystems) {
@@ -351,27 +367,32 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
 
     ArrayList<Stage> stages = new ArrayList<Stage>(batchCount);
-    for (int batchId = 1; batchId <= batchCount ; batchId++) {
+    for (int batchId = 1; batchId <= batchCount; batchId++) {
       // Create next stage
       String stageName;
       if (batchCount > 1) {
         stageName = INSTALL_PACKAGES_FULL_NAME;
       } else {
-        stageName = String.format(INSTALL_PACKAGES_FULL_NAME +
-                ". Batch %d of %d", batchId, batchCount);
+        stageName = String.format(INSTALL_PACKAGES_FULL_NAME + ". Batch %d of %d", batchId,
+            batchCount);
       }
-      Stage stage = stageFactory.createNew(req.getId(),
-              "/tmp/ambari",
-              cluster.getClusterName(),
-              cluster.getClusterId(),
-              stageName,
-              "{}",
-              "{}",
-              hostParamsJson
-      );
+
+      Stage stage = stageFactory.createNew(req.getId(), "/tmp/ambari", cluster.getClusterName(),
+          cluster.getClusterId(), stageName, "{}", "{}", hostParamsJson);
+
+      // if you have 1000 hosts (10 stages with 100 installs), we want to ensure
+      // that a single failure doesn't cause all other stages to abort; set the
+      // success factor ratio in order to tolerate some failures in a single
+      // stage
+      stage.getSuccessFactors().put(Role.INSTALL_PACKAGES, successFactor);
+
+      // set and increment stage ID
       stage.setStageId(stageId);
-      stages.add(stage);
       stageId++;
+
+      // add the stage that was just created
+      stages.add(stage);
+
       // Populate with commands for host
       for (int i = 0; i < maxTasks && hostsForClusterIter.hasNext(); i++) {
         Host host = hostsForClusterIter.next();
@@ -389,6 +410,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     try {
       ClusterVersionEntity existingCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(
           clName, stackId, desiredRepoVersion);
+
       if (existingCSVer == null) {
         try {
           // Create/persist new cluster stack version
@@ -467,12 +489,11 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     final String packageList = gson.toJson(packages);
     final String repoList = gson.toJson(repoInfo);
 
-    Map<String, String> params = new HashMap<String, String>() {{
-      put("stack_id", stackId.getStackId());
-      put("repository_version", desiredRepoVersion);
-      put("base_urls", repoList);
-      put("package_list", packageList);
-    }};
+    Map<String, String> params = new HashMap<String, String>();
+    params.put("stack_id", stackId.getStackId());
+    params.put("repository_version", desiredRepoVersion);
+    params.put("base_urls", repoList);
+    params.put("package_list", packageList);
 
     // add host to this stage
     RequestResourceFilter filter = new RequestResourceFilter(null, null,
@@ -571,11 +592,10 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
       Map<String, Object> propertyMap = iterator.next();
 
-      Set<String> requiredProperties = new HashSet<String>() {{
-        add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
-        add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
-        add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
-      }};
+      Set<String> requiredProperties = new HashSet<String>();
+      requiredProperties.add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
+      requiredProperties.add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
+      requiredProperties.add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
 
       for (String requiredProperty : requiredProperties) {
         if (!propertyMap.containsKey(requiredProperty)) {
@@ -634,7 +654,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       command.setCommandParams(args);
       command.setClusterName(clName);
       finalizeUpgradeAction.setExecutionCommand(command);
-      
+
       HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(defaultHostName,
               Role.AMBARI_SERVER_ACTION, null, null);
       finalizeUpgradeAction.setHostRoleCommand(hostRoleCommand);

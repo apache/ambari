@@ -31,7 +31,6 @@ import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -41,6 +40,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -61,7 +61,6 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -70,7 +69,6 @@ import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
@@ -266,6 +264,9 @@ public class ClusterStackVersionResourceProviderTest {
     expect(stage.getExecutionCommandWrapper(anyObject(String.class), anyObject(String.class))).
             andReturn(executionCommandWrapper).anyTimes();
 
+    Map<Role, Float> successFactors = new HashMap<>();
+    expect(stage.getSuccessFactors()).andReturn(successFactors).atLeastOnce();
+
     // Check that we create proper stage count
     expect(stageFactory.createNew(anyLong(), anyObject(String.class),
             anyObject(String.class), anyLong(),
@@ -314,18 +315,18 @@ public class ClusterStackVersionResourceProviderTest {
 
     propertySet.add(properties);
 
-
-
-
-
     // create the request
     Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
     RequestStatus status = provider.createResources(request);
+    Assert.assertNotNull(status);
 
     // verify
-    verify(managementController, response, clusters, stageFactory);
+    verify(managementController, response, clusters, stageFactory, stage);
 
+    // check that the success factor was populated in the stage
+    Float successFactor = successFactors.get(Role.INSTALL_PACKAGES);
+    Assert.assertEquals(Float.valueOf(0.85f), successFactor);
   }
 
 
