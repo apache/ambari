@@ -143,11 +143,16 @@ module.exports = {
    */
   getPropsByOptions: function (databaseTypeProperty) {
     Em.assert('Property related to database type should contains `options` attribute', databaseTypeProperty.get('options'));
-    return databaseTypeProperty.options.mapProperty('foreignKeys').reduce(function (p, c) {
-      return p.concat(c);
-    }).uniq().map(function (name) {
-      return App.config.get('preDefinedSiteProperties').findProperty('name', name) || null;
-    }).compact();
+    var result = [];
+    var dbTypeAndHostname = databaseTypeProperty.options.mapProperty('foreignKeys').without(undefined);
+    if (!!dbTypeAndHostname.length) {
+       result = dbTypeAndHostname.reduce(function (p, c) {
+         return p.concat(c);
+       }).uniq().map(function (name) {
+         return App.config.get('preDefinedSiteProperties').findProperty('name', name) || null;
+       }).compact();
+    }
+    return result;
   },
 
   /**
