@@ -17,6 +17,8 @@
 }}
 
 <!-- Flume Agents -->
+<tr>
+  <td>
     <div id="flume-summary">
       <a href="#" {{action filterHosts view.flumeHandlerComponent}}>{{view.summaryHeader}}</a>
       <a href="#" class="pull-right" {{action gotoConfigs target="controller"}}>{{t dashboard.services.flume.summary.configure}}</a>
@@ -26,9 +28,9 @@
           {{#view view.sortView contentBinding="view.filteredContent" class="label-row"}}
             {{view view.parentView.hostSort}}
             <th>{{t dashboard.services.flume.agent}}</th>
-            <th><i class="icon-signin" {{translateAttr title="dashboard.services.flume.sources"}}></i></th>
-            <th><i class="icon-random" {{translateAttr title="dashboard.services.flume.channels"}}></i></th>
-            <th><i class="icon-signout" {{translateAttr title="dashboard.services.flume.sinks"}}></i></th>
+            <th><i class="icon-signin" {{translateAttr title="dashboard.services.flume.sources"}}></i> {{t dashboard.services.flume.sources}}</th>
+            <th><i class="icon-random" {{translateAttr title="dashboard.services.flume.channels"}}></i> {{t dashboard.services.flume.channels}}</th>
+            <th><i class="icon-signout" {{translateAttr title="dashboard.services.flume.sinks"}}></i> {{t dashboard.services.flume.sinks}}</th>
           {{/view}}
           </thead>
           {{#if view.pageContent}}
@@ -45,7 +47,7 @@
                       <div class="pull-left"><span {{bindAttr class="host.firtstAgent.healthClass"}}></span> {{host.firtstAgent.name}}</div>
                       <div class="btn-wrapper">
                         <div class="btn-group display-inline-block flume-agents-actions">
-                            <a {{bindAttr class=":btn :dropdown-toggle"}} data-toggle="dropdown" href="javascript:void(null)">{{host.firtstAgent.displayStatus}}
+                            <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:void(null)">{{host.firtstAgent.displayStatus}}
                                 <span class="caret"></span>
                             </a>
                             <ul class="pull-left dropdown-menu">
@@ -127,3 +129,5 @@
         </table>
       </div>
     </div>
+  </td>
+</tr>

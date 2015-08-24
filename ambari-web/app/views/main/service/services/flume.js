@@ -19,8 +19,10 @@ var App = require('app');
 var date = require('utils/date');
 var sort = require('views/common/sort_view');
 
-App.MainDashboardServiceFlumeView = App.TableView.extend({
+App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServiceViewWrapper, {
   templateName: require('templates/main/service/services/flume'),
+
+  isFullWidth: true,
 
   pagination: false,
 
@@ -91,7 +93,26 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
   }),
 
   didInsertElement: function () {
+    var self = this;
     this.filter();
+    this.$().on('click','.flume-agents-actions .dropdown-toggle', function (e){
+      self.setDropdownPosition(this);
+    });
+  },
+
+  /**
+   * Locate dropdown menu absolutely outside of scrollable block
+   * @param element
+   */
+  setDropdownPosition: function (element) {
+    var button = $(element);
+    var dropdown = button.parent().find('.dropdown-menu');
+    dropdown.css('top', button.offset().top + button.outerHeight() + "px");
+    dropdown.css('left', button.offset().left + "px");
+  },
+
+  willDestroyElement: function () {
+    this.$().off();
   },
 
   /**

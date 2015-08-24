@@ -5640,16 +5640,16 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
       width: 40%;
     }
     th:first-child + th {
-      width: 40%;
+      width: 30%;
     }
     th:first-child + th + th {
-      width: 16px;
+      width: 10%;
     }
     th:first-child + th + th + th {
-      width: 16px;
+      width: 10%;
     }
     th:first-child + th + th + th + th {
-      width: 16px;
+      width: 10%;
     }
     td.agent-status {
       width: 125px;
@@ -5699,10 +5699,10 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     margin: 0 5px 5px 0;
     float: right;
     width:60px;
-    position: relative;
+    position: static;
   }
   .flume-agents-actions {
-    position: absolute;
+    position: static;
     a {
       text-decoration: none;
     }
@@ -5710,6 +5710,9 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
       padding: 2px 6px;
       font-size: 11px;
       line-height: 17px;
+    }
+    .dropdown-menu {
+      position: absolute;
     }
   }
   .scrollable-container {
