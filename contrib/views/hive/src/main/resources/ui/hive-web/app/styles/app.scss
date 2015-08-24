@@ -552,6 +552,7 @@ tree-view ul li {
   .table {
     display: inline-block;
     overflow: auto;
+    max-width: 830px;
   }
 
   .query-results-tools {
