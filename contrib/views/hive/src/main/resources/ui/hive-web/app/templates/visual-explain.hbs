@@ -20,7 +20,11 @@
   {{#panel-widget headingTranslation="titles.query.visualExplain"}}
 
   {{#unless json}}
-    <div class="spinner"></div>
+    {{#if noquery}}
+      <div class="alert alert-danger" role="alert"><strong>{{tb-helper 'hive.errors.no.query'}}</strong></div>
+    {{else}}
+      <div class="spinner"></div>
+    {{/if}}
   {{/unless}}
 
   <div id="no-visual-explain-graph"></div>
