@@ -101,9 +101,6 @@ export CATALINA_OPTS="${CATALINA_OPTS} -Xmx2048m -XX:MaxPermSize=256m "
 export CATALINA_OPTS="${CATALINA_OPTS} -Xmx2048m"
 {% endif %}
 
-{% if sqla_db_used %}
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:{{jdbc_libs_dir}}"
-{% endif %}
     </value>
   </property>
 
