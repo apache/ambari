@@ -729,6 +729,22 @@
           <organization>Pivotal</organization>
         </contributor>
         <contributor>
+          <name>Dipayan Bhowmick</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Zachary Blanco</name>
+          <organization>Rutgers University</organization>
+        </contributor>
+        <contributor>
+          <name>Nadav Caspi</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Chelsea Chang</name>
+          <organization>Microsoft</organization>
+        </contributor>
+        <contributor>
           <name>Chun Chen</name>
           <organization></organization>
         </contributor>
@@ -745,12 +761,24 @@
           <organization>Pivotal</organization>
         </contributor>
         <contributor>
+          <name>Nick Dimiduk</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
           <name>Ellen Evans</name>
           <organization></organization>
         </contributor>
         <contributor>
           <name>Matthew Farrellee</name>
           <organization>Red Hat</organization>
+        </contributor>
+        <contributor>
+          <name>Ahmed Fathalla</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Andrew Grande</name>
+          <organization>Hortonworks</organization>
         </contributor>
         <contributor>
           <name>Ximo Guanter</name>
@@ -763,6 +791,10 @@
         <contributor>
           <name>Sumit Gupta</name>
           <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Jonathan Halterman</name>
+          <organization>HP</organization>
         </contributor>
         <contributor>
           <name>Michael Harp</name>
@@ -781,6 +813,10 @@
           <organization></organization>
         </contributor>
         <contributor>
+          <name>Ritesh Jaltare</name>
+          <organization>Pivotal</organization>
+        </contributor>
+        <contributor>
           <name>Shawn Kern</name>
           <organization></organization>
         </contributor>
@@ -793,28 +829,80 @@
           <organization></organization>
         </contributor>
         <contributor>
-          <name>Adamos Loizou</name>
+          <name>Brandon Li</name>
           <organization></organization>
         </contributor>
         <contributor>
-          <name>Trevor McKay</name>
-          <organization>Red Hat</organization>
+          <name>Di Li</name>
+          <organization>IBM</organization>
+        </contributor>
+        <contributor>
+          <name>Chuan Liu</name>
+          <organization>Microsoft</organization>
+        </contributor>
+        <contributor>
+          <name>Adamos Loizou</name>
+          <organization></organization>
         </contributor>
         <contributor>
           <name>Jeff Markham</name>
           <organization>Hortonworks</organization>
         </contributor>
         <contributor>
+          <name>Jonathan Maron</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Juanjo Marron</name>
+          <organization>IBM</organization>
+        </contributor>
+        <contributor>
+          <name>Trevor McKay</name>
+          <organization>Red Hat</organization>
+        </contributor>
+        <contributor>
+          <name>David McWhorter</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
           <name>Rodrigo Meneses</name>
           <organization>Pivotal</organization>
+        </contributor>
+        <contributor>
+          <name>Ivan Mitic</name>
+          <organization>Microsoft</organization>
+        </contributor>
+        <contributor>
+          <name>Mostafa Mokhtar</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Shantanu Mundkur</name>
+          <organization></organization>
         </contributor>
         <contributor>
           <name>Thejas Nair</name>
           <organization>Hortonworks</organization>
         </contributor>
         <contributor>
+          <name>Selvamohan Neethiraj</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
           <name>Richard Pelavin</name>
           <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Anthony Penniston</name>
+          <organization>Pivotal</organization>
+        </contributor>
+        <contributor>
+          <name>Velmurugan Periasamy</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Rishi Pidva</name>
+          <organization>Pivotal</organization>
         </contributor>
         <contributor>
           <name>ViVek Raghuwanshi</name>
@@ -825,6 +913,10 @@
           <organization>Teradata</organization>
         </contributor>
         <contributor>
+          <name>Luciano Resende</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
           <name>Ananya Sen</name>
           <organization></organization>
         </contributor>
@@ -833,8 +925,24 @@
           <organization>Hortonworks</organization>
         </contributor>
         <contributor>
+          <name>Sreenath Somarajapuram</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Mahesh Kumar Vasanthu Somashekar</name>
+          <organization>Pivotal</organization>
+        </contributor>
+        <contributor>
+          <name>Nahappan Somasundaram</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
           <name>Suresh Srinivas</name>
           <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Vivek Ratnavel Subramanian</name>
+          <organization>The Ohio State University</organization>
         </contributor>
         <contributor>
           <name>Pramod Thangali</name>
@@ -849,8 +957,28 @@
           <organization>Hortonworks</organization>
         </contributor>
         <contributor>
+          <name>Ram Venkatesh</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
           <name>Ivan Wang</name>
           <organization>Pivotal</organization>
+        </contributor>
+        <contributor>
+          <name>Adam Westerman</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Pengcheng Xu</name>
+          <organization>Carnegie Mellon University</organization>
+        </contributor>
+        <contributor>
+          <name>Ted Yu</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Zhan Zhang</name>
+          <organization>Hortonworks</organization>
         </contributor>
         <contributor>
           <name>Cabir Zounaidou</name>
