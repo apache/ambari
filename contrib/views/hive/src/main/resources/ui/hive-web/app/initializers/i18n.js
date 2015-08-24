@@ -232,6 +232,12 @@ TRANSLATIONS = {
     }
   },
 
+  hive: {
+    errors: {
+      'no.query': "No query to process."
+    }
+  },
+
   emptyList: {
     history: {
       noItems: "No queries were run.",

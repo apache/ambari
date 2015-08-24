@@ -165,6 +165,17 @@ export default Ember.Controller.extend({
 
     query = this.buildQuery(query, shouldExplain, shouldGetVisualExplain);
 
+
+    // Condition for no query.
+    if(query === ';') {
+      originalModel.set('isEmptyQuery', true);
+      originalModel.set('isRunning', false);
+      defer.reject({
+        message: 'No query to process.'
+      });
+      return defer.promise;
+    }
+
     // for now we won't support multiple queries
     // buildQuery will return false it multiple queries
     // are selected
