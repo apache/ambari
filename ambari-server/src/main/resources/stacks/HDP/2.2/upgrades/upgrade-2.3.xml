@@ -127,9 +127,10 @@
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
       <priority>
+        <service>ZOOKEEPER</service>
         <service>HDFS</service>
-        <service>MAPREDUCE2</service>
         <service>YARN</service>
+        <service>MAPREDUCE2</service>
         <service>HBASE</service>
       </priority>
       <exclude>
@@ -163,6 +164,7 @@
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
       <priority>
+        <service>ZOOKEEPER</service>
         <service>HDFS</service>
         <service>YARN</service>
         <service>HBASE</service>
@@ -249,6 +251,7 @@
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
       <priority>
+        <service>ZOOKEEPER</service>
         <service>HDFS</service>
         <service>YARN</service>
         <service>HBASE</service>

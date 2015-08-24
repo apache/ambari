@@ -27,6 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -39,6 +40,7 @@ import org.apache.ambari.server.state.stack.upgrade.ConfigureTask.Transfer;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.RestartTask;
+import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TransferOperation;
 import org.junit.After;
@@ -213,12 +215,33 @@ public class UpgradePackTest {
         "ZOOKEEPER",
         "POST_CLUSTER");
 
+    Grouping serviceCheckGroup = null;
+
     int i = 0;
     List<Grouping> groups = up.getGroups(Direction.UPGRADE);
     for (Grouping g : groups) {
       assertEquals(expected_up.get(i), g.name);
       i++;
+
+      if (g.name.equals("SERVICE_CHECK_1")) {
+        serviceCheckGroup = g;
+      }
     }
+
+    List<String> expected_priority = Arrays.asList("HDFS", "HBASE", "YARN");
+
+    assertNotNull(serviceCheckGroup);
+    assertEquals(ServiceCheckGrouping.class, serviceCheckGroup.getClass());
+    ServiceCheckGrouping scg = (ServiceCheckGrouping) serviceCheckGroup;
+
+    Set<String> priorities = scg.getPriorities();
+    assertEquals(3, priorities.size());
+
+    i = 0;
+    for (String s : priorities) {
+      assertEquals(expected_priority.get(i++), s);
+    }
+
 
     i = 0;
     groups = up.getGroups(Direction.DOWNGRADE);
@@ -226,6 +249,7 @@ public class UpgradePackTest {
       assertEquals(expected_down.get(i), g.name);
       i++;
     }
+
   }
 
   @Test
