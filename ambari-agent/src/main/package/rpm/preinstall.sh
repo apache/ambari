@@ -27,7 +27,11 @@ fi
 BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
 ORIG=/etc/ambari-agent/conf/ambari-agent.ini
 
+BAK_SUDOERS=/etc/sudoers.d/ambari-agent.bak
+ORIG_SUDOERS=/etc/sudoers.d/ambari-agent
+
 [ -f $ORIG ] && mv -f $ORIG $BAK
+[ -f $ORIG_SUDOERS ] && mv -f $ORIG_SUDOERS $BAK_SUDOERS
 
 if [ -d "$STACKS_FOLDER" ]
 then
