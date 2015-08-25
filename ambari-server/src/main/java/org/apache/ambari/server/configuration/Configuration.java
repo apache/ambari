@@ -427,6 +427,8 @@ public class Configuration {
   private static final String DEFAULT_TIMELINE_METRICS_REQUEST_CONNECT_TIMEOUT = "5000";
   private static final String TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL = "server.timeline.metrics.cache.catchup.interval";
   private static final String DEFAULT_TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL = "300000";
+  private static final String TIMELINE_METRICS_CACHE_HEAP_PERCENT = "server.timeline.metrics.cache.heap.percent";
+  private static final String DEFAULT_TIMELINE_METRICS_CACHE_HEAP_PERCENT = "15%";
 
   /**
    * The full path to the XML file that describes the different alert templates.
@@ -1552,7 +1554,7 @@ public class Configuration {
   public int getHttpSessionInactiveTimeout() {
     return Integer.parseInt(properties.getProperty(
       SERVER_HTTP_SESSION_INACTIVE_TIMEOUT,
-        "1800"));
+      "1800"));
   }
 
   /**
@@ -1822,7 +1824,9 @@ public class Configuration {
 
   /**
    * Max allowed entries in metrics cache.
+   * @deprecated Ehcache only supports either a max heap bytes or entries.
    */
+  @Deprecated
   public int getMetricCacheMaxEntries() {
     return Integer.parseInt(properties.getProperty(TIMELINE_METRICS_CACHE_MAX_ENTRIES,
       DEFAULT_TIMELINE_METRICS_CACHE_MAX_ENTRIES));
@@ -1887,6 +1891,18 @@ public class Configuration {
    */
   public Long getMetricRequestBufferTimeCatchupInterval() {
     return Long.parseLong(properties.getProperty(TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL,
-        DEFAULT_TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL));
+      DEFAULT_TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL));
+  }
+
+  /**
+   * Percentage of total heap allocated to metrics cache, default is 15%.
+   * Default heap setting for the server is 2 GB so max allocated heap size
+   * for this cache is 300 MB.
+   */
+  public String getMetricsCacheManagerHeapPercent() {
+    String percent = properties.getProperty(TIMELINE_METRICS_CACHE_HEAP_PERCENT,
+      DEFAULT_TIMELINE_METRICS_CACHE_HEAP_PERCENT);
+
+    return percent.trim().endsWith("%") ? percent.trim() : percent.trim() + "%";
   }
 }

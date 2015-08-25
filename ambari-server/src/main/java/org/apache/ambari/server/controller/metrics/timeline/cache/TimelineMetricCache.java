@@ -23,6 +23,7 @@ import net.sf.ehcache.Element;
 import net.sf.ehcache.constructs.blocking.LockTimeoutException;
 import net.sf.ehcache.constructs.blocking.UpdatingCacheEntryFactory;
 import net.sf.ehcache.constructs.blocking.UpdatingSelfPopulatingCache;
+import net.sf.ehcache.statistics.StatisticsGateway;
 import org.apache.ambari.server.AmbariException;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
@@ -74,7 +75,15 @@ public class TimelineMetricCache extends UpdatingSelfPopulatingCache {
     if (LOG.isDebugEnabled()) {
       // Print stats every 100 calls - Note: Supported in debug mode only
       if (printCacheStatsCounter.getAndIncrement() == 0) {
-        LOG.debug("Metrics cache stats => \n" + this.getStatistics());
+        StatisticsGateway statistics = this.getStatistics();
+        LOG.debug("Metrics cache stats => \n" +
+          ", Evictions = " + statistics.cacheEvictedCount() +
+          ", Expired = " + statistics.cacheExpiredCount() +
+          ", Hits = " + statistics.cacheHitCount() +
+          ", Misses = " + statistics.cacheMissCount() +
+          ", Hit ratio = " + statistics.cacheHitRatio() +
+          ", Puts = " + statistics.cachePutCount() +
+          ", Size in MB = " + (statistics.getLocalHeapSizeInBytes() / 1048576));
       } else {
         printCacheStatsCounter.compareAndSet(100, 0);
       }
