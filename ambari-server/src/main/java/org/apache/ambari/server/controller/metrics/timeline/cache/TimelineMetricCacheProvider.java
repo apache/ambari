@@ -22,10 +22,14 @@ import com.google.inject.Singleton;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.config.CacheConfiguration;
+import net.sf.ehcache.config.PersistenceConfiguration;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static net.sf.ehcache.config.PersistenceConfiguration.*;
 
 /**
  * Cache implementation that provides ability to perform incremental reads
@@ -56,26 +60,35 @@ public class TimelineMetricCacheProvider {
       return;
     }
 
-    //Create a singleton CacheManager using defaults
     System.setProperty("net.sf.ehcache.skipUpdateCheck", "true");
-    CacheManager manager = CacheManager.getInstance();
+    net.sf.ehcache.config.Configuration managerConfig =
+      new net.sf.ehcache.config.Configuration();
+
+    // Set max heap available to the cache manager
+    managerConfig.setMaxBytesLocalHeap(configuration.getMetricsCacheManagerHeapPercent());
+
+    //Create a singleton CacheManager using defaults
+    CacheManager manager = CacheManager.create(managerConfig);
 
     LOG.info("Creating Metrics Cache with timeouts => ttl = " +
       configuration.getMetricCacheTTLSeconds() + ", idle = " +
       configuration.getMetricCacheIdleSeconds());
 
+    PersistenceConfiguration persistenceConfiguration = new PersistenceConfiguration();
+    persistenceConfiguration.setStrategy(Strategy.NONE.name());
+
     //Create a Cache specifying its configuration.
-    Cache cache = new Cache(
-      new CacheConfiguration(TIMELINE_METRIC_CACHE_INSTANCE_NAME, configuration.getMetricCacheMaxEntries())
+    CacheConfiguration cacheConfiguration = new CacheConfiguration()
+        .name(TIMELINE_METRIC_CACHE_INSTANCE_NAME)
         .timeToLiveSeconds(configuration.getMetricCacheTTLSeconds()) // 1 hour
         .timeToIdleSeconds(configuration.getMetricCacheIdleSeconds()) // 5 minutes
         .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LRU)
         .eternal(false)
-        .diskPersistent(false)
-        .overflowToDisk(false)
-        .statistics(LOG.isDebugEnabled() || LOG.isTraceEnabled())
-    );
+        .persistence(persistenceConfiguration);
 
+    Cache cache = new Cache(cacheConfiguration);
+
+    // Decorate with UpdatingSelfPopulatingCache
     timelineMetricsCache = new TimelineMetricCache(cache, cacheEntryFactory);
 
     LOG.info("Registering metrics cache with provider: name = " +

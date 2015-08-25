@@ -102,8 +102,13 @@ public class TimelineMetricCacheTest {
 
     replay(cacheEntryFactory);
 
-    CacheManager manager = CacheManager.getInstance();
-    Cache cache = new Cache("test", 10, false, false, 10000, 10000);
+    // Need to set this due what seems like a bug in Ehcache 2.10.0, setting
+    // it on the second cache instance results in a assertion error.
+    // Since this is not out production use case, setting it here as well.
+    net.sf.ehcache.config.Configuration managerConfig = new net.sf.ehcache.config.Configuration();
+    managerConfig.setMaxBytesLocalHeap("10%");
+    CacheManager manager = CacheManager.create(managerConfig);
+    Cache cache = new Cache("test", 0, false, false, 10000, 10000);
     UpdatingSelfPopulatingCache testCache = new UpdatingSelfPopulatingCache(cache, cacheEntryFactory);
     manager.addCache(testCache);
 
@@ -116,9 +121,11 @@ public class TimelineMetricCacheTest {
   @Test
   public void testTimlineMetricCacheProviderGets() throws Exception {
     Configuration configuration = createNiceMock(Configuration.class);
-    expect(configuration.getMetricCacheMaxEntries()).andReturn(1000);
     expect(configuration.getMetricCacheTTLSeconds()).andReturn(3600);
     expect(configuration.getMetricCacheIdleSeconds()).andReturn(100);
+    expect(configuration.getMetricsCacheManagerHeapPercent()).andReturn("10%");
+
+    replay(configuration);
 
     final long now = System.currentTimeMillis();
     Map<String, TimelineMetric> valueMap = new HashMap<String, TimelineMetric>();
@@ -150,7 +157,7 @@ public class TimelineMetricCacheTest {
     cacheEntryFactory.updateEntryValue(testKey, value);
     expectLastCall().once();
 
-    replay(configuration, cacheEntryFactory);
+    replay(cacheEntryFactory);
 
     TimelineMetricCacheProvider cacheProvider = getMetricCacheProvider(configuration, cacheEntryFactory);
     TimelineMetricCache cache = cacheProvider.getTimelineMetricsCache();

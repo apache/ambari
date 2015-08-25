@@ -81,8 +81,12 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
     LOG.debug("Creating cache entry since none exists, key = " + key);
     TimelineAppMetricCacheKey metricCacheKey = (TimelineAppMetricCacheKey) key;
 
-    TimelineMetrics timelineMetrics =
-      requestHelperForGets.fetchTimelineMetrics(metricCacheKey.getSpec());
+    TimelineMetrics timelineMetrics = null;
+    try {
+      timelineMetrics = requestHelperForGets.fetchTimelineMetrics(metricCacheKey.getSpec());
+    } catch (IOException io) {
+      LOG.debug("Caught IOException on fetching metrics. " + io.getMessage());
+    }
 
     TimelineMetricsCacheValue value = null;
 
