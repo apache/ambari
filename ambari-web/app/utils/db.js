@@ -145,11 +145,9 @@ App.db.getProperties = function (namespace, listOfProperties) {
     App.db.data[namespace] = {};
   }
   var ret = {};
-  for (var k in listOfProperties) {
-    if (listOfProperties.hasOwnProperty(k)) {
-      ret[k] = App.db.data[namespace][k];
-    }
-  }
+  listOfProperties.forEach(function (k) {
+    ret[k] = App.db.data[namespace][k];
+  });
   return ret;
 };
 

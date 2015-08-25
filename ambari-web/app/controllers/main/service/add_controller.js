@@ -322,8 +322,9 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    * Load master component hosts data for using in required step controllers
    */
   loadSlaveComponentHosts: function () {
-    var slaveComponentHosts = this.getDBProperty('slaveComponentHosts'),
-      hosts = this.getDBProperty('hosts'),
+    var props = this.getDBProperties(['slaveComponentHosts', 'hosts']);
+    var slaveComponentHosts = props.slaveComponentHosts,
+      hosts = props.hosts || {},
       host_names = Em.keys(hosts);
     if (!Em.isNone(slaveComponentHosts)) {
       slaveComponentHosts.forEach(function (component) {

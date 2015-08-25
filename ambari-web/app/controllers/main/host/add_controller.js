@@ -144,7 +144,7 @@ App.AddHostController = App.WizardController.extend({
    var props = this.getDBProperties(['slaveComponentHosts', 'hosts']);
     var slaveComponentHosts = props.slaveComponentHosts || [];
     if (slaveComponentHosts.length) {
-      var hosts = props.hosts,
+      var hosts = props.hosts || {},
           host_names = Em.keys(hosts);
       slaveComponentHosts.forEach(function (component) {
         component.hosts.forEach(function (host) {
