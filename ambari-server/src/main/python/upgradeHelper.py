@@ -2113,7 +2113,7 @@ def main():
 
   parser.add_option('--hostname', default=None, help="Hostname for Ambari server", dest="hostname")
   parser.add_option('--port', default='8080', help="Port number for Ambari server", dest="port")
-  parser.add_option('--https', default=False, action="store_false", dest="https", help="Use https protocol for connection to the server")
+  parser.add_option('--https', default=False, action="store_true", dest="https", help="Use https protocol for connection to the server")
   parser.add_option('--user', default=None, help="Ambari admin user", dest="user")
   parser.add_option('--password', default=None, help="Ambari admin password", dest="password")
   parser.add_option('--clustername', default=None, help="Cluster name", dest="clustername")
