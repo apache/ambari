@@ -149,14 +149,14 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * true if validation has any error message (general or host specific)
    */
   anyErrors: function() {
-    return this.get('anyGeneralErrors') || this.get('hosts').some(function(h) { return h.get('errorMessages.length') > 0; });
+    return this.get('anyGeneralErrors') || this.get('hosts').some(function(h) { return h.errorMessages.length > 0; });
   }.property('anyGeneralErrors', 'hosts.@each.errorMessages'),
 
   /**
    * true if validation has any warning message (general or host specific)
    */
   anyWarnings: function() {
-    return this.get('anyGeneralWarnings') || this.get('hosts').some(function(h) { return h.get('warnMessages.length') > 0; });
+    return this.get('anyGeneralWarnings') || this.get('hosts').some(function(h) { return h.warnMessages.length > 0; });
   }.property('anyGeneralWarnings', 'hosts.@each.warnMessages'),
 
   openSlavesAndClientsIssues: function () {
@@ -186,9 +186,9 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
       headersMap[header.name] = true;
     });
     hosts.forEach(function (host) {
-      host.get('checkboxes').forEach(function (checkbox) {
-        if (headersMap[checkbox.get('component')]) {
-          headersMap[checkbox.get('component')] = !checkbox.get('checked');
+      host.checkboxes.forEach(function (checkbox) {
+        if (headersMap[checkbox.component]) {
+          headersMap[checkbox.component] = !checkbox.checked;
         }
       });
     });
@@ -204,7 +204,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
       hosts.forEach(function (host) {
         isError = false;
         headers.forEach(function (header) {
-          isError |= host.get('checkboxes').findProperty('title', header.get('label')).checked;
+          isError |= host.checkboxes.findProperty('title', header.get('label')).checked;
         });
         isError = !isError;
         if (!isError) {
@@ -259,9 +259,9 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    */
   setAllNodes: function (component, checked) {
     this.get('hosts').forEach(function (host) {
-      host.get('checkboxes').filterProperty('isInstalled', false).forEach(function (checkbox) {
-        if (checkbox.get('component') === component) {
-          checkbox.set('checked', checked);
+      host.checkboxes.filterProperty('isInstalled', false).forEach(function (checkbox) {
+        if (checkbox.component === component) {
+          Em.set(checkbox, 'checked', checked);
         }
       });
     });
@@ -281,10 +281,10 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
       var allTrue = true;
       var allFalse = true;
       hosts.forEach(function (host) {
-        host.get('checkboxes').forEach(function (checkbox) {
-          if (checkbox.get('component') === component && !checkbox.get('isInstalled')) {
-            allTrue = allTrue && checkbox.get('checked');
-            allFalse = allFalse && !checkbox.get('checked');
+        host.checkboxes.forEach(function (checkbox) {
+          if (checkbox.component === component && !checkbox.isInstalled) {
+            allTrue = allTrue && checkbox.checked;
+            allFalse = allFalse && !checkbox.checked;
           }
         });
       });
@@ -374,26 +374,28 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var hostsObj = [],
       masterHosts = [],
       headers = this.get('headers'),
-      masterHostNames = this.get('content.masterComponentHosts').mapProperty('hostName').uniq();
+      masterHostNames = this.get('content.masterComponentHosts').mapProperty('hostName').uniq(),
+      masterHostNamesMap = {};
+    masterHostNames.forEach(function(hostName) {
+      masterHostNamesMap[hostName] = true;
+    });
 
     this.getHostNames().forEach(function (_hostName) {
-      var hasMaster = masterHostNames.contains(_hostName);
+      var hasMaster = masterHostNamesMap[_hostName];
 
-      var obj = Em.Object.create({
+      var obj = {
         hostName: _hostName,
         hasMaster: hasMaster,
-        checkboxes: []
-      });
-
-      headers.forEach(function (header) {
-        obj.checkboxes.pushObject(Em.Object.create({
-          component: header.name,
-          title: header.label,
-          checked: false,
-          isInstalled: false,
-          isDisabled: header.get('isDisabled')
-        }));
-      });
+        checkboxes: headers.map(function (header) {
+          return{
+            component: header.name,
+            title: header.label,
+            checked: false,
+            isInstalled: false,
+            isDisabled: header.get('isDisabled')
+          };
+        })
+      };
 
       if (hasMaster) {
         masterHosts.pushObject(obj)
@@ -439,7 +441,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
       var clientComponents = App.get('components.clients');
 
       hostsObj.forEach(function (host) {
-        var checkboxes = host.get('checkboxes');
+        var checkboxes = host.checkboxes;
         checkboxes.forEach(function (checkbox) {
           var recommended = componentHostPairs.some(function (pair) {
             var componentMatch = pair.component === checkbox.component;
@@ -452,14 +454,24 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         });
       });
     } else {
+
+      var slaveComponentsMap = {};
+      slaveComponents.forEach(function(slave) {
+        slaveComponentsMap[Em.get(slave, 'componentName')] = slave;
+      });
+      var hostsObjMap = {};
+      hostsObj.forEach(function(host) {
+        hostsObjMap[Em.get(host, 'hostName')] = host;
+      });
+
       this.get('headers').forEach(function (header) {
-        var nodes = slaveComponents.findProperty('componentName', header.get('name'));
+        var nodes = slaveComponentsMap[header.get('name')];
         if (nodes) {
           nodes.hosts.forEach(function (_node) {
-            var node = hostsObj.findProperty('hostName', _node.hostName);
+            var node = hostsObjMap[_node.hostName];
             if (node) {
-              node.get('checkboxes').findProperty('title', header.get('label')).set('checked', true);
-              node.get('checkboxes').findProperty('title', header.get('label')).set('isInstalled', _node.isInstalled);
+              Em.set(node.checkboxes.findProperty('title', header.get('label')), 'checked', true);
+              Em.set(node.checkboxes.findProperty('title', header.get('label')), 'isInstalled', _node.isInstalled);
             }
           });
         }
@@ -478,9 +490,9 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     if (!this.get('isClientsSet')) {
       var nonMasterHost = hostsObj.findProperty('hasMaster', false);
       var clientHost = !!nonMasterHost ? nonMasterHost : hostsObj[hostsObj.length - 1]; // last host
-      var clientCheckBox = clientHost.get('checkboxes').findProperty('component', 'CLIENT');
+      var clientCheckBox = clientHost.checkboxes.findProperty('component', 'CLIENT');
       if (clientCheckBox) {
-        clientCheckBox.set('checked', true);
+        Em.set(clientCheckBox, 'checked', true);
       }
       this.set('isClientsSet', true);
     }
@@ -637,24 +649,28 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         });
       });
       if (host) {
-        host.set('anyMessage', true);
+        Em.set(host, 'anyMessage', true);
 
         if (item.level === 'ERROR') {
           anyErrors = true;
-          host.get('errorMessages').push(item.message);
-          checkboxWithIssue.set('hasErrorMessage', true);
-        } else if (item.level === 'WARN') {
-          host.get('warnMessages').push(item.message);
-          checkboxWithIssue.set('hasWarnMessage', true);
+          host.errorMessages.pushObject(item.message);
+          Em.set(checkboxWithIssue, 'hasErrorMessage', true);
         }
-      } else {
+        else
+          if (item.level === 'WARN') {
+            host.warnMessages.pushObject(item.message);
+            Em.set(checkboxWithIssue, 'hasWarnMessage', true);
+          }
+      }
+      else {
         var component;
         if (isGeneralClientValidationItem) {
           if (!anyGeneralClientErrors) {
             anyGeneralClientErrors = true;
             component = "Client";
           }
-        } else {
+        }
+        else {
           component = item['component-name'];
         }
 
@@ -667,9 +683,11 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
           if (item.level === 'ERROR') {
             anyErrors = true;
             self.get('generalErrorMessages').push(item.message + details);
-          } else if (item.level === 'WARN') {
-            self.get('generalWarningMessages').push(item.message + details);
           }
+          else
+            if (item.level === 'WARN') {
+              self.get('generalWarningMessages').push(item.message + details);
+            }
         }
       }
     });

@@ -345,6 +345,8 @@ App.MainAlertInstancesController = Em.Controller.extend({
 
         didInsertElement: function () {
           this.filter();
+          this.addObserver('filteringComplete', this, this.overlayObserver);
+          this.overlayObserver();
           return this._super();
         }
       })

@@ -57,6 +57,7 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
    */
   onLoad: function () {
     if (this.get('controller.isLoaded')) {
+      this.set('selectedAlertGroup', [this.get('controller.alertGroups.firstObject')]);
       this.setTooltips();
     }
   }.observes('controller.isLoaded'),

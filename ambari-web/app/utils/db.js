@@ -133,6 +133,26 @@ App.db.get = function (namespace, key) {
   return App.db.data[namespace][key];
 };
 
+/**
+ *
+ * @param {string} namespace
+ * @param {string[]} listOfProperties
+ * @returns {object}
+ */
+App.db.getProperties = function (namespace, listOfProperties) {
+  App.db.data = localStorage.getObject('ambari');
+  if (!App.db.data[namespace]) {
+    App.db.data[namespace] = {};
+  }
+  var ret = {};
+  for (var k in listOfProperties) {
+    if (listOfProperties.hasOwnProperty(k)) {
+      ret[k] = App.db.data[namespace][k];
+    }
+  }
+  return ret;
+};
+
 App.db.set = function (namespace, key, value) {
   console.log('TRACE: Entering db:set' + key + ';value: ', value);
   App.db.data = localStorage.getObject('ambari');
@@ -140,6 +160,24 @@ App.db.set = function (namespace, key, value) {
     App.db.data[namespace] = {};
   }
   App.db.data[namespace][key] = value;
+  localStorage.setObject('ambari', App.db.data);
+};
+
+/**
+ *
+ * @param {string} namespace
+ * @param {{key: value}} hash
+ */
+App.db.setProperties = function (namespace, hash) {
+  App.db.data = localStorage.getObject('ambari');
+  if (!App.db.data[namespace]) {
+    App.db.data[namespace] = {};
+  }
+  for (var k in hash) {
+    if (hash.hasOwnProperty(k)) {
+      App.db.data[namespace][k] = hash[k];
+    }
+  }
   localStorage.setObject('ambari', App.db.data);
 };
 /*

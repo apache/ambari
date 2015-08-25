@@ -47,12 +47,29 @@ App.LocalStorage = Em.Mixin.create({
   },
 
   /**
+   * get properties from local storage
+   * @param {String[]} listOfProperties
+   * @return {*}
+   */
+  getDBProperties: function(listOfProperties){
+    return App.db.getProperties(this.get('dbNamespace'), listOfProperties);
+  },
+
+  /**
    * set property to local storage
    * @param {String} key
    * @param {*} value
    */
-  setDBProperty: function(key, value){
+  setDBProperty: function(key, value) {
     App.db.set(this.get('dbNamespace'), key, value);
+  },
+
+  /**
+   * set properties to local storage
+   * @param {object} hash
+   */
+  setDBProperties: function(hash) {
+    App.db.setProperties(this.get('dbNamespace'), hash);
   },
 
   /**

@@ -332,9 +332,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   clearInstallOptions: function () {
     var installOptions = this.getInstallOptions();
     this.set('content.installOptions', installOptions);
-    this.setDBProperty('installOptions', installOptions);
     this.set('content.hosts', {});
-    this.setDBProperty('hosts', {});
+    this.setDBProperties({
+      installOptions: installOptions,
+      hosts: {}
+    });
   },
 
   toObject: function (object) {
@@ -576,9 +578,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   clearStorageData: function () {
+    var hash = {};
     this.get('dbPropertiesToClean').forEach(function (key) {
-      this.setDBProperty(key, undefined);
+      hash[key] = undefined;
     }, this);
+    this.setDBProperties(hash);
   },
 
   getInstallOptions: function() {
@@ -629,8 +633,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   loadServiceComponentsSuccessCallback: function (jsonData) {
-    var savedSelectedServices = this.getDBProperty('selectedServiceNames');
-    var savedInstalledServices = this.getDBProperty('installedServiceNames');
+    var props = this.getDBProperties(['selectedServiceNames', 'installedServiceNames']);
+    var savedSelectedServices = props.selectedServiceNames;
+    var savedInstalledServices = props.installedServiceNames;
     this.set('content.selectedServiceNames', savedSelectedServices);
     this.set('content.installedServiceNames', savedInstalledServices);
     if (!savedSelectedServices) {
@@ -672,8 +677,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * Load config groups from local DB
    */
   loadServiceConfigGroups: function () {
-    var serviceConfigGroups = this.getDBProperty('serviceConfigGroups'),
-      hosts = this.getDBProperty('hosts'),
+    var props = this.getDBProperties(['serviceConfigGroups', 'hosts']);
+    var serviceConfigGroups = props.serviceConfigGroups,
+      hosts = props.hosts,
       host_names = Em.keys(hosts);
     if (Em.isNone(serviceConfigGroups)) {
       serviceConfigGroups = [];
@@ -780,13 +786,13 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
     hosts.forEach(function (host) {
 
-      var checkboxes = host.get('checkboxes');
+      var checkboxes = host.checkboxes;
       headers.forEach(function (header) {
         var cb = checkboxes.findProperty('title', header.get('label'));
-        if (cb.get('checked')) {
+        if (cb.checked) {
           formattedHosts.get(header.get('name')).push({
             group: 'Default',
-            isInstalled: cb.get('isInstalled'),
+            isInstalled: cb.isInstalled,
             host_id: dbHosts[host.hostName].id
           });
         }
@@ -878,14 +884,25 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   saveServiceConfigProperties: function (stepController) {
     var serviceConfigProperties = [];
     var fileNamesToUpdate = [];
+    var installedServiceNames = stepController.get('installedServiceNames') || [];
+    var installedServiceNamesMap = {};
+    var notAllowed = ['masterHost', 'masterHosts', 'slaveHosts', 'slaveHost'];
+    installedServiceNames.forEach(function(name) {
+      installedServiceNamesMap[name] = true;
+    });
     stepController.get('stepConfigs').forEach(function (_content) {
 
       if (_content.serviceName === 'YARN') {
         _content.set('configs', App.config.textareaIntoFileConfigs(_content.get('configs'), 'capacity-scheduler.xml'));
       }
-
       _content.get('configs').forEach(function (_configProperties) {
-        var configProperty = App.config.createDefaultConfig(_configProperties.get('name'), _configProperties.get('serviceName'), _configProperties.get('filename'), _configProperties.get('isUserProperty'), {value: _configProperties.get('value')});
+        var configProperty = App.config.createDefaultConfig(
+          _configProperties.get('name'),
+          _configProperties.get('serviceName'),
+          _configProperties.get('filename'),
+          _configProperties.get('isUserProperty'),
+          {value: _configProperties.get('value')}
+        );
         configProperty = App.config.mergeStaticProperties(configProperty, _configProperties, ['name', 'filename']);
 
         if (this.isExcludedConfig(configProperty)) {
@@ -894,11 +911,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         serviceConfigProperties.push(configProperty);
       }, this);
       // check for configs that need to update for installed services
-      if (stepController.get('installedServiceNames') && stepController.get('installedServiceNames').contains(_content.get('serviceName'))) {
+      if (installedServiceNames[_content.get('serviceName')]) {
         // get only modified configs
         var configs = _content.get('configs').filter(function (config) {
           if (config.get('isNotDefaultValue') || (config.get('savedValue') === null)) {
-            var notAllowed = ['masterHost', 'masterHosts', 'slaveHosts', 'slaveHost'];
             return !notAllowed.contains(config.get('displayType')) && !!config.filename;
           }
           return false;
@@ -909,9 +925,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         }
       }
     }, this);
-    this.setDBProperty('serviceConfigProperties', serviceConfigProperties);
+    this.setDBProperties({
+      fileNamesToUpdate: fileNamesToUpdate,
+      serviceConfigProperties: serviceConfigProperties
+    });
     this.set('content.serviceConfigProperties', serviceConfigProperties);
-    this.setDBProperty('fileNamesToUpdate', fileNamesToUpdate);
   },
 
   isExcludedConfig: function (configProperty) {
