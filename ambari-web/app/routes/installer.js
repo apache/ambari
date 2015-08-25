@@ -179,9 +179,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         var installerController = router.get('installerController');
         var wizardStep3Controller = router.get('wizardStep3Controller');
         installerController.saveConfirmedHosts(wizardStep3Controller);
-        installerController.setDBProperty('bootStatus', true);
-        installerController.setDBProperty('selectedServiceNames', undefined);
-        installerController.setDBProperty('installedServiceNames', undefined);
+        installerController.setDBProperties({
+          bootStatus: true,
+          selectedServiceNames: undefined,
+          installedServiceNames: undefined
+        });
         router.transitionTo('step4');
       }
     },
@@ -221,8 +223,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       controller.saveServices(wizardStep4Controller);
       controller.saveClients(wizardStep4Controller);
       router.get('wizardStep5Controller').clearRecommendations(); // Force reload recommendation between steps 4 and 5
-      controller.setDBProperty('recommendations', undefined);
-      controller.setDBProperty('masterComponentHosts', undefined);
+      controller.setDBProperties({
+        recommendations: undefined,
+        masterComponentHosts: undefined
+      });
       router.transitionTo('step5');
     }
   }),
@@ -250,8 +254,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var wizardStep5Controller = router.get('wizardStep5Controller');
       var wizardStep6Controller = router.get('wizardStep6Controller');
       controller.saveMasterComponentHosts(wizardStep5Controller);
-      controller.setDBProperty('slaveComponentHosts', undefined);
-      controller.setDBProperty('recommendations', wizardStep5Controller.get('content.recommendations'));
+      controller.setDBProperties({
+        slaveComponentHosts: undefined,
+        recommendations: wizardStep5Controller.get('content.recommendations')
+      });
       wizardStep6Controller.set('isClientsSet', false);
       router.transitionTo('step6');
     }
@@ -281,10 +287,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             router.set('transitionInProgress', true);
             controller.saveSlaveComponentHosts(wizardStep6Controller);
             controller.get('content').set('serviceConfigProperties', null);
-            controller.setDBProperty('serviceConfigProperties', null);
-            controller.setDBProperty('serviceConfigGroups', null);
-            controller.setDBProperty('recommendationsHostGroups', wizardStep6Controller.get('content.recommendationsHostGroups'));
-            controller.setDBProperty('recommendationsConfigs', null);
+            controller.setDBProperties({
+              serviceConfigProperties: null,
+              serviceConfigGroups: null,
+              recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
+              recommendationsConfigs: null
+            });
             router.transitionTo('step7');
           }
         });

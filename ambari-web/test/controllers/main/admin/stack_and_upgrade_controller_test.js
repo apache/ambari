@@ -424,12 +424,16 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#initDBProperties()", function() {
     before(function () {
-      sinon.stub(controller, 'getDBProperty', function (prop) {
-        return prop;
+      sinon.stub(controller, 'getDBProperties', function (prop) {
+        var ret = {};
+        prop.forEach(function (k) {
+          ret[k] = k;
+        });
+        return ret;
       });
     });
     after(function () {
-      controller.getDBProperty.restore();
+      controller.getDBProperties.restore();
     });
     it("set properties", function () {
       controller.set('wizardStorageProperties', ['prop1']);
@@ -483,13 +487,13 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     before(function () {
       sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
       sinon.stub(controller, 'openUpgradeDialog', Em.K);
-      sinon.stub(controller, 'setDBProperty', Em.K);
+      sinon.stub(controller, 'setDBProperties', Em.K);
       sinon.stub(controller, 'load', Em.K);
     });
     after(function () {
       App.clusterStatus.setClusterStatus.restore();
       controller.openUpgradeDialog.restore();
-      controller.setDBProperty.restore();
+      controller.setDBProperties.restore();
       controller.load.restore();
     });
     it("open upgrade dialog", function() {
@@ -503,9 +507,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         ]
       };
       controller.upgradeSuccessCallback(data, {}, {label: 'HDP-2.2.1', isDowngrade: true});
-      expect(controller.setDBProperty.calledWith('upgradeId', 1)).to.be.true;
-      expect(controller.setDBProperty.calledWith('upgradeVersion', 'HDP-2.2.1')).to.be.true;
-      expect(controller.setDBProperty.calledWith('isDowngrade', true)).to.be.true;
       expect(controller.load.calledOnce).to.be.true;
       expect(controller.get('upgradeVersion')).to.equal('HDP-2.2.1');
       expect(controller.get('upgradeData')).to.be.null;

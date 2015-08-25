@@ -164,8 +164,10 @@ module.exports = App.WizardRoute.extend({
       addHostController.saveConfirmedHosts(wizardStep3Controller);
       addHostController.saveClients();
 
-      addHostController.setDBProperty('bootStatus', true);
-      addHostController.setDBProperty('slaveComponentHosts', undefined);
+      addHostController.setDBProperties({
+        bootStatus: true,
+        slaveComponentHosts: undefined
+      });
       wizardStep6Controller.set('isClientsSet', false);
       router.transitionTo('step3');
     },

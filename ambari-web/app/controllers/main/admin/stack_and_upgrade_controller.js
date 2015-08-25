@@ -149,10 +149,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * restore data from localStorage
    */
   initDBProperties: function () {
-    this.get('wizardStorageProperties').forEach(function (property) {
-      if (this.getDBProperty(property)) {
-        this.set(property, this.getDBProperty(property));
-      }
+    var props = this.getDBProperties(this.get('wizardStorageProperties'));
+    Em.keys(props).forEach(function (k) {
+      this.set(k, props[k]);
     }, this);
   },
 
@@ -447,10 +446,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.set('upgradeId', data.resources[0].Upgrade.request_id);
     this.set('upgradeVersion', params.label);
     this.set('isDowngrade', !!params.isDowngrade);
-    this.setDBProperty('upgradeVersion', params.label);
-    this.setDBProperty('upgradeId', data.resources[0].Upgrade.request_id);
-    this.setDBProperty('upgradeState', 'PENDING');
-    this.setDBProperty('isDowngrade', !!params.isDowngrade);
+    this.setDBProperties({
+      upgradeVersion: params.label,
+      upgradeId: data.resources[0].Upgrade.request_id,
+      upgradeState: 'PENDING',
+      isDowngrade: !!params.isDowngrade
+    });
     App.set('upgradeState', 'PENDING');
     App.clusterStatus.setClusterStatus({
       wizardControllerName: this.get('name'),
@@ -782,11 +783,13 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   finish: function () {
     if (App.get('upgradeState') === 'COMPLETED') {
-      this.setDBProperty('upgradeId', undefined);
-      this.setDBProperty('upgradeState', 'INIT');
-      this.setDBProperty('upgradeVersion', undefined);
-      this.setDBProperty('currentVersion', undefined);
-      this.setDBProperty('isDowngrade', undefined);
+      this.setDBProperties({
+        upgradeId: undefined,
+        upgradeState: 'INIT',
+        upgradeVersion: undefined,
+        currentVersion: undefined,
+        isDowngrade: undefined
+      });
       App.clusterStatus.setClusterStatus({
         localdb: App.db.data
       });

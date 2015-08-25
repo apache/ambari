@@ -851,9 +851,15 @@ describe('App.InstallerController', function () {
 
   describe('#loadMasterComponentHosts', function() {
     beforeEach(function () {
-      sinon.stub(installerController, 'getDBProperty', function(key) {
-        if (key == 'hosts') {
-          return {
+      sinon.stub(installerController, 'getDBProperties', function(key) {
+        return {
+          masterComponentHosts: Em.A([
+            {
+              hostName: '',
+              host_id: 11
+            }
+          ]),
+          hosts: {
             'h1': {
               id: 11
             },
@@ -864,18 +870,11 @@ describe('App.InstallerController', function () {
               id: 12
             }
           }
-        } else {
-          return Em.A([
-            {
-              hostName: '',
-              host_id: 11
-            }
-          ]);
         }
       });
     });
     afterEach(function () {
-      installerController.getDBProperty.restore();
+      installerController.getDBProperties.restore();
     });
     it ('Should load hosts', function() {
       installerController.loadMasterComponentHosts();
@@ -890,9 +889,9 @@ describe('App.InstallerController', function () {
 
   describe('#loadSlaveComponentHosts', function() {
     beforeEach(function () {
-      sinon.stub(installerController, 'getDBProperty', function(key) {
-        if (key == 'hosts') {
-          return {
+      sinon.stub(installerController, 'getDBProperties', function() {
+        return {
+          hosts: {
             'h1': {
               id: 11
             },
@@ -902,9 +901,8 @@ describe('App.InstallerController', function () {
             'h2': {
               id: 12
             }
-          }
-        } else {
-          return Em.A([
+          },
+          slaveComponentHosts: Em.A([
             {
               hosts: Em.A([
                 {
@@ -913,12 +911,12 @@ describe('App.InstallerController', function () {
                 }
               ])
             }
-          ]);
-        }
+          ])
+        };
       });
     });
     afterEach(function () {
-      installerController.getDBProperty.restore();
+      installerController.getDBProperties.restore();
     });
     it ('Should load slave hosts', function() {
       installerController.loadSlaveComponentHosts();

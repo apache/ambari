@@ -283,9 +283,11 @@ App.ClusterController = Em.Controller.extend({
       }
 
       if (lastUpgradeData) {
-        upgradeController.setDBProperty('upgradeId', lastUpgradeData.Upgrade.request_id);
-        upgradeController.setDBProperty('isDowngrade', lastUpgradeData.Upgrade.direction === 'DOWNGRADE');
-        upgradeController.setDBProperty('upgradeState', lastUpgradeData.Upgrade.request_status);
+        upgradeController.setDBProperties({
+          upgradeId: lastUpgradeData.Upgrade.request_id,
+          isDowngrade: lastUpgradeData.Upgrade.direction === 'DOWNGRADE',
+          upgradeState: lastUpgradeData.Upgrade.request_status
+        });
         upgradeController.loadRepoVersionsToModel().done(function () {
           upgradeController.setDBProperty('upgradeVersion', App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.to_version).get('displayName'));
           upgradeController.initDBProperties();

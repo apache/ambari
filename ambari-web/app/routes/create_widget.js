@@ -78,13 +78,15 @@ module.exports = App.WizardRoute.extend({
       var widgetWizardController = router.get('widgetWizardController');
       var widgetStep1controller = router.get('widgetWizardStep1Controller');
       widgetWizardController.save('widgetType', widgetStep1controller.get('widgetType'));
-      widgetWizardController.setDBProperty('widgetProperties', {});
-      widgetWizardController.setDBProperty('widgetMetrics', []);
-      widgetWizardController.setDBProperty('allMetrics', []);
-      widgetWizardController.setDBProperty('widgetValues', []);
-      widgetWizardController.setDBProperty('expressions', []);
-      widgetWizardController.setDBProperty('dataSets', []);
-      widgetWizardController.setDBProperty('templateValue', '');
+      widgetWizardController.setDBProperties({
+        widgetProperties: {},
+        widgetMetrics: {},
+        allMetrics: {},
+        widgetValues: {},
+        expressions: {},
+        dataSets: {},
+        templateValue: {}
+      });
       router.transitionTo('step2');
     }
   }),
