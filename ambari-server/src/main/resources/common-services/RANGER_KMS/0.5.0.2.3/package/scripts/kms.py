@@ -46,7 +46,9 @@ def setup_kms_db():
     )
 
     Directory(params.java_share_dir,
-      mode=0755
+      mode=0755,
+      recursive=True,
+      cd_access="a"
     )
     
     Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
@@ -66,14 +68,15 @@ def setup_kms_db():
     File(os.path.join(params.kms_home, 'ews', 'webapp', 'lib', params.jdbc_jar_name), mode=0644)
 
     ModifyPropertiesFile(format("/usr/hdp/current/ranger-kms/install.properties"),
-      properties = params.config['configurations']['kms-properties']
+      properties = params.config['configurations']['kms-properties'],
+      owner = params.kms_user
     )
 
     dba_setup = format('python {kms_home}/dba_script.py -q')
     db_setup = format('python {kms_home}/db_setup.py')
 
-    Execute(dba_setup, environment={'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home}, logoutput=True)
-    Execute(db_setup, environment={'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+    Execute(dba_setup, environment={'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home}, logoutput=True, user=params.kms_user)
+    Execute(db_setup, environment={'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home}, logoutput=True, user=params.kms_user)
 
 def setup_java_patch():
   import params
@@ -81,7 +84,7 @@ def setup_java_patch():
   if params.has_ranger_admin:
 
     setup_java_patch = format('python {kms_home}/db_setup.py -javapatch')
-    Execute(setup_java_patch, environment={'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+    Execute(setup_java_patch, environment={'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home}, logoutput=True, user=params.kms_user)
 
     kms_lib_path = format('{kms_home}/ews/webapp/lib/')
     files = os.listdir(kms_lib_path)
@@ -121,6 +124,12 @@ def kms():
 
   if params.has_ranger_admin:
 
+    Directory(params.kms_conf_dir,
+      owner = params.kms_user,
+      group = params.kms_group,
+      recursive = True
+    )
+
     File(params.downloaded_connector_path,
       content = DownloadSource(params.driver_source),
       mode = 0644
@@ -148,6 +157,11 @@ def kms():
     )
 
     Execute(('chown','-R',format('{kms_user}:{kms_group}'), format('{kms_home}/')), sudo=True)
+
+    Directory(params.kms_log_dir,
+      owner = params.kms_user,
+      group = params.kms_group
+    )
 
     Execute(('ln','-sf', format('{kms_home}/ranger-kms'),'/usr/bin/ranger-kms'),
       not_if=format('ls /usr/bin/ranger-kms'),

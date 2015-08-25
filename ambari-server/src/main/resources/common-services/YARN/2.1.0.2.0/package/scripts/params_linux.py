@@ -357,7 +357,7 @@ if has_ranger_admin:
     downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
     driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
-    driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+    driver_curl_target = format("{hadoop_yarn_home}/lib/{jdbc_jar_name}")
 
     ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
     xa_audit_db_is_enabled = config['configurations']['ranger-yarn-audit']['xasecure.audit.destination.db'] if xml_configurations_supported else None

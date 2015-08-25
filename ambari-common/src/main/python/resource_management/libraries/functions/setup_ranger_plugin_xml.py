@@ -51,14 +51,6 @@ def setup_ranger_plugin(component_select_name, service_name,
     mode = 0644
   )
 
-  directory_path = os.path.dirname(component_driver_curl_target)
-
-  if not os.path.exists(directory_path):
-    Logger.info('Creating directory path {0}'.format(directory_path))
-    Directory(directory_path,
-      mode=0755
-    )
-
   Execute(('cp', '--remove-destination', component_downloaded_custom_connector, component_driver_curl_target),
     path=["/bin", "/usr/bin/"],
     sudo=True

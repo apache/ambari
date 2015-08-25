@@ -38,7 +38,7 @@ if stack_is_hdp23_or_further:
   kms_home = '/usr/hdp/current/ranger-kms'
   kms_conf_dir = '/usr/hdp/current/ranger-kms/conf'
   
-kms_log_dir = config['configurations']['kms-env']['kms_log_dir']
+kms_log_dir = default("/configurations/kms-env/kms_log_dir", "/var/log/ranger/kms")
 java_home = config['hostLevelParams']['java_home']
 kms_user  = default("/configurations/kms-env/kms_user", "kms")
 kms_group = default("/configurations/kms-env/kms_group", "kms")

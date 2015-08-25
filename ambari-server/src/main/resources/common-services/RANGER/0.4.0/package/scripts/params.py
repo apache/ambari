@@ -49,6 +49,9 @@ create_db_dbuser = config['configurations']['ranger-env']['create_db_dbuser']
 stack_is_hdp22_or_further = Script.is_hdp_stack_greater_or_equal("2.2")
 stack_is_hdp23_or_further = Script.is_hdp_stack_greater_or_equal("2.3")
 
+ranger_conf    = '/etc/ranger/admin/conf'
+ranger_ugsync_conf = '/etc/ranger/usersync/conf'
+
 if stack_is_hdp22_or_further:
   ranger_home    = '/usr/hdp/current/ranger-admin'
   ranger_conf    = '/etc/ranger/admin/conf'
@@ -69,7 +72,13 @@ java_home = config['hostLevelParams']['java_home']
 unix_user  = config['configurations']['ranger-env']['ranger_user']
 unix_group = config['configurations']['ranger-env']['ranger_group']
 ranger_pid_dir = config['configurations']['ranger-env']['ranger_pid_dir']
-usersync_log_dir = config['configurations']['ranger-env']['ranger_usersync_log_dir']
+usersync_log_dir = default("/configurations/ranger-env/ranger_usersync_log_dir", "/var/log/ranger/usersync")
+admin_log_dir = default("/configurations/ranger-env/ranger_admin_log_dir", "/var/log/ranger/admin")
+ranger_admin_default_file = format('{ranger_conf}/ranger-admin-default-site.xml')
+security_app_context_file = format('{ranger_conf}/security-applicationContext.xml')
+ranger_ugsync_default_file = format('{ranger_ugsync_conf}/ranger-ugsync-default.xml')
+usgsync_log4j_file = format('{ranger_ugsync_conf}/log4j.xml')
+cred_validator_file = format('{usersync_home}/native/credValidator.uexe')
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
