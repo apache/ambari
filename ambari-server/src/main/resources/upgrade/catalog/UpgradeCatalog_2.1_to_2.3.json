@@ -55,7 +55,6 @@
           "hive_security_authorization": {
             "value": "{HIVE_SECURITY_AUTHORIZATION}",
             "template": "yes",
-            "override": "no",
             "resolve-dependency": "yes"
           }
         },
