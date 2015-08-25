@@ -565,11 +565,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method resolveStormConfigs
    */
   resolveStormConfigs: function (configs) {
-    var props = this.get('wizardController').getDBProperties(['masterComponentHosts', 'hosts']);
-    var dependentConfigs, gangliaServerHost, gangliaHostId,
-      masterComponentHosts = props.masterComponentHosts,
-      hosts = props.hosts;
+    var dependentConfigs, gangliaServerHost, gangliaHostId;
     dependentConfigs = ['nimbus.childopts', 'supervisor.childopts', 'worker.childopts'];
+    var props = this.get('wizardController').getDBProperties(['masterComponentHosts', 'hosts']);
+    var masterComponentHosts = props.masterComponentHosts;
+    var hosts = props.hosts;
     // if Ganglia selected or installed, set ganglia host to configs
     if (this.get('installedServiceNames').contains('STORM') && this.get('installedServiceNames').contains('GANGLIA')) return;
     if (this.get('allSelectedServiceNames').contains('GANGLIA') || this.get('installedServiceNames').contains('GANGLIA')) {

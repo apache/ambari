@@ -426,7 +426,7 @@ App.InstallerController = App.WizardController.extend({
   loadMasterComponentHosts: function () {
     var props = this.getDBProperties(['masterComponentHosts', 'hosts']);
     var masterComponentHosts = props.masterComponentHosts,
-      hosts = props.hosts,
+      hosts = props.hosts || {},
       host_names = Em.keys(hosts);
     if (Em.isNone(masterComponentHosts)) {
       masterComponentHosts = [];
@@ -458,7 +458,7 @@ App.InstallerController = App.WizardController.extend({
   loadSlaveComponentHosts: function () {
     var props = this.getDBProperties(['slaveComponentHosts', 'hosts']);
     var slaveComponentHosts = props.slaveComponentHosts,
-      hosts = props.hosts,
+      hosts = props.hosts || {},
       host_names = Em.keys(hosts);
     if (!Em.isNone(slaveComponentHosts)) {
       slaveComponentHosts.forEach(function (component) {

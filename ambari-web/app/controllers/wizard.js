@@ -651,7 +651,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   loadServiceConfigGroups: function () {
     var props = this.getDBProperties(['serviceConfigGroups', 'hosts']);
     var serviceConfigGroups = props.serviceConfigGroups,
-      hosts = props.hosts,
+      hosts = props.hosts || {},
       host_names = Em.keys(hosts);
     if (Em.isNone(serviceConfigGroups)) {
       serviceConfigGroups = [];
