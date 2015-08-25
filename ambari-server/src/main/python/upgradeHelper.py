@@ -1519,13 +1519,17 @@ def get_ranger_service_details():
 
 def get_hive_security_authorization_setting():
   # this pattern should be used only once, changes here mimic UpgradeCatalog210.java -> updateRangerHiveConfigs
+  scf = Options.server_config_factory
   response = "None"
+
+  if "hive-env" in scf.items() and "hive_security_authorization" in scf.get_config("hive-env").properties:
+    response = scf.get_config("hive-env").properties["hive_security_authorization"]
+
   old_ranger_catalog = "ranger-hive-plugin-properties"
   old_ranger_setting = "ranger-hive-plugin-enabled"
   hive_server_catalog = "hiveserver2-site"
   hive_sec_property = "hive.security.authorization.enabled"
 
-  scf = Options.server_config_factory
   if scf is not None and old_ranger_catalog in scf.items():
     cfg = scf.get_config(old_ranger_catalog)
     prop = cfg.properties
@@ -1536,6 +1540,13 @@ def get_hive_security_authorization_setting():
          hive_props[hive_sec_property] = "true"
     if old_ranger_setting in prop:
       del prop[old_ranger_setting]
+
+  # workaround for buggy stack advisor
+  if "HIVE" in Options.SERVICES and response == "None":
+    if hive_server_catalog not in scf.items():
+      scf.create_config(hive_server_catalog)
+
+    scf.get_config(hive_server_catalog).properties[hive_sec_property] = "false"
 
   return response
 
