@@ -20,11 +20,11 @@
 
 import Ember from 'ember';
 import dagRules from '../utils/dag-rules';
+import utils from 'hive/utils/functions';
 
 export default Ember.View.extend({
   verticesGroups: [],
   edges: [],
-  isVisualExplain: false,
 
   willInsertElement: function () {
     this.set('graph', new dagre.graphlib.Graph());
@@ -74,11 +74,7 @@ export default Ember.View.extend({
   }.observes('controller.verticesProgress.@each.value', 'verticesGroups'),
 
   jsonChanged: function () {
-
     var json = this.get('controller.json');
-    if (json && json['STAGE PLANS'] != undefined) {
-      this.isVisualExplain = true;
-    }
     this.renderDag();
   }.observes('controller.json'),
 
@@ -427,31 +423,17 @@ export default Ember.View.extend({
   },
 
   renderDag: function () {
-
-    if(this.isVisualExplain){
-      var convert = function (inputObj) {
-        var array = [];
-
-        for (var key in inputObj) {
-          if (inputObj.hasOwnProperty(key)) {
-            array.pushObject({
-              name: key,
-              value: inputObj[key]
-            });
-          }
-        }
-
-        return array;
-      };
-
+    var json = this.get('controller.json');
+    var isVisualExplain = json && (json['STAGE PLANS'] != undefined);
+    if (isVisualExplain) {
       this.set('edges', []);
 
       // Create a new directed graph
       var g = this.get('graph');
 
-      var graphData = this.get('controller.json')['STAGE PLANS']['Stage-1']['Tez'];
-      var vertices = convert(graphData['Vertices:']);
-      var edges = convert(graphData['Edges:']);
+      var graphData = json['STAGE PLANS']['Stage-1']['Tez'];
+      var vertices = utils.convertToArray(graphData['Vertices:']);
+      var edges = utils.convertToArray(graphData['Edges:']);
 
       // Set an object for the graph label
       g.setGraph({});
@@ -464,9 +446,12 @@ export default Ember.View.extend({
         .setTableNodesAndEdges(vertices)
         .createNodeGroups()
         .renderEdges();
-
     } else {
-      $('#no-visual-explain-graph').html('Visual explain is not available.');
+
+      if(!this.get('controller.noquery')) {
+        $('#no-visual-explain-graph').html('Visual explain is not available.');
+      }
+
     }
 
   }
