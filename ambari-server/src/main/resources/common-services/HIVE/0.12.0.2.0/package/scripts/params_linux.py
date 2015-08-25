@@ -533,7 +533,7 @@ if has_ranger_admin:
   ranger_downloaded_custom_connector = format("{tmp_dir}/{ranger_jdbc_jar_name}")
   
   ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_symlink_name}")
-  ranger_driver_curl_target = format("{java_share_dir}/{ranger_jdbc_jar_name}")
+  ranger_driver_curl_target = format("{hive_lib}/{ranger_jdbc_jar_name}")
 
   hive_ranger_plugin_config = {
     'username': repo_config_username,

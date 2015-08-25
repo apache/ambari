@@ -47,6 +47,12 @@ def setup_ranger_admin(rolling_upgrade=False):
   ranger_home = params.ranger_home
   ranger_conf = params.ranger_conf
 
+  Directory(ranger_conf,
+    owner = params.unix_user,
+    group = params.unix_group,
+    recursive = True
+  )
+
   if rolling_upgrade:
     ranger_home = format("/usr/hdp/{version}/ranger-admin")
     ranger_conf = format("/usr/hdp/{version}/ranger-admin/conf")
@@ -82,6 +88,14 @@ def setup_ranger_admin(rolling_upgrade=False):
 
   Execute(('chown','-R',format('{unix_user}:{unix_group}'), format('{ranger_home}/')), sudo=True)
 
+  Directory(params.admin_log_dir,
+    owner = params.unix_user,
+    group = params.unix_group
+  )
+
+  File(params.ranger_admin_default_file, owner=params.unix_user, group=params.unix_group)
+  File(params.security_app_context_file, owner=params.unix_user, group=params.unix_group)
+
   Execute(('ln','-sf', format('{ranger_home}/ews/ranger-admin-services.sh'),'/usr/bin/ranger-admin'),
     not_if=format("ls /usr/bin/ranger-admin"),
     only_if=format("ls {ranger_home}/ews/ranger-admin-services.sh"),
@@ -113,7 +127,9 @@ def setup_ranger_db(rolling_upgrade=False):
   )
 
   Directory(params.java_share_dir,
-    mode=0755
+    mode=0755,
+    recursive=True,
+    cd_access="a"
   )
 
   Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
@@ -240,6 +256,10 @@ def setup_usersync():
     owner=params.unix_user,
     group=params.unix_group,
     mode=0644)
+
+  File(params.ranger_ugsync_default_file, owner=params.unix_user, group=params.unix_group)
+  File(params.usgsync_log4j_file, owner=params.unix_user, group=params.unix_group)
+  File(params.cred_validator_file, group=params.unix_group, mode=04555)
 
   cred_lib = os.path.join(params.usersync_home,"lib","*")
   cred_setup_prefix = (format('{ranger_home}/ranger_credential_helper.py'), '-l', cred_lib)

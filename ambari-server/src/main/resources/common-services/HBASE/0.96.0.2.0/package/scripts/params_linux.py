@@ -255,7 +255,7 @@ if has_ranger_admin:
 
   downloaded_custom_connector = format("{exec_tmp_dir}/{jdbc_jar_name}")
   driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
-  driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+  driver_curl_target = format("/usr/hdp/current/{component_directory}/lib/{jdbc_jar_name}")
 
   hbase_ranger_plugin_config = {
     'username': repo_config_username,
