@@ -36,27 +36,37 @@ export default Ember.Controller.extend({
         this.set('json', undefined);
         this.set('noquery', 'hive.errors.no.query');
         return;
+      } else {
+        this.set('noquery', undefined);
+      }
+      // Introducing a common function
+      var getVisualExplainJson = function(){
+        self.set('rerender');
+        self.get('index')._executeQuery(constants.jobReferrer.visualExplain, true, true).then(function (json) {
+          //this condition should be changed once we change the way of retrieving this json
+          if (json['STAGE PLANS']['Stage-1']) {
+            self.set('json', json);
+          } else {
+            self.set('json', {})
+          }
+        }, function (error) {
+          self.set('json', undefined);
+          self.get('notifyService').error(error);
+        });
+        self.toggleProperty('shouldChangeGraph');
       }
 
-      if (!this.get('shouldChangeGraph') && this.get('json')) {
+      if(this.get('json') == undefined) {
+        getVisualExplainJson();
+
+      } else if (this.get('shouldChangeGraph')){
+        getVisualExplainJson();
+
+      } else {
         this.set('rerender', true);
         return;
       }
 
-      this.set('rerender');
-      this.toggleProperty('shouldChangeGraph');
-
-      this.get('index')._executeQuery(constants.jobReferrer.visualExplain, true, true).then(function (json) {
-        //this condition should be changed once we change the way of retrieving this json
-        if (json['STAGE PLANS']['Stage-1']) {
-          self.set('json', json);
-        } else{
-          self.set('json', {})
-        }
-      }, function (error) {
-        self.set('json', undefined);
-        self.get('notifyService').error(error);
-      });
     }
   }
 });

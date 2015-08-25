@@ -64,5 +64,20 @@ export default Ember.Object.create({
 
   insensitiveContains: function (sourceString, destString) {
     return sourceString.toLowerCase().indexOf(destString.toLowerCase()) > -1;
+  },
+
+  convertToArray : function (inputObj) {
+    var array = [];
+
+    for (var key in inputObj) {
+      if (inputObj.hasOwnProperty(key)) {
+        array.pushObject({
+          name: key,
+          value: inputObj[key]
+        });
+      }
+    }
+    return array;
   }
+
 });
