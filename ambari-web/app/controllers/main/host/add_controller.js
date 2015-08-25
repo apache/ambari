@@ -127,9 +127,10 @@ App.AddHostController = App.WizardController.extend({
    * TODO move to mixin
    */
   loadSlaveComponentHosts: function () {
-    var slaveComponentHosts = this.getDBProperty('slaveComponentHosts') || [];
+   var props = this.getDBProperties(['slaveComponentHosts', 'hosts']);
+    var slaveComponentHosts = props.slaveComponentHosts || [];
     if (slaveComponentHosts.length) {
-      var hosts = this.getDBProperty('hosts'),
+      var hosts = props.hosts,
           host_names = Em.keys(hosts);
       slaveComponentHosts.forEach(function (component) {
         component.hosts.forEach(function (host) {
@@ -393,8 +394,9 @@ App.AddHostController = App.WizardController.extend({
     this.set('content.cluster.oldRequestsId', []);
     var clusterName = this.get('content.cluster.name');
     var hostNames = [];
-    for (var hostname in this.getDBProperty('hosts')) {
-      if(this.getDBProperty('hosts')[hostname].isInstalled == false){
+    var hosts = this.getDBProperty('hosts');
+    for (var hostname in hosts) {
+      if(!hosts[hostname].isInstalled) {
         hostNames.push(hostname);
       }
     }

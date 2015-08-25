@@ -288,8 +288,10 @@ module.exports = App.WizardRoute.extend({
       var kerberosWizardController = router.get('kerberosWizardController');
       var kerberosWizardStep4Controller = router.get('kerberosWizardStep4Controller');
       kerberosWizardController.saveServiceConfigProperties(kerberosWizardStep4Controller);
-      kerberosWizardController.setDBProperty('tasksStatuses', null);
-      kerberosWizardController.setDBProperty('tasksRequestIds', null);
+      kerberosWizardController.setDBProperties({
+        tasksStatuses: null,
+        tasksRequestIds: null
+      });
       router.transitionTo('step6');
     }
   }),
@@ -314,8 +316,10 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var kerberosWizardController = router.get('kerberosWizardController');
       var callback = function () {
-        kerberosWizardController.setDBProperty('tasksStatuses', null);
-        kerberosWizardController.setDBProperty('tasksRequestIds', null);
+        kerberosWizardController.setDBProperties({
+          tasksStatuses: null,
+          tasksRequestIds: null
+        });
         router.transitionTo('step7');
       };
       if (kerberosWizardController.get('skipClientInstall')) {

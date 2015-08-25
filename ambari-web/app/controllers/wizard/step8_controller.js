@@ -624,13 +624,10 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method loadHiveDbValue
    */
   loadDbValue: function (serviceName) {
-    var dbFull = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', serviceName.toLowerCase() + '_database'),
-      db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', serviceName.toLowerCase() + '_ambari_database');
-    if (db && dbFull) {
-      return db.value + ' (' + dbFull.value + ')';
-    } else {
-      return '';
-    }
+    var serviceConfigProperties = this.get('wizardController').getDBProperty('serviceConfigProperties');
+    var dbFull = serviceConfigProperties.findProperty('name', serviceName.toLowerCase() + '_database'),
+      db = serviceConfigProperties.findProperty('name', serviceName.toLowerCase() + '_ambari_database');
+    return db && dbFull ? db.value + ' (' + dbFull.value + ')' : '';
   },
 
   /**
@@ -983,8 +980,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           this.updateKerberosDescriptor();
         }
       }
-      if (this.get('wizardController').getDBProperty('fileNamesToUpdate') && this.get('wizardController').getDBProperty('fileNamesToUpdate').length) {
-        this.updateConfigurations(this.get('wizardController').getDBProperty('fileNamesToUpdate'));
+      var fileNamesToUpdate = this.get('wizardController').getDBProperty('fileNamesToUpdate');
+      if (fileNamesToUpdate && fileNamesToUpdate.length) {
+        this.updateConfigurations(fileNamesToUpdate);
       }
       this.createConfigurations();
       this.applyConfigurationsToCluster(this.get('serviceConfigTags'));

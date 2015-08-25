@@ -388,9 +388,11 @@ App.InstallerController = App.WizardController.extend({
     });
     this.set('content.services', App.StackService.find());
     this.set('content.selectedServiceNames', selectedServiceNames);
-    this.setDBProperty('selectedServiceNames', selectedServiceNames);
     this.set('content.installedServiceNames', installedServiceNames);
-    this.setDBProperty('installedServiceNames', installedServiceNames);
+    this.setDBProperties({
+      selectedServiceNames: selectedServiceNames,
+      installedServiceNames: installedServiceNames
+    });
   },
 
   /**
@@ -422,8 +424,9 @@ App.InstallerController = App.WizardController.extend({
    * Load master component hosts data for using in required step controllers
    */
   loadMasterComponentHosts: function () {
-    var masterComponentHosts = this.getDBProperty('masterComponentHosts'),
-      hosts = this.getDBProperty('hosts'),
+    var props = this.getDBProperties(['masterComponentHosts', 'hosts']);
+    var masterComponentHosts = props.masterComponentHosts,
+      hosts = props.hosts,
       host_names = Em.keys(hosts);
     if (Em.isNone(masterComponentHosts)) {
       masterComponentHosts = [];
@@ -453,8 +456,9 @@ App.InstallerController = App.WizardController.extend({
    * Load master component hosts data for using in required step controllers
    */
   loadSlaveComponentHosts: function () {
-    var slaveComponentHosts = this.getDBProperty('slaveComponentHosts'),
-      hosts = this.getDBProperty('hosts'),
+    var props = this.getDBProperties(['slaveComponentHosts', 'hosts']);
+    var slaveComponentHosts = props.slaveComponentHosts,
+      hosts = props.hosts,
       host_names = Em.keys(hosts);
     if (!Em.isNone(slaveComponentHosts)) {
       slaveComponentHosts.forEach(function (component) {

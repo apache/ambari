@@ -694,8 +694,8 @@ describe('App.InstallerStep7Controller', function () {
           hosts: {'h1': {name: 'host1', id: 'h1'}},
           masterComponentHosts: [{component: 'GANGLIA_SERVER', host_id: 'h1'}],
 
-          getDBProperty: function (k) {
-            return this.get(k);
+          getDBProperties: function (keys) {
+            return this.getProperties(keys);
           }
         })
       });
@@ -773,8 +773,8 @@ describe('App.InstallerStep7Controller', function () {
         wizardController: Em.Object.create({
           name: 'addServiceController',
           masterComponentHosts: [{component: 'GANGLIA_SERVER', hostName: 'realhost1'}],
-          getDBProperty: function (k) {
-            return this.get(k);
+          getDBProperties: function (keys) {
+            return this.getProperties(keys);
           }
         })
       });

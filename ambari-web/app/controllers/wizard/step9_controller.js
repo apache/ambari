@@ -471,7 +471,8 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       case 'addHostController':
         name = 'common.host_components.update';
         var hostnames = [];
-        for (var hostname in this.get('wizardController').getDBProperty('hosts')) {
+        var hosts = this.get('wizardController').getDBProperty('hosts');
+        for (var hostname in hosts) {
           if(this.get('hosts').findProperty('name', hostname)){
             hostnames.push(hostname);
           }

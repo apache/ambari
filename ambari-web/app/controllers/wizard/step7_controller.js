@@ -565,16 +565,18 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method resolveStormConfigs
    */
   resolveStormConfigs: function (configs) {
-    var dependentConfigs, gangliaServerHost, gangliaHostId, hosts;
+    var props = this.get('wizardController').getDBProperties(['masterComponentHosts', 'hosts']);
+    var dependentConfigs, gangliaServerHost, gangliaHostId,
+      masterComponentHosts = props.masterComponentHosts,
+      hosts = props.hosts;
     dependentConfigs = ['nimbus.childopts', 'supervisor.childopts', 'worker.childopts'];
     // if Ganglia selected or installed, set ganglia host to configs
     if (this.get('installedServiceNames').contains('STORM') && this.get('installedServiceNames').contains('GANGLIA')) return;
     if (this.get('allSelectedServiceNames').contains('GANGLIA') || this.get('installedServiceNames').contains('GANGLIA')) {
       if (this.get('wizardController.name') === 'addServiceController') {
-        gangliaServerHost = this.get('wizardController').getDBProperty('masterComponentHosts').findProperty('component', 'GANGLIA_SERVER').hostName;
+        gangliaServerHost = masterComponentHosts.findProperty('component', 'GANGLIA_SERVER').hostName;
       } else {
-        hosts = this.get('wizardController').getDBProperty('hosts');
-        gangliaHostId = this.get('wizardController').getDBProperty('masterComponentHosts').findProperty('component', 'GANGLIA_SERVER').host_id;
+        gangliaHostId = masterComponentHosts.findProperty('component', 'GANGLIA_SERVER').host_id;
         for (var hostName in hosts) {
           if (hosts[hostName].id == gangliaHostId) gangliaServerHost = hosts[hostName].name;
         }

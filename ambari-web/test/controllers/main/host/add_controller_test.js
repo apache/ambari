@@ -538,29 +538,37 @@ describe('App.AddHostController', function () {
   });
 
   describe("#loadSlaveComponentHosts()", function () {
+
     var mock = {
       hosts: null,
       slaveComponentHosts: null
     };
+
     beforeEach(function () {
-      sinon.stub(controller, 'getDBProperty', function (arg) {
-        if (arg === 'hosts') return mock.hosts;
-        if (arg === 'slaveComponentHosts') return mock.slaveComponentHosts;
+      sinon.stub(controller, 'getDBProperties', function (propsList) {
+        var ret = {};
+        propsList.forEach(function(k) {
+          ret[k] = mock[k];
+        });
+        return ret;
       });
     });
+
     afterEach(function () {
-      controller.getDBProperty.restore();
+      controller.getDBProperties.restore();
     });
 
     it("No slaveComponentHosts in db, null", function () {
       controller.loadSlaveComponentHosts();
       expect(controller.get('content.slaveComponentHosts')).to.be.empty;
     });
+
     it("No slaveComponentHosts in db", function () {
       mock.slaveComponentHosts = [];
       controller.loadSlaveComponentHosts();
       expect(controller.get('content.slaveComponentHosts')).to.be.empty;
     });
+
     it("One slaveComponent without hosts", function () {
       mock.slaveComponentHosts = [
         {hosts: []}
@@ -571,6 +579,7 @@ describe('App.AddHostController', function () {
         {hosts: []}
       ]);
     });
+
     it("One slaveComponent with host", function () {
       mock.slaveComponentHosts = [
         {hosts: [
@@ -588,6 +597,7 @@ describe('App.AddHostController', function () {
         ]}
       ]);
     });
+
   });
 
   describe("#saveClients()", function () {

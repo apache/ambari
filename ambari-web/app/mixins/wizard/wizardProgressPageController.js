@@ -110,8 +110,10 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
    * Clear stages info for single page request.
    */
   clearStage: function() {
-    this.setDBProperty('tasksRequestIds', null);
-    this.setDBProperty('tasksStatuses', null);
+    this.setDBProperties({
+      tasksRequestIds: null,
+      tasksStatuses: null
+    });
     this.set('showRetry', false);
     this.set('content.tasksRequestIds', null);
     this.set('content.tasksStatuses', null);
