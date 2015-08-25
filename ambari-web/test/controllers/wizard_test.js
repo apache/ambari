@@ -167,24 +167,23 @@ describe('App.WizardController', function () {
 
   describe('#loadServiceConfigGroups', function () {
      beforeEach(function () {
-      sinon.stub(wizardController, 'getDBProperty', function(message){
-        if (message == 'serviceConfigGroups') {
-          return [
+      sinon.stub(wizardController, 'getDBProperties', function() {
+        return {
+          serviceConfigGroups: [
             {
               hosts: ['h1']
             }
-          ];
-        } else {
-          return Em.Object.create({
+          ],
+          hosts: Em.Object.create({
             h1: Em.Object.create({
               id: 'h1'
             })
-          });
-        }
+          })
+        };
       });
     });
     afterEach(function () {
-      wizardController.getDBProperty.restore();
+      wizardController.getDBProperties.restore();
     });
     it('should load service confgig group', function () {
       wizardController.loadServiceConfigGroups();
@@ -787,17 +786,16 @@ describe('App.WizardController', function () {
 
   describe('#loadServiceComponentsSuccessCallback', function () {
     beforeEach(function () {
-      sinon.stub(wizardController, 'getDBProperty', function(message) {
-        if (message == 'selectedServiceNames') {
-          return ['a','b'];
-        } else {
-          return ['c','d'];
-        }
+      sinon.stub(wizardController, 'getDBProperties', function() {
+        return {
+          selectedServiceNames: ['a','b'],
+          installedServiceNames: ['c','d']
+        };
       });
       sinon.stub(App.stackServiceMapper, 'mapStackServices', Em.K); 
     });
     afterEach(function () {
-      wizardController.getDBProperty.restore();
+      wizardController.getDBProperties.restore();
       App.stackServiceMapper.mapStackServices.restore();
     });
     it('should load json data', function () {
@@ -915,12 +913,12 @@ describe('App.WizardController', function () {
 
     beforeEach(function () {
       c.set('content', {});
-      sinon.stub(c, 'setDBProperty', Em.K);
+      sinon.stub(c, 'setDBProperties', Em.K);
       sinon.stub(App.config, 'shouldSupportFinal').returns(true);
     });
 
     afterEach(function () {
-      c.setDBProperty.restore();
+      c.setDBProperties.restore();
       App.config.shouldSupportFinal.restore();
     });
 

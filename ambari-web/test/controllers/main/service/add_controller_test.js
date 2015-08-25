@@ -470,6 +470,7 @@ describe('App.AddServiceController', function() {
   describe('#loadServiceConfigGroups', function () {
 
     var dbMock,
+      dbMock2,
       cases = [
         {
           serviceConfigGroups: null,
@@ -484,16 +485,23 @@ describe('App.AddServiceController', function() {
       ];
 
     beforeEach(function () {
-      dbMock = sinon.stub(addServiceController, 'getDBProperty');
+      dbMock = sinon.stub(addServiceController, 'getDBProperties');
+      dbMock2 = sinon.stub(addServiceController, 'getDBProperty');
     });
 
     afterEach(function () {
       dbMock.restore();
+      dbMock2.restore();
     });
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        dbMock.withArgs('hosts').returns({}).withArgs('serviceConfigGroups').returns(item.serviceConfigGroups);
+        dbMock.withArgs(['serviceConfigGroups', 'hosts']).returns({
+          hosts: {},
+          serviceConfigGroups: item.serviceConfigGroups
+        });
+        dbMock2.withArgs('hosts').returns({}).
+          withArgs('serviceConfigGroups').returns(item.serviceConfigGroups);
         addServiceController.loadServiceConfigGroups();
         expect(addServiceController.get('areInstalledConfigGroupsLoaded')).to.equal(item.areInstalledConfigGroupsLoaded);
       });
