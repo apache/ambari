@@ -161,6 +161,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     super(HDP23StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
     putHiveServerProperty = self.putProperty(configurations, "hiveserver2-site", services)
+    hive_site_properties = getSiteProperties(configurations, "hive-site")
+    putHiveSitePropertyAttribute = self.putPropertyAttribute(configurations, "hive-site")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     # hive_security_authorization == 'ranger'
     if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "ranger":
@@ -178,6 +180,13 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
           jvmGCParams = "-XX:+UseG1GC -XX:+ResizeTLAB"
     putHiveSiteProperty('hive.tez.java.opts', "-server -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA " + jvmGCParams + " -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps")
 
+    # if hive using sqla db, then we should add DataNucleus property
+    sqla_db_used = 'javax.jdo.option.ConnectionDriverName' in hive_site_properties and \
+                   hive_site_properties['javax.jdo.option.ConnectionDriverName'] == 'sap.jdbc4.sqlanywhere.IDriver'
+    if sqla_db_used:
+      putHiveSiteProperty('datanucleus.rdbms.datastoreAdapterClassName','org.datanucleus.store.rdbms.adapter.SQLAnywhereAdapter')
+    else:
+      putHiveSitePropertyAttribute('datanucleus.rdbms.datastoreAdapterClassName', 'delete', 'true')
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendHDFSConfigurations(configurations, clusterData, services, hosts)
@@ -202,7 +211,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
       childValidators = {
         "HDFS": {"hdfs-site": self.validateHDFSConfigurations},
-        "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations},
+        "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
+                 "hive-site": self.validateHiveConfigurations},
         "HBASE": {"hbase-site": self.validateHBASEConfigurations},
         "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations}        
       }
@@ -225,6 +235,28 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                                     "item": self.getWarnItem(
                                       "dfs.namenode.inode.attributes.provider.class needs to be set to 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer' if Ranger HDFS Plugin is enabled.")})
     return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
+
+
+  def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    super(HDP23StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    hive_site = properties
+    validationItems = []
+    sqla_db_used = "javax.jdo.option.ConnectionDriverName" in hive_site and \
+                   hive_site['javax.jdo.option.ConnectionDriverName'] == 'sap.jdbc4.sqlanywhere.IDriver'
+    prop_name = "datanucleus.rdbms.datastoreAdapterClassName"
+    prop_value = "org.datanucleus.store.rdbms.adapter.SQLAnywhereAdapter"
+    if sqla_db_used:
+      if not prop_name in hive_site:
+        validationItems.append({"config-name": prop_name,
+                              "item": self.getWarnItem(
+                              "If Hive using SQLA db." \
+                              " {0} needs to be added with value {1}".format(prop_name,prop_value))})
+      elif prop_name in hive_site and hive_site[prop_name] != "org.datanucleus.store.rdbms.adapter.SQLAnywhereAdapter":
+        validationItems.append({"config-name": prop_name,
+                                "item": self.getWarnItem(
+                                  "If Hive using SQLA db." \
+                                  " {0} needs to be set to {1}".format(prop_name,prop_value))})
+    return self.toConfigurationValidationProblems(validationItems, "hive-site")
 
 
   def validateHiveServer2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):

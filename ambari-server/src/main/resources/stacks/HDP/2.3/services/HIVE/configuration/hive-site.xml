@@ -29,4 +29,16 @@ limitations under the License.
     </description>
   </property>
 
+  <property>
+    <name>datanucleus.rdbms.datastoreAdapterClassName</name>
+    <value>org.datanucleus.store.rdbms.adapter.SQLAnywhereAdapter</value>
+    <description>Datanucleus Class, This property used only when hive db is SQLA</description>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>javax.jdo.option.ConnectionDriverName</name>
+      </property>
+    </depends-on>
+  </property>
+
 </configuration>
