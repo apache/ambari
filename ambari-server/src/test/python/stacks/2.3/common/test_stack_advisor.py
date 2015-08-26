@@ -331,7 +331,8 @@ class TestHDP23StackAdvisor(TestCase):
          'hive.server2.authentication.ldap.url': {'delete': 'true'},
          'hive.server2.tez.default.queues': {
            'entries': [{'value': 'queue1', 'label': 'queue1 queue'}, {'value': 'queue2', 'label': 'queue2 queue'}]
-          }
+          },
+         'datanucleus.rdbms.datastoreAdapterClassName': {'delete': 'true'}
         }
       },
       'hiveserver2-site': {
