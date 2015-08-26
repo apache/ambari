@@ -29,6 +29,9 @@
               <name>zookeeper_2_3_*</name>
             </package>
           </packages>
+          <package>
+            <name>zookeeper_2_3_*-server</name>
+          </package>
         </osSpecific>
         <osSpecific>
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
