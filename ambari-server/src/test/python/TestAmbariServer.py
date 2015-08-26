@@ -63,7 +63,7 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
         from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
         from ambari_server.serverConfiguration import configDefaults, \
           check_database_name_property, OS_FAMILY_PROPERTY, \
-          find_properties_file, get_ambari_classpath, get_ambari_jars, get_ambari_properties, get_JAVA_HOME, get_share_jars, \
+          find_properties_file, get_ambari_classpath, get_ambari_jars, get_ambari_properties, get_JAVA_HOME, \
           parse_properties_file, read_ambari_user, update_ambari_properties, update_properties_2, write_property, find_jdk, \
           AMBARI_CONF_VAR, AMBARI_SERVER_LIB, JDBC_DATABASE_PROPERTY, JDBC_RCA_PASSWORD_FILE_PROPERTY, \
           PERSISTENCE_TYPE_PROPERTY, JDBC_URL_PROPERTY, get_conf_dir, JDBC_USER_NAME_PROPERTY, JDBC_PASSWORD_PROPERTY, \
@@ -710,7 +710,6 @@ class TestAmbariServer(TestCase):
     sys.stdout = sys.__stdout__
     pass
 
-
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("time.sleep")
   @patch("subprocess.Popen")
@@ -731,7 +730,6 @@ class TestAmbariServer(TestCase):
     retcode, out, err = PGConfig._restart_postgres()
     self.assertEqual(1, retcode)
     pass
-
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("shlex.split")
@@ -777,7 +775,6 @@ class TestAmbariServer(TestCase):
     self.assertTrue(splitMock.called)
     pass
 
-
   @patch("ambari_server.serverConfiguration.get_conf_dir")
   @patch("ambari_server.serverConfiguration.search_file")
   def test_write_property(self, search_file_mock, get_conf_dir_mock):
@@ -790,7 +787,6 @@ class TestAmbariServer(TestCase):
     result = tf1.read()
     self.assertTrue(expected_content in result)
     pass
-
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("ambari_server.dbConfiguration.decrypt_password_for_alias")
@@ -927,25 +923,11 @@ class TestAmbariServer(TestCase):
 
   @patch("glob.glob")
   @patch("ambari_server.serverConfiguration.print_info_msg")
-  def test_get_share_jars(self, printInfoMsg_mock, globMock):
-    globMock.return_value = ["one", "two"]
-    expected = "one:two:one:two:one:two:one:two"
-    result = get_share_jars()
-    self.assertEqual(expected, result)
-    globMock.return_value = []
-    expected = ""
-    result = get_share_jars()
-    self.assertEqual(expected, result)
-    pass
-
-  @patch("glob.glob")
-  @patch("ambari_server.serverConfiguration.print_info_msg")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   def test_get_ambari_classpath(self, get_ambari_properties_mock, printInfoMsg_mock, globMock):
     globMock.return_value = ["one"]
     result = get_ambari_classpath()
     self.assertTrue(get_ambari_jars() in result)
-    self.assertTrue(get_share_jars() in result)
     globMock.return_value = []
     result = get_ambari_classpath()
     self.assertTrue(get_ambari_jars() in result)
