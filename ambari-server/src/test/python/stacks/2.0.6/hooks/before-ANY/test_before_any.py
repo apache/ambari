@@ -50,87 +50,69 @@ class TestHookBeforeInstall(RMFTestCase):
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip'),
     )
     self.assertResourceCalled('Group', 'hadoop',
-        ignore_failures = False,
     )
     self.assertResourceCalled('Group', 'nobody',
-        ignore_failures = False,
     )
     self.assertResourceCalled('Group', 'users',
-        ignore_failures = False,
     )
     self.assertResourceCalled('User', 'hive',
         gid = 'hadoop',
-        ignore_failures = False,
         groups = [u'hadoop'],
     )
     self.assertResourceCalled('User', 'oozie',
         gid = 'hadoop',
-        ignore_failures = False,
         groups = [u'users'],
     )
     self.assertResourceCalled('User', 'nobody',
         gid = 'hadoop',
-        ignore_failures = False,
         groups = [u'nobody'],
     )
     self.assertResourceCalled('User', 'ambari-qa',
         gid = 'hadoop',
-        ignore_failures = False,
         groups = [u'users'],
     )
     self.assertResourceCalled('User', 'flume',
         gid = 'hadoop',
-        ignore_failures = False,
         groups = [u'hadoop'],
     )
     self.assertResourceCalled('User', 'hdfs',
-        ignore_failures = False,
         gid = 'hadoop',
         groups = [u'hadoop'],
     )
     self.assertResourceCalled('User', 'storm',
         gid = 'hadoop',
-        ignore_failures = False,
         groups = [u'hadoop'],
     )
     self.assertResourceCalled('User', 'mapred',
         gid = 'hadoop',
-        ignore_failures = False,
         groups = [u'hadoop'],
     )
     self.assertResourceCalled('User', 'hbase',
         gid = 'hadoop',
-        ignore_failures = False,
         groups = [u'hadoop'],
     )
     self.assertResourceCalled('User', 'tez',
         gid = 'hadoop',
-        ignore_failures = False,
         groups = [u'users'],
     )
     self.assertResourceCalled('User', 'zookeeper',
         gid = 'hadoop',
-        ignore_failures = False,
         groups = [u'hadoop'],
     )
     self.assertResourceCalled('User', 'falcon',
         gid = 'hadoop',
-        ignore_failures = False,
         groups = [u'users'],
     )
     self.assertResourceCalled('User', 'sqoop',
         gid = 'hadoop',
-        ignore_failures = False,
         groups = [u'hadoop'],
     )
     self.assertResourceCalled('User', 'yarn',
         gid = 'hadoop',
-        ignore_failures = False,
         groups = [u'hadoop'],
     )
     self.assertResourceCalled('User', 'hcat',
         gid = 'hadoop',
-        ignore_failures = False,
         groups = [u'hadoop'],
     )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
