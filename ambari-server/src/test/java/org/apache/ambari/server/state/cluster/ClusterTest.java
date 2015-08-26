@@ -42,8 +42,6 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.AgentEnv.Directory;
@@ -88,6 +86,7 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -116,6 +115,8 @@ import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
 import com.google.inject.persist.UnitOfWork;
 import com.google.inject.util.Modules;
+
+import junit.framework.Assert;
 
 public class ClusterTest {
 
@@ -1423,14 +1424,24 @@ public class ClusterTest {
     assertNotNull(c1.getCurrentClusterVersion());
   }
 
+  /**
+   * Tests that hosts can be correctly transitioned into the "INSTALLING" state.
+   * This method also tests that hosts in MM will not be transitioned, as per
+   * the contract of
+   * {@link Cluster#transitionHostsToInstalling(ClusterVersionEntity)}.
+   *
+   * @throws Exception
+   */
   @Test
-  public void testInferHostVersions() throws Exception {
+  public void testTransitionHostVersions() throws Exception {
     createDefaultCluster();
 
     StackId stackId = new StackId("HDP", "0.2");
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+
     c1.createClusterVersion(stackId, "0.2", "admin",
         RepositoryVersionState.INSTALLING);
+
     ClusterVersionEntity entityHDP2 = null;
     for (ClusterVersionEntity entity : c1.getAllClusterVersions()) {
       StackEntity repoVersionStackEntity = entity.getRepositoryVersion().getStack();
@@ -1442,12 +1453,13 @@ public class ClusterTest {
         break;
       }
     }
+
     assertNotNull(entityHDP2);
 
     List<HostVersionEntity> hostVersionsH1Before = hostVersionDAO.findByClusterAndHost("c1", "h1");
     assertEquals(1, hostVersionsH1Before.size());
 
-    c1.inferHostVersions(entityHDP2);
+    c1.transitionHostsToInstalling(entityHDP2);
 
     List<HostVersionEntity> hostVersionsH1After = hostVersionDAO.findByClusterAndHost("c1", "h1");
     assertEquals(2, hostVersionsH1After.size());
@@ -1462,10 +1474,11 @@ public class ClusterTest {
         break;
       }
     }
+
     assertTrue(checked);
 
     // Test for update of existing host stack version
-    c1.inferHostVersions(entityHDP2);
+    c1.transitionHostsToInstalling(entityHDP2);
 
     hostVersionsH1After = hostVersionDAO.findByClusterAndHost("c1", "h1");
     assertEquals(2, hostVersionsH1After.size());
@@ -1480,7 +1493,55 @@ public class ClusterTest {
         break;
       }
     }
+
     assertTrue(checked);
+
+    // reset all to INSTALL_FAILED
+    List<HostVersionEntity> hostVersionEntities = hostVersionDAO.findAll();
+    for (HostVersionEntity hostVersionEntity : hostVersionEntities) {
+      hostVersionEntity.setState(RepositoryVersionState.INSTALL_FAILED);
+      hostVersionDAO.merge(hostVersionEntity);
+    }
+
+    // verify they have been transition to INSTALL_FAILED
+    hostVersionEntities = hostVersionDAO.findAll();
+    for (HostVersionEntity hostVersionEntity : hostVersionEntities) {
+      assertEquals(RepositoryVersionState.INSTALL_FAILED, hostVersionEntity.getState());
+    }
+
+    // put 1 host in maintenance mode
+    Collection<Host> hosts = c1.getHosts();
+    Iterator<Host> iterator = hosts.iterator();
+    Host hostInMaintenanceMode = iterator.next();
+    Host hostNotInMaintenanceMode = iterator.next();
+    hostInMaintenanceMode.setMaintenanceState(c1.getClusterId(), MaintenanceState.ON);
+
+    // transition host versions to INSTALLING
+    c1.transitionHostsToInstalling(entityHDP2);
+
+    List<HostVersionEntity> hostInMaintModeVersions = hostVersionDAO.findByClusterAndHost("c1",
+        hostInMaintenanceMode.getHostName());
+
+    List<HostVersionEntity> otherHostVersions = hostVersionDAO.findByClusterAndHost("c1",
+        hostNotInMaintenanceMode.getHostName());
+
+    // verify the MM host is in INSTALL_FAILED still
+    for (HostVersionEntity hostVersionEntity : hostInMaintModeVersions) {
+      StackEntity repoVersionStackEntity = hostVersionEntity.getRepositoryVersion().getStack();
+      if (repoVersionStackEntity.getStackName().equals("HDP")
+          && repoVersionStackEntity.getStackVersion().equals("0.2")) {
+        assertEquals(RepositoryVersionState.INSTALL_FAILED, hostVersionEntity.getState());
+      }
+    }
+
+    // verify the other host is in INSTALLING
+    for (HostVersionEntity hostVersionEntity : otherHostVersions) {
+      StackEntity repoVersionStackEntity = hostVersionEntity.getRepositoryVersion().getStack();
+      if (repoVersionStackEntity.getStackName().equals("HDP")
+          && repoVersionStackEntity.getStackVersion().equals("0.2")) {
+      assertEquals(RepositoryVersionState.INSTALLING, hostVersionEntity.getState());
+      }
+    }
   }
 
   @Test

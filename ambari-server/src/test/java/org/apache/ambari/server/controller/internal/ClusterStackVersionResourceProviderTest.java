@@ -78,6 +78,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -181,6 +182,9 @@ public class ClusterStackVersionResourceProviderTest {
       Host host = createNiceMock(hostname, Host.class);
       expect(host.getHostName()).andReturn(hostname).anyTimes();
       expect(host.getOsFamily()).andReturn("redhat6").anyTimes();
+      expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
+          MaintenanceState.OFF).anyTimes();
+
       replay(host);
       hostsForCluster.put(hostname, host);
     }
@@ -238,10 +242,12 @@ public class ClusterStackVersionResourceProviderTest {
             eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
-    expect(clusters.getHostsForCluster(anyObject(String.class))).andReturn(hostsForCluster);
+    expect(clusters.getHostsForCluster(anyObject(String.class))).andReturn(
+        hostsForCluster).anyTimes();
 
     String clusterName = "Cluster100";
-    //expect(cluster.getClusterName()).andReturn(clusterName).anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
     expect(cluster.getServiceComponentHosts(anyObject(String.class))).andAnswer(new IAnswer<List<ServiceComponentHost>>() {
       @Override
