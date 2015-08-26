@@ -512,6 +512,12 @@
                   <location>src/main/resources/Ambari-DDL-SQLServer-DROP.sql</location>
                 </source>
                 <source>
+                  <location>target/classes/Ambari-DDL-SQLAnywhere-CREATE.sql</location>
+                </source>
+                <source>
+                  <location>src/main/resources/Ambari-DDL-SQLAnywhere-DROP.sql</location>
+                </source>
+                <source>
                   <location>${project.build.directory}/DBConnectionVerification.jar</location>
                 </source>
                 <source>
@@ -958,6 +964,22 @@
             </data>
             <data>
               <src>src/main/resources/Ambari-DDL-SQLServer-DROP.sql</src>
+              <type>file</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/var/lib/ambari-server/resources</prefix>
+              </mapper>
+            </data>
+            <data>
+              <src>target/classes/Ambari-DDL-SQLAnywhere-CREATE.sql</src>
+              <type>file</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/var/lib/ambari-server/resources</prefix>
+              </mapper>
+            </data>
+            <data>
+              <src>src/main/resources/Ambari-DDL-SQLAnywhere-DROP.sql</src>
               <type>file</type>
               <mapper>
                 <type>perm</type>

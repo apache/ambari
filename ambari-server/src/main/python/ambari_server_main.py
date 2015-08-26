@@ -260,7 +260,7 @@ def server_process_main(options, scmStatus=None):
   class_path = os.path.abspath(class_path) + os.pathsep + get_ambari_classpath()
   jdbc_driver_path = get_jdbc_driver_path(options, properties)
   if jdbc_driver_path not in class_path:
-    class_path = class_path + os.pathsep + get_ambari_classpath()
+    class_path = class_path + os.pathsep + jdbc_driver_path
 
   if SERVER_CLASSPATH_KEY in os.environ:
       class_path =  os.environ[SERVER_CLASSPATH_KEY] + os.pathsep + class_path
