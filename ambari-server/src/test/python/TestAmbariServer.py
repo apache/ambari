@@ -60,7 +60,7 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
         from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
         from ambari_server.serverConfiguration import configDefaults, \
           check_database_name_property, OS_FAMILY_PROPERTY, \
-          find_properties_file, get_ambari_classpath, get_ambari_jars, get_ambari_properties, get_JAVA_HOME, get_share_jars, \
+          find_properties_file, get_ambari_classpath, get_ambari_jars, get_ambari_properties, get_JAVA_HOME, \
           parse_properties_file, read_ambari_user, update_ambari_properties, update_properties_2, write_property, find_jdk, \
           AMBARI_CONF_VAR, AMBARI_SERVER_LIB, JDBC_DATABASE_PROPERTY, JDBC_RCA_PASSWORD_FILE_PROPERTY, \
           PERSISTENCE_TYPE_PROPERTY, JDBC_URL_PROPERTY, get_conf_dir, JDBC_USER_NAME_PROPERTY, JDBC_PASSWORD_PROPERTY, \
@@ -795,7 +795,6 @@ class TestAmbariServer(TestCase):
     sys.stdout = sys.__stdout__
     pass
 
-
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("time.sleep")
   @patch("subprocess.Popen")
@@ -816,7 +815,6 @@ class TestAmbariServer(TestCase):
     retcode, out, err = PGConfig._restart_postgres()
     self.assertEqual(1, retcode)
     pass
-
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("shlex.split")
@@ -862,7 +860,6 @@ class TestAmbariServer(TestCase):
     self.assertTrue(splitMock.called)
     pass
 
-
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("ambari_server.serverConfiguration.get_conf_dir")
   @patch("ambari_server.serverConfiguration.search_file")
@@ -897,7 +894,6 @@ class TestAmbariServer(TestCase):
       os.unlink(tf1.name)
     pass
 
-
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("ambari_server.dbConfiguration.decrypt_password_for_alias")
   @patch("ambari_server.dbConfiguration_linux.run_os_command")
@@ -925,7 +921,6 @@ class TestAmbariServer(TestCase):
     self.assertTrue(run_os_command_mock.called)
     self.assertEqual((0, None, None), result)
     pass
-
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("ambari_server.dbConfiguration.decrypt_password_for_alias")
@@ -955,7 +950,6 @@ class TestAmbariServer(TestCase):
     self.assertEqual(2, sleep_mock.call_count)
     pass
 
-
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("ambari_server.dbConfiguration.decrypt_password_for_alias")
   @patch("time.sleep")
@@ -984,7 +978,6 @@ class TestAmbariServer(TestCase):
     self.assertEqual(1, sleep_mock.call_count)
     pass
 
-
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("ambari_server.serverSetup.get_YN_input")
   @patch("ambari_server.serverSetup.run_os_command")
@@ -1003,7 +996,6 @@ class TestAmbariServer(TestCase):
     self.assertTrue(run_os_command_mock.called)
     self.assertTrue(getYNInput_mock.called)
     pass
-
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("ambari_server.serverConfiguration.print_info_msg")
@@ -1035,24 +1027,6 @@ class TestAmbariServer(TestCase):
     self.assertTrue(printInfoMsg_mock.called)
     pass
 
-
-  @patch("glob.glob")
-  @patch("ambari_server.serverConfiguration.print_info_msg")
-  def test_get_share_jars(self, printInfoMsg_mock, globMock):
-    globMock.return_value = ["one", "two"]
-    expected = "one" + os.pathsep + "two" + os.pathsep + \
-               "one" + os.pathsep + "two" + os.pathsep + \
-               "one" + os.pathsep + "two" + os.pathsep + \
-               "one" + os.pathsep + "two"
-    result = get_share_jars()
-    self.assertEqual(expected, result)
-    globMock.return_value = []
-    expected = ""
-    result = get_share_jars()
-    self.assertEqual(expected, result)
-    pass
-
-
   @patch("glob.glob")
   @patch("ambari_server.serverConfiguration.print_info_msg")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
@@ -1060,13 +1034,11 @@ class TestAmbariServer(TestCase):
     globMock.return_value = ["one"]
     result = get_ambari_classpath()
     self.assertTrue(get_ambari_jars() in result)
-    self.assertTrue(get_share_jars() in result)
     globMock.return_value = []
     result = get_ambari_classpath()
     self.assertTrue(get_ambari_jars() in result)
     self.assertFalse(":" in result[2:])
     pass
-
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("ambari_server.serverConfiguration.print_info_msg")
@@ -1317,7 +1289,6 @@ class TestAmbariServer(TestCase):
       configDefaults.NR_ADJUST_OWNERSHIP_LIST = old_adjust_owner_list
     pass
 
-
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("os.path.exists")
   @patch("ambari_commons.os_linux.os_run_os_command")
@@ -1395,7 +1366,6 @@ class TestAmbariServer(TestCase):
     run_os_command_mock.reset_mock()
     print_warning_msg_mock.reset_mock()
     pass
-
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -1529,7 +1499,6 @@ class TestAmbariServer(TestCase):
     self.assertEquals(result, 0)
     self.assertEquals(userChecks.user, "dummy_domain\\dummy_user")
     pass
-
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))

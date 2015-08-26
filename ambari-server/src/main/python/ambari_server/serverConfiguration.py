@@ -1203,17 +1203,6 @@ def get_ambari_jars():
                  + default_jar_location)
     return default_jar_location
 
-def get_share_jars():
-  share_jars = ""
-  file_list = []
-  file_list.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + "*mysql*"))
-  file_list.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + "*sqljdbc*"))
-  file_list.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + "*ojdbc*"))
-  file_list.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + "*sajdbc4*"))
-  if len(file_list) > 0:
-    share_jars = string.join(file_list, os.pathsep)
-  return share_jars
-
 def get_jdbc_cp():
   jdbc_jar_path = ""
   properties = get_ambari_properties()
@@ -1226,9 +1215,6 @@ def get_ambari_classpath():
   jdbc_cp = get_jdbc_cp()
   if len(jdbc_cp) > 0:
     ambari_cp = ambari_cp + os.pathsep + jdbc_cp
-  share_cp = get_share_jars()
-  if len(share_cp) > 0:
-    ambari_cp = ambari_cp + os.pathsep + share_cp
   return ambari_cp
 
 def get_full_ambari_classpath(conf_dir = None):
