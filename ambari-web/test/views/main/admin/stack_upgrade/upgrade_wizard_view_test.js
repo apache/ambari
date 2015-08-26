@@ -26,6 +26,7 @@ describe('App.upgradeWizardView', function () {
   });
   view.reopen({
     controller: Em.Object.create({
+      finalizeContext: 'Confirm Finalize',
       upgradeData: Em.Object.create(),
       loadUpgradeData: Em.K,
       setUpgradeItemStatus: Em.K,
@@ -422,7 +423,7 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#isFinalizeItem", function () {
-    it("", function () {
+    it("depends of manualItem.context", function () {
       view.reopen({
         manualItem: {
           context: 'Confirm Finalize'

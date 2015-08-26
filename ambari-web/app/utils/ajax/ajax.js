@@ -1501,6 +1501,10 @@ var urls = {
     'real': '/clusters/{clusterName}/upgrades/{id}?fields=Upgrade',
     'mock': '/data/stack_versions/upgrade.json'
   },
+  'admin.upgrade.finalizeContext': {
+    'real': '/clusters/{clusterName}/upgrades/{id}?upgrade_groups/upgrade_items/UpgradeItem/status=HOLDING&fields=upgrade_groups/upgrade_items/UpgradeItem/context',
+    'mock': '/data/stack_versions/upgrade.json'
+  },
   'admin.upgrade.upgrade_item': {
     'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups/{groupId}/upgrade_items/{stageId}?fields=' +
     'UpgradeItem/group_id,' +
