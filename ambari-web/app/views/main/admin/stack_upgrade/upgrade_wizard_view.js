@@ -174,7 +174,7 @@ App.upgradeWizardView = Em.View.extend({
    * @type {boolean}
    */
   isFinalizeItem: function () {
-    return this.get('manualItem.context') === 'Confirm Finalize';
+    return this.get('manualItem.context') === this.get('controller.finalizeContext');
   }.property('manualItem.context'),
 
   /**

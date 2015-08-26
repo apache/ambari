@@ -102,8 +102,9 @@
       {{#if App.upgradeIsNotFinished}}
         <div class="ru-badge span12">
           <div class="navbar navbar-static-top clearfix">
-            <div class="span4 offset4">
+            <div class="span11">
               {{#if isExistingClusterDataLoaded}}
+                <p class="span4 offset4">
                 <a class="brand cluster-name" href="#">
                   {{#if App.upgradeInProgress}}
                     {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
@@ -139,6 +140,10 @@
                     {{/if}}
                   {{/if}}
                 </a>
+                </p>
+                {{#if App.router.mainAdminStackAndUpgradeController.isFinalizeItem}}
+                  <p class="span10 alert alert-warning">{{t admin.stackVersions.version.upgrade.notFinalized.warning}}</p>
+                {{/if}}
               {{/if}}
             </div>
           </div>

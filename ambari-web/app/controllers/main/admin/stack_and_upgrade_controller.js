@@ -83,6 +83,18 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   taskDetailsProperties: ['status', 'stdout', 'stderr', 'error_log', 'host_name', 'output_log'],
 
+  /**
+   * Context for Finalize item
+   * @type {string}
+   */
+  finalizeContext: 'Confirm Finalize',
+
+  /**
+   * Check if current item is Finalize
+   * @type {boolean}
+   */
+  isFinalizeItem: false,
+
   isLoadUpgradeDataPending: false,
 
   /**
@@ -796,6 +808,40 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       App.set('upgradeState', 'INIT');
     }
   }.observes('App.upgradeState'),
+
+  /**
+   * Check <code>App.upgradeState</code> for HOLDING
+   * If it is, send request to check if current item is Finalize
+   * @method updateFinalize
+   */
+  updateFinalize: function () {
+    var upgradeState = App.get('upgradeState');
+    if (upgradeState === 'HOLDING') {
+      return App.ajax.send({
+        name: 'admin.upgrade.finalizeContext',
+        sender: this,
+        success: 'updateFinalizeSuccessCallback',
+        error: 'updateFinalizeErrorCallback'
+      })
+    }
+    else {
+      this.set('isFinalizeItem', false);
+    }
+  }.observes('App.upgradeState'),
+
+  /**
+   *
+   * @param {object|null} data
+   * @method updateFinalizeSuccessCallback
+   */
+  updateFinalizeSuccessCallback: function (data) {
+    var context = data ? Em.get(data, 'upgrade_groups.firstObject.upgrade_items.firstObject.UpgradeItem.context') : '';
+    this.set('isFinalizeItem', context === this.get('finalizeContext'));
+  },
+
+  updateFinalizeErrorCallback: function() {
+    this.set('isFinalizeItem', false);
+  },
 
   /**
    * show dialog with tasks of upgrade

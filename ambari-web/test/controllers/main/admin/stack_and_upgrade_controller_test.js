@@ -274,7 +274,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
-
   describe("#runPreUpgradeCheck()", function() {
     before(function () {
       sinon.stub(App.ajax, 'send', Em.K);
@@ -1122,4 +1121,94 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
 
   });
+
+  describe('#updateFinalize', function () {
+
+    beforeEach(function() {
+      sinon.stub($, 'ajax', Em.K);
+      controller.set('isFinalizeItem', true);
+    });
+
+    afterEach(function () {
+      $.ajax.restore();
+    });
+
+    it('should do ajax-request', function () {
+      sinon.stub(App, 'get').withArgs('upgradeState').returns('HOLDING');
+      controller.updateFinalize();
+      App.get.restore();
+      expect($.ajax.calledOnce).to.be.true;
+    });
+
+    it('shouldn\'t do ajax-request', function () {
+      sinon.stub(App, 'get').withArgs('upgradeState').returns('HOLDING_TIMEDOUT');
+      controller.updateFinalize();
+      App.get.restore();
+      expect(controller.get('isFinalizeItem')).to.be.false;
+      expect($.ajax.calledOnce).to.be.false;
+    });
+
+  });
+
+  describe('#updateFinalizeSuccessCallback', function () {
+
+    it('data exists and Finalize should be true', function() {
+      var data = {
+        upgrade_groups: [
+          {
+            upgrade_items: [
+              {
+                UpgradeItem: {
+                  context: controller.get('finalizeContext'),
+                  status: "HOLDING"
+                }
+              }
+            ]
+          }
+        ]
+      };
+      controller.set('isFinalizeItem', false);
+      controller.updateFinalizeSuccessCallback(data);
+      expect(controller.get('isFinalizeItem')).to.be.true;
+    });
+
+    it('data exists and Finalize should be false', function() {
+      var data = {
+        upgrade_groups: [
+          {
+            upgrade_items: [
+              {
+                UpgradeItem: {
+                  context: '!@#$%^&',
+                  status: "HOLDING"
+                }
+              }
+            ]
+          }
+        ]
+      };
+      controller.set('isFinalizeItem', true);
+      controller.updateFinalizeSuccessCallback(data);
+      expect(controller.get('isFinalizeItem')).to.be.false;
+    });
+
+    it('data doesn\'t exist', function() {
+      var data = null;
+      controller.set('isFinalizeItem', true);
+      controller.updateFinalizeSuccessCallback(data);
+      expect(controller.get('isFinalizeItem')).to.be.false;
+    });
+
+  });
+
+  describe('#updateFinalizeErrorCallback', function () {
+
+    it('should set isFinalizeItem to false', function () {
+      controller.set('isFinalizeItem', true);
+      controller.updateFinalizeErrorCallback();
+      expect(controller.get('isFinalizeItem')).to.be.false;
+    });
+
+  });
+
 });
