@@ -30,25 +30,23 @@ def setup_users():
   """
   import params
 
-  if not params.host_sys_prepped:
+  if not params.host_sys_prepped and not params.ignore_groupsusers_create:
     for group in params.group_list:
       Group(group,
-          ignore_failures = params.ignore_groupsusers_create
       )
 
     for user in params.user_list:
       User(user,
           gid = params.user_to_gid_dict[user],
           groups = params.user_to_groups_dict[user],
-          ignore_failures = params.ignore_groupsusers_create
       )
 
     if params.override_uid == "true":
       set_uid(params.smoke_user, params.smoke_user_dirs)
     else:
-      print 'Skipping setting uid for smoke user as host is sys prepped'
+      Logger.info('Skipping setting uid for smoke user as host is sys prepped')
   else:
-    print 'Skipping creation of User and Group as host is sys prepped'
+    Logger.info('Skipping creation of User and Group as host is sys prepped or ignore_groupsusers_create flag is on')
     pass
 
 
@@ -62,7 +60,7 @@ def setup_users():
     if not params.host_sys_prepped and params.override_uid == "true":
       set_uid(params.hbase_user, params.hbase_user_dirs)
     else:
-      print 'Skipping setting uid for hbase user as host is sys prepped'
+      Logger.info('Skipping setting uid for hbase user as host is sys prepped')      
       pass
 
   if not params.host_sys_prepped:
@@ -71,7 +69,7 @@ def setup_users():
     if params.has_tez and params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.3') >= 0:
         create_tez_am_view_acls()
   else:
-    print 'Skipping setting dfs cluster admin and tez view acls as host is sys prepped'
+    Logger.info('Skipping setting dfs cluster admin and tez view acls as host is sys prepped')
 
 def create_dfs_cluster_admins():
   """
