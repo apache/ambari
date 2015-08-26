@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -70,7 +71,9 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -300,16 +303,18 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     desiredRepoVersion = (String) propertyMap.get(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
 
     Cluster cluster;
-    Map<String, Host> hostsForCluster;
-
     AmbariManagementController managementController = getManagementController();
     AmbariMetaInfo ami = managementController.getAmbariMetaInfo();
+
     try {
-      cluster = managementController.getClusters().getCluster(clName);
-      hostsForCluster = managementController.getClusters().getHostsForCluster(clName);
+      Clusters clusters = managementController.getClusters();
+      cluster = clusters.getCluster(clName);
     } catch (AmbariException e) {
       throw new NoSuchParentResourceException(e.getMessage(), e);
     }
+
+    // get all of the host eligible for stack distribution
+    List<Host> hosts = getHostsForStackDistribution(cluster);
 
     final StackId stackId;
     if (propertyMap.containsKey(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID) &&
@@ -352,13 +357,13 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     RequestStageContainer req = createRequest();
 
-    Iterator<Host> hostsForClusterIter = hostsForCluster.values().iterator();
+    Iterator<Host> hostIterator = hosts.iterator();
     Map<String, String> hostLevelParams = new HashMap<String, String>();
     hostLevelParams.put(JDK_LOCATION, getManagementController().getJdkResourceUrl());
     String hostParamsJson = StageUtils.getGson().toJson(hostLevelParams);
 
     int maxTasks = configuration.getAgentPackageParallelCommandsLimit();
-    int hostCount = hostsForCluster.size();
+    int hostCount = hosts.size();
     int batchCount = (int) (Math.ceil((double)hostCount / maxTasks));
 
     long stageId = req.getLastStageId() + 1;
@@ -394,25 +399,27 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       stages.add(stage);
 
       // Populate with commands for host
-      for (int i = 0; i < maxTasks && hostsForClusterIter.hasNext(); i++) {
-        Host host = hostsForClusterIter.next();
+      for (int i = 0; i < maxTasks && hostIterator.hasNext(); i++) {
+        Host host = hostIterator.next();
         addHostVersionInstallCommandsToStage(desiredRepoVersion,
                 cluster, managementController, ami, stackId, perOsRepos, stage, host);
       }
     }
+
     req.addStages(stages);
 
     try {
-      ClusterVersionEntity existingCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(
+      ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStackAndVersion(
           clName, stackId, desiredRepoVersion);
 
-      if (existingCSVer == null) {
+      if (clusterVersionEntity == null) {
         try {
           // Create/persist new cluster stack version
           cluster.createClusterVersion(stackId,
               desiredRepoVersion, managementController.getAuthName(),
               RepositoryVersionState.INSTALLING);
-          existingCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(
+
+          clusterVersionEntity = clusterVersionDAO.findByClusterAndStackAndVersion(
               clName, stackId, desiredRepoVersion);
         } catch (AmbariException e) {
           throw new SystemException(
@@ -427,7 +434,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
 
       // Will also initialize all Host Versions in an INSTALLING state.
-      cluster.inferHostVersions(existingCSVer);
+      cluster.transitionHostsToInstalling(clusterVersionEntity);
 
       req.persist();
 
@@ -438,11 +445,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   }
 
   private void addHostVersionInstallCommandsToStage(final String desiredRepoVersion,
-                                                    Cluster cluster, AmbariManagementController managementController,
-                                                    AmbariMetaInfo ami,
-                                                    final StackId stackId,
-                                                    Map<String, List<RepositoryEntity>> perOsRepos,
-                                                    Stage stage, Host host) throws SystemException {
+      Cluster cluster, AmbariManagementController managementController, AmbariMetaInfo ami,
+      final StackId stackId, Map<String, List<RepositoryEntity>> perOsRepos, Stage stage, Host host)
+          throws SystemException {
     // Determine repositories for host
     final List<RepositoryEntity> repoInfo = perOsRepos.get(host.getOsFamily());
     if (repoInfo == null) {
@@ -450,7 +455,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
                       "not defined. Repo version=%s, stackId=%s",
               host.getOsFamily(), desiredRepoVersion, stackId));
     }
-    // For every host at cluster, determine packages for all installed services
+
+    // determine packages for all services that are installed on host
     List<ServiceOsSpecific.Package> packages = new ArrayList<ServiceOsSpecific.Package>();
     Set<String> servicesOnHost = new HashSet<String>();
     List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
@@ -475,6 +481,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         }
       }
     }
+
     final String packageList = gson.toJson(packages);
     final String repoList = gson.toJson(repoInfo);
 
@@ -500,7 +507,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       throw new SystemException("Can not modify stage", e);
     }
   }
-
 
   private RequestStageContainer createRequest() {
     ActionManager actionManager = getManagementController().getActionManager();
@@ -630,5 +636,28 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   @Override
   protected Set<String> getPKPropertyIds() {
     return pkPropertyIds;
+  }
+
+  /**
+   * Gets all of the hosts in a cluster which are not in "maintenance mode" and
+   * are considered to be healthy. In the case of stack distribution, a host
+   * must be explicitely marked as being in maintenance mode for it to be
+   * considered as unhealthy.
+   *
+   * @param cluster
+   *          the cluster (not {@code null}).
+   * @return the list of hosts that are not in maintenance mode and are
+   *         elidgable to have a stack distributed to them.
+   */
+  private List<Host> getHostsForStackDistribution(Cluster cluster) {
+    Collection<Host> hosts = cluster.getHosts();
+    List<Host> healthyHosts = new ArrayList<>(hosts.size());
+    for (Host host : hosts) {
+      if (host.getMaintenanceState(cluster.getClusterId()) == MaintenanceState.OFF) {
+        healthyHosts.add(host);
+      }
+    }
+
+    return healthyHosts;
   }
 }

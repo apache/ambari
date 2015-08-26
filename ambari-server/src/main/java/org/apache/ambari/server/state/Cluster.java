@@ -180,15 +180,25 @@ public interface Cluster {
       RepositoryVersionState desiredState) throws AmbariException;
 
   /**
-   * Create/update host versions for all of the hosts within a cluster based on state of cluster stack version.
-   * The difference of this method compared to {@link Cluster#mapHostVersions}
-   * is that it affects all hosts (not only missing hosts). Also, current method contains some additional logics to allow only INSTALLING
-   * state for hosts.
-   * @param sourceClusterVersion cluster version to be queried for a stack name/version info and desired RepositoryVersionState. The only valid state
-   * of a cluster version is {@link RepositoryVersionState#INSTALLING}
+   * Creates or updates host versions for all of the hosts within a cluster
+   * based on state of cluster stack version. This is used to transition all
+   * hosts into the {@link RepositoryVersionState#INSTALLING} state.
+   * <p/>
+   * The difference between this method compared to
+   * {@link Cluster#mapHostVersions} is that it affects all hosts (not only
+   * missing hosts).
+   * <p/>
+   * Hosts that are in maintenance mode will not be included. These hosts have
+   * been explicitely marked as being in maintenance andd are not included in
+   * this operation.
+   *
+   * @param sourceClusterVersion
+   *          cluster version to be queried for a stack name/version info and
+   *          desired RepositoryVersionState. The only valid state of a cluster
+   *          version is {@link RepositoryVersionState#INSTALLING}
    * @throws AmbariException
    */
-  void inferHostVersions(ClusterVersionEntity sourceClusterVersion)
+  void transitionHostsToInstalling(ClusterVersionEntity sourceClusterVersion)
       throws AmbariException;
 
   /**
