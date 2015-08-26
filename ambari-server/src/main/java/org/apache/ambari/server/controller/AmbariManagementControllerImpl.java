@@ -160,6 +160,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MultiMap;
 import org.apache.commons.io.IOUtils;
@@ -3501,12 +3502,26 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public void updateRepositories(Set<RepositoryRequest> requests) throws AmbariException {
     for (RepositoryRequest rr : requests) {
-      if (null == rr.getStackName() || rr.getStackName().isEmpty()) {
-        throw new AmbariException("Stack name must be specified.");
-      }
-
       if (null == rr.getStackVersion() || rr.getStackVersion().isEmpty()) {
         throw new AmbariException("Stack version must be specified.");
+      }
+
+      //
+      // If stack version is 2.2.0.0 or greater, error out.
+      //
+      String stackVersion = rr.getStackVersion();
+      String baseUrlDeprecatedStackVersion = configs.getConfigsMap().get(Configuration.BASEURL_API_DEPRECATED_STACK_VERSION);
+      try {
+        if (VersionUtils.compareVersions(stackVersion, baseUrlDeprecatedStackVersion) >= 0) {
+          throw new AmbariException("Stack version (" + stackVersion + ") is not supported");
+        }
+      }
+      catch (NumberFormatException e) {
+        throw new AmbariException("Stack version (" + stackVersion + ") is not supported");
+      }
+
+      if (null == rr.getStackName() || rr.getStackName().isEmpty()) {
+        throw new AmbariException("Stack name must be specified.");
       }
 
       if (null == rr.getOsType() || rr.getOsType().isEmpty()) {

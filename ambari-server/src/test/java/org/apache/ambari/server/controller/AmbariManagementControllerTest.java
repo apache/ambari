@@ -8481,6 +8481,48 @@ public class AmbariManagementControllerTest {
       LOG.error("Can not complete test. " + exceptionMsg);
     }
 
+    //
+    // HDP stack version 2.2 and above are not supported since the base_url information is stored in repo_version table
+    //
+
+    // Test with stack version 2.2
+    requests.clear();
+    request = new RepositoryRequest(STACK_NAME, "2.2", OS_TYPE, REPO_ID);
+    request.setBaseUrl(baseUrl);
+    requests.add(request);
+    try {
+      controller.updateRepositories(requests);
+    } catch (Exception e) {
+      String exceptionMsg = e.getMessage();
+      assertTrue(exceptionMsg.contains("is not supported"));
+      LOG.error("Can not complete test. " + exceptionMsg);
+    }
+
+    // Test with stack version 2.3 (minor version bumped up)
+    requests.clear();
+    request = new RepositoryRequest(STACK_NAME, "2.3", OS_TYPE, REPO_ID);
+    request.setBaseUrl(baseUrl);
+    requests.add(request);
+    try {
+      controller.updateRepositories(requests);
+    } catch (Exception e) {
+      String exceptionMsg = e.getMessage();
+      assertTrue(exceptionMsg.contains("is not supported"));
+      LOG.error("Can not complete test. " + exceptionMsg);
+    }
+
+    // Test with stack version 3.2 (major version bumped up)
+    requests.clear();
+    request = new RepositoryRequest(STACK_NAME, "3.2", OS_TYPE, REPO_ID);
+    request.setBaseUrl(baseUrl);
+    requests.add(request);
+    try {
+      controller.updateRepositories(requests);
+    } catch (Exception e) {
+      String exceptionMsg = e.getMessage();
+      assertTrue(exceptionMsg.contains("is not supported"));
+      LOG.error("Can not complete test. " + exceptionMsg);
+    }
   }
 
   @Test
