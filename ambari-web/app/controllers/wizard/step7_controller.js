@@ -358,8 +358,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var serviceName = params.serviceName,
       service = this.get('stepConfigs').findProperty('serviceName', serviceName),
       defaultConfigGroupHosts = this.get('wizardController.allHosts').mapProperty('hostName'),
-      siteToTagMap = this._createSiteToTagMap(data.Clusters.desired_configs, params.serviceConfigsDef.get('configTypes')),
-      selectedConfigGroup;
+      siteToTagMap = this._createSiteToTagMap(data.Clusters.desired_configs, params.serviceConfigsDef.get('configTypes'));
     this.set('loadedClusterSiteToTagMap', siteToTagMap);
 
     //parse loaded config groups
@@ -369,58 +368,42 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         item = item.ConfigGroup;
         if (item.tag === serviceName) {
           var groupHosts = item.hosts.mapProperty('host_name');
-          var newConfigGroup = App.ConfigGroup.create({
-            id: item.id,
+          configGroups.push({
+            id: serviceName + item.id,
+            config_group_id: item.id,
             name: item.group_name,
             description: item.description,
-            isDefault: false,
-            parentConfigGroup: null,
-            service: App.Service.find().findProperty('serviceName', item.tag),
+            is_default: false,
+            parent_config_group_id: App.ServiceConfigGroup.getParentConfigGroupId(serviceName),
+            service_id: serviceName,
+            service_name: serviceName,
             hosts: groupHosts,
-            configSiteTags: []
+            desired_configs: item.desired_configs
           });
           groupHosts.forEach(function (host) {
             defaultConfigGroupHosts = defaultConfigGroupHosts.without(host);
           }, this);
-          item.desired_configs.forEach(function (config) {
-            newConfigGroup.configSiteTags.push(App.ConfigSiteTag.create({
-              site: config.type,
-              tag: config.tag
-            }));
-          }, this);
-          configGroups.push(newConfigGroup);
         }
       }, this);
     }
-    var defaultConfigGroup = App.ConfigGroup.create({
-      name: App.format.role(serviceName) + " Default",
-      description: "Default cluster level " + serviceName + " configuration",
-      isDefault: true,
-      hosts: defaultConfigGroupHosts,
-      parentConfigGroup: null,
-      service: Em.Object.create({
-        id: serviceName
-      }),
-      serviceName: serviceName,
-      configSiteTags: []
-    });
-    if (!selectedConfigGroup) {
-      selectedConfigGroup = defaultConfigGroup;
-    }
+
+    var defaultConfigGroup = App.configGroupsMapper.generateDefaultGroup(serviceName, defaultConfigGroupHosts);
+
     configGroups = configGroups.sortProperty('name');
     configGroups.unshift(defaultConfigGroup);
-    service.set('configGroups', configGroups);
+    App.store.loadMany(App.ServiceConfigGroup, configGroups);
+    App.store.commit();
+    service.set('configGroups', App.ServiceConfigGroup.find().filterProperty('serviceName', serviceName));
+
     var loadedGroupToOverrideSiteToTagMap = {};
-    var configGroupsWithOverrides = selectedConfigGroup.get('isDefault') ? service.get('configGroups') : [selectedConfigGroup];
-    configGroupsWithOverrides.forEach(function (item) {
-      var groupName = item.get('name');
+    configGroups.forEach(function (item) {
+      var groupName = item.name;
       loadedGroupToOverrideSiteToTagMap[groupName] = {};
-      item.get('configSiteTags').forEach(function (siteTag) {
-        var site = siteTag.get('site');
-        loadedGroupToOverrideSiteToTagMap[groupName][site] = siteTag.get('tag');
+      item.desired_configs.forEach(function (site) {
+        loadedGroupToOverrideSiteToTagMap[groupName][site.type] = site.tag;
       }, this);
     }, this);
-    this.set('preSelectedConfigGroup', selectedConfigGroup);
+    this.set('preSelectedConfigGroup', App.ServiceConfigGroup.find(App.ServiceConfigGroup.getParentConfigGroupId(serviceName)));
     App.config.loadServiceConfigGroupOverrides(service.get('configs'), loadedGroupToOverrideSiteToTagMap, service.get('configGroups'), this.onLoadOverrides, this);
   },
 
@@ -1029,45 +1012,35 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   loadConfigGroups: function (serviceConfigGroups) {
     var services = this.get('stepConfigs');
     var hosts = this.get('wizardController.allHosts').mapProperty('hostName');
+
     services.forEach(function (service) {
       if (service.get('serviceName') === 'MISC') return;
-      var serviceRawGroups = serviceConfigGroups.filterProperty('service.id', service.serviceName);
+      var serviceRawGroups = serviceConfigGroups.filterProperty('service_name', service.serviceName);
+      var id = App.ServiceConfigGroup.getParentConfigGroupId(service.get('serviceName'));
       if (!serviceRawGroups.length) {
-        service.set('configGroups', [
-          App.ConfigGroup.create({
-            name: service.displayName + " Default",
-            description: "Default cluster level " + service.serviceName + " configuration",
-            isDefault: true,
-            hosts: Em.copy(hosts),
-            service: Em.Object.create({
-              id: service.serviceName
-            }),
-            serviceName: service.serviceName
-          })
-        ]);
+        App.store.load(App.ServiceConfigGroup, App.configGroupsMapper.generateDefaultGroup(service.get('serviceName'), hosts));
+        App.store.commit();
+        service.set('configGroups', [App.ServiceConfigGroup.find(id)]);
       }
       else {
-        var defaultGroup = App.ConfigGroup.create(serviceRawGroups.findProperty('isDefault'));
-        var serviceGroups = service.get('configGroups');
-        serviceRawGroups.filterProperty('isDefault', false).forEach(function (configGroup) {
-          var readyGroup = App.ConfigGroup.create(configGroup);
+        App.store.loadMany(App.ServiceConfigGroup, serviceRawGroups);
+        App.store.commit();
+        serviceRawGroups.forEach(function(item){
+          var modelGroup = App.ServiceConfigGroup.find(item.id);
           var wrappedProperties = [];
-          readyGroup.get('properties').forEach(function (propertyData) {
+
+          item.properties.forEach(function (propertyData) {
             var parentSCP = service.configs.filterProperty('filename', propertyData.filename).findProperty('name', propertyData.name);
             var overriddenSCP = App.ServiceConfigProperty.create(parentSCP);
             overriddenSCP.set('isOriginalSCP', false);
             overriddenSCP.set('parentSCP', parentSCP);
-            overriddenSCP.set('group', readyGroup);
+            overriddenSCP.set('group', modelGroup);
             overriddenSCP.setProperties(propertyData);
             wrappedProperties.pushObject(App.ServiceConfigProperty.create(overriddenSCP));
           });
-          wrappedProperties.setEach('group', readyGroup);
-          readyGroup.set('properties', wrappedProperties);
-          readyGroup.set('parentConfigGroup', defaultGroup);
-          serviceGroups.pushObject(readyGroup);
-        });
-        defaultGroup.set('childConfigGroups', serviceGroups);
-        serviceGroups.pushObject(defaultGroup);
+          modelGroup.set('properties', wrappedProperties);
+        }, this);
+        service.set('configGroups', App.ServiceConfigGroup.find().filterProperty('serviceName', service.get('serviceName')));
       }
     });
   },

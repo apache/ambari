@@ -44,7 +44,7 @@ describe('App.EnhancedConfigsMixin', function() {
 
   describe('#buildConfigGroupJSON()', function() {
     it('generates JSON based on config group info', function() {
-      var configGroup = App.ConfigGroup.create({
+      var configGroup = Em.Object.create({
         name: 'group1',
         isDefault: false,
         hosts: ['host1', 'host2']

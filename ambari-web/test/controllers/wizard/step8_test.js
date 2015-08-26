@@ -339,7 +339,7 @@ describe('App.WizardStep8Controller', function () {
       var content = Em.Object.create({
         configGroups: Em.A([
           Em.Object.create({
-            isDefault: true,
+            is_default: true,
             service: Em.Object.create({
               id: 1
             }),
@@ -358,7 +358,7 @@ describe('App.WizardStep8Controller', function () {
             ])
           }),
           Em.Object.create({
-            isDefault: false,
+            is_default: false,
             service: Em.Object.create({
               id: 2
             }),

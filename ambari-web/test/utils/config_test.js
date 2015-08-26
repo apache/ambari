@@ -898,7 +898,7 @@ describe('App.config', function () {
 
     var configProperty = App.ServiceConfigProperty.create(template);
 
-    var group = App.ConfigGroup.create({name: "group1"});
+    var group = Em.Object.create({name: "group1"});
 
     it('creates override with save properties as original config', function() {
       var override = App.config.createOverride(configProperty, {}, group);

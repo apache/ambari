@@ -41,32 +41,28 @@ App.ServiceConfigGroup = DS.Model.extend({
   name: DS.attr('string'),
   serviceName: DS.attr('string'),
   description: DS.attr('string'),
-  hostNames: DS.attr('array'),
+  hosts: DS.attr('array'),
   configVersions: DS.hasMany('App.ConfigVersion'),
   service: DS.belongsTo('App.Service'),
-  desiredConfigs: DS.attr('array'),
+  desiredConfigs: DS.attr('array', {defaultValue: []}),
+
+  /**
+   * this flag is used for installed services' config groups
+   * if user make changes to them - mark this flag to true
+   * @default [false]
+   */
+  isForUpdate: DS.attr('boolean', {defaultValue: false}),
+
+  /**
+   * mark config groups for installed services
+   * @default [false]
+   */
+  isForInstalledService: DS.attr('boolean', {defaultValue: false}),
 
   /**
    * all hosts that belong to cluster
    */
   clusterHostsBinding: 'App.router.manageConfigGroupsController.clusterHosts',
-
-  /**
-   * Hosts on which this configuration-group
-   * is to be applied. For a service, a host can
-   * belong to only one non-default configuration-group.
-   *
-   * When {#isDefault} is false, this contains hosts
-   * for which the overrides will apply.
-   *
-   * When {#isDefault} is true, this value is empty, as
-   * it dynamically reflects hosts not belonging to other
-   * non-default groups.
-   * @type {Array}
-   */
-  hosts: function() {
-    return this.get('hostNames');
-  }.property('hostNames'),
 
   /**
    * defines if group is default
@@ -117,8 +113,8 @@ App.ServiceConfigGroup = DS.Model.extend({
    *
    */
   displayNameHosts: function () {
-    return this.get('displayName') + ' (' + this.get('hostNames.length') + ')';
-  }.property('displayName', 'hostNames.length'),
+    return this.get('displayName') + ' (' + this.get('hosts.length') + ')';
+  }.property('displayName', 'hosts.length'),
 
   /**
    * Provides hosts which are available for inclusion in
@@ -152,15 +148,22 @@ App.ServiceConfigGroup = DS.Model.extend({
   /**
    * @type {Array}
    */
-  properties: [],
+  properties: DS.attr('array', {defaultValue: []}),
 
   propertiesList: function () {
     var result = '';
-    this.get('properties').forEach(function (item) {
-      result += item.name + " : " + item.value + '<br/>';
-    }, this);
+
+    if (Array.isArray(this.get('properties'))) {
+      this.get('properties').forEach(function (item) {
+        result += item.name + " : " + item.value + '<br/>';
+      }, this);
+    }
     return result;
   }.property('properties.length')
 });
 
 App.ServiceConfigGroup.FIXTURES = [];
+
+App.ServiceConfigGroup.getParentConfigGroupId = function(serviceName) {
+  return serviceName + '0';
+};

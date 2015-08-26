@@ -134,17 +134,14 @@ App.ConfigOverridable = Em.Mixin.create({
           }
         } else {
           var newConfigGroupName = this.get('newConfigGroupName').trim();
-          var newConfigGroup = App.ConfigGroup.create({
+          var newConfigGroup = {
             id: null,
             name: newConfigGroupName,
             description: Em.I18n.t('config.group.description.default').format(new Date().toDateString()),
-            isDefault: false,
-            parentConfigGroup: null,
-            service: (isInstaller) ? Em.Object.create({id: serviceId}) : App.Service.find().findProperty('serviceName', serviceId),
+            service_id: serviceId,
             hosts: [],
-            configSiteTags: [],
-            properties: []
-          });
+            desired_configs: []
+          };
           if (!isInstaller) {
             self.postNewConfigurationGroup(newConfigGroup);
           }
@@ -223,14 +220,14 @@ App.ConfigOverridable = Em.Mixin.create({
   /**
    * Create a new config-group for a service.
    *
-   * @param {App.ConfigGroup} newConfigGroupData config group to post to server
+   * @param {object} newConfigGroupData config group to post to server
    * @param {Function} callback Callback function for Success or Error handling
-   * @return {App.ConfigGroup} Returns the created config-group
+   * @return {$.ajax}
    * @method postNewConfigurationGroup
    */
   postNewConfigurationGroup: function (newConfigGroupData, callback) {
     var dataHosts = [];
-    newConfigGroupData.get('hosts').forEach(function (_host) {
+    newConfigGroupData.hosts.forEach(function (_host) {
       dataHosts.push({
         host_name: _host
       });
@@ -238,15 +235,15 @@ App.ConfigOverridable = Em.Mixin.create({
     var sendData = {
       name: 'config_groups.create',
       data: {
-        'group_name': newConfigGroupData.get('name'),
-        'service_id': newConfigGroupData.get('service.id'),
-        'description': newConfigGroupData.get('description'),
+        'group_name': newConfigGroupData.name,
+        'service_id': newConfigGroupData.service_id,
+        'description': newConfigGroupData.description,
         'hosts': dataHosts
       },
       success: 'successFunction',
       error: 'errorFunction',
-      successFunction: function (response) {
-        newConfigGroupData.set('id', response.resources[0].ConfigGroup.id);
+      successFunction: function (response, opt, params) {
+        App.ServiceConfigGroup.find().clear();
         if (callback) {
           callback();
         }
@@ -294,10 +291,15 @@ App.ConfigOverridable = Em.Mixin.create({
       }
     };
 
+    if (Em.isNone(configGroup.get('configGroupId'))) {
+      Em.assert('Config Group missing server side "id"', false);
+      return null;
+    }
+
     var sendData = {
       name: 'config_groups.update',
       data: {
-        id: Em.isNone(configGroup.get('configGroupId')) ? configGroup.get('id') : configGroup.get('configGroupId'),
+        id: configGroup.get('configGroupId'),
         data: putConfigGroup
       },
       success: 'successFunction',
@@ -364,35 +366,6 @@ App.ConfigOverridable = Em.Mixin.create({
   },
 
   /**
-   * Update config group's hosts list and leave only unmodified hosts in the group
-   * Save updated config group on server
-   * @param {App.ConfigGroup} configGroup
-   * @param {App.ConfigGroup} initialGroupState
-   * @param {Function} successCallback
-   * @param {Function} errorCallback
-   * @method clearConfigurationGroupHosts
-   */
-  clearConfigurationGroupHosts: function (configGroup, initialGroupState, successCallback, errorCallback) {
-    configGroup = jQuery.extend({}, configGroup);
-    var unmodifiedHosts = this.getUnmodifiedHosts(configGroup, initialGroupState);
-    configGroup.set('hosts', unmodifiedHosts);
-    return this.updateConfigurationGroup(configGroup, successCallback, errorCallback);
-  },
-
-  /**
-   * Get the list of hosts that is not modified in the group
-   * @param configGroup - the new configuration of the group
-   * @param initialGroupState - the initial configuration of the group
-   * @returns {Array}
-   */
-  getUnmodifiedHosts: function (configGroup, initialGroupState) {
-    var currentHosts = configGroup.get('hosts');
-    var initialHosts = initialGroupState.get('hosts');
-
-    return arrayUtils.intersect(currentHosts, initialHosts);
-  },
-
-  /**
    * Do request to delete config group
    * @param {App.ConfigGroup} configGroup
    * @param {Function} [successCallback]
@@ -405,7 +378,7 @@ App.ConfigOverridable = Em.Mixin.create({
       name: 'common.delete.config_group',
       sender: this,
       data: {
-        id: configGroup.get('id')
+        id: configGroup.get('configGroupId')
       },
       success: 'successFunction',
       error: 'errorFunction',

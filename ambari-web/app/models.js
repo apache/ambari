@@ -57,7 +57,6 @@ require('models/host_component');
 require('models/target_cluster');
 require('models/slave_component');
 require('models/master_component');
-require('models/config_group');
 require('models/host_stack_version');
 require('models/root_service');
 require('models/upgrade_entity');

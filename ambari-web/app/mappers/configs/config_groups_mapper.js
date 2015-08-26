@@ -30,7 +30,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
     name: 'ConfigGroup.group_name',
     service_name: 'ConfigGroup.tag',
     description: 'ConfigGroup.description',
-    host_names: 'hosts',
+    hosts: 'hosts',
     service_id: 'ConfigGroup.tag',
     desired_configs: 'ConfigGroup.desired_configs'
   },
@@ -43,7 +43,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
     config_group_id: 'group_id',
     name: 'group_name',
     service_name: 'service_name',
-    host_names: 'hosts',
+    hosts: 'hosts',
     service_id: 'service_name'
   },
 
@@ -93,7 +93,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
               hostNamesForService[configGroup.service_name].splice(hostNamesForService[configGroup.service_name].indexOf(host), 1);
             });
             configGroup = this.parseIt(configGroup, (mapFromVersions ? this.get('config2') : this.get('config')));
-            configGroup.parent_config_group_id = configGroup.service_name + '0';
+            configGroup.parent_config_group_id = App.ServiceConfigGroup.getParentConfigGroupId(configGroup.service_name);
             configGroups.push(configGroup);
           }
         }, this);
@@ -124,16 +124,17 @@ App.configGroupsMapper = App.QuickDataMapper.create({
    * @returns {{id: string, config_group_id: string, name: string, service_name: string, description: string, host_names: [string], service_id: string}}
    */
   generateDefaultGroup: function (serviceName, hostNames, childConfigGroups) {
-    var displayName = App.StackService.find(serviceName).get('displayName');
     return {
-      id: serviceName + '0',
+      id: App.ServiceConfigGroup.getParentConfigGroupId(serviceName),
       config_group_id: '-1',
-      name: displayName + ' Default',
+      name: App.format.role(serviceName) + ' Default',
       service_name: serviceName,
-      description: 'Default cluster level ' + displayName + ' configuration',
-      host_names: hostNames ? hostNames : App.get('allHostNames'),
+      description: 'Default cluster level ' + App.format.role(serviceName) + ' configuration',
+      hosts: hostNames ? hostNames.slice() : App.get('allHostNames').slice(),
       child_config_groups: childConfigGroups ? childConfigGroups.uniq() : [],
-      service_id: serviceName
+      service_id: serviceName,
+      desired_configs: [],
+      properties: []
     }
   }
 });

@@ -1527,7 +1527,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method createConfigurationGroups
    */
   createConfigurationGroups: function () {
-    var configGroups = this.get('content.configGroups').filterProperty('isDefault', false);
+    var configGroups = this.get('content.configGroups').filterProperty('is_default', false);
     var clusterName = this.get('clusterName');
     var sendData = [];
     var updateData = [];
@@ -1542,7 +1542,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       var groupData = {
         "cluster_name": clusterName,
         "group_name": configGroup.name,
-        "tag": configGroup.service.id,
+        "tag": configGroup.service_id,
         "description": configGroup.description,
         "hosts": [],
         "desired_configs": []
@@ -1562,7 +1562,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         // if group is a new one, create it
         if (!configGroup.id) {
           sendData.push({"ConfigGroup": groupData});
-        } else if (configGroup.isForUpdate){
+        } else if (configGroup.is_for_update){
           // update an existing group
           groupData.id = configGroup.id;
           updateData.push({"ConfigGroup": groupData});

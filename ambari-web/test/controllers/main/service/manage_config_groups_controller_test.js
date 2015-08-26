@@ -315,11 +315,11 @@ describe('App.ManageConfigGroupsController', function() {
       });
       describe("#runClearCGQueue()", function () {
         beforeEach(function () {
-          sinon.stub(manageConfigGroupsController, 'clearConfigurationGroupHosts', Em.K);
+          sinon.stub(manageConfigGroupsController, 'updateConfigurationGroup', Em.K);
           sinon.stub(manageConfigGroupsController, 'deleteConfigurationGroup', Em.K);
         });
         afterEach(function () {
-          manageConfigGroupsController.clearConfigurationGroupHosts.restore();
+          manageConfigGroupsController.updateConfigurationGroup.restore();
           manageConfigGroupsController.deleteConfigurationGroup.restore();
         });
         it("", function () {
@@ -328,7 +328,7 @@ describe('App.ManageConfigGroupsController', function() {
             toClearHosts: [Em.Object.create()],
             toDelete: [1]
           });
-          expect(manageConfigGroupsController.clearConfigurationGroupHosts.calledOnce).to.be.true;
+          expect(manageConfigGroupsController.updateConfigurationGroup.calledOnce).to.be.true;
           expect(manageConfigGroupsController.deleteConfigurationGroup.calledOnce).to.be.true;
         });
       });
