@@ -411,6 +411,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         stackInfo.setValid(false);
         stackInfo.setErrors(smx.getErrors());
       }
+      stackInfo.setMinJdk(smx.getMinJdk());
+      stackInfo.setMaxJdk(smx.getMaxJdk());
       stackInfo.setMinUpgradeVersion(smx.getVersion().getUpgrade());
       stackInfo.setActive(smx.getVersion().isActive());
       stackInfo.setParentStackVersion(smx.getExtends());

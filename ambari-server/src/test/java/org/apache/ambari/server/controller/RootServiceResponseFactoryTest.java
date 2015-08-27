@@ -149,8 +149,9 @@ public class RootServiceResponseFactoryTest {
       if (response.getComponentName().equals(
           RootServiceResponseFactory.Services.AMBARI.getComponents()[0].name())) {
         assertEquals(ambariVersion, response.getComponentVersion());
-        assertEquals(1, response.getProperties().size());
+        assertEquals(2, response.getProperties().size());
         assertTrue(response.getProperties().containsKey("jdk_location"));
+        assertTrue(response.getProperties().containsKey("java.version"));
       }
     }
 

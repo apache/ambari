@@ -158,6 +158,7 @@ public class RootServiceResponseFactory extends
       case AMBARI_SERVER:
         response = configs.getAmbariProperties();
         response.put(JDK_LOCATION, managementController.getJdkResourceUrl());
+        response.put("java.version", System.getProperty("java.specification.version"));
         break;
 
       default:
