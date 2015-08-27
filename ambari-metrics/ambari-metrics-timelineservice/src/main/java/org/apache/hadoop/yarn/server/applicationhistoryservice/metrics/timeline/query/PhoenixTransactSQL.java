@@ -284,7 +284,7 @@ public class PhoenixTransactSQL {
           metricsTable = METRICS_AGGREGATE_DAILY_TABLE_NAME;
           query = GET_METRIC_AGGREGATE_ONLY_SQL;
           condition.setPrecision(Precision.DAYS);
-        } else if (timeRange < 7 * DAY && timeRange > DAY) {
+        } else if (timeRange > DAY) {
           metricsTable = METRICS_AGGREGATE_HOURLY_TABLE_NAME;
           query = GET_METRIC_AGGREGATE_ONLY_SQL;
           condition.setPrecision(Precision.HOURS);
@@ -534,7 +534,7 @@ public class PhoenixTransactSQL {
         metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME;
         queryStmt = GET_CLUSTER_AGGREGATE_TIME_SQL;
         condition.setPrecision(Precision.DAYS);
-      } else if (timeRange < 7 * DAY && timeRange > DAY) {
+      } else if (timeRange > DAY) {
         metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
         queryStmt = GET_CLUSTER_AGGREGATE_TIME_SQL;
         condition.setPrecision(Precision.HOURS);
