@@ -301,6 +301,9 @@ class HdfsResourceWebHDFS:
         if local_file_size == length:
           Logger.info(format("DFS file {target} is identical to {source}, skipping the copying"))
           return
+        elif not self.main_resource.resource.replace_existing_files:
+          Logger.info(format("Not replacing existing DFS file {target} which is different from {source}, due to replace_existing_files=False"))
+          return
       else:
         Logger.info(format("File {target} already exists in DFS, skipping the creation"))
         return

@@ -96,7 +96,7 @@ def _get_single_version_from_hdp_select():
   return hdp_version
 
 def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=None, custom_dest_file=None, force_execute=False,
-                 use_ru_version_during_ru=True):
+                 use_ru_version_during_ru=True, replace_existing_files=False):
   """
   :param name: Tarball name, e.g., tez, hive, pig, sqoop.
   :param user_group: Group to own the directory.
@@ -190,7 +190,8 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
                       source=source_file,
                       group=user_group,
                       owner=owner,
-                      mode=0444
+                      mode=0444,
+                      replace_existing_files=replace_existing_files,
   )
   Logger.info("Will attempt to copy {0} tarball from {1} to DFS at {2}.".format(name, source_file, dest_file))
 
