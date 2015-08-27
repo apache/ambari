@@ -33,7 +33,21 @@ import org.apache.ambari.server.stack.Validable;
 @XmlRootElement(name="metainfo")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class StackMetainfoXml implements Validable{
-  
+
+  public String getMinJdk() {
+    return minJdk;
+  }
+
+  public String getMaxJdk() {
+    return maxJdk;
+  }
+
+  @XmlElement(name="minJdk")
+  private String minJdk = null;
+
+  @XmlElement(name="maxJdk")
+  private String maxJdk = null;
+
   @XmlElement(name="extends")
   private String extendsVersion = null;
   

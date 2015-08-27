@@ -34,6 +34,25 @@ import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.stack.UpgradePack;
 
 public class StackInfo implements Comparable<StackInfo>, Validable{
+  private String minJdk;
+  private String maxJdk;
+
+  public String getMinJdk() {
+    return minJdk;
+  }
+
+  public void setMinJdk(String minJdk) {
+    this.minJdk = minJdk;
+  }
+
+  public String getMaxJdk() {
+    return maxJdk;
+  }
+
+  public void setMaxJdk(String maxJdk) {
+    this.maxJdk = maxJdk;
+  }
+
   private String name;
   private String version;
   private String minUpgradeVersion;
@@ -257,7 +276,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
         (stackDescriptorFileFilePath == null) ? null : new File(stackDescriptorFileFilePath),
         serviceDescriptorFiles,
         null == upgradePacks ? Collections.<String>emptySet() : upgradePacks.keySet(),
-        isValid(), getErrors());
+        isValid(), getErrors(), getMinJdk(), getMaxJdk());
   }
 
   public String getMinUpgradeVersion() {

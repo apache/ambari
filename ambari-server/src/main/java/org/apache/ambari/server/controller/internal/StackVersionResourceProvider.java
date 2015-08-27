@@ -60,6 +60,8 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   public static final String STACK_CONFIG_TYPES            = PropertyHelper.getPropertyId("Versions", "config_types");
   public static final String STACK_PARENT_PROPERTY_ID      = PropertyHelper.getPropertyId("Versions", "parent_stack_version");
   public static final String UPGRADE_PACKS_PROPERTY_ID = PropertyHelper.getPropertyId("Versions", "upgrade_packs");
+  public static final String STACK_MIN_JDK     = PropertyHelper.getPropertyId("Versions", "min_jdk");
+  public static final String STACK_MAX_JDK     = PropertyHelper.getPropertyId("Versions", "max_jdk");
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID }));
@@ -137,6 +139,12 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       
       setResourceProperty(resource, UPGRADE_PACKS_PROPERTY_ID,
           response.getUpgradePacks(), requestedIds);
+
+      setResourceProperty(resource, STACK_MIN_JDK,
+              response.getMinJdk(), requestedIds);
+
+      setResourceProperty(resource, STACK_MAX_JDK,
+              response.getMaxJdk(), requestedIds);
 
       resources.add(resource);
     }

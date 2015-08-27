@@ -29,6 +29,25 @@ import org.apache.ambari.server.stack.Validable;
 
 public class StackVersionResponse implements Validable{
 
+  private String minJdk;
+  private String maxJdk;
+
+  public String getMinJdk() {
+    return minJdk;
+  }
+
+  public void setMinJdk(String minJdk) {
+    this.minJdk = minJdk;
+  }
+
+  public String getMaxJdk() {
+    return maxJdk;
+  }
+
+  public void setMaxJdk(String maxJdk) {
+    this.maxJdk = maxJdk;
+  }
+
   private String stackName;
   private String stackVersion;
   private String minUpgradeVersion;
@@ -57,7 +76,7 @@ public class StackVersionResponse implements Validable{
                               Map<String, Map<String, Map<String, String>>> configTypes,
                               File stackKerberosDescriptorFile,
                               Collection<File> serviceKerberosDescriptorFiles,
-                              Set<String> upgradePacks, boolean valid, Collection errorSet) {
+                              Set<String> upgradePacks, boolean valid, Collection errorSet, String minJdk, String maxJdk) {
     setStackVersion(stackVersion);
     setMinUpgradeVersion(minUpgradeVersion);
     setActive(active);
@@ -68,6 +87,8 @@ public class StackVersionResponse implements Validable{
     setUpgradePacks(upgradePacks);
     setValid(valid);
     setErrors(errorSet);
+    setMinJdk(minJdk);
+    setMaxJdk(maxJdk);
   }
 
   @Override
