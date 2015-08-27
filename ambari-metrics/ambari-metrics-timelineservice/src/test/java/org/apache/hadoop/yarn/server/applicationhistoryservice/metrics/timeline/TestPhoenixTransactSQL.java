@@ -33,6 +33,7 @@ import java.util.Collections;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import org.easymock.EasyMock;
 
@@ -152,9 +153,12 @@ public class TestPhoenixTransactSQL {
 
   @Test
   public void testPrepareGetAggregateNoPrecision() throws SQLException {
+    Long endTime = 1407959918L;
+    Long startTime = 1407959718L;
+    //SECONDS precision
     Condition condition = new DefaultCondition(
       Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
-      "a1", "i1", 1407959718L, 1407959918L, null, null, false);
+      "a1", "i1", startTime, endTime, null, null, false);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
     Capture<String> stmtCapture = new Capture<String>();
@@ -165,6 +169,61 @@ public class TestPhoenixTransactSQL {
     PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
     String stmt = stmtCapture.getValue();
     Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE"));
+    Assert.assertEquals(Precision.SECONDS, condition.getPrecision());
+    verify(connection, preparedStatement);
+
+    // SECONDS precision
+    startTime = endTime-PhoenixTransactSQL.DAY/1000;
+    condition = new DefaultCondition(
+      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      "a1", "i1", startTime, endTime, null, null, false);
+    connection = createNiceMock(Connection.class);
+    preparedStatement = createNiceMock(PreparedStatement.class);
+    stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+        .andReturn(preparedStatement);
+
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
+    stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE"));
+    Assert.assertEquals(Precision.SECONDS, condition.getPrecision());
+    verify(connection, preparedStatement);
+
+    // HOURS precision
+    startTime = endTime-PhoenixTransactSQL.DAY*7/1000;
+    condition = new DefaultCondition(
+      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      "a1", "i1", startTime, endTime, null, null, false);
+    connection = createNiceMock(Connection.class);
+    preparedStatement = createNiceMock(PreparedStatement.class);
+    stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+        .andReturn(preparedStatement);
+
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
+    stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_HOURLY"));
+    Assert.assertEquals(Precision.HOURS, condition.getPrecision());
+    verify(connection, preparedStatement);
+
+    // DAYS precision
+    startTime = endTime-PhoenixTransactSQL.DAY*7*2/1000;
+    condition = new DefaultCondition(
+      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      "a1", "i1", startTime, endTime, null, null, false);
+    connection = createNiceMock(Connection.class);
+    preparedStatement = createNiceMock(PreparedStatement.class);
+    stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+        .andReturn(preparedStatement);
+
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
+    stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_DAILY"));
+    Assert.assertEquals(Precision.DAYS, condition.getPrecision());
     verify(connection, preparedStatement);
   }
 
@@ -206,9 +265,12 @@ public class TestPhoenixTransactSQL {
 
   @Test
   public void testPrepareGetMetricsNoPrecision() throws SQLException {
+    Long endTime = 1407959918L;
+    Long startTime = endTime - 200;
+    // SECONDS precision
     Condition condition = new DefaultCondition(
       Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
-      "a1", "i1", 1407959718L, 1407959918L, null, null, false);
+      "a1", "i1", startTime, endTime, null, null, false);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
     Capture<String> stmtCapture = new Capture<String>();
@@ -219,7 +281,78 @@ public class TestPhoenixTransactSQL {
     PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
     String stmt = stmtCapture.getValue();
     Assert.assertTrue(stmt.contains("FROM METRIC_RECORD"));
+    Assert.assertEquals(Precision.SECONDS, condition.getPrecision());
     verify(connection, preparedStatement);
+    reset(connection, preparedStatement);
+
+    // SECONDS precision
+    startTime = endTime-PhoenixTransactSQL.HOUR*10/1000;
+    condition = new DefaultCondition(
+      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      "a1", "i1", startTime, endTime, null, null, false);
+    connection = createNiceMock(Connection.class);
+    preparedStatement = createNiceMock(PreparedStatement.class);
+    stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+      .andReturn(preparedStatement);
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
+    stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD"));
+    Assert.assertEquals(Precision.SECONDS, condition.getPrecision());
+    verify(connection, preparedStatement);
+
+    // MINUTES precision
+    startTime = endTime-PhoenixTransactSQL.DAY/1000;
+    condition = new DefaultCondition(
+      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      "a1", "i1", startTime, endTime, null, null, false);
+    connection = createNiceMock(Connection.class);
+    preparedStatement = createNiceMock(PreparedStatement.class);
+    stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+      .andReturn(preparedStatement);
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
+    stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_MINUTE"));
+    Assert.assertEquals(Precision.MINUTES, condition.getPrecision());
+    verify(connection, preparedStatement);
+
+    // HOURS precision
+    startTime = endTime-PhoenixTransactSQL.DAY*7/1000;
+    condition = new DefaultCondition(
+      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      "a1", "i1", startTime, endTime, null, null, false);
+    connection = createNiceMock(Connection.class);
+    preparedStatement = createNiceMock(PreparedStatement.class);
+    stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+      .andReturn(preparedStatement);
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
+    stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_HOURLY"));
+    Assert.assertEquals(Precision.HOURS, condition.getPrecision());
+    verify(connection, preparedStatement);
+
+    // DAYS precision
+    startTime = endTime-PhoenixTransactSQL.DAY*7*2/1000;
+    condition = new DefaultCondition(
+      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      "a1", "i1", startTime, endTime, null, null, false);
+    connection = createNiceMock(Connection.class);
+    preparedStatement = createNiceMock(PreparedStatement.class);
+    stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+      .andReturn(preparedStatement);
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
+    stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_DAILY"));
+    Assert.assertEquals(Precision.DAYS, condition.getPrecision());
+    verify(connection, preparedStatement);
+
   }
 
   @Test
