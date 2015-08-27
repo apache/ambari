@@ -41,7 +41,9 @@ public enum CheckDescription {
       "All hosts must be heartbeating with the Ambari Server unless they are in Maintenance Mode",
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT,
-            "The following hosts must be heartbeating to the Ambari Server: {{fails}}.");
+            "The following hosts must be heartbeating to the Ambari Server or be put into maintenance mode.");
+        put(HostsHeartbeatCheck.KEY_HOSTS_IN_MM_WARNING,
+            "The following hosts are in maintenance mode and will not be a part of the upgrade.");
       }}),
 
   HOSTS_MASTER_MAINTENANCE(PrereqCheckType.HOST,

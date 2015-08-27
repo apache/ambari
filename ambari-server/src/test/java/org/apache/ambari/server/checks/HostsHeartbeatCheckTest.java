@@ -17,8 +17,8 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -74,7 +74,7 @@ public class HostsHeartbeatCheckTest {
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP", "2.2"));
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
-    final Map<String, Host> hosts = new HashMap<String, Host>();
+    final List<Host> hosts = new ArrayList<>();
     final Host host1 = Mockito.mock(Host.class);
     final Host host2 = Mockito.mock(Host.class);
     final Host host3 = Mockito.mock(Host.class);
@@ -90,17 +90,30 @@ public class HostsHeartbeatCheckTest {
     Mockito.when(status1.getHealthStatus()).thenReturn(HealthStatus.HEALTHY);
     Mockito.when(status2.getHealthStatus()).thenReturn(HealthStatus.HEALTHY);
     Mockito.when(status3.getHealthStatus()).thenReturn(HealthStatus.UNKNOWN);
-    hosts.put("host1", host1);
-    hosts.put("host2", host2);
-    hosts.put("host3", host3);
-    Mockito.when(clusters.getHostsForCluster("cluster")).thenReturn(hosts);
+    hosts.add(host1);
+    hosts.add(host2);
+    hosts.add(host3);
+    Mockito.when(cluster.getHosts()).thenReturn(hosts);
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     hostHeartbeatCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
-    Mockito.when(status3.getHealthStatus()).thenReturn(HealthStatus.HEALTHY);
+    // put the unhealthy host into MM to now produce a warning
     check = new PrerequisiteCheck(null, null);
+    Mockito.when(host3.getMaintenanceState(1L)).thenReturn(MaintenanceState.ON);
+    hostHeartbeatCheck.perform(check, new PrereqCheckRequest("cluster"));
+    Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
+
+    // make it's status healthy, but keep in MM to still produce a warning
+    check = new PrerequisiteCheck(null, null);
+    Mockito.when(status3.getHealthStatus()).thenReturn(HealthStatus.HEALTHY);
+    hostHeartbeatCheck.perform(check, new PrereqCheckRequest("cluster"));
+    Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
+
+    // take it out our MM to allow the check to pass
+    check = new PrerequisiteCheck(null, null);
+    Mockito.when(host3.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
     hostHeartbeatCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
