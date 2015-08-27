@@ -911,7 +911,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         serviceConfigProperties.push(configProperty);
       }, this);
       // check for configs that need to update for installed services
-      if (installedServiceNames[_content.get('serviceName')]) {
+      if (installedServiceNamesMap[_content.get('serviceName')]) {
         // get only modified configs
         var configs = _content.get('configs').filter(function (config) {
           if (config.get('isNotDefaultValue') || (config.get('savedValue') === null)) {
