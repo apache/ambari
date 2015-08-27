@@ -1680,7 +1680,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                 final int regionserver_max_direct_memory_size = regionserver_total_ram - regionserver_heap_size;
                 final int bucketcache_offheap_memory = regionserver_max_direct_memory_size - reserved_offheap_memory;
 
-                hbaseSiteProps.put("hbase.bucketcache.size", block_cache_heap + bucketcache_offheap_memory + "m");
+                hbaseSiteProps.put("hbase.bucketcache.size", String.valueOf(block_cache_heap + bucketcache_offheap_memory));
                 hbaseSiteProps.put("hbase.bucketcache.ioengine", "offheap");
                 hbaseEnvProps.put("hbase_max_direct_memory_size", String.valueOf(regionserver_max_direct_memory_size));
               } else {

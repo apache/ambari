@@ -53,6 +53,9 @@ import java.util.regex.Matcher;
 public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
   private static final String HIVE_SITE = "hive-site";
   private static final String HIVE_ENV = "hive-env";
+  private static final String HBASE_ENV = "hbase-env";
+  private static final String HBASE_SITE = "hbase-site";
+  private static final String CLUSTER_ENV = "cluster-env";
 
   /**
    * Logger.
@@ -134,19 +137,33 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
       if ((clusterMap != null) && !clusterMap.isEmpty()) {
         // Iterate through the clusters and perform any configuration updates
         for (final Cluster cluster : clusterMap.values()) {
-          Config config = cluster.getDesiredConfigByType("hbase-env");
+          Config hbaseEnvProps = cluster.getDesiredConfigByType(HBASE_ENV);
+          Config hbaseSiteProps = cluster.getDesiredConfigByType(HBASE_SITE);
 
-          if (config != null) {
+          if (hbaseEnvProps != null) {
             // Remove override_hbase_uid from hbase-env and add override_uid to cluster-env
-            String value = config.getProperties().get("override_hbase_uid");
+            String value = hbaseEnvProps.getProperties().get("override_hbase_uid");
             if (value != null) {
               Map<String, String> updates = new HashMap<String, String>();
               Set<String> removes = new HashSet<String>();
               updates.put("override_uid", value);
               removes.add("override_hbase_uid");
-              updateConfigurationPropertiesForCluster(cluster, "hbase-env", new HashMap<String, String>(), removes, false, true);
-              updateConfigurationPropertiesForCluster(cluster, "cluster-env", updates, true, false);
+              updateConfigurationPropertiesForCluster(cluster, HBASE_ENV, new HashMap<String, String>(), removes, false, true);
+              updateConfigurationPropertiesForCluster(cluster, CLUSTER_ENV, updates, true, false);
             }
+          }
+
+          if (hbaseSiteProps != null) {
+            String value = hbaseSiteProps.getProperties().get("hbase.bucketcache.size");
+            if (value != null) {
+              if (value.endsWith("m")) {
+                value = value.substring(0, value.length() - 1);
+                Map<String, String> updates = new HashMap<String, String>();
+                updates.put("hbase.bucketcache.size", value);
+                updateConfigurationPropertiesForCluster(cluster, HBASE_SITE, updates, true, false);
+              }
+            }
+
           }
         }
       }
