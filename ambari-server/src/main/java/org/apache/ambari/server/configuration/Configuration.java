@@ -438,12 +438,6 @@ public class Configuration {
   public static final String ALERTS_EXECUTION_SCHEDULER_THREADS_KEY = "alerts.execution.scheduler.maxThreads";
   public static final String ALERTS_EXECUTION_SCHEDULER_THREADS_DEFAULT = "2";
 
-  /**
-   * Repository Base URL is no longer stored in metainfo table starting HDP version 2.2. It is in repo_version table.
-   */
-  public static final String BASEURL_API_DEPRECATED_STACK_VERSION = "baseurl.api.metainfo.deprecate.min.version";
-  public static final String BASEURL_API_DEPRECATED_STACK_VERSION_DEFAULT = "2.2";
-
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
 
@@ -641,9 +635,6 @@ public class Configuration {
             AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY, AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_DEFAULT));
     configsMap.put(PROXY_ALLOWED_HOST_PORTS, properties.getProperty(
         PROXY_ALLOWED_HOST_PORTS, PROXY_ALLOWED_HOST_PORTS_DEFAULT));
-
-    configsMap.put(BASEURL_API_DEPRECATED_STACK_VERSION, properties.getProperty(
-            BASEURL_API_DEPRECATED_STACK_VERSION, BASEURL_API_DEPRECATED_STACK_VERSION_DEFAULT));
 
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
