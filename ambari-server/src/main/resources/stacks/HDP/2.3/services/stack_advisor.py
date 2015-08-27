@@ -161,7 +161,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     super(HDP23StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
     putHiveServerProperty = self.putProperty(configurations, "hiveserver2-site", services)
-    hive_site_properties = getSiteProperties(configurations, "hive-site")
     putHiveSitePropertyAttribute = self.putPropertyAttribute(configurations, "hive-site")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     # hive_security_authorization == 'ranger'
@@ -181,8 +180,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     putHiveSiteProperty('hive.tez.java.opts', "-server -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA " + jvmGCParams + " -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps")
 
     # if hive using sqla db, then we should add DataNucleus property
-    sqla_db_used = 'javax.jdo.option.ConnectionDriverName' in hive_site_properties and \
-                   hive_site_properties['javax.jdo.option.ConnectionDriverName'] == 'sap.jdbc4.sqlanywhere.IDriver'
+    sqla_db_used = 'hive-site' in services['configurations'] and 'javax.jdo.option.ConnectionDriverName' in services['configurations']['hive-site']['properties'] and \
+                   services['configurations']['hive-site']['properties']['javax.jdo.option.ConnectionDriverName'] == 'sap.jdbc4.sqlanywhere.IDriver'
     if sqla_db_used:
       putHiveSiteProperty('datanucleus.rdbms.datastoreAdapterClassName','org.datanucleus.store.rdbms.adapter.SQLAnywhereAdapter')
     else:
