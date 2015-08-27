@@ -41,6 +41,12 @@
   </property>
 
   <property>
+    <name>dfs.content-summary.limit</name>
+    <value>5000</value>
+    <description>Dfs content summary limit.</description>
+  </property>
+
+  <property>
     <name>dfs.encryption.key.provider.uri</name>
     <value></value>
     <depends-on>
