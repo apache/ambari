@@ -63,6 +63,10 @@ class HdfsResource(Resource):
   recursive_chown = BooleanArgument(default=False)
   recursive_chmod = BooleanArgument(default=False)
   change_permissions_for_parents = BooleanArgument(default=False)
+  """
+  If a file present in HDFS is different from source, should it be replaced?
+  """
+  replace_existing_files = BooleanArgument(default=True)
 
   security_enabled = BooleanArgument(default=False)
   principal_name = ResourceArgument()
