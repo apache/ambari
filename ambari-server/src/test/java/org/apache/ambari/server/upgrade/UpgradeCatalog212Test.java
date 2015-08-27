@@ -163,6 +163,13 @@ public class UpgradeCatalog212Test {
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
 
+
+    final Map<String, String> propertiesHbaseSite = new HashMap<String, String>() {
+      {
+        put("hbase.bucketcache.size", "1024m");
+      }
+    };
+
     final Map<String, String> propertiesHbaseEnv = new HashMap<String, String>() {
       {
         put("override_hbase_uid", "false");
@@ -171,12 +178,16 @@ public class UpgradeCatalog212Test {
 
     final Config mockHbaseEnv = easyMockSupport.createNiceMock(Config.class);
     expect(mockHbaseEnv.getProperties()).andReturn(propertiesHbaseEnv).once();
-
+    final Config mockHbaseSite = easyMockSupport.createNiceMock(Config.class);
+    expect(mockHbaseSite.getProperties()).andReturn(propertiesHbaseSite).once();
     final Config mockClusterEnv = easyMockSupport.createNiceMock(Config.class);
 
     final Map<String, String> propertiesExpectedHbaseEnv = new HashMap<String, String>();
     final Map<String, String> propertiesExpectedClusterEnv = new HashMap<String, String>() {{
       put("override_uid", "false");
+    }};
+    final Map<String, String> propertiesExpectedHbaseSite = new HashMap<String, String>() {{
+      put("hbase.bucketcache.size", "1024");
     }};
 
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
@@ -198,8 +209,12 @@ public class UpgradeCatalog212Test {
 
     expect(mockClusterExpected.getDesiredConfigByType("cluster-env")).andReturn(mockClusterEnv).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("hbase-env")).andReturn(mockHbaseEnv).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hbase-site")).andReturn(mockHbaseSite).atLeastOnce();
+
     expect(mockClusterEnv.getProperties()).andReturn(propertiesExpectedClusterEnv).atLeastOnce();
     expect(mockHbaseEnv.getProperties()).andReturn(propertiesExpectedHbaseEnv).atLeastOnce();
+    expect(mockHbaseSite.getProperties()).andReturn(propertiesExpectedHbaseSite).atLeastOnce();
+
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog212.class).updateHbaseAndClusterConfigurations();
     easyMockSupport.verifyAll();
