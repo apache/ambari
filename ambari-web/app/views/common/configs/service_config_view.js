@@ -357,6 +357,10 @@ App.ConfigGroupDropdownView = Ember.TextField.extend({
     });
   },
 
+  updateSelectedGroup: function () {
+    $(this.get('element')).val(this.get('controller.selectedConfigGroup.displayNameHosts'));
+  }.observes('controller.selectedConfigGroup.displayNameHosts'),
+
   updateConfigGroupsList: function() {
     if ($(this.get('element'))) {
       $(this.get('element')).data('typeahead').source = this.get('controller.configGroups').mapProperty('displayNameHosts');
