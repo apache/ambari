@@ -375,6 +375,91 @@ def process_py_files(file_path, config_data, stack_version_changes):
 def process_xml_files(file_path, config_data, stack_version_changes):
   return process_replacements(file_path, config_data, stack_version_changes)
 
+def process_config_xml(file_path, config_data):
+  tree = ET.parse(file_path)
+  root = tree.getroot()
+  #############################################################################################
+  # <resource_dir>/common-services/<service_name>/<service_version>/configuration/<config>.xml
+  #############################################################################################
+  COMMON_SERVICES_CONFIG_PATH_REGEX = r'common-services/([A-Za-z_-]+)/([0-9\.]+)/configuration/([A-Za-z0-9_-]+).xml'
+  #############################################################################################
+  # <resource_dir>/stacks/<stack_name>/<stack_version>/services/<service_name>/configuration/<config>.xml
+  #############################################################################################
+  STACK_SERVICE_CONFIG_PATH_REGEX = r'stacks/([A-Za-z_-]+)/([0-9\.]+)/services/([A-Za-z_-]+)/configuration/([A-Za-z0-9_-]+).xml'
+  #############################################################################################
+  # <resource_dir>/stacks/<stack_name>/<stack_version>/configuration/<config>.xml
+  #############################################################################################
+  STACK_CONFIG_PATH_REGEX = r'stacks/([A-Za-z_-]+)/([0-9\.]+)/configuration/([A-Za-z0-9_-]+).xml'
+
+  #########################################################################################
+  # Override stack config properties
+  #########################################################################################
+  match = re.search(COMMON_SERVICES_CONFIG_PATH_REGEX, file_path)
+  if match:
+    #############################################################################################
+    # Config file path in common services
+    #############################################################################################
+    path_service_name = match.group(1)
+    path_service_version = match.group(2)
+    path_config_name = match.group(3)
+    if 'common-services' in config_data:
+      for service in config_data['common-services']:
+        if service.name == path_service_name:
+          for serviceVersion in service.versions:
+            if serviceVersion.version == path_service_version:
+              if 'configurations' in serviceVersion:
+                for conf in serviceVersion['configurations']:
+                  if conf.name == path_config_name:
+                    for property_tag in root.findall('property'):
+                      property_name = property_tag.find('name').text
+                      if property_name in conf.properties:
+                        value_tag = property_tag.find('value')
+                        value_tag.text = conf.properties[property_name]
+  else:
+    match = re.search(STACK_SERVICE_CONFIG_PATH_REGEX, file_path)
+    if match:
+      #############################################################################################
+      # Config file path for a service in stack
+      #############################################################################################
+      path_stack_name = match.group(1)
+      path_stack_version = match.group(2)
+      path_service_name = match.group(3)
+      path_config_name = match.group(4)
+      for stack in config_data.versions:
+        if stack.version == path_stack_version:
+          for service in stack.services:
+            if service.name == path_service_name:
+              if 'configurations' in service:
+                for conf in service['configurations']:
+                  if conf.name == path_config_name:
+                    for property_tag in root.findall('property'):
+                      property_name = property_tag.find('name').text
+                      if property_name in conf.properties:
+                        value_tag = property_tag.find('value')
+                        value_tag.text = conf.properties[property_name]
+    else:
+      match = re.search(STACK_CONFIG_PATH_REGEX, file_path)
+      if match:
+        #############################################################################################
+        # Config file path for global stack configs
+        #############################################################################################
+        path_stack_name = match.group(1)
+        path_stack_version = match.group(2)
+        path_config_name = match.group(3)
+        for stack in config_data.versions:
+          if stack.version == path_stack_version:
+            if 'configurations' in stack:
+              for conf in stack['configurations']:
+                if conf.name == path_config_name:
+                  for property_tag in root.findall('property'):
+                    property_name = property_tag.find('name').text
+                    if property_name in conf.properties:
+                      value_tag = property_tag.find('value')
+                      value_tag.text = conf.properties[property_name]
+
+  tree.write(file_path)
+  return file_path
+
 class GeneratorHelper(object):
   def __init__(self, config_data, resources_folder, output_folder):
     self.config_data = config_data
@@ -415,6 +500,9 @@ class GeneratorHelper(object):
           # process repoinfo.xml
           if target.endswith('repoinfo.xml'):
             target = process_repoinfo_xml(target, self.config_data, self.stack_version_changes, stack)
+          if os.path.basename(os.path.dirname(target)) == 'configuration':
+            # process configuration xml
+            target = process_config_xml(target, self.config_data)
           # process upgrade-x.x.xml
           _upgrade_re = re.compile('upgrade-(.*)\.xml')
           result = re.search(_upgrade_re, target)
@@ -456,6 +544,9 @@ class GeneratorHelper(object):
           # process metainfo.xml
           if target.endswith('metainfo.xml'):
             process_metainfo(target, self.config_data, self.stack_version_changes, parent_services)
+          if os.path.basename(os.path.dirname(target)) == 'configuration':
+            # process configuration xml
+            target = process_config_xml(target, self.config_data)
           # process generic xml
           if target.endswith('.xml'):
             process_xml_files(target, self.config_data, self.stack_version_changes)
