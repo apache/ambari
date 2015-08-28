@@ -22,16 +22,20 @@ export PYTHONPATH=/usr/lib/python2.6/site-packages:/usr/lib/python2.6/site-packa
 # reset settings
 unset PYTHON
 
-# checking for preferable python versions
-if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2.7
+# checking for default Python 2
+if [ -a /usr/bin/python2 ] && [ -z "$PYTHON" ]; then
+  PYTHON=/usr/bin/python2
 fi
 
 if [ -a /usr/bin/python2.6 ] && [ -z "$PYTHON" ]; then
   PYTHON=/usr/bin/python2.6
 fi
 
-# if no preferable python versions found, try to use system one
+if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
+  PYTHON=/usr/bin/python2.7
+fi
+
+# if no preferable python versions found, try to use system one. Hoping it's Python 2
 if [[ -z "$PYTHON" ]]; then
   PYTHON=/usr/bin/python
 fi
