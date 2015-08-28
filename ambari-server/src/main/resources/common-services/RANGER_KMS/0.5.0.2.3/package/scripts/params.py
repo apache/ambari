@@ -93,7 +93,7 @@ if db_flavor == 'mysql':
 elif db_flavor == 'oracle':
   jdbc_jar_name = "ojdbc6.jar"
   jdbc_symlink_name = "oracle-jdbc-driver.jar"
-  db_jdbc_url = format('jdbc:oracle:thin:\@//{db_host}')
+  db_jdbc_url = format('jdbc:oracle:thin:@//{db_host}')
   db_jdbc_driver = "oracle.jdbc.OracleDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
 elif db_flavor == 'postgres':
@@ -108,11 +108,24 @@ elif db_flavor == 'mssql':
   db_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={db_name}')
   db_jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLServerPlatform"
+elif db_flavor == 'sqla':
+  jdbc_jar_name = "sajdbc4.jar"
+  jdbc_symlink_name = "sqlanywhere-jdbc-driver.tar.gz"
+  db_jdbc_url = format('jdbc:sqlanywhere:database={db_name};host={db_host}')
+  db_jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
+  jdbc_dialect = "org.eclipse.persistence.platform.database.SQLAnywherePlatform"
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
 driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+
+if db_flavor == 'sqla':
+  downloaded_custom_connector = format("{tmp_dir}/sqla-client-jdbc.tar.gz")
+  jar_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/java/{jdbc_jar_name}")
+  libs_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/native/lib64/*")
+  jdbc_libs_dir = format("{kms_home}/native/lib64")
+  ld_library_path = format("{jdbc_libs_dir}")
 
 if has_ranger_admin:
   if xa_audit_db_flavor == 'mysql':
@@ -135,6 +148,11 @@ if has_ranger_admin:
     jdbc_symlink = "mssql-jdbc-driver.jar"
     audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
     jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+  elif xa_audit_db_flavor == 'sqla':
+    jdbc_jar = "sajdbc4.jar"
+    jdbc_symlink = "sqlanywhere-jdbc-driver.tar.gz"
+    audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
+    jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
 
   downloaded_connector_path = format("{tmp_dir}/{jdbc_jar}")
 
@@ -161,3 +179,7 @@ kms_ranger_plugin_repo = {
 xa_audit_db_is_enabled = config['configurations']['ranger-kms-audit']['xasecure.audit.destination.db']
 ssl_keystore_password = unicode(config['configurations']['ranger-kms-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
 ssl_truststore_password = unicode(config['configurations']['ranger-kms-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])
+
+#For SQLA explicitly disable audit to DB for Ranger
+if xa_audit_db_flavor == 'sqla':
+  xa_audit_db_is_enabled = False

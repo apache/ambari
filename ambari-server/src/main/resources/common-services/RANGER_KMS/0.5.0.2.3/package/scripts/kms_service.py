@@ -25,18 +25,16 @@ from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 
 def kms_service(action='start'):
-  # Note: params/status_params should already be imported before calling kms_service()
+  import params
+
+  env_dict = {'JAVA_HOME': params.java_home}
+  if params.db_flavor.lower() == 'sqla':
+    env_dict = {'JAVA_HOME': params.java_home, 'LD_LIBRARY_PATH': params.ld_library_path}
+
   if action == 'start':
     no_op_test = format('ps -ef | grep proc_rangerkms | grep -v grep')
     cmd = format('{kms_home}/ranger-kms start')
-    Execute(cmd, not_if=no_op_test, environment={'JAVA_HOME': format('{java_home}')}, user=format('{kms_user}'))
+    Execute(cmd, not_if=no_op_test, environment=env_dict, user=format('{kms_user}'))
   elif action == 'stop':
     cmd = format('{kms_home}/ranger-kms stop')
-    Execute(cmd, environment={'JAVA_HOME': format('{java_home}')}, user=format('{kms_user}'))
-  elif action == 'status':
-    cmd = 'ps -ef | grep proc_rangerkms | grep -v grep'
-    code, output = shell.call(cmd, timeout=20)
-    if code != 0:
-      Logger.debug('KMS process not running')
-      raise ComponentIsNotRunning()
-    pass
+    Execute(cmd, environment=env_dict, user=format('{kms_user}'))

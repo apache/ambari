@@ -46,17 +46,18 @@ def setup_ranger_plugin(component_select_name, service_name,
                         xa_audit_db_password, ssl_truststore_password,
                         ssl_keystore_password, api_version=None, hdp_version_override = None):
 
-  File(component_downloaded_custom_connector,
-    content = DownloadSource(component_driver_curl_source),
-    mode = 0644
-  )
+  if audit_db_is_enabled:
+    File(component_downloaded_custom_connector,
+      content = DownloadSource(component_driver_curl_source),
+      mode = 0644
+    )
 
-  Execute(('cp', '--remove-destination', component_downloaded_custom_connector, component_driver_curl_target),
-    path=["/bin", "/usr/bin/"],
-    sudo=True
-  )
+    Execute(('cp', '--remove-destination', component_downloaded_custom_connector, component_driver_curl_target),
+      path=["/bin", "/usr/bin/"],
+      sudo=True
+    )
 
-  File(component_driver_curl_target, mode=0644)
+    File(component_driver_curl_target, mode=0644)
 
   hdp_version = get_hdp_version(component_select_name)
   if hdp_version_override is not None:

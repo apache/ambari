@@ -56,7 +56,12 @@ class KmsServer(Script):
     kms_service(action = 'start')
 
   def status(self, env):    
-    kms_service(action = 'status')
+    cmd = 'ps -ef | grep proc_rangerkms | grep -v grep'
+    code, output = shell.call(cmd, timeout=20)
+    if code != 0:
+      Logger.debug('KMS process not running')
+      raise ComponentIsNotRunning()
+    pass
 
   def configure(self, env):
     import params

@@ -34,6 +34,7 @@ from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.ranger_functions import Rangeradmin
 from resource_management.core.utils import PasswordString
+from resource_management.core.shell import as_sudo
 
 def setup_kms_db():
   import params
@@ -51,19 +52,34 @@ def setup_kms_db():
       cd_access="a"
     )
     
-    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
-        path=["/bin", "/usr/bin/"],
-        sudo=True)
+    if params.db_flavor.lower() != 'sqla':
+      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
+          path=["/bin", "/usr/bin/"],
+          sudo=True)
 
-    File(params.driver_curl_target, mode=0644)
+      File(params.driver_curl_target, mode=0644)
 
     Directory(os.path.join(params.kms_home, 'ews', 'lib'),
       mode=0755
     )
     
-    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(params.kms_home, 'ews', 'webapp', 'lib')),
-      path=["/bin", "/usr/bin/"],
-      sudo=True)
+    if params.db_flavor.lower() == 'sqla':
+      Execute(('tar', '-xvf', params.downloaded_custom_connector, '-C', params.tmp_dir), sudo = True)
+
+      Execute(('cp', '--remove-destination', params.jar_path_in_archive, os.path.join(params.kms_home, 'ews', 'webapp', 'lib')),
+        path=["/bin", "/usr/bin/"],
+        sudo=True)
+
+      Directory(params.jdbc_libs_dir,
+        cd_access="a",
+        recursive=True)
+
+      Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
+        path=["/bin", "/usr/bin/"])
+    else:
+      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(params.kms_home, 'ews', 'webapp', 'lib')),
+        path=["/bin", "/usr/bin/"],
+        sudo=True)
 
     File(os.path.join(params.kms_home, 'ews', 'webapp', 'lib', params.jdbc_jar_name), mode=0644)
 
@@ -72,11 +88,21 @@ def setup_kms_db():
       owner = params.kms_user
     )
 
+    if params.db_flavor.lower() == 'sqla':
+      ModifyPropertiesFile(format("{kms_home}/install.properties"),
+        properties = {'SQL_CONNECTOR_JAR': format('{kms_home}/ews/webapp/lib/{jdbc_jar_name}')},
+        owner = params.kms_user,
+      )
+
+    env_dict = {'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home}
+    if params.db_flavor.lower() == 'sqla':
+      env_dict = {'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home, 'LD_LIBRARY_PATH':params.ld_library_path}
+
     dba_setup = format('python {kms_home}/dba_script.py -q')
     db_setup = format('python {kms_home}/db_setup.py')
 
-    Execute(dba_setup, environment={'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home}, logoutput=True, user=params.kms_user)
-    Execute(db_setup, environment={'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home}, logoutput=True, user=params.kms_user)
+    Execute(dba_setup, environment=env_dict, logoutput=True, user=params.kms_user)
+    Execute(db_setup, environment=env_dict, logoutput=True, user=params.kms_user)
 
 def setup_java_patch():
   import params
@@ -84,7 +110,12 @@ def setup_java_patch():
   if params.has_ranger_admin:
 
     setup_java_patch = format('python {kms_home}/db_setup.py -javapatch')
-    Execute(setup_java_patch, environment={'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home}, logoutput=True, user=params.kms_user)
+
+    env_dict = {'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home}
+    if params.db_flavor.lower() == 'sqla':
+      env_dict = {'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home, 'LD_LIBRARY_PATH':params.ld_library_path}
+
+    Execute(setup_java_patch, environment=env_dict, logoutput=True, user=params.kms_user)
 
     kms_lib_path = format('{kms_home}/ews/webapp/lib/')
     files = os.listdir(kms_lib_path)
@@ -130,16 +161,17 @@ def kms():
       recursive = True
     )
 
-    File(params.downloaded_connector_path,
-      content = DownloadSource(params.driver_source),
-      mode = 0644
-    )
+    if params.xa_audit_db_is_enabled:
+      File(params.downloaded_connector_path,
+        content = DownloadSource(params.driver_source),
+        mode = 0644
+      )
 
-    Execute(('cp', '--remove-destination', params.downloaded_connector_path, params.driver_target),
-        path=["/bin", "/usr/bin/"],
-        sudo=True)
+      Execute(('cp', '--remove-destination', params.downloaded_connector_path, params.driver_target),
+          path=["/bin", "/usr/bin/"],
+          sudo=True)
 
-    File(params.driver_target, mode=0644)
+      File(params.driver_target, mode=0644)
 
     Directory(os.path.join(params.kms_home, 'ews', 'webapp', 'WEB-INF', 'classes', 'lib'),
         mode=0755,
