@@ -33,11 +33,47 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
    */
   racks: [],
 
+  /**
+   * @type {$.ajax|null}
+   * @default null
+   */
+  activeRequest: null,
+
   onMetricsLoaded: function () {
     if (!this.get('isLoaded')) {
       this.set('controller.inputMaximum', this.get('content.properties.max_limit'));
     }
     this._super();
+  },
+
+  willDestroyElement: function () {
+    if ($.isPlainObject(this.get('activeRequest'))) {
+      this.get('activeRequest').abort();
+      this.set('activeRequest', null);
+    }
+  },
+
+  getHostComponentsMetrics: function (request) {
+    var ajax = this._super(request);
+    this.set('activeRequest', ajax);
+    return ajax;
+  },
+
+  getHostsMetrics: function (request) {
+    var ajax = this._super(request);
+    this.set('activeRequest', ajax);
+    return ajax;
+  },
+
+  /**
+   * skip metrics loading if AMBARI METRICS service is not started
+   */
+  loadMetrics: function () {
+    if (App.Service.find('AMBARI_METRICS').get('isStarted')) {
+      this._super();
+    } else {
+      this.onMetricsLoaded();
+    }
   },
 
   /**
@@ -65,7 +101,7 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
       App.loadTimer.finish('Heatmaps Page');
       App.loadTimer.finish('Service Heatmaps Page');
     }
-  },
+  }.observes('racks.@each.isLoaded'),
 
   /**
    * calculate value for heatmap widgets
