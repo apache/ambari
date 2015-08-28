@@ -67,18 +67,6 @@ function write_pidfile
     fi
 }
 
-#TODO decide if rebuild on each start (pretty quickly) to tolerate major node changes (like kernel update)
-#build psutil
-if [ ! "$(ls -A ${RESOURCE_MONITORING_DIR}/psutil/build)" ]; then
-  echo "Building psutil..."
-  dir=$(pwd)
-  cd "${RESOURCE_MONITORING_DIR}/psutil"
-  ${PYTHON} "setup.py" "build"
-  cd "${dir}"
-else
-  echo "psutil build directory is not empty, continuing..."
-fi
-
 #locate config dir
 while [[ -z "${_ams_configs_done}" ]]; do
   case $1 in
@@ -108,6 +96,18 @@ if [[ -f "${MONITOR_CONF_DIR}/ams-env.sh" ]]; then
 else
   echo "ERROR: Cannot execute ${MONITOR_CONF_DIR}/ams-env.sh." 2>&1
   exit 1
+fi
+
+#TODO decide if rebuild on each start (pretty quickly) to tolerate major node changes (like kernel update)
+#build psutil
+if [ ! "$(ls -A ${RESOURCE_MONITORING_DIR}/psutil/build)" ]; then
+  echo "Building psutil..."
+  dir=$(pwd)
+  cd "${RESOURCE_MONITORING_DIR}/psutil"
+  ${PYTHON} "setup.py" "build"
+  cd "${dir}"
+else
+  echo "psutil build directory is not empty, continuing..."
 fi
 
 # Set log directory path
