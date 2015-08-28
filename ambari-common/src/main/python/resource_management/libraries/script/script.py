@@ -95,6 +95,7 @@ class Script(object):
   basedir = ""
   stroutfile = ""
   logging_level = ""
+  logger = None
 
   # Class variable
   tmp_dir = ""
@@ -110,7 +111,12 @@ class Script(object):
     Script.structuredOut = {}
     if os.path.exists(self.stroutfile):
       with open(self.stroutfile, 'r') as fp:
-        Script.structuredOut = json.load(fp)
+        try:
+          Script.structuredOut = json.load(fp)
+        except Exception:
+          errMsg = 'Unable to read structured output from ' + self.stroutfile
+          self.logger.warn(errMsg)
+          pass
 
     # version is only set in a specific way and should not be carried 
     if "version" in Script.structuredOut:
@@ -178,6 +184,7 @@ class Script(object):
      print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
      sys.exit(1)
 
+    self.logger = logger
     self.command_name = str.lower(sys.argv[1])
     self.command_data_file = sys.argv[2]
     self.basedir = sys.argv[3]
