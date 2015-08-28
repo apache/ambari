@@ -35,7 +35,9 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 
@@ -224,11 +226,15 @@ public class ClusterGrouping extends Grouping {
             new TaskWrapper(service, component, realHosts, et));
       }
     } else if (null == service && null == component) {
-      // no service, no component goes to all hosts
-
+      // no service and no component will distributed the task to all healthy
+      // hosts not in maintenance mode
+      Cluster cluster = ctx.getCluster();
       Set<String> hostNames = new HashSet<String>();
       for (Host host : ctx.getCluster().getHosts()) {
-        hostNames.add(host.getHostName());
+        MaintenanceState maintenanceState = host.getMaintenanceState(cluster.getClusterId());
+        if (maintenanceState == MaintenanceState.OFF) {
+          hostNames.add(host.getHostName());
+        }
       }
 
       return new StageWrapper(

@@ -49,6 +49,13 @@ public class HostsType {
    */
   public LinkedHashSet<String> hosts = new LinkedHashSet<String>();
 
+  /**
+   * Unhealthy hosts are those which are explicitely put into maintenance mode.
+   * If there is a host which is not heartbeating (or is generally unhealthy)
+   * but not in maintenance mode, then the prerequisite upgrade checks will let
+   * the administrator know that it must be put into maintenance mode before an
+   * upgrade can begin.
+   */
   public List<ServiceComponentHost> unhealthy = new ArrayList<ServiceComponentHost>();
 
 }
