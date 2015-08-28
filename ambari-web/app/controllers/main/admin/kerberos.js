@@ -466,13 +466,15 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
 
 
   makeConfigsEditable: function () {
-    this.set('isEditMode', true);
-    this.get('stepConfigs').forEach(function (_stepConfig) {
-      _stepConfig.get('configs').setEach('isEditable', true);
+    if (!this.get('stepConfigs') || !this.get('stepConfigs.length')) {
+      this.set('isEditMode', true);
+      this.get('stepConfigs').forEach(function (_stepConfig) {
+        _stepConfig.get('configs').setEach('isEditable', true);
         _stepConfig.get('configs').forEach(function (_config) {
           _config.set('isEditable', _config.get('name') != 'realm');
         });
-    }, this);
+      }, this);
+    }
   },
 
   _updateConfigs: function () {
