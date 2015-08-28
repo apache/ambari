@@ -240,7 +240,7 @@ if has_ranger_admin:
   elif xa_audit_db_flavor == 'oracle':
     jdbc_jar_name = "ojdbc6.jar"
     jdbc_symlink_name = "oracle-jdbc-driver.jar"
-    audit_jdbc_url = format('jdbc:oracle:thin:\@//{xa_db_host}')
+    audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
     jdbc_driver = "oracle.jdbc.OracleDriver"
   elif xa_audit_db_flavor == 'postgres':
     jdbc_jar_name = "postgresql.jar"
@@ -252,6 +252,11 @@ if has_ranger_admin:
     jdbc_symlink_name = "mssql-jdbc-driver.jar"
     audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
     jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+  elif xa_audit_db_flavor == 'sqla':
+    jdbc_jar_name = "sajdbc4.jar"
+    jdbc_symlink_name = "sqlanywhere-jdbc-driver.tar.gz"
+    audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
+    jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
 
   downloaded_custom_connector = format("{exec_tmp_dir}/{jdbc_jar_name}")
   driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
@@ -284,6 +289,10 @@ if has_ranger_admin:
   ssl_truststore_password = unicode(config['configurations']['ranger-hbase-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
   credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None
 
+  #For SQLA explicitly disable audit to DB for Ranger
+  if xa_audit_db_flavor == 'sqla':
+    xa_audit_db_is_enabled = False
+
 # Used to dynamically set the hbase-site props that are referenced during Kerbenization
 if security_enabled:
   if not enable_ranger_hbase: # Default props, no ranger plugin
@@ -295,3 +304,4 @@ if security_enabled:
   else: # HDP Stack 2.2 and less / ranger plugin enabled
     hbase_coprocessor_master_classes = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
     hbase_coprocessor_region_classes = "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
+

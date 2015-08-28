@@ -111,7 +111,7 @@ if db_flavor.lower() == 'mysql':
 elif db_flavor.lower() == 'oracle':
   jdbc_jar_name = "ojdbc6.jar"
   jdbc_symlink_name = "oracle-jdbc-driver.jar"
-  audit_jdbc_url = format('jdbc:oracle:thin:\@//{db_host}')
+  audit_jdbc_url = format('jdbc:oracle:thin:@//{db_host}')
   jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
 elif db_flavor.lower() == 'postgres':
   jdbc_jar_name = "postgresql.jar"
@@ -123,11 +123,23 @@ elif db_flavor.lower() == 'mssql':
   jdbc_symlink_name = "mssql-jdbc-driver.jar"
   audit_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={ranger_auditdb_name}')
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLServerPlatform"
+elif db_flavor.lower() == 'sqla':
+  jdbc_jar_name = "sajdbc4.jar"
+  jdbc_symlink_name = "sqlanywhere-jdbc-driver.tar.gz"
+  audit_jdbc_url = format('jdbc:sqlanywhere:database={ranger_auditdb_name};host={db_host}')
+  jdbc_dialect = "org.eclipse.persistence.platform.database.SQLAnywherePlatform"
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
 driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+
+if db_flavor.lower() == 'sqla':
+  downloaded_custom_connector = format("{tmp_dir}/sqla-client-jdbc.tar.gz")
+  jar_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/java/{jdbc_jar_name}")
+  libs_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/native/lib64/*")
+  jdbc_libs_dir = format("{ranger_home}/native/lib64")
+  ld_lib_path = format("{jdbc_libs_dir}")
 
 #for db connection
 check_db_connection_jar_name = "DBConnectionVerification.jar"

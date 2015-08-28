@@ -183,7 +183,7 @@ if has_ranger_admin and is_supported_kafka_ranger:
   elif xa_audit_db_flavor and xa_audit_db_flavor == 'oracle':
     jdbc_jar_name = "ojdbc6.jar"
     jdbc_symlink_name = "oracle-jdbc-driver.jar"
-    audit_jdbc_url = format('jdbc:oracle:thin:\@//{xa_db_host}')
+    audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
     jdbc_driver = "oracle.jdbc.OracleDriver"
   elif xa_audit_db_flavor and xa_audit_db_flavor == 'postgres':
     jdbc_jar_name = "postgresql.jar"
@@ -195,6 +195,11 @@ if has_ranger_admin and is_supported_kafka_ranger:
     jdbc_symlink_name = "mssql-jdbc-driver.jar"
     audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
     jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+  elif xa_audit_db_flavor and xa_audit_db_flavor == 'sqla':
+    jdbc_jar_name = "sajdbc4.jar"
+    jdbc_symlink_name = "sqlanywhere-jdbc-driver.tar.gz"
+    audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
+    jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
 
   downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
@@ -210,4 +215,8 @@ if has_ranger_admin and is_supported_kafka_ranger:
   hdp_version = get_hdp_version('kafka-broker')
   setup_ranger_env_sh_source = format('/usr/hdp/{hdp_version}/ranger-kafka-plugin/install/conf.templates/enable/kafka-ranger-env.sh')
   setup_ranger_env_sh_target = format("{conf_dir}/kafka-ranger-env.sh")
+
+  #For SQLA explicitly disable audit to DB for Ranger
+  if xa_audit_db_flavor == 'sqla':
+    xa_audit_db_is_enabled = False
 

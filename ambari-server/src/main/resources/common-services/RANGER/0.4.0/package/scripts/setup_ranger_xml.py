@@ -27,6 +27,7 @@ from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.core.utils import PasswordString
+from resource_management.core.shell import as_sudo
 
 # This file contains functions used for setup/configure of Ranger Admin and Ranger Usersync.
 # The design is to mimic what is done by the setup.sh script bundled by Ranger component currently.
@@ -63,13 +64,20 @@ def setup_ranger_admin(rolling_upgrade=False):
   )
 
   cp = format("{check_db_connection_jar}")
-  cp = cp + os.pathsep + format("{driver_curl_target}")
+  if params.db_flavor.lower() == 'sqla':
+    cp = cp + os.pathsep + format("{ranger_home}/ews/lib/{jdbc_jar_name}")
+  else:
+    cp = cp + os.pathsep + format("{driver_curl_target}")
   cp = cp + os.pathsep + format("{ranger_home}/ews/webapp/WEB-INF/lib/*")
 
   db_connection_check_command = format(
     "{java_home}/bin/java -cp {cp} org.apache.ambari.server.DBConnectionVerification '{ranger_jdbc_connection_url}' {ranger_db_user} {ranger_db_password!p} {ranger_jdbc_driver}")
 
-  Execute(db_connection_check_command, path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10)
+  env_dict = {}
+  if params.db_flavor.lower() == 'sqla':
+    env_dict = {'LD_LIBRARY_PATH':params.ld_lib_path}
+
+  Execute(db_connection_check_command, path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10, environment=env_dict)
 
   Execute(('ln','-sf', format('{ranger_home}/ews/webapp/WEB-INF/classes/conf'), format('{ranger_home}/conf')),
     not_if=format("ls {ranger_home}/conf"),
@@ -132,19 +140,34 @@ def setup_ranger_db(rolling_upgrade=False):
     cd_access="a"
   )
 
-  Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
-    path=["/bin", "/usr/bin/"],
-    sudo=True)
+  if params.db_flavor.lower() != 'sqla':
+    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
+      path=["/bin", "/usr/bin/"],
+      sudo=True)
 
-  File(params.driver_curl_target, mode=0644)
+    File(params.driver_curl_target, mode=0644)
 
   ranger_home = params.ranger_home
   if rolling_upgrade:
     ranger_home = format("/usr/hdp/{version}/ranger-admin")
 
-  Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(params.ranger_home, 'ews', 'lib')),
-    path=["/bin", "/usr/bin/"],
-    sudo=True)
+  if params.db_flavor.lower() == 'sqla':
+    Execute(('tar', '-xvf', params.downloaded_custom_connector, '-C', params.tmp_dir), sudo = True)
+
+    Execute(('cp', '--remove-destination', params.jar_path_in_archive, os.path.join(params.ranger_home, 'ews', 'lib')),
+      path=["/bin", "/usr/bin/"],
+      sudo=True)
+
+    Directory(params.jdbc_libs_dir,
+      cd_access="a",
+      recursive=True)
+
+    Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
+            path=["/bin", "/usr/bin/"])
+  else:
+    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(params.ranger_home, 'ews', 'lib')),
+      path=["/bin", "/usr/bin/"],
+      sudo=True)
 
   File(os.path.join(params.ranger_home, 'ews', 'lib',params.jdbc_jar_name), mode=0644)
 
@@ -153,12 +176,22 @@ def setup_ranger_db(rolling_upgrade=False):
     owner = params.unix_user,
   )
 
+  if params.db_flavor.lower() == 'sqla':
+    ModifyPropertiesFile(format("{ranger_home}/install.properties"),
+      properties = {'SQL_CONNECTOR_JAR': format('{ranger_home}/ews/lib/{jdbc_jar_name}')},
+      owner = params.unix_user,
+    )
+
+  env_dict = {'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME':params.java_home}
+  if params.db_flavor.lower() == 'sqla':
+    env_dict = {'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME':params.java_home, 'LD_LIBRARY_PATH':params.ld_lib_path}
+
   # User wants us to setup the DB user and DB?
   if params.create_db_dbuser:
     Logger.info('Setting up Ranger DB and DB User')
     dba_setup = format('python {ranger_home}/dba_script.py -q')
     Execute(dba_setup, 
-            environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, 
+            environment=env_dict,
             logoutput=True,
             user=params.unix_user,
     )
@@ -167,7 +200,7 @@ def setup_ranger_db(rolling_upgrade=False):
 
   db_setup = format('python {ranger_home}/db_setup.py')
   Execute(db_setup, 
-          environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, 
+          environment=env_dict,
           logoutput=True,
           user=params.unix_user,
   )
@@ -180,9 +213,13 @@ def setup_java_patch(rolling_upgrade=False):
   if rolling_upgrade:
     ranger_home = format("/usr/hdp/{version}/ranger-admin")
 
+  env_dict = {'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME':params.java_home}
+  if params.db_flavor.lower() == 'sqla':
+    env_dict = {'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME':params.java_home, 'LD_LIBRARY_PATH':params.ld_lib_path}
+
   setup_java_patch = format('python {ranger_home}/db_setup.py -javapatch')
   Execute(setup_java_patch, 
-          environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home},
+          environment=env_dict,
           logoutput=True,
           user=params.unix_user,
   )
