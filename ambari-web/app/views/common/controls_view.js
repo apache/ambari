@@ -441,6 +441,14 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
   },
 
   /**
+   * Radio buttons that are not DB options and should not trigger any observer or change any other property's value
+   * Ranger service -> "Authentication method" property is an example for non DB related radio button
+   */
+  nonDBRadioButtons: function() {
+    return this.get('dontUseHandleDbConnection').without('DB_FLAVOR');
+  }.property('dontUseHandleDbConnection'),
+
+  /**
    * properties with these names don'use handleDBConnectionProperty method
    */
   dontUseHandleDbConnection: function () {
@@ -497,8 +505,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
   }.property('serviceConfig.serviceName', 'serviceConfig.value'),
 
   onOptionsChange: function () {
-    // The following if condition will be satisfied only for installer wizard flow
-    if (this.get('hostNameProperty')) {
+    if (this.get('hostNameProperty') && !this.get('nonDBRadioButtons').contains(this.get('serviceConfig.name'))) {
       /** if new db is selected host name must be same as master of selected service (and can't be changed)**/
       if (this.get('isNewDb')) {
         var initProperty = this.get('hostNameProperty.recommendedValue') || this.get('hostNameProperty.savedValue');
