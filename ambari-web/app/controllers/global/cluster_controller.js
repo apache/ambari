@@ -41,6 +41,12 @@ App.ClusterController = Em.Controller.extend({
 
   isServiceMetricsLoaded: false,
 
+  /**
+   * Ambari uses custom jdk.
+   * @type {Boolean}
+   */
+  isCustomJDK: false,
+
   isHostContentLoaded: function () {
     return this.get('isHostsLoaded') && this.get('isComponentsStateLoaded');
   }.property('isHostsLoaded', 'isComponentsStateLoaded'),
@@ -349,6 +355,8 @@ App.ClusterController = Em.Controller.extend({
   loadAmbariPropertiesSuccess: function (data) {
     console.log('loading ambari properties');
     this.set('ambariProperties', data.RootServiceComponents.properties);
+    // Absence of 'jdk.name' and 'jce.name' properties says that ambari configured with custom jdk.
+    this.set('isCustomJDK', App.isEmptyObject(App.permit(data.RootServiceComponents.properties, ['jdk.name', 'jce.name'])));
   },
 
   loadAmbariPropertiesError: function () {

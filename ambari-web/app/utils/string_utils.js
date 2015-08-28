@@ -167,10 +167,12 @@ module.exports = {
    * var arr = [ambari, bigdata, hadoop]
    * getFormattedStringFromArray(arr);  // ambari, bigdata and hadoop
    * @param array {Array}  Array of elements
+   * @param [endSeparator=Em.I18n.t('and')] {String}
    * @returns {String}
    */
-  getFormattedStringFromArray: function (array) {
+  getFormattedStringFromArray: function (array, endSeparator) {
     var label = '';
+    endSeparator = endSeparator || Em.I18n.t('and');
     array.forEach(function (_arrElement) {
       if (array.length === 1) {
         label = _arrElement;
@@ -183,7 +185,7 @@ module.exports = {
           }
         }
         else {
-          label = label + ' ' + Em.I18n.t('and') + ' ' + _arrElement;
+          label = label + ' ' + endSeparator + ' ' + _arrElement;
         }
       }
     }, this);

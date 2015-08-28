@@ -128,12 +128,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     next: function (router) {
       var wizardStep1Controller = router.get('wizardStep1Controller');
       var installerController = router.get('installerController');
-      installerController.checkRepoURL(wizardStep1Controller).done(function () {
-        installerController.setDBProperty('service', undefined);
-        installerController.setStacks();
-        installerController.clearInstallOptions();
-        router.transitionTo('step2');
-      });
+      installerController.validateJDKVersion(function() {
+        installerController.checkRepoURL(wizardStep1Controller).done(function () {
+          installerController.setDBProperty('service', undefined);
+          installerController.setStacks();
+          installerController.clearInstallOptions();
+          router.transitionTo('step2');
+        });
+      }, function() {});
     }
   }),
 

@@ -25,6 +25,8 @@ App.Stack = DS.Model.extend({
   active: DS.attr('boolean'),  // All of the instances should have this value to true. We should map only those stacks that has active flag set to true
   parentStackVersion: DS.attr('string'),
   minUpgradeVersion: DS.attr('string'),
+  minJdkVersion: DS.attr('string'),
+  maxJdkVersion: DS.attr('string'),
   configTypes: DS.attr('object'),
   operatingSystems: DS.hasMany('App.OperatingSystem'),
   isSelected: DS.attr('boolean', {defaultValue: false}),
