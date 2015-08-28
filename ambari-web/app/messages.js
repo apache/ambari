@@ -63,6 +63,7 @@ Em.I18n.translations = {
   'add': 'Add',
   'op': 'op',
   'ops': 'ops',
+  'or': 'or',
 
 
   'common.access':'Access',
@@ -381,6 +382,9 @@ Em.I18n.translations = {
   'popup.dependent.configs.dependencies.service.plural': 'in {0} services',
 
   'popup.dependent.configs.dependencies.for.groups': 'You are changing not default group, please select config group to which you want to save dependent configs from other services',
+
+  'popup.jdkValidation.header': 'Unsupported JDK',
+  'popup.jdkValidation.body': 'The {0} Stack requires JDK {1} but Ambari is configured for JDK {2}. This could result in error or problems with running your cluster.',
 
   'login.header':'Sign in',
   'login.username':'Username',

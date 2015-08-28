@@ -29,6 +29,8 @@ App.stackMapper = App.QuickDataMapper.create({
     active: 'active',
     parent_stack_version: 'parent_stack_version',
     min_upgrade_version: 'min_upgrade_version',
+    min_jdk_version: 'min_jdk',
+    max_jdk_version: 'max_jdk',
     is_selected: 'is_selected',
     config_types: 'config_types',
     operating_systems_key: 'operating_systems',
