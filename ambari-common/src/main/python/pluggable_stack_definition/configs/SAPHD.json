@@ -8,7 +8,7 @@
   "preservedText": ["ext-2.2", "HDP-oozie", "hdp.version", "HDP_VERSION"],
   "uiMapping": [
     {
-      "stackVersionNumber": "2.3",
+      "stackVersionNumber": "1.0",
       "sign": "<",
       "baseStackFolder": "HDP2"
     }
@@ -20,7 +20,7 @@
     "jdk1.8.url" : "http://DOWNLOAD_NOT_SUPPORTED",
     "jdk1.7.jcpol-url" : "http://DOWNLOAD_NOT_SUPPORTED",
     "jdk1.8.jcpol-url" : "http://DOWNLOAD_NOT_SUPPORTED",
-    "rolling.upgrade.min.stack" : "SAPHD-2.2"
+    "rolling.upgrade.min.stack" : "SAPHD-0.9"
   },
   "common-services": [
     {
@@ -101,7 +101,7 @@
   ],
   "versions": [
     {
-      "version": "2.0.6",
+      "version": "0.7",
       "baseVersion": "2.0.6",
       "family": "redhat6,suse11",
       "active": "false",
@@ -152,7 +152,7 @@
       ]
     },
     {
-      "version": "2.1",
+      "version": "0.8",
       "baseVersion": "2.1",
       "active": "false",
       "family": "redhat6,suse11",
@@ -217,7 +217,7 @@
       ]
     },
     {
-      "version": "2.2",
+      "version": "0.9",
       "baseVersion": "2.2",
       "active": "false",
       "family": "redhat6,suse11",
@@ -294,7 +294,7 @@
       ]
     },
     {
-      "version": "2.3",
+      "version": "1.0",
       "baseVersion": "2.3",
       "active": "true",
       "family": "redhat6,redhat7,suse11",
