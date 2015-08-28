@@ -194,6 +194,50 @@ public class UpgradeHelperTest {
   }
 
   /**
+   * Tests that hosts in MM are not included in the upgrade.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testUpgradeOrchestrationWithHostsInMM() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
+    assertTrue(upgrades.isEmpty());
+
+    upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+
+    ServiceInfo si = ambariMetaInfo.getService("HDP", "2.1.1", "ZOOKEEPER");
+    si.setDisplayName("Zk");
+
+    ComponentInfo ci = si.getComponentByName("ZOOKEEPER_SERVER");
+    ci.setDisplayName("ZooKeeper1 Server2");
+
+    assertTrue(upgrades.containsKey("upgrade_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_test");
+    assertNotNull(upgrade);
+
+    // turn on MM for the first host
+    Cluster cluster = makeCluster();
+    Host hostInMaintenanceMode = cluster.getHosts().iterator().next();
+    hostInMaintenanceMode.setMaintenanceState(cluster.getClusterId(), MaintenanceState.ON);
+
+    // use a "real" master host resolver here so that we can actually test MM
+    MasterHostResolver masterHostResolver = new MasterHostResolver(null, cluster, "");
+
+    UpgradeContext context = new UpgradeContext(masterHostResolver, HDP_21, HDP_21,
+        UPGRADE_VERSION, Direction.UPGRADE);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+    assertEquals(6, groups.size());
+
+    for (UpgradeGroupHolder group : groups) {
+      for (StageWrapper stageWrapper : group.items) {
+        Set<String> hosts = stageWrapper.getHosts();
+        assertFalse(hosts.contains(hostInMaintenanceMode.getHostName()));
+      }
+    }
+  }
+
+  /**
    * Verify that a Rolling Upgrades restarts the NameNodes in the following order: standby, active.
    * @throws Exception
    */

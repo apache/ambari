@@ -31,7 +31,8 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.utils.HTTPUtils;
@@ -134,7 +135,7 @@ public class MasterHostResolver {
         case HDFS:
           if (componentName.equalsIgnoreCase("NAMENODE")) {
             if (componentHosts.size() != 2) {
-              return filterSameVersion(hostsType, serviceName, componentName);
+              return filterHosts(hostsType, serviceName, componentName);
             }
 
             Map<Status, String> pair = getNameNodePair();
@@ -163,43 +164,55 @@ public class MasterHostResolver {
       LOG.error("Unable to get master and hosts for Component " + componentName + ". Error: " + err.getMessage(), err);
     }
 
-    hostsType = filterSameVersion(hostsType, serviceName, componentName);
+    hostsType = filterHosts(hostsType, serviceName, componentName);
 
     return hostsType;
   }
 
   /**
-   * Compares the versions of a HostComponent to the version for the resolver.
-   * If version is unspecified for the object, the {@link HostsType} object is
-   * returned without change.
+   * Filters the supplied list of hosts in the following ways:
+   * <ul>
+   * <li>Compares the versions of a HostComponent to the version for the
+   * resolver. Only versions that do not match are retained.</li>
+   * <li>Removes unhealthy hosts in maintenance mode from the list of healthy
+   * hosts</li>
+   * </ul>
    *
-   * @param hostsType the hosts to resolve
-   * @param service   the service name
-   * @param component the component name
-   * @return the modified hosts instance with filtered and unhealthy hosts filled
+   * @param hostsType
+   *          the hosts to resolve
+   * @param service
+   *          the service name
+   * @param component
+   *          the component name
+   * @return the modified hosts instance with filtered and unhealthy hosts
+   *         filled
    */
-  private HostsType filterSameVersion(HostsType hostsType, String service, String component) {
-
+  private HostsType filterHosts(HostsType hostsType, String service, String component) {
     try {
       org.apache.ambari.server.state.Service svc = m_cluster.getService(service);
       ServiceComponent sc = svc.getServiceComponent(component);
 
       // !!! not really a fan of passing these around
-      List<ServiceComponentHost> unhealthy = new ArrayList<ServiceComponentHost>();
-      LinkedHashSet<String> toUpgrade = new LinkedHashSet<String>();
+      List<ServiceComponentHost> unhealthyHosts = new ArrayList<ServiceComponentHost>();
+      LinkedHashSet<String> upgradeHosts = new LinkedHashSet<String>();
 
-      for (String host : hostsType.hosts) {
-        ServiceComponentHost sch = sc.getServiceComponentHost(host);
+      for (String hostName : hostsType.hosts) {
+        ServiceComponentHost sch = sc.getServiceComponentHost(hostName);
+        Host host = sch.getHost();
+        MaintenanceState maintenanceState = host.getMaintenanceState(sch.getClusterId());
 
-        if (HostState.HEALTHY != sch.getHostState() && !sc.isMasterComponent()) {
-          unhealthy.add(sch);
+        // !!! FIXME: only rely on maintenance state once the upgrade endpoint
+        // is using the pre-req endpoint for determining if an upgrade is
+        // possible
+        if (maintenanceState != MaintenanceState.OFF && !sc.isMasterComponent()) {
+          unhealthyHosts.add(sch);
         } else if (null == m_version || null == sch.getVersion() || !sch.getVersion().equals(m_version)) {
-          toUpgrade.add(host);
+          upgradeHosts.add(hostName);
         }
       }
 
-      hostsType.unhealthy = unhealthy;
-      hostsType.hosts = toUpgrade;
+      hostsType.unhealthy = unhealthyHosts;
+      hostsType.hosts = upgradeHosts;
 
       return hostsType;
     } catch (AmbariException e) {
