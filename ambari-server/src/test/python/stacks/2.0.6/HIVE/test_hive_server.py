@@ -694,7 +694,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     )
 
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
-    self.assertResourceCalledByIndex(33, 'Execute', 'hive --config /usr/hdp/current/hive-server2/conf/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
+    self.assertResourceCalledByIndex(31, 'Execute', 'hive --config /usr/hdp/current/hive-server2/conf/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
 
