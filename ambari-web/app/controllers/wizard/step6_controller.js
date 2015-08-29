@@ -694,8 +694,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * @method updateValidationsErrorCallback
    */
   updateValidationsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
-    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
-    console.log('Load validations failed');
+    console.error('Config validation failed: ', jqXHR, ajaxOptions, error, opt);
   },
 
   /**

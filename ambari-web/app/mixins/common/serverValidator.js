@@ -174,8 +174,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
   },
 
   loadRecommendationsError: function(jqXHR, ajaxOptions, error, opt) {
-    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
-    console.error('Load recommendations failed');
+    console.error("ERROR: Unable to determine recommendations for configs: ", jqXHR, ajaxOptions, error, opt);
   },
 
   serverSideValidation: function () {
@@ -313,8 +312,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
 
   validationError: function (jqXHR, ajaxOptions, error, opt) {
     this.set('configValidationFailed', true);
-    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
-    console.error('config validation failed');
+    console.error('Config validation failed: ', jqXHR, ajaxOptions, error, opt);
   },
 
 
@@ -327,8 +325,26 @@ App.ServerValidatorMixin = Em.Mixin.create({
   warnUser: function(deferred) {
     var self = this;
     if (this.get('configValidationFailed')) {
-      deferred.reject();
-      return App.showAlertPopup(Em.I18n.t('installer.step7.popup.validation.failed.header'), Em.I18n.t('installer.step7.popup.validation.request.failed.body'));
+      console.error("Config validation failed. Going ahead with saving of configs");
+      return App.ModalPopup.show({
+        header: Em.I18n.t('installer.step7.popup.validation.failed.header'),
+        primary: Em.I18n.t('common.proceedAnyway'),
+        primaryClass: 'btn-danger',
+        marginBottom: 200,
+        onPrimary: function () {
+          this.hide();
+          deferred.resolve();
+        },
+        onSecondary: function () {
+          this.hide();
+          deferred.reject("invalid_configs"); // message used to differentiate types of rejections.
+        },
+        onClose: function () {
+          this.hide();
+          deferred.reject("invalid_configs"); // message used to differentiate types of rejections.
+        },
+        body: Em.I18n.t('installer.step7.popup.validation.request.failed.body')
+      });
     } else if (this.get('configValidationWarning') || this.get('configValidationError')) {
       // Motivation: for server-side validation warnings and EVEN errors allow user to continue wizard
       return App.ModalPopup.show({

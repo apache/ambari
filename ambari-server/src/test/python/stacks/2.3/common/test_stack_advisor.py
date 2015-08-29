@@ -803,13 +803,11 @@ class TestHDP23StackAdvisor(TestCase):
       "ranger-hbase-plugin-enabled": "Yes"
     }
 
-    recommendations = self.stackAdvisor.recommendConfigurations(services, hosts)
-
-    for serviceName, validator in validators.items():
-      recommendedDefaults = recommendations["recommendations"]["blueprint"]["configurations"]
-      for siteName, method in validator.items():
-        if siteName in recommendedDefaults:
-          siteRecommendations = recommendedDefaults[siteName]["properties"]
-          method(properties, siteRecommendations, configurations, services, hosts)
+    exceptionThrown = False
+    try:
+      recommendations = self.stackAdvisor.recommendConfigurations(services, hosts)
+    except Exception as e:
+      exceptionThrown = True
+    self.assertTrue(exceptionThrown)
 
     pass
