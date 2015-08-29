@@ -310,27 +310,28 @@ def download_database_library_if_needed(target_directory = None):
     # create the full path using the supplied target directory and the JDBC JAR
     target_jar_with_directory = target_directory + os.path.sep + params.jdbc_driver_jar
 
-  File(params.downloaded_custom_connector,
-    content = DownloadSource(params.driver_curl_source))
+  if not os.path.exists(target_jar_with_directory):
+    File(params.downloaded_custom_connector,
+      content = DownloadSource(params.driver_curl_source))
 
-  if params.sqla_db_used:
-    untar_sqla_type2_driver = ('tar', '-xvf', params.downloaded_custom_connector, '-C', params.tmp_dir)
+    if params.sqla_db_used:
+      untar_sqla_type2_driver = ('tar', '-xvf', params.downloaded_custom_connector, '-C', params.tmp_dir)
 
-    Execute(untar_sqla_type2_driver, sudo = True)
+      Execute(untar_sqla_type2_driver, sudo = True)
 
-    Execute(as_sudo(['yes', '|', 'cp', params.jars_path_in_archive, params.oozie_libext_dir], auto_escape=False),
-            path=["/bin", "/usr/bin/"])
+      Execute(as_sudo(['yes', '|', 'cp', params.jars_path_in_archive, params.oozie_libext_dir], auto_escape=False),
+              path=["/bin", "/usr/bin/"])
 
-    Directory(params.jdbc_libs_dir,
-              recursive=True)
+      Directory(params.jdbc_libs_dir,
+                recursive=True)
 
-    Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
-            path=["/bin", "/usr/bin/"])
+      Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
+              path=["/bin", "/usr/bin/"])
 
-  else:
-    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, target_jar_with_directory),
-      path=["/bin", "/usr/bin/"],
-      sudo = True)
+    else:
+      Execute(('cp', '--remove-destination', params.downloaded_custom_connector, target_jar_with_directory),
+        path=["/bin", "/usr/bin/"],
+        sudo = True)
 
-  File(target_jar_with_directory, owner = params.oozie_user,
-    group = params.user_group)
+    File(target_jar_with_directory, owner = params.oozie_user,
+      group = params.user_group)
