@@ -385,20 +385,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
               print("SiteName: %s, method: %s\n" % (siteName, method.__name__))
               print("Site properties: %s\n" % str(siteProperties))
               print("Recommendations: %s\n********\n" % str(siteRecommendations))
-              try:
-                resultItems = method(siteProperties, siteRecommendations, configurations, services, hosts)
-                items.extend(resultItems)
-              except (AttributeError, TypeError, LookupError) as e:
-                msg = "Failed to validate configuration "
-                print msg
-                print e
-                items.extend([{
-                                'message': msg,
-                                'level': 'ERROR',
-                                'config-type': siteName,
-                                'config-name': '',
-                                'type': 'configuration'
-                              }])
+              resultItems = method(siteProperties, siteRecommendations, configurations, services, hosts)
+              items.extend(resultItems)
 
     clusterWideItems = self.validateClusterConfigurations(configurations, services, hosts)
     items.extend(clusterWideItems)

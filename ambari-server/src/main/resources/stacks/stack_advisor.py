@@ -566,12 +566,7 @@ class DefaultStackAdvisor(StackAdvisor):
       for service in servicesList:
         calculation = self.getServiceConfigurationRecommender(service)
         if calculation is not None:
-          try:
-            calculation(configurations, clusterSummary, services, hosts)
-          except (AttributeError, TypeError, LookupError) as e:
-            # NOP
-            print "Failed to recommend configuration "
-            print e
+          calculation(configurations, clusterSummary, services, hosts)
 
     return recommendations
 

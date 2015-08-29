@@ -390,7 +390,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    */
   dependenciesError: function(jqXHR, ajaxOptions, error, opt) {
     this.set('recommendationTimeStamp', (new Date).getTime());
-    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+    // We do not want to show user dialogs of failed recommendations
+    console.error("ERROR: Unable to determine recommendations for configs: ", jqXHR, ajaxOptions, error, opt);
   },
 
   /**

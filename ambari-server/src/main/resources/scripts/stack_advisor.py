@@ -50,16 +50,18 @@ def loadJson(path):
   try:
     with open(path, 'r') as f:
       return json.load(f)
-  except Exception, err:
-    raise StackAdvisorException("File not found at: {0}".format(path))
+  except Exception as err:
+    traceback.print_exc()
+    raise StackAdvisorException("Error loading file at: {0}".format(path))
 
 
 def dumpJson(json_object, dump_file):
   try:
     with open(dump_file, 'w') as out:
       json.dump(json_object, out, indent=1)
-  except Exception, err:
-    raise StackAdvisorException("Can not write to file {0} : {1}".format(dump_file, str(err)))
+  except Exception as err:
+    traceback.print_exc()
+    raise StackAdvisorException("Error writing to file {0} : {1}".format(dump_file, str(err)))
 
 
 def main(argv=None):
@@ -137,14 +139,16 @@ def instantiateStackAdvisor(stackName, stackVersion, parentVersions):
         stack_advisor = imp.load_module('stack_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE))
       className = STACK_ADVISOR_IMPL_CLASS_TEMPLATE.format(stackName, version.replace('.', ''))
       print "StackAdvisor implementation for stack {0}, version {1} was loaded".format(stackName, version)
-    except Exception:
+    except Exception as e:
+      traceback.print_exc()
       print "StackAdvisor implementation for stack {0}, version {1} was not found".format(stackName, version)
 
   try:
     clazz = getattr(stack_advisor, className)
     print "Returning " + className + " implementation"
     return clazz()
-  except Exception, e:
+  except Exception as e:
+    traceback.print_exc()
     print "Returning default implementation"
     return default_stack_advisor.DefaultStackAdvisor()
 
