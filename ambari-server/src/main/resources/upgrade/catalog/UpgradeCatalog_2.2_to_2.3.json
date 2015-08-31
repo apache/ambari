@@ -428,7 +428,10 @@
           }
         },
         "yarn-site": {
-          "yarn.node-labels.enabled": false,
+          "yarn.node-labels.enabled": {
+            "value": "false",
+            "override": "no"
+          },
           "yarn.timeline-service.recovery.enabled": "true",
           "yarn.timeline-service.state-store-class": "org.apache.hadoop.yarn.server.timeline.recovery.LeveldbTimelineStateStore",
           "yarn.timeline-service.leveldb-state-store.path": "/var/log/hadoop-yarn/timeline"
