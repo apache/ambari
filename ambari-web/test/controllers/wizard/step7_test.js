@@ -1702,43 +1702,6 @@ describe('App.InstallerStep7Controller', function () {
 
   });
 
-  describe('#setServiceDatabaseConfigs', function () {
-
-    var controller = App.WizardStep7Controller.create({
-      installedServiceNames: ['OOZIE', 'HIVE']
-    });
-    var configs = [
-      {
-        name: 'hive_database',
-        value: 'MySQL',
-        serviceName: 'HIVE',
-        filename: 'hbase-site.xml'
-      },
-      {
-        name: 'oozie_database',
-        value: 'MySQL',
-        serviceName: 'OOZIE',
-        filename: 'ams-hbase-site.xml'
-      }
-    ];
-
-    it('should handle properties with the same name', function () {
-      var services = Em.A([
-        Em.Object.create({
-          isInstalled: true,
-          serviceName: 'SQOOP'
-        }),
-        Em.Object.create({
-          isInstalled: true,
-          serviceName: 'HDFS'
-        })
-      ]);
-      controller.setServiceDatabaseConfigs(configs);
-      var properties = configs.filterProperty('name', 'hive_database');
-      expect(properties).to.have.length(1);
-    });
-  });
-
   describe('#getAmbariDatabaseSuccess', function () {
 
     var controller = App.WizardStep7Controller.create({
