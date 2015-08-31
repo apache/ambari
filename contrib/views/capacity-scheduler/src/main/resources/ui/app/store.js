@@ -136,12 +136,14 @@ App.ApplicationStore = DS.Store.extend({
         config += propKey + '=' + props[propKey] + '\n';
       });
     } else if (fmt === 'xml') {
+      config += '<?xml version="1.0"?>\n<configuration>\n';
       Object.keys(props).forEach(function (propKey) {
-        config += '<property>\n' +
-        '  <name>' + propKey + '</name>\n' +
-        '  <value>' + props[propKey] + '</value>\n' +
-        '</property>\n';
+        config += '  <property>\n' +
+        '    <name>' + propKey + '</name>\n' +
+        '    <value>' + props[propKey] + '</value>\n' +
+        '  </property>\n';
       });
+      config += "</configuration>"
     }
 
     return config;
