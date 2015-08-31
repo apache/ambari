@@ -156,6 +156,7 @@ class TestWebHCatServer(RMFTestCase):
                               owner = 'hcat',
                               group = 'hadoop',
                               recursive = True,
+                              cd_access = 'a'
                               )
     self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
                               owner = 'hcat',
@@ -197,6 +198,7 @@ class TestWebHCatServer(RMFTestCase):
                               owner = 'hcat',
                               group = 'hadoop',
                               recursive = True,
+                              cd_access = 'a'
                               )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
                               path = ['/bin'],
@@ -438,7 +440,8 @@ class TestWebHCatServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/hdp/current/hive-webhcat/etc/webhcat',
       owner = 'hcat',
       group = 'hadoop',
-      recursive = True)
+      recursive = True,
+      cd_access = 'a',)
 
     self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
       owner = 'hcat',
