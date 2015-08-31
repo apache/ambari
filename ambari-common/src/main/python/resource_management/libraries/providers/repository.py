@@ -74,39 +74,49 @@ class UbuntuRepositoryProvider(Provider):
   repo_dir = "/etc/apt/sources.list.d"
   update_cmd = ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/{repo_file_name}', '-o', 'Dir::Etc::sourceparts=-', '-o', 'APT::Get::List-Cleanup=0']
   missing_pkey_regex = "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY ([A-Z0-9]+)"
-  add_pkey_cmd = "apt-key adv --recv-keys --keyserver keyserver.ubuntu.com {pkey}"
+  app_pkey_cmd_prefix = ('apt-key', 'adv', '--recv-keys', '--keyserver', 'keyserver.ubuntu.com')
 
   def action_create(self):
     with Environment.get_instance_copy() as env:
       with tempfile.NamedTemporaryFile() as tmpf:
-        repo_file_name = format("{repo_file_name}.list",repo_file_name = self.resource.repo_file_name)
-        repo_file_path = format("{repo_dir}/{repo_file_name}", repo_dir = self.repo_dir)
-
-        new_content = InlineTemplate(self.resource.repo_template, package_type=self.package_type,
-                                      base_url=self.resource.base_url,
-                                      components=' '.join(self.resource.components)).get_content()
-        old_content = ''
-        if self.resource.append_to_file and os.path.isfile(repo_file_path):
-            old_content = sudo.read_file(repo_file_path) + '\n'
-
-        File(tmpf.name, content=old_content+new_content)
-
-        if not os.path.isfile(repo_file_path) or not filecmp.cmp(tmpf.name, repo_file_path):
-          File(repo_file_path,
-               content = StaticFile(tmpf.name)
+        with tempfile.NamedTemporaryFile() as old_repo_tmpf:
+          repo_file_name = format("{repo_file_name}.list",repo_file_name = self.resource.repo_file_name)
+          repo_file_path = format("{repo_dir}/{repo_file_name}", repo_dir = self.repo_dir)
+  
+          new_content = InlineTemplate(self.resource.repo_template, package_type=self.package_type,
+                                        base_url=self.resource.base_url,
+                                        components=' '.join(self.resource.components)).get_content()
+          old_content = ''
+          if self.resource.append_to_file and os.path.isfile(repo_file_path):
+              old_content = sudo.read_file(repo_file_path) + '\n'
+  
+          File(tmpf.name, 
+               content=old_content+new_content
           )
           
-          update_cmd_formatted = [format(x) for x in self.update_cmd]
-          # this is time expensive
-          retcode, out = checked_call(update_cmd_formatted, sudo=True)
-          
-          # add public keys for new repos
-          missing_pkeys = set(re.findall(self.missing_pkey_regex, out))
-          for pkey in missing_pkeys:
-            Execute(format(self.add_pkey_cmd),
-                    timeout = 15, # in case we are on the host w/o internet (using localrepo), we should ignore hanging
-                    ignore_failures = True
+          if os.path.isfile(repo_file_path):
+            # a copy of old repo file, which will be readable by current user
+            File(old_repo_tmpf.name, 
+                 content=StaticFile(repo_file_path),
             )
+  
+          if not os.path.isfile(repo_file_path) or not filecmp.cmp(tmpf.name, old_repo_tmpf.name):
+            File(repo_file_path,
+                 content = StaticFile(tmpf.name)
+            )
+            
+            update_cmd_formatted = [format(x) for x in self.update_cmd]
+            # this is time expensive
+            retcode, out = checked_call(update_cmd_formatted, sudo=True, quiet=False)
+            
+            # add public keys for new repos
+            missing_pkeys = set(re.findall(self.missing_pkey_regex, out))
+            for pkey in missing_pkeys:
+              Execute(self.app_pkey_cmd_prefix + (pkey,),
+                      timeout = 15, # in case we are on the host w/o internet (using localrepo), we should ignore hanging
+                      ignore_failures = True,
+                      sudo = True,
+              )
   
   def action_remove(self):
     with Environment.get_instance_copy() as env:
