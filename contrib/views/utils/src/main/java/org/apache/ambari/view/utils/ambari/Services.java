@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,16 +19,17 @@
 package org.apache.ambari.view.utils.ambari;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Utilities for specific Hadoop services and util functions for them
@@ -39,6 +40,12 @@ public class Services {
   public static final String YARN_SITE = "yarn-site";
   public static final String YARN_HTTP_POLICY = "yarn.http.policy";
   public static final String YARN_RESOURCEMANAGER_HA_ENABLED = "yarn.resourcemanager.ha.enabled";
+  private static final String YARN_RESOURCEMANAGER_HTTPS_KEY = "yarn.resourcemanager.webapp.https.address";
+  private static final String YARN_RESOURCEMANAGER_HTTP_KEY = "yarn.resourcemanager.webapp.address";
+  private static final String YARN_RESOURCEMANAGER_HA_RM_IDS_KEY = "yarn.resourcemanager.ha.rm-ids";
+  private static final String YARN_RESOURCEMANAGER_HTTP_HA_PARTIAL_KEY = "yarn.resourcemanager.webapp.address.";
+  private static final String YARN_RESOURCEMANAGER_HTTPS_HA_PARTIAL_KEY = "yarn.resourcemanager.webapp.https.address.";
+  public static final String RM_INFO_API_ENDPOINT = "/ws/v1/cluster/info";
 
   private final AmbariApi ambariApi;
   private ViewContext context;
@@ -60,35 +67,78 @@ public class Services {
     String url;
 
     if (ambariApi.isClusterAssociated()) {
-      String protocol;
-
-      String haEnabled = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_RESOURCEMANAGER_HA_ENABLED);
-      String httpPolicy = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_HTTP_POLICY);
-      if (httpPolicy.equals(HTTPS_ONLY)) {
-        protocol = "https";
-        url = ambariApi.getCluster().getConfigurationValue(YARN_SITE, "yarn.resourcemanager.webapp.https.address");
-
-      } else {
-        protocol = "http";
-        url = ambariApi.getCluster().getConfigurationValue(YARN_SITE, "yarn.resourcemanager.webapp.address");
-        if (!httpPolicy.equals(HTTP_ONLY))
-          LOG.error(String.format("RA030 Unknown value %s of yarn-site/yarn.http.policy. HTTP_ONLY assumed.", httpPolicy));
-      }
-
-      url = addProtocolIfMissing(url, protocol);
-
-      if (haEnabled != null && haEnabled.equals("true")) {
-        url = getActiveRMUrl(url);
-      }
+      url = getRMUrlFromClusterConfig();
     } else {
-      url = context.getProperties().get("yarn.resourcemanager.url");
-      if (!hasProtocol(url)) {
-        throw new AmbariApiException(
-            "RA070 View is not cluster associated. Resource Manager URL should contain protocol.");
-      }
+      url = getRmUrlFromCustomConfig();
     }
     return removeTrailingSlash(url);
   }
+
+  private String getRMUrlFromClusterConfig() {
+    String url;
+    String protocol;
+
+    String haEnabled = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_RESOURCEMANAGER_HA_ENABLED);
+    String httpPolicy = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_HTTP_POLICY);
+
+    if (!(HTTP_ONLY.equals(httpPolicy) || HTTPS_ONLY.equals(httpPolicy))) {
+      LOG.error(String.format("RA030 Unknown value %s of yarn-site/yarn.http.policy. HTTP_ONLY assumed.", httpPolicy));
+      httpPolicy = HTTP_ONLY;
+    }
+
+    if (haEnabled != null && haEnabled.equals("true")) {
+      String[] urls = getRMHAUrls(httpPolicy);
+      url = getActiveRMUrl(urls);
+    } else {
+      if (httpPolicy.equals(HTTPS_ONLY)) {
+        protocol = "https";
+        url = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_RESOURCEMANAGER_HTTPS_KEY);
+      } else {
+        protocol = "http";
+        url = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_RESOURCEMANAGER_HTTP_KEY);
+      }
+      url = addProtocolIfMissing(url, protocol);
+    }
+    return url;
+  }
+
+  private String[] getRMHAUrls(String httpPolicy) {
+    String haRmIds = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_RESOURCEMANAGER_HA_RM_IDS_KEY);
+    String[] ids = haRmIds.split(",");
+    int index = 0;
+    String[] urls = new String[ids.length];
+    for (String id : ids) {
+      String url, protocol;
+      if (HTTPS_ONLY.equals(httpPolicy)) {
+        url = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_RESOURCEMANAGER_HTTPS_HA_PARTIAL_KEY + id);
+        protocol = "https";
+      } else {
+        url = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_RESOURCEMANAGER_HTTP_HA_PARTIAL_KEY + id);
+        protocol = "http";
+      }
+
+      urls[index++] = addProtocolIfMissing(url.trim(), protocol);
+    }
+    return urls;
+  }
+
+  private String getRmUrlFromCustomConfig() {
+    // Comma separated list of URLs for HA and single URL for non HA
+    String resourceManagerUrls = context.getProperties().get("yarn.resourcemanager.url");
+    if (!StringUtils.isEmpty(resourceManagerUrls)) {
+      String[] urls = resourceManagerUrls.split(",");
+
+      if (!hasProtocol(urls)) {
+        throw new AmbariApiException(
+          "RA070 View is not cluster associated. All Resource Manager URL should contain protocol.");
+      }
+      return getActiveRMUrl(urls);
+    } else {
+      throw new AmbariApiException(
+        "RA070 View is not cluster associated. 'YARN ResourceManager URL' should be provided");
+    }
+  }
+
 
   private String removeTrailingSlash(String url) {
     if (url.endsWith("/")) {
@@ -97,30 +147,60 @@ public class Services {
     return url;
   }
 
-  public final Pattern refreshHeaderUrlPattern = Pattern.compile("^\\d+;\\s*url=(.*)$");
+  /**
+   * Returns active RM URL. All RM Urls for RM HA is passed as an argument. This iterates over the list of RM hosts
+   * and gets the cluster info. Breaks out and returns the URL when the 'haStatus' parameter returns "ACTIVE".
+   * If only one url is passed, it is considered as ACTIVE and returned. No API call is made in that case.
+   * @param urls array of all the RM Urls
+   * @return url of the active RM
+   */
+  private String getActiveRMUrl(String[] urls) {
+    if (urls.length == 1)
+      return urls[0].trim();
+    else {
+      for (String url : urls) {
+        url = url.trim();
+        if (isActiveUrl(url))
+          return url;
+      }
+    }
+    LOG.error("All ResourceManagers are not accessible or none seem to be active.");
+    throw new AmbariApiException("RA110 All ResourceManagers are not accessible or none seem to be active.");
+  }
 
   /**
-   * Returns active RM URL. Makes a request to RM passed as argument.
-   * If response contains Refresh header then passed url was standby RM.
-   * @param url url of random RM
-   * @return url of active RM
+   * Queries RM API to check the haState.
+   * @param url Resource Manager root url
+   * @return true if haState returned is ACTIVE else false
    */
-  private String getActiveRMUrl(String url) {
-    String activeRMUrl = url;
+
+  private boolean isActiveUrl(String url) {
+    InputStream inputStream = null;
     try {
-      HttpURLConnection httpURLConnection = context.getURLConnectionProvider().
-          getConnection(url, "GET", (String) null, new HashMap<String, String>());
-      String refreshHeader = httpURLConnection.getHeaderField("Refresh");
-      if (refreshHeader != null) { // we hit standby RM
-        Matcher matcher = refreshHeaderUrlPattern.matcher(refreshHeader);
-        if (matcher.find()) {
-          activeRMUrl = matcher.group(1);
-        }
-      }
+      inputStream = context.getURLStreamProvider()
+        .readFrom(url + RM_INFO_API_ENDPOINT, "GET", (String) null, new HashMap<String, String>());
+      String response = IOUtils.toString(inputStream);
+      String haState = getHAStateFromRMResponse(response);
+
+      if (StringUtils.isNotEmpty(haState) && "ACTIVE".equals(haState))
+        return true;
+
     } catch (IOException e) {
-      throw new AmbariApiException("RA110 ResourceManager is not accessible");
+      LOG.error("Resource Manager : %s is not accessible. This cannot be a active RM. Returning false.");
+    } finally {
+      if (inputStream != null) {
+        try {
+          inputStream.close();
+        } catch (IOException e) { /* Noting to do */ }
+      }
     }
-    return activeRMUrl;
+    return false;
+  }
+
+  private String getHAStateFromRMResponse(String response) {
+    JSONObject jsonObject = (JSONObject) JSONValue.parse(response);
+    JSONObject clusterInfo = (JSONObject) jsonObject.get("clusterInfo");
+    return (String) clusterInfo.get("haState");
   }
 
   /**
@@ -145,14 +225,14 @@ public class Services {
       host = context.getProperties().get("webhcat.hostname");
       if (host == null || host.isEmpty()) {
         throw new AmbariApiException(
-            "RA080 Can't determine WebHCat hostname neither by associated cluster nor by webhcat.hostname property.");
+          "RA080 Can't determine WebHCat hostname neither by associated cluster nor by webhcat.hostname property.");
       }
     }
 
     String port = context.getProperties().get("webhcat.port");
     if (port == null || port.isEmpty()) {
       throw new AmbariApiException(
-          "RA090 Can't determine WebHCat port neither by associated cluster nor by webhcat.port property.");
+        "RA090 Can't determine WebHCat port neither by associated cluster nor by webhcat.port property.");
     }
 
     return String.format("http://%s:%s/templeton/v1", host, port);
@@ -163,6 +243,20 @@ public class Services {
       url = protocol + "://" + url;
     }
     return url;
+  }
+
+
+  /**
+   * Checks if all the urls in the array contains protocol
+   * @param urls Array of urls
+   * @return true if all the urls contain protocol
+   */
+  public static boolean hasProtocol(String[] urls) {
+    for (String url : urls) {
+      if (!hasProtocol(url))
+        return false;
+    }
+    return true;
   }
 
   /**
