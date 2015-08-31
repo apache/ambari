@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.filebrowser;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -156,6 +157,11 @@ public class DownloadService extends HdfsService {
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   public Response downloadGZip(final DownloadRequest request) {
     try {
+      String name = "hdfs.zip";
+      if(request.entries.length == 1 ){
+        name = new File(request.entries[0]).getName() + ".zip";
+      }
+
       StreamingOutput result = new StreamingOutput() {
         public void write(OutputStream output) throws IOException,
             ServiceFormattedException {
@@ -197,7 +203,7 @@ public class DownloadService extends HdfsService {
         }
       };
       return Response.ok(result)
-          .header("Content-Disposition", "inline; filename=\"hdfs.zip\"").build();
+          .header("Content-Disposition", "inline; filename=\"" + name +"\"").build();
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (Exception ex) {

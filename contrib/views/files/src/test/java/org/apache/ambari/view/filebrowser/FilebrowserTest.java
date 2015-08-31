@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -146,19 +147,58 @@ public class FilebrowserTest{
     Assert.assertEquals(200, response2.getStatus());
   }
 
+  private void createDirectoryWithFiles(String dirPath) throws Exception {
+    FileOperationService.MkdirRequest request = new FileOperationService.MkdirRequest();
+    request.path = dirPath;
+    File file = new File(dirPath);
+    String fileName = file.getName();
+    fileBrowserService.fileOps().mkdir(request);
+    for (int i = 0; i < 10; i++) {
+      uploadFile(dirPath, fileName + i, ".txt", "Hello world" + i);
+    }
+  }
+
   @Test
   public void testStreamingGzip() throws Exception {
     String gzipDir = "/tmp/testGzip";
-    FileOperationService.MkdirRequest request = new FileOperationService.MkdirRequest();
-    request.path = gzipDir;
-    fileBrowserService.fileOps().mkdir(request);
-    for (int i = 0; i < 10; i++) {
-      uploadFile(gzipDir, "testGzip" + i, ".txt", "Hello world" + i);
-    }
+    createDirectoryWithFiles(gzipDir);
     DownloadService.DownloadRequest dr = new DownloadService.DownloadRequest();
     dr.entries = new String[] { gzipDir };
 
     Response result = fileBrowserService.download().downloadGZip(dr);
+  }
+
+  @Test
+  public void testStreamingDownloadGzipName() throws Exception {
+    String gzipDir = "/tmp/testGzip1";
+    createDirectoryWithFiles(gzipDir);
+
+    // test download 1 folder
+    validateDownloadZipName(new String[]{gzipDir}, "testGzip1.zip" );
+
+    // test download 1 folder
+    validateDownloadZipName(new String[]{gzipDir + "/testGzip11.txt"}, "testGzip11.txt.zip" );
+
+    String gzipDir2 = "/tmp/testGzip2";
+    createDirectoryWithFiles(gzipDir2);
+
+    // test download 2 folders
+    validateDownloadZipName(new String[] { gzipDir, gzipDir2 }, "hdfs.zip" );
+
+    // test download 2 files of same folder
+    validateDownloadZipName(new String[] { gzipDir + "/testGzip11", gzipDir + "/testGzip12" }, "hdfs.zip" );
+
+    // test download 2 files of different folder -- although I think UI does not allow it
+    validateDownloadZipName(new String[] { gzipDir + "/testGzip11", gzipDir2 + "/testGzip21" }, "hdfs.zip" );
+  }
+
+  private void validateDownloadZipName(String[] entries, String downloadedFileName) {
+    DownloadService.DownloadRequest dr = new DownloadService.DownloadRequest();
+    dr.entries = entries;
+
+    Response result = fileBrowserService.download().downloadGZip(dr);
+    List<Object> contentDisposition = result.getMetadata().get("Content-Disposition");
+    Assert.assertEquals("inline; filename=\"" + downloadedFileName +"\"",contentDisposition.get(0));
   }
 
   @Test
