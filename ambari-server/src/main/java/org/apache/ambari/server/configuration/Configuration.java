@@ -130,7 +130,7 @@ public class Configuration {
   public static final String ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY = "agent.auto.cache.update";
   public static final String ENABLE_AUTO_AGENT_CACHE_UPDATE_DEFAULT = "true";
   public static final String CHECK_REMOTE_MOUNTS_KEY = "agent.check.remote.mounts";
-  public static final String CHECK_REMOTE_MOUNTS_DEFAULT = "true";
+  public static final String CHECK_REMOTE_MOUNTS_DEFAULT = "false";
   public static final String CHECK_MOUNTS_TIMEOUT_KEY = "agent.check.mounts.timeout";
   public static final String CHECK_MOUNTS_TIMEOUT_DEFAULT = "0";
   public static final String SERVER_DB_NAME_KEY = "server.jdbc.database_name";
