@@ -173,13 +173,15 @@ class TestRepositoryResource(TestCase):
       self.assertEquals(template_name, '/tmp/1.txt')
       self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c')
       
-      copy_item = str(file_mock.call_args_list[1])
-      self.assertEqual(copy_item, "call('/etc/apt/sources.list.d/HDP.list', content=StaticFile('/tmp/1.txt'))")
+      copy_item0 = str(file_mock.call_args_list[1])
+      copy_item1 = str(file_mock.call_args_list[2])
+      self.assertEqual(copy_item0, "call('/tmp/1.txt', content=StaticFile('/etc/apt/sources.list.d/HDP.list'))")
+      self.assertEqual(copy_item1, "call('/etc/apt/sources.list.d/HDP.list', content=StaticFile('/tmp/1.txt'))")
       #'apt-get update -qq -o Dir::Etc::sourcelist="sources.list.d/HDP.list" -o APT::Get::List-Cleanup="0"')
       execute_command_item = execute_mock.call_args_list[0][0][0]
 
       self.assertEqual(checked_call_mock.call_args_list[0][0][0], ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/HDP.list', '-o', 'Dir::Etc::sourceparts=-', '-o', 'APT::Get::List-Cleanup=0'])
-      self.assertEqual(execute_command_item, 'apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 123ABCD')
+      self.assertEqual(execute_command_item, ('apt-key', 'adv', '--recv-keys', '--keyserver', 'keyserver.ubuntu.com', '123ABCD'))
 
     @patch("resource_management.libraries.providers.repository.checked_call")
     @patch.object(tempfile, "NamedTemporaryFile")
@@ -214,12 +216,14 @@ class TestRepositoryResource(TestCase):
       self.assertEquals(template_name, '/tmp/1.txt')
       self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c')
 
-      copy_item = str(file_mock.call_args_list[1])
-      self.assertEqual(copy_item, "call('/etc/apt/sources.list.d/HDP.list', content=StaticFile('/tmp/1.txt'))")
+      copy_item0 = str(file_mock.call_args_list[1])
+      copy_item1 = str(file_mock.call_args_list[2])
+      self.assertEqual(copy_item0, "call('/tmp/1.txt', content=StaticFile('/etc/apt/sources.list.d/HDP.list'))")
+      self.assertEqual(copy_item1, "call('/etc/apt/sources.list.d/HDP.list', content=StaticFile('/tmp/1.txt'))")
       execute_command_item = execute_mock.call_args_list[0][0][0]
 
       self.assertEqual(checked_call_mock.call_args_list[0][0][0], ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/HDP.list', '-o', 'Dir::Etc::sourceparts=-', '-o', 'APT::Get::List-Cleanup=0'])
-      self.assertEqual(execute_command_item, 'apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 123ABCD')
+      self.assertEqual(execute_command_item, ('apt-key', 'adv', '--recv-keys', '--keyserver', 'keyserver.ubuntu.com', '123ABCD'))
 
     @patch.object(tempfile, "NamedTemporaryFile")
     @patch("resource_management.libraries.providers.repository.Execute")
@@ -248,7 +252,7 @@ class TestRepositoryResource(TestCase):
       self.assertEquals(template_name, '/tmp/1.txt')
       self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c')
       
-      self.assertEqual(file_mock.call_count, 1)
+      self.assertEqual(file_mock.call_count, 2)
       self.assertEqual(execute_mock.call_count, 0)
       
     
