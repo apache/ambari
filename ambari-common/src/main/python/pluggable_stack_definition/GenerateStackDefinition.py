@@ -30,12 +30,6 @@ from os.path import join
 import random
 import string
 
-UI_MAPPING_TEMPLATE = """var App = require('app');
-module.exports = {0};
-"""
-UI_MAPPING_MAP = {"2.2":"HDP2.2",
-                  "2.3":"HDP2.3"}
-
 def generate_random_string(size=7, chars=string.ascii_uppercase + string.digits):
   return ''.join(random.choice(chars) for _ in range(size))
 
@@ -597,24 +591,6 @@ class GeneratorHelper(object):
           else:
             out_file.write(line)
 
-  def generate_ui_mapping(self):
-    stack_name = self.config_data.stackName
-    records = []
-    for _from, _to in self.stack_version_changes.iteritems():
-      base_stack_folder = UI_MAPPING_MAP[_from] if _from in UI_MAPPING_MAP else "HDP2"
-      record = {"stackName": stack_name,
-                "stackVersionNumber": _to,
-                "sign": "=",
-                "baseStackFolder": base_stack_folder}
-      records.append(record)
-    if "uiMapping" in self.config_data:
-      for mapping in self.config_data.uiMapping:
-        mapping["stackName"] = stack_name
-        records.append(mapping)
-    js_file_content = UI_MAPPING_TEMPLATE.format(json.dumps(records, indent=2))
-    open(os.path.join(self.output_folder, "custom_stack_map.js"),"w").write(js_file_content)
-    pass
-
   def copy_custom_actions(self):
     original_folder = os.path.join(self.resources_folder, 'custom_actions')
     target_folder = os.path.join(self.output_folder, 'custom_actions')
@@ -659,7 +635,6 @@ def main(argv):
   gen_helper.copy_resource_management()
   gen_helper.copy_common_services()
   gen_helper.copy_ambari_properties()
-  gen_helper.generate_ui_mapping()
   gen_helper.copy_custom_actions()
 
 
