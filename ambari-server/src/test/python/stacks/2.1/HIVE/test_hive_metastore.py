@@ -638,32 +638,34 @@ class TestHiveMetastore(RMFTestCase):
                               sudo = True)
 
     self.assertResourceCalled('Execute',
-                              ('ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E yes | cp /tmp/sqla-client-jdbc/java/* /usr/hdp/current/hive-server2/lib'),
-                              path = ['/bin', '/usr/bin/'])
+                              ('yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/java/* /usr/hdp/current/hive-server2/lib'))
 
     self.assertResourceCalled('Directory',
                               '/usr/hdp/current/hive-server2/lib/native/lib64',
                               recursive = True)
 
     self.assertResourceCalled('Execute',
-                              ('ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E yes | cp /tmp/sqla-client-jdbc/native/lib64/* /usr/hdp/current/hive-server2/lib/native/lib64'),
-                              path = ['/bin', '/usr/bin/'])
+                              ('yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/native/lib64/* /usr/hdp/current/hive-server2/lib/native/lib64'))
+
+    self.assertResourceCalled('Execute',
+                              ('ambari-sudo.sh chown -R hive:hadoop /usr/hdp/current/hive-server2/lib/*'))
 
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/sajdbc4.jar',
                               mode = 0644,
                               )
 
     self.assertResourceCalled('Execute',
-                              ('ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E yes | cp /usr/hdp/current/hive-server2/lib/*.jar /usr/hdp/2.3.0.0-1234/hive/lib'),
-                              path = ['/bin', '/usr/bin/'])
+                              ('yes | ambari-sudo.sh cp /usr/hdp/current/hive-server2/lib/*.jar /usr/hdp/2.3.0.0-1234/hive/lib'))
 
     self.assertResourceCalled('Directory',
                               '/usr/hdp/2.3.0.0-1234/hive/lib/native/lib64',
                               recursive = True)
 
     self.assertResourceCalled('Execute',
-                              ('ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E yes | cp /usr/hdp/current/hive-server2/lib/native/lib64/* /usr/hdp/2.3.0.0-1234/hive/lib/native/lib64'),
-                              path = ['/bin', '/usr/bin/'])
+                              ('yes | ambari-sudo.sh cp /usr/hdp/current/hive-server2/lib/native/lib64/* /usr/hdp/2.3.0.0-1234/hive/lib/native/lib64'))
+
+    self.assertResourceCalled('Execute',
+                              ('ambari-sudo.sh chown -R hive:hadoop /usr/hdp/current/hive-server2/lib/*'))
 
     self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/sajdbc4.jar',
                               mode = 0644,

@@ -380,14 +380,14 @@ def jdbc_connector():
 
       Execute(untar_sqla_type2_driver, sudo = True)
 
-      Execute(as_sudo(['yes', '|', 'cp', params.jars_path_in_archive, params.hive_lib], auto_escape=False),
-              path=["/bin", "/usr/bin/"])
+      Execute(format("yes | {sudo} cp {jars_path_in_archive} {hive_lib}"))
 
       Directory(params.jdbc_libs_dir,
                 recursive=True)
 
-      Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
-              path=["/bin", "/usr/bin/"])
+      Execute(format("yes | {sudo} cp {libs_path_in_archive} {jdbc_libs_dir}"))
+
+      Execute(format("{sudo} chown -R {hive_user}:{user_group} {hive_lib}/*"))
 
     else:
       Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.target),
