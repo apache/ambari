@@ -378,7 +378,7 @@ describe('App.CheckDBConnectionView', function () {
       ],
       categoryConfigsAll = [
         Em.Object.create({
-          name: 'oozie_hostname',
+          name: 'oozieserver_host',
           value: 'h0'
         }),
         Em.Object.create({
@@ -386,7 +386,7 @@ describe('App.CheckDBConnectionView', function () {
           value: 'h1'
         }),
         Em.Object.create({
-          name: 'hive_hostname',
+          name: 'hivemetastore_host',
           value: 'h2'
         }),
         Em.Object.create({
