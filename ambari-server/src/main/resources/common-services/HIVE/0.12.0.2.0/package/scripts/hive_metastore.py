@@ -180,14 +180,14 @@ class HiveMetastoreDefault(HiveMetastore):
       if params.sqla_db_used:
         target_native_libs_directory = format("{target_directory}/native/lib64")
 
-        Execute(as_sudo(['yes', '|', 'cp', params.jars_in_hive_lib, target_directory], auto_escape=False),
-                path=["/bin", "/usr/bin/"])
+        Execute(format("yes | {sudo} cp {jars_in_hive_lib} {target_directory}"))
 
         Directory(target_native_libs_directory,
                   recursive=True)
 
-        Execute(as_sudo(['yes', '|', 'cp', params.libs_in_hive_lib, target_native_libs_directory], auto_escape=False),
-                path=["/bin", "/usr/bin/"])
+        Execute(format("yes | {sudo} cp {libs_in_hive_lib} {target_native_libs_directory}"))
+
+        Execute(format("{sudo} chown -R {hive_user}:{user_group} {hive_lib}/*"))
       else:
         Execute(('cp', params.target, target_directory),
                 path=["/bin", "/usr/bin/"], sudo = True)

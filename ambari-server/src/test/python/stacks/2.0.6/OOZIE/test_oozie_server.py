@@ -425,15 +425,12 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', ('tar', '-xvf', '/tmp/sqla-client-jdbc.tar.gz', '-C', '/tmp'),
                               sudo = True,
                               )
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E yes | cp /tmp/sqla-client-jdbc/java/* /usr/lib/oozie/libext',
-                              path = ['/bin', '/usr/bin/'],
-                              )
+    self.assertResourceCalled('Execute', 'yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/java/* /usr/lib/oozie/libext')
     self.assertResourceCalled('Directory', '/usr/lib/oozie/libext/native/lib64',
                               recursive = True,
                               )
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E yes | cp /tmp/sqla-client-jdbc/native/lib64/* /usr/lib/oozie/libext/native/lib64',
-                              path = ['/bin', '/usr/bin/'],
-                              )
+    self.assertResourceCalled('Execute', 'yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/native/lib64/* /usr/lib/oozie/libext/native/lib64')
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh chown -R oozie:hadoop /usr/lib/oozie/libext/*')
     self.assertResourceCalled('File', '/usr/lib/oozie/libext/sajdbc4.jar',
                               owner = 'oozie',
                               group = 'hadoop',

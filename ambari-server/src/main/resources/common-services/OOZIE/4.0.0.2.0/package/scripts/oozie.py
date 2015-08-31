@@ -319,14 +319,14 @@ def download_database_library_if_needed(target_directory = None):
 
       Execute(untar_sqla_type2_driver, sudo = True)
 
-      Execute(as_sudo(['yes', '|', 'cp', params.jars_path_in_archive, params.oozie_libext_dir], auto_escape=False),
-              path=["/bin", "/usr/bin/"])
+      Execute(format("yes | {sudo} cp {jars_path_in_archive} {oozie_libext_dir}"))
 
       Directory(params.jdbc_libs_dir,
                 recursive=True)
 
-      Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
-              path=["/bin", "/usr/bin/"])
+      Execute(format("yes | {sudo} cp {libs_path_in_archive} {jdbc_libs_dir}"))
+
+      Execute(format("{sudo} chown -R {oozie_user}:{user_group} {oozie_libext_dir}/*"))
 
     else:
       Execute(('cp', '--remove-destination', params.downloaded_custom_connector, target_jar_with_directory),
