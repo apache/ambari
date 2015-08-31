@@ -167,15 +167,6 @@ class TestNodeManager(RMFTestCase):
                               mode = 0775,
                               cd_access='a'
                               )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'yarn', u'/hadoop/yarn/local/usercache/ambari-qa'),
-                              sudo = True,
-                              only_if = 'test -d /hadoop/yarn/local/usercache/ambari-qa',
-                              )
-
-    self.assertResourceCalled('Execute', ('chown', '-R', u'yarn', u'/hadoop/yarn/local1/usercache/ambari-qa'),
-                              sudo = True,
-                              only_if = 'test -d /hadoop/yarn/local1/usercache/ambari-qa',
-                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -334,6 +325,15 @@ class TestNodeManager(RMFTestCase):
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/hadoop/yarn/local',
+                              action = ['delete']
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/log',
+                              action = ['delete']
+    )
+    self.assertResourceCalled('File', '/var/lib/hadoop-yarn/nm_security_enabled',
+                              content= 'Marker file to track first start after enabling/disabling security. During first start yarn local, log dirs are removed and recreated'
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
                               owner = 'yarn',
                               group = 'hadoop',
                               recursive = True,
@@ -350,10 +350,6 @@ class TestNodeManager(RMFTestCase):
                               cd_access='a'
                               )
 
-    self.assertResourceCalled('Execute', ('chown', '-R', u'ambari-qa', u'/hadoop/yarn/local/usercache/ambari-qa'),
-        sudo = True,
-        only_if = 'test -d /hadoop/yarn/local/usercache/ambari-qa',
-    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
