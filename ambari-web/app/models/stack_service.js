@@ -285,7 +285,8 @@ App.StackService.configCategories = function () {
       break;
     case 'OOZIE':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'OOZIE_SERVER', displayName: 'Oozie Server'})
+        App.ServiceConfigCategory.create({ name: 'OOZIE_SERVER', displayName: 'Oozie Server'}),
+        App.ServiceConfigCategory.create({ name: 'Falcon - Oozie integration', displayName: 'Falcon - Oozie integration'})
       ]);
       break;
     case 'FALCON':
