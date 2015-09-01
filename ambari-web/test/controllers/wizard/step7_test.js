@@ -1892,6 +1892,12 @@ describe('App.InstallerStep7Controller', function () {
   });
 
   describe('#toggleIssuesFilter', function () {
+    beforeEach(function () {
+      sinon.stub(installerStep7Controller, 'propertyDidChange', Em.K);
+    });
+    afterEach(function () {
+      installerStep7Controller.propertyDidChange.restore();
+    });
     it('should toggle issues filter', function () {
       var issuesFilter = installerStep7Controller.get('filterColumns').findProperty('attributeName', 'hasIssues');
       issuesFilter.set('selected', false);
@@ -1899,6 +1905,31 @@ describe('App.InstallerStep7Controller', function () {
       expect(issuesFilter.get('selected')).to.be.true;
       installerStep7Controller.toggleIssuesFilter();
       expect(issuesFilter.get('selected')).to.be.false;
+    });
+    it('selected service should be changed', function () {
+      installerStep7Controller.setProperties({
+        selectedService: {
+          errorCount: 0,
+          configGroups: []
+        },
+        stepConfigs: [
+          {
+            errorCount: 1,
+            configGroups: []
+          },
+          {
+            errorCount: 2,
+            configGroups: []
+          }
+        ]
+      });
+      installerStep7Controller.toggleIssuesFilter();
+      expect(installerStep7Controller.get('selectedService')).to.eql({
+        errorCount: 1,
+        configGroups: []
+      });
+      expect(installerStep7Controller.propertyDidChange.calledOnce).to.be.true;
+      expect(installerStep7Controller.propertyDidChange.calledWith('selectedServiceNameTrigger')).to.be.true;
     });
   });
 

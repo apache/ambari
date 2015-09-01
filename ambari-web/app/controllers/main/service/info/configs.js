@@ -39,6 +39,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
   selectedConfigGroup: null,
 
+  selectedServiceNameTrigger: null,
+
   requestsInProgress: [],
 
   groupsStore: App.ServiceConfigGroup.find(),
@@ -554,6 +556,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     }, this);
 
     var selectedService = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName'));
+    if (this.get('selectedService.serviceName') != selectedService.get('serviceName')) {
+      this.propertyDidChange('selectedServiceNameTrigger');
+    }
     this.set('selectedService', selectedService);
     this.checkOverrideProperty(selectedService);
     //this.checkDatabaseProperties(selectedService);
