@@ -40,6 +40,9 @@
             <package>
               <name>zookeeper-2-2-.*</name>
             </package>
+            <package>
+              <name>zookeeper-2-2-.*-server</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>
