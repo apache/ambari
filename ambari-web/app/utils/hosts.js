@@ -135,6 +135,11 @@ module.exports = {
           this.filteredContentObsOnce();
         },
 
+        /**
+         * Default filter-method isn't needed
+         */
+        filter: Em.K,
+
         filterHosts: function () {
           var filterText = this.get('filterText');
           var showOnlySelectedHosts = this.get('showOnlySelectedHosts');
