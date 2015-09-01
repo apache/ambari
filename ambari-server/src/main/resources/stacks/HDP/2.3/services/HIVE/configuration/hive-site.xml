@@ -35,8 +35,8 @@ limitations under the License.
     <description>Datanucleus Class, This property used only when hive db is SQLA</description>
     <depends-on>
       <property>
-        <type>hive-site</type>
-        <name>javax.jdo.option.ConnectionDriverName</name>
+        <type>hive-env</type>
+        <name>hive_database</name>
       </property>
     </depends-on>
   </property>
