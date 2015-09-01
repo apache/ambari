@@ -606,33 +606,76 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       });
     });
 
+    var nn_hosts = [];
     for (var hostName in hostsMap) {
       var subQuery = '(HostRoles/component_name.in(%@)&HostRoles/host_name=' + hostName + ')';
       var components = hostsMap[hostName];
 
       if (components.length) {
+        if (components.indexOf('NAMENODE') >= 0) {
+          nn_hosts.push(hostName);
+        }
         query.push(subQuery.fmt(components.join(',')));
       }
       hostNames.push(hostName);
     }
     hostNames = hostNames.join(",");
-
     if (query.length) {
       query = query.join('|');
-      App.ajax.send({
-        name: 'common.host_components.update',
-        sender: this,
-        data: {
-          query: query,
-          HostRoles: {
-            state: operationData.action
+      var self = this;
+      // if NameNode included, check HDFS NameNode checkpoint before stop NN
+      if (nn_hosts.length == 1 && operationData.action === 'INSTALLED' && App.Service.find().filterProperty('serviceName', 'HDFS').someProperty('workStatus', App.HostComponentStatus.started)) {
+        var hostName = nn_hosts[0];
+        App.router.get('mainHostDetailsController').checkNnLastCheckpointTime(function () {
+          App.ajax.send({
+            name: 'common.host_components.update',
+            sender: self,
+            data: {
+              query: query,
+              HostRoles: {
+                state: operationData.action
+              },
+              context: operationData.message,
+              hostName: hostNames,
+              noOpsMessage: Em.I18n.t('hosts.host.maintainance.allComponents.context')
+            },
+            success: 'bulkOperationForHostComponentsSuccessCallback'
+          });
+        }, hostName);
+      } else if (nn_hosts.length == 2 && operationData.action === 'INSTALLED' && App.Service.find().filterProperty('serviceName', 'HDFS').someProperty('workStatus', App.HostComponentStatus.started)) {
+        // HA enabled
+        App.router.get('mainServiceItemController').checkNnLastCheckpointTime(function () {
+          App.ajax.send({
+            name: 'common.host_components.update',
+            sender: self,
+            data: {
+              query: query,
+              HostRoles: {
+                state: operationData.action
+              },
+              context: operationData.message,
+              hostName: hostNames,
+              noOpsMessage: Em.I18n.t('hosts.host.maintainance.allComponents.context')
+            },
+            success: 'bulkOperationForHostComponentsSuccessCallback'
+          });
+        });
+      } else {
+        App.ajax.send({
+          name: 'common.host_components.update',
+          sender: self,
+          data: {
+            query: query,
+            HostRoles: {
+              state: operationData.action
+            },
+            context: operationData.message,
+            hostName: hostNames,
+            noOpsMessage: Em.I18n.t('hosts.host.maintainance.allComponents.context')
           },
-          context: operationData.message,
-          hostName: hostNames,
-          noOpsMessage: Em.I18n.t('hosts.host.maintainance.allComponents.context')
-        },
-        success: 'bulkOperationForHostComponentsSuccessCallback'
-      });
+          success: 'bulkOperationForHostComponentsSuccessCallback'
+        });
+      }
     }
     else {
       App.ModalPopup.show({
@@ -667,7 +710,21 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
           }));
         })
       });
-      batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'), "HOST");
+      // if NameNode included, check HDFS NameNode checkpoint before restart NN
+      var nn_count = hostComponents.filterProperty('componentName', 'NAMENODE').get('length');
+      if (nn_count == 1 && App.Service.find().filterProperty('serviceName', 'HDFS').someProperty('workStatus', App.HostComponentStatus.started)) {
+        var hostName = hostComponents.findProperty('componentName', 'NAMENODE').get('hostName');
+        App.router.get('mainHostDetailsController').checkNnLastCheckpointTime(function () {
+          batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'), "HOST");
+        }, hostName);
+      } else if (nn_count == 2 && App.Service.find().filterProperty('serviceName', 'HDFS').someProperty('workStatus', App.HostComponentStatus.started)) {
+        // HA enabled
+        App.router.get('mainServiceItemController').checkNnLastCheckpointTime(function () {
+          batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'), "HOST");
+        });
+      } else {
+        batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'), "HOST");
+      }
     });
   },
 

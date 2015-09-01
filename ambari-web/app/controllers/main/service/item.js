@@ -171,10 +171,104 @@ App.MainServiceItemController = Em.Controller.extend({
       additionalWarningMsg:  msg
     });
 
-    return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
-      self.set('isPending', true);
-      self.startStopWithMmode(serviceHealth, query, runMmOperation);
-    }, bodyMessage);
+    // check HDFS NameNode checkpoint before stop service
+    if (this.get('content.serviceName') == 'HDFS' && serviceHealth == 'INSTALLED' &&
+      this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
+      this.checkNnLastCheckpointTime(function () {
+        return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
+          self.set('isPending', true);
+          self.startStopWithMmode(serviceHealth, query, runMmOperation);
+        }, bodyMessage);
+      });
+    } else {
+      return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
+        self.set('isPending', true);
+        self.startStopWithMmode(serviceHealth, query, runMmOperation);
+      }, bodyMessage);
+    }
+  },
+
+
+  /**
+   * this function will be called from :1) stop HDFS 2) restart all for HDFS 3) restart all affected for HDFS
+   * @param callback - callback function to continue next operation
+   */
+  checkNnLastCheckpointTime: function(callback) {
+    var self = this;
+    this.pullNnCheckPointTime().complete(function () {
+      var isNNCheckpointTooOld = self.get('isNNCheckpointTooOld');
+      self.set('isNNCheckpointTooOld', null);
+      if (isNNCheckpointTooOld) {
+        // too old
+        var msg = Em.Object.create({
+          confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld') +
+            Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(isNNCheckpointTooOld),
+          confirmButton: Em.I18n.t('common.next')
+        });
+        return App.showConfirmationFeedBackPopup(callback, msg);
+      } else if (isNNCheckpointTooOld == null) {
+        // not available
+        return App.showConfirmationPopup(
+          callback, Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointNA'), null,
+          Em.I18n.t('common.warning'), Em.I18n.t('common.proceedAnyway'), true
+        );
+      } else {
+        // still young
+        callback();
+      }
+    });
+  },
+
+  pullNnCheckPointTime: function () {
+    return App.ajax.send({
+      name: 'common.service.hdfs.getNnCheckPointTime',
+      sender: this,
+      success: 'parseNnCheckPointTime'
+    });
+  },
+
+  parseNnCheckPointTime: function (data) {
+    var nameNodesStatus = [];
+    var lastCheckpointTime, hostName;
+    if (data.host_components.length <= 1) {
+      lastCheckpointTime = Em.get(data.host_components[0], 'metrics.dfs.FSNamesystem.LastCheckpointTime');
+      hostName = Em.get(data.host_components[0], 'HostRoles.host_name');
+    } else {
+      // HA enabled
+      data.host_components.forEach(function(namenode) {
+        nameNodesStatus.pushObject( Em.Object.create({
+          LastCheckpointTime: Em.get(namenode, 'metrics.dfs.FSNamesystem.LastCheckpointTime'),
+          HAState: Em.get(namenode, 'metrics.dfs.FSNamesystem.HAState'),
+          hostName: Em.get(namenode, 'HostRoles.host_name')
+        }));
+      });
+      if (nameNodesStatus.someProperty('HAState', 'active')) {
+        if (nameNodesStatus.findProperty('HAState', 'active').get('LastCheckpointTime')) {
+          lastCheckpointTime = nameNodesStatus.findProperty('HAState', 'active').get('LastCheckpointTime');
+          hostName = nameNodesStatus.findProperty('HAState', 'active').get('hostName');
+        } else if (nameNodesStatus.someProperty('LastCheckpointTime')) {
+          lastCheckpointTime = nameNodesStatus.findProperty('LastCheckpointTime').get('LastCheckpointTime');
+          hostName = nameNodesStatus.findProperty('LastCheckpointTime').get('hostName');
+        }
+      } else if (nameNodesStatus.someProperty('HAState', 'standby')) {
+        lastCheckpointTime = nameNodesStatus.findProperty('HAState', 'standby').get('LastCheckpointTime');
+        hostName = nameNodesStatus.findProperty('HAState', 'standby').get('hostName')
+      }
+    }
+
+    if (!lastCheckpointTime) {
+      this.set("isNNCheckpointTooOld", null);
+    } else {
+      var time_criteria = 12; // time in hours to define how many hours ago is too old
+      var time_ago = (Math.round(App.dateTime() / 1000) - (time_criteria * 3600)) *1000;
+      if (lastCheckpointTime <= time_ago) {
+        // too old, set the effected hostName
+        this.set("isNNCheckpointTooOld", hostName);
+      } else {
+        // still young
+        this.set("isNNCheckpointTooOld", false);
+      }
+    }
   },
 
   addAdditionalWarningMessage: function(serviceHealth, msg, serviceDisplayName){
@@ -494,9 +588,20 @@ App.MainServiceItemController = Em.Controller.extend({
       confirmButton: Em.I18n.t('services.service.restartAll.confirmButton'),
       additionalWarningMsg: this.get('content.passiveState') === 'OFF' ? Em.I18n.t('services.service.restartAll.warningMsg.turnOnMM').format(serviceDisplayName): null
      });
-    return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
-      batchUtils.restartAllServiceHostComponents(serviceName, false, query, runMmOperation);
-    }, bodyMessage);
+
+    // check HDFS NameNode checkpoint before stop service
+    if (this.get('content.serviceName') == 'HDFS' &&
+      this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
+      this.checkNnLastCheckpointTime(function () {
+        return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
+          batchUtils.restartAllServiceHostComponents(serviceName, false, query, runMmOperation);
+        }, bodyMessage);
+      });
+    } else {
+      return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
+        batchUtils.restartAllServiceHostComponents(serviceName, false, query, runMmOperation);
+      }, bodyMessage);
+    }
   },
 
   turnOnOffPassive: function(label) {

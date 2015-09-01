@@ -389,7 +389,15 @@ describe('App.MainServiceItemController', function () {
     var event = {
       target: el
     };
-    var mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: "HDFS"}});
+    var mainServiceItemController = App.MainServiceItemController.create({
+      content: {
+        serviceName: "HDFS",
+        hostComponents: [ {
+          componentName: 'NAMENODE',
+          workStatus: 'INSTALLED'
+        }]
+      }
+    });
     beforeEach(function () {
       sinon.spy(mainServiceItemController, "startStopPopupPrimary");
       sinon.spy(Em.I18n, "t");
@@ -465,7 +473,15 @@ describe('App.MainServiceItemController', function () {
       
       it ("should display dependent list if other services depend on the one to be stopped", function() {
         var mainServiceItemController = App.MainServiceItemController.create(
-            {content: {serviceName: "HDFS", passiveState:'OFF'}});
+          {content: {
+            serviceName: "HDFS",
+            passiveState:'OFF',
+            hostComponents: [{
+              componentName: 'NAMENODE',
+              workStatus: 'INSTALLED'
+            }]
+          }}
+        );
         mainServiceItemController.startStopPopup(event, "INSTALLED");
         expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.turnOnMM')).to.be.ok;
         expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.dependent.services')).to.be.ok;

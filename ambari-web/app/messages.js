@@ -1833,6 +1833,16 @@ Em.I18n.translations = {
   'services.service.restartAll.confirmButton': 'Confirm Restart All',
   'services.service.restartAll.confirmMsg': 'You are about to restart {0}',
   'services.service.restartAll.warningMsg.turnOnMM': 'This will trigger alerts as the service is restarted. To suppress alerts, turn on Maintenance Mode for {0} prior to running restart all',
+  'services.service.stop.HDFS.warningMsg.checkPointNA': 'Could not determine the age of the last HDFS checkpoint. Please ensure that you have a recent checkpoint. Otherwise, the NameNode(s) can take a very long time to start up.',
+  'services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions':
+    '<br><ol>' +
+    '<li>Login to the NameNode host <b>{0}</b>.</li>' +
+    '<li>Put the NameNode in Safe Mode (read-only mode):' +
+    '<div class="code-snippet">sudo su hdfs -l -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
+    '<li>Once in Safe Mode, create a Checkpoint:' +
+    '<div class="code-snippet">sudo su hdfs -l -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
+    '</ol>',
+  'services.service.stop.HDFS.warningMsg.checkPointTooOld': 'The last HDFS checkpoint is older than 12 hours. Make sure that you have taken a checkpoint before proceeding. Otherwise, the NameNode(s) can take a very long time to start up.',
   'services.service.config_groups_popup.header':'Manage {0} Configuration Groups',
   'services.service.config_groups_popup.notice':'You can apply different sets of {{serviceName}} configurations to groups of hosts by managing {{serviceName}} Configuration Groups and their host membership.  Hosts belonging to a {{serviceName}} Configuration Group have the same set of configurations for {{serviceName}}. Each host belongs to one {{serviceName}} Configuration Group.',
   'services.service.config_groups_popup.rename':'Rename',

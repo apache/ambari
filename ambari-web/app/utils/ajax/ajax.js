@@ -92,6 +92,16 @@ var urls = {
     'mock': '/data/wizard/deploy/poll_1.json'
   },
 
+  'common.service.hdfs.getNnCheckPointTime': {
+    'real': '/clusters/{clusterName}/services/HDFS/components/NAMENODE?fields=host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/dfs/FSNamesystem/LastCheckpointTime',
+    'mock': ''
+  },
+
+  'common.host_component.getNnCheckPointTime': {
+    'real': '/clusters/{clusterName}/hosts/{host}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/HAState,metrics/dfs/FSNamesystem/LastCheckpointTime',
+    'mock': ''
+  },
+
   'common.host_component.update': {
     'real': '/clusters/{clusterName}/host_components',
     'mock': '',

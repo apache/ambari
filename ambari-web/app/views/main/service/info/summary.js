@@ -334,10 +334,29 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       confirmButton: Em.I18n.t('services.service.restartAll.confirmButton'),
       additionalWarningMsg: this.get('service.passiveState') === 'OFF' ? Em.I18n.t('services.service.restartAll.warningMsg.turnOnMM').format(serviceDisplayName) : null
     });
-    return App.showConfirmationFeedBackPopup(function (query) {
-      var selectedService = self.get('service.id');
-      batchUtils.restartAllServiceHostComponents(selectedService, true, query);
-    }, bodyMessage);
+
+    var isNNAffected = false;
+    var restartRequiredHostsAndComponents = this.get('controller.content.restartRequiredHostsAndComponents');
+    for (var hostName in restartRequiredHostsAndComponents) {
+      restartRequiredHostsAndComponents[hostName].forEach(function (hostComponent) {
+        if (hostComponent == 'NameNode')
+          isNNAffected = true;
+      })
+    }
+    if (serviceDisplayName == 'HDFS' && isNNAffected &&
+      this.get('controller.content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
+      App.router.get('mainServiceItemController').checkNnLastCheckpointTime(function () {
+        return App.showConfirmationFeedBackPopup(function (query) {
+          var selectedService = self.get('service.id');
+          batchUtils.restartAllServiceHostComponents(selectedService, true, query);
+        }, bodyMessage);
+      });
+    } else {
+      return App.showConfirmationFeedBackPopup(function (query) {
+        var selectedService = self.get('service.id');
+        batchUtils.restartAllServiceHostComponents(selectedService, true, query);
+      }, bodyMessage);
+    }
   },
   rollingRestartStaleConfigSlaveComponents: function (componentName) {
     batchUtils.launchHostComponentRollingRestart(componentName.context, this.get('service.displayName'), this.get('service.passiveState') === "ON", true);
