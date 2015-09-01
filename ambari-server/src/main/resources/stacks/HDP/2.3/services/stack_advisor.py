@@ -180,8 +180,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     putHiveSiteProperty('hive.tez.java.opts', "-server -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA " + jvmGCParams + " -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps")
 
     # if hive using sqla db, then we should add DataNucleus property
-    sqla_db_used = 'hive-site' in services['configurations'] and 'javax.jdo.option.ConnectionDriverName' in services['configurations']['hive-site']['properties'] and \
-                   services['configurations']['hive-site']['properties']['javax.jdo.option.ConnectionDriverName'] == 'sap.jdbc4.sqlanywhere.IDriver'
+    sqla_db_used = 'hive-env' in services['configurations'] and 'hive_database' in services['configurations']['hive-env']['properties'] and \
+                   services['configurations']['hive-env']['properties']['hive_database'] == 'Existing SQLA Database'
     if sqla_db_used:
       putHiveSiteProperty('datanucleus.rdbms.datastoreAdapterClassName','org.datanucleus.store.rdbms.adapter.SQLAnywhereAdapter')
     else:
@@ -239,9 +239,10 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
   def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     super(HDP23StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hive_site = properties
+    hive_env_properties = getSiteProperties(configurations, "hive-env")
     validationItems = []
-    sqla_db_used = "javax.jdo.option.ConnectionDriverName" in hive_site and \
-                   hive_site['javax.jdo.option.ConnectionDriverName'] == 'sap.jdbc4.sqlanywhere.IDriver'
+    sqla_db_used = "hive_database" in hive_env_properties and \
+                   hive_env_properties['hive_database'] == 'Existing SQLA Database'
     prop_name = "datanucleus.rdbms.datastoreAdapterClassName"
     prop_value = "org.datanucleus.store.rdbms.adapter.SQLAnywhereAdapter"
     if sqla_db_used:
