@@ -18,6 +18,7 @@ limitations under the License.
 from stacks.utils.RMFTestCase import *
 
 import sys
+import traceback
 import os
 import datetime
 import errno
@@ -2925,7 +2926,8 @@ class TestAmbariServer(TestCase):
     pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  def test_prompt_db_properties_default(self):
+  @patch("ambari_server.dbConfiguration.get_ambari_properties")
+  def test_prompt_db_properties_default(self, get_ambari_properties_mock):
     args = MagicMock()
     args.must_set_database_options = False
 
@@ -2937,6 +2939,8 @@ class TestAmbariServer(TestCase):
     del args.database_username
     del args.database_password
     del args.persistence_type
+
+    get_ambari_properties_mock.return_value = Properties()
 
     prompt_db_properties(args)
 
@@ -4130,6 +4134,7 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverConfiguration.write_property")
   @patch("ambari_server.serverConfiguration.get_validated_string_input")
   @patch("os.environ")
+  @patch("ambari_server.dbConfiguration.get_ambari_properties")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.serverSetup.get_ambari_properties")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
@@ -4157,7 +4162,7 @@ class TestAmbariServer(TestCase):
                  find_jdk_mock, check_database_name_property_mock, search_file_mock,
                  popenMock, openMock, pexistsMock,
                  get_ambari_properties_mock, get_ambari_properties_2_mock, get_ambari_properties_3_mock,
-                 get_ambari_properties_4_mock, os_environ_mock,
+                 get_ambari_properties_4_mock, get_ambari_properties_5_mock, os_environ_mock,
                  get_validated_string_input_method, write_property_method,
                  os_chmod_method, get_is_secure_mock, get_is_persisted_mock,
                  save_master_key_method, get_master_key_location_method,
@@ -4202,7 +4207,7 @@ class TestAmbariServer(TestCase):
     p = Properties()
     p.process_pair(SECURITY_IS_ENCRYPTION_ENABLED, 'False')
 
-    get_ambari_properties_4_mock.return_value = \
+    get_ambari_properties_5_mock.return_value = get_ambari_properties_4_mock.return_value = \
       get_ambari_properties_3_mock.return_value = get_ambari_properties_2_mock.return_value = \
       get_ambari_properties_mock.return_value = p
     get_is_secure_mock.return_value = False
@@ -5707,7 +5712,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverSetup.get_YN_input")
   @patch("ambari_server.dbConfiguration.get_validated_string_input")
   @patch("ambari_server.dbConfiguration_linux.print_info_msg")
-  def test_prompt_db_properties(self, print_info_msg_mock,
+  @patch("ambari_server.dbConfiguration.get_ambari_properties")
+  def test_prompt_db_properties(self, get_ambari_properties_mock, print_info_msg_mock,
                                 get_validated_string_input_mock, get_YN_input_mock):
     def reset_mocks():
       get_validated_string_input_mock.reset_mock()
@@ -5727,6 +5733,7 @@ class TestAmbariServer(TestCase):
       return args
 
     args = reset_mocks()
+    get_ambari_properties_mock.return_value = Properties()
 
     set_silent(False)
 
@@ -6122,6 +6129,7 @@ class TestAmbariServer(TestCase):
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch("ambari_server.dbConfiguration.get_ambari_properties")
   @patch("ambari_server.dbConfiguration_linux.get_ambari_properties")
   @patch("ambari_server.dbConfiguration_linux.print_error_msg")
   @patch("ambari_server.dbConfiguration.print_error_msg")
@@ -6135,12 +6143,13 @@ class TestAmbariServer(TestCase):
   @patch("shutil.copy")
   def test_ensure_jdbc_drivers_installed(self, shutil_copy_mock, os_symlink_mock, os_remove_mock, lexists_mock, isdir_mock, glob_mock,
                               raw_input_mock, print_warning_msg, print_error_msg_mock, print_error_msg_2_mock,
-                              get_ambari_properties_mock):
+                              get_ambari_properties_mock, get_ambari_properties_2_mock):
     out = StringIO.StringIO()
     sys.stdout = out
 
     def reset_mocks():
       get_ambari_properties_mock.reset_mock()
+      get_ambari_properties_2_mock.reset_mock()
       shutil_copy_mock.reset_mock()
       print_error_msg_mock.reset_mock()
       print_warning_msg.reset_mock()
@@ -6164,7 +6173,7 @@ class TestAmbariServer(TestCase):
 
     props = Properties()
     props.process_pair(RESOURCES_DIR_PROPERTY, resources_dir)
-    get_ambari_properties_mock.return_value = props
+    get_ambari_properties_2_mock.return_value = get_ambari_properties_mock.return_value = props
 
     factory = DBMSConfigFactory()
 
@@ -7992,7 +8001,9 @@ class TestAmbariServer(TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("ambari_server.dbConfiguration_linux.run_os_command")
   @patch("ambari_server.dbConfiguration_linux.print_error_msg")
+  @patch("ambari_server.dbConfiguration.get_ambari_properties")
   def test_change_objects_owner_both(self,
+                                     get_ambari_properties_mock,
                                      print_error_msg_mock,
                                      run_os_command_mock):
     args = MagicMock()
@@ -8010,6 +8021,7 @@ class TestAmbariServer(TestCase):
     stdout = " stdout "
     stderr = " stderr "
     run_os_command_mock.return_value = 1, stdout, stderr
+    get_ambari_properties_mock.return_value = Properties()
 
     set_verbose(True)
     self.assertRaises(FatalException, change_objects_owner, args)
@@ -8021,7 +8033,9 @@ class TestAmbariServer(TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("ambari_server.dbConfiguration_linux.run_os_command")
   @patch("ambari_server.dbConfiguration_linux.print_error_msg")
+  @patch("ambari_server.dbConfiguration.get_ambari_properties")
   def test_change_objects_owner_only_stdout(self,
+                                            get_ambari_properties_mock,
                                             print_error_msg_mock,
                                             run_os_command_mock):
     args = MagicMock()
@@ -8038,6 +8052,7 @@ class TestAmbariServer(TestCase):
     stdout = " stdout "
     stderr = ""
     run_os_command_mock.return_value = 1, stdout, stderr
+    get_ambari_properties_mock.return_value = Properties()
 
     set_verbose(True)
     self.assertRaises(FatalException, change_objects_owner, args)
@@ -8048,7 +8063,9 @@ class TestAmbariServer(TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("ambari_server.dbConfiguration_linux.run_os_command")
   @patch("ambari_server.dbConfiguration_linux.print_error_msg")
+  @patch("ambari_server.dbConfiguration.get_ambari_properties")
   def test_change_objects_owner_only_stderr(self,
+                                            get_ambari_properties_mock,
                                             print_error_msg_mock,
                                             run_os_command_mock):
     args = MagicMock()
@@ -8065,6 +8082,7 @@ class TestAmbariServer(TestCase):
     stdout = ""
     stderr = " stderr "
     run_os_command_mock.return_value = 1, stdout, stderr
+    get_ambari_properties_mock.return_value = Properties()
 
     set_verbose(True)
     self.assertRaises(FatalException, change_objects_owner, args)

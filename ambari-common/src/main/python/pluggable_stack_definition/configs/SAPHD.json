@@ -20,7 +20,8 @@
     "jdk1.8.url" : "http://DOWNLOAD_NOT_SUPPORTED",
     "jdk1.7.jcpol-url" : "http://DOWNLOAD_NOT_SUPPORTED",
     "jdk1.8.jcpol-url" : "http://DOWNLOAD_NOT_SUPPORTED",
-    "rolling.upgrade.min.stack" : "SAPHD-0.9"
+    "rolling.upgrade.min.stack" : "SAPHD-0.9",
+    "server.setup.default.dbms" : "sqlanywhere"
   },
   "common-services": [
     {

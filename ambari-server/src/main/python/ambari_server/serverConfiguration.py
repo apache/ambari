@@ -128,6 +128,8 @@ JDBC_RCA_URL_PROPERTY = "server.jdbc.rca.url"
 JDBC_RCA_USER_NAME_PROPERTY = "server.jdbc.rca.user.name"
 JDBC_RCA_PASSWORD_FILE_PROPERTY = "server.jdbc.rca.user.passwd"
 
+DEFAULT_DBMS_PROPERTY = "server.setup.default.dbms"
+
 JDBC_RCA_PASSWORD_ALIAS = "ambari.db.password"
 
 ### # Windows-specific # ###
