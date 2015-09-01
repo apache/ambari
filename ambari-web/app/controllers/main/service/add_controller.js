@@ -127,6 +127,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
               });
             }
             else {
+              self.set('stackConfigsLoaded', true);
               dfd.resolve();
             }
             self.loadServiceConfigGroups();
