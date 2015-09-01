@@ -261,7 +261,9 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     var dfsServices = ['HDFS', 'GLUSTERFS'];
     var availableServices = this.filterProperty('isInstalled',false);
     availableServices.forEach(function(service){
-      if (dfsServices.contains(service.get('serviceName'))) {
+      console.log("IN isDFSStack() serviceName = " + service.get('serviceName'));
+      console.log("IN isDFSStack() serviceType = " + service.get('serviceType'));
+      if (dfsServices.contains(service.get('serviceName')) || service.get('serviceType') == 'HCFS' ) {
         console.log("found DFS " + service.get('serviceName'));
         bDFSStack=true;
       }

@@ -2389,7 +2389,7 @@ public class ClusterImpl implements Cluster {
             String error = "Updating configs for multiple services by a " +
                 "single API request isn't supported";
             IllegalArgumentException exception = new IllegalArgumentException(error);
-            LOG.error(error + ", config version not created");
+            LOG.error(error + ", config version not created for {}", serviceName);
             throw exception;
           } else {
             break;

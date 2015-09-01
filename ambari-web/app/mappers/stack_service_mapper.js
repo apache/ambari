@@ -25,6 +25,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     id: 'service_name',
     stack_id: 'stack_id',
     service_name: 'service_name',
+    service_type: 'service_type',
     display_name: 'display_name',
     config_types: 'config_types',
     comments: 'comments',
