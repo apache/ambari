@@ -382,16 +382,18 @@ App.QuickViewLinks = Em.View.extend({
         break;
       case "OOZIE":
         var site = configProperties.findProperty('type', 'oozie-site');
-        var url = site && site.properties && site.properties['oozie.base.url'];
+        var properties = site && site.properties;
+        var url = properties && properties['oozie.base.url'];
         var re = new RegExp(item.get('regex'));
         var portValue = url && url.match(re);
         var port = portValue && portValue.length && portValue[1];
         var protocol = 'http';
-
-        if (port === '11443') {
+        var isHttpsPropertiesEnabled = properties && (properties['oozie.https.port'] ||
+                                                      properties['oozie.https.keystore.file'] ||
+                                                      properties['oozie.https.keystore.pass']);
+        if (port === '11443' || isHttpsPropertiesEnabled) {
           protocol = 'https';
         }
-
         return protocol;
         break;
       case "RANGER":
