@@ -122,9 +122,17 @@ App.MainServiceController = Em.ArrayController.extend({
       confirmButton: state == 'INSTALLED' ? Em.I18n.t('services.service.stop.confirmButton') : Em.I18n.t('services.service.start.confirmButton')
     });
 
-    return App.showConfirmationFeedBackPopup(function (query) {
-      self.allServicesCall(state, query);
-    }, bodyMessage);
+    if (state == 'INSTALLED' && App.Service.find().filterProperty('serviceName', 'HDFS').someProperty('workStatus', App.HostComponentStatus.started)) {
+      App.router.get('mainServiceItemController').checkNnLastCheckpointTime(function () {
+        return App.showConfirmationFeedBackPopup(function (query) {
+          self.allServicesCall(state, query);
+        }, bodyMessage);
+      });
+    } else {
+      return App.showConfirmationFeedBackPopup(function (query) {
+        self.allServicesCall(state, query);
+      }, bodyMessage);
+    }
   },
 
   /**

@@ -713,10 +713,29 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       confirmButton: Em.I18n.t('services.service.restartAll.confirmButton'),
       additionalWarningMsg: this.get('content.passiveState') === 'OFF' ? Em.I18n.t('services.service.restartAll.warningMsg.turnOnMM').format(serviceDisplayName) : null
     });
-    return App.showConfirmationFeedBackPopup(function (query) {
-      var selectedService = self.get('content.id');
-      batchUtils.restartAllServiceHostComponents(selectedService, true, query);
-    }, bodyMessage);
+
+    var isNNAffected = false;
+    var restartRequiredHostsAndComponents = this.get('content.restartRequiredHostsAndComponents');
+    for (var hostName in restartRequiredHostsAndComponents) {
+      restartRequiredHostsAndComponents[hostName].forEach(function (hostComponent) {
+        if (hostComponent == 'NameNode')
+         isNNAffected = true;
+      })
+    }
+    if (this.get('content.serviceName') == 'HDFS' && isNNAffected &&
+      this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
+      App.router.get('mainServiceItemController').checkNnLastCheckpointTime(function () {
+        return App.showConfirmationFeedBackPopup(function (query) {
+          var selectedService = self.get('content.id');
+          batchUtils.restartAllServiceHostComponents(selectedService, true, query);
+        }, bodyMessage);
+      });
+    } else {
+      return App.showConfirmationFeedBackPopup(function (query) {
+        var selectedService = self.get('content.id');
+        batchUtils.restartAllServiceHostComponents(selectedService, true, query);
+      }, bodyMessage);
+    }
   },
 
   /**

@@ -112,11 +112,21 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   stopComponent: function (event) {
     var self = this;
-    return App.showConfirmationPopup(function () {
-      var component = event.context;
-      var context = Em.I18n.t('requestInfo.stopHostComponent') + " " + component.get('displayName');
-      self.sendComponentCommand(component, context, App.HostComponentStatus.stopped);
-    });
+    if (event.context.get('componentName') == 'NAMENODE' ) {
+      this.checkNnLastCheckpointTime(function () {
+        return App.showConfirmationPopup(function () {
+          var component = event.context;
+          var context = Em.I18n.t('requestInfo.stopHostComponent') + " " + component.get('displayName');
+          self.sendComponentCommand(component, context, App.HostComponentStatus.stopped);
+        });
+      });
+    } else {
+      return App.showConfirmationPopup(function () {
+        var component = event.context;
+        var context = Em.I18n.t('requestInfo.stopHostComponent') + " " + component.get('displayName');
+        self.sendComponentCommand(component, context, App.HostComponentStatus.stopped);
+      });
+    }
   },
   /**
    * PUTs a command to server to start/stop a component. If no
@@ -179,6 +189,72 @@ App.MainHostDetailsController = Em.Controller.extend({
   ajaxErrorCallback: function (request, ajaxOptions, error, opt, params) {
     return componentsUtils.ajaxErrorCallback(request, ajaxOptions, error, opt, params);
   },
+
+  /**
+   * this function will be called from :1) stop NN 2) restart NN 3) stop all components
+   * @param callback - callback function to continue next operation
+   * @param hostname - namenode host (by default is current host)
+   */
+  checkNnLastCheckpointTime: function(callback, hostName) {
+    var self = this;
+    this.pullNnCheckPointTime(hostName).complete(function () {
+      var isNNCheckpointTooOld = self.get('isNNCheckpointTooOld');
+      self.set('isNNCheckpointTooOld', null);
+      if (isNNCheckpointTooOld) {
+        // too old
+        var msg = Em.Object.create({
+          confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld') +
+            Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(isNNCheckpointTooOld),
+          confirmButton: Em.I18n.t('common.next')
+        });
+        return App.showConfirmationFeedBackPopup(callback, msg);
+      } else if (isNNCheckpointTooOld == null) {
+        // not available
+        return App.showConfirmationPopup(
+          callback, Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointNA'), null,
+          Em.I18n.t('common.warning'), Em.I18n.t('common.proceedAnyway'), true
+        );
+      } else {
+        // still young
+        callback();
+      }
+    });
+  },
+
+  pullNnCheckPointTime: function (hostName) {
+    return App.ajax.send({
+      name: 'common.host_component.getNnCheckPointTime',
+      sender: this,
+      data: {
+        host: hostName || this.get('content.hostName')
+      },
+      success: 'parseNnCheckPointTime'
+    });
+  },
+
+  parseNnCheckPointTime: function (data) {
+    var lastCheckpointTime = Em.get(data, 'metrics.dfs.FSNamesystem.LastCheckpointTime');
+    var hostName = Em.get(data, 'HostRoles.host_name');
+
+    if (Em.get(data, 'metrics.dfs.FSNamesystem.HAState') == 'active') {
+      if (!lastCheckpointTime) {
+        this.set("isNNCheckpointTooOld", null);
+      } else {
+        var time_criteria = 12; // time in hours to define how many hours ago is too old
+        var time_ago = (Math.round(App.dateTime() / 1000) - (time_criteria * 3600)) *1000;
+        if (lastCheckpointTime <= time_ago) {
+          // too old, set the effected hostName
+          this.set("isNNCheckpointTooOld", hostName);
+        } else {
+          // still young
+          this.set("isNNCheckpointTooOld", false);
+        }
+      }
+    } else if (Em.get(data, 'metrics.dfs.FSNamesystem.HAState') == 'standby') {
+      this.set("isNNCheckpointTooOld", false);
+    }
+  },
+
   /**
    * mimic status transition in test mode
    * @param entity
@@ -448,9 +524,17 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   restartComponent: function (event) {
     var component = event.context;
-    return App.showConfirmationPopup(function () {
-      batchUtils.restartHostComponents([component], Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(component.get('displayName')), "HOST_COMPONENT");
-    });
+    if (event.context.get('componentName') == 'NAMENODE') {
+      this.checkNnLastCheckpointTime(function () {
+        return App.showConfirmationPopup(function () {
+          batchUtils.restartHostComponents([component], Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(component.get('displayName')), "HOST_COMPONENT");
+        });
+      });
+    } else {
+      return App.showConfirmationPopup(function () {
+        batchUtils.restartHostComponents([component], Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(component.get('displayName')), "HOST_COMPONENT");
+      });
+    }
   },
 
   /**
@@ -1840,9 +1924,18 @@ App.MainHostDetailsController = Em.Controller.extend({
     var components = this.get('serviceNonClientActiveComponents');
     var componentsLength = Em.isNone(components) ? 0 : components.get('length');
     if (componentsLength > 0) {
-      return App.showConfirmationPopup(function () {
-        self.sendComponentCommand(components, Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'), App.HostComponentStatus.stopped);
-      });
+      if (components.someProperty('componentName', 'NAMENODE') &&
+        this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
+        this.checkNnLastCheckpointTime(function () {
+          return App.showConfirmationPopup(function () {
+            self.sendComponentCommand(components, Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'), App.HostComponentStatus.stopped);
+          });
+        });
+      } else {
+        return App.showConfirmationPopup(function () {
+          self.sendComponentCommand(components, Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'), App.HostComponentStatus.stopped);
+        });
+      }
     }
   },
 
@@ -1855,9 +1948,18 @@ App.MainHostDetailsController = Em.Controller.extend({
     var components = this.get('serviceActiveComponents');
     var componentsLength = Em.isNone(components) ? 0 : components.get('length');
     if (componentsLength > 0) {
-      return App.showConfirmationPopup(function () {
-        batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allOnSelectedHost').format(self.get('content.hostName')), "HOST");
-      });
+      if (components.someProperty('componentName', 'NAMENODE') &&
+        this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
+        this.checkNnLastCheckpointTime(function () {
+          return App.showConfirmationPopup(function () {
+            batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allOnSelectedHost').format(self.get('content.hostName')), "HOST");
+          });
+        });
+      } else {
+        return App.showConfirmationPopup(function () {
+          batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allOnSelectedHost').format(self.get('content.hostName')), "HOST");
+        });
+      }
     }
   },
 
