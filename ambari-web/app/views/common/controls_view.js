@@ -89,7 +89,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
    * @returns {$.Deferred}
    */
   sendRequestRorDependentConfigs: function(config) {
-    if (!config.get('isValid')) return $.Deferred().resolve().promise();
+    if (!config || !config.get('isValid')) return $.Deferred().resolve().promise();
     if (App.get('isClusterSupportsEnhancedConfigs') && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(this.get('controller.name'))) {
       var name = config.get('name');
       var saveRecommended = (this.get('config.value') === this.get('config.recommendedValue'));
@@ -504,6 +504,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
   }.property('serviceConfig.serviceName', 'serviceConfig.value'),
 
   onOptionsChange: function () {
+    this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
     if (this.get('hostNameProperty') && !this.get('nonDBRadioButtons').contains(this.get('serviceConfig.name'))) {
       /** if new db is selected host name must be same as master of selected service (and can't be changed)**/
       if (this.get('isNewDb')) {
