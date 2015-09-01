@@ -184,7 +184,7 @@ App.ServiceConfigView = Em.View.extend({
     this.processTabs(tabs);
     this.pickActiveTab(tabs);
     return tabs;
-  }.property('controller.selectedService.serviceName'),
+  }.property('controller.selectedServiceNameTrigger'),
 
   /**
    * Pick the first non hidden tab and make it active when there is no active tab

@@ -24,6 +24,7 @@ App.ServiceConfigTab = Em.View.extend({
 
   selectService: function (event) {
     this.set('controller.selectedService', event.context);
+    this.get('controller').propertyDidChange('selectedServiceNameTrigger');
   },
 
   didInsertElement: function () {

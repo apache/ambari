@@ -45,6 +45,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   addMiscTabToPage: true,
 
+  selectedServiceNameTrigger: null,
+
   /**
    * Is Submit-click processing now
    * @type {bool}
@@ -1396,6 +1398,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       {
         var service = errorServices[0];
         this.set('selectedService', service);
+        this.propertyDidChange('selectedServiceNameTrigger');
         $('a[href="#' + service.serviceName + '"]').tab('show');
       }
     }
