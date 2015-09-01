@@ -184,6 +184,12 @@
         },
         {
           "name": "PIG"
+        },
+        {
+          "name": "SPARK"
+        },
+        {
+          "name": "RANGER"
         }
       ]
     },
@@ -314,6 +320,15 @@
               ]
             }
           ]
+        },
+        {
+          "name": "SPARK"
+        },
+        {
+          "name": "RANGER"
+        },
+        {
+          "name": "RANGER_KMS"
         }
       ]
     }
