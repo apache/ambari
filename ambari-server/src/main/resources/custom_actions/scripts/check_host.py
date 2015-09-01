@@ -89,12 +89,13 @@ class CheckHost(Script):
 
   # ignore required packages
   IGNORE_PACKAGES = [
-    "epel-release", "ambari-server", "ambari-agent"
+    "epel-release", "ambari-server", "ambari-agent", "nagios",
+    # ganglia related:
+    "ganglia", "libganglia", "libconfuse", "perl", "rrdtool", "python-rrdtool", "gmetad", "librrd", "rrdcached"
   ]
   
   # Additional packages to look for (search packages that start with these)
   ADDITIONAL_PACKAGES = [
-    "rrdtool", "rrdtool-python", "ganglia", "gmond", "gweb", "libconfuse",
     "ambari-log4j"
   ]
   

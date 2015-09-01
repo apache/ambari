@@ -143,7 +143,7 @@ class HostInfoLinux(HostInfo):
   # Set of default users (need to be replaced with the configured user names)
   DEFAULT_USERS = [
     "hive", "ambari-qa", "oozie", "hbase", "hcat", "mapred",
-    "hdfs", "rrdcached", "zookeeper", "flume", "sqoop", "sqoop2",
+    "hdfs", "zookeeper", "flume", "sqoop", "sqoop2",
     "hue", "yarn", "tez", "storm", "falcon", "kafka", "knox", "ams",
     "hadoop", "spark", "accumulo", "atlas", "mahout", "ranger", "kms"
   ]
