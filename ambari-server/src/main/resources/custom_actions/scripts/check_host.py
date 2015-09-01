@@ -85,14 +85,15 @@ class CheckHost(Script):
   ]
   
 
-  # ignore required packages
+  # ignore packages that start with below prefixes:
   IGNORE_PACKAGES = [
-    "epel-release"
+    "epel-release", "nagios",
+    # ganglia related:
+    "ganglia", "libganglia", "libconfuse", "perl", "rrdtool", "python-rrdtool", "gmetad", "librrd", "rrdcached"
   ]
   
   # Additional packages to look for (search packages that start with these)
   ADDITIONAL_PACKAGES = [
-    "rrdtool", "rrdtool-python", "ganglia", "gmond", "gweb", "libconfuse",
     "ambari-log4j", "hadoop", "zookeeper", "oozie", "webhcat"
   ]
   
