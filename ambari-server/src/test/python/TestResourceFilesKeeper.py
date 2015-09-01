@@ -349,6 +349,16 @@ class TestResourceFilesKeeper(TestCase):
       except Exception, e:
         self.fail('Unexpected exception thrown:' + str(e))
 
+    # Test skip zipping of an empty directory
+    with patch("os.listdir") as os_listdir_mock:
+      os_listdir_mock.return_value = False # Empty dir
+      try:
+        skip_empty_directory = True
+        resource_files_keeper.zip_directory("empty-to-directory", skip_empty_directory)
+        self.assertTrue(os_listdir_mock.called)
+      except Exception, e:
+        self.fail('Unexpected exception thrown: ' + str(e))
+    pass
 
   def test_is_ignored(self):
     resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.DUMMY_UNCHANGEABLE_PACKAGE)

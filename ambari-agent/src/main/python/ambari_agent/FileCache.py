@@ -145,9 +145,15 @@ class FileCache():
           download_url = self.build_download_url(server_url_prefix,
                                                  subdirectory, self.ARCHIVE_NAME)
           membuffer = self.fetch_url(download_url)
-          self.invalidate_directory(full_path)
-          self.unpack_archive(membuffer, full_path)
-          self.write_hash_sum(full_path, remote_hash)
+          # extract only when the archive is not zero sized
+          if (membuffer.getvalue().strip()):
+            self.invalidate_directory(full_path)
+            self.unpack_archive(membuffer, full_path)
+            self.write_hash_sum(full_path, remote_hash)
+          else:
+            logger.warn("Skipping empty archive: {0}. "
+                        "Expected archive was not found. Cached copy will be used.".format(download_url))
+            pass
         # Finally consider cache directory up-to-date
         self.uptodate_paths.append(full_path)
     except CachingException, e:

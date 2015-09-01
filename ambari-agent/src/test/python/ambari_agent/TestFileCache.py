@@ -233,6 +233,32 @@ class TestFileCache(TestCase):
                                   "server_url_prefix")
     self.assertEquals(res, path)
 
+    # Test empty archive
+    fetch_url_mock.reset_mock()
+    build_download_url_mock.reset_mock()
+    read_hash_sum_mock.reset_mock()
+    invalidate_directory_mock.reset_mock()
+    unpack_archive_mock.reset_mock()
+    fileCache.reset()
+
+    fetch_url_mock.side_effect = None
+    membuffer_empty = MagicMock()
+    membuffer_empty.getvalue.return_value.strip.return_value = ""
+    fetch_url_mock.return_value = membuffer_empty # Remote hash and content
+    read_hash_sum_mock.return_value = "hash2" # Local hash
+
+    res = fileCache.provide_directory("cache_path", "subdirectory",
+                                      "server_url_prefix")
+    self.assertTrue(fetch_url_mock.return_value.strip() != read_hash_sum_mock.return_value.strip())
+    self.assertEquals(build_download_url_mock.call_count, 2)
+    self.assertEquals(fetch_url_mock.call_count, 2)
+    self.assertFalse(invalidate_directory_mock.called)
+    self.assertFalse(unpack_archive_mock.called)
+    self.assertFalse(write_hash_sum_mock.called)
+    self.assertEquals(pprint.pformat(fileCache.uptodate_paths), pprint.pformat([path]))
+    self.assertEquals(res, path)
+    pass
+
 
   def test_build_download_url(self):
     fileCache = FileCache(self.config)

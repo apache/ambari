@@ -141,17 +141,17 @@ class ResourceFilesKeeper():
     except Exception, err:
       raise KeeperException("Can not list common services: {0}".format(str(err)))
 
-
   def update_directory_archive(self, directory):
     """
     If hash sum for directory is not present or differs from saved value,
     recalculates hash sum and creates directory archive
     """
+    skip_empty_directory = True
     cur_hash = self.count_hash_sum(directory)
     saved_hash = self.read_hash_sum(directory)
     if cur_hash != saved_hash:
       if not self.nozip:
-        self.zip_directory(directory)
+        self.zip_directory(directory, skip_empty_directory)
       self.write_hash_sum(directory, cur_hash)
 
 
@@ -216,14 +216,18 @@ class ResourceFilesKeeper():
       raise KeeperException("Can not write to file {0} : {1}".format(hash_file,
                                                                    str(err)))
 
-
-  def zip_directory(self, directory):
+  def zip_directory(self, directory, skip_if_empty = False):
     """
     Packs entire directory into zip file. Hash file is also packaged
     into archive
     """
     self.dbg_out("creating archive for directory {0}".format(directory))
     try:
+      if skip_if_empty:
+        if not os.listdir(directory):
+          self.dbg_out("Empty directory. Skipping archive creation for {0}".format(directory))
+          return
+
       zf = zipfile.ZipFile(os.path.join(directory, self.ARCHIVE_NAME), "w")
       abs_src = os.path.abspath(directory)
       for root, dirs, files in os.walk(directory):
