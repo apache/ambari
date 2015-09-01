@@ -27,7 +27,7 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons.str_utils import cbool
 from ambari_server.serverConfiguration import decrypt_password_for_alias, get_ambari_properties, get_is_secure, \
   get_resources_location, get_value_from_properties, is_alias_string, \
-  JDBC_PASSWORD_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, PRESS_ENTER_MSG
+  JDBC_PASSWORD_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, PRESS_ENTER_MSG, DEFAULT_DBMS_PROPERTY
 from ambari_server.userInput import get_validated_string_input
 
 
@@ -277,6 +277,12 @@ class DBMSConfigFactory(object):
   def get_supported_dbms(self):
     return []
 
+  def force_dbms_setup(self):
+    return False
+
+  def get_default_dbms_name(self):
+    return ""
+
 #
 # Database configuration factory for Windows
 #
@@ -369,6 +375,13 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
                                       "Enter choice ({0}): "
     self.JDK_VALID_CHOICES_PATTERN = "^[{0}]$"
 
+  def force_dbms_setup(self):
+    dbms_name = self.get_default_dbms_name()
+    if dbms_name.strip():
+      return True
+    else:
+      return False
+
   def select_dbms(self, options):
     try:
       dbms_index = options.database_index
@@ -434,13 +447,22 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
   def get_supported_jdbc_drivers(self):
     return self.DRIVER_KEYS_LIST
 
+  def get_default_dbms_name(self):
+    properties = get_ambari_properties()
+    default_dbms_name = get_value_from_properties(properties, DEFAULT_DBMS_PROPERTY, "").strip().lower()
+    if default_dbms_name not in self.DBMS_KEYS_LIST:
+      return ""
+    else:
+      return default_dbms_name
+
   def _get_default_dbms_index(self, options):
+    default_dbms_name = self.get_default_dbms_name()
     try:
       dbms_name = options.dbms
       if not dbms_name:
-        dbms_name = ""
+        dbms_name = default_dbms_name
     except AttributeError:
-      dbms_name = ""
+      dbms_name = default_dbms_name
     try:
       persistence_type = options.persistence_type
       if not persistence_type:
@@ -528,3 +550,4 @@ def get_jdbc_driver_path(options, properties):
   factory = DBMSConfigFactory()
   dbms = factory.create(options, properties)
   return dbms._get_default_driver_path(properties)
+

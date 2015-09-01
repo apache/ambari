@@ -583,14 +583,24 @@ class GeneratorHelper(object):
 
     with open(source_ambari_properties, 'r') as in_file:
       with open(target_ambari_properties, 'w') as out_file:
+        replaced_properties = []
         for line in in_file:
           property = line.split('=')[0]
           if property in propertyMap:
             out_file.write('='.join([property, propertyMap[property]]))
             out_file.write(os.linesep)
+            replaced_properties.append(property)
           else:
             out_file.write(line)
 
+        if len(propertyMap) - len(replaced_properties) > 0:
+          out_file.write(os.linesep)  #make sure we don't break last entry from original properties
+
+        for key in propertyMap:
+          if key not in replaced_properties:
+            out_file.write('='.join([key, propertyMap[key]]))
+            out_file.write(os.linesep)
+            
   def copy_custom_actions(self):
     original_folder = os.path.join(self.resources_folder, 'custom_actions')
     target_folder = os.path.join(self.output_folder, 'custom_actions')

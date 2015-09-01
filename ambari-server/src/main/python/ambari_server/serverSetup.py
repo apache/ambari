@@ -84,7 +84,7 @@ JDBC_DB_OPTION_VALUES = get_supported_jdbc_drivers()
 # Setup security prerequisites
 #
 
-def verify_setup_allowed():
+def verify_setup_allowed(options):
   if get_silent():
     properties = get_ambari_properties()
     if properties == -1:
@@ -99,6 +99,29 @@ def verify_setup_allowed():
               "and Master Key not persisted."
         print "Ambari Server 'setup' exiting."
         return 1
+
+    factory = DBMSConfigFactory()
+    default_dbms = factory.get_default_dbms_name()
+    if default_dbms:
+      valid = True
+      if options.dbms is not None \
+        and options.database_host is not None \
+        and options.database_port is not None \
+        and options.database_name is not None \
+        and options.database_username is not None \
+        and options.database_password is not None:
+
+        if default_dbms == "sqlanywhere" and options.sqla_server_name is None:
+          valid = False
+
+      else:
+        valid = False
+
+      if not valid:
+        print "ERROR: Cannot run silent setup without database connection properties provided."
+        print "Ambari Server 'setup' exiting."
+        return 2
+
   return 0
 
 
@@ -637,10 +660,10 @@ class JDKSetup(object):
   # Base implementation, overriden in the subclasses
   def _install_jdk(self, java_inst_file, java_home_dir):
     pass
-  
+
   def adjust_jce_permissions(self, jdk_path):
     pass
-  
+
   # Base implementation, overriden in the subclasses
   def _ensure_java_home_env_var_is_set(self, java_home_dir):
     pass
@@ -771,7 +794,7 @@ class JDKSetupLinux(JDKSetup):
   def _ensure_java_home_env_var_is_set(self, java_home_dir):
     #No way to do this in Linux. Best we can is to set the process environment variable.
     os.environ[JAVA_HOME] = java_home_dir
-    
+
   def adjust_jce_permissions(self, jdk_path):
     ambari_user = read_ambari_user()
     cmd = self.SET_JCE_PERMISSIONS.format(ambari_user, jdk_path,configDefaults.JDK_SECURITY_DIR)
@@ -890,13 +913,16 @@ def _cache_jdbc_driver(args):
 
 # Ask user for database connection properties
 def prompt_db_properties(options):
-  ok = False
-  if options.must_set_database_options:
-    ok = get_YN_input("Enter advanced database configuration [y/n] (n)? ", False)
+  factory = DBMSConfigFactory()
+
+  if not factory.force_dbms_setup():
+    ok = False
+    if options.must_set_database_options:
+      ok = get_YN_input("Enter advanced database configuration [y/n] (n)? ", False)
+  else:
+    ok = True
 
   print 'Configuring database...'
-
-  factory = DBMSConfigFactory()
 
   options.must_set_database_options = ok
   options.database_index = factory.select_dbms(options)
@@ -1049,7 +1075,7 @@ def setup(options):
       print "Nothing was done. Ambari Setup already performed and cannot re-run setup in silent mode. Use \"ambari-server setup\" command without -s option to change Ambari setup."
       sys.exit(0)
 
-  retcode = verify_setup_allowed()
+  retcode = verify_setup_allowed(options)
   if not retcode == 0:
     raise FatalException(1, None)
 
