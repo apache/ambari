@@ -568,9 +568,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       this.setVisibilityForRangerProperties(selectedService);
     }
     this._onLoadComplete();
-    this.get('configGroups').forEach(function (configGroup) {
-      this.getRecommendationsForDependencies(null, true, Em.K, configGroup);
-    }, this);
+    this.getRecommendationsForDependencies(null, true, Em.K, this.get('selectedConfigGroup'));
     App.loadTimer.finish('Service Configs Page');
   },
 
