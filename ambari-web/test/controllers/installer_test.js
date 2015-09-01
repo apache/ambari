@@ -1018,6 +1018,76 @@ describe('App.InstallerController', function () {
       {
         isCustomJDK: false,
         ambariProperties: {
+          'java.version': '1.5'
+        },
+        successCallbackCalled: true,
+        popupCalled: false,
+        stacks: [Em.Object.create({
+          minJdkVersion: null,
+          maxJdkVersion: null,
+          isSelected: true
+        })],
+        m: 'JDK 1.5, stack supports max and min are null, procceed installation without warning'
+      },
+      {
+        isCustomJDK: false,
+        ambariProperties: {
+          'java.version': '1.5'
+        },
+        successCallbackCalled: true,
+        popupCalled: false,
+        stacks: [Em.Object.create({
+          minJdkVersion: '1.5',
+          maxJdkVersion: null,
+          isSelected: true
+        })],
+        m: 'JDK 1.5, stack supports max is missed and min is 1.5, procceed installation without warning'
+      },
+      {
+        isCustomJDK: false,
+        ambariProperties: {
+          'java.version': '1.6'
+        },
+        successCallbackCalled: false,
+        popupCalled: true,
+        stacks: [Em.Object.create({
+          minJdkVersion: '1.5',
+          maxJdkVersion: null,
+          isSelected: true
+        })],
+        m: 'JDK 1.6, stack supports max is missed and min is 1.5, popup should be displayed'
+      },
+      {
+        isCustomJDK: false,
+        ambariProperties: {
+          'java.version': '1.5'
+        },
+        successCallbackCalled: true,
+        popupCalled: false,
+        stacks: [Em.Object.create({
+          minJdkVersion: null,
+          maxJdkVersion: '1.5',
+          isSelected: true
+        })],
+        m: 'JDK 1.5, stack supports max 1.5 and min is missed, procceed installation without warning'
+      },
+      {
+        isCustomJDK: false,
+        ambariProperties: {
+          'java.version': '1.5'
+        },
+        successCallbackCalled: false,
+        popupCalled: true,
+        stacks: [Em.Object.create({
+          minJdkVersion: null,
+          maxJdkVersion: '1.8',
+          isSelected: true
+        })],
+        m: 'JDK 1.5, stack supports max 1.8 and min is missed, popup should be displayed'
+      },
+      {
+        isCustomJDK: false,
+        ambariProperties: {
           'java.version': '1.8'
         },
         successCallbackCalled: true,

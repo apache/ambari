@@ -741,8 +741,9 @@ App.InstallerController = App.WizardController.extend({
   validateJDKVersion: function (successCallback, failCallback) {
     var selectedStack = App.Stack.find().findProperty('isSelected', true),
         currentJDKVersion = App.router.get('clusterController.ambariProperties')['java.version'],
-        minJDKVersion = selectedStack.get('minJdkVersion'),
-        maxJDKVersion = selectedStack.get('maxJdkVersion'),
+        // use min as max, or max as min version, in case when some of them missed
+        minJDKVersion = selectedStack.get('minJdkVersion') || selectedStack.get('maxJdkVersion'),
+        maxJDKVersion = selectedStack.get('maxJdkVersion') || selectedStack.get('minJdkVersion'),
         t = Em.I18n.t,
         fCallback = failCallback || function() {},
         sCallback = successCallback || function() {};
@@ -754,9 +755,9 @@ App.InstallerController = App.WizardController.extend({
     }
 
     if (currentJDKVersion) {
-      if (stringUtils.compareVersions(currentJDKVersion, selectedStack.get('minJdkVersion')) < 0 ||
-          stringUtils.compareVersions(selectedStack.get('maxJdkVersion'), currentJDKVersion) < 0) {
-        // checks and process only major part for now
+      if (stringUtils.compareVersions(currentJDKVersion, minJDKVersion) < 0 ||
+          stringUtils.compareVersions(maxJDKVersion, currentJDKVersion) < 0) {
+        // checks and process only minor part for now
         var versionDistance = parseInt(maxJDKVersion.split('.')[1]) - parseInt(minJDKVersion.split('.')[1]);
         var versionsList = [minJDKVersion];
         for (var i = 1; i < (versionDistance + 1); i++) {
