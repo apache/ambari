@@ -322,8 +322,13 @@ public class AlertReceivedListener {
         return false;
       }
     } catch (AmbariException ambariException) {
-      LOG.error("Unable to process alert {} for an invalid cluster named {}",
-          alert.getName(), clusterName, ambariException);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Unable to process alert {} for an invalid cluster named {}",
+            alert.getName(), clusterName, ambariException);
+      } else {
+        LOG.error("Unable to process alert {} for an invalid cluster named {}",
+            alert.getName(), clusterName);
+      }
 
       return false;
     }
