@@ -82,7 +82,11 @@ class JobHistoryServer(Script):
       # need to copy the tarball, otherwise, copy it.
 
       if params.version and compare_versions(format_hdp_stack_version(params.version), '2.3.0.0') < 0:
-        resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user)
+        resource_created = copy_to_hdfs(
+          "tez",
+          params.user_group,
+          params.hdfs_user,
+          host_sys_prepped=params.host_sys_prepped)
         if resource_created:
           params.HdfsResource(None, action="execute")
 

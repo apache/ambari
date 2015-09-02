@@ -95,7 +95,10 @@ class PigServiceCheckLinux(PigServiceCheck):
       )
 
       # Check for Pig-on-Tez
-      resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user)
+      resource_created = copy_to_hdfs(
+        "tez", params.user_group,
+        params.hdfs_user,
+        host_sys_prepped=params.host_sys_prepped)
       if resource_created:
         params.HdfsResource(None, action="execute")
 
