@@ -222,7 +222,7 @@
             },
             "metrics/hbase/regionserver/writeRequestsCount": {
               "metric": "regionserver.Server.writeRequestCount",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/getRequestLatency_min": {
@@ -277,7 +277,7 @@
             },
             "metrics/hbase/regionserver/readRequestsCount": {
               "metric": "regionserver.Server.readRequestCount",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/putRequestLatency_min": {
@@ -463,7 +463,7 @@
             },
             "metrics/hbase/regionserver/compactionQueueSize": {
               "metric": "regionserver.Server.compactionQueueLength",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/flushTime_num_ops": {
@@ -523,7 +523,7 @@
             },
             "metrics/hbase/regionserver/regions": {
               "metric": "regionserver.Server.regionCount",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/blockCacheFree": {
@@ -659,7 +659,7 @@
             },
             "metrics/hbase/regionserver/memstoreSize": {
               "metric": "regionserver.Server.memStoreSize",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/deleteRequestLatency_75th_percentile": {
@@ -1470,11 +1470,6 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/hbase/regionserver/compactionQueueSize": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.compactionQueueLength",
-              "pointInTime": true,
-              "temporal": false
-            },
             "metrics/hbase/regionserver/putRequestLatency_median": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_median",
               "pointInTime": true,
@@ -1497,11 +1492,6 @@
             },
             "metrics/hbase/regionserver/getRequestLatency_75th_percentile": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Get_75th_percentile",
-              "pointInTime": true,
-              "temporal": false
-            },
-            "metrics/hbase/regionserver/readRequestsCount": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.readRequestCount",
               "pointInTime": true,
               "temporal": false
             },
@@ -1555,11 +1545,6 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/hbase/regionserver/writeRequestsCount": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.writeRequestCount",
-              "pointInTime": true,
-              "temporal": false
-            },
             "metrics/hbase/regionserver/getRequestLatency_median": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Get_median",
               "pointInTime": true,
@@ -1597,11 +1582,6 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/hbase/regionserver/memstoreSize": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.memStoreSize",
-              "pointInTime": true,
-              "temporal": false
-            },
             "metrics/hbase/regionserver/getRequestLatency_max": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Get_max",
               "pointInTime": true,
@@ -1624,11 +1604,6 @@
             },
             "metrics/hbase/regionserver/putRequestLatency_75th_percentile": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_75th_percentile",
-              "pointInTime": true,
-              "temporal": false
-            },
-            "metrics/hbase/regionserver/regions": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.regionCount",
               "pointInTime": true,
               "temporal": false
             },
@@ -1880,7 +1855,7 @@
             },
             "metrics/hbase/regionserver/compactionQueueSize": {
               "metric": "regionserver.Server.compactionQueueLength",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/disk/part_max_used": {
@@ -2000,7 +1975,7 @@
             },
             "metrics/hbase/regionserver/writeRequestsCount": {
               "metric": "regionserver.Server.writeRequestCount",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/getRequestLatency_min": {
@@ -2030,7 +2005,7 @@
             },
             "metrics/hbase/regionserver/regions": {
               "metric": "regionserver.Server.regionCount",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/blockCacheHitCount": {
@@ -2095,7 +2070,7 @@
             },
             "metrics/hbase/regionserver/readRequestsCount": {
               "metric": "regionserver.Server.readRequestCount",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/putRequestLatency_min": {
@@ -2262,7 +2237,7 @@
             },
             "metrics/hbase/regionserver/memstoreSize": {
               "metric": "regionserver.Server.memStoreSize",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/deleteRequestLatency_75th_percentile": {
@@ -3176,11 +3151,6 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/hbase/regionserver/compactionQueueSize": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.compactionQueueLength",
-              "pointInTime": true,
-              "temporal": false
-            },
             "metrics/hbase/regionserver/putRequestLatency_median": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_median",
               "pointInTime": true,
@@ -3203,11 +3173,6 @@
             },
             "metrics/hbase/regionserver/getRequestLatency_75th_percentile": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Get_75th_percentile",
-              "pointInTime": true,
-              "temporal": false
-            },
-            "metrics/hbase/regionserver/readRequestsCount": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.readRequestCount",
               "pointInTime": true,
               "temporal": false
             },
@@ -3261,11 +3226,6 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/hbase/regionserver/writeRequestsCount": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.writeRequestCount",
-              "pointInTime": true,
-              "temporal": false
-            },
             "metrics/hbase/regionserver/getRequestLatency_median": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Get_median",
               "pointInTime": true,
@@ -3303,11 +3263,6 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/hbase/regionserver/memstoreSize": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.memStoreSize",
-              "pointInTime": true,
-              "temporal": false
-            },
             "metrics/hbase/regionserver/getRequestLatency_max": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Get_max",
               "pointInTime": true,
@@ -3330,11 +3285,6 @@
             },
             "metrics/hbase/regionserver/putRequestLatency_75th_percentile": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_75th_percentile",
-              "pointInTime": true,
-              "temporal": false
-            },
-            "metrics/hbase/regionserver/regions": {
-              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.regionCount",
               "pointInTime": true,
               "temporal": false
             },
