@@ -384,7 +384,7 @@ App.TableView = Em.View.extend(App.UserPref, {
     });
   },
 
-  clearFilterCondition: function() {
+  clearFilterConditionsFromLocalStorage: function() {
     var result = false;
     var currentFCs = App.db.getFilterConditions(this.get('controller.name'));
     if (currentFCs != null) {
