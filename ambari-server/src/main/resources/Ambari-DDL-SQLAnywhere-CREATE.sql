@@ -109,6 +109,7 @@ CREATE TABLE hostcomponentdesiredstate (
 );
 
 CREATE TABLE hostcomponentstate (
+  id NUMERIC(19) NOT NULL,
   cluster_id NUMERIC(19) NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
@@ -118,8 +119,10 @@ CREATE TABLE hostcomponentstate (
   service_name VARCHAR(255) NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
-  PRIMARY KEY (cluster_id, component_name, host_id, service_name)
+  PRIMARY KEY (id)
 );
+
+CREATE INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_name, cluster_id);
 
 CREATE TABLE hosts (
   host_id NUMERIC(19) NOT NULL,
@@ -936,6 +939,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_lo
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_task_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_request_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_group_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostcomponentstate_id_seq', 0);
 
 insert into adminresourcetype (resource_type_id, resource_type_name)
   select 1, 'AMBARI'
