@@ -39,7 +39,7 @@ class TestKnoxGateway(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Directory', '/var/lib/knox/data',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/data',
                               owner = 'knox',
                               group = 'knox',
                               recursive = True
@@ -87,7 +87,7 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Execute', ('chown',
      '-R',
      'knox:knox',
-     '/var/lib/knox/data',
+     '/usr/hdp/current/knox-server/data',
      '/var/log/knox',
      '/var/run/knox',
      '/usr/hdp/current/knox-server/conf',
@@ -96,12 +96,12 @@ class TestKnoxGateway(RMFTestCase):
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/knox-server/bin/knoxcli.sh create-master --master sa',
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-        not_if = "ambari-sudo.sh su knox -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /var/lib/knox/data/security/master'",
+        not_if = "ambari-sudo.sh su knox -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /usr/hdp/current/knox-server/data/security/master'",
         user = 'knox',
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/knox-server/bin/knoxcli.sh create-cert --hostname c6401.ambari.apache.org',
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-        not_if = "ambari-sudo.sh su knox -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /var/lib/knox/data/security/keystores/gateway.jks'",
+        not_if = "ambari-sudo.sh su knox -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /usr/hdp/current/knox-server/data/security/keystores/gateway.jks'",
         user = 'knox',
     )
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/ldap-log4j.properties',
@@ -245,7 +245,7 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Execute', ('tar',
      '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-data-backup.tar',
-     '/var/lib/knox/data'),
+     '/usr/hdp/current/knox-server/data'),
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', '2.2.1.0-3242'),
@@ -286,7 +286,7 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Execute', ('tar',
      '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-data-backup.tar',
-     '/var/lib/knox/data'),
+     '/usr/hdp/current/knox-server/data'),
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', '2.3.0.0-1234'),
@@ -330,7 +330,7 @@ class TestKnoxGateway(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
 
-    self.assertResourceCalled('Directory', '/var/lib/knox/data',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/data',
                               owner = 'knox',
                               group = 'knox',
                               recursive = True
@@ -378,7 +378,7 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Execute', ('chown',
                                           '-R',
                                           'knox:knox',
-                                          '/var/lib/knox/data',
+                                          '/usr/hdp/current/knox-server/data',
                                           '/var/log/knox',
                                           '/var/run/knox',
                                           '/usr/hdp/current/knox-server/conf', '/usr/hdp/current/knox-server/conf/topologies'),
@@ -386,12 +386,12 @@ class TestKnoxGateway(RMFTestCase):
                               )
     self.assertResourceCalled('Execute', '/usr/hdp/current/knox-server/bin/knoxcli.sh create-master --master sa',
                               environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-                              not_if = "ambari-sudo.sh su knox -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /var/lib/knox/data/security/master'",
+                              not_if = "ambari-sudo.sh su knox -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /usr/hdp/current/knox-server/data/security/master'",
                               user = 'knox',
                               )
     self.assertResourceCalled('Execute', '/usr/hdp/current/knox-server/bin/knoxcli.sh create-cert --hostname c6401.ambari.apache.org',
                               environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-                              not_if = "ambari-sudo.sh su knox -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /var/lib/knox/data/security/keystores/gateway.jks'",
+                              not_if = "ambari-sudo.sh su knox -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /usr/hdp/current/knox-server/data/security/keystores/gateway.jks'",
                               user = 'knox',
                               )
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/ldap-log4j.properties',

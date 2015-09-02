@@ -40,6 +40,10 @@ knox_master_secret_path = '/var/lib/knox/data/security/master'
 knox_cert_store_path = '/var/lib/knox/data/security/keystores/gateway.jks'
 knox_user = default("/configurations/knox-env/knox_user", "knox")
 
+# server configurations
+knox_data_dir = '/var/lib/knox/data'
+knox_logs_dir = '/var/log/knox'
+
 # default parameters
 knox_bin = '/usr/bin/gateway'
 knox_conf_dir = '/etc/knox/conf'
@@ -53,12 +57,12 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   ldap_bin = '/usr/hdp/current/knox-server/bin/ldap.sh'
   knox_client_bin = '/usr/hdp/current/knox-server/bin/knoxcli.sh'
 
+  knox_master_secret_path = '/usr/hdp/current/knox-server/data/security/master'
+  knox_cert_store_path = '/usr/hdp/current/knox-server/data/security/keystores/gateway.jks'
+  knox_data_dir = '/usr/hdp/current/knox-server/data'
+
 knox_group = default("/configurations/knox-env/knox_group", "knox")
 mode = 0644
-
-# server configurations
-knox_data_dir = '/var/lib/knox/data'
-knox_logs_dir = '/var/log/knox'
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
