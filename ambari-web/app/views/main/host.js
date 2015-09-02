@@ -181,7 +181,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    */
   willInsertElement: function () {
     if (!this.get('controller.showFilterConditionsFirstLoad')) {
-      var didClearedSomething = this.clearFilterCondition();
+      var didClearedSomething = this.clearFilterConditionsFromLocalStorage();
       this.set('controller.filterChangeHappened', didClearedSomething);
     }
     this._super();
@@ -1174,5 +1174,22 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    */
   colPropAssoc: function () {
     return this.get('controller.colPropAssoc');
-  }.property('controller.colPropAssoc')
+  }.property('controller.colPropAssoc'),
+
+  /**
+   * Run <code>clearFilter</code> in the each child filterView
+   */
+  clearFilters: function() {
+    // clean filters stored in-memory and local storage
+    this.set('filterConditions', []);
+    this.clearFilterConditionsFromLocalStorage();
+    // clean UI
+    this.get('_childViews').forEach(function(childView) {
+      if (childView['clearFilter']) {
+        childView.clearFilter();
+      }
+    });
+    // force refresh
+    this.refresh();
+  }
 });

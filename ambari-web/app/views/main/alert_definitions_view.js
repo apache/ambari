@@ -38,7 +38,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
 
   willInsertElement: function () {
     if (!this.get('controller.showFilterConditionsFirstLoad')) {
-      this.clearFilterCondition();
+      this.clearFilterConditionsFromLocalStorage();
       this.clearStartIndex();
     }
     this.removeObserver('filteredCount', this, 'updatePaging');

@@ -40,26 +40,26 @@ describe('App.MainAlertDefinitionsView', function () {
   describe('#willInsertElement', function () {
 
     beforeEach(function(){
-      sinon.stub(view, 'clearFilterCondition', Em.K);
+      sinon.stub(view, 'clearFilterConditionsFromLocalStorage', Em.K);
       sinon.stub(view, 'clearStartIndex', Em.K);
     });
 
     afterEach(function(){
-      view.clearFilterCondition.restore();
+      view.clearFilterConditionsFromLocalStorage.restore();
       view.clearStartIndex.restore();
     });
 
     it('should call clearFilterCondition, clearStartIndex if controller.showFilterConditionsFirstLoad is false', function () {
       view.set('controller', {showFilterConditionsFirstLoad: false, content: []});
       view.willInsertElement();
-      expect(view.clearFilterCondition.calledOnce).to.be.true;
+      expect(view.clearFilterConditionsFromLocalStorage.calledOnce).to.be.true;
       expect(view.clearStartIndex.calledOnce).to.be.true;
     });
 
     it('should not call clearFilterCondition, clearStartIndex if controller.showFilterConditionsFirstLoad is true', function () {
       view.set('controller', {showFilterConditionsFirstLoad: true, content: []});
       view.willInsertElement();
-      expect(view.clearFilterCondition.called).to.be.false;
+      expect(view.clearFilterConditionsFromLocalStorage.called).to.be.false;
       expect(view.clearStartIndex.called).to.be.false;
     });
   });
