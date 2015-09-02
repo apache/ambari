@@ -867,8 +867,8 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     self.assertResourceCalled('Execute',
                               ('hdp-select', 'set', 'hive-server2', version), sudo=True,)
 
-    copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs")
-    copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs")
+    copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs", host_sys_prepped=False)
+    copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs", host_sys_prepped=False)
     self.assertEquals(2, copy_to_hdfs_mock.call_count)
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,
@@ -905,8 +905,8 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     self.assertResourceCalled('Execute',
 
                               ('hdp-select', 'set', 'hive-server2', version), sudo=True,)
-    copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs")
-    copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs")
+    copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs", host_sys_prepped=False)
+    copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs", host_sys_prepped=False)
     self.assertEquals(2, copy_to_hdfs_mock.call_count)
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,

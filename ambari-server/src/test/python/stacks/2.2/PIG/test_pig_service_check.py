@@ -125,7 +125,7 @@ class TestPigServiceCheck(RMFTestCase):
         action = ['create_on_execute'],
     )
 
-    copy_to_hdfs_mock.assert_called_with("tez", "hadoop", "hdfs")
+    copy_to_hdfs_mock.assert_called_with("tez", "hadoop", "hdfs", host_sys_prepped=False)
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = True,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',

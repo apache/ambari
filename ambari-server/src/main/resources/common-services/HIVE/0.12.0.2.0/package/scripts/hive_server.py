@@ -115,8 +115,16 @@ class HiveServerDefault(HiveServer):
       hdp_select.select("hive-server2", params.version)
 
       # Copy mapreduce.tar.gz and tez.tar.gz to HDFS
-      resource_created = copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user)
-      resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user) or resource_created
+      resource_created = copy_to_hdfs(
+        "mapreduce",
+        params.user_group,
+        params.hdfs_user,
+        host_sys_prepped=params.host_sys_prepped)
+      resource_created = copy_to_hdfs(
+        "tez",
+        params.user_group,
+        params.hdfs_user,
+        host_sys_prepped=params.host_sys_prepped) or resource_created
       if resource_created:
         params.HdfsResource(None, action="execute")
 

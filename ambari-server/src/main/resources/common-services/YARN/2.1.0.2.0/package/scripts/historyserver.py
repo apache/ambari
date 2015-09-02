@@ -81,8 +81,8 @@ class HistoryServerDefault(HistoryServer):
       conf_select.select(params.stack_name, "hadoop", params.version)
       hdp_select.select("hadoop-mapreduce-historyserver", params.version)
       # MC Hammer said, "Can't touch this"
-      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user)
-      copy_to_hdfs("tez", params.user_group, params.hdfs_user)
+      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
+      copy_to_hdfs("tez", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
       params.HdfsResource(None, action="execute")
 
   def start(self, env, rolling_restart=False):
@@ -92,8 +92,16 @@ class HistoryServerDefault(HistoryServer):
 
     if params.hdp_stack_version_major and compare_versions(params.hdp_stack_version_major, '2.2.0.0') >= 0:
       # MC Hammer said, "Can't touch this"
-      resource_created = copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user)
-      resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user) or resource_created
+      resource_created = copy_to_hdfs(
+        "mapreduce",
+        params.user_group,
+        params.hdfs_user,
+        host_sys_prepped=params.host_sys_prepped)
+      resource_created = copy_to_hdfs(
+        "tez",
+        params.user_group,
+        params.hdfs_user,
+        host_sys_prepped=params.host_sys_prepped) or resource_created
       if resource_created:
         params.HdfsResource(None, action="execute")
     else:

@@ -767,7 +767,7 @@ class TestHistoryServer(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hadoop-mapreduce-historyserver', version), sudo=True)
-    copy_to_hdfs_mock.assert_called_with("tez", "hadoop", "hdfs")
+    copy_to_hdfs_mock.assert_called_with("tez", "hadoop", "hdfs", host_sys_prepped=False)
 
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,

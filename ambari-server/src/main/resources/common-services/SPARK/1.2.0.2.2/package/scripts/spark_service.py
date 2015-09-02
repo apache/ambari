@@ -36,7 +36,7 @@ def spark_service(action):
     # Spark 1.3.1.2.3, and higher, which was included in HDP 2.3, does not have a dependency on Tez, so it does not
     # need to copy the tarball, otherwise, copy it.
     if params.hdp_stack_version and compare_versions(params.hdp_stack_version, '2.3.0.0') < 0:
-      resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user)
+      resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
       if resource_created:
         params.HdfsResource(None, action="execute")
 
