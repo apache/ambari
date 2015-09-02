@@ -106,12 +106,27 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    * <code>config.stackConfigProperty.valueAttributes.{group.name}.maximum<code>
    * @param {String} attribute - name of attribute, for current moment
    * can be ["maximum","minimum","increment_step"] but allows to use other it there will be available
-   * @returns {*}
+   * @returns {string}
    */
   getValueAttributeByGroup: function(attribute) {
+    var parseFunction = this.get('parseFunction');
+    var configValue = this.get('config.value');
     var defaultGroupAttr = this.get('config.stackConfigProperty.valueAttributes');
-    var groupAttr = this.get('configGroup') && this.get('config.stackConfigProperty.valueAttributes')[this.get('configGroup.name')];
-    return (groupAttr && !Em.isNone(groupAttr[attribute])) ? groupAttr[attribute] : defaultGroupAttr[attribute];
+    var groupAttr = this.get('configGroup') && defaultGroupAttr[this.get('configGroup.name')];
+    var boundary = (groupAttr && !Em.isNone(groupAttr[attribute])) ? groupAttr[attribute] : defaultGroupAttr[attribute];
+
+    if (!this.get('referToSelectedGroup')) {
+      if (attribute === 'minimum') {
+        if (parseFunction(configValue) < parseFunction(boundary)) {
+          return configValue;
+        }
+      } else if (attribute === 'maximum') {
+        if (parseFunction(configValue) > parseFunction(boundary)) {
+          return configValue;
+        }
+      }
+    }
+    return boundary;
   },
   /**
    * step transformed form config units to widget units
