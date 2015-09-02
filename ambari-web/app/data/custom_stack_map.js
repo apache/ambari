@@ -33,7 +33,7 @@ Example:
 module.exports = [
   {
     "stackName": "PHD",
-    "stackVersionNumber": "3.1",
+    "stackVersionNumber": "3.3",
     "sign": "=",
     "baseStackFolder": "HDP2.3"
   },
