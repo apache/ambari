@@ -1174,6 +1174,9 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
     self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
+    self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip',
+        mode = 0644,
+    )
     self.assertNoMoreResources()
 
   @patch("os.path.isdir")
@@ -1239,11 +1242,13 @@ class TestOozieServer(RMFTestCase):
 
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
     self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
-
+    self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip',
+        mode = 0644,
+    )
     self.assertNoMoreResources()
 
     self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(2, mocks_dict['checked_call'].call_count)
+    self.assertEquals(1, mocks_dict['checked_call'].call_count)
 
     self.assertEquals(
       ('conf-select', 'set-conf-dir', '--package', 'oozie', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
@@ -1294,6 +1299,9 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext',mode = 0777)
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
     self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
+    self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip',
+        mode = 0644,
+    )
     self.assertNoMoreResources()
 
 
@@ -1489,13 +1497,16 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
     self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
 
+    self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip',
+        mode = 0644,
+    )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh cp /usr/hdp/2.3.0.0-1234/falcon/oozie/ext/falcon-oozie-el-extension-*.jar /usr/hdp/current/oozie-server/libext')
     self.assertResourceCalled('Execute', 'ambari-sudo.sh chown oozie:hadoop /usr/hdp/current/oozie-server/libext/falcon-oozie-el-extension-*.jar')
 
     self.assertNoMoreResources()
 
     self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(2, mocks_dict['checked_call'].call_count)
+    self.assertEquals(1, mocks_dict['checked_call'].call_count)
 
     self.assertEquals(
       ('conf-select', 'set-conf-dir', '--package', 'oozie', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
