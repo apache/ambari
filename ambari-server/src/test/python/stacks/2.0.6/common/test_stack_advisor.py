@@ -994,7 +994,7 @@ class TestHDP206StackAdvisor(TestCase):
     ]}
     properties = {"property1": "/var/dir"}
     # only / mountpoint - no warning
-    self.assertIsNone(self.stackAdvisor.validatorNotRootFs(properties, 'property1', hostInfo))
+    self.assertTrue(self.stackAdvisor.validatorNotRootFs(properties, 'property1', hostInfo) == None)
     # More preferable /grid/0 mountpoint - warning
     hostInfo["disk_info"].append(
       {
@@ -1004,7 +1004,7 @@ class TestHDP206StackAdvisor(TestCase):
       }
     )
     warn = self.stackAdvisor.validatorNotRootFs(properties, 'property1', hostInfo)
-    self.assertIsNotNone(warn)
+    self.assertTrue(warn != None)
     self.assertEquals({'message': 'The root device should not be used for property1', 'level': 'WARN'}, warn)
 
     # Set by user /var mountpoint, which is non-root , but not preferable - no warning
@@ -1015,4 +1015,4 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/var"
       }
     )
-    self.assertIsNone(self.stackAdvisor.validatorNotRootFs(properties, 'property1', hostInfo))
+    self.assertTrue(self.stackAdvisor.validatorNotRootFs(properties, 'property1', hostInfo) == None)

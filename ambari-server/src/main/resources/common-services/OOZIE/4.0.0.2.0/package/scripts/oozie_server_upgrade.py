@@ -22,11 +22,11 @@ import shutil
 import tempfile
 
 from resource_management.core import shell
-from resource_management.core import sudo
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import Directory
+from resource_management.core.resources.system import File
 from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import compare_versions
@@ -154,7 +154,9 @@ class OozieUpgrade(Script):
     Logger.info("Copying {0} to {1}".format(oozie_ext_zip_file, params.oozie_libext_dir))
     Execute(("cp", oozie_ext_zip_file, params.oozie_libext_dir), sudo=True)
     Execute(("chown", format("{oozie_user}:{user_group}"), oozie_ext_zip_target_path), sudo=True)
-    sudo.chmod(oozie_ext_zip_target_path, 0644)
+    File(oozie_ext_zip_target_path,
+         mode=0644
+    )
 
     # Redownload jdbc driver to a new current location
     oozie.download_database_library_if_needed()
