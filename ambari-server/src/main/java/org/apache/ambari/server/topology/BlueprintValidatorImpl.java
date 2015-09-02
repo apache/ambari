@@ -21,6 +21,7 @@ package org.apache.ambari.server.topology;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.utils.VersionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -94,8 +95,30 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
           Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
           if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") != null
               && hiveEnvConfig.get("hive_database").startsWith("Existing")) {
-            throw new IllegalArgumentException("Incorrect configuration: MYSQL_SERVER component is available but hive" +
+            throw new InvalidTopologyException("Incorrect configuration: MYSQL_SERVER component is available but hive" +
                 " using existing db!");
+          }
+        }
+
+        if (component.equals("HIVE_METASTORE")) {
+          Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
+          if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") !=null
+                  && hiveEnvConfig.get("hive_database").equals("Existing SQLA Database")
+                  && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
+                  && stack.getName().equalsIgnoreCase("HDP")) {
+            throw new InvalidTopologyException("Incorrect configuration: SQLA db is available only for stack HDP-2.3+ " +
+                    "and repo version 2.3.2+!");
+          }
+        }
+
+        if (component.equals("OOZIE_SERVER")) {
+          Map<String, String> oozieEnvConfig = clusterConfigurations.get("oozie-env");
+          if (oozieEnvConfig != null && !oozieEnvConfig.isEmpty() && oozieEnvConfig.get("oozie_database") !=null
+                  && oozieEnvConfig.get("oozie_database").equals("Existing SQLA Database")
+                  && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
+                  && stack.getName().equalsIgnoreCase("HDP")) {
+            throw new InvalidTopologyException("Incorrect configuration: SQLA db is available only for stack HDP-2.3+ " +
+                    "and repo version 2.3.2+!");
           }
         }
 

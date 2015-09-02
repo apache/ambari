@@ -178,4 +178,50 @@ public class BlueprintValidatorImplTest{
 
     verify(group1);
   }
+
+  @Test(expected=InvalidTopologyException.class)
+  public void testValidateRequiredProperties_SqlaInHiveStackHdp22() throws Exception {
+    Map<String, String> hiveEnvConfig = new HashMap<>();
+    hiveEnvConfig.put("hive_database","Existing SQLA Database");
+    configProperties.put("hive-env", hiveEnvConfig);
+
+    group1Components.add("HIVE_METASTORE");
+
+    services.addAll(Arrays.asList("HIVE"));
+
+    expect(group1.getConfiguration()).andReturn(new Configuration(new HashMap(), new HashMap())).anyTimes();
+
+    expect(stack.getComponents("HIVE")).andReturn(Collections.singleton("HIVE_METASTORE")).anyTimes();
+    expect(stack.getVersion()).andReturn("2.2").once();
+    expect(stack.getName()).andReturn("HDP").once();
+
+    expect(blueprint.getHostGroupsForComponent("HIVE_METASTORE")).andReturn(Collections.singleton(group1)).anyTimes();
+
+    replay(blueprint, stack, group1, group2, dependency1);
+    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
+    validator.validateRequiredProperties();
+  }
+
+  @Test(expected=InvalidTopologyException.class)
+  public void testValidateRequiredProperties_SqlaInOozieStackHdp22() throws Exception {
+    Map<String, String> hiveEnvConfig = new HashMap<>();
+    hiveEnvConfig.put("oozie_database","Existing SQLA Database");
+    configProperties.put("oozie-env", hiveEnvConfig);
+
+    group1Components.add("OOZIE_SERVER");
+
+    services.addAll(Arrays.asList("OOZIE"));
+
+    expect(group1.getConfiguration()).andReturn(new Configuration(new HashMap(), new HashMap())).anyTimes();
+
+    expect(stack.getComponents("OOZIE")).andReturn(Collections.singleton("OOZIE_SERVER")).anyTimes();
+    expect(stack.getVersion()).andReturn("2.2").once();
+    expect(stack.getName()).andReturn("HDP").once();
+
+    expect(blueprint.getHostGroupsForComponent("OOZIE_SERVER")).andReturn(Collections.singleton(group1)).anyTimes();
+
+    replay(blueprint, stack, group1, group2, dependency1);
+    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
+    validator.validateRequiredProperties();
+  }
 }
