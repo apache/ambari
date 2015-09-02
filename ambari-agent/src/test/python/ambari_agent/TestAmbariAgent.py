@@ -22,6 +22,7 @@ import unittest
 import subprocess
 import os
 import sys
+import AmbariConfig
 from mock.mock import MagicMock, patch, ANY
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
@@ -52,3 +53,45 @@ class TestAmbariAgent(unittest.TestCase):
     self.assertTrue(os_path_isfile_mock.called)
     self.assertTrue(os_path_isfile_mock.call_count == 2)
     self.assertTrue(os_remove_mock.called)
+
+  #
+  # Test AmbariConfig.getLogFile() for ambari-agent
+  #
+  def test_logfile_location(self):
+    #
+    # Test without $AMBARI_AGENT_LOG_DIR
+    #
+    log_folder = '/var/log/ambari-agent'
+    log_file = 'ambari-agent.log'
+    with patch.dict('os.environ', {}):
+      self.assertEqual(os.path.join(log_folder, log_file), AmbariConfig.AmbariConfig.getLogFile())
+
+    #
+    # Test with $AMBARI_AGENT_LOG_DIR
+    #
+    log_folder = '/myloglocation/log'
+    log_file = 'ambari-agent.log'
+    with patch.dict('os.environ', {'AMBARI_AGENT_LOG_DIR': log_folder}):
+      self.assertEqual(os.path.join(log_folder, log_file), AmbariConfig.AmbariConfig.getLogFile())
+    pass
+
+  #
+  # Test AmbariConfig.getOutFile() for ambari-agent
+  #
+  def test_outfile_location(self):
+    #
+    # Test without $AMBARI_AGENT_OUT_DIR
+    #
+    out_folder = '/var/log/ambari-agent'
+    out_file = 'ambari-agent.out'
+    with patch.dict('os.environ', {}):
+      self.assertEqual(os.path.join(out_folder, out_file), AmbariConfig.AmbariConfig.getOutFile())
+
+    #
+    # Test with $AMBARI_AGENT_OUT_DIR
+    #
+    out_folder = '/myoutlocation/out'
+    out_file = 'ambari-agent.out'
+    with patch.dict('os.environ', {'AMBARI_AGENT_OUT_DIR': out_folder}):
+      self.assertEqual(os.path.join(out_folder, out_file), AmbariConfig.AmbariConfig.getOutFile())
+    pass

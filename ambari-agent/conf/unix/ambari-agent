@@ -93,8 +93,12 @@ if [ -a /var/lib/ambari-agent/ambari-env.sh ]; then
   . /var/lib/ambari-agent/ambari-env.sh
 fi
 
-if [ ! -z $AMBARI_LOG_DIR ]; then
-  LOGFILE=$AMBARI_LOG_DIR/ambari-agent.log
+if [ ! -z $AMBARI_AGENT_LOG_DIR ]; then
+  LOGFILE=$AMBARI_AGENT_LOG_DIR/ambari-agent.log
+fi
+
+if [ ! -z $AMBARI_AGENT_OUT_DIR ]; then
+  OUTFILE=$AMBARI_AGENT_OUT_DIR/ambari-agent.out
 fi
 
 if [ -z $RESOLVED_AMBARI_PASSPHRASE ] &&  [ ! -z $AMBARI_PASSPHRASE ]; then
