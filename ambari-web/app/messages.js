@@ -1805,7 +1805,7 @@ Em.I18n.translations = {
   'services.service.config.database.msg.jdbcSetup': 'Be sure you have run:<br/>' +
     '<b>ambari-server setup --jdbc-db={0} --jdbc-driver=/path/to/{0}/{1}</b> ' +
     'on the Ambari Server host to make the JDBC driver available and to enable testing the database connection.',
-
+  'stack.specific.sqla.support.msg': '<b>Please note that SQLA database option is only supported on HDP-2.3.2 or higher.</b><br/>',
   'services.service.config.configHistory.configGroup': 'Config Group',
   'services.service.config.configHistory.configGroup.name': 'Config Group Name',
   'services.service.config.configHistory.rightArrow.tooltip': 'Show earlier versions',
