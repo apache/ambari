@@ -96,7 +96,7 @@ def _get_single_version_from_hdp_select():
   return hdp_version
 
 def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=None, custom_dest_file=None, force_execute=False,
-                 use_ru_version_during_ru=True, replace_existing_files=False):
+                 use_ru_version_during_ru=True, replace_existing_files=False, host_sys_prepped=False):
   """
   :param name: Tarball name, e.g., tez, hive, pig, sqoop.
   :param user_group: Group to own the directory.
@@ -106,6 +106,7 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
   :param custom_dest_file: Override the destination file path
   :param force_execute: If true, will execute the HDFS commands immediately, otherwise, will defer to the calling function.
   :param use_ru_version_during_ru: If true, will use the version going to during RU. Otherwise, use the CURRENT (source) version.
+  :param host_sys_prepped: If true, tarballs will not be copied as the cluster deployment uses prepped VMs.
   :return: Will return True if successful, otherwise, False.
   """
   import params
@@ -126,6 +127,10 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
 
   if custom_dest_file is not None:
     dest_file = custom_dest_file
+
+  if host_sys_prepped:
+    Logger.info("Skipping copying {0} to {1} for {2} as its a sys_prepped host.".format(str(source_file), str(dest_file), str(name)))
+    return True
 
   upgrade_direction = default("/commandParams/upgrade_direction", None)
   is_rolling_upgrade = upgrade_direction is not None
