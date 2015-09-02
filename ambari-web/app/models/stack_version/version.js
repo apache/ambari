@@ -47,7 +47,11 @@ App.StackVersion = DS.Model.extend({
 
   noInitHosts: function() {
     return this.get('notInstalledHosts.length') == 0;
-  }.property('notInstalledHosts.length')
+  }.property('notInstalledHosts.length'),
+
+  isCurrent: function() {
+    return this.get('state') === 'CURRENT';
+  }.property('state')
 });
 
 App.StackVersion.FIXTURES = [];

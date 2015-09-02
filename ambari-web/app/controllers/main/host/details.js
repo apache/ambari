@@ -1826,11 +1826,19 @@ App.MainHostDetailsController = Em.Controller.extend({
     var state = context.active ? 'ON' : 'OFF';
     var self = this;
     var message = Em.I18n.t('hosts.host.details.for.postfix').format(context.label);
+    var popupInfo = Em.I18n.t('hosts.passiveMode.popup').format(context.active ? 'On' : 'Off', this.get('content.hostName'));
+    if (state === 'OFF') {
+      var hostVersion = this.get('content.stackVersions') && this.get('content.stackVersions').findProperty('isCurrent').get('repoVersion'),
+        currentVersion = App.StackVersion.find().findProperty('isCurrent'),
+        clusterVersion = currentVersion && currentVersion.get('repositoryVersion.repositoryVersion');
+      if (hostVersion !== clusterVersion) {
+        var msg = Em.I18n.t("hosts.passiveMode.popup.version.mismatch").format(this.get('content.hostName'), clusterVersion);
+        popupInfo += '<br/><div class="alert alert-warning">' + msg + '</div>';
+      }
+    }
     return App.showConfirmationPopup(function () {
         self.hostPassiveModeRequest(state, message);
-      },
-      Em.I18n.t('hosts.passiveMode.popup').format(context.active ? 'On' : 'Off', this.get('content.hostName'))
-    );
+      }, popupInfo);
   },
 
   /**

@@ -435,6 +435,15 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
       });
     }
     var hostNamesSkipped = hostsToSkip.mapProperty('hostName');
+    if (operationData.action === 'PASSIVE_STATE') {
+      hostNamesSkipped = [];
+      var outOfSyncHosts = App.StackVersion.find().findProperty('isCurrent').get('outOfSyncHosts');
+      for (var i = 0; i < outOfSyncHosts.length; i++) {
+        if (hostNames.contains(outOfSyncHosts[i])) {
+          hostNamesSkipped.push(outOfSyncHosts[i]);
+        }
+      }
+    }
     var message;
     if (operationData.componentNameFormatted) {
       message = Em.I18n.t('hosts.bulkOperation.confirmation.hostComponents').format(operationData.message, operationData.componentNameFormatted, hostNames.length);
@@ -474,7 +483,17 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/bulk_operation_confirm_popup'),
         message: message,
-        warningInfo: Em.I18n.t('hosts.bulkOperation.warningInfo.body'),
+        warningInfo: function() {
+          switch (operationData.action) {
+            case "DECOMMISSION":
+              return Em.I18n.t('hosts.bulkOperation.warningInfo.body');
+            case "PASSIVE_STATE":
+              return operationData.state === 'OFF' ? Em.I18n.t('hosts.passiveMode.popup.version.mismatch.multiple')
+              .format(App.StackVersion.find().findProperty('isCurrent').get('repositoryVersion.repositoryVersion')) : "";
+            default:
+              return ""
+          }
+        }.property(),
         textareaVisible: false,
         textTrigger: function() {
           this.set('textareaVisible', !this.get('textareaVisible'));
