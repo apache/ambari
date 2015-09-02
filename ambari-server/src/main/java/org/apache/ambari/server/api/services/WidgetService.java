@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services;
 import com.sun.jersey.core.util.Base64;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -49,7 +50,7 @@ public class WidgetService extends BaseService {
                              @PathParam("widgetId") String widgetId) {
 
     return handleRequest(headers, body, ui, Request.Type.GET,
-            createResource(getUserName(headers), widgetId));
+            createResource(widgetId));
   }
 
   /**
@@ -66,7 +67,7 @@ public class WidgetService extends BaseService {
   public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.GET,
-            createResource(getUserName(headers), null));
+            createResource(null));
   }
 
   @POST
@@ -75,7 +76,7 @@ public class WidgetService extends BaseService {
   public Response createService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("widgetId") String widgetId) {
     return handleRequest(headers, body, ui, Request.Type.POST,
-            createResource(getUserName(headers), widgetId));
+            createResource(widgetId));
   }
 
   @POST
@@ -83,7 +84,7 @@ public class WidgetService extends BaseService {
   public Response createServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-            createResource(getUserName(headers), null));
+            createResource(null));
   }
 
   @PUT
@@ -92,14 +93,14 @@ public class WidgetService extends BaseService {
   public Response updateService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("widgetId") String widgetId) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(getUserName(headers), widgetId));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(widgetId));
   }
 
   @PUT
   @Produces("text/plain")
   public Response updateServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(getUserName(headers), null));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(null));
   }
 
   @DELETE
@@ -108,27 +109,14 @@ public class WidgetService extends BaseService {
   public Response deleteService(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("widgetId") String widgetId) {
 
-    return handleRequest(headers, null, ui, Request.Type.DELETE, createResource(getUserName(headers), widgetId));
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createResource(widgetId));
   }
 
-  private ResourceInstance createResource(String userName, String widgetId) {
+  private ResourceInstance createResource(String widgetId) {
     Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Widget, widgetId);
-    mapIds.put(Resource.Type.User, userName);
     return createResource(Resource.Type.Widget, mapIds);
   }
 
-  private String getUserName(HttpHeaders headers) {
-    List<String> authorizationHeaders = headers.getRequestHeaders().get("Authorization");
-    if (authorizationHeaders != null && !authorizationHeaders.isEmpty()) {
-      String authorizationString = authorizationHeaders.get(0);
-      if (authorizationString != null && authorizationString.startsWith("Basic")) {
-        String base64Credentials = authorizationString.substring("Basic".length()).trim();
-        String clearCredentials = new String(Base64.decode(base64Credentials), Charset.forName("UTF-8"));
-        return clearCredentials.split(":", 2)[0];
-      }
-    }
-    return null;
-  }
 }

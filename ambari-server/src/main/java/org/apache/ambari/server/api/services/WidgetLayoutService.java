@@ -49,7 +49,7 @@ public class WidgetLayoutService extends BaseService {
                              @PathParam("widgetLayoutId") String widgetLayoutId) {
 
     return handleRequest(headers, body, ui, Request.Type.GET,
-            createResource(getUserName(headers), widgetLayoutId));
+            createResource(widgetLayoutId));
   }
 
   /**
@@ -64,9 +64,8 @@ public class WidgetLayoutService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-
     return handleRequest(headers, body, ui, Request.Type.GET,
-            createResource(getUserName(headers), null));
+            createResource(null));
   }
 
   @POST
@@ -75,7 +74,7 @@ public class WidgetLayoutService extends BaseService {
   public Response createService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("widgetLayoutId") String widgetLayoutId) {
     return handleRequest(headers, body, ui, Request.Type.POST,
-            createResource(getUserName(headers), widgetLayoutId));
+            createResource(widgetLayoutId));
   }
 
   @POST
@@ -83,7 +82,7 @@ public class WidgetLayoutService extends BaseService {
   public Response createServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, body, ui, Request.Type.POST,
-            createResource(getUserName(headers), null));
+            createResource(null));
   }
 
   @PUT
@@ -92,14 +91,14 @@ public class WidgetLayoutService extends BaseService {
   public Response updateService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("widgetLayoutId") String widgetLayoutId) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(getUserName(headers), widgetLayoutId));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(widgetLayoutId));
   }
 
   @PUT
   @Produces("text/plain")
   public Response updateServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(getUserName(headers), null));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(null));
   }
 
   @DELETE
@@ -108,27 +107,13 @@ public class WidgetLayoutService extends BaseService {
   public Response deleteService(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("widgetLayoutId") String widgetLayoutId) {
 
-    return handleRequest(headers, null, ui, Request.Type.DELETE, createResource(getUserName(headers), widgetLayoutId));
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createResource(widgetLayoutId));
   }
 
-  private ResourceInstance createResource(String userName, String widgetLayoutId) {
+  private ResourceInstance createResource(String widgetLayoutId) {
     Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
-    mapIds.put(Resource.Type.User, userName);
     mapIds.put(Resource.Type.WidgetLayout, widgetLayoutId);
     mapIds.put(Resource.Type.Cluster, clusterName);
     return createResource(Resource.Type.WidgetLayout, mapIds);
-  }
-
-  private String getUserName(HttpHeaders headers) {
-    List<String> authorizationHeaders = headers.getRequestHeaders().get("Authorization");
-    if (authorizationHeaders != null && !authorizationHeaders.isEmpty()){
-      String authorizationString = authorizationHeaders.get(0);
-      if (authorizationString != null && authorizationString.startsWith("Basic")) {
-        String base64Credentials = authorizationString.substring("Basic".length()).trim();
-        String clearCredentials = new String(Base64.decode(base64Credentials),Charset.forName("UTF-8"));
-        return clearCredentials.split(":", 2)[0];
-      }
-    }
-    return null;
   }
 }

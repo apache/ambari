@@ -75,6 +75,16 @@ public class WidgetDAO {
   }
 
   @RequiresSession
+  public List<WidgetEntity> findByScopeOrAuthor(String author, String scope) {
+    TypedQuery<WidgetEntity> query = entityManagerProvider.get()
+            .createNamedQuery("WidgetEntity.findByScopeOrAuthor", WidgetEntity.class);
+    query.setParameter("author", author);
+    query.setParameter("scope", scope);
+
+    return daoUtils.selectList(query);
+  }
+
+  @RequiresSession
   public List<WidgetEntity> findAll() {
     TypedQuery<WidgetEntity> query = entityManagerProvider.get()
             .createNamedQuery("WidgetEntity.findAll", WidgetEntity.class);
