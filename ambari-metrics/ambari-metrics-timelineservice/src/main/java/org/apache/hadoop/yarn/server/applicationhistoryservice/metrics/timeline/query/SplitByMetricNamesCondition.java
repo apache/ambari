@@ -168,6 +168,11 @@ public class SplitByMetricNamesCondition implements Condition {
     adaptee.setNoLimit();
   }
 
+  @Override
+  public boolean doUpdate() {
+    return false;
+  }
+
   public List<String> getOriginalMetricNames() {
     return adaptee.getMetricNames();
   }

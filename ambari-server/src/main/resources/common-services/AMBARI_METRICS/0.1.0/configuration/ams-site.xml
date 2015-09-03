@@ -318,4 +318,12 @@
       an application. Example: bytes_read across Yarn Nodemanagers.
     </description>
   </property>
+  <property>
+    <name>timeline.metrics.service.use.groupBy.aggregators</name>
+    <value>true</value>
+    <description>
+      Use a groupBy aggregated query to perform host level aggregations vs
+      in-memory aggregations.
+    </description>
+  </property>
 </configuration>

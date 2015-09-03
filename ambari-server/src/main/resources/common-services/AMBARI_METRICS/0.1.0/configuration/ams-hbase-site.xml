@@ -109,7 +109,7 @@
   </property>
   <property>
     <name>phoenix.query.spoolThresholdBytes</name>
-    <value>12582912</value>
+    <value>20971520</value>
     <description>
       Threshold size in bytes after which results from parallelly executed
       query results are spooled to disk. Default is 20 mb.
@@ -291,6 +291,25 @@
     <description>
       Set directory for Phoenix spill files. If possible set this to a
       different mount point from the one for hbase.rootdir in embedded mode.
+    </description>
+  </property>
+  <property>
+    <name>phoenix.mutate.batchSize</name>
+    <value>10000</value>
+    <description>
+      The number of rows that are batched together and automatically committed
+      during the execution of an UPSERT SELECT or DELETE statement.
+      This affects performance of group by aggregators if they are being used.
+    </description>
+  </property>
+  <property>
+    <name>phoenix.query.rowKeyOrderSaltedTable</name>
+    <value>true</value>
+    <description>
+      When set, we disallow user specified split points on salted table to ensure
+      that each bucket will only contains entries with the same salt byte.
+      When this property is turned on, the salted table would behave just like
+      a normal table and would return items in rowkey order for scans
     </description>
   </property>
 </configuration>

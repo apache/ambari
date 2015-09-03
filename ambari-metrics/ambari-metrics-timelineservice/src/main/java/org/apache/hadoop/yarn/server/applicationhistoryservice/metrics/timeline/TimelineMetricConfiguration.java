@@ -162,6 +162,12 @@ public class TimelineMetricConfiguration {
   public static final String OUT_OFF_BAND_DATA_TIME_ALLOWANCE =
     "timeline.metrics.service.outofband.time.allowance.millis";
 
+  public static final String USE_GROUPBY_AGGREGATOR_QUERIES =
+    "timeline.metrics.service.use.groupBy.aggregators";
+
+  public static final String HANDLER_THREAD_COUNT =
+    "timeline.metrics.service.handler.thread.count";
+
   public static final String HOST_APP_ID = "HOST";
 
   private Configuration hbaseConf;
@@ -215,6 +221,13 @@ public class TimelineMetricConfiguration {
       return metricsConf.get(WEBAPP_HTTP_ADDRESS, defaultHttpAddress);
     }
     return defaultHttpAddress;
+  }
+
+  public int getTimelineMetricsServiceHandlerThreadCount() {
+    if (metricsConf != null) {
+      return Integer.parseInt(metricsConf.get(HANDLER_THREAD_COUNT, "20"));
+    }
+    return 20;
   }
 
   public String getTimelineServiceRpcAddress() {

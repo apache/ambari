@@ -418,7 +418,7 @@ public class Configuration {
   private static final String TIMELINE_METRICS_CACHE_TTL = "server.timeline.metrics.cache.entry.ttl.seconds";
   private static final String DEFAULT_TIMELINE_METRICS_CACHE_TTL = "3600";
   private static final String TIMELINE_METRICS_CACHE_IDLE_TIME = "server.timeline.metrics.cache.entry.idle.seconds";
-  private static final String DEFAULT_TIMELINE_METRICS_CACHE_IDLE_TIME = "300";
+  private static final String DEFAULT_TIMELINE_METRICS_CACHE_IDLE_TIME = "1800";
   private static final String TIMELINE_METRICS_REQUEST_READ_TIMEOUT = "server.timeline.metrics.cache.read.timeout.millis";
   private static final String DEFAULT_TIMELINE_METRICS_REQUEST_READ_TIMEOUT = "10000";
   private static final String TIMELINE_METRICS_REQUEST_INTERVAL_READ_TIMEOUT = "server.timeline.metrics.cache.interval.read.timeout.millis";

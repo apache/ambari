@@ -43,4 +43,5 @@ public interface Condition {
   void setFetchSize(Integer fetchSize);
   void addOrderByColumn(String column);
   void setNoLimit();
+  boolean doUpdate();
 }
