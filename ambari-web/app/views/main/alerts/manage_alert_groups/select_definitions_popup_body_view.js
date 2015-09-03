@@ -55,6 +55,11 @@ App.SelectDefinitionsPopupBodyView = App.TableView.extend({
     this.filteredContentObsOnce();
   },
 
+  /**
+   * Default filter isn't needed
+   */
+  filter: Em.K,
+
   filterDefs: function () {
     var showOnlySelectedDefs = this.get('showOnlySelectedDefs');
     var filterComponent = this.get('filterComponent');

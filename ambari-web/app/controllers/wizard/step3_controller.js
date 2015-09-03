@@ -1712,6 +1712,8 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
 
       primary: Em.I18n.t('common.close'),
 
+      autoHeight: false,
+
       onPrimary: function () {
         self.set('checksUpdateStatus', null);
         this.hide();
@@ -1727,6 +1729,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       },
 
       didInsertElement: function () {
+        this._super();
         this.fitHeight();
       },
 
