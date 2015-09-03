@@ -24,13 +24,13 @@
           {{#unless isManualKerberos}}
             <button class="btn btn-success" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action regenerateKeytabs target="controller"}}>
               <i class="icon-repeat"></i> {{t admin.kerberos.button.regenerateKeytabs}}</button>
-            <br/>
-            {{#unless isEditMode}}
-              <a {{action makeConfigsEditable target="controller"}}
-                      class="pull-right edit-link">
-                {{t common.edit}}
-              </a>
-            {{/unless}}
+          {{/unless}}
+          <br/>
+          {{#unless isEditMode}}
+            <a {{action makeConfigsEditable target="controller"}}
+                    class="pull-right edit-link">
+              {{t common.edit}}
+            </a>
           {{/unless}}
         {{/isAccessible}}
       </p>
