@@ -136,7 +136,8 @@ def yarn(name = None):
               owner=params.yarn_user,
               group=params.user_group,
               recursive=True,
-              mode=0755
+              mode=0755,
+              cd_access = 'a',
     )
 
   Directory([params.yarn_pid_dir_prefix, params.yarn_pid_dir, params.yarn_log_dir],
