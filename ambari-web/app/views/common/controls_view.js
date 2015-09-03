@@ -1128,8 +1128,8 @@ App.CheckDBConnectionView = Ember.View.extend({
       OOZIE: ['oozie.db.schema.name', 'oozie.service.JPAService.jdbc.username', 'oozie.service.JPAService.jdbc.password', 'oozie.service.JPAService.jdbc.driver', 'oozie.service.JPAService.jdbc.url'],
       HIVE: ['ambari.hive.db.schema.name', 'javax.jdo.option.ConnectionUserName', 'javax.jdo.option.ConnectionPassword', 'javax.jdo.option.ConnectionDriverName', 'javax.jdo.option.ConnectionURL'],
       KERBEROS: ['kdc_host'],
-      RANGER: App.get('isHadoop23Stack') ? ['db_root_user', 'db_root_password', 'db_name', 'ranger.jpa.jdbc.url', 'ranger.jpa.jdbc.driver'] :
-          ['db_root_user', 'db_root_password', 'db_name', 'ranger_jdbc_connection_url', 'ranger_jdbc_driver']
+      RANGER: App.get('isHadoop23Stack') ? ['db_user', 'db_password', 'db_name', 'ranger.jpa.jdbc.url', 'ranger.jpa.jdbc.driver'] :
+          ['db_user', 'db_password', 'db_name', 'ranger_jdbc_connection_url', 'ranger_jdbc_driver']
     };
     return propertiesMap[this.get('parentView.service.serviceName')];
   }.property('App.isHadoop23Stack'),
@@ -1139,8 +1139,8 @@ App.CheckDBConnectionView = Ember.View.extend({
       db_connection_url: /jdbc\.url|connection_url|connectionurl|kdc_host/ig
     };
     if (this.get('parentView.service.serviceName') != "KERBEROS") {
-      patterns.user_name = /(username|dblogin|root_user)$/ig;
-      patterns.user_passwd = /(dbpassword|password|root_password)$/ig;
+      patterns.user_name = /(username|dblogin|db_user)$/ig;
+      patterns.user_passwd = /(dbpassword|password|db_password)$/ig;
     }
     return patterns;
   }.property('parentView.service.serviceName'),
