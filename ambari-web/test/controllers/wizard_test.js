@@ -914,11 +914,13 @@ describe('App.WizardController', function () {
     beforeEach(function () {
       c.set('content', {});
       sinon.stub(c, 'setDBProperties', Em.K);
+      sinon.stub(c, 'getDBProperty').withArgs('fileNamesToUpdate').returns([]);
       sinon.stub(App.config, 'shouldSupportFinal').returns(true);
     });
 
     afterEach(function () {
       c.setDBProperties.restore();
+      c.getDBProperty.restore();
       App.config.shouldSupportFinal.restore();
     });
 

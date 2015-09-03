@@ -580,7 +580,18 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     }
     // push config's file name if this config was stored on server
     if (!serviceConfigProperty.get('isNotSaved')) {
-      this.get('controller').get('modifiedFileNames').push(serviceConfigProperty.get('filename'));
+      var modifiedFileNames = this.get('controller.modifiedFileNames'),
+        wizardController = this.get('controller.wizardController'),
+        filename = serviceConfigProperty.get('filename');
+      if (modifiedFileNames && !modifiedFileNames.contains(filename)) {
+        modifiedFileNames.push(serviceConfigProperty.get('filename'));
+      } else if (wizardController) {
+        var fileNamesToUpdate = wizardController.getDBProperty('fileNamesToUpdate') || [];
+        if (!fileNamesToUpdate.contains(filename)) {
+          fileNamesToUpdate.push(filename);
+          wizardController.setDBProperty('fileNamesToUpdate', fileNamesToUpdate);
+        }
+      }
     }
     Em.$('body>.tooltip').remove(); //some tooltips get frozen when their owner's DOM element is removed
   },
