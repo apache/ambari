@@ -20,7 +20,7 @@ limitations under the License.
 
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.service import ServiceConfig
-from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.resources.system import Directory, Execute, File, Link
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.resources.template_config import TemplateConfig
 from resource_management.libraries.functions.format import format
@@ -92,6 +92,10 @@ def storm(name=None):
         group=params.user_group,
         content=Template("storm-metrics2.properties.j2")
     )
+
+    # Remove symlink. It can be there, if you doing upgrade from HDP < 2.2 to HDP >= 2.2
+    Link("/usr/lib/storm/lib/ambari-metrics-storm-sink.jar",
+         action="delete")
 
     Execute(format("{sudo} ln -s {metric_collector_sink_jar} {storm_lib_dir}/ambari-metrics-storm-sink.jar"),
             not_if=format("ls {storm_lib_dir}/ambari-metrics-storm-sink.jar"),
