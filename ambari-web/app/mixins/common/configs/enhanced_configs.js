@@ -562,6 +562,9 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         Em.keys(attributes).forEach(function (attributeName) {
           if (attributeName == 'delete') {
             if (!updateOnlyBoundaries) {
+              var fileName = App.config.getOriginalFileName(siteName);
+              var modifiedFileNames = self.get('modifiedFileNames');
+              var wizardController = self.get('wizardController');
               var dependentProperty = self.get('_dependentConfigValues').filterProperty('propertyName', propertyName).filterProperty('fileName', siteName).findProperty('configGroup', group && Em.get(group,'name'));
               if (dependentProperty) {
                 Em.set(dependentProperty, 'toDelete', true);
@@ -584,6 +587,15 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                   serviceDisplayName: service.get('displayName'),
                   recommendedValue: null
                 });
+              }
+              if (modifiedFileNames && !modifiedFileNames.contains(fileName)) {
+               modifiedFileNames.push(fileName);
+              } else if (wizardController) {
+                var fileNamesToUpdate = wizardController.getDBProperty('fileNamesToUpdate') || [];
+                if (!fileNamesToUpdate.contains(fileName)) {
+                  fileNamesToUpdate.push(fileName);
+                  wizardController.setDBProperty('fileNamesToUpdate', fileNamesToUpdate);
+                }
               }
             }
           } else if (stackProperty) {

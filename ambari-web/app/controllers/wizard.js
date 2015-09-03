@@ -43,7 +43,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     'allHostNames',
     'installOptions',
     'allHostNamesPattern',
-    'serviceComponents'
+    'serviceComponents',
+    'fileNamesToUpdate'
   ],
 
   sensibleConfigs: [
@@ -883,7 +884,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    */
   saveServiceConfigProperties: function (stepController) {
     var serviceConfigProperties = [];
-    var fileNamesToUpdate = [];
+    var fileNamesToUpdate = this.getDBProperty('fileNamesToUpdate') || [];
     var installedServiceNames = stepController.get('installedServiceNames') || [];
     var installedServiceNamesMap = {};
     var notAllowed = ['masterHost', 'masterHosts', 'slaveHosts', 'slaveHost'];
