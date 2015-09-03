@@ -59,7 +59,7 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
 
   knox_master_secret_path = '/usr/hdp/current/knox-server/data/security/master'
   knox_cert_store_path = '/usr/hdp/current/knox-server/data/security/keystores/gateway.jks'
-  knox_data_dir = '/usr/hdp/current/knox-server/data'
+  knox_data_dir = '/usr/hdp/current/knox-server/data/'
 
 knox_group = default("/configurations/knox-env/knox_group", "knox")
 mode = 0644

@@ -39,7 +39,7 @@ class TestKnoxGateway(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/data',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/data/',
                               owner = 'knox',
                               group = 'knox',
                               recursive = True
@@ -87,7 +87,7 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Execute', ('chown',
      '-R',
      'knox:knox',
-     '/usr/hdp/current/knox-server/data',
+     '/usr/hdp/current/knox-server/data/',
      '/var/log/knox',
      '/var/run/knox',
      '/usr/hdp/current/knox-server/conf',
@@ -245,7 +245,7 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Execute', ('tar',
      '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-data-backup.tar',
-     '/usr/hdp/current/knox-server/data'),
+     '/usr/hdp/current/knox-server/data/'),
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', '2.2.1.0-3242'),
@@ -286,7 +286,7 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Execute', ('tar',
      '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-data-backup.tar',
-     '/usr/hdp/current/knox-server/data'),
+     '/usr/hdp/current/knox-server/data/'),
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', '2.3.0.0-1234'),
@@ -330,7 +330,7 @@ class TestKnoxGateway(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
 
-    self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/data',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/data/',
                               owner = 'knox',
                               group = 'knox',
                               recursive = True
@@ -378,7 +378,7 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Execute', ('chown',
                                           '-R',
                                           'knox:knox',
-                                          '/usr/hdp/current/knox-server/data',
+                                          '/usr/hdp/current/knox-server/data/',
                                           '/var/log/knox',
                                           '/var/run/knox',
                                           '/usr/hdp/current/knox-server/conf', '/usr/hdp/current/knox-server/conf/topologies'),
