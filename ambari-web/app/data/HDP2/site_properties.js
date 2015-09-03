@@ -298,7 +298,6 @@ var hdp2properties = [
     "id": "site property",
     "name": "yarn.nodemanager.remote-app-log-dir",
     "displayName": "yarn.nodemanager.remote-app-log-dir",
-    "displayType": "directory",
     "serviceName": "YARN",
     "filename": "yarn-site.xml",
     "category": "NODEMANAGER"
