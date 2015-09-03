@@ -90,9 +90,7 @@ public class ApplicationHistoryClientService extends AbstractService {
 
     server =
         rpc.getServer(ApplicationHistoryProtocol.class, protocolHandler,
-          address, conf, null, conf.getInt(
-            YarnConfiguration.TIMELINE_SERVICE_HANDLER_THREAD_COUNT,
-            YarnConfiguration.DEFAULT_TIMELINE_SERVICE_CLIENT_THREAD_COUNT));
+          address, conf, null, metricConfiguration.getTimelineMetricsServiceHandlerThreadCount());
 
     server.start();
     this.bindAddress =

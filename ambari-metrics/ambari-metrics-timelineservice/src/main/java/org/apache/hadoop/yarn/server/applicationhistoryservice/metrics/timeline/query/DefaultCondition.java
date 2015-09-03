@@ -199,6 +199,11 @@ public class DefaultCondition implements Condition {
     this.noLimit = true;
   }
 
+  @Override
+  public boolean doUpdate() {
+    return false;
+  }
+
   public Integer getLimit() {
     if (noLimit) {
       return null;

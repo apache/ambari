@@ -122,8 +122,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
         + " seconds.");
 
       long startTime = clock.getTime();
-      boolean success = doWork(lastCheckPointTime,
-        lastCheckPointTime + SLEEP_INTERVAL);
+      boolean success = doWork(lastCheckPointTime, lastCheckPointTime + SLEEP_INTERVAL);
       long executionTime = clock.getTime() - startTime;
       long delta = SLEEP_INTERVAL - executionTime;
 
@@ -242,16 +241,19 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
       stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
 
       LOG.debug("Query issued @: " + new Date());
-      rs = stmt.executeQuery();
+      if (condition.doUpdate()) {
+        int rows = stmt.executeUpdate();
+        conn.commit();
+        LOG.info(rows + " row(s) updated.");
+      } else {
+        rs = stmt.executeQuery();
+      }
       LOG.debug("Query returned @: " + new Date());
 
       aggregate(rs, startTime, endTime);
       LOG.info("End aggregation cycle @ " + new Date());
 
-    } catch (SQLException e) {
-      LOG.error("Exception during aggregating metrics.", e);
-      success = false;
-    } catch (IOException e) {
+    } catch (SQLException | IOException e) {
       LOG.error("Exception during aggregating metrics.", e);
       success = false;
     } finally {

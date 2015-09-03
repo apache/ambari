@@ -56,50 +56,50 @@ public class PhoenixTransactSQL {
 
   public static final String CREATE_METRICS_AGGREGATE_TABLE_SQL =
     "CREATE TABLE IF NOT EXISTS %s " +
-      "(METRIC_NAME VARCHAR, " +
-      "HOSTNAME VARCHAR, " +
-      "APP_ID VARCHAR, " +
-      "INSTANCE_ID VARCHAR, " +
-      "SERVER_TIME UNSIGNED_LONG NOT NULL, " +
-      "UNITS CHAR(20), " +
-      "METRIC_SUM DOUBLE," +
-      "METRIC_COUNT UNSIGNED_INT, " +
-      "METRIC_MAX DOUBLE," +
-      "METRIC_MIN DOUBLE CONSTRAINT pk " +
-      "PRIMARY KEY (METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, " +
-      "SERVER_TIME)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, TTL=%s," +
-      " COMPRESSION='%s'";
+    "(METRIC_NAME VARCHAR, " +
+    "HOSTNAME VARCHAR, " +
+    "APP_ID VARCHAR, " +
+    "INSTANCE_ID VARCHAR, " +
+    "SERVER_TIME UNSIGNED_LONG NOT NULL, " +
+    "UNITS CHAR(20), " +
+    "METRIC_SUM DOUBLE," +
+    "METRIC_COUNT UNSIGNED_INT, " +
+    "METRIC_MAX DOUBLE," +
+    "METRIC_MIN DOUBLE CONSTRAINT pk " +
+    "PRIMARY KEY (METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, " +
+    "SERVER_TIME)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, TTL=%s," +
+    " COMPRESSION='%s'";
 
   public static final String CREATE_METRICS_CLUSTER_AGGREGATE_TABLE_SQL =
     "CREATE TABLE IF NOT EXISTS %s " +
-      "(METRIC_NAME VARCHAR, " +
-      "APP_ID VARCHAR, " +
-      "INSTANCE_ID VARCHAR, " +
-      "SERVER_TIME UNSIGNED_LONG NOT NULL, " +
-      "UNITS CHAR(20), " +
-      "METRIC_SUM DOUBLE, " +
-      "HOSTS_COUNT UNSIGNED_INT, " +
-      "METRIC_MAX DOUBLE, " +
-      "METRIC_MIN DOUBLE " +
-      "CONSTRAINT pk PRIMARY KEY (METRIC_NAME, APP_ID, INSTANCE_ID, " +
-      "SERVER_TIME)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
-      "TTL=%s, COMPRESSION='%s'";
+    "(METRIC_NAME VARCHAR, " +
+    "APP_ID VARCHAR, " +
+    "INSTANCE_ID VARCHAR, " +
+    "SERVER_TIME UNSIGNED_LONG NOT NULL, " +
+    "UNITS CHAR(20), " +
+    "METRIC_SUM DOUBLE, " +
+    "HOSTS_COUNT UNSIGNED_INT, " +
+    "METRIC_MAX DOUBLE, " +
+    "METRIC_MIN DOUBLE " +
+    "CONSTRAINT pk PRIMARY KEY (METRIC_NAME, APP_ID, INSTANCE_ID, " +
+    "SERVER_TIME)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
+    "TTL=%s, COMPRESSION='%s'";
 
   // HOSTS_COUNT vs METRIC_COUNT
   public static final String CREATE_METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_SQL =
     "CREATE TABLE IF NOT EXISTS %s " +
-      "(METRIC_NAME VARCHAR, " +
-      "APP_ID VARCHAR, " +
-      "INSTANCE_ID VARCHAR, " +
-      "SERVER_TIME UNSIGNED_LONG NOT NULL, " +
-      "UNITS CHAR(20), " +
-      "METRIC_SUM DOUBLE, " +
-      "METRIC_COUNT UNSIGNED_INT, " +
-      "METRIC_MAX DOUBLE, " +
-      "METRIC_MIN DOUBLE " +
-      "CONSTRAINT pk PRIMARY KEY (METRIC_NAME, APP_ID, INSTANCE_ID, " +
-      "SERVER_TIME)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
-      "TTL=%s, COMPRESSION='%s'";
+    "(METRIC_NAME VARCHAR, " +
+    "APP_ID VARCHAR, " +
+    "INSTANCE_ID VARCHAR, " +
+    "SERVER_TIME UNSIGNED_LONG NOT NULL, " +
+    "UNITS CHAR(20), " +
+    "METRIC_SUM DOUBLE, " +
+    "METRIC_COUNT UNSIGNED_INT, " +
+    "METRIC_MAX DOUBLE, " +
+    "METRIC_MIN DOUBLE " +
+    "CONSTRAINT pk PRIMARY KEY (METRIC_NAME, APP_ID, INSTANCE_ID, " +
+    "SERVER_TIME)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
+    "TTL=%s, COMPRESSION='%s'";
 
   /**
    * ALTER table to set new options
@@ -234,6 +234,29 @@ public class PhoenixTransactSQL {
     "METRIC_MIN " +
     "FROM %s";
 
+  /**
+   * Aggregate host metrics using a GROUP BY clause to take advantage of
+   * N - way parallel scan where N = number of regions.
+   */
+  public static final String GET_AGGREGATED_HOST_METRIC_GROUPBY_SQL = "UPSERT %s " +
+    "INTO %s (METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, SERVER_TIME, UNITS, " +
+    "METRIC_SUM, METRIC_COUNT, METRIC_MAX, METRIC_MIN) " +
+    "SELECT METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, MAX(SERVER_TIME), UNITS, " +
+    "SUM(METRIC_SUM), SUM(METRIC_COUNT), MAX(METRIC_MAX), MIN(METRIC_MIN) " +
+    "FROM %s WHERE SERVER_TIME >= %s AND SERVER_TIME < %s " +
+    "GROUP BY METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, UNITS";
+
+  /**
+   * Aggregate app metrics using a GROUP BY clause to take advantage of
+   * N - way parallel scan where N = number of regions.
+   */
+  public static final String GET_AGGREGATED_APP_METRIC_GROUPBY_SQL = "UPSERT %s " +
+    "INTO %s (METRIC_NAME, APP_ID, INSTANCE_ID, SERVER_TIME, UNITS, " +
+    "METRIC_SUM, METRIC_COUNT, METRIC_MAX, METRIC_MIN) SELECT METRIC_NAME, APP_ID, " +
+    "INSTANCE_ID, MAX(SERVER_TIME), UNITS, SUM(METRIC_SUM), SUM(%s), " +
+    "MAX(METRIC_MAX), MIN(METRIC_MIN) FROM %s WHERE SERVER_TIME >= %s AND " +
+    "SERVER_TIME < %s GROUP BY METRIC_NAME, APP_ID, INSTANCE_ID, UNITS";
+
   public static final String METRICS_RECORD_TABLE_NAME = "METRIC_RECORD";
   public static final String METRICS_AGGREGATE_MINUTE_TABLE_NAME =
     "METRIC_RECORD_MINUTE";
@@ -263,8 +286,8 @@ public class PhoenixTransactSQL {
     return String.format("/*+ NATIVE_TIME_RANGE(%s) */", (startTime - delta));
   }
 
-  public static PreparedStatement prepareGetMetricsSqlStmt(
-    Connection connection, Condition condition) throws SQLException {
+  public static PreparedStatement prepareGetMetricsSqlStmt(Connection connection,
+      Condition condition) throws SQLException {
 
     validateConditionIsNotEmpty(condition);
     validateRowCountLimit(condition);
@@ -323,15 +346,18 @@ public class PhoenixTransactSQL {
     }
 
     StringBuilder sb = new StringBuilder(stmtStr);
-    sb.append(" WHERE ");
-    sb.append(condition.getConditionClause());
-    String orderByClause = condition.getOrderByClause(true);
 
-    if (orderByClause != null) {
-      sb.append(orderByClause);
-    } else {
-      sb.append(" ORDER BY METRIC_NAME, SERVER_TIME ");
+    if (!(condition instanceof EmptyCondition)) {
+      sb.append(" WHERE ");
+      sb.append(condition.getConditionClause());
+      String orderByClause = condition.getOrderByClause(true);
+      if (orderByClause != null) {
+        sb.append(orderByClause);
+      } else {
+        sb.append(" ORDER BY METRIC_NAME, SERVER_TIME ");
+      }
     }
+
     if (condition.getLimit() != null) {
       sb.append(" LIMIT ").append(condition.getLimit());
     }
@@ -339,6 +365,7 @@ public class PhoenixTransactSQL {
     if (LOG.isDebugEnabled()) {
       LOG.debug("SQL: " + sb.toString() + ", condition: " + condition);
     }
+
     PreparedStatement stmt = null;
     try {
       stmt = connection.prepareStatement(sb.toString());
@@ -404,7 +431,7 @@ public class PhoenixTransactSQL {
 
   private static void validateRowCountLimit(Condition condition) {
     if (condition.getMetricNames() == null
-      || condition.getMetricNames().isEmpty() ) {
+        || condition.getMetricNames().isEmpty() ) {
       //aggregator can use empty metrics query
       return;
     }
