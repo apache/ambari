@@ -345,11 +345,13 @@ App.HostComponentView = Em.View.extend({
       if (!isSlave && !self.meetsCustomCommandReq(component, command)) {
         return;
       }
+
+      var isContextPresent =  (!isSlave && (command in App.HostComponentActionMap.getMap(self)) &&  App.HostComponentActionMap.getMap(self)[command].context);
       customCommands.push({
         label: self.getCustomCommandLabel(command, isSlave),
         service: component.get('serviceName'),
         hosts: hostComponent.get('hostName'),
-        context: isSlave ? null : App.HostComponentActionMap.getMap(self)[command].context,
+        context: isContextPresent ? App.HostComponentActionMap.getMap(self)[command].context : null,
         component: component.get('componentName'),
         command: command
       });
@@ -365,7 +367,7 @@ App.HostComponentView = Em.View.extend({
    * @returns {String}
    */
   getCustomCommandLabel: function (command, isSlave) {
-    if (isSlave) {
+    if (isSlave || !(command in App.HostComponentActionMap.getMap(this)) || !App.HostComponentActionMap.getMap(this)[command].label) {
       return Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(command)
     }
     return App.HostComponentActionMap.getMap(this)[command].label;
