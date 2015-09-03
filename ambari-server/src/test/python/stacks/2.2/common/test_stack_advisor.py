@@ -1149,6 +1149,80 @@ class TestHDP22StackAdvisor(TestCase):
       "changed-configurations": [ ]
     }
 
+    hiveService = {
+      "services": [
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/HIVE",
+          "StackServices": {
+            "service_name": "HIVE",
+            "service_version": "2.6.0.2.2",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1",
+                "component_category": "MASTER",
+                "component_name": "HIVE_SERVER",
+                "display_name": "HiveServer2",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": [
+                  "c6402.ambari.apache.org"
+                ]
+              },
+              "dependencies": []
+            },
+            {
+              "StackServiceComponents": {
+                "advertise_version": "true",
+                "cardinality": "1+",
+                "component_category": "SLAVE",
+                "component_name": "HIVE_CLIENT",
+                "display_name": "Hive Client",
+                "is_client": "true",
+                "is_master": "false",
+                "hostnames": [
+                  "c6402.ambari.apache.org",
+                  "c6403.ambari.apache.org"
+                ]
+              },
+              "dependencies": []
+            }
+          ]
+        },
+      ],
+      "configurations": {
+        "hive-env": {
+          "properties": {
+            "hive.heapsize": "200",
+            "hive.metastore.heapsize": "200",
+            "hive.client.heapsize": "200"
+          }
+        },
+        "hive-site": {
+          "properties": {
+            "hive.server2.authentication": "none",
+            "hive.server2.authentication.ldap.url": "",
+            "hive.server2.authentication.ldap.baseDN": "",
+            "hive.server2.authentication.kerberos.keytab": "",
+            "hive.server2.authentication.kerberos.principal": "",
+            "hive.server2.authentication.pam.services": "",
+            "hive.server2.custom.authentication.class": ""
+          }
+        },
+        "hiveserver2-site": {
+          "properties": {
+            "hive.security.authorization.manager": "",
+            "hive.security.authenticator.manager": ""
+          }
+        }
+      },
+      "changed-configurations": [ ]
+    }
+
     hosts = {
       "items" : [
         {
@@ -1285,6 +1359,19 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations['hive-site']['property_attributes']['hive.server2.tez.default.queues'], expected['hive-site']['property_attributes']['hive.server2.tez.default.queues'])
     self.assertEquals(configurations['hive-site']['properties']['hive.server2.tez.default.queues'], expected['hive-site']['properties']['hive.server2.tez.default.queues'])
+
+    # Hive heapsize properties
+    self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, hiveService, hosts)
+
+    # Recommended default values
+    self.assertEquals(configurations["hive-env"]["properties"]["hive.metastore.heapsize"], "512")
+    self.assertEquals(configurations["hive-env"]["properties"]["hive.heapsize"], "703")
+    self.assertEquals(configurations["hive-env"]["properties"]["hive.client.heapsize"], "1024")
+
+    # Recommended attributes for maximum values, minimum values defined in stack definition
+    self.assertEquals(configurations["hive-env"]["property_attributes"]["hive.heapsize"]["maximum"], "1877")
+    self.assertEquals(configurations["hive-env"]["property_attributes"]["hive.metastore.heapsize"]["maximum"], "1877")
+    self.assertEquals(configurations["hive-env"]["property_attributes"]["hive.client.heapsize"]["maximum"], "1877")
 
   def test_recommendMapredConfigurationAttributesWithPigService(self):
     configurations = {

@@ -242,7 +242,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveEnvProperty = self.putProperty(configurations, "hive-env", services)
     putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
     putHiveSitePropertyAttribute = self.putPropertyAttribute(configurations, "hive-site")
-
+    putHiveEnvPropertyAttributes = self.putPropertyAttribute(configurations, "hive-env")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     #  Storage
@@ -474,6 +474,24 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
               ("hive-site" not in services["configurations"]) or \
               ("hive-site" in services["configurations"] and "hive.server2.custom.authentication.class" in services["configurations"]["hive-site"]["properties"]):
         putHiveSitePropertyAttribute("hive.server2.custom.authentication.class", "delete", "true")
+
+    # HiveServer, Client, Metastore heapsize
+    hs_heapsize_multiplier = 3.0/8
+    hm_heapsize_multiplier = 1.0/8
+    # HiveServer2 and HiveMetastore located on the same host
+    hive_server_hosts = self.getHostsWithComponent("HIVE", "HIVE_SERVER", services, hosts)
+    hive_client_hosts = self.getHostsWithComponent("HIVE", "HIVE_CLIENT", services, hosts)
+
+    if hive_server_hosts is not None and len(hive_server_hosts):
+      hs_host_ram = hive_server_hosts[0]["Hosts"]["total_mem"]/1024
+      putHiveEnvProperty("hive.metastore.heapsize", max(512, int(hs_host_ram*hm_heapsize_multiplier)))
+      putHiveEnvProperty("hive.heapsize", max(512, int(hs_host_ram*hs_heapsize_multiplier)))
+      putHiveEnvPropertyAttributes("hive.metastore.heapsize", "maximum", max(1024, hs_host_ram))
+      putHiveEnvPropertyAttributes("hive.heapsize", "maximum", max(1024, hs_host_ram))
+
+    if hive_client_hosts is not None and len(hive_client_hosts):
+      putHiveEnvProperty("hive.client.heapsize", 1024)
+      putHiveEnvPropertyAttributes("hive.client.heapsize", "maximum", max(1024, int(hive_client_hosts[0]["Hosts"]["total_mem"]/1024)))
 
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):

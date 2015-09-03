@@ -23,8 +23,16 @@
 <configuration>
   <property>
     <name>hive.heapsize</name>
-    <value>1024</value>
+    <value>512</value>
     <description>Hive Java heap size</description>
+    <display-name>HiveServer2 Heap Size</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>2048</maximum>
+      <unit>MB</unit>
+      <increment-step>512</increment-step>
+    </value-attributes>
   </property>
 
   <!-- hive-env.sh -->
