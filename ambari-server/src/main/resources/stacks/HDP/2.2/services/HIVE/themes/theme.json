@@ -149,6 +149,18 @@
         },
         {
           "config": "hive-env/hive_exec_orc_storage_strategy",
+          "subsection-name": "optimization-row2-col1"
+        },
+        {
+          "config": "hive-env/hive.heapsize",
+          "subsection-name": "optimization-row2-col2"
+        },
+        {
+          "config": "hive-env/hive.metastore.heapsize",
+          "subsection-name": "optimization-row2-col2"
+        },
+        {
+          "config": "hive-env/hive.client.heapsize",
           "subsection-name": "optimization-row2-col2"
         },
         {
@@ -247,6 +259,39 @@
         "config": "hive-env/hive_exec_orc_storage_strategy",
         "widget": {
           "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-env/hive.heapsize",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-env/hive.metastore.heapsize",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-env/hive.client.heapsize",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
         }
       },
       {
