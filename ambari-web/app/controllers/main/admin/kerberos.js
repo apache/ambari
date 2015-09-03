@@ -521,7 +521,13 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
       });
     };
     this.updateKerberosDescriptor(kerberosDescriptor, configs);
-    this.restartServicesAfterRegenerate(false, callback);
+    if (this.get('isManualKerberos')) {
+      callback().done(function () {
+        self.regenerateKeytabsRequest(false,false);
+      });
+    } else {
+      this.restartServicesAfterRegenerate(false, callback);
+    }
   }
 
 });
