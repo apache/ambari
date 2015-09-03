@@ -46,6 +46,14 @@ var hdp22properties = hdp2properties.filter(function (item) {
 hdp22properties.push(
   {
     "id": "site property",
+    "name": "hive.server2.authentication.ldap.baseDN",
+    "serviceName": "HIVE",
+    "filename": "hive-site.xml",
+    "category": "Advanced hive-site",
+    "isRequired": false
+  },
+  {
+    "id": "site property",
     "name": "hive.zookeeper.quorum",
     "displayName": "hive.zookeeper.quorum",
     "recommendedValue": "localhost:2181",
