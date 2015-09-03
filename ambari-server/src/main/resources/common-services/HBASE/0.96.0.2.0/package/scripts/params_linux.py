@@ -106,6 +106,14 @@ regionserver_xmn_percent = config['configurations']['hbase-env']['hbase_regionse
 regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
 
 
+phoenix_hosts = default('/clusterHostInfo/phoenix_query_server_hosts', [])
+has_phoenix = len(phoenix_hosts) > 0
+
+if not has_phoenix:
+  exclude_packages = ['phoenix.+']
+else:
+  exclude_packages = []
+
 pid_dir = status_params.pid_dir
 tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 local_dir = config['configurations']['hbase-site']['hbase.local.dir']

@@ -33,7 +33,8 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 
 class HbaseRegionServer(Script):
   def install(self, env):
-    self.install_packages(env)
+    import params
+    self.install_packages(env, params.exclude_packages)
 
   def configure(self, env):
     import params

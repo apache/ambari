@@ -21,6 +21,7 @@ import tempfile
 
 __all__ = ["Script"]
 
+import re
 import os
 import sys
 import logging
@@ -351,6 +352,9 @@ class Script(object):
     List of packages that are required< by service is received from the server
     as a command parameter. The method installs all packages
     from this list
+    
+    exclude_packages - list of regexes (possibly raw strings as well), the
+    packages which match the regex won't be installed
     """
     config = self.get_config()
     if 'host_sys_prepped' in config['hostLevelParams']:
@@ -364,7 +368,7 @@ class Script(object):
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
-          if not package['name'] in exclude_packages:
+          if not Script.matches_any_regexp(package['name'], exclude_packages):
             name = package['name']
             # HACK: On Windows, only install ambari-metrics packages using Choco Package Installer
             # TODO: Update this once choco packages for hadoop are created. This is because, service metainfo.xml support
@@ -385,6 +389,14 @@ class Script(object):
                           hadoop_user, self.get_password(hadoop_user),
                           str(config['hostLevelParams']['stack_version']))
       reload_windows_env()
+      
+  @staticmethod
+  def matches_any_regexp(string, regexp_list):
+    for regex in regexp_list:
+      # adding ^ and $ to correctly match raw strings from begining to the end
+      if re.match('^' + regex + '$', string):
+        return True
+    return False
 
   @staticmethod
   def fail_with_error(message):
