@@ -31,7 +31,8 @@ limitations under the License.
   <packaging>jar</packaging>
 
   <properties>
-    <storm.version>0.9.3.2.2.1.0-2340</storm.version>
+    <!--<storm.version>0.9.3.2.2.1.0-2340</storm.version>-->
+    <storm.version>0.10.0.2.3.2.0-2766</storm.version>
   </properties>
 
   <build>
@@ -103,7 +104,8 @@ limitations under the License.
               <include>org.apache.hadoop:hadoop-annotations</include>
               <include>commons-httpclient:commons-httpclient</include>
               <include>commons-logging:commons-logging</include>
-              <include>commons-lang:commons-lang</include>
+              <include>org.apache.commons:commons-lang3</include>
+              <include>commons-codec:commons-codec</include>
             </includes>
           </artifactSet>
           <relocations>
@@ -116,10 +118,6 @@ limitations under the License.
               <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.httpclient</shadedPattern>
             </relocation>
             <relocation>
-              <pattern>org.apache.commons.lang</pattern>
-              <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.lang</shadedPattern>
-            </relocation>
-            <relocation>
               <pattern>org.apache.hadoop.classification</pattern>
               <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.hadoop.classification</shadedPattern>
             </relocation>
@@ -127,12 +125,30 @@ limitations under the License.
               <pattern>org.codehaus.jackson</pattern>
               <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.jackson</shadedPattern>
             </relocation>
+            <relocation>
+              <pattern>org.apache.commons.lang3</pattern>
+              <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.lang3</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.apache.commons.codec</pattern>
+              <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.codec</shadedPattern>
+            </relocation>
           </relocations>
         </configuration>
       </plugin>
     </plugins>
   </build>
   <dependencies>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.3.2</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.8</version>
+    </dependency>
     <dependency>
       <groupId>org.apache.storm</groupId>
       <artifactId>storm-core</artifactId>
