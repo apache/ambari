@@ -39,8 +39,18 @@ var excludedConfigs = [
   'xa_ldap_groupSearchBase',
   'xa_ldap_groupSearchFilter',
   'xa_ldap_groupRoleAttribute',
+  'ranger.ldap.base.dn',
+  'ranger.ldap.bind.dn',
+  'ranger.ldap.bind.password',
+  'ranger.ldap.referral',
+  'xa_ldap_userSearchFilter',
   'xa_ldap_ad_domain',
   'xa_ldap_ad_url',
+  'ranger.ldap.ad.base.dn',
+  'ranger.ldap.ad.bind.dn',
+  'ranger.ldap.ad.bind.password',
+  'ranger.ldap.ad.referral',
+  'xa_ldap_ad_userSearchFilter',
   'policymgr_http_enabled',
   'policymgr_external_url',
   'hbase.regionserver.global.memstore.lowerLimit',
@@ -590,11 +600,11 @@ hdp23properties.push({
     "options": [
       {
         displayName: 'LDAP',
-        foreignKeys: ['ranger.ldap.group.roleattribute', 'ranger.ldap.url', 'ranger.ldap.user.dnpattern']
+        foreignKeys: ['ranger.ldap.group.roleattribute', 'ranger.ldap.url', 'ranger.ldap.user.dnpattern','ranger.ldap.base.dn','ranger.ldap.bind.dn','ranger.ldap.bind.password','ranger.ldap.referral','ranger.ldap.user.searchfilter']
       },
       {
         displayName: 'ACTIVE_DIRECTORY',
-        foreignKeys: ['ranger.ldap.ad.domain', 'ranger.ldap.ad.url']
+        foreignKeys: ['ranger.ldap.ad.domain', 'ranger.ldap.ad.url','ranger.ldap.ad.base.dn','ranger.ldap.ad.bind.dn','ranger.ldap.ad.bind.password','ranger.ldap.ad.referral','ranger.ldap.ad.user.searchfilter']
       },
       {
         displayName: 'UNIX',
@@ -695,6 +705,61 @@ hdp23properties.push({
   },
   {
     "id": "site property",
+    "name": "ranger.ldap.base.dn",
+    "displayName": "ranger.ldap.base.dn",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "LDAPSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.ldap.bind.dn",
+    "displayName": "ranger.ldap.bind.dn",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "LDAPSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.ldap.bind.password",
+    "displayName": "ranger.ldap.bind.password",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "LDAPSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.ldap.referral",
+    "displayName": "ranger.ldap.referral",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "LDAPSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.ldap.user.searchfilter",
+    "displayName": "ranger.ldap.user.searchfilter",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "LDAPSettings"
+  },
+  {
+    "id": "site property",
     "name": "ranger.ldap.ad.domain",
     "displayName": "ranger.ldap.ad.domain",
     "isReconfigurable": true,
@@ -708,6 +773,60 @@ hdp23properties.push({
     "id": "site property",
     "name": "ranger.ldap.ad.url",
     "displayName": "ranger.ldap.ad.url",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "ADSettings"
+  },{
+    "id": "site property",
+    "name": "ranger.ldap.ad.base.dn",
+    "displayName": "ranger.ldap.ad.base.dn",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "ADSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.ldap.ad.bind.dn",
+    "displayName": "ranger.ldap.ad.bind.dn",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "ADSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.ldap.ad.bind.password",
+    "displayName": "ranger.ldap.ad.bind.password",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "ADSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.ldap.ad.referral",
+    "displayName": "ranger.ldap.ad.referral",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "ADSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.ldap.ad.user.searchfilter",
+    "displayName": "ranger.ldap.ad.user.searchfilter",
     "isReconfigurable": true,
     "isOverridable": false,
     "isVisible": true,
@@ -819,6 +938,15 @@ hdp23properties.push({
     "id": "site property",
     "name": "ranger.usersync.source.impl.class",
     "displayName": "ranger.usersync.source.impl.class",
+    "category": "Advanced ranger-ugsync-site",
+    "isRequired": false,
+    "serviceName": "RANGER",
+    "filename": "ranger-ugsync-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.usersync.ldap.referral",
+    "displayName": "ranger.usersync.ldap.referral",
     "category": "Advanced ranger-ugsync-site",
     "isRequired": false,
     "serviceName": "RANGER",
