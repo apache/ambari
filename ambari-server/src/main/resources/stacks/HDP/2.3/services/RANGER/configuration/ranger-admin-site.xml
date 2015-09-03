@@ -159,9 +159,40 @@
   </property>
 
   <property>
+    <name>ranger.ldap.user.searchfilter</name>
+    <value>(uid={0})</value>
+    <description>Search filter used for Bind Authentication</description>
+  </property>
+
+  <property>
     <name>ranger.ldap.group.roleattribute</name>
     <value>cn</value>
     <description></description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.base.dn</name>
+    <value>dc=example,dc=com</value>
+    <description>The Distinguished Name (DN) of the starting point for directory server searches.</description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.bind.dn</name>
+    <value>cn=adadmin,cn=Users,dc=example,dc=com</value>
+    <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. </description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.bind.password</name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <description>Password for the account that can search for users</description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.referral</name>
+    <value>ignore</value>
+    <description>Set to follow if multiple LDAP servers are configured to return continuation references for results. Set to ignore (default) if no referrals should be followed</description>
   </property>
 
   <property>
@@ -174,6 +205,37 @@
     <name>ranger.ldap.ad.url</name>
     <value>ldap://ad.xasecure.net:389</value>
     <description></description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.ad.base.dn</name>
+    <value>dc=example,dc=com</value>
+    <description>The Distinguished Name (DN) of the starting point for directory server searches.</description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.ad.bind.dn</name>
+    <value>cn=adadmin,cn=Users,dc=example,dc=com</value>
+    <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users.</description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.ad.bind.password</name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <description>Password for the account that can search for users</description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.ad.user.searchfilter</name>
+    <value>(sAMAccountName={0})</value>
+    <description>Search filter used for Bind Authentication</description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.ad.referral</name>
+    <value>ignore</value>
+    <description>"Set to follow if multiple LDAP servers are configured to return continuation references for results. Set to ignore (default) if no referrals should be followed"</description>
   </property>
 
   <property>
