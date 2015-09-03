@@ -1253,6 +1253,71 @@
               "pointInTime": true,
               "temporal": false
             },
+            "metrics/dfs/FSNamesystem/TransactionsSinceLastCheckpointvvvv": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.TransactionsSinceLastCheckpoint",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/TransactionsSinceLastLogRoll": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.TransactionsSinceLastLogRoll",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/ExpiredHeartbeats": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.ExpiredHeartbeats",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/LastCheckpointTime": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.LastCheckpointTime",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/LastWrittenTransactionId": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.LastWrittenTransactionId",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/MillisSinceLastLoadedEdits": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.MillisSinceLastLoadedEdits",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/MissingReplOneBlocks": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.MissingReplOneBlocks",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/PendingDataNodeMessageCount": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.PendingDataNodeMessageCount",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/PostponedMisreplicatedBlocks": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.PostponedMisreplicatedBlocks",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/Snapshots": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.Snapshots",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/SnapshottableDirectories": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.SnapshottableDirectories",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/StaleDataNodes": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.StaleDataNodes",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/TotalFiles": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.TotalFiles",
+              "pointInTime": true,
+              "temporal": false
+            },
             "metrics/jvm/memMaxM": {
               "metric": "Hadoop:service=NameNode,name=JvmMetrics.MemMaxM",
               "pointInTime": true,
@@ -3204,6 +3269,71 @@
             },
             "metrics/dfs/FSNamesystem/TotalLoad": {
               "metric": "Hadoop:service=NameNode,name=FSNamesystem.TotalLoad",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/TransactionsSinceLastCheckpoint": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.TransactionsSinceLastCheckpoint",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/TransactionsSinceLastLogRoll": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.TransactionsSinceLastLogRoll",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/ExpiredHeartbeats": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.ExpiredHeartbeats",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/LastCheckpointTime": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.LastCheckpointTime",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/LastWrittenTransactionId": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.LastWrittenTransactionId",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/MillisSinceLastLoadedEdits": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.MillisSinceLastLoadedEdits",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/MissingReplOneBlocks": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.MissingReplOneBlocks",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/PendingDataNodeMessageCount": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.PendingDataNodeMessageCount",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/PostponedMisreplicatedBlocks": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.PostponedMisreplicatedBlocks",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/Snapshots": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.Snapshots",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/SnapshottableDirectories": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.SnapshottableDirectories",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/StaleDataNodes": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.StaleDataNodes",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/TotalFiles": {
+              "metric": "Hadoop:service=NameNode,name=FSNamesystem.TotalFiles",
               "pointInTime": true,
               "temporal": false
             },
