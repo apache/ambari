@@ -533,7 +533,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     } else {
       this.restartServicesAfterRegenerate(false, callback);
     }
-  }
+  },
 
   /**
    * List of the warnings regarding specific services before enabling/disabling Kerberos.
