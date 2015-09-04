@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.cluster.Cluster;
+import org.apache.ambari.view.utils.ambari.AmbariApi;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -36,35 +37,13 @@ import com.google.inject.Singleton;
 @Singleton
 public class ViewControllerImpl implements ViewController {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ViewControllerImpl.class);
+  private AmbariApi ambariApi;
 
-  private final static String TYPE_YARN_SITE = "yarn-site";
-  private final String YARN_HTTP_POLICY_PROPERTY = "yarn.http.policy";
-  private final static Map<String, String> HTTP_PROPERTY_MAP = new HashMap<String, String>();
-  private final static Map<String, String> HTTPS_PROPERTY_MAP = new HashMap<String, String>();
-  private final static String YARN_TIMELINE_WEBAPP_HTTP_ADDRESS_PROPERTY =
-      "yarn.timeline-service.webapp.address";
-  private final static String YARN_RM_WEBAPP_HTTP_ADDRESS_PROPERTY =
-      "yarn.resourcemanager.webapp.address";
-  private final static String YARN_TIMELINE_WEBAPP_HTTPS_ADDRESS_PROPERTY =
-      "yarn.timeline-service.webapp.https.address";
-  private final static String YARN_RM_WEBAPP_HTTPS_ADDRESS_PROPERTY =
-      "yarn.resourcemanager.webapp.https.address";
-  private final static String YARN_HTTPS_ONLY = "HTTPS_ONLY";
-
-  static {
-    HTTP_PROPERTY_MAP.put(ViewController.PARAM_YARN_ATS_URL,
-        YARN_TIMELINE_WEBAPP_HTTP_ADDRESS_PROPERTY);
-    HTTP_PROPERTY_MAP.put(ViewController.PARAM_YARN_RESOURCEMANAGER_URL,
-        YARN_RM_WEBAPP_HTTP_ADDRESS_PROPERTY);
-    HTTPS_PROPERTY_MAP.put(ViewController.PARAM_YARN_ATS_URL,
-        YARN_TIMELINE_WEBAPP_HTTPS_ADDRESS_PROPERTY);
-    HTTPS_PROPERTY_MAP.put(ViewController.PARAM_YARN_RESOURCEMANAGER_URL,
-        YARN_RM_WEBAPP_HTTPS_ADDRESS_PROPERTY);
-  }
 
   @Inject
-  private ViewContext viewContext;
+  public ViewControllerImpl(ViewContext viewContext) {
+    this.ambariApi = new AmbariApi(viewContext);
+  }
 
   /**
    * Because only an admin user is allowed to see the properties in
@@ -77,50 +56,11 @@ public class ViewControllerImpl implements ViewController {
   public ViewStatus getViewStatus() {
     ViewStatus status = new ViewStatus();
     Map<String, String> parameters = new HashMap<String, String>();
-    parameters.put(ViewController.PARAM_YARN_ATS_URL, getViewParameterValue(ViewController.PARAM_YARN_ATS_URL));
-    parameters.put(ViewController.PARAM_YARN_RESOURCEMANAGER_URL, getViewParameterValue(ViewController.PARAM_YARN_RESOURCEMANAGER_URL));
+    parameters.put(ViewController.PARAM_YARN_ATS_URL, ambariApi.getServices().getTimelineServerUrl());
+    parameters.put(ViewController.PARAM_YARN_RESOURCEMANAGER_URL, ambariApi.getServices().getRMUrl());
     status.setParameters(parameters);
     return status;
   }
 
-  /**
-   * @param parameterName Parameter to get the value for
-   * @return Returns the value of the given parameter
-   */
-  private String getViewParameterValue(String parameterName) {
-    String value = null;
-    Cluster cluster = viewContext.getCluster();
-    if (cluster == null) {
-      value = viewContext.getProperties().get(parameterName);
-    } else {
-      if (!parameterName.equals(ViewController.PARAM_YARN_ATS_URL)
-          && !parameterName.equals(ViewController.PARAM_YARN_RESOURCEMANAGER_URL)) {
-        throw new RuntimeException("Requested configured value for unknown parameter: "
-            + parameterName);
-      }
-
-      String httpPolicy = cluster.getConfigurationValue(TYPE_YARN_SITE, YARN_HTTP_POLICY_PROPERTY);
-      if (httpPolicy != null && httpPolicy.equalsIgnoreCase(YARN_HTTPS_ONLY)) {
-        String addr = cluster.getConfigurationValue(TYPE_YARN_SITE,
-            HTTPS_PROPERTY_MAP.get(parameterName));
-        if (!addr.startsWith("https")) {
-          value = "https://" + addr;
-        }
-      } else {
-        String addr = cluster.getConfigurationValue(TYPE_YARN_SITE,
-            HTTP_PROPERTY_MAP.get(parameterName));
-        if (!addr.startsWith("http")) {
-          value = "http://" + addr;
-        }
-      }
-    }
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("ViewControllerImpl, paramName=" + parameterName
-          + ", value=" + value);
-    }
-    if ("null".equals(value)) {
-      return null;
-    }
-    return value;
-  }
 }
+
