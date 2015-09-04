@@ -503,20 +503,18 @@ public abstract class KerberosOperationHandler {
       throw new KerberosAdminAuthenticationException("The administrator credential must not be null");
     }
 
-    String value;
-
     // Ensure the principal is not null or empty
-    value = administratorCredentials.getPrincipal();
-    if ((value == null) || value.isEmpty()) {
+    String principal = administratorCredentials.getPrincipal();
+    if ((principal == null) || principal.isEmpty()) {
       throw new KerberosAdminAuthenticationException("Must specify a principal but it is null or empty");
     }
 
     // Ensure either the password or the keytab value is not null or empty
-    value = administratorCredentials.getPassword();
-    if ((value == null) || value.isEmpty()) {
-      value = administratorCredentials.getKeytab();
+    char[] password  = administratorCredentials.getPassword();
+    if ((password == null) || (password.length == 0)) {
+      String keytab  = administratorCredentials.getKeytab();
 
-      if ((value == null) || value.isEmpty()) {
+      if ((keytab == null) || keytab.isEmpty()) {
         throw new KerberosAdminAuthenticationException("Must specify either a password or a keytab but both are null or empty");
       }
     }

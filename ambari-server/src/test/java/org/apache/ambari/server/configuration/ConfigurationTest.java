@@ -60,7 +60,7 @@ import com.google.inject.Injector;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Configuration.class })
-@PowerMockIgnore( {"javax.management.*"})
+@PowerMockIgnore( {"javax.management.*", "javax.crypto.*"})
 public class ConfigurationTest {
   public TemporaryFolder temp = new TemporaryFolder();
   private Injector injector;

@@ -61,7 +61,7 @@ public class KerberosCredential {
   /**
    * The plaintext password value
    */
-  private String password = null;
+  private char[] password = null;
 
   /**
    * A base64-encoded keytab
@@ -94,7 +94,7 @@ public class KerberosCredential {
     if (map != null) {
       Object attribute;
       String principal;
-      String password;
+      char[] password;
       String keytab;
 
       if (prefix == null) {
@@ -105,13 +105,19 @@ public class KerberosCredential {
       principal = (attribute == null) ? null : attribute.toString();
 
       attribute = map.get(prefix + KEY_NAME_PASSWORD);
-      password = (attribute == null) ? null : attribute.toString();
+      if (attribute instanceof char[]) {
+        password = (char[]) attribute;
+      } else if (attribute instanceof String) {
+        password = ((String) attribute).toCharArray();
+      } else {
+        password = null;
+      }
 
       attribute = map.get(prefix + KEY_NAME_KEYTAB);
       keytab = (attribute == null) ? null : attribute.toString();
 
       if (((principal != null) && !principal.isEmpty()) ||
-          ((password != null) && !password.isEmpty()) ||
+          ((password != null) && (password.length > 0)) ||
           ((keytab != null) && !keytab.isEmpty())) {
         credential = new KerberosCredential(principal, password, keytab);
       }
@@ -141,7 +147,7 @@ public class KerberosCredential {
         Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, secretKey);
         byte[] plaintext = cipher.doFinal(Base64.decodeBase64(cipherText));
-        return new Gson().fromJson(new String(plaintext), KerberosCredential.class);
+        return fromJSON(new String(plaintext));
       } catch (NoSuchAlgorithmException e) {
         throw new AmbariException("Failed to decrypt cipher text due to invalid encryption algorithm", e);
       } catch (NoSuchPaddingException e) {
@@ -184,7 +190,7 @@ public class KerberosCredential {
       } catch (NoSuchPaddingException e) {
         throw new AmbariException("Failed to encrypt plaintext due to invalid padding scheme algorithm", e);
       } catch (IllegalBlockSizeException e) {
-        throw new AmbariException("Failed to encrypt plaintext due to invalid key", e);
+        throw new AmbariException("The encryption algorithm is unable to process the input data provided.", e);
       } catch (BadPaddingException e) {
         throw new AmbariException("Failed to encrypt plaintext due to unexpected reasons", e);
       } catch (InvalidKeyException e) {
@@ -206,10 +212,10 @@ public class KerberosCredential {
    * Creates a new KerberosCredential
    *
    * @param principal a String containing the principal name for this Kerberos credential
-   * @param password  a String containing the password for this Kerberos credential
+   * @param password  a char array containing the password for this Kerberos credential
    * @param keytab    a String containing the base64 encoded keytab for this Kerberos credential
    */
-  public KerberosCredential(String principal, String password, String keytab) {
+  public KerberosCredential(String principal, char[] password, String keytab) {
     this.principal = principal;
     this.password = password;
     this.keytab = keytab;
@@ -230,16 +236,16 @@ public class KerberosCredential {
   }
 
   /**
-   * @return a String containing the password for this Kerberos credential
+   * @return a char array containing the password for this Kerberos credential
    */
-  public String getPassword() {
+  public char[] getPassword() {
     return password;
   }
 
   /**
-   * @param password a String containing the password for this Kerberos credential
+   * @param password a char array containing the password for this Kerberos credential
    */
-  public void setPassword(String password) {
+  public void setPassword(char[] password) {
     this.password = password;
   }
 
@@ -269,5 +275,29 @@ public class KerberosCredential {
    */
   public String encrypt(byte[] key) throws AmbariException {
     return encrypt(this, key);
+  }
+
+  /**
+   * Returns a JSON representation of this KerberosCredential
+   *
+   * @return a String containing the JSON representation of this KerberosCredential
+   */
+  public String toJSON() {
+    return new Gson().toJson(this);
+  }
+
+  /**
+   * Renders a new KerberosCredential from its JSON representation
+   *
+   * @param json a string containing a JSON representation of a KerberosCredential
+   * @return a new KerberosCredential or null if a new KerberosCredential cannot be created
+   */
+  public static KerberosCredential fromJSON(String json) {
+    try {
+      return ((json == null) || json.isEmpty()) ? null : new Gson().fromJson(json, KerberosCredential.class);
+    }
+    catch(JsonSyntaxException e) {
+      return null;
+    }
   }
 }

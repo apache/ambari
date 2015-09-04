@@ -22,48 +22,54 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CredentialProvider {
-  public static final Pattern PASSWORD_ALIAS_PATTERN =
-    Pattern.compile("\\$\\{alias=[\\w\\.]+\\}");
+  public static final Pattern PASSWORD_ALIAS_PATTERN = Pattern.compile("\\$\\{alias=[\\w\\.]+\\}");
 
-  protected char[] chars = { 'a', 'b', 'c', 'd', 'e', 'f', 'g',
-    'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
-    'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K',
-    'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-    '2', '3', '4', '5', '6', '7', '8', '9'};
+  protected char[] chars = {'a', 'b', 'c', 'd', 'e', 'f', 'g',
+      'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
+      'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K',
+      'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+      '2', '3', '4', '5', '6', '7', '8', '9'};
 
   private CredentialStoreService keystoreService;
   static final Logger LOG = LoggerFactory.getLogger(CredentialProvider.class);
 
   public CredentialProvider(String masterKey, String masterKeyLocation,
-              boolean isMasterKeyPersisted) throws AmbariException {
+                            boolean isMasterKeyPersisted) throws AmbariException {
     MasterKeyService masterKeyService;
     if (masterKey != null) {
       masterKeyService = new MasterKeyServiceImpl(masterKey);
     } else {
-      masterKeyService = new MasterKeyServiceImpl(masterKeyLocation,
-        isMasterKeyPersisted);
+      if (isMasterKeyPersisted) {
+        if ((masterKeyLocation == null) || masterKeyLocation.isEmpty()) {
+          throw new IllegalArgumentException("The master key file location may not be null or empty if the master key is persisted");
+        }
+        masterKeyService = new MasterKeyServiceImpl(new File(masterKeyLocation));
+      } else {
+        masterKeyService = new MasterKeyServiceImpl();
+      }
     }
     if (!masterKeyService.isMasterKeyInitialized()) {
       throw new AmbariException("Master key initialization failed.");
     }
     String storeDir = masterKeyLocation.substring(0,
-      masterKeyLocation.indexOf(Configuration.MASTER_KEY_FILENAME_DEFAULT));
-    this.keystoreService = new CredentialStoreServiceImpl(storeDir);
+        masterKeyLocation.indexOf(Configuration.MASTER_KEY_FILENAME_DEFAULT));
+    this.keystoreService = new FileBasedCredentialStoreService(storeDir);
     this.keystoreService.setMasterKeyService(masterKeyService);
   }
 
   public char[] getPasswordForAlias(String alias) throws AmbariException {
-    if (isAliasString(alias))
+    if (isAliasString(alias)) {
       return keystoreService.getCredential(getAliasFromString(alias));
+    }
     return keystoreService.getCredential(alias);
   }
 
@@ -73,13 +79,14 @@ public class CredentialProvider {
   }
 
   public void addAliasToCredentialStore(String alias, String passwordString)
-    throws AmbariException {
-    if (alias == null || alias.isEmpty())
+      throws AmbariException {
+    if (alias == null || alias.isEmpty()) {
       throw new IllegalArgumentException("Alias cannot be null or empty.");
-    if (passwordString == null || passwordString.isEmpty())
-      throw new IllegalArgumentException("Empty or null password not allowed" +
-        ".");
-    keystoreService.addCredential(alias, passwordString);
+    }
+    if (passwordString == null || passwordString.isEmpty()) {
+      throw new IllegalArgumentException("Empty or null password not allowed.");
+    }
+    keystoreService.addCredential(alias, passwordString.toCharArray());
   }
 
   private String generatePassword(int length) {
@@ -92,15 +99,15 @@ public class CredentialProvider {
   }
 
   public static boolean isAliasString(String aliasStr) {
-    if (aliasStr == null || aliasStr.isEmpty())
+    if (aliasStr == null || aliasStr.isEmpty()) {
       return false;
+    }
     Matcher matcher = PASSWORD_ALIAS_PATTERN.matcher(aliasStr);
     return matcher.matches();
   }
 
   private String getAliasFromString(String strPasswd) {
-    return strPasswd.substring(strPasswd.indexOf("=") + 1,
-      strPasswd.length() - 1);
+    return strPasswd.substring(strPasswd.indexOf("=") + 1, strPasswd.length() - 1);
   }
 
   protected CredentialStoreService getKeystoreService() {
@@ -113,8 +120,8 @@ public class CredentialProvider {
    * args[1] => Alias
    * args[2] => Payload (FilePath for GET/Password for PUT)
    * args[3] => Master Key (Empty)
-   * @param args
    *
+   * @param args
    */
   public static void main(String args[]) {
     if (args != null && args.length > 0) {
@@ -130,15 +137,14 @@ public class CredentialProvider {
         System.exit(1);
       }
       // None - To avoid incorrectly assuming redirection as argument
-      if (args.length > 3 && !args[3].isEmpty() && !args[3].equalsIgnoreCase
-        ("None")) {
+      if (args.length > 3 && !args[3].isEmpty() && !args[3].equalsIgnoreCase("None")) {
         masterKey = args[3];
         LOG.debug("Master key provided as an argument.");
       }
       try {
         credentialProvider = new CredentialProvider(masterKey,
-          configuration.getMasterKeyLocation(),
-          configuration.isMasterKeyPersisted());
+            configuration.getMasterKeyLocation(),
+            configuration.isMasterKeyPersisted());
       } catch (Exception ex) {
         ex.printStackTrace();
         System.exit(1);
@@ -150,7 +156,7 @@ public class CredentialProvider {
           password = args[2];
         }
         if (alias != null && !alias.isEmpty()
-          && password != null && !password.isEmpty()) {
+            && password != null && !password.isEmpty()) {
           try {
             credentialProvider.addAliasToCredentialStore(alias, password);
           } catch (AmbariException e) {
@@ -166,7 +172,7 @@ public class CredentialProvider {
           writeFilePath = args[2];
         }
         if (alias != null && !alias.isEmpty() && writeFilePath != null &&
-          !writeFilePath.isEmpty()) {
+            !writeFilePath.isEmpty()) {
           String passwd = "";
           try {
             char[] retPasswd = credentialProvider.getPasswordForAlias(alias);

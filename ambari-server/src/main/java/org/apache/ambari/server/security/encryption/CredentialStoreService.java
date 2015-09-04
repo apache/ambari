@@ -20,10 +20,39 @@ package org.apache.ambari.server.security.encryption;
 
 import org.apache.ambari.server.AmbariException;
 
-import java.security.KeyStore;
-
 public interface CredentialStoreService {
-  public void addCredential(String alias, String key) throws AmbariException;
-  public char[] getCredential(String alias) throws AmbariException;
-  public void setMasterKeyService(MasterKeyService masterService);
+  /**
+   * Adds a new credential to this CredentialStoreService
+   * <p/>
+   * The supplied key will be converted into UTF-8 bytes before being stored.
+   *
+   * @param alias a string declaring the alias (or name) of the credential
+   * @param key   an array of chars containing the credential
+   * @throws AmbariException if an error occurs while storing the new credential
+   */
+  void addCredential(String alias, char[] key) throws AmbariException;
+
+  /**
+   * Retrieves the specified credential from this CredentialStoreService
+   *
+   * @param alias a string declaring the alias (or name) of the credential
+   * @return an array of chars containing the credential
+   * @throws AmbariException if an error occurs while retrieving the new credential
+   */
+  char[] getCredential(String alias) throws AmbariException;
+
+  /**
+   * Removes the specified credential from this CredentialStoreService
+   *
+   * @param alias a string declaring the alias (or name) of the credential
+   * @throws AmbariException if an error occurs while removing the new credential
+   */
+  void removeCredential(String alias) throws AmbariException;
+
+  /**
+   * Sets the MasterKeyService for this CredentialStoreService
+   *
+   * @param masterKeyService the MasterKeyService
+   */
+  void setMasterKeyService(MasterKeyService masterKeyService);
 }

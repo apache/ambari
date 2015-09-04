@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticationException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosCredential;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriter;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
@@ -415,6 +416,34 @@ public interface KerberosHelper {
                                                                           boolean replaceHostNames)
       throws AmbariException;
 
+  /**
+   * Sets the KDC administrator credentials.
+   * <p/>
+   * It is up to the implementation to determine how to store
+   * these credentials and for how long.
+   *
+   * @param credentials the KDC administrator credentials
+   * @throws AmbariException if an error occurs while storing the credentials
+   */
+  void setKDCCredentials(KerberosCredential credentials) throws AmbariException;
+
+  /**
+   * Removes the previously set KDC administrator credentials.
+   *
+   * @throws AmbariException if an error occurs while removing the credentials
+   * @see KerberosHelper#setKDCCredentials(KerberosCredential)
+   */
+  void removeKDCCredentials() throws AmbariException;
+
+  /**
+   * Gets the previously stored KDC administrator credentials.
+   *
+   * @return a KerberosCredential or null, if the KDC administrator credentials have not be set or
+   * have been removed
+   * @throws AmbariException if an error occurs while retrieving the credentials
+   * @see KerberosHelper#setKDCCredentials(KerberosCredential)
+   */
+  KerberosCredential getKDCCredentials() throws AmbariException;
 
   /**
    * Command to invoke against the Ambari backend.
