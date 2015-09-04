@@ -80,12 +80,12 @@ module.exports = App.WizardRoute.extend({
       widgetWizardController.save('widgetType', widgetStep1controller.get('widgetType'));
       widgetWizardController.setDBProperties({
         widgetProperties: {},
-        widgetMetrics: {},
-        allMetrics: {},
-        widgetValues: {},
-        expressions: {},
-        dataSets: {},
-        templateValue: {}
+        widgetMetrics: [],
+        allMetrics: [],
+        widgetValues: [],
+        expressions: [],
+        dataSets: [],
+        templateValue: ''
       });
       router.transitionTo('step2');
     }
