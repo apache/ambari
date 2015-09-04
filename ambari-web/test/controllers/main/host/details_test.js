@@ -2572,7 +2572,7 @@ describe('App.MainHostDetailsController', function () {
       controller.deleteHostSuccessCallback();
       expect(App.router.get.calledWith('updateController')).to.be.true;
       expect(mock.updateHost.calledOnce).to.be.true;
-      expect(controller.loadConfigs.called).to.be.true;
+      expect(controller.loadConfigs.called).to.be.false;
       expect(App.router.transitionTo.calledWith('hosts.index')).to.be.true;
       expect(App.router.get.calledWith('clusterController')).to.be.true;
       expect(mock.getAllHostNames.calledOnce).to.be.true;
