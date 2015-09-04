@@ -45,7 +45,8 @@ def setup_hdp_install_directory():
 def setup_config():
   import params
   stackversion = params.stack_version_unformatted
-  if params.has_namenode or stackversion.find('Gluster') >= 0:
+  Logger.info("Service Type: {0}".format(params.service_type))
+  if params.has_namenode or stackversion.find('Gluster') >= 0 or params.service_type == 'HCFS':
     # create core-site only if the hadoop config diretory exists
     XmlConfig("core-site.xml",
               conf_dir=params.hadoop_conf_dir,

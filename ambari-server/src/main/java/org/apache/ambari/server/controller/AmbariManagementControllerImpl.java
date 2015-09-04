@@ -1883,6 +1883,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
+    LOG.info("Adding service type info in createHostAction:: " + serviceInfo.getServiceType());
+    execCmd.setServiceType(serviceInfo.getServiceType());
+    
     execCmd.setConfigurations(configurations);
     execCmd.setConfigurationAttributes(configurationAttributes);
     execCmd.setConfigurationTags(configTags);
