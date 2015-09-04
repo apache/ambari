@@ -70,7 +70,7 @@
                       <td class="package-version">{{warning.target}}</td>
                     {{/if}}
                     <td>{{category.action}}
-                      <a href="javascript:void(null);" rel='HostsListTooltip' {{bindAttr data-original-title="warning.hostsList"}} {{action showHostsPopup warning.hosts}}>
+                      <a href="javascript:void(null);" rel='HostsListTooltip' {{bindAttr data-original-title="warning.hostsList"}} {{action showHostsPopup warning.hostsLong}}>
                         {{warning.hosts.length}}
                         {{#if warning.onSingleHost}}
                           {{t installer.step3.hostWarningsPopup.host}}
