@@ -49,7 +49,7 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
     var loadedClusterSiteToTagMap = {};
 
     for (var site in Em.get(data, 'Clusters.desired_configs')) {
-      if (serviceConfigsDef.configTypes.hasOwnProperty(site)) {
+      if (serviceConfigsDef.get('configTypes').hasOwnProperty(site)) {
         loadedClusterSiteToTagMap[site] = data.Clusters.desired_configs[site]['tag'];
       }
     }

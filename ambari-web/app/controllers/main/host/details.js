@@ -191,6 +191,24 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
+   * Return true if hdfs user data is loaded via App.MainServiceInfoConfigsController
+   */
+  getHdfsUser: function () {
+    var self = this;
+    var dfd = $.Deferred();
+    var miscController = App.MainAdminServiceAccountsController.create();
+    miscController.loadUsers();
+    var interval = setInterval(function () {
+      if (miscController.get('dataIsLoaded') && miscController.get('users')) {
+        self.set('content.hdfsUser', miscController.get('users').findProperty('name', 'hdfs_user').get('value'));
+        dfd.resolve();
+        clearInterval(interval);
+      }
+    }, 10);
+    return dfd.promise();
+  },
+
+  /**
    * this function will be called from :1) stop NN 2) restart NN 3) stop all components
    * @param callback - callback function to continue next operation
    * @param hostname - namenode host (by default is current host)
@@ -202,12 +220,14 @@ App.MainHostDetailsController = Em.Controller.extend({
       self.set('isNNCheckpointTooOld', null);
       if (isNNCheckpointTooOld) {
         // too old
-        var msg = Em.Object.create({
-          confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld') +
-            Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(isNNCheckpointTooOld),
-          confirmButton: Em.I18n.t('common.next')
+        self.getHdfsUser().done(function() {
+          var msg = Em.Object.create({
+            confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld') +
+              Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(isNNCheckpointTooOld, self.get('content.hdfsUser')),
+            confirmButton: Em.I18n.t('common.next')
+          });
+          return App.showConfirmationFeedBackPopup(callback, msg);
         });
-        return App.showConfirmationFeedBackPopup(callback, msg);
       } else if (isNNCheckpointTooOld == null) {
         // not available
         return App.showConfirmationPopup(
