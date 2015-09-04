@@ -922,7 +922,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (!Em.isNone(mappedConfigValue) && ((installedServiceNames && installedServiceNames.contains(_config.serviceName) || nonServiceTab.someProperty('serviceName', _config.serviceName)))) {
         // prevent overriding already edited properties
         if (_config.savedValue != mappedConfigValue || _config.displayType == 'password') {
-          _config.value = mappedConfigValue;
+          _config.value = App.config.formatPropertyValue(_config, mappedConfigValue);
         }
         _config.savedValue = mappedConfigValue;
         _config.hasInitialValue = true;

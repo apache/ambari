@@ -118,18 +118,12 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
           var self = this;
           var dfd = $.Deferred();
           this.loadKerberosDescriptorConfigs().done(function() {
-            if (App.get('isClusterSupportsEnhancedConfigs')) {
-              var serviceNames = App.StackService.find().filter(function(s) {
-                return s.get('isSelected') || s.get('isInstalled');
-              }).mapProperty('serviceName');
-              self.loadConfigThemes().then(function() {
-                dfd.resolve();
-              });
-            }
-            else {
-              self.set('stackConfigsLoaded', true);
+            var serviceNames = App.StackService.find().filter(function(s) {
+              return s.get('isSelected') || s.get('isInstalled');
+            }).mapProperty('serviceName');
+            self.loadConfigThemes().then(function() {
               dfd.resolve();
-            }
+            });
             self.loadServiceConfigGroups();
             self.loadServiceConfigProperties();
           });
