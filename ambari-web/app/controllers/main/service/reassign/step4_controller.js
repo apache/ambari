@@ -675,6 +675,13 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     if (!App.get('isHaEnabled') && App.Service.find('ACCUMULO').get('isLoaded')) {
       configs['accumulo-site']['instance.volumes'] = configs['accumulo-site']['instance.volumes'].replace(/\/\/[^\/]*/, '//' + targetHostName + ':8020');
     }
+    if (App.Service.find('ACCUMULO').get('isLoaded')) {
+      var target = 'hdfs://' + this.get('content.reassignHosts.target') + ':8020' + '/apps/accumulo/data';
+      var source = 'hdfs://' + this.get('content.reassignHosts.source') + ':8020' + '/apps/accumulo/data';
+      if (configs['accumulo-site']) {
+        configs['accumulo-site']['instance.volumes.replacements'] = source + ' ' + target;
+      }
+    }
   },
 
   /**
@@ -688,21 +695,21 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     if (App.get('isRMHaEnabled')) {
       if (configs['yarn-site']['yarn.resourcemanager.hostname.rm1'] === sourceHostName) {
         configs['yarn-site']['yarn.resourcemanager.hostname.rm1'] = targetHostName;
-        
+
         var webAddressPort = this.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.address.rm1');
         if(webAddressPort != null)
           configs['yarn-site']['yarn.resourcemanager.webapp.address.rm1'] = targetHostName +":"+ webAddressPort;
-        
+
         var httpsWebAddressPort = this.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.https.address.rm1');
         if(httpsWebAddressPort != null)
           configs['yarn-site']['yarn.resourcemanager.webapp.https.address.rm1'] = targetHostName +":"+ httpsWebAddressPort;
       } else {
         configs['yarn-site']['yarn.resourcemanager.hostname.rm2'] = targetHostName;
-        
+
         var webAddressPort = this.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.address.rm2');
         if(webAddressPort != null)
           configs['yarn-site']['yarn.resourcemanager.webapp.address.rm2'] = targetHostName +":"+ webAddressPort;
-        
+
         var httpsWebAddressPort = this.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.https.address.rm2');
         if(httpsWebAddressPort != null)
           configs['yarn-site']['yarn.resourcemanager.webapp.https.address.rm2'] = targetHostName +":"+ httpsWebAddressPort;
@@ -711,7 +718,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   /**
-   * Get the web address port when RM HA is enabled. 
+   * Get the web address port when RM HA is enabled.
    * @param configs
    * @param webAddressKey (http vs https)
    * */
@@ -725,13 +732,13 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         result = result.replace(/^\s+|\s+$/g, '');
       }
     }
-    
+
     if(result)  //only return non-empty result
       return result;
     else
       return null;
   },
-  
+
   /**
    * set specific configs which applies only to Hive related configs
    * @param configs
