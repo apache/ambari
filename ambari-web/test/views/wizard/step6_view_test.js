@@ -113,6 +113,42 @@ describe('App.WizardStep6View', function() {
     });
   });
 
+  describe("#checkboxClick()", function() {
+    beforeEach(function() {
+      sinon.stub(view.get('controller'), 'checkCallback', Em.K);
+      sinon.stub(view.get('controller'), 'callValidation', Em.K);
+    });
+    afterEach(function() {
+      view.get('controller').checkCallback.restore();
+      view.get('controller').callValidation.restore();
+    });
+
+    it("", function() {
+      var e = {context: {
+        checked: true,
+        component: 'c1'
+      }};
+      view.checkboxClick(e);
+      expect(e.context.checked).to.be.false;
+      expect(view.get('controller').checkCallback.calledWith('c1')).to.be.true;
+      expect(view.get('controller').callValidation.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#columnCount", function() {
+    it("hosts present", function() {
+      view.set('controller.hosts', [
+        Em.Object.create({checkboxes: [{}, {}, {}]})
+      ]);
+      view.propertyDidChange('columnCount');
+      expect(view.get('columnCount')).to.equal(4);
+    });
+    it("hosts absent", function() {
+      view.set('controller.hosts', []);
+      view.propertyDidChange('columnCount');
+      expect(view.get('columnCount')).to.equal(1);
+    });
+  });
 });
 
 describe('App.WizardStep6HostView', function() {

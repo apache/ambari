@@ -19,6 +19,7 @@
 
 var App = require('app');
 require('views/wizard/step5_view');
+var stringUtils = require('utils/string_utils');
 var view;
 
 describe('App.WizardStep5View', function() {
@@ -26,6 +27,64 @@ describe('App.WizardStep5View', function() {
   beforeEach(function() {
     view = App.WizardStep5View.create({
       controller: App.WizardStep5Controller.create({})
+    });
+  });
+
+  describe("#title", function() {
+    beforeEach(function () {
+      view.set('controller.content', Em.Object.create());
+    });
+
+    it("controller name is reassignMasterController", function() {
+      view.set('controller.content.controllerName', 'reassignMasterController');
+      view.propertyDidChange('title');
+      expect(view.get('title')).to.equal(Em.I18n.t('installer.step5.reassign.header'));
+    });
+    it("controller name is ''", function() {
+      view.set('controller.content.controllerName', '');
+      view.propertyDidChange('title');
+      expect(view.get('title')).to.equal(Em.I18n.t('installer.step5.header'));
+    });
+  });
+
+  describe("#setCoHostedComponentText()", function () {
+    beforeEach(function () {
+      sinon.stub(App.StackServiceComponent, 'find').returns([
+        Em.Object.create({
+          componentName: 'C1',
+          displayName: 'c1',
+          isOtherComponentCoHosted: true,
+          stackService: {
+            isSelected: true
+          },
+          coHostedComponents: ['C2']
+        }),
+        Em.Object.create({
+          componentName: 'C2',
+          displayName: 'c2',
+          isOtherComponentCoHosted: false,
+          stackService: {
+            isSelected: true
+          }
+        })
+      ]);
+      sinon.stub(stringUtils, 'getFormattedStringFromArray', function(str){
+        return str;
+      });
+    });
+    afterEach(function () {
+      App.StackServiceComponent.find.restore();
+      stringUtils.getFormattedStringFromArray.restore();
+    });
+    it("isReassignWizard - true", function () {
+      view.set('controller.isReassignWizard', true);
+      view.setCoHostedComponentText();
+      expect(view.get('coHostedComponentText')).to.be.empty;
+    });
+    it("isReassignWizard - false", function () {
+      view.set('controller.isReassignWizard', false);
+      view.setCoHostedComponentText();
+      expect(view.get('coHostedComponentText')).to.equal('<br/>' + Em.I18n.t('installer.step5.body.coHostedComponents').format(['c1', 'c2']));
     });
   });
 

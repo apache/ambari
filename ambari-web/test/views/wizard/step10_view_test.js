@@ -22,15 +22,28 @@ var view;
 describe('App.WizardStep10View', function() {
   beforeEach(function() {
     view = App.WizardStep10View.create({
-      controller: App.WizardStep10Controller.create()
+      controller: App.WizardStep10Controller.create({
+        isAddServiceWizard: false
+      })
     });
   });
-  describe('didInsertElement', function() {
+  describe('#didInsertElement()', function() {
     it('should call loadStep', function() {
       sinon.stub(view.get('controller'), 'loadStep', Em.K);
       view.didInsertElement();
       expect(view.get('controller').loadStep.calledOnce).to.equal(true);
       view.get('controller').loadStep.restore();
+    });
+  });
+
+  describe("#serviceRestartText", function() {
+    it("text is empty", function() {
+      view.set('controller.isAddServiceWizard', false);
+      expect(view.get('serviceRestartText')).to.be.empty;
+    });
+    it("text is complete", function() {
+      view.set('controller.isAddServiceWizard', true);
+      expect(view.get('serviceRestartText')).to.equal(Em.I18n.t('common.important') + Em.I18n.t('installer.step10.staleServicesRestartRequired'));
     });
   });
 });

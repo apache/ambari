@@ -1531,7 +1531,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var clusterName = this.get('clusterName');
     var sendData = [];
     var updateData = [];
-    var serviceConfigController = App.router.get('mainServiceInfoConfigsController');
     var timeTag = (new Date).getTime();
     var groupsToDelete = App.router.get(this.get('content.controllerName')).getDBProperty('groupsToDelete');
     if (groupsToDelete && groupsToDelete.length > 0) {

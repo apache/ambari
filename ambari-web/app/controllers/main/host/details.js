@@ -1915,8 +1915,8 @@ App.MainHostDetailsController = Em.Controller.extend({
   doStartAllComponents: function () {
     var self = this;
     var components = this.get('serviceNonClientActiveComponents');
-    var componentsLength = Em.isNone(components) ? 0 : components.get('length');
-    if (componentsLength > 0) {
+
+    if (components && components.get('length')) {
       return App.showConfirmationPopup(function () {
         self.sendComponentCommand(components, Em.I18n.t('hosts.host.maintainance.startAllComponents.context'), App.HostComponentStatus.started);
       });
@@ -1930,12 +1930,12 @@ App.MainHostDetailsController = Em.Controller.extend({
   doStopAllComponents: function () {
     var self = this;
     var components = this.get('serviceNonClientActiveComponents');
-    var componentsLength = Em.isNone(components) ? 0 : components.get('length');
-    if (componentsLength > 0) {
+
+    if (components && components.get('length')) {
       if (components.someProperty('componentName', 'NAMENODE') &&
         this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
         this.checkNnLastCheckpointTime(function () {
-          return App.showConfirmationPopup(function () {
+          App.showConfirmationPopup(function () {
             self.sendComponentCommand(components, Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'), App.HostComponentStatus.stopped);
           });
         });
@@ -1954,12 +1954,12 @@ App.MainHostDetailsController = Em.Controller.extend({
   doRestartAllComponents: function () {
     var self = this;
     var components = this.get('serviceActiveComponents');
-    var componentsLength = Em.isNone(components) ? 0 : components.get('length');
-    if (componentsLength > 0) {
+
+    if (components && components.get('length')) {
       if (components.someProperty('componentName', 'NAMENODE') &&
         this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
         this.checkNnLastCheckpointTime(function () {
-          return App.showConfirmationPopup(function () {
+          App.showConfirmationPopup(function () {
             batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allOnSelectedHost').format(self.get('content.hostName')), "HOST");
           });
         });

@@ -201,12 +201,11 @@ App.UpgradeVersionBoxView = Em.View.extend({
   getStackVersionNumber: function(repository){
     var stackVersion = null; 
     var systems = repository.get('operatingSystems');
-    
-    systems.forEach(function(os){
-      repos = os.get('repositories');
-      repos.forEach(function(repo){
+
+    systems.forEach(function (os) {
+      os.get('repositories').forEach(function (repo) {
         stackVersion = repo.get('stackVersion');
-        if(null != stackVersion)
+        if (null != stackVersion)
           return stackVersion;
       });
     });

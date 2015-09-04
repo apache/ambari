@@ -1057,7 +1057,10 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       }]);
       controller.set('content.reassignHosts.source', 'host2');
       controller.startNameNode();
-      expect(controller.updateComponent.calledWith('NAMENODE', ['host1'], 'HDFS', 'Start')).to.be.true;
+      expect(controller.updateComponent.getCall(0).args[1][0]).to.equal('host1');
+      expect(controller.updateComponent.getCall(0).args[0]).to.equal('NAMENODE');
+      expect(controller.updateComponent.getCall(0).args[2]).to.equal('HDFS');
+      expect(controller.updateComponent.getCall(0).args[3]).to.equal('Start');
     });
     it('reassign host matches current', function () {
       controller.set('content.masterComponentHosts', [{

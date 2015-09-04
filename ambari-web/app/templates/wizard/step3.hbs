@@ -95,9 +95,6 @@
               <td class="step3-table-action">
                 <a class="btn btn-mini" {{action remove target="view"}}{{bindAttr disabled="isBackDisabled"}}><i class="icon-trash"></i>
                   {{t common.remove}}</a>
-                {{#if view.isRetryable}}<a class="btn btn-mini" {{action retry target="view"}}><i
-                    class="icon-repeat"></i>
-                  {{t common.retry}}</a>{{/if}}
               </td>
               {{/view}}
             {{/each}}

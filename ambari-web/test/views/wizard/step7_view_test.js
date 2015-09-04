@@ -16,25 +16,30 @@
  * limitations under the License.
  */
 
-var App = require('app');
 
-describe('App.WizardEnableDone', function () {
-  var baseObject = Em.Object.extend({
-        statusChangeCallback: function (data) {
-          isSubmitDisabled: true
-        }
-      }),
-      mixedObject = baseObject.extend(App.WizardEnableDone),
-      mixedObjectInstance;
-  beforeEach(function () {
-    mixedObjectInstance = mixedObject.create({
-      tasks: [{id: 77, status: 'FAILED'}],
-      currentTaskId: 77
+var App = require('app');
+require('views/wizard/step7_view');
+var view;
+
+describe('App.WizardStep7View', function() {
+
+  beforeEach(function() {
+    view = App.WizardStep7View.create({
+      controller: App.WizardStep7Controller.create()
     });
   });
 
-  it('#statusChangeCallback should enable done/complete button', function () {
-    mixedObjectInstance.statusChangeCallback();
-    expect(mixedObjectInstance.isSubmitDisabled).to.be.false;
+  describe('#didInsertElement', function() {
+    beforeEach(function() {
+      sinon.stub(App.get('router'), 'set', Em.K);
+    });
+    afterEach(function() {
+      App.get('router').set.restore();
+    });
+
+    it('should call loadStep', function() {
+      view.didInsertElement();
+      expect(App.get('router').set.calledWith('transitionInProgress', false)).to.be.true;
+    });
   });
 });

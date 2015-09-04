@@ -22,7 +22,7 @@ var stringUtils = require('utils/string_utils');
 App.WizardStep5View = App.AssignMasterComponentsView.extend({
 
   title: function () {
-    if (this.get('controller.content.controllerName') == 'reassignMasterController') {
+    if (this.get('controller.content.controllerName') === 'reassignMasterController') {
       return Em.I18n.t('installer.step5.reassign.header');
     }
     return Em.I18n.t('installer.step5.header');

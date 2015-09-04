@@ -303,7 +303,7 @@ describe('App.mainAdminStackVersionsView', function () {
 
   describe("#goToVersions()", function() {
     before(function () {
-      sinon.spy(App, 'showConfirmationPopup', Em.K);
+      sinon.spy(App, 'showConfirmationPopup');
       sinon.stub(window.location, 'replace', Em.K);
       var data = {
         components: [{

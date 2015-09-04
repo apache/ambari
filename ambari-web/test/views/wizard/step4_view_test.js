@@ -17,24 +17,26 @@
  */
 
 var App = require('app');
+require('views/wizard/step4_view');
 
-describe('App.WizardEnableDone', function () {
-  var baseObject = Em.Object.extend({
-        statusChangeCallback: function (data) {
-          isSubmitDisabled: true
-        }
-      }),
-      mixedObject = baseObject.extend(App.WizardEnableDone),
-      mixedObjectInstance;
+var view;
+
+describe('App.WizardStep4View', function () {
+
   beforeEach(function () {
-    mixedObjectInstance = mixedObject.create({
-      tasks: [{id: 77, status: 'FAILED'}],
-      currentTaskId: 77
-    });
+    view = App.WizardStep4View.create();
   });
 
-  it('#statusChangeCallback should enable done/complete button', function () {
-    mixedObjectInstance.statusChangeCallback();
-    expect(mixedObjectInstance.isSubmitDisabled).to.be.false;
+  describe('#didInsertElement()', function () {
+    beforeEach(function () {
+      sinon.stub(App.get('router'), 'set', Em.K);
+    });
+    afterEach(function () {
+      App.get('router').set.restore();
+    });
+    it('', function () {
+      view.didInsertElement();
+      expect(App.get('router').set.calledWith('transitionInProgress', false)).to.be.true;
+    });
   });
 });

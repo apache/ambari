@@ -36,7 +36,9 @@ describe('App.MainHostDetailsController', function () {
       complete: Em.K
     });
     controller = App.MainHostDetailsController.create({
-      content: Em.Object.create()
+      content: Em.Object.create({
+        hostComponents: []
+      })
     });
   });
   afterEach(function () {
@@ -1472,48 +1474,47 @@ describe('App.MainHostDetailsController', function () {
 
     beforeEach(function () {
       sinon.spy(App, "showConfirmationPopup");
-      controller.reopen({serviceActiveComponents: []});
+      sinon.stub(controller, 'sendComponentCommand', Em.K);
     });
     afterEach(function () {
       App.showConfirmationPopup.restore();
+      controller.sendComponentCommand.restore();
     });
 
     it('serviceNonClientActiveComponents is empty', function () {
       controller.reopen({
-        serviceNonClientActiveComponents: []
+        serviceNonClientActiveComponents: Em.A([])
       });
       controller.doStartAllComponents();
       expect(App.showConfirmationPopup.called).to.be.false;
     });
     it('serviceNonClientActiveComponents is correct', function () {
       controller.reopen({
-        serviceNonClientActiveComponents: [
-          {}
-        ]
+        serviceNonClientActiveComponents: Em.A([{}])
       });
-      sinon.stub(controller, 'sendComponentCommand', Em.K);
       var popup = controller.doStartAllComponents();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
       expect(controller.sendComponentCommand.calledWith(
-          [
-            {}
-          ],
+          controller.get('serviceNonClientActiveComponents'),
           Em.I18n.t('hosts.host.maintainance.startAllComponents.context'),
           App.HostComponentStatus.started)
       ).to.be.true;
-      controller.sendComponentCommand.restore();
     });
   });
 
   describe('#doStopAllComponents()', function () {
-
     beforeEach(function () {
       sinon.spy(App, "showConfirmationPopup");
-      controller.reopen({serviceActiveComponents: []});
+      sinon.stub(controller, 'sendComponentCommand', Em.K);
+      sinon.stub(controller, 'checkNnLastCheckpointTime', function(callback){
+        callback();
+      });
     });
     afterEach(function () {
       App.showConfirmationPopup.restore();
+      controller.sendComponentCommand.restore();
+      controller.checkNnLastCheckpointTime.restore();
     });
 
     it('serviceNonClientActiveComponents is empty', function () {
@@ -1526,22 +1527,32 @@ describe('App.MainHostDetailsController', function () {
 
     it('serviceNonClientActiveComponents is correct', function () {
       controller.reopen({
-        serviceNonClientActiveComponents: [
-          {}
-        ]
+        serviceNonClientActiveComponents: Em.A([{}])
       });
-      sinon.stub(controller, 'sendComponentCommand', Em.K);
+
       var popup = controller.doStopAllComponents();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
       expect(controller.sendComponentCommand.calledWith(
-          [
-            {}
-          ],
+          controller.get('serviceNonClientActiveComponents'),
           Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'),
           App.HostComponentStatus.stopped)
       ).to.be.true;
-      controller.sendComponentCommand.restore();
+    });
+    it('serviceNonClientActiveComponents is correct, NAMENODE started', function () {
+      controller.reopen({
+        serviceNonClientActiveComponents: Em.A([Em.Object.create({
+          componentName: 'NAMENODE',
+          workStatus: 'STARTED'
+        })])
+      });
+      controller.set('content.hostComponents', [Em.Object.create({
+        componentName: 'NAMENODE',
+        workStatus: 'STARTED'
+      })]);
+      controller.doStopAllComponents();
+      expect(controller.checkNnLastCheckpointTime.calledOnce).to.be.true;
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
     });
   });
 
@@ -1549,9 +1560,15 @@ describe('App.MainHostDetailsController', function () {
 
     beforeEach(function () {
       sinon.spy(App, "showConfirmationPopup");
+      sinon.stub(batchUtils, 'restartHostComponents', Em.K);
+      sinon.stub(controller, 'checkNnLastCheckpointTime', function(callback){
+        callback();
+      });
     });
     afterEach(function () {
       App.showConfirmationPopup.restore();
+      batchUtils.restartHostComponents.restore();
+      controller.checkNnLastCheckpointTime.restore();
     });
 
     it('serviceActiveComponents is empty', function () {
@@ -1568,7 +1585,6 @@ describe('App.MainHostDetailsController', function () {
           {}
         ]
       });
-      sinon.stub(batchUtils, 'restartHostComponents', Em.K);
 
       var popup = controller.doRestartAllComponents();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
@@ -1578,8 +1594,21 @@ describe('App.MainHostDetailsController', function () {
             {}
           ])
       ).to.be.true;
-      batchUtils.restartHostComponents.restore();
-
+    });
+    it('serviceActiveComponents is correct, NAMENODE started', function () {
+      controller.reopen({
+        serviceActiveComponents: Em.A([Em.Object.create({
+          componentName: 'NAMENODE',
+          workStatus: 'STARTED'
+        })])
+      });
+      controller.set('content.hostComponents', [Em.Object.create({
+        componentName: 'NAMENODE',
+        workStatus: 'STARTED'
+      })]);
+      controller.doRestartAllComponents();
+      expect(controller.checkNnLastCheckpointTime.calledOnce).to.be.true;
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
     });
   });
 
@@ -1970,16 +1999,16 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('No components', function () {
-      var event = {context: []};
+      var event = {context: Em.A([])};
       controller.refreshConfigs(event);
       expect(App.showConfirmationPopup.called).to.be.false;
     });
     it('Some components present', function () {
-      var event = {context: [Em.Object.create()]};
+      var event = {context: Em.A([Em.Object.create()])};
       var popup = controller.refreshConfigs(event);
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(batchUtils.restartHostComponents.calledWith([Em.Object.create()])).to.be.true;
+      expect(batchUtils.restartHostComponents.calledWith(event.context)).to.be.true;
     });
   });
 

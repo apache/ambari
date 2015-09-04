@@ -341,18 +341,24 @@ describe('App.AddServiceController', function() {
   });
 
   describe('#loadServices', function() {
+    var mock = {
+      db: {}
+    };
     beforeEach(function() {
       this.controller = App.AddServiceController.create({});
-      this.db = {};
-      sinon.stub(this.controller, 'getDBProperty');
+      this.mockGetDBProperty = sinon.stub(this.controller, 'getDBProperty');
       sinon.stub(this.controller, 'setDBProperty', function(key, value) {
-        this.db = value;
-      }.bind(this));
+        mock.db = value;
+      });
+      this.mockStackService =  sinon.stub(App.StackService, 'find');
+      this.mockService = sinon.stub(App.Service, 'find');
     });
 
     afterEach(function() {
-      this.controller.getDBProperty.restore();
+      this.mockGetDBProperty.restore();
       this.controller.setDBProperty.restore();
+      this.mockStackService.restore();
+      this.mockService.restore();
     });
 
     var tests = [
@@ -402,17 +408,15 @@ describe('App.AddServiceController', function() {
 
     tests.forEach(function(test) {
       it(test.m, function() {
-        sinon.stub(App.StackService, 'find').returns(test.appStackService);
-        sinon.stub(App.Service, 'find').returns(test.appService);
-        this.controller.getDBProperty.withArgs('services').returns(test.servicesFromDB);
+        this.mockStackService.returns(test.appStackService);
+        this.mockService.returns(test.appService);
+        this.mockGetDBProperty.withArgs('services').returns(test.servicesFromDB);
         this.controller.set('serviceToInstall', test.serviceToInstall);
         this.controller.loadServices();
-        App.StackService.find.restore();
-        App.Service.find.restore();
         if (!test.servicesFromDB) {
           // verify saving to local db on first enter to the wizard
-          expect(this.db.selectedServices).to.be.eql(test.e.selectedServices);
-          expect(this.db.installedServices).to.be.eql(test.e.installedServices);
+          expect(mock.db.selectedServices).to.be.eql(test.e.selectedServices);
+          expect(mock.db.installedServices).to.be.eql(test.e.installedServices);
         } else {
           // verify values for App.StackService
           expect(test.appStackService.filterProperty('isSelected', true).mapProperty('serviceName')).to.be.eql(test.e.selectedServices);

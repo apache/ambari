@@ -324,14 +324,6 @@ App.WizardHostView = Em.View.extend({
   hostInfo: null,
 
   /**
-   * @type {bool}
-   */
-  isRetryable: function() {
-    // return ['FAILED'].contains(this.get('hostInfo.bootStatus'));
-    return false;
-  }.property('hostInfo.bootStatus'),
-
-  /**
    * Remove selected host
    * @method remove
    */
