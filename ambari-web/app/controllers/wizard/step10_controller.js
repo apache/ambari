@@ -75,6 +75,9 @@ App.WizardStep10Controller = Em.Controller.extend({
     slaveHosts = hostObj.mapProperty('hostName').uniq();
     var registeredHosts = App.Host.find().mapProperty('hostName').concat(masterHosts.concat(slaveHosts)).uniq();
     var registerHostsStatement = Em.I18n.t('installer.step10.hostsSummary').format(registeredHosts.length);
+    if (this.get('content.controllerName') === 'addHostController') {
+      registerHostsStatement = Em.I18n.t('installer.step10.hostsSummary').format(Object.keys(this.get('content.hosts') || {}).length);
+    }
     var registerHostsObj = Em.Object.create({
       id: 1,
       color: 'text-info',
