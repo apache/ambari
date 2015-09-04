@@ -19,14 +19,15 @@
 package org.apache.ambari.view.slider;
 
 import com.google.inject.Singleton;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.Exception;
 import java.util.*;
 
 @Singleton
 public class SliderAppsAlerts {
-  private static final Logger logger = Logger
+  private static final Logger logger = LoggerFactory
      .getLogger(SliderAppsAlerts.class);
 
   public Map<String, Object> generateComponentsAlerts(Map<String, SliderAppComponent> components, String service){

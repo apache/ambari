@@ -30,15 +30,16 @@ import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.slider.TemporalInfo;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SliderAppMetricsHelper {
-  private static final Logger logger = Logger
+  private static final Logger logger = LoggerFactory
       .getLogger(SliderAppMetricsHelper.class);
   private static ObjectMapper mapper;
   private final static ObjectReader timelineObjectReader;

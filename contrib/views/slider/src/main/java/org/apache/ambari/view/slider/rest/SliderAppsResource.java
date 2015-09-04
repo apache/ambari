@@ -45,16 +45,17 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.slider.SliderAppsViewController;
 import org.apache.hadoop.yarn.exceptions.YarnException;
-import org.apache.log4j.Logger;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SliderAppsResource {
 
-  private static final Logger logger = Logger
+  private static final Logger logger = LoggerFactory
       .getLogger(SliderAppsResource.class);
   @Inject
   ViewResourceHandler resourceHandler;

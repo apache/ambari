@@ -20,12 +20,13 @@ package org.apache.ambari.view.slider;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SliderAppsConfiguration {
 
 	public static final SliderAppsConfiguration INSTANCE = new SliderAppsConfiguration();
-	private static final Logger logger = Logger
+	private static final Logger logger = LoggerFactory
 	    .getLogger(SliderAppsConfiguration.class);
 	private static final String SLIDER_APPS_PROPERTIES_FILE = "/slider.properties";
 	private PropertiesConfiguration propertiesConfig = null;

@@ -36,14 +36,15 @@ import org.apache.ambari.view.slider.SliderAppTypeComponent;
 import org.apache.ambari.view.slider.TemporalInfo;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.ambari.view.slider.SliderAppsViewController;
-import org.apache.log4j.Logger;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SliderAppMasterClient extends BaseHttpClient {
 
-  private static final Logger logger = Logger
+  private static final Logger logger = LoggerFactory
       .getLogger(SliderAppMasterClient.class);
 
   public SliderAppMasterClient(String url, ViewContext viewContext) {
