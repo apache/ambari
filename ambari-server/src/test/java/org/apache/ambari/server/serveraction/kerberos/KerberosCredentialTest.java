@@ -58,7 +58,7 @@ public class KerberosCredentialTest {
     kerberosCredential = KerberosCredential.fromMap(attributes, "kerberos_admin/");
     Assert.assertNotNull(kerberosCredential);
     Assert.assertEquals("admin/admin@FOOBAR.COM", kerberosCredential.getPrincipal());
-    Assert.assertEquals("t0p_s3cr3t", kerberosCredential.getPassword());
+    Assert.assertEquals("t0p_s3cr3t", String.valueOf(kerberosCredential.getPassword()));
     Assert.assertNull(kerberosCredential.getKeytab());
 
     // Test with a prefix that does not resolve to any existing keys
@@ -73,7 +73,7 @@ public class KerberosCredentialTest {
     String cipherText;
     KerberosCredential decryptedCredential;
 
-    credential = new KerberosCredential("admin/admin@FOOBAR.COM", "t0p_s3cr3t", null);
+    credential = new KerberosCredential("admin/admin@FOOBAR.COM", "t0p_s3cr3t".toCharArray(), null);
     cipherText = credential.encrypt(key);
     Assert.assertNotNull(cipherText);
 
@@ -81,7 +81,7 @@ public class KerberosCredentialTest {
     decryptedCredential = KerberosCredential.decrypt(cipherText, key);
     Assert.assertNotNull(decryptedCredential);
     Assert.assertEquals(credential.getPrincipal(), decryptedCredential.getPrincipal());
-    Assert.assertEquals(credential.getPassword(), decryptedCredential.getPassword());
+    Assert.assertEquals(String.valueOf(credential.getPassword()), String.valueOf(decryptedCredential.getPassword()));
     Assert.assertEquals(credential.getKeytab(), decryptedCredential.getKeytab());
 
     // Test an invalid key

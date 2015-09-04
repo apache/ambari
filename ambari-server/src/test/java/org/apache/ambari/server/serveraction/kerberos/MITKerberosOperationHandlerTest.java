@@ -83,7 +83,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   @Test
   public void testSetPrincipalPasswordExceptions() throws Exception {
     MITKerberosOperationHandler handler = injector.getInstance(MITKerberosOperationHandler.class);
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, KERBEROS_ENV_MAP);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null), DEFAULT_REALM, KERBEROS_ENV_MAP);
 
     try {
       handler.setPrincipalPassword(DEFAULT_ADMIN_PRINCIPAL, null);
@@ -139,7 +139,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
     replay(handler, result1, result2);
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, KERBEROS_ENV_MAP);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null), DEFAULT_REALM, KERBEROS_ENV_MAP);
     handler.createPrincipal(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, false);
 
     verify(handler, result1, result2);
@@ -150,7 +150,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   @Test
   public void testCreateServicePrincipal_Exceptions() throws Exception {
     MITKerberosOperationHandler handler = new MITKerberosOperationHandler();
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, KERBEROS_ENV_MAP);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null), DEFAULT_REALM, KERBEROS_ENV_MAP);
 
     try {
       handler.createPrincipal(DEFAULT_ADMIN_PRINCIPAL, null, false);
@@ -209,7 +209,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
     replayAll();
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, KERBEROS_ENV_MAP);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null), DEFAULT_REALM, KERBEROS_ENV_MAP);
     handler.testAdministratorCredentials();
     handler.close();
   }
@@ -242,7 +242,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
     replayAll();
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, KERBEROS_ENV_MAP);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null), DEFAULT_REALM, KERBEROS_ENV_MAP);
     handler.testAdministratorCredentials();
     handler.close();
   }
@@ -275,7 +275,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
     replayAll();
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, KERBEROS_ENV_MAP);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null), DEFAULT_REALM, KERBEROS_ENV_MAP);
     handler.testAdministratorCredentials();
     handler.close();
   }
@@ -308,7 +308,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
     replayAll();
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, KERBEROS_ENV_MAP);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null), DEFAULT_REALM, KERBEROS_ENV_MAP);
     handler.testAdministratorCredentials();
     handler.close();
   }
@@ -341,7 +341,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
     replayAll();
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, KERBEROS_ENV_MAP);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null), DEFAULT_REALM, KERBEROS_ENV_MAP);
     handler.testAdministratorCredentials();
     handler.close();
   }
@@ -374,7 +374,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
     replayAll();
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, KERBEROS_ENV_MAP);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null), DEFAULT_REALM, KERBEROS_ENV_MAP);
     handler.testAdministratorCredentials();
     handler.close();
   }
@@ -407,7 +407,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
     replayAll();
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, KERBEROS_ENV_MAP);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null), DEFAULT_REALM, KERBEROS_ENV_MAP);
     Assert.assertFalse(handler.testAdministratorCredentials());
     handler.close();
   }
@@ -460,7 +460,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
     replayAll();
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, KERBEROS_ENV_MAP);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null), DEFAULT_REALM, KERBEROS_ENV_MAP);
     handler.testAdministratorCredentials();
     handler.close();
   }
@@ -485,7 +485,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
       realm = DEFAULT_REALM;
     }
 
-    KerberosCredential credentials = new KerberosCredential(principal, password, null);
+    KerberosCredential credentials = new KerberosCredential(principal, password.toCharArray(), null);
 
     handler.open(credentials, realm, KERBEROS_ENV_MAP);
     handler.testAdministratorCredentials();

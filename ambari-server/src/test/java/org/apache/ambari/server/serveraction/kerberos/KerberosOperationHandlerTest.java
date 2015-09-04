@@ -267,7 +267,7 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
   public void testAdminCredentialsNullPrincipal() throws KerberosOperationException {
     KerberosOperationHandler handler = createHandler();
 
-    KerberosCredential credentials = new KerberosCredential(null, "password", null);
+    KerberosCredential credentials = new KerberosCredential(null, "password".toCharArray(), null);
     handler.setAdministratorCredentials(credentials);
   }
 
@@ -275,7 +275,7 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
   public void testAdminCredentialsEmptyPrincipal() throws KerberosOperationException {
     KerberosOperationHandler handler = createHandler();
 
-    KerberosCredential credentials = new KerberosCredential("", "password", null);
+    KerberosCredential credentials = new KerberosCredential("", "password".toCharArray(), null);
     handler.setAdministratorCredentials(credentials);
   }
 
@@ -291,7 +291,7 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
   public void testAdminCredentialsEmptyCredential1() throws KerberosOperationException {
     KerberosOperationHandler handler = createHandler();
 
-    KerberosCredential credentials = new KerberosCredential("principal", "", null);
+    KerberosCredential credentials = new KerberosCredential("principal", "".toCharArray(), null);
     handler.setAdministratorCredentials(credentials);
   }
 
@@ -383,7 +383,7 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
       }
     };
 
-    handler.open(new KerberosCredential("admin/admin", "hadoop", null), "EXAMPLE.COM", null);
+    handler.open(new KerberosCredential("admin/admin", "hadoop".toCharArray(), null), "EXAMPLE.COM", null);
     return handler;
   }
 }

@@ -258,22 +258,22 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   @Test
   public void testEnableKerberos() throws Exception {
-    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), "mit-kdc", "true", true, false);
+    testEnableKerberos(new KerberosCredential("principal", "password".toCharArray(), "keytab"), "mit-kdc", "true", true, false);
   }
 
   @Test
   public void testEnableKerberos_ManageIdentitiesFalseKdcNone() throws Exception {
-    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), "none", "false", true, false);
+    testEnableKerberos(new KerberosCredential("principal", "password".toCharArray(), "keytab"), "none", "false", true, false);
   }
 
   @Test(expected = AmbariException.class)
   public void testEnableKerberos_ManageIdentitiesTrueKdcNone() throws Exception {
-    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), "none", "true", true, false);
+    testEnableKerberos(new KerberosCredential("principal", "password".toCharArray(), "keytab"), "none", "true", true, false);
   }
 
   @Test(expected = KerberosInvalidConfigurationException.class)
   public void testEnableKerberos_ManageIdentitiesTrueKdcNull() throws Exception {
-    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), null, "true", true, false);
+    testEnableKerberos(new KerberosCredential("principal", "password".toCharArray(), "keytab"), null, "true", true, false);
   }
 
   @Test(expected = KerberosMissingAdminCredentialsException.class)
@@ -289,7 +289,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   @Test(expected = KerberosMissingAdminCredentialsException.class)
   public void testEnableKerberosInvalidCredentials() throws Exception {
     try {
-      testEnableKerberos(new KerberosCredential("invalid_principal", "password", "keytab"), "mit-kdc", "true", true, false);
+      testEnableKerberos(new KerberosCredential("invalid_principal", "password".toCharArray(), "keytab"), "mit-kdc", "true", true, false);
     } catch (IllegalArgumentException e) {
       Assert.assertTrue(e.getMessage().startsWith("Invalid KDC administrator credentials"));
       throw e;
@@ -298,17 +298,17 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   @Test
   public void testEnableKerberos_GetKerberosDescriptorFromCluster() throws Exception {
-    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), "mit-kdc", "true", true, false);
+    testEnableKerberos(new KerberosCredential("principal", "password".toCharArray(), "keytab"), "mit-kdc", "true", true, false);
   }
 
   @Test
   public void testEnableKerberos_GetKerberosDescriptorFromStack() throws Exception {
-    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), "mit-kdc", "true", false, true);
+    testEnableKerberos(new KerberosCredential("principal", "password".toCharArray(), "keytab"), "mit-kdc", "true", false, true);
   }
 
   @Test
   public void testEnsureIdentities() throws Exception {
-    testEnsureIdentities(new KerberosCredential("principal", "password", "keytab"));
+    testEnsureIdentities(new KerberosCredential("principal", "password".toCharArray(), "keytab"));
   }
 
   @Test(expected = KerberosMissingAdminCredentialsException.class)
@@ -324,7 +324,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   @Test(expected = KerberosMissingAdminCredentialsException.class)
   public void testEnsureIdentitiesInvalidCredentials() throws Exception {
     try {
-      testEnsureIdentities(new KerberosCredential("invalid_principal", "password", "keytab"));
+      testEnsureIdentities(new KerberosCredential("invalid_principal", "password".toCharArray(), "keytab"));
     } catch (IllegalArgumentException e) {
       Assert.assertTrue(e.getMessage().startsWith("Invalid KDC administrator credentials"));
       throw e;
@@ -332,7 +332,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   }
   @Test
   public void testDeleteIdentities() throws Exception {
-    testDeleteIdentities(new KerberosCredential("principal", "password", "keytab"));
+    testDeleteIdentities(new KerberosCredential("principal", "password".toCharArray(), "keytab"));
   }
 
   @Test(expected = KerberosMissingAdminCredentialsException.class)
@@ -348,7 +348,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   @Test(expected = KerberosMissingAdminCredentialsException.class)
   public void testDeleteIdentitiesInvalidCredentials() throws Exception {
     try {
-      testDeleteIdentities(new KerberosCredential("invalid_principal", "password", "keytab"));
+      testDeleteIdentities(new KerberosCredential("invalid_principal", "password".toCharArray(), "keytab"));
     } catch (IllegalArgumentException e) {
       Assert.assertTrue(e.getMessage().startsWith("Invalid KDC administrator credentials"));
       throw e;
@@ -382,37 +382,37 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   @Test
   public void testRegenerateKeytabsValidateRequestStageContainer() throws Exception {
-    testRegenerateKeytabs(new KerberosCredential("principal", "password", "keytab"), true, false);
+    testRegenerateKeytabs(new KerberosCredential("principal", "password".toCharArray(), "keytab"), true, false);
   }
 
   @Test
   public void testRegenerateKeytabsValidateSkipInvalidHost() throws Exception {
-    testRegenerateKeytabs(new KerberosCredential("principal", "password", "keytab"), true, true);
+    testRegenerateKeytabs(new KerberosCredential("principal", "password".toCharArray(), "keytab"), true, true);
   }
 
   @Test
   public void testRegenerateKeytabs() throws Exception {
-    testRegenerateKeytabs(new KerberosCredential("principal", "password", "keytab"), false, false);
+    testRegenerateKeytabs(new KerberosCredential("principal", "password".toCharArray(), "keytab"), false, false);
   }
 
   @Test
   public void testDisableKerberos() throws Exception {
-    testDisableKerberos(new KerberosCredential("principal", "password", "keytab"), false, true);
+    testDisableKerberos(new KerberosCredential("principal", "password".toCharArray(), "keytab"), false, true);
   }
 
   @Test
   public void testCreateTestIdentity_ManageIdentitiesDefault() throws Exception {
-    testCreateTestIdentity(new KerberosCredential("principal", "password", "keytab"), null);
+    testCreateTestIdentity(new KerberosCredential("principal", "password".toCharArray(), "keytab"), null);
   }
 
   @Test
   public void testCreateTestIdentity_ManageIdentitiesTrue() throws Exception {
-    testCreateTestIdentity(new KerberosCredential("principal", "password", "keytab"), Boolean.TRUE);
+    testCreateTestIdentity(new KerberosCredential("principal", "password".toCharArray(), "keytab"), Boolean.TRUE);
   }
 
   @Test
   public void testCreateTestIdentity_ManageIdentitiesFalse() throws Exception {
-    testCreateTestIdentity(new KerberosCredential("principal", "password", "keytab"), Boolean.FALSE);
+    testCreateTestIdentity(new KerberosCredential("principal", "password".toCharArray(), "keytab"), Boolean.FALSE);
   }
 
   @Test(expected = KerberosMissingAdminCredentialsException.class)
@@ -432,7 +432,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   @Test
   public void testDeleteTestIdentity() throws Exception {
-    testDeleteTestIdentity(new KerberosCredential("principal", "password", "keytab"));
+    testDeleteTestIdentity(new KerberosCredential("principal", "password".toCharArray(), "keytab"));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -967,13 +967,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(cluster.getCurrentStackVersion())
         .andReturn(new StackId("HDP", "2.2"))
         .anyTimes();
-    expect(cluster.getSessionAttributes()).andReturn(new HashMap<String, Object>() {{
-      if (kerberosCredential != null) {
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PRINCIPAL, kerberosCredential.getPrincipal());
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PASSWORD, kerberosCredential.getPassword());
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_KEYTAB, kerberosCredential.getKeytab());
-      }
-    }}).anyTimes();
     expect(cluster.getServiceComponentHosts("KERBEROS", "KERBEROS_CLIENT")).andReturn(
         Arrays.asList(schKerberosClient)
     ).once();
@@ -1068,6 +1061,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     metaInfo.init();
 
+    kerberosHelper.setKDCCredentials(kerberosCredential);
     kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, requestStageContainer, null);
 
     verifyAll();
@@ -1188,13 +1182,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(cluster.getCurrentStackVersion())
         .andReturn(new StackId("HDP", "2.2"))
         .anyTimes();
-    expect(cluster.getSessionAttributes()).andReturn(new HashMap<String, Object>() {{
-      if (kerberosCredential != null) {
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PRINCIPAL, kerberosCredential.getPrincipal());
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PASSWORD, kerberosCredential.getPassword());
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_KEYTAB, kerberosCredential.getKeytab());
-      }
-    }}).anyTimes();
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
@@ -1277,6 +1264,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     metaInfo.init();
 
+    kerberosHelper.setKDCCredentials(kerberosCredential);
     kerberosHelper.toggleKerberos(cluster, SecurityType.NONE, requestStageContainer, true);
 
     verifyAll();
@@ -1413,13 +1401,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(cluster.getCurrentStackVersion())
         .andReturn(new StackId("HDP", "2.2"))
         .anyTimes();
-    expect(cluster.getSessionAttributes()).andReturn(new HashMap<String, Object>() {{
-      if (kerberosCredential != null) {
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PRINCIPAL, kerberosCredential.getPrincipal());
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PASSWORD, kerberosCredential.getPassword());
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_KEYTAB, kerberosCredential.getKeytab());
-      }
-    }}).anyTimes();
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
@@ -1502,6 +1483,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     metaInfo.init();
 
+    kerberosHelper.setKDCCredentials(kerberosCredential);
     Assert.assertNotNull(kerberosHelper.executeCustomOperations(cluster, Collections.singletonMap("regenerate_keytabs", "true"), requestStageContainer, true));
 
     verifyAll();
@@ -1910,13 +1892,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(cluster.getCurrentStackVersion())
         .andReturn(new StackId("HDP", "2.2"))
         .anyTimes();
-    expect(cluster.getSessionAttributes()).andReturn(new HashMap<String, Object>() {{
-      if (kerberosCredential != null) {
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PRINCIPAL, kerberosCredential.getPrincipal());
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PASSWORD, kerberosCredential.getPassword());
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_KEYTAB, kerberosCredential.getKeytab());
-      }
-    }}).anyTimes();
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
@@ -2031,6 +2006,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     serviceComponentFilter.put("SERVICE3", Collections.singleton("COMPONENT3"));
     serviceComponentFilter.put("SERVICE1", null);
 
+    kerberosHelper.setKDCCredentials(kerberosCredential);
     kerberosHelper.ensureIdentities(cluster, serviceComponentFilter, identityFilter, null, requestStageContainer, true);
 
     verifyAll();
@@ -2124,13 +2100,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(cluster.getCurrentStackVersion())
         .andReturn(new StackId("HDP", "2.2"))
         .anyTimes();
-    expect(cluster.getSessionAttributes()).andReturn(new HashMap<String, Object>() {{
-      if (kerberosCredential != null) {
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PRINCIPAL, kerberosCredential.getPrincipal());
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PASSWORD, kerberosCredential.getPassword());
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_KEYTAB, kerberosCredential.getKeytab());
-      }
-    }}).anyTimes();
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
@@ -2238,6 +2207,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     serviceComponentFilter.put("SERVICE3", Collections.singleton("COMPONENT3"));
     serviceComponentFilter.put("SERVICE1", null);
 
+    kerberosHelper.setKDCCredentials(kerberosCredential);
     kerberosHelper.deleteIdentities(cluster, serviceComponentFilter, identityFilter, requestStageContainer, true);
 
     verifyAll();
@@ -2266,11 +2236,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
     final Map<String,Object> attributeMap = new HashMap<String, Object>();
-    if (kerberosCredential != null) {
-      attributeMap.put("kerberos_admin/" + KerberosCredential.KEY_NAME_PRINCIPAL, kerberosCredential.getPrincipal());
-      attributeMap.put("kerberos_admin/" + KerberosCredential.KEY_NAME_PASSWORD, kerberosCredential.getPassword());
-      attributeMap.put("kerberos_admin/" + KerberosCredential.KEY_NAME_KEYTAB, kerberosCredential.getKeytab());
-    }
 
     final Cluster cluster = createNiceMock(Cluster.class);
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).anyTimes();
@@ -2454,14 +2419,12 @@ public class KerberosHelperTest extends EasyMockSupport {
     injector.getInstance(AmbariMetaInfo.class).init();
 
     Map<String, String> commandParamsStage = new HashMap<String, String>();
+    kerberosHelper.setKDCCredentials(kerberosCredential);
     kerberosHelper.createTestIdentity(cluster, commandParamsStage, requestStageContainer);
 
     verifyAll();
 
     if (managingIdentities) {
-      String serviceCheckID = (String) cluster.getSessionAttributes().get("_kerberos_internal_service_check_identifier");
-      Assert.assertNotNull(serviceCheckID);
-
       Assert.assertTrue(commandParamsStage.containsKey("principal_name"));
       Assert.assertEquals("${kerberos-env/service_check_principal_name}@${realm}", commandParamsStage.get("principal_name"));
 
@@ -2560,13 +2523,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(cluster.getCurrentStackVersion())
         .andReturn(new StackId("HDP", "2.2"))
         .anyTimes();
-    expect(cluster.getSessionAttributes()).andReturn(new HashMap<String, Object>() {{
-      if (kerberosCredential != null) {
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PRINCIPAL, kerberosCredential.getPrincipal());
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PASSWORD, kerberosCredential.getPassword());
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_KEYTAB, kerberosCredential.getKeytab());
-      }
-    }}).anyTimes();
+    expect(cluster.getSessionAttributes()).andReturn(new HashMap<String, Object>()).anyTimes();
 
     final Clusters clusters = injector.getInstance(Clusters.class);
     expect(clusters.getHostsForCluster("c1"))
@@ -2653,14 +2610,11 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     injector.getInstance(AmbariMetaInfo.class).init();
 
-    String serviceCheckID = "some_random_value";
-
-    cluster.getSessionAttributes().put("_kerberos_internal_service_check_identifier", serviceCheckID);
-
     Map<String, String> commandParamsStage = new HashMap<String, String>();
-    commandParamsStage.put("principal_name", "${cluster-env/smokeuser}_" + serviceCheckID + "@${realm}");
-    commandParamsStage.put("keytab_file", "${keytab_dir}/kerberos.service_check." + serviceCheckID + ".keytab");
+    commandParamsStage.put("principal_name", "${cluster-env/smokeuser}@${realm}");
+    commandParamsStage.put("keytab_file", "${keytab_dir}/kerberos.service_check.keytab");
 
+    kerberosHelper.setKDCCredentials(kerberosCredential);
     kerberosHelper.deleteTestIdentity(cluster, commandParamsStage, requestStageContainer);
 
     verifyAll();

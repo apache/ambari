@@ -390,7 +390,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
         if((executableKadmin == null) || executableKadmin.isEmpty()) {
           throw new KerberosOperationException("No path for kadmin is available - this KerberosOperationHandler may not have been opened.");
         }
-        String adminPassword = administratorCredentials.getPassword();
+        char[] adminPassword = administratorCredentials.getPassword();
         String adminKeyTab = administratorCredentials.getKeytab();
 
         // Set the kdamin interface to be kadmin
@@ -418,7 +418,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
         } else if (adminPassword != null) {
           // Add password for administrative principal
           command.add("-w");
-          command.add(adminPassword);
+          command.add(String.valueOf(adminPassword));
         }
       }
 

@@ -118,6 +118,7 @@ import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
+import org.apache.ambari.server.serveraction.kerberos.KerberosCredential;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
 import org.apache.ambari.server.stageplanner.RoleGraph;
@@ -1258,7 +1259,50 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         throw new AmbariException("The cluster may not be null");
       }
 
-      cluster.addSessionAttributes(request.getSessionAttributes());
+      Map<String, Object> sessionAttributes = request.getSessionAttributes();
+
+      // TODO: Create REST API entry point to securely set credentials in the CredentialProvider then
+      // TODO: remove this block to _clean_ the session attributes and store any KDC administrator
+      // TODO: credentials in the secure credential provider facility.
+      // For now, to keep things backwards compatible, get and remove the KDC administrator credentials
+      // from the session attributes and store them in the CredentialsProvider. The KDC administrator
+      // credentials are prefixed with kdc_admin/. The following attributes are expected, if setting
+      // the KDC administrator credentials:
+      //    kerberos_admin/principal
+      //    kerberos_admin/password
+      if((sessionAttributes != null) && !sessionAttributes.isEmpty()) {
+        Map<String, Object> cleanedSessionAttributes = new HashMap<String, Object>();
+        String principal = null;
+        char[] password = null;
+
+        for(Map.Entry<String,Object> entry: sessionAttributes.entrySet()) {
+          String name = entry.getKey();
+          Object value = entry.getValue();
+
+          if ("kerberos_admin/principal".equals(name)) {
+            if(value instanceof String) {
+              principal = (String)value;
+            }
+          }
+          else if ("kerberos_admin/password".equals(name)) {
+            if(value instanceof String) {
+              password = ((String) value).toCharArray();
+            }
+          } else {
+            cleanedSessionAttributes.put(name, value);
+          }
+        }
+
+        if(principal != null) {
+          // The KDC admin principal exists... set the credentials in the credentials store
+          kerberosHelper.setKDCCredentials(new KerberosCredential(principal, password, null));
+        }
+
+        sessionAttributes = cleanedSessionAttributes;
+      }
+      // TODO: END
+
+      cluster.addSessionAttributes(sessionAttributes);
       //
       // ***************************************************
 

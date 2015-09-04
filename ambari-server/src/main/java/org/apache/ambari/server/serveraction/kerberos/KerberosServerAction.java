@@ -23,6 +23,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -57,12 +58,6 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    * a temporary directory.
    */
   public static final String DATA_DIRECTORY = "data_directory";
-
-  /**
-   * A (command parameter) property name used to hold encrypted data representing the KDC
-   * administrator credentials
-   */
-  public static final String ADMINISTRATOR_CREDENTIAL = "kerberos_admin_credential";
 
   /**
    * A (command parameter) property name used to hold the default Kerberos realm value.
@@ -144,6 +139,12 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    */
   @Inject
   private KerberosIdentityDataFileReaderFactory kerberosIdentityDataFileReaderFactory;
+
+  /**
+   * KerberosHelper
+   */
+  @Inject
+  private KerberosHelper kerberosHelper;
 
   /**
    * Given a (command parameter) Map and a property name, attempts to safely retrieve the requested
@@ -305,21 +306,6 @@ public abstract class KerberosServerAction extends AbstractServerAction {
     return clusters;
   }
 
-
-  /**
-   * Given a (command parameter) Map, attempts to safely retrieve the "data_directory" property.
-   *
-   * @param commandParameters a Map containing the dictionary of data to interrogate
-   * @return a String indicating the data directory or null (if not found or set)
-   */
-  protected KerberosCredential getAdministratorCredential(Map<String, String> commandParameters) throws AmbariException {
-    Cluster cluster = getCluster();
-
-    // Create the key like we did when we encrypted the data, based on the Cluster objects hashcode.
-    byte[] key = Integer.toHexString(cluster.hashCode()).getBytes();
-    return KerberosCredential.decrypt(getCommandParameterValue(commandParameters, ADMINISTRATOR_CREDENTIAL), key);
-  }
-
   /**
    * Attempts to safely retrieve the "data_directory" property from the this action's relevant
    * command parameters Map.
@@ -355,7 +341,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
 
     if (commandParameters != null) {
       // Grab the relevant data from this action's command parameters map
-      KerberosCredential administratorCredential = getAdministratorCredential(commandParameters);
+      KerberosCredential administratorCredential = kerberosHelper.getKDCCredentials();
       String defaultRealm = getDefaultRealm(commandParameters);
       KDCType kdcType = getKDCType(commandParameters);
       String dataDirectoryPath = getDataDirectoryPath(commandParameters);

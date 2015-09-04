@@ -46,6 +46,9 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.security.SecurePasswordHelper;
+import org.apache.ambari.server.security.encryption.InMemoryCredentialStoreService;
+import org.apache.ambari.server.security.encryption.MasterKeyServiceImpl;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.kerberos.CreateKeytabFilesServerAction;
 import org.apache.ambari.server.serveraction.kerberos.CreatePrincipalsServerAction;
@@ -113,8 +116,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -126,10 +129,15 @@ public class KerberosHelperImpl implements KerberosHelper {
   private static final Logger LOG = LoggerFactory.getLogger(KerberosHelperImpl.class);
 
   /**
-   * name of the property used to hold the service check identifier value, used when creating and
-   * destroying the (unique) service check identity.
+   * The alias to assign to the KDC administrator credential Keystore item
    */
-  private static final String SERVICE_CHECK_IDENTIFIER = "_kerberos_internal_service_check_identifier";
+  public static final String KDC_ADMINISTRATOR_CREDENTIAL_ALIAS = "kdc_admin";
+
+  /**
+   * The default length of time (in minutes) to store the KDC administrator credentials before
+   * automatically removing them.
+   */
+  private static final long DEFAULT_KDC_ADMINISTRATOR_CREDENTIALS_RETENTION_MINUTES = 90;
 
   /**
    * Regular expression pattern used to parse auth_to_local property specifications into the following
@@ -184,11 +192,28 @@ public class KerberosHelperImpl implements KerberosHelper {
   @Inject
   private KerberosIdentityDataFileWriterFactory kerberosIdentityDataFileWriterFactory;
 
+  @Inject
+  private SecurePasswordHelper securePasswordHelper;
+
   /**
    * Used to get kerberos descriptors associated with the cluster or stack.
    * Currently not available via injection.
    */
   private static ClusterController clusterController = null;
+
+  /**
+   * The secure storage facility to use to store KDC administrator credentials. This implementation
+   * is uses an InMemoryCredentialStoreService to keep the credentials in memory rather than
+   * storing them on disk.
+   */
+  private final InMemoryCredentialStoreService kdcCredentialStoreService;
+
+  /**
+   * Default KerberosHelperImpl constructor
+   */
+  public KerberosHelperImpl() {
+    kdcCredentialStoreService = new InMemoryCredentialStoreService(DEFAULT_KDC_ADMINISTRATOR_CREDENTIALS_RETENTION_MINUTES, TimeUnit.MINUTES, true);
+  }
 
   @Override
   public RequestStageContainer toggleKerberos(Cluster cluster, SecurityType securityType,
@@ -344,10 +369,6 @@ public class KerberosHelperImpl implements KerberosHelper {
                                                   RequestStageContainer requestStageContainer)
       throws KerberosOperationException, AmbariException {
     requestStageContainer = handleTestIdentity(cluster, getKerberosDetails(cluster, null), commandParamsStage, requestStageContainer, new DeletePrincipalsAndKeytabsHandler());
-
-    // Clear the Kerberos service check identifier
-    setKerberosServiceCheckIdentifier(cluster, null);
-
     return requestStageContainer;
   }
 
@@ -890,6 +911,67 @@ public class KerberosHelperImpl implements KerberosHelper {
   }
 
   /**
+   * Sets the KDC administrator credentials.
+   * <p/>
+   * This implementation stores the credentials in a secure CredentialStoreService implementation and
+   * sets a timer to remove the stored credentials after the retention period expires.
+   * <p/>
+   * If existing credentials are stored when setting new credentials, the previously stored data will
+   * be cleared out. Each time credentials are set, a new master key is generated and used to encrypt
+   * the data.
+   *
+   * @param credentials the KDC administrator credentials
+   * @throws AmbariException if an error occurs while storing the credentials
+   */
+  @Override
+  public void setKDCCredentials(KerberosCredential credentials) throws AmbariException {
+    kdcCredentialStoreService.removeCredential(KDC_ADMINISTRATOR_CREDENTIAL_ALIAS);
+
+    if (credentials != null) {
+      String jsonValue = credentials.toJSON();
+
+      if (jsonValue != null) {
+        kdcCredentialStoreService.setMasterKeyService(new MasterKeyServiceImpl(securePasswordHelper.createSecurePassword()));
+        kdcCredentialStoreService.addCredential(KDC_ADMINISTRATOR_CREDENTIAL_ALIAS, jsonValue.toCharArray());
+      }
+    }
+  }
+
+  /**
+   * Removes the previously set KDC administrator credentials.
+   * <p/>
+   * This implementation clears the secure CredentialsStoreService instance, removing the previously
+   * generated master key and credentials data.  The configured timer to enforce retention time is
+   * cleared and set to null.
+   *
+   * @throws AmbariException if an error occurs while removing the credentials
+   * @see KerberosHelper#setKDCCredentials(KerberosCredential)
+   */
+  @Override
+  public void removeKDCCredentials() throws AmbariException {
+    kdcCredentialStoreService.removeCredential(KDC_ADMINISTRATOR_CREDENTIAL_ALIAS);
+  }
+
+  /**
+   * Gets the previously stored KDC administrator credentials.
+   * <p/>
+   * This implementation accesses the secure CredentialStoreService instance to get the data.
+   *
+   * @return a KerberosCredential or null, if the KDC administrator credentials have not be set or
+   * have been removed
+   * @throws AmbariException if an error occurs while retrieving the credentials
+   * @see KerberosHelper#setKDCCredentials(KerberosCredential)
+   */
+  @Override
+  public KerberosCredential getKDCCredentials() throws AmbariException {
+    char[] credentials = kdcCredentialStoreService.getCredential(KDC_ADMINISTRATOR_CREDENTIAL_ALIAS);
+
+    return (credentials == null)
+        ? null
+        : KerberosCredential.fromJSON(new String(credentials));
+  }
+
+  /**
    * Validate the KDC admin credentials.
    *
    * @param kerberosDetails the KerberosDetails containing information about the Kerberos configuration
@@ -908,8 +990,8 @@ public class KerberosHelperImpl implements KerberosHelper {
     }
 
     if (kerberosDetails.manageIdentities()) {
-      String credentials = getEncryptedAdministratorCredentials(cluster);
-      if (credentials == null) {
+      KerberosCredential kerberosCredentials = getKDCCredentials();
+      if (kerberosCredentials == null) {
         throw new KerberosMissingAdminCredentialsException(
             "Missing KDC administrator credentials.\n" +
                 "The KDC administrator credentials must be set in session by updating the relevant Cluster resource." +
@@ -926,9 +1008,6 @@ public class KerberosHelperImpl implements KerberosHelper {
         if (operationHandler == null) {
           throw new AmbariException("Failed to get an appropriate Kerberos operation handler.");
         } else {
-          byte[] key = Integer.toHexString(cluster.hashCode()).getBytes();
-          KerberosCredential kerberosCredentials = KerberosCredential.decrypt(credentials, key);
-
           boolean missingCredentials = false;
           try {
             operationHandler.open(kerberosCredentials, kerberosDetails.getDefaultRealm(), kerberosDetails.getKerberosEnvProperties());
@@ -1243,9 +1322,6 @@ public class KerberosHelperImpl implements KerberosHelper {
             }
           });
 
-          // Get or create the unique service check identifier
-          String serviceCheckId = getKerberosServiceCheckIdentifier(cluster, true);
-
           try {
             // Iterate over the hosts in the cluster to find the components installed in each.  For each
             // component (aka service component host - sch) determine the configuration updates and
@@ -1260,9 +1336,6 @@ public class KerberosHelperImpl implements KerberosHelper {
                 // Calculate the current host-specific configurations. These will be used to replace
                 // variables within the Kerberos descriptor data
                 Map<String, Map<String, String>> configurations = calculateConfigurations(cluster, hostname, kerberosDescriptorProperties);
-
-                // Set the unique service check identifier
-                configurations.get("").put("service_check_id", serviceCheckId);
 
                 // Add a short date value
                 configurations.get("").put("short_date", new SimpleDateFormat("MMddyy").format(new Date()));
@@ -1703,56 +1776,6 @@ public class KerberosHelperImpl implements KerberosHelper {
     }
 
     return encryptedAdministratorCredentials;
-  }
-
-  /**
-   * Using the session data from the relevant Cluster object, gets the previously stored
-   * Kerberos service check identifier value or creates a new one if indicated to do so.
-   * <p/>
-   * This value is used intended to be used by the KerberosHelper to manage uniquely crated
-   * principals for use in service checks.
-   *
-   * @param cluster the relevant Cluster
-   * @return the previously stored Kerberos service check identifier value, or null if
-   * not previously stored
-   */
-  private String getKerberosServiceCheckIdentifier(Cluster cluster, boolean createIfNull) {
-    Map<String, Object> sessionAttributes = cluster.getSessionAttributes();
-    Object value = (sessionAttributes == null) ? null : sessionAttributes.get(SERVICE_CHECK_IDENTIFIER);
-    String serviceCheckIdentifier = (value instanceof String) ? (String) value : null;
-
-    if ((serviceCheckIdentifier == null) && createIfNull) {
-      // Create a new (ideally) unique(ish) identifier
-      Random random = new Random(System.currentTimeMillis());
-      char[] chars = new char[8];
-
-      for (int i = 0; i < 8; i++) {
-        chars[i] = (char) ((int) 'a' + random.nextInt(26));
-      }
-
-      serviceCheckIdentifier = String.valueOf(chars);
-      setKerberosServiceCheckIdentifier(cluster, serviceCheckIdentifier);
-    }
-
-    return serviceCheckIdentifier;
-  }
-
-  /**
-   * Stores the Kerberos service check identifier value into the session data from the
-   * relevant Cluster object.
-   * <p/>
-   * This value is used intended to be used by the KerberosHelper to manage uniquely crated
-   * principals for use in service checks.
-   *
-   * @param cluster the relevant Cluster
-   * @param value   the Kerberos service check identifier to store or null to clear any previously set value
-   */
-  private void setKerberosServiceCheckIdentifier(Cluster cluster, String value) {
-    if (value == null) {
-      cluster.removeSessionAttribute(SERVICE_CHECK_IDENTIFIER);
-    } else {
-      cluster.setSessionAttribute(SERVICE_CHECK_IDENTIFIER, value);
-    }
   }
 
   /**
@@ -2432,7 +2455,6 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       if (kerberosDetails.manageIdentities()) {
         commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
-        commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
 
         // *****************************************************************
         // Create stage to create principals
@@ -2544,7 +2566,6 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       if (kerberosDetails.manageIdentities()) {
         commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
-        commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
 
         // *****************************************************************
         // Create stage to remove principals
@@ -2681,7 +2702,6 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       if (kerberosDetails.manageIdentities()) {
         commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
-        commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
 
         // *****************************************************************
         // Create stage to create principals
@@ -2781,7 +2801,6 @@ public class KerberosHelperImpl implements KerberosHelper {
         }
 
         commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
-        commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
 
         // *****************************************************************
         // Create stage to create principals

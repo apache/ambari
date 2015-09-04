@@ -29,6 +29,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -42,10 +43,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.easymock.EasyMock.createNiceMock;
 
 public class KerberosServerActionTest {
 
@@ -68,6 +72,7 @@ public class KerberosServerActionTest {
 
       @Override
       protected void configure() {
+        bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
         bind(KerberosServerAction.class).toInstance(new KerberosServerAction() {
 
           @Override
@@ -118,9 +123,6 @@ public class KerberosServerActionTest {
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, temporaryDirectory.getAbsolutePath());
     commandParams.put(KerberosServerAction.DEFAULT_REALM, "REALM.COM");
     commandParams.put(KerberosServerAction.KDC_TYPE, KDCType.MIT_KDC.toString());
-    commandParams.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL,
-        new KerberosCredential("principal", "password", "keytab")
-            .encrypt(Integer.toHexString(cluster.hashCode()).getBytes()));
 
     when(mockExecutionCommand.getCommandParams()).thenReturn(commandParams);
     when(mockExecutionCommand.getClusterName()).thenReturn("c1");
@@ -183,6 +185,13 @@ public class KerberosServerActionTest {
 
   @Test
   public void testProcessIdentitiesSuccess() throws Exception {
+    KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+    expect(kerberosHelper.getKDCCredentials())
+        .andReturn(new KerberosCredential("principal", "password".toCharArray(), null))
+        .anyTimes();
+
+    replay(kerberosHelper);
+
     ConcurrentMap<String, Object> sharedMap = new ConcurrentHashMap<String, Object>();
     CommandReport report = action.processIdentities(sharedMap);
     Assert.assertNotNull(report);
@@ -192,24 +201,26 @@ public class KerberosServerActionTest {
       Assert.assertEquals(entry.getValue(),
           entry.getKey().replace("_HOST", "hostName").replace("_REALM", "REALM.COM"));
     }
+
+    verify(kerberosHelper);
   }
 
   @Test
   public void testProcessIdentitiesFail() throws Exception {
+    KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+    expect(kerberosHelper.getKDCCredentials())
+        .andReturn(new KerberosCredential("principal", "password".toCharArray(), null))
+        .anyTimes();
+
+    replay(kerberosHelper);
+
     ConcurrentMap<String, Object> sharedMap = new ConcurrentHashMap<String, Object>();
     sharedMap.put("FAIL", "true");
 
     CommandReport report = action.processIdentities(sharedMap);
     Assert.assertNotNull(report);
     Assert.assertEquals(HostRoleStatus.FAILED.toString(), report.getStatus());
-  }
 
-  @Test
-  public void testGetAdministrativeCredentials() throws AmbariException {
-    KerberosCredential credentials = action.getAdministratorCredential(commandParams);
-    Assert.assertNotNull(credentials);
-    Assert.assertEquals("principal", credentials.getPrincipal());
-    Assert.assertEquals("password", credentials.getPassword());
-    Assert.assertEquals("keytab", credentials.getKeytab());
+    verify(kerberosHelper);
   }
 }
