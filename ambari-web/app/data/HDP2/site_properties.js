@@ -127,7 +127,7 @@ var hdp2properties = [
     "displayName": "Access time precision",
     "recommendedValue": "0",
     "displayType": "long",
-    "category": "NFS_GATEWAY",
+    "category": "General",
     "serviceName": "HDFS",
     "filename": "hdfs-site.xml",
     "index": 2
