@@ -33,7 +33,6 @@ public class StackServiceResponse {
   private String stackName;
   private String stackVersion;
   private String serviceName;
-  private String serviceType;
   private String serviceDisplayName;
   private String userName;
   private String comments;
@@ -62,7 +61,6 @@ public class StackServiceResponse {
    */
   public StackServiceResponse(ServiceInfo service) {
     serviceName = service.getName();
-    serviceType = service.getServiceType();
     serviceDisplayName = service.getDisplayName();
     userName = null;
     comments = service.getComment();
@@ -109,16 +107,8 @@ public class StackServiceResponse {
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
   }
-  
-  public String getServiceType() {
-	return serviceType;
-  }
 
-  public void setServiceType(String serviceType) {
-	this.serviceType = serviceType;
-  }
-
-public String getServiceDisplayName() {
+  public String getServiceDisplayName() {
     return serviceDisplayName;
   }
 

@@ -2390,7 +2390,7 @@ public class ClusterImpl implements Cluster {
                 "single API request isn't supported. Conflicting services %s and %s for %s",
                                          serviceName, entry.getKey(), config.getType());
             IllegalArgumentException exception = new IllegalArgumentException(error);
-            LOG.error(error + ", config version not created for {}", serviceName);
+            LOG.error(error + ", config version not created");
             throw exception;
           } else {
             break;

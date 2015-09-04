@@ -62,13 +62,6 @@ public class ServiceInfoTest {
         "      <comment>Apache Hadoop Distributed File System</comment>\n" +
         "      <version>2.1.0.2.0</version>\n" +
         "    </service>\n" +
-        "    <service>\n" +
-        "      <name>HCFS_SERVICE</name>\n" +
-        "      <displayName>HCFS_SERVICE</displayName>\n" +
-        "      <comment>Hadoop Compatible File System</comment>\n" +
-        "      <version>2.1.1.0</version>\n" +
-        "      <serviceType>HCFS</serviceType>\n" +
-        "    </service>\n" +
         "  </services>\n" +
         "</metainfo>\n";
     
@@ -77,7 +70,6 @@ public class ServiceInfoTest {
     assertTrue(serviceInfoMap.get("RESTART").isRestartRequiredAfterRackChange());
     assertFalse(serviceInfoMap.get("NO_RESTART").isRestartRequiredAfterRackChange());
     assertNull(serviceInfoMap.get("DEFAULT_RESTART").isRestartRequiredAfterRackChange());
-    assertEquals(serviceInfoMap.get("HCFS_SERVICE").getServiceType(),"HCFS");
   }
 
   @Test

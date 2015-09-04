@@ -99,9 +99,6 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("serviceName")
   private String serviceName;
 
-  @SerializedName("serviceType")
-  private String serviceType;  
-  
   @SerializedName("componentName")
   private String componentName;
 
@@ -273,14 +270,6 @@ public class ExecutionCommand extends AgentCommand {
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
   }
-  
-  public String getServiceType() {
-	return serviceType;
-  }
-
-  public void setServiceType(String serviceType) {
-	this.serviceType = serviceType;
-  }
 
   public String getComponentName() {
     return componentName;
@@ -331,7 +320,6 @@ public class ExecutionCommand extends AgentCommand {
     String SERVICE_PACKAGE_FOLDER = "service_package_folder";
     String HOOKS_FOLDER = "hooks_folder";
     String STACK_NAME = "stack_name";
-    String SERVICE_TYPE = "service_type";
     String STACK_VERSION = "stack_version";
     String SERVICE_REPO_INFO = "service_repo_info";
     String PACKAGE_LIST = "package_list";

@@ -132,8 +132,7 @@ def set_uid(user, user_dirs):
 def setup_hadoop_env():
   import params
   stackversion = params.stack_version_unformatted
-  print "***** Service type:: ", params.service_type
-  if params.has_namenode or stackversion.find('Gluster') >= 0 or params.service_type == 'HCFS':
+  if params.has_namenode or stackversion.find('Gluster') >= 0:
     if params.security_enabled:
       tc_owner = "root"
     else:

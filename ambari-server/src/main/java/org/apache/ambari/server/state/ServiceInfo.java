@@ -56,7 +56,6 @@ public class ServiceInfo implements Validable{
   private String displayName;
   private String version;
   private String comment;
-  private String serviceType;
   private List<PropertyInfo> properties;
 
   @XmlElementWrapper(name="components")
@@ -254,16 +253,8 @@ public class ServiceInfo implements Validable{
   public void setDisplayName(String displayName) {
     this.displayName = displayName;
   }
-  
-  public String getServiceType() {
-	return serviceType;
-  }
 
-  public void setServiceType(String serviceType) {
-	this.serviceType = serviceType;
-  }
-
-public String getVersion() {
+  public String getVersion() {
     return version;
   }
 
@@ -354,8 +345,6 @@ public String getVersion() {
     StringBuilder sb = new StringBuilder();
     sb.append("Service name:");
     sb.append(name);
-    sb.append("\nService type:");
-    sb.append(serviceType); 
     sb.append("\nversion:");
     sb.append(version);
     sb.append("\ncomment:");
