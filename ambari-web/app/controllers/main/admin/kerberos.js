@@ -54,18 +54,20 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
 
   notifySecurityOffPopup: function () {
     var self = this;
-    App.ModalPopup.show({
-      header: Em.I18n.t('popup.confirmation.commonHeader'),
-      primary: Em.I18n.t('ok'),
-      onPrimary: function () {
-        App.db.setSecurityDeployCommands(undefined);
-        self.setDisableSecurityStatus("RUNNING");
-        App.router.transitionTo('disableSecurity');
-        this.hide();
-      },
-      bodyClass: Ember.View.extend({
-        templateName: require('templates/main/admin/security/notify_security_off_popup')
-      })
+    this.checkServiceWarnings().then(function() {
+      App.ModalPopup.show({
+        header: Em.I18n.t('popup.confirmation.commonHeader'),
+        primary: Em.I18n.t('ok'),
+        onPrimary: function () {
+          App.db.setSecurityDeployCommands(undefined);
+          self.setDisableSecurityStatus("RUNNING");
+          App.router.transitionTo('disableSecurity');
+          this.hide();
+        },
+        bodyClass: Ember.View.extend({
+          templateName: require('templates/main/admin/security/notify_security_off_popup')
+        })
+      });
     });
   },
 
@@ -229,9 +231,12 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   },
 
   startKerberosWizard: function () {
-    this.setAddSecurityWizardStatus('RUNNING');
-    App.router.get('kerberosWizardController').setDBProperty('onClosePath', 'main.admin.adminKerberos.index');
-    App.router.transitionTo('adminKerberos.adminAddKerberos');
+    var self = this;
+    this.checkServiceWarnings().then(function() {
+      self.setAddSecurityWizardStatus('RUNNING');
+      App.router.get('kerberosWizardController').setDBProperty('onClosePath', 'main.admin.adminKerberos.index');
+      App.router.transitionTo('adminKerberos.adminAddKerberos');
+    });
   },
 
   /**
@@ -530,4 +535,52 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     }
   }
 
+  /**
+   * List of the warnings regarding specific services before enabling/disabling Kerberos.
+   *
+   * @type {String[]}
+   */
+  serviceAlerts: function() {
+    var messages = [];
+    var serviceAlertMap = {
+      YARN: Em.I18n.t('admin.kerberos.service.alert.yarn')
+    };
+    var installedServices = App.Service.find().mapProperty('serviceName');
+    Em.keys(serviceAlertMap).forEach(function(serviceName) {
+      if (installedServices.contains(serviceName)) {
+        messages.push(serviceAlertMap[serviceName]);
+      }
+    });
+    return messages;
+  }.property(),
+
+  /**
+   * Check for additional info to display before enabling/disabling kerberos and show appropriate
+   * messages in popup if needed.
+   * @returns {$.Deferred} - promise
+   */
+  checkServiceWarnings: function() {
+    var dfd = $.Deferred();
+    this.displayServiceWarnings(this.get('serviceAlerts'), dfd);
+    return dfd.promise();
+  },
+
+  /**
+   * Show appropriate message regarding changes affected after enabling/disabling Kerberos
+   *
+   * @param {String[]} messages - list of the messages to display
+   * @param {$.Deferred} dfd - used to break recursive calls and reject/resolve promise returned by <code>checkServiceWarnings</code>
+   */
+  displayServiceWarnings: function(messages, dfd) {
+    var self = this;
+    if (!messages.get('length')) {
+      dfd.resolve();
+    } else {
+      App.showConfirmationPopup(function() {
+        self.displayServiceWarnings(messages.slice(1), dfd);
+      }, messages[0], function() {
+        dfd.reject();
+      }, Em.I18n.t('common.warning'), Em.I18n.t('common.proceedAnyway'));
+    }
+  }
 });
