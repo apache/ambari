@@ -251,6 +251,19 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   },
 
   /**
+   * verify that service component has host components
+   * @param {object} component
+   * @param {string} name
+   * @returns {boolean}
+   */
+  isHostComponentPresent: function(component, name) {
+    return Boolean(component.ServiceComponentInfo
+           && component.ServiceComponentInfo.component_name === name
+           && Array.isArray(component.host_components)
+           && component.host_components.length > 0);
+  },
+
+  /**
    * Generate service mapped object and load data to extended models.
    *
    * @method mapExtendedModel
@@ -386,7 +399,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     var hdfsConfig = this.hdfsConfig;
     var self = this;
     item.components.forEach(function (component) {
-      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "NAMENODE") {
+      if (this.isHostComponentPresent(component, 'NAMENODE')) {
         //enabled HA
         if (component.host_components.length == 2) {
           var haState1;
@@ -460,20 +473,16 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         }
         item.name_node_id = "NAMENODE" + "_" + component.host_components[0].HostRoles.host_name;
       }
-      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "JOURNALNODE") {
+      if (this.isHostComponentPresent(component, "JOURNALNODE")) {
         item.journal_nodes = [];
-        if (component.host_components) {
           component.host_components.forEach(function (hc) {
             item.journal_nodes.push("JOURNALNODE" + "_" + hc.HostRoles.host_name);
           });
-        }
       }
-      if (component.ServiceComponentInfo &&
-          component.ServiceComponentInfo.component_name == "SECONDARY_NAMENODE" &&
-          component.host_components.length > 0) {
+      if (this.isHostComponentPresent(component, "SECONDARY_NAMENODE")) {
         item.sname_node_id = "SECONDARY_NAMENODE" + "_" + component.host_components[0].HostRoles.host_name;
       }
-    });
+    }, this);
     // Map
     var finalJson = this.parseIt(item, finalConfig);
     finalJson.quick_links = [1, 2, 3, 4];
@@ -487,7 +496,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     // Change the JSON so that it is easy to map
     var yarnConfig = this.yarnConfig;
     item.components.forEach(function (component) {
-      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "RESOURCEMANAGER") {
+      if (this.isHostComponentPresent(component, "RESOURCEMANAGER")) {
         item.resourceManagerComponent = component;
 
         // if YARN has two host components, ACTIVE one should be first in component.host_components array for proper metrics mapping
@@ -510,10 +519,10 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         finalConfig = jQuery.extend(finalConfig, yarnConfig);
         item.resource_manager_id = "RESOURCEMANAGER" + "_" + component.host_components[0].HostRoles.host_name;
       }
-      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "APP_TIMELINE_SERVER") {
+      if (this.isHostComponentPresent(component, "APP_TIMELINE_SERVER")) {
         item.app_timeline_server_id = "APP_TIMELINE_SERVER" + "_" + component.host_components[0].HostRoles.host_name;
       }
-    });
+    }, this);
     // Map
     var finalJson = this.parseIt(item, finalConfig);
     finalJson.quick_links = [23, 24, 25, 26];
@@ -537,12 +546,12 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     // Change the JSON so that it is easy to map
     var mapReduce2Config = this.mapReduce2Config;
     item.components.forEach(function (component) {
-      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "HISTORYSERVER") {
+      if (this.isHostComponentPresent(component, "HISTORYSERVER")) {
         item.jobHistoryServerComponent = component;
         finalConfig = jQuery.extend(finalConfig, mapReduce2Config);
         item.job_history_server_id = "HISTORYSERVER" + "_" + component.host_components[0].HostRoles.host_name;
       }
-    });
+    }, this);
     // Map
     var finalJson = this.parseIt(item, finalConfig);
     finalJson.quick_links = [27, 28, 29, 30];
@@ -555,7 +564,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     var finalConfig = jQuery.extend({}, this.config);
     var hbaseConfig = this.hbaseConfig;
     item.components.forEach(function (component) {
-      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "HBASE_MASTER") {
+      if (this.isHostComponentPresent(component, "HBASE_MASTER")) {
         item.masterComponent = component;
         finalConfig = jQuery.extend(finalConfig, hbaseConfig);
         if (component.host_components.length) {
@@ -575,7 +584,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         }
         item.master_id = "HBASE_MASTER" + "_" + component.host_components[0].HostRoles.host_name;
       }
-    });
+    }, this);
     // Map
     var finalJson = this.parseIt(item, finalConfig);
     finalJson.average_load = parseFloat(finalJson.average_load).toFixed(2);
@@ -660,5 +669,4 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     item.restApiComponent = restApiMetrics;
     return this.parseIt(item, finalConfig);
   }
-})
-;
+});

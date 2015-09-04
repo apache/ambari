@@ -58,7 +58,74 @@ describe('App.serviceMetricsMapper', function () {
         result = App.serviceMetricsMapper.yarnMapper(item);
       expect(result.queue).to.equal("{\"root\":{\"default\":{}}}");
     });
-
   });
 
+  describe("#isHostComponentPresent()", function () {
+    var testCases = [
+      {
+        title: 'component is empty',
+        data: {
+          component: {},
+          name: 'C1'
+        },
+        result: false
+      },
+      {
+        title: 'component name does not match',
+        data: {
+          component: {
+            ServiceComponentInfo: {
+              component_name: ''
+            }
+          },
+          name: 'C1'
+        },
+        result: false
+      },
+      {
+        title: 'host_components is undefined',
+        data: {
+          component: {
+            ServiceComponentInfo: {
+              component_name: 'C1'
+            }
+          },
+          name: 'C1'
+        },
+        result: false
+      },
+      {
+        title: 'host_components is empty',
+        data: {
+          component: {
+            ServiceComponentInfo: {
+              component_name: 'C1'
+            },
+            host_components: []
+          },
+          name: 'C1'
+        },
+        result: false
+      },
+      {
+        title: 'host_components has component',
+        data: {
+          component: {
+            ServiceComponentInfo: {
+              component_name: 'C1'
+            },
+            host_components: [{}]
+          },
+          name: 'C1'
+        },
+        result: true
+      }
+    ];
+
+    testCases.forEach(function (test) {
+      it(test.title, function () {
+        expect(App.serviceMetricsMapper.isHostComponentPresent(test.data.component, test.data.name)).to.equal(test.result);
+      });
+    });
+  });
 });
