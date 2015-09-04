@@ -32,11 +32,41 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
 
   registeredHosts: [],
 
+  /**
+   * @typedef {{
+   *  name: string,
+   *  hosts: string[],
+   *  hostsLong: string[],
+   *  hostsNames: string[],
+   *  onSingleHost: boolean
+   * }} checkWarning
+   */
+
+  /**
+   * @type {checkWarning[]}
+   */
   hostCheckWarnings: [],
+
+  /**
+   * @type {checkWarning[]}
+   */
   repoCategoryWarnings: [],
+
+  /**
+   * @type {checkWarning[]}
+   */
   diskCategoryWarnings: [],
+
+  /**
+   * @type {checkWarning[]}
+   */
   thpCategoryWarnings: [],
+
+  /**
+   * @type {checkWarning[]}
+   */
   jdkCategoryWarnings: null,
+
   jdkRequestIndex: null,
 
   registrationStartedAt: null,
@@ -844,6 +874,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         jdkWarnings.push({
           name: Em.I18n.t('installer.step3.hostWarningsPopup.jdk.name').format(invalidJavaHome),
           hosts: hostsJDKContext,
+          hostsLong: hostsJDKContext,
           hostsNames: hostsJDKNames,
           category: 'jdk',
           onSingleHost: false
@@ -1073,15 +1104,17 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       var name = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.error');
       var hostInfo = this.get("hostCheckWarnings").findProperty('name', name);
       if (["FAILED", "COMPLETED", "TIMEDOUT"].contains(task.Tasks.status)) {
-        if (!(task.Tasks.status == "COMPLETED" && Em.get(task, "Tasks.structured_out.host_resolution_check.failed_count") == 0)) {
+        if (task.Tasks.status == "COMPLETED" && Em.get(task, "Tasks.structured_out.host_resolution_check.failed_count") != 0) {
           var targetHostName = Em.get(task, "Tasks.host_name");
           var relatedHostNames = Em.get(task, "Tasks.structured_out.host_resolution_check.failures")
             ? Em.get(task, "Tasks.structured_out.host_resolution_check.failures").mapProperty('host') : [];
-          var contextMessage = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format(targetHostName, relatedHostNames.join(', '));
+          var contextMessage = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format(targetHostName, relatedHostNames.length + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.host' + (relatedHostNames.length == 1 ? '' : 's')));
+          var contextMessageLong = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format(targetHostName, relatedHostNames.join(', '));
           if (!hostInfo) {
             hostInfo = {
               name: name,
               hosts: [contextMessage],
+              hostsLong: [contextMessageLong],
               hostsNames: [targetHostName],
               onSingleHost: true
             };
@@ -1089,7 +1122,9 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
           } else {
             if (!hostInfo.hostsNames.contains(targetHostName)) {
               hostInfo.hosts.push(contextMessage);
+              hostInfo.hostsLong.push(contextMessageLong);
               hostInfo.hostsNames.push(targetHostName);
+              hostInfo.onSingleHost = false;
             }
           }
         }
@@ -1165,6 +1200,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       repoWarnings.push({
         name: Em.I18n.t('installer.step3.hostWarningsPopup.repositories.name'),
         hosts: hostsContext,
+        hostsLong: hostsContext,
         hostsNames: hostsRepoNames,
         category: 'repositories',
         onSingleHost: false
@@ -1174,6 +1210,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       diskWarnings.push({
         name: Em.I18n.t('installer.step3.hostWarningsPopup.disk.name'),
         hosts: hostsDiskContext,
+        hostsLong: hostsDiskContext,
         hostsNames: hostsDiskNames,
         category: 'disk',
         onSingleHost: false
@@ -1183,6 +1220,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       thpWarnings.push({
         name: Em.I18n.t('installer.step3.hostWarningsPopup.thp.name'),
         hosts: thpContext,
+        hostsLong: thpContext,
         hostsNames: thpHostsNames,
         category: 'thp',
         onSingleHost: false
@@ -1490,11 +1528,13 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         warning = warningCategories.fileFoldersWarnings[path.name];
         if (warning) {
           warning.hosts.push(_host.Hosts.host_name);
+          warning.hostsLong.push(_host.Hosts.host_name);
           warning.onSingleHost = false;
         } else {
           warningCategories.fileFoldersWarnings[path.name] = warning = {
             name: path.name,
             hosts: [_host.Hosts.host_name],
+            hostsLong: [_host.Hosts.host_name],
             category: 'fileFolders',
             onSingleHost: true
           };
@@ -1510,6 +1550,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
           warning = warningCategories.packagesWarnings[_package.name];
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
+            warning.hostsLong.push(_host.Hosts.host_name);
             warning.version = _package.version;
             warning.onSingleHost = false;
           } else {
@@ -1517,6 +1558,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
               name: _package.name,
               version: _package.version,
               hosts: [_host.Hosts.host_name],
+              hostsLong: [_host.Hosts.host_name],
               category: 'packages',
               onSingleHost: true
             };
@@ -1534,11 +1576,13 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
           warning = warningCategories.processesWarnings[process.pid];
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
+            warning.hostsLong.push(_host.Hosts.host_name);
             warning.onSingleHost = false;
           } else {
             warningCategories.processesWarnings[process.pid] = warning = {
               name: (process.command.substr(0, 35) + '...'),
               hosts: [_host.Hosts.host_name],
+              hostsLong: [_host.Hosts.host_name],
               category: 'processes',
               user: process.user,
               pid: process.pid,
@@ -1562,11 +1606,13 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
             warning = warningCategories.servicesWarnings[service.name];
             if (warning) {
               warning.hosts.push(_host.Hosts.host_name);
+              warning.hostsLong.push(_host.Hosts.host_name);
               warning.onSingleHost = false;
             } else {
               warningCategories.servicesWarnings[service.name] = warning = {
                 name: service.name,
                 hosts: [_host.Hosts.host_name],
+                hostsLong: [_host.Hosts.host_name],
                 category: 'services',
                 onSingleHost: true
               };
@@ -1583,11 +1629,13 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
           warning = warningCategories.usersWarnings[user.userName];
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
+            warning.hostsLong.push(_host.Hosts.host_name);
             warning.onSingleHost = false;
           } else {
             warningCategories.usersWarnings[user.userName] = warning = {
               name: user.userName,
               hosts: [_host.Hosts.host_name],
+              hostsLong: [_host.Hosts.host_name],
               category: 'users',
               onSingleHost: true
             };
@@ -1602,11 +1650,13 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         warning = warnings.filterProperty('category', 'misc').findProperty('name', umask);
         if (warning) {
           warning.hosts.push(_host.Hosts.host_name);
+          warning.hostsLong.push(_host.Hosts.host_name);
           warning.onSingleHost = false;
         } else {
           warning = {
             name: umask,
             hosts: [_host.Hosts.host_name],
+            hostsLong: [_host.Hosts.host_name],
             category: 'misc',
             onSingleHost: true
           };
@@ -1621,11 +1671,13 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         warning = warnings.filterProperty('category', 'firewall').findProperty('name', name);
         if (warning) {
           warning.hosts.push(_host.Hosts.host_name);
+          warning.hostsLong.push(_host.Hosts.host_name);
           warning.onSingleHost = false;
         } else {
           warning = {
             name: name,
             hosts: [_host.Hosts.host_name],
+            hostsLong: [_host.Hosts.host_name],
             category: 'firewall',
             onSingleHost: true
           };
@@ -1639,12 +1691,14 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
           warning = warningCategories.alternativeWarnings[alternative.name];
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
+            warning.hostsLong.push(_host.Hosts.host_name);
             warning.onSingleHost = false;
           } else {
             warningCategories.alternativeWarnings[alternative.name] = warning = {
               name: alternative.name,
               target: alternative.target,
               hosts: [_host.Hosts.host_name],
+              hostsLong: [_host.Hosts.host_name],
               category: 'alternatives',
               onSingleHost: true
             };
@@ -1658,11 +1712,13 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         warning = warnings.filterProperty('category', 'reverseLookup').findProperty('name', name);
         if (warning) {
           warning.hosts.push(_host.Hosts.host_name);
+          warning.hostsLong.push(_host.Hosts.host_name);
           warning.onSingleHost = false;
         } else {
           warning = {
             name: name,
             hosts: [_host.Hosts.host_name],
+            hostsLong: [_host.Hosts.host_name],
             category: 'reverseLookup',
             onSingleHost: true
           };
@@ -1674,7 +1730,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     }, this);
 
     for (var categoryId in warningCategories) {
-      var category = warningCategories[categoryId]
+      var category = warningCategories[categoryId];
       for (var warningId in category) {
         warnings.push(category[warningId]);
       }

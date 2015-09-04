@@ -1682,6 +1682,7 @@ describe('App.WizardStep3Controller', function () {
       var warnings = c.get('warnings');
       expect(warnings.length).to.equal(1);
       expect(warnings[0].hosts).to.eql(['c1']);
+      expect(warnings[0].hostsLong).to.eql(['c1']);
       expect(warnings[0].onSingleHost).to.equal(true);
 
     });
@@ -1714,6 +1715,7 @@ describe('App.WizardStep3Controller', function () {
       var warnings = c.get('warnings');
       expect(warnings.length).to.equal(1);
       expect(warnings[0].hosts).to.eql(['c1']);
+      expect(warnings[0].hostsLong).to.eql(['c1']);
       expect(warnings[0].onSingleHost).to.equal(true);
 
     });
@@ -1729,6 +1731,7 @@ describe('App.WizardStep3Controller', function () {
       var warnings = c.get('warnings');
       expect(warnings.length).to.equal(1);
       expect(warnings[0].hosts).to.eql(['c1', 'c2']);
+      expect(warnings[0].hostsLong).to.eql(['c1', 'c2']);
       expect(warnings[0].onSingleHost).to.equal(false);
 
     });
@@ -1755,6 +1758,7 @@ describe('App.WizardStep3Controller', function () {
       var warnings = c.get('warnings');
       expect(warnings.length).to.equal(1);
       expect(warnings[0].hosts).to.eql(['c1']);
+      expect(warnings[0].hostsLong).to.eql(['c1']);
       expect(warnings[0].onSingleHost).to.equal(true);
 
     });
@@ -1770,6 +1774,7 @@ describe('App.WizardStep3Controller', function () {
       var warnings = c.get('warnings');
       expect(warnings.length).to.equal(1);
       expect(warnings[0].hosts).to.eql(['c1', 'c2']);
+      expect(warnings[0].hostsLong).to.eql(['c1', 'c2']);
       expect(warnings[0].onSingleHost).to.equal(false);
 
     });
@@ -2323,7 +2328,7 @@ describe('App.WizardStep3Controller', function () {
       expect(c.get('isJDKWarningsLoaded')).to.equal(expected);
     });
 
-    it('should do propert request to ambari-server', function () {
+    it('should do proper request to ambari-server', function () {
 
       var data = null,
         jdkRequestIndex = 'jdkRequestIndex',

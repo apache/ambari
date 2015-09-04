@@ -316,23 +316,23 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
     newContent += this.get('hostNamesWithWarnings').join(' ');
     if (content.findProperty('category', 'thp').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.thp');
-      newContent += content.findProperty('category', 'thp').warnings[0].hosts.join(' ');
+      newContent += content.findProperty('category', 'thp').warnings[0].hostsLong.join(' ');
     }
     if (content.findProperty('category', 'jdk').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.jdk');
-      newContent += content.findProperty('category', 'jdk').warnings[0].hosts.join('<br>');
+      newContent += content.findProperty('category', 'jdk').warnings[0].hostsLong.join('<br>');
     }
     if (content.findProperty('category', 'disk').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.disk');
-      newContent += content.findProperty('category', 'disk').warnings[0].hosts.join('<br>');
+      newContent += content.findProperty('category', 'disk').warnings[0].hostsLong.join('<br>');
     }
     if (content.findProperty('category', 'repositories').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.repositories');
-      newContent += content.findProperty('category', 'repositories').warnings[0].hosts.join('<br>');
+      newContent += content.findProperty('category', 'repositories').warnings[0].hostsLong.join('<br>');
     }
     if (content.findProperty('category', 'hostNameResolution').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.hostNameResolution');
-      newContent += content.findProperty('category', 'hostNameResolution').warnings[0].hosts.join('<br>');
+      newContent += content.findProperty('category', 'hostNameResolution').warnings[0].hostsLong.join('<br>');
     }
     if (content.findProperty('category', 'firewall').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.firewall');
@@ -344,7 +344,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
     }
     if (content.findProperty('category', 'reverseLookup').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.reverseLookup');
-      newContent += content.findProperty('category', 'reverseLookup').warnings[0].hosts.join(' ');
+      newContent += content.findProperty('category', 'reverseLookup').warnings[0].hostsLong.join(' ');
     }
     if (content.findProperty('category', 'process').warnings.length) {
       newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.process');

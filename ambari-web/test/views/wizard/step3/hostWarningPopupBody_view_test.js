@@ -153,13 +153,13 @@ describe('App.WizardStep3HostWarningPopupBody', function() {
     var content = [
       {category: 'firewall', warnings: [{name: 'n1'}, {name: 'n2'}, {name: 'n3'}]},
       {category: 'fileFolders', warnings: [{name: 'n4'}, {name: 'n5'}, {name: 'n6'}]},
-      {category: 'reverseLookup', warnings: [{name: 'n19', hosts: ["h1"]}]},
+      {category: 'reverseLookup', warnings: [{name: 'n19', hosts: ["h1"], hostsLong: ["h1"]}]},
       {
         category: 'process',
         warnings: [
-          {name: 'n7', hosts:['h1', 'h2'], user: 'u1', pid: 'pid1'},
-          {name: 'n8', hosts:['h2'], user: 'u2', pid: 'pid2'},
-          {name: 'n9', hosts:['h3'], user: 'u1', pid: 'pid3'}
+          {name: 'n7', hosts:['h1', 'h2'], hostsLong:['h1', 'h2'], user: 'u1', pid: 'pid1'},
+          {name: 'n8', hosts:['h2'], hostsLong:['h2'], user: 'u2', pid: 'pid2'},
+          {name: 'n9', hosts:['h3'], hostsLong:['h3'], user: 'u1', pid: 'pid3'}
         ]
       },
       {category: 'package', warnings: [{name: 'n10'}, {name: 'n11'}, {name: 'n12'}]},
