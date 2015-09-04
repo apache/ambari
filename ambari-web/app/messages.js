@@ -1080,6 +1080,7 @@ Em.I18n.translations = {
   'admin.kerberos.regenerate_keytabs.checkbox.label': ' Only regenerate keytabs for missing hosts and components',
   'admin.kerberos.regenerate_keytabs.popup.restart.body': 'After keytab regerate is complete, services relying on them <strong>must</strong> be restarted. This can be done automatically, or manually.',
   'admin.kerberos.regenerate_keytabs.checkbox.restart.label': 'Automatically restart components after keytab regeneration',
+  'admin.kerberos.service.alert.yarn': 'YARN log and local dir will be deleted and ResourceManager state will be formatted as part of Enabling/Disabling Kerberos.',
 
   'admin.kerberos.disable.step1.task0.title': 'Stop Services',
   'admin.kerberos.disable.step1.task1.title': 'Unkerberize Cluster',
