@@ -20,7 +20,6 @@ import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
 export default Ember.Controller.extend({
-
   needs: [ constants.namingConventions.index,
             constants.namingConventions.openQueries,
             constants.namingConventions.jobResults
@@ -63,6 +62,10 @@ export default Ember.Controller.extend({
         url += '/' + constants.namingConventions.jobs + '/' + model.get('id') + '/results?&first=true';
         url += '&count='+constants.visualizationRowCount+'&job_id='+model.get('id');
         if (existingJob) {
+          if(existingJob.results[0].rows.length === 0){
+            this.set("error", "Query has insufficient results to visualize the data.");
+            return;
+          }
           this.set("error", null);
           var id = model.get('id');
           this.set("polestarUrl", this.get('polestarPath') + "?url=" + url);
@@ -71,7 +74,7 @@ export default Ember.Controller.extend({
             self.alterIframe();
           });
         } else {
-          this.set("error", "No visualization available. Please execute a query and wait for the results to visualize data.");
+          this.set("error", "No visualization available. Please execute a query and wait for the results to visualize the data.");
         }
       }
     }

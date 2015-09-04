@@ -20,6 +20,11 @@ import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
 export default Ember.Controller.extend({
+  jobProgressService: Ember.inject.service(constants.namingConventions.jobProgress),
+  openQueries   : Ember.inject.controller(constants.namingConventions.openQueries),
+  notifyService: Ember.inject.service(constants.namingConventions.notify),
+  index: Ember.inject.controller(),
+
   tabClassNames : "fa queries-icon query-context-tab",
 
   tabs: [
@@ -43,6 +48,7 @@ export default Ember.Controller.extend({
     Ember.Object.create({
       iconClass: 'fa-area-chart',
       id: 'visualization-icon',
+      type: 'visualization',
       action: 'toggleOverlay',
       tooltip: Ember.I18n.t('tooltips.visualization'),
       into: 'index',
@@ -154,6 +160,10 @@ export default Ember.Controller.extend({
       this.set('activeTab', defaultTab);
     }
   },
+
+  showVisulization: function () {
+    return this.get('index.displayJobTabs');
+  }.property('index.content', 'index.jobSaveSucceeded'),
 
   actions: {
     toggleOverlay: function (tab) {
