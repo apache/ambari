@@ -77,9 +77,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
    * do not apply recommended value if user change value by himself.
    */
   keyUp: function() {
-    if (App.get('isClusterSupportsEnhancedConfigs')) {
-      this.get('controller').removeCurrentFromDependentList(this.get('serviceConfig') || this.get('config'));
-    }
+    this.get('controller').removeCurrentFromDependentList(this.get('serviceConfig') || this.get('config'));
   },
 
   /**
@@ -91,7 +89,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
    */
   sendRequestRorDependentConfigs: function(config) {
     if (!config || !config.get('isValid')) return $.Deferred().resolve().promise();
-    if (App.get('isClusterSupportsEnhancedConfigs') && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(this.get('controller.name'))) {
+    if (['mainServiceInfoConfigsController','wizardStep7Controller'].contains(this.get('controller.name'))) {
       var name = config.get('name');
       var saveRecommended = (this.get('config.value') === this.get('config.recommendedValue'));
       var controller = this.get('controller');
