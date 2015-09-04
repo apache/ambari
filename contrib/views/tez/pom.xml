@@ -77,6 +77,16 @@
        <version>2.9</version>
        <executions>
          <execution>
+           <phase>generate-resources</phase>
+           <goals>
+             <goal>copy-dependencies</goal>
+           </goals>
+           <configuration>
+             <outputDirectory>${project.build.directory}/lib</outputDirectory>
+             <includeScope>runtime</includeScope>
+           </configuration>
+         </execution>
+         <execution>
            <id>unpack</id>
            <phase>process-resources</phase>
            <goals>
@@ -137,6 +147,11 @@
           <include>view.xml</include>
         </includes>
       </resource>
+      <resource>
+        <targetPath>WEB-INF/lib</targetPath>
+        <filtering>false</filtering>
+        <directory>target/lib</directory>
+      </resource>
     </resources>
 
   </build>
@@ -190,6 +205,12 @@
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>2.4</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.ambari.contrib.views</groupId>
+      <artifactId>ambari-views-utils</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
     </dependency>
 
   </dependencies>

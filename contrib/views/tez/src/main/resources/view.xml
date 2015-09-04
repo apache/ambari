@@ -30,7 +30,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   </parameter>
   <parameter>
     <name>yarn.resourcemanager.url</name>
-    <description>The URL to the YARN ResourceManager, used to provide YARN Application data. Typically this is the yarn.resourcemanager.webapp.address property in the yarn-site.xml configuration. Url must be accessible from Ambari server.</description>
+    <description>The URL to the YARN ResourceManager, used to provide YARN Application data. If YARN ResourceManager HA is enabled, provide a comma separated list of URLs for all the Resource Managers.</description>
     <label>YARN ResourceManager URL</label>
     <placeholder>yarn.resourcemanager.hostname:8088</placeholder>
     <cluster-config>yarn-site/yarn.resourcemanager.webapp.address</cluster-config>

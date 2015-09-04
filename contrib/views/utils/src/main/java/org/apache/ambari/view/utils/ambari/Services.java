@@ -45,6 +45,10 @@ public class Services {
   private static final String YARN_RESOURCEMANAGER_HA_RM_IDS_KEY = "yarn.resourcemanager.ha.rm-ids";
   private static final String YARN_RESOURCEMANAGER_HTTP_HA_PARTIAL_KEY = "yarn.resourcemanager.webapp.address.";
   private static final String YARN_RESOURCEMANAGER_HTTPS_HA_PARTIAL_KEY = "yarn.resourcemanager.webapp.https.address.";
+
+  private static final String YARN_ATS_URL = "yarn.timeline-server.url";
+  private final static String YARN_TIMELINE_WEBAPP_HTTP_ADDRESS_KEY = "yarn.timeline-service.webapp.address";
+  private final static String YARN_TIMELINE_WEBAPP_HTTPS_ADDRESS_KEY = "yarn.timeline-service.webapp.https.address";
   public static final String RM_INFO_API_ENDPOINT = "/ws/v1/cluster/info";
 
   private final AmbariApi ambariApi;
@@ -236,6 +240,52 @@ public class Services {
     }
 
     return String.format("http://%s:%s/templeton/v1", host, port);
+  }
+
+  /**
+   * @return The timeline server url. If the view instance is cluster associated, the value is taken from the
+   * yarn-site.xml else it is retrieved from the view configuration.
+   */
+  public String getTimelineServerUrl() {
+    String url = ambariApi.isClusterAssociated() ? getATSUrlFromCluster() : getATSUrlFromCustom();
+    return removeTrailingSlash(url);
+  }
+
+  private String getATSUrlFromCustom() {
+    String atsUrl = context.getProperties().get(YARN_ATS_URL);
+    if (!StringUtils.isEmpty(atsUrl)) {
+      if (!hasProtocol(atsUrl)) {
+        throw new AmbariApiException(
+          "RA070 View is not cluster associated. Timeline Server URL should contain protocol.");
+      }
+      return atsUrl;
+    } else {
+      throw new AmbariApiException(
+        "RA070 View is not cluster associated. 'YARN Timeline Server URL' should be provided");
+    }
+  }
+
+  private String getATSUrlFromCluster() {
+    String url;
+    String protocol;
+
+    String httpPolicy = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_HTTP_POLICY);
+
+    if (!(HTTP_ONLY.equals(httpPolicy) || HTTPS_ONLY.equals(httpPolicy))) {
+      LOG.error(String.format("RA030 Unknown value %s of yarn-site/yarn.http.policy. HTTP_ONLY assumed.", httpPolicy));
+      httpPolicy = HTTP_ONLY;
+    }
+
+    if (httpPolicy.equals(HTTPS_ONLY)) {
+      protocol = "https";
+      url = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_TIMELINE_WEBAPP_HTTPS_ADDRESS_KEY);
+    } else {
+      protocol = "http";
+      url = ambariApi.getCluster().getConfigurationValue(YARN_SITE, YARN_TIMELINE_WEBAPP_HTTP_ADDRESS_KEY);
+    }
+    url = addProtocolIfMissing(url, protocol);
+
+    return url;
   }
 
   public static String addProtocolIfMissing(String url, String protocol) throws AmbariApiException {
