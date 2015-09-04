@@ -64,7 +64,6 @@ import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.ApplicationNotFoundException;
 import org.apache.hadoop.yarn.exceptions.YarnException;
-import org.apache.log4j.Logger;
 import org.apache.slider.api.ClusterDescription;
 import org.apache.slider.client.SliderClient;
 import org.apache.slider.common.params.ActionCreateArgs;
@@ -92,10 +91,12 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 public class SliderAppsViewControllerImpl implements SliderAppsViewController {
-  private static final Logger logger = Logger
+  private static final Logger logger = LoggerFactory
       .getLogger(SliderAppsViewControllerImpl.class);
   private static String METRICS_PREFIX = "metrics/";
   @Inject

@@ -30,14 +30,15 @@ import org.apache.ambari.view.utils.ambari.AmbariApi;
 import org.apache.ambari.view.utils.ambari.URLStreamProviderBasicAuth;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BaseHttpClient {
-	private static final Logger logger = Logger.getLogger(BaseHttpClient.class);
+	private static final Logger logger = LoggerFactory.getLogger(BaseHttpClient.class);
 
 	private String url;
 	private boolean needsAuthentication;

@@ -31,14 +31,15 @@ import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.UnsupportedPropertyException;
 import org.apache.hadoop.yarn.exceptions.YarnException;
-import org.apache.log4j.Logger;
 
 import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SliderAppTypesResourceProvider implements
     ResourceProvider<SliderAppType> {
 
-	private static final Logger logger = Logger
+	private static final Logger logger = LoggerFactory
 	    .getLogger(SliderAppTypesResourceProvider.class);
 	@Inject
 	private SliderAppsViewController sliderController;

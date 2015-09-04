@@ -36,17 +36,18 @@ import org.apache.ambari.view.slider.clients.AmbariService;
 import org.apache.ambari.view.slider.clients.AmbariServiceInfo;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.log4j.Logger;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 
-	private static final Logger logger = Logger.getLogger(AmbariHttpClient.class);
+	private static final Logger logger = LoggerFactory.getLogger(AmbariHttpClient.class);
 
 	public AmbariHttpClient(String url, String userId, String password,
 			ViewContext viewContext) {

@@ -19,13 +19,14 @@
 package org.apache.ambari.view.slider.rest.client;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -42,7 +43,7 @@ import java.util.Map;
 
 public class SliderAppJmxHelper {
 
-  private static final Logger logger = Logger
+  private static final Logger logger = LoggerFactory
       .getLogger(SliderAppJmxHelper.class);
   private static final String NAME_KEY = "name";
   private static final String PORT_KEY = "tag.port";

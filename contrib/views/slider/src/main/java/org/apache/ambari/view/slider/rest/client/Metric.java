@@ -18,9 +18,10 @@
 
 package org.apache.ambari.view.slider.rest.client;
 
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
@@ -32,7 +33,7 @@ import java.util.List;
 
 @JsonIgnoreProperties({"keyName", "matchers", "xPathExpression", "xPathExpressionComputed"})
 public class Metric {
-  private static final Logger logger = Logger
+  private static final Logger logger = LoggerFactory
       .getLogger(Metric.class);
   private static String SEPARATOR = ".";
   private static char SEPARATOR_REPLACED = '#';
