@@ -569,12 +569,19 @@ describe.skip('App.ConfigHistoryFlowView', function () {
   });
 
   describe('#sendRevertCallSuccess()', function () {
-    it('', function () {
+    beforeEach(function () {
       sinon.spy(view.get('controller'), 'loadStep');
+      sinon.stub(App.router.get('updateController'), 'updateComponentConfig', Em.K);
+    });
+    afterEach(function () {
+      view.get('controller').loadStep.restore();
+      App.router.get('updateController').updateComponentConfig.restore();
+    });
+    it('', function () {
       view.sendRevertCallSuccess();
 
       expect(view.get('controller').loadStep.calledOnce).to.be.true;
-      view.get('controller').loadStep.restore();
+      expect(App.router.get('updateController').updateComponentConfig.calledOnce).to.be.true;
     });
   });
 

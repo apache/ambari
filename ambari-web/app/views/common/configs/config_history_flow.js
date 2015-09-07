@@ -432,7 +432,8 @@ App.ConfigHistoryFlowView = Em.View.extend({
   sendRevertCallSuccess: function (data, opt, params) {
     // revert to an old version would generate a new version with latest version number,
     // so, need to loadStep to update
-     this.get('controller').loadStep();
+    App.router.get('updateController').updateComponentConfig(Em.K);
+    this.get('controller').loadStep();
   },
 
   /**
