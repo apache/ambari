@@ -423,6 +423,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @private
    */
   parseConfigsByTag: function(configObject, updateOnlyBoundaries, parentConfigs, selectedConfigGroup) {
+    var wizardController = this.get('wizardController');
+    if (wizardController) {
+      var fileNamesToUpdate = wizardController.getDBProperty('fileNamesToUpdate') || [];
+      this.set('_fileNamesToUpdate', fileNamesToUpdate);
+    }
     var notDefaultGroup = !!selectedConfigGroup;
     var parentPropertiesNames = parentConfigs ? parentConfigs.mapProperty('name') : [];
     /** get all configs by config group **/
@@ -534,6 +539,9 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
       }
       this._saveRecommendedAttributes(configObject, parentPropertiesNames, updateOnlyBoundaries, selectedConfigGroup);
     }
+    if (wizardController) {
+      wizardController.setDBProperty('fileNamesToUpdate', this.get('_fileNamesToUpdate').uniq());
+    }
   },
 
   /**
@@ -547,6 +555,12 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    */
   _saveRecommendedAttributes: function(configs, parentPropertiesNames, updateOnlyBoundaries, selectedConfigGroup) {
     var self = this;
+    var wizardController = self.get('wizardController');
+    var fileNamesToUpdate = wizardController ? this.get('_fileNamesToUpdate') : [];
+    var stackConfigsMap = {};
+    App.StackConfigProperty.find().forEach(function (c) {
+      stackConfigsMap[c.get('id')] = c;
+    });
     Em.keys(configs).forEach(function (siteName) {
       var service = App.config.getServiceByConfigType(siteName);
       var serviceName = service.get('serviceName');
@@ -556,14 +570,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
       var properties = configs[siteName].property_attributes || {};
       Em.keys(properties).forEach(function (propertyName) {
         var cp = configProperties.findProperty('name', propertyName);
-        var stackProperty = App.StackConfigProperty.find().findProperty('id', App.config.configId(propertyName, siteName));
+        var stackProperty = stackConfigsMap[App.config.configId(propertyName, siteName)];
         var attributes = properties[propertyName] || {};
         Em.keys(attributes).forEach(function (attributeName) {
           if (attributeName == 'delete') {
             if (!updateOnlyBoundaries) {
               var fileName = App.config.getOriginalFileName(siteName);
               var modifiedFileNames = self.get('modifiedFileNames');
-              var wizardController = self.get('wizardController');
               var dependentProperty = self.get('_dependentConfigValues').filterProperty('propertyName', propertyName).filterProperty('fileName', siteName).findProperty('configGroup', group && Em.get(group,'name'));
               if (dependentProperty) {
                 Em.set(dependentProperty, 'toDelete', true);
@@ -590,10 +603,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
               if (modifiedFileNames && !modifiedFileNames.contains(fileName)) {
                modifiedFileNames.push(fileName);
               } else if (wizardController) {
-                var fileNamesToUpdate = wizardController.getDBProperty('fileNamesToUpdate') || [];
                 if (!fileNamesToUpdate.contains(fileName)) {
                   fileNamesToUpdate.push(fileName);
-                  wizardController.setDBProperty('fileNamesToUpdate', fileNamesToUpdate);
                 }
               }
             }
@@ -614,6 +625,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         });
       });
     });
+    this.set('_fileNamesToUpdate', fileNamesToUpdate);
   },
 
   /**
