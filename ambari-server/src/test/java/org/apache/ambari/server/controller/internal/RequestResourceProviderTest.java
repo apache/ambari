@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.and;
-import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -828,7 +826,8 @@ public class RequestResourceProviderTest {
           status == HostRoleStatus.ABORTED ||
           status == HostRoleStatus.FAILED ||
           status == HostRoleStatus.TIMEDOUT ||
-          status == HostRoleStatus.QUEUED) { // the only valid cases
+          status == HostRoleStatus.QUEUED ||
+          status == HostRoleStatus.SKIPPED_FAILED) { // the only valid cases
         provider.updateResources(request, predicate);
       } else {  // In other cases, should error out
         try {
