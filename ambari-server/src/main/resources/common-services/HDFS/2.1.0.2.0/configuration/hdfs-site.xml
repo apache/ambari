@@ -160,12 +160,6 @@
   </property>
 
   <property>
-    <name>dfs.heartbeat.interval</name>
-    <value>3</value>
-    <description>Determines datanode heartbeat interval in seconds.</description>
-  </property>
-
-  <property>
     <name>dfs.namenode.safemode.threshold-pct</name>
     <value>0.999</value>
     <description>
