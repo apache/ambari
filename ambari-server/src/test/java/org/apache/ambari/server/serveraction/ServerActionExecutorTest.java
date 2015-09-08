@@ -124,7 +124,7 @@ public class ServerActionExecutorTest {
     stage.addServerActionCommand(ManualStageAction.class.getName(),
         null, Role.AMBARI_SERVER_ACTION, RoleCommand.EXECUTE, "cluster1",
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
-        Collections.<String, String>emptyMap(), null, null, 1200, false);
+        Collections.<String, String> emptyMap(), null, null, 1200, false, false);
 
     final List<Stage> stages = new ArrayList<Stage>() {
       {
@@ -322,7 +322,7 @@ public class ServerActionExecutorTest {
             stage.addServerActionCommand(MockServerAction.class.getName(), null,
                 Role.AMBARI_SERVER_ACTION, RoleCommand.EXECUTE, "cluster1",
                 new ServiceComponentHostServerActionEvent(SERVER_HOST_NAME, System.currentTimeMillis()),
-                payload, "command detail", null, timeout, false);
+                payload, "command detail", null, timeout, false, false);
 
             // TODO, take a look at KerberosHelperTest.java as an example
             return stage;

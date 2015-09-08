@@ -513,7 +513,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
     try {
-      actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, false);
+      actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage);
     } catch (AmbariException e) {
       throw new SystemException("Can not modify stage", e);
     }

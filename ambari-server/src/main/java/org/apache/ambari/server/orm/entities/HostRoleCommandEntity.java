@@ -141,6 +141,13 @@ public class HostRoleCommandEntity {
   @Column(name = "retry_allowed", nullable = false)
   private Integer retryAllowed = Integer.valueOf(0);
 
+  /**
+   * If the command fails and is skippable, then this will instruct the
+   * scheduler to skip the command.
+   */
+  @Column(name = "auto_skip_on_failure", nullable = false)
+  private Integer autoSkipOnFailure = Integer.valueOf(0);
+
   // This is really command type as well as name
   @Column(name = "role_command")
   @Enumerated(EnumType.STRING)
@@ -344,6 +351,26 @@ public class HostRoleCommandEntity {
    */
   public void setRetryAllowed(boolean enabled) {
     retryAllowed = enabled ? 1 : 0;
+  }
+
+  /**
+   * Gets whether commands which fail and are retryable are automatically
+   * skipped and marked with {@link HostRoleStatus#SKIPPED_FAILED}.
+   *
+   * @return
+   */
+  public boolean isFailureAutoSkipped() {
+    return autoSkipOnFailure != 0;
+  }
+
+  /**
+   * Sets whether commands which fail and are retryable are automatically
+   * skipped and marked with {@link HostRoleStatus#SKIPPED_FAILED}.
+   *
+   * @param skipFailures
+   */
+  public void setAutoSkipOnFailure(boolean skipFailures) {
+    autoSkipOnFailure = skipFailures ? 1 : 0;
   }
 
   @Override

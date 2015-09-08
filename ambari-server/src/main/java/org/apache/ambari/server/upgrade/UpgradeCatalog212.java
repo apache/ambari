@@ -18,10 +18,14 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.DaoUtils;
@@ -32,19 +36,9 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.support.JdbcUtils;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.MessageFormat;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Matcher;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 
 /**
@@ -56,6 +50,9 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
   private static final String HBASE_ENV = "hbase-env";
   private static final String HBASE_SITE = "hbase-site";
   private static final String CLUSTER_ENV = "cluster-env";
+
+  private static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
+  private static final String HOST_ROLE_COMMAND_SKIP_COLUMN = "auto_skip_on_failure";
 
   /**
    * Logger.
@@ -104,6 +101,7 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    executeHostRoleCommandDDLUpdates();
   }
 
   /**
@@ -220,4 +218,14 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
     return hiveEnvContent.replaceAll(oldHeapSizeRegex, Matcher.quoteReplacement(newAuxJarPath));
   }
 
+  /**
+   * DDL changes for {@link #HOST_ROLE_COMMAND_TABLE}.
+   *
+   * @throws AmbariException
+   * @throws SQLException
+   */
+  private void executeHostRoleCommandDDLUpdates() throws AmbariException, SQLException {
+    dbAccessor.addColumn(HOST_ROLE_COMMAND_TABLE,
+        new DBColumnInfo(HOST_ROLE_COMMAND_SKIP_COLUMN, Integer.class, 1, 0, false));
+  }
 }

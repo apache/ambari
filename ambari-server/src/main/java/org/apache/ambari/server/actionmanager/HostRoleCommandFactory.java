@@ -28,40 +28,67 @@ public interface HostRoleCommandFactory {
 
   /**
    * Constructor via factory.
-   * @param hostName Host name
-   * @param role Action to run
-   * @param event Event on the host and component
-   * @param command Type of command
+   *
+   * @param hostName
+   *          Host name
+   * @param role
+   *          Action to run
+   * @param event
+   *          Event on the host and component
+   * @param command
+   *          Type of command
    * @return An instance constructed where retryAllowed defaults to false
    */
-  HostRoleCommand create(String hostName, Role role, ServiceComponentHostEvent event, RoleCommand command);
+  HostRoleCommand create(String hostName, Role role, ServiceComponentHostEvent event,
+      RoleCommand command);
 
   /**
    * Constructor via factory.
-   * @param hostName Host name
-   * @param role Action to run
-   * @param event Event on the host and component
-   * @param command Type of command
-   * @param retryAllowed Whether the command can be repeated
+   *
+   * @param hostName
+   *          Host name
+   * @param role
+   *          Action to run
+   * @param event
+   *          Event on the host and component
+   * @param command
+   *          Type of command
+   * @param retryAllowed
+   *          Whether the command can be repeated
+   * @param autoSkipFailure
+   *          {@code true} if the command should be automatically skipped if it
+   *          fails.
    * @return An instance of a HostRoleCommand.
    */
-  HostRoleCommand create(String hostName, Role role, ServiceComponentHostEvent event, RoleCommand command, boolean retryAllowed);
+  HostRoleCommand create(String hostName, Role role, ServiceComponentHostEvent event,
+      RoleCommand command, boolean retryAllowed, boolean autoSkipFailure);
 
   /**
    * Constructor via factory.
-   * @param host Host object
-   * @param role Action to run
-   * @param event Event on the host and component
-   * @param command Type of command
-   * @param retryAllowed Whether the command can be repeated
+   *
+   * @param host
+   *          Host object
+   * @param role
+   *          Action to run
+   * @param event
+   *          Event on the host and component
+   * @param command
+   *          Type of command
+   * @param retryAllowed
+   *          Whether the command can be repeated
+   * @param autoSkipFailure
+   *          {@code true} if the command should be automatically skipped if it
+   *          fails.
    * @return An instance of a HostRoleCommand.
    */
-  HostRoleCommand create(Host host, Role role, ServiceComponentHostEvent event, RoleCommand command, boolean
-      retryAllowed);
+  HostRoleCommand create(Host host, Role role, ServiceComponentHostEvent event, RoleCommand command,
+      boolean retryAllowed, boolean autoSkipFailure);
 
   /**
    * Constructor via factory
-   * @param hostRoleCommandEntity Object to copy fields from.
+   *
+   * @param hostRoleCommandEntity
+   *          Object to copy fields from.
    * @return An instance constructed from the input object.
    */
   HostRoleCommand createExisting(HostRoleCommandEntity hostRoleCommandEntity);

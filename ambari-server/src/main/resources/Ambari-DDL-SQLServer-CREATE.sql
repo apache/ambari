@@ -253,6 +253,7 @@ CREATE TABLE host_role_command (
   start_time BIGINT NOT NULL,
   end_time BIGINT,
   status VARCHAR(255),
+  auto_skip_on_failure SMALLINT DEFAULT 0 NOT NULL,
   std_error VARBINARY(max),
   std_out VARBINARY(max),
   output_log VARCHAR(255) NULL,

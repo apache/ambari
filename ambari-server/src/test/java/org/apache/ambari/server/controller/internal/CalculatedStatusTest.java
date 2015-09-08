@@ -461,6 +461,7 @@ public class CalculatedStatusTest {
     hostRoleStatuses.add(HostRoleStatus.FAILED);
     hostRoleStatuses.add(HostRoleStatus.TIMEDOUT);
     hostRoleStatuses.add(HostRoleStatus.ABORTED);
+    hostRoleStatuses.add(HostRoleStatus.SKIPPED_FAILED);
 
     Map<HostRoleStatus, Integer> counts = CalculatedStatus.calculateStatusCounts(hostRoleStatuses);
 
@@ -470,10 +471,11 @@ public class CalculatedStatusTest {
     assertEquals(1L, (long) counts.get(HostRoleStatus.HOLDING_FAILED));
     assertEquals(1L, (long) counts.get(HostRoleStatus.HOLDING_TIMEDOUT));
     assertEquals(5L, (long) counts.get(HostRoleStatus.IN_PROGRESS));
-    assertEquals(7L, (long) counts.get(HostRoleStatus.COMPLETED));
+    assertEquals(8L, (long) counts.get(HostRoleStatus.COMPLETED));
     assertEquals(1L, (long) counts.get(HostRoleStatus.FAILED));
     assertEquals(1L, (long) counts.get(HostRoleStatus.TIMEDOUT));
     assertEquals(1L, (long) counts.get(HostRoleStatus.ABORTED));
+    assertEquals(1L, (long) counts.get(HostRoleStatus.SKIPPED_FAILED));
   }
 
   @Test
@@ -496,6 +498,19 @@ public class CalculatedStatusTest {
     assertEquals(80d, calc.getPercent(), 0.1d);
   }
 
+  /**
+   * Tests that a SKIPPED_FAILED status means the stage has completed.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testSkippedFailed() throws Exception {
+    Collection<HostRoleCommandEntity> tasks = getTaskEntities(HostRoleStatus.SKIPPED_FAILED);
+
+    CalculatedStatus status = CalculatedStatus.statusFromTaskEntities(tasks, false);
+
+    assertEquals(HostRoleStatus.COMPLETED, status.getStatus());
+  }
 
   private Collection<HostRoleCommandEntity> getTaskEntities(HostRoleStatus... statuses) {
     Collection<HostRoleCommandEntity> entities = new LinkedList<HostRoleCommandEntity>();

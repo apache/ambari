@@ -215,7 +215,7 @@ public class AmbariActionExecutionHelper {
    * @throws AmbariException if the task can not be added
    */
   public void addExecutionCommandsToStage(
-      final ActionExecutionContext actionContext, Stage stage, boolean retryAllowed)
+final ActionExecutionContext actionContext, Stage stage)
       throws AmbariException {
 
     String actionName = actionContext.getActionName();
@@ -335,11 +335,12 @@ public class AmbariActionExecutionHelper {
 
     // create tasks for each host
     for (String hostName : targetHosts) {
-      stage.addHostRoleExecutionCommand(hostName,
-        Role.valueOf(actionContext.getActionName()), RoleCommand.ACTIONEXECUTE,
-          new ServiceComponentHostOpInProgressEvent(actionContext.getActionName(),
-            hostName, System.currentTimeMillis()), clusterName,
-              serviceName, retryAllowed);
+      stage.addHostRoleExecutionCommand(hostName, Role.valueOf(actionContext.getActionName()),
+          RoleCommand.ACTIONEXECUTE,
+          new ServiceComponentHostOpInProgressEvent(actionContext.getActionName(), hostName,
+              System.currentTimeMillis()),
+          clusterName, serviceName, actionContext.isRetryAllowed(),
+          actionContext.isFailureAutoSkipped());
 
       Map<String, String> commandParams = new TreeMap<String, String>();
       int maxTaskTimeout = Integer.parseInt(configs.getDefaultAgentTaskTimeout(false));

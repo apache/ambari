@@ -1731,15 +1731,10 @@ public class KerberosHelperImpl implements KerberosHelper {
                                         Integer timeout) throws AmbariException {
 
     Stage stage = createNewStage(id, cluster, requestId, requestContext, clusterHostInfo, commandParams, hostParams);
-    stage.addServerActionCommand(actionClass.getName(), null,
-        Role.AMBARI_SERVER_ACTION,
-        RoleCommand.EXECUTE,
-        cluster.getClusterName(),
-        event,
-        commandParameters,
-        commandDetail,
-        ambariManagementController.findConfigurationTagsWithOverrides(cluster, null),
-        timeout, false);
+    stage.addServerActionCommand(actionClass.getName(), null, Role.AMBARI_SERVER_ACTION,
+        RoleCommand.EXECUTE, cluster.getClusterName(), event, commandParameters, commandDetail,
+        ambariManagementController.findConfigurationTagsWithOverrides(cluster, null), timeout,
+        false, false);
 
     return stage;
   }
@@ -2216,7 +2211,8 @@ public class KerberosHelperImpl implements KerberosHelper {
             "SET_KEYTAB",
             requestResourceFilters,
             requestParams);
-        customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams, false);
+        customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
+            requestParams);
       }
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
@@ -2283,7 +2279,8 @@ public class KerberosHelperImpl implements KerberosHelper {
               "REMOVE_KEYTAB",
               requestResourceFilters,
               requestParams);
-          customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams, false);
+          customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
+              requestParams);
         }
       }
 

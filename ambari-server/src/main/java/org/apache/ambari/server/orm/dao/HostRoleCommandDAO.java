@@ -62,7 +62,8 @@ public class HostRoleCommandDAO {
       "SUM(CASE WHEN hrc.status = :in_progress THEN 1 ELSE 0 END), " +
       "SUM(CASE WHEN hrc.status = :pending THEN 1 ELSE 0 END), " +
       "SUM(CASE WHEN hrc.status = :queued THEN 1 ELSE 0 END), " +
-      "SUM(CASE WHEN hrc.status = :timedout THEN 1 ELSE 0 END)" +
+      "SUM(CASE WHEN hrc.status = :timedout THEN 1 ELSE 0 END)," +
+      "SUM(CASE WHEN hrc.status = :skipped_failed THEN 1 ELSE 0 END)" +
       ") FROM HostRoleCommandEntity hrc " +
       " GROUP BY hrc.requestId, hrc.stageId HAVING hrc.requestId = :requestId",
       HostRoleCommandStatusSummaryDTO.class.getName());
@@ -434,6 +435,7 @@ public class HostRoleCommandDAO {
     query.setParameter("pending", HostRoleStatus.PENDING);
     query.setParameter("queued", HostRoleStatus.QUEUED);
     query.setParameter("timedout", HostRoleStatus.TIMEDOUT);
+    query.setParameter("skipped_failed", HostRoleStatus.SKIPPED_FAILED);
 
     Map<Long, HostRoleCommandStatusSummaryDTO> map = new HashMap<Long, HostRoleCommandStatusSummaryDTO>();
 

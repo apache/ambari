@@ -19,8 +19,6 @@
 package org.apache.ambari.server.upgrade;
 
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
@@ -33,57 +31,31 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
 
-import com.google.inject.AbstractModule;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.ArtifactDAO;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterStateDAO;
-import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.entities.ArtifactEntity;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
-import org.apache.ambari.server.orm.entities.ClusterStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostComponentAdminState;
-import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
-import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
-import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
@@ -92,13 +64,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
-import org.powermock.api.easymock.PowerMock;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog212} unit tests.
@@ -129,6 +101,43 @@ public class UpgradeCatalog212Test {
   @After
   public void tearDown() {
     injector.getInstance(PersistService.class).stop();
+  }
+
+  @Test
+  public void testExecuteDDLUpdates() throws Exception {
+    final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+    Configuration configuration = createNiceMock(Configuration.class);
+    Connection connection = createNiceMock(Connection.class);
+    Statement statement = createNiceMock(Statement.class);
+    ResultSet resultSet = createNiceMock(ResultSet.class);
+    expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
+    dbAccessor.getConnection();
+    expectLastCall().andReturn(connection).anyTimes();
+    connection.createStatement();
+    expectLastCall().andReturn(statement).anyTimes();
+    statement.executeQuery(anyObject(String.class));
+    expectLastCall().andReturn(resultSet).anyTimes();
+
+    // Create DDL sections with their own capture groups
+    HostRoleCommandDDL hostRoleCommandDDL = new HostRoleCommandDDL();
+
+    // Execute any DDL schema changes
+    hostRoleCommandDDL.execute(dbAccessor);
+
+    // Replay sections
+    replay(dbAccessor, configuration, resultSet, connection, statement);
+
+    AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
+    Class<?> c = AbstractUpgradeCatalog.class;
+    Field f = c.getDeclaredField("configuration");
+    f.setAccessible(true);
+    f.set(upgradeCatalog, configuration);
+
+    upgradeCatalog.executeDDLUpdates();
+    verify(dbAccessor, configuration, resultSet, connection, statement);
+
+    // Verify sections
+    hostRoleCommandDDL.verify(dbAccessor);
   }
 
   @Test
@@ -336,4 +345,45 @@ public class UpgradeCatalog212Test {
     Assert.assertEquals("2.1.2", upgradeCatalog.getTargetVersion());
   }
 
+  /**
+   * Verify alert changes
+   */
+  class HostRoleCommandDDL implements SectionDDL {
+    HashMap<String, Capture<DBColumnInfo>> captures;
+
+    public HostRoleCommandDDL() {
+      captures = new HashMap<String, Capture<DBColumnInfo>>();
+
+      Capture<DBAccessor.DBColumnInfo> hostRoleCommandAutoSkipColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+
+      captures.put("host_role_command", hostRoleCommandAutoSkipColumnCapture);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void execute(DBAccessor dbAccessor) throws SQLException {
+      Capture<DBColumnInfo> hostRoleCommandAuotSkipColumnCapture = captures.get(
+          "host_role_command");
+
+      dbAccessor.addColumn(eq("host_role_command"),
+          capture(hostRoleCommandAuotSkipColumnCapture));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void verify(DBAccessor dbAccessor) throws SQLException {
+      verifyHostRoleCommandSkipCapture(captures.get("host_role_command"));
+    }
+
+    private void verifyHostRoleCommandSkipCapture(
+        Capture<DBAccessor.DBColumnInfo> hostRoleCommandAuotSkipColumnCapture) {
+      DBColumnInfo clusterIdColumn = hostRoleCommandAuotSkipColumnCapture.getValue();
+      Assert.assertEquals(Integer.class, clusterIdColumn.getType());
+      Assert.assertEquals("auto_skip_on_failure", clusterIdColumn.getName());
+    }
+  }
 }

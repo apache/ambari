@@ -18,9 +18,6 @@
 
 package org.apache.ambari.server.actionmanager;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
@@ -29,9 +26,13 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+
 @Singleton
 public class HostRoleCommandFactoryImpl implements HostRoleCommandFactory {
-  
+
   private Injector injector;
 
   @Inject
@@ -51,41 +52,28 @@ public class HostRoleCommandFactoryImpl implements HostRoleCommandFactory {
   public HostRoleCommand create(String hostName, Role role,
                                 ServiceComponentHostEvent event, RoleCommand command) {
     return new HostRoleCommand(hostName, role, event, command,
-        this.injector.getInstance(HostDAO.class),
-        this.injector.getInstance(ExecutionCommandDAO.class));
+        injector.getInstance(HostDAO.class),
+        injector.getInstance(ExecutionCommandDAO.class));
   }
 
   /**
-   * Constructor via factory.
-   * @param hostName Host name
-   * @param role Action to run
-   * @param event Event on the host and component
-   * @param command Type of command
-   * @param retryAllowed Whether the command can be repeated
-   * @return An instance of a HostRoleCommand.
+   * {@inheritDoc}
    */
   @Override
-  public HostRoleCommand create(String hostName, Role role,
-                                        ServiceComponentHostEvent event, RoleCommand command, boolean retryAllowed) {
-    return new HostRoleCommand(hostName, role, event, command, retryAllowed,
-        this.injector.getInstance(HostDAO.class),
-        this.injector.getInstance(ExecutionCommandDAO.class));
+  public HostRoleCommand create(String hostName, Role role, ServiceComponentHostEvent event,
+      RoleCommand command, boolean retryAllowed, boolean autoSkipFailure) {
+    return new HostRoleCommand(hostName, role, event, command, retryAllowed, autoSkipFailure,
+        injector.getInstance(HostDAO.class), injector.getInstance(ExecutionCommandDAO.class));
   }
 
   /**
-   * Constructor via factory.
-   * @param host Host object
-   * @param role Action to run
-   * @param event Event on the host and component
-   * @param command Type of command
-   * @param retryAllowed Whether the command can be repeated
-   * @return An instance of a HostRoleCommand.
+   * {@inheritDoc}
    */
   @Override
-  public HostRoleCommand create(Host host, Role role, ServiceComponentHostEvent event, RoleCommand command, boolean retryAllowed) {
-    return new HostRoleCommand(host, role, event, command, retryAllowed,
-        this.injector.getInstance(HostDAO.class),
-        this.injector.getInstance(ExecutionCommandDAO.class));
+  public HostRoleCommand create(Host host, Role role, ServiceComponentHostEvent event,
+      RoleCommand command, boolean retryAllowed, boolean autoSkipFailure) {
+    return new HostRoleCommand(host, role, event, command, retryAllowed, autoSkipFailure,
+        injector.getInstance(HostDAO.class), injector.getInstance(ExecutionCommandDAO.class));
   }
 
   /**
@@ -96,7 +84,7 @@ public class HostRoleCommandFactoryImpl implements HostRoleCommandFactory {
   @Override
   public HostRoleCommand createExisting(HostRoleCommandEntity hostRoleCommandEntity) {
     return new HostRoleCommand(hostRoleCommandEntity,
-        this.injector.getInstance(HostDAO.class),
-        this.injector.getInstance(ExecutionCommandDAO.class));
+        injector.getInstance(HostDAO.class),
+        injector.getInstance(ExecutionCommandDAO.class));
   }
 }
