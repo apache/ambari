@@ -102,6 +102,14 @@ import com.google.inject.util.Modules;
  */
 public class UpgradeResourceProviderTest {
 
+  /**
+   * Server-side Actions still require a host in the cluster, so just use the
+   * local hostname when adding any host to the cluster. This prevents all sorts
+   * of problems when creating stages and tasks since the hosts in the cluster
+   * will now match the localhost.
+   */
+  private String s_serverHostName = StageUtils.getHostName();
+
   private UpgradeDAO upgradeDao = null;
   private RepositoryVersionDAO repoVersionDao = null;
   private Injector injector;
@@ -190,8 +198,8 @@ public class UpgradeResourceProviderTest {
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
     cluster.transitionClusterVersion(stackId, stackId.getStackVersion(), RepositoryVersionState.CURRENT);
 
-    clusters.addHost("h1");
-    Host host = clusters.getHost("h1");
+    clusters.addHost(s_serverHostName);
+    Host host = clusters.getHost(s_serverHostName);
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
@@ -199,7 +207,7 @@ public class UpgradeResourceProviderTest {
     host.setState(HostState.HEALTHY);
     host.persist();
 
-    clusters.mapHostToCluster("h1", "c1");
+    clusters.mapHostToCluster(s_serverHostName, "c1");
 
     // add a single ZK server
     Service service = cluster.addService("ZOOKEEPER");
@@ -207,11 +215,11 @@ public class UpgradeResourceProviderTest {
     service.persist();
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
-    ServiceComponentHost sch = component.addServiceComponentHost("h1");
+    ServiceComponentHost sch = component.addServiceComponentHost(s_serverHostName);
     sch.setVersion("2.1.1.0");
 
     component = service.addServiceComponent("ZOOKEEPER_CLIENT");
-    sch = component.addServiceComponentHost("h1");
+    sch = component.addServiceComponentHost(s_serverHostName);
     sch.setVersion("2.1.1.0");
 
     TopologyManager topologyManager = new TopologyManager();
