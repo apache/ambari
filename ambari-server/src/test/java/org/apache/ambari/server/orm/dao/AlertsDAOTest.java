@@ -29,6 +29,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -647,6 +648,86 @@ public class AlertsDAOTest {
     assertEquals(1, summary.getCriticalCount());
     assertEquals(1, summary.getUnknownCount());
     assertEquals(1, summary.getMaintenanceCount());
+  }
+
+  /**
+   *
+   */
+  @Test
+  public void testFindCurrentPerHostSummary() throws Exception {
+    // Add extra host and alerts
+    m_helper.addHost(m_clusters, m_cluster, "h2");
+    List<AlertDefinitionEntity> definitions = m_definitionDao.findAll();
+    AlertDefinitionEntity definition = definitions.get(0);
+    AlertHistoryEntity h2CriticalHistory = new AlertHistoryEntity();
+    h2CriticalHistory.setServiceName(definition.getServiceName());
+    h2CriticalHistory.setClusterId(m_cluster.getClusterId());
+    h2CriticalHistory.setAlertDefinition(definition);
+    h2CriticalHistory.setAlertLabel(definition.getDefinitionName() + " h2");
+    h2CriticalHistory.setAlertText(definition.getDefinitionName() + " h2");
+    h2CriticalHistory.setAlertTimestamp(calendar.getTimeInMillis());
+    h2CriticalHistory.setComponentName(definition.getComponentName());
+    h2CriticalHistory.setHostName("h2");
+    h2CriticalHistory.setAlertState(AlertState.CRITICAL);
+    m_dao.create(h2CriticalHistory);
+    AlertCurrentEntity h2CriticalCurrent = new AlertCurrentEntity();
+    h2CriticalCurrent.setAlertHistory(h2CriticalHistory);
+    h2CriticalCurrent.setLatestTimestamp(new Date().getTime());
+    h2CriticalCurrent.setOriginalTimestamp(new Date().getTime() - 10800000);
+    h2CriticalCurrent.setMaintenanceState(MaintenanceState.OFF);
+    m_dao.create(h2CriticalCurrent);
+
+    try {
+      long clusterId = m_cluster.getClusterId();
+      AlertSummaryDTO summary = m_dao.findCurrentCounts(clusterId, null, null);
+      assertEquals(5, summary.getOkCount());
+
+      AlertHistoryEntity h1 = m_dao.findCurrentByCluster(clusterId).get(2).getAlertHistory();
+      AlertHistoryEntity h2 = m_dao.findCurrentByCluster(clusterId).get(3).getAlertHistory();
+      AlertHistoryEntity h3 = m_dao.findCurrentByCluster(clusterId).get(4).getAlertHistory();
+
+      h1.setAlertState(AlertState.WARNING);
+      m_dao.merge(h1);
+      h2.setAlertState(AlertState.CRITICAL);
+      m_dao.merge(h2);
+      h3.setAlertState(AlertState.UNKNOWN);
+      m_dao.merge(h3);
+
+      Map<String, AlertSummaryDTO> perHostSummary = m_dao.findCurrentPerHostCounts(clusterId);
+
+      AlertSummaryDTO h1summary = m_dao.findCurrentCounts(clusterId, null, "h1");
+      assertEquals(2, h1summary.getOkCount());
+      assertEquals(1, h1summary.getWarningCount());
+      assertEquals(1, h1summary.getCriticalCount());
+      assertEquals(1, h1summary.getUnknownCount());
+      assertEquals(0, h1summary.getMaintenanceCount());
+
+      AlertSummaryDTO h2summary = m_dao.findCurrentCounts(clusterId, null, "h2");
+      assertEquals(0, h2summary.getOkCount());
+      assertEquals(0, h2summary.getWarningCount());
+      assertEquals(1, h2summary.getCriticalCount());
+      assertEquals(0, h2summary.getUnknownCount());
+      assertEquals(0, h2summary.getMaintenanceCount());
+
+      AlertSummaryDTO h1PerHostSummary = perHostSummary.get("h1");
+      assertEquals(h1PerHostSummary.getOkCount(), h1summary.getOkCount());
+      assertEquals(h1PerHostSummary.getWarningCount(), h1summary.getWarningCount());
+      assertEquals(h1PerHostSummary.getCriticalCount(), h1summary.getCriticalCount());
+      assertEquals(h1PerHostSummary.getUnknownCount(), h1summary.getUnknownCount());
+      assertEquals(h1PerHostSummary.getMaintenanceCount(), h1summary.getMaintenanceCount());
+
+      AlertSummaryDTO h2PerHostSummary = perHostSummary.get("h2");
+      assertEquals(h2PerHostSummary.getOkCount(), h2summary.getOkCount());
+      assertEquals(h2PerHostSummary.getWarningCount(), h2summary.getWarningCount());
+      assertEquals(h2PerHostSummary.getCriticalCount(), h2summary.getCriticalCount());
+      assertEquals(h2PerHostSummary.getUnknownCount(), h2summary.getUnknownCount());
+      assertEquals(h2PerHostSummary.getMaintenanceCount(), h2summary.getMaintenanceCount());
+    } finally {
+      // Cleanup extra host and alerts to not effect other tests
+      m_dao.remove(h2CriticalCurrent);
+      m_dao.remove(h2CriticalHistory);
+      m_clusters.unmapHostFromCluster("h2", m_cluster.getClusterName());
+    }
   }
 
   /**
