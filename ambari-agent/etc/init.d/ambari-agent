@@ -19,7 +19,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-run_as_user=`cat /etc/ambari-agent/conf/ambari-agent.ini | grep run_as_user | tr -d ' ' | awk -F '=' '{ print $2}'`
+run_as_user=`cat /etc/ambari-agent/conf/ambari-agent.ini | grep run_as_user | tr -d ' ' | grep -v '^;\|^#' | awk -F '=' '{ print $2}'`
 
 if [ "$EUID" != `id -u $run_as_user` ] ; then
   command_prefx="su - $run_as_user -c"
