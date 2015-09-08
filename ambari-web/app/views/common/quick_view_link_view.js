@@ -162,7 +162,31 @@ App.QuickViewLinks = Em.View.extend({
           var newItem = {};
           var protocol = self.setProtocol(item.get('service_id'), self.get('configProperties'), self.ambariProperties());
           if (item.get('template')) {
-            var port = item.get('http_config') && self.setPort(item, protocol);
+            var port;
+            var hostNameRegExp = new RegExp('([\\w\\W]*):\\d+');
+            if (item.get('service_id') === 'HDFS') {
+              var config;
+              var configPropertiesObject = self.get('configProperties').findProperty('type', item.get('site'));
+              if (configPropertiesObject && configPropertiesObject.properties) {
+                var properties = configPropertiesObject.properties;
+                var nameServiceId = properties['dfs.nameservices'];
+                var nnProperties = ['dfs.namenode.{0}-address.{1}.nn1', 'dfs.namenode.{0}-address.{1}.nn2'].map(function (c) {
+                  return c.format(protocol, nameServiceId);
+                });
+                var nnPropertiesLength = nnProperties.length;
+                for (var i = nnPropertiesLength; i--;) {
+                  var propertyName = nnProperties[i];
+                  var hostNameMatch = properties[propertyName] && properties[propertyName].match(hostNameRegExp);
+                  if (hostNameMatch && hostNameMatch[1] === host.publicHostName) {
+                    config = propertyName;
+                    break;
+                  }
+                }
+              }
+              port = self.setPort(item, protocol, config);
+            } else {
+              port = item.get('http_config') && self.setPort(item, protocol);
+            }
             if (item.get('service_id')==='OOZIE') {
               newItem.url = item.get('template').fmt(protocol, host.publicHostName, port, App.router.get('loginName'));
             } else {
@@ -407,15 +431,16 @@ App.QuickViewLinks = Em.View.extend({
    * sets the port of quick link
    * @param item
    * @param protocol
+   * @param config
    * @returns {*}
    * @method setPort
    */
-  setPort: function (item, protocol) {
+  setPort: function (item, protocol, config) {
     var configProperties = this.get('configProperties');
-    var config = item.get('http_config');
+    var config = config || item.get('http_config');
     var defaultPort = item.get('default_http_port');
-    if (protocol === 'https' && item.get('https_config')) {
-      config = item.get('https_config');
+    if (protocol === 'https' && (config || item.get('https_config'))) {
+      config = config || item.get('https_config');
       if (item.get('default_https_port')) {
         defaultPort = item.get('default_https_port');
       }
@@ -440,7 +465,7 @@ App.QuickViewLinks = Em.View.extend({
 
     var re = new RegExp(item.get('regex'));
     var portValue = propertyValue.match(re);
-    return  portValue[1];
+    return portValue[1];
   },
 
   linkTarget: function () {

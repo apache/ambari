@@ -100,6 +100,24 @@ describe('App.QuickViewLinks', function () {
         'regex': '\\w*:(\\d+)'
       }),
       Em.Object.create({
+        'service_id': 'YARN',
+        'protocol': 'https',
+        'https_config': 'https_config',
+        'config': 'https_config_custom',
+        'site': 'yarn-site',
+        'result': '9091',
+        'default_http_port': '8088',
+        'default_https_port': '8090',
+        'regex': '\\w*:(\\d+)',
+        'configProperties': [{
+          'type': 'yarn-site',
+          'properties': {
+            'https_config': 'h:9090',
+            'https_config_custom': 'h:9091'
+          }
+        }]
+      }),
+      Em.Object.create({
         'service_id': 'RANGER',
         'protocol': 'http',
         'http_config': 'http_config',
@@ -121,9 +139,14 @@ describe('App.QuickViewLinks', function () {
       })
     ];
 
+    after(function () {
+      quickViewLinks.set('configProperties', []);
+    });
+
     testData.forEach(function(item) {
       it(item.service_id + ' ' + item.protocol, function () {
-        expect(quickViewLinks.setPort(item, item.protocol, item.version)).to.equal(item.result);
+        quickViewLinks.set('configProperties', item.configProperties || []);
+        expect(quickViewLinks.setPort(item, item.protocol, item.config)).to.equal(item.result);
       })
     },this);
   });
