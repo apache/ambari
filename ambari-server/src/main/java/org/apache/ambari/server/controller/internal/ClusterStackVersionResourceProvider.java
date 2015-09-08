@@ -17,18 +17,10 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Provider;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.StaticallyInject;
@@ -82,10 +74,17 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Provider;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 
 /**
  * Resource provider for cluster stack versions resources.
@@ -620,9 +619,11 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         throw new SystemException(detailedOutput);
       }
     } catch (AmbariException e) {
-      throw new SystemException("Can not perform request", e);
+      e.printStackTrace();
+      throw new SystemException("Can not perform request. " + e.getMessage(), e);
     } catch (InterruptedException e) {
-      throw new SystemException("Can not perform request", e);
+      e.printStackTrace();
+      throw new SystemException("Can not perform request. " + e.getMessage(), e);
     }
   }
 
