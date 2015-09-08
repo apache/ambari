@@ -40,6 +40,22 @@ App.ServiceConfig = Ember.Object.extend({
       _category.set('nonSlaveErrorCount', 0);
     });
     configs.forEach(function (item) {
+      if (item.get('isVisible')) {
+        var options = item.get('options');
+        if (options && options.someProperty('foreignKeys')) {
+          var options = options.filterProperty('foreignKeys');
+          options.forEach(function (opt) {
+            opt.foreignKeys.forEach(function (key) {
+              var config = configs.findProperty('name', key);
+              if (config) {
+                config.set('isVisible', item.get('value') === opt.displayName);
+              }
+            });
+          });
+        }
+      }
+    });
+    configs.forEach(function (item) {
       var category = configCategories.findProperty('name', item.get('category'));
       if (category && !item.get('isValid') && item.get('isVisible') && !item.get('widget')) {
         category.incrementProperty('nonSlaveErrorCount');

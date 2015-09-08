@@ -747,17 +747,8 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend({
       console.debug('App.ServiceConfigRadioButton.onChecked');
       this.set('parentView.serviceConfig.value', this.get('value'));
       var components = this.get('parentView.serviceConfig.options');
-      if (components) {
-        components.forEach(function (_component) {
-          if (_component.foreignKeys) {
-            _component.foreignKeys.forEach(function (_componentName) {
-              if (this.get('parentView.parentView.serviceConfigs') && this.get('parentView.parentView.serviceConfigs').someProperty('name', _componentName)) {
-                var component = this.get('parentView.parentView.serviceConfigs').findProperty('name', _componentName);
-                component.set('isVisible', _component.displayName === this.get('value'));
-              }
-            }, this);
-          }
-        }, this);
+      if (components && components.someProperty('foreignKeys')) {
+        this.get('controller.stepConfigs').findProperty('serviceName', this.get('parentView.serviceConfig.serviceName')).propertyDidChange('errorCount');
       }
     });
   }.observes('checked'),
