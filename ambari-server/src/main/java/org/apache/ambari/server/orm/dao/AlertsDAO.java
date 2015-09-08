@@ -20,6 +20,7 @@ package org.apache.ambari.server.orm.dao;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -85,6 +86,15 @@ public class AlertsDAO {
       + "SUM(CASE WHEN history.alertState = :unknownState AND alert.maintenanceState = :maintenanceStateOff THEN 1 ELSE 0 END), "
       + "SUM(CASE WHEN alert.maintenanceState != :maintenanceStateOff THEN 1 ELSE 0 END)) "
       + "FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId";
+
+  private static final String ALERT_COUNT_PER_HOST_SQL_TEMPLATE = "SELECT NEW %s("
+      + "history.hostName, "
+      + "SUM(CASE WHEN history.alertState = :okState AND alert.maintenanceState = :maintenanceStateOff THEN 1 ELSE 0 END), "
+      + "SUM(CASE WHEN history.alertState = :warningState AND alert.maintenanceState = :maintenanceStateOff THEN 1 ELSE 0 END), "
+      + "SUM(CASE WHEN history.alertState = :criticalState AND alert.maintenanceState = :maintenanceStateOff THEN 1 ELSE 0 END), "
+      + "SUM(CASE WHEN history.alertState = :unknownState AND alert.maintenanceState = :maintenanceStateOff THEN 1 ELSE 0 END), "
+      + "SUM(CASE WHEN alert.maintenanceState != :maintenanceStateOff THEN 1 ELSE 0 END)) "
+      + "FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId GROUP BY history.hostName";
 
   /**
    * JPA entity manager
@@ -442,6 +452,37 @@ public class AlertsDAO {
     }
 
     return m_daoUtils.selectSingle(query);
+  }
+
+  /**
+   * Retrieves the summary information for all the hosts in the provided cluster. 
+   * The result is mapping from hostname to summary DTO.
+   *
+   * @param clusterId
+   *          the cluster id
+   * @return map from hostnames to summary DTO
+   */
+  @RequiresSession
+  public Map<String, AlertSummaryDTO> findCurrentPerHostCounts(long clusterId) {
+    String sql = String.format(ALERT_COUNT_PER_HOST_SQL_TEMPLATE, HostAlertSummaryDTO.class.getName());
+
+    StringBuilder sb = new StringBuilder(sql);
+
+    TypedQuery<HostAlertSummaryDTO> query = m_entityManagerProvider.get().createQuery(sb.toString(), HostAlertSummaryDTO.class);
+
+    query.setParameter("clusterId", Long.valueOf(clusterId));
+    query.setParameter("okState", AlertState.OK);
+    query.setParameter("warningState", AlertState.WARNING);
+    query.setParameter("criticalState", AlertState.CRITICAL);
+    query.setParameter("unknownState", AlertState.UNKNOWN);
+    query.setParameter("maintenanceStateOff", MaintenanceState.OFF);
+
+    Map<String, AlertSummaryDTO> map = new HashMap<String, AlertSummaryDTO>();
+    List<HostAlertSummaryDTO> resultList = m_daoUtils.selectList(query);
+    for (HostAlertSummaryDTO result : resultList) {
+      map.put(result.getHostName(), result);
+    }
+    return map;
   }
 
   /**

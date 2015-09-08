@@ -89,22 +89,60 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
   @Override
   public Set<Resource> populateResources(Set<Resource> resources,
       Request request, Predicate predicate) throws SystemException {
-
     Set<String> propertyIds = getRequestPropertyIds(request, predicate);
 
     try {
+      // Optimization:
+      // Some information can be determined more efficiently when requested in bulk 
+      // for an entire cluster at once. 
+      // For Example:
+      //   (1) Cluster level alert-status counts
+      //   (2) Per host alert-status counts
+      // These can be determined in 1 SQL call per cluster, and results used multiple times.
+      Map<Long, Map<String, AlertSummaryDTO>> perHostSummaryMap = new HashMap<Long, Map<String, AlertSummaryDTO>>();
+      Map<Long, AlertHostSummaryDTO> hostsSummaryMap = new HashMap<Long, AlertHostSummaryDTO>();
+      Map<String, Cluster> resourcesClusterMap = new HashMap<String, Cluster>();
       for (Resource res : resources) {
-        populateResource(res, propertyIds);
+        String clusterName = (String) res.getPropertyValue(m_clusterPropertyId);
+        if (clusterName == null || resourcesClusterMap.containsKey(clusterName)) {
+          continue;
+        }
+        Cluster cluster = s_clusters.get().getCluster(clusterName);
+        resourcesClusterMap.put(clusterName, cluster);
+      }
+      for (Cluster cluster : resourcesClusterMap.values()) {
+        long clusterId = cluster.getClusterId();
+        switch (m_resourceType.getInternalType()) {
+          case Cluster:
+            // only make the calculation if asked
+            if (BaseProvider.isPropertyRequested(ALERTS_SUMMARY_HOSTS, propertyIds)) {
+              hostsSummaryMap.put(clusterId, s_dao.findCurrentHostCounts(clusterId));
+            }
+            break;
+          case Host:
+            if (resources.size() > 1) {
+              // More efficient to get information for all hosts in 1 call
+              Map<String, AlertSummaryDTO> perHostCounts = s_dao.findCurrentPerHostCounts(clusterId);
+              perHostSummaryMap.put(clusterId, perHostCounts);
+            }
+            break;
+          default:
+            break;
+        }
+      }
+
+      for (Resource res : resources) {
+        populateResource(res, propertyIds, perHostSummaryMap, hostsSummaryMap);
       }
     } catch (AmbariException e) {
       LOG.error("Could not load built-in alerts - Executor exception ({})",
           e.getMessage());
     }
-
     return resources;
   }
 
-  private void populateResource(Resource resource, Set<String> requestedIds) throws AmbariException {
+  private void populateResource(Resource resource, Set<String> requestedIds, Map<Long, Map<String, 
+      AlertSummaryDTO>> perHostSummaryMap, Map<Long, AlertHostSummaryDTO> hostsSummaryMap) throws AmbariException {
 
     AlertSummaryDTO summary = null;
     AlertHostSummaryDTO hostSummary = null;
@@ -130,7 +168,11 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
         // only make the calculation if asked
         if (BaseProvider.isPropertyRequested(ALERTS_SUMMARY_HOSTS,
             requestedIds)) {
-          hostSummary = s_dao.findCurrentHostCounts(clusterId);
+          if (hostsSummaryMap.containsKey(cluster.getClusterId())) {
+            hostSummary = hostsSummaryMap.get(cluster.getClusterId());
+          } else {
+            hostSummary = s_dao.findCurrentHostCounts(clusterId);
+          }
         }
 
         break;
@@ -138,7 +180,12 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
         summary = s_dao.findCurrentCounts(cluster.getClusterId(), typeId, null);
         break;
       case Host:
+      if (perHostSummaryMap.containsKey(cluster.getClusterId()) && 
+          perHostSummaryMap.get(cluster.getClusterId()).containsKey(typeId)) {
+        summary = perHostSummaryMap.get(cluster.getClusterId()).get(typeId);
+      } else {
         summary = s_dao.findCurrentCounts(cluster.getClusterId(), null, typeId);
+      }
         break;
       default:
         break;
