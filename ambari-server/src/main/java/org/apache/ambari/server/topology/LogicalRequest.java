@@ -18,6 +18,16 @@
 
 package org.apache.ambari.server.topology;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -35,16 +45,6 @@ import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Logical Request implementation.
@@ -246,6 +246,7 @@ public class LogicalRequest extends Request {
       int pending = 0;
       int queued = 0;
       int timedout = 0;
+      int skippedFailed = 0;
 
       //todo: where does this logic belong?
       for (HostRoleCommandEntity task : stage.getHostRoleCommands()) {
@@ -282,13 +283,19 @@ public class LogicalRequest extends Request {
           case TIMEDOUT:
             timedout += 1;
             break;
+          case SKIPPED_FAILED:
+            skippedFailed += 1;
+            break;
           default:
             System.out.println("Unexpected status when creating stage summaries: " + taskStatus);
         }
       }
 
-      HostRoleCommandStatusSummaryDTO stageSummary = new HostRoleCommandStatusSummaryDTO(stage.isSkippable() ? 1 : 0, 0, 0,
-          stage.getStageId(), aborted, completed, failed, holding, holdingFailed, holdingTimedout, inProgress, pending, queued, timedout);
+      HostRoleCommandStatusSummaryDTO stageSummary = new HostRoleCommandStatusSummaryDTO(
+          stage.isSkippable() ? 1 : 0, 0, 0, stage.getStageId(), aborted, completed, failed,
+          holding, holdingFailed, holdingTimedout, inProgress, pending, queued, timedout,
+          skippedFailed);
+
       summaryMap.put(stage.getStageId(), stageSummary);
     }
     return summaryMap;

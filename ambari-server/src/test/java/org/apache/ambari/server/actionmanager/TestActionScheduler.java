@@ -279,7 +279,7 @@ public class TestActionScheduler {
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     s.addHostRoleExecutionCommand(hostname, Role.SECONDARY_NAMENODE, RoleCommand.INSTALL,
             new ServiceComponentHostInstallEvent("SECONDARY_NAMENODE", hostname, System.currentTimeMillis(), "HDP-1.2.0"),
-            "cluster1", "HDFS", false);
+            "cluster1", "HDFS", false, false);
     s.setHostRoleStatus(hostname, "SECONDARY_NAMENODE", HostRoleStatus.IN_PROGRESS);
     stages.add(s);
 
@@ -840,7 +840,7 @@ public class TestActionScheduler {
         RoleCommand.EXECUTE, "cluster1",
         new ServiceComponentHostServerActionEvent(serverHostname, System.currentTimeMillis()),
         payload,
-        null, null, timeout, false);
+        null, null, timeout, false, false);
 
     return stage;
   }
@@ -1449,7 +1449,7 @@ public class TestActionScheduler {
                                            RoleCommand command, String host, String cluster) {
     stage.addHostRoleExecutionCommand(host, role, command,
         new ServiceComponentHostInstallEvent(role.toString(), host, now, "HDP-0.2"),
-        cluster, service.toString(), false);
+        cluster, service.toString(), false, false);
     stage.getExecutionCommandWrapper(host,
         role.toString()).getExecutionCommand();
   }
@@ -1478,19 +1478,19 @@ public class TestActionScheduler {
     stage.setStageId(1);
     stage.addHostRoleExecutionCommand("host1", Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host1", now, "HDP-0.2"),
-        "cluster1", Service.Type.HDFS.toString(), false);
+        "cluster1", Service.Type.HDFS.toString(), false, false);
     stage.getExecutionCommandWrapper("host1",
         Role.DATANODE.toString()).getExecutionCommand();
 
     stage.addHostRoleExecutionCommand("host2", Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host2", now, "HDP-0.2"),
-        "cluster1", Service.Type.HDFS.toString(), false);
+        "cluster1", Service.Type.HDFS.toString(), false, false);
     stage.getExecutionCommandWrapper("host2",
         Role.DATANODE.toString()).getExecutionCommand();
 
     stage.addHostRoleExecutionCommand("host3", Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host3", now, "HDP-0.2"),
-        "cluster1", Service.Type.HDFS.toString(), false);
+        "cluster1", Service.Type.HDFS.toString(), false, false);
     stage.getExecutionCommandWrapper("host3",
         Role.DATANODE.toString()).getExecutionCommand();
     stages.add(stage);
@@ -1620,7 +1620,7 @@ public class TestActionScheduler {
     stage.setStageId(stageId);
     stage.addHostRoleExecutionCommand(hostname, role, roleCommand,
         new ServiceComponentHostUpgradeEvent(role.toString(), hostname, System.currentTimeMillis(), "HDP-0.2"),
-        clusterName, service.toString(), false);
+        clusterName, service.toString(), false, false);
     stage.getExecutionCommandWrapper(hostname,
         role.toString()).getExecutionCommand();
     stage.getOrderedHostRoleCommands().get(0).setTaskId(taskId);
@@ -1647,7 +1647,7 @@ public class TestActionScheduler {
 
     stage.addHostRoleExecutionCommand(hostname, role, roleCommand,
       new ServiceComponentHostInstallEvent(role.toString(), hostname,
-        System.currentTimeMillis(), "HDP-0.2"), clusterName, service.toString(), false);
+        System.currentTimeMillis(), "HDP-0.2"), clusterName, service.toString(), false, false);
     ExecutionCommand command = stage.getExecutionCommandWrapper
       (hostname, role.toString()).getExecutionCommand();
     command.setTaskId(taskId);

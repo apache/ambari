@@ -34,7 +34,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.net.ConnectException;
@@ -53,8 +52,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
-
-import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -155,6 +152,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import junit.framework.Assert;
 
 public class AmbariManagementControllerTest {
 
@@ -8006,7 +8005,7 @@ public class AmbariManagementControllerTest {
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
                     hostName1, System.currentTimeMillis()),
-            clusterName, "HBASE", false);
+            clusterName, "HBASE", false, false);
 
     stages.add(stageFactory.createNew(requestId1, "/a2", clusterName, 1L, context,
       CLUSTER_HOST_INFO, "", ""));
@@ -8014,7 +8013,7 @@ public class AmbariManagementControllerTest {
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
-                    hostName1, System.currentTimeMillis()), clusterName, "HBASE", false);
+                    hostName1, System.currentTimeMillis()), clusterName, "HBASE", false, false);
 
     stages.add(stageFactory.createNew(requestId1, "/a3", clusterName, 1L, context,
       CLUSTER_HOST_INFO, "", ""));
@@ -8022,7 +8021,7 @@ public class AmbariManagementControllerTest {
     stages.get(2).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
-                    hostName1, System.currentTimeMillis()), clusterName, "HBASE", false);
+                    hostName1, System.currentTimeMillis()), clusterName, "HBASE", false, false);
 
     Request request = new Request(stages, clusters);
     actionDB.persistActions(request);
@@ -8034,7 +8033,7 @@ public class AmbariManagementControllerTest {
     stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
-                    hostName1, System.currentTimeMillis()), clusterName, "HBASE", false);
+                    hostName1, System.currentTimeMillis()), clusterName, "HBASE", false, false);
 
     stages.add(stageFactory.createNew(requestId2, "/a5", clusterName, 1L, context,
       CLUSTER_HOST_INFO, "", ""));
@@ -8042,7 +8041,7 @@ public class AmbariManagementControllerTest {
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
-                    hostName1, System.currentTimeMillis()), clusterName, "HBASE", false);
+                    hostName1, System.currentTimeMillis()), clusterName, "HBASE", false, false);
 
     request = new Request(stages, clusters);
     actionDB.persistActions(request);
@@ -10230,10 +10229,10 @@ public class AmbariManagementControllerTest {
     clusterConfigAttributes.get("final2").put("a", "true");
     Assert.assertFalse(controllerImpl.isAttributeMapsEqual(requestConfigAttributes, clusterConfigAttributes));
     requestConfigAttributes.put("final2", new HashMap<String, String>());
-    requestConfigAttributes.get("final2").put("a", "false"); 
+    requestConfigAttributes.get("final2").put("a", "false");
     Assert.assertFalse(controllerImpl.isAttributeMapsEqual(requestConfigAttributes, clusterConfigAttributes));
-  } 
-  
+  }
+
   @Test
   public void testEmptyConfigs() throws Exception {
     String clusterName = "c1";

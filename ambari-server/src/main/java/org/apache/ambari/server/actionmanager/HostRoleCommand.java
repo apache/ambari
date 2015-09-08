@@ -62,6 +62,7 @@ public class HostRoleCommand {
   private long lastAttemptTime = -1;
   private short attemptCount = 0;
   private final boolean retryAllowed;
+  private final boolean autoSkipFailure;
   private RoleCommand roleCommand;
   private String commandDetail;
   private String customCommandName;
@@ -84,7 +85,7 @@ public class HostRoleCommand {
   @AssistedInject
   public HostRoleCommand(String hostName, Role role,
                          ServiceComponentHostEvent event, RoleCommand command, HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO) {
-    this(hostName, role, event, command, false, hostDAO, executionCommandDAO);
+    this(hostName, role, event, command, false, false, hostDAO, executionCommandDAO);
   }
 
   /**
@@ -97,8 +98,9 @@ public class HostRoleCommand {
    * @param hostDAO {@link org.apache.ambari.server.orm.dao.HostDAO} instance being injected
    */
   @AssistedInject
-  public HostRoleCommand(String hostName, Role role,
-                         ServiceComponentHostEvent event, RoleCommand roleCommand, boolean retryAllowed, HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO) {
+  public HostRoleCommand(String hostName, Role role, ServiceComponentHostEvent event,
+      RoleCommand roleCommand, boolean retryAllowed, boolean autoSkipFailure, HostDAO hostDAO,
+      ExecutionCommandDAO executionCommandDAO) {
     this.hostDAO = hostDAO;
     this.executionCommandDAO = executionCommandDAO;
 
@@ -106,6 +108,7 @@ public class HostRoleCommand {
     this.event = new ServiceComponentHostEventWrapper(event);
     this.roleCommand = roleCommand;
     this.retryAllowed = retryAllowed;
+    this.autoSkipFailure = autoSkipFailure;
     this.hostName = hostName;
 
     HostEntity hostEntity = this.hostDAO.findByName(hostName);
@@ -116,8 +119,8 @@ public class HostRoleCommand {
 
   @AssistedInject
   public HostRoleCommand(Host host, Role role, ServiceComponentHostEvent event,
-      RoleCommand roleCommand,
-                         boolean retryAllowed, HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO) {
+      RoleCommand roleCommand, boolean retryAllowed, boolean autoSkipFailure, HostDAO hostDAO,
+      ExecutionCommandDAO executionCommandDAO) {
     this.hostDAO = hostDAO;
     this.executionCommandDAO = executionCommandDAO;
 
@@ -125,6 +128,7 @@ public class HostRoleCommand {
     this.event = new ServiceComponentHostEventWrapper(event);
     this.roleCommand = roleCommand;
     this.retryAllowed = retryAllowed;
+    this.autoSkipFailure = autoSkipFailure;
     hostId = host.getHostId();
     hostName = host.getHostName();
   }
@@ -152,6 +156,7 @@ public class HostRoleCommand {
     lastAttemptTime = hostRoleCommandEntity.getLastAttemptTime();
     attemptCount = hostRoleCommandEntity.getAttemptCount();
     retryAllowed = hostRoleCommandEntity.isRetryAllowed();
+    autoSkipFailure = hostRoleCommandEntity.isFailureAutoSkipped();
     roleCommand = hostRoleCommandEntity.getRoleCommand();
     event = new ServiceComponentHostEventWrapper(hostRoleCommandEntity.getEvent());
     commandDetail = hostRoleCommandEntity.getCommandDetail();
@@ -173,6 +178,7 @@ public class HostRoleCommand {
     hostRoleCommandEntity.setLastAttemptTime(lastAttemptTime);
     hostRoleCommandEntity.setAttemptCount(attemptCount);
     hostRoleCommandEntity.setRetryAllowed(retryAllowed);
+    hostRoleCommandEntity.setAutoSkipOnFailure(autoSkipFailure);
     hostRoleCommandEntity.setRoleCommand(roleCommand);
     hostRoleCommandEntity.setCommandDetail(commandDetail);
     hostRoleCommandEntity.setCustomCommandName(customCommandName);
@@ -407,6 +413,8 @@ public class HostRoleCommand {
     builder.append("  Role: ").append(role).append("\n");
     builder.append("  Status: ").append(status).append("\n");
     builder.append("  Event: ").append(event).append("\n");
+    builder.append("  RetryAllowed: ").append(retryAllowed).append("\n");
+    builder.append("  AutoSkipFailure: ").append(autoSkipFailure).append("\n");
     builder.append("  Output log: ").append(outputLog).append("\n");
     builder.append("  Error log: ").append(errorLog).append("\n");
     builder.append("  stdout: ").append(stdout).append("\n");

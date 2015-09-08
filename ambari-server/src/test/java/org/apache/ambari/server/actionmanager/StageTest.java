@@ -61,7 +61,7 @@ public class StageTest {
 
   @Test
   public void testAddServerActionCommand_userName() throws Exception {
-    final Stage stage = stageFactory.createNew((long) 1, "/tmp", "cluster1", (long) 978, "context", CLUSTER_HOST_INFO,
+    final Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 978, "context", CLUSTER_HOST_INFO,
         "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
 
     stage.addServerActionCommand(ConfigureAction.class.getName(),
@@ -69,7 +69,7 @@ public class StageTest {
         RoleCommand.EXECUTE,
         "cluster1", SERVER_HOST_NAME,
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
-        Collections.<String, String>emptyMap(), null, null, 1200, false);
+        Collections.<String, String> emptyMap(), null, null, 1200, false, false);
 
     List<ExecutionCommandWrapper> executionCommands = stage.getExecutionCommands(SERVER_HOST_NAME);
     assertEquals(1, executionCommands.size());

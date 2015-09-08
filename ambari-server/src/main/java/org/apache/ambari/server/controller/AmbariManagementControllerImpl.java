@@ -23,10 +23,12 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_USERNAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_ENABLED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MAX_DURATION_OF_RETRIES;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
@@ -35,8 +37,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_P
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MAX_DURATION_OF_RETRIES;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_ENABLED;
 
 import java.io.File;
 import java.io.FileReader;
@@ -60,8 +60,6 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -162,23 +160,24 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MultiMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.GrantedAuthority;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import org.springframework.security.core.GrantedAuthority;
 
 @Singleton
 public class AmbariManagementControllerImpl implements AmbariManagementController {
@@ -1367,13 +1366,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           clusterConfigAttributes = clusterConfig.getPropertiesAttributes();
           if (!isAttributeMapsEqual(requestConfigAttributes, clusterConfigAttributes)){
             isConfigurationCreationNeeded = true;
-            break;            
+            break;
           }
         } else {
           isConfigurationCreationNeeded = true;
           break;
         }
-        
+
         if (requestConfigProperties == null || requestConfigProperties.isEmpty()) {
           Config existingConfig = cluster.getConfig(desiredConfig.getType(), desiredConfig.getVersionTag());
           if (existingConfig != null) {
@@ -1573,17 +1572,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   /**
-   * Comparison of two attributes maps 
+   * Comparison of two attributes maps
    * @param requestConfigAttributes - attribute map sent from API
    * @param clusterConfigAttributes - existed attribute map
-   * @return true if maps is equal (have the same attributes and their values) 
+   * @return true if maps is equal (have the same attributes and their values)
    */
   public boolean isAttributeMapsEqual(Map<String, Map<String, String>> requestConfigAttributes,
           Map<String, Map<String, String>> clusterConfigAttributes) {
     boolean isAttributesEqual = true;
     if ((requestConfigAttributes != null && clusterConfigAttributes == null)
             || (requestConfigAttributes == null && clusterConfigAttributes != null)
-            || (requestConfigAttributes != null && clusterConfigAttributes != null 
+            || (requestConfigAttributes != null && clusterConfigAttributes != null
             && !requestConfigAttributes.keySet().equals(clusterConfigAttributes.keySet()))) {
       return false;
     } else if (clusterConfigAttributes != null && requestConfigAttributes != null) {
@@ -1592,7 +1591,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         Map<String, String> requestMapAttributes = requestConfigAttributes.get(ClusterEntrySet.getKey());
         if ((requestMapAttributes != null && clusterMapAttributes == null)
                 || (requestMapAttributes == null && clusterMapAttributes != null)
-                || (requestMapAttributes != null && clusterMapAttributes != null 
+                || (requestMapAttributes != null && clusterMapAttributes != null
                 && !requestMapAttributes.keySet().equals(clusterMapAttributes.keySet()))) {
           return false;
         } else if (requestMapAttributes != null && clusterMapAttributes != null) {
@@ -1601,7 +1600,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             String clusterPropertyValue = clusterMapAttributes.get(requestPropertyEntrySet.getKey());
             if ((requestPropertyValue != null && clusterPropertyValue == null)
                     || (requestPropertyValue == null && clusterPropertyValue != null)
-                    || (requestPropertyValue != null && clusterPropertyValue != null 
+                    || (requestPropertyValue != null && clusterPropertyValue != null
                     && !requestPropertyValue.equals(clusterPropertyValue))) {
               return false;
             }
@@ -1611,8 +1610,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
     return isAttributesEqual;
-  } 
-  
+  }
+
   /**
    * Save cluster update results to retrieve later
    * @param clusterRequest   cluster request info
@@ -1848,10 +1847,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     String serviceName = scHost.getServiceName();
 
-    stage.addHostRoleExecutionCommand(scHost.getHost(), Role.valueOf(scHost
-      .getServiceComponentName()), roleCommand,
-      event, cluster,
-      serviceName, false);
+    stage.addHostRoleExecutionCommand(scHost.getHost(),
+        Role.valueOf(scHost.getServiceComponentName()), roleCommand, event, cluster, serviceName,
+        false, false);
+
     String componentName = scHost.getServiceComponentName();
     String hostname = scHost.getHostName();
     String osFamily = clusters.getHost(hostname).getOsFamily();
@@ -2436,9 +2435,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           continue;
         }
 
-        customCommandExecutionHelper.addServiceCheckAction(stage, clientHost,
-          smokeTestRole, nowTimestamp, serviceName,
-          componentName, null, false);
+        customCommandExecutionHelper.addServiceCheckAction(stage, clientHost, smokeTestRole,
+            nowTimestamp, serviceName, componentName, null, false, false);
       }
 
       RoleCommandOrder rco = getRoleCommandOrder(cluster);
@@ -3373,9 +3371,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         jsons.getClusterHostInfo(), commandParamsForStage, jsons.getHostParamsForStage());
 
     if (actionRequest.isCommand()) {
-      customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestProperties, false);
+      customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
+          requestProperties);
     } else {
-      actionExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, false);
+      actionExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage);
     }
 
     RoleGraph rg;

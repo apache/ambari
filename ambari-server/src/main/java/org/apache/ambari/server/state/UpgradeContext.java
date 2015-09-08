@@ -56,6 +56,20 @@ public class UpgradeContext {
   private String m_downgradeFromVersion = null;
 
   /**
+   * {@code true} if slave/client component failures should be automatically
+   * skipped. This will only automatically skip the failure if the task is
+   * skippable to begin with.
+   */
+  private boolean m_autoSkipComponentFailures = false;
+
+  /**
+   * {@code true} if service check failures should be automatically skipped.
+   * This will only automatically skip the failure if the task is skippable to
+   * begin with.
+   */
+  private boolean m_autoSkipServiceCheckFailures = false;
+
+  /**
    * Constructor.
    *
    * @param resolver
@@ -223,7 +237,7 @@ public class UpgradeContext {
 
   /**
    * This method returns the non-finalized version we are downgrading from.
-   * 
+   *
    * @return version cluster is downgrading from
    */
   public String getDowngradeFromVersion() {
@@ -232,11 +246,53 @@ public class UpgradeContext {
 
   /**
    * Set the HDP stack version we are downgrading from.
-   *  
+   *
    * @param downgradeFromVersion
    */
   public void setDowngradeFromVersion(String downgradeFromVersion) {
-    this.m_downgradeFromVersion = downgradeFromVersion;
+    m_downgradeFromVersion = downgradeFromVersion;
+  }
+
+  /**
+   * Gets whether skippable components that failed are automatically skipped.
+   *
+   * @return the skipComponentFailures
+   */
+  public boolean isComponentFailureAutoSkipped() {
+    return m_autoSkipComponentFailures;
+  }
+
+  /**
+   * Sets whether skippable components that failed are automatically skipped.
+   *
+   * @param skipComponentFailures
+   *          {@code true} to automatically skip component failures which are
+   *          marked as skippable.
+   */
+  public void setAutoSkipComponentFailures(boolean autoSkipComponentFailures) {
+    m_autoSkipComponentFailures = autoSkipComponentFailures;
+  }
+
+  /**
+   * Gets whether skippable service checks that failed are automatically
+   * skipped.
+   *
+   * @return the skipServiceCheckFailures
+   */
+  public boolean isServiceCheckFailureAutoSkipped() {
+    return m_autoSkipServiceCheckFailures;
+  }
+
+  /**
+   * Sets whether skippable service checks that failed are automatically
+   * skipped.
+   *
+   * @param autoSkipServiceCheckFailures
+   *          {@code true} to automatically skip service check failures which
+   *          are marked as being skippable.
+   */
+  public void setAutoSkipServiceCheckFailures(boolean autoSkipServiceCheckFailures) {
+    m_autoSkipServiceCheckFailures = autoSkipServiceCheckFailures;
   }
 
 }

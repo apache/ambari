@@ -40,6 +40,14 @@ public class ActionExecutionContext {
   private String expectedServiceName;
   private String expectedComponentName;
   private boolean ignoreMaintenance = false;
+  private boolean allowRetry = false;
+
+  /**
+   * {@code true} if slave/client component failures should be automatically
+   * skipped. This will only automatically skip the failure if the task is
+   * skippable to begin with.
+   */
+  private boolean autoSkipFailures = false;
 
   /**
    * Create an ActionExecutionContext to execute an action from a request
@@ -71,7 +79,7 @@ public class ActionExecutionContext {
                                 List<RequestResourceFilter> resourceFilters,
                                 Map<String, String> parameters) {
     this.clusterName = clusterName;
-    this.actionName = commandName;
+    actionName = commandName;
     this.resourceFilters = resourceFilters;
     this.parameters = parameters;
   }
@@ -120,6 +128,46 @@ public class ActionExecutionContext {
     return expectedComponentName;
   }
 
+  /**
+   * Gets whether the action can be retried if it failed. The default is
+   * {@code true)}.
+   *
+   * @return {@code true} if the action can be retried if it fails.
+   */
+  public boolean isRetryAllowed() {
+    return allowRetry;
+  }
+
+  /**
+   * Sets whether the action can be retried if it fails.
+   *
+   * @param allowRetry
+   *          {@code true} if the action can be retried if it fails.
+   */
+  public void setRetryAllowed(boolean allowRetry){
+    this.allowRetry = allowRetry;
+  }
+
+  /**
+   * Gets whether skippable actions that failed are automatically skipped.
+   *
+   * @return the autoSkipFailures
+   */
+  public boolean isFailureAutoSkipped() {
+    return autoSkipFailures;
+  }
+
+  /**
+   * Sets whether skippable action that failed are automatically skipped.
+   *
+   * @param autoSkipFailures
+   *          {@code true} to automatically skip failures which are marked as
+   *          skippable.
+   */
+  public void setAutoSkipFailures(boolean autoSkipFailures) {
+    this.autoSkipFailures = autoSkipFailures;
+  }
+
   @Override
   public String toString() {
     return "ActionExecutionContext{" +
@@ -131,6 +179,8 @@ public class ActionExecutionContext {
       ", targetType=" + targetType +
       ", timeout=" + timeout +
       ", ignoreMaintenance=" + ignoreMaintenance +
+      ", allowRetry=" + allowRetry +
+      ", autoSkipFailures=" + autoSkipFailures +
       '}';
   }
 

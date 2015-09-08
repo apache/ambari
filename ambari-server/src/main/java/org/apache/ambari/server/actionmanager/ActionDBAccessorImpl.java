@@ -378,18 +378,29 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     List<HostRoleCommandEntity> commandEntities = hostRoleCommandDAO.findByPKs(taskReports.keySet());
     for (HostRoleCommandEntity commandEntity : commandEntities) {
       CommandReport report = taskReports.get(commandEntity.getTaskId());
-      if (commandEntity.getStatus() != HostRoleStatus.ABORTED) {
-        // We don't want to overwrite statuses for ABORTED tasks with
-        // statuses that have been received from the agent after aborting task
-        HostRoleStatus status = HostRoleStatus.valueOf(report.getStatus());
-        // if FAILED and marked for holding then set status = HOLDING_FAILED
-        if (status == HostRoleStatus.FAILED && commandEntity.isRetryAllowed()) {
-          status = HostRoleStatus.HOLDING_FAILED;
-        }
-        commandEntity.setStatus(status);
-      } else {
-        abortedCommandUpdates.add(commandEntity.getTaskId());
+
+      switch (commandEntity.getStatus()) {
+        case ABORTED:
+          // We don't want to overwrite statuses for ABORTED tasks with
+          // statuses that have been received from the agent after aborting task
+          abortedCommandUpdates.add(commandEntity.getTaskId());
+          break;
+        default:
+          HostRoleStatus status = HostRoleStatus.valueOf(report.getStatus());
+          // if FAILED and marked for holding then set status = HOLDING_FAILED
+          if (status == HostRoleStatus.FAILED && commandEntity.isRetryAllowed()) {
+            status = HostRoleStatus.HOLDING_FAILED;
+
+            // tasks can be marked as skipped when they fail
+            if (commandEntity.isFailureAutoSkipped()) {
+              status = HostRoleStatus.SKIPPED_FAILED;
+            }
+          }
+
+          commandEntity.setStatus(status);
+          break;
       }
+
       commandEntity.setStdOut(report.getStdOut().getBytes());
       commandEntity.setStdError(report.getStdErr().getBytes());
       commandEntity.setStructuredOut(report.getStructuredOut() == null ? null :
@@ -427,20 +438,30 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         + "HostName " + hostname + " requestId " + requestId + " stageId "
         + stageId + " role " + role + " report " + report);
     }
+
     long now = System.currentTimeMillis();
     List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByHostRole(
       hostname, requestId, stageId, role);
+
     for (HostRoleCommandEntity command : commands) {
       HostRoleStatus status = HostRoleStatus.valueOf(report.getStatus());
+
       // if FAILED and marked for holding then set status = HOLDING_FAILED
       if (status == HostRoleStatus.FAILED && command.isRetryAllowed()) {
         status = HostRoleStatus.HOLDING_FAILED;
+
+        // tasks can be marked as skipped when they fail
+        if (command.isFailureAutoSkipped()) {
+          status = HostRoleStatus.SKIPPED_FAILED;
+        }
       }
+
       command.setStatus(status);
       command.setStdOut(report.getStdOut().getBytes());
       command.setStdError(report.getStdErr().getBytes());
       command.setStructuredOut(report.getStructuredOut() == null ? null :
         report.getStructuredOut().getBytes());
+
       if (HostRoleStatus.getCompletedStates().contains(command.getStatus())) {
         command.setEndTime(now);
         if (requestDAO.getLastStageId(requestId).equals(stageId)) {
@@ -449,6 +470,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       }
       command.setExitcode(report.getExitCode());
     }
+
     hostRoleCommandDAO.mergeAll(commands);
 
     if (checkRequest) {

@@ -225,6 +225,7 @@ CREATE TABLE host_role_command (
   start_time NUMBER(19) NOT NULL,
   end_time NUMBER(19),
   status VARCHAR2(255) NULL,
+  auto_skip_on_failure NUMBER(1) DEFAULT 0 NOT NULL,
   std_error BLOB NULL,
   std_out BLOB NULL,
   output_log VARCHAR2(255) NULL,

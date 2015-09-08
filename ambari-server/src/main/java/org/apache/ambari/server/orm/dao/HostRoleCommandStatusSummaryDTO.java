@@ -53,7 +53,8 @@ public class HostRoleCommandStatusSummaryDTO {
       Number inProgress,
       Number pending,
       Number queued,
-      Number timedout) {
+      Number timedout,
+      Number skippedFailed) {
 
     m_stageId = Long.valueOf(null == stageId ? 0L : stageId.longValue());
     if (null != skippable) {
@@ -76,7 +77,7 @@ public class HostRoleCommandStatusSummaryDTO {
     put(HostRoleStatus.PENDING, pending);
     put(HostRoleStatus.QUEUED, queued);
     put(HostRoleStatus.TIMEDOUT, timedout);
-
+    put(HostRoleStatus.SKIPPED_FAILED, skippedFailed);
   }
 
   @SuppressWarnings("boxing")
@@ -158,7 +159,9 @@ public class HostRoleCommandStatusSummaryDTO {
         0L, // inProgress,
         0L, // pending,
         0L, // queued,
-        0L);  // timedout
+        0L, // timedout
+        0L // skippedFailed
+    );
   }
 
   /**
@@ -217,6 +220,12 @@ public class HostRoleCommandStatusSummaryDTO {
     return this;
   }
 
-
+  /**
+   * For testing, set the number of {@link HostRoleStatus#SKIPPED_FAILED} tasks
+   */
+  public HostRoleCommandStatusSummaryDTO skippedFailed(int count) {
+    put(HostRoleStatus.SKIPPED_FAILED, count);
+    return this;
+  }
 
 }

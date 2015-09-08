@@ -29,8 +29,6 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -68,6 +66,8 @@ import com.google.inject.Singleton;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
 import com.google.inject.util.Modules;
+
+import junit.framework.Assert;
 
 public class TestActionDBAccessorImpl {
   private static final Logger log = LoggerFactory.getLogger(TestActionDBAccessorImpl.class);
@@ -557,23 +557,23 @@ public class TestActionDBAccessorImpl {
     s.addHostRoleExecutionCommand("host1", Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            "host1", System.currentTimeMillis()), "cluster1", "HBASE", false);
+            "host1", System.currentTimeMillis()), "cluster1", "HBASE", false, false);
     s.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            "host2", System.currentTimeMillis()), "cluster1", "HBASE", false);
+            "host2", System.currentTimeMillis()), "cluster1", "HBASE", false, false);
     s.addHostRoleExecutionCommand(
         "host3",
         Role.HBASE_REGIONSERVER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER
-            .toString(), "host3", System.currentTimeMillis()), "cluster1", "HBASE", false);
+            .toString(), "host3", System.currentTimeMillis()), "cluster1", "HBASE", false, false);
     s.addHostRoleExecutionCommand(
         "host4",
         Role.HBASE_REGIONSERVER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER
-            .toString(), "host4", System.currentTimeMillis()), "cluster1", "HBASE", false);
+            .toString(), "host4", System.currentTimeMillis()), "cluster1", "HBASE", false, false);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     s.getOrderedHostRoleCommands().get(0).setStatus(HostRoleStatus.PENDING);
@@ -657,7 +657,7 @@ public class TestActionDBAccessorImpl {
       clusters.getHost(host).persist();
 
       s.addHostRoleExecutionCommand("host" + i, Role.HBASE_MASTER,
-        RoleCommand.START, null, "cluster1", "HBASE", false);
+        RoleCommand.START, null, "cluster1", "HBASE", false, false);
     }
 
     List<Stage> stages = new ArrayList<Stage>();
@@ -742,13 +742,13 @@ public class TestActionDBAccessorImpl {
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            hostname, System.currentTimeMillis()), "cluster1", "HBASE", false);
+            hostname, System.currentTimeMillis()), "cluster1", "HBASE", false, false);
     s.addHostRoleExecutionCommand(
         hostname,
         Role.HBASE_REGIONSERVER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER
-            .toString(), hostname, System.currentTimeMillis()), "cluster1", "HBASE", false);
+            .toString(), hostname, System.currentTimeMillis()), "cluster1", "HBASE", false, false);
     return s;
   }
 
@@ -760,7 +760,7 @@ public class TestActionDBAccessorImpl {
     s.addHostRoleExecutionCommand(hostname, Role.valueOf(actionName),
         RoleCommand.ACTIONEXECUTE,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            hostname, System.currentTimeMillis()), "cluster1", "HBASE", false);
+            hostname, System.currentTimeMillis()), "cluster1", "HBASE", false, false);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     final RequestResourceFilter resourceFilter = new RequestResourceFilter("HBASE", "HBASE_MASTER", null);
@@ -777,7 +777,8 @@ public class TestActionDBAccessorImpl {
     Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
         "", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
-    s.addServerActionCommand(serverActionName, Role.AMBARI_SERVER_ACTION, RoleCommand.ACTIONEXECUTE, clusterName, null, null, "command details", null, 300, false);
+    s.addServerActionCommand(serverActionName, Role.AMBARI_SERVER_ACTION,
+        RoleCommand.ACTIONEXECUTE, clusterName, null, null, "command details", null, 300, false, false);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     final RequestResourceFilter resourceFilter = new RequestResourceFilter("AMBARI", "SERVER", Arrays.asList(hostname));

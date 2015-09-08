@@ -81,10 +81,12 @@ public class StageResourceProviderTest {
     hrcDao = createStrictMock(HostRoleCommandDAO.class);
 
     expect(hrcDao.findAggregateCounts(EasyMock.anyObject(Long.class))).andReturn(
-        new HashMap<Long, HostRoleCommandStatusSummaryDTO>() {{
-          put(0L, new HostRoleCommandStatusSummaryDTO(
-              0, 1000L, 2500L, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0));
-        }}).anyTimes();
+        new HashMap<Long, HostRoleCommandStatusSummaryDTO>() {
+          {
+            put(0L, new HostRoleCommandStatusSummaryDTO(0, 1000L, 2500L, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+                0, 0, 0));
+          }
+        }).anyTimes();
 
     replay(hrcDao);
 
