@@ -826,7 +826,13 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
       this.set('value', category.get('healthStatus'));
       this.get('parentView').resetFilterByColumns([0, 7, 8, 9]);
       if (category.get('isHealthStatus')) {
-        this.get('parentView').updateFilter(0, category.get('healthStatus'), 'string');
+        var status = category.get('healthStatus');
+        if (!status) {
+          // only "All" option has no specific status, just refresh
+          this.get('parentView').refresh();
+        } else {
+          this.get('parentView').updateFilter(0, status, 'string');
+        }
       } else {
         this.get('parentView').updateFilter(category.get('column'), category.get('filterValue'), category.get('type'));
       }
