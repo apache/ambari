@@ -57,7 +57,11 @@ class PigServiceCheckLinux(PigServiceCheck):
     )
     params.HdfsResource(None, action="execute")
  
-
+    if params.security_enabled:
+      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
+      Execute(kinit_cmd,
+        user=params.smokeuser
+      )
 
     File( format("{tmp_dir}/pigSmoke.sh"),
       content = StaticFile("pigSmoke.sh"),
@@ -101,12 +105,6 @@ class PigServiceCheckLinux(PigServiceCheck):
         host_sys_prepped=params.host_sys_prepped)
       if resource_created:
         params.HdfsResource(None, action="execute")
-
-      if params.security_enabled:
-        kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
-        Execute(kinit_cmd,
-                user=params.smokeuser
-        )
 
       Execute(format("pig -x tez {tmp_dir}/pigSmoke.sh"),
         tries     = 3,
