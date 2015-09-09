@@ -655,7 +655,7 @@ GRANT ALL PRIVILEGES ON TABLE ambari.widget_layout_user_widget TO :username;
 CREATE TABLE ambari.topology_request (
   id BIGINT NOT NULL,
   action VARCHAR(255) NOT NULL,
-  cluster_name VARCHAR(100) NOT NULL,
+  cluster_id BIGINT NOT NULL,
   bp_name VARCHAR(100) NOT NULL,
   cluster_properties TEXT,
   cluster_attributes TEXT,
@@ -795,6 +795,7 @@ ALTER TABLE ambari.groups ADD CONSTRAINT FK_groups_principal_id FOREIGN KEY (pri
 ALTER TABLE ambari.clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES ambari.adminresource(resource_id);
 ALTER TABLE ambari.widget_layout_user_widget ADD CONSTRAINT FK_widget_layout_id FOREIGN KEY (widget_layout_id) REFERENCES ambari.widget_layout(id);
 ALTER TABLE ambari.widget_layout_user_widget ADD CONSTRAINT FK_widget_id FOREIGN KEY (widget_id) REFERENCES ambari.widget(id);
+ALTER TABLE ambari.topology_request ADD CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters(cluster_id);
 ALTER TABLE ambari.topology_hostgroup ADD CONSTRAINT FK_hostgroup_req_id FOREIGN KEY (request_id) REFERENCES ambari.topology_request(id);
 ALTER TABLE ambari.topology_host_info ADD CONSTRAINT FK_hostinfo_group_id FOREIGN KEY (group_id) REFERENCES ambari.topology_hostgroup(id);
 ALTER TABLE ambari.topology_logical_request ADD CONSTRAINT FK_logicalreq_req_id FOREIGN KEY (request_id) REFERENCES ambari.topology_request(id);

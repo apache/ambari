@@ -46,9 +46,9 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   protected final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
 
   /**
-   * cluster name
+   * cluster id
    */
-  protected String clusterName;
+  protected Long clusterId;
 
   /**
    * blueprint
@@ -86,8 +86,8 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   }
 
   @Override
-  public String getClusterName() {
-    return clusterName;
+  public Long getClusterId() {
+    return clusterId;
   }
 
   @Override
@@ -135,15 +135,6 @@ public abstract class BaseClusterRequest implements TopologyRequest {
           "Invalid Host Predicate.  The following properties are not valid for a host predicate: %s",
           invalidProperties));
     }
-  }
-
-  /**
-   * Set the request cluster name.
-   *
-   * @param clusterName  cluster name
-   */
-  protected void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
   }
 
   /**

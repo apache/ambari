@@ -41,11 +41,11 @@ public class TopologyRequestDAO {
   }
 
   @RequiresSession
-  public List<TopologyRequestEntity> findByCluster(String clusterName) {
+  public List<TopologyRequestEntity> findByClusterId(long clusterId) {
     TypedQuery<TopologyRequestEntity> query = entityManagerProvider.get()
-      .createNamedQuery("TopologyRequestEntity.findByCluster", TopologyRequestEntity.class);
+      .createNamedQuery("TopologyRequestEntity.findByClusterId", TopologyRequestEntity.class);
 
-    query.setParameter("clusterName", clusterName);
+    query.setParameter("clusterId", clusterId);
     return daoUtils.selectList(query);
   }
 

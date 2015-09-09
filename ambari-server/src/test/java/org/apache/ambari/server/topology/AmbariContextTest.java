@@ -79,6 +79,7 @@ public class AmbariContextTest {
 
   private static final String BP_NAME = "testBP";
   private static final String CLUSTER_NAME = "testCluster";
+  private static final long CLUSTER_ID = 1L;
   private static final String STACK_NAME = "testStack";
   private static final String STACK_VERSION = "testVersion";
   private static final String HOST_GROUP_1 = "group1";
@@ -88,7 +89,7 @@ public class AmbariContextTest {
   StackId stackId = new StackId(STACK_NAME, STACK_VERSION);
 
   private static final AmbariContext context = new AmbariContext();
-  private static final AmbariManagementController controller = createStrictMock(AmbariManagementController.class);
+  private static final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
   private static final ClusterController clusterController = createStrictMock(ClusterController.class);
   private static final HostResourceProvider hostResourceProvider = createStrictMock(HostResourceProvider.class);
   private static final ServiceResourceProvider serviceResourceProvider = createStrictMock(ServiceResourceProvider.class);
@@ -98,8 +99,8 @@ public class AmbariContextTest {
   private static final ClusterTopology topology = createNiceMock(ClusterTopology.class);
   private static final Blueprint blueprint = createNiceMock(Blueprint.class);
   private static final Stack stack = createNiceMock(Stack.class);
-  private static final Clusters clusters = createStrictMock(Clusters.class);
-  private static final Cluster cluster = createStrictMock(Cluster.class);
+  private static final Clusters clusters = createNiceMock(Clusters.class);
+  private static final Cluster cluster = createNiceMock(Cluster.class);
   private static final HostGroupInfo group1Info = createNiceMock(HostGroupInfo.class);
   private static final ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
   private static final ConfigGroup configGroup1 = createMock(ConfigGroup.class);
@@ -171,7 +172,7 @@ public class AmbariContextTest {
     blueprintServices.add("service1");
     blueprintServices.add("service2");
 
-    expect(topology.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
+    expect(topology.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(Collections.singletonMap(HOST_GROUP_1, group1Info)).anyTimes();
 
@@ -193,8 +194,12 @@ public class AmbariContextTest {
     expect(controller.getConfigHelper()).andReturn(configHelper).anyTimes();
 
     expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
+    expect(clusters.getClusterById(CLUSTER_ID)).andReturn(cluster).anyTimes();
     expect(clusters.getHost(HOST1)).andReturn(host1).anyTimes();
     expect(clusters.getHost(HOST2)).andReturn(host2).anyTimes();
+
+    expect(cluster.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
+    expect(cluster.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
 
     expect(host1.getHostId()).andReturn(1L).anyTimes();
     expect(host2.getHostId()).andReturn(2L).anyTimes();
@@ -229,8 +234,6 @@ public class AmbariContextTest {
     Capture<ClusterRequest> clusterRequestCapture = new Capture<ClusterRequest>();
     controller.createCluster(capture(clusterRequestCapture));
     expectLastCall().once();
-    expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
     expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
 
     Capture<Set<ServiceRequest>> serviceRequestCapture = new Capture<Set<ServiceRequest>>();
@@ -254,7 +257,7 @@ public class AmbariContextTest {
     replayAll();
 
     // test
-    context.createAmbariResources(topology);
+    context.createAmbariResources(topology, CLUSTER_NAME);
 
     // assertions
     ClusterRequest clusterRequest = clusterRequestCapture.getValue();

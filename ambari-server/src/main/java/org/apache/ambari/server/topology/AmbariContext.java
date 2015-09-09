@@ -89,12 +89,12 @@ public class AmbariContext {
 
   private final static Logger LOG = LoggerFactory.getLogger(AmbariContext.class);
 
-  public boolean isClusterKerberosEnabled(String clusterName) {
+  public boolean isClusterKerberosEnabled(long clusterId) {
     Cluster cluster;
     try {
-      cluster = getController().getClusters().getCluster(clusterName);
+      cluster = getController().getClusters().getClusterById(clusterId);
     } catch (AmbariException e) {
-      throw new RuntimeException("Parent Cluster resource doesn't exist.  clusterName= " + clusterName);
+      throw new RuntimeException("Parent Cluster resource doesn't exist.  clusterId= " + clusterId);
     }
     return cluster.getSecurityType() == SecurityType.KERBEROS;
   }
@@ -136,11 +136,10 @@ public class AmbariContext {
     return getController().getActionManager().getTaskById(id);
   }
 
-  public void createAmbariResources(ClusterTopology topology) {
-    String clusterName = topology.getClusterName();
+  public void createAmbariResources(ClusterTopology topology, String clusterName) {
     Stack stack = topology.getBlueprint().getStack();
     createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion());
-    createAmbariServiceAndComponentResources(topology);
+    createAmbariServiceAndComponentResources(topology, clusterName);
   }
 
   public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion) {
@@ -154,8 +153,7 @@ public class AmbariContext {
     }
   }
 
-  public void createAmbariServiceAndComponentResources(ClusterTopology topology) {
-    String clusterName = topology.getClusterName();
+  public void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName) {
     Collection<String> services = topology.getBlueprint().getServices();
 
     try {
@@ -200,7 +198,7 @@ public class AmbariContext {
     }
   }
 
-  public void createAmbariHostResources(String clusterName, String hostName, Map<String, Collection<String>> components) {
+  public void createAmbariHostResources(long  clusterId, String hostName, Map<String, Collection<String>> components) {
     Host host;
     try {
       host = getController().getClusters().getHost(hostName);
@@ -208,6 +206,14 @@ public class AmbariContext {
       // system exception, shouldn't occur
       throw new RuntimeException(String.format(
           "Unable to obtain host instance '%s' when persisting host resources", hostName));
+    }
+
+    String clusterName = null;
+    try {
+      clusterName = getClusterName(clusterId);
+    } catch (AmbariException e) {
+      LOG.error("Cannot get cluster name for clusterId = " + clusterId, e);
+      throw new RuntimeException(e);
     }
 
     Map<String, Object> properties = new HashMap<String, Object>();
@@ -250,12 +256,12 @@ public class AmbariContext {
    */
   //todo: do once for all configs
   public void convertGlobalProperties(ClusterTopology topology,
-                                      Map<String, Map<String, String>> blueprintConfigurations) {
+                                      Map<String, Map<String, String>> blueprintConfigurations) throws AmbariException {
 
     Stack stack = topology.getBlueprint().getStack();
     StackId stackId = new StackId(stack.getName(), stack.getVersion());
     getController().getConfigHelper().moveDeprecatedGlobals(
-        stackId, blueprintConfigurations, topology.getClusterName());
+        stackId, blueprintConfigurations, getClusterName(topology.getClusterId()));
   }
 
   public Long getNextRequestId() {
@@ -387,10 +393,10 @@ public class AmbariContext {
     }
   }
 
-  public boolean doesConfigurationWithTagExist(String clusterName, String tag) {
+  public boolean doesConfigurationWithTagExist(long clusterId, String tag) {
     boolean isTopologyResolved = false;
     try {
-      Cluster cluster = getController().getClusters().getCluster(clusterName);
+      Cluster cluster = getController().getClusters().getClusterById(clusterId);
       Collection<DesiredConfig> desiredConfigs = cluster.getDesiredConfigs().values();
       for (DesiredConfig config : desiredConfigs) {
         if (config.getTag().equals(tag)) {
@@ -400,10 +406,10 @@ public class AmbariContext {
       }
     } catch (ClusterNotFoundException e) {
       LOG.info("Attempted to determine if configuration is topology resolved for a non-existent cluster: {}",
-          clusterName);
+              clusterId);
     } catch (AmbariException e) {
       throw new RuntimeException(
-          "Unable to determine if cluster config is topology resolved due to unknown error: " + e, e);
+              "Unable to determine if cluster config is topology resolved due to unknown error: " + e, e);
     }
 
     return isTopologyResolved;
@@ -413,10 +419,10 @@ public class AmbariContext {
     return persistedState;
   }
 
-  public boolean isHostRegisteredWithCluster(String cluster, String host) {
+  public boolean isHostRegisteredWithCluster(long clusterId, String host) {
     boolean found = false;
     try {
-      Collection<Host> hosts = getController().getClusters().getCluster(cluster).getHosts();
+      Collection<Host> hosts = getController().getClusters().getClusterById(clusterId).getHosts();
       for (Host h : hosts) {
         if (h.getHostName().equals(host)) {
           found = true;
@@ -424,9 +430,17 @@ public class AmbariContext {
         }
       }
     } catch (AmbariException e) {
-      throw new RuntimeException(String.format("Unable to get hosts for cluster '%s': %s", cluster, e), e);
+      throw new RuntimeException(String.format("Unable to get hosts for cluster ID = %s: %s", clusterId, e), e);
     }
     return found;
+  }
+
+  public long getClusterId(String clusterName) throws AmbariException {
+    return getController().getClusters().getCluster(clusterName).getClusterId();
+  }
+
+  public String getClusterName(long clusterId) throws AmbariException {
+    return getController().getClusters().getClusterById(clusterId).getClusterName();
   }
 
   /**
@@ -438,10 +452,10 @@ public class AmbariContext {
     Cluster cluster;
     try {
       clusters = getController().getClusters();
-      cluster = clusters.getCluster(topology.getClusterName());
+      cluster = clusters.getClusterById(topology.getClusterId());
     } catch (AmbariException e) {
       throw new RuntimeException(String.format(
-          "Attempt to add hosts to a non-existent cluster: '%s'", topology.getClusterName()));
+          "Attempt to add hosts to a non-existent cluster: '%s'", topology.getClusterId()));
     }
     // I don't know of a method to get config group by name
     //todo: add a method to get config group by name
@@ -472,7 +486,7 @@ public class AmbariContext {
    * For each host group with configuration specified in the blueprint, a config group is created
    * and the hosts associated with the host group are assigned to the config group.
    */
-  private void createConfigGroupsAndRegisterHost(ClusterTopology topology, String groupName) {
+  private void createConfigGroupsAndRegisterHost(ClusterTopology topology, String groupName) throws AmbariException {
     Map<String, Map<String, Config>> groupConfigs = new HashMap<String, Map<String, Config>>();
     Stack stack = topology.getBlueprint().getStack();
 
@@ -515,7 +529,7 @@ public class AmbariContext {
           get(groupName).getHostNames();
 
       ConfigGroupRequest request = new ConfigGroupRequest(
-          null, topology.getClusterName(), absoluteGroupName, service, "Host Group Configuration",
+          null, getClusterName(topology.getClusterId()), absoluteGroupName, service, "Host Group Configuration",
           new HashSet<String>(groupHosts), serviceConfigs);
 
       // get the config group provider and create config group resource

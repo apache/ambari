@@ -38,6 +38,11 @@ import java.util.Set;
 public class ScaleClusterRequest extends BaseClusterRequest {
 
   /**
+   * cluster name
+   */
+  private String clusterName;
+
+  /**
    * Constructor.
    *
    * @param propertySet  set of request properties
@@ -56,6 +61,23 @@ public class ScaleClusterRequest extends BaseClusterRequest {
 
       parseHostGroups(properties);
     }
+  }
+
+  public String getClusterName() {
+    return clusterName;
+  }
+
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
+  }
+
+  @Override
+  public Long getClusterId() {
+    return clusterId;
+  }
+
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
   }
 
   @Override

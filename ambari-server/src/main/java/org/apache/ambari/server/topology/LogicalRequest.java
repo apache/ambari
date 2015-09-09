@@ -69,8 +69,7 @@ public class LogicalRequest extends Request {
       throws AmbariException {
 
     //todo: abstract usage of controller, etc ...
-    super(id, getController().getClusters().getCluster(
-        request.getClusterName()).getClusterId(), getController().getClusters());
+    super(id, topology.getClusterId(), getController().getClusters());
 
     setRequestContext(String.format("Logical Request: %s", request.getDescription()));
 
@@ -82,8 +81,7 @@ public class LogicalRequest extends Request {
                         TopologyLogicalRequestEntity requestEntity) throws AmbariException {
 
     //todo: abstract usage of controller, etc ...
-    super(id, getController().getClusters().getCluster(
-        request.getClusterName()).getClusterId(), getController().getClusters());
+    super(id, topology.getClusterId(), getController().getClusters());
 
     setRequestContext(String.format("Logical Request: %s", request.getDescription()));
 
@@ -313,14 +311,14 @@ public class LogicalRequest extends Request {
         if (! hostnames.isEmpty()) {
           // host names are specified
           String hostname = hostnames.get(i);
-          HostRequest hostRequest = new HostRequest(getRequestId(), hostIdCounter.getAndIncrement(), getClusterName(),
+          HostRequest hostRequest = new HostRequest(getRequestId(), hostIdCounter.getAndIncrement(), getClusterId(),
               hostname, blueprint.getName(), blueprint.getHostGroup(groupName), null, topology);
           synchronized (requestsWithReservedHosts) {
             requestsWithReservedHosts.put(hostname, hostRequest);
           }
         } else {
           // host count is specified
-          HostRequest hostRequest = new HostRequest(getRequestId(), hostIdCounter.getAndIncrement(), getClusterName(),
+          HostRequest hostRequest = new HostRequest(getRequestId(), hostIdCounter.getAndIncrement(), getClusterId(),
               null, blueprint.getName(), blueprint.getHostGroup(groupName), hostGroupInfo.getPredicate(), topology);
           outstandingHostRequests.add(hostRequest);
         }

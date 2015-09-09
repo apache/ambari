@@ -137,7 +137,14 @@ public class ClusterConfigurationRequest {
    * @param configurationRequests a list of requests to send to the AmbariManagementController.
    */
   private void setConfigurationsOnCluster(List<BlueprintServiceConfigRequest> configurationRequests,
-                                          String tag, Set<String> updatedConfigTypes)  {
+                                         String tag, Set<String> updatedConfigTypes)  {
+    String clusterName = null;
+    try {
+      clusterName = ambariContext.getClusterName(clusterTopology.getClusterId());
+    } catch (AmbariException e) {
+      LOG.error("Cannot get cluster name for clusterId = " + clusterTopology.getClusterId(), e);
+      throw new RuntimeException(e);
+    }
     // iterate over services to deploy
     for (BlueprintServiceConfigRequest blueprintConfigRequest : configurationRequests) {
       ClusterRequest clusterRequest = null;
@@ -145,7 +152,7 @@ public class ClusterConfigurationRequest {
       List<ConfigurationRequest> requestsPerService = new LinkedList<ConfigurationRequest>();
       for (BlueprintServiceConfigElement blueprintElement : blueprintConfigRequest.getConfigElements()) {
         Map<String, Object> clusterProperties = new HashMap<String, Object>();
-        clusterProperties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterTopology.getClusterName());
+        clusterProperties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
         clusterProperties.put(ClusterResourceProvider.CLUSTER_DESIRED_CONFIGS_PROPERTY_ID + "/type", blueprintElement.getTypeName());
         clusterProperties.put(ClusterResourceProvider.CLUSTER_DESIRED_CONFIGS_PROPERTY_ID + "/tag", tag);
         for (Map.Entry<String, String> entry : blueprintElement.getConfiguration().entrySet()) {
@@ -206,7 +213,7 @@ public class ClusterConfigurationRequest {
       // if this is a request to resolve config, then wait until resolution is completed
       try {
         // wait until the cluster topology configuration is set/resolved
-        ambariContext.waitForConfigurationResolution(clusterTopology.getClusterName(), updatedConfigTypes);
+        ambariContext.waitForConfigurationResolution(clusterName, updatedConfigTypes);
       } catch (AmbariException e) {
         LOG.error("Error while attempting to wait for the cluster configuration to reach TOPOLOGY_RESOLVED state.", e);
       }

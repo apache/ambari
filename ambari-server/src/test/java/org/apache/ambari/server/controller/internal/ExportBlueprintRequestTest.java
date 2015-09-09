@@ -58,6 +58,7 @@ import static org.junit.Assert.fail;
 @SuppressWarnings("unchecked")
 public class ExportBlueprintRequestTest {
   private static final String CLUSTER_NAME = "c1";
+  private static final String CLUSTER_ID = "2";
 
   private AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
 
@@ -86,6 +87,7 @@ public class ExportBlueprintRequestTest {
   public void testExport_noConfigs() throws Exception {
     Resource clusterResource = new ResourceImpl(Resource.Type.Cluster);
     clusterResource.setProperty(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME);
+    clusterResource.setProperty(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID, CLUSTER_ID);
     clusterResource.setProperty(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "TEST-1.0");
 
     TreeNode<Resource> clusterNode = new TreeNodeImpl<Resource>(null, clusterResource, "cluster");

@@ -578,7 +578,7 @@ CREATE TABLE artifact (
 CREATE TABLE topology_request (
   id NUMBER(19) NOT NULL,
   action VARCHAR(255) NOT NULL,
-  cluster_name VARCHAR(100) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
   bp_name VARCHAR(100) NOT NULL,
   cluster_properties CLOB,
   cluster_attributes CLOB,
@@ -714,6 +714,7 @@ ALTER TABLE groups ADD CONSTRAINT FK_groups_principal_id FOREIGN KEY (principal_
 ALTER TABLE clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id);
 ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_widget_layout_id FOREIGN KEY (widget_layout_id) REFERENCES widget_layout(id);
 ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_widget_id FOREIGN KEY (widget_id) REFERENCES widget(id);
+ALTER TABLE topology_request ADD CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id);
 ALTER TABLE topology_hostgroup ADD CONSTRAINT FK_hostgroup_req_id FOREIGN KEY (request_id) REFERENCES topology_request(id);
 ALTER TABLE topology_host_info ADD CONSTRAINT FK_hostinfo_group_id FOREIGN KEY (group_id) REFERENCES topology_hostgroup(id);
 ALTER TABLE topology_logical_request ADD CONSTRAINT FK_logicalreq_req_id FOREIGN KEY (request_id) REFERENCES topology_request(id);

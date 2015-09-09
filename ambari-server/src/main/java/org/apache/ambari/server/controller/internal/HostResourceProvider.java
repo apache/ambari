@@ -854,7 +854,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   //todo: for api/v1/hosts we also end up here so we need to ensure proper 400 response
   //todo: since a user shouldn't be posing to that endpoint
   private RequestStatusResponse submitHostRequests(Request request) throws SystemException {
-    TopologyRequest requestRequest;
+    ScaleClusterRequest requestRequest;
     try {
       requestRequest = new ScaleClusterRequest(request.getProperties());
     } catch (InvalidTopologyTemplateException e) {

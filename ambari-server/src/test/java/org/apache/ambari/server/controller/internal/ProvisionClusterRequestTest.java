@@ -99,7 +99,7 @@ public class ProvisionClusterRequestTest {
     replay(hostResourceProvider);
 
     Map<String, Object> properties = createBlueprintRequestPropertiesNameOnly(CLUSTER_NAME, BLUEPRINT_NAME);
-    TopologyRequest provisionClusterRequest = new ProvisionClusterRequest(properties);
+    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(properties);
 
     assertEquals(CLUSTER_NAME, provisionClusterRequest.getClusterName());
     assertEquals(TopologyRequest.Type.PROVISION, provisionClusterRequest.getType());
@@ -151,7 +151,7 @@ public class ProvisionClusterRequestTest {
     replay(hostResourceProvider);
 
     Map<String, Object> properties = createBlueprintRequestPropertiesCountOnly(CLUSTER_NAME, BLUEPRINT_NAME);
-    TopologyRequest provisionClusterRequest = new ProvisionClusterRequest(properties);
+    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(properties);
 
     assertEquals(CLUSTER_NAME, provisionClusterRequest.getClusterName());
     assertEquals(TopologyRequest.Type.PROVISION, provisionClusterRequest.getType());
@@ -203,7 +203,7 @@ public class ProvisionClusterRequestTest {
   @Test
   public void testMultipleGroups() throws Exception {
     Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
-    TopologyRequest provisionClusterRequest = new ProvisionClusterRequest(properties);
+    ProvisionClusterRequest provisionClusterRequest = new ProvisionClusterRequest(properties);
 
     assertEquals(CLUSTER_NAME, provisionClusterRequest.getClusterName());
     assertEquals(TopologyRequest.Type.PROVISION, provisionClusterRequest.getType());
