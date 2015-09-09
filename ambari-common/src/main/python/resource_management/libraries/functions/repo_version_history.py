@@ -78,7 +78,15 @@ def write_actual_version_to_history_file(repository_version, actual_version):
   value = repository_version + "," + actual_version
   key_exists = False
   try:
-    if read_actual_version_from_history_file(repository_version) is None:
+    if os.path.isfile(REPO_VERSION_HISTORY_FILE):
+      with open(REPO_VERSION_HISTORY_FILE, "r") as f:
+        for line in f.readlines():
+          line_parts = line.split(",")
+          if line_parts and len(line_parts) == 2 and line_parts[0] == repository_version and line_parts[1] == actual_version:
+            key_exists = True
+            break
+
+    if not key_exists:
       with open(REPO_VERSION_HISTORY_FILE, "a") as f:
         f.write(repository_version + "," + actual_version + "\n")
         wrote_value = True
