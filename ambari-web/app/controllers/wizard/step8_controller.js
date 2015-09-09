@@ -454,7 +454,12 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
 
     //repo
     if (['addHostController', 'addServiceController'].contains(this.get('content.controllerName'))) {
-      this.loadRepoInfo();
+      // For some stacks there is no info regarding stack versions to upgrade, e.g. HDP-2.1
+      if (App.StackVersion.find().get('content.length')) {
+        this.loadRepoInfo();
+      } else {
+        this.loadDefaultRepoInfo();
+      }
     } else {
       // from install wizard
       var selectedStack = App.Stack.find().findProperty('isSelected');
@@ -505,17 +510,61 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method loadRepoInfoSuccessCallback
    */
   loadRepoInfoSuccessCallback: function (data) {
-    var allRepos = [];
     Em.assert('Current repo-version may be only one', data.items.length === 1);
-    data.items[0].repository_versions[0].operating_systems.forEach(function (os) {
-      os.repositories.forEach(function (repository) {
-        allRepos.push(Em.Object.create({
+    if (data.items.length) {
+      var allRepos = this.generateRepoInfo(Em.getWithDefault(data, 'items.0.repository_versions.0.operating_systems', []));
+      allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
+      this.get('clusterInfo').set('repoInfo', allRepos);
+    } else {
+      this.loadDefaultRepoInfo();
+    }
+  },
+
+  /**
+   * Generate list regarding info about OS versions and repositories.
+   *
+   * @param {Object{}} oses - OS array
+   * @returns {Em.Object[]}
+   */
+  generateRepoInfo: function(oses) {
+    return oses.map(function(os) {
+      return os.repositories.map(function (repository) {
+        return Em.Object.create({
           base_url: repository.Repositories.base_url,
           os_type: repository.Repositories.os_type,
           repo_id: repository.Repositories.repo_id
-        }));
+        });
       });
+    }).reduce(function(p, c) { return p.concat(c); });
+  },
+
+  /**
+   * Load repo info from stack. Used if installed stack doesn't have upgrade info.
+   *
+   * @returns {$.Deferred}
+   * @method loadDefaultRepoInfo
+   */
+  loadDefaultRepoInfo: function() {
+    var nameVersionCombo = App.get('currentStackVersion').split('-');
+
+    return App.ajax.send({
+      name: 'cluster.load_repositories',
+      sender: this,
+      data: {
+        stackName: nameVersionCombo[0],
+        stackVersion: nameVersionCombo[1]
+      },
+      success: 'loadDefaultRepoInfoSuccessCallback',
+      error: 'loadRepoInfoErrorCallback'
     });
+  },
+
+  /**
+   * @param {Object} data - JSON data from server
+   * @method loadDefaultRepoInfoSuccessCallback
+   */
+  loadDefaultRepoInfoSuccessCallback: function (data) {
+    var allRepos = this.generateRepoInfo(Em.getWithDefault(data, 'items', []));
     allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
     this.get('clusterInfo').set('repoInfo', allRepos);
   },
