@@ -2112,6 +2112,12 @@ a:focus {
 /*end services summary*/
 
 /*start alerts summary*/
+
+.alert-groups-dropdown {
+  overflow: auto;
+  max-height: 416px;
+}
+
 #alert-actions-button {
   margin-right: 10px;
 }
@@ -4774,6 +4780,11 @@ li.break {
   .link-left-pad {
     padding-left:15px;
   }
+  .config-groups-dropdown-menu {
+    overflow: auto;
+    max-height: 416px;
+    margin-top: 16px;
+  }
 }
 
 #reload_popup {
@@ -5927,22 +5938,5 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
         }
       }
     }
-  }
-}
-
-.typeahead.dropdown-menu {
-  max-height: 280px;
-  overflow-y: auto;
-}
-
-.config-groups-dropdown {
-  display: inline-block;
-  input[type="text"] {
-    margin-bottom: 2px;
-  }
-  .spinner {
-    background-size: 20px;
-    height: 20px;
-    width: 20px;
   }
 }
