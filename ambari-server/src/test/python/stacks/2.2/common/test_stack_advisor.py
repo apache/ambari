@@ -2223,6 +2223,9 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'hdfs-site': {
         "properties": {"dfs.datanode.data.dir": "/path/1,/path/2,/path/3,/path/4"}
+      },
+      "hadoop-env": {
+        "properties": {"hdfs_user": "hdfs"}
       }
     }
     clusterData = {
@@ -2236,7 +2239,8 @@ class TestHDP22StackAdvisor(TestCase):
         'properties': {
           'namenode_heapsize': '1024',
           'namenode_opt_newsize' : '128',
-          'namenode_opt_maxnewsize' : '128'
+          'namenode_opt_maxnewsize' : '128',
+          "hdfs_user": "hdfs"
         },
         'property_attributes': {
           'dtnode_heapsize': {'maximum': '2048'},
@@ -2258,6 +2262,12 @@ class TestHDP22StackAdvisor(TestCase):
       'ranger-hdfs-plugin-properties': {
         'properties': {
           'ranger-hdfs-plugin-enabled': 'Yes'
+        }
+      },
+      "core-site": {
+        "properties": {
+          "hadoop.proxyuser.hdfs.hosts": "*",
+          "hadoop.proxyuser.hdfs.groups": "*",
         }
       }
     }

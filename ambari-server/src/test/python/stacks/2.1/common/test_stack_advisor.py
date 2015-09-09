@@ -51,7 +51,24 @@ class TestHDP21StackAdvisor(TestCase):
     self.assertEquals(configurations, expected)
 
   def test_recommendOozieConfigurations_withFalconServer(self):
-    configurations = {}
+    configurations = {
+      "falcon-env" : {
+        "properties" : {
+          "falcon_user" : "falcon"
+        }
+      }
+    }
+
+    services = {
+      "services": [
+        {
+          "StackServices": {
+            "service_name": "FALCON"
+          }, "components": []
+        },],
+      "configurations": configurations
+    }
+
     clusterData = {
       "components" : ["FALCON_SERVER"]
     }
@@ -60,12 +77,19 @@ class TestHDP21StackAdvisor(TestCase):
         "properties": {
           "oozie.services.ext": "org.apache.oozie.service.JMSAccessorService," +
                                 "org.apache.oozie.service.PartitionDependencyManagerService," +
-                                "org.apache.oozie.service.HCatAccessorService"
+                                "org.apache.oozie.service.HCatAccessorService",
+          "oozie.service.ProxyUserService.proxyuser.falcon.groups" : "*",
+          "oozie.service.ProxyUserService.proxyuser.falcon.hosts" : "*"
+        }
+      },
+      "falcon-env" : {
+        "properties" : {
+          "falcon_user" : "falcon"
         }
       }
     }
 
-    self.stackAdvisor.recommendOozieConfigurations(configurations, clusterData, None, None)
+    self.stackAdvisor.recommendOozieConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendHiveConfigurations_mapMemoryLessThan2048(self):
@@ -220,7 +244,24 @@ class TestHDP21StackAdvisor(TestCase):
     self.assertEquals(configurations, expected)
 
   def test_recommendHDFSConfigurations(self):
-    configurations = {}
+    configurations = {
+      "hadoop-env": {
+        "properties": {
+          "hdfs_user": "hdfs"
+        }
+      }
+    }
+
+    services = {
+      "services": [
+        {
+          "StackServices": {
+            "service_name": "HDFS"
+          }, "components": []
+        }],
+      "configurations": configurations
+    }
+
     clusterData = {
       "totalAvailableRam": 2048
     }
@@ -229,12 +270,19 @@ class TestHDP21StackAdvisor(TestCase):
         'properties': {
           'namenode_heapsize': '1024',
           'namenode_opt_newsize' : '256',
-          'namenode_opt_maxnewsize' : '256'
+          'namenode_opt_maxnewsize' : '256',
+          'hdfs_user' : "hdfs"
+        }
+      },
+      "core-site": {
+        "properties": {
+          "hadoop.proxyuser.hdfs.hosts": "*",
+          "hadoop.proxyuser.hdfs.groups": "*",
         }
       }
     }
 
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, '', '')
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, '')
     self.assertEquals(configurations, expected)
 
   def test_validateHDFSConfigurationsEnv(self):

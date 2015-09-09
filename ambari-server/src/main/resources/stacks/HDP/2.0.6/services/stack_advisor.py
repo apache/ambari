@@ -144,7 +144,72 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['mapMemory']))) + "m")
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
- 
+
+  def recommendHadoopProxyUsers (self, configurations, services, hosts):
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    users = {}
+
+    if 'forced-configurations' not in services:
+      services["forced-configurations"] = []
+
+    if "HDFS" in servicesList:
+      if "hadoop-env" in services["configurations"] and "hdfs_user" in services["configurations"]["hadoop-env"]["properties"]:
+        hdfs_user = services["configurations"]["hadoop-env"]["properties"]["hdfs_user"]
+        if not hdfs_user in users:
+          users[hdfs_user] = {"propertyHosts" : "*","propertyGroups" : "*", "config" : "hadoop-env", "propertyName" : "hdfs_user"}
+
+    if "OOZIE" in servicesList:
+      if "oozie-env" in services["configurations"] and "oozie_user" in services["configurations"]["oozie-env"]["properties"]:
+        oozie_user = services["configurations"]["oozie-env"]["properties"]["oozie_user"]
+        oozieServerrHost = self.getHostWithComponent("OOZIE", "OOZIE_SERVER", services, hosts)
+        if oozieServerrHost is not None:
+          oozieServerHostName = oozieServerrHost["Hosts"]["public_host_name"]
+        if not oozie_user in users:
+          users[oozie_user] = {"propertyHosts" : oozieServerHostName,"propertyGroups" : "*", "config" : "oozie-env", "propertyName" : "oozie_user"}
+
+    if "HIVE" in servicesList:
+      print "HIVE INSIDE"
+      if "hive-env" in services["configurations"] and "hive_user" in services["configurations"]["hive-env"]["properties"] \
+              and "webhcat_user" in services["configurations"]["hive-env"]["properties"]:
+        print "HIVE INSIDE1"
+        hive_user = services["configurations"]["hive-env"]["properties"]["hive_user"]
+        webhcat_user = services["configurations"]["hive-env"]["properties"]["webhcat_user"]
+        if "hadoop-env" in services["configurations"] and "proxyuser_group" in services["configurations"]["hadoop-env"]["properties"]:
+          proxy_user_group = services["configurations"]["hadoop-env"]["properties"]["proxyuser_group"]
+        hiveServerrHost = self.getHostWithComponent("HIVE", "HIVE_SERVER", services, hosts)
+        if hiveServerrHost is not None:
+          hiveServerHostName = hiveServerrHost["Hosts"]["public_host_name"]
+        if not hive_user in users:
+          users[hive_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "hive_user"}
+        if not webhcat_user in users:
+          users[webhcat_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : proxy_user_group, "config" : "hive-env", "propertyName" : "webhcat_user"}
+
+    if "FALCON" in servicesList:
+      if "falcon-env" in services["configurations"] and "falcon_user" in services["configurations"]["falcon-env"]["properties"]:
+        falconUser = services["configurations"]["falcon-env"]["properties"]["falcon_user"]
+        if "hadoop-env" in services["configurations"] and "proxyuser_group" in services["configurations"]["hadoop-env"]["properties"]:
+          proxy_user_group = services["configurations"]["hadoop-env"]["properties"]["proxyuser_group"]
+        if not falconUser in users:
+          users[falconUser] = {"propertyHosts" : "*","propertyGroups" : proxy_user_group, "config" : "falcon-env", "propertyName" : "falcon_user"}
+
+    putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
+    putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
+
+    for user_name, user_properties in users.iteritems():
+      # Add properties "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" to core-site for all users
+      putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(user_name) , user_properties["propertyHosts"])
+      putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(user_name) , user_properties["propertyGroups"])
+
+      # Remove old properties if user was renamed
+      userOldValue = getOldValue(self, services, user_properties["config"], user_properties["propertyName"])
+      if userOldValue is not None:
+        putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.hosts".format(userOldValue), 'delete', 'true')
+        putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(userOldValue), 'delete', 'true')
+        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(userOldValue)})
+        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(userOldValue)})
+        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(user_name)})
+        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(user_name)})
+
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
     putHDFSProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
@@ -152,6 +217,9 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putHDFSProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
     putHDFSProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
+
+    # recommendations for "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" properties in core-site
+    self.recommendHadoopProxyUsers(configurations, services, hosts)
 
   def recommendHbaseConfigurations(self, configurations, clusterData, services, hosts):
     # recommendations for HBase env config
@@ -805,6 +873,15 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       if service not in parentValidators:
         parentValidators[service] = {}
       parentValidators[service].update(configsDict)
+
+def getOldValue(self, services, configType, propertyName):
+  if services:
+    if 'changed-configurations' in services.keys():
+      changedConfigs = services["changed-configurations"]
+      for changedConfig in changedConfigs:
+        if changedConfig["type"] == configType and changedConfig["name"]== propertyName and "old_value" in changedConfig:
+          return changedConfig["old_value"]
+  return None
 
 # Validation helper methods
 def getSiteProperties(configurations, siteName):
