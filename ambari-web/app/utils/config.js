@@ -1116,7 +1116,7 @@ App.config = Em.Object.create({
         id: stored.id,
         name: stored.name,
         displayName: skipAttributeChanges.displayName.contains(stored.name) ?
-          this.getOriginalConfigAttribute(stored, 'displayName', advancedConfigs) : App.format.normalizeName(stored.name),
+          this.getOriginalConfigAttribute(stored, 'displayName', advancedConfigs) : stored.name,
         serviceName: stored.serviceName,
         value: stored.value,
         savedValue: stored.savedValue,
