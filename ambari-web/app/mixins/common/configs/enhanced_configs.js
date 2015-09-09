@@ -167,6 +167,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     var cleanDependencies = this.get('_dependentConfigValues').reject(function(c) {
       return serviceNames.contains(c.serviceName);
     }, this);
+    this.get('stepConfigs').filter(function(s) {
+      return serviceNames.contains(s.get('serviceName'));
+    }).forEach(function(s) {
+      s.get('configs').setEach('isNotSaved', false);
+    });
     this.set('_dependentConfigValues', cleanDependencies);
   },
 
@@ -185,6 +190,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
       }
     });
     var cleanDependencies = this.get('_dependentConfigValues').reject(function(item) {
+      if ('hadoop.proxyuser'.contains(Em.get(item, 'name'))) return false;
       if (installedServices.contains(Em.get(item, 'serviceName'))) {
         var stackProperty = App.StackConfigProperty.find().findProperty("name", item.propertyName);
         var parentConfigs = stackProperty && stackProperty.get('propertyDependsOn');
@@ -273,15 +279,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         hosts: this.get('hostNames'),
         services: this.get('serviceNames')
       };
-      if (App.get('isClusterSupportsEnhancedConfigs')) {
-        if (changedConfigs) {
-          dataToSend.recommend = 'configuration-dependencies';
-          dataToSend.changed_configurations = changedConfigs;
-        }
-        if (!configGroup.get('isDefault') && configGroup.get('hosts.length') > 0) {
-          var configGroups = this.buildConfigGroupJSON(this.get('selectedService.configs'), configGroup);
-          recommendations.config_groups = [configGroups];
-        }
+      if (changedConfigs) {
+        dataToSend.recommend = 'configuration-dependencies';
+        dataToSend.changed_configurations = changedConfigs;
+      }
+      if (!configGroup.get('isDefault') && configGroup.get('hosts.length') > 0) {
+        var configGroups = this.buildConfigGroupJSON(this.get('selectedService.configs'), configGroup);
+        recommendations.config_groups = [configGroups];
       }
       dataToSend.recommendations = recommendations;
       return App.ajax.send({
