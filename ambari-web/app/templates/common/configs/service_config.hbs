@@ -47,10 +47,16 @@
 {{/if}}
 {{#if view.supportsHostOverrides}}
   <div class="alert alert-info">
+
     {{t common.group}}&nbsp;
     <div class="config-groups-dropdown">
-      {{view App.ConfigGroupDropdownView}}
+      {{#if controller.configGroupsAreLoaded}}
+        {{view App.ConfigGroupDropdownView}}
+      {{else}}
+        <div class="pull-left spinner"></div>
+      {{/if}}
     </div>
+
 
     {{#isAccessible ADMIN}}
       {{#if controller.isHostsConfigsPage}}

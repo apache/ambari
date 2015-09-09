@@ -344,6 +344,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   dependenciesSuccess: function (data, opt, params) {
     this._saveRecommendedValues(data, params.initial, params.dataToSend.changed_configurations, params.selectedConfigGroup);
     this.set("recommendationsConfigs", Em.get(data.resources[0] , "recommendations.blueprint.configurations"));
+    this.set('configGroupsAreLoaded', true);
     if (!params.initial) {
       this.updateDependentConfigs();
     }
