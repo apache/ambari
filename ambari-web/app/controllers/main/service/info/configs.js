@@ -90,6 +90,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
   versionLoaded: false,
 
+  /**
+   * Determines when data about config groups is loaded
+   * Including recommendations with information about hosts in the each group
+   * @type {boolean}
+   */
+  configGroupsAreLoaded: false,
+
   dependentServiceNames: [],
   /**
    * defines which service configs need to be loaded to stepConfigs
@@ -263,7 +270,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       versionLoaded: false,
       filter: '',
       serviceConfigVersionNote: '',
-      dependentServiceNames: []
+      dependentServiceNames: [],
+      configGroupsAreLoaded: false
     });
     this.get('filterColumns').setEach('selected', false);
     this.clearConfigs();

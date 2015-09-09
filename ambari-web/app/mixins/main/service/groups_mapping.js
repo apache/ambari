@@ -28,7 +28,7 @@ App.GroupsMappingMixin = Em.Mixin.create({
   /**
    * Load config groups
    * @param {String[]} serviceNames
-   * @returns {$.Deferred()}
+   * @returns {$.Deferred}
    * @method loadConfigGroups
    */
   loadConfigGroups: function (serviceNames) {
