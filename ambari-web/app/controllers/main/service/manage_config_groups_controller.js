@@ -95,6 +95,12 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
   clusterHosts: [],
 
   /**
+   * trigger <code>selectDefaultGroup</code> after group delete
+   * @type {null}
+   */
+  groupDeleteTrigger: null,
+
+  /**
    * List of available service components for <code>serviceName</code>
    * @type {{componentName: string, displayName: string, selected: boolean}[]}
    */
@@ -560,6 +566,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     this.deleteHosts();
     this.get('configGroups').removeObject(selectedConfigGroup);
     this.set('selectedConfigGroup', this.get('configGroups').findProperty('isDefault'));
+    this.propertyDidChange('groupDeleteTrigger');
   },
 
   /**
@@ -769,20 +776,25 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       },
 
       onClose: function () {
-        this.resetGroupChanges();
+        //<code>_super</code> has to be called before <code>resetGroupChanges</code>
+        var originalGroups = this.get('subViewController.originalConfigGroups').slice(0);
         this._super();
+        this.resetGroupChanges(originalGroups);
       },
 
       onSecondary: function () {
-        this.resetGroupChanges();
-        this._super();
+        this.onClose();
       },
 
-      resetGroupChanges: function () {
+      /**
+       * reset group changes made by user
+       * @param {Array} originalGroups
+       */
+      resetGroupChanges: function (originalGroups) {
         if (this.get('subViewController.isHostsModified')) {
           App.ServiceConfigGroup.find().clear();
           App.store.commit();
-          App.store.loadMany(App.ServiceConfigGroup, this.get('subViewController.originalConfigGroups'));
+          App.store.loadMany(App.ServiceConfigGroup, originalGroups);
           App.store.commit();
         }
       },

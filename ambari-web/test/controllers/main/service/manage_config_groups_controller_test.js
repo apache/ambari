@@ -183,6 +183,7 @@ describe('App.ManageConfigGroupsController', function() {
 
       c.deleteConfigGroup();
 
+      expect(c.get('configGroups.length')).to.equal(1);
       expect(c.get('selectedConfigGroup.hosts')).to.include.members(['h1','h2','h3']);
       expect(c.get('selectedConfigGroup.isDefault')).to.be.true;
     });

@@ -135,27 +135,27 @@ App.ConfigOverridable = Em.Mixin.create({
         } else {
           var newConfigGroupName = this.get('newConfigGroupName').trim();
           var newConfigGroup = {
-            id: null,
+            id: serviceName + "_NEW_" + configGroups.length,
             name: newConfigGroupName,
             description: Em.I18n.t('config.group.description.default').format(new Date().toDateString()),
             service_id: serviceId,
             hosts: [],
             desired_configs: []
           };
+          App.store.load(App.ServiceConfigGroup, newConfigGroup);
+          App.store.commit();
           if (!isInstaller) {
             self.postNewConfigurationGroup(newConfigGroup);
           }
-          if (newConfigGroup) {
-            newConfigGroup.set('parentConfigGroup', configGroups.findProperty('isDefault'));
-            configGroups.pushObject(newConfigGroup);
-            if (isInstaller) {
-              self.persistConfigGroups();
-            } else {
-              self.saveGroupConfirmationPopup(newConfigGroupName);
-            }
-            this.hide();
-            callback(newConfigGroup);
+          newConfigGroup = App.ServiceConfigGroup.find(newConfigGroup.id);
+          configGroups.pushObject(newConfigGroup);
+          if (isInstaller) {
+            self.persistConfigGroups();
+          } else {
+            self.saveGroupConfirmationPopup(newConfigGroupName);
           }
+          this.hide();
+          callback(newConfigGroup);
         }
       },
       onSecondary: function () {
@@ -235,6 +235,7 @@ App.ConfigOverridable = Em.Mixin.create({
     var sendData = {
       name: 'config_groups.create',
       data: {
+        'mock_id': newConfigGroupData.id,
         'group_name': newConfigGroupData.name,
         'service_id': newConfigGroupData.service_id,
         'description': newConfigGroupData.description,
@@ -243,6 +244,10 @@ App.ConfigOverridable = Em.Mixin.create({
       success: 'successFunction',
       error: 'errorFunction',
       successFunction: function (response, opt, params) {
+        var configGroupData = App.router.get('manageConfigGroupsController').generateOriginalConfigGroups([App.ServiceConfigGroup.find(params.mock_id)]);
+        App.configGroupsMapper.deleteRecord(App.ServiceConfigGroup.find(params.mock_id));
+        configGroupData[0].id = response.resources[0].ConfigGroup.id;
+        App.store.load(App.ServiceConfigGroup, configGroupData[0]);
         App.ServiceConfigGroup.find().clear();
         if (callback) {
           callback();

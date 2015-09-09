@@ -135,16 +135,6 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
   }.observes('selectedConfigGroup'),
 
   /**
-   * Select first config group after all groups are loaded
-   * @method onLoad
-   */
-  onLoad: function () {
-    if (this.get('controller.isLoaded')) {
-      this.set('selectedConfigGroup', this.get('controller.configGroups')[0])
-    }
-  }.observes('controller.isLoaded', 'controller.configGroups'),
-
-  /**
    * Select default config group after all config groups are loaded
    * @method selectDefaultGroup
    */
@@ -152,6 +142,6 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
     if (this.get('controller.isLoaded')) {
       this.set('selectedConfigGroup', [this.get('controller.configGroups').findProperty('isDefault')]);
     }
-  }.observes('controller.isLoaded')
+  }.observes('controller.isLoaded', 'controller.groupDeleteTrigger')
 
 });
