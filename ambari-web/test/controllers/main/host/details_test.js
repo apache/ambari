@@ -92,6 +92,21 @@ describe('App.MainHostDetailsController', function () {
       App.showConfirmationPopup.restore();
       controller.sendComponentCommand.restore();
     });
+
+    it('stop NN, should check last NN checkpoint before stop', function () {
+      var event = {
+        context: Em.Object.create({
+          displayName: 'NameNode',
+          componentName: 'NAMENODE'
+        })
+      };
+      sinon.stub(controller, 'checkNnLastCheckpointTime', function() {
+        return true;
+      });
+      controller.stopComponent(event);
+      expect(controller.checkNnLastCheckpointTime.calledOnce).to.equal(true);
+      controller.checkNnLastCheckpointTime.restore();
+    });
   });
 
   describe('#sendComponentCommand()', function () {
@@ -439,6 +454,21 @@ describe('App.MainHostDetailsController', function () {
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
       expect(batchUtils.restartHostComponents.calledOnce).to.be.true;
+    });
+
+    it('restart NN, should check last NN checkpoint before restart', function () {
+      var event = {
+        context: Em.Object.create({
+          displayName: 'NameNode',
+          componentName: 'NAMENODE'
+        })
+      };
+      sinon.stub(controller, 'checkNnLastCheckpointTime', function() {
+        return true;
+      });
+      controller.restartComponent(event);
+      expect(controller.checkNnLastCheckpointTime.calledOnce).to.equal(true);
+      controller.checkNnLastCheckpointTime.restore();
     });
   });
 
@@ -2880,6 +2910,125 @@ describe('App.MainHostDetailsController', function () {
       this.mock.returns(true);
       controller.updateStormConfigs();
       expect(controller.loadConfigs.calledWith('loadStormConfigs')).to.be.true;
+    });
+  });
+
+  describe("#parseNnCheckPointTime", function () {
+    var tests = [
+      {
+        m: "NameNode on this host has JMX data, the last checkpoint time is less than 12 hours ago",
+        data:
+        {
+          "href" : "",
+          "HostRoles" : {
+            "cluster_name" : "c123",
+            "component_name" : "NAMENODE",
+            "host_name" : "c6401.ambari.apache.org"
+          },
+          "metrics" : {
+            "dfs" : {
+              "FSNamesystem" : {
+                "HAState" : "active",
+                "LastCheckpointTime" : 1435775648000
+              }
+            }
+          }
+        },
+        result: false
+      },
+      {
+        m: "NameNode on this host has JMX data, the last checkpoint time is > 12 hours ago",
+        data:
+        {
+          "href" : "",
+          "HostRoles" : {
+            "cluster_name" : "c123",
+            "component_name" : "NAMENODE",
+            "host_name" : "c6401.ambari.apache.org"
+          },
+          "metrics" : {
+            "dfs" : {
+              "FSNamesystem" : {
+                "HAState" : "active",
+                "LastCheckpointTime" : 1435617248000
+              }
+            }
+          }
+        },
+        result: "c6401.ambari.apache.org"
+      },
+      {
+        m: "NameNode(standby) on this host has JMX data",
+        data:
+        {
+          "href" : "",
+          "HostRoles" : {
+            "cluster_name" : "c123",
+            "component_name" : "NAMENODE",
+            "host_name" : "c6401.ambari.apache.org"
+          },
+          "metrics" : {
+            "dfs" : {
+              "FSNamesystem" : {
+                "HAState" : "standby",
+                "LastCheckpointTime" : 1435617248000
+              }
+            }
+          }
+        },
+        result: false
+      },
+      {
+        m: "NameNode on this host has no JMX data",
+        data:
+        {
+          "href" : "",
+          "HostRoles" : {
+            "cluster_name" : "c123",
+            "component_name" : "NAMENODE",
+            "host_name" : "c6401.ambari.apache.org"
+          },
+          "metrics" : {
+            "dfs" : {
+              "FSNamesystem" : {
+                "HAState" : "active"
+              }
+            }
+          }
+        },
+        result: null
+      },
+      {
+        m: "NameNode on this host has no JMX data",
+        data:
+        {
+          "href" : "",
+          "HostRoles" : {
+            "cluster_name" : "c123",
+            "component_name" : "NAMENODE",
+            "host_name" : "c6401.ambari.apache.org"
+          },
+          "metrics" : {
+          }
+        },
+        result: null
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(App, 'dateTime').returns(1435790048000);
+    });
+
+    afterEach(function () {
+      App.dateTime.restore();
+    });
+
+    tests.forEach(function (test) {
+      it(test.m, function () {
+        var mainHostDetailsController = App.MainHostDetailsController.create({isNNCheckpointTooOld: null});
+        mainHostDetailsController.parseNnCheckPointTime(test.data);
+        expect(mainHostDetailsController.get('isNNCheckpointTooOld')).to.equal(test.result);
+      });
     });
   });
 });

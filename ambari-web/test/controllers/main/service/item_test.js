@@ -398,17 +398,37 @@ describe('App.MainServiceItemController', function () {
         }]
       }
     });
+    var mainServiceItemControllerHdfsStarted = App.MainServiceItemController.create({
+      content: {
+        serviceName: "HDFS",
+        hostComponents: [ {
+          componentName: 'NAMENODE',
+          workStatus: 'STARTED'
+        }]
+      }
+    });
     beforeEach(function () {
       sinon.spy(mainServiceItemController, "startStopPopupPrimary");
+      sinon.spy(mainServiceItemControllerHdfsStarted, "startStopPopupPrimary");
       sinon.spy(Em.I18n, "t");
+      sinon.stub(mainServiceItemControllerHdfsStarted, 'checkNnLastCheckpointTime', function(callback) {
+        return callback;
+      });
     });
     afterEach(function () {
       mainServiceItemController.startStopPopupPrimary.restore();
+      mainServiceItemControllerHdfsStarted.startStopPopupPrimary.restore();
+      mainServiceItemControllerHdfsStarted.checkNnLastCheckpointTime.restore();
       Em.I18n.t.restore();
     });
     it("start start/stop service popup", function () {
       mainServiceItemController.startStopPopup(event, "").onPrimary();
       expect(mainServiceItemController.startStopPopupPrimary.calledOnce).to.equal(true);
+    });
+
+    it ("should popup warning to check last checkpoint time if work status is STARTED", function() {
+      mainServiceItemControllerHdfsStarted.startStopPopup(event, "INSTALLED");
+      expect(mainServiceItemControllerHdfsStarted.checkNnLastCheckpointTime.calledOnce).to.equal(true);
     });
 
     describe("modal messages", function() {
@@ -512,24 +532,49 @@ describe('App.MainServiceItemController', function () {
 
   describe("#restartAllHostComponents", function () {
     var temp = batchUtils.restartAllServiceHostComponents;
+    var mainServiceItemController = App.MainServiceItemController.create({
+      content: {
+        serviceName: "HDFS",
+        hostComponents: [{
+          componentName: 'NAMENODE',
+          workStatus: 'STARTED'
+        }]
+      }
+    });
     beforeEach(function () {
       batchUtils.restartAllServiceHostComponents = Em.K;
       sinon.spy(batchUtils, "restartAllServiceHostComponents");
       sinon.stub(App.Service, 'find', function() {
         return Em.Object.create({serviceTypes: []});
       });
+      sinon.stub(mainServiceItemController, 'checkNnLastCheckpointTime', function() {
+        return true;
+      });
     });
     afterEach(function () {
       batchUtils.restartAllServiceHostComponents.restore();
       batchUtils.restartAllServiceHostComponents = temp;
       App.Service.find.restore();
+      mainServiceItemController.checkNnLastCheckpointTime.restore();
     });
 
-    var mainServiceItemController = App.MainServiceItemController.create({content: {displayName: "HDFS"}});
-
     it("start restartAllHostComponents for service", function () {
-      mainServiceItemController.restartAllHostComponents({}).onPrimary();
+      var controller = App.MainServiceItemController.create({
+        content: {
+          serviceName: "HDFS",
+          hostComponents: [{
+            componentName: 'NAMENODE',
+            workStatus: 'INSTALLED'
+          }]
+        }
+      });
+      controller.restartAllHostComponents({}).onPrimary();
       expect(batchUtils.restartAllServiceHostComponents.calledOnce).to.equal(true);
+    });
+
+    it("check last checkpoint time for NameNode before start restartAllHostComponents for service", function () {
+      mainServiceItemController.restartAllHostComponents({});
+      expect(mainServiceItemController.checkNnLastCheckpointTime.calledOnce).to.equal(true);
     });
   });
 
@@ -549,6 +594,297 @@ describe('App.MainServiceItemController', function () {
     it("start restartAllHostComponents for service", function () {
       mainServiceItemController.rollingRestart();
       expect(batchUtils.launchHostComponentRollingRestart.calledOnce).to.equal(true);
+    });
+  });
+
+  describe("#parseNnCheckPointTime", function () {
+    var tests = [
+      {
+        m: "NameNode has JMX data, the last checkpoint time is less than 12 hours ago",
+        data:
+        {"href" : "",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "c123",
+            "component_name" : "NAMENODE",
+            "service_name" : "HDFS"
+          },
+          "host_components" : [
+            {
+              "href" : "",
+              "HostRoles" : {
+                "cluster_name" : "c123",
+                "component_name" : "NAMENODE",
+                "host_name" : "c6401.ambari.apache.org"
+              },
+              "metrics" : {
+                "dfs" : {
+                  "FSNamesystem" : {
+                    "HAState" : "active",
+                    "LastCheckpointTime" : 1435775648000
+                  }
+                }
+              }
+            }
+          ]
+        },
+        result: false
+      },
+      {
+        m: "NameNode has JMX data, the last checkpoint time is > 12 hours ago",
+        data:
+          {"href" : "",
+            "ServiceComponentInfo" : {
+              "cluster_name" : "c123",
+              "component_name" : "NAMENODE",
+              "service_name" : "HDFS"
+            },
+            "host_components" : [
+              {
+                "href" : "",
+                "HostRoles" : {
+                  "cluster_name" : "c123",
+                  "component_name" : "NAMENODE",
+                  "host_name" : "c6401.ambari.apache.org"
+                },
+                "metrics" : {
+                  "dfs" : {
+                    "FSNamesystem" : {
+                      "HAState" : "active",
+                      "LastCheckpointTime" : 1435617248000
+                    }
+                  }
+                }
+              }
+            ]
+          },
+        result: "c6401.ambari.apache.org"
+      },
+      {
+        m: "NameNode has no JMX data available",
+        data:
+        {"href" : "",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "c123",
+            "component_name" : "NAMENODE",
+            "service_name" : "HDFS"
+          },
+          "host_components" : [
+            {
+              "href" : "",
+              "HostRoles" : {
+                "cluster_name" : "c123",
+                "component_name" : "NAMENODE",
+                "host_name" : "c6401.ambari.apache.org"
+              },
+              "metrics" : {
+                "dfs" : {
+                  "FSNamesystem" : {
+                    "HAState" : "active"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        result: null
+      },
+      {
+        m: "HA enabled, both active and standby NN has JMX data normally.",
+        data:
+        {"href" : "",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "c123",
+            "component_name" : "NAMENODE",
+            "service_name" : "HDFS"
+          },
+          "host_components" : [
+            {
+              "href" : "",
+              "HostRoles" : {
+                "cluster_name" : "c123",
+                "component_name" : "NAMENODE",
+                "host_name" : "c6401.ambari.apache.org"
+              },
+              "metrics" : {
+                "dfs" : {
+                  "FSNamesystem" : {
+                    "HAState" : "active",
+                    "LastCheckpointTime" : 1435775648000
+                  }
+                }
+              }
+            },
+            {
+              "href" : "",
+              "HostRoles" : {
+                "cluster_name" : "c123",
+                "component_name" : "NAMENODE",
+                "host_name" : "c6402.ambari.apache.org"
+              },
+              "metrics" : {
+                "dfs" : {
+                  "FSNamesystem" : {
+                    "HAState" : "standby",
+                    "LastCheckpointTime" : 1435775648000
+                  }
+                }
+              }
+            }
+          ]
+        },
+        result: false
+      },
+      {
+        m: "HA enabled, both NamoNodes are standby NN",
+        data:
+        {"href" : "",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "c123",
+            "component_name" : "NAMENODE",
+            "service_name" : "HDFS"
+          },
+          "host_components" : [
+            {
+              "href" : "",
+              "HostRoles" : {
+                "cluster_name" : "c123",
+                "component_name" : "NAMENODE",
+                "host_name" : "c6401.ambari.apache.org"
+              },
+              "metrics" : {
+                "dfs" : {
+                  "FSNamesystem" : {
+                    "HAState" : "standby",
+                    "LastCheckpointTime" : 1435775648000
+                  }
+                }
+              }
+            },
+            {
+              "href" : "",
+              "HostRoles" : {
+                "cluster_name" : "c123",
+                "component_name" : "NAMENODE",
+                "host_name" : "c6402.ambari.apache.org"
+              },
+              "metrics" : {
+                "dfs" : {
+                  "FSNamesystem" : {
+                    "HAState" : "standby",
+                    "LastCheckpointTime" : 1435775648000
+                  }
+                }
+              }
+            }
+          ]
+        },
+        result: false
+      },
+      {
+        m: "HA enabled, active NN has no JMX data, use the standby's data",
+        data:
+        {"href" : "",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "c123",
+            "component_name" : "NAMENODE",
+            "service_name" : "HDFS"
+          },
+          "host_components" : [
+            {
+              "href" : "",
+              "HostRoles" : {
+                "cluster_name" : "c123",
+                "component_name" : "NAMENODE",
+                "host_name" : "c6401.ambari.apache.org"
+              },
+              "metrics" : {
+                "dfs" : {
+                  "FSNamesystem" : {
+                    "HAState" : "active"
+                  }
+                }
+              }
+            },
+            {
+              "href" : "",
+              "HostRoles" : {
+                "cluster_name" : "c123",
+                "component_name" : "NAMENODE",
+                "host_name" : "c6402.ambari.apache.org"
+              },
+              "metrics" : {
+                "dfs" : {
+                  "FSNamesystem" : {
+                    "HAState" : "standby",
+                    "LastCheckpointTime" : 1435775648000
+                  }
+                }
+              }
+            }
+          ]
+        },
+        result: false
+      },
+      {
+        m: "HA enabled, both NamoNodes no JMX data",
+        data:
+        {"href" : "",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "c123",
+            "component_name" : "NAMENODE",
+            "service_name" : "HDFS"
+          },
+          "host_components" : [
+            {
+              "href" : "",
+              "HostRoles" : {
+                "cluster_name" : "c123",
+                "component_name" : "NAMENODE",
+                "host_name" : "c6401.ambari.apache.org"
+              },
+              "metrics" : {
+                "dfs" : {
+                  "FSNamesystem" : {
+                    "HAState" : "active"
+                  }
+                }
+              }
+            },
+            {
+              "href" : "",
+              "HostRoles" : {
+                "cluster_name" : "c123",
+                "component_name" : "NAMENODE",
+                "host_name" : "c6402.ambari.apache.org"
+              },
+              "metrics" : {
+                "dfs" : {
+                  "FSNamesystem" : {
+                    "HAState" : "standby"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        result: null
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(App, 'dateTime').returns(1435790048000);
+    });
+
+    afterEach(function () {
+      App.dateTime.restore();
+    });
+
+    tests.forEach(function (test) {
+      it(test.m, function () {
+        var mainServiceItemController = App.MainServiceItemController.create({isNNCheckpointTooOld: null});
+        mainServiceItemController.parseNnCheckPointTime(test.data);
+        expect(mainServiceItemController.get('isNNCheckpointTooOld')).to.equal(test.result);
+      });
     });
   });
 
@@ -587,7 +923,7 @@ describe('App.MainServiceItemController', function () {
     });
   });
 
-  describe("#isSopDisabled", function () {
+  describe("#isStopDisabled", function () {
     var tests = [
       {
         content: {

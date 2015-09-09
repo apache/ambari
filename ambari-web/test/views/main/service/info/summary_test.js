@@ -19,6 +19,7 @@
 
 var App = require('app');
 require('views/main/service/info/summary');
+var batchUtils = require('utils/batch_scheduled_requests');
 
 describe('App.MainServiceInfoSummaryView', function() {
 
@@ -386,5 +387,60 @@ describe('App.MainServiceInfoSummaryView', function() {
       });
     });
 
+  });
+
+  describe("#restartAllStaleConfigComponents", function () {
+    it("trigger restartAllServiceHostComponents", function () {
+      var view = App.MainServiceInfoSummaryView.create({
+        controller: Em.Object.create({
+          content: {
+            serviceName: "HDFS"
+          },
+          getActiveWidgetLayout: Em.K
+        }),
+        service: Em.Object.create({
+          displayName: 'HDFS'
+        })
+      });
+      sinon.stub(batchUtils, "restartAllServiceHostComponents", Em.K);
+      view.restartAllStaleConfigComponents().onPrimary();
+      expect(batchUtils.restartAllServiceHostComponents.calledOnce).to.equal(true);
+      batchUtils.restartAllServiceHostComponents.restore();
+    });
+    it("trigger check last check point warning before triggering restartAllServiceHostComponents", function () {
+      var view = App.MainServiceInfoSummaryView.create({
+        controller: Em.Object.create({
+          content: {
+            serviceName: "HDFS",
+            hostComponents: [{
+              componentName: 'NAMENODE',
+              workStatus: 'STARTED'
+            }],
+            restartRequiredHostsAndComponents: {
+              "host1": ['NameNode'],
+              "host2": ['DataNode', 'ZooKeeper']
+            }
+          },
+          getActiveWidgetLayout: Em.K
+        }),
+        service: Em.Object.create({
+          displayName: 'HDFS'
+        })
+      });
+      var mainServiceItemController = App.MainServiceItemController.create({});
+      sinon.stub(mainServiceItemController, 'checkNnLastCheckpointTime', function() {
+        return true;
+      });
+      sinon.stub(App.router, 'get', function(k) {
+        if ('mainServiceItemController' === k) {
+          return mainServiceItemController;
+        }
+        return Em.get(App.router, k);
+      });
+      view.restartAllStaleConfigComponents();
+      expect(mainServiceItemController.checkNnLastCheckpointTime.calledOnce).to.equal(true);
+      mainServiceItemController.checkNnLastCheckpointTime.restore();
+      App.router.get.restore();
+    });
   });
 });

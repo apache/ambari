@@ -321,6 +321,36 @@ describe("App.MainServiceInfoConfigsController", function () {
       mainServiceInfoConfigsController.restartAllStaleConfigComponents().onPrimary();
       expect(batchUtils.restartAllServiceHostComponents.calledOnce).to.equal(true);
     });
+    it("trigger check last check point warning before triggering restartAllServiceHostComponents", function () {
+      var mainConfigsControllerHdfsStarted = App.MainServiceInfoConfigsController.create({
+        content: {
+          serviceName: "HDFS",
+          hostComponents: [{
+            componentName: 'NAMENODE',
+            workStatus: 'STARTED'
+          }],
+          restartRequiredHostsAndComponents: {
+            "host1": ['NameNode'],
+            "host2": ['DataNode', 'ZooKeeper']
+          }
+        }
+      });
+      var mainServiceItemController = App.MainServiceItemController.create({});
+      sinon.stub(mainServiceItemController, 'checkNnLastCheckpointTime', function() {
+        return true;
+      });
+      sinon.stub(App.router, 'get', function(k) {
+        if ('mainServiceItemController' === k) {
+          return mainServiceItemController;
+        }
+        return Em.get(App.router, k);
+      });
+
+      mainConfigsControllerHdfsStarted.restartAllStaleConfigComponents();
+      expect(mainServiceItemController.checkNnLastCheckpointTime.calledOnce).to.equal(true);
+      mainServiceItemController.checkNnLastCheckpointTime.restore();
+      App.router.get.restore();
+    });
   });
 
   describe("#doCancel", function () {

@@ -235,6 +235,30 @@ describe('App.MainServiceController', function () {
       expect(Em.I18n.t.calledWith('services.service.stop.confirmButton')).to.be.ok;
     });
 
+    it ("should check last checkpoint for NN before confirming stop", function() {
+      var mainServiceItemController = App.MainServiceItemController.create({});
+      sinon.stub(mainServiceItemController, 'checkNnLastCheckpointTime', function() {
+        return true;
+      });
+      sinon.stub(App.router, 'get', function(k) {
+        if ('mainServiceItemController' === k) {
+          return mainServiceItemController;
+        }
+        return Em.get(App.router, k);
+      });
+      sinon.stub(App.Service, 'find', function() {
+        return [{
+          serviceName: "HDFS",
+          workStatus: "STARTED"
+        }];
+      });
+      mainServiceController.startStopAllService(event, "INSTALLED");
+      expect(mainServiceItemController.checkNnLastCheckpointTime.calledOnce).to.equal(true);
+      mainServiceItemController.checkNnLastCheckpointTime.restore();
+      App.router.get.restore();
+      App.Service.find.restore();
+    });
+
     it ("should confirm start if state is not INSTALLED", function() {
       mainServiceController.startStopAllService(event, "STARTED");
       expect(Em.I18n.t.calledWith('services.service.startAll.confirmMsg')).to.be.ok;
