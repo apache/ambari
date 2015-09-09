@@ -144,6 +144,9 @@ class TestPigServiceCheck(RMFTestCase):
         action = ['execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM;',
+        user = 'ambari-qa',
+    )
        
     self.assertResourceCalled('File', '/tmp/pigSmoke.sh',
       content = StaticFile('pigSmoke.sh'),

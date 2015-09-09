@@ -21,7 +21,6 @@ from mock.mock import patch, MagicMock
 
 from stacks.utils.RMFTestCase import *
 
-
 class TestPigServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "PIG/0.12.0.2.0/package"
   STACK_VERSION = "2.2"
@@ -78,6 +77,9 @@ class TestPigServiceCheck(RMFTestCase):
         user = 'hdfs',
         action = ['execute'],
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+    )
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM;',
+        user = 'ambari-qa',
     )
     self.assertResourceCalled("File", "/tmp/pigSmoke.sh",
       content=StaticFile("pigSmoke.sh"),
@@ -138,9 +140,6 @@ class TestPigServiceCheck(RMFTestCase):
         action = ['execute'],
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
-
-    self.assertResourceCalled("Execute", "/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM;",
-      user="ambari-qa")
 
     self.assertResourceCalled("Execute", "pig -x tez /tmp/pigSmoke.sh",
       tries=3,
