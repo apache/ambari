@@ -121,23 +121,23 @@ App.ServerValidatorMixin = Em.Mixin.create({
     }
     var recommendations = this.get('hostGroups');
     // send user's input based on stored configurations
-    if (this.get('content.serviceConfigProperties.length')) {
-      recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs'));
-    }
-    // for add service send configurations for installed services on first transition to Customize Services step
-    if (!this.get('content.serviceConfigProperties.length') && this.get('wizardController.name') === 'addServiceController') {
-      recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs').filter(function(serviceConfigs) {
-        return self.get('installedServiceNames').contains(serviceConfigs.get('serviceName'));
-      }));
-      // include cluster-env site to recommendations call
-      var miscService = this.get('services').findProperty('serviceName', 'MISC');
-      if (miscService) {
-        var miscConfigs = blueprintUtils.buildConfigsJSON([miscService], [this.get('stepConfigs').findProperty('serviceName', 'MISC')]);
-        var clusterEnv = App.permit(miscConfigs, 'cluster-env');
-        if (!App.isEmptyObject(clusterEnv)) {
-          $.extend(recommendations.blueprint.configurations, clusterEnv);
-        }
+    recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs'));
+
+    // include cluster-env site to recommendations call
+    var miscService = this.get('services').findProperty('serviceName', 'MISC');
+    if (miscService) {
+      var miscConfigs = blueprintUtils.buildConfigsJSON([miscService], [this.get('stepConfigs').findProperty('serviceName', 'MISC')]);
+      var clusterEnv = App.permit(miscConfigs, 'cluster-env');
+      if (!App.isEmptyObject(clusterEnv)) {
+        $.extend(recommendations.blueprint.configurations, clusterEnv);
       }
+      /** add user properties from misc tabs to proper filename **/
+      this.get('stepConfigs').findProperty('serviceName', 'MISC').get('configs').forEach(function(config) {
+        var tag = App.config.getConfigTagFromFileName(config.get('filename'));
+        if (recommendations.blueprint.configurations[tag] && tag != 'cluster-env') {
+          recommendations.blueprint.configurations[tag].properties[config.get('name')] = config.get('value');
+        }
+      })
     }
 
     return App.ajax.send({
