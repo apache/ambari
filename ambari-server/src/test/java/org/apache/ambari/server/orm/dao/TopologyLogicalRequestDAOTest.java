@@ -41,8 +41,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static org.apache.ambari.server.orm.OrmTestHelper.CLUSTER_NAME;
-
 public class TopologyLogicalRequestDAOTest {
   private Injector injector;
   private TopologyRequestDAO requestDAO;
@@ -73,7 +71,7 @@ public class TopologyLogicalRequestDAOTest {
     requestEntity.setBlueprintName("bp1");
     requestEntity.setClusterAttributes("attributes");
     requestEntity.setClusterProperties("properties");
-    requestEntity.setClusterName(CLUSTER_NAME);
+    requestEntity.setClusterId(clusterId);
     requestEntity.setDescription("description");
     requestDAO.create(requestEntity);
     List<TopologyRequestEntity> requestEntities = requestDAO.findAll();

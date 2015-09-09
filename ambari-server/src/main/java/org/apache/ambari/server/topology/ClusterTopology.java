@@ -19,7 +19,6 @@
 package org.apache.ambari.server.topology;
 
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.state.SecurityType;
 
 import java.util.Collection;
 import java.util.Map;
@@ -31,11 +30,18 @@ import java.util.Map;
 public interface ClusterTopology {
 
   /**
-   * Get the name of the cluster.
+   * Get the id of the cluster.
    *
-   * @return cluster name
+   * @return cluster id
    */
-  public String getClusterName();
+  public Long getClusterId();
+
+  /**
+   * Set the id of the cluster.
+   *
+   * @param clusterId cluster id
+   */
+  public void setClusterId(Long clusterId);
 
   /**
    * Get the blueprint associated with the cluster.

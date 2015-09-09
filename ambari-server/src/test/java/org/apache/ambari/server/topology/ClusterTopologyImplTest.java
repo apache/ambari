@@ -46,6 +46,7 @@ import static org.powermock.api.easymock.PowerMock.verify;
 public class ClusterTopologyImplTest {
 
   private static final String CLUSTER_NAME = "cluster_name";
+  private static final long CLUSTER_ID = 1L;
   private static final String predicate = "Hosts/host_name=foo";
   private static final Blueprint blueprint = createNiceMock(Blueprint.class);
   private static final HostGroup group1 = createNiceMock(HostGroup.class);
@@ -188,9 +189,13 @@ public class ClusterTopologyImplTest {
       this.type = type;
     }
 
-    @Override
     public String getClusterName() {
       return CLUSTER_NAME;
+    }
+
+    @Override
+    public Long getClusterId() {
+      return CLUSTER_ID;
     }
 
     @Override

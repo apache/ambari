@@ -35,8 +35,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static org.apache.ambari.server.orm.OrmTestHelper.CLUSTER_NAME;
-
 public class TopologyRequestDAOTest {
   private Injector injector;
   private TopologyRequestDAO requestDAO;
@@ -63,7 +61,7 @@ public class TopologyRequestDAOTest {
     requestEntity.setBlueprintName("bp1");
     requestEntity.setClusterAttributes("attributes");
     requestEntity.setClusterProperties("properties");
-    requestEntity.setClusterName(CLUSTER_NAME);
+    requestEntity.setClusterId(clusterId);
     requestEntity.setDescription("description");
     TopologyHostGroupEntity hostGroupEntity = new TopologyHostGroupEntity();
     hostGroupEntity.setName("hg1");
@@ -113,8 +111,8 @@ public class TopologyRequestDAOTest {
   }
 
   @Test
-  public void testFindByClusterName() throws Exception {
+  public void testFindByClusterId() throws Exception {
     create();
-    testRequestEntity(requestDAO.findByCluster(CLUSTER_NAME));
+    testRequestEntity(requestDAO.findByClusterId(clusterId));
   }
 }

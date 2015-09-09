@@ -40,7 +40,7 @@ import java.util.Collection;
                 pkColumnName = "sequence_name", valueColumnName = "sequence_value",
                 pkColumnValue = "topology_request_id_seq", initialValue = 0)
 @NamedQueries({
-  @NamedQuery(name = "TopologyRequestEntity.findByCluster", query = "SELECT req FROM TopologyRequestEntity req WHERE req.clusterName = :clusterName")
+  @NamedQuery(name = "TopologyRequestEntity.findByClusterId", query = "SELECT req FROM TopologyRequestEntity req WHERE req.clusterId = :clusterId")
 })
 public class TopologyRequestEntity {
   @Id
@@ -51,8 +51,8 @@ public class TopologyRequestEntity {
   @Column(name = "action", length = 255, nullable = false)
   private String action;
 
-  @Column(name = "cluster_name", length = 100, nullable = false)
-  private String clusterName;
+  @Column(name = "cluster_id", nullable = true)
+  private Long clusterId;
 
   @Column(name = "bp_name", length = 100, nullable = false)
   private String blueprintName;
@@ -92,12 +92,12 @@ public class TopologyRequestEntity {
     this.action = action;
   }
 
-  public String getClusterName() {
-    return clusterName;
+  public Long getClusterId() {
+    return clusterId;
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
   }
 
   public String getBlueprintName() {

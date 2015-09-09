@@ -34,6 +34,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.StageEntity;
@@ -62,7 +64,7 @@ public class TopologyManager {
   // priority is given to oldest outstanding requests
   private final Collection<LogicalRequest> outstandingRequests = new ArrayList<LogicalRequest>();
   //todo: currently only support a single cluster
-  private Map<String, ClusterTopology> clusterTopologyMap = new HashMap<String, ClusterTopology>();
+  private Map<Long, ClusterTopology> clusterTopologyMap = new HashMap<Long, ClusterTopology>();
 
   //todo: inject
   private static LogicalRequestFactory logicalRequestFactory = new LogicalRequestFactory();
@@ -95,18 +97,23 @@ public class TopologyManager {
     }
   }
 
-  public RequestStatusResponse provisionCluster(TopologyRequest request) throws InvalidTopologyException, AmbariException {
+  public RequestStatusResponse provisionCluster(ProvisionClusterRequest request) throws InvalidTopologyException, AmbariException {
     ensureInitialized();
     ClusterTopology topology = new ClusterTopologyImpl(ambariContext, request);
-    // persist request after it has successfully validated
-    PersistedTopologyRequest persistedRequest = persistedState.persistTopologyRequest(request);
+    String clusterName = request.getClusterName();
 
     // get the id prior to creating ambari resources which increments the counter
     Long provisionId = ambariContext.getNextRequestId();
-    ambariContext.createAmbariResources(topology);
+    ambariContext.createAmbariResources(topology, clusterName);
 
-    String clusterName = topology.getClusterName();
-    clusterTopologyMap.put(clusterName, topology);
+    long clusterId = ambariContext.getClusterId(clusterName);
+    topology.setClusterId(clusterId);
+    request.setClusterId(clusterId);
+    // persist request after it has successfully validated
+    PersistedTopologyRequest persistedRequest = persistedState.persistTopologyRequest(request);
+
+
+    clusterTopologyMap.put(clusterId, topology);
 
     addClusterConfigRequest(topology, new ClusterConfigurationRequest(ambariContext, topology, true));
     LogicalRequest logicalRequest = processRequest(persistedRequest, topology, provisionId);
@@ -118,13 +125,14 @@ public class TopologyManager {
     return getRequestStatus(logicalRequest.getRequestId());
   }
 
-  public RequestStatusResponse scaleHosts(TopologyRequest request)
+  public RequestStatusResponse scaleHosts(ScaleClusterRequest request)
       throws InvalidTopologyException, AmbariException {
 
     ensureInitialized();
     LOG.info("TopologyManager.scaleHosts: Entering");
     String clusterName = request.getClusterName();
-    ClusterTopology topology = clusterTopologyMap.get(clusterName);
+    long clusterId = ambariContext.getClusterId(clusterName);
+    ClusterTopology topology = clusterTopologyMap.get(clusterId);
     if (topology == null) {
       throw new InvalidTopologyException("Unable to retrieve cluster topology for cluster. This is most likely a " +
                                          "result of trying to scale a cluster via the API which was created using " +
@@ -132,7 +140,7 @@ public class TopologyManager {
                                          "blueprint can be scaled with this API.  If the cluster was originally created " +
                                          "via the API as described above, please file a Jira for this matter.");
     }
-
+    request.setClusterId(clusterId);
     PersistedTopologyRequest persistedRequest = persistedState.persistTopologyRequest(request);
     // this registers/updates all request host groups
     topology.update(request);
@@ -162,7 +170,7 @@ public class TopologyManager {
           }
 
           LOG.info("TopologyManager.onHostRegistered: processing accepted host offer for reserved host = {}", hostName);
-          processAcceptedHostOffer(getClusterTopology(request.getClusterName()), response, host);
+          processAcceptedHostOffer(getClusterTopology(request.getClusterId()), response, host);
           matchedToRequest = true;
         }
       }
@@ -178,7 +186,7 @@ public class TopologyManager {
               case ACCEPTED:
                 matchedToRequest = true;
                 LOG.info("TopologyManager.onHostRegistered: processing accepted host offer for matched host = {}", hostName);
-                processAcceptedHostOffer(getClusterTopology(request.getClusterName()), hostOfferResponse, host);
+                processAcceptedHostOffer(getClusterTopology(request.getClusterId()), hostOfferResponse, host);
                 break;
               case DECLINED_DONE:
                 LOG.info("TopologyManager.onHostRegistered: DECLINED_DONE received for host = {}", hostName);
@@ -284,9 +292,9 @@ public class TopologyManager {
     return requestStatusResponses;
   }
 
-  public ClusterTopology getClusterTopology(String clusterName) {
+  public ClusterTopology getClusterTopology(Long clusterId) {
     ensureInitialized();
-    return clusterTopologyMap.get(clusterName);
+    return clusterTopologyMap.get(clusterId);
   }
 
   public Map<String, Collection<String>> getProjectedTopology() {
@@ -355,7 +363,7 @@ public class TopologyManager {
             hostIterator.remove();
             LOG.info("TopologyManager.processRequest: host name = {} was ACCEPTED by LogicalRequest ID = {} , host has been removed from available hosts.",
               host.getHostName(), logicalRequest.getRequestId());
-            processAcceptedHostOffer(getClusterTopology(logicalRequest.getClusterName()), response, host);
+            processAcceptedHostOffer(getClusterTopology(logicalRequest.getClusterId()), response, host);
             break;
           case DECLINED_DONE:
             requestHostComplete = true;
@@ -432,7 +440,7 @@ public class TopologyManager {
     boolean configChecked = false;
     for (Map.Entry<ClusterTopology, List<LogicalRequest>> requestEntry : persistedRequests.entrySet()) {
       ClusterTopology topology = requestEntry.getKey();
-      clusterTopologyMap.put(topology.getClusterName(), topology);
+      clusterTopologyMap.put(topology.getClusterId(), topology);
 
       for (LogicalRequest logicalRequest : requestEntry.getValue()) {
         allRequests.put(logicalRequest.getRequestId(), logicalRequest);
@@ -460,7 +468,7 @@ public class TopologyManager {
 
       if (! configChecked) {
         configChecked = true;
-        if (! ambariContext.doesConfigurationWithTagExist(topology.getClusterName(), TOPOLOGY_RESOLVED_TAG)) {
+        if (! ambariContext.doesConfigurationWithTagExist(topology.getClusterId(), TOPOLOGY_RESOLVED_TAG)) {
           LOG.info("TopologyManager.replayRequests: no config with TOPOLOGY_RESOLVED found, adding cluster config request");
           addClusterConfigRequest(topology, new ClusterConfigurationRequest(ambariContext, topology, false));
         }

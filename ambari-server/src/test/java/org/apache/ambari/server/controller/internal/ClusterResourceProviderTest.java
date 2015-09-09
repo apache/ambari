@@ -80,7 +80,7 @@ public class ClusterResourceProviderTest {
   private static final Request request = createNiceMock(Request.class);
   private static final TopologyManager topologyManager = createStrictMock(TopologyManager.class);
   private static final TopologyRequestFactory topologyFactory = createStrictMock(TopologyRequestFactory.class);
-  private static final TopologyRequest topologyRequest = createNiceMock(TopologyRequest.class);
+  private static final ProvisionClusterRequest topologyRequest = createNiceMock(ProvisionClusterRequest.class);
   private static final BlueprintFactory blueprintFactory = createStrictMock(BlueprintFactory.class);
   private static final Blueprint blueprint = createNiceMock(Blueprint.class);
   private static final RequestStatusResponse requestStatusResponse = createNiceMock(RequestStatusResponse.class);

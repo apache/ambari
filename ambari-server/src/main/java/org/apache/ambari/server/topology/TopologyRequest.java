@@ -31,11 +31,11 @@ public interface TopologyRequest {
   public enum Type { PROVISION, SCALE, EXPORT }
 
   /**
-   * Get the cluster name associated with the request.
+   * Get the cluster id associated with the request. Can be <code>null</code>.
    *
-   * @return associated cluster name
+   * @return associated cluster id
    */
-  public String getClusterName();
+  public Long getClusterId();
 
   /**
    * Get the request type.

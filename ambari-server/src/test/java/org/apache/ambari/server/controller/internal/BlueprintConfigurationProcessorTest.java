@@ -5156,7 +5156,7 @@ public class BlueprintConfigurationProcessorTest {
 
     replay(bp);
 
-    return new ClusterTopologyImpl(ambariConext, CLUSTER_NAME, blueprint, configuration, hostGroupInfo);
+    return new ClusterTopologyImpl(ambariConext, 1L, blueprint, configuration, hostGroupInfo);
   }
 
   private class TestHostGroup {

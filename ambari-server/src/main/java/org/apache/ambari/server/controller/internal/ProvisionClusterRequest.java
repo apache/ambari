@@ -85,6 +85,11 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   private static ConfigurationFactory configurationFactory = new ConfigurationFactory();
 
   /**
+   * cluster name
+   */
+  private String clusterName;
+
+  /**
    * default password
    */
   private String defaultPassword;
@@ -118,6 +123,23 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     setConfiguration(configuration);
 
     parseHostGroupInfo(properties);
+  }
+
+  public String getClusterName() {
+    return clusterName;
+  }
+
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
+  }
+
+  @Override
+  public Long getClusterId() {
+    return clusterId;
+  }
+
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
   }
 
   @Override

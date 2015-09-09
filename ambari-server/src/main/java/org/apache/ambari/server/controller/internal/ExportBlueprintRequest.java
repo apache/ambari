@@ -59,6 +59,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
   private static AmbariManagementController controller = AmbariServer.getController();
 
   private String clusterName;
+  private Long clusterId;
   private Blueprint blueprint;
   private Configuration configuration;
   //todo: Should this map be represented by a new class?
@@ -69,6 +70,8 @@ public class ExportBlueprintRequest implements TopologyRequest {
     Resource clusterResource = clusterNode.getObject();
     clusterName = String.valueOf(clusterResource.getPropertyValue(
         ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID));
+    clusterId = Long.valueOf(String.valueOf(clusterResource.getPropertyValue(
+            ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID)));
 
 
     createConfiguration(clusterNode);
@@ -80,9 +83,13 @@ public class ExportBlueprintRequest implements TopologyRequest {
     createBlueprint(exportedHostGroups, parseStack(clusterResource));
   }
 
-  @Override
   public String getClusterName() {
     return clusterName;
+  }
+
+  @Override
+  public Long getClusterId() {
+    return clusterId;
   }
 
   @Override

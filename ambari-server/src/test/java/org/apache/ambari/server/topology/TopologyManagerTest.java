@@ -21,6 +21,7 @@ package org.apache.ambari.server.topology;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.easymock.Capture;
 import org.junit.After;
@@ -56,6 +57,7 @@ import static org.easymock.EasyMock.verify;
 public class TopologyManagerTest {
 
   private static final String CLUSTER_NAME = "test-cluster";
+  private static final long CLUSTER_ID = 1;
   private static final String BLUEPRINT_NAME = "test-bp";
   private static final String STACK_NAME = "test-stack";
   private static final String STACK_VERSION = "test-stack-version";
@@ -64,7 +66,7 @@ public class TopologyManagerTest {
 
   private final Blueprint blueprint = createNiceMock(Blueprint.class);
   private final Stack stack = createNiceMock(Stack.class);
-  private final TopologyRequest request = createNiceMock(TopologyRequest.class);
+  private final ProvisionClusterRequest request = createNiceMock(ProvisionClusterRequest.class);
   private final PersistedTopologyRequest persistedTopologyRequest = new PersistedTopologyRequest(1, request);
   private final LogicalRequestFactory logicalRequestFactory = createStrictMock(LogicalRequestFactory.class);
   private final LogicalRequest logicalRequest = createMock(LogicalRequest.class);
@@ -194,6 +196,7 @@ public class TopologyManagerTest {
     expect(stack.getExcludedConfigurationTypes("service2")).andReturn(Collections.<String>emptySet()).anyTimes();
 
     expect(request.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(request.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
     expect(request.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
     expect(request.getDescription()).andReturn("Provision Cluster Test").anyTimes();
     expect(request.getConfiguration()).andReturn(topoConfiguration).anyTimes();
@@ -231,11 +234,12 @@ public class TopologyManagerTest {
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class));
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME));
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
-    expect(ambariContext.isClusterKerberosEnabled(CLUSTER_NAME)).andReturn(false).anyTimes();
-
+    expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
+    expect(ambariContext.getClusterId(CLUSTER_NAME)).andReturn(CLUSTER_ID).anyTimes();
+    expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
     // cluster configuration task run() isn't executed by mock executor
     // so only INITIAL config
     expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture))).

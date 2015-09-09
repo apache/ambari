@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
@@ -56,7 +57,7 @@ public class HostRequest implements Comparable<HostRequest> {
   private String hostgroupName;
   private Predicate predicate;
   private String hostname = null;
-  private String cluster;
+  private long clusterId;
   private boolean containsMaster;
   private final long id;
   private boolean isOutstanding = true;
@@ -74,11 +75,11 @@ public class HostRequest implements Comparable<HostRequest> {
 
   private static PredicateCompiler predicateCompiler = new PredicateCompiler();
 
-  public HostRequest(long requestId, long id, String cluster, String hostname, String blueprintName,
+  public HostRequest(long requestId, long id, long clusterId, String hostname, String blueprintName,
                      HostGroup hostGroup, Predicate predicate, ClusterTopology topology) {
     this.requestId = requestId;
     this.id = id;
-    this.cluster = cluster;
+    this.clusterId = clusterId;
     blueprint = blueprintName;
     this.hostGroup = hostGroup;
     hostgroupName = hostGroup.getName();
@@ -105,7 +106,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
     this.requestId = requestId;
     this.id = id;
-    cluster = topology.getClusterName();
+    clusterId = topology.getClusterId();
     blueprint = topology.getBlueprint().getName();
     hostgroupName = entity.getTopologyHostGroupEntity().getName();
     hostGroup = topology.getBlueprint().getHostGroup(hostgroupName);
@@ -118,7 +119,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
     //todo: we may be able to simplify by just checking hostname
     isOutstanding = hostname == null || !topology.getAmbariContext().
-        isHostRegisteredWithCluster(cluster, hostname);
+        isHostRegisteredWithCluster(clusterId, hostname);
 
     LOG.info("HostRequest: Successfully recovered host request for host: " +
         (hostname == null ? "Host Assignment Pending" : hostname));
@@ -147,8 +148,8 @@ public class HostRequest implements Comparable<HostRequest> {
     return requestId;
   }
 
-  public String getClusterName() {
-    return cluster;
+  public long getClusterId() {
+    return clusterId;
   }
   public String getBlueprint() {
     return blueprint;
@@ -428,7 +429,7 @@ public class HostRequest implements Comparable<HostRequest> {
       for (String service : group.getServices()) {
         serviceComponents.put(service, new HashSet<String> (group.getComponents(service)));
       }
-      ambariContext.createAmbariHostResources(getClusterName(), getHostName(), serviceComponents);
+      ambariContext.createAmbariHostResources(getClusterId(), getHostName(), serviceComponents);
     }
   }
 

@@ -131,14 +131,14 @@ public class PersistedStateImpl implements PersistedState {
     Map<ClusterTopology, List<LogicalRequest>> allRequests = new HashMap<ClusterTopology, List<LogicalRequest>>();
     Collection<TopologyRequestEntity> entities = topologyRequestDAO.findAll();
 
-    Map<String, ClusterTopology> topologyRequests = new HashMap<String, ClusterTopology>();
+    Map<Long, ClusterTopology> topologyRequests = new HashMap<Long, ClusterTopology>();
     for (TopologyRequestEntity entity : entities) {
       TopologyRequest replayedRequest = new ReplayedTopologyRequest(entity);
-      ClusterTopology clusterTopology = topologyRequests.get(replayedRequest.getClusterName());
+      ClusterTopology clusterTopology = topologyRequests.get(replayedRequest.getClusterId());
       if (clusterTopology == null) {
         try {
           clusterTopology = new ClusterTopologyImpl(ambariContext, replayedRequest);
-          topologyRequests.put(replayedRequest.getClusterName(), clusterTopology);
+          topologyRequests.put(replayedRequest.getClusterId(), clusterTopology);
           allRequests.put(clusterTopology, new ArrayList<LogicalRequest>());
         } catch (InvalidTopologyException e) {
           throw new RuntimeException("Failed to construct cluster topology while replaying request: " + e, e);
@@ -183,7 +183,7 @@ public class PersistedStateImpl implements PersistedState {
     }
 
     entity.setClusterAttributes(attributesAsString(request.getConfiguration().getAttributes()));
-    entity.setClusterName(request.getClusterName());
+    entity.setClusterId(request.getClusterId());
     entity.setClusterProperties(propertiesAsString(request.getConfiguration().getProperties()));
     entity.setDescription(request.getDescription());
 
@@ -299,7 +299,7 @@ public class PersistedStateImpl implements PersistedState {
   }
 
   private static class ReplayedTopologyRequest implements TopologyRequest {
-    private final String clusterName;
+    private final Long clusterId;
     private final Type type;
     private final String description;
     private final Blueprint blueprint;
@@ -307,7 +307,7 @@ public class PersistedStateImpl implements PersistedState {
     private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
 
     public ReplayedTopologyRequest(TopologyRequestEntity entity) {
-      clusterName = entity.getClusterName();
+      clusterId = entity.getClusterId();
       type = Type.valueOf(entity.getAction());
       description = entity.getDescription();
 
@@ -323,8 +323,8 @@ public class PersistedStateImpl implements PersistedState {
     }
 
     @Override
-    public String getClusterName() {
-      return clusterName;
+    public Long getClusterId() {
+      return clusterId;
     }
 
     @Override

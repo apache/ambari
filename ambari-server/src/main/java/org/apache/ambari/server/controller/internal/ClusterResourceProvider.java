@@ -463,7 +463,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     LOG.info("Creating Cluster '" + properties.get(CLUSTER_NAME_PROPERTY_ID) +
         "' based on blueprint '" + String.valueOf(properties.get(BLUEPRINT_PROPERTY_ID)) + "'.");
 
-    TopologyRequest createClusterRequest;
+    ProvisionClusterRequest createClusterRequest;
     try {
       createClusterRequest = topologyRequestFactory.createProvisionClusterRequest(properties);
     } catch (InvalidTopologyTemplateException e) {

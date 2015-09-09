@@ -104,6 +104,53 @@ public class UpgradeCatalog212Test {
   }
 
   @Test
+  public void testExecutePreDMLUpdates() throws Exception {
+    Method addClusterIdToTopology = UpgradeCatalog212.class.getDeclaredMethod("addClusterIdToTopology");
+    Method finilizeTopologyDDL = UpgradeCatalog212.class.getDeclaredMethod("finilizeTopologyDDL");
+
+    UpgradeCatalog212 upgradeCatalog212 = createMockBuilder(UpgradeCatalog212.class)
+            .addMockedMethod(addClusterIdToTopology)
+            .addMockedMethod(finilizeTopologyDDL)
+            .createMock();
+
+    upgradeCatalog212.addClusterIdToTopology();
+    expectLastCall().once();
+
+    upgradeCatalog212.finilizeTopologyDDL();
+    expectLastCall().once();
+
+    replay(upgradeCatalog212);
+
+    upgradeCatalog212.executePreDMLUpdates();
+
+    verify(upgradeCatalog212);
+  }
+
+  @Test
+  public void testFinilizeTopologyDDL() throws Exception {
+    final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+    dbAccessor.dropColumn(eq("topology_request"), eq("cluster_name"));
+    dbAccessor.setColumnNullable(eq("topology_request"), eq("cluster_id"), eq(false));
+    dbAccessor.addFKConstraint(eq("topology_request"), eq("FK_topology_request_cluster_id"), eq("cluster_id"),
+            eq("clusters"), eq("cluster_id"), eq(false));
+
+    replay(dbAccessor);
+    Module module = new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    };
+
+    Injector injector = Guice.createInjector(module);
+    UpgradeCatalog212 upgradeCatalog212 = injector.getInstance(UpgradeCatalog212.class);
+    upgradeCatalog212.finilizeTopologyDDL();
+
+    verify(dbAccessor);
+  }
+
+  @Test
   public void testExecuteDDLUpdates() throws Exception {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     Configuration configuration = createNiceMock(Configuration.class);
