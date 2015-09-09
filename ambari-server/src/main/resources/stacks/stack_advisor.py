@@ -730,6 +730,7 @@ class DefaultStackAdvisor(StackAdvisor):
   def getAffectedConfigs(self, services):
     """returns properties dict including changed-configurations and depended-by configs"""
     changedConfigs = services['changed-configurations']
+    changedConfigs = [{"type": entry["type"], "name": entry["name"]} for entry in changedConfigs]
     allDependencies = []
 
     for item in services['services']:
@@ -754,6 +755,8 @@ class DefaultStackAdvisor(StackAdvisor):
             if dependency not in dependencies:
               dependencies.append(dependency)
 
+    if "forced-configurations" in services and services["forced-configurations"] is not None:
+      dependencies.extend(services["forced-configurations"])
     return  dependencies
 
   def versionCompare(self, version1, version2):

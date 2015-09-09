@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
+import org.apache.ambari.server.state.ChangedConfigInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.commons.lang.StringUtils;
 
@@ -44,7 +45,7 @@ public class StackAdvisorRequest {
   private Map<String, Set<String>> hostComponents = new HashMap<String, Set<String>>();
   private Map<String, Set<String>> hostGroupBindings = new HashMap<String, Set<String>>();
   private Map<String, Map<String, Map<String, String>>> configurations = new HashMap<String, Map<String, Map<String, String>>>();
-  private List<PropertyDependencyInfo> changedConfigurations = new LinkedList<PropertyDependencyInfo>();
+  private List<ChangedConfigInfo> changedConfigurations = new LinkedList<ChangedConfigInfo>();
   private Set<RecommendationResponse.ConfigGroup> configGroups;
 
   public String getStackName() {
@@ -91,11 +92,11 @@ public class StackAdvisorRequest {
     return configurations;
   }
 
-  public List<PropertyDependencyInfo> getChangedConfigurations() {
+  public List<ChangedConfigInfo> getChangedConfigurations() {
     return changedConfigurations;
   }
 
-  public void setChangedConfigurations(List<PropertyDependencyInfo> changedConfigurations) {
+  public void setChangedConfigurations(List<ChangedConfigInfo> changedConfigurations) {
     this.changedConfigurations = changedConfigurations;
   }
 
@@ -162,7 +163,7 @@ public class StackAdvisorRequest {
     }
 
     public StackAdvisorRequestBuilder withChangedConfigurations(
-      List<PropertyDependencyInfo> changedConfigurations) {
+      List<ChangedConfigInfo> changedConfigurations) {
       this.instance.changedConfigurations = changedConfigurations;
       return this;
     }

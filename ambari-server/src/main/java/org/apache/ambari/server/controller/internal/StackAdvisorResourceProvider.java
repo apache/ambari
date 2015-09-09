@@ -41,6 +41,7 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.inject.Inject;
+import org.apache.ambari.server.state.ChangedConfigInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 
 /**
@@ -109,9 +110,9 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
           hgHostsMap);
       Map<String, Map<String, Map<String, String>>> configurations = calculateConfigurations(request);
 
-      List<PropertyDependencyInfo> changedConfigurations =
+      List<ChangedConfigInfo> changedConfigurations =
         requestType == StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES ?
-          calculateChangedConfigurations(request) : Collections.<PropertyDependencyInfo>emptyList();
+          calculateChangedConfigurations(request) : Collections.<ChangedConfigInfo>emptyList();
 
       Set<RecommendationResponse.ConfigGroup> configGroups = calculateConfigGroups(request);
       return StackAdvisorRequestBuilder.
@@ -193,13 +194,13 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
     return map;
   }
 
-  protected List<PropertyDependencyInfo> calculateChangedConfigurations(Request request) {
-    List<PropertyDependencyInfo> configs =
-      new LinkedList<PropertyDependencyInfo>();
+  protected List<ChangedConfigInfo> calculateChangedConfigurations(Request request) {
+    List<ChangedConfigInfo> configs =
+      new LinkedList<ChangedConfigInfo>();
     HashSet<HashMap<String, String>> changedConfigs =
       (HashSet<HashMap<String, String>>) getRequestProperty(request, CHANGED_CONFIGURATIONS_PROPERTY);
     for (HashMap<String, String> props: changedConfigs) {
-      configs.add(new PropertyDependencyInfo(props.get("type"), props.get("name")));
+      configs.add(new ChangedConfigInfo(props.get("type"), props.get("name"), props.get("old_value")));
     }
 
     return configs;
