@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -167,6 +168,12 @@ public class TimelineMetricConfiguration {
 
   public static final String HANDLER_THREAD_COUNT =
     "timeline.metrics.service.handler.thread.count";
+
+  public static final String PRECISION_TABLE_SPLIT_POINTS =
+    "timeline.metrics.host.aggregate.splitpoints";
+
+  public static final String AGGREGATE_TABLE_SPLIT_POINTS =
+    "timeline.metrics.cluster.aggregate.splitpoints";
 
   public static final String HOST_APP_ID = "HOST";
 

@@ -326,4 +326,20 @@
       in-memory aggregations.
     </description>
   </property>
+  <property>
+    <name>timeline.metrics.host.aggregate.splitpoints</name>
+    <value></value>
+    <description>
+      Pre-split regions using the split points corresponding to this property
+      for the precision table that stores seconds aggregate data.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregate.splitpoints</name>
+    <value></value>
+    <description>
+      Pre-split regions using the split points corresponding to this property
+      for the aggregate table that stores seconds aggregate data across hosts.
+    </description>
+  </property>
 </configuration>

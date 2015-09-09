@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -54,6 +55,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATE_TABLE_SPLIT_POINTS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_DAILY_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_HOUR_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_MINUTE_TABLE_TTL;
@@ -66,6 +68,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.HOST_HOUR_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.HOST_MINUTE_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.OUT_OFF_BAND_DATA_TIME_ALLOWANCE;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.PRECISION_TABLE_SPLIT_POINTS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.PRECISION_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.ALTER_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_AGGREGATE_TABLE_SQL;
@@ -249,8 +252,13 @@ public class PhoenixHBaseAccessor {
       stmt = conn.createStatement();
 
       // Host level
-      stmt.executeUpdate(String.format(CREATE_METRICS_TABLE_SQL,
-        encoding, precisionTtl, compression));
+      String precisionSql = String.format(CREATE_METRICS_TABLE_SQL,
+        encoding, precisionTtl, compression);
+      String splitPoints = metricsConf.get(PRECISION_TABLE_SPLIT_POINTS);
+      if (!StringUtils.isEmpty(splitPoints)) {
+        precisionSql += getSplitPointsStr(splitPoints);
+      }
+      stmt.executeUpdate(precisionSql);
       stmt.executeUpdate(String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
         METRICS_AGGREGATE_MINUTE_TABLE_NAME, encoding, hostMinTtl, compression));
       stmt.executeUpdate(String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
@@ -259,8 +267,13 @@ public class PhoenixHBaseAccessor {
         METRICS_AGGREGATE_DAILY_TABLE_NAME, encoding, hostDailyTtl, compression));
 
       // Cluster level
-      stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_TABLE_SQL,
-        METRICS_CLUSTER_AGGREGATE_TABLE_NAME, encoding, clusterMinTtl, compression));
+      String aggregateSql = String.format(CREATE_METRICS_CLUSTER_AGGREGATE_TABLE_SQL,
+        METRICS_CLUSTER_AGGREGATE_TABLE_NAME, encoding, clusterMinTtl, compression);
+      splitPoints = metricsConf.get(AGGREGATE_TABLE_SPLIT_POINTS);
+      if (!StringUtils.isEmpty(splitPoints)) {
+        aggregateSql += getSplitPointsStr(splitPoints);
+      }
+      stmt.executeUpdate(aggregateSql);
       stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_SQL,
         METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME, encoding, clusterHourTtl, compression));
       stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_SQL,
@@ -321,6 +334,27 @@ public class PhoenixHBaseAccessor {
         }
       }
     }
+  }
+
+  protected String getSplitPointsStr(String splitPoints) {
+    if (StringUtils.isEmpty(splitPoints)) {
+      return "";
+    }
+    String[] points = splitPoints.split(",");
+    if (points.length > 0) {
+      StringBuilder sb = new StringBuilder(" SPLIT ON ");
+      sb.append("(");
+      for (String point : points) {
+        sb.append("'");
+        sb.append(point.trim());
+        sb.append("'");
+        sb.append(",");
+      }
+      sb.deleteCharAt(sb.length() - 1);
+      sb.append(")");
+      return sb.toString();
+    }
+    return "";
   }
 
   public void insertMetricRecords(TimelineMetrics metrics) throws SQLException, IOException {
