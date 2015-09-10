@@ -342,4 +342,20 @@
       for the aggregate table that stores seconds aggregate data across hosts.
     </description>
   </property>
+
+  <property>
+    <name>timeline.metrics.sink.report.interval</name>
+    <value>60</value>
+    <description>
+      Time in seconds to sleep before report metrics to collector.
+      Default resolution is 1 minutes.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.sink.collection.period</name>
+    <value>60</value>
+    <description>
+      The interval between two service metrics data exports.
+    </description>
+  </property>
 </configuration>

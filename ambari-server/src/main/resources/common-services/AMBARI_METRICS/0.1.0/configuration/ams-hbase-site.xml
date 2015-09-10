@@ -72,6 +72,7 @@
       list of ZooKeeper quorum servers. If HBASE_MANAGES_ZK is set in hbase-env.sh
       this is the list of servers which we will start/stop ZooKeeper on.
     </description>
+    <final>true</final>
   </property>
   <property>
     <name>hbase.master.info.bindAddress</name>

@@ -13,27 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Poll collectors every ten seconds
-*.period=60
+# Poll collectors every {{metrics_report_interval}} seconds
+*.period={{metrics_collection_period}}
 
 {% if has_metric_collector %}
 
 *.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
 *.sink.timeline.slave.host.name={{hostname}}
 accumulo.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
-accumulo.period=10
+accumulo.period={{metrics_collection_period}}
 accumulo.collector={{metric_collector_host}}:{{metric_collector_port}}
 
 jvm.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
-jvm.period=10
+jvm.period={{metrics_collection_period}}
 jvm.collector={{metric_collector_host}}:{{metric_collector_port}}
 
 rpc.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
-rpc.period=10
+rpc.period={{metrics_collection_period}}
 rpc.collector={{metric_collector_host}}:{{metric_collector_port}}
 
 accumulo.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
-accumulo.sink.timeline.period=10
+accumulo.sink.timeline.period={{metrics_collection_period}}
+accumulo.sink.timeline.sendInterval={{metrics_report_interval}}000
 accumulo.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
 
 {% else %}

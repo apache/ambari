@@ -1083,11 +1083,11 @@ class TestHDP206StackAdvisor(TestCase):
 
   def test_getProperMountPoint(self):
     hostInfo = None
-    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     hostInfo = {"some_key": []}
-    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     hostInfo["disk_info"] = []
-    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     # root mountpoint with low space available
     hostInfo["disk_info"].append(
       {
@@ -1096,7 +1096,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/"
       }
     )
-    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     # tmpfs with more space available
     hostInfo["disk_info"].append(
       {
@@ -1105,7 +1105,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/dev/shm"
       }
     )
-    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     # /boot with more space available
     hostInfo["disk_info"].append(
       {
@@ -1114,7 +1114,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/boot/grub"
       }
     )
-    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     # /boot with more space available
     hostInfo["disk_info"].append(
       {
@@ -1123,7 +1123,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/mnt/external_hdd"
       }
     )
-    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     # virtualbox fs with more space available
     hostInfo["disk_info"].append(
       {
@@ -1132,7 +1132,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/vagrant"
       }
     )
-    self.assertEquals("/", self.stackAdvisor.getProperMountPoint(hostInfo))
+    self.assertEquals(["/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     # proper mountpoint with more space available
     hostInfo["disk_info"].append(
       {
@@ -1141,7 +1141,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/grid/0"
       }
     )
-    self.assertEquals("/grid/0", self.stackAdvisor.getProperMountPoint(hostInfo))
+    self.assertEquals(["/grid/0", "/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
     # proper mountpoint with more space available
     hostInfo["disk_info"].append(
       {
@@ -1150,7 +1150,7 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/grid/1"
       }
     )
-    self.assertEquals("/grid/1", self.stackAdvisor.getProperMountPoint(hostInfo))
+    self.assertEquals(["/grid/1", "/grid/0", "/"], self.stackAdvisor.getPreferredMountPoints(hostInfo))
 
   def test_validateNonRootFs(self):
     hostInfo = {"disk_info": [
@@ -1173,7 +1173,7 @@ class TestHDP206StackAdvisor(TestCase):
     )
     warn = self.stackAdvisor.validatorNotRootFs(properties, 'property1', hostInfo)
     self.assertTrue(warn != None)
-    self.assertEquals({'message': 'The root device should not be used for property1', 'level': 'WARN'}, warn)
+    self.assertEquals({'message': 'It is not recommended to use root partition for property1', 'level': 'WARN'}, warn)
 
     # Set by user /var mountpoint, which is non-root , but not preferable - no warning
     hostInfo["disk_info"].append(
