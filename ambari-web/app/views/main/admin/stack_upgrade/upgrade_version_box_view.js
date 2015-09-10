@@ -32,6 +32,17 @@ App.UpgradeVersionBoxView = Em.View.extend({
   PROGRESS_STATUS: 'IN_PROGRESS',
 
   /**
+   * flag that verify Upgrade availability when version in INSTALL_FAILED state
+   * @type {boolean}
+   */
+  isUpgradeAvailable: false,
+
+  /**
+   * @type {boolean}
+   */
+  upgradeCheckInProgress: false,
+
+  /**
    * progress of version installation
    * @type {number}
    */
@@ -103,7 +114,6 @@ App.UpgradeVersionBoxView = Em.View.extend({
    */
   stateElement: function () {
     var currentVersion = this.get('controller.currentVersion');
-    var upgradeVersion = this.get('controller.upgradeVersion');
     var status = this.get('content.status');
     var element = Em.Object.create({
       status: status,
@@ -120,17 +130,21 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('isLabel', true);
       element.set('text', Em.I18n.t('common.current'));
       element.set('class', 'label label-success');
-    } else if (['INIT', 'INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status)) {
+    }
+    else if (['INIT', 'INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status) && !this.get('isUpgradeAvailable')) {
       element.set('isButton', true);
       element.set('text', Em.I18n.t('admin.stackVersions.version.installNow'));
       element.set('action', 'installRepoVersionConfirmation');
       element.set('isDisabled', !App.isAccessible('ADMIN') || this.get('controller.requestInProgress') || isInstalling);
-    } else if (status === 'INSTALLING') {
+    }
+    else if (status === 'INSTALLING') {
       element.set('iconClass', 'icon-cog');
       element.set('isLink', true);
       element.set('text', Em.I18n.t('hosts.host.stackVersions.status.installing'));
       element.set('action', 'showProgressPopup');
-    } else if (status === 'INSTALLED' && !this.get('isUpgrading')) {
+    }
+    else if ((status === 'INSTALLED' && !this.get('isUpgrading')) ||
+             (status === 'INSTALL_FAILED' && this.get('isUpgradeAvailable'))) {
       if (stringUtils.compareVersions(this.get('content.repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1) {
         var isDisabled = !App.isAccessible('ADMIN') || this.get('controller.requestInProgress') || isInstalling;
         element.set('isButtonGroup', true);
@@ -142,40 +156,53 @@ App.UpgradeVersionBoxView = Em.View.extend({
           isDisabled: isDisabled
         });
         element.set('isDisabled', isDisabled);
-      } else {
+      }
+      else {
         element.set('iconClass', 'icon-ok');
         element.set('isLink', true);
         element.set('text', Em.I18n.t('common.installed'));
         element.set('action', null);
       }
-    } else if ((['UPGRADING', 'UPGRADE_FAILED', 'UPGRADED'].contains(status) || this.get('isUpgrading')) && !isAborted) {
+    }
+    else if ((['UPGRADING', 'UPGRADE_FAILED', 'UPGRADED'].contains(status) || this.get('isUpgrading')) && !isAborted) {
       element.set('isLink', true);
       element.set('action', 'openUpgradeDialog');
       if (['HOLDING', 'HOLDING_FAILED', 'HOLDING_TIMEDOUT'].contains(App.get('upgradeState'))) {
         element.set('iconClass', 'icon-pause');
         if (this.get('controller.isDowngrade')) {
           element.set('text', Em.I18n.t('admin.stackVersions.version.downgrade.pause'));
-        } else {
+        }
+        else {
           element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.pause'));
         }
-      } else {
+      }
+      else {
         element.set('iconClass', 'icon-cog');
         if (this.get('controller.isDowngrade')) {
           element.set('text', Em.I18n.t('admin.stackVersions.version.downgrade.running'));
-        } else {
+        }
+        else {
           element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.running'));
         }
       }
-    } else if (isAborted) {
+    }
+    else if (isAborted) {
       element.set('isButton', true);
       element.set('text', this.get('controller.isDowngrade') ? Em.I18n.t('common.reDowngrade') : Em.I18n.t('common.reUpgrade'));
       element.set('action', this.get('controller.isDowngrade') ? 'confirmRetryDowngrade' : 'confirmRetryUpgrade');
       element.set('isDisabled', this.get('controller.requestInProgress'));
     }
     return element;
-  }.property('content.status', 'controller.isDowngrade', 'isUpgrading', 'controller.requestInProgress', 'parentView.repoVersions.@each.status'),
+  }.property(
+    'content.status',
+    'controller.isDowngrade',
+    'isUpgrading',
+    'controller.requestInProgress',
+    'parentView.repoVersions.@each.status',
+    'isUpgradeAvailable'),
 
   didInsertElement: function () {
+    this.checkUpgradeAvailability();
     App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});
     App.tooltip($('.hosts-tooltip'));
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
@@ -324,5 +351,43 @@ App.UpgradeVersionBoxView = Em.View.extend({
     App.router.get('mainHostController').filterByStack(displayName, state);
     App.router.get('mainHostController').set('showFilterConditionsFirstLoad', true);
     App.router.transitionTo('hosts.index');
+  },
+
+  /**
+   * when version in INSTALL_FAILED state it still could be upgraded if check passed
+   */
+  checkUpgradeAvailability: function () {
+    if (this.get('content.status') === 'INSTALL_FAILED') {
+      this.runUpgradeCheck();
+    }
+  }.observes('content.status'),
+
+  /**
+   * run Upgrade Check
+   */
+  runUpgradeCheck: function() {
+    if (App.get('supports.preUpgradeCheck') && !this.get('upgradeCheckInProgress')) {
+      App.ajax.send({
+        name: "admin.rolling_upgrade.pre_upgrade_check",
+        sender: this,
+        data: {
+          value: this.get('content.repositoryVersion'),
+          label: this.get('content.displayName')
+        },
+        success: "runUpgradeCheckSuccess",
+        error: "runUpgradeCheckError"
+      });
+      this.set('upgradeCheckInProgress', true);
+    }
+  },
+
+  runUpgradeCheckSuccess: function (data) {
+    this.set('isUpgradeAvailable', !data.items.someProperty('UpgradeChecks.status', 'FAIL'));
+    this.set('upgradeCheckInProgress', false);
+  },
+
+  runUpgradeCheckError: function() {
+    this.set('isUpgradeAvailable', false);
+    this.set('upgradeCheckInProgress', false);
   }
 });
