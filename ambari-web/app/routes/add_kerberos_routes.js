@@ -322,7 +322,7 @@ module.exports = App.WizardRoute.extend({
         });
         router.transitionTo('step7');
       };
-      if (kerberosWizardController.get('skipClientInstall')) {
+      if (!kerberosWizardController.get('skipClientInstall')) {
         kerberosWizardController.createKerberosResources(callback);
       } else {
         callback();
