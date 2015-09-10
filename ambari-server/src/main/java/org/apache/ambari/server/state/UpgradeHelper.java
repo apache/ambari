@@ -439,9 +439,21 @@ public class UpgradeHelper {
      * List of stages for the group
      */
     public List<StageWrapper> items = new ArrayList<StageWrapper>();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+      StringBuilder buffer = new StringBuilder("UpgradeGroupHolder{ ");
+      buffer.append("name").append(name);
+      buffer.append(", title=").append(title);
+      buffer.append(", allowRetry=").append(allowRetry);
+      buffer.append(", skippable=").append(skippable);
+      buffer.append("}");
+      return buffer.toString();
+    }
   }
-
-
 
   /**
    * Gets a set of Stages resources to aggregate an UpgradeItem with Stage.

@@ -65,7 +65,7 @@ public class Grouping {
    * Gets the default builder.
    */
   public StageWrapperBuilder getBuilder() {
-    return new DefaultBuilder(performServiceCheck);
+    return new DefaultBuilder(this, performServiceCheck);
   }
 
 
@@ -75,7 +75,8 @@ public class Grouping {
     private Set<String> m_servicesToCheck = new HashSet<String>();
     private boolean m_serviceCheck = true;
 
-    private DefaultBuilder(boolean serviceCheck) {
+    private DefaultBuilder(Grouping grouping, boolean serviceCheck) {
+      super(grouping);
       m_serviceCheck = serviceCheck;
     }
 
@@ -139,23 +140,32 @@ public class Grouping {
       }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public List<StageWrapper> build(UpgradeContext ctx) {
+    public List<StageWrapper> build(UpgradeContext upgradeContext,
+        List<StageWrapper> stageWrappers) {
+
+      // insert all pre-processed stage wrappers first
+      if (!stageWrappers.isEmpty()) {
+        m_stages.addAll(0, stageWrappers);
+      }
 
       List<TaskWrapper> tasks = new ArrayList<TaskWrapper>();
       List<String> displays = new ArrayList<String>();
       for (String service : m_servicesToCheck) {
         tasks.add(new TaskWrapper(
             service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
-        displays.add(ctx.getServiceDisplay(service));
+
+        displays.add(upgradeContext.getServiceDisplay(service));
       }
 
-      if (ctx.getDirection().isUpgrade() && m_serviceCheck && m_servicesToCheck.size() > 0) {
-        StageWrapper wrapper = new StageWrapper(
-            StageWrapper.Type.SERVICE_CHECK,
-            "Service Check " + StringUtils.join(displays, ", "),
-            tasks.toArray(new TaskWrapper[0])
-            );
+      if (upgradeContext.getDirection().isUpgrade() && m_serviceCheck
+          && m_servicesToCheck.size() > 0) {
+
+        StageWrapper wrapper = new StageWrapper(StageWrapper.Type.SERVICE_CHECK,
+            "Service Check " + StringUtils.join(displays, ", "), tasks.toArray(new TaskWrapper[0]));
 
         m_stages.add(wrapper);
       }
@@ -168,8 +178,9 @@ public class Grouping {
    * Group all like-typed tasks together.  When they change, create a new type.
    */
   private static List<TaskBucket> buckets(List<Task> tasks) {
-    if (null == tasks || tasks.isEmpty())
+    if (null == tasks || tasks.isEmpty()) {
       return Collections.emptyList();
+    }
 
     List<TaskBucket> holders = new ArrayList<TaskBucket>();
 

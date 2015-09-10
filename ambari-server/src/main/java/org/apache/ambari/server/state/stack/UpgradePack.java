@@ -94,6 +94,7 @@ public class UpgradePack {
       if (null == group.intendedDirection || direction == group.intendedDirection) {
         checked.add(group);
       }
+
     }
 
     return checked;
