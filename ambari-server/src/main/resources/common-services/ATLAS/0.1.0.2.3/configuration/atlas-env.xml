@@ -42,7 +42,7 @@
   </property>
   <property>
     <name>metadata_opts</name>
-    <value>-Xmx1024m</value>
+    <value>-Xmx1024m -Dlog4j.configuration=atlas-log4j.xml</value>
     <description>Metadata Server command line options.</description>
   </property>
   <property>
@@ -70,7 +70,7 @@
 export JAVA_HOME={{java64_home}}
 
 # any additional java opts you want to set. This will apply to both client and server operations
-export METADATA_OPTS={{metadata_opts}}
+export METADATA_OPTS="{{metadata_opts}}"
 
 # metadata configuration directory 
 export METADATA_CONF={{conf_dir}}

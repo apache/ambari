@@ -83,9 +83,9 @@ def metadata():
          content=InlineTemplate(params.metadata_env_content)
     )
 
-    File(format("{conf_dir}/log4j.xml"),
+    File(format("{conf_dir}/atlas-log4j.xml"),
          mode=0644,
          owner=params.metadata_user,
          group=params.user_group,
-         content=StaticFile('log4j.xml')
+         content=StaticFile('atlas-log4j.xml')
     )
