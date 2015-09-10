@@ -917,9 +917,9 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           if (count > 0) {
             // Delete hosts and host_state table entries for this duplicate host entry
             dbAccessor.executeQuery(
-                MessageFormat.format("DELETE from {0} WHERE {1} = {2}", HOST_STATE_TABLE, HOST_ID_COL, hostToDeleteId));
+                MessageFormat.format("DELETE from {0} WHERE {1} = {2,number,#}", HOST_STATE_TABLE, HOST_ID_COL, hostToDeleteId));
             dbAccessor.executeQuery(
-                MessageFormat.format("DELETE from {0} WHERE {1} = {2}", HOSTS_TABLE, HOST_ID_COL, hostToDeleteId));
+                MessageFormat.format("DELETE from {0} WHERE {1} = {2,number,#}", HOSTS_TABLE, HOST_ID_COL, hostToDeleteId));
           }
         }
       }

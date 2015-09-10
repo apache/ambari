@@ -57,6 +57,11 @@ public class UpgradeCatalog211 extends AbstractUpgradeCatalog {
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog211.class);
 
+  // this "id holder" is a field only for a test that verifies "big" 4 digit+
+  // numbers are formatted correctly
+  private AtomicLong m_hcsId = new AtomicLong(1);
+
+
   @Inject
   DaoUtils daoUtils;
 
@@ -200,8 +205,6 @@ public class UpgradeCatalog211 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn(HOST_COMPONENT_STATE_TABLE,
         new DBColumnInfo(HOST_COMPONENT_STATE_ID_COLUMN, Long.class, null, null, true));
 
-    // insert sequence values
-    AtomicLong id = new AtomicLong(1);
     Statement statement = null;
     ResultSet resultSet = null;
     try {
@@ -219,8 +222,8 @@ public class UpgradeCatalog211 extends AbstractUpgradeCatalog {
           final Long hostId = resultSet.getLong("host_id");
 
           String updateSQL = MessageFormat.format(
-              "UPDATE {0} SET {1} = {2} WHERE cluster_id = {3} AND service_name = ''{4}'' AND component_name = ''{5}'' and host_id = {6}",
-              HOST_COMPONENT_STATE_TABLE, HOST_COMPONENT_STATE_ID_COLUMN, id.getAndIncrement(),
+              "UPDATE {0} SET {1} = {2,number,#} WHERE cluster_id = {3} AND service_name = ''{4}'' AND component_name = ''{5}'' and host_id = {6,number,#}",
+              HOST_COMPONENT_STATE_TABLE, HOST_COMPONENT_STATE_ID_COLUMN, m_hcsId.getAndIncrement(),
               clusterId, serviceName, componentName, hostId);
 
           dbAccessor.executeQuery(updateSQL);
@@ -236,7 +239,7 @@ public class UpgradeCatalog211 extends AbstractUpgradeCatalog {
         new DBColumnInfo(HOST_COMPONENT_STATE_ID_COLUMN, Long.class, null, null, false));
 
     // Add sequence for hostcomponentstate id
-    addSequence("hostcomponentstate_id_seq", id.get(), false);
+    addSequence("hostcomponentstate_id_seq", m_hcsId.get(), false);
 
     // drop the current PK
     String primaryKeyConstraintName = null;
