@@ -1,0 +1,124 @@
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.ConnectionProvider;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
+import org.easymock.EasyMock;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+
+/**
+ * Created by user on 9/7/15.
+ */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(PhoenixTransactSQL.class)
+public class PhoenixHBaseAccessorTest {
+  private static final String ZOOKEEPER_QUORUM = "hbase.zookeeper.quorum";
+
+  @Test
+  public void testGetMetricRecords() throws SQLException, IOException {
+
+    Configuration hbaseConf = new Configuration();
+    hbaseConf.setStrings(ZOOKEEPER_QUORUM, "quorum");
+    Configuration metricsConf = new Configuration();
+
+    ConnectionProvider connectionProvider = new ConnectionProvider() {
+      @Override
+      public Connection getConnection() throws SQLException {
+        return null;
+      }
+    };
+
+    PhoenixHBaseAccessor accessor = new PhoenixHBaseAccessor(hbaseConf, metricsConf, connectionProvider);
+
+    List<String> metricNames = new LinkedList<>();
+    List<String> hostnames = new LinkedList<>();
+    Map<String, List<Function>> metricFunctions = new HashMap<>();
+
+    PowerMock.mockStatic(PhoenixTransactSQL.class);
+    PreparedStatement preparedStatementMock = EasyMock.createNiceMock(PreparedStatement.class);
+    Condition condition = new DefaultCondition(metricNames, hostnames, "appid", "instanceid", 123L, 234L, Precision.SECONDS, 10, true);
+    EasyMock.expect(PhoenixTransactSQL.prepareGetMetricsSqlStmt(null, condition)).andReturn(preparedStatementMock).once();
+    ResultSet rsMock = EasyMock.createNiceMock(ResultSet.class);
+    EasyMock.expect(preparedStatementMock.executeQuery()).andReturn(rsMock);
+
+
+    PowerMock.replayAll();
+    EasyMock.replay(preparedStatementMock, rsMock);
+
+    // Check when startTime < endTime
+    TimelineMetrics tml = accessor.getMetricRecords(condition, metricFunctions);
+
+    // Check when startTime > endTime
+    Condition condition2 = new DefaultCondition(metricNames, hostnames, "appid", "instanceid", 234L, 123L, Precision.SECONDS, 10, true);
+    TimelineMetrics tml2 = accessor.getMetricRecords(condition2, metricFunctions);
+    assertEquals(0, tml2.getMetrics().size());
+
+    PowerMock.verifyAll();
+    EasyMock.verify(preparedStatementMock, rsMock);
+  }
+
+  @Test
+  public void testGetMetricRecordsException() throws SQLException, IOException {
+
+    Configuration hbaseConf = new Configuration();
+    hbaseConf.setStrings(ZOOKEEPER_QUORUM, "quorum");
+    Configuration metricsConf = new Configuration();
+
+    ConnectionProvider connectionProvider = new ConnectionProvider() {
+      @Override
+      public Connection getConnection() throws SQLException {
+        return null;
+      }
+    };
+
+    PhoenixHBaseAccessor accessor = new PhoenixHBaseAccessor(hbaseConf, metricsConf, connectionProvider);
+
+    List<String> metricNames = new LinkedList<>();
+    List<String> hostnames = new LinkedList<>();
+    Map<String, List<Function>> metricFunctions = new HashMap<>();
+
+    PowerMock.mockStatic(PhoenixTransactSQL.class);
+    PreparedStatement preparedStatementMock = EasyMock.createNiceMock(PreparedStatement.class);
+    Condition condition = new DefaultCondition(metricNames, hostnames, "appid", "instanceid", 123L, 234L, Precision.SECONDS, 10, true);
+    EasyMock.expect(PhoenixTransactSQL.prepareGetMetricsSqlStmt(null, condition)).andReturn(preparedStatementMock).once();
+    ResultSet rsMock = EasyMock.createNiceMock(ResultSet.class);
+    RuntimeException runtimeException = EasyMock.createNiceMock(RuntimeException.class);
+    IOException io = EasyMock.createNiceMock(IOException.class);
+    EasyMock.expect(preparedStatementMock.executeQuery()).andThrow(runtimeException);
+    EasyMock.expect(runtimeException.getCause()).andReturn(io).atLeastOnce();
+    StackTraceElement stackTrace[] = new StackTraceElement[]{new StackTraceElement("TimeRange","method","file",1)};
+    EasyMock.expect(io.getStackTrace()).andReturn(stackTrace).atLeastOnce();
+
+
+    PowerMock.replayAll();
+    EasyMock.replay(preparedStatementMock, rsMock, io, runtimeException);
+
+    TimelineMetrics tml = accessor.getMetricRecords(condition, metricFunctions);
+
+    assertEquals(0, tml.getMetrics().size());
+
+    PowerMock.verifyAll();
+    EasyMock.verify(preparedStatementMock, rsMock, io, runtimeException);
+  }
+
+}
