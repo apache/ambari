@@ -345,10 +345,25 @@ App.Router = Em.Router.extend({
       }
       App.set('isPermissionDataLoaded', true);
       if (transitionToApp) {
-        if (!Em.isNone(router.get('preferedPath')) &&
-            router.get('preferedPath') != "#/login") {
-          window.location = router.get('preferedPath');
+        var preferredPath = router.get('preferedPath');
+        // If the preferred path is relative, allow a redirect to it.
+        // If the path is not relative, silently ignore it - if the path is an absolute URL, the user
+        // may be routed to a different server where the [possibility exists for a phishing attack.
+        if (!Em.isNone(preferredPath)) {
+          if (preferredPath.startsWith('/') || preferredPath.startsWith('#')) {
+            console.log("INFO: Routing to preferred path: " + preferredPath);
+          }
+          else {
+            console.log("WARNING: Ignoring preferred path since it is not a relative URL: " + preferredPath);
+            preferredPath = null;
+          }
+
+          // Unset preferedPath
           router.set('preferedPath', null);
+        }
+
+        if (!Em.isNone(preferredPath)) {
+          window.location = preferredPath;
         } else {
           router.getSection(function (route) {
             router.transitionTo(route);
