@@ -18,9 +18,9 @@
 
 collector={{metric_collector_host}}
 port={{metric_collector_port}}
-collectionFrequency=60000
+collectionFrequency={{metrics_collection_period}}000
 maxRowCacheSize=10000
-sendInterval=59000
+sendInterval={{metrics_report_interval}}000
 
 # Metric names having type COUNTER
 counters=EventTakeSuccessCount,EventPutSuccessCount,EventTakeAttemptCount,EventPutAttemptCount

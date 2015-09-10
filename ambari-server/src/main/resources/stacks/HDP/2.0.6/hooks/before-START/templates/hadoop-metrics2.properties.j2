@@ -66,10 +66,11 @@ resourcemanager.sink.ganglia.tagsForPrefix.yarn=Queue
 
 {% if has_metric_collector %}
 
-*.period=60
+*.period={{metrics_collection_period}}
 *.sink.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
 *.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
-*.sink.timeline.period=10
+*.sink.timeline.period={{metrics_collection_period}}
+*.sink.timeline.sendInterval={{metrics_report_interval}}000
 *.sink.timeline.slave.host.name = {{hostname}}
 
 datanode.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}

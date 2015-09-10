@@ -122,6 +122,9 @@ if has_metric_collector:
     metric_collector_port = metric_collector_port.split(':')[1]
   pass
 
+metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
+metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 60)
+
 # if accumulo is selected accumulo_tserver_hosts should not be empty, but still default just in case
 if 'slave_hosts' in config['clusterHostInfo']:
   tserver_hosts = default('/clusterHostInfo/accumulo_tserver_hosts', '/clusterHostInfo/slave_hosts')

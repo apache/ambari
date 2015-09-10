@@ -24,11 +24,11 @@ import sys
 import optparse
 import time
 
-# http://162.216.148.45:8188/ws/v1/timeline/metrics?
+# http://162.216.148.45:6188/ws/v1/timeline/metrics?
 # metricNames=rpc.rpc.RpcAuthenticationSuccesses
 # &appId=nodemanager&hostname=local.0&startTime=1414152029&endTime=1414155629
 
-AMS_URL = "http://{0}:8188/ws/v1/timeline/metrics?metricNames={1}&appid={" \
+AMS_URL = "http://{0}:6188/ws/v1/timeline/metrics?metricNames={1}&appid={" \
           "2}&hostname={3}"
 
 # in fact it can be list automatically generated from ambari

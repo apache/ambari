@@ -83,7 +83,9 @@ class FindSplitPointsForAMSRegions():
   def initialize_region_counts(self):
     try:
       xmx_master_bytes = format_Xmx_size_to_bytes(self.ams_hbase_env['hbase_master_heapsize'])
-      xmx_region_bytes = format_Xmx_size_to_bytes(self.ams_hbase_env['hbase_regionserver_heapsize'])
+      xmx_region_bytes = 0
+      if "hbase_regionserver_heapsize" in self.ams_hbase_env:
+        xmx_region_bytes = format_Xmx_size_to_bytes(self.ams_hbase_env['hbase_regionserver_heapsize'])
       xmx_bytes = xmx_master_bytes + xmx_region_bytes
       if self.mode == 'distributed':
         xmx_bytes = xmx_region_bytes
@@ -134,9 +136,6 @@ class FindSplitPointsForAMSRegions():
 
     metric_list = list(self.metrics)
     metrics_total = len(metric_list)
-
-    print 'desired_precision_region_count: %s' % self.desired_precision_region_count
-    print 'desired_aggregate_region_count: %s' % self.desired_aggregate_region_count
 
     if self.desired_precision_region_count > 1:
       idx = int(math.ceil(metrics_total / self.desired_precision_region_count))
@@ -207,4 +206,3 @@ def main(argv = None):
 
 if __name__ == '__main__':
   main(sys.argv)
-

@@ -1177,11 +1177,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     result.extend(['METRICS_MONITOR'])
     return result
 
-  def getNotPreferableOnServerComponents(self):
-    result = super(HDP22StackAdvisor, self).getNotPreferableOnServerComponents()
-    result.extend(['METRICS_COLLECTOR'])
-    return result
-
   def getCardinalitiesDict(self):
     result = super(HDP22StackAdvisor, self).getCardinalitiesDict()
     result['METRICS_COLLECTOR'] = {"min": 1}

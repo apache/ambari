@@ -86,6 +86,8 @@ java_version = int(config['hostLevelParams']['java_version'])
 
 metrics_collector_heapsize = default('/configurations/ams-env/metrics_collector_heapsize', "512m")
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
+metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 60)
 
 hbase_log_dir = config['configurations']['ams-hbase-env']['hbase_log_dir']
 master_heapsize = config['configurations']['ams-hbase-env']['hbase_master_heapsize']
