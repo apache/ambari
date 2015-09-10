@@ -378,8 +378,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       serviceMetricsDir, mode, servicesList)
 
     result = split_point_finder.get_split_points()
-    putTimelineServiceProperty("timeline.metrics.host.aggregate.splitpoints", ','.join(result.precision))
-    putTimelineServiceProperty("timeline.metrics.cluster.aggregate.splitpoints", ','.join(result.aggregate))
+    precision_splits = ' '
+    aggregate_splits = ' '
+    if result.precision:
+      precision_splits = result.precision
+    if result.aggregate:
+      aggregate_splits = result.aggregate
+    putTimelineServiceProperty("timeline.metrics.host.aggregate.splitpoints", ','.join(precision_splits))
+    putTimelineServiceProperty("timeline.metrics.cluster.aggregate.splitpoints", ','.join(aggregate_splits))
 
     pass
 
@@ -624,9 +630,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorNotRootFs(properties, 'hbase.rootdir', host["Hosts"])}])
           validationItems.extend([{"config-name": 'hbase.tmp.dir', "item": self.validatorNotRootFs(properties, 'hbase.tmp.dir', host["Hosts"])}])
 
+          dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
           # if METRICS_COLLECTOR is co-hosted with DATANODE
           if not hbase_rootdir.startswith("hdfs") and \
-              collectorHostName in self.getComponentHostNames(services, "HDFS", "DATANODE"):
+            dn_hosts and collectorHostName in dn_hosts:
             # cross-check dfs.datanode.data.dir and hbase.rootdir
             # they shouldn't share same disk partition IO
             hdfs_site = getSiteProperties(configurations, "hdfs-site")
