@@ -450,11 +450,33 @@ public class PhoenixHBaseAccessor {
       if(condition.isPointInTime()){
         getLatestMetricRecords(condition, conn, metrics);
       } else {
-        stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
-        rs = stmt.executeQuery();
-        while (rs.next()) {
-          appendMetricFromResultSet(metrics, condition, metricFunctions, rs);
+        if (condition.getEndTime() >= condition.getStartTime()) {
+          stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
+          rs = stmt.executeQuery();
+          while (rs.next()) {
+            appendMetricFromResultSet(metrics, condition, metricFunctions, rs);
+          }
+        } else {
+          LOG.warn("Skipping metrics query because endTime < startTime");
         }
+      }
+
+    } catch (RuntimeException ex) {
+      // We need to find out if this is a real IO exception
+      // or exception "maxStamp is smaller than minStamp"
+      // which is thrown in hbase TimeRange.java
+      Throwable io = ex.getCause();
+      String className = null;
+      for (StackTraceElement ste : io.getStackTrace()) {
+        className = ste.getClassName();
+      }
+      if (className != null && className.equals("TimeRange")) {
+        // This is "maxStamp is smaller than minStamp" exception
+        // Log error and return empty metrics
+        LOG.debug(io);
+        return new TimelineMetrics();
+      } else {
+        throw ex;
       }
 
     } finally {
