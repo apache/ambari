@@ -604,7 +604,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   resolveYarnConfigs: function (configs) {
     var cfgToChange = configs.findProperty('name', 'hadoop.registry.rm.enabled');
     if (cfgToChange) {
-      var res = this.get('allSelectedServiceNames').contains('SLIDER');
+      var res = this.get('allSelectedServiceNames').contains('SLIDER').toString();
       if (Em.get(cfgToChange, 'value') !== res) {
         Em.set(cfgToChange, 'recommendedValue', res);
         Em.set(cfgToChange, 'value', res);
@@ -911,7 +911,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var configsMap = {};
     var configMixin = App.get('config');
     var nonServiceTab = require('data/service_configs');
-    var self = this;
 
     configsByTags.forEach(function (configSite) {
       configsMap[configSite.type] = configSite.properties || {};
@@ -924,9 +923,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         if (_config.savedValue != mappedConfigValue || _config.displayType == 'password') {
           _config.value = App.config.formatPropertyValue(_config, mappedConfigValue);
         }
-        _config.savedValue = mappedConfigValue;
+        _config.savedValue = App.config.formatPropertyValue(_config, mappedConfigValue);
         _config.hasInitialValue = true;
-        App.config.handleSpecialProperties(_config);
         delete configsMap[type][_config.name];
       }
     });

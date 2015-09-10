@@ -647,10 +647,10 @@ describe('App.InstallerStep7Controller', function () {
     it('should set property to true', function () {
       var allSelectedServiceNames = ['SLIDER', 'YARN'],
         configs = [
-          {name: 'hadoop.registry.rm.enabled', value: false, recommendedValue: false}
+          {name: 'hadoop.registry.rm.enabled', value: 'false', recommendedValue: 'false'}
         ],
         expected = [
-          {name: 'hadoop.registry.rm.enabled', value: true, recommendedValue: true}
+          {name: 'hadoop.registry.rm.enabled', value: 'true', recommendedValue: 'true'}
         ];
       installerStep7Controller.reopen({allSelectedServiceNames: allSelectedServiceNames});
       installerStep7Controller.resolveYarnConfigs(configs);
@@ -660,10 +660,10 @@ describe('App.InstallerStep7Controller', function () {
     it('should set property to false', function () {
       var allSelectedServiceNames = ['YARN'],
         configs = [
-          {name: 'hadoop.registry.rm.enabled', value: true, recommendedValue: true}
+          {name: 'hadoop.registry.rm.enabled', value: 'true', recommendedValue: 'true'}
         ],
         expected = [
-          {name: 'hadoop.registry.rm.enabled', value: false, recommendedValue: false}
+          {name: 'hadoop.registry.rm.enabled', value: 'false', recommendedValue: 'false'}
         ];
       installerStep7Controller.reopen({allSelectedServiceNames: allSelectedServiceNames});
       installerStep7Controller.resolveYarnConfigs(configs);
@@ -673,10 +673,10 @@ describe('App.InstallerStep7Controller', function () {
     it('should skip setting property', function () {
       var allSelectedServiceNames = ['YARN', 'SLIDER'],
         configs = [
-          {name: 'hadoop.registry.rm.enabled', value: true, recommendedValue: true}
+          {name: 'hadoop.registry.rm.enabled', value: 'true', recommendedValue: 'true'}
         ],
         expected = [
-          {name: 'hadoop.registry.rm.enabled', value: true, recommendedValue: true}
+          {name: 'hadoop.registry.rm.enabled', value: 'true', recommendedValue: 'true'}
         ];
       installerStep7Controller.reopen({allSelectedServiceNames: allSelectedServiceNames});
       installerStep7Controller.resolveYarnConfigs(configs);
