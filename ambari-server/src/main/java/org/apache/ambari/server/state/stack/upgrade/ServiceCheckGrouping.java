@@ -58,11 +58,12 @@ public class ServiceCheckGrouping extends Grouping {
   @XmlElement(name="service")
   private Set<String> excludeServices = new HashSet<String>();
 
-  private ServiceCheckBuilder m_builder = new ServiceCheckBuilder();
-
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ServiceCheckBuilder getBuilder() {
-    return m_builder;
+    return new ServiceCheckBuilder(this);
   }
 
   /**
@@ -76,23 +77,40 @@ public class ServiceCheckGrouping extends Grouping {
    * Used to build stages for service check groupings.
    */
   public class ServiceCheckBuilder extends StageWrapperBuilder {
+
     private Cluster m_cluster;
     private AmbariMetaInfo m_metaInfo;
 
+    /**
+     * Constructor.
+     *
+     * @param grouping
+     *          the upgrade/downgrade grouping (not {@code null}).
+     */
+    protected ServiceCheckBuilder(Grouping grouping) {
+      super(grouping);
+    }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void add(UpgradeContext ctx, HostsType hostsType, String service,
         boolean clientOnly, ProcessingComponent pc) {
       // !!! nothing to do here
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public List<StageWrapper> build(UpgradeContext ctx) {
-      m_cluster = ctx.getCluster();
-      m_metaInfo = ctx.getAmbariMetaInfo();
+    public List<StageWrapper> build(UpgradeContext upgradeContext,
+        List<StageWrapper> stageWrappers) {
+      m_cluster = upgradeContext.getCluster();
+      m_metaInfo = upgradeContext.getAmbariMetaInfo();
 
-      List<StageWrapper> result = new ArrayList<StageWrapper>();
-      if (ctx.getDirection().isDowngrade()) {
+      List<StageWrapper> result = new ArrayList<StageWrapper>(stageWrappers);
+      if (upgradeContext.getDirection().isDowngrade()) {
         return result;
       }
 
@@ -101,28 +119,29 @@ public class ServiceCheckGrouping extends Grouping {
       Set<String> clusterServices = new LinkedHashSet<String>(serviceMap.keySet());
 
       // create stages for the priorities
-      for (String service : ServiceCheckGrouping.this.priorityServices) {
-        if (checkServiceValidity(ctx, service, serviceMap)) {
+      for (String service : priorityServices) {
+        if (checkServiceValidity(upgradeContext, service, serviceMap)) {
           StageWrapper wrapper = new StageWrapper(
               StageWrapper.Type.SERVICE_CHECK,
-              "Service Check " + ctx.getServiceDisplay(service),
+              "Service Check " + upgradeContext.getServiceDisplay(service),
               new TaskWrapper(service, "", Collections.<String>emptySet(),
                   new ServiceCheckTask()));
-          result.add(wrapper);
 
+          result.add(wrapper);
           clusterServices.remove(service);
         }
       }
 
       // create stages for everything else, as long it is valid
       for (String service : clusterServices) {
-        if (ServiceCheckGrouping.this.excludeServices.contains(service)) {
+        if (excludeServices.contains(service)) {
           continue;
         }
-        if (checkServiceValidity(ctx, service, serviceMap)) {
+
+        if (checkServiceValidity(upgradeContext, service, serviceMap)) {
           StageWrapper wrapper = new StageWrapper(
               StageWrapper.Type.SERVICE_CHECK,
-              "Service Check " + ctx.getServiceDisplay(service),
+              "Service Check " + upgradeContext.getServiceDisplay(service),
               new TaskWrapper(service, "", Collections.<String>emptySet(),
                   new ServiceCheckTask()));
           result.add(wrapper);

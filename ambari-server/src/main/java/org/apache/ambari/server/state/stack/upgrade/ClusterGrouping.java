@@ -31,7 +31,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.stack.HostsType;
@@ -59,12 +58,9 @@ public class ClusterGrouping extends Grouping {
   @XmlElement(name="execute-stage")
   public List<ExecuteStage> executionStages;
 
-  @XmlTransient
-  private ClusterBuilder m_builder = new ClusterBuilder();
-
   @Override
   public ClusterBuilder getBuilder() {
-    return m_builder;
+    return new ClusterBuilder(this);
   }
 
 
@@ -100,24 +96,39 @@ public class ClusterGrouping extends Grouping {
 
   public class ClusterBuilder extends StageWrapperBuilder {
 
+    /**
+     * Constructor.
+     *
+     * @param grouping
+     *          the upgrade/downgrade grouping (not {@code null}).
+     */
+    private ClusterBuilder(Grouping grouping) {
+      super(grouping);
+    }
+
     @Override
     public void add(UpgradeContext ctx, HostsType hostsType, String service,
         boolean clientOnly, ProcessingComponent pc) {
       // !!! no-op in this case
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public List<StageWrapper> build(UpgradeContext ctx) {
+    public List<StageWrapper> build(UpgradeContext upgradeContext,
+        List<StageWrapper> stageWrappers) {
+
       if (null == executionStages) {
-        return Collections.emptyList();
+        return stageWrappers;
       }
 
-      List<StageWrapper> results = new ArrayList<StageWrapper>();
+      List<StageWrapper> results = new ArrayList<StageWrapper>(stageWrappers);
 
       if (executionStages != null) {
         for (ExecuteStage execution : executionStages) {
-          if (null != execution.intendedDirection &&
-              execution.intendedDirection != ctx.getDirection()) {
+          if (null != execution.intendedDirection
+              && execution.intendedDirection != upgradeContext.getDirection()) {
             continue;
           }
 
@@ -127,7 +138,7 @@ public class ClusterGrouping extends Grouping {
 
           switch (task.getType()) {
             case MANUAL:
-              wrapper = getManualStageWrapper(ctx, execution);
+              wrapper = getManualStageWrapper(upgradeContext, execution);
               break;
 
             case SERVER_ACTION:
@@ -138,7 +149,7 @@ public class ClusterGrouping extends Grouping {
               break;
 
             case EXECUTE:
-              wrapper = getExecuteStageWrapper(ctx, execution);
+              wrapper = getExecuteStageWrapper(upgradeContext, execution);
               break;
 
             default:

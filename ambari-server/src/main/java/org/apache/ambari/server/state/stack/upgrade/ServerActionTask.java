@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
-import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;

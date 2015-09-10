@@ -54,9 +54,12 @@ public class ColocatedGrouping extends Grouping {
   public Batch batch;
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public StageWrapperBuilder getBuilder() {
-    return new MultiHomedBuilder(batch, performServiceCheck);
+    return new MultiHomedBuilder(this, batch, performServiceCheck);
   }
 
   private static class MultiHomedBuilder extends StageWrapperBuilder {
@@ -69,7 +72,9 @@ public class ColocatedGrouping extends Grouping {
     private Map<String, List<TaskProxy>> finalBatches = new LinkedHashMap<String, List<TaskProxy>>();
 
 
-    private MultiHomedBuilder(Batch batch, boolean serviceCheck) {
+    private MultiHomedBuilder(Grouping grouping, Batch batch, boolean serviceCheck) {
+      super(grouping);
+
       m_batch = batch;
       m_serviceCheck = serviceCheck;
     }
@@ -143,16 +148,20 @@ public class ColocatedGrouping extends Grouping {
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public List<StageWrapper> build(UpgradeContext ctx) {
-      List<StageWrapper> results = new ArrayList<StageWrapper>();
+    public List<StageWrapper> build(UpgradeContext upgradeContext,
+        List<StageWrapper> stageWrappers) {
+      List<StageWrapper> results = new ArrayList<StageWrapper>(stageWrappers);
 
       if (LOG.isDebugEnabled()) {
         LOG.debug("RU initial: {}", initialBatch);
         LOG.debug("RU final: {}", finalBatches);
       }
 
-      List<StageWrapper> befores = fromProxies(ctx.getDirection(), initialBatch);
+      List<StageWrapper> befores = fromProxies(upgradeContext.getDirection(), initialBatch);
       results.addAll(befores);
 
       if (!befores.isEmpty()) {
@@ -160,16 +169,17 @@ public class ColocatedGrouping extends Grouping {
         ManualTask task = new ManualTask();
         task.summary = m_batch.summary;
         task.message = m_batch.message;
-        formatFirstBatch(ctx, task, befores);
+        formatFirstBatch(upgradeContext, task, befores);
 
         StageWrapper wrapper = new StageWrapper(
             StageWrapper.Type.SERVER_SIDE_ACTION,
-            "Validate Partial " + ctx.getDirection().getText(true),
+            "Validate Partial " + upgradeContext.getDirection().getText(true),
             new TaskWrapper(null, null, Collections.<String>emptySet(), task));
+
         results.add(wrapper);
       }
 
-      results.addAll(fromProxies(ctx.getDirection(), finalBatches));
+      results.addAll(fromProxies(upgradeContext.getDirection(), finalBatches));
 
       return results;
     }

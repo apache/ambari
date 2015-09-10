@@ -306,6 +306,35 @@ public class HostRoleCommandDAO {
   }
 
   /**
+   * Finds all the {@link HostRoleCommandEntity}s for the given request that are
+   * between the specified stage IDs and have the specified status.
+   *
+   * @param requestId
+   *          the request ID
+   * @param status
+   *          the command status to query for (not {@code null}).
+   * @param minStageId
+   *          the lowest stage ID to requests tasks for.
+   * @param maxStageId
+   *          the highest stage ID to request tasks for.
+   * @return the tasks that satisfy the specified parameters.
+   */
+  @RequiresSession
+  public List<HostRoleCommandEntity> findByStatusBetweenStages(long requestId,
+      HostRoleStatus status, long minStageId, long maxStageId) {
+
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createNamedQuery(
+        "HostRoleCommandEntity.findByStatusBetweenStages", HostRoleCommandEntity.class);
+
+    query.setParameter("requestId", requestId);
+    query.setParameter("status", status);
+    query.setParameter("minStageId", minStageId);
+    query.setParameter("maxStageId", maxStageId);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Gets requests that have tasks in any of the specified statuses.
    *
    * @param statuses
