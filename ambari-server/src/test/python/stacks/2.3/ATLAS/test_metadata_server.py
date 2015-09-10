@@ -89,8 +89,8 @@ class TestMetadataServer(RMFTestCase):
                                 group='hadoop',
                                 mode=0755,
       )
-      self.assertResourceCalled('File', '/etc/atlas/conf/log4j.xml',
-                                content=StaticFile('log4j.xml'),
+      self.assertResourceCalled('File', '/etc/atlas/conf/atlas-log4j.xml',
+                                content=StaticFile('atlas-log4j.xml'),
                                 owner='atlas',
                                 group='hadoop',
                                 mode=0644,
