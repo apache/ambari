@@ -432,6 +432,34 @@ describe('App.UpgradeVersionBoxView', function () {
       },
       {
         inputData: {
+          'controller.currentVersion': {
+            repository_version: '2.2.0'
+          },
+          'content.repositoryVersion': '2.2.1',
+          'content.status': 'INSTALL_FAILED',
+          'controller.requestInProgress': false,
+          'parentView.repoVersions': [],
+          'isUpgradeAvailable': true
+        },
+        setup: function () {
+          this.isAccessibleMock.withArgs('ADMIN').returns(true);
+        },
+        expected: {
+          status: 'INSTALL_FAILED',
+          isButtonGroup: true,
+          buttons: [
+            {
+              text: Em.I18n.t('admin.stackVersions.version.reinstall'),
+              action: 'installRepoVersionConfirmation',
+              isDisabled: false
+            }
+          ],
+          isDisabled: false
+        },
+        title: 'install failed version should be enabled to Upgrade'
+      },
+      {
+        inputData: {
           'content.status': 'OUT_OF_SYNC',
           'controller.requestInProgress': false,
           'parentView.repoVersions': [
@@ -827,7 +855,68 @@ describe('App.UpgradeVersionBoxView', function () {
         expect(view.get('isRepoUrlsEditDisabled')).to.equal(item.isRepoUrlsEditDisabled);
       });
     });
-
   });
 
+  describe("#checkUpgradeAvailability()", function () {
+    beforeEach(function () {
+      sinon.stub(view, 'runUpgradeCheck', Em.K);
+    });
+    afterEach(function () {
+      view.runUpgradeCheck.restore();
+    });
+
+    it("status is INSTALLED", function () {
+      view.set('content.status', 'INSTALLED');
+      view.checkUpgradeAvailability();
+      expect(view.runUpgradeCheck.called).to.be.false;
+    });
+    it("status is INSTALL_FAILED", function () {
+      view.set('content.status', 'INSTALL_FAILED');
+      view.checkUpgradeAvailability();
+      expect(view.runUpgradeCheck.calledTwice).to.be.true;
+    });
+  });
+
+  describe("#runUpgradeCheck()", function () {
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+    });
+    afterEach(function () {
+      App.ajax.send.restore();
+    });
+
+    it("upgradeCheckInProgress is true", function () {
+      view.set('upgradeCheckInProgress', true);
+      view.runUpgradeCheck();
+      expect(App.ajax.send.called).to.be.false;
+      expect(view.get('upgradeCheckInProgress')).to.be.true;
+    });
+    it("upgradeCheckInProgress is false", function () {
+      view.set('upgradeCheckInProgress', false);
+      view.runUpgradeCheck();
+      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(view.get('upgradeCheckInProgress')).to.be.true;
+    });
+  });
+
+  describe("#runUpgradeCheckSuccess()", function () {
+    it("check failed", function () {
+      view.runUpgradeCheckSuccess({items: [{UpgradeChecks: {status: 'FAIL'}}]});
+      expect(view.get('isUpgradeAvailable')).to.be.false;
+      expect(view.get('upgradeCheckInProgress')).to.be.false;
+    });
+    it("check passed", function () {
+      view.runUpgradeCheckSuccess({items: [{UpgradeChecks: {status: 'PASS'}}]});
+      expect(view.get('isUpgradeAvailable')).to.be.true;
+      expect(view.get('upgradeCheckInProgress')).to.be.false;
+    });
+  });
+
+  describe("#runUpgradeCheckError()", function () {
+    it("check failed", function () {
+      view.runUpgradeCheckError();
+      expect(view.get('isUpgradeAvailable')).to.be.false;
+      expect(view.get('upgradeCheckInProgress')).to.be.false;
+    });
+  });
 });
