@@ -579,7 +579,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         var stackProperty = stackConfigsMap[App.config.configId(propertyName, siteName)];
         var attributes = properties[propertyName] || {};
         Em.keys(attributes).forEach(function (attributeName) {
-          if (attributeName == 'delete') {
+          if (attributeName == 'delete' && cp) {
             if (!updateOnlyBoundaries) {
               var fileName = App.config.getOriginalFileName(siteName);
               var modifiedFileNames = self.get('modifiedFileNames');
@@ -608,7 +608,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
               }
               if (modifiedFileNames && !modifiedFileNames.contains(fileName)) {
                modifiedFileNames.push(fileName);
-              } else if (wizardController) {
+              } else if (wizardController && App.StackService.find(service.get('serviceName')).get('isInstalled')) {
                 if (!fileNamesToUpdate.contains(fileName)) {
                   fileNamesToUpdate.push(fileName);
                 }

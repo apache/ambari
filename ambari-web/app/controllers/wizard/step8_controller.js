@@ -1756,7 +1756,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     installedAndSelectedServices.pushObjects(this.get('installedServices'));
     installedAndSelectedServices.pushObjects(this.get('selectedServices'));
     var coreSiteObj = this.get('configs').filterProperty('filename', 'core-site.xml'),
-      coreSiteProperties = this.resolveProxyuserDependecies(coreSiteObj, installedAndSelectedServices),
+      coreSiteProperties = this.createSiteObj('core-site', 'version1').properties,
       isGLUSTERFSSelected = installedAndSelectedServices.someProperty('serviceName', 'GLUSTERFS');
 
     coreSiteObj.forEach(function (_coreSiteObj) {

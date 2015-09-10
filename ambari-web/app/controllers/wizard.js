@@ -916,7 +916,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         // get only modified configs
         var configs = _content.get('configs').filter(function (config) {
           if (config.get('isNotDefaultValue') || (config.get('savedValue') === null)) {
-            return !notAllowed.contains(config.get('displayType')) && !!config.filename;
+            return !notAllowed.contains(config.get('displayType')) && !!config.filename && config.isRequiredByAgent!== false;
           }
           return false;
         });
