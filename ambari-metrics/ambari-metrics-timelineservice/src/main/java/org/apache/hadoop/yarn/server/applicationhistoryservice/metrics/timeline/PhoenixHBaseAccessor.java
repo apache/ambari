@@ -337,7 +337,7 @@ public class PhoenixHBaseAccessor {
   }
 
   protected String getSplitPointsStr(String splitPoints) {
-    if (splitPoints == null || StringUtils.isEmpty(splitPoints.trim())) {
+    if (StringUtils.isEmpty(splitPoints.trim())) {
       return "";
     }
     String[] points = splitPoints.split(",");
