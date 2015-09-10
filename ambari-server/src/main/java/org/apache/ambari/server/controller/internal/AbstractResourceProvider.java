@@ -150,8 +150,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
    *
    * @return the set of properties used to build request objects
    */
-  protected Set<Map<String, Object>> getPropertyMaps(Predicate givenPredicate)
-    throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException {
+  protected Set<Map<String, Object>> getPropertyMaps(Predicate givenPredicate) {
 
     SimplifyingPredicateVisitor visitor = new SimplifyingPredicateVisitor(this);
     PredicateHelper.visit(givenPredicate, visitor);
