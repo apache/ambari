@@ -47,6 +47,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.junit.After;
@@ -397,6 +398,23 @@ public class RepositoryVersionResourceProviderTest {
       Assert.fail("Update of upgrade pack should not be allowed when repo version is installed on any cluster");
     } catch (Exception ex) {
     }
+  }
+
+  @Test
+  public void testVersionInStack(){
+    StackId sid = new StackId("HDP-2.3");
+    StackId sid2 = new StackId("HDP-2.3.NEW");
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid, "2.3"));
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid2, "2.3"));
+
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid, "2.3.1"));
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid2, "2.3.1"));
+
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid, "2.3.2.0-2300"));
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid2, "2.3.2.1-3562"));
+
+    Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid, "2.4.2.0-2300"));
+    Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid2, "2.1"));
   }
 
   @After
