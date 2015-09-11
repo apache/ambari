@@ -381,6 +381,12 @@ public interface Cluster {
   Config getDesiredConfigByType(String configType);
 
   /**
+   * Check if config type exists in cluster.
+   * @param configType the type of configuration
+   * @return <code>true</code> if config type exists, else - <code>false</code>
+   */
+  boolean isConfigTypeExists(String configType);
+  /**
    * Gets the desired configurations for the cluster.
    * @return a map of type-to-configuration information.
    */

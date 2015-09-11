@@ -2010,6 +2010,11 @@ public class ClusterImpl implements Cluster {
           c.setServiceName(null);
           c.setTag(e.getTag());
           c.setUser(e.getUser());
+          if(!allConfigs.containsKey(e.getType())) {
+            LOG.error("Config inconsistency exists:" +
+                " unknown configType=" + e.getType());
+            continue;
+          }
           c.setVersion(allConfigs.get(e.getType()).get(e.getTag()).getVersion());
 
           map.put(e.getType(), c);
@@ -2448,6 +2453,22 @@ public class ClusterImpl implements Cluster {
       }
 
       return null;
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public boolean isConfigTypeExists(String configType) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      for (ClusterConfigMappingEntity e : clusterEntity.getConfigMappingEntities()) {
+        if (e.getType().equals(configType)) {
+          return true;
+        }
+      }
+
+      return false;
     } finally {
       clusterGlobalLock.readLock().unlock();
     }

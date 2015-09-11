@@ -1346,7 +1346,12 @@ public class HostImpl implements Host {
             hostConfig = new HostConfig();
             hostConfigMap.put(configType, hostConfig);
             if (cluster != null) {
-              hostConfig.setDefaultVersionTag(cluster.getDesiredConfigByType(configType).getTag());
+              Config conf = cluster.getDesiredConfigByType(configType);
+              if(conf == null)
+                LOG.error("Config inconsistency exists:"+
+                    " unknown configType="+configType);
+              else
+                hostConfig.setDefaultVersionTag(conf.getTag());
             }
           }
           Config config = configEntry.getValue();
