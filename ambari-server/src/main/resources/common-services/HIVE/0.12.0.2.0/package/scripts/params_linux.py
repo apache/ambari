@@ -408,24 +408,6 @@ if not has_atlas:
   hive_exclude_packages.append(atlas_plugin_package)
   hive_exclude_packages.append(atlas_ubuntu_plugin_package)
 else:
-  # hive-site
-  hive_site_config['atlas.cluster.name'] = config['clusterName']
-  atlas_config = config['configurations']['application-properties']
-  metadata_port = config['configurations']['atlas-env']['metadata_port']
-  metadata_host = atlas_hosts[0]
-  tls_enabled = config['configurations']['application-properties']['atlas.enableTLS']
-  if tls_enabled:
-    scheme = "https"
-  else:
-    scheme = "http"
-  hive_site_config['atlas.rest.address'] = format('{scheme}://{metadata_host}:{metadata_port}')
-
-  if not 'hive.exec.post.hooks' in hive_site_config:
-    hive_site_config['hive.exec.post.hooks'] = 'org.apache.atlas.hive.hook.HiveHook'
-  else:
-    current_hook = hive_site_config['hive.exec.post.hooks']
-    hive_site_config['hive.exec.post.hooks'] =  format('{current_hook}, org.apache.atlas.hive.hook.HiveHook')
-
   # client.properties
   atlas_client_props = {}
   auth_enabled = config['configurations']['application-properties'].get(

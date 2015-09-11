@@ -229,6 +229,10 @@ limitations under the License.
         <type>hive-env</type>
         <name>hive_timeline_logging_enabled</name>
       </property>
+      <property>
+        <type>atlast-env</type>
+        <name>metadata_port</name>
+      </property>
     </depends-on>
   </property>
 
