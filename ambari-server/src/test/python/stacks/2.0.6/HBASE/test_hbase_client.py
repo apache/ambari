@@ -88,6 +88,7 @@ class TestHBaseClient(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hbase/conf/hbase-env.sh',
         content = InlineTemplate(self.getConfig()['configurations']['hbase-env']['content']),
         owner = 'hbase',
+        group = 'hadoop'
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics2-hbase.properties',
       owner = 'hbase',
@@ -168,6 +169,7 @@ class TestHBaseClient(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hbase/conf/hbase-env.sh',
         content = InlineTemplate(self.getConfig()['configurations']['hbase-env']['content']),
         owner = 'hbase',
+        group = 'hadoop',
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics2-hbase.properties',
       owner = 'hbase',

@@ -175,6 +175,7 @@ class TestHbaseRegionServer(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hbase/conf/hbase-env.sh',
       owner = 'hbase',
       content = InlineTemplate(self.getConfig()['configurations']['hbase-env']['content']),
+      group = 'hadoop',
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics2-hbase.properties',
       owner = 'hbase',
@@ -251,6 +252,7 @@ class TestHbaseRegionServer(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hbase/conf/hbase-env.sh',
       owner = 'hbase',
       content = InlineTemplate(self.getConfig()['configurations']['hbase-env']['content']),
+      group = 'hadoop',
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics2-hbase.properties',
       owner = 'hbase',
@@ -341,7 +343,9 @@ class TestHbaseRegionServer(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/hdp/current/hbase-regionserver/conf/hbase-env.sh',
       owner = 'hbase',
-      content = InlineTemplate(self.getConfig()['configurations']['hbase-env']['content']))
+      content = InlineTemplate(self.getConfig()['configurations']['hbase-env']['content']),
+      group = 'hadoop'
+    )
 
     self.assertResourceCalled('TemplateConfig', '/usr/hdp/current/hbase-regionserver/conf/hadoop-metrics2-hbase.properties',
       owner = 'hbase',

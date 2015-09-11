@@ -65,7 +65,9 @@ def falcon(type, action = None):
 
     File(params.falcon_conf_dir + '/falcon-env.sh',
       content = InlineTemplate(params.falcon_env_sh_template),
-      owner = params.falcon_user)
+      owner = params.falcon_user,
+      group=params.user_group,
+    )
 
     File(params.falcon_conf_dir + '/client.properties',
       content = Template('client.properties.j2'),
