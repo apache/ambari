@@ -140,12 +140,12 @@ App.MainServiceItemView = Em.View.extend({
         options.push(actionMap.REFRESHQUEUES);
       }
       options.push(actionMap.RESTART_ALL);
-      allSlaves.filter(function (slave) {
-        return App.get('components.rollinRestartAllowed').contains(slave);
-      }).forEach(function(slave) {
+      allSlaves.concat(allMasters).filter(function (_component) {
+        return App.get('components.rollinRestartAllowed').contains(_component);
+      }).forEach(function(_component) {
         options.push(self.createOption(actionMap.ROLLING_RESTART, {
-          context: slave,
-          label: actionMap.ROLLING_RESTART.label.format(App.format.role(slave))
+          context: _component,
+          label: actionMap.ROLLING_RESTART.label.format(App.format.role(_component))
         }));
       });
       allMasters.filter(function(master) {
