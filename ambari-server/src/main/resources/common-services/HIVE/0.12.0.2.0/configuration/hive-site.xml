@@ -372,4 +372,26 @@ limitations under the License.
       </entries>
     </value-attributes>
   </property>
+
+  <property require-input="true">
+    <name>atlas.cluster.name</name>
+    <value></value>
+  </property>
+
+  <property>
+    <name>atlas.rest.address</name>
+    <value>http://localhost:21000</value>
+    <depends-on>
+      <property>
+        <type>application-properties</type>
+        <name>atlas.enableTLS</name>
+      </property>
+      <property>
+        <type>atlas-env</type>
+        <name>metadata_port</name>
+      </property>
+    </depends-on>
+  </property>
+
+
 </configuration>

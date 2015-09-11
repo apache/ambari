@@ -332,6 +332,8 @@ class TestHDP23StackAdvisor(TestCase):
          'hive.server2.tez.default.queues': {
            'entries': [{'value': 'queue1', 'label': 'queue1 queue'}, {'value': 'queue2', 'label': 'queue2 queue'}]
           },
+         'atlas.cluster.name': {'delete': 'true'},
+         'atlas.rest.address': {'delete': 'true'},
          'datanucleus.rdbms.datastoreAdapterClassName': {'delete': 'true'}
         }
       },
