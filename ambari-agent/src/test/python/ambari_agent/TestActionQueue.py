@@ -38,7 +38,7 @@ from ambari_agent.ActualConfigHandler import ActualConfigHandler
 from ambari_agent.RecoveryManager import RecoveryManager
 from ambari_agent.FileCache import FileCache
 from ambari_commons import OSCheck
-from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
+from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS, PLATFORM_LINUX
 
 import logging
 
@@ -873,6 +873,7 @@ class TestActionQueue(TestCase):
            os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=False, retry=True)])
 
   #retryable_command
+  @not_for_platform(PLATFORM_LINUX)
   @patch("time.sleep")
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch.object(StackVersionsFileHandler, "read_stack_version")
