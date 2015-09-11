@@ -809,6 +809,7 @@ App.registerBoundHelper('statusIcon', Em.View.extend({
     'WARNING': 'icon-warning-sign',
     'FAILED': 'icon-exclamation-sign failed',
     'HOLDING_FAILED': 'icon-exclamation-sign failed',
+    'SKIPPED_FAILED': 'icon-share-alt failed',
     'PENDING': 'icon-cog pending',
     'QUEUED': 'icon-cog queued',
     'IN_PROGRESS': 'icon-cogs in_progress',
