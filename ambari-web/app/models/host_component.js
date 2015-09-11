@@ -139,6 +139,26 @@ App.HostComponent = DS.Model.extend({
 
 App.HostComponent.FIXTURES = [];
 
+
+/**
+ * get particular counter of host-component by name
+ * @param {string} componentName
+ * @param {string} type (installedCount|startedCount|totalCount)
+ * @returns {number}
+ */
+App.HostComponent.getCount = function (componentName, type) {
+  switch (App.StackServiceComponent.find(componentName).get('componentCategory')) {
+    case 'MASTER':
+      return Number(App.MasterComponent.find(componentName).get(type));
+    case 'SLAVE':
+      return Number(App.SlaveComponent.find(componentName).get(type));
+    case 'CLIENT':
+      return Number(App.ClientComponent.find(componentName).get(type));
+    default:
+      return 0;
+  }
+};
+
 App.HostComponentStatus = {
   started: "STARTED",
   starting: "STARTING",

@@ -229,15 +229,89 @@ describe('App.HostComponent', function() {
     });
   });
 
-  describe('#componentTextStatus', function() {
-    it('', function() {
-      var status = 'INSTALLED';
+  describe('#componentTextStatus', function () {
+    before(function () {
       sinon.stub(App.HostComponentStatus, 'getTextStatus', Em.K);
+    });
+    after(function () {
+      App.HostComponentStatus.getTextStatus.restore();
+    });
+    it('componentTextStatus should be changed', function () {
+      var status = 'INSTALLED';
       hc.set('workStatus', status);
       hc.propertyDidChange('componentTextStatus');
       hc.get('componentTextStatus');
       expect(App.HostComponentStatus.getTextStatus.calledWith(status)).to.be.true;
-      App.HostComponentStatus.getTextStatus.restore();
+    });
+  });
+
+  describe("#getCount", function () {
+    var testCases = [
+      {
+        t: 'unknown component',
+        data: {
+          componentName: 'CC',
+          type: 'totalCount',
+          stackComponent: Em.Object.create()
+        },
+        result: 0
+      },
+      {
+        t: 'master component',
+        data: {
+          componentName: 'C1',
+          type: 'totalCount',
+          stackComponent: Em.Object.create({componentCategory: 'MASTER'})
+        },
+        result: 3
+      },
+      {
+        t: 'slave component',
+        data: {
+          componentName: 'C1',
+          type: 'installedCount',
+          stackComponent: Em.Object.create({componentCategory: 'SLAVE'})
+        },
+        result: 4
+      },
+      {
+        t: 'client component',
+        data: {
+          componentName: 'C1',
+          type: 'startedCount',
+          stackComponent: Em.Object.create({componentCategory: 'CLIENT'})
+        },
+        result: 5
+      },
+      {
+        t: 'client component, unknown type',
+        data: {
+          componentName: 'C1',
+          type: 'unknownCount',
+          stackComponent: Em.Object.create({componentCategory: 'CLIENT'})
+        },
+        result: 0
+      }
+    ];
+
+    beforeEach(function () {
+      this.mock = sinon.stub(App.StackServiceComponent, 'find');
+      sinon.stub(App.MasterComponent, 'find').returns(Em.Object.create({totalCount: 3}));
+      sinon.stub(App.SlaveComponent, 'find').returns(Em.Object.create({installedCount: 4}));
+      sinon.stub(App.ClientComponent, 'find').returns(Em.Object.create({startedCount: 5, unknownCount: null}));
+    });
+    afterEach(function () {
+      this.mock.restore();
+      App.MasterComponent.find.restore();
+      App.SlaveComponent.find.restore();
+      App.ClientComponent.find.restore();
+    });
+
+    testCases.forEach(function (test) {
+      it(test.t, function () {
+        this.mock.returns(test.data.stackComponent);
+        expect(App.HostComponent.getCount(test.data.componentName, test.data.type)).to.equal(test.result);
+      });
     });
   });
 });
