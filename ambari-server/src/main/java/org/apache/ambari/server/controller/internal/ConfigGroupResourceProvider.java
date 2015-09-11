@@ -373,6 +373,17 @@ public class ConfigGroupResourceProvider extends
     return responses;
   }
 
+  private void verifyConfigs(Map<String, Config> configs, String clusterName) throws AmbariException {
+    Clusters clusters = getManagementController().getClusters();
+    for (String key : configs.keySet()) {
+      if(!clusters.getCluster(clusterName).isConfigTypeExists(key)){
+        throw new AmbariException("Trying to add not existent config type to config group:"+
+        " configType="+key+
+        " cluster="+clusterName);
+      }
+    }
+  }
+
   private void verifyHostList(Cluster cluster, Map<Long, Host> hosts,
                               ConfigGroupRequest request) throws AmbariException {
 
@@ -595,6 +606,7 @@ public class ConfigGroupResourceProvider extends
       configGroup.setHosts(hosts);
 
       // Update Configs
+      verifyConfigs(request.getConfigs(), request.getClusterName());
       configGroup.setConfigurations(request.getConfigs());
 
       // Save
