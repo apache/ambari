@@ -477,6 +477,7 @@ public class ConfigGroupResourceProvider extends
           "Attempted to add a config group to a cluster which doesn't exist", e);
       }
 
+      verifyConfigs(request.getConfigs(), request.getClusterName());
       validateRequest(request);
 
       Map<Long, ConfigGroup> configGroupMap = cluster.getConfigGroups();

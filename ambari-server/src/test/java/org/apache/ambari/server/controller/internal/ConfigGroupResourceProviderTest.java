@@ -121,7 +121,7 @@ public class ConfigGroupResourceProviderTest {
     ConfigGroupFactory configGroupFactory = createNiceMock(ConfigGroupFactory.class);
     ConfigGroup configGroup = createNiceMock(ConfigGroup.class);
 
-    expect(managementController.getClusters()).andReturn(clusters);
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(clusters.getHost("h1")).andReturn(h1);
     expect(clusters.getHost("h2")).andReturn(h2);
@@ -131,6 +131,7 @@ public class ConfigGroupResourceProviderTest {
     expect(hostDAO.findByName("h2")).andReturn(hostEntity2).atLeastOnce();
     expect(hostEntity1.getHostId()).andReturn(1L).atLeastOnce();
     expect(hostEntity2.getHostId()).andReturn(2L).atLeastOnce();
+    expect(cluster.isConfigTypeExists("core-site")).andReturn(true).anyTimes();
 
     Capture<Cluster> clusterCapture = new Capture<Cluster>();
     Capture<String> captureName = new Capture<String>();
