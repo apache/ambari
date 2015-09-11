@@ -35,6 +35,7 @@
       export YARN_PID_DIR={{yarn_pid_dir_prefix}}/$USER
       export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
       export JAVA_HOME={{java64_home}}
+      export JAVA_LIBRARY_PATH="${JAVA_LIBRARY_PATH}:{{hadoop_java_io_tmpdir}}"
 
       # We need to add the EWMA appender for the yarn daemons only;
       # however, YARN_ROOT_LOGGER is shared by the yarn client and the
@@ -148,6 +149,7 @@
       YARN_OPTS="$YARN_OPTS -Djava.library.path=$JAVA_LIBRARY_PATH"
       fi
       YARN_OPTS="$YARN_OPTS -Dyarn.policy.file=$YARN_POLICYFILE"
+      YARN_OPTS="$YARN_OPTS -Djava.io.tmpdir={{hadoop_java_io_tmpdir}}"
     </value>
   </property>
 </configuration>

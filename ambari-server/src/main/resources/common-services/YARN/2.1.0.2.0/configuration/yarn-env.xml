@@ -85,6 +85,7 @@ export YARN_LOG_DIR={{yarn_log_dir_prefix}}/$USER
 export YARN_PID_DIR={{yarn_pid_dir_prefix}}/$USER
 export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
 export JAVA_HOME={{java64_home}}
+export JAVA_LIBRARY_PATH="${JAVA_LIBRARY_PATH}:{{hadoop_java_io_tmpdir}}"
 
 # User for YARN daemons
 export HADOOP_YARN_USER=${HADOOP_YARN_USER:-yarn}
@@ -190,6 +191,7 @@ if [ "x$JAVA_LIBRARY_PATH" != "x" ]; then
   YARN_OPTS="$YARN_OPTS -Djava.library.path=$JAVA_LIBRARY_PATH"
 fi
 YARN_OPTS="$YARN_OPTS -Dyarn.policy.file=$YARN_POLICYFILE"
+YARN_OPTS="$YARN_OPTS -Djava.io.tmpdir={{hadoop_java_io_tmpdir}}"
     </value>
   </property>
 
