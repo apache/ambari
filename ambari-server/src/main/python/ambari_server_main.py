@@ -299,6 +299,13 @@ def server_process_main(options, scmStatus=None):
 
     raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))
   else:
+    # Change the group id to the process id of the parent so that the launched
+    # process and sub-processes have a group id that is different from the parent.
+    try:
+      os.setpgid(pidJava, 0)
+    except OSError, e:
+      print_warning_msg('setpgid({0}, 0) failed - {1}'.format(pidJava, str(e)))
+      pass
     pidfile = os.path.join(configDefaults.PID_DIR, PID_NAME)
     save_pid(pidJava, pidfile)
     print "Server PID at: "+pidfile
