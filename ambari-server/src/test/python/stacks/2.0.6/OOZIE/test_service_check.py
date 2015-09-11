@@ -88,8 +88,10 @@ class TestServiceCheck(RMFTestCase):
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
+        dfs_type = '',
         action = ['delete_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
+        dfs_type = '',
         type = 'directory',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/examples',
@@ -99,10 +101,12 @@ class TestServiceCheck(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         source = '//examples',
         user = 'hdfs',
+        dfs_type = '',
         action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         owner = 'ambari-qa',
+        dfs_type = '',
         group = 'hadoop'
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/input-data',
@@ -111,8 +115,10 @@ class TestServiceCheck(RMFTestCase):
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
+        dfs_type = '',
         action = ['delete_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
+        dfs_type = '',
         type = 'directory',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/input-data',
@@ -122,10 +128,12 @@ class TestServiceCheck(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         source = '//examples/input-data',
         user = 'hdfs',
+        dfs_type = '',
         action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         owner = 'ambari-qa',
+        dfs_type = '',
         group = 'hadoop'
     )
     self.assertResourceCalled('HdfsResource', None,
@@ -134,6 +142,7 @@ class TestServiceCheck(RMFTestCase):
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
+        dfs_type = '',
         action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )

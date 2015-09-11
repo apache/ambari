@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -1059,6 +1060,19 @@ public class AmbariCustomCommandExecutionHelper {
         hostParamsStage.put(CLIENTS_TO_UPDATE_CONFIGS, clientsToUpdateConfigs);
       }
       clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
+
+      //Propogate HCFS service type info to command params
+      Iterator<Service> it = cluster.getServices().values().iterator();
+      while(it.hasNext()) {
+          ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(stackId.getStackName(),stackId.getStackVersion(), it.next().getName());
+          LOG.info("Iterating service type Instance in getCommandJson:: " + serviceInfoInstance.getName());
+          if(serviceInfoInstance.getServiceType() != null) {
+              LOG.info("Adding service type info in getCommandJson:: " + serviceInfoInstance.getServiceType());
+              commandParamsStage.put("dfs_type",serviceInfoInstance.getServiceType());
+              break;
+          }
+      }      
+
     }
 
     String hostParamsStageJson = StageUtils.getGson().toJson(hostParamsStage);

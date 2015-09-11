@@ -43,6 +43,7 @@ class TestTezServiceCheck(RMFTestCase):
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
+        dfs_type = '',
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
@@ -55,6 +56,7 @@ class TestTezServiceCheck(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         source = '/tmp/sample-tez-test',
         user = 'hdfs',
+        dfs_type = '',
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'file',
@@ -66,6 +68,7 @@ class TestTezServiceCheck(RMFTestCase):
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
+        dfs_type = '',
         action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )

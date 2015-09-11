@@ -50,7 +50,8 @@ RESOURCE_TO_JSON_FIELDS = {
   'mode': 'mode',
   'recursive_chown': 'recursiveChown',
   'recursive_chmod': 'recursiveChmod',
-  'change_permissions_for_parents': 'changePermissionforParents'
+  'change_permissions_for_parents': 'changePermissionforParents',
+  'dfs_type': 'dfs_type'
 }
 
 class HdfsResourceJar:
@@ -381,9 +382,10 @@ class HdfsResourceWebHDFS:
 class HdfsResourceProvider(Provider):
   def __init__(self, resource):
     super(HdfsResourceProvider,self).__init__(resource)
-    self.assert_parameter_is_set('hdfs_site')
-    
-    self.webhdfs_enabled = self.resource.hdfs_site['dfs.webhdfs.enabled']
+    self.fsType = getattr(resource, 'dfs_type')
+    if self.fsType != 'HCFS':
+      self.assert_parameter_is_set('hdfs_site')
+      self.webhdfs_enabled = self.resource.hdfs_site['dfs.webhdfs.enabled']
     
   def action_delayed(self, action_name):
     self.assert_parameter_is_set('type')
@@ -400,7 +402,9 @@ class HdfsResourceProvider(Provider):
     self.get_hdfs_resource_executor().action_execute(self)
 
   def get_hdfs_resource_executor(self):
-    if WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.resource.default_fs):
+    if self.fsType == 'HCFS':
+      return HdfsResourceJar()
+    elif WebHDFSUtil.is_webhdfs_available(self.webhdfs_enabled, self.resource.default_fs):
       return HdfsResourceWebHDFS()
     else:
       return HdfsResourceJar()

@@ -38,7 +38,7 @@ from ambari_commons.constants import AMBARI_SUDO_BINARY
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-service_type = default("serviceType","")
+dfs_type = default("/commandParams/dfs_type", "")
 
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jdk_name = default("/hostLevelParams/jdk_name", None)
@@ -180,7 +180,7 @@ has_oozie_server = not len(oozie_servers) == 0
 has_falcon_server_hosts = not len(falcon_server_hosts) == 0
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 
-if has_namenode:
+if has_namenode or dfs_type == 'HCFS':
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
 
 hbase_tmp_dir = "/tmp/hbase-hbase"

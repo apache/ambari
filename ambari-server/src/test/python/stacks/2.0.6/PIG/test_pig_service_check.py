@@ -43,6 +43,7 @@ class TestPigServiceCheck(RMFTestCase):
         user = 'hdfs',
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
+        dfs_type = '',
         type = 'directory',
         action = ['delete_on_execute'],
     )
@@ -58,6 +59,7 @@ class TestPigServiceCheck(RMFTestCase):
         user = 'hdfs',
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
+        dfs_type = '',
         type = 'file',
         action = ['create_on_execute'],
     )
@@ -70,6 +72,7 @@ class TestPigServiceCheck(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
+        dfs_type = '',
         action = ['execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
@@ -111,6 +114,7 @@ class TestPigServiceCheck(RMFTestCase):
         hdfs_site = self.getConfig()['configurations']['hdfs-site'],
         kinit_path_local = '/usr/bin/kinit',
         principal_name = 'hdfs',
+        dfs_type = '',
         user = 'hdfs',
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
@@ -128,6 +132,7 @@ class TestPigServiceCheck(RMFTestCase):
         principal_name = 'hdfs',
         user = 'hdfs',
         owner = 'ambari-qa',
+        dfs_type = '',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'file',
         action = ['create_on_execute'],
@@ -141,6 +146,7 @@ class TestPigServiceCheck(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = 'hdfs',
         user = 'hdfs',
+        dfs_type = '',
         action = ['execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
     )

@@ -35,7 +35,7 @@ def setup_hadoop():
   )
 
   #directories
-  if params.has_namenode:
+  if params.has_namenode or params.dfs_type == 'HCFS':
     Directory(params.hdfs_log_dir_prefix,
               recursive=True,
               owner='root',
@@ -43,12 +43,13 @@ def setup_hadoop():
               mode=0775,
               cd_access='a',
     )
-    Directory(params.hadoop_pid_dir_prefix,
+    if params.has_namenode:
+      Directory(params.hadoop_pid_dir_prefix,
               recursive=True,
               owner='root',
               group='root',
               cd_access='a',
-    )
+      )
     Directory(params.hadoop_tmp_dir,
               recursive=True,
               owner=params.hdfs_user,
@@ -61,7 +62,7 @@ def setup_hadoop():
       tc_owner = params.hdfs_user
       
     # if WebHDFS is not enabled we need this jar to create hadoop folders.
-    if not WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
+    if params.dfs_type == 'HCFS' or not WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
       # for source-code of jar goto contrib/fast-hdfs-resource
       File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
            mode=0644,
@@ -107,7 +108,7 @@ def setup_configs():
   """
   import params
 
-  if params.has_namenode:
+  if params.has_namenode or params.dfs_type == 'HCFS':
     if os.path.exists(params.hadoop_conf_dir):
       File(params.task_log4j_properties_location,
            content=StaticFile("task-log4j.properties"),

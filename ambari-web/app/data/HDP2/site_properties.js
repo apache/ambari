@@ -3118,6 +3118,21 @@ var hdp2properties = [
     "filename": "hbase-env.xml",
     "category": "Advanced hbase-env"
   },
+  //***************************************** ECS stack********************************************
+  {
+    "id": "puppet var",
+    "name": "hdfs_log_dir_prefix",
+    "displayName": "Hadoop Log Dir Prefix",
+    "description": "The parent directory for Hadoop log files.  The HDFS log directory will be ${hadoop_log_dir_prefix} / ${hdfs_user} and the MapReduce log directory will be ${hadoop_log_dir_prefix} / ${mapred_user}.",
+    "recommendedValue": "/var/log/hadoop",
+    "isReconfigurable": false,
+    "displayType": "directory",
+    "isOverridable": false,
+    "isVisible": false,
+    "serviceName": "ECS",
+    "filename": "hadoop-env.xml",
+    "category": "General Hadoop"
+  },
   //***************************************** GLUSTERFS stack********************************************
   {
     "id": "site property",
