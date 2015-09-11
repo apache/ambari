@@ -24,6 +24,7 @@
         <service>
           <name>SPARK</name>
           <version>1.3.1.2.3</version>
+          <extends>common-services/SPARK/1.3.1.2.3</extends>
           <osSpecifics>
             <osSpecific>
               <osFamily>redhat7,redhat6,suse11</osFamily>
@@ -48,7 +49,6 @@
               </packages>
             </osSpecific>
           </osSpecifics>
-
           <requiredServices>
             <service>YARN</service>
           </requiredServices>
