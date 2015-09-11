@@ -347,8 +347,7 @@ App.AddMetricExpressionView = Em.View.extend({
       for (var componentId in servicesMap[serviceName].components) {
         // Hide the option if none of the hostComponent is created in the cluster yet
         var componentName = servicesMap[serviceName].components[componentId].component_name;
-        var isHostComponentAbsent = !App.HostComponent.find().filterProperty('componentName',componentName).length;
-        if (isHostComponentAbsent) continue;
+        if (App.HostComponent.getCount(componentName, 'totalCount') === 0) continue;
         var component = Em.Object.create({
           componentName: servicesMap[serviceName].components[componentId].component_name,
           level: servicesMap[serviceName].components[componentId].level,
