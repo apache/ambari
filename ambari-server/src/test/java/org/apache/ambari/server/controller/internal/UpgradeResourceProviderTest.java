@@ -36,7 +36,6 @@ import java.util.Set;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.actionmanager.RequestStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.api.resources.UpgradeResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -44,6 +43,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
@@ -64,6 +64,7 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
+import org.apache.ambari.server.serveraction.upgrades.AutoSkipFailedSummaryAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -233,90 +234,43 @@ public class UpgradeResourceProviderTest {
     injector = null;
   }
 
-  private org.apache.ambari.server.controller.spi.RequestStatus testCreateResources() throws Exception {
-
+  @Test
+  public void testCreateResourcesWithAutoSkipFailures() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
-
-    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
-    assertEquals(0, upgrades.size());
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES, Boolean.TRUE.toString());
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
-
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
-    org.apache.ambari.server.controller.spi.RequestStatus status = upgradeResourceProvider.createResources(request);
+    upgradeResourceProvider.createResources(request);
 
-    upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(1, upgrades.size());
 
     UpgradeEntity entity = upgrades.get(0);
     assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
 
-    StageDAO stageDAO = injector.getInstance(StageDAO.class);
-    List<StageEntity> stageEntities = stageDAO.findByRequestId(entity.getRequestId());
-    Gson gson = new Gson();
-    for (StageEntity se : stageEntities) {
-      Map<String, String> map = gson.<Map<String, String>>fromJson(se.getCommandParamsStage(), Map.class);
-      assertTrue(map.containsKey("upgrade_direction"));
-      assertEquals("upgrade", map.get("upgrade_direction"));
-    }
-
     List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
     assertEquals(3, upgradeGroups.size());
 
-    UpgradeGroupEntity group = upgradeGroups.get(1);
-    assertEquals(4, group.getItems().size());
+    UpgradeGroupEntity zookeeperGroup = upgradeGroups.get(1);
+    assertEquals("ZOOKEEPER", zookeeperGroup.getName());
 
-    assertTrue(group.getItems().get(0).getText().contains(
-        "placeholder of placeholder-rendered-properly"));
+    List<UpgradeItemEntity> upgradeItems = zookeeperGroup.getItems();
+    assertEquals(5, upgradeItems.size());
 
-    assertTrue(group.getItems().get(1).getText().contains("Restarting"));
-    assertTrue(group.getItems().get(2).getText().contains("Skipping"));
-    assertTrue(group.getItems().get(3).getText().contains("Service Check"));
-
-    ActionManager am = injector.getInstance(ActionManager.class);
-    List<Long> requests = am.getRequestsByStatus(RequestStatus.IN_PROGRESS, 100, true);
-
-    assertEquals(1, requests.size());
-    assertEquals(requests.get(0), entity.getRequestId());
-
-    List<Stage> stages = am.getRequestStatus(requests.get(0).longValue());
-
-    assertEquals(8, stages.size());
-
-    List<HostRoleCommand> tasks = am.getRequestTasks(requests.get(0).longValue());
-    // same number of tasks as stages here
-    assertEquals(8, tasks.size());
-
-    Set<Long> slaveStageIds = new HashSet<Long>();
-
-    UpgradeGroupEntity coreSlavesGroup = upgradeGroups.get(1);
-
-    for (UpgradeItemEntity itemEntity : coreSlavesGroup.getItems()) {
-      slaveStageIds.add(itemEntity.getStageId());
-    }
-
-    for (Stage stage : stages) {
-
-      // For this test the core slaves group stages should be skippable and NOT allow retry.
-      assertEquals(slaveStageIds.contains(stage.getStageId()), stage.isSkippable());
-
-      for (Map<String, HostRoleCommand> taskMap : stage.getHostRoleCommands().values()) {
-
-        for (HostRoleCommand task : taskMap.values()) {
-          assertEquals(!slaveStageIds.contains(stage.getStageId()), task.isRetryAllowed());
-        }
-      }
-    }
-    return status;
+    // the last upgrade item is the skipped failure check
+    UpgradeItemEntity skippedFailureCheck = upgradeItems.get(upgradeItems.size() - 1);
+    skippedFailureCheck.getTasks().contains(AutoSkipFailedSummaryAction.class.getName());
   }
 
   @Test
   public void testGetResources() throws Exception {
-    org.apache.ambari.server.controller.spi.RequestStatus status = testCreateResources();
+    RequestStatus status = testCreateResources();
 
     Set<Resource> createdResources = status.getAssociatedResources();
     assertEquals(1, createdResources.size());
@@ -482,7 +436,8 @@ public class UpgradeResourceProviderTest {
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
-    org.apache.ambari.server.controller.spi.RequestStatus status = upgradeResourceProvider.createResources(request);
+    RequestStatus status = upgradeResourceProvider.createResources(
+        request);
 
     List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(1, upgrades.size());
@@ -531,7 +486,7 @@ public class UpgradeResourceProviderTest {
 
   @Test
   public void testAbort() throws Exception {
-    org.apache.ambari.server.controller.spi.RequestStatus status = testCreateResources();
+    RequestStatus status = testCreateResources();
 
     Set<Resource> createdResources = status.getAssociatedResources();
     assertEquals(1, createdResources.size());
@@ -553,7 +508,7 @@ public class UpgradeResourceProviderTest {
 
   @Test
   public void testRetry() throws Exception {
-    org.apache.ambari.server.controller.spi.RequestStatus status = testCreateResources();
+    RequestStatus status = testCreateResources();
 
     Set<Resource> createdResources = status.getAssociatedResources();
     assertEquals(1, createdResources.size());
@@ -653,7 +608,7 @@ public class UpgradeResourceProviderTest {
 
   @Test
   public void testPercents() throws Exception {
-    org.apache.ambari.server.controller.spi.RequestStatus status = testCreateResources();
+    RequestStatus status = testCreateResources();
 
     Set<Resource> createdResources = status.getAssociatedResources();
     assertEquals(1, createdResources.size());
@@ -886,6 +841,90 @@ public class UpgradeResourceProviderTest {
    */
   private UpgradeResourceProvider createProvider(AmbariManagementController amc) {
     return new UpgradeResourceProvider(amc);
+  }
+
+  private RequestStatus testCreateResources() throws Exception {
+
+    Cluster cluster = clusters.getCluster("c1");
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(0, upgrades.size());
+
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    RequestStatus status = upgradeResourceProvider.createResources(request);
+
+    upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+    UpgradeEntity entity = upgrades.get(0);
+    assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
+
+    StageDAO stageDAO = injector.getInstance(StageDAO.class);
+    List<StageEntity> stageEntities = stageDAO.findByRequestId(entity.getRequestId());
+    Gson gson = new Gson();
+    for (StageEntity se : stageEntities) {
+      Map<String, String> map = gson.<Map<String, String>> fromJson(se.getCommandParamsStage(),
+          Map.class);
+      assertTrue(map.containsKey("upgrade_direction"));
+      assertEquals("upgrade", map.get("upgrade_direction"));
+    }
+
+    List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
+    assertEquals(3, upgradeGroups.size());
+
+    UpgradeGroupEntity group = upgradeGroups.get(1);
+    assertEquals(4, group.getItems().size());
+
+    assertTrue(
+        group.getItems().get(0).getText().contains("placeholder of placeholder-rendered-properly"));
+
+    assertTrue(group.getItems().get(1).getText().contains("Restarting"));
+    assertTrue(group.getItems().get(2).getText().contains("Skipping"));
+    assertTrue(group.getItems().get(3).getText().contains("Service Check"));
+
+    ActionManager am = injector.getInstance(ActionManager.class);
+    List<Long> requests = am.getRequestsByStatus(
+        org.apache.ambari.server.actionmanager.RequestStatus.IN_PROGRESS, 100, true);
+
+    assertEquals(1, requests.size());
+    assertEquals(requests.get(0), entity.getRequestId());
+
+    List<Stage> stages = am.getRequestStatus(requests.get(0).longValue());
+
+    assertEquals(8, stages.size());
+
+    List<HostRoleCommand> tasks = am.getRequestTasks(requests.get(0).longValue());
+    // same number of tasks as stages here
+    assertEquals(8, tasks.size());
+
+    Set<Long> slaveStageIds = new HashSet<Long>();
+
+    UpgradeGroupEntity coreSlavesGroup = upgradeGroups.get(1);
+
+    for (UpgradeItemEntity itemEntity : coreSlavesGroup.getItems()) {
+      slaveStageIds.add(itemEntity.getStageId());
+    }
+
+    for (Stage stage : stages) {
+
+      // For this test the core slaves group stages should be skippable and NOT
+      // allow retry.
+      assertEquals(slaveStageIds.contains(stage.getStageId()), stage.isSkippable());
+
+      for (Map<String, HostRoleCommand> taskMap : stage.getHostRoleCommands().values()) {
+
+        for (HostRoleCommand task : taskMap.values()) {
+          assertEquals(!slaveStageIds.contains(stage.getStageId()), task.isRetryAllowed());
+        }
+      }
+    }
+    return status;
   }
 
   /**

@@ -44,6 +44,7 @@ import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TransferOperation;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -156,12 +157,12 @@ public class UpgradePackTest {
     assertEquals(4, ct.getTransfers().size());
 
     /*
-            <transfer operation="COPY" from-key="copy-key" to-key="copy-key-to" />
-            <transfer operation="COPY" from-type="my-site" from-key="my-copy-key" to-key="my-copy-key-to" />
-            <transfer operation="MOVE" from-key="move-key" to-key="move-key-to" />
-            <transfer operation="DELETE" delete-key="delete-key">
-              <keep-key>important-key</keep-key>
-            </transfer>
+    <transfer operation="COPY" from-key="copy-key" to-key="copy-key-to" />
+    <transfer operation="COPY" from-type="my-site" from-key="my-copy-key" to-key="my-copy-key-to" />
+    <transfer operation="MOVE" from-key="move-key" to-key="move-key-to" />
+    <transfer operation="DELETE" delete-key="delete-key">
+      <keep-key>important-key</keep-key>
+    </transfer>
     */
     Transfer t1 = ct.getTransfers().get(0);
     assertEquals(TransferOperation.COPY, t1.operation);
@@ -283,7 +284,21 @@ public class UpgradePackTest {
     group = groups.get(2);
     assertEquals(ClusterGrouping.class, group.getClass());
     assertEquals("Finalize Upgrade", group.title);
+  }
 
+  @Test
+  public void testSkippableFailures() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    Set<String> keys = upgrades.keySet();
+    for (String key : keys) {
+      Assert.assertFalse(upgrades.get(key).isComponentFailureAutoSkipped());
+      Assert.assertFalse(upgrades.get(key).isServiceCheckFailureAutoSkipped());
+    }
+
+    upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.2.0");
+    UpgradePack upgradePack = upgrades.get("upgrade_test_skip_failures");
+    Assert.assertTrue(upgradePack.isComponentFailureAutoSkipped());
+    Assert.assertTrue(upgradePack.isServiceCheckFailureAutoSkipped());
   }
 
 
