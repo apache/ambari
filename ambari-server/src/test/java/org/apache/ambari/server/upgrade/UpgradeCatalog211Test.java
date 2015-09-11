@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.upgrade;
 
-import static org.easymock.EasyMock.anyBoolean;
-import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
@@ -33,6 +31,7 @@ import java.sql.Statement;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.persistence.EntityManager;
 
@@ -90,8 +89,17 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
       expectLastCall().andReturn(statement).anyTimes();
       statement.executeQuery("SELECT COUNT(*) from ambari_sequences where sequence_name='hostcomponentstate_id_seq'");
       expectLastCall().andReturn(resultSet).atLeastOnce();
+
+      ResultSet rs1 = createNiceMock(ResultSet.class);
+      expect(rs1.next()).andReturn(Boolean.TRUE).once();
+
       statement.executeQuery(anyObject(String.class));
-      expectLastCall().andReturn(resultSet).anyTimes();
+      expectLastCall().andReturn(rs1).anyTimes();
+
+      Capture<String> queryCapture = new Capture<String>();
+      dbAccessor.executeQuery(capture(queryCapture));
+      expectLastCall().once();
+
       dbAccessor.setColumnNullable("viewinstanceproperty", "value", true);
       expectLastCall().once();
       dbAccessor.setColumnNullable("viewinstancedata", "value", true);
@@ -112,8 +120,15 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
       f.setAccessible(true);
       f.set(upgradeCatalog, configuration);
 
+      f = UpgradeCatalog211.class.getDeclaredField("m_hcsId");
+      f.setAccessible(true);
+      f.set(upgradeCatalog, new AtomicLong(1001));
+
       upgradeCatalog.executeDDLUpdates();
       verifyAll();
+
+      Assert.assertTrue(queryCapture.hasCaptured());
+      Assert.assertTrue(queryCapture.getValue().contains("1001"));
 
       // Verify sections
       // Example: alertSectionDDL.verify(dbAccessor);
