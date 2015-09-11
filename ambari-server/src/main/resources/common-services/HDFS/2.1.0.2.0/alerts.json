@@ -116,6 +116,19 @@
         }
       },
       {
+        "name": "upgrade_finalized_state",
+        "label": "HDFS Upgrade Finalized State",
+        "description": "This service-level alert is triggered if HDFS is not in the finalized state",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDFS/2.1.0.2.0/package/alerts/alert_upgrade_finalized.py",
+          "parameters": []
+        }
+      },
+      {
         "name": "namenode_cpu",
         "label": "NameNode Host CPU Utilization",
         "description": "This host-level alert is triggered if CPU utilization of the NameNode exceeds certain warning and critical thresholds. It checks the NameNode JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",

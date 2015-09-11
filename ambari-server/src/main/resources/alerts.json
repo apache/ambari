@@ -26,18 +26,6 @@
           "type": "SERVER",
           "class": "org.apache.ambari.server.alerts.StaleAlertRunnable"
         }
-      },
-      {
-        "name": "ambari_upgrade_finalized_state",
-        "label": "HDFS Upgrade Finalized State",
-        "description": "This service-level alert is triggered if HDFS is not in the finalized state",
-        "interval": 10,
-        "scope": "SERVICE",
-        "enabled": true,
-        "source": {
-          "type": "SERVER",
-          "class": "org.apache.ambari.server.alerts.HDFSUpgradeFinalizedStatusRunnable"
-        }
       }
     ],
     "AMBARI_AGENT" : [
