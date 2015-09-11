@@ -46,24 +46,6 @@
           </commandScript>
         </component>
       </components>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>kafka_2_2_*</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>kafka-2-2-.*</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
       <commandScript>
         <script>scripts/service_check.py</script>
         <scriptType>PYTHON</scriptType>

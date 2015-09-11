@@ -56,31 +56,6 @@
 
       </components>              
 
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>ranger_2_2_*-admin</name>                                
-            </package>
-            <package>
-              <name>ranger_2_2_*-usersync</name>
-            </package>                           
-          </packages>                        
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>ranger-2-2-.*-admin</name>                                
-            </package>
-            <package>
-              <name>ranger-2-2-.*-usersync</name>
-            </package>                           
-          </packages>                        
-        </osSpecific>
-      </osSpecifics>
-
       <configuration-dependencies>
         <config-type>admin-properties</config-type>
         <config-type>ranger-site</config-type>
