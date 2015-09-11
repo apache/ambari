@@ -654,13 +654,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     // optionally skip failures - this can be supplied on either the request or
-    // in the upgrade pack explicitely
-    boolean skipComponentFailures = false;
-    boolean skipServiceCheckFailures = false;
+    // in the upgrade pack explicitely, however the request will always override
+    // the upgrade pack if explicitely specified
+    boolean skipComponentFailures = pack.isComponentFailureAutoSkipped();
+    boolean skipServiceCheckFailures = pack.isServiceCheckFailureAutoSkipped();
+
+    // only override the upgrade pack if set on the request
     if (requestMap.containsKey(UPGRADE_SKIP_FAILURES)) {
       skipComponentFailures = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_FAILURES));
     }
 
+    // only override the upgrade pack if set on the request
     if (requestMap.containsKey(UPGRADE_SKIP_SC_FAILURES)) {
       skipServiceCheckFailures = Boolean.parseBoolean(
           (String) requestMap.get(UPGRADE_SKIP_SC_FAILURES));

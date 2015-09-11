@@ -20,6 +20,9 @@
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <target>2.3.*.*</target>
   <target-stack>HDP-2.3</target-stack>
+  <skip-failures>false</skip-failures>
+  <skip-service-check-failures>false</skip-service-check-failures>
+
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
       <direction>UPGRADE</direction>

@@ -19,9 +19,10 @@
 
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <target>2.2.*.*</target>
+  <skip-failures>false</skip-failures>
+  <skip-service-check-failures>false</skip-service-check-failures>
 
   <order>
-
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
       <direction>UPGRADE</direction>
       <execute-stage service="HDFS" component="NAMENODE" title="Pre Upgrade HDFS">

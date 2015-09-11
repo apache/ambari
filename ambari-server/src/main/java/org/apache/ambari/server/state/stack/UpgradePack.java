@@ -50,7 +50,6 @@ public class UpgradePack {
   @XmlElement(name="target-stack")
   private String targetStack;
 
-
   @XmlElementWrapper(name="order")
   @XmlElement(name="group")
   private List<Grouping> groups;
@@ -59,12 +58,29 @@ public class UpgradePack {
   @XmlElement(name="service")
   private List<ProcessingService> processing;
 
+  /**
+   * {@code true} to automatically skip slave/client component failures. The
+   * default is {@code false}.
+   */
+  @XmlElement(name = "skip-failures")
+  private boolean skipFailures = false;
+
+  /**
+   * {@code true} to automatically skip service check failures. The default is
+   * {@code false}.
+   */
+  @XmlElement(name = "skip-service-check-failures")
+  private boolean skipServiceCheckFailures = false;
+
   @XmlTransient
   private Map<String, List<String>> m_orders = null;
+
   @XmlTransient
   private Map<String, Map<String, ProcessingComponent>> m_process = null;
+
   @XmlTransient
   private boolean m_resolvedGroups = false;
+
 
   /**
    * @return the target version for the upgrade pack
@@ -81,9 +97,30 @@ public class UpgradePack {
   }
 
   /**
-   * Gets the groups defined for the upgrade pack.  If a direction is defined
-   * for a group, it must match the supplied direction to be returned
-   * @param direction the direction to return the ordered groups
+   * Gets whether skippable components that failed are automatically skipped.
+   *
+   * @return the skipComponentFailures
+   */
+  public boolean isComponentFailureAutoSkipped() {
+    return skipFailures;
+  }
+
+  /**
+   * Gets whether skippable service checks that failed are automatically
+   * skipped.
+   *
+   * @return the skipServiceCheckFailures
+   */
+  public boolean isServiceCheckFailureAutoSkipped() {
+    return skipServiceCheckFailures;
+  }
+
+  /**
+   * Gets the groups defined for the upgrade pack. If a direction is defined for
+   * a group, it must match the supplied direction to be returned
+   * 
+   * @param direction
+   *          the direction to return the ordered groups
    * @return the list of groups
    */
   public List<Grouping> getGroups(Direction direction) {

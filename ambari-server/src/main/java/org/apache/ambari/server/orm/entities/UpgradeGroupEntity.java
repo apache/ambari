@@ -129,5 +129,18 @@ public class UpgradeGroupEntity {
     upgradeItems = items;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    StringBuilder buffer = new StringBuilder("UpgradeGroupEntity{");
+    buffer.append("upgradeGroupId=").append(upgradeGroupId);
+    buffer.append(", upgradeId=").append(upgradeId);
+    buffer.append(", groupName=").append(groupName);
+    buffer.append(", groupTitle=").append(groupTitle);
+    buffer.append("}");
+    return buffer.toString();
+  }
 
 }
