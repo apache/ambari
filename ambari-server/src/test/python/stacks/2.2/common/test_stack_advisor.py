@@ -1989,8 +1989,8 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "ams-site": {
         "properties": {
-          "timeline.metrics.cluster.aggregate.splitpoints": "",
-          "timeline.metrics.host.aggregate.splitpoints": "",
+          "timeline.metrics.cluster.aggregate.splitpoints": " ",
+          "timeline.metrics.host.aggregate.splitpoints": " ",
           "timeline.metrics.host.aggregator.ttl": "86400"
         }
       }
