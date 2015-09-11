@@ -1033,7 +1033,6 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @return {$.ajax|null}
    */
   getLogsByRequest: function (polling, requestId) {
-    var self = this;
     return App.ajax.send({
       name: 'wizard.step9.load_log',
       sender: this,
@@ -1041,19 +1040,15 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         polling: polling,
         cluster: this.get('content.cluster.name'),
         requestId: requestId,
-        numPolls: this.get('numPolls')
+        numPolls: this.get('numPolls'),
+        callback: this.getLogsByRequest,
+        args: [polling, requestId],
+        timeout: 3000,
+        errorLogMessage: 'Install services all retries failed'
       },
-      success: 'getLogsByRequestSuccessCallback',
-      error: 'getLogsByRequestErrorCallback'
-    }).retry({times: App.maxRetries, timeout: 3000}).then(
-      function () {
-        self.closeReloadPopup();
-      },
-      function () {
-        self.showReloadPopup();
-        console.log('Install services all retries failed');
-      }
-    );
+      success: 'reloadSuccessCallback',
+      error: 'reloadErrorCallback'
+    });
   },
 
   /**
@@ -1061,10 +1056,11 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @param {object} data
    * @param {object} opt
    * @param {object} params
-   * @method getLogsByRequestSuccessCallback
+   * @method reloadSuccessCallback
    */
-  getLogsByRequestSuccessCallback: function (data, opt, params) {
+  reloadSuccessCallback: function (data, opt, params) {
     var parsedData = jQuery.parseJSON(data);
+    this._super();
     console.log("TRACE: In success function for the GET logs data");
     console.log("TRACE: Step9 -> The value is: ", parsedData);
     this.set('isPolling', params.polling);
@@ -1073,10 +1069,18 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
 
   /**
    * Error-callback for get log by request
-   * @method getLogsByRequestErrorCallback
+   * @param {object} jqXHR
+   * @param {string} ajaxOptions
+   * @param {string} error
+   * @param {object} opt
+   * @param {object} params
+   * @method reloadErrorCallback
    */
-  getLogsByRequestErrorCallback: function () {
-    this.loadLogData(true);
+  reloadErrorCallback: function (jqXHR, ajaxOptions, error, opt, params) {
+    this._super(jqXHR, ajaxOptions, error, opt, params);
+    if (jqXHR.status) {
+      this.loadLogData(true);
+    }
   },
 
   /**

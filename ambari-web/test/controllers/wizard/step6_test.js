@@ -47,6 +47,7 @@ var controller,
 describe('App.WizardStep6Controller', function () {
 
   beforeEach(function () {
+    sinon.stub(console, 'error', Em.K);
     controller = App.WizardStep6Controller.create();
     controller.set('content', Em.Object.create({
       hosts: {},
@@ -69,6 +70,10 @@ describe('App.WizardStep6Controller', function () {
     controller.set('content.masterComponentHosts', m);
     controller.set('isMasters', false);
 
+  });
+
+  afterEach(function () {
+    console.error.restore();
   });
 
   describe('#isAddHostWizard', function () {
@@ -289,7 +294,7 @@ describe('App.WizardStep6Controller', function () {
       };
       controller.set('content.hosts', hosts);
       controller.set('content.masterComponentHosts', masterComponentHosts);
-      controller.set('content.recommendations', recommendations)
+      controller.set('content.recommendations', recommendations);
       controller.set('headers', headers);
       controller.render();
       expect(controller.get('isLoaded')).to.equal(true);
@@ -485,7 +490,7 @@ describe('App.WizardStep6Controller', function () {
               ])
             })
           ])
-      })
+      });
       controller.updateValidationsSuccessCallback(validationData);
       expect(controller.get('generalErrorMessages').length).to.equal(0);
       expect(controller.get('generalWarningMessages').length).to.equal(0);

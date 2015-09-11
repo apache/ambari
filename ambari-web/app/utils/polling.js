@@ -151,34 +151,26 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
    */
   startPolling: function () {
     if (!this.get('requestId')) return false;
-    var self = this;
 
     this.pollTaskLog();
     App.ajax.send({
       name: 'background_operations.get_by_request',
       sender: this,
       data: {
-        requestId: this.get('requestId')
+        requestId: this.get('requestId'),
+        callback: this.startPolling,
+        errorLogMessage: 'Install services all retries failed'
       },
-      success: 'startPollingSuccessCallback',
-      error: 'startPollingErrorCallback'
-    })
-      .retry({times: App.maxRetries, timeout: App.timeout})
-      .then(
-        function () {
-          self.closeReloadPopup();
-        },
-        function () {
-          self.showReloadPopup();
-          console.log('Install services all retries failed');
-        }
-      );
+      success: 'reloadSuccessCallback',
+      error: 'reloadErrorCallback'
+    });
     return true;
   },
 
-  startPollingSuccessCallback: function (data) {
+  reloadSuccessCallback: function (data) {
     var self = this;
     var result = this.parseInfo(data);
+    this._super();
     if (!result) {
       window.setTimeout(function () {
         self.startPolling();
@@ -186,12 +178,15 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
     }
   },
 
-  startPollingErrorCallback: function (request, ajaxOptions, error) {
-    console.log("TRACE: In error function for the GET data");
-    console.log("TRACE: value of the url is: " + url);
-    console.log("TRACE: error code status is: " + request.status);
-    if (!this.get('isSuccess')) {
-      this.set('isError', true);
+  reloadErrorCallback: function (request, ajaxOptions, error, opt, params) {
+    this._super(request, ajaxOptions, error, opt, params);
+    if (request.status) {
+      console.log("TRACE: In error function for the GET data");
+      console.log("TRACE: value of the url is: " + url);
+      console.log("TRACE: error code status is: " + request.status);
+      if (!this.get('isSuccess')) {
+        this.set('isError', true);
+      }
     }
   },
 
@@ -244,8 +239,6 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
 
   parseInfo: function (polledData) {
     console.log('TRACE: Entering task info function');
-    var self = this;
-    var totalProgress = 0;
     var tasksData = polledData.tasks;
     console.log("The value of tasksData is: ", tasksData);
     if (!tasksData) {

@@ -51,9 +51,116 @@ describe('App.ReloadPopupMixin', function () {
   describe('#closeReloadPopup', function () {
 
     it('should hide modal popup', function () {
+      obj.set('retryCount', 1);
       obj.showReloadPopup();
       obj.closeReloadPopup();
       expect(obj.get('reloadPopup')).to.be.null;
+      expect(obj.get('retryCount')).to.equal(0);
+    });
+
+  });
+
+  describe('#reloadSuccessCallback', function () {
+
+    it('should hide modal popup', function () {
+      obj.set('retryCount', 1);
+      obj.showReloadPopup();
+      obj.reloadSuccessCallback();
+      expect(obj.get('reloadPopup')).to.be.null;
+      expect(obj.get('retryCount')).to.equal(0);
+    });
+
+  });
+
+  describe('#reloadErrorCallback', function () {
+
+    var cases = [
+      {
+        args: [{status: 404}, null, null, {}, {shouldUseDefaultHandler: true}],
+        closeReloadPopupCallCount: 1,
+        consoleLogCallCount: 0,
+        defaultErrorHandlerCallCount: 1,
+        showReloadPopupCallCount: 0,
+        setTimeoutCount: 0,
+        title: 'status received, no console message, default error handler'
+      },
+      {
+        args: [{status: 404}, null, null, {}, {errorLogMessage: 'error'}],
+        closeReloadPopupCallCount: 1,
+        consoleLogCallCount: 1,
+        defaultErrorHandlerCallCount: 0,
+        showReloadPopupCallCount: 0,
+        setTimeoutCount: 0,
+        title: 'status received, console message displayed, no default error handler'
+      },
+      {
+        args: [{status: 0}, null, null, {}, {times: 5}],
+        retryCount: 5,
+        retryCountResult: 5,
+        closeReloadPopupCallCount: 0,
+        consoleLogCallCount: 0,
+        defaultErrorHandlerCallCount: 0,
+        showReloadPopupCallCount: 1,
+        setTimeoutCount: 0,
+        title: 'no status received, custom retries count, max retries reached'
+      },
+      {
+        args: [{status: 0}, null, null, {}, {}],
+        retryCount: 2,
+        retryCountResult: 3,
+        closeReloadPopupCallCount: 0,
+        consoleLogCallCount: 0,
+        defaultErrorHandlerCallCount: 0,
+        showReloadPopupCallCount: 1,
+        setTimeoutCount: 0,
+        title: 'no status received, default retries count, max retries not reached, no callback'
+      },
+      {
+        args: [{status: 0}, null, null, {}, {callback: Em.K}],
+        retryCount: 2,
+        retryCountResult: 3,
+        closeReloadPopupCallCount: 0,
+        consoleLogCallCount: 0,
+        defaultErrorHandlerCallCount: 0,
+        showReloadPopupCallCount: 1,
+        setTimeoutCount: 1,
+        title: 'no status received, default retries count, max retries not reached, callback specified'
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(obj, 'closeReloadPopup', Em.K);
+      sinon.stub(console, 'log', Em.K);
+      sinon.stub(App.ajax, 'defaultErrorHandler', Em.K);
+      sinon.stub(obj, 'showReloadPopup', Em.K);
+      sinon.stub(App, 'get').withArgs('maxRetries').returns(3);
+      sinon.stub(window, 'setTimeout', Em.K);
+    });
+
+    afterEach(function () {
+      obj.closeReloadPopup.restore();
+      console.log.restore();
+      App.ajax.defaultErrorHandler.restore();
+      obj.showReloadPopup.restore();
+      App.get.restore();
+      window.setTimeout.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        if (!Em.isNone(item.retryCount)) {
+          obj.set('retryCount', item.retryCount);
+        }
+        obj.reloadErrorCallback.apply(obj, item.args);
+        expect(obj.closeReloadPopup.callCount).to.equal(item.closeReloadPopupCallCount);
+        expect(console.log.callCount).to.equal(item.consoleLogCallCount);
+        expect(App.ajax.defaultErrorHandler.callCount).to.equal(item.defaultErrorHandlerCallCount);
+        expect(obj.showReloadPopup.callCount).to.equal(item.showReloadPopupCallCount);
+        expect(window.setTimeout.callCount).to.equal(item.setTimeoutCount);
+        if (!Em.isNone(item.retryCountResult)) {
+          obj.set('retryCount', item.retryCountResult);
+        }
+      });
     });
 
   });

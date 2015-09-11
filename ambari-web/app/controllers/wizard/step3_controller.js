@@ -541,7 +541,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @return {$.ajax|null}
    */
   doBootstrap: function () {
-    var self = this;
     if (this.get('stopBootstrap')) {
       return null;
     }
@@ -552,23 +551,14 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       sender: this,
       data: {
         bootRequestId: this.get('content.installOptions.bootRequestId'),
-        numPolls: this.get('numPolls')
+        numPolls: this.get('numPolls'),
+        errorLogMessage: 'Bootstrap failed',
+        callback: this.doBootstrap,
+        shouldUseDefaultHandler: true
       },
-      success: 'doBootstrapSuccessCallback'
-    }).
-      retry({
-        times: App.maxRetries,
-        timeout: App.timeout
-      }).
-      then(
-        function () {
-          self.closeReloadPopup();
-        },
-        function () {
-          self.showReloadPopup();
-          console.log('Bootstrap failed');
-        }
-      );
+      success: 'doBootstrapSuccessCallback',
+      error: 'reloadErrorCallback'
+    });
   },
 
   /**
@@ -579,6 +569,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
   doBootstrapSuccessCallback: function (data) {
     var self = this;
     var pollingInterval = 3000;
+    this.reloadSuccessCallback();
     if (Em.isNone(data.hostsStatus)) {
       console.log('Invalid response, setting timeout');
       window.setTimeout(function () {
@@ -646,25 +637,17 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     if (this.get('stopBootstrap')) {
       return null;
     }
-    var self = this;
     return App.ajax.send({
       name: 'wizard.step3.is_hosts_registered',
       sender: this,
-      success: 'isHostsRegisteredSuccessCallback'
-    }).
-      retry({
-        times: App.maxRetries,
-        timeout: App.timeout
-      }).
-      then(
-        function () {
-          self.closeReloadPopup();
-        },
-        function () {
-          self.showReloadPopup();
-          console.log('Error: Getting registered host information from the server');
-        }
-      );
+      success: 'isHostsRegisteredSuccessCallback',
+      error: 'reloadErrorCallback',
+      data: {
+        errorLogMessage: 'Error: Getting registered host information from the server',
+        callback: this.isHostsRegistered,
+        shouldUseDefaultHandler: true
+      }
+    });
   },
 
   /**
@@ -676,6 +659,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     console.log('registration attempt...');
     var hosts = this.get('bootHosts');
     var jsonData = data;
+    this.reloadSuccessCallback();
     if (!jsonData) {
       console.warn("Error: jsonData is null");
       return;

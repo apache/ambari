@@ -106,10 +106,12 @@ describe('App.InstallerStep7Controller', function () {
         serviceConfigProperties: []
       }
     });
+    sinon.stub(console, 'error', Em.K);
   });
 
   afterEach(function() {
     App.config.setPreDefinedServiceConfigs.restore();
+    console.error.restore();
   });
 
   describe('#installedServiceNames', function () {
@@ -288,7 +290,7 @@ describe('App.InstallerStep7Controller', function () {
         site1: true,
         site3: true
       };
-      var siteToTagMap = installerStep7Controller._createSiteToTagMap(desired_configs,sites)
+      var siteToTagMap = installerStep7Controller._createSiteToTagMap(desired_configs,sites);
       expect(siteToTagMap).to.eql({
         site1: "tag1",
         site3: "tag3"
@@ -520,7 +522,7 @@ describe('App.InstallerStep7Controller', function () {
           desired_configs: desired_configs
         }
       };
-      var siteToTagMap = installerStep7Controller.getConfigTagsSuccess(data)
+      var siteToTagMap = installerStep7Controller.getConfigTagsSuccess(data);
       expect(installerStep7Controller.get('serviceConfigTags')).to.eql([
         {
           "siteName": "site1",

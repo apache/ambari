@@ -1318,10 +1318,10 @@ describe('App.InstallerStep9Controller', function () {
 
   describe('#startPolling', function () {
     beforeEach(function () {
-      sinon.stub(c, 'getLogsByRequestErrorCallback', Em.K);
+      sinon.stub(c, 'reloadErrorCallback', Em.K);
     });
     afterEach(function () {
-      c.getLogsByRequestErrorCallback.restore();
+      c.reloadErrorCallback.restore();
     });
     it('should set isSubmitDisabled to true', function () {
       c.set('isSubmitDisabled', false);

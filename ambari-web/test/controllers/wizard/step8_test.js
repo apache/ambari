@@ -60,6 +60,11 @@ describe('App.WizardStep8Controller', function () {
       configs: configs
     });
     configurationController = App.MainServiceInfoConfigsController.create({});
+    sinon.stub(console, 'error', Em.K);
+  });
+
+  afterEach(function () {
+    console.error.restore();
   });
 
   var siteObjTests = Em.A([

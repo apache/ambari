@@ -811,11 +811,7 @@ describe('App.WizardStep3Controller', function () {
   describe('#isHostsRegistered', function () {
 
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', function () {
-        return {retry: function () {
-          return {then: Em.K}
-        }}
-      });
+      sinon.stub(App.ajax, 'send', Em.K);
     });
     afterEach(function () {
       App.ajax.send.restore();
