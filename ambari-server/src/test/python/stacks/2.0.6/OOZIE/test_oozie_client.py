@@ -49,7 +49,8 @@ class TestOozieClient(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-env.sh',
                               owner = 'oozie',
-                              content = InlineTemplate(self.getConfig()['configurations']['oozie-env']['content'])
+                              content = InlineTemplate(self.getConfig()['configurations']['oozie-env']['content']),
+                              group = 'hadoop',
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
                               owner = 'oozie',
@@ -103,7 +104,8 @@ class TestOozieClient(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-env.sh',
                               owner = 'oozie',
-                              content = InlineTemplate(self.getConfig()['configurations']['oozie-env']['content'])
+                              content = InlineTemplate(self.getConfig()['configurations']['oozie-env']['content']),
+                              group = 'hadoop',
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
                               owner = 'oozie',
@@ -163,7 +165,8 @@ class TestOozieClient(RMFTestCase):
     )
     self.assertResourceCalled('File', '/usr/hdp/current/oozie-client/conf/oozie-env.sh',
                               owner = 'oozie',
-                              content = InlineTemplate(self.getConfig()['configurations']['oozie-env']['content'])
+                              content = InlineTemplate(self.getConfig()['configurations']['oozie-env']['content']),
+                              group = 'hadoop',
     )
     self.assertResourceCalled('File', '/usr/hdp/current/oozie-client/conf/oozie-log4j.properties',
                               owner = 'oozie',

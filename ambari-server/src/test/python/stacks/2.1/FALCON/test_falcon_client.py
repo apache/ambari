@@ -61,7 +61,8 @@ class TestFalconClient(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/etc/falcon/conf/falcon-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['falcon-env']['content']),
-                              owner = 'falcon'
+                              owner = 'falcon',
+                              group = 'hadoop'
                               )
     self.assertResourceCalled('File', '/etc/falcon/conf/client.properties',
                               content = Template('client.properties.j2'),

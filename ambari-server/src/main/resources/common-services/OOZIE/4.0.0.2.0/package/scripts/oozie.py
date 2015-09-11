@@ -110,7 +110,8 @@ def oozie(is_server=False):
   )
   File(format("{conf_dir}/oozie-env.sh"),
     owner=params.oozie_user,
-    content=InlineTemplate(params.oozie_env_sh_template)
+    content=InlineTemplate(params.oozie_env_sh_template),
+    group=params.user_group,
   )
 
   if (params.log4j_props != None):

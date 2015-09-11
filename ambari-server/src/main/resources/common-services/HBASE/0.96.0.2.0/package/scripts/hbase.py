@@ -117,7 +117,8 @@ def hbase(name=None):
 
   File(format("{hbase_conf_dir}/hbase-env.sh"),
        owner = params.hbase_user,
-       content=InlineTemplate(params.hbase_env_sh_template)
+       content=InlineTemplate(params.hbase_env_sh_template),
+       group = params.user_group,
   )     
        
   hbase_TemplateConfig( params.metric_prop_file_name,

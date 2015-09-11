@@ -180,7 +180,9 @@ class TestPhoenixQueryServer(RMFTestCase):
       '/usr/hdp/current/hbase-regionserver/conf/hbase-env.sh',
       owner = 'hbase',
       content = InlineTemplate(
-        self.getConfig()['configurations']['hbase-env']['content']))
+        self.getConfig()['configurations']['hbase-env']['content']),
+      group = 'haoop',                          
+    )
 
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
@@ -266,6 +268,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       owner = 'hbase',
       content = InlineTemplate(
         self.getConfig()['configurations']['hbase-env']['content']),
+      group = 'hadoop',
     )
     self.assertResourceCalled('TemplateConfig',
       '/usr/hdp/current/hbase-regionserver/conf/hadoop-metrics2-hbase.properties',
@@ -355,6 +358,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       owner = 'hbase',
       content = InlineTemplate(
         self.getConfig()['configurations']['hbase-env']['content']),
+      group = 'hadoop',
     )
     self.assertResourceCalled('TemplateConfig',
       '/usr/hdp/current/hbase-regionserver/conf/hadoop-metrics2-hbase.properties',
