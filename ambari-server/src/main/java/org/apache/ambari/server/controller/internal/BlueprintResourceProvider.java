@@ -150,7 +150,12 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
              ResourceAlreadyExistsException, NoSuchParentResourceException {
 
     for (Map<String, Object> properties : request.getProperties()) {
-      createResources(getCreateCommand(properties, request.getRequestInfoProperties()));
+      try {
+        createResources(getCreateCommand(properties, request.getRequestInfoProperties()));
+      }catch(IllegalArgumentException e) {
+        LOG.error("Exception while creating blueprint", e);
+        throw e;
+      }
     }
     notifyCreate(Resource.Type.Blueprint, request);
 
