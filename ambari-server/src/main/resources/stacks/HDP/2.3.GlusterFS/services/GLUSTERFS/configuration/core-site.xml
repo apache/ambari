@@ -27,10 +27,12 @@
   <property>
   <name>fs.AbstractFileSystem.glusterfs.impl</name>
   <value>org.apache.hadoop.fs.local.GlusterFs</value>
+  <display-name>GlusterFS Abstract File System Implementation</display-name>
   </property>
 
   <property>
   <name>fs.glusterfs.impl</name>
+  <display-name>GlusterFS fs impl</display-name>
   <value>org.apache.hadoop.fs.glusterfs.GlusterFileSystem</value>
   </property>
   

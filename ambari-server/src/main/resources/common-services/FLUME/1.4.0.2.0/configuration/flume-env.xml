@@ -23,13 +23,23 @@
 <configuration>
   <property>
     <name>flume_conf_dir</name>
+    <display-name>Flume Conf Dir</display-name>
     <value>/etc/flume/conf</value>
     <description>Location to save configuration files</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
   <property>
     <name>flume_log_dir</name>
+    <display-name>Flume Log Dir</display-name>
     <value>/var/log/flume</value>
     <description>Location to save log files</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
   <property>
     <name>flume_run_dir</name>

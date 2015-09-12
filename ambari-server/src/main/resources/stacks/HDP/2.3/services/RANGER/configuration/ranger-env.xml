@@ -29,6 +29,7 @@
   <property>
     <name>create_db_dbuser</name>
     <value>true</value>
+    <display-name>Setup DB and DB user</display-name>
     <description>Setup Ranger Database and Database User?</description>
   </property>
 

@@ -23,7 +23,11 @@
   <property>
     <name>hbase.master.port</name>
     <value>16000</value>
+    <display-name>HBase Master Port</display-name>
     <description>The port the HBase Master should bind to.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.master.info.port</name>

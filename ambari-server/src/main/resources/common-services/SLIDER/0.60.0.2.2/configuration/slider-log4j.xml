@@ -84,6 +84,9 @@ log4j.logger.org.apache.hadoop.yarn.server.nodemanager.containermanager.monitor=
 log4j.logger.org.apache.hadoop.yarn.server.nodemanager.NodeStatusUpdaterImpl=WARN
 log4j.logger.org.apache.zookeeper=WARN
     </value>
+    <value-attributes>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
   </property>
 
 </configuration>

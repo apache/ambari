@@ -45,11 +45,16 @@
   <property>
     <name>hbase.master.port</name>
     <value>60000</value>
+    <display-name>HBase Master Port</display-name>
     <description>The port the HBase Master should bind to.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.tmp.dir</name>
     <value>/tmp/hbase-${user.name}</value>
+    <display-name>HBase tmp directory</display-name>
     <description>Temporary directory on the local filesystem.
     Change this setting to point to a location more permanent
     than '/tmp' (The '/tmp' directory is often cleared on
@@ -139,6 +144,7 @@
   <property>
     <name>hbase.hregion.memstore.block.multiplier</name>
     <value>4</value>
+    <display-name>HBase Region Block Multiplier</display-name>
     <description>
       Block updates if a memstore's size spikes this many times above the size that would cause it to be flushed.
       Useful to prevent runaway memstores during a sudden spike in update traffic.
@@ -217,6 +223,7 @@
       <minimum>100</minimum>
       <maximum>10000</maximum>
       <increment-step>100</increment-step>
+      <unit>rows</unit>
     </value-attributes>
   </property>
   <property>
@@ -298,6 +305,7 @@
 
   <property>
     <name>hbase.hstore.blockingStoreFiles</name>
+    <display-name>hstore blocking storefiles</display-name>
     <value>10</value>
     <description>
     If more than this number of StoreFiles in any one Store
@@ -388,6 +396,9 @@
     it in HBase's classpath and add the fully qualified class name here.
     A coprocessor can also be loaded on demand by setting HTableDescriptor.
     </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <depends-on>
       <property>
         <type>hbase-site</type>
@@ -410,6 +421,9 @@
       implementing your own MasterObserver, just put it in HBase's classpath
       and add the fully qualified class name here.
     </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <depends-on>
       <property>
         <type>hbase-site</type>

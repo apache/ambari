@@ -30,12 +30,18 @@
     <name>hadoop.rpc.protection</name>
     <value></value>
     <description>Used for repository creation on ranger admin</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
     <name>common.name.for.certificate</name>
     <value></value>
     <description>Used for repository creation on ranger admin</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
   
   <property>
@@ -47,7 +53,11 @@
   <property>
     <name>ranger-kafka-plugin-enabled</name>
     <value>No</value>
+    <display-name>Enable Ranger for KAFKA</display-name>
     <description>Enable ranger kafka plugin ?</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>

@@ -66,6 +66,9 @@ log4j.appender.JSA.layout=org.apache.log4j.PatternLayout
 log4j.logger.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary=${yarn.server.resourcemanager.appsummary.logger}
 log4j.additivity.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary=false
     </value>
+    <value-attributes>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
   </property>
 
 </configuration>

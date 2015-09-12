@@ -25,5 +25,9 @@
     <name>hbase_max_direct_memory_size</name>
     <value></value>
     <description>If not empty, adds '-XX:MaxDirectMemorySize={{hbase_max_direct_memory_size}}m' to HBASE_REGIONSERVER_OPTS.</description>
+    <display-name>HBase off-heap MaxDirectMemorySize</display-name>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 </configuration>

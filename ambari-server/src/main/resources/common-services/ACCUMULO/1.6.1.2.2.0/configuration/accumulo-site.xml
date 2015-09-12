@@ -25,6 +25,9 @@
     <name>instance.volumes</name>
     <value>hdfs://localhost:8020/apps/accumulo/data</value>
     <description>Location of Accumulo data files in HDFS.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -32,12 +35,18 @@
     <value>localhost:2181</value>
     <description>Comma-separated list of ZooKeeper server:port
       pairs.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>instance.zookeeper.timeout</name>
     <value>30s</value>
     <description>Timeout for zookeeper connections.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -125,8 +134,12 @@
   <property>
     <name>trace.user</name>
     <value>trace</value>
+    <display-name>Trace user</display-name>
     <description>User that the tracer process uses to write
       tracing data to Accumulo.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>

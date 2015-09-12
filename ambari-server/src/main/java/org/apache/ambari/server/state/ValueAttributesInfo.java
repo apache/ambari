@@ -36,6 +36,24 @@ public class ValueAttributesInfo {
   private String minimum;
   private String unit;
   private String delete;
+  private Boolean visible;
+  private Boolean overridable;
+
+  @XmlElement(name = "empty-value-valid")
+  @JsonProperty("empty_value_valid")
+  private Boolean emptyValueValid;
+
+  @XmlElement(name = "read-only")
+  @JsonProperty("read_only")
+  private Boolean readOnly;
+
+  @XmlElement(name = "editable-only-at-install")
+  @JsonProperty("editable_only_at_install")
+  private Boolean editableOnlyAtInstall;
+
+  @XmlElement(name = "show-property-name")
+  @JsonProperty("show_property_name")
+  private Boolean showPropertyName;
 
   @XmlElement(name = "increment-step")
   @JsonProperty("increment_step")
@@ -128,6 +146,54 @@ public class ValueAttributesInfo {
     this.delete = delete;
   }
 
+  public Boolean getEmptyValueValid() {
+    return emptyValueValid;
+  }
+
+  public void setEmptyValueValid(Boolean isEmptyValueValid) {
+    this.emptyValueValid = isEmptyValueValid;
+  }
+
+  public Boolean getVisible() {
+    return visible;
+  }
+
+  public void setVisible(Boolean isVisible) {
+    this.visible = isVisible;
+  }
+
+  public Boolean getReadOnly() {
+    return readOnly;
+  }
+
+  public void setReadOnly(Boolean isReadOnly) {
+    this.readOnly = isReadOnly;
+  }
+
+  public Boolean getEditableOnlyAtInstall() {
+    return editableOnlyAtInstall;
+  }
+
+  public void setEditableOnlyAtInstall(Boolean isEditableOnlyAtInstall) {
+    this.editableOnlyAtInstall = isEditableOnlyAtInstall;
+  }
+
+  public Boolean getOverridable() {
+    return overridable;
+  }
+
+  public void setOverridable(Boolean isOverridable) {
+    this.overridable = isOverridable;
+  }
+
+  public Boolean getShowPropertyName() {
+    return showPropertyName;
+  }
+
+  public void setShowPropertyName(Boolean isPropertyNameVisible) {
+    this.showPropertyName = isPropertyNameVisible;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -137,6 +203,18 @@ public class ValueAttributesInfo {
 
     if (entries != null ? !entries.equals(that.entries) : that.entries != null) return false;
     if (entriesEditable != null ? !entriesEditable.equals(that.entriesEditable) : that.entriesEditable != null)
+      return false;
+    if (emptyValueValid != null ? !emptyValueValid.equals(that.emptyValueValid) : that.emptyValueValid != null)
+      return false;
+    if (visible != null ? !visible.equals(that.visible) : that.visible != null)
+      return false;
+    if (readOnly != null ? !readOnly.equals(that.readOnly) : that.readOnly != null)
+      return false;
+    if (editableOnlyAtInstall != null ? !editableOnlyAtInstall.equals(that.editableOnlyAtInstall) : that.editableOnlyAtInstall != null)
+      return false;
+    if (overridable != null ? !overridable.equals(that.overridable) : that.overridable != null)
+      return false;
+    if (showPropertyName != null ? !showPropertyName.equals(that.showPropertyName) : that.showPropertyName != null)
       return false;
     if (maximum != null ? !maximum.equals(that.maximum) : that.maximum != null) return false;
     if (minimum != null ? !minimum.equals(that.minimum) : that.minimum != null) return false;
@@ -161,6 +239,12 @@ public class ValueAttributesInfo {
     result = 31 * result + (entriesEditable != null ? entriesEditable.hashCode() : 0);
     result = 31 * result + (selectionCardinality != null ? selectionCardinality.hashCode() : 0);
     result = 31 * result + (incrementStep != null ? incrementStep.hashCode() : 0);
+    result = 31 * result + (emptyValueValid != null ? emptyValueValid.hashCode() : 0);
+    result = 31 * result + (visible != null ? visible.hashCode() : 0);
+    result = 31 * result + (readOnly != null ? readOnly.hashCode() : 0);
+    result = 31 * result + (editableOnlyAtInstall != null ? editableOnlyAtInstall.hashCode() : 0);
+    result = 31 * result + (overridable != null ? overridable.hashCode() : 0);
+    result = 31 * result + (showPropertyName != null ? showPropertyName.hashCode() : 0);
     return result;
   }
 
@@ -173,6 +257,12 @@ public class ValueAttributesInfo {
       ", minimum='" + minimum + '\'' +
       ", unit='" + unit + '\'' +
       ", delete='" + delete + '\'' +
+      ", emptyValueValid='" + emptyValueValid + '\'' +
+      ", visible='" + visible + '\'' +
+      ", readOnly='" + readOnly + '\'' +
+      ", editableOnlyAtInstall='" + editableOnlyAtInstall + '\'' +
+      ", overridable='" + overridable + '\'' +
+      ", showPropertyName='" + showPropertyName + '\'' +
       ", incrementStep='" + incrementStep + '\'' +
       ", entriesEditable=" + entriesEditable +
       ", selectionCardinality='" + selectionCardinality + '\'' +

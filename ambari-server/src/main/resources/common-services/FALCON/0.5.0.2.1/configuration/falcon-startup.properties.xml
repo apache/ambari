@@ -157,6 +157,9 @@ hive-hcatalog-core,hive-jdbc,hive-webhcat-java-client</value>
     <name>*.falcon.http.authentication.blacklisted.users</name>
     <value></value>
     <description>Comma separated list of black listed users</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
   <!--authentication properties-->
   <property>

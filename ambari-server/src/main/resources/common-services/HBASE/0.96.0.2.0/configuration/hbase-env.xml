@@ -24,12 +24,22 @@
   <property>
     <name>hbase_log_dir</name>
     <value>/var/log/hbase</value>
+    <display-name>HBase Log Dir Prefix</display-name>
     <description>Log Directories for HBase.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
   <property>
     <name>hbase_pid_dir</name>
     <value>/var/run/hbase</value>
+    <display-name>HBase PID Dir</display-name>
     <description>Pid Directory for HBase.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
   <property>
     <name>hbase_regionserver_heapsize</name>
@@ -52,10 +62,15 @@ Sets the upper bound on HBase RegionServers' young generation size.
 This value is used in case the young generation size (-Xmn) calculated based on the max heapsize (hbase_regionserver_heapsize)
 and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
     </description>
+    <display-name>RegionServers maximum value for -Xmn</display-name>
+    <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
   </property>
   <property>
     <name>hbase_regionserver_xmn_ratio</name>
     <value>0.2</value>
+    <display-name>RegionServers -Xmn in -Xmx ratio</display-name>
     <description>Percentage of max heap size (-Xmx) which used for young generation heap (-Xmn).</description>
   </property>
   <property>

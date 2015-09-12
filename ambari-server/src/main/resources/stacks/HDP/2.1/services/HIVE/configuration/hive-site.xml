@@ -22,38 +22,63 @@ limitations under the License.
   <property>
     <name>hive.heapsize</name>
     <value>1024</value>
+    <display-name>HiveServer2 heap size</display-name>
     <description>Hive Java heap size</description>
+    <value-attributes>
+      <unit>MB</unit>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ambari.hive.db.schema.name</name>
     <value>hive</value>
+    <display-name>Database Name</display-name>
     <description>Database name used as the Hive Metastore</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
     <value>jdbc:mysql://localhost/hive?createDatabaseIfNotExist=true</value>
+    <display-name>Database URL</display-name>
     <description>JDBC connect string for a JDBC metastore</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>javax.jdo.option.ConnectionDriverName</name>
     <value>com.mysql.jdbc.Driver</value>
+    <display-name>JDBC Driver Class</display-name>
     <description>Driver class name for a JDBC metastore</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>javax.jdo.option.ConnectionUserName</name>
     <value>hive</value>
+    <display-name>Database Username</display-name>
     <description>username to use against metastore database</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property require-input="true">
     <name>javax.jdo.option.ConnectionPassword</name>
     <value></value>
     <property-type>PASSWORD</property-type>
+    <display-name>Database Password</display-name>
     <description>password to use against metastore database</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -428,6 +453,9 @@ limitations under the License.
     <name>hive.server2.tez.default.queues</name>
     <value>default</value>
     <description>A comma-separated list of queues configured for the cluster.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
@@ -545,9 +573,13 @@ limitations under the License.
   <property>
     <name>hive.server2.thrift.port</name>
     <value>10000</value>
+    <display-name>HiveServer2 Port</display-name>
     <description>
       TCP port number to listen on, default 10000.
     </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>

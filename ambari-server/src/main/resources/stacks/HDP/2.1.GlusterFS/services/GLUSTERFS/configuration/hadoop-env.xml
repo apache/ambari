@@ -25,26 +25,52 @@
     <name>hadoop_pid_dir_prefix</name>
     <value>/var/run/hadoop</value>
     <description>Hadoop PID Dir Prefix</description>
+    <display-name>Hadoop PID Dir Prefix</display-name>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+      <visible>false</visible>
+    </value-attributes>
   </property>
  <property>
     <name>hadoop_heapsize</name>
     <value>1024</value>
-    <description>Hadoop maximum Java heap size</description>
+   <display-name>Hadoop maximum Java heap size</display-name>
+   <description>Hadoop maximum Java heap size</description>
+   <value-attributes>
+     <unit>MB</unit>
+   </value-attributes>
   </property>
   <property>
     <name>glusterfs_user</name>
     <value>root</value>
-    <description></description>
+    <display-name>glusterfs user</display-name>
+    <description>glusterfs user</description>
+    <value-attributes>
+      <visible>false</visible>
+    </value-attributes>
   </property>
   <property>
     <name>hdfs_log_dir_prefix</name>
     <value>/var/log/hadoop</value>
+    <display-name>Hadoop Log Dir Prefix</display-name>
     <description>Hadoop Log Dir Prefix</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+      <visible>false</visible>
+    </value-attributes>
   </property>
   <property>
     <name>namenode_heapsize</name>
     <value>1024</value>
+    <display-name>Name Node Heap Size</display-name>
     <description>NameNode Java heap size</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+      <visible>false</visible>
+    </value-attributes>
   </property>
   <property>
     <name>namenode_host</name>

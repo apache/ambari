@@ -59,6 +59,7 @@
   <property>
     <name>xasecure.hive.update.xapolicies.on.grant.revoke</name>
     <value>true</value>
+    <display-name>Should Hive GRANT/REVOKE update XA policies</display-name>
     <description>Should Hive plugin update Ranger policies for updates to permissions done using GRANT/REVOKE?</description>
   </property>
   

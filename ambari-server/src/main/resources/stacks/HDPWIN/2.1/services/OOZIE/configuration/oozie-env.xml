@@ -28,29 +28,52 @@
   <property>
     <name>oozie_hostname</name>
     <value></value>
+    <display-name>Database Host</display-name>
     <description>
       Specify the host on which the OOZIE database is hosted.
     </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>oozie_database</name>
     <value>Existing MSSQL Server database with SQL authentication</value>
+    <display-name>Oozie Database</display-name>
     <description>Oozie Server Database.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>oozie_data_dir</name>
     <value>c:\hadoop\oozie\data</value>
+    <display-name>Oozie Data Dir</display-name>
     <description>Data directory in which the Oozie DB exists</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>oozie_log_dir</name>
     <value>c:\hadoop\logs\oozie</value>
+    <display-name>Oozie Log Dir</display-name>
     <description>Directory for oozie logs</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>oozie_pid_dir</name>
     <value>c:\hadoop\run\oozie</value>
+    <display-name>Oozie PID Dir</display-name>
     <description>Directory in which the pid files for oozie reside.</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <!-- oozie-env.cmd -->

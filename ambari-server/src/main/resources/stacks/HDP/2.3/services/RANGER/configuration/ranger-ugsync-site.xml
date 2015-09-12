@@ -108,6 +108,9 @@
     <name>ranger.usersync.source.impl.class</name>
     <value>org.apache.ranger.unixusersync.process.UnixUserGroupBuilder</value>
     <description>For Ldap: org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder, For Unix: org.apache.ranger.unixusersync.process.UnixUserGroupBuilder, org.apache.ranger.unixusersync.process.FileSourceUserGroupBuilder</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
@@ -139,6 +142,9 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
@@ -151,12 +157,18 @@
     <name>ranger.usersync.ldap.bindkeystore</name>
     <value></value>
     <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.searchBase</name>
     <value>dc=hadoop,dc=apache,dc=org</value>
     <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
@@ -193,6 +205,9 @@
     <name>ranger.usersync.ldap.referral</name>
     <value>ignore</value>
     <description>Set to follow if multiple LDAP servers are configured to return continuation references for results. Set to ignore (default) if no referrals should be followed</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
@@ -223,48 +238,72 @@
     <name>ranger.usersync.group.searchenabled</name>
     <value>false</value>
     <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.group.usermapsyncenabled</name>
     <value>false</value>
     <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.group.searchbase</name>
     <value> </value>
     <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.group.searchscope</name>
     <value> </value>
     <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.group.objectclass</name>
     <value> </value>
     <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.group.searchfilter</name>
     <value> </value>
     <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.group.nameattribute</name>
     <value> </value>
     <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.group.memberattributename</name>
     <value> </value>
     <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>

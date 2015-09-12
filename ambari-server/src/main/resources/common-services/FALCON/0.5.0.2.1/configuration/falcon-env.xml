@@ -28,26 +28,39 @@
   <property>
     <name>falcon_port</name>
     <value>15000</value>
+    <display-name>Falcon server port</display-name>
     <description>Port the Falcon Server listens on.</description>
   </property>
   <property>
     <name>falcon_log_dir</name>
     <value>/var/log/falcon</value>
+    <display-name>Falcon Log Dir</display-name>
     <description>Falcon log directory.</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>falcon_pid_dir</name>
     <value>/var/run/falcon</value>
+    <display-name>Falcon PID Dir</display-name>
     <description>Falcon pid-file directory.</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>falcon_local_dir</name>
     <value>/hadoop/falcon</value>
+    <display-name>Falcon data directory</display-name>
     <description>Directory where Falcon data, such as activemq data, is stored.</description>
   </property>
   <property>
     <name>falcon_store_uri</name>
     <value>file:///hadoop/falcon/store</value>
+    <display-name>Falcon store URI</display-name>
     <description>Directory where entity definitions are stored.</description>
   </property>
   <!--embeddedmq properties-->
@@ -55,16 +68,25 @@
     <name>falcon.embeddedmq.data</name>
     <value>/hadoop/falcon/embeddedmq/data</value>
     <description>Directory in which embeddedmq data is stored.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>falcon.embeddedmq</name>
     <value>true</value>
     <description>Whether embeddedmq is enabled or not.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>falcon.emeddedmq.port</name>
     <value>61616</value>
     <description>Port that embeddedmq will listen on.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   
   <!-- falcon-env.sh -->

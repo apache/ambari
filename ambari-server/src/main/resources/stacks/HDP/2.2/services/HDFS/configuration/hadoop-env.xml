@@ -33,11 +33,12 @@
   </property>
   <property>
     <name>keyserver_port</name>
-    <value> </value>
+    <value></value>
     <display-name>Key Server Port</display-name>
     <description>Port number where Key Management Server is available</description>
     <value-attributes>
       <type>int</type>
+      <empty-value-valid>true</empty-value-valid>
     </value-attributes>
   </property>
   <property>

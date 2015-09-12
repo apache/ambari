@@ -94,16 +94,25 @@
     <value></value>
     <description>Where to store the contents of the bucketcache. One of: onheap,
       offheap, or file. If a file, set it to file:PATH_TO_FILE.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.bucketcache.size</name>
     <value></value>
     <description>The size of the buckets for the bucketcache if you only use a single size.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.bucketcache.percentage.in.combinedcache</name>
     <value></value>
     <description>Value to be set between 0.0 and 1.0</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.regionserver.wal.codec</name>
@@ -119,6 +128,9 @@
   <property>
     <name>hbase.region.server.rpc.scheduler.factory.class</name>
     <value></value>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <depends-on>
       <property>
         <type>hbase-env</type>
@@ -129,6 +141,9 @@
   <property>
     <name>hbase.rpc.controllerfactory.class</name>
     <value></value>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <depends-on>
       <property>
         <type>hbase-env</type>
@@ -149,6 +164,9 @@
   <property>
     <name>hbase.coprocessor.regionserver.classes</name>
     <value></value>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <depends-on>
       <property>
         <type>hbase-site</type>

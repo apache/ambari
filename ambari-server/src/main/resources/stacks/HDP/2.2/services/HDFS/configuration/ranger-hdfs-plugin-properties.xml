@@ -15,6 +15,7 @@
 	<property>
 		<name>policy_user</name>
 		<value>ambari-qa</value>
+		<display-name>policy User for HDFS</display-name>
 		<description>This user must be system user and also present at Ranger
 			admin portal</description>
 	</property>
@@ -24,6 +25,9 @@
 		<value></value>
 		<description>Used for repository creation on ranger admin
 		</description>
+		<value-attributes>
+			<empty-value-valid>true</empty-value-valid>
+		</value-attributes>
 	</property>
 
 	<property>
@@ -31,17 +35,25 @@
 		<value></value>
 		<description>Used for repository creation on ranger admin
 		</description>
+		<value-attributes>
+			<empty-value-valid>true</empty-value-valid>
+		</value-attributes>
 	</property>
 
 	<property>
 		<name>ranger-hdfs-plugin-enabled</name>
 		<value>No</value>
-		<description>Enable ranger hdfs plugin ?</description>
+		<display-name>Enable Ranger for HDFS</display-name>
+		<description>Enable ranger hdfs plugin</description>
+		<value-attributes>
+			<overridable>false</overridable>
+		</value-attributes>
 	</property>
 
 	<property>
 		<name>REPOSITORY_CONFIG_USERNAME</name>
 		<value>hadoop</value>
+		<display-name>Ranger repository config user</display-name>
 		<description>Used for repository creation on ranger admin
 		</description>
 	</property>
@@ -57,12 +69,14 @@
 	<property>
 		<name>XAAUDIT.DB.IS_ENABLED</name>
 		<value>true</value>
+		<display-name>Audit to DB</display-name>
 		<description></description>
 	</property>
 
 	<property>
 		<name>XAAUDIT.HDFS.IS_ENABLED</name>
 		<value>false</value>
+		<display-name>Audit to HDFS</display-name>
 		<description></description>
 	</property>
 

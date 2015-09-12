@@ -120,6 +120,9 @@
     <name>yarn.admin.acl</name>
     <value></value>
     <description> ACL of who can be admin of the YARN cluster. </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <!-- NodeManager -->

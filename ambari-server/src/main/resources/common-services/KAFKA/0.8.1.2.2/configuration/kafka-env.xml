@@ -35,7 +35,12 @@
   <property>
     <name>kafka_pid_dir</name>
     <value>/var/run/kafka</value>
+    <display-name>Kafka PID dir</display-name>
     <description></description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <!-- kafka-env.sh -->

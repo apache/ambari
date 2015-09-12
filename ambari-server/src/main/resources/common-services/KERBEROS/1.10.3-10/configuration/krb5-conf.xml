@@ -23,27 +23,41 @@
 <configuration>
   <property require-input="false">
     <name>domains</name>
+    <display-name>Domains</display-name>
     <description>
       A comma-separated list of domain names used to map server host names to the Realm name (e.g. .example.com,example.com). This is optional
     </description>
     <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>manage_krb5_conf</name>
+    <display-name>Manage Kerberos client krb5.conf</display-name>
     <description>
       Indicates whether your krb5.conf file should be managed by the wizard or should you manage it yourself
     </description>
     <value>true</value>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>conf_dir</name>
+    <display-name>krb5-conf directory path</display-name>
     <description>The krb5.conf configuration directory</description>
     <value>/etc</value>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>content</name>
+    <display-name>krb5-conf template</display-name>
     <description>Customizable krb5.conf template (Jinja template engine)</description>
     <value>
 [libdefaults]
@@ -76,5 +90,8 @@
 
 {# Append additional realm declarations below #}
     </value>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 </configuration>

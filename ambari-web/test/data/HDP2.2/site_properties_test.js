@@ -18,7 +18,7 @@
 
 var App = require('app');
 require('utils/helper');
-var siteProperties = require('data/HDP2/site_properties').configProperties;
+var siteProperties = require('data/HDP2.2/site_properties').configProperties;
 
 describe('hdp2SiteProperties', function () {
   /**

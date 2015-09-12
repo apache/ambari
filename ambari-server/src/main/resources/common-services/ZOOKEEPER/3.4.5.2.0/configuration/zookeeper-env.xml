@@ -30,12 +30,22 @@
   <property>
     <name>zk_log_dir</name>
     <value>/var/log/zookeeper</value>
+    <display-name>ZooKeeper Log Dir</display-name>
     <description>ZooKeeper Log Dir</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>zk_pid_dir</name>
     <value>/var/run/zookeeper</value>
+    <display-name>ZooKeeper PID Dir</display-name>
     <description>ZooKeeper Pid Dir</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   

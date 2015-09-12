@@ -25,40 +25,68 @@
     <name>accumulo_root_password</name>
     <value></value>
     <property-type>PASSWORD</property-type>
+    <display-name>Accumulo root password</display-name>
     <description>Password for the Accumulo root user. This password will be
       used to initialize Accumulo and to create the trace user. Changing this
       will not change the password for the Accumulo root user.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property require-input="true">
     <name>instance_secret</name>
     <value></value>
+    <display-name>Instance Secret</display-name>
     <property-type>PASSWORD</property-type>
     <description>A secret unique to a given instance that all Accumulo server
       processes must know in order to communicate with one
       another.</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property require-input="false">
     <name>trace_password</name>
     <value>trace</value>
+    <display-name>Trace user password</display-name>
     <property-type>PASSWORD</property-type>
     <description>Password for the trace user. The trace user will be created
       with this password if that user does not already exist. Changing this
       will not change the password for the trace user.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>accumulo_log_dir</name>
     <value>/var/log/accumulo</value>
+    <display-name>Accumulo Log Dir</display-name>
     <description>Log Directories for Accumulo.</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>accumulo_pid_dir</name>
     <value>/var/run/accumulo</value>
+    <display-name>Accumulo PID Dir</display-name>
     <description>Pid Directory for Accumulo.</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>accumulo_instance_name</name>
     <value>hdp-accumulo-instance</value>
+    <display-name>Instance Name</display-name>
     <description>Accumulo Instance Name.</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>accumulo_user</name>
@@ -69,31 +97,55 @@
   <property>
     <name>accumulo_master_heapsize</name>
     <value>1024</value>
+    <display-name>Accumulo Master Maximum Java heap size</display-name>
     <description>Accumulo Master Heap Size.</description>
+    <value-attributes>
+      <unit>MB</unit>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>accumulo_tserver_heapsize</name>
     <value>1536</value>
+    <display-name>Accumulo TServer Maximum Java heap size</display-name>
     <description>Accumulo Tablet Server Heap Size.</description>
+    <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
   </property>
   <property>
     <name>accumulo_monitor_heapsize</name>
     <value>1024</value>
+    <display-name>Accumulo Monitor Maximum Java heap size</display-name>
     <description>Accumulo Monitor Heap Size.</description>
+    <value-attributes>
+      <unit>MB</unit>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>accumulo_gc_heapsize</name>
     <value>256</value>
+    <display-name>Accumulo GC Maximum Java heap size</display-name>
     <description>Accumulo Garbage Collector Heap Size.</description>
+    <value-attributes>
+      <unit>MB</unit>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>accumulo_other_heapsize</name>
     <value>1024</value>
+    <display-name>Accumulo Other Maximum Java heap size</display-name>
     <description>Heap size for other Accumulo processes.</description>
+    <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
   </property>
   <property>
     <name>accumulo_monitor_bind_all</name>
     <value>false</value>
+    <display-name>Monitor Bind All Interfaces</display-name>
     <description>Controls whether the monitor binds to all interfaces.</description>
   </property>
   <property>
@@ -120,6 +172,7 @@ export ACCUMULO_KILL_CMD='kill -9 %p'
   <property>
     <name>server_content</name>
     <description>The template for a server accumulo-env.sh file.</description>
+    <display-name>Server accumulo-env template</display-name>
     <value>
 #! /usr/bin/env bash
 export HADOOP_PREFIX={{hadoop_prefix}}

@@ -45,6 +45,9 @@ limitations under the License.
     <name>templeton.pig.archive</name>
     <value>hdfs:///hdp/apps/${hdp.version}/pig/pig.tar.gz</value>
     <description>The path to the Pig archive in HDFS.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
@@ -63,6 +66,9 @@ limitations under the License.
     <name>templeton.hive.archive</name>
     <value>hdfs:///hdp/apps/${hdp.version}/hive/hive.tar.gz</value>
     <description>The path to the Hive archive.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>

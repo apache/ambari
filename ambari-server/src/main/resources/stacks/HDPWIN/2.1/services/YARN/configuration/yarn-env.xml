@@ -24,12 +24,22 @@
   <property>
     <name>yarn_log_dir_prefix</name>
     <value>c:\hadoop\logs\hadoop-yarn</value>
+    <display-name>YARN Log Dir Prefix</display-name>
     <description>YARN Log Dir Prefix</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
   <property>
     <name>yarn_pid_dir_prefix</name>
     <value>c:\hadoop\run\hadoop-yarn</value>
+    <display-name>YARN PID Dir Prefix</display-name>
     <description>YARN PID Dir Prefix</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
   <property>
     <name>yarn_user</name>

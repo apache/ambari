@@ -93,5 +93,19 @@
     </depends-on>
   </property>
 
+  <property>
+    <name>property.with.extra.value.attributes</name>
+    <value>yarn</value>
+    <description> some description. </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <visible>true</visible>
+      <read-only>true</read-only>
+      <editable-only-at-install>false</editable-only-at-install>
+      <overridable>false</overridable>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+  </property>
+
 
 </configuration>

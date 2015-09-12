@@ -21,7 +21,6 @@ var validator = require('utils/validator');
 
 App.ServiceConfigProperty = Em.Object.extend({
 
-  id: '', //either 'puppet var' or 'site property'
   name: '',
   displayName: '',
 
@@ -205,7 +204,7 @@ App.ServiceConfigProperty = Em.Object.extend({
   }.property('isUserProperty', 'isOriginalSCP', 'overrides.length'),
 
   init: function () {
-    if ((this.get('id') === 'puppet var') && this.get('value') == '') {
+    if (this.get('value') == '') {
       if (this.get('savedValue')) {
         this.set('value', this.get('savedValue'));
       } else if (this.get('recommendedValue')) {

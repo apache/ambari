@@ -40,6 +40,10 @@
     <name>storm.zookeeper.servers</name>
     <value>['localhost']</value>
     <description>A list of hosts of ZooKeeper servers used to manage the cluster.</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>storm.zookeeper.port</name>
@@ -70,11 +74,17 @@
     <name>storm.zookeeper.retry.interval</name>
     <value>1000</value>
     <description>The interval between retries of a Zookeeper operation.</description>
+    <value-attributes>
+      <unit>ms</unit>
+    </value-attributes>
   </property>
   <property>
     <name>storm.zookeeper.retry.intervalceiling.millis</name>
     <value>30000</value>
     <description>The ceiling of the interval between retries of a Zookeeper operation.</description>
+    <value-attributes>
+      <unit>ms</unit>
+    </value-attributes>
   </property>
   <property>
     <name>storm.cluster.mode</name>
@@ -104,6 +114,10 @@
     <name>nimbus.host</name>
     <value>localhost</value>
     <description>The host that the master server is running on.</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>nimbus.thrift.port</name>
@@ -115,16 +129,25 @@
     <name>nimbus.thrift.max_buffer_size</name>
     <value>1048576</value>
     <description>The maximum buffer size thrift should use when reading messages.</description>
+    <value-attributes>
+      <unit>bytes</unit>
+    </value-attributes>
   </property>
   <property>
     <name>nimbus.childopts</name>
     <value>-Xmx1024m -javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8649,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Nimbus_JVM</value>
     <description>This parameter is used by the storm-deploy project to configure the jvm options for the nimbus daemon.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>nimbus.task.timeout.secs</name>
     <value>30</value>
     <description>How long without heartbeating a task can go before nimbus will consider the task dead and reassign it to another location.</description>
+    <value-attributes>
+      <unit>seconds</unit>
+    </value-attributes>
   </property>
   <property>
     <name>nimbus.supervisor.timeout.secs</name>
@@ -139,11 +162,17 @@
        that if a machine ever goes down Nimbus will immediately wake up and take action.
        This parameter is for checking for failures when there's no explicit event like that occuring.
     </description>
+    <value-attributes>
+      <unit>seconds</unit>
+    </value-attributes>
   </property>
   <property>
     <name>nimbus.cleanup.inbox.freq.secs</name>
     <value>600</value>
     <description>How often nimbus should wake the cleanup thread to clean the inbox.</description>
+    <value-attributes>
+      <unit>seconds</unit>
+    </value-attributes>
   </property>
   <property>
     <name>nimbus.inbox.jar.expiration.secs</name>
@@ -155,12 +184,18 @@
        Note that the time it takes to delete an inbox jar file is going to be somewhat more than
        NIMBUS_CLEANUP_INBOX_JAR_EXPIRATION_SECS (depending on how often NIMBUS_CLEANUP_FREQ_SECS is set to).
       </description>
+    <value-attributes>
+      <unit>seconds</unit>
+    </value-attributes>
   </property>
   <property>
     <name>nimbus.task.launch.secs</name>
     <value>120</value>
     <description>A special timeout used when a task is initially launched. During launch, this is the timeout
        used until the first heartbeat, overriding nimbus.task.timeout.secs.</description>
+    <value-attributes>
+      <unit>seconds</unit>
+    </value-attributes>
   </property>
   <property>
     <name>nimbus.reassign</name>
@@ -173,6 +208,9 @@
     <value>600</value>
     <description>During upload/download with the master, how long an upload or download connection is idle
        before nimbus considers it dead and drops the connection.</description>
+    <value-attributes>
+      <unit>seconds</unit>
+    </value-attributes>
   </property>
   <property>
     <name>nimbus.topology.validator</name>
@@ -232,6 +270,9 @@
     <description>The timeout on DRPC requests within the DRPC server. Defaults to 10 minutes. Note that requests can also
        timeout based on the socket timeout on the DRPC client, and separately based on the topology message
        timeout for the topology implementing the DRPC function.</description>
+    <value-attributes>
+      <unit>seconds</unit>
+    </value-attributes>
   </property>
   <property>
     <name>drpc.childopts</name>
@@ -266,6 +307,9 @@
     <name>supervisor.childopts</name>
     <value>-Xmx256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port={{jmxremote_port}} -javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Supervisor_JVM</value>
     <description>This parameter is used by the storm-deploy project to configure the jvm options for the supervisor daemon.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>supervisor.worker.start.timeout.secs</name>
@@ -274,21 +318,33 @@
        the supervisor tries to restart the worker process. This value override
        supervisor.worker.timeout.secs during launch because there is additional
        overhead to starting and configuring the JVM on launch.</description>
+    <value-attributes>
+      <unit>seconds</unit>
+    </value-attributes>
   </property>
   <property>
     <name>supervisor.worker.timeout.secs</name>
     <value>30</value>
     <description>How long a worker can go without heartbeating before the supervisor tries to restart the worker process.</description>
+    <value-attributes>
+      <unit>seconds</unit>
+    </value-attributes>
   </property>
   <property>
     <name>supervisor.monitor.frequency.secs</name>
     <value>3</value>
     <description>How often the supervisor checks the worker heartbeats to see if any of them need to be restarted.</description>
+    <value-attributes>
+      <unit>seconds</unit>
+    </value-attributes>
   </property>
   <property>
     <name>supervisor.heartbeat.frequency.secs</name>
     <value>5</value>
     <description>How often the supervisor sends a heartbeat to the master.</description>
+    <value-attributes>
+      <unit>seconds</unit>
+    </value-attributes>
   </property>
   <property>
     <name>worker.childopts</name>
@@ -346,6 +402,9 @@
     <name>storm.messaging.netty.buffer_size</name>
     <value>5242880</value>
     <description>Netty based messaging: The buffer size for send/recv buffer.</description>
+    <value-attributes>
+      <unit>bytes</unit>
+    </value-attributes>
   </property>
   <property>
     <name>storm.messaging.netty.max_retries</name>
@@ -356,11 +415,17 @@
     <name>storm.messaging.netty.max_wait_ms</name>
     <value>1000</value>
     <description>Netty based messaging: The max # of milliseconds that a peer will wait.</description>
+    <value-attributes>
+      <unit>ms</unit>
+    </value-attributes>
   </property>
   <property>
     <name>storm.messaging.netty.min_wait_ms</name>
     <value>100</value>
     <description>Netty based messaging: The min # of milliseconds that a peer will wait.</description>
+    <value-attributes>
+      <unit>ms</unit>
+    </value-attributes>
   </property>
   <property>
     <name>topology.enable.message.timeouts</name>

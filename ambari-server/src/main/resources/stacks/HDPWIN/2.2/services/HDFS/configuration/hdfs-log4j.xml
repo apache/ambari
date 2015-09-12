@@ -217,6 +217,9 @@ log4j.logger.org.apache.hadoop.conf.Configuration.deprecation=WARN
 # messages from BlockManager in NameNode.
 #log4j.logger.BlockStateChange=WARN
     </value>
+    <value-attributes>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
   </property>
 
 </configuration>

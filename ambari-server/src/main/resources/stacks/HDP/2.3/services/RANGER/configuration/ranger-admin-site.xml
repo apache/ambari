@@ -27,7 +27,11 @@
   <property>
     <name>ranger.service.http.enabled</name>
     <value>true</value>
+    <display-name>HTTP enabled</display-name>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -76,19 +80,32 @@
   <property>
     <name>ranger.externalurl</name>
     <value>{{ranger_external_url}}</value>
+    <display-name>External URL</display-name>
     <description></description>
+    <value-attributes>
+      <visible>false</visible>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.jpa.jdbc.driver</name>
     <value>com.mysql.jdbc.Driver</value>
+    <display-name>Driver class name for a JDBC Ranger database</display-name>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.jpa.jdbc.url</name>
     <value>jdbc:mysql://localhost</value>
+    <display-name>JDBC connect string for a Ranger database</display-name>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property> 
 
   <property>
@@ -131,19 +148,29 @@
   <property>
     <name>ranger.authentication.method</name>
     <value>UNIX</value>
+    <display-name>Authentication method</display-name>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.ldap.url</name>
     <value>ldap://71.127.43.33:389</value>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property> 
 
   <property>
     <name>ranger.ldap.user.dnpattern</name>
     <value>uid={0},ou=users,dc=xasecure,dc=net</value>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -162,24 +189,36 @@
     <name>ranger.ldap.user.searchfilter</name>
     <value>(uid={0})</value>
     <description>Search filter used for Bind Authentication</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.ldap.group.roleattribute</name>
     <value>cn</value>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.ldap.base.dn</name>
     <value>dc=example,dc=com</value>
     <description>The Distinguished Name (DN) of the starting point for directory server searches.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.ldap.bind.dn</name>
     <value>cn=adadmin,cn=Users,dc=example,dc=com</value>
     <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -187,36 +226,54 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <description>Password for the account that can search for users</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.ldap.referral</name>
     <value>ignore</value>
     <description>Set to follow if multiple LDAP servers are configured to return continuation references for results. Set to ignore (default) if no referrals should be followed</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.ldap.ad.domain</name>
     <value>localhost</value>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.ldap.ad.url</name>
     <value>ldap://ad.xasecure.net:389</value>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.ldap.ad.base.dn</name>
     <value>dc=example,dc=com</value>
     <description>The Distinguished Name (DN) of the starting point for directory server searches.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.ldap.ad.bind.dn</name>
     <value>cn=adadmin,cn=Users,dc=example,dc=com</value>
     <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -224,18 +281,27 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <description>Password for the account that can search for users</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.ldap.ad.user.searchfilter</name>
     <value>(sAMAccountName={0})</value>
     <description>Search filter used for Bind Authentication</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.ldap.ad.referral</name>
     <value>ignore</value>
     <description>"Set to follow if multiple LDAP servers are configured to return continuation references for results. Set to ignore (default) if no referrals should be followed"</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -272,19 +338,29 @@
   <property>
     <name>ranger.unixauth.remote.login.enabled</name>
     <value>true</value>
+    <display-name>Allow remote Login</display-name>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.unixauth.service.hostname</name>
     <value>localhost</value>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger.unixauth.service.port</name>
     <value>5151</value>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>    
 
   <property>

@@ -79,5 +79,8 @@
     <description>
       content for log4j.properties file for Knox.
     </description>
+    <value-attributes>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
   </property>
 </configuration>

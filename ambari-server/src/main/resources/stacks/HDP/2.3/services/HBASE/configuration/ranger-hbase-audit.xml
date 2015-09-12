@@ -29,6 +29,7 @@
   <property>
     <name>xasecure.audit.destination.db</name>
     <value>false</value>
+    <display-name>Audit to DB</display-name>
     <description></description>
   </property>
 
@@ -72,6 +73,7 @@
   <property>
     <name>xasecure.audit.destination.hdfs</name>
     <value>true</value>
+    <display-name>Audit to HDFS</display-name>
     <description></description>
   </property>
 
@@ -90,6 +92,7 @@
   <property>
     <name>xasecure.audit.destination.solr</name>
     <value>false</value>
+    <display-name>Audit to SOLR</display-name>
     <description></description>
   </property>
 
@@ -114,6 +117,7 @@
   <property>
     <name>xasecure.audit.provider.summary.enabled</name>
     <value>true</value>
+    <display-name>Audit provider summary enabled</display-name>
     <description></description>
   </property>
 

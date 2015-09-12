@@ -25,16 +25,24 @@
   <property>
     <name>oozie.service.JPAService.jdbc.driver</name>
     <value>com.microsoft.sqlserver.jdbc.SQLServerDriver</value>
+    <display-name>JDBC Driver Class</display-name>
     <description>
       JDBC driver class.
     </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>oozie.service.JPAService.jdbc.url</name>
     <value>jdbc:sqlserver://localhost;databaseName=oozie</value>
+    <display-name>Database URL</display-name>
     <description>
       JDBC URL.
     </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>oozie.service.HadoopAccessorService.hadoop.configurations</name>

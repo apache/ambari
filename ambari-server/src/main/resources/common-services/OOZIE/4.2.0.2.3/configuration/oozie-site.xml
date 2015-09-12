@@ -92,22 +92,31 @@
   <property>
     <name>oozie.db.schema.name</name>
     <value>oozie</value>
+    <display-name>Database Name</display-name>
     <description>
       Oozie DataBase Name
     </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>oozie.service.JPAService.jdbc.username</name>
     <value>oozie</value>
+    <display-name>Database Username</display-name>
     <description>
       Database user name to use to connect to the database
     </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property require-input="true">
     <name>oozie.service.JPAService.jdbc.password</name>
     <value></value>
+    <display-name>Database Password</display-name>
     <property-type>PASSWORD</property-type>
     <description>
       DB user password.
@@ -115,22 +124,33 @@
       IMPORTANT: if password is emtpy leave a 1 space string, the service trims the value,
       if empty Configuration assumes it is NULL.
     </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>oozie.service.JPAService.jdbc.driver</name>
     <value>org.apache.derby.jdbc.EmbeddedDriver</value>
+    <display-name>JDBC Driver Class</display-name>
     <description>
       JDBC driver class.
     </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>oozie.service.JPAService.jdbc.url</name>
     <value>jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true</value>
+    <display-name>Database URL</display-name>
     <description>
       JDBC URL.
     </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>

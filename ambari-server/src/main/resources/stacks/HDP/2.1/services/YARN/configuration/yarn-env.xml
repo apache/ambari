@@ -24,7 +24,12 @@
   <property>
     <name>apptimelineserver_heapsize</name>
     <value>1024</value>
+    <display-name>AppTimelineServer Java heap size</display-name>
     <description>Max heapsize for AppTimelineServer using a numerical value in the scale of MB</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <unit>MB</unit>
+    </value-attributes>
   </property>
   
   <!-- yarn-env.sh -->

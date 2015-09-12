@@ -23,6 +23,10 @@
     <name>nimbus.seeds</name>
     <value>localhost</value>
     <description>Comma-delimited list of the hosts running nimbus server.</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>topology.min.replication.count.default</name>
