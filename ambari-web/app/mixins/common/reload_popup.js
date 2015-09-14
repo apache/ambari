@@ -40,7 +40,7 @@ App.ReloadPopupMixin = Em.Mixin.create({
     } else {
       var times = Em.isNone(params.times) ? App.get('maxRetries') : params.times,
         timeout = Em.isNone(params.timeout) ? App.get('timeout') : params.timeout;
-      this.showReloadPopup();
+      this.showReloadPopup(params.reloadPopupText);
       if (this.get('retryCount') < times) {
         if (params.callback) {
           var self = this;
@@ -53,8 +53,9 @@ App.ReloadPopupMixin = Em.Mixin.create({
     }
   },
 
-  showReloadPopup: function () {
-    var self = this;
+  showReloadPopup: function (text) {
+    var self = this,
+      bodyText = text || this.t('app.reloadPopup.text');
     if (!this.get('reloadPopup')) {
       this.set('reloadPopup', App.ModalPopup.show({
         primary: null,
@@ -62,7 +63,7 @@ App.ReloadPopupMixin = Em.Mixin.create({
         showFooter: false,
         header: this.t('app.reloadPopup.header'),
         body: "<div id='reload_popup' class='alert alert-info'><div class='spinner'><span>" +
-          this.t('app.reloadPopup.text') + "</span></div></div><div><a href='javascript:void(null)' onclick='location.reload();'>" +
+          bodyText + "</span></div></div><div><a href='javascript:void(null)' onclick='location.reload();'>" +
           this.t('app.reloadPopup.link') + "</a></div>",
         encodeBody: false,
         onClose: function () {

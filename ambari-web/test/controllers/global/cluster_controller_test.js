@@ -69,10 +69,10 @@ describe('App.clusterController', function () {
       modelSetup.setupStackVersion(this, 'HDP-2.0.5');
       sinon.stub(App.ajax, 'send', function () {
         return {
-          complete: function (callback) {
+          then: function (successCallback) {
             App.set('clusterName', 'clusterNameFromServer');
             App.set('currentStackVersion', 'HDP-2.0.5');
-            callback();
+            successCallback();
           }
         }
       });
@@ -107,7 +107,7 @@ describe('App.clusterController', function () {
 
   });
 
-  describe('#loadClusterNameSuccessCallback', function () {
+  describe('#reloadSuccessCallback', function () {
     var test_data = {
       "items": [
         {
@@ -119,16 +119,9 @@ describe('App.clusterController', function () {
       ]
     };
     it('Check cluster', function () {
-      controller.loadClusterNameSuccessCallback(test_data);
+      controller.reloadSuccessCallback(test_data);
       expect(App.get('clusterName')).to.equal('tdk');
       expect(App.get('currentStackVersion')).to.equal('HDP-1.3.0');
-    });
-  });
-
-  describe('#loadClusterNameErrorCallback', function () {
-    controller.loadClusterNameErrorCallback();
-    it('', function () {
-      expect(controller.get('isLoaded')).to.equal(true);
     });
   });
 

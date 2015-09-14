@@ -19,7 +19,7 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 
-App.ClusterController = Em.Controller.extend({
+App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   name: 'clusterController',
   isLoaded: false,
   ambariProperties: null,
@@ -89,8 +89,8 @@ App.ClusterController = Em.Controller.extend({
   /**
    * load cluster name
    */
-  loadClusterName: function (reload) {
-    var dfd = $.Deferred();
+  loadClusterName: function (reload, deferred) {
+    var dfd = deferred || $.Deferred();
 
     if (App.get('clusterName') && !reload) {
       App.set('clusterName', this.get('clusterName'));
@@ -100,30 +100,40 @@ App.ClusterController = Em.Controller.extend({
       App.ajax.send({
         name: 'cluster.load_cluster_name',
         sender: this,
-        success: 'loadClusterNameSuccessCallback',
-        error: 'loadClusterNameErrorCallback'
-      }).complete(function () {
-        if (!App.get('currentStackVersion')) {
-          App.set('currentStackVersion', App.defaultStackVersion);
+        data: {
+          reloadPopupText: Em.I18n.t('app.reloadPopup.noClusterName.text'),
+          errorLogMessage: 'failed on loading cluster name',
+          callback: this.loadClusterName,
+          args: [reload, dfd],
+          shouldUseDefaultHandler: true
+        },
+        success: 'reloadSuccessCallback',
+        error: 'reloadErrorCallback',
+        callback: function () {
+          if (!App.get('currentStackVersion')) {
+            App.set('currentStackVersion', App.defaultStackVersion);
+          }
         }
-        dfd.resolve();
-      });
+      }).then(
+        function () {
+          dfd.resolve();
+        },
+        null
+      );
     }
-    return dfd.promise()
+    return dfd.promise();
   },
 
-  loadClusterNameSuccessCallback: function (data) {
+  reloadSuccessCallback: function (data) {
+    this._super();
     if (data.items && data.items.length > 0) {
-      App.set('clusterName', data.items[0].Clusters.cluster_name);
-      App.set('currentStackVersion', data.items[0].Clusters.version);
+      App.setProperties({
+        clusterName: data.items[0].Clusters.cluster_name,
+        currentStackVersion: data.items[0].Clusters.version,
+        isKerberosEnabled: data.items[0].Clusters.security_type === 'KERBEROS'
+      });
       this.set('isClusterNameLoaded', true);
-      App.set('isKerberosEnabled', data.items[0].Clusters.security_type === 'KERBEROS');
     }
-  },
-
-  loadClusterNameErrorCallback: function (request, ajaxOptions, error) {
-    console.log('failed on loading cluster name');
-    this.set('isLoaded', true);
   },
 
   /**

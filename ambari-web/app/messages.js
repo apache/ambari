@@ -23,6 +23,7 @@ Em.I18n.translations = {
   'app.name.subtitle.experimental':'Ambari Experimental',
   'app.reloadPopup.link': 'Reload Page',
   'app.reloadPopup.text': 'Trying to connect to server...',
+  'app.reloadPopup.noClusterName.text': 'Failed to retrieve cluster name, trying to reload...',
   'app.reloadPopup.header': 'Reload Page',
 
   'app.loadingPlaceholder': 'Loading...',

@@ -30,22 +30,36 @@ describe('App.ReloadPopupMixin', function () {
 
   describe('#showReloadPopup', function () {
 
-    var mockObj = {
-      key: 'value'
-    };
+    var spanRegExp = new RegExp('<span>([\\s\\S]+)<\/span>'),
+      cases = [
+        {
+          result: Em.I18n.t('app.reloadPopup.text'),
+          title: 'should show modal popup with default message'
+        },
+        {
+          text: 'text',
+          result: 'text',
+          title: 'should show modal popup with custom message'
+        }
+      ];
 
     beforeEach(function () {
-      sinon.stub(App.ModalPopup, 'show').returns(mockObj);
+      sinon.stub(App.ModalPopup, 'show', function (popup) {
+        return popup.body;
+      });
     });
 
     afterEach(function () {
       App.ModalPopup.show.restore();
     });
 
-    it('should show modal popup', function () {
-      obj.showReloadPopup();
-      expect(obj.get('reloadPopup')).to.eql(mockObj);
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        obj.showReloadPopup(item.text);
+        expect(obj.get('reloadPopup').match(spanRegExp)[1]).to.equal(item.result);
+      });
     });
+
   });
 
   describe('#closeReloadPopup', function () {
