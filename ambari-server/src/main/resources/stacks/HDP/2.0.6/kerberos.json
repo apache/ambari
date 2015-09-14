@@ -1,7 +1,8 @@
 {
   "properties": {
     "realm": "${kerberos-env/realm}",
-    "keytab_dir": "/etc/security/keytabs"
+    "keytab_dir": "/etc/security/keytabs",
+    "additional_realms": ""
   },
   "identities": [
     {

@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -66,14 +67,36 @@ public class AuthToLocalBuilder {
   private boolean caseInsensitiveUser;
 
   /**
+   * A set of additional realm names to reference when generating rules.
+   */
+  private Set<String> additionalRealms = new HashSet<String>();
+
+  /**
    * Default constructor. Case insensitive support false by default
    */
   public AuthToLocalBuilder() {
-    this.caseInsensitiveUser = false;
+    this(false, null);
   }
 
-  public AuthToLocalBuilder(boolean caseInsensitiveUserSupport) {
+  /**
+   * Constructs a new AuthToLocalBuilder.
+   *
+   * @param caseInsensitiveUserSupport true indicating that case-insensitivity should be enabled;
+   *                                   false otherwise
+   * @param additionalRealms           a String containing a comma-delimited list of realm names to generate
+   *                                   default auth-to-local rules for
+   */
+  public AuthToLocalBuilder(boolean caseInsensitiveUserSupport, String additionalRealms) {
     this.caseInsensitiveUser = caseInsensitiveUserSupport;
+
+    if ((additionalRealms != null) && !additionalRealms.isEmpty()) {
+      for (String realm : additionalRealms.split("\\s*(?:\\r?\\n|,)\\s*")) {
+        realm = realm.trim();
+        if (!realm.isEmpty()) {
+          this.additionalRealms.add(realm);
+        }
+      }
+    }
   }
 
   /**
@@ -160,6 +183,11 @@ public class AuthToLocalBuilder {
     StringBuilder builder = new StringBuilder();
     // ensure that a default rule is added for this realm
     setRules.add(createDefaultRealmRule(realm));
+
+    // ensure that a default realm rule is added for the specified additional realms
+    for (String additionalRealm : additionalRealms) {
+      setRules.add(createDefaultRealmRule(additionalRealm));
+    }
 
     if (concatenationType == null) {
       concatenationType = DEFAULT_CONCATENATION_TYPE;
@@ -269,6 +297,7 @@ public class AuthToLocalBuilder {
       copy.setRules.add(rule);
     }
     copy.caseInsensitiveUser = this.caseInsensitiveUser;
+    copy.additionalRealms.addAll(this.additionalRealms);
 
     return copy;
   }
