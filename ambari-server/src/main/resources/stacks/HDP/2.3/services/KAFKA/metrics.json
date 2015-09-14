@@ -130,31 +130,6 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/kafka/log/LogFlushStats/LogFlushRateAndTimeMs/meanRate": {
-              "metric": "kafka.log.LogFlushStats.LogFlushRateAndTimeMs.meanRate",
-              "pointInTime": true,
-              "temporal": true
-            },
-            "metrics/kafka/log/LogFlushStats/LogFlushRateAndTimeMs/1MinuteRate": {
-              "metric": "kafka.log.LogFlushStats.LogFlushRateAndTimeMs.1MinuteRate",
-              "pointInTime": true,
-              "temporal": true
-            },
-            "metrics/kafka/log/LogFlushStats/LogFlushRateAndTimeMs/5MinuteRate": {
-              "metric": "kafka.log.LogFlushStats.LogFlushRateAndTimeMs.1MinuteRate",
-              "pointInTime": true,
-              "temporal": true
-            },
-            "metrics/kafka/log/LogFlushStats/LogFlushRateAndTimeMs/15MinuteRate": {
-              "metric": "kafka.log.LogFlushStats.LogFlushRateAndTimeMs.15MinuteRate",
-              "pointInTime": true,
-              "temporal": true
-            },
-            "metrics/kafka/log/LogFlushStats/LogFlushRateAndTimeMs/count": {
-              "metric": "kafka.log.LogFlushStats.LogFlushRateAndTimeMs.count",
-              "pointInTime": true,
-              "temporal": true
-            },
             "metrics/kafka/controller/ControllerStats/LeaderElectionRateAndTimeMs/meanRate": {
               "metric": "kafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.meanRate",
               "pointInTime": true,
