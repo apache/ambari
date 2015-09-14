@@ -54,10 +54,10 @@ class TestHostInfo(TestCase):
     else:
       cpu = hostinfo.get_cpu_times()
 
-    self.assertAlmostEqual(cpu['cpu_user'], 10)
-    self.assertAlmostEqual(cpu['cpu_system'], 10)
-    self.assertAlmostEqual(cpu['cpu_idle'], 70)
-    self.assertAlmostEqual(cpu['cpu_nice'], 10)
+    self.assertAlmostEqual(cpu['cpu_user'], 0.1)
+    self.assertAlmostEqual(cpu['cpu_system'], 0.1)
+    self.assertAlmostEqual(cpu['cpu_idle'], 0.7)
+    self.assertAlmostEqual(cpu['cpu_nice'], 0.1)
     self.assertAlmostEqual(cpu['cpu_wio'], 0)
     self.assertAlmostEqual(cpu['cpu_intr'], 0)
     self.assertAlmostEqual(cpu['cpu_sintr'], 0)
