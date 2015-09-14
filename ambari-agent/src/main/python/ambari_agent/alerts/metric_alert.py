@@ -30,6 +30,7 @@ from alerts.base_alert import BaseAlert
 from ambari_commons.urllib_handlers import RefreshHeaderProcessor
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from ambari_agent import Constants
 
 logger = logging.getLogger()
 
@@ -199,7 +200,7 @@ class MetricAlert(BaseAlert):
       content = ''
       try:
         if kerberos_principal is not None and kerberos_keytab is not None and security_enabled:
-          tmp_dir = self.config.get('agent', 'tmp_dir')
+          tmp_dir = Constants.AGENT_TMP_DIR
           if tmp_dir is None:
             tmp_dir = gettempdir()
 

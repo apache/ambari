@@ -58,8 +58,9 @@ do_install(){
   # on nano Ubuntu, when umask=027 those folders are created without 'x' bit for 'others'.
   # which causes failures when hadoop users try to access tmp_dir
   chmod a+x /var/lib/ambari-agent
-  chmod a+x /var/lib/ambari-agent/data
-  chmod 777 /var/lib/ambari-agent/data/tmp
+  
+  chmod 777 /var/lib/ambari-agent/tmp
+  chmod 700 /var/lib/ambari-agent/data
 }
 
 do_remove(){

@@ -61,7 +61,6 @@ class TestCustomServiceOrchestrator(TestCase):
     self.config = ConfigParser.RawConfigParser()
     self.config.add_section('agent')
     self.config.set('agent', 'prefix', tmpdir)
-    self.config.set('agent', 'tmp_dir', exec_tmp_dir)
     self.config.set('agent', 'cache_dir', "/cachedir")
     self.config.add_section('python')
     self.config.set('python', 'custom_actions_dir', tmpdir)

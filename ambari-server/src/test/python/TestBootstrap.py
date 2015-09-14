@@ -112,8 +112,8 @@ class TestBootstrap(TestCase):
     utime = 1234
     bootstrap_obj.getUtime = MagicMock(return_value=utime)
     ret = bootstrap_obj.getRunSetupWithPasswordCommand("hostname")
-    expected = "sudo -S python /var/lib/ambari-agent/data/tmp/setupAgent{0}.py hostname TEST_PASSPHRASE " \
-               "ambariServer root  8440 < /var/lib/ambari-agent/data/tmp/host_pass{0}".format(utime)
+    expected = "sudo -S python /var/lib/ambari-agent/tmp/setupAgent{0}.py hostname TEST_PASSPHRASE " \
+               "ambariServer root  8440 < /var/lib/ambari-agent/tmp/host_pass{0}".format(utime)
     self.assertEquals(ret, expected)
 
 
@@ -353,11 +353,11 @@ class TestBootstrap(TestCase):
     self.assertEquals(res, expected)
     command = str(init_mock.call_args[0][3])
     self.assertEqual(command,
-                     "sudo mkdir -p /var/lib/ambari-agent/data/tmp ; "
-                     "sudo chown -R root /var/lib/ambari-agent/data/tmp ; "
+                     "sudo mkdir -p /var/lib/ambari-agent/tmp ; "
+                     "sudo chown -R root /var/lib/ambari-agent/tmp ; "
                      "sudo chmod 755 /var/lib/ambari-agent ; "
                      "sudo chmod 755 /var/lib/ambari-agent/data ; "
-                     "sudo chmod 777 /var/lib/ambari-agent/data/tmp")
+                     "sudo chmod 777 /var/lib/ambari-agent/tmp")
 
   @patch.object(BootstrapDefault, "getOsCheckScript")
   @patch.object(BootstrapDefault, "getOsCheckScriptRemoteLocation")
@@ -491,7 +491,7 @@ class TestBootstrap(TestCase):
     command = str(init_mock.call_args[0][3])
     self.assertEqual(command,
                      "chmod a+x OsCheckScriptRemoteLocation && "
-                     "env PYTHONPATH=$PYTHONPATH:/var/lib/ambari-agent/data/tmp OsCheckScriptRemoteLocation centos6")
+                     "env PYTHONPATH=$PYTHONPATH:/var/lib/ambari-agent/tmp OsCheckScriptRemoteLocation centos6")
 
 
   @patch.object(SSH, "__init__")

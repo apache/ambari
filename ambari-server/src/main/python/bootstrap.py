@@ -47,7 +47,7 @@ MAX_PARALLEL_BOOTSTRAPS = 20
 # How many seconds to wait between polling parallel bootstraps
 POLL_INTERVAL_SEC = 1
 DEBUG = False
-DEFAULT_AGENT_TEMP_FOLDER = "/var/lib/ambari-agent/data/tmp"
+DEFAULT_AGENT_TEMP_FOLDER = "/var/lib/ambari-agent/tmp"
 DEFAULT_AGENT_DATA_FOLDER = "/var/lib/ambari-agent/data"
 DEFAULT_AGENT_LIB_FOLDER = "/var/lib/ambari-agent"
 PYTHON_ENV="env PYTHONPATH=$PYTHONPATH:" + DEFAULT_AGENT_TEMP_FOLDER

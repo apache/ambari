@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 GEN_AGENT_KEY = 'openssl req -new -newkey rsa:1024 -nodes -keyout "%(keysdir)s' \
                 + os.sep + '%(hostname)s.key" -subj /OU=%(hostname)s/ ' \
                 '-out "%(keysdir)s' + os.sep + '%(hostname)s.csr"'
+KEY_FILENAME = '%(hostname)s.key'
 
 
 class VerifiedHTTPSConnection(httplib.HTTPSConnection):
@@ -190,7 +191,7 @@ class CertificateManager():
 
     if not agent_key_exists:
       logger.info("Agent key not exists, generating request")
-      self.genAgentCrtReq()
+      self.genAgentCrtReq(self.getAgentKeyName())
     else:
       logger.info("Agent key exists, ok")
 
@@ -252,10 +253,12 @@ class CertificateManager():
                    '\nExiting..')
       raise ssl.SSLError
 
-  def genAgentCrtReq(self):
+  def genAgentCrtReq(self, keyname):
+    keysdir = os.path.abspath(self.config.get('security', 'keysdir'))
     generate_script = GEN_AGENT_KEY % {
       'hostname': hostname.hostname(self.config),
-      'keysdir': os.path.abspath(self.config.get('security', 'keysdir'))}
+      'keysdir': keysdir}
+    
     logger.info(generate_script)
     if platform.system() == 'Windows':
       p = subprocess.Popen(generate_script, stdout=subprocess.PIPE)
@@ -264,6 +267,8 @@ class CertificateManager():
       p = subprocess.Popen([generate_script], shell=True,
                            stdout=subprocess.PIPE)
       p.communicate()
+    # this is required to be 600 for security concerns.
+    os.chmod(keyname, 0600)
 
   def initSecurity(self):
     self.checkCertExists()

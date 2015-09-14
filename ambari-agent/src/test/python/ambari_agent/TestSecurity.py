@@ -348,12 +348,14 @@ class TestSecurity(unittest.TestCase):
 
   @patch("subprocess.Popen")
   @patch("subprocess.Popen.communicate")
-  def test_genAgentCrtReq(self, communicate_mock, popen_mock):
+  @patch.object(os, "chmod")
+  def test_genAgentCrtReq(self, chmod_mock, communicate_mock, popen_mock):
     man = CertificateManager(self.config)
     p = MagicMock(spec=subprocess.Popen)
     p.communicate = communicate_mock
     popen_mock.return_value = p
-    man.genAgentCrtReq()
+    man.genAgentCrtReq('/dummy-keysdir/hostname.key')
+    self.assertTrue(chmod_mock.called)
     self.assertTrue(popen_mock.called)
     self.assertTrue(communicate_mock.called)
 
