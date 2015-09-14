@@ -109,7 +109,7 @@ phoenix_hosts = default('/clusterHostInfo/phoenix_query_server_hosts', [])
 has_phoenix = len(phoenix_hosts) > 0
 
 if not has_phoenix:
-  exclude_packages = ['phoenix.+']
+  exclude_packages = ['phoenix*']
 else:
   exclude_packages = []
 
