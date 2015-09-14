@@ -91,6 +91,12 @@ hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
+nm_security_marker = '/var/lib/hadoop-yarn/nm_security_enabled'
+current_nm_security_state = os.path.isfile(nm_security_marker)
+toggle_nm_security = (current_nm_security_state and not security_enabled) or (not current_nm_security_state and security_enabled)
+rm_security_marker = "/var/lib/hadoop-yarn/rm_security_enabled"
+current_rm_security_state = os.path.isfile(rm_security_marker)
+toggle_rm_security = (current_rm_security_state and not security_enabled) or (not current_rm_security_state and security_enabled)
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 yarn_executor_container_group = config['configurations']['yarn-site']['yarn.nodemanager.linux-container-executor.group']
 kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
@@ -115,6 +121,7 @@ mapred_pid_dir_prefix = status_params.mapred_pid_dir_prefix
 mapred_log_dir_prefix = config['configurations']['mapred-env']['mapred_log_dir_prefix']
 mapred_env_sh_template = config['configurations']['mapred-env']['content']
 yarn_env_sh_template = config['configurations']['yarn-env']['content']
+yarn_nodemanager_recovery_dir = default('/configurations/yarn-site/yarn.nodemanager.recovery.dir', None)
 
 if len(rm_hosts) > 1:
   additional_rm_host = rm_hosts[1]

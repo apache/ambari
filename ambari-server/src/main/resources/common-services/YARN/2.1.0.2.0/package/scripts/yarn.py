@@ -61,28 +61,47 @@ def yarn(name = None):
     params.HdfsDirectory(None, action="create")
 
   if name == "nodemanager":
-    Directory(params.nm_local_dirs.split(',') + params.nm_log_dirs.split(','),
-              owner=params.yarn_user,
-              group=params.user_group,
-              recursive=True,
-              cd_access="a",
-              ignore_failures=True,
-              mode=0775
-              )
+    # First start after enabling/disabling security
+    if params.toggle_nm_security:
+      Directory(params.nm_local_dirs.split(',') + params.nm_log_dirs.split(','),
+                action='delete'
+      )
 
-    Execute(('chown', '-R', params.yarn_user, params.nm_local_dirs),
-            only_if=format("test -d {nm_local_dirs}"),
-            sudo=True)
-
-
-    if params.security_enabled:
-      smokeuser_directories = [os.path.join(dir, 'usercache' ,params.smokeuser)
-                               for dir in params.nm_local_dirs.split(',')]
-      for directory in smokeuser_directories:
-        Execute(('chown', '-R', params.smokeuser, directory),
-                only_if=format("test -d {directory}"),
-                sudo=True,
+      # If yarn.nodemanager.recovery.dir exists, remove this dir
+      if params.yarn_nodemanager_recovery_dir:
+        Directory(InlineTemplate(params.yarn_nodemanager_recovery_dir).get_content(),
+                  action='delete'
         )
+
+      # Setting NM marker file
+      if params.security_enabled:
+        File(params.nm_security_marker,
+             content="Marker file to track first start after enabling/disabling security. "
+                     "During first start yarn local, log dirs are removed and recreated"
+        )
+      elif not params.security_enabled:
+        File(params.nm_security_marker, action="delete")
+
+
+    if not params.security_enabled or params.toggle_nm_security:
+      Directory(params.nm_local_dirs.split(',') + params.nm_log_dirs.split(','),
+                owner=params.yarn_user,
+                group=params.user_group,
+                recursive=True,
+                cd_access="a",
+                ignore_failures=True,
+                mode=0775
+      )
+
+    if params.yarn_nodemanager_recovery_dir:
+      Directory(InlineTemplate(params.yarn_nodemanager_recovery_dir).get_content(),
+                owner=params.yarn_user,
+                group=params.user_group,
+                recursive=True,
+                mode=0755,
+                cd_access = 'a',
+      )
+
   Directory([params.yarn_pid_dir_prefix, params.yarn_pid_dir, params.yarn_log_dir],
             owner=params.yarn_user,
             group=params.user_group,
@@ -151,6 +170,18 @@ def yarn(name = None):
                            group=params.user_group,
                            mode=0700
       )
+    if params.toggle_rm_security:
+      Execute('yarn resourcemanager -format-state-store', user = params.yarn_user,
+              )
+      # Setting RM marker file
+      if params.security_enabled:
+        File(params.rm_security_marker,
+             content="Marker file to track first start after enabling/disabling security. "
+                     "During first start ResourceManager state store is formatted"
+        )
+      elif not params.security_enabled:
+        File(params.rm_security_marker, action="delete")
+
   elif name == 'apptimelineserver':
     Directory(params.ats_leveldb_dir,
        owner=params.yarn_user,

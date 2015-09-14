@@ -230,11 +230,6 @@ class TestNodeManager(RMFTestCase):
                               mode = 0775,
                               cd_access='a'
                               )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'yarn', u'/hadoop/yarn/local,/hadoop/yarn/local1'),
-                              sudo = True,
-                              only_if = 'test -d /hadoop/yarn/local,/hadoop/yarn/local1',
-                              )
-
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -436,30 +431,30 @@ class TestNodeManager(RMFTestCase):
                               action = ['create'],
                               )
     self.assertResourceCalled('Directory', '/hadoop/yarn/local',
-                              owner = 'yarn',
-                              group = 'hadoop',
-                              recursive = True,
-                              ignore_failures = True,
-                              mode = 0775,
-                              cd_access='a'
+                              action = ['delete'],
                               )
     self.assertResourceCalled('Directory', '/hadoop/yarn/log',
-                              owner = 'yarn',
+                              action = ['delete'],
+                              )
+    self.assertResourceCalled('File', '/var/lib/hadoop-yarn/nm_security_enabled',
+                              content = 'Marker file to track first start after enabling/disabling security. During first start yarn local, log dirs are removed and recreated',
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
                               group = 'hadoop',
                               recursive = True,
+                              cd_access = 'a',
                               ignore_failures = True,
                               mode = 0775,
-                              cd_access='a'
+                              owner = 'yarn',
                               )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'yarn', u'/hadoop/yarn/local'),
-                              sudo = True,
-                              only_if = 'test -d /hadoop/yarn/local',
+    self.assertResourceCalled('Directory', '/hadoop/yarn/log',
+                              group = 'hadoop',
+                              recursive = True,
+                              cd_access = 'a',
+                              ignore_failures = True,
+                              mode = 0775,
+                              owner = 'yarn',
                               )
-
-    self.assertResourceCalled('Execute', ('chown', '-R', u'ambari-qa', u'/hadoop/yarn/local/usercache/ambari-qa'),
-        sudo = True,
-        only_if = 'test -d /hadoop/yarn/local/usercache/ambari-qa',
-    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
