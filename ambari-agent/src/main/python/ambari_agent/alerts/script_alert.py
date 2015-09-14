@@ -25,6 +25,7 @@ import re
 from alerts.base_alert import BaseAlert
 from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
+from ambari_agent import Constants
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +100,7 @@ class ScriptAlert(BaseAlert):
       matchObj = re.match( r'((.*)services(.*)package)', self.path_to_script)
       if matchObj:
         basedir = matchObj.group(1)
-        with Environment(basedir, tmp_dir=self.config.get('agent', 'tmp_dir')) as env:
+        with Environment(basedir, tmp_dir=Constants.AGENT_TMP_DIR) as env:
           return cmd_module.execute(configurations, self.parameters, self.host_name)
       else:
         return cmd_module.execute(configurations, self.parameters, self.host_name)

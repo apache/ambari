@@ -202,7 +202,7 @@ class NameNodeDefault(NameNode):
       # Create the kerberos credentials cache (ccache) file and set it in the environment to use
       # when executing HDFS rebalance command. Use the md5 hash of the combination of the principal and keytab file
       # to generate a (relatively) unique cache filename so that we can use it as needed.
-      # TODO: params.tmp_dir=/var/lib/ambari-agent/data/tmp. However hdfs user doesn't have access to this path.
+      # TODO: params.tmp_dir=/var/lib/ambari-agent/tmp. However hdfs user doesn't have access to this path.
       # TODO: Hence using /tmp
       ccache_file_name = "hdfs_rebalance_cc_" + _md5(format("{hdfs_principal_name}|{hdfs_user_keytab}")).hexdigest()
       ccache_file_path = os.path.join(tempfile.gettempdir(), ccache_file_name)

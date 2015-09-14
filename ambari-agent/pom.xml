@@ -391,7 +391,7 @@
               <groupname>root</groupname>
             </mapping>
             <mapping>
-              <directory>/var/lib/${project.artifactId}/data/tmp</directory>
+              <directory>/var/lib/${project.artifactId}/tmp</directory>
               <filemode>777</filemode>
               <username>root</username>
               <groupname>root</groupname>
@@ -596,7 +596,7 @@
               <paths>
                 <path>${package.pid.dir}</path>
                 <path>/var/lib/${project.artifactId}/data</path>
-                <path>/var/lib/${project.artifactId}/data/tmp</path>
+                <path>/var/lib/${project.artifactId}/tmp</path>
                 <path>/var/lib/${project.artifactId}/keys</path>
                 <path>${package.log.dir}</path>
                 <path>/var/lib/${project.artifactId}/lib</path>

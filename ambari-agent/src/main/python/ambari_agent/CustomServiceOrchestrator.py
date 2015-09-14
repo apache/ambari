@@ -29,6 +29,7 @@ from FileCache import FileCache
 from AgentException import AgentException
 from PythonExecutor import PythonExecutor
 from PythonReflectiveExecutor import PythonReflectiveExecutor
+import Constants
 import hostname
 
 
@@ -61,7 +62,7 @@ class CustomServiceOrchestrator():
   def __init__(self, config, controller):
     self.config = config
     self.tmp_dir = config.get('agent', 'prefix')
-    self.exec_tmp_dir = config.get('agent', 'tmp_dir')
+    self.exec_tmp_dir = Constants.AGENT_TMP_DIR
     self.file_cache = FileCache(config)
     self.status_commands_stdout = os.path.join(self.tmp_dir,
                                                'status_command_stdout.txt')

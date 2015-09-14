@@ -31,6 +31,7 @@ from resource_management.libraries.functions.get_port_from_url import get_port_f
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from ambari_commons import OSCheck
 from ambari_commons.inet_utils import resolve_address
+from ambari_agent import Constants
 
 # hashlib is supplied as of Python 2.5 as the replacement interface for md5
 # and other secure hashes.  In 2.6, md5 is deprecated.  Import hashlib if
@@ -171,7 +172,7 @@ class WebAlert(BaseAlert):
         # Create the kerberos credentials cache (ccache) file and set it in the environment to use
         # when executing curl. Use the md5 hash of the combination of the principal and keytab file
         # to generate a (relatively) unique cache filename so that we can use it as needed.
-        tmp_dir = self.config.get('agent', 'tmp_dir')
+        tmp_dir = Constants.AGENT_TMP_DIR
         if tmp_dir is None:
           tmp_dir = gettempdir()
 

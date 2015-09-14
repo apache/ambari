@@ -41,10 +41,8 @@ class TestCertGeneration(TestCase):
     config.set('security', 'server_crt', 'ca.crt')
     self.certMan = CertificateManager(config)
 
-  @patch.object(os, "chmod")
-  def test_generation(self, chmod_mock):
-    self.certMan.genAgentCrtReq('/dummy_dir/hostname.key')
-    self.assertTrue(chmod_mock.called)
+  def test_generation(self):
+    self.certMan.genAgentCrtReq()
     self.assertTrue(os.path.exists(self.certMan.getAgentKeyName()))
     self.assertTrue(os.path.exists(self.certMan.getAgentCrtReqName()))
   def tearDown(self):
