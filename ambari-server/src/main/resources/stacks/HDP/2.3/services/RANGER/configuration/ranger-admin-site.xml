@@ -21,141 +21,141 @@
   <property>
     <name>ranger.service.host</name>
     <value>{{ranger_host}}</value>
-    <description></description>
+    <description>Host where ranger service to be installed</description>
   </property>
 
   <property>
     <name>ranger.service.http.enabled</name>
     <value>true</value>
-    <description></description>
+    <description>Enable HTTP</description>
   </property>
 
   <property>
     <name>ranger.service.http.port</name>
     <value>6080</value>
-    <description></description>
+    <description>HTTP port</description>
   </property>
 
   <property>
     <name>ranger.service.https.port</name>
     <value>6182</value>
-    <description></description>
+    <description>HTTPS port (if SSL is enabled)</description>
   </property> 
 
   <property>
     <name>ranger.service.https.attrib.ssl.enabled</name>
     <value>false</value>
-    <description></description>
+    <description>true/false, set to true if using SSL</description>
   </property>
 
   <property>
     <name>ranger.service.https.attrib.clientAuth</name>
     <value>want</value>
-    <description></description>
+    <description>Needs to be set to want for two way SSL</description>
   </property> 
 
   <property>
     <name>ranger.service.https.attrib.keystore.keyalias</name>
     <value>rangeradmin</value>
-    <description></description>
+    <description>Alias for Ranger Admin key in keystore</description>
   </property>
 
   <property>
     <name>ranger.service.https.attrib.keystore.pass</name>
     <value>xasecure</value>
     <property-type>PASSWORD</property-type>
-    <description></description>
+    <description>Password for keystore</description>
   </property>
 
   <property>
     <name>ranger.https.attrib.keystore.file</name>
     <value>/etc/ranger/admin/conf/ranger-admin-keystore.jks</value>
-    <description></description>
+    <description>Ranger admin keystore (specify full path)</description>
   </property>
 
   <property>
     <name>ranger.externalurl</name>
     <value>{{ranger_external_url}}</value>
-    <description></description>
+    <description>URL to be used by clients to access ranger admin</description>
   </property>
 
   <property>
     <name>ranger.jpa.jdbc.driver</name>
     <value>com.mysql.jdbc.Driver</value>
-    <description></description>
+    <description>JDBC driver class name</description>
   </property>
 
   <property>
     <name>ranger.jpa.jdbc.url</name>
     <value>jdbc:mysql://localhost</value>
-    <description></description>
+    <description>JDBC connect string - auto populated based on other values</description>
   </property> 
 
   <property>
     <name>ranger.jpa.jdbc.user</name>
     <value>{{ranger_db_user}}</value>
-    <description></description>
+    <description>JDBC user</description>
   </property>
 
   <property>
     <name>ranger.jpa.jdbc.password</name>
     <value>_</value>
     <property-type>PASSWORD</property-type>
-    <description></description>
+    <description>JDBC password</description>
   </property>
 
   <property>
     <name>ranger.jpa.jdbc.credential.alias</name>
     <value>rangeradmin</value>
-    <description></description>
+    <description>Alias name for storing JDBC password</description>
   </property>
 
   <property>
     <name>ranger.credential.provider.path</name>
     <value>/etc/ranger/admin/rangeradmin.jceks</value>
-    <description></description>
+    <description>File for credential store, provide full file path</description>
   </property>
 
   <property>
     <name>ranger.audit.source.type</name>
     <value>solr</value>
-    <description></description>
+    <description>db or solr, based on the audit destination used</description>
   </property>
 
   <property>
     <name>ranger.audit.solr.urls</name>
     <value>http://solr_host:6083/solr/ranger_audits</value>
-    <description></description>
+    <description>Solr url for audit</description>
   </property>
 
   <property>
     <name>ranger.authentication.method</name>
     <value>UNIX</value>
-    <description></description>
+    <description>Ranger admin Authentication - UNIX/LDAP/AD/NONE</description>
   </property>
 
   <property>
     <name>ranger.ldap.url</name>
     <value>ldap://71.127.43.33:389</value>
-    <description></description>
+    <description>LDAP Server URL, only used if Authentication method is LDAP</description>
   </property> 
 
   <property>
     <name>ranger.ldap.user.dnpattern</name>
     <value>uid={0},ou=users,dc=xasecure,dc=net</value>
-    <description></description>
+    <description>LDAP user DN, only used if Authentication method is LDAP</description>
   </property>
 
   <property>
     <name>ranger.ldap.group.searchbase</name>
     <value>ou=groups,dc=xasecure,dc=net</value>
-    <description></description>
+    <description>LDAP group searchbase, only used if Authentication method is LDAP</description>
   </property>
 
   <property>
     <name>ranger.ldap.group.searchfilter</name>
     <value>(member=uid={0},ou=users,dc=xasecure,dc=net)</value>
-    <description></description>
+    <description>LDAP group search filter, only used if Authentication method is LDAP</description>
   </property>
 
   <property>
@@ -167,7 +167,7 @@
   <property>
     <name>ranger.ldap.group.roleattribute</name>
     <value>cn</value>
-    <description></description>
+    <description>LDAP group role attribute, only used if Authentication method is LDAP</description>
   </property>
 
   <property>
@@ -198,13 +198,13 @@
   <property>
     <name>ranger.ldap.ad.domain</name>
     <value>localhost</value>
-    <description></description>
+    <description>AD domain, only used if Authentication method is AD</description>
   </property>
 
   <property>
     <name>ranger.ldap.ad.url</name>
     <value>ldap://ad.xasecure.net:389</value>
-    <description></description>
+    <description>AD URL, only used if Authentication method is AD</description>
   </property>
 
   <property>
@@ -241,81 +241,81 @@
   <property>
     <name>ranger.jpa.audit.jdbc.driver</name>
     <value>{{ranger_jdbc_driver}}</value>
-    <description></description>
+    <description>JDBC driver class name - for audit DB</description>
   </property>
 
   <property>
     <name>ranger.jpa.audit.jdbc.url</name>
     <value>{{audit_jdbc_url}}</value>
-    <description></description>
+    <description>JDBC connect string - auto populated based on other values</description>
   </property>
 
   <property>
     <name>ranger.jpa.audit.jdbc.user</name>
     <value>{{ranger_audit_db_user}}</value>
-    <description></description>
+    <description>JDBC user - audit</description>
   </property> 
 
   <property>
     <name>ranger.jpa.audit.jdbc.password</name>
     <value>_</value>
     <property-type>PASSWORD</property-type>
-    <description></description>
+    <description>JDBC password - audit</description>
   </property>
 
   <property>
     <name>ranger.jpa.audit.jdbc.credential.alias</name>
     <value>rangeraudit</value>
-    <description></description>
+    <description>Alias name for storing JDBC password - for audit user</description>
   </property>
 
   <property>
     <name>ranger.unixauth.remote.login.enabled</name>
     <value>true</value>
-    <description></description>
+    <description>Remote login enabled? - only used if Authentication method is UNIX</description>
   </property>
 
   <property>
     <name>ranger.unixauth.service.hostname</name>
     <value>localhost</value>
-    <description></description>
+    <description>Host where unix authentication service is running - only used if Authentication method is UNIX</description>
   </property>
 
   <property>
     <name>ranger.unixauth.service.port</name>
     <value>5151</value>
-    <description></description>
+    <description>Port for unix authentication service - only used if Authentication method is UNIX</description>
   </property>    
 
   <property>
     <name>ranger.jpa.jdbc.dialect</name>
     <value>{{jdbc_dialect}}</value>
-    <description></description>
+    <description>JDBC dialect used for policy DB</description>
   </property>
 
   <property>
     <name>ranger.jpa.audit.jdbc.dialect</name>
     <value>{{jdbc_dialect}}</value>
-    <description></description>
+    <description>JDBC dialect used for audit DB</description>
   </property>
 
   <property>
     <name>ranger.audit.solr.zookeepers</name>
     <value>NONE</value>
-    <description></description>
+    <description>Solr Zookeeper string</description>
   </property> 
 
   <property>
     <name>ranger.audit.solr.username</name>
     <value>ranger_solr</value>
-    <description></description>
+    <description>Solr username</description>
   </property> 
 
   <property>
     <name>ranger.audit.solr.password</name>
     <value>NONE</value>
     <property-type>PASSWORD</property-type>
-    <description></description>
+    <description>Solr password</description>
   </property> 
 
 </configuration>
