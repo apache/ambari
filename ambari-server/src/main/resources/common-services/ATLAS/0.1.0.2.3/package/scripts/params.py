@@ -62,12 +62,7 @@ env_sh_template = config['configurations']['atlas-env']['content']
 credential_provider = format( "jceks://file@{conf_dir}/atlas-site.jceks")
 
 # command line args
-ssl_enabled = config['configurations']['application-properties']['atlas.enableTLS']
-if ssl_enabled:
-  metadata_port = config['configurations']['application-properties']['atlas.server.https.port']
-else:
-  metadata_port = config['configurations']['application-properties']['atlas.server.http.port']
-
+metadata_port = config['configurations']['atlas-env']['metadata_port']
 metadata_host = config['hostname']
 
 # application properties

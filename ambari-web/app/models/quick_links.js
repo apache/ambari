@@ -337,9 +337,9 @@ App.QuickLinks.FIXTURES = [
     url:'%@://%@:%@/#!/search?user.name=%@',
     service_id: 'ATLAS',
     template:'%@://%@:%@/#!/search?user.name=%@',
-    http_config: 'atlas.server.http.port',
-    https_config: 'atlas.server.https.port',
-    site: 'application-properties',
+    http_config: 'metadata_port',
+    https_config: 'metadata_port',
+    site: 'atlas-env',
     regex: '^(\\d+)$',
     default_http_port: 21000,
     default_https_port: 21443
