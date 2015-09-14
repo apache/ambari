@@ -23,7 +23,7 @@
   <property>
     <name>common.name.for.certificate</name>
     <value></value>
-    <description>Common name for certificate, this value should match what is specified in repo within ranger admin</description>    
+    <description>Used for repository creation on ranger admin</description>    
   </property>      
 
   <property>

@@ -29,13 +29,14 @@
 	<property>
 		<name>common.name.for.certificate</name>
 		<value></value>
-		<description>Common name for certificate, this value should match what is specified in repo within ranger admin</description>
+		<description>Used for repository creation on ranger admin
+		</description>
 	</property>
 
 	<property>
 		<name>ranger-hdfs-plugin-enabled</name>
 		<value>No</value>
-		<description>Enable ranger hdfs plugin?</description>
+		<description>Enable ranger hdfs plugin ?</description>
 	</property>
 
 	<property>
