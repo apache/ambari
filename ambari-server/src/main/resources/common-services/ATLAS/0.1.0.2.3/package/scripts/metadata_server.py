@@ -46,7 +46,7 @@ class MetadataServer(Script):
     env.set_params(params)
     self.configure(env)
 
-    daemon_cmd = format('source {params.conf_dir}/atlas-env.sh ; {params.metadata_start_script} --port {params.metadata_port}')
+    daemon_cmd = format('source {params.conf_dir}/atlas-env.sh ; {params.metadata_start_script}')
     no_op_test = format('ls {params.pid_file} >/dev/null 2>&1 && ps -p `cat {params.pid_file}` >/dev/null 2>&1')
     Execute(daemon_cmd,
             user=params.metadata_user,
