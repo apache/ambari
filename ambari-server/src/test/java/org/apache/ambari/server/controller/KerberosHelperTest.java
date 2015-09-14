@@ -1625,6 +1625,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     ))).times(1);
 
     final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
+    expect(kerberosDescriptor.getProperty("additional_realms")).andReturn(null).times(1);
     expect(kerberosDescriptor.getIdentities()).andReturn(null).times(1);
     expect(kerberosDescriptor.getAuthToLocalProperties()).andReturn(null).times(1);
     expect(kerberosDescriptor.getServices()).andReturn(Collections.singletonMap("SERVICE1", serviceDescriptor1)).times(1);

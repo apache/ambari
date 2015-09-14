@@ -45,7 +45,6 @@
           "core-site": {
             "hadoop.security.authentication": "kerberos",
             "hadoop.security.authorization": "true",
-            "hadoop.security.auth_to_local": "",
             "hadoop.proxyuser.HTTP.groups": "${hadoop-env/proxyuser_group}"
           }
         }

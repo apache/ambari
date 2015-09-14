@@ -1,7 +1,8 @@
 {
   "properties": {
     "realm": "${cluster-env/kerberos_domain}",
-    "keytab_dir": "/etc/security/keytabs"
+    "keytab_dir": "/etc/security/keytabs",
+    "additional_realms": ""
   },
   "identities": [
     {

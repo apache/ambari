@@ -539,6 +539,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
         displayName: serviceName == "Cluster" ? App.format.normalizeName(propertyName) : propertyName,
         isOverridable: false,
         isEditable: propertyName != 'realm',
+        isRequired: propertyName != 'additional_realms',
         isSecureConfig: true
       };
       configs.push(App.ServiceConfigProperty.create(propertyObject));

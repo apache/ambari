@@ -1838,7 +1838,7 @@ public class AmbariMetaInfoTest {
 
     Assert.assertNotNull(descriptor);
     Assert.assertNotNull(descriptor.getProperties());
-    Assert.assertEquals(2, descriptor.getProperties().size());
+    Assert.assertEquals(3, descriptor.getProperties().size());
 
     Assert.assertNotNull(descriptor.getIdentities());
     Assert.assertEquals(1, descriptor.getIdentities().size());
