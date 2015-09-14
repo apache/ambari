@@ -118,7 +118,7 @@ module.exports = {
         break;
       case 'oozie_hostname':
         configProperty.set('recommendedValue', masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER').mapProperty('hostName')[0]);
-        configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER').mapProperty('hostName'));
+        configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER').mapProperty('hostName')[0]);
         break;
       case 'oozie.base.url':
         var oozieHost = masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName;
