@@ -304,7 +304,7 @@ describe('configPropertyHelper', function () {
         value: 'h0:2182,h1:2182',
         title: 'should add ZK host and port dynamically'
       },
-      'oozieserver_host': {
+      'oozie_hostname': {
         localDB: {
           masterComponentHosts: [
             {
@@ -391,13 +391,6 @@ describe('configPropertyHelper', function () {
       });
     });
 
-
-    it(cases['hivemetastore_host'].title, function () {
-      serviceConfigProperty.set('name', 'hivemetastore_host');
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['hivemetastore_host'].localDB, []);
-      expect(serviceConfigProperty.get('value')).to.eql(cases['hivemetastore_host'].value);
-    });
-
     it(cases['hive_master_hosts'].title, function () {
       serviceConfigProperty.set('name', 'hive_master_hosts');
       configPropertyHelper.initialValue(serviceConfigProperty, cases['hive_master_hosts'].localDB, []);
@@ -433,18 +426,6 @@ describe('configPropertyHelper', function () {
       configPropertyHelper.initialValue(serviceConfigProperty, cases['yarn.resourcemanager.zk-address'].localDB,  [{name:'clientPort', recommendedValue:cases['yarn.resourcemanager.zk-address'].dependencies['clientPort'],  filename: 'zoo.cfg.xml'}]);
       expect(serviceConfigProperty.get('value')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
-    });
-
-    it(cases['oozieserver_host'].title, function () {
-      serviceConfigProperty.set('name', 'oozieserver_host');
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['oozieserver_host'].localDB, []);
-      expect(serviceConfigProperty.get('value')).to.eql(cases['oozieserver_host'].value);
-    });
-
-    it(cases['knox_gateway_host'].title, function () {
-      serviceConfigProperty.set('name', 'knox_gateway_host');
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['knox_gateway_host'].localDB, []);
-      expect(serviceConfigProperty.get('value')).to.eql(cases['knox_gateway_host'].value);
     });
 
   });

@@ -29,14 +29,10 @@ module.exports = {
     };
 
     var masterComponentHostsInDB = localDB.masterComponentHosts;
-    var slaveComponentHostsInDB = localDB.slaveComponentHosts;
     var isOnlyFirstOneNeeded = true;
     var hostWithPort = "([\\w|\\.]*)(?=:)";
     var hostWithPrefix = ":\/\/" + hostWithPort;
     switch (configProperty.get('name')) {
-      case 'namenode_host':
-        configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName'));
-        break;
       case 'dfs.namenode.rpc-address':
       case 'dfs.http.address':
       case 'dfs.namenode.http-address':
@@ -52,31 +48,12 @@ module.exports = {
         var nnHost = masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName');
         this.setRecommendedValue(configProperty, hostWithPrefix,'://' + nnHost);
         break;
-      case 'snamenode_host':
-        // Secondary NameNode does not exist when NameNode HA is enabled
-        var snn = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE');
-        if (snn) {
-          configProperty.set('value', snn.hostName);
-        }
-        break;
       case 'dfs.secondary.http.address':
       case 'dfs.namenode.secondary.http-address':
         var snnHost = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE');
         if (snnHost) {
           this.setRecommendedValue(configProperty, hostWithPort,snnHost.hostName);
         }
-        break;
-      case 'datanode_hosts':
-        configProperty.set('value', slaveComponentHostsInDB.findProperty('componentName', 'DATANODE').hosts.mapProperty('hostName'));
-        break;
-      case 'nfsgateway_hosts':
-        var gwyHost = slaveComponentHostsInDB.findProperty('componentName', 'NFS_GATEWAY');
-        if(gwyHost) {
-          configProperty.set('value', gwyHost.hosts.mapProperty('hostName'));
-        }
-        break;
-      case 'hs_host':
-        configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName'));
         break;
       case 'yarn.log.server.url':
         var hsHost = masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName');
@@ -86,16 +63,6 @@ module.exports = {
       case 'mapreduce.jobhistory.address':
         var hsHost = masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName');
         this.setRecommendedValue(configProperty, hostWithPort,hsHost);
-        break;
-      case 'rm_host':
-        configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName);
-        break;
-      case 'ats_host':
-        var atsHost =  masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER');
-        if (atsHost)
-          configProperty.set('value', atsHost.hostName);
-        else
-          configProperty.set('value', 'false');
         break;
       case 'yarn.resourcemanager.hostname':
         var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
@@ -119,12 +86,6 @@ module.exports = {
           this.setRecommendedValue(configProperty, hostWithPort,atsHost.hostName);
         }
         break;
-      case 'nm_hosts':
-        configProperty.set('value', slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER').hosts.mapProperty('hostName'));
-        break;
-      case 'jobtracker_host':
-        configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName);
-        break;
       case 'mapred.job.tracker':
       case 'mapred.job.tracker.http.address':
         var jtHost = masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName;
@@ -134,21 +95,8 @@ module.exports = {
         var jtHost = masterComponentHostsInDB.findProperty('component', 'HISTORYSERVER').hostName;
         this.setRecommendedValue(configProperty, hostWithPort,jtHost);
         break;
-      case 'tasktracker_hosts':
-        configProperty.set('value', slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER').hosts.mapProperty('hostName'));
-        break;
-      case 'hbasemaster_host':
-        configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'HBASE_MASTER').mapProperty('hostName'));
-        break;
-      case 'regionserver_hosts':
-        configProperty.set('value', slaveComponentHostsInDB.findProperty('componentName', 'HBASE_REGIONSERVER').hosts.mapProperty('hostName'));
-        break;
-      case 'hivemetastore_host':
-        configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'HIVE_METASTORE').mapProperty('hostName'));
-        break;
       case 'hive_hostname':
         configProperty.set('recommendedValue', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
-      case 'hive_ambari_host':
         configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
         break;
       case 'hive_master_hosts':
@@ -170,29 +118,14 @@ module.exports = {
         break;
       case 'oozie_hostname':
         configProperty.set('recommendedValue', masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER').mapProperty('hostName')[0]);
-      case 'oozieserver_host':
         configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER').mapProperty('hostName'));
         break;
       case 'oozie.base.url':
         var oozieHost = masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName;
         this.setRecommendedValue(configProperty, hostWithPrefix,'://' + oozieHost);
         break;
-      case 'webhcatserver_host':
-        configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'WEBHCAT_SERVER').hostName);
-        break;
-      case 'oozie_ambari_host':
-        configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName);
-        break;
       case 'hadoop_host':
         configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName'));
-        break;
-      case 'hive_existing_mysql_host':
-      case 'hive_existing_postgresql_host':
-      case 'hive_existing_oracle_host':
-      case 'hive_existing_mssql_server_host':
-      case 'hive_existing_mssql_server_2_host':
-        var hiveServerHost = masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName;
-        configProperty.set('value', hiveServerHost).set('recommendedValue', hiveServerHost);
         break;
       case 'hive.metastore.uris':
         var hiveMSUris = this.getHiveMetastoreUris(masterComponentHostsInDB, dependencies['hive.metastore.uris']);
@@ -200,16 +133,7 @@ module.exports = {
           this.setRecommendedValue(configProperty, "(.*)", hiveMSUris);
         }
         break;
-      case 'oozie_existing_mysql_host':
-      case 'oozie_existing_postgresql_host':
-      case 'oozie_existing_oracle_host':
-      case 'oozie_existing_mssql_server_host':
-      case 'oozie_existing_mssql_server_2_host':
-        var oozieServerHost = masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName;
-        configProperty.set('value', oozieServerHost).set('recommendedValue', oozieServerHost);
-        break;
       case 'storm.zookeeper.servers':
-      case 'zookeeperserver_hosts':
         configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName'));
         break;
       case 'nimbus.host':
@@ -217,33 +141,6 @@ module.exports = {
         break;
       case 'nimbus.seeds':
         configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'NIMBUS').mapProperty('hostName'));
-        break;
-      case 'falconserver_host':
-        configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'FALCON_SERVER').hostName);
-        break;
-      case 'drpcserver_host':
-        var drpcHost = masterComponentHostsInDB.findProperty('component', 'DRPC_SERVER');
-        if (drpcHost) {
-          configProperty.set('value', drpcHost.hostName);
-        }
-        break;
-      case 'stormuiserver_host':
-        configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'STORM_UI_SERVER').hostName);
-        break;
-      case 'storm_rest_api_host':
-        var stormRresApiHost = masterComponentHostsInDB.findProperty('component', 'STORM_REST_API');
-        if(stormRresApiHost) {
-          configProperty.set('value', stormRresApiHost.hostName);
-        }
-        break;
-      case 'supervisor_hosts':
-        configProperty.set('value', slaveComponentHostsInDB.findProperty('componentName', 'SUPERVISOR').hosts.mapProperty('hostName'));
-        break;
-      case 'knox_gateway_host':
-        configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'KNOX_GATEWAY').mapProperty('hostName'));
-        break;
-      case 'kafka_broker_hosts':
-        configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'KAFKA_BROKER').mapProperty('hostName'));
         break;
       case 'kafka.ganglia.metrics.host':
         var gangliaHost =  masterComponentHostsInDB.findProperty('component', 'GANGLIA_SERVER');
@@ -328,22 +225,8 @@ module.exports = {
       case 'db_host':
         var masterComponent =  masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN');
         if (masterComponent) {
-          configProperty.set('recommendedValue', masterComponent.hostName);
-        }
-      case 'rangerserver_host':
-        var masterComponent =  masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN');
-        if (masterComponent) {
           configProperty.set('value', masterComponent.hostName);
-        }
-        break;
-      case 'ranger_mysql_host':
-      case 'ranger_oracle_host':
-      case 'ranger_postgres_host':
-      case 'ranger_mssql_host':
-        var masterComponent = masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN'),
-          rangerServerHost = masterComponent ? masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN').hostName : '';
-        if (rangerServerHost) {
-          configProperty.set('value', rangerServerHost).set('recommendedValue', rangerServerHost);
+          configProperty.set('recommendedValue', masterComponent.hostName);
         }
         break;
     }

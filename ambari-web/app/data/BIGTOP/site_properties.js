@@ -796,7 +796,7 @@ module.exports =
     {
       "name": "storm.zookeeper.servers",
       "displayName": "storm.zookeeper.servers",
-      "displayType": "masterHosts",
+      "displayType": "componentHosts",
       "isOverridable": false,
       "isReconfigurable": false,
       "serviceName": "STORM",
@@ -1546,21 +1546,6 @@ module.exports =
     },
   /**********************************************HDFS***************************************/
     {
-      "name": "namenode_host",
-      "displayName": "NameNode hosts",
-      "value": "",
-      "recommendedValue": "",
-      "description": "The hosts that has been assigned to run NameNode",
-      "displayType": "masterHosts",
-      "isOverridable": false,
-      "isVisible": true,
-      "isRequiredByAgent": false,
-      "serviceName": "HDFS",
-      "filename": "hadoop-env.xml",
-      "category": "NAMENODE",
-      "index": 0
-    },
-    {
       "name": "namenode_heapsize",
       "displayName": "NameNode Java heap size",
       "description": "Initial and maximum Java heap size for NameNode (Java options -Xms and -Xmx).  This also applies to the Secondary NameNode.",
@@ -1631,37 +1616,6 @@ module.exports =
       "index": 6
     },
     {
-      "name": "snamenode_host",
-      "displayName": "SNameNode host",
-      "value": "",
-      "recommendedValue": "",
-      "description": "The host that has been assigned to run SecondaryNameNode",
-      "displayType": "masterHost",
-      "isOverridable": false,
-      "isRequiredByAgent": false,
-      "isVisible": true,
-      "serviceName": "HDFS",
-      "filename": "hadoop-env.xml",
-      "category": "SECONDARY_NAMENODE",
-      "index": 0
-    },
-    {
-      "name": "datanode_hosts", //not in the schema. For UI purpose
-      "displayName": "DataNode hosts",
-      "value": "",
-      "recommendedValue": "",
-      "description": "The hosts that have been assigned to run DataNode",
-      "displayType": "slaveHosts",
-      "isRequired": false,
-      "isOverridable": false,
-      "isVisible": true,
-      "isRequiredByAgent": false,
-      "serviceName": "HDFS",
-      "filename": "hadoop-env.xml",
-      "category": "DATANODE",
-      "index": 0
-    },
-    {
       "name": "dtnode_heapsize",
       "displayName": "DataNode maximum Java heap size",
       "description": "Maximum Java heap size for DataNode (Java option -Xmx)",
@@ -1728,20 +1682,6 @@ module.exports =
 
   /**********************************************MAPREDUCE2***************************************/
     {
-      "name": "hs_host",
-      "displayName": "History Server",
-      "description": "History Server",
-      "recommendedValue": "",
-      "isOverridable": false,
-      "displayType": "masterHost",
-      "isRequiredByAgent": false,
-      "isVisible": true,
-      "serviceName": "MAPREDUCE2",
-      "filename": "mapred-env.xml",
-      "category": "HISTORYSERVER",
-      "index": 0
-    },
-    {
       "name": "jobhistory_heapsize",
       "displayName": "History Server heap size",
       "description": "History Server heap size",
@@ -1797,20 +1737,6 @@ module.exports =
       "index": 0
     },
     {
-      "name": "rm_host",
-      "displayName": "ResourceManager",
-      "description": "ResourceManager",
-      "recommendedValue": "",
-      "isOverridable": false,
-      "displayType": "masterHost",
-      "isRequiredByAgent": false,
-      "isVisible": true,
-      "serviceName": "YARN",
-      "filename": "yarn-env.xml",
-      "category": "RESOURCEMANAGER",
-      "index": 0
-    },
-    {
       "name": "resourcemanager_heapsize",
       "displayName": "ResourceManager Java heap size",
       "description": "Max heapsize for ResourceManager",
@@ -1823,20 +1749,6 @@ module.exports =
       "filename": "yarn-env.xml",
       "category": "RESOURCEMANAGER",
       "index": 1
-    },
-    {
-      "name": "nm_hosts",
-      "displayName": "NodeManager",
-      "description": "List of NodeManager Hosts.",
-      "recommendedValue": "",
-      "isOverridable": false,
-      "displayType": "slaveHosts",
-      "isRequiredByAgent": false,
-      "isVisible": true,
-      "serviceName": "YARN",
-      "filename": "yarn-env.xml",
-      "category": "NODEMANAGER",
-      "index": 0
     },
     {
       "name": "nodemanager_heapsize",
@@ -1889,20 +1801,6 @@ module.exports =
       "category": "Advanced yarn-env"
     },
     {
-      "name": "ats_host",
-      "displayName": "App Timeline Server",
-      "description": "Application Timeline Server Host",
-      "recommendedValue": "",
-      "isOverridable": false,
-      "displayType": "masterHost",
-      "isRequiredByAgent": false,
-      "isVisible": true,
-      "serviceName": "YARN",
-      "filename": "yarn-env.xml",
-      "category": "APP_TIMELINE_SERVER",
-      "index": 0
-    },
-    {
       "name": "apptimelineserver_heapsize",
       "displayName": "AppTimelineServer Java heap size",
       "description": "AppTimelineServer Java heap size",
@@ -1918,21 +1816,6 @@ module.exports =
     },
   /**********************************************HBASE***************************************/
     {
-      "name": "hbasemaster_host",
-      "displayName": "HBase Master hosts",
-      "value": "",
-      "recommendedValue": "",
-      "description": "The host that has been assigned to run HBase Master",
-      "displayType": "masterHosts",
-      "isOverridable": false,
-      "isRequiredByAgent": false,
-      "isVisible": true,
-      "serviceName": "HBASE",
-      "filename": "hbase-env.xml",
-      "category": "HBASE_MASTER",
-      "index": 0
-    },
-    {
       "name": "hbase_master_heapsize",
       "displayName": "HBase Master Maximum Java heap size",
       "description": "Maximum Java heap size for HBase master (Java option -Xmx)",
@@ -1945,22 +1828,6 @@ module.exports =
       "filename": "hbase-env.xml",
       "category": "HBASE_MASTER",
       "index": 1
-    },
-    {
-      "name": "regionserver_hosts",
-      "displayName": "RegionServer hosts",
-      "value": "",
-      "recommendedValue": "",
-      "description": "The hosts that have been assigned to run RegionServer",
-      "displayType": "slaveHosts",
-      "isOverridable": false,
-      "isRequiredByAgent": false,
-      "isVisible": true,
-      "isRequired": false,
-      "serviceName": "HBASE",
-      "filename": "hbase-env.xml",
-      "category": "HBASE_REGIONSERVER",
-      "index": 0
     },
     {
       "name": "hbase_regionserver_heapsize",
@@ -2189,121 +2056,7 @@ module.exports =
       "filename": "hadoop-env.xml",
       "category": "General Hadoop"
     },
-    {
-      "name": "namenode_host",
-      "displayName": "NameNode Host",
-      "description": "NameNode Host.",
-      "recommendedValue": "",
-      "displayType": "string",
-      "isVisible": false,
-      "serviceName": "GLUSTERFS",
-      "filename": "hadoop-env.xml",
-      "category": "General Hadoop"
-    },
-    {
-      "name": "snamenode_host",
-      "displayName": "Secondary NameNode Host",
-      "description": "Secondary NameNode Host.",
-      "recommendedValue": "",
-      "displayType": "string",
-      "isVisible": false,
-      "serviceName": "GLUSTERFS",
-      "filename": "hadoop-env.xml",
-      "category": "General Hadoop"
-    },
   /**********************************************HIVE***************************************/
-    {
-      "name": "hivemetastore_host",
-      "displayName": "Hive Metastore hosts",
-      "value": "",
-      "recommendedValue": "",
-      "description": "The hosts that have been assigned to run Hive Metastore",
-      "displayType": "masterHosts",
-      "isOverridable": false,
-      "isRequiredByAgent": false,
-      "isVisible": true,
-      "serviceName": "HIVE",
-      "filename": "hive-env.xml",
-      "category": "HIVE_METASTORE",
-      "index": 0
-    },
-    {
-      "name": "hive_master_hosts",
-      "value": "",
-      "recommendedValue": "",
-      "isOverridable": false,
-      "isRequiredByAgent": false,
-      "isVisible": false,
-      "serviceName": "HIVE",
-      "filename": "hive-env.xml"
-    },
-    // for existing MySQL
-    {
-      "name": "hive_existing_mysql_database",
-      "displayName": "Database Type",
-      "value": "",
-      "recommendedValue": "MySQL",
-      "description": "Using an existing MySQL database for Hive Metastore",
-      "displayType": "masterHost",
-      "isOverridable": false,
-      "isVisible": false,
-      "isRequiredByAgent": false,
-      "isReconfigurable": false,
-      "serviceName": "HIVE",
-      "filename": "hive-env.xml",
-      "category": "HIVE_METASTORE",
-      "index": 1
-    },
-    // for existing PostgreSQL
-    {
-      "name": "hive_existing_postgresql_database",
-      "displayName": "Database Type",
-      "value": "",
-      "recommendedValue": "PostgreSQL",
-      "description": "Using an existing PostgreSQL database for Hive Metastore",
-      "displayType": "masterHost",
-      "isOverridable": false,
-      "isVisible": false,
-      "isRequiredByAgent": false,
-      "isReconfigurable": false,
-      "serviceName": "HIVE",
-      "filename": "hive-env.xml",
-      "category": "HIVE_METASTORE",
-      "index": 1
-    },
-    // for existing Oracle
-    {
-      "name": "hive_existing_oracle_database",
-      "displayName": "Database Type",
-      "value": "",
-      "recommendedValue": "Oracle",
-      "description": "Using an existing Oracle database for Hive Metastore",
-      "displayType": "masterHost",
-      "isVisible": false,
-      "isRequiredByAgent": false,
-      "isOverridable": false,
-      "isReconfigurable": false,
-      "serviceName": "HIVE",
-      "filename": "hive-env.xml",
-      "category": "HIVE_METASTORE",
-      "index": 1
-    },
-    // for new PostgreSQL
-    {
-      "name": "hive_ambari_database",
-      "displayName": "Database Type",
-      "value": "",
-      "recommendedValue": "PostgreSQL",
-      "description": "PostgreSQL will be installed by Ambari",
-      "displayType": "masterHost",
-      "isOverridable": false,
-      "isVisible": false,
-      "isRequiredByAgent": false,
-      "serviceName": "HIVE",
-      "filename": "hive-env.xml",
-      "category": "HIVE_METASTORE",
-      "index": 1
-    },
     {
       "name": "hive_database",
       "displayName": "Hive Database",
@@ -2311,20 +2064,16 @@ module.exports =
       "recommendedValue": "New PostgreSQL Database",
       "options": [
         {
-          displayName: 'New PostgreSQL Database',
-          foreignKeys: ['hive_ambari_database', 'hive_ambari_host']
+          displayName: 'New PostgreSQL Database'
         },
         {
-          displayName: 'Existing MySQL Database',
-          foreignKeys: ['hive_existing_mysql_database', 'hive_existing_mysql_host']
+          displayName: 'Existing MySQL Database'
         },
         {
-          displayName: 'Existing PostgreSQL Database',
-          foreignKeys: ['hive_existing_postgresql_database', 'hive_existing_postgresql_host']
+          displayName: 'Existing PostgreSQL Database'
         },
         {
-          displayName: 'Existing Oracle Database',
-          foreignKeys: ['hive_existing_oracle_database', 'hive_existing_oracle_host']
+          displayName: 'Existing Oracle Database'
         }
       ],
       "description": "PostgreSQL will be installed by Ambari",
@@ -2349,64 +2098,6 @@ module.exports =
       "isOverridable": false,
       "isVisible": false,
       "isObserved": true,
-      "serviceName": "HIVE",
-      "filename": "hive-env.xml",
-      "category": "HIVE_METASTORE",
-      "index": 3
-    },
-    {
-      "name": "hive_existing_mysql_host",
-      "displayName": "Database Host",
-      "description": "Specify the host on which the existing database is hosted",
-      "recommendedValue": "",
-      "displayType": "host",
-      "isOverridable": false,
-      "isVisible": false,
-      "isObserved": true,
-      "serviceName": "HIVE",
-      "filename": "hive-env.xml",
-      "category": "HIVE_METASTORE",
-      "index": 3
-    },
-    {
-      "name": "hive_existing_postgresql_host",
-      "displayName": "Database Host",
-      "description": "Specify the host on which the existing database is hosted",
-      "recommendedValue": "",
-      "displayType": "host",
-      "isOverridable": false,
-      "isVisible": false,
-      "isObserved": true,
-      "serviceName": "HIVE",
-      "filename": "hive-env.xml",
-      "category": "HIVE_METASTORE",
-      "index": 3
-    },
-    {
-      "name": "hive_existing_oracle_host",
-      "displayName": "Database Host",
-      "description": "Specify the host on which the existing database is hosted",
-      "recommendedValue": "",
-      "displayType": "host",
-      "isOverridable": false,
-      "isVisible": false,
-      "isObserved": true,
-      "serviceName": "HIVE",
-      "filename": "hive-env.xml",
-      "category": "HIVE_METASTORE",
-      "index": 3
-    },
-    {
-      "name": "hive_ambari_host",
-      "value": "",
-      "recommendedValue": "",
-      "displayName": "Database Host",
-      "description": "Host on which the database will be created by Ambari",
-      "isReconfigurable": false,
-      "displayType": "masterHost",
-      "isOverridable": false,
-      "isVisible": false,
-      "isRequiredByAgent": false,
       "serviceName": "HIVE",
       "filename": "hive-env.xml",
       "category": "HIVE_METASTORE",
@@ -2479,20 +2170,6 @@ module.exports =
     },
   /**********************************************HIVE***************************************/
     {
-      "name": "webhcatserver_host",
-      "displayName": "WebHCat Server host",
-      "value": "",
-      "recommendedValue": "",
-      "description": "The host that has been assigned to run WebHCat Server",
-      "displayType": "masterHost",
-      "isOverridable": false,
-      "isVisible": true,
-      "isRequiredByAgent": false,
-      "serviceName": "HIVE",
-      "filename": "webhcat-env.xml",
-      "category": "WEBHCAT_SERVER"
-    },
-    {
       "name": "hcat_log_dir",
       "displayName": "WebHCat Log Dir",
       "description": "Directory for WebHCat log files",
@@ -2520,121 +2197,22 @@ module.exports =
     },
   /**********************************************OOZIE***************************************/
     {
-      "name": "oozieserver_host",
-      "displayName": "Oozie Server host",
-      "value": "",
-      "recommendedValue": "",
-      "description": "The hosts that have been assigned to run Oozie Server",
-      "displayType": "masterHosts",
-      "isOverridable": false,
-      "isVisible": true,
-      "isRequiredByAgent": false,
-      "serviceName": "OOZIE",
-      "filename": "oozie-env.xml",
-      "category": "OOZIE_SERVER",
-      "index": 0
-    },
-    // for existing Oracle
-    {
-      "name": "oozie_existing_oracle_database",
-      "displayName": "Database Type",
-      "value": "",
-      "recommendedValue": "Oracle",
-      "description": "Using an existing Oracle database for Oozie Metastore",
-      "displayType": "masterHost",
-      "isVisible": false,
-      "isObserved": true,
-      "isReconfigurable": false,
-      "isOverridable": false,
-      "serviceName": "OOZIE",
-      "filename": "oozie-env.xml",
-      "category": "OOZIE_SERVER",
-      "index": 1
-    },
-    // for existing PostgreSQL
-    {
-      "name": "oozie_existing_postgresql_database",
-      "displayName": "Database Type",
-      "value": "",
-      "recommendedValue": "PostgreSQL",
-      "description": "Using an existing PostgreSQL database for Oozie Metastore",
-      "displayType": "masterHost",
-      "isOverridable": false,
-      "isVisible": false,
-      "isReconfigurable": false,
-      "serviceName": "OOZIE",
-      "filename": "oozie-env.xml",
-      "category": "OOZIE_SERVER",
-      "index": 1
-    },
-    // for new MySQL
-    {
-      "name": "oozie_ambari_database",
-      "displayName": "Database Type",
-      "value": "",
-      "recommendedValue": "MySQL",
-      "description": "MySQL will be installed by Ambari",
-      "displayType": "masterHost",
-      "isVisible": false,
-      "isOverridable": false,
-      "serviceName": "OOZIE",
-      "filename": "oozie-env.xml",
-      "category": "OOZIE_SERVER",
-      "index": 1
-    },
-    // for current derby
-    {
-      "name": "oozie_derby_database",
-      "displayName": "Database Type",
-      "value": "",
-      "recommendedValue": "Derby",
-      "description": "Using current Derby database for Oozie Metastore",
-      "displayType": "masterHost",
-      "isVisible": false,
-      "isReconfigurable": false,
-      "isOverridable": false,
-      "serviceName": "OOZIE",
-      "filename": "oozie-env.xml",
-      "category": "OOZIE_SERVER",
-      "index": 1
-    },
-    // for existing MySQL oozie
-    {
-      "name": "oozie_existing_mysql_database",
-      "displayName": "Database Type",
-      "value": "",
-      "recommendedValue": "MySQL",
-      "description": "Using an existing MySQL database for Oozie Metastore",
-      "displayType": "masterHost",
-      "isVisible": false,
-      "isReconfigurable": false,
-      "isOverridable": false,
-      "serviceName": "OOZIE",
-      "filename": "oozie-env.xml",
-      "category": "OOZIE_SERVER",
-      "index": 1
-    },
-    {
       "name": "oozie_database",
       "displayName": "Oozie Database",
       "value": "",
       "recommendedValue": "New Derby Database",
       "options": [
         {
-          displayName: 'New Derby Database',
-          foreignKeys: ['oozie_derby_database']
+          displayName: 'New Derby Database'
         },
         {
-          displayName: 'Existing MySQL Database',
-          foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host']
+          displayName: 'Existing MySQL Database'
         },
         {
-          displayName: 'Existing PostgreSQL Database',
-          foreignKeys: ['oozie_existing_postgresql_database', 'oozie_existing_postgresql_host']
+          displayName: 'Existing PostgreSQL Database'
         },
         {
-          displayName: 'Existing Oracle Database',
-          foreignKeys: ['oozie_existing_oracle_database', 'oozie_existing_oracle_host']
+          displayName: 'Existing Oracle Database'
         }
       ],
       "description": "Current Derby Database will be installed by Ambari",
@@ -2678,63 +2256,6 @@ module.exports =
       "index": 3
     },
     {
-      "name": "oozie_existing_mysql_host",
-      "displayName": "Database Host",
-      "description": "Specify the host on which the existing database is hosted",
-      "recommendedValue": "",
-      "isOverridable": false,
-      "displayType": "host",
-      "isVisible": false,
-      "isObserved": true,
-      "serviceName": "OOZIE",
-      "filename": "oozie-env.xml",
-      "category": "OOZIE_SERVER",
-      "index": 3
-    },
-    {
-      "name": "oozie_existing_postgresql_host",
-      "displayName": "Database Host",
-      "description": "Specify the host on which the existing database is hosted",
-      "recommendedValue": "",
-      "isOverridable": false,
-      "displayType": "host",
-      "isVisible": false,
-      "isObserved": true,
-      "serviceName": "OOZIE",
-      "filename": "oozie-env.xml",
-      "category": "OOZIE_SERVER",
-      "index": 3
-    },
-    {
-      "name": "oozie_existing_oracle_host",
-      "displayName": "Database Host",
-      "description": "Specify the host on which the existing database is hosted",
-      "recommendedValue": "",
-      "isOverridable": false,
-      "displayType": "host",
-      "isVisible": false,
-      "isObserved": true,
-      "serviceName": "OOZIE",
-      "filename": "oozie-env.xml",
-      "category": "OOZIE_SERVER",
-      "index": 3
-    },
-    {
-      "name": "oozie_ambari_host",
-      "value": "",
-      "recommendedValue": "",
-      "displayName": "Database Host",
-      "description": "Host on which the database will be created by Ambari",
-      "isReconfigurable": false,
-      "isOverridable": false,
-      "displayType": "masterHost",
-      "isVisible": false,
-      "isRequiredByAgent": false,
-      "serviceName": "OOZIE",
-      "filename": "oozie-env.xml",
-      "category": "OOZIE_SERVER"
-    },
-    {
       "name": "oozie_log_dir",
       "displayName": "Oozie Log Dir",
       "description": "Directory for oozie logs",
@@ -2772,22 +2293,6 @@ module.exports =
       "category": "Advanced oozie-env"
     },
   /**********************************************ZOOKEEPER***************************************/
-    {
-      "name": "zookeeperserver_hosts",
-      "displayName": "ZooKeeper Server hosts",
-      "value": "",
-      "recommendedValue": "",
-      "description": "The host that has been assigned to run ZooKeeper Server",
-      "displayType": "masterHosts",
-      "isVisible": true,
-      "isRequiredByAgent": false,
-      "isOverridable": false,
-      "isRequired": false,
-      "serviceName": "ZOOKEEPER",
-      "filename": "zookeeper-env.xml",
-      "category": "ZOOKEEPER_SERVER",
-      "index": 0
-    },
     {
       "name": "zk_data_dir",
       "displayName": "ZooKeeper directory",
@@ -2896,18 +2401,6 @@ module.exports =
       "category": "Advanced ganglia-env"
     },
   /**********************************************FALCON***************************************/
-    {
-      "name": "falconserver_host",
-      "displayName": "Falcon Server",
-      "description": "The host that has been assigned to run Falcon Server",
-      "recommendedValue": "falcon",
-      "displayType": "masterHost",
-      "isVisible": true,
-      "isRequiredByAgent": false,
-      "serviceName": "FALCON",
-      "filename": "falcon-env.xml",
-      "category": "FALCON_SERVER"
-    },
     {
       "name": "falcon_port",
       "displayName": "Falcon server port",
@@ -3043,60 +2536,6 @@ module.exports =
       "serviceName": "STORM",
       "filename": "storm-env.xml",
       "category": "Advanced storm-env"
-    },
-    {
-      "name": "stormuiserver_host",
-      "displayName": "Storm UI Server host",
-      "description": "The host that has been assigned to run Storm UI Server",
-      "recommendedValue": "",
-      "displayType": "masterHost",
-      "isReconfigurable": false,
-      "isVisible": true,
-      "isRequiredByAgent": false,
-      "serviceName": "STORM",
-      "filename": "storm-env.xml",
-      "category": "STORM_UI_SERVER"
-    },
-    {
-      "name": "drpcserver_host",
-      "displayName": "DRPC Server host",
-      "description": "The host that has been assigned to run DRPC Server",
-      "recommendedValue": "",
-      "displayType": "masterHost",
-      "isReconfigurable": false,
-      "isVisible": true,
-      "isRequiredByAgent": false,
-      "serviceName": "STORM",
-      "filename": "storm-env.xml",
-      "category": "DRPC_SERVER"
-    },
-    {
-      "name": "supervisor_hosts",
-      "displayName": "Supervisor hosts",
-      "description": "The host that has been assigned to run Supervisor",
-      "recommendedValue": "",
-      "displayType": "slaveHosts",
-      "isReconfigurable": false,
-      "isVisible": true,
-      "isRequiredByAgent": false,
-      "serviceName": "STORM",
-      "filename": "storm-env.xml",
-      "isOverridable": false,
-      "category": "SUPERVISOR"
-    },
-    {
-      "name": "storm_rest_api_host",
-      "displayName": "Storm REST API host",
-      "description": "The host that has been assigned to run Storm REST API Server",
-      "recommendedValue": "",
-      "displayType": "masterHost",
-      "isReconfigurable": false,
-      "isVisible": true,
-      "isRequiredByAgent": false,
-      "serviceName": "STORM",
-      "filename": "storm-env.xml",
-      "isOverridable": false,
-      "category": "STORM_REST_API"
     },
   /**********************************************MISC***************************************/
     {

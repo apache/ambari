@@ -858,36 +858,6 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
 
 
 /**
- * Multiple master host component.
- * Show hostnames without ability to edit it
- * @type {*}
- */
-App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, App.ServiceConfigCalculateId, {
-
-  viewName: "serviceConfigMasterHostsView",
-  valueBinding: 'serviceConfig.value',
-
-  classNames: ['master-hosts', 'span6'],
-  templateName: require('templates/wizard/master_hosts'),
-
-  /**
-   * Onclick handler for link
-   */
-  showHosts: function () {
-    var serviceConfig = this.get('serviceConfig');
-    App.ModalPopup.show({
-      header: Em.I18n.t('installer.controls.serviceConfigMasterHosts.header').format(serviceConfig.category),
-      bodyClass: Ember.View.extend({
-        serviceConfig: serviceConfig,
-        templateName: require('templates/wizard/master_hosts_popup')
-      }),
-      secondary: null
-    });
-  }
-
-});
-
-/**
  * Show tabs list for slave hosts
  * @type {*}
  */
@@ -940,15 +910,15 @@ App.AddSlaveComponentGroupButton = Ember.View.extend(App.ServiceConfigCalculateI
  * Multiple Slave Hosts component
  * @type {*}
  */
-App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, App.ServiceConfigCalculateId, {
+App.ServiceConfigComponentHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, App.ServiceConfigCalculateId, {
 
   viewName: 'serviceConfigSlaveHostsView',
 
-  classNames: ['slave-hosts', 'span6'],
+  classNames: ['component-hosts', 'span6'],
 
   valueBinding: 'serviceConfig.value',
 
-  templateName: require('templates/wizard/slave_hosts'),
+  templateName: require('templates/wizard/component_hosts'),
 
   /**
    * Onclick handler for link
@@ -959,7 +929,7 @@ App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHos
       header: Em.I18n.t('installer.controls.serviceConfigMasterHosts.header').format(serviceConfig.category),
       bodyClass: Ember.View.extend({
         serviceConfig: serviceConfig,
-        templateName: require('templates/wizard/master_hosts_popup')
+        templateName: require('templates/wizard/component_hosts_popup')
       }),
       secondary: null
     });
@@ -973,16 +943,13 @@ App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHos
  */
 App.SlaveGroupPropertiesView = Ember.View.extend(App.ServiceConfigCalculateId, {
 
-  viewName: 'serviceConfigSlaveHostsView',
+  viewName: 'serviceConfigComponentHostsView',
 
   group: function () {
     return this.get('controller.activeGroup');
   }.property('controller.activeGroup'),
 
   groupConfigs: function () {
-    console.log("************************************************************************");
-    console.log("The value of group is: " + this.get('group'));
-    console.log("************************************************************************");
     return this.get('group.properties');
   }.property('group.properties.@each').cacheable(),
 
@@ -1126,11 +1093,11 @@ App.CheckDBConnectionView = Ember.View.extend({
   /** @property {String} masterHostName - host name location of Master Component related to Service **/
   masterHostName: function() {
     var serviceMasterMap = {
-      'OOZIE': 'oozieserver_host',
+      'OOZIE': 'oozie_server_hosts',
       'HDFS': 'hadoop_host',
-      'HIVE': 'hivemetastore_host',
+      'HIVE': 'hive_metastore_hosts',
       'KERBEROS': 'kdc_host',
-      'RANGER': 'rangerserver_host'
+      'RANGER': 'ranger_server_hosts'
     };
     return this.get('parentView.categoryConfigsAll').findProperty('name', serviceMasterMap[this.get('parentView.service.serviceName')]).get('value');
   }.property('parentView.service.serviceName', 'parentView.categoryConfigsAll.@each.value'),

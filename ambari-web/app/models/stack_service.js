@@ -236,11 +236,11 @@ App.StackService.configCategories = function () {
   switch (this.get('serviceName')) {
     case 'HDFS':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'NAMENODE', displayName: 'NameNode'}),
-        App.ServiceConfigCategory.create({ name: 'SECONDARY_NAMENODE', displayName: 'Secondary NameNode'}),
-        App.ServiceConfigCategory.create({ name: 'DATANODE', displayName: 'DataNode'}),
+        App.ServiceConfigCategory.create({ name: 'NAMENODE', displayName: 'NameNode', showHost: true}),
+        App.ServiceConfigCategory.create({ name: 'SECONDARY_NAMENODE', displayName: 'Secondary NameNode', showHost: true}),
+        App.ServiceConfigCategory.create({ name: 'DATANODE', displayName: 'DataNode', showHost: true}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
-        App.ServiceConfigCategory.create({ name: 'NFS_GATEWAY', displayName: 'NFS Gateway'})
+        App.ServiceConfigCategory.create({ name: 'NFS_GATEWAY', displayName: 'NFS Gateway', showHost: true})
       ]);
       break;
     case 'GLUSTERFS':
@@ -250,9 +250,9 @@ App.StackService.configCategories = function () {
       break;
     case 'YARN':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'RESOURCEMANAGER', displayName: 'Resource Manager'}),
-        App.ServiceConfigCategory.create({ name: 'NODEMANAGER', displayName: 'Node Manager'}),
-        App.ServiceConfigCategory.create({ name: 'APP_TIMELINE_SERVER', displayName: 'Application Timeline Server'}),
+        App.ServiceConfigCategory.create({ name: 'RESOURCEMANAGER', displayName: 'Resource Manager', showHost: true}),
+        App.ServiceConfigCategory.create({ name: 'NODEMANAGER', displayName: 'Node Manager', showHost: true}),
+        App.ServiceConfigCategory.create({ name: 'APP_TIMELINE_SERVER', displayName: 'Application Timeline Server', showHost: true}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
         App.ServiceConfigCategory.create({ name: 'FaultTolerance', displayName: 'Fault Tolerance'}),
         App.ServiceConfigCategory.create({ name: 'Isolation', displayName: 'Isolation'}),
@@ -261,14 +261,14 @@ App.StackService.configCategories = function () {
       break;
     case 'MAPREDUCE2':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'HISTORYSERVER', displayName: 'History Server'}),
+        App.ServiceConfigCategory.create({ name: 'HISTORYSERVER', displayName: 'History Server', showHost: true}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
       ]);
       break;
     case 'HIVE':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'HIVE_METASTORE', displayName: 'Hive Metastore'}),
-        App.ServiceConfigCategory.create({ name: 'WEBHCAT_SERVER', displayName: 'WebHCat Server'}),
+        App.ServiceConfigCategory.create({ name: 'HIVE_METASTORE', displayName: 'Hive Metastore', showHost: true}),
+        App.ServiceConfigCategory.create({ name: 'WEBHCAT_SERVER', displayName: 'WebHCat Server', showHost: true}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
         App.ServiceConfigCategory.create({ name: 'Performance', displayName: 'Performance'}),
         App.ServiceConfigCategory.create({ name: 'HIVE_SERVER2', displayName: 'Hive Server2'}),
@@ -277,25 +277,25 @@ App.StackService.configCategories = function () {
       break;
     case 'HBASE':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'HBASE_MASTER', displayName: 'HBase Master'}),
-        App.ServiceConfigCategory.create({ name: 'HBASE_REGIONSERVER', displayName: 'RegionServer'}),
+        App.ServiceConfigCategory.create({ name: 'HBASE_MASTER', displayName: 'HBase Master', showHost: true}),
+        App.ServiceConfigCategory.create({ name: 'HBASE_REGIONSERVER', displayName: 'RegionServer', showHost: true}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
       ]);
       break;
     case 'ZOOKEEPER':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'ZOOKEEPER_SERVER', displayName: 'ZooKeeper Server'})
+        App.ServiceConfigCategory.create({ name: 'ZOOKEEPER_SERVER', displayName: 'ZooKeeper Server', showHost: true})
       ]);
       break;
     case 'OOZIE':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'OOZIE_SERVER', displayName: 'Oozie Server'}),
+        App.ServiceConfigCategory.create({ name: 'OOZIE_SERVER', displayName: 'Oozie Server', showHost: true}),
         App.ServiceConfigCategory.create({ name: 'Falcon - Oozie integration', displayName: 'Falcon - Oozie integration'})
       ]);
       break;
     case 'FALCON':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'FALCON_SERVER', displayName: 'Falcon Server'}),
+        App.ServiceConfigCategory.create({ name: 'FALCON_SERVER', displayName: 'Falcon Server', showHost: true}),
         App.ServiceConfigCategory.create({ name: 'Falcon - Oozie integration', displayName: 'Falcon - Oozie integration'}),
         App.ServiceConfigCategory.create({ name: 'FalconStartupSite', displayName: 'Falcon startup.properties'}),
         App.ServiceConfigCategory.create({ name: 'FalconRuntimeSite', displayName: 'Falcon runtime.properties'}),
@@ -304,11 +304,11 @@ App.StackService.configCategories = function () {
       break;
     case 'STORM':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'NIMBUS', displayName: 'Nimbus'}),
-        App.ServiceConfigCategory.create({ name: 'SUPERVISOR', displayName: 'Supervisor'}),
-        App.ServiceConfigCategory.create({ name: 'STORM_UI_SERVER', displayName: 'Storm UI Server'}),
-        App.ServiceConfigCategory.create({ name: 'STORM_REST_API', displayName: 'Storm REST API Server'}),
-        App.ServiceConfigCategory.create({ name: 'DRPC_SERVER', displayName: 'DRPC Server'}),
+        App.ServiceConfigCategory.create({ name: 'NIMBUS', displayName: 'Nimbus', showHost: true}),
+        App.ServiceConfigCategory.create({ name: 'SUPERVISOR', displayName: 'Supervisor', showHost: true}),
+        App.ServiceConfigCategory.create({ name: 'STORM_UI_SERVER', displayName: 'Storm UI Server', showHost: true}),
+        App.ServiceConfigCategory.create({ name: 'STORM_REST_API', displayName: 'Storm REST API Server', showHost: true}),
+        App.ServiceConfigCategory.create({ name: 'DRPC_SERVER', displayName: 'DRPC Server', showHost: true}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
       ]);
       break;
@@ -324,17 +324,17 @@ App.StackService.configCategories = function () {
       break;
     case 'KNOX':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'KNOX_GATEWAY', displayName: 'Knox Gateway'})
+        App.ServiceConfigCategory.create({ name: 'KNOX_GATEWAY', displayName: 'Knox Gateway', showHost: true})
       ]);
       break;
     case 'KAFKA':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'KAFKA_BROKER', displayName: 'Kafka Broker'})
+        App.ServiceConfigCategory.create({ name: 'KAFKA_BROKER', displayName: 'Kafka Broker', showHost: true})
       ]);
       break;
     case 'KERBEROS':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'KDC', displayName: 'KDC'}),
+        App.ServiceConfigCategory.create({ name: 'KDC', displayName: 'KDC', showHost: true}),
         App.ServiceConfigCategory.create({ name: 'Kadmin', displayName: 'Kadmin'}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
       ]);
@@ -347,7 +347,7 @@ App.StackService.configCategories = function () {
       break;
     case 'RANGER':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'AdminSettings', displayName: 'Admin Settings'}),
+        App.ServiceConfigCategory.create({ name: 'RANGER_ADMIN', displayName: 'Admin Settings', showHost: true}),
         App.ServiceConfigCategory.create({ name: 'DBSettings', displayName: 'DB Settings'}),
         App.ServiceConfigCategory.create({ name: 'RangerSettings', displayName: 'Ranger Settings'}),
         App.ServiceConfigCategory.create({ name: 'UnixAuthenticationSettings', displayName: 'Unix Authentication Settings'}),

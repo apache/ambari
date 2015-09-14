@@ -897,7 +897,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     var fileNamesToUpdate = this.getDBProperty('fileNamesToUpdate') || [];
     var installedServiceNames = stepController.get('installedServiceNames') || [];
     var installedServiceNamesMap = {};
-    var notAllowed = ['masterHost', 'masterHosts', 'slaveHosts', 'slaveHost'];
     installedServiceNames.forEach(function(name) {
       installedServiceNamesMap[name] = true;
     });
@@ -926,7 +925,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         // get only modified configs
         var configs = _content.get('configs').filter(function (config) {
           if (config.get('isNotDefaultValue') || (config.get('savedValue') === null)) {
-            return !notAllowed.contains(config.get('displayType')) && !!config.filename && config.isRequiredByAgent!== false;
+            return config.isRequiredByAgent!== false;
           }
           return false;
         });

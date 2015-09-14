@@ -232,7 +232,7 @@ module.exports = {
         "isOverridable":false,
         "showLabel":true,
         "serviceName":"STORM",
-        "displayType":"masterHosts",
+        "displayType":"componentHosts",
         "isVisible":true,
         "description":"desc",
         "isSecureConfig":false,

@@ -27,7 +27,6 @@ var hdp22SepcificProperties = [
 var hdp2properties = require('data/HDP2/site_properties').configProperties;
 var excludedConfigs = [
   'storm.thrift.transport', //In HDP2.2 storm.thrift.transport property is computed on server
-  'storm_rest_api_host',
   'tez.am.container.session.delay-allocation-millis',
   'tez.am.grouping.max-size',
   'tez.am.grouping.min-size',
@@ -124,18 +123,6 @@ hdp22properties.push(
     "serviceName": "HIVE"
   },
   {
-    "name": "policy_user",
-    "filename": "ranger-hive-plugin-properties.xml",
-    "category": "Advanced ranger-hive-plugin-properties",
-    "serviceName": "HIVE"
-  },
-  {
-    "name": "REPOSITORY_CONFIG_USERNAME",
-    "filename": "ranger-hive-plugin-properties.xml",
-    "category": "Advanced ranger-hive-plugin-properties",
-    "serviceName": "HIVE"
-  },
-  {
     "name": "UPDATE_XAPOLICIES_ON_GRANT_REVOKE",
     "displayType": "checkbox",
     "filename": "ranger-hive-plugin-properties.xml",
@@ -165,18 +152,6 @@ hdp22properties.push(
     "category": "Advanced ranger-hbase-plugin-properties",
     "serviceName": "HBASE",
     "index": 1
-  },
-  {
-    "name": "policy_user",
-    "filename": "ranger-hbase-plugin-properties.xml",
-    "category": "Advanced ranger-hbase-plugin-properties",
-    "serviceName": "HBASE"
-  },
-  {
-    "name": "REPOSITORY_CONFIG_USERNAME",
-    "filename": "ranger-hbase-plugin-properties.xml",
-    "category": "Advanced ranger-hbase-plugin-properties",
-    "serviceName": "HBASE"
   },
   {
     "name": "UPDATE_XAPOLICIES_ON_GRANT_REVOKE",
@@ -238,13 +213,13 @@ hdp22properties.push(
     "name": "ranger_admin_password",
     "serviceName": "RANGER",
     "filename": "ranger-env.xml",
-    "category": "AdminSettings"
+    "category": "RANGER_ADMIN"
   },
   {
     "name": "SQL_CONNECTOR_JAR",
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
-    "category": "AdminSettings"
+    "category": "RANGER_ADMIN"
   },
   {
     "name": "DB_FLAVOR",
