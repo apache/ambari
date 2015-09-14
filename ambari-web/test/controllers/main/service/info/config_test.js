@@ -369,50 +369,6 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
-  describe("#getMasterComponentHostValue", function () {
-    var tests = [
-      {
-        content: {
-          hostComponents: [
-            Em.Object.create({
-              componentName: "componentName1",
-              hostName: "hostName"
-            })
-          ]
-        },
-        result: "hostName",
-        multiple: false,
-        m: "returns hostname"
-      },
-      {
-        content: {
-          hostComponents: [
-            Em.Object.create({
-              componentName: "componentName2",
-              hostName: "hostName1"
-            }),
-            Em.Object.create({
-              componentName: "componentName2",
-              hostName: "hostName2"
-            })
-          ]
-        },
-        result: ["hostName1","hostName2"],
-        multiple: true,
-        m: "returns hostnames"
-      }
-    ];
-    tests.forEach(function(t){
-      it(t.m, function () {
-        sinon.stub(App.HostComponent, 'find', function(){
-          return t.content.hostComponents;
-        });
-        expect(mainServiceInfoConfigsController.getMasterComponentHostValue(t.content.hostComponents[0].componentName, t.multiple)).to.eql(t.result);
-        App.HostComponent.find.restore();
-      });
-    });
-  });
-
   describe("#putChangedConfigurations", function () {
       var sc = [
       Em.Object.create({
@@ -486,59 +442,6 @@ describe("App.MainServiceInfoConfigsController", function () {
       mainServiceInfoConfigsController.set('stepConfigs', scExc);
       mainServiceInfoConfigsController.putChangedConfigurations([]);
       expect(mainServiceInfoConfigsController.get('stepConfigs')[0].get('configs').mapProperty('value').uniq()).to.eql(['1024m']);
-    });
-  });
-
-  describe("#isConfigChanged", function () {
-
-    var tests = [
-      {
-        loadedConfig: {
-          apptimelineserver_heapsize: "1024",
-          hbase_log_dir: "/var/log/hbase",
-          lzo_enabled: "true"
-        },
-        savingConfig: {
-          apptimelineserver_heapsize: "1024",
-          hbase_log_dir: "/var/log/hbase",
-          lzo_enabled: "true"
-        },
-        m: "configs doesn't changed",
-        res: false
-      },
-      {
-        loadedConfig: {
-          apptimelineserver_heapsize: "1024",
-          hbase_log_dir: "/var/log/hbase",
-          lzo_enabled: "true"
-        },
-        savingConfig: {
-          apptimelineserver_heapsize: "1024",
-          hbase_log_dir: "/var/log/hbase",
-          lzo_enabled: "false"
-        },
-        m: "configs changed",
-        res: true
-      },
-      {
-        loadedConfig: {
-          apptimelineserver_heapsize: "1024",
-          hbase_log_dir: "/var/log/hbase"
-        },
-        savingConfig: {
-          apptimelineserver_heapsize: "1024",
-          hbase_log_dir: "/var/log/hbase",
-          lzo_enabled: "false"
-        },
-        m: "add new config",
-        res: true
-      }
-    ];
-
-    tests.forEach(function(t){
-      it(t.m, function () {
-        expect(mainServiceInfoConfigsController.isConfigChanged(t.loadedConfig, t.savingConfig)).to.equal(t.res);
-      });
     });
   });
 

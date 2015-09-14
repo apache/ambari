@@ -1710,7 +1710,7 @@ describe('App.InstallerStep7Controller', function () {
             serviceName: 'HIVE',
             configs: [
               {
-                name: 'hive_ambari_host',
+                name: 'hive_hostname',
                 value: 'h0'
               }
             ]

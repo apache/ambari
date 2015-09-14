@@ -34,13 +34,13 @@ module.exports = {
       dbType: 'hive_database',
       databaseName: 'ambari.hive.db.schema.name',
       connectionUrl: 'javax.jdo.option.ConnectionURL',
-      fallbackHostName: 'hive_ambari_host'
+      fallbackHostName: 'hive_hostname'
     },
     OOZIE: {
       dbType: 'oozie_database',
       connectionUrl: 'oozie.service.JPAService.jdbc.url',
       databaseName: 'oozie.db.schema.name',
-      fallbackHostName: 'oozieserver_host'
+      fallbackHostName: 'oozie_hostname'
     },
     RANGER: {
       dbType: 'DB_FLAVOR',

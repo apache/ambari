@@ -177,7 +177,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     var editable = this.get('isEditable');
     var overrides = this.get('overrides');
     var dt = this.get('displayType');
-    return overrideable && (editable || !overrides || !overrides.length) && ("masterHost" != dt);
+    return overrideable && (editable || !overrides || !overrides.length) && ("componentHost" != dt);
   }.property('isEditable', 'displayType', 'isOverridable', 'overrides.length'),
 
   isOverridden: function() {
@@ -239,7 +239,7 @@ App.ServiceConfigProperty = Em.Object.extend({
    * Don't show "Undo" for hosts on Installer Step7
    */
   cantBeUndone: function() {
-    return ["masterHost", "slaveHosts", "masterHosts", "slaveHost", "radio button"].contains(this.get('displayType'));
+    return ["componentHost", "componentHosts", "radio button"].contains(this.get('displayType'));
   }.property('displayType'),
 
   /**
@@ -312,14 +312,12 @@ App.ServiceConfigProperty = Em.Object.extend({
         break;
       case 'custom':
         return App.ServiceConfigBigTextArea;
-      case 'masterHost':
+      case 'componentHost':
         return App.ServiceConfigMasterHostView;
       case 'label':
         return App.ServiceConfigLabelView;
-      case 'masterHosts':
-        return App.ServiceConfigMasterHostsView;
-      case 'slaveHosts':
-        return App.ServiceConfigSlaveHostsView;
+      case 'componentHosts':
+        return App.ServiceConfigComponentHostsView;
       case 'supportTextConnection':
         return App.checkConnectionView;
       default:
@@ -434,8 +432,7 @@ App.ServiceConfigProperty = Em.Object.extend({
         case 'supportTextConnection':
         case 'host':
           var connectionProperties = ['kdc_host'];
-          var hiveOozieHostNames = ['hive_hostname','hive_existing_mysql_host','hive_existing_oracle_host','hive_ambari_host',
-            'oozie_hostname','oozie_existing_mysql_host','oozie_existing_oracle_host','oozie_ambari_host'];
+          var hiveOozieHostNames = ['hive_hostname','oozie_hostname'];
           if(hiveOozieHostNames.contains(this.get('name'))) {
             if (validator.hasSpaces(value)) {
               this.set('errorMessage', Em.I18n.t('host.spacesValidation'));

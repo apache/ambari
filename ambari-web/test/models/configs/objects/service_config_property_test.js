@@ -114,7 +114,7 @@ var serviceConfigProperty,
       overrides: configsData[0].overrides
     },
     {
-      displayType: 'masterHost'
+      displayType: 'componentHost'
     }
   ],
   overridableTrueData = [
@@ -212,7 +212,7 @@ var serviceConfigProperty,
     value: 'value',
     savedValue: 'default'
   },
-  types = ['masterHost', 'slaveHosts', 'masterHosts', 'slaveHost', 'radio button'],
+  types = ['componentHost', 'componentHosts', 'radio button'],
   classCases = [
     {
       initial: {
@@ -272,21 +272,21 @@ var serviceConfigProperty,
     },
     {
       initial: {
-        displayType: 'masterHost'
+        displayType: 'componentHost'
       },
       viewClass: App.ServiceConfigMasterHostView
     },
     {
       initial: {
-        displayType: 'masterHosts'
+        displayType: 'componentHosts'
       },
-      viewClass: App.ServiceConfigMasterHostsView
+      viewClass: App.ServiceConfigComponentHostsView
     },
     {
       initial: {
-        displayType: 'slaveHosts'
+        displayType: 'componentHosts'
       },
-      viewClass: App.ServiceConfigSlaveHostsView
+      viewClass: App.ServiceConfigComponentHostsView
     },
     {
       initial: {

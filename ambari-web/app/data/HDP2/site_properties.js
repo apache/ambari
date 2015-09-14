@@ -102,7 +102,6 @@ var hdp2properties = [
   },
   {
     "name": "nfs.exports.allowed.hosts",
-    "displayType": "string",
     "category": "NFS_GATEWAY",
     "serviceName": "HDFS",
     "filename": "hdfs-site.xml",
@@ -129,20 +128,6 @@ var hdp2properties = [
     "category": "Advanced hdfs-site",
     "serviceName": "HDFS",
     "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "namenode_host",
-    "displayName": "NameNode hosts",
-    "value": "",
-    "recommendedValue": "",
-    "description": "The hosts that has been assigned to run NameNode",
-    "displayType": "masterHosts",
-    "isOverridable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "HDFS",
-    "filename": "hadoop-env.xml",
-    "category": "NAMENODE",
-    "index": 0
   },
   {
     "name": "namenode_heapsize",
@@ -185,57 +170,12 @@ var hdp2properties = [
     "index": 4
   },
   {
-    "name": "snamenode_host",
-    "displayName": "SNameNode host",
-    "value": "",
-    "recommendedValue": "",
-    "description": "The host that has been assigned to run SecondaryNameNode",
-    "displayType": "masterHost",
-    "isOverridable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "HDFS",
-    "filename": "hadoop-env.xml",
-    "category": "SECONDARY_NAMENODE",
-    "index": 0
-  },
-  {
-    "name": "datanode_hosts", //not in the schema. For UI purpose
-    "displayName": "DataNode hosts",
-    "value": "",
-    "recommendedValue": "",
-    "description": "The hosts that have been assigned to run DataNode",
-    "displayType": "slaveHosts",
-    "isRequired": false,
-    "isOverridable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "HDFS",
-    "filename": "hadoop-env.xml",
-    "category": "DATANODE",
-    "index": 0
-  },
-  {
     "name": "dtnode_heapsize",
     "displayType": "int",
     "serviceName": "HDFS",
     "filename": "hadoop-env.xml",
     "category": "DATANODE",
     "index": 2
-  },
-  {
-    "name": "nfsgateway_hosts", //not in the schema. For UI purpose
-    "displayName": "NFSGateway hosts",
-    "value": "",
-    "recommendedValue": "",
-    "description": "The hosts that have been assigned to run NFSGateway",
-    "displayType": "slaveHosts",
-    "isRequired": false,
-    "isOverridable": false,
-    "isVisible": true,
-    "isRequiredByAgent": false,
-    "serviceName": "HDFS",
-    "filename": "hadoop-env.xml",
-    "category": "NFS_GATEWAY",
-    "index": 0
   },
   {
     "name": "nfsgateway_heapsize",
@@ -263,13 +203,6 @@ var hdp2properties = [
   {
     "name": "hadoop_pid_dir_prefix",
     "displayType": "directory",
-    "serviceName": "HDFS",
-    "filename": "hadoop-env.xml",
-    "category": "Advanced hadoop-env"
-  },
-  {
-    "name": "hadoop_root_logger",
-    "displayType": "string",
     "serviceName": "HDFS",
     "filename": "hadoop-env.xml",
     "category": "Advanced hadoop-env"
@@ -382,19 +315,6 @@ var hdp2properties = [
     "index": 0
   },
   {
-    "name": "rm_host",
-    "displayName": "ResourceManager",
-    "description": "ResourceManager",
-    "recommendedValue": "",
-    "isOverridable": false,
-    "displayType": "masterHost",
-    "isRequiredByAgent": false,
-    "serviceName": "YARN",
-    "filename": "yarn-env.xml",
-    "category": "RESOURCEMANAGER",
-    "index": 0
-  },
-  {
     "name": "resourcemanager_heapsize",
     "displayType": "int",
     "serviceName": "YARN",
@@ -403,25 +323,12 @@ var hdp2properties = [
     "index": 1
   },
   {
-    "name": "nm_hosts",
-    "displayName": "NodeManager",
-    "description": "List of NodeManager Hosts.",
-    "recommendedValue": "",
-    "isOverridable": false,
-    "displayType": "slaveHosts",
-    "isRequiredByAgent": false,
-    "serviceName": "YARN",
-    "filename": "yarn-env.xml",
-    "category": "NODEMANAGER",
-    "index": 0
-  },
-  {
     "name": "nodemanager_heapsize",
     "displayType": "int",
     "serviceName": "YARN",
     "filename": "yarn-env.xml",
     "category": "NODEMANAGER",
-    "index": 0
+    "index": 1
   },
   {
     "name": "yarn_log_dir_prefix",
@@ -443,19 +350,6 @@ var hdp2properties = [
     "serviceName": "YARN",
     "filename": "yarn-env.xml",
     "category": "Advanced yarn-env"
-  },
-  {
-    "name": "ats_host",
-    "displayName": "App Timeline Server",
-    "description": "Application Timeline Server Host",
-    "recommendedValue": "",
-    "isOverridable": false,
-    "displayType": "masterHost",
-    "isRequiredByAgent": false,
-    "serviceName": "YARN",
-    "filename": "yarn-env.xml",
-    "category": "APP_TIMELINE_SERVER",
-    "index": 0
   },
   {
     "name": "apptimelineserver_heapsize",
@@ -500,20 +394,6 @@ var hdp2properties = [
     "category": "Advanced mapred-site",
     "serviceName": "MAPREDUCE2",
     "filename": "mapred-site.xml"
-  },
-  {
-    "name": "hs_host",
-    "displayName": "History Server",
-    "description": "History Server",
-    "recommendedValue": "",
-    "isOverridable": false,
-    "displayType": "masterHost",
-    "isRequiredByAgent": false,
-    "isVisible": true,
-    "serviceName": "MAPREDUCE2",
-    "filename": "mapred-env.xml",
-    "category": "HISTORYSERVER",
-    "index": 0
   },
   {
     "name": "jobhistory_heapsize",
@@ -575,20 +455,6 @@ var hdp2properties = [
     "serviceName": "OOZIE",
     "filename": "oozie-site.xml",
     "index": 8
-  },
-  {
-    "name": "oozieserver_host",
-    "displayName": "Oozie Server host",
-    "value": "",
-    "recommendedValue": "",
-    "description": "The hosts that have been assigned to run Oozie Server",
-    "displayType": "masterHosts",
-    "isOverridable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "OOZIE",
-    "filename": "oozie-env.xml",
-    "category": "OOZIE_SERVER",
-    "index": 0
   },
   {
     "name": "oozie_database",
@@ -724,12 +590,6 @@ var hdp2properties = [
     "index": 4
   },
   {
-    "name": "hive.server2.tez.default.queues",
-    "serviceName": "HIVE",
-    "filename": "hive-site.xml",
-    "category": "Advanced hive-site"
-  },
-  {
     "name": "hive.server2.thrift.port",
     "displayType": "int",
     "category": "Advanced hive-site",
@@ -749,46 +609,6 @@ var hdp2properties = [
     "category": "Advanced hive-site",
     "serviceName": "HIVE",
     "filename": "hive-site.xml"
-  },
-  {
-    "name": "hivemetastore_host",
-    "displayName": "Hive Metastore hosts",
-    "value": "",
-    "recommendedValue": "",
-    "description": "The hosts that have been assigned to run Hive Metastore",
-    "displayType": "masterHosts",
-    "isOverridable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "HIVE",
-    "filename": "hive-env.xml",
-    "category": "HIVE_METASTORE",
-    "index": 0
-  },
-  {
-    "name": "hive_master_hosts",
-    "value": "",
-    "recommendedValue": "",
-    "isOverridable": false,
-    "isRequiredByAgent": false,
-    "isVisible": false,
-    "serviceName": "HIVE",
-    "filename": "hive-env.xml"
-  },
-  {
-    "name": "hive_ambari_database",
-    "displayName": "Database Type",
-    "value": "",
-    "recommendedValue": "MySQL",
-    "description": "MySQL will be installed by Ambari",
-    "displayType": "masterHost",
-    "isOverridable": false,
-    "isReconfigurable": false,
-    "isRequiredByAgent": false,
-    "isVisible": false,
-    "serviceName": "HIVE",
-    "filename": "hive-env.xml",
-    "category": "HIVE_METASTORE",
-    "index": 1
   },
   {
     "name": "hive_database",
@@ -837,22 +657,6 @@ var hdp2properties = [
     "index": 3
   },
   {
-    "name": "hive_ambari_host",
-    "value": "",
-    "recommendedValue": "",
-    "displayName": "Database Host",
-    "description": "Host on which the database will be created by Ambari",
-    "isReconfigurable": false,
-    "displayType": "masterHost",
-    "isOverridable": false,
-    "isVisible": false,
-    "isRequiredByAgent": false,
-    "serviceName": "HIVE",
-    "filename": "hive-env.xml",
-    "category": "HIVE_METASTORE",
-    "index": 3
-  },
-  {
     "name": "hive_log_dir",
     "displayType": "directory",
     "serviceName": "HIVE",
@@ -865,19 +669,6 @@ var hdp2properties = [
     "serviceName": "HIVE",
     "filename": "hive-env.xml",
     "category": "Advanced hive-env"
-  },
-  {
-    "name": "webhcatserver_host",
-    "displayName": "WebHCat Server host",
-    "value": "",
-    "recommendedValue": "",
-    "description": "The host that has been assigned to run WebHCat Server",
-    "displayType": "masterHost",
-    "isOverridable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "HIVE",
-    "filename": "webhcat-env.xml",
-    "category": "WEBHCAT_SERVER"
   },
   {
     "name": "hcat_log_dir",
@@ -942,14 +733,12 @@ var hdp2properties = [
   },
   {
     "name": "tez.am.log.level",
-    "displayType": "string",
     "category": "General",
     "serviceName": "TEZ",
     "filename": "tez-site.xml"
   },
   {
     "name": "tez.runtime.intermediate-input.compress.codec",
-    "displayType": "string",
     "category": "General",
     "serviceName": "TEZ",
     "filename": "tez-site.xml"
@@ -963,7 +752,6 @@ var hdp2properties = [
   },
   {
     "name": "tez.runtime.intermediate-output.compress.codec",
-    "displayType": "string",
     "category": "General",
     "serviceName": "TEZ",
     "filename": "tez-site.xml"
@@ -1100,44 +888,11 @@ var hdp2properties = [
     "index": 5
   },
   {
-    "name": "hbase.coprocessor.region.classes",
-    "category": "Advanced hbase-site",
-    "serviceName": "HBASE",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.coprocessor.master.classes",
-    "category": "Advanced hbase-site",
-    "serviceName": "HBASE",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.coprocessor.regionserver.classes",
-    "category": "Advanced hbase-site",
-    "serviceName": "HBASE",
-    "filename": "hbase-site.xml"
-  },
-  {
     "name": "hbase.zookeeper.quorum",
     "displayType": "multiLine",
     "serviceName": "HBASE",
     "filename": "hbase-site.xml",
     "category": "Advanced hbase-site"
-  },
-  {
-    "name": "hbasemaster_host",
-    "displayName": "HBase Master hosts",
-    "value": "",
-    "recommendedValue": "",
-    "description": "The host that has been assigned to run HBase Master",
-    "displayType": "masterHosts",
-    "isOverridable": false,
-    "isRequiredByAgent": false,
-    "isVisible": true,
-    "serviceName": "HBASE",
-    "filename": "hbase-env.xml",
-    "category": "HBASE_MASTER",
-    "index": 0
   },
   {
     "name": "hbase_master_heapsize",
@@ -1146,20 +901,6 @@ var hdp2properties = [
     "filename": "hbase-env.xml",
     "category": "HBASE_MASTER",
     "index": 1
-  },
-  {
-    "name": "regionserver_hosts",
-    "displayName": "RegionServer hosts",
-    "value": "",
-    "recommendedValue": "",
-    "description": "The hosts that have been assigned to run RegionServer",
-    "displayType": "slaveHosts",
-    "isOverridable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "HBASE",
-    "filename": "hbase-env.xml",
-    "category": "HBASE_REGIONSERVER",
-    "index": 0
   },
   {
     "name": "hbase_regionserver_heapsize",
@@ -1217,7 +958,7 @@ var hdp2properties = [
   },
   {
     "name": "storm.zookeeper.servers",
-    "displayType": "masterHosts",
+    "displayType": "componentHosts",
     "serviceName": "STORM",
     "filename": "storm-site.xml",
     "category": "General"
@@ -1333,7 +1074,7 @@ var hdp2properties = [
   },
   {
     "name": "nimbus.host",
-    "displayType": "masterHost",
+    "displayType": "componentHost",
     "serviceName": "STORM",
     "filename": "storm-site.xml",
     "category": "NIMBUS"
@@ -1423,7 +1164,6 @@ var hdp2properties = [
   },
   {
     "name": "supervisor.slots.ports",
-    "displayType": "string",
     "serviceName": "STORM",
     "filename": "storm-site.xml",
     "category": "SUPERVISOR"
@@ -1500,7 +1240,6 @@ var hdp2properties = [
   },
   {
     "name": "drpc.childopts",
-    "displayType": "string",
     "category": "DRPC_SERVER",
     "serviceName": "STORM",
     "filename": "storm-site.xml"
@@ -1514,7 +1253,6 @@ var hdp2properties = [
   },
   {
     "name": "ui.childopts",
-    "displayType": "string",
     "category": "STORM_UI_SERVER",
     "serviceName": "STORM",
     "filename": "storm-site.xml"
@@ -1813,62 +1551,14 @@ var hdp2properties = [
 
 /**********************************************webhcat-site***************************************/
   {
-    "name": "templeton.hive.archive",
-    "serviceName": "HIVE",
-    "filename": "webhcat-site.xml",
-    "category": "Advanced webhcat-site"
-  },
-  {
-    "name": "templeton.pig.archive",
-    "serviceName": "HIVE",
-    "filename": "webhcat-site.xml",
-    "category": "Advanced webhcat-site"
-  },
-  {
     "name": "templeton.zookeeper.hosts",
     "displayType": "multiLine",
     "serviceName": "HIVE",
     "filename": "webhcat-site.xml",
     "category": "Advanced webhcat-site"
   },
-/**********************************************pig.properties*****************************************/
-  {
-    "name": "content",
-    "category": "Advanced pig-properties",
-    "serviceName": "PIG",
-    "filename": "pig-properties.xml"
-  },
 
 /**********************************************KNOX*****************************************/
-  {
-    "name": "content",
-    "displayType": "content",
-    "serviceName": "KNOX",
-    "filename": "topology.xml",
-    "category": "Advanced topology"
-  },
-
-  {
-    "name": "content",
-    "displayType": "content",
-    "serviceName": "KNOX",
-    "filename": "users-ldif.xml",
-    "category": "Advanced users-ldif"
-  },
-  {
-    "name": "knox_gateway_host",
-    "displayName": "Knox Gateway host",
-    "value": "",
-    "recommendedValue": "",
-    "description": "The hosts that have been assigned to run Knox Gateway",
-    "displayType": "masterHosts",
-    "isOverridable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "KNOX",
-    "filename": "knox-env.xml",
-    "category": "KNOX_GATEWAY",
-    "index": 0
-  },
   {
     "name": "knox_master_secret",
     "serviceName": "KNOX",
@@ -1885,26 +1575,12 @@ var hdp2properties = [
 
 /********************************************* KAFKA *****************************/
   {
-    "name": "kafka_broker_hosts",
-    "displayName": "Kafka Broker host",
-    "value": "",
-    "recommendedValue": "",
-    "description": "The host that has been assigned to run Kafka Broker",
-    "displayType": "masterHosts",
-    "isOverridable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "KAFKA",
-    "filename": "kafka-broker.xml",
-    "category": "KAFKA_BROKER",
-    "index": 0
-  },
-  {
     "name": "log.dirs",
     "displayType": "directories",
     "serviceName": "KAFKA",
     "filename": "kafka-broker.xml",
     "category": "KAFKA_BROKER",
-    "index": 0
+    "index": 1
   },
   {
     "name": "port",
@@ -1912,7 +1588,7 @@ var hdp2properties = [
     "serviceName": "KAFKA",
     "filename": "kafka-broker.xml",
     "category": "KAFKA_BROKER",
-    "index": 0
+    "index": 2
   },
     {
     "name": "listeners",
@@ -1957,7 +1633,6 @@ var hdp2properties = [
 /********************************************* ACCUMULO *****************************/
   {
     "name": "accumulo_instance_name",
-    "displayType": "string",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-env.xml",
     "category": "General"
@@ -1970,7 +1645,6 @@ var hdp2properties = [
   },
   {
     "name": "trace.user",
-    "displayType": "string",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
     "category": "General"
@@ -2053,7 +1727,6 @@ var hdp2properties = [
   },
   {
     "name": "instance.volumes",
-    "displayType": "string",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
     "category": "Advanced accumulo-site",
@@ -2061,7 +1734,6 @@ var hdp2properties = [
   },
   {
     "name": "instance.zookeeper.host",
-    "displayType": "string",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
     "category": "Advanced accumulo-site",
@@ -2069,7 +1741,6 @@ var hdp2properties = [
   },
   {
     "name": "instance.zookeeper.timeout",
-    "displayType": "string",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
     "category": "Advanced accumulo-site",
@@ -2143,19 +1814,11 @@ var hdp2properties = [
 /*******************************************kerberos***********************************/
   {
     "name": "kdc_type",
-    "displayType": "masterHost",
+    "displayType": "componentHost",
     "serviceName": "KERBEROS",
     "filename": "kerberos-env.xml",
     "category": "KDC",
     "index": 0
-  },
-  {
-    "name": "kdc_host",
-    "displayType": "supportTextConnection",
-    "serviceName": "KERBEROS",
-    "filename": "kerberos-env.xml",
-    "category": "KDC",
-    "index": 1
   },
   {
     "name": "realm",
@@ -2381,14 +2044,12 @@ var hdp2properties = [
   //***************************************** GLUSTERFS stack********************************************
   {
     "name": "fs.glusterfs.impl",
-    "displayType": "string",
     "filename": "core-site.xml",
     "serviceName": "GLUSTERFS",
     "category": "General"
   },
   {
     "name": "fs.AbstractFileSystem.glusterfs.impl",
-    "displayType": "string",
     "filename": "core-site.xml",
     "serviceName": "GLUSTERFS",
     "category": "General"
@@ -2470,43 +2131,12 @@ var hdp2properties = [
   },
   {
     "name": "glusterfs_user",
-    "displayType": "string",
-    "serviceName": "GLUSTERFS",
-    "filename": "hadoop-env.xml",
-    "category": "General Hadoop"
-  },
-  {
-    "name": "namenode_host",
-    "displayType": "string",
-    "serviceName": "GLUSTERFS",
-    "filename": "hadoop-env.xml",
-    "category": "General Hadoop"
-  },
-  {
-    "name": "snamenode_host",
-    "displayType": "string",
     "serviceName": "GLUSTERFS",
     "filename": "hadoop-env.xml",
     "category": "General Hadoop"
   },
 
 /**********************************************ZOOKEEPER***************************************/
-  {
-    "name": "zookeeperserver_hosts",
-    "displayName": "ZooKeeper Server hosts",
-    "value": "",
-    "recommendedValue": "",
-    "description": "The host that has been assigned to run ZooKeeper Server",
-    "displayType": "masterHosts",
-    "isVisible": true,
-    "isRequiredByAgent": false,
-    "isOverridable": false,
-    "isRequired": false,
-    "serviceName": "ZOOKEEPER",
-    "filename": "zookeeper-env.xml",
-    "category": "ZOOKEEPER_SERVER",
-    "index": 0
-  },
   {
     "name": "dataDir",
     "displayType": "directory",
@@ -2565,17 +2195,6 @@ var hdp2properties = [
   },
 /**********************************************FALCON***************************************/
   {
-    "name": "falconserver_host",
-    "displayName": "Falcon Server",
-    "description": "The host that has been assigned to run Falcon Server",
-    "recommendedValue": "falcon",
-    "displayType": "masterHost",
-    "isRequiredByAgent": false,
-    "serviceName": "FALCON",
-    "filename": "falcon-env.xml",
-    "category": "FALCON_SERVER"
-  },
-  {
     "name": "falcon_port",
     "displayType": "int",
     "serviceName": "FALCON",
@@ -2591,7 +2210,6 @@ var hdp2properties = [
   },
   {
     "name": "falcon_store_uri",
-    "displayType": "string",
     "serviceName": "FALCON",
     "filename": "falcon-env.xml",
     "category": "FALCON_SERVER"
@@ -2611,22 +2229,8 @@ var hdp2properties = [
     "category": "Advanced falcon-env"
   },
   {
-    "name": "falcon.embeddedmq",
-    "displayType": "string",
-    "serviceName": "FALCON",
-    "filename": "falcon-env.xml",
-    "category": "Advanced falcon-env"
-  },
-  {
     "name": "falcon.embeddedmq.data",
     "displayType": "directory",
-    "serviceName": "FALCON",
-    "filename": "falcon-env.xml",
-    "category": "Advanced falcon-env"
-  },
-  {
-    "name": "falcon.emeddedmq.port",
-    "displayType": "string",
     "serviceName": "FALCON",
     "filename": "falcon-env.xml",
     "category": "Advanced falcon-env"
@@ -2645,57 +2249,6 @@ var hdp2properties = [
     "serviceName": "STORM",
     "filename": "storm-env.xml",
     "category": "Advanced storm-env"
-  },
-  {
-    "name": "stormuiserver_host",
-    "displayName": "Storm UI Server host",
-    "description": "The host that has been assigned to run Storm UI Server",
-    "recommendedValue": "",
-    "displayType": "masterHost",
-    "isReconfigurable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "STORM",
-    "filename": "storm-env.xml",
-    "category": "STORM_UI_SERVER"
-  },
-  {
-    "name": "drpcserver_host",
-    "displayName": "DRPC Server host",
-    "description": "The host that has been assigned to run DRPC Server",
-    "recommendedValue": "",
-    "displayType": "masterHost",
-    "isReconfigurable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "STORM",
-    "filename": "storm-env.xml",
-    "category": "DRPC_SERVER"
-  },
-  {
-    "name": "supervisor_hosts",
-    "displayName": "Supervisor hosts",
-    "description": "The host that has been assigned to run Supervisor",
-    "recommendedValue": "",
-    "isRequired": false,
-    "displayType": "slaveHosts",
-    "isReconfigurable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "STORM",
-    "filename": "storm-env.xml",
-    "isOverridable": false,
-    "category": "SUPERVISOR"
-  },
-  {
-    "name": "storm_rest_api_host",
-    "displayName": "Storm REST API host",
-    "description": "The host that has been assigned to run Storm REST API Server",
-    "recommendedValue": "",
-    "displayType": "masterHost",
-    "isReconfigurable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "STORM",
-    "filename": "storm-env.xml",
-    "isOverridable": false,
-    "category": "STORM_REST_API"
   },
 /**********************************************MISC***************************************/
   {
@@ -2790,7 +2343,6 @@ var hdp2properties = [
   {
     "name": "ambari.dispatch.credential.username",
     "displayName": "SMTP Username",
-    "displayType": "string",
     "isRequired": false,
     "isReconfigurable": true,
     "isOverridable": false,
@@ -2803,7 +2355,6 @@ var hdp2properties = [
   {
     "name": "ambari.dispatch.credential.password",
     "displayName": "SMTP Password",
-    "displayType": "string",
     "isRequired": false,
     "isReconfigurable": true,
     "isOverridable": false,
@@ -2838,7 +2389,6 @@ var hdp2properties = [
 /************************************************AMBARI_METRICS******************************************/
   {
     "name": "timeline.metrics.service.operation.mode",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "General",
@@ -2846,7 +2396,6 @@ var hdp2properties = [
   },
   {
     "name": "metrics_collector_log_dir",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-env.xml",
     "category": "General",
@@ -2854,7 +2403,6 @@ var hdp2properties = [
   },
   {
     "name": "metrics_collector_pid_dir",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-env.xml",
     "category": "General",
@@ -2862,7 +2410,6 @@ var hdp2properties = [
   },
   {
     "name": "metrics_monitor_log_dir",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-env.xml",
     "category": "General",
@@ -2870,7 +2417,6 @@ var hdp2properties = [
   },
   {
     "name": "metrics_monitor_pid_dir",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-env.xml",
     "category": "General",
@@ -2894,7 +2440,6 @@ var hdp2properties = [
   },
   {
     "name": "timeline.metrics.cluster.aggregator.hourly.disabled",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
@@ -2918,7 +2463,6 @@ var hdp2properties = [
   },
   {
     "name": "timeline.metrics.cluster.aggregator.minute.disabled",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
@@ -2950,7 +2494,6 @@ var hdp2properties = [
   },
   {
     "name": "timeline.metrics.host.aggregator.hourly.disabled",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
@@ -2974,7 +2517,6 @@ var hdp2properties = [
   },
   {
     "name": "timeline.metrics.host.aggregator.minute.disabled",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
@@ -3011,114 +2553,6 @@ var hdp2properties = [
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 3
-  },
-  {
-    "name": "ams.zookeeper.keytab",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "ams.zookeeper.principal",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hadoop.security.authentication",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.coprocessor.master.classes",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.coprocessor.region.classes",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.master.kerberos.principal",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.master.keytab.file",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.myclient.keytab",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.myclient.principal",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.regionserver.kerberos.principal",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.regionserver.keytab.file",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.security.authentication",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.security.authorization",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.zookeeper.property.authProvider.1",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.zookeeper.property.jaasLoginRenew",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.zookeeper.property.kerberos.removeHostFromPrincipal",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.zookeeper.property.kerberos.removeRealmFromPrincipal",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "zookeeper.znode.parent",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
   },
 /************************************************Kerberos Descriptor******************************************/
   {
@@ -3244,12 +2678,10 @@ if (App.get('isHadoopWindowsStack')) {
       "options": [
         {
           displayName: 'Existing MSSQL Server database with SQL authentication',
-          foreignKeys: ['hive_existing_mssql_server_database', 'hive_existing_mssql_server_host'],
           hidden: false
         },
         {
           displayName: 'Existing MSSQL Server database with integrated authentication',
-          foreignKeys: ['hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'],
           hidden: false
         }
       ],
@@ -3266,12 +2698,10 @@ if (App.get('isHadoopWindowsStack')) {
       "options": [
         {
           displayName: 'Existing MSSQL Server database with SQL authentication',
-          foreignKeys: ['oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host'],
           hidden: false
         },
         {
           displayName: 'Existing MSSQL Server database with integrated authentication',
-          foreignKeys: ['oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'],
           hidden: false
         }
       ],
@@ -3335,21 +2765,18 @@ var atsProperties = [
   },
   {
     "name": "yarn.timeline-service.webapp.address",
-    "displayType": "string",
     "category": "APP_TIMELINE_SERVER",
     "serviceName": "YARN",
     "filename": "yarn-site.xml"
   },
   {
     "name": "yarn.timeline-service.webapp.https.address",
-    "displayType": "string",
     "category": "APP_TIMELINE_SERVER",
     "serviceName": "YARN",
     "filename": "yarn-site.xml"
   },
   {
     "name": "yarn.timeline-service.address",
-    "displayType": "string",
     "category": "APP_TIMELINE_SERVER",
     "serviceName": "YARN",
     "filename": "yarn-site.xml"
