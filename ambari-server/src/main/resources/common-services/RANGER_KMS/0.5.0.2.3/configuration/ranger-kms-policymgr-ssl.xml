@@ -47,7 +47,7 @@
     <property>
     <name>xasecure.policymgr.clientssl.keystore.credential.file</name>
     <value>jceks://file{{credential_file}}</value>
-    <description>java keystore credential file</description>
+    <description> java keystore credential file</description>
   </property>
 
   <property>
