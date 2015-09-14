@@ -30,7 +30,7 @@
   <property>
     <name>common.name.for.certificate</name>
     <value></value>
-    <description>Used for repository creation on ranger admin</description>
+    <description>Common name for certificate, this value should match what is specified in repo within ranger admin</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -63,7 +63,7 @@
   <property>
     <name>KNOX_HOME</name>
     <value>/usr/hdp/current/knox-server</value>
-    <description></description>
+    <description>Knox home folder</description>
   </property>
 
   <property>
