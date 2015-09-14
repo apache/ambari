@@ -280,7 +280,6 @@ App.config = Em.Object.create({
       recommendedIsFinal: null,
       supportsFinal: this.shouldSupportFinal(serviceName, fileName),
       serviceName: serviceName,
-      defaultDirectory: '',
       displayName: this.getDefaultDisplayName(name, fileName),
       displayType: this.getDefaultDisplayType(name, fileName, coreObject ? coreObject.value : ''),
       description: null,
@@ -542,11 +541,6 @@ App.config = Em.Object.create({
 
         if (advanced.get('id')) {
           configData = this.mergeStaticProperties(configData, advanced, null, ['name', 'filename']);
-        }
-
-        if (['directory' ,'directories'].contains(configData.displayType) && configData.defaultDirectory) {
-          configData.value = configData.defaultDirectory;
-        } else if (advanced && advanced.get('id')) {
           configData.value = this.formatPropertyValue(advanced, advanced.get('value'));
         }
 

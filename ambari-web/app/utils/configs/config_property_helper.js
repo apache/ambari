@@ -524,13 +524,13 @@ module.exports = {
     configProperty.set('value', '');
     var winRegex = /^([a-z]):\\?$/;
     if (!isOnlyFirstOneNeeded) {
+      var mPoint = configProperty.get('value');
+      if (!mPoint) {
+        mPoint = "";
+      }
       allMountPoints.forEach(function (eachDrive) {
-        var mPoint = configProperty.get('value');
-        if (!mPoint) {
-          mPoint = "";
-        }
         if (eachDrive.mountpoint === "/") {
-          mPoint += configProperty.get('defaultDirectory') + "\n";
+          mPoint += configProperty.get('recommendedValue') + "\n";
         } else if(winRegex.test(eachDrive.mountpoint.toLowerCase())) {
           switch (configProperty.get('name')) {
             case 'dfs.name.dir':
@@ -538,42 +538,42 @@ module.exports = {
             case 'dfs.data.dir':
             case 'dfs.datanode.data.dir':
               var winDriveUrl = eachDrive.mountpoint.toLowerCase().replace(winRegex, "file:///$1:");
-              mPoint += winDriveUrl + configProperty.get('defaultDirectory') + "\n";
+              mPoint += winDriveUrl + configProperty.get('recommendedValue') + "\n";
               break;
             default:
               var winDrive = eachDrive.mountpoint.toLowerCase().replace(winRegex, "$1:");
-              var winDir = configProperty.get('defaultDirectory').replace(/\//g, "\\");
+              var winDir = configProperty.get('recommendedValue').replace(/\//g, "\\");
               mPoint += winDrive + winDir + "\n";
           }
         } else {
-          mPoint += eachDrive.mountpoint + configProperty.get('defaultDirectory') + "\n";
+          mPoint += eachDrive.mountpoint + configProperty.get('recommendedValue') + "\n";
         }
-        configProperty.set('value', mPoint);
-        configProperty.set('recommendedValue', mPoint);
       }, this);
+      configProperty.set('value', mPoint);
+      configProperty.set('recommendedValue', mPoint);
     } else {
       var mPoint = allMountPoints[0].mountpoint;
       if (mPoint === "/") {
-        mPoint = configProperty.get('defaultDirectory');
+        mPoint = configProperty.get('recommendedValue');
       } else if(winRegex.test(mPoint.toLowerCase())) {
         switch (configProperty.get('name')) {
           case 'fs.checkpoint.dir':
           case 'dfs.namenode.checkpoint.dir':
             var winDriveUrl = mPoint.toLowerCase().replace(winRegex, "file:///$1:");
-            mPoint = winDriveUrl + configProperty.get('defaultDirectory') + "\n";
+            mPoint = winDriveUrl + configProperty.get('recommendedValue') + "\n";
             break;
           case 'zk_data_dir':
             var winDrive = mPoint.toLowerCase().replace(winRegex, "$1:");
-            var winDir = configProperty.get('defaultDirectory').replace(/\//g, "\\\\");
+            var winDir = configProperty.get('recommendedValue').replace(/\//g, "\\\\");
             mPoint = winDrive + winDir + "\n";
             break;
           default:
             var winDrive = mPoint.toLowerCase().replace(winRegex, "$1:");
-            var winDir = configProperty.get('defaultDirectory').replace(/\//g, "\\");
+            var winDir = configProperty.get('recommendedValue').replace(/\//g, "\\");
             mPoint = winDrive + winDir + "\n";
         }
       } else {
-        mPoint = mPoint + configProperty.get('defaultDirectory');
+        mPoint = mPoint + configProperty.get('recommendedValue');
       }
       configProperty.set('value', mPoint);
       configProperty.set('recommendedValue', mPoint);

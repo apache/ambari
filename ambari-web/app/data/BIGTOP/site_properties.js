@@ -26,7 +26,7 @@ module.exports =
     {
       "name": "dfs.namenode.checkpoint.dir",
       "displayName": "SecondaryNameNode Checkpoint directories",
-      "defaultDirectory": "/hadoop/hdfs/namesecondary",
+      "recommendedValue": "/hadoop/hdfs/namesecondary",
       "displayType": "directories",
       "isOverridable": false,
       "serviceName": "HDFS",
@@ -47,7 +47,7 @@ module.exports =
     {
       "name": "dfs.namenode.name.dir",
       "displayName": "NameNode directories",
-      "defaultDirectory": "/hadoop/hdfs/namenode",
+      "recommendedValue": "/hadoop/hdfs/namenode",
       "displayType": "directories",
       "isOverridable": false,
       "serviceName": "HDFS",
@@ -89,7 +89,7 @@ module.exports =
     {
       "name": "dfs.datanode.data.dir",
       "displayName": "DataNode directories",
-      "defaultDirectory": "/hadoop/hdfs/data",
+      "recommendedValue": "/hadoop/hdfs/data",
       "displayType": "directories",
       "category": "DATANODE",
       "serviceName": "HDFS",
@@ -214,7 +214,7 @@ module.exports =
     {
       "name": "yarn.nodemanager.log-dirs",
       "displayName": "yarn.nodemanager.log-dirs",
-      "defaultDirectory": "/hadoop/yarn/log",
+      "recommendedValue": "/hadoop/yarn/log",
       "displayType": "directories",
       "serviceName": "YARN",
       "filename": "yarn-site.xml",
@@ -223,7 +223,7 @@ module.exports =
     {
       "name": "yarn.nodemanager.local-dirs",
       "displayName": "yarn.nodemanager.local-dirs",
-      "defaultDirectory": "/hadoop/yarn/local",
+      "recommendedValue": "/hadoop/yarn/local",
       "displayType": "directories",
       "serviceName": "YARN",
       "filename": "yarn-site.xml",
@@ -276,7 +276,7 @@ module.exports =
     {
       "name": "yarn.timeline-service.leveldb-timeline-store.path",
       "displayName": "yarn.timeline-service.leveldb-timeline-store.path",
-      "defaultDirectory": "/hadoop/yarn/timeline",
+      "recommendedValue": "/hadoop/yarn/timeline",
       "category": "APP_TIMELINE_SERVER",
       "displayType": "directory",
       "serviceName": "YARN",
@@ -615,7 +615,7 @@ module.exports =
     {
       "name": "hbase.tmp.dir",
       "displayName": "HBase tmp directory",
-      "defaultDirectory": "/hadoop/hbase",
+      "recommendedValue": "/hadoop/hbase",
       "displayType": "directory",
       "category": "Advanced hbase-site",
       "serviceName": "HBASE",
@@ -796,7 +796,7 @@ module.exports =
     {
       "name": "storm.local.dir",
       "displayName": "storm.local.dir",
-      "defaultDirectory": "/hadoop/storm",
+      "recommendedValue": "/hadoop/storm",
       "displayType": "directory",
       "serviceName": "STORM",
       "category": "General"
@@ -2660,8 +2660,7 @@ module.exports =
       "name": "oozie_data_dir",
       "displayName": "Oozie Data Dir",
       "description": "Data directory in which the Oozie DB exists",
-      "recommendedValue": "",
-      "defaultDirectory": "/hadoop/oozie/data",
+      "recommendedValue": "/hadoop/oozie/data",
       "isReconfigurable": true,
       "displayType": "directory",
       "isOverridable": false,
@@ -2802,8 +2801,7 @@ module.exports =
       "name": "zk_data_dir",
       "displayName": "ZooKeeper directory",
       "description": "Data directory for ZooKeeper",
-      "recommendedValue": "",
-      "defaultDirectory": "/hadoop/zookeeper",
+      "recommendedValue": "/hadoop/zookeeper",
       "isReconfigurable": true,
       "displayType": "directory",
       "isVisible": true,
