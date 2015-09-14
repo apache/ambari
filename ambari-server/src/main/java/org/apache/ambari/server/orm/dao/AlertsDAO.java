@@ -499,8 +499,8 @@ public class AlertsDAO {
   public AlertHostSummaryDTO findCurrentHostCounts(long clusterId) {
     // use Number here since some databases like MySQL return Long and some
     // return Integer and we don't want a class cast exception
-    TypedQuery<Number> query = m_entityManagerProvider.get().createQuery(
-        HOST_COUNT_SQL_TEMPLATE, Number.class);
+    TypedQuery<Object> query = m_entityManagerProvider.get().createQuery(
+        HOST_COUNT_SQL_TEMPLATE, Object.class);
 
     query.setParameter("clusterId", Long.valueOf(clusterId));
     query.setParameter("criticalState", AlertState.CRITICAL);
@@ -513,13 +513,18 @@ public class AlertsDAO {
     int criticalCount = 0;
     int unknownCount = 0;
 
-    List<Number> hostStateValues = m_daoUtils.selectList(query);
-    for (Number hostStateValue : hostStateValues) {
+    List<Object> hostStateValues = m_daoUtils.selectList(query);
+    for (Object hostStateValue : hostStateValues) {
       if (null == hostStateValue) {
         continue;
       }
 
-      int integerValue = hostStateValue.intValue();
+      int integerValue;
+      if (hostStateValue instanceof Boolean) {
+        integerValue = (boolean)hostStateValue ? 1 : 0;
+      } else {
+        integerValue = ((Number)hostStateValue).intValue();
+      }
 
       switch (integerValue) {
         case 0:
