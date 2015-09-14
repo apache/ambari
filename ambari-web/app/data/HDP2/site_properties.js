@@ -23,7 +23,6 @@ var hdp2properties = [
   /**********************************************HDFS***************************************/
   {
     "name": "dfs.namenode.checkpoint.dir",
-    "defaultDirectory": "/hadoop/hdfs/namesecondary",
     "displayType": "directories",
     "serviceName": "HDFS",
     "filename": "hdfs-site.xml",
@@ -40,7 +39,6 @@ var hdp2properties = [
   },
   {
     "name": "dfs.namenode.name.dir",
-    "defaultDirectory": "/hadoop/hdfs/namenode",
     "displayType": "directories",
     "serviceName": "HDFS",
     "filename": "hdfs-site.xml",
@@ -73,7 +71,6 @@ var hdp2properties = [
   },
   {
     "name": "dfs.datanode.data.dir",
-    "defaultDirectory": "/hadoop/hdfs/data",
     "displayType": "directories",
     "category": "DATANODE",
     "serviceName": "HDFS",
@@ -89,7 +86,6 @@ var hdp2properties = [
   },
   {
     "name": "nfs.file.dump.dir",
-    "defaultDirectory": "/tmp/.hdfs-nfs",
     "displayType": "directory",
     "category": "NFS_GATEWAY",
     "serviceName": "HDFS",
@@ -341,7 +337,6 @@ var hdp2properties = [
   },
   {
     "name": "yarn.nodemanager.log-dirs",
-    "defaultDirectory": "/hadoop/yarn/log",
     "displayType": "directories",
     "serviceName": "YARN",
     "filename": "yarn-site.xml",
@@ -349,7 +344,6 @@ var hdp2properties = [
   },
   {
     "name": "yarn.nodemanager.local-dirs",
-    "defaultDirectory": "/hadoop/yarn/local",
     "displayType": "directories",
     "serviceName": "YARN",
     "filename": "yarn-site.xml",
@@ -629,7 +623,6 @@ var hdp2properties = [
   },
   {
     "name": "oozie_data_dir",
-    "defaultDirectory": "/hadoop/oozie/data",
     "displayType": "directory",
     "serviceName": "OOZIE",
     "filename": "oozie-env.xml",
@@ -986,7 +979,6 @@ var hdp2properties = [
 /**********************************************HBASE***************************************/
   {
     "name": "hbase.tmp.dir",
-    "defaultDirectory": "/hadoop/hbase",
     "displayType": "directory",
     "category": "Advanced hbase-site",
     "serviceName": "HBASE",
@@ -1218,7 +1210,6 @@ var hdp2properties = [
   },
   {
     "name": "storm.local.dir",
-    "defaultDirectory": "/hadoop/storm",
     "displayType": "directory",
     "serviceName": "STORM",
     "filename": "storm-site.xml",
@@ -1800,7 +1791,6 @@ var hdp2properties = [
   // Falcon Graph and Storage
   {
     "name": "*.falcon.graph.storage.directory",
-    "defaultDirectory": "/hadoop/falcon/data/lineage/graphdb",
     "displayType": "directory",
     "category": "FalconStartupSite",
     "serviceName": "FALCON",
@@ -1808,7 +1798,6 @@ var hdp2properties = [
   },
   {
     "name": "*.falcon.graph.serialize.path",
-    "defaultDirectory": "/hadoop/falcon/data/lineage",
     "displayType": "directory",
     "category": "FalconStartupSite",
     "serviceName": "FALCON",
@@ -1911,7 +1900,6 @@ var hdp2properties = [
   },
   {
     "name": "log.dirs",
-    "defaultDirectory": "/kafka-logs",
     "displayType": "directories",
     "serviceName": "KAFKA",
     "filename": "kafka-broker.xml",
@@ -2521,7 +2509,6 @@ var hdp2properties = [
   },
   {
     "name": "dataDir",
-    "defaultDirectory": "/hadoop/zookeeper",
     "displayType": "directory",
     "serviceName": "ZOOKEEPER",
     "filename": "zoo.cfg.xml",
@@ -3308,7 +3295,6 @@ var atsProperties = [
   },
   {
     "name": "yarn.timeline-service.leveldb-timeline-store.path",
-    "defaultDirectory": "/hadoop/yarn/timeline",
     "category": "APP_TIMELINE_SERVER",
     "displayType": "directory",
     "serviceName": "YARN",

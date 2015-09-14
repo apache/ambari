@@ -825,7 +825,7 @@ describe('configPropertyHelper', function () {
       it(item.name, function () {
         serviceConfigProperty.setProperties({
           name: item.name,
-          defaultDirectory: '/default'
+          recommendedValue: '/default'
         });
         configPropertyHelper.unionAllMountPoints(serviceConfigProperty, item.isOnlyFirstOneNeeded, localDB);
         expect(serviceConfigProperty.get('value')).to.equal(item.value);

@@ -78,7 +78,6 @@ App.ServiceConfigProperty = Em.Object.extend({
   supportsFinal: false,
 
   retypedPassword: '',
-  defaultDirectory: '',
   description: '',
   displayType: 'string', // string, digits, number, directories, custom
   unit: '',

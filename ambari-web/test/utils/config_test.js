@@ -1228,7 +1228,6 @@ describe('App.config', function () {
       recommendedIsFinal: null,
       supportsFinal: true,
       serviceName: 'pServiceName',
-      defaultDirectory: '',
       displayName: 'pDisplayName',
       displayType: 'pDisplayType',
       description: null,

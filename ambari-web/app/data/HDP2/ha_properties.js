@@ -37,7 +37,6 @@ module.exports =
         "isReconfigurable": true,
         "recommendedValue": "/hadoop/hdfs/journal",
         "value": "/hadoop/hdfs/journal",
-        "defaultDirectory": "/hadoop/hdfs/journal",
         "displayType": "directory",
         "category": "HDFS",
         "filename": "hdfs-site",

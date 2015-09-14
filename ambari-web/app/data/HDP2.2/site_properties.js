@@ -66,7 +66,6 @@ hdp22properties.push(
   },
   {
     "name": "yarn.timeline-service.leveldb-state-store.path",
-    "defaultDirectory": "/hadoop/yarn/timeline",
     "category": "APP_TIMELINE_SERVER",
     "displayType": "directory",
     "serviceName": "YARN",
