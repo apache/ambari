@@ -354,7 +354,8 @@ class Script(object):
     from this list
     
     exclude_packages - list of regexes (possibly raw strings as well), the
-    packages which match the regex won't be installed
+    packages which match the regex won't be installed.
+    NOTE: regexes don't have Python syntax, but simple package regexes which support only * and .* and ?
     """
     config = self.get_config()
     if 'host_sys_prepped' in config['hostLevelParams']:
@@ -393,8 +394,9 @@ class Script(object):
   @staticmethod
   def matches_any_regexp(string, regexp_list):
     for regex in regexp_list:
-      # adding ^ and $ to correctly match raw strings from begining to the end
-      if re.match('^' + regex + '$', string):
+      # we cannot use here Python regex, since * will create some troubles matching plaintext names. 
+      package_regex = '^' + re.escape(regex).replace('\\.\\*','.*').replace("\\?", ".").replace("\\*", ".*") + '$'
+      if re.match(package_regex, string):
         return True
     return False
 
