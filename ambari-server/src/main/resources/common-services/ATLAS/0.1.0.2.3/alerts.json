@@ -10,7 +10,7 @@
         "scope": "ANY",
         "source": {
           "type": "PORT",
-          "uri": "{{application-properties/atlas.server.http.port}}",
+          "uri": "{{atlas-env/metadata_port}}",
           "default_port": 21000,
           "reporting": {
             "ok": {
@@ -37,8 +37,8 @@
         "source": {
           "type": "WEB",
           "uri": {
-            "http": "{{hostname}}:{{application-properties/atlas.server.http.port}}",
-            "https": "{{hostname}}:{{application-properties/atlas.server.https.port}}",
+            "http": "{{hostname}}:{{atlas-env/metadata_port}}",
+            "https": "{{hostname}}:21443",
             "https_property": "{{application-properties/atlas.enableTLS}}",
             "https_property_value": "true",
             "default_port": 21000,

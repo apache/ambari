@@ -115,7 +115,7 @@ class TestMetadataServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.configureResourcesCalled()
-    self.assertResourceCalled('Execute', 'source /etc/atlas/conf/atlas-env.sh ; /usr/hdp/current/atlas-server/bin/atlas_start.py',
+    self.assertResourceCalled('Execute', 'source /etc/atlas/conf/atlas-env.sh ; /usr/hdp/current/atlas-server/bin/atlas_start.py --port 21000',
                               not_if = 'ls /var/run/atlas/atlas.pid >/dev/null 2>&1 && ps -p `cat /var/run/atlas/atlas.pid` >/dev/null 2>&1',
                               user = 'atlas',
     )

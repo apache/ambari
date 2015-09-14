@@ -387,12 +387,8 @@ limitations under the License.
         <name>atlas.enableTLS</name>
       </property>
       <property>
-        <type>application-properties</type>
-        <name>atlas.server.http.port</name>
-      </property>
-      <property>
-        <type>application-properties</type>
-        <name>atlas.server.https.port</name>
+        <type>atlas-env</type>
+        <name>metadata_port</name>
       </property>
     </depends-on>
   </property>
