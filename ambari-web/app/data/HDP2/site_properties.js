@@ -476,7 +476,7 @@ var hdp2properties = [
         hidden: false
       },
       {
-        displayName: 'Existing SQLA Database',
+        displayName: 'Existing SQL Anywhere Database',
         hidden: App.get('currentStackName') !== 'SAPHD' && (App.get('currentStackName') !== 'HDP' || !App.get('isHadoop23Stack'))
       }
     ],
@@ -630,7 +630,7 @@ var hdp2properties = [
         hidden: false
       },
       {
-        displayName: 'Existing SQLA Database',
+        displayName: 'Existing SQL Anywhere Database',
         hidden: App.get('currentStackName') !== 'SAPHD' && (App.get('currentStackName') !== 'HDP' || !App.get('isHadoop23Stack'))
       }
     ],
