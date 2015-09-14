@@ -141,6 +141,8 @@ module.exports = {
         break;
       case 'hive_hostname':
         configProperty.set('recommendedValue', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
+        configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
+        break;
       case 'hive_ambari_host':
         configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
         break;
@@ -163,6 +165,8 @@ module.exports = {
         break;
       case 'oozie_hostname':
         configProperty.set('recommendedValue', masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER').mapProperty('hostName')[0]);
+        configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER').mapProperty('hostName')[0]);
+        break;
       case 'oozieserver_host':
         configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER').mapProperty('hostName'));
         break;
