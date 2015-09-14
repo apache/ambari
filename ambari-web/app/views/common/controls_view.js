@@ -681,16 +681,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
       additionalView2 = shouldAdditionalViewsBeSet ? Ember.View.extend({
         template: Ember.Handlebars.compile('<div class="alert">{{{view.message}}}</div>'),
         message: function() {
-          var message;
-          var jdbcDriverSetupMsg = Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(dbType, driver);
-          var isWizardPage =  ['addServiceController', 'installerController'].contains(this.get('controller.wizardController.name'));
-          if (currentDBType === 'SQLA' && isWizardPage) {
-            var sqlaDbSupportMsg = Em.I18n.t('stack.specific.sqla.support.msg');
-            message = sqlaDbSupportMsg + jdbcDriverSetupMsg;
-          } else {
-            message = jdbcDriverSetupMsg;
-          }
-          return message;
+          return Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(dbType, driver);
         }.property()
       }) : null;
     if (propertyAppendTo1) {
