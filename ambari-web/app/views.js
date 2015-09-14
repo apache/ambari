@@ -270,7 +270,6 @@ require('views/main/service/info/metrics/kafka/kafka_controller');
 require('views/main/service/info/metrics/kafka/controller_status');
 require('views/main/service/info/metrics/kafka/replica_manager');
 require('views/main/service/info/metrics/kafka/replica_fetcher');
-require('views/main/service/info/metrics/kafka/kafka_log_flush');
 
 require('views/main/service/add_view');
 require('views/main/service/reassign_view');

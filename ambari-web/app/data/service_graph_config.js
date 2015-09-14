@@ -58,7 +58,6 @@ module.exports = {
       'Kafka_Controller',
       'Kafka_ControllerStatus',
       'Kafka_ReplicaManager',
-      'Kafka_LogFlush',
       'Kafka_ReplicaFetcher'
     ]
 };
