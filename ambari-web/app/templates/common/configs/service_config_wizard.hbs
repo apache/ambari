@@ -17,14 +17,14 @@
 }}
 
 {{#if view.supportsHostOverrides}}
-  <div class="alert alert-info">
+  <div class="alert alert-info config-manage-nav">
     {{t common.group}}&nbsp;
-	  <span class="btn-group">
-		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn">{{selectedConfigGroup.displayNameHosts}}</button>
+	  <span class="btn-group config-groups-dropdown">
+		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle first" data-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
 		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle" data-toggle="dropdown">
         <span class="caret"></span>
       </button>
-		  <ul class="dropdown-menu">
+		  <ul class="dropdown-menu config-groups-dropdown-menu">
         <!-- available config group menu links -->
         {{#each configGroup in configGroups}}
           <li>
@@ -45,6 +45,7 @@
     <div class="pull-right">
       {{view App.FilterComboCleanableView filterBinding="view.filter" columnsBinding="view.columns" popoverDescriptionBinding="view.propertyFilterPopover"}}
     </div>
+    <div class="clearfix"></div>
   </div>
 {{/if}}
 

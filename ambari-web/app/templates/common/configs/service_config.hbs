@@ -46,25 +46,29 @@
   {{/if}}
 {{/if}}
 {{#if view.supportsHostOverrides}}
-  <div class="alert alert-info">
+  <div class="alert alert-info config-manage-nav">
 
     {{t common.group}}&nbsp;
-	  <span class="btn-group">
-		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle"
-                                                                    data-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
-		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle" data-toggle="dropdown">
-        <span class="caret"></span>
-      </button>
-		  <ul class="dropdown-menu config-groups-dropdown-menu">
-        <!-- available config group menu links -->
-        {{#each configGroup in configGroups}}
-          <li>
-            <a href="#" {{action "selectConfigGroup" configGroup target="controller"}}>
-              {{configGroup.displayNameHosts}}
-            </a>
-          </li>
-        {{/each}}
-      </ul>
+	  <span class="btn-group config-groups-dropdown">
+      {{#if controller.configGroupsAreLoaded}}
+        <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle first"
+                                                                      data-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
+        <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle" data-toggle="dropdown">
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu config-groups-dropdown-menu">
+          <!-- available config group menu links -->
+          {{#each configGroup in configGroups}}
+            <li>
+              <a href="#" {{action "selectConfigGroup" configGroup target="controller"}}>
+                {{configGroup.displayNameHosts}}
+              </a>
+            </li>
+          {{/each}}
+        </ul>
+      {{else}}
+        <div class="pull-left spinner"></div>
+      {{/if}}
 		</span>
     {{#isAccessible ADMIN}}
       {{#if controller.isHostsConfigsPage}}
@@ -76,6 +80,7 @@
     <div class="pull-right">
       {{view App.FilterComboCleanableView filterBinding="view.filter" columnsBinding="view.columns" popoverDescriptionBinding="view.propertyFilterPopover"}}
     </div>
+    <div class="clearfix"></div>
   </div>
 {{/if}}
 
