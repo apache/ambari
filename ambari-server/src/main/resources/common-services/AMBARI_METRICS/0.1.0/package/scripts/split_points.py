@@ -158,7 +158,8 @@ class FindSplitPointsForAMSRegions():
 
 def main(argv = None):
   scriptDir = os.path.realpath(os.path.dirname(argv[0]))
-  serviceMetricsDir = os.path.join(scriptDir, 'service-metrics')
+  serviceMetricsDir = os.path.join(scriptDir, os.pardir, 'files', 'service-metrics')
+  print 'serviceMetricsDir: %s' % serviceMetricsDir
   if os.path.exists(serviceMetricsDir):
     onlyargs = argv[1:]
     if len(onlyargs) < 3:

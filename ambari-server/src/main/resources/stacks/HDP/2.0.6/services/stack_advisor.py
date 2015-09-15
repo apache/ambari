@@ -372,10 +372,24 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     from split_points import FindSplitPointsForAMSRegions
+
+    ams_hbase_site = None
+    ams_hbase_env = None
+
+    # Overriden properties form the UI
+    if "ams-hbase-site" in services["configurations"]:
+      ams_hbase_site = services["configurations"]["ams-hbase-site"]["properties"]
+    if "ams-hbase-env" in services["configurations"]:
+       ams_hbase_env = services["configurations"]["ams-hbase-env"]["properties"]
+
+    # Recommendations
+    if not ams_hbase_site:
+      ams_hbase_site = configurations["ams-hbase-site"]["properties"]
+    if not ams_hbase_env:
+      ams_hbase_env = configurations["ams-hbase-env"]["properties"]
+
     split_point_finder = FindSplitPointsForAMSRegions(
-      configurations["ams-hbase-site"]["properties"],
-      configurations["ams-hbase-env"]["properties"],
-      serviceMetricsDir, mode, servicesList)
+      ams_hbase_site, ams_hbase_env, serviceMetricsDir, mode, servicesList)
 
     result = split_point_finder.get_split_points()
     precision_splits = ' '
