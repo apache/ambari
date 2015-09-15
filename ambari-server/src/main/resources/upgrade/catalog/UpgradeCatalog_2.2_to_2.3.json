@@ -1344,7 +1344,7 @@
           "from-catalog": "webhcat-site",
           "to-catalog": "webhcat-site",
           "replace-from": "/usr/hdp/current/zookeeper-client",
-          "replace-to": "/usr/hdp/${hdp.version}/zookeeper",
+          "replace-to": "/usr/hdp/${hdp.version}/zookeeper,/usr/hdp/${hdp.version}/hive/lib/hive-common.jar",
           "required-services": [
             "HIVE"
           ]
