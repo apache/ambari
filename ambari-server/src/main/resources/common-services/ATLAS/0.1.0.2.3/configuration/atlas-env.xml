@@ -20,11 +20,6 @@
 -->
 <configuration>
   <property require-input="false">
-    <name>metadata_port</name>
-    <value>21000</value>
-    <description>Listening port of the Atlas server.</description>
-  </property>
-  <property require-input="false">
     <name>metadata_log_dir</name>
     <value>/var/log/atlas</value>
     <description>Atlas log directory.</description>

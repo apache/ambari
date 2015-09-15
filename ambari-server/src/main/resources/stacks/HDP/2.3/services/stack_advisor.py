@@ -213,25 +213,19 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     putHiveSiteProperty(hooks_property, hooks_value)
 
     if include_atlas:
-      cluster_name = ''
-      if 'hive-site' in services['configurations']:
-        if 'atlas.cluster.name' in services['configurations']['hive-site']['properties']:
-          cluster_name = services['configurations']['hive-site']['properties']['atlas.cluster.name']
-          if not cluster_name.strip():
-            # set the cluster name to empty string so that user is prompted for value
-            cluster_name = ''
-
+      cluster_name = 'default'
       putHiveSiteProperty('atlas.cluster.name', cluster_name)
-      metadata_port = "21000"
-      if 'atlas-env' in services['configurations']:
-        metadata_port =  services['configurations']['atlas-env']['properties']['metadata_port']
       metadata_host_info = self.getHostWithComponent("ATLAS", "ATLAS_SERVER", services, hosts)
       metadata_host = metadata_host_info['Hosts']['host_name']
       scheme = "http"
+      metadata_port = "21000"
+      tls_enabled = "false"
       if 'application-properties' in services['configurations']:
         tls_enabled = services['configurations']['application-properties']['properties']['atlas.enableTLS']
-        if tls_enabled.lower() == 'true':
+        metadata_port =  services['configurations']['application-properties']['properties']['atlas.server.http.port']
+        if tls_enabled.lower() == "true":
           scheme = "https"
+          metadata_port =  services['configurations']['application-properties']['properties']['atlas.server.https.port']
       putHiveSiteProperty('atlas.rest.address', '{0}://{1}:{2}'.format(scheme, metadata_host, metadata_port))
     else:
       putHiveSitePropertyAttribute('atlas.cluster.name', 'delete', 'true')

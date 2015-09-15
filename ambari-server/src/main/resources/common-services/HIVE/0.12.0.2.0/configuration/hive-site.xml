@@ -373,9 +373,15 @@ limitations under the License.
     </value-attributes>
   </property>
 
-  <property require-input="true">
+  <property>
     <name>atlas.cluster.name</name>
-    <value></value>
+    <value>primary</value>
+    <depends-on>
+      <property>
+        <type>application-properties</type>
+        <name>atlas.enableTLS</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -387,8 +393,12 @@ limitations under the License.
         <name>atlas.enableTLS</name>
       </property>
       <property>
-        <type>atlas-env</type>
-        <name>metadata_port</name>
+        <type>application-properties</type>
+        <name>atlas.server.http.port</name>
+      </property>
+      <property>
+        <type>application-properties</type>
+        <name>atlas.server.https.port</name>
       </property>
     </depends-on>
   </property>

@@ -21,6 +21,7 @@ import os
 import sys
 from resource_management import format_hdp_stack_version, Script
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions.default import default
 
 import status_params
 
@@ -62,7 +63,14 @@ env_sh_template = config['configurations']['atlas-env']['content']
 credential_provider = format( "jceks://file@{conf_dir}/atlas-site.jceks")
 
 # command line args
-metadata_port = config['configurations']['atlas-env']['metadata_port']
+ssl_enabled = default("/configurations/application-properties/atlas.enableTLS", False)
+http_port = default("/configurations/application-properties/atlas.server.http.port", 21000)
+https_port = default("/configurations/application-properties/atlas.server.https.port", 21443)
+if ssl_enabled:
+  metadata_port = https_port
+else:
+  metadata_port = http_port
+
 metadata_host = config['hostname']
 
 # application properties
