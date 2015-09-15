@@ -165,18 +165,19 @@ App.UpdateController = Em.Controller.extend({
    */
   updateHost: function (callback, error, lazyLoadMetrics) {
     var testUrl = this.get('HOSTS_TEST_URL'),
-      self = this,
-      hostDetailsFilter = '',
-      realUrl = '/hosts?fields=Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,' +
-      'alerts_summary,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
-      'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/desired_admin_state,' +
-        '<metrics>Hosts/total_mem<hostDetailsParams><stackVersions>&minimal_response=true',
-      hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free',
-      stackVersionInfo = ',stack_versions/HostStackVersions,' +
-      'stack_versions/repository_versions/RepositoryVersions/repository_version,stack_versions/repository_versions/RepositoryVersions/id,' +
-      'stack_versions/repository_versions/RepositoryVersions/display_name',
-      mainHostController = App.router.get('mainHostController'),
-      sortProperties = mainHostController.getSortProps();
+        self = this,
+        hostDetailsFilter = '',
+        realUrl = '/hosts?fields=Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,' +
+            'alerts_summary,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
+            'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/desired_admin_state,' +
+            '<metrics>Hosts/total_mem<hostDetailsParams><stackVersions>&minimal_response=true',
+        hostDetailsParams = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free',
+        stackVersionInfo = ',stack_versions/HostStackVersions,' +
+            'stack_versions/repository_versions/RepositoryVersions/repository_version,stack_versions/repository_versions/RepositoryVersions/id,' +
+            'stack_versions/repository_versions/RepositoryVersions/display_name',
+        mainHostController = App.router.get('mainHostController'),
+        sortProperties = mainHostController.getSortProps(),
+        isHostsLoaded = false;
     this.get('queryParams').set('Hosts', mainHostController.getQueryParameters(true));
     if (App.router.get('currentState.parentState.name') == 'hosts') {
       App.updater.updateInterval('updateHost', App.get('contentUpdateInterval'));
@@ -196,9 +197,11 @@ App.UpdateController = Em.Controller.extend({
         ]);
       }
       else {
+        // clusterController.isHostsLoaded may be changed in callback, that is why it's value is cached before calling callback
+        isHostsLoaded = App.router.get('clusterController.isHostsLoaded');
         callback();
         // On pages except for hosts/hostDetails, making sure hostsMapper loaded only once on page load, no need to update, but at least once
-        if (App.router.get('clusterController.isLoaded')) {
+        if (isHostsLoaded) {
           return;
         }
       }
