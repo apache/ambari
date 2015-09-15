@@ -155,6 +155,7 @@ class InstallPackages(Script):
       else:
         num_errors += 1
     except Exception, err:
+      num_errors += 1
       Logger.logger.exception("Could not install packages. Error: {0}".format(str(err)))
 
     # Provide correct exit code
