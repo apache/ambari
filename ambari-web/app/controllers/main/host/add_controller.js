@@ -392,6 +392,7 @@ App.AddHostController = App.WizardController.extend({
   installServices: function (isRetry, callback, errorCallback) {
     callback = callback || Em.K;
     this.set('content.cluster.oldRequestsId', []);
+    this.set('content.cluster.status', 'PENDING');
     var clusterName = this.get('content.cluster.name');
     var hostNames = [];
     var hosts = this.getDBProperty('hosts');
