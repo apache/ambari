@@ -130,5 +130,15 @@
       DEFAULT</value>
     <description></description>
   </property>
+  <property>
+    <name>atlas.server.http.port</name>
+    <value>21000</value>
+    <description></description>
+  </property>
+  <property>
+    <name>atlas.server.https.port</name>
+    <value>21443</value>
+    <description></description>
+  </property>
 
 </configuration>
