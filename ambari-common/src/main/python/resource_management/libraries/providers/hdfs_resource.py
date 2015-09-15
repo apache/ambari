@@ -37,7 +37,7 @@ from resource_management.libraries.functions import namenode_ha_utils
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import subprocess
 
-JSON_PATH = '/var/lib/ambari-agent/data/hdfs_resources.json'
+JSON_PATH = '/var/lib/ambari-agent/tmp/hdfs_resources.json'
 JAR_PATH = '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar'
 
 RESOURCE_TO_JSON_FIELDS = {
