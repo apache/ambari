@@ -162,7 +162,7 @@ module.exports = {
         }
         break;
       case 'oozie_hostname':
-        configProperty.set('recommendedValue', masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER').mapProperty('hostName'));
+        configProperty.set('recommendedValue', masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER').mapProperty('hostName')[0]);
       case 'oozieserver_host':
         configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER').mapProperty('hostName'));
         break;
