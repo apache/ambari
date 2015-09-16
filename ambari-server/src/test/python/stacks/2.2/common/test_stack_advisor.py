@@ -1373,6 +1373,15 @@ class TestHDP22StackAdvisor(TestCase):
     self.assertEquals(configurations["hive-env"]["property_attributes"]["hive.metastore.heapsize"]["maximum"], "1877")
     self.assertEquals(configurations["hive-env"]["property_attributes"]["hive.client.heapsize"]["maximum"], "1877")
 
+    # test 'hive_security_authorization'=='ranger'
+    services["configurations"]["hive-env"]["properties"]["hive_security_authorization"] = "ranger"
+    expected["hiveserver2-site"]["properties"]["hive.security.authenticator.manager"] = "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
+    expected["hiveserver2-site"]["properties"]["hive.security.authorization.manager"] = "com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory"
+    expected["hiveserver2-site"]["properties"]["hive.security.authorization.enabled"] = "true"
+    self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations['hiveserver2-site'], expected["hiveserver2-site"])
+
+
   def test_recommendMapredConfigurationAttributesWithPigService(self):
     configurations = {
       "mapred-site": {
@@ -2858,6 +2867,38 @@ class TestHDP22StackAdvisor(TestCase):
     self.assertEquals(res, res_expected)
 
     pass
+
+  def test_validateHiveServer2Configurations(self):
+    properties = {"hive_security_authorization": "None",
+                  "hive.exec.orc.default.stripe.size": "8388608",
+                  'hive.tez.container.size': '2048',
+                  'hive.tez.java.opts': '-Xmx300m',
+                  'hive.auto.convert.join.noconditionaltask.size': '1100000000'}
+    recommendedDefaults = {'hive.tez.container.size': '1024',
+                           'hive.tez.java.opts': '-Xmx256m',
+                           'hive.auto.convert.join.noconditionaltask.size': '1000000000'}
+    configurations = {
+      "hive-site": {
+        "properties": {"hive.security.authorization.enabled": "true"}
+      },
+      "hive-env": {
+        "properties": {"hive_security_authorization": "ranger"}
+      }
+    }
+    services = {
+      "services": [
+        {
+          "StackServices": {
+            "service_name": "RANGER",
+          },
+        }
+      ],
+    }
+
+    # Test with ranger plugin enabled, validation fails
+    res_expected = [{'config-type': 'hiveserver2-site', 'message': 'If Ranger Hive Plugin is enabled. hive.security.authorization.manager needs to be set to com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory', 'type': 'configuration', 'config-name': 'hive.security.authorization.manager', 'level': 'WARN'}, {'config-type': 'hiveserver2-site', 'message': 'If Ranger Hive Plugin is enabled. hive.security.authenticator.manager needs to be set to org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator', 'type': 'configuration', 'config-name': 'hive.security.authenticator.manager', 'level': 'WARN'}]
+    res = self.stackAdvisor.validateHiveServer2Configurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
 
   def test_recommendYarnCGroupConfigurations(self):
     servicesList = ["YARN"]
