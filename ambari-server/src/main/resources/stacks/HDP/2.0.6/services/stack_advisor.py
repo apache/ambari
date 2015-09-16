@@ -154,43 +154,48 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       services["forced-configurations"] = []
 
     if "HDFS" in servicesList:
+      hdfs_user = None
       if "hadoop-env" in services["configurations"] and "hdfs_user" in services["configurations"]["hadoop-env"]["properties"]:
         hdfs_user = services["configurations"]["hadoop-env"]["properties"]["hdfs_user"]
-        if not hdfs_user in users:
+        if not hdfs_user in users and hdfs_user is not None:
           users[hdfs_user] = {"propertyHosts" : "*","propertyGroups" : "*", "config" : "hadoop-env", "propertyName" : "hdfs_user"}
 
     if "OOZIE" in servicesList:
+      oozie_user = None
       if "oozie-env" in services["configurations"] and "oozie_user" in services["configurations"]["oozie-env"]["properties"]:
         oozie_user = services["configurations"]["oozie-env"]["properties"]["oozie_user"]
         oozieServerrHost = self.getHostWithComponent("OOZIE", "OOZIE_SERVER", services, hosts)
         if oozieServerrHost is not None:
           oozieServerHostName = oozieServerrHost["Hosts"]["public_host_name"]
-        if not oozie_user in users:
-          users[oozie_user] = {"propertyHosts" : oozieServerHostName,"propertyGroups" : "*", "config" : "oozie-env", "propertyName" : "oozie_user"}
+          if not oozie_user in users and oozie_user is not None:
+            users[oozie_user] = {"propertyHosts" : oozieServerHostName,"propertyGroups" : "*", "config" : "oozie-env", "propertyName" : "oozie_user"}
 
     if "HIVE" in servicesList:
-      print "HIVE INSIDE"
+      hive_user = None
+      webhcat_user = None
       if "hive-env" in services["configurations"] and "hive_user" in services["configurations"]["hive-env"]["properties"] \
               and "webhcat_user" in services["configurations"]["hive-env"]["properties"]:
-        print "HIVE INSIDE1"
         hive_user = services["configurations"]["hive-env"]["properties"]["hive_user"]
         webhcat_user = services["configurations"]["hive-env"]["properties"]["webhcat_user"]
+        proxy_user_group = None
         if "hadoop-env" in services["configurations"] and "proxyuser_group" in services["configurations"]["hadoop-env"]["properties"]:
           proxy_user_group = services["configurations"]["hadoop-env"]["properties"]["proxyuser_group"]
         hiveServerrHost = self.getHostWithComponent("HIVE", "HIVE_SERVER", services, hosts)
         if hiveServerrHost is not None:
           hiveServerHostName = hiveServerrHost["Hosts"]["public_host_name"]
-        if not hive_user in users:
-          users[hive_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "hive_user"}
-        if not webhcat_user in users:
-          users[webhcat_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : proxy_user_group, "config" : "hive-env", "propertyName" : "webhcat_user"}
+          if not hive_user in users and hive_user is not None:
+            users[hive_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "hive_user"}
+          if not webhcat_user in users and not None in [webhcat_user , proxy_user_group]:
+            users[webhcat_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : proxy_user_group, "config" : "hive-env", "propertyName" : "webhcat_user"}
 
     if "FALCON" in servicesList:
+      falconUser = None
       if "falcon-env" in services["configurations"] and "falcon_user" in services["configurations"]["falcon-env"]["properties"]:
         falconUser = services["configurations"]["falcon-env"]["properties"]["falcon_user"]
+        proxy_user_group = None
         if "hadoop-env" in services["configurations"] and "proxyuser_group" in services["configurations"]["hadoop-env"]["properties"]:
           proxy_user_group = services["configurations"]["hadoop-env"]["properties"]["proxyuser_group"]
-        if not falconUser in users:
+        if not falconUser in users and not None in [proxy_user_group, falconUser]:
           users[falconUser] = {"propertyHosts" : "*","propertyGroups" : proxy_user_group, "config" : "falcon-env", "propertyName" : "falcon_user"}
 
     putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
