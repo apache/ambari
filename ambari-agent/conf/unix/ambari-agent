@@ -49,10 +49,13 @@ OK=1
 NOTOK=0
 
 current_user=`id -u -n`
-echo "" | sudo -S -l > /dev/null 2>&1
-if [ "$?" != "0" ] && [ "$EUID" -ne 0 ] ; then
- echo "You can't perform this operation as non-sudoer user. Please, re-login or configure sudo access for this user."
- exit 0
+
+if [ "$EUID" -ne 0 ] ; then
+  echo "" | sudo -S -l > /dev/null 2>&1
+  if [ "$?" != "0" ] ; then
+    echo "You can't perform this operation as non-sudoer user. Please, re-login or configure sudo access for this user."
+    exit 0
+  fi
 fi
 
 keysdir=$(awk -F "=" '/keysdir/ {print $2}' /etc/ambari-agent/conf/ambari-agent.ini)
