@@ -187,7 +187,15 @@ App.StackConfigProperty = DS.Model.extend({
   /**
    * @type {boolean}
    */
-  index: DS.attr('number', {defaultValue: null})
+  index: DS.attr('number', {defaultValue: null}),
+
+  /**
+   * Does config property has a valid value defined in the stack
+   * @type {boolean}
+   */
+  isValueDefined: function() {
+    return !Em.none(this.get('value'));
+  }.property('id')
 });
 
 
