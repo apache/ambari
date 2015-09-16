@@ -213,7 +213,6 @@ public class QueryImpl implements Query, ResourceInstance {
              SystemException,
              NoSuchResourceException,
              NoSuchParentResourceException {
-
     queryForResources();
     return getResult(null);
   }
@@ -405,6 +404,33 @@ public class QueryImpl implements Query, ResourceInstance {
 
     if (renderer.requiresPropertyProviderInput()) {
       clusterController.populateResources(resourceType, providerResourceSet, request, queryPredicate);
+    }
+
+    // Optimization:
+    // Currently the steps executed when sub-resources are requested are: 
+    //   (1) Get *all* top-level resources
+    //   (2) Populate all top-level resources
+    //   (3) Query for and populate sub-resources of *all* top-level resources 
+    //   (4) Apply pagination and predicate on resources from above
+    //
+    // Though this works, it is very inefficient when either:
+    //   (a) Predicate does not apply to sub-resources
+    //   (b) Page request is present
+    // It is inefficient because we needlessly populate sub-resources that might not get 
+    // used due to their top-level resources being filtered out by the predicate and paging
+    //
+    // The optimization is to apply the predicate and paging request on the top-level resources
+    // directly if there are no sub-resources predicates.
+    if ((pageRequest != null || userPredicate != null) && !hasSubResourcePredicate() && populateResourceRequired(resourceType)) {
+      QueryResponse newResponse = new QueryResponseImpl(resourceSet, queryResponse.isSortedResponse(), queryResponse.isPagedResponse(),
+          queryResponse.getTotalResourceCount());
+      PageResponse pageResponse = clusterController.getPage(resourceType, newResponse, request, queryPredicate, pageRequest, sortRequest);
+      // build a new set
+      Set<Resource> newResourceSet = new LinkedHashSet<Resource>();
+      for (Resource r : pageResponse.getIterable()) {
+        newResourceSet.add(r);
+      }
+      populatedQueryResults.put(null, new QueryResult(request, queryPredicate, userPredicate, getKeyValueMap(), new QueryResponseImpl(newResourceSet)));
     }
 
     queryForSubResources();
