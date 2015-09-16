@@ -271,7 +271,15 @@ App.StackConfigProperty = DS.Model.extend({
       result =  this.get('valueAttributes.unit');
     }
     return result;
-  }.property('valueAttributes.unit')
+  }.property('valueAttributes.unit'),
+
+  /**
+   * Does config property has a valid value defined in the stack
+   * @type {boolean}
+   */
+  isValueDefined: function() {
+    return !Em.none(this.get('value'));
+  }.property('id')
 });
 
 

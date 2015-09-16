@@ -22,8 +22,7 @@
             "oozie.authentication.type": "kerberos",
             "oozie.service.AuthorizationService.authorization.enabled": "true",
             "oozie.service.HadoopAccessorService.kerberos.enabled": "true",
-            "local.realm": "${realm}",
-            "oozie.authentication.kerberos.name.rules": ""
+            "local.realm": "${realm}"
           }
         }
       ],

@@ -381,8 +381,9 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
 
       if (absCategory != null && absCategory.startsWith(desiredConfigKey)) {
         config = (null == config) ? new ConfigurationRequest() : config;
-
-        parseProperties(config, absCategory, propName, entry.getValue().toString());
+        if(entry.getValue() != null) {
+          parseProperties(config, absCategory, propName, entry.getValue().toString());
+        }
       }
     }
     if (config != null) {

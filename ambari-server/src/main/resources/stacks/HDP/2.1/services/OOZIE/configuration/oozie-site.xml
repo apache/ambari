@@ -145,13 +145,6 @@
   </property>
   <property>
     <name>oozie.authentication.kerberos.name.rules</name>
-    <value>
-
-
-
-
-
-    </value>
     <description>The mapping from kerberos principal names to local OS user names.</description>
   </property>
   <property>

@@ -579,7 +579,7 @@ App.config = Em.Object.create({
       .uniq().compact().filter(function(configType) { return !!configType; });
 
     var predefinedIds = Object.keys(this.get('preDefinedSitePropertiesMap'));
-    var stackIds = App.StackConfigProperty.find().mapProperty('id');
+    var stackIds = App.StackConfigProperty.find().filterProperty('isValueDefined').mapProperty('id');
 
     var configIds = stackIds.concat(predefinedIds).uniq();
 
