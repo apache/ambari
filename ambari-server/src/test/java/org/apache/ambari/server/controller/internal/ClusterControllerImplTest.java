@@ -76,6 +76,8 @@ public class ClusterControllerImplTest {
     propertyProviderProperties.add(PropertyHelper.getPropertyId("c3", "p6"));
     propertyProviderProperties.add(PropertyHelper.getPropertyId("c4", "p7"));
     propertyProviderProperties.add(PropertyHelper.getPropertyId("c4", "p8"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("alerts_summary", "WARNING"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("alerts_summary", "CRITICAL"));
   }
 
   private static final PropertyProvider propertyProvider = new PropertyProvider() {
@@ -1067,6 +1069,13 @@ public class ClusterControllerImplTest {
         resource.setProperty(PropertyHelper.getPropertyId("c1", "p2"), cnt % 2);
         resource.setProperty(PropertyHelper.getPropertyId("c1", "p3"), "foo");
         resource.setProperty(PropertyHelper.getPropertyId("c2", "p4"), "bar");
+
+        if (cnt % 2 == 0) {
+          resource.setProperty(PropertyHelper.getPropertyId("alerts_summary", "CRITICAL"), "1");
+        } else {
+          resource.setProperty(PropertyHelper.getPropertyId("alerts_summary", "WARNING"), "1");
+        }
+
         resources.add(resource);
       }
 

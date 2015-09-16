@@ -40,10 +40,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.ambari.server.api.query.render.DefaultRenderer;
 import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.resources.ClusterResourceDefinition;
+import org.apache.ambari.server.api.resources.HostResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.StackResourceDefinition;
@@ -59,6 +61,7 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.PageRequest;
+import org.apache.ambari.server.controller.spi.PageResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.QueryResponse;
 import org.apache.ambari.server.controller.spi.Request;
@@ -69,6 +72,7 @@ import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
@@ -640,6 +644,76 @@ public class QueryImplTest {
     hostNode = tree.getChild("Host:4");
     Assert.assertEquals("Host:4", hostNode.getName());
     Assert.assertEquals(Resource.Type.Host, hostNode.getObject().getType());
+  }
+
+  @Test
+  public void testExecute__Host_collection_AlertsSummary() throws Exception {
+    ResourceDefinition resourceDefinition = new HostResourceDefinition();
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    final AtomicInteger pageCallCount = new AtomicInteger(0); 
+    ClusterControllerImpl clusterControllerImpl = new ClusterControllerImpl(new ClusterControllerImplTest.TestProviderModule()) {
+      public PageResponse getPage(Resource.Type type, QueryResponse queryResponse, Request request, Predicate predicate, PageRequest pageRequest,
+          SortRequest sortRequest) throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException {
+        pageCallCount.incrementAndGet();
+        return super.getPage(type, queryResponse, request, predicate, pageRequest, sortRequest);
+      }
+    };
+    QueryImpl instance = new TestQuery(mapIds, resourceDefinition, clusterControllerImpl);
+
+    //test 1: No predicate or paging request
+    pageCallCount.set(0);
+    Result result = instance.execute();
+    TreeNode<Resource> tree = result.getResultTree();
+    Assert.assertEquals(4, tree.getChildren().size());
+    Assert.assertEquals(1, pageCallCount.get());
+    
+    //test 2: Predicate = (alerts_summary/CRITICAL > 0)
+    pageCallCount.set(0);
+    PredicateBuilder pb = new PredicateBuilder();
+    Predicate predicate = pb.property("alerts_summary/CRITICAL").greaterThan(0).toPredicate();
+    instance.setUserPredicate(predicate);
+    result = instance.execute();
+    tree = result.getResultTree();
+    Assert.assertEquals(2, tree.getChildren().size());
+    Assert.assertEquals(2, pageCallCount.get());
+    TreeNode<Resource> hostNode = tree.getChild("Host:1");
+    Assert.assertEquals("Host:1", hostNode.getName());
+    Assert.assertEquals("host:0", hostNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals(Resource.Type.Host, hostNode.getObject().getType());
+    Assert.assertEquals("1", hostNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("alerts_summary", "CRITICAL")));
+    hostNode = tree.getChild("Host:2");
+    Assert.assertEquals("Host:2", hostNode.getName());
+    Assert.assertEquals("host:2", hostNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals(Resource.Type.Host, hostNode.getObject().getType());
+    Assert.assertEquals("1", hostNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("alerts_summary", "CRITICAL")));
+    
+    // test 3: Predicate = (alerts_summary/WARNING > 0) AND Page = (size=1)
+    pageCallCount.set(0);
+    pb = new PredicateBuilder();
+    predicate = pb.property("alerts_summary/WARNING").greaterThan(0).toPredicate();
+    instance.setUserPredicate(predicate);
+    instance.setPageRequest(new PageRequestImpl(PageRequest.StartingPoint.Beginning, 1, 0, null, null));
+    result = instance.execute();
+    tree = result.getResultTree();
+    Assert.assertEquals(1, tree.getChildren().size());
+    Assert.assertEquals(2, pageCallCount.get());
+    hostNode = tree.getChild("Host:1");
+    Assert.assertEquals("Host:1", hostNode.getName());
+    Assert.assertEquals("host:1", hostNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals(Resource.Type.Host, hostNode.getObject().getType());
+    Assert.assertEquals("1", hostNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("alerts_summary", "WARNING")));
+
+    // test 4: SubResource Predicate = (alerts_summary/WARNING > 0 | host_components/HostRoles/component_name = DATANODE)
+    pageCallCount.set(0);
+    pb = new PredicateBuilder();
+    predicate = pb.property("alerts_summary/WARNING").greaterThan(0).or().property("host_components/HostRoles/component_name").equals("DATANODE").toPredicate();
+    instance.setUserPredicate(predicate);
+    instance.setPageRequest(null);
+    result = instance.execute();
+    tree = result.getResultTree();
+    Assert.assertEquals(0, tree.getChildren().size());
+    Assert.assertEquals(6, pageCallCount.get());
+
   }
 
   @Test
