@@ -162,7 +162,7 @@ App.QuickViewLinks = Em.View.extend({
         var quickLinks = [];
         self.get('content.quickLinks').forEach(function (item) {
           var newItem = {};
-          var protocol = self.setProtocol(item.get('service_id'), self.get('configProperties'), self.ambariProperties());
+          var protocol = self.setProtocol(item.get('service_id'), self.get('configProperties'), self.ambariProperties(), item);
           if (item.get('template')) {
             var port;
             var hostNameRegExp = new RegExp('([\\w\\W]*):\\d+');
