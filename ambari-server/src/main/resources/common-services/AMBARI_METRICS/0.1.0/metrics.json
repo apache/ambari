@@ -916,7 +916,7 @@
               "temporal": true
             },
             "metrics/hbase/regionserver/blockCacheHitPercent": {
-              "metric": "regionserver.Server.blockCountHitPercent",
+              "metric": "regionserver.Server.blockCacheCountHitPercent",
               "pointInTime": true,
               "temporal": true
             },
@@ -2150,7 +2150,7 @@
               "temporal": true
             },
             "metrics/hbase/regionserver/blockCacheHitPercent": {
-              "metric": "regionserver.Server.blockCountHitPercent",
+              "metric": "regionserver.Server.blockCacheCountHitPercent",
               "pointInTime": true,
               "temporal": true
             },

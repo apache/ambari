@@ -26,6 +26,7 @@ import javax.ws.rs.core.MediaType;
 import junit.framework.Assert;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.api.ApplicationBaseProtocol;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ContainerId;
@@ -36,7 +37,7 @@ import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.YarnApplicationAttemptState;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.apache.hadoop.yarn.server.api.ApplicationContext;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.ApplicationHistoryClientService;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.ApplicationHistoryManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.ApplicationHistoryStore;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.MemoryApplicationHistoryStore;
@@ -63,7 +64,7 @@ import com.sun.jersey.test.framework.WebAppDescriptor;
 
 public class TestAHSWebServices extends JerseyTest {
 
-  private static ApplicationHistoryManager ahManager;
+  private static ApplicationHistoryClientService historyClientService;
 
   private Injector injector = Guice.createInjector(new ServletModule() {
 
@@ -73,11 +74,11 @@ public class TestAHSWebServices extends JerseyTest {
       bind(AHSWebServices.class);
       bind(GenericExceptionHandler.class);
       try {
-        ahManager = mockApplicationHistoryManager();
+        historyClientService = mockApplicationHistoryManager();
       } catch (Exception e) {
         Assert.fail();
       }
-      bind(ApplicationContext.class).toInstance(ahManager);
+      bind(ApplicationBaseProtocol.class).toInstance(historyClientService);
       serve("/*").with(GuiceContainer.class);
     }
   });
@@ -90,14 +91,12 @@ public class TestAHSWebServices extends JerseyTest {
     }
   }
 
-  private ApplicationHistoryManager mockApplicationHistoryManager()
+  private ApplicationHistoryClientService mockApplicationHistoryManager()
       throws Exception {
     ApplicationHistoryStore store = new MemoryApplicationHistoryStore();
     TestAHSWebApp testAHSWebApp = new TestAHSWebApp();
     testAHSWebApp.setApplicationHistoryStore(store);
-    ApplicationHistoryManager ahManager =
-        testAHSWebApp.mockApplicationHistoryManager(5, 5, 5);
-    return ahManager;
+    return testAHSWebApp.mockApplicationHistoryClientService(5, 5, 5);
   }
 
   public TestAHSWebServices() {

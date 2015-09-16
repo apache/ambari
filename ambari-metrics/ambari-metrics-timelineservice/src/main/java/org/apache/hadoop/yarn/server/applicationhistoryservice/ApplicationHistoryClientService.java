@@ -60,11 +60,11 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration;
 
-public class ApplicationHistoryClientService extends AbstractService {
+public class ApplicationHistoryClientService extends AbstractService implements
+  ApplicationHistoryProtocol {
   private static final Log LOG = LogFactory
     .getLog(ApplicationHistoryClientService.class);
   private ApplicationHistoryManager history;
-  private ApplicationHistoryProtocol protocolHandler;
   private Server server;
   private InetSocketAddress bindAddress;
   private TimelineMetricConfiguration metricConfiguration;
@@ -72,7 +72,6 @@ public class ApplicationHistoryClientService extends AbstractService {
   public ApplicationHistoryClientService(ApplicationHistoryManager history) {
     super("ApplicationHistoryClientService");
     this.history = history;
-    this.protocolHandler = new ApplicationHSClientProtocolHandler();
   }
 
   public ApplicationHistoryClientService(ApplicationHistoryManager history,
@@ -89,7 +88,7 @@ public class ApplicationHistoryClientService extends AbstractService {
         YarnConfiguration.DEFAULT_TIMELINE_SERVICE_PORT);
 
     server =
-        rpc.getServer(ApplicationHistoryProtocol.class, protocolHandler,
+        rpc.getServer(ApplicationHistoryProtocol.class, this,
           address, conf, null, metricConfiguration.getTimelineMetricsServiceHandlerThreadCount());
 
     server.start();
@@ -112,7 +111,7 @@ public class ApplicationHistoryClientService extends AbstractService {
 
   @Private
   public ApplicationHistoryProtocol getClientHandler() {
-    return this.protocolHandler;
+    return this;
   }
 
   @Private
@@ -120,98 +119,97 @@ public class ApplicationHistoryClientService extends AbstractService {
     return this.bindAddress;
   }
 
-  private class ApplicationHSClientProtocolHandler implements
-      ApplicationHistoryProtocol {
 
-    @Override
-    public CancelDelegationTokenResponse cancelDelegationToken(
-        CancelDelegationTokenRequest request) throws YarnException, IOException {
-      // TODO Auto-generated method stub
-      return null;
-    }
 
-    @Override
-    public GetApplicationAttemptReportResponse getApplicationAttemptReport(
-        GetApplicationAttemptReportRequest request) throws YarnException,
-        IOException {
-      try {
-        GetApplicationAttemptReportResponse response =
-            GetApplicationAttemptReportResponse.newInstance(history
-              .getApplicationAttempt(request.getApplicationAttemptId()));
-        return response;
-      } catch (IOException e) {
-        throw new ApplicationAttemptNotFoundException(e.getMessage());
-      }
-    }
+  @Override
+  public CancelDelegationTokenResponse cancelDelegationToken(
+    CancelDelegationTokenRequest request) throws YarnException, IOException {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-    @Override
-    public GetApplicationAttemptsResponse getApplicationAttempts(
-        GetApplicationAttemptsRequest request) throws YarnException,
-        IOException {
-      GetApplicationAttemptsResponse response =
-          GetApplicationAttemptsResponse
-            .newInstance(new ArrayList<ApplicationAttemptReport>(history
-              .getApplicationAttempts(request.getApplicationId()).values()));
+  @Override
+  public GetApplicationAttemptReportResponse getApplicationAttemptReport(
+    GetApplicationAttemptReportRequest request) throws YarnException,
+    IOException {
+    try {
+      GetApplicationAttemptReportResponse response =
+        GetApplicationAttemptReportResponse.newInstance(history
+          .getApplicationAttempt(request.getApplicationAttemptId()));
       return response;
-    }
-
-    @Override
-    public GetApplicationReportResponse getApplicationReport(
-        GetApplicationReportRequest request) throws YarnException, IOException {
-      try {
-        ApplicationId applicationId = request.getApplicationId();
-        GetApplicationReportResponse response =
-            GetApplicationReportResponse.newInstance(history
-              .getApplication(applicationId));
-        return response;
-      } catch (IOException e) {
-        throw new ApplicationNotFoundException(e.getMessage());
-      }
-    }
-
-    @Override
-    public GetApplicationsResponse getApplications(
-        GetApplicationsRequest request) throws YarnException, IOException {
-      GetApplicationsResponse response =
-          GetApplicationsResponse.newInstance(new ArrayList<ApplicationReport>(
-            history.getAllApplications().values()));
-      return response;
-    }
-
-    @Override
-    public GetContainerReportResponse getContainerReport(
-        GetContainerReportRequest request) throws YarnException, IOException {
-      try {
-        GetContainerReportResponse response =
-            GetContainerReportResponse.newInstance(history.getContainer(request
-              .getContainerId()));
-        return response;
-      } catch (IOException e) {
-        throw new ContainerNotFoundException(e.getMessage());
-      }
-    }
-
-    @Override
-    public GetContainersResponse getContainers(GetContainersRequest request)
-        throws YarnException, IOException {
-      GetContainersResponse response =
-          GetContainersResponse.newInstance(new ArrayList<ContainerReport>(
-            history.getContainers(request.getApplicationAttemptId()).values()));
-      return response;
-    }
-
-    @Override
-    public GetDelegationTokenResponse getDelegationToken(
-        GetDelegationTokenRequest request) throws YarnException, IOException {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public RenewDelegationTokenResponse renewDelegationToken(
-        RenewDelegationTokenRequest request) throws YarnException, IOException {
-      // TODO Auto-generated method stub
-      return null;
+    } catch (IOException e) {
+      throw new ApplicationAttemptNotFoundException(e.getMessage());
     }
   }
+
+  @Override
+  public GetApplicationAttemptsResponse getApplicationAttempts(
+    GetApplicationAttemptsRequest request) throws YarnException,
+    IOException {
+    GetApplicationAttemptsResponse response =
+      GetApplicationAttemptsResponse
+        .newInstance(new ArrayList<ApplicationAttemptReport>(history
+          .getApplicationAttempts(request.getApplicationId()).values()));
+    return response;
+  }
+
+  @Override
+  public GetApplicationReportResponse getApplicationReport(
+    GetApplicationReportRequest request) throws YarnException, IOException {
+    try {
+      ApplicationId applicationId = request.getApplicationId();
+      GetApplicationReportResponse response =
+        GetApplicationReportResponse.newInstance(history
+          .getApplication(applicationId));
+      return response;
+    } catch (IOException e) {
+      throw new ApplicationNotFoundException(e.getMessage());
+    }
+  }
+
+  @Override
+  public GetApplicationsResponse getApplications(
+    GetApplicationsRequest request) throws YarnException, IOException {
+    GetApplicationsResponse response =
+      GetApplicationsResponse.newInstance(new ArrayList<ApplicationReport>(
+        history.getApplications(request.getLimit()).values()));
+    return response;
+  }
+
+  @Override
+  public GetContainerReportResponse getContainerReport(
+    GetContainerReportRequest request) throws YarnException, IOException {
+    try {
+      GetContainerReportResponse response =
+        GetContainerReportResponse.newInstance(history.getContainer(request
+          .getContainerId()));
+      return response;
+    } catch (IOException e) {
+      throw new ContainerNotFoundException(e.getMessage());
+    }
+  }
+
+  @Override
+  public GetContainersResponse getContainers(GetContainersRequest request)
+    throws YarnException, IOException {
+    GetContainersResponse response =
+      GetContainersResponse.newInstance(new ArrayList<ContainerReport>(
+        history.getContainers(request.getApplicationAttemptId()).values()));
+    return response;
+  }
+
+  @Override
+  public GetDelegationTokenResponse getDelegationToken(
+    GetDelegationTokenRequest request) throws YarnException, IOException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public RenewDelegationTokenResponse renewDelegationToken(
+    RenewDelegationTokenRequest request) throws YarnException, IOException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 }

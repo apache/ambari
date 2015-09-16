@@ -104,12 +104,12 @@ public class ApplicationHistoryManagerImpl extends AbstractService implements
   }
 
   @Override
-  public Map<ApplicationId, ApplicationReport> getAllApplications()
-      throws IOException {
+  public Map<ApplicationId, ApplicationReport> getApplications(long appsNum)
+    throws IOException {
     Map<ApplicationId, ApplicationHistoryData> histData =
-        historyStore.getAllApplications();
+      historyStore.getAllApplications();
     HashMap<ApplicationId, ApplicationReport> applicationsReport =
-        new HashMap<ApplicationId, ApplicationReport>();
+      new HashMap<ApplicationId, ApplicationReport>();
     for (Entry<ApplicationId, ApplicationHistoryData> entry : histData
       .entrySet()) {
       applicationsReport.put(entry.getKey(),
@@ -222,7 +222,7 @@ public class ApplicationHistoryManagerImpl extends AbstractService implements
       containerHistory.getStartTime(), containerHistory.getFinishTime(),
       containerHistory.getDiagnosticsInfo(), logUrl,
       containerHistory.getContainerExitStatus(),
-      containerHistory.getContainerState());
+      containerHistory.getContainerState(), serverHttpAddress);
   }
 
   @Override

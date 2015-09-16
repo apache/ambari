@@ -180,7 +180,8 @@ public class ApplicationHistoryServer extends CompositeService {
             .withHttpSpnegoKeytabKey(
               YarnConfiguration.TIMELINE_SERVICE_KEYTAB)
             .at(bindAddress)
-            .start(new AHSWebApp(historyManager, timelineStore, timelineMetricStore));
+            .start(new AHSWebApp(timelineStore, timelineMetricStore,
+              ahsClientService));
     } catch (Exception e) {
       String msg = "AHSWebApp failed to start.";
       LOG.error(msg, e);
