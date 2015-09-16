@@ -375,7 +375,13 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveSiteProperty("hive.server2.tez.default.queues", ",".join([leafQueue['value'] for leafQueue in leafQueues]))
 
     # Security
-    putHiveEnvProperty("hive_security_authorization", "None")
+    if ("configurations" not in services) or ("hive-env" not in services["configurations"]) or \
+              ("properties" not in services["configurations"]["hive-env"]) or \
+              ("hive_security_authorization" not in services["configurations"]["hive-env"]["properties"]) or \
+              str(services["configurations"]["hive-env"]["properties"]["hive_security_authorization"]).lower() == "none":
+      putHiveEnvProperty("hive_security_authorization", "None")
+    else:
+      putHiveEnvProperty("hive_security_authorization", services["configurations"]["hive-env"]["properties"]["hive_security_authorization"])
     # hive_security_authorization == 'none'
     # this property is unrelated to Kerberos
     if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "none":
@@ -952,14 +958,14 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       if ranger_plugin_enabled:
         prop_name = 'hive.security.authorization.manager'
         prop_val = "com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory"
-        if hive_server2[prop_name] != prop_val:
+        if prop_name not in hive_server2 or hive_server2[prop_name] != prop_val:
           validationItems.append({"config-name": prop_name,
                                   "item": self.getWarnItem(
                                   "If Ranger Hive Plugin is enabled."\
                                   " {0} needs to be set to {1}".format(prop_name,prop_val))})
         prop_name = 'hive.security.authenticator.manager'
         prop_val = "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
-        if hive_server2[prop_name] != prop_val:
+        if prop_name not in hive_server2 or hive_server2[prop_name] != prop_val:
           validationItems.append({"config-name": prop_name,
                                   "item": self.getWarnItem(
                                   "If Ranger Hive Plugin is enabled."\
