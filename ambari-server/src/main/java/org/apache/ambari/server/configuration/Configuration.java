@@ -422,7 +422,7 @@ public class Configuration {
   private static final String TIMELINE_METRICS_REQUEST_READ_TIMEOUT = "server.timeline.metrics.cache.read.timeout.millis";
   private static final String DEFAULT_TIMELINE_METRICS_REQUEST_READ_TIMEOUT = "10000";
   private static final String TIMELINE_METRICS_REQUEST_INTERVAL_READ_TIMEOUT = "server.timeline.metrics.cache.interval.read.timeout.millis";
-  private static final String DEFAULT_TIMELINE_METRICS_REQUEST_INTERVAL_READ_TIMEOUT = "5000";
+  private static final String DEFAULT_TIMELINE_METRICS_REQUEST_INTERVAL_READ_TIMEOUT = "10000";
   private static final String TIMELINE_METRICS_REQUEST_CONNECT_TIMEOUT = "server.timeline.metrics.cache.connect.timeout.millis";
   private static final String DEFAULT_TIMELINE_METRICS_REQUEST_CONNECT_TIMEOUT = "5000";
   private static final String TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL = "server.timeline.metrics.cache.catchup.interval";

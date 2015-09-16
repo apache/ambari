@@ -28,6 +28,8 @@ import ast
 metric_filename_ext = '.txt'
 # 5 regions for higher order aggregate tables
 other_region_static_count = 5
+# Max equidistant points to return per service
+max_equidistant_points = 50
 
 b_bytes = 1
 k_bytes = 1 << 10  # 1024
@@ -72,6 +74,10 @@ class FindSplitPointsForAMSRegions():
     self.serviceMetricsDir = serviceMetricsDir
     self.services = services
     self.mode = operation_mode
+    # Add host metrics if not present as input
+    if self.services and 'HOST' not in self.services:
+      self.services.append('HOST')
+
     # Initialize before user
     self.initialize()
 
@@ -90,7 +96,7 @@ class FindSplitPointsForAMSRegions():
       if self.mode == 'distributed':
         xmx_bytes = xmx_region_bytes
 
-      memstore_max_mem = float(self.ams_hbase_site['hbase.regionserver.global.memstore.upperLimit']) * xmx_bytes
+      memstore_max_mem = float(self.ams_hbase_site['hbase.regionserver.global.memstore.lowerLimit']) * xmx_bytes
       memstore_flush_size = format_Xmx_size_to_bytes(self.ams_hbase_site['hbase.hregion.memstore.flush.size'])
 
       max_inmemory_regions = (memstore_max_mem / memstore_flush_size) - other_region_static_count
@@ -120,14 +126,35 @@ class FindSplitPointsForAMSRegions():
       # services arg is not passed
       if self.services is None or file.rstrip(metric_filename_ext) in self.services:
         print 'Processing file: %s' % os.path.join(self.serviceMetricsDir, file)
+        service_metrics = set()
         with open(os.path.join(self.serviceMetricsDir, file), 'r') as f:
           for metric in f:
-            metrics.add(metric.strip())
+            service_metrics.add(metric.strip())
+          pass
+        pass
+        metrics.update(self.find_equidistant_metrics(list(sorted(service_metrics))))
       pass
     pass
 
     self.metrics = sorted(metrics)
     print 'metrics length: %s' % len(self.metrics)
+
+  # Pick 50 metric points for each service that are equidistant from
+  # each other for a service
+  def find_equidistant_metrics(self, service_metrics):
+    equi_metrics = []
+    idx = len(service_metrics) / max_equidistant_points
+    if idx == 0:
+      return service_metrics
+    pass
+
+    index = idx
+    for i in range(0, max_equidistant_points - 1):
+      equi_metrics.append(service_metrics[index - 1])
+      index += idx
+    pass
+
+    return equi_metrics
 
   def get_split_points(self):
     split_points = collections.namedtuple('SplitPoints', [ 'precision', 'aggregate' ])
@@ -159,7 +186,7 @@ class FindSplitPointsForAMSRegions():
 def main(argv = None):
   scriptDir = os.path.realpath(os.path.dirname(argv[0]))
   serviceMetricsDir = os.path.join(scriptDir, os.pardir, 'files', 'service-metrics')
-  print 'serviceMetricsDir: %s' % serviceMetricsDir
+
   if os.path.exists(serviceMetricsDir):
     onlyargs = argv[1:]
     if len(onlyargs) < 3:
