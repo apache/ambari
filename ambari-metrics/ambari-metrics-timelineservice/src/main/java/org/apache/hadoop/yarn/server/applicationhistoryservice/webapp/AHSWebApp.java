@@ -19,7 +19,8 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.webapp;
 
 import static org.apache.hadoop.yarn.util.StringHelper.pajoin;
 
-import org.apache.hadoop.yarn.server.api.ApplicationContext;
+import org.apache.hadoop.yarn.api.ApplicationBaseProtocol;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.ApplicationHistoryClientService;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.ApplicationHistoryManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricStore;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.TimelineStore;
@@ -30,15 +31,17 @@ import org.apache.hadoop.yarn.webapp.YarnWebParams;
 
 public class AHSWebApp extends WebApp implements YarnWebParams {
 
-  private final ApplicationHistoryManager applicationHistoryManager;
   private final TimelineStore timelineStore;
   private final TimelineMetricStore timelineMetricStore;
+  private final ApplicationHistoryClientService historyClientService;
 
-  public AHSWebApp(ApplicationHistoryManager applicationHistoryManager,
-      TimelineStore timelineStore, TimelineMetricStore timelineMetricStore) {
-    this.applicationHistoryManager = applicationHistoryManager;
+  public AHSWebApp(TimelineStore timelineStore,
+    TimelineMetricStore timelineMetricStore,
+    ApplicationHistoryClientService historyClientService) {
+
     this.timelineStore = timelineStore;
     this.timelineMetricStore = timelineMetricStore;
+    this.historyClientService = historyClientService;
   }
 
   @Override
@@ -47,7 +50,7 @@ public class AHSWebApp extends WebApp implements YarnWebParams {
     bind(AHSWebServices.class);
     bind(TimelineWebServices.class);
     bind(GenericExceptionHandler.class);
-    bind(ApplicationContext.class).toInstance(applicationHistoryManager);
+    bind(ApplicationBaseProtocol.class).toInstance(historyClientService);
     bind(TimelineStore.class).toInstance(timelineStore);
     bind(TimelineMetricStore.class).toInstance(timelineMetricStore);
     route("/", AHSController.class);
