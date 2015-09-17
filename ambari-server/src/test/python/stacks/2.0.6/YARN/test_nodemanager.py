@@ -520,19 +520,25 @@ class TestNodeManager(RMFTestCase):
       c6401.ambari.apache.org:45454  RUNNING  c6401.ambari.apache.org:8042  0
     """
     mocks_dict = {}
-    
+
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
-                       classname="Nodemanager",
-                       command = "post_rolling_restart",
-                       config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, process_output)],
-                       mocks_dict = mocks_dict
+      classname = "Nodemanager",
+      command = "post_rolling_restart",
+      config_file = "default.json",
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, process_output)],
+      mocks_dict = mocks_dict
     )
 
     self.assertTrue(mocks_dict['call'].called)
     self.assertEqual(mocks_dict['call'].call_count,1)
+
+    self.assertEquals(
+      "yarn node -list -states=RUNNING",
+       mocks_dict['call'].call_args_list[0][0][0])
+
+    self.assertEquals( {'user': u'yarn'}, mocks_dict['call'].call_args_list[0][1])
 
 
   @patch('time.sleep')
