@@ -51,7 +51,12 @@ class MahoutServiceCheck(Script):
                         source=format("{tmp_dir}/sample-mahout-test.txt")
     )
     params.HdfsResource(None, action="execute")
-    
+
+    if params.security_enabled:
+      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
+      Execute(kinit_cmd,
+              user=params.smokeuser)
+
     Execute( mahout_command,
              tries = 3,
              try_sleep = 5,

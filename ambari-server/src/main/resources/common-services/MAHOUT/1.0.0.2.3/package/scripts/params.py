@@ -54,6 +54,7 @@ hadoop_home = hdp_select.get_hadoop_dir("home")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+yarn_user = config['configurations']['yarn-env']['yarn_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
