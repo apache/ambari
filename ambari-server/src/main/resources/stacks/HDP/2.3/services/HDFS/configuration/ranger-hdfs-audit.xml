@@ -23,102 +23,102 @@
   <property>
     <name>xasecure.audit.is.enabled</name>
     <value>true</value>
-    <description></description>
+    <description>Is Audit enabled?</description>
   </property>
 
   <property>
     <name>xasecure.audit.destination.db</name>
     <value>false</value>
     <display-name>Audit to DB</display-name>
-    <description></description>
+    <description>Is Audit to DB enabled?</description>
   </property>
 
   <property>
     <name>xasecure.audit.destination.db.jdbc.url</name>
     <value>{{audit_jdbc_url}}</value>
-    <description></description>
+    <description>Audit DB JDBC URL</description>
   </property>
 
   <property>
     <name>xasecure.audit.destination.db.user</name>
     <value>{{xa_audit_db_user}}</value>
-    <description></description>
+    <description>Audit DB JDBC User</description>
   </property>
 
   <property>
     <name>xasecure.audit.destination.db.password</name>
     <value>crypted</value>
     <property-type>PASSWORD</property-type>
-    <description></description>
+    <description>Audit DB JDBC Password</description>
   </property>
 
   <property>
     <name>xasecure.audit.destination.db.jdbc.driver</name>
     <value>{{jdbc_driver}}</value>
-    <description></description>
+    <description>Audit DB JDBC Driver</description>
   </property>
 
   <property>
     <name>xasecure.audit.credential.provider.file</name>
     <value>jceks://file{{credential_file}}</value>
-    <description></description>
+    <description>Credential file store</description>
   </property>
 
   <property>
     <name>xasecure.audit.destination.db.batch.filespool.dir</name>
     <value>/var/log/hadoop/hdfs/audit/db/spool</value>
-    <description></description>
+    <description>/var/log/hadoop/hdfs/audit/db/spool</description>
   </property>
 
   <property>
     <name>xasecure.audit.destination.hdfs</name>
     <value>true</value>
     <display-name>Audit to HDFS</display-name>
-    <description></description>
+    <description>Is Audit to HDFS enabled?</description>
   </property>
 
   <property>
     <name>xasecure.audit.destination.hdfs.dir</name>
     <value>hdfs://NAMENODE_HOSTNAME:8020/ranger/audit</value>
-    <description></description>
+    <description>HDFS folder to write audit to, make sure the service user has requried permissions</description>
   </property>
 
   <property>
     <name>xasecure.audit.destination.hdfs.batch.filespool.dir</name>
     <value>/var/log/hadoop/hdfs/audit/hdfs/spool</value>
-    <description></description>
+    <description>/var/log/hadoop/hdfs/audit/hdfs/spool</description>
   </property>
 
   <property>
     <name>xasecure.audit.destination.solr</name>
     <value>false</value>
     <display-name>Audit to SOLR</display-name>
-    <description></description>
+    <description>Is Solr audit enabled?</description>
   </property>
 
   <property>
     <name>xasecure.audit.destination.solr.urls</name>
     <value>{{ranger_audit_solr_urls}}</value>
-    <description></description>
+    <description>Solr URL</description>
   </property>
 
   <property>
     <name>xasecure.audit.destination.solr.zookeepers</name>
     <value>none</value>
-    <description></description>
+    <description>Solr Zookeeper string</description>
   </property>
 
   <property>
     <name>xasecure.audit.destination.solr.batch.filespool.dir</name>
     <value>/var/log/hadoop/hdfs/audit/solr/spool</value>
-    <description></description>
+    <description>/var/log/hadoop/hdfs/audit/solr/spool</description>
   </property>
 
   <property>
     <name>xasecure.audit.provider.summary.enabled</name>
     <value>false</value>
     <display-name>Audit provider summary enabled</display-name>
-    <description></description>
+    <description>Enable Summary audit?</description>
   </property>
 
 </configuration>

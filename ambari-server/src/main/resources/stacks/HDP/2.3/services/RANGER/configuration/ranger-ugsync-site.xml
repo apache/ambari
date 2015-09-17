@@ -21,87 +21,87 @@
   <property>
     <name>ranger.usersync.port</name>
     <value>5151</value>
-    <description></description>
+    <description>Port for unix authentication service, run within usersync</description>
   </property>
 
   <property>
     <name>ranger.usersync.ssl</name>
     <value>true</value>
-    <description></description>
+    <description>SSL enabled? (ranger admin -&gt; usersync communication)</description>
   </property>
 
   <property>
     <name>ranger.usersync.keystore.file</name>
     <value>/usr/hdp/current/ranger-usersync/conf/unixauthservice.jks</value>
-    <description></description>
+    <description>Keystore file used for usersync</description>
   </property>
 
   <property>
     <name>ranger.usersync.keystore.password</name>
     <value>UnIx529p</value>
     <property-type>PASSWORD</property-type>
-    <description></description>
+    <description>Keystore password</description>
   </property>
 
   <property>
     <name>ranger.usersync.truststore.file</name>
     <value>/usr/hdp/current/ranger-usersync/conf/mytruststore.jks</value>
-    <description></description>
+    <description>Truststore used for usersync, required if usersync -&gt; ranger admin communication is SSL enabled</description>
   </property>
 
   <property>
     <name>ranger.usersync.truststore.password</name>
     <value>changeit</value>
     <property-type>PASSWORD</property-type>
-    <description></description>
+    <description>Truststore password</description>
   </property>
 
   <property>
     <name>ranger.usersync.passwordvalidator.path</name>
     <value>./native/credValidator.uexe</value>
-    <description></description>
+    <description>Native program for password validation</description>
   </property>
 
   <property>
     <name>ranger.usersync.enabled</name>
     <value>true</value>
-    <description></description>
+    <description>Usersync enabled?</description>
   </property>
 
   <property>
     <name>ranger.usersync.sink.impl.class</name>
     <value>org.apache.ranger.unixusersync.process.PolicyMgrUserGroupBuilder</value>
-    <description></description>
+    <description>Class to be used as sink (to sync users into ranger admin)</description>
   </property>
 
   <property>
     <name>ranger.usersync.policymanager.baseURL</name>
     <value>{{ranger_external_url}}</value>
-    <description></description>
+    <description>URL to be used by clients to access ranger admin, use FQDN</description>
   </property>
 
   <property>
     <name>ranger.usersync.policymanager.maxrecordsperapicall</name>
     <value>1000</value>
-    <description></description>
+    <description>How many records to be returned per API call</description>
   </property>
 
   <property>
     <name>ranger.usersync.policymanager.mockrun</name>
     <value>false</value>
-    <description></description>
+    <description>Is user sync doing mock run?</description>
   </property>
 
   <property>
     <name>ranger.usersync.unix.minUserId</name>
     <value>500</value>
-    <description></description>
+    <description>Only sync users above this user id (applicable for UNIX)</description>
   </property>
 
   <property>
     <name>ranger.usersync.sleeptimeinmillisbetweensynccycle</name>
     <value>5</value>
-    <description></description>
+    <description>Sleeptime interval in milliseconds, if &lt; 1000 then default to 30 sec</description>
   </property>
 
   <property>
@@ -122,26 +122,26 @@
   <property>
     <name>ranger.usersync.filesource.text.delimiter</name>
     <value>,</value>
-    <description></description>
+    <description>Delimiter used in file, if File based user sync is used</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.url</name>
     <value>ldap://localhost:389</value>
-    <description></description>
+    <description>LDAP server URL</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.binddn</name>
     <value>cn=admin,dc=xasecure,dc=net</value>
-    <description></description>
+    <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. </description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.ldapbindpassword</name>
     <value></value>
     <property-type>PASSWORD</property-type>
-    <description></description>
+    <description>Password for the account that can search for users.</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -150,13 +150,13 @@
   <property>
     <name>ranger.usersync.ldap.bindalias</name>
     <value>testldapalias</value>
-    <description></description>
+    <description>Set as ranger.usersync.ldap.bindalias (string as is)</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.bindkeystore</name>
     <value></value>
-    <description></description>
+    <description>Set same value as ranger.usersync.keystore.file property i.e default value /usr/hdp/current/ranger-usersync/conf/ugsync.jceks</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -165,7 +165,8 @@
   <property>
     <name>ranger.usersync.ldap.searchBase</name>
     <value>dc=hadoop,dc=apache,dc=org</value>
-    <description></description>
+    <description>"# search base for users and groups
+# sample value would be dc=hadoop,dc=apache,dc=org"</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -174,31 +175,38 @@
   <property>
     <name>ranger.usersync.ldap.user.searchbase</name>
     <value>ou=users,dc=xasecure,dc=net</value>
-    <description></description>
+    <description>"# search base for users
+# sample value would be ou=users,dc=hadoop,dc=apache,dc=org
+# overrides value specified in ranger.usersync.ldap.searchBase"</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.user.searchscope</name>
     <value>sub</value>
-    <description></description>
+    <description>"# search scope for the users, only base, one and sub are supported values
+# please customize the value to suit your deployment
+# default value: sub"</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.user.objectclass</name>
     <value>person</value>
-    <description></description>
+    <description>LDAP User Object Class</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.user.searchfilter</name>
     <value>empty</value>
-    <description></description>
+    <description>"optional additional filter constraining the users selected for syncing
+# a sample value would be (dept=eng)
+# please customize the value to suit your deployment
+# default value is empty"</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.user.nameattribute</name>
     <value>cn</value>
-    <description></description>
+    <description>LDAP user name attribute</description>
   </property>
 
   <property>
@@ -213,31 +221,34 @@
   <property>
     <name>ranger.usersync.ldap.user.groupnameattribute</name>
     <value>memberof, ismemberof</value>
-    <description></description>
+    <description>LDAP user group name attribute</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.username.caseconversion</name>
     <value>lower</value>
-    <description></description>
+    <description>User name case conversion</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.groupname.caseconversion</name>
     <value>lower</value>
-    <description></description>
+    <description>Group name case conversion</description>
   </property>
 
   <property>
     <name>ranger.usersync.logdir</name>
     <value>/var/log/ranger/usersync</value>
-    <description></description>
+    <description>User sync log directory</description>
   </property>
 
   <property>
     <name>ranger.usersync.group.searchenabled</name>
     <value>false</value>
-    <description></description>
+    <description>"# do we want to do ldapsearch to find groups instead of relying on user entry attributes
+# valid values: true, false
+# any value other than true would be treated as false
+# default value: false"</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -246,7 +257,7 @@
   <property>
     <name>ranger.usersync.group.usermapsyncenabled</name>
     <value>false</value>
-    <description></description>
+    <description>User map sync enabled?</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -255,7 +266,11 @@
   <property>
     <name>ranger.usersync.group.searchbase</name>
     <value> </value>
-    <description></description>
+    <description>"# search base for groups
+# sample value would be ou=groups,dc=hadoop,dc=apache,dc=org
+# overrides value specified in ranger.usersync.ldap.searchBase,  ranger.usersync.ldap.user.searchbase
+# if a value is not specified, takes the value of  ranger.usersync.ldap.searchBase
+# if  ranger.usersync.ldap.searchBase is also not specified, takes the value of ranger.usersync.ldap.user.searchbase"</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -264,7 +279,9 @@
   <property>
     <name>ranger.usersync.group.searchscope</name>
     <value> </value>
-    <description></description>
+    <description>"# search scope for the groups, only base, one and sub are supported values
+# please customize the value to suit your deployment
+# default value: sub"</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -282,7 +299,10 @@
   <property>
     <name>ranger.usersync.group.searchfilter</name>
     <value> </value>
-    <description></description>
+    <description>"# optional additional filter constraining the groups selected for syncing
+# a sample value would be (dept=eng)
+# please customize the value to suit your deployment
+# default value is empty"</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -291,7 +311,7 @@
   <property>
     <name>ranger.usersync.group.nameattribute</name>
     <value> </value>
-    <description></description>
+    <description>LDAP group name attribute</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -300,7 +320,7 @@
   <property>
     <name>ranger.usersync.group.memberattributename</name>
     <value> </value>
-    <description></description>
+    <description>LDAP group member attribute name</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -309,19 +329,19 @@
   <property>
     <name>ranger.usersync.pagedresultsenabled</name>
     <value>true</value>
-    <description></description>
+    <description>Results can be paged?</description>
   </property>
 
   <property>
     <name>ranger.usersync.pagedresultssize</name>
     <value>500</value>
-    <description></description>
+    <description>Page size</description>
   </property>
 
   <property>
     <name>ranger.usersync.credstore.filename</name>
     <value>/usr/hdp/current/ranger-usersync/conf/ugsync.jceks</value>
-    <description></description>
+    <description>Credential store file name for user sync, specify full path</description>
   </property>                         
 
 </configuration>  
