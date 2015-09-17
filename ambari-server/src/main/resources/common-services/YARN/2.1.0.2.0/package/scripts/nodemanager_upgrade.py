@@ -36,7 +36,7 @@ def post_upgrade_check():
 
   Logger.info('NodeManager executing "yarn node -list -states=RUNNING" to verify the node has rejoined the cluster...')
   if params.security_enabled and params.nodemanager_kinit_cmd:
-    Execute(params.nodemanager_kinit_cmd, user = params.yarn_user)
+    Execute(params.nodemanager_kinit_cmd, user=params.yarn_user)
 
   _check_nodemanager_startup()
 
@@ -56,7 +56,7 @@ def _check_nodemanager_startup():
 
   try:
     # 'su - yarn -c "yarn node -status c6401.ambari.apache.org:45454"'
-    return_code, yarn_output = shell.call(command, user=params.hdfs_user)
+    return_code, yarn_output = shell.call(command, user=params.yarn_user)
   except:
     raise Fail('Unable to determine if the NodeManager has started after upgrade.')
 
