@@ -135,7 +135,9 @@ module.exports = App.WizardRoute.extend({
             alwaysCallback: function () {
               controller.get('popup').hide();
               router.transitionTo('main.alerts');
-              location.reload();
+              Em.run.next(function() {
+                location.reload();
+              });
             }
           });
       });

@@ -62,7 +62,9 @@ module.exports = App.WizardRoute.extend({
                   alwaysCallback: function () {
                     self.hide();
                     App.router.transitionTo(exitPath);
-                    location.reload();
+                    Em.run.next(function() {
+                      location.reload();
+                    });
                   }
                 });
 

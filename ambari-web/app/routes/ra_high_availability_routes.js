@@ -56,7 +56,9 @@ module.exports = App.WizardRoute.extend({
                 alwaysCallback: function () {
                   self.hide();
                   router.transitionTo('main.services.index');
-                  location.reload();
+                  Em.run.next(function() {
+                    location.reload();
+                  });
                 }
               });
             }, Em.I18n.t('admin.ra_highAvailability.closePopup'));
@@ -71,7 +73,9 @@ module.exports = App.WizardRoute.extend({
               alwaysCallback: function () {
                 self.hide();
                 router.transitionTo('main.services.index');
-                location.reload();
+                Em.run.next(function() {
+                  location.reload();
+                });
               }
             });
           }
@@ -186,7 +190,9 @@ module.exports = App.WizardRoute.extend({
         alwaysCallback: function () {
           rAHighAvailabilityWizardController.get('popup').hide();
           router.transitionTo('main.services.index');
-          location.reload();
+          Em.run.next(function() {
+            location.reload();
+          });
         }
       });
     }

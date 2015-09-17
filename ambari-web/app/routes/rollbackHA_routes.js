@@ -148,7 +148,9 @@ module.exports = App.WizardRoute.extend({
         localdb: App.db.data
       });
       router.transitionTo('main.index');
-      location.reload();
+      Em.run.next(function() {
+        location.reload();
+      });
     }
   })
 

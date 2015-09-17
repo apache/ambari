@@ -42,7 +42,15 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
           clusterName: App.router.get('content.cluster.name'),
           clusterState: 'DEFAULT',
           localdb: App.db.data
-        },{alwaysCallback: function() {self.hide();App.router.transitionTo('main.index');location.reload();}});
+        }, {
+          alwaysCallback: function () {
+            self.hide();
+            App.router.transitionTo('main.index');
+            Em.run.next(function () {
+              location.reload();
+            });
+          }
+        });
       },
       secondary: Em.I18n.t('no'),
       onSecondary: function () {

@@ -88,7 +88,9 @@ module.exports = App.WizardRoute.extend({
               }, {alwaysCallback: function() {
                 self.hide();
                 router.transitionTo('adminSecurity.index');
-                location.reload();   // this is needed because the ATS Component may be deleted in older HDP stacks.
+                Em.run.next(function() {
+                  location.reload();   // this is needed because the ATS Component may be deleted in older HDP stacks.
+                });
               }});
             },
             didInsertElement: function () {
