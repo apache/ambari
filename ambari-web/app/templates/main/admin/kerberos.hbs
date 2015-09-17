@@ -49,7 +49,7 @@
     {{/if}}
   {{else}}
     <div>
-      <p class="muted">{{t admin.security.disabled}}
+      <p class="muted background-text">{{t admin.security.disabled}}
         {{#isAccessible ADMIN}}
           <a class="btn btn-padding btn-success admin-enable-security-btn" {{action checkAndStartKerberosWizard target="controller"}}>{{t admin.kerberos.button.enable}} </a>
           <br/>
