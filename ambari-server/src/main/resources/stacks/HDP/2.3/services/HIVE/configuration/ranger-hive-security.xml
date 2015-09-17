@@ -23,7 +23,7 @@
   <property>
     <name>ranger.plugin.hive.service.name</name>
     <value>{{repo_name}}</value>
-    <description>Name of the Ranger service containing policies for this YARN instance</description>
+    <description>Name of the Ranger service containing policies for this Hive instance</description>
   </property>
 
   <property>
