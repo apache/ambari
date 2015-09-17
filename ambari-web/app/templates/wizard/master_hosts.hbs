@@ -20,7 +20,7 @@
   {{t installer.noHostsAssigned}}
 {{/if}}
 {{#if view.hasOneHost}}
-  {{value}}
+  {{view.formatValue}}
 {{/if}}
 {{#if view.hasMultipleHosts}}
   <a href="#" {{action showHosts target="view"}}>{{value.firstObject}} {{t and}} {{view.otherLength}}</a>

@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var objectUtils = require('utils/object_utils');
 
 App.ConfigsComparator = Em.Mixin.create({
 
@@ -45,7 +46,6 @@ App.ConfigsComparator = Em.Mixin.create({
       } else {
         compareServiceVersions = [this.get('compareServiceVersion').get('version')];
       }
-
       this.getCompareVersionConfigs(compareServiceVersions).done(function (json) {
         allConfigs.setEach('isEditable', false);
         self.initCompareConfig(allConfigs, json);
@@ -147,7 +147,7 @@ App.ConfigsComparator = Em.Mixin.create({
     } else {
       allConfigs.forEach(function (serviceConfig) {
         var serviceCfgVersionMap = serviceVersionMap[this.get('compareServiceVersion').get('version')];
-        var compareConfig = serviceCfgVersionMap[serviceConfig.name + '-' + App.config.getConfigTagFromFileName(serviceConfig.filename)]
+        var compareConfig = serviceCfgVersionMap[serviceConfig.name + '-' + App.config.getConfigTagFromFileName(serviceConfig.filename)];
         this.setCompareDefaultGroupConfig(serviceConfig, compareConfig);
       }, this);
     }
@@ -248,7 +248,7 @@ App.ConfigsComparator = Em.Mixin.create({
     Em.set(serviceConfig, 'isComparison', true);
 
     //if config isn't reconfigurable then it can't have changed value to compare
-    if (compareConfig && (Em.get(serviceConfig, 'isReconfigurable') || Em.get(serviceConfig, 'isUserProperty'))) {
+    if (compareConfig) {
       compareObject = this.getComparisonConfig(serviceConfig, compareConfig);
       Em.set(serviceConfig, 'hasCompareDiffs', Em.get(serviceConfig, 'isMock') || this.hasCompareDiffs(serviceConfig, compareObject));
       Em.get(serviceConfig, 'compareConfigs').push(compareObject);
@@ -257,6 +257,7 @@ App.ConfigsComparator = Em.Mixin.create({
       Em.get(serviceConfig, 'compareConfigs').push(this.getMockComparisonConfig(serviceConfig, this.get('compareServiceVersion.version')));
       Em.set(serviceConfig, 'hasCompareDiffs', true);
     }
+
     return serviceConfig;
   },
 
@@ -269,7 +270,24 @@ App.ConfigsComparator = Em.Mixin.create({
    * @method hasCompareDiffs
    */
   hasCompareDiffs: function (originalConfig, compareConfig) {
-    return (Em.get(originalConfig, 'value') !== Em.get(compareConfig, 'value')) || (!!Em.get(originalConfig, 'isFinal') !== !!Em.get(compareConfig, 'isFinal'));
+    var originalValue = Em.get(originalConfig, 'value');
+    var compareValue = Em.get(compareConfig, 'value');
+
+    if (originalValue.toArray) {
+      originalValue = originalValue.toArray();
+    }
+    if (compareValue.toArray) {
+      compareValue = compareValue.toArray();
+    }
+
+    if (originalValue instanceof Array) {
+      originalValue.sort();
+    }
+    if (compareValue instanceof Array) {
+      compareValue.sort();
+    }
+
+    return (!objectUtils.deepEqual(originalValue, compareValue)) || (!!Em.get(originalConfig, 'isFinal') !== !!Em.get(compareConfig, 'isFinal'));
   },
 
   /**
