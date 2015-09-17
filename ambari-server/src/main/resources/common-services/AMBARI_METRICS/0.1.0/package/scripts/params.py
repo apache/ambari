@@ -71,6 +71,7 @@ hbase_included_hosts = config['commandParams']['included_hosts']
 hbase_user = status_params.hbase_user
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 hbase_root_dir = config['configurations']['ams-hbase-site']['hbase.rootdir']
+hbase_pid_dir = status_params.hbase_pid_dir
 
 is_hbase_distributed = hbase_root_dir.startswith('hdfs://')
 

@@ -253,6 +253,8 @@ class TestOozieClient(RMFTestCase):
                                 principal_name=UnknownConfigurationMock(),
                                 default_fs='hdfs://c6401.ambari.apache.org:8020',
                                 )
+      self.assertResourceCalled('File', '/var/run/ambari-metrics-collector//distributed_mode', action=["create"],
+                                mode=0644, owner='ams')
     self.assertResourceCalled('Directory', '/var/run/ambari-metrics-collector/',
                               owner = 'ams',
                               recursive = True

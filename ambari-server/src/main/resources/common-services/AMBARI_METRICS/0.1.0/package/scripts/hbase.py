@@ -195,6 +195,9 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
 
         params.HdfsResource(None, action="execute")
 
+        #Workaround for status commands not aware of operating mode
+        File(format("{params.hbase_pid_dir}/distributed_mode"), action="create", mode=0644, owner=params.hbase_user)
+
       pass
 
     else:
@@ -210,6 +213,8 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
                 cd_access="a",
                 recursive = True
       )
+
+      File(format("{params.hbase_pid_dir}/distributed_mode"), action="delete", owner=params.hbase_user)
 
   if name != "client":
     Directory( params.hbase_pid_dir,
