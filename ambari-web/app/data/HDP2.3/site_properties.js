@@ -88,7 +88,7 @@ hdp23properties.push({
       },
       {
         displayName: 'SQLA',
-        hidden: App.get('currentStackName') !== 'SAPHD'
+        hidden: App.get('currentStackName') !== 'SAPHD' && App.get('currentStackName') !== 'HDP'
       }
     ],
     "displayType": "radio button",
