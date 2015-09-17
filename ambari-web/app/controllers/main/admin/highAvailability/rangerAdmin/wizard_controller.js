@@ -25,6 +25,11 @@ App.RAHighAvailabilityWizardController = App.WizardController.extend({
 
   totalSteps: 4,
 
+  /**
+   * @type {string}
+   */
+  displayName: Em.I18n.t('admin.ra_highAvailability.wizard.header'),
+
   isFinished: false,
 
   content: Em.Object.create({

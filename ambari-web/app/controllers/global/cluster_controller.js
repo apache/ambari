@@ -206,6 +206,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
       self.restoreUpgradeState();
     }
 
+    App.router.get('wizardWatcherController').getUser();
 
     var updater = App.router.get('updateController');
 

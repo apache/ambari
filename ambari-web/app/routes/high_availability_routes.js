@@ -68,6 +68,7 @@ module.exports = App.WizardRoute.extend({
               controller.clearTasksData();
               controller.finish();
               App.router.get('updateController').set('isWorking', true);
+              App.router.get('wizardWatcherController').resetUser();
               App.clusterStatus.setClusterStatus({
                 clusterName: controller.get('content.cluster.name'),
                 clusterState: 'DEFAULT',
@@ -99,6 +100,7 @@ module.exports = App.WizardRoute.extend({
           }
         }
       Em.run.next(function () {
+        App.router.get('wizardWatcherController').setUser(highAvailabilityWizardController.get('name'));
         router.transitionTo('step' + highAvailabilityWizardController.get('currentStep'));
       });
     });

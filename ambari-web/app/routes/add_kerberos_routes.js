@@ -78,6 +78,7 @@ module.exports = App.WizardRoute.extend({
             App.get('router').transitionTo('adminKerberos.index');
             location.reload();
           }
+          App.router.get('wizardWatcherController').resetUser();
           App.clusterStatus.setClusterStatus({
             clusterName: App.router.getClusterName(),
             clusterState: 'DEFAULT',
@@ -110,6 +111,7 @@ module.exports = App.WizardRoute.extend({
 
       }
       Em.run.next(function(){
+        App.router.get('wizardWatcherController').setUser(kerberosWizardController.get('name'));
         router.transitionTo('step' + kerberosWizardController.get('currentStep'));
       });
     });

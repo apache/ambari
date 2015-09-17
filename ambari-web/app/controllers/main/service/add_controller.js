@@ -25,6 +25,11 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
   totalSteps: 8,
 
   /**
+   * @type {string}
+   */
+  displayName: Em.I18n.t('services.add.header'),
+
+  /**
    * Used for hiding back button in wizard
    */
   hideBackButton: true,

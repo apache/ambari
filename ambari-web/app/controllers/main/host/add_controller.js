@@ -26,6 +26,11 @@ App.AddHostController = App.WizardController.extend({
   totalSteps: 7,
 
   /**
+   * @type {string}
+   */
+  displayName: Em.I18n.t('hosts.add.header'),
+
+  /**
    * Used for hiding back button in wizard
    */
   hideBackButton: true,

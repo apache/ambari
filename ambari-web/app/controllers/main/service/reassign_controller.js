@@ -26,6 +26,11 @@ App.ReassignMasterController = App.WizardController.extend({
   totalSteps: 7,
 
   /**
+   * @type {string}
+   */
+  displayName: Em.I18n.t('services.reassign.header'),
+
+  /**
    * Used for hiding back button in wizard
    */
   hideBackButton: true,

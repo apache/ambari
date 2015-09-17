@@ -49,8 +49,13 @@ App.MainMenuView = Em.CollectionView.extend({
       result.push({ label: Em.I18n.t('menu.item.views'), routing: 'views.index', isView: true, views: this.get('views').filterProperty('visible')});
     }
     return result;
-  }.property('App.router.loggedIn', 'views.length',
-    'App.router.clusterController.isLoaded', 'App.router.clusterInstallCompleted'),
+  }.property(
+    'App.router.loggedIn',
+    'views.length',
+    'App.router.clusterController.isLoaded',
+    'App.router.clusterInstallCompleted',
+    'App.router.wizardWatcherController.isWizardRunning'
+  ),
 
   itemViewClass: Em.View.extend({
 

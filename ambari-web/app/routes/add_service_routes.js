@@ -54,6 +54,7 @@ module.exports = App.WizardRoute.extend({
                 });
                 var exitPath = addServiceController.getDBProperty('onClosePath') || 'main.services.index';
                 addServiceController.finish();
+                App.router.get('wizardWatcherController').resetUser();
                 // We need to do recovery based on whether we are in Add Host or Installer wizard
                 App.clusterStatus.setClusterStatus({
                   clusterName: App.router.get('content.cluster.name'),
@@ -90,6 +91,7 @@ module.exports = App.WizardRoute.extend({
               }
             }
 
+            App.router.get('wizardWatcherController').setUser(addServiceController.get('name'));
             router.transitionTo('step' + addServiceController.get('currentStep'));
           });
         });

@@ -399,26 +399,28 @@ App.Router = Em.Router.extend({
       }
     } else {
       if (this.get('clusterInstallCompleted')) {
-        App.clusterStatus.updateFromServer(false).complete(function () {
-          var route = 'main.dashboard.index';
-          var clusterStatusOnServer = App.clusterStatus.get('value');
-          if (clusterStatusOnServer) {
-            var wizardControllerRoutes = require('data/controller_route');
-            var wizardControllerRoute =  wizardControllerRoutes.findProperty('wizardControllerName', clusterStatusOnServer.wizardControllerName);
-            if (wizardControllerRoute) {
-              route =  wizardControllerRoute.route;
+        App.router.get('wizardWatcherController').getUser().complete(function() {
+          App.clusterStatus.updateFromServer(false).complete(function () {
+            var route = 'main.dashboard.index';
+            var clusterStatusOnServer = App.clusterStatus.get('value');
+            if (clusterStatusOnServer) {
+              var wizardControllerRoutes = require('data/controller_route');
+              var wizardControllerRoute =  wizardControllerRoutes.findProperty('wizardControllerName', clusterStatusOnServer.wizardControllerName);
+              if (wizardControllerRoute && !App.router.get('wizardWatcherController').get('isNonWizardUser')) {
+                route = wizardControllerRoute.route;
+              }
             }
-          }
-          if (wizardControllerRoute && wizardControllerRoute.wizardControllerName === 'mainAdminStackAndUpgradeController')  {
-            var clusterController =   App.router.get('clusterController');
-            clusterController.loadClusterName().done(function(){
-              clusterController.restoreUpgradeState().done(function(){
-                callback(route);
+            if (wizardControllerRoute && wizardControllerRoute.wizardControllerName === 'mainAdminStackAndUpgradeController')  {
+              var clusterController =   App.router.get('clusterController');
+              clusterController.loadClusterName().done(function(){
+                clusterController.restoreUpgradeState().done(function(){
+                  callback(route);
+                });
               });
-            });
-          } else {
-            callback(route);
-          }
+            } else {
+              callback(route);
+            }
+          });
         });
       } else {
         callback('installer');

@@ -2706,5 +2706,7 @@ Em.I18n.translations = {
 
   'utils.ajax.errorMessage': 'Error message',
   'utils.ajax.defaultErrorPopupBody.message': 'received on {0} method for API: {1}',
-  'utils.ajax.defaultErrorPopupBody.statusCode': '{0} status code'
+  'utils.ajax.defaultErrorPopupBody.statusCode': '{0} status code',
+
+  'wizard.inProgress': '{0} in Progress'
 };

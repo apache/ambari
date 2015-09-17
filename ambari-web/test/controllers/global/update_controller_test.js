@@ -62,7 +62,7 @@ describe('App.UpdateController', function () {
 
     it('isWorking = true', function () {
       controller.set('isWorking', true);
-      expect(App.updater.run.callCount).to.equal(11);
+      expect(App.updater.run.callCount).to.equal(12);
     });
   });
 
@@ -283,7 +283,7 @@ describe('App.UpdateController', function () {
         {
           currentStateName: 'versions',
           parentStateName: 'stackAndUpgrade',
-          upgradeIsNotFinished: true,
+          wizardIsNotFinished: true,
           isLoadUpgradeDataPending: true,
           loadUpgradeDataCallCount: 0,
           callbackCallCount: 1,
@@ -292,7 +292,7 @@ describe('App.UpdateController', function () {
         {
           currentStateName: 'stackUpgrade',
           parentStateName: null,
-          upgradeIsNotFinished: true,
+          wizardIsNotFinished: true,
           isLoadUpgradeDataPending: true,
           loadUpgradeDataCallCount: 0,
           callbackCallCount: 1,
@@ -301,7 +301,7 @@ describe('App.UpdateController', function () {
         {
           currentStateName: 'versions',
           parentStateName: null,
-          upgradeIsNotFinished: true,
+          wizardIsNotFinished: true,
           isLoadUpgradeDataPending: false,
           loadUpgradeDataCallCount: 1,
           callbackCallCount: 0,
@@ -310,7 +310,7 @@ describe('App.UpdateController', function () {
         {
           currentStateName: 'versions',
           parentStateName: null,
-          upgradeIsNotFinished: false,
+          wizardIsNotFinished: false,
           isLoadUpgradeDataPending: false,
           loadUpgradeDataCallCount: 0,
           callbackCallCount: 1,
@@ -319,7 +319,7 @@ describe('App.UpdateController', function () {
         {
           currentStateName: 'versions',
           parentStateName: null,
-          upgradeIsNotFinished: true,
+          wizardIsNotFinished: true,
           isLoadUpgradeDataPending: true,
           loadUpgradeDataCallCount: 0,
           callbackCallCount: 1,
@@ -328,7 +328,7 @@ describe('App.UpdateController', function () {
         {
           currentStateName: 'services',
           parentStateName: 'stackAndUpgrade',
-          upgradeIsNotFinished: true,
+          wizardIsNotFinished: true,
           isLoadUpgradeDataPending: false,
           loadUpgradeDataCallCount: 1,
           callbackCallCount: 0,
@@ -337,7 +337,7 @@ describe('App.UpdateController', function () {
         {
           currentStateName: 'services',
           parentStateName: 'stackAndUpgrade',
-          upgradeIsNotFinished: false,
+          wizardIsNotFinished: false,
           isLoadUpgradeDataPending: false,
           loadUpgradeDataCallCount: 0,
           callbackCallCount: 1,
@@ -346,7 +346,7 @@ describe('App.UpdateController', function () {
         {
           currentStateName: 'services',
           parentStateName: 'stackAndUpgrade',
-          upgradeIsNotFinished: true,
+          wizardIsNotFinished: true,
           isLoadUpgradeDataPending: true,
           loadUpgradeDataCallCount: 0,
           callbackCallCount: 1,
@@ -355,7 +355,7 @@ describe('App.UpdateController', function () {
         {
           currentStateName: 'widgets',
           parentStateName: 'dashboard',
-          upgradeIsNotFinished: true,
+          wizardIsNotFinished: true,
           isLoadUpgradeDataPending: false,
           loadUpgradeDataCallCount: 1,
           callbackCallCount: 0,
@@ -364,7 +364,7 @@ describe('App.UpdateController', function () {
         {
           currentStateName: 'widgets',
           parentStateName: 'dashboard',
-          upgradeIsNotFinished: false,
+          wizardIsNotFinished: false,
           isLoadUpgradeDataPending: false,
           loadUpgradeDataCallCount: 0,
           callbackCallCount: 1,
@@ -373,7 +373,7 @@ describe('App.UpdateController', function () {
         {
           currentStateName: 'widgets',
           parentStateName: 'dashboard',
-          upgradeIsNotFinished: true,
+          wizardIsNotFinished: true,
           isLoadUpgradeDataPending: true,
           loadUpgradeDataCallCount: 0,
           callbackCallCount: 1,
@@ -409,7 +409,7 @@ describe('App.UpdateController', function () {
         appGetMock.withArgs('router.mainAdminStackAndUpgradeController').returns(Em.Object.create({
           loadUpgradeData: mock.loadUpgradeData,
           isLoadUpgradeDataPending: item.isLoadUpgradeDataPending
-        })).withArgs('upgradeIsNotFinished').returns(item.upgradeIsNotFinished);
+        })).withArgs('wizardIsNotFinished').returns(item.wizardIsNotFinished);
         controller.updateUpgradeState(mock.callback);
         expect(mock.loadUpgradeData.callCount).to.equal(item.loadUpgradeDataCallCount);
         expect(mock.callback.callCount).to.equal(item.callbackCallCount);

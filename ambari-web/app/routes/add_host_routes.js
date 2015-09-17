@@ -25,6 +25,7 @@ module.exports = App.WizardRoute.extend({
     var addHostController = router.get('addHostController');
     App.router.get('updateController').set('isWorking', true);
     addHostController.finish();
+    App.router.get('wizardWatcherController').resetUser();
     App.clusterStatus.setClusterStatus({
       clusterName: App.router.get('content.cluster.name'),
       clusterState: 'DEFAULT',
@@ -97,6 +98,7 @@ module.exports = App.WizardRoute.extend({
         }
       }
 
+      App.router.get('wizardWatcherController').setUser(addHostController.get('name'));
       router.transitionTo('step' + addHostController.get('currentStep'));
     });
 

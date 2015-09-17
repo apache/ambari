@@ -154,6 +154,7 @@ App.UpdateController = Em.Controller.extend({
         App.updater.run(this, 'updateUnhealthyAlertInstances', 'updateAlertInstances', App.alertInstancesUpdateInterval, '\/main\/alerts.*');
       }
       App.updater.run(this, 'updateUpgradeState', 'isWorking', App.bgOperationsUpdateInterval);
+      App.updater.run(this, 'updateWizardWatcher', 'isWorking', App.bgOperationsUpdateInterval);
     }
   }.observes('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
 
@@ -570,11 +571,15 @@ App.UpdateController = Em.Controller.extend({
     var currentStateName = App.get('router.currentState.name'),
       parentStateName = App.get('router.parentState.name'),
       mainAdminStackAndUpgradeController = App.get('router.mainAdminStackAndUpgradeController');
-    if (!(currentStateName === 'versions' && parentStateName === 'stackAndUpgrade') && currentStateName !== 'stackUpgrade' && App.get('upgradeIsNotFinished') && !mainAdminStackAndUpgradeController.get('isLoadUpgradeDataPending')) {
+    if (!(currentStateName === 'versions' && parentStateName === 'stackAndUpgrade') && currentStateName !== 'stackUpgrade' && App.get('wizardIsNotFinished') && !mainAdminStackAndUpgradeController.get('isLoadUpgradeDataPending')) {
       mainAdminStackAndUpgradeController.loadUpgradeData(true).done(callback);
     } else {
       callback();
     }
+  },
+
+  updateWizardWatcher: function(callback) {
+    App.router.get('wizardWatcherController').getUser().complete(callback);
   }
 
 });

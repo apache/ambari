@@ -25,6 +25,7 @@ module.exports = App.WizardRoute.extend({
     var reassignMasterController = router.get('reassignMasterController');
     App.router.get('updateController').set('isWorking', true);
     reassignMasterController.finish();
+    App.router.get('wizardWatcherController').resetUser();
     App.clusterStatus.setClusterStatus({
       clusterName: App.router.get('content.cluster.name'),
       clusterState: 'DEFAULT',
@@ -102,6 +103,7 @@ module.exports = App.WizardRoute.extend({
                 break;
             }
           }
+          App.router.get('wizardWatcherController').setUser(reassignMasterController.get('name'));
           router.transitionTo('step' + currStep);
         });
       } else {

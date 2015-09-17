@@ -83,11 +83,12 @@ module.exports = Em.Application.create({
 
   /**
    * flag is true when upgrade process is running or aborted
+   * or wizard used by another user
    * @returns {boolean}
    */
-  upgradeIsNotFinished: function () {
-    return this.get('upgradeIsRunning') || this.get('upgradeAborted');
-  }.property('upgradeIsRunning', 'upgradeAborted'),
+  wizardIsNotFinished: function () {
+    return this.get('upgradeIsRunning') || this.get('upgradeAborted') || App.router.get('wizardWatcherController.isNonWizardUser');
+  }.property('upgradeIsRunning', 'upgradeAborted', 'router.wizardWatcherController.isNonWizardUser'),
 
   /**
    * compute user access rights by permission type
@@ -102,6 +103,10 @@ module.exports = Em.Application.create({
    */
   isAccessible: function (type) {
     if (!App.get('supports.opsDuringRollingUpgrade') && !['INIT', 'COMPLETED'].contains(this.get('upgradeState')) && !type.contains('upgrade_')) {
+      return false;
+    }
+
+    if (App.router.get('wizardWatcherController').get('isNonWizardUser')) {
       return false;
     }
 

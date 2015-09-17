@@ -28,6 +28,11 @@ App.KerberosWizardController = App.WizardController.extend({
 
   totalSteps: 8,
 
+  /**
+   * @type {string}
+   */
+  displayName: Em.I18n.t('admin.kerberos.wizard.header'),
+
   isKerberosWizard: true,
 
   stackConfigsLoaded: false,

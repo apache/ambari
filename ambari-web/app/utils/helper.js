@@ -270,10 +270,16 @@ Em.Handlebars.registerHelper('highlight', function (property, words, fn) {
   return new Em.Handlebars.SafeString(property);
 });
 
-Em.Handlebars.registerHelper('isAccessible', function (context, options) {
-  if (App.isAccessible(context)) {
-    return options.fn(this);
-  }
+Em.Handlebars.registerHelper('isAccessible', function (property, options) {
+  var permission = Ember.Object.create({
+    isAccessible: function() {
+      return App.isAccessible(property);
+    }.property('App.router.wizardWatcherController.isWizardRunning')
+  });
+
+  // wipe out contexts so boundIf uses `this` (the permission) as the context
+  options.contexts = null;
+  return Ember.Handlebars.helpers.boundIf.call(permission, "isAccessible", options);
 });
 
 /**

@@ -26,6 +26,11 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
   totalSteps: 9,
 
   /**
+   * @type {string}
+   */
+  displayName: Em.I18n.t('admin.highAvailability.wizard.header'),
+
+  /**
    * Used for hiding back button in wizard
    */
   hideBackButton: true,

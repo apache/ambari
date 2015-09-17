@@ -578,35 +578,35 @@ describe('App', function () {
 
   });
 
-  describe('#upgradeIsNotFinished', function () {
+  describe('#wizardIsNotFinished', function () {
 
     var cases = [
       {
         upgradeState: 'INIT',
-        upgradeIsNotFinished: false
+        wizardIsNotFinished: false
       },
       {
         upgradeState: 'IN_PROGRESS',
-        upgradeIsNotFinished: true
+        wizardIsNotFinished: true
       },
       {
         upgradeState: 'HOLDING',
-        upgradeIsNotFinished: true
+        wizardIsNotFinished: true
       },
       {
         upgradeState: 'HOLDING_TIMEDOUT',
-        upgradeIsNotFinished: true
+        wizardIsNotFinished: true
       },
       {
         upgradeState: 'ABORTED',
-        upgradeIsNotFinished: true
+        wizardIsNotFinished: true
       }
     ];
 
     cases.forEach(function (item) {
       it(item.upgradeState, function () {
         App.set('upgradeState', item.upgradeState);
-        expect(App.get('upgradeIsNotFinished')).to.equal(item.upgradeIsNotFinished);
+        expect(App.get('wizardIsNotFinished')).to.equal(item.wizardIsNotFinished);
       });
     });
 
