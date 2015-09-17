@@ -30,7 +30,7 @@ import glob
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg, print_error_msg, get_verbose
 from ambari_commons.os_utils import is_root, run_os_command
-from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers
+from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers, get_jdbc_driver_path
 from ambari_server.properties import Properties
 from ambari_server.serverConfiguration import configDefaults, \
   check_database_name_property, get_ambari_properties, get_ambari_version, get_full_ambari_classpath, \
@@ -216,7 +216,7 @@ def upgrade_local_repo(args):
 # Schema upgrade
 #
 
-def run_schema_upgrade():
+def run_schema_upgrade(args):
   db_title = get_db_type(get_ambari_properties()).title
   confirm = get_YN_input("Ambari Server configured for %s. Confirm "
                         "you have made a backup of the Ambari Server database [y/n] (y)? " % db_title, True)
@@ -234,7 +234,12 @@ def run_schema_upgrade():
 
   print 'Upgrading database schema'
 
-  command = SCHEMA_UPGRADE_HELPER_CMD.format(jdk_path, get_full_ambari_classpath())
+  class_path = get_full_ambari_classpath()
+  jdbc_driver_path = get_jdbc_driver_path(args, get_ambari_properties())
+  if jdbc_driver_path not in class_path:
+    class_path = class_path + os.pathsep + jdbc_driver_path
+
+  command = SCHEMA_UPGRADE_HELPER_CMD.format(jdk_path, class_path)
 
   ambari_user = read_ambari_user()
   current_user = ensure_can_start_under_current_user(ambari_user)
@@ -319,7 +324,7 @@ def upgrade(args):
   #TODO check database version
   change_objects_owner(args)
 
-  retcode = run_schema_upgrade()
+  retcode = run_schema_upgrade(args)
   if not retcode == 0:
     print_error_msg("Ambari server upgrade failed. Please look at {0}, for more details.".format(configDefaults.SERVER_LOG_FILE))
     raise FatalException(11, 'Schema upgrade failed.')
