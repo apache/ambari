@@ -288,7 +288,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         total_sinks_count += schCount
     collector_heapsize = int(hbase_heapsize/4 if hbase_heapsize > 2048 else 512)
 
-    return collector_heapsize, hbase_heapsize, total_sinks_count
+    return round_to_n(collector_heapsize), round_to_n(hbase_heapsize), total_sinks_count
 
   def recommendAmsConfigurations(self, configurations, clusterData, services, hosts):
     putAmsEnvProperty = self.putProperty(configurations, "ams-env", services)
@@ -334,13 +334,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.3)
     putTimelineServiceProperty("timeline.metrics.host.aggregator.ttl", 86400)
 
-    # Embedded mode heap size : master + regionserver
-    if rootDir.startswith("hdfs://"):
-      putHbaseEnvProperty("hbase_master_heapsize", "512m")
-      putHbaseEnvProperty("hbase_regionserver_heapsize", str(hbase_heapsize) + "m")
-    else:
-      putHbaseEnvProperty("hbase_master_heapsize", str(hbase_heapsize) + "m")
-
     if len(amsCollectorHosts) > 1:
       pass
     else:
@@ -354,19 +347,27 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.25)
         putAmsHbaseSiteProperty("phoenix.query.maxGlobalMemoryPercentage", 20)
         putTimelineServiceProperty("phoenix.query.maxGlobalMemoryPercentage", 30)
-        putAmsHbaseSiteProperty("hbase_master_xmn_size", "512m")
-        putAmsHbaseSiteProperty("regionserver_xmn_size", "512m")
+        hbase_xmn_size = '512m'
       elif total_sinks_count >= 500:
         putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
         putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
         putAmsHbaseSiteProperty("hbase.regionserver.maxlogs", 64)
         putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 268435456)
-        putAmsHbaseSiteProperty("hbase_master_xmn_size", "512m")
+        hbase_xmn_size = '512m'
       elif total_sinks_count >= 250:
-        putAmsHbaseSiteProperty("hbase_master_xmn_size", "256m")
+        hbase_xmn_size = '256m'
       else:
-        putAmsHbaseSiteProperty("hbase_master_xmn_size", "128m")
+        hbase_xmn_size = '128m'
       pass
+
+    # Embedded mode heap size : master + regionserver
+    if rootDir.startswith("hdfs://"):
+      putHbaseEnvProperty("hbase_master_heapsize", "512m")
+      putHbaseEnvProperty("hbase_regionserver_heapsize", str(hbase_heapsize) + "m")
+      putHbaseEnvProperty("regionserver_xmn_size", hbase_xmn_size)
+    else:
+      putHbaseEnvProperty("hbase_master_heapsize", str(hbase_heapsize) + "m")
+      putHbaseEnvProperty("hbase_master_xmn_size", hbase_xmn_size)
 
     #split points
     scriptDir = os.path.dirname(os.path.abspath(__file__))
@@ -630,6 +631,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     rootdir_item = None
     op_mode = ams_site.get("timeline.metrics.service.operation.mode")
     hbase_rootdir = properties.get("hbase.rootdir")
+    hbase_tmpdir = properties.get("hbase.tmp.dir")
     if op_mode == "distributed" and not hbase_rootdir.startswith("hdfs://"):
       rootdir_item = self.getWarnItem("In distributed mode hbase.rootdir should point to HDFS. Collector will operate in embedded mode otherwise.")
       pass
@@ -646,25 +648,33 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       for host in hosts["items"]:
         if host["Hosts"]["host_name"] == collectorHostName:
           validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorEnoughDiskSpace(properties, 'hbase.rootdir', host["Hosts"], recommendedDiskSpace)}])
-          validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorNotRootFs(properties, 'hbase.rootdir', host["Hosts"])}])
-          validationItems.extend([{"config-name": 'hbase.tmp.dir', "item": self.validatorNotRootFs(properties, 'hbase.tmp.dir', host["Hosts"])}])
+          validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.rootdir', host["Hosts"])}])
+          validationItems.extend([{"config-name": 'hbase.tmp.dir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.tmp.dir', host["Hosts"])}])
 
-          dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
-          # if METRICS_COLLECTOR is co-hosted with DATANODE
-          if not hbase_rootdir.startswith("hdfs") and \
-            dn_hosts and collectorHostName in dn_hosts:
-            # cross-check dfs.datanode.data.dir and hbase.rootdir
-            # they shouldn't share same disk partition IO
-            hdfs_site = getSiteProperties(configurations, "hdfs-site")
+          if not hbase_rootdir.startswith("hdfs"):
             mountPoints = []
             for mountPoint in host["Hosts"]["disk_info"]:
               mountPoints.append(mountPoint["mountpoint"])
             hbase_rootdir_mountpoint = getMountPointForDir(hbase_rootdir, mountPoints)
-            if ams_site and hdfs_site and "dfs.datanode.data.dir" in hdfs_site:
-              for dfs_datadir in hdfs_site.get("dfs.datanode.data.dir").split(","):
-                mountPoints = []
-                for mountPoint in host["Hosts"]["disk_info"]:
-                  mountPoints.append(mountPoint["mountpoint"])
+            hbase_tmpdir_mountpoint = getMountPointForDir(hbase_tmpdir, mountPoints)
+            preferred_mountpoints = self.getPreferredMountPoints(host['Hosts'])
+            # hbase.rootdir and hbase.tmp.dir shouldn't point to the same partition
+            # if multiple preferred_mountpoints exist
+            if hbase_rootdir_mountpoint == hbase_tmpdir_mountpoint and \
+              len(preferred_mountpoints) > 1:
+              item = self.getWarnItem("Consider not using {0} partition for storing metrics temporary data. "
+                                      "{0} partition is already used as hbase.rootdir to store metrics data".format(hbase_tmpdir_mountpoint))
+              validationItems.extend([{"config-name":'hbase.tmp.dir', "item": item}])
+
+            # if METRICS_COLLECTOR is co-hosted with DATANODE
+            # cross-check dfs.datanode.data.dir and hbase.rootdir
+            # they shouldn't share same disk partition IO
+            dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
+            hdfs_site = getSiteProperties(configurations, "hdfs-site")
+            dfs_datadirs = hdfs_site.get("dfs.datanode.data.dir").split(",") if hdfs_site and "dfs.datanode.data.dir" in hdfs_site else []
+            if dn_hosts and collectorHostName in dn_hosts and ams_site and \
+              dfs_datadirs and len(preferred_mountpoints) > len(dfs_datadirs):
+              for dfs_datadir in dfs_datadirs:
                 dfs_datadir_mountpoint = getMountPointForDir(dfs_datadir, mountPoints)
                 if dfs_datadir_mountpoint == hbase_rootdir_mountpoint:
                   item = self.getWarnItem("Consider not using {0} partition for storing metrics data. "
@@ -725,14 +735,26 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           unusedMemory = host["Hosts"]["total_mem"] * 1024 - requiredMemory # in bytes
           hbase_rootdir = amsHbaseSite.get("hbase.rootdir")
           if unusedMemory > 4294967296:  # warn user, if more than 4GB RAM is unused
-            propertyToIncrease = "hbase_regionserver_heapsize" if hbase_rootdir.startswith("hdfs://") else "hbase_master_heapsize"
+            heapPropertyToIncrease = "hbase_regionserver_heapsize" if hbase_rootdir.startswith("hdfs://") else "hbase_master_heapsize"
+            xmnPropertyToIncrease = "regionserver_xmn_size" if hbase_rootdir.startswith("hdfs://") else "hbase_master_xmn_size"
             collector_heapsize = int((unusedMemory - 4294967296)/5) + to_number(ams_env.get("metrics_collector_heapsize"))*1048576
-            hbase_heapsize = int((unusedMemory - 4294967296)*4/5) + to_number(properties.get(propertyToIncrease))*1048576
-            msg = "{0} MB RAM is unused on the host {1} based on components " \
-                  "assigned. Consider allocating  {2} MB to metrics_collector_heapsize in ams-env and {3} MB to {4} in ams-hbase-env"
+            hbase_heapsize = int((unusedMemory - 4294967296)*4/5) + to_number(properties.get(heapPropertyToIncrease))*1048576
 
-            unusedMemoryHbaseItem = self.getWarnItem(msg.format(unusedMemory/1048576, collectorHostName, collector_heapsize/1048576, hbase_heapsize/1048576, propertyToIncrease))
-            validationItems.extend([{"config-name": propertyToIncrease, "item": unusedMemoryHbaseItem}])
+            if hbase_heapsize/1048576 > 2048:
+              xmn_size = '512'
+            elif hbase_heapsize/1048576 > 1024:
+              xmn_size = '256'
+            else:
+              xmn_size = '128'
+
+            msg = "{0} MB RAM is unused on the host {1} based on components " \
+                  "assigned. Consider allocating  {2} MB to " \
+                  "metrics_collector_heapsize in ams-env, " \
+                  "{3} MB to {4} in ams-hbase-env and " \
+                  "{5} MB to {6} in ams-hbase-env"
+
+            unusedMemoryHbaseItem = self.getWarnItem(msg.format(unusedMemory/1048576, collectorHostName, collector_heapsize/1048576, hbase_heapsize/1048576, heapPropertyToIncrease, xmn_size, xmnPropertyToIncrease))
+            validationItems.extend([{"config-name": heapPropertyToIncrease, "item": unusedMemoryHbaseItem}])
       pass
 
     # Check RS memory in distributed mode since we set default as 512m
@@ -791,11 +813,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     mountPoints.append("/")
     return mountPoints
 
-  def validatorNotRootFs(self, properties, propertyName, hostInfo):
+  def validatorNotRootFs(self, properties, recommendedDefaults, propertyName, hostInfo):
     if not propertyName in properties:
       return self.getErrorItem("Value should be set")
     dir = properties[propertyName]
-    if dir.startswith("hdfs://"):
+    if dir.startswith("hdfs://") or dir == recommendedDefaults.get(propertyName):
       return None
 
     dir = re.sub("^file://", "", dir, count=1)
@@ -1095,7 +1117,7 @@ def getMountPointForDir(dir, mountPoints):
   """
   bestMountFound = None
   if dir:
-    dir = re.sub("^file:///", "", dir, count=1).strip().lower()
+    dir = re.sub("^file://", "", dir, count=1).strip().lower()
 
     # If the path is "/hadoop/hdfs/data", then possible matches for mounts could be
     # "/", "/hadoop/hdfs", and "/hadoop/hdfs/data".
@@ -1170,3 +1192,6 @@ def getMemorySizeRequired(components, configurations):
         totalMemoryRequired += formatXmxSizeToBytes(heapsize)
 
   return totalMemoryRequired
+
+def round_to_n(mem_size, n=128):
+  return int(round(mem_size / float(n))) * int(n)

@@ -1977,8 +1977,9 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "ams-hbase-env": {
         "properties": {
-          "hbase_master_heapsize": "540m"
-          }
+          "hbase_master_xmn_size": "128m",
+          "hbase_master_heapsize": "512m"
+        }
       },
       "ams-env": {
         "properties": {
@@ -1993,7 +1994,6 @@ class TestHDP22StackAdvisor(TestCase):
           "hfile.block.cache.size": "0.3",
           "hbase.rootdir": "file:///var/lib/ambari-metrics-collector/hbase",
           "hbase.tmp.dir": "/var/lib/ambari-metrics-collector/hbase-tmp",
-          "hbase_master_xmn_size" : "128m"
         }
       },
       "ams-site": {
@@ -2008,7 +2008,7 @@ class TestHDP22StackAdvisor(TestCase):
     self.assertEquals(configurations, expected)
 
     # 100-nodes cluster, but still only 1 sink (METRICS_COLLECTOR)
-    for i in range(2, 101):
+    for i in range(2, 201):
       hosts['items'].extend([{
         "Hosts": {
           "host_name": "host" + str(i)
@@ -2030,13 +2030,13 @@ class TestHDP22StackAdvisor(TestCase):
           {
             "StackServiceComponents": {
               "component_name": "METRICS_MONITOR",
-              "hostnames": ["host" + str(i) for i in range(1, 101)]
+              "hostnames": ["host" + str(i) for i in range(1, 201)]
             }
           }
         ]
       }
     ]
-    expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '1034m'
+    expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '1408m'
     expected["ams-env"]['properties']['metrics_collector_heapsize'] = '512m'
 
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
@@ -2058,7 +2058,7 @@ class TestHDP22StackAdvisor(TestCase):
           {
             "StackServiceComponents": {
               "component_name": "DATANODE",
-              "hostnames": ["host" + str(i) for i in range(1, 101)]
+              "hostnames": ["host" + str(i) for i in range(1, 201)]
             }
           }
         ]
@@ -2077,7 +2077,7 @@ class TestHDP22StackAdvisor(TestCase):
           {
             "StackServiceComponents": {
               "component_name": "NODEMANAGER",
-              "hostnames": ["host" + str(i) for i in range(1, 101)]
+              "hostnames": ["host" + str(i) for i in range(1, 201)]
             }
           }
         ]
@@ -2096,16 +2096,16 @@ class TestHDP22StackAdvisor(TestCase):
           {
             "StackServiceComponents": {
               "component_name": "METRICS_MONITOR",
-              "hostnames": ["host" + str(i) for i in range(1, 101)]
+              "hostnames": ["host" + str(i) for i in range(1, 201)]
             }
           }
         ]
       }
 
     ]
-    expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '1601m'
-    expected["ams-env"]['properties']['metrics_collector_heapsize'] = '512m'
-    # expected["ams-hbase-site"]['properties']['hbase_master_xmn_size'] = '256m'
+    expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '2432m'
+    expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '256m'
+    expected["ams-env"]['properties']['metrics_collector_heapsize'] = '640m'
 
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
