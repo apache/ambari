@@ -41,6 +41,15 @@ class TestMahoutClient(RMFTestCase):
       group = 'hadoop',
       recursive = True)
 
+    self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
+      owner = "yarn",
+      group = 'hadoop',
+      mode = 0644,
+      conf_dir = '/usr/hdp/current/hadoop-client/conf',
+      configurations = self.getConfig()['configurations']['yarn-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['yarn-site']
+    )
+
     self.assertResourceCalled('File',
       '/usr/hdp/current/mahout-client/conf/log4j.properties',
       content = self.getConfig()['configurations']['mahout-log4j']['content'],

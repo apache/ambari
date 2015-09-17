@@ -31,6 +31,15 @@ def mahout():
              group = params.user_group
   )
 
+  XmlConfig("yarn-site.xml",
+            conf_dir=params.hadoop_conf_dir,
+            configurations=params.config['configurations']['yarn-site'],
+            configuration_attributes=params.config['configuration_attributes']['yarn-site'],
+            owner=params.yarn_user,
+            group=params.user_group,
+            mode=0644
+  )
+
   if not is_empty(params.log4j_props):
     File(format("{params.mahout_conf_dir}/log4j.properties"),
          mode=0644,
