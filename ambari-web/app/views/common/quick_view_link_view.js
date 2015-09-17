@@ -455,16 +455,16 @@ App.QuickViewLinks = Em.View.extend({
    */
   setPort: function (item, protocol, config) {
     var configProperties = this.get('configProperties');
-    var config = config || item.get('http_config');
+    var configProp = config || item.get('http_config');
     var defaultPort = item.get('default_http_port');
     if (protocol === 'https' && (config || item.get('https_config'))) {
-      config = config || item.get('https_config');
+      configProp = config || item.get('https_config');
       if (item.get('default_https_port')) {
         defaultPort = item.get('default_https_port');
       }
     }
     var site = configProperties.findProperty('type', item.get('site'));
-    var propertyValue = site && site.properties && site.properties[config];
+    var propertyValue = site && site.properties && site.properties[configProp];
     if (!propertyValue) {
       if (item.get('service_id') == 'RANGER') {
         // HDP 2.3
