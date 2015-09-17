@@ -21,6 +21,7 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.validate import call_and_match_output
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
+from resource_management.core import sudo
 
 class ServiceCheck(Script):
   def service_check(self, env):
@@ -45,13 +46,13 @@ class ServiceCheck(Script):
     import params
     
     kafka_config = {}
-    with open(params.conf_dir+"/server.properties", "r") as conf_file:
-      for line in conf_file:
-        if line.startswith("#") or not line.strip():
-          continue 
-        
-        key,value = line.split("=")
-        kafka_config[key] = value.replace("\n","")
+    content = sudo.read_file(params.conf_dir + "/server.properties")
+    for line in content.splitlines():
+      if line.startswith("#") or not line.strip():
+        continue
+
+      key, value = line.split("=")
+      kafka_config[key] = value.replace("\n", "")
     
     return kafka_config
 
