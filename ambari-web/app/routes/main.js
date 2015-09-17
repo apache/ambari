@@ -424,7 +424,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                   alwaysCallback: function () {
                     self.hide();
                     router.transitionTo('adminKerberos.index');
-                    location.reload();
+                    Em.run.next(function() {
+                      location.reload();
+                    });
                   }
                 });
               },

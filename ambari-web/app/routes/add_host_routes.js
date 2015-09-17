@@ -34,7 +34,9 @@ module.exports = App.WizardRoute.extend({
       alwaysCallback: function () {
         context.hide();
         App.router.transitionTo('hosts.index');
-        location.reload();
+        Em.run.next(function() {
+          location.reload();
+        });
       }
     });
   },

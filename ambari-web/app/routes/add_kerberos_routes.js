@@ -76,7 +76,9 @@ module.exports = App.WizardRoute.extend({
           App.get('router.updateController').set('isWorking', true);
           if (App.get('testMode')) {
             App.get('router').transitionTo('adminKerberos.index');
-            location.reload();
+            Em.run.next(function() {
+              location.reload();
+            });
           }
           App.router.get('wizardWatcherController').resetUser();
           App.clusterStatus.setClusterStatus({
@@ -87,7 +89,9 @@ module.exports = App.WizardRoute.extend({
             alwaysCallback: function () {
               self.hide();
               App.get('router').transitionTo(exitPath);
-              location.reload();
+              Em.run.next(function() {
+                location.reload();
+              });
             }
           });
         }
@@ -383,7 +387,9 @@ module.exports = App.WizardRoute.extend({
         alwaysCallback: function () {
           controller.get('popup').hide();
           App.get('router').transitionTo('adminKerberos.index');
-          location.reload();
+          Em.run.next(function() {
+            location.reload();
+          });
         }
       });
 

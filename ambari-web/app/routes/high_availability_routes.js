@@ -77,7 +77,9 @@ module.exports = App.WizardRoute.extend({
                 alwaysCallback: function () {
                   self.hide();
                   App.router.transitionTo('main.services.index');
-                  location.reload();
+                  Em.run.next(function() {
+                    location.reload();
+                  });
                 }
               });
             }
@@ -326,7 +328,15 @@ module.exports = App.WizardRoute.extend({
         clusterName: controller.get('content.cluster.name'),
         clusterState: 'DEFAULT',
         localdb: App.db.data
-      },{alwaysCallback: function() {controller.get('popup').hide();router.transitionTo('main.services.index');location.reload();}});
+      }, {
+        alwaysCallback: function () {
+          controller.get('popup').hide();
+          router.transitionTo('main.services.index');
+          Em.run.next(function() {
+            location.reload();
+          });
+        }
+      });
     }
   })
 

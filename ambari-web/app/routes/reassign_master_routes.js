@@ -33,7 +33,9 @@ module.exports = App.WizardRoute.extend({
     }, {alwaysCallback: function () {
       context.hide();
       router.transitionTo('main.index');
-      location.reload();
+      Em.run.next(function() {
+        location.reload();
+      });
     }});
   },
 
@@ -246,7 +248,9 @@ module.exports = App.WizardRoute.extend({
         }, {alwaysCallback: function () {
           controller.get('popup').hide();
           router.transitionTo('main.index');
-          location.reload();
+          Em.run.next(function() {
+            location.reload();
+          });
         }});
       }
     },
@@ -311,7 +315,9 @@ module.exports = App.WizardRoute.extend({
         }, {alwaysCallback: function () {
           controller.get('popup').hide();
           router.transitionTo('main.index');
-          location.reload();
+          Em.run.next(function() {
+            location.reload();
+          });
         }});
       }
     },
@@ -344,11 +350,15 @@ module.exports = App.WizardRoute.extend({
           clusterName: router.get('reassignMasterController.content.cluster.name'),
           clusterState: 'DEFAULT',
           localdb: App.db.data
-        }, {alwaysCallback: function () {
-          controller.get('popup').hide();
-          router.transitionTo('main.index');
-          location.reload();
-        }});
+        }, {
+          alwaysCallback: function () {
+            controller.get('popup').hide();
+            router.transitionTo('main.index');
+            Em.run.next(function() {
+              location.reload();
+            });
+          }
+        });
       }
     },
 
@@ -362,11 +372,15 @@ module.exports = App.WizardRoute.extend({
           clusterName: router.get('reassignMasterController.content.cluster.name'),
           clusterState: 'DEFAULT',
           localdb: App.db.data
-        }, {alwaysCallback: function () {
-          controller.get('popup').hide();
-          router.transitionTo('main.index');
-          location.reload();
-        }});
+        }, {
+          alwaysCallback: function () {
+            controller.get('popup').hide();
+            router.transitionTo('main.index');
+            Em.run.next(function() {
+              location.reload();
+            });
+          }
+        });
       }
     },
 
