@@ -170,7 +170,7 @@ hdp23properties.push({
     "filename": "ranger-kms-audit.xml",
     "category": "Advanced ranger-kms-audit",
     "serviceName": "RANGER_KMS"
-  },        
+  },
   {
     "name": "ranger-yarn-plugin-enabled",
     "displayType": "checkbox",

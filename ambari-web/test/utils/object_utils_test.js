@@ -77,4 +77,105 @@ describe('utils/object_utils', function() {
       });
     });
   });
+
+  describe('#deepEqual', function() {
+    it('simple values', function() {
+      expect(objectUtils.deepEqual(true, true)).to.true;
+    });
+    it('simple values strict', function() {
+      expect(objectUtils.deepEqual(true, 1)).to.false;
+    });
+    it('simple with complex', function() {
+      expect(objectUtils.deepEqual(true, {})).to.false;
+    });
+    it('complex with simple', function() {
+      expect(objectUtils.deepEqual({}, 2)).to.false;
+    });
+    it('simple objects', function() {
+      var a = {
+        value: 1
+      };
+      var b = {
+        value: 1
+      };
+      expect(objectUtils.deepEqual(a, b)).to.true;
+    });
+    it('simple objects failed', function() {
+      var a = {
+        value: 1,
+        c: 1
+      };
+      var b = {
+        value: 1
+      };
+      expect(objectUtils.deepEqual(a, b)).to.false;
+    });
+    it('complex objects', function() {
+      var a = {
+        value: 1,
+        c: {
+          d: {
+            x: {
+              val: 1
+            }
+          }
+        }
+      };
+      var b = {
+        value: 1,
+        c: {
+          d: {
+            x: {
+              val: 1
+            }
+          }
+        }
+      };
+      expect(objectUtils.deepEqual(a, b)).to.true;
+    });
+    it('complex objects failed', function() {
+      var a = {
+        value: 1,
+        c: {
+          d: {
+            x: {
+              val: 1
+            }
+          }
+        }
+      };
+      var b = {
+        value: 1,
+        c: {
+          d: {
+            x: {
+              val: 2
+            }
+          }
+        }
+      };
+      expect(objectUtils.deepEqual(a, b)).to.false;
+    });
+    it('complex array', function() {
+      var a = [1,2,{a: 2}, 4, {b:{}}];
+      var b = [1,2,{a: 2}, 4, {b:{}}];
+      expect(objectUtils.deepEqual(a, b)).to.true;
+    });
+    it('complex array failed', function() {
+      var a = [1,3,{a: 2}, 4, {b:{}}];
+      var b = [1,2,{a: 2}, 4, {b:{}}];
+      expect(objectUtils.deepEqual(a, b)).to.false;
+    });
+    it('simple array', function() {
+      var a = [1,3];
+      var b = [1,3];
+      expect(objectUtils.deepEqual(a, b)).to.true;
+    });
+    it('simple array failed', function() {
+      var a = [3,1];
+      var b = [1,3];
+      expect(objectUtils.deepEqual(a, b)).to.false;
+    });
+  });
+
 });

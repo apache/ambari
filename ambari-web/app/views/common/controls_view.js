@@ -831,12 +831,20 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
     return this.get('value').length === 0;
   }.property('value'),
 
+  formatValue: function() {
+    if (Em.isArray(this.get('value')) && this.get('value').length === 1) {
+      return this.get('value.firstObject');
+    } else {
+      return this.get('value');
+    }
+  }.property('value'),
+
   hasOneHost: function () {
-    return this.get('value').length === 1;
+    return !Em.isArray(this.get('value')) || this.get('value').length === 1;
   }.property('value'),
 
   hasMultipleHosts: function () {
-    return this.get('value').length > 1;
+    return Em.isArray(this.get('value')) && this.get('value').length > 1;
   }.property('value'),
 
   otherLength: function () {

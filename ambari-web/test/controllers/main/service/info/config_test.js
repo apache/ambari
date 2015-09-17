@@ -789,7 +789,7 @@ describe("App.MainServiceInfoConfigsController", function () {
       expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({}).compareConfigs.length).to.equal(0);
     });
     it("empty service config and comparison passed, expect that setCompareDefaultGroupConfig will not run anything", function() {
-      expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({},{}).compareConfigs.length).to.equal(0);
+      expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({},{}).compareConfigs).to.eql(["compConfig"]);
     });
     it("expect that serviceConfig.compareConfigs will be getMockComparisonConfig", function() {
       expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({isUserProperty: true}, null)).to.eql({compareConfigs: ["mockConfig"], isUserProperty: true, isComparison: true, hasCompareDiffs: true});
