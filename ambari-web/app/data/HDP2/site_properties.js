@@ -611,7 +611,7 @@ var hdp2properties = [
       },
       {
         displayName: 'Existing SQLA Database',
-        hidden: App.get('currentStackName') !== 'SAPHD'
+        hidden: App.get('currentStackName') !== 'SAPHD' && (App.get('currentStackName') !== 'HDP' || !App.get('isHadoop23Stack'))
       }
     ],
     "displayType": "radio button",
@@ -811,7 +811,7 @@ var hdp2properties = [
       },
       {
         displayName: 'Existing SQLA Database',
-        hidden: App.get('currentStackName') !== 'SAPHD'
+        hidden: App.get('currentStackName') !== 'SAPHD' && (App.get('currentStackName') !== 'HDP' || !App.get('isHadoop23Stack'))
       }
     ],
     "displayType": "radio button",
