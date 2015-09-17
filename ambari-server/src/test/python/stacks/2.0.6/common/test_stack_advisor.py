@@ -33,8 +33,8 @@ class TestHDP206StackAdvisor(TestCase):
     with open(stackAdvisorPath, 'rb') as fp:
       stack_advisor = imp.load_module( 'stack_advisor', fp, stackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE) )
     with open(hdp206StackAdvisorPath, 'rb') as fp:
-      stack_advisor_impl = imp.load_module('stack_advisor_impl', fp, hdp206StackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
-    clazz = getattr(stack_advisor_impl, hdp206StackAdvisorClassName)
+      self.stack_advisor_impl = imp.load_module('stack_advisor_impl', fp, hdp206StackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
+    clazz = getattr(self.stack_advisor_impl, hdp206StackAdvisorClassName)
     self.stackAdvisor = clazz()
     self.maxDiff = None
     # substitute method in the instance
@@ -894,6 +894,201 @@ class TestHDP206StackAdvisor(TestCase):
     res = self.stackAdvisor.validateHDFSConfigurationsEnv(properties, recommendedDefaults, configurations, '', '')
     self.assertEquals(res, res_expected)
 
+  def test_validateAmsHbaseSiteConfigurations(self):
+    configurations = {
+      "hdfs-site": {
+        "properties": {
+          'dfs.datanode.data.dir': "/hadoop/data"
+        }
+      },
+      "ams-site": {
+        "properties": {
+          "timeline.metrics.service.operation.mode": "embedded"
+        }
+      }
+    }
+
+    recommendedDefaults = {
+      'hbase.rootdir': 'file:///var/lib/ambari-metrics-collector/hbase',
+      'hbase.tmp.dir': '/var/lib/ambari-metrics-collector/hbase',
+      'hbase.cluster.distributed': 'false'
+    }
+    properties = {
+      'hbase.rootdir': 'file:///var/lib/ambari-metrics-collector/hbase',
+      'hbase.tmp.dir' : '/var/lib/ambari-metrics-collector/hbase',
+      'hbase.cluster.distributed': 'false'
+    }
+    host = {
+      "href" : "/api/v1/hosts/host1",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "host_name" : "host1",
+        "os_arch" : "x86_64",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "host1",
+        "rack_info" : "/default-rack",
+        "total_mem" : 2097152,
+        "disk_info": [
+          {
+            "available": str(15<<30), # 15 GB
+            "type": "ext4",
+            "mountpoint": "/"
+          }
+        ]
+      }
+    }
+
+    hosts = {
+      "items" : [
+        host
+      ]
+    }
+
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "AMBARI_METRICS"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "METRICS_COLLECTOR",
+                "hostnames": ["host1"]
+              }
+            }, {
+              "StackServiceComponents": {
+                "component_name": "METRICS_MONITOR",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        },
+        {
+          "StackServices": {
+            "service_name": "HDFS"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "DATANODE",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        }
+      ],
+      "configurations": configurations
+    }
+
+    # only 1 partition, enough disk space, no warnings
+    res = self.stackAdvisor.validateAmsHbaseSiteConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    expected = []
+    self.assertEquals(res, expected)
+
+
+    # 1 partition, no enough disk space
+    host['Hosts']['disk_info'] = [
+      {
+        "available" : '1',
+        "type" : "ext4",
+        "mountpoint" : "/"
+      }
+    ]
+    res = self.stackAdvisor.validateAmsHbaseSiteConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    expected = [
+      {'config-name': 'hbase.rootdir',
+       'config-type': 'ams-hbase-site',
+       'level': 'WARN',
+       'message': 'Ambari Metrics disk space requirements not met. '
+                  '\nRecommended disk space for partition / is 10G',
+       'type': 'configuration'
+      }
+    ]
+    self.assertEquals(res, expected)
+
+    # 2 partitions
+    host['Hosts']['disk_info'] = [
+      {
+        "available": str(15<<30), # 15 GB
+        "type" : "ext4",
+        "mountpoint" : "/grid/0"
+      },
+      {
+        "available" : str(15<<30), # 15 GB
+        "type" : "ext4",
+        "mountpoint" : "/"
+      }
+    ]
+    recommendedDefaults = {
+      'hbase.rootdir': 'file:///grid/0/var/lib/ambari-metrics-collector/hbase',
+      'hbase.tmp.dir': '/var/lib/ambari-metrics-collector/hbase',
+      'hbase.cluster.distributed': 'false'
+    }
+    properties = {
+      'hbase.rootdir': 'file:///grid/0/var/lib/ambari-metrics-collector/hbase',
+      'hbase.tmp.dir' : '/var/lib/ambari-metrics-collector/hbase',
+      'hbase.cluster.distributed': 'false'
+    }
+    res = self.stackAdvisor.validateAmsHbaseSiteConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    expected = []
+    self.assertEquals(res, expected)
+
+    # dfs.dir & hbase.rootdir crosscheck + root partition + hbase.rootdir == hbase.tmp.dir warnings
+    properties = {
+      'hbase.rootdir': 'file:///var/lib/ambari-metrics-collector/hbase',
+      'hbase.tmp.dir' : '/var/lib/ambari-metrics-collector/hbase',
+      'hbase.cluster.distributed': 'false'
+    }
+
+    res = self.stackAdvisor.validateAmsHbaseSiteConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    expected = [
+      {
+        'config-name': 'hbase.rootdir',
+        'config-type': 'ams-hbase-site',
+        'level': 'WARN',
+        'message': 'It is not recommended to use root partition for hbase.rootdir',
+        'type': 'configuration'
+      },
+      {
+        'config-name': 'hbase.tmp.dir',
+        'config-type': 'ams-hbase-site',
+        'level': 'WARN',
+        'message': 'Consider not using / partition for storing metrics temporary data. '
+                   '/ partition is already used as hbase.rootdir to store metrics data',
+        'type': 'configuration'
+      },
+      {
+        'config-name': 'hbase.rootdir',
+        'config-type': 'ams-hbase-site',
+        'level': 'WARN',
+        'message': 'Consider not using / partition for storing metrics data. '
+                   '/ is already used by datanode to store HDFS data',
+        'type': 'configuration'
+      }
+    ]
+    self.assertEquals(res, expected)
+
+    # incorrect hbase.rootdir in distributed mode
+    properties = {
+      'hbase.rootdir': 'file:///grid/0/var/lib/ambari-metrics-collector/hbase',
+      'hbase.tmp.dir' : '/var/lib/ambari-metrics-collector/hbase',
+      'hbase.cluster.distributed': 'false'
+    }
+    configurations['ams-site']['properties']['timeline.metrics.service.operation.mode'] = 'distributed'
+    res = self.stackAdvisor.validateAmsHbaseSiteConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    expected = [
+      {
+        'config-name': 'hbase.rootdir',
+        'config-type': 'ams-hbase-site',
+        'level': 'WARN',
+        'message': 'In distributed mode hbase.rootdir should point to HDFS. Collector will operate in embedded mode otherwise.',
+        'type': 'configuration'
+      }
+    ]
+    self.assertEquals(res, expected)
+
   def test_getHostsWithComponent(self):
     services = {"services":
                   [{"StackServices":
@@ -1161,8 +1356,9 @@ class TestHDP206StackAdvisor(TestCase):
       }
     ]}
     properties = {"property1": "/var/dir"}
+    recommendedDefaults = {"property1": "/var/dir"}
     # only / mountpoint - no warning
-    self.assertTrue(self.stackAdvisor.validatorNotRootFs(properties, 'property1', hostInfo) == None)
+    self.assertTrue(self.stackAdvisor.validatorNotRootFs(properties, recommendedDefaults, 'property1', hostInfo) == None)
     # More preferable /grid/0 mountpoint - warning
     hostInfo["disk_info"].append(
       {
@@ -1171,8 +1367,8 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/grid/0"
       }
     )
-
-    warn = self.stackAdvisor.validatorNotRootFs(properties, 'property1', hostInfo)
+    recommendedDefaults = {"property1": "/grid/0/var/dir"}
+    warn = self.stackAdvisor.validatorNotRootFs(properties, recommendedDefaults, 'property1', hostInfo)
     self.assertFalse(warn == None)
     self.assertEquals({'message': 'It is not recommended to use root partition for property1', 'level': 'WARN'}, warn)
 
@@ -1184,4 +1380,17 @@ class TestHDP206StackAdvisor(TestCase):
         "mountpoint" : "/var"
       }
     )
-    self.assertTrue(self.stackAdvisor.validatorNotRootFs(properties, 'property1', hostInfo) == None)
+    self.assertTrue(self.stackAdvisor.validatorNotRootFs(properties, recommendedDefaults, 'property1', hostInfo) == None)
+
+  def test_round_to_n(self):
+    self.assertEquals(self.stack_advisor_impl.round_to_n(0), 0)
+    self.assertEquals(self.stack_advisor_impl.round_to_n(1000), 1024)
+    self.assertEquals(self.stack_advisor_impl.round_to_n(2000), 2048)
+    self.assertEquals(self.stack_advisor_impl.round_to_n(4097), 4096)
+
+  def test_getMountPointForDir(self):
+    self.assertEquals(self.stack_advisor_impl.getMountPointForDir("/var/log", ["/"]), "/")
+    self.assertEquals(self.stack_advisor_impl.getMountPointForDir("/var/log", ["/var", "/"]), "/var")
+    self.assertEquals(self.stack_advisor_impl.getMountPointForDir("file:///var/log", ["/var", "/"]), "/var")
+    self.assertEquals(self.stack_advisor_impl.getMountPointForDir("hdfs:///hdfs_path", ["/var", "/"]), None)
+    self.assertEquals(self.stack_advisor_impl.getMountPointForDir("relative/path", ["/var", "/"]), None)
