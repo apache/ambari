@@ -356,32 +356,6 @@ public class TestPhoenixTransactSQL {
   }
 
   @Test
-  public void testPrepareGetLatestMetricSqlStmtSingleHostName() throws SQLException {
-    Condition condition = new DefaultCondition(
-      Arrays.asList("cpu_user"), Collections.singletonList("h1"),
-      "a1", "i1", null, null, null, null, false);
-    Connection connection = createNiceMock(Connection.class);
-    PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
-    ParameterMetaData parameterMetaData = createNiceMock(ParameterMetaData.class);
-    Capture<String> stmtCapture = new Capture<String>();
-    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
-        .andReturn(preparedStatement);
-    expect(preparedStatement.getParameterMetaData())
-      .andReturn(parameterMetaData).times(2);
-    // 8 = (1 instance_id + 1 appd_id + 1 hostname + 1 metric name) * 2,
-    // For GET_LATEST_METRIC_SQL_SINGLE_HOST parameters should be set 2 times
-    expect(parameterMetaData.getParameterCount())
-      .andReturn(8).times(2);
-
-    replay(connection, preparedStatement, parameterMetaData);
-    PhoenixTransactSQL.prepareGetLatestMetricSqlStmt(connection, condition);
-    String stmt = stmtCapture.getValue();
-    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD"));
-    Assert.assertTrue(stmt.contains("ANY"));
-    verify(connection, preparedStatement, parameterMetaData);
-  }
-
-  @Test
   public void testPrepareGetLatestMetricSqlStmtMultipleHostNames() throws SQLException {
     Condition condition = new DefaultCondition(
       Arrays.asList("cpu_user", "mem_free"), Arrays.asList("h1", "h2"),

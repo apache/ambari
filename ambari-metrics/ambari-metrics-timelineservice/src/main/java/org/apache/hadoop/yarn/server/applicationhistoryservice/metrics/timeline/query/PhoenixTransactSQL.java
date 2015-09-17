@@ -187,24 +187,6 @@ public class PhoenixTransactSQL {
     "AND E.APP_ID=I.APP_ID " +
     "AND E.INSTANCE_ID=I.INSTANCE_ID";
 
-  /**
-   * Get latest metrics for a single host
-   *
-   * Different queries for a number of hosts and a single host are used due to
-   * bug in Apache Phoenix
-   */
-  public static final String GET_LATEST_METRIC_SQL_SINGLE_HOST = "SELECT " +
-    "METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, SERVER_TIME, START_TIME, " +
-    "UNITS, METRIC_SUM, METRIC_MAX, METRIC_MIN, METRIC_COUNT, METRICS " +
-    "FROM %s " +
-    "WHERE %s " +
-    "AND (METRIC_NAME, HOSTNAME, SERVER_TIME, APP_ID, INSTANCE_ID) = ANY " +
-    "(SELECT " +
-    "METRIC_NAME, HOSTNAME, MAX(SERVER_TIME) AS SERVER_TIME, APP_ID, INSTANCE_ID " +
-    "FROM %s " +
-    "WHERE %s " +
-    "GROUP BY METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID)";
-
   public static final String GET_METRIC_AGGREGATE_ONLY_SQL = "SELECT %s " +
     "METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, SERVER_TIME, " +
     "UNITS, " +
@@ -469,20 +451,10 @@ public class PhoenixTransactSQL {
     if (condition.getStatement() != null) {
       stmtStr = condition.getStatement();
     } else {
-      //if not a single metric for a single host
-      if (condition.getHostnames().size() == 1
-        && condition.getMetricNames().size() == 1) {
-        stmtStr = String.format(GET_LATEST_METRIC_SQL_SINGLE_HOST,
-          METRICS_RECORD_TABLE_NAME,
-          condition.getConditionClause(),
-          METRICS_RECORD_TABLE_NAME,
-          condition.getConditionClause());
-      } else {
-        stmtStr = String.format(GET_LATEST_METRIC_SQL,
-          METRICS_RECORD_TABLE_NAME,
-          METRICS_RECORD_TABLE_NAME,
-          condition.getConditionClause());
-      }
+      stmtStr = String.format(GET_LATEST_METRIC_SQL,
+        METRICS_RECORD_TABLE_NAME,
+        METRICS_RECORD_TABLE_NAME,
+        condition.getConditionClause());
     }
 
     if (LOG.isDebugEnabled()) {
