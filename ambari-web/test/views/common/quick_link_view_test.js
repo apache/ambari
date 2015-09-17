@@ -118,6 +118,24 @@ describe('App.QuickViewLinks', function () {
         }]
       }),
       Em.Object.create({
+        'service_id': 'YARN',
+        'protocol': 'https',
+        'http_config': 'http_config',
+        'https_config': 'https_config',
+        'site': 'yarn-site',
+        'result': '9090',
+        'default_http_port': '8088',
+        'default_https_port': '8090',
+        'regex': '\\w*:(\\d+)',
+        'configProperties': [{
+          'type': 'yarn-site',
+          'properties': {
+            'http_config': 'h:9088',
+            'https_config': 'h:9090'
+          }
+        }]
+      }),
+      Em.Object.create({
         'service_id': 'RANGER',
         'protocol': 'http',
         'http_config': 'http_config',
