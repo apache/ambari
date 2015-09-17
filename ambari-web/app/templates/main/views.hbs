@@ -17,7 +17,7 @@
 }}
 
 <div id="views">
-  <h4>{{t views.main.yourViews}}</h4>
+  <h4 class="background-text">{{t views.main.yourViews}}</h4>
   {{#if view.views.length}}
     <table class="table views-table">
       <tbody>
@@ -38,6 +38,6 @@
       </tbody>
     </table>
   {{else}}
-    <div class="muted no-views-text">{{t views.main.noViews}}</div>
+    <div class="muted no-views-text background-text">{{t views.main.noViews}}</div>
   {{/if}}
 </div>
