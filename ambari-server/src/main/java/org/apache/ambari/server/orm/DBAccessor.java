@@ -23,6 +23,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.eclipse.persistence.sessions.DatabaseSession;
 
 /**
@@ -411,10 +412,11 @@ public interface DBAccessor {
   public class DBColumnInfo {
     private String name;
     private Class type;
-//    private DBColumnType type;
     private Integer length;
     private Object defaultValue;
     private boolean isNullable;
+
+    private FieldTypeDefinition dbType = null;
 
     public DBColumnInfo(String name, Class type, Integer length) {
       this(name, type, length, null, true);
@@ -427,6 +429,18 @@ public interface DBAccessor {
       this.length = length;
       this.defaultValue = defaultValue;
       isNullable = nullable;
+    }
+
+    public DBColumnInfo(String name, FieldTypeDefinition dbType, Integer length, Object defaultValue, boolean isNullable) {
+      this.name = name;
+      this.length = length;
+      this.isNullable = isNullable;
+      this.defaultValue = defaultValue;
+      this.dbType = dbType;
+    }
+
+    public DBColumnInfo(String name, FieldTypeDefinition dbType, Integer length) {
+      this(name, dbType, length, null, true);
     }
 
     public String getName() {
@@ -469,14 +483,12 @@ public interface DBAccessor {
       isNullable = nullable;
     }
 
-    public enum DBColumnType {
-      VARCHAR,
-      CHAR,
-      INT,
-      LONG,
-      BOOL,
-      TIME,
-      BLOB
+    public FieldTypeDefinition getDbType() {
+      return dbType;
+    }
+
+    public void setDbType(FieldTypeDefinition dbType) {
+      this.dbType = dbType;
     }
   }
 

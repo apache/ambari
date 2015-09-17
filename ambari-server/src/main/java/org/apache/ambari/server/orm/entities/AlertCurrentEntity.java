@@ -26,6 +26,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
@@ -75,7 +76,8 @@ public class AlertCurrentEntity {
   @Column(name = "original_timestamp", nullable = false)
   private Long originalTimestamp;
 
-  @Column(name = "latest_text", length = 4000)
+  @Lob
+  @Column(name = "latest_text")
   private String latestText = null;
 
   /**

@@ -90,9 +90,11 @@ public class GenericDbmsHelper implements DbmsHelper {
   }
 
   public StringBuilder writeColumnType(StringBuilder builder, DBAccessor.DBColumnInfo columnInfo) {
-    FieldTypeDefinition fieldType;
+    FieldTypeDefinition fieldType = columnInfo.getDbType();
 
-    fieldType = databasePlatform.getFieldTypeDefinition(columnInfo.getType());
+    if (fieldType == null) {
+      fieldType = databasePlatform.getFieldTypeDefinition(columnInfo.getType());
+    }
 
     if (fieldType == null) {
       throw new IllegalArgumentException("Unable to convert data type");
