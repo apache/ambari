@@ -136,7 +136,7 @@ class ActionScheduler implements Runnable {
     actionTimeout = actionTimeoutMilliSec;
     this.db = db;
     this.actionQueue = actionQueue;
-    this.clusters = fsmObject;
+    clusters = fsmObject;
     this.ambariEventPublisher = ambariEventPublisher;
     this.maxAttempts = (short) maxAttempts;
     serverActionExecutor = new ServerActionExecutor(db, sleepTimeMilliSec);
@@ -287,30 +287,35 @@ class ActionScheduler implements Runnable {
         // Commands that will be scheduled in current scheduler wakeup
         List<ExecutionCommand> commandsToSchedule = new ArrayList<ExecutionCommand>();
         Map<String, RoleStats> roleStats = processInProgressStage(stage, commandsToSchedule);
+
         // Check if stage is failed
         boolean failed = false;
-        for (Map.Entry<String, RoleStats>entry : roleStats.entrySet()) {
+        for (Map.Entry<String, RoleStats> entry : roleStats.entrySet()) {
 
-          String    role  = entry.getKey();
+          String role = entry.getKey();
           RoleStats stats = entry.getValue();
 
           if (LOG.isDebugEnabled()) {
-            LOG.debug("Stats for role:" + role + ", stats=" + stats);
+            LOG.debug("Stats for role: {}, stats={}", role, stats);
           }
-          if (stats.isRoleFailed()) {
+
+          // only fail the request if the role failed and the stage is not
+          // skippable
+          if (stats.isRoleFailed() && !stage.isSkippable()) {
+            LOG.warn("{} failed, request {} will be aborted", role, request.getRequestId());
+
             failed = true;
             break;
           }
         }
 
-        if(!failed) {
+        if (!failed) {
           // Prior stage may have failed and it may need to fail the whole request
           failed = hasPreviousStageFailed(stage);
         }
 
         if (failed) {
-          LOG.warn("Operation completely failed, aborting request id:"
-              + stage.getRequestId());
+          LOG.warn("Operation completely failed, aborting request id: {}", stage.getRequestId());
           cancelHostRoleCommands(stage.getOrderedHostRoleCommands(), FAILED_TASK_ABORT_REASONING);
           abortOperationsForStage(stage);
           return;
@@ -989,34 +994,37 @@ class ActionScheduler implements Runnable {
 
   private void updateRoleStats(HostRoleStatus status, RoleStats rs) {
     switch (status) {
-    case COMPLETED:
-      rs.numSucceeded++;
-      break;
-    case FAILED:
-      rs.numFailed++;
-      break;
-    case QUEUED:
-      rs.numQueued++;
-      break;
-    case PENDING:
-      rs.numPending++;
-      break;
-    case TIMEDOUT:
-      rs.numTimedOut++;
-      break;
-    case ABORTED:
-      rs.numAborted++;
-      break;
-    case IN_PROGRESS:
-      rs.numInProgress++;
-      break;
-    case HOLDING:
-    case HOLDING_FAILED:
-    case HOLDING_TIMEDOUT:
-      rs.numHolding++;
-      break;
-    default:
-      LOG.error("Unknown status " + status.name());
+      case COMPLETED:
+        rs.numSucceeded++;
+        break;
+      case FAILED:
+        rs.numFailed++;
+        break;
+      case QUEUED:
+        rs.numQueued++;
+        break;
+      case PENDING:
+        rs.numPending++;
+        break;
+      case TIMEDOUT:
+        rs.numTimedOut++;
+        break;
+      case ABORTED:
+        rs.numAborted++;
+        break;
+      case IN_PROGRESS:
+        rs.numInProgress++;
+        break;
+      case HOLDING:
+      case HOLDING_FAILED:
+      case HOLDING_TIMEDOUT:
+        rs.numHolding++;
+        break;
+      case SKIPPED_FAILED:
+        rs.numSkipped++;
+        break;
+      default:
+        LOG.error("Unknown status " + status.name());
     }
   }
 
@@ -1038,6 +1046,8 @@ class ActionScheduler implements Runnable {
     int numPending = 0;
     int numAborted = 0;
     int numHolding = 0;
+    int numSkipped = 0;
+
     final int totalHosts;
     final float successFactor;
 
@@ -1076,6 +1086,7 @@ class ActionScheduler implements Runnable {
       builder.append(", numTimedOut=").append(numTimedOut);
       builder.append(", numPending=").append(numPending);
       builder.append(", numAborted=").append(numAborted);
+      builder.append(", numSkipped=").append(numSkipped);
       builder.append(", totalHosts=").append(totalHosts);
       builder.append(", successFactor=").append(successFactor);
       return builder.toString();

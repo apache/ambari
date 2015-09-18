@@ -2258,6 +2258,146 @@ public class TestActionScheduler {
 
   }
 
+  /**
+   * Tests that command failures in skippable stages do not cause the request to
+   * be aborted.
+   */
+  @Test
+  public void testSkippableCommandFailureDoesNotAbortRequest() throws Exception {
+    Properties properties = new Properties();
+    Configuration conf = new Configuration(properties);
+    ActionQueue aq = new ActionQueue();
+    Clusters fsm = mock(Clusters.class);
+    Cluster oneClusterMock = mock(Cluster.class);
+    Service serviceObj = mock(Service.class);
+    ServiceComponent scomp = mock(ServiceComponent.class);
+    ServiceComponentHost sch = mock(ServiceComponentHost.class);
+    UnitOfWork unitOfWork = mock(UnitOfWork.class);
+    when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
+    when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
+    when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
+    when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
+    when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+
+    String hostname1 = "ahost.ambari.apache.org";
+
+    HashMap<String, ServiceComponentHost> hosts = new HashMap<String, ServiceComponentHost>();
+
+    hosts.put(hostname1, sch);
+
+    when(scomp.getServiceComponentHosts()).thenReturn(hosts);
+
+    // create 1 stage with 2 commands and then another stage with 1 command
+    Stage stage = null;
+    Stage stage2 = null;
+    final List<Stage> stages = new ArrayList<Stage>();
+    stages.add(stage = getStageWithSingleTask(hostname1, "cluster1", Role.NAMENODE,
+        RoleCommand.STOP, Service.Type.HDFS, 1, 1, 1));
+
+    addInstallTaskToStage(stage, hostname1, "cluster1", Role.HBASE_MASTER, RoleCommand.INSTALL,
+        Service.Type.HBASE, 1);
+
+    stages.add(stage2 = getStageWithSingleTask(hostname1, "cluster1", Role.DATANODE,
+        RoleCommand.STOP, Service.Type.HDFS, 1, 1, 1));
+
+    // !!! this is the test; make the stages skippable so that when their
+    // commands fail, the entire request is not aborted
+    for (Stage stageToMakeSkippable : stages) {
+      stageToMakeSkippable.setSkippable(true);
+    }
+
+    // fail the first task - normally this would cause an abort, exception that our stages
+    // are skippable now so it should not
+    HostRoleCommand command = stage.getOrderedHostRoleCommands().iterator().next();
+    command.setStatus(HostRoleStatus.FAILED);
+
+    ActionDBAccessor db = mock(ActionDBAccessor.class);
+
+    RequestEntity request = mock(RequestEntity.class);
+    when(request.isExclusive()).thenReturn(false);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
+    when(db.getCommandsInProgressCount()).thenReturn(stages.size());
+    when(db.getStagesInProgress()).thenReturn(stages);
+
+    doAnswer(new Answer<Void>() {
+      @Override
+      public Void answer(InvocationOnMock invocation) throws Throwable {
+        List<CommandReport> reports = (List<CommandReport>) invocation.getArguments()[0];
+        for (CommandReport report : reports) {
+          String actionId = report.getActionId();
+          long[] requestStageIds = StageUtils.getRequestStage(actionId);
+          Long requestId = requestStageIds[0];
+          Long stageId = requestStageIds[1];
+          Long id = report.getTaskId();
+          for (Stage stage : stages) {
+            if (requestId.equals(stage.getRequestId()) && stageId.equals(stage.getStageId())) {
+              for (HostRoleCommand hostRoleCommand : stage.getOrderedHostRoleCommands()) {
+                if (hostRoleCommand.getTaskId() == id) {
+                  hostRoleCommand.setStatus(HostRoleStatus.valueOf(report.getStatus()));
+                }
+              }
+            }
+          }
+
+        }
+
+        return null;
+      }
+    }).when(db).updateHostRoleStates(anyCollectionOf(CommandReport.class));
+
+    when(db.getTask(anyLong())).thenAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) throws Throwable {
+        Long taskId = (Long) invocation.getArguments()[0];
+        for (Stage stage : stages) {
+          for (HostRoleCommand command : stage.getOrderedHostRoleCommands()) {
+            if (taskId.equals(command.getTaskId())) {
+              return command;
+            }
+          }
+        }
+        return null;
+      }
+    });
+    doAnswer(new Answer<Void>() {
+      @Override
+      public Void answer(InvocationOnMock invocation) throws Throwable {
+        Long requestId = (Long) invocation.getArguments()[0];
+        for (Stage stage : stages) {
+          if (requestId.equals(stage.getRequestId())) {
+            for (HostRoleCommand command : stage.getOrderedHostRoleCommands()) {
+              if (command.getStatus() == HostRoleStatus.QUEUED
+                  || command.getStatus() == HostRoleStatus.IN_PROGRESS
+                  || command.getStatus() == HostRoleStatus.PENDING) {
+                command.setStatus(HostRoleStatus.ABORTED);
+              }
+            }
+          }
+        }
+
+        return null;
+      }
+    }).when(db).abortOperation(anyLong());
+
+    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
+        new HostsMap((String) null), unitOfWork, null, conf);
+
+    scheduler.doWork();
+
+    Assert.assertEquals(HostRoleStatus.FAILED,
+        stages.get(0).getHostRoleStatus(hostname1, "NAMENODE"));
+
+    // the remaining tasks should NOT have been aborted since the stage is
+    // skippable - these tasks would normally be ABORTED if the stage was not
+    // skippable
+    Assert.assertEquals(HostRoleStatus.QUEUED,
+        stages.get(0).getHostRoleStatus(hostname1, "HBASE_MASTER"));
+
+    Assert.assertEquals(HostRoleStatus.PENDING,
+        stages.get(1).getHostRoleStatus(hostname1, "DATANODE"));
+
+  }
 
   public static class MockModule extends AbstractModule {
     @Override
