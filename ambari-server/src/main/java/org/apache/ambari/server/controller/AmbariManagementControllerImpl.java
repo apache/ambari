@@ -1864,13 +1864,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
 
-    final boolean isBlueprintInstall = isBlueprintInstall(commandParamsInp);
-    if (isBlueprintInstall) {
-      LOG.info("AmbariManagementControllerImpl.createHostAction: Blueprint install detected, forcing refresh of all configuration types");
-    }
-
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(scHost.getHostName(),
-      scHost.getServiceComponentName()).getExecutionCommand(isBlueprintInstall);
+      scHost.getServiceComponentName()).getExecutionCommand();
 
     Host host = clusters.getHost(scHost.getHostName());
 
@@ -2042,12 +2037,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       LOG.info("AmbariManagementControllerImpl.createHostAction: created ExecutionCommand for host {}, role {}, roleCommand {}, and command ID {}, with cluster-env tags {}",
         execCmd.getHostname(), execCmd.getRole(), execCmd.getRoleCommand(), execCmd.getCommandId(), execCmd.getConfigurationTags().get("cluster-env").get("tag"));
     }
-  }
-
-  private static boolean isBlueprintInstall(Map<String, String> commandParams) {
-    return commandParams != null && commandParams.containsKey(CLUSTER_PHASE_PROPERTY) &&
-      ((commandParams.get(CLUSTER_PHASE_PROPERTY).equals(CLUSTER_PHASE_INITIAL_INSTALL)) ||
-        ((commandParams.get(CLUSTER_PHASE_PROPERTY).equals(CLUSTER_PHASE_INITIAL_START))));
   }
 
   /**
