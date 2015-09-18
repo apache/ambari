@@ -95,6 +95,7 @@ else:
     # this is NOT a typo.  HDP-2.3 configs for hcatalog/webhcat point to a
     # specific directory which is NOT called 'conf'
     webhcat_conf_dir = '/usr/hdp/current/hive-webhcat/etc/webhcat'
+    hive_conf_dir = hive_server_conf_dir
 
   hive_config_dir = hive_client_conf_dir
   if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:

@@ -105,9 +105,6 @@ class TestHiveMetastore(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hive.service.keytab hive/c6401.ambari.apache.org@EXAMPLE.COM; ',
-                              user = 'hive',
-                              )
     self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
         environment = {'HADOOP_HOME': '/usr',
            'HIVE_BIN': 'hive',

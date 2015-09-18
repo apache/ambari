@@ -78,10 +78,6 @@ def hive_service(name, action='start', rolling_restart=False):
         import os
         hadoop_home = format("/usr/hdp/{version}/hadoop")
         hive_bin = os.path.join(params.hive_bin, hive_bin)
-
-    if params.security_enabled:
-      hive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
-      Execute(hive_kinit_cmd, user=params.hive_user)
       
     Execute(daemon_cmd, 
       user = params.hive_user,
