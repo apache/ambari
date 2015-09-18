@@ -74,6 +74,7 @@ public class InMemoryCredentialStoreService extends CredentialStoreServiceImpl {
             Thread t = Executors.defaultThreadFactory().newThread(runnable);
             if (t != null) {
               t.setName(String.format("%s active cleanup timer", InMemoryCredentialStoreService.class.getSimpleName()));
+              t.setDaemon(true);
             }
             return t;
           }
