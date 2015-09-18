@@ -2855,33 +2855,54 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.writeLock().lock();
     try {
       Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
-
+      
       // disable previous config
       for (ClusterConfigMappingEntity e : configMappingEntities) {
+        LOG.debug("{} with tag {} is unselected", e.getType(), e.getTag());
         e.setSelected(0);
       }
-
-      List<ClusterConfigEntity> clusterConfigsToMakeSelected = clusterDAO.getLatestConfigurations(
-          clusterEntity.getClusterId(), stackId);
-
-      for( ClusterConfigEntity clusterConfigToMakeSelected : clusterConfigsToMakeSelected ){
-        for (ClusterConfigMappingEntity configMappingEntity : configMappingEntities) {
-          String tag = configMappingEntity.getTag();
-          String type = configMappingEntity.getType();
-
-          if (clusterConfigToMakeSelected.getTag().equals(tag)
-              && clusterConfigToMakeSelected.getType().equals(type)) {
-            configMappingEntity.setSelected(1);
+      
+      List<ClusterConfigMappingEntity> clusterConfigMappingEntities = clusterDAO.getClusterConfigMappingsByStack(clusterEntity.getClusterId(), stackId);
+      Collection<ClusterConfigMappingEntity> latestConfigMappingByStack = getLatestConfigMapping(clusterConfigMappingEntities);
+      
+      for(ClusterConfigMappingEntity e: configMappingEntities){
+        String type = e.getType(); //loop thru all the config mappings
+        String tag =  e.getTag();
+        for (ClusterConfigMappingEntity latest : latestConfigMappingByStack) {
+          String t = latest.getType();
+          String tagLatest = latest.getTag();
+          if(type.equals(t) && tag.equals(tagLatest) ){//find the latest config of a given mapping entity
+            LOG.info("{} with version tag {} is selected for stack {}", type, tag, stackId.toString());
+            e.setSelected(1);
           }
         }
       }
-
+      
       clusterEntity = clusterDAO.merge(clusterEntity);
 
       cacheConfigurations();
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
+  }
+
+  public Collection<ClusterConfigMappingEntity> getLatestConfigMapping(List<ClusterConfigMappingEntity> clusterConfigMappingEntities){
+    Map<String, ClusterConfigMappingEntity> temp = new HashMap<String, ClusterConfigMappingEntity>();
+    for (ClusterConfigMappingEntity e : clusterConfigMappingEntities) {
+      String type = e.getType();
+      if(temp.containsKey(type)){
+        ClusterConfigMappingEntity entityStored = (ClusterConfigMappingEntity)temp.get(type);
+        Long timestampStored = entityStored.getCreateTimestamp();
+        Long timestamp = e.getCreateTimestamp();
+        if(timestamp > timestampStored){
+          temp.put(type, e); //find a newer config for the given type
+        }
+      } else {
+        temp.put(type, e); //first time encounter a type, add it
+      }
+    }
+
+    return (Collection<ClusterConfigMappingEntity>) temp.values();
   }
 
   /**

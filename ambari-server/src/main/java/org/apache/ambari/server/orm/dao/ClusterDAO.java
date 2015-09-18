@@ -203,6 +203,32 @@ public class ClusterDAO {
   }
 
   /**
+   * Gets the latest configurations for a given stack for all of the
+   * configurations of the specified cluster.
+   *
+   * @param clusterId
+   *          the cluster that the service is a part of.
+   * @param stackId
+   *          the stack to get the latest configurations for (not {@code null}).
+   * @return the latest configurations for the specified cluster and stack.
+   */
+  @RequiresSession
+  public List<ClusterConfigMappingEntity> getClusterConfigMappingsByStack(long clusterId,
+      StackId stackId) {
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+        stackId.getStackVersion());
+
+    TypedQuery<ClusterConfigMappingEntity> query = entityManagerProvider.get().createNamedQuery(
+        "ClusterConfigEntity.findClusterConfigMappingsByStack",
+        ClusterConfigMappingEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("stack", stackEntity);
+
+    return daoUtils.selectList(query);
+  }  
+  
+  /**
    * Create Cluster entity in Database
    * @param clusterEntity entity to create
    */
