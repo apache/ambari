@@ -24,12 +24,22 @@
   <property>
     <name>hbase_log_dir</name>
     <value>c:\hadoop\logs\hbase</value>
+    <display-name>HBase Log Dir Prefix</display-name>
     <description>Log Directories for HBase.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
   <property>
     <name>hbase_pid_dir</name>
     <value>c:\hadoop\run\hbase</value>
+    <display-name>HBase PID Dir</display-name>
     <description>Pid Directory for HBase.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
 
   <property>

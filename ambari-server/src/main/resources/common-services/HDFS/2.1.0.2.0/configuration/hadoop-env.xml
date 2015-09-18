@@ -25,21 +25,40 @@
     <name>hdfs_log_dir_prefix</name>
     <value>/var/log/hadoop</value>
     <description>Hadoop Log Dir Prefix</description>
+    <display-name>Hadoop Log Dir Prefix</display-name>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
   <property>
     <name>hadoop_pid_dir_prefix</name>
     <value>/var/run/hadoop</value>
+    <display-name>Hadoop PID Dir Prefix</display-name>
     <description>Hadoop PID Dir Prefix</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
   <property>
     <name>hadoop_root_logger</name>
     <value>INFO,RFA</value>
+    <display-name>Hadoop Root Logger</display-name>
     <description>Hadoop Root Logger</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>hadoop_heapsize</name>
     <value>1024</value>
     <description>Hadoop maximum Java heap size</description>
+    <display-name>Hadoop maximum Java heap size</display-name>
+    <value-attributes>
+      <unit>MB</unit>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>namenode_heapsize</name>
@@ -52,6 +71,7 @@
       <maximum>268435456</maximum>
       <unit>MB</unit>
       <increment-step>256</increment-step>
+      <overridable>false</overridable>
     </value-attributes>
     <depends-on>
       <property>
@@ -77,6 +97,7 @@
       <maximum>16384</maximum>
       <unit>MB</unit>
       <increment-step>256</increment-step>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
   <property>
@@ -96,6 +117,7 @@
       <maximum>16384</maximum>
       <unit>MB</unit>
       <increment-step>256</increment-step>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
   <property>
@@ -109,6 +131,7 @@
       <maximum>2096</maximum>
       <unit>MB</unit>
       <increment-step>128</increment-step>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
   <property>
@@ -122,6 +145,7 @@
       <maximum>2096</maximum>
       <unit>MB</unit>
       <increment-step>128</increment-step>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
   <property>
@@ -152,6 +176,7 @@
   <property>
     <name>dfs.datanode.data.dir.mount.file</name>
     <value>/etc/hadoop/conf/dfs_data_dir_mount.hist</value>
+    <display-name>File that stores mount point for each data dir</display-name>
     <description>File path that contains the last known mount point for each data dir. This file is used to avoid creating a DFS data dir on the root drive (and filling it up) if a path was previously mounted on a drive.</description>
   </property>
 

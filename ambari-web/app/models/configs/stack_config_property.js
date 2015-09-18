@@ -190,6 +190,90 @@ App.StackConfigProperty = DS.Model.extend({
   index: DS.attr('number', {defaultValue: null}),
 
   /**
+   * defines if the property can be overriden in the host config group
+   * @type {boolean}
+   */
+  isOverridable: function() {
+    var result = true;
+    if (this.get('valueAttributes') && !Em.none(this.get('valueAttributes.overridable'))) {
+      result =  !!this.get('valueAttributes.overridable');
+    }
+    return result;
+  }.property('valueAttributes.overridable'),
+
+  /**
+   * defines if the property is visible or hidden
+   * @type {boolean}
+   */
+  isVisible: function() {
+    var result = true;
+    if (this.get('valueAttributes') && !Em.none(this.get('valueAttributes.visible'))) {
+      result =  !!this.get('valueAttributes.visible');
+    }
+    return result;
+  }.property('valueAttributes.visible'),
+
+  /**
+   * defines if the value of property can be left empty or not
+   * @type {boolean}
+   */
+  isRequired: function() {
+    var result = true;
+    if (this.get('valueAttributes') && !Em.none(this.get('valueAttributes.empty_value_valid'))) {
+      result =  !this.get('valueAttributes.empty_value_valid');
+    }
+    return result;
+  }.property('valueAttributes.empty_value_valid'),
+
+  /**
+   * defines if the value of property can be reconfigured post-install
+   * @type {boolean}
+   */
+  isReconfigurable: function() {
+    var result = true;
+    if (this.get('valueAttributes') && !Em.none(this.get('valueAttributes.editable_only_at_install'))) {
+      result =  !this.get('valueAttributes.editable_only_at_install');
+    }
+    return result;
+  }.property('valueAttributes.editable_only_at_install'),
+
+  /**
+   * defines if the name of the property is visible or hidden
+   * @type {boolean}
+   */
+  showLabel: function() {
+    var result = true;
+    if (this.get('valueAttributes') && !Em.none(this.get('valueAttributes.show_property_name'))) {
+      result =  !!this.get('valueAttributes.show_property_name');
+    }
+    return result;
+  }.property('valueAttributes.show_property_name'),
+
+  /**
+   * defines if the property is editable or not
+   * @type {boolean}
+   */
+  isEditable: function() {
+    var result = true;
+    if (this.get('valueAttributes') && !Em.none(this.get('valueAttributes.read_only'))) {
+      result =  !!this.get('valueAttributes.read_only');
+    }
+    return result;
+  }.property('valueAttributes.read_only'),
+
+  /**
+   * defines if the property is editable or not
+   * @type {boolean}
+   */
+  unit: function() {
+    var result = '';
+    if (this.get('valueAttributes') && !Em.empty(this.get('valueAttributes.unit'))) {
+      result =  this.get('valueAttributes.unit');
+    }
+    return result;
+  }.property('valueAttributes.unit'),
+
+  /**
    * Does config property has a valid value defined in the stack
    * @type {boolean}
    */

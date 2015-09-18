@@ -24,6 +24,7 @@
   <property>
     <name>timeline.metrics.aggregator.checkpoint.dir</name>
     <value>c:\ambari\ambari-metrics-collector\checkpoint</value>
+    <display-name>Aggregator checkpoint directory</display-name>
     <description>
       Directory to store aggregator checkpoints. Change to a permanent
       location so that checkpoint ar not lost.

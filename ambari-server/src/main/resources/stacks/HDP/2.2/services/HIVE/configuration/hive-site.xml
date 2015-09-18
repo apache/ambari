@@ -47,6 +47,9 @@ limitations under the License.
       Read/write locks - when hive.lock.manager is set to
       org.apache.hadoop.hive.ql.lockmgr.zookeeper.ZooKeeperHiveLockManager,
       2. When HiveServer2 supports service discovery via Zookeeper.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
@@ -345,13 +348,21 @@ limitations under the License.
     <name>javax.jdo.option.ConnectionPassword</name>
     <value></value>
     <property-type>PASSWORD</property-type>
+    <display-name>Database Password</display-name>
     <description>password to use against metastore database</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
     <value>jdbc:mysql://localhost/hive?createDatabaseIfNotExist=true</value>
+    <display-name>Database URL</display-name>
     <description>JDBC connect string for a JDBC metastore</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -407,13 +418,21 @@ limitations under the License.
   <property>
     <name>javax.jdo.option.ConnectionDriverName</name>
     <value>com.mysql.jdbc.Driver</value>
+    <display-name>JDBC Driver Class</display-name>
     <description>Driver class name for a JDBC metastore</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>javax.jdo.option.ConnectionUserName</name>
     <value>hive</value>
-    <description>Username to use against metastore database</description>
+    <display-name>Database Username</display-name>
+    <description>username to use against metastore database</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -1065,7 +1084,13 @@ limitations under the License.
   <property>
     <name>hive.server2.thrift.port</name>
     <value>10000</value>
-    <description>Port number of HiveServer2 Thrift interface when hive.server2.transport.mode is 'binary'.</description>
+    <display-name>HiveServer2 Port</display-name>
+    <description>
+      TCP port number to listen on, default 10000.
+    </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>hive.server2.thrift.sasl.qop</name>
@@ -1375,7 +1400,11 @@ limitations under the License.
   <property>
     <name>ambari.hive.db.schema.name</name>
     <value>hive</value>
+    <display-name>Database Name</display-name>
     <description>Database name used as the Hive Metastore</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -1707,6 +1736,9 @@ limitations under the License.
   <property>
     <name>hive.server2.authentication.ldap.baseDN</name>
     <value></value>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <depends-on>
       <property>
         <type>hive-site</type>

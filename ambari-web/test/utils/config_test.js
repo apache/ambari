@@ -329,55 +329,13 @@ describe('App.config', function () {
     });
   });
 
-  describe('#preDefinedSiteProperties-bigtop', function () {
-    before(function() {
-      setups.setupStackVersion(this, 'BIGTOP-0.8');
-      sinon.stub(App.StackService, 'find').returns([
-        {
-          serviceName: 'HIVE'
-        }
-      ]);
-    });
-
-    it('bigtop should use New PostgreSQL Database as its default hive metastore database', function () {
-      App.StackService.createRecord({serviceName: 'HIVE'});
-      expect(App.config.get('preDefinedSiteProperties').findProperty('recommendedValue', 'New PostgreSQL Database')).to.be.ok;
-    });
-
-    after(function() {
-      App.StackService.find.restore();
-      setups.restoreStackVersion(this);
-    });
-  });
-
-  describe('#preDefinedSiteProperties-hdp2', function () {
-    before(function () {
-      setups.setupStackVersion(this, 'HDP-2.0');
-      sinon.stub(App.StackService, 'find').returns([
-        {
-          serviceName: 'HIVE'
-        }
-      ]);
-    });
-
-    it('HDP2 should use New MySQL Database as its default hive metastore database', function () {
-      App.StackService.createRecord({serviceName: 'HIVE'});
-      expect(App.config.get('preDefinedSiteProperties').findProperty('recommendedValue', 'New MySQL Database')).to.be.ok;
-    });
-
-    after(function() {
-      App.StackService.find.restore();
-      setups.restoreStackVersion(this);
-    });
-  });
-
   describe('#generateConfigPropertiesByName', function() {
     var tests = [
       {
         names: ['property_1', 'property_2'],
         properties: undefined,
         e: {
-          keys: ['name', 'displayName', 'isVisible', 'isReconfigurable']
+          keys: ['name']
         },
         m: 'Should generate base property object without additional fields'
       },
@@ -385,7 +343,7 @@ describe('App.config', function () {
         names: ['property_1', 'property_2'],
         properties: { category: 'SomeCat', serviceName: 'SERVICE_NAME' },
         e: {
-          keys: ['name', 'displayName', 'isVisible', 'isReconfigurable', 'category', 'serviceName']
+          keys: ['name', 'category', 'serviceName']
         },
         m: 'Should generate base property object without additional fields'
       }
@@ -514,7 +472,6 @@ describe('App.config', function () {
           property_name: 'hdfs_user'
         },
         output: {
-          id: 'puppet var',
           category: 'Users and Groups',
           isVisible: true,
           serviceName: 'MISC',
@@ -533,7 +490,6 @@ describe('App.config', function () {
           service_name: 'KNOX'
         },
         output: {
-          id: 'puppet var',
           category: 'Users and Groups',
           isVisible: true,
           serviceName: 'MISC',

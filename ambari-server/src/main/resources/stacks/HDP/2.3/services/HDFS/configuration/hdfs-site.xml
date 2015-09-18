@@ -25,6 +25,7 @@
   <property>
     <name>nfs.file.dump.dir</name>
     <value>/tmp/.hdfs-nfs</value>
+    <display-name>NFSGateway dump directory</display-name>
     <description>
       This directory is used to temporarily save out-of-order writes before
       writing to HDFS. For each file, the out-of-order writes are dumped after
@@ -36,6 +37,7 @@
   <property>
     <name>nfs.exports.allowed.hosts</name>
     <value>* rw</value>
+    <display-name>Allowed hosts</display-name>
   </property>
 
   <property>

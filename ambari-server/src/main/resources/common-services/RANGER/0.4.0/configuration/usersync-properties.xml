@@ -79,6 +79,9 @@
     <name>SYNC_LDAP_USER_SEARCH_FILTER</name>
     <value></value>
     <description>default value is empty</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
   <property>
     <name>SYNC_LDAP_USER_NAME_ATTRIBUTE</name>

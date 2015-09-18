@@ -23,5 +23,8 @@
     <name>content</name>
     <description>Spark-javaopts-properties</description>
     <value> </value>
+    <value-attributes>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
   </property>
 </configuration>

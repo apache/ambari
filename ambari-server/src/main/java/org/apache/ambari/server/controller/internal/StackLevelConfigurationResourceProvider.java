@@ -19,12 +19,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.StackConfigurationResponse;
@@ -38,6 +32,13 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class StackLevelConfigurationResourceProvider extends
     ReadOnlyResourceProvider {
@@ -50,6 +51,9 @@ public class StackLevelConfigurationResourceProvider extends
 
   public static final String PROPERTY_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackLevelConfigurations", "property_name");
+
+  public static final String PROPERTY_DISPLAY_NAME_PROPERTY_ID = PropertyHelper
+      .getPropertyId("StackLevelConfigurations", "property_display_name");
 
   public static final String PROPERTY_VALUE_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackLevelConfigurations", "property_value");
@@ -133,6 +137,12 @@ public class StackLevelConfigurationResourceProvider extends
 
       setResourceProperty(resource, PROPERTY_DESCRIPTION_PROPERTY_ID,
           response.getPropertyDescription(), requestedIds);
+
+      //should not be returned if empty
+      if (StringUtils.isNotEmpty(response.getPropertyDisplayName())) {
+        setResourceProperty(resource, PROPERTY_DISPLAY_NAME_PROPERTY_ID,
+            response.getPropertyDisplayName(), requestedIds);
+      }
       
       setResourceProperty(resource, PROPERTY_PROPERTY_TYPE_PROPERTY_ID, 
           response.getPropertyType(), requestedIds);

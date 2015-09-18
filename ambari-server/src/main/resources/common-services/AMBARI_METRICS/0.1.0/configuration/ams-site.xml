@@ -24,6 +24,7 @@
   <property>
     <name>timeline.metrics.service.operation.mode</name>
     <value>embedded</value>
+    <display-name>Metrics Service operation mode</display-name>
     <description>
       Service Operation modes:
       1) embedded: Metrics stored on local FS, HBase in Standalone mode
@@ -47,6 +48,7 @@
   <property>
     <name>timeline.metrics.aggregator.checkpoint.dir</name>
     <value>/var/lib/ambari-metrics-collector/checkpoint</value>
+    <display-name>Aggregator checkpoint directory</display-name>
     <description>
       Directory to store aggregator checkpoints. Change to a permanent
       location so that checkpoint ar not lost.
@@ -55,6 +57,7 @@
   <property>
     <name>timeline.metrics.host.aggregator.minute.interval</name>
     <value>120</value>
+    <display-name>Minute host aggregator interval</display-name>
     <description>
       Time in seconds to sleep for the minute resolution host based
       aggregator. Default resolution is 2 minutes.
@@ -63,6 +66,7 @@
   <property>
     <name>timeline.metrics.host.aggregator.hourly.interval</name>
     <value>3600</value>
+    <display-name>Hourly host aggregator interval</display-name>
     <description>
       Time in seconds to sleep for the hourly resolution host based
       aggregator. Default resolution is 1 hour.
@@ -79,6 +83,7 @@
   <property>
     <name>timeline.metrics.cluster.aggregator.hourly.interval</name>
     <value>3600</value>
+    <display-name>Hourly cluster aggregator Interval</display-name>
     <description>
       Time in seconds to sleep for the hourly resolution cluster wide
       aggregator. Default is 1 hour.
@@ -95,6 +100,7 @@
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.interval</name>
     <value>120</value>
+    <display-name>Minute cluster aggregator interval</display-name>
     <description>
       Time in seconds to sleep for the minute resolution cluster wide
       aggregator. Default resolution is 2 minutes.
@@ -112,6 +118,7 @@
   <property>
     <name>timeline.metrics.host.aggregator.hourly.checkpointCutOffMultiplier</name>
     <value>2</value>
+    <display-name>Hourly host aggregator checkpoint cutOff multiplier</display-name>
     <description>
       Multiplier value * interval = Max allowed checkpoint lag. Effectively
       if aggregator checkpoint is greater than max allowed checkpoint delay,
@@ -121,6 +128,7 @@
   <property>
     <name>timeline.metrics.host.aggregator.minute.checkpointCutOffMultiplier</name>
     <value>2</value>
+    <display-name>Minute host aggregator checkpoint cutOff multiplier</display-name>
     <description>
       Multiplier value * interval = Max allowed checkpoint lag. Effectively
       if aggregator checkpoint is greater than max allowed checkpoint delay,
@@ -130,6 +138,7 @@
   <property>
     <name>timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier</name>
     <value>2</value>
+    <display-name>Hourly cluster aggregator checkpoint cutOff multiplier</display-name>
     <description>
       Multiplier value * interval = Max allowed checkpoint lag. Effectively
       if aggregator checkpoint is greater than max allowed checkpoint delay,
@@ -139,6 +148,7 @@
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.checkpointCutOffMultiplier</name>
     <value>2</value>
+    <display-name>Minute cluster aggregator checkpoint cutOff multiplier</display-name>
     <description>
       Multiplier value * interval = Max allowed checkpoint lag. Effectively
       if aggregator checkpoint is greater than max allowed checkpoint delay,
@@ -164,6 +174,7 @@
   <property>
     <name>timeline.metrics.host.aggregator.hourly.disabled</name>
     <value>false</value>
+    <display-name>Disable Hourly host aggregator</display-name>
     <description>
       Disable host based hourly aggregations.
     </description>
@@ -171,6 +182,7 @@
   <property>
     <name>timeline.metrics.host.aggregator.minute.disabled</name>
     <value>false</value>
+    <display-name>Disable Minute host aggregator</display-name>
     <description>
       Disable host based minute aggregations.
     </description>
@@ -184,6 +196,7 @@
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.hourly.disabled</name>
+    <display-name>Disable Hourly cluster aggregator</display-name>
     <value>false</value>
     <description>
       Disable cluster based hourly aggregations.
@@ -192,6 +205,7 @@
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.disabled</name>
     <value>false</value>
+    <display-name>Disable minute cluster aggregator</display-name>
     <description>
       Disable cluster based minute aggregations.
     </description>
@@ -199,6 +213,7 @@
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.timeslice.interval</name>
     <value>30</value>
+    <display-name>Minute cluster aggregator timeslice interval</display-name>
     <description>
       Lowest resolution of desired data for cluster level minute aggregates.
     </description>
@@ -273,6 +288,7 @@
   <property>
     <name>timeline.metrics.service.default.result.limit</name>
     <value>5760</value>
+    <display-name>Metrics service default result limit</display-name>
     <description>
       Max result limit on number of rows returned. Calculated as follows:
       4 aggregate metrics/min * 60 * 24: Retrieve aggregate data for 1 day.
@@ -281,6 +297,7 @@
   <property>
     <name>timeline.metrics.service.checkpointDelay</name>
     <value>60</value>
+    <display-name>Metrics service checkpoint delay</display-name>
     <description>
       Time in seconds to sleep on the first run or when the checkpoint is
       too old.
@@ -288,6 +305,7 @@
   </property>
   <property>
     <name>timeline.metrics.service.resultset.fetchSize</name>
+    <display-name>Metrics service resultset fetchSize</display-name>
     <value>2000</value>
     <description>
       JDBC resultset prefect size for aggregator queries.

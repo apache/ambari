@@ -86,6 +86,11 @@ pig.location.check.strict=false
 hcat.bin=/usr/bin/hcat
 
     </value>
+    <description>Describe all the Pig agent configurations</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
   </property>
 
 </configuration>

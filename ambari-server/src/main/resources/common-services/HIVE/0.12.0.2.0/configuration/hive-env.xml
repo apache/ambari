@@ -32,6 +32,7 @@
       <maximum>2048</maximum>
       <unit>MB</unit>
       <increment-step>512</increment-step>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
 
@@ -52,14 +53,22 @@
   <property>
     <name>hive_database_type</name>
     <value>mysql</value>
+    <display-name>Hive Database Type</display-name>
     <description>Default HIVE DB type.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>hive_database</name>
     <value>New MySQL Database</value>
+    <display-name>Hive Database</display-name>
     <description>
       Property that determines whether the HIVE DB is managed by Ambari.
     </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>hive_ambari_database</name>
@@ -70,16 +79,31 @@
     <name>hive_database_name</name>
     <value>hive</value>
     <description>Database name.</description>
+    <value-attributes>
+      <visible>false</visible>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>hive_log_dir</name>
     <value>/var/log/hive</value>
+    <display-name>Hive Log Dir</display-name>
     <description>Directory for Hive Log files.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
   <property>
     <name>hive_pid_dir</name>
     <value>/var/run/hive</value>
+    <display-name>Hive PID Dir</display-name>
     <description>Hive PID Dir.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
   <property>
     <name>hive_user</name>
@@ -93,12 +117,22 @@
   <property>
     <name>hcat_log_dir</name>
     <value>/var/log/webhcat</value>
+    <display-name>WebHCat Log Dir</display-name>
     <description>WebHCat Log Dir.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
   <property>
     <name>hcat_pid_dir</name>
     <value>/var/run/webhcat</value>
+    <display-name>WebHCat Pid Dir</display-name>
     <description>WebHCat Pid Dir.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
   <property>
     <name>hcat_user</name>

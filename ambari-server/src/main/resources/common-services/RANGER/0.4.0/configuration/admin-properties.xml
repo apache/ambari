@@ -24,124 +24,200 @@
   <property>
     <name>DB_FLAVOR</name>
     <value>MYSQL</value>
+    <display-name>DB FLAVOR</display-name>
     <description>The database type to be used (mysql/oracle)</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>SQL_COMMAND_INVOKER</name>
     <value>mysql</value>
+    <display-name>SQL Command Invoker</display-name>
     <description>The executable path to be used to invoke command-line MYSQL</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>SQL_CONNECTOR_JAR</name>
     <value>/usr/share/java/mysql-connector-java.jar</value>
+    <display-name>Location of Sql Connector Jar</display-name>
     <description>Location of DB client library (please check the location of the jar file)</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>db_root_user</name>
     <value>root</value>
+    <display-name>Ranger DB root user</display-name>
     <description>Database admin user</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property require-input="true">
     <name>db_root_password</name>
     <value></value>
     <property-type>PASSWORD</property-type>
+    <display-name>Ranger DB root password</display-name>
     <description>Database password for the database admin user-id</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>db_host</name>
     <value></value>
+    <display-name>Ranger DB host</display-name>
     <description>Database host</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>db_name</name>
     <value>ranger</value>
+    <display-name>Ranger DB name</display-name>
     <description>Database name</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>db_user</name>
     <value>rangeradmin</value>
+    <display-name>Ranger DB username</display-name>
     <description>Database user-id used for the Ranger schema</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property require-input="true">
     <name>db_password</name>
     <value></value>
     <property-type>PASSWORD</property-type>
+    <display-name>Ranger DB password</display-name>
     <description>Database password for the Ranger schema</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>audit_db_name</name>
     <value>ranger_audit</value>
     <description>Audit database name</description>
+    <display-name>Ranger Audit DB name</display-name>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>audit_db_user</name>
     <value>rangerlogger</value>
+    <display-name>Ranger Audit DB username</display-name>
     <description>Database user-id for storing auditlog information</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property require-input="true">
     <name>audit_db_password</name>
     <value></value>
     <property-type>PASSWORD</property-type>
+    <display-name>Ranger Audit DB password</display-name>
     <description>Database password for storing auditlog information</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>policymgr_external_url</name>
     <value></value>
+    <display-name>External URL</display-name>
     <description>Policy Manager external url eg: http://RANGER_HOST:6080</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>policymgr_http_enabled</name>
     <value>true</value>
+    <display-name>HTTP enabled</display-name>
     <description>HTTP Enabled</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>authentication_method</name>
     <value>UNIX</value>
+    <display-name>Authentication method</display-name>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>remoteLoginEnabled</name>
     <value>true</value>
+    <display-name>Allow remote Login</display-name>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>authServiceHostName</name>
     <value>localhost</value>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>authServicePort</name>
     <value>5151</value>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>xa_ldap_url</name>
     <value>"ldap://71.127.43.33:389"</value>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>xa_ldap_userDNpattern</name>
     <value>"uid={0},ou=users,dc=xasecure,dc=net"</value>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -160,18 +236,27 @@
     <name>xa_ldap_groupRoleAttribute</name>
     <value>"cn"</value>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>xa_ldap_ad_domain</name>
     <value>"xasecure.net"</value>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>xa_ldap_ad_url</name>
     <value>"ldap://ad.xasecure.net:389"</value>
     <description></description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
 </configuration>

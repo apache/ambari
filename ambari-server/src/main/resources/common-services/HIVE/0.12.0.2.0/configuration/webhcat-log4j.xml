@@ -73,6 +73,9 @@ log4j.logger.org.apache.zookeeper = WARN
 log4j.logger.org.eclipse.jetty = INFO
 
     </value>
+    <value-attributes>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
   </property>
 
 </configuration>

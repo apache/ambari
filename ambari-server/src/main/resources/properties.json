@@ -437,6 +437,7 @@
         "StackLevelConfigurations/stack_version",
         "StackLevelConfigurations/property_name",
         "StackLevelConfigurations/property_value",
+        "StackLevelConfigurations/property_display_name",
         "StackLevelConfigurations/property_value_attributes",
         "StackLevelConfigurations/property_depends_on",
         "StackLevelConfigurations/property_description",

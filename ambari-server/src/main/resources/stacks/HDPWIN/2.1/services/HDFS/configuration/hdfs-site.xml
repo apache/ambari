@@ -24,15 +24,20 @@
   <property>
     <name>dfs.namenode.name.dir</name>
     <value>file:///c:/hdpdata/hdfs/nn</value>
+    <display-name>NameNode directories</display-name>
     <description>Determines where on the local filesystem the DFS name node
       should store the name table.  If this is a comma-delimited list
       of directories then the name table is replicated in all of the
       directories, for redundancy. </description>
     <final>true</final>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>dfs.datanode.data.dir</name>
     <value>file:///c:/hdpdata/hdfs/dn</value>
+    <display-name>DataNode directories</display-name>
     <description>Determines where on the local filesystem an DFS data node
     should store its blocks.  If this is a comma-delimited
     list of directories, then data will be stored in all named
@@ -60,11 +65,15 @@
   <property>
     <name>dfs.namenode.checkpoint.dir</name>
     <value>file:///c:/hadoop/hdfs/snn</value>
+    <display-name>SecondaryNameNode Checkpoint directories</display-name>
     <description>Determines where on the local filesystem the DFS secondary
       name node should store the temporary images to merge.
       If this is a comma-delimited list of directories then the image is
       replicated in all of the directories for redundancy.
     </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>

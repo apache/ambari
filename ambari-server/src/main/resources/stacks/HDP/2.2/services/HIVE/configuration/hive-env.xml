@@ -32,6 +32,7 @@
       <maximum>2048</maximum>
       <unit>MB</unit>
       <increment-step>512</increment-step>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
 

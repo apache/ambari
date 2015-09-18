@@ -45,7 +45,11 @@
   <property>
     <name>hbase.master.port</name>
     <value>60000</value>
+    <display-name>HBase Master Port</display-name>
     <description>The port the HBase Master should bind to.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.tmp.dir</name>

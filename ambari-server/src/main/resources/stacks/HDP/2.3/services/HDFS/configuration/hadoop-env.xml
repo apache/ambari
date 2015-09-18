@@ -155,8 +155,12 @@ export HADOOP_OPTS="-Dhdp.version=$HDP_VERSION $HADOOP_OPTS"
   </property>
   <property>
     <name>nfsgateway_heapsize</name>
+    <display-name>NFSGateway maximum Java heap size</display-name>
     <value>1024</value>
     <description>Maximum Java heap size for NFSGateway (Java option -Xmx)</description>
+    <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
   </property>
   
 </configuration>

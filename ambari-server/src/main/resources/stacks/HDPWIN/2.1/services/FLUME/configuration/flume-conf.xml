@@ -29,5 +29,9 @@
     <value>
 # Flume agent config
     </value>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
   </property>
 </configuration>

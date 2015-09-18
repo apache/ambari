@@ -24,6 +24,9 @@
     <description>AM view ACLs. This allows the specified users/groups to view the status of the AM and all DAGs that run within this AM.
       Value format: Comma separated list of users, followed by whitespace, followed by a comma separated list of groups.
     </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>

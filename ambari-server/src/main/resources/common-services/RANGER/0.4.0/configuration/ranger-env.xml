@@ -24,14 +24,22 @@
     <name>ranger_user</name>
     <value>ranger</value>
     <property-type>USER</property-type>
+    <display-name>Used to create user and assign permission</display-name>
     <description>Ranger username</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger_group</name>
     <value>ranger</value>
     <property-type>GROUP</property-type>
+    <display-name>Used to create group and assign permission</display-name>
     <description>Ranger group</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
@@ -57,7 +65,11 @@
     <name>ranger_admin_password</name>
     <value></value>
     <property-type>PASSWORD</property-type>
+    <display-name>Ranger Admin user's password for Ambari</display-name>
     <description>This is the ambari user password created for creating repositories and policies in Ranger Admin for each plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>

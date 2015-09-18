@@ -21,33 +21,43 @@
 -->
 
 <configuration supports_final="false">
-    <!-- knox-env.sh -->
+  <!-- knox-env.sh -->
 
-    <property require-input="true">
-        <name>knox_master_secret</name>
-        <value></value>
-        <property-type>PASSWORD</property-type>
-        <description>password to use as the master secret</description>
-    </property>
+  <property require-input="true">
+    <name>knox_master_secret</name>
+    <value></value>
+    <display-name>Knox Master Secret</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>password to use as the master secret</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
 
-    <property>
-        <name>knox_user</name>
-        <value>knox</value>
-        <property-type>USER</property-type>
-        <description>Knox Username.</description>
-    </property>
+  <property>
+    <name>knox_user</name>
+    <value>knox</value>
+    <property-type>USER</property-type>
+    <description>Knox Username.</description>
+  </property>
 
-    <property>
-        <name>knox_group</name>
-        <value>knox</value>
-        <property-type>GROUP</property-type>
-        <description>Knox Group.</description>
-    </property>
+  <property>
+    <name>knox_group</name>
+    <value>knox</value>
+    <property-type>GROUP</property-type>
+    <description>Knox Group.</description>
+  </property>
 
-    <property>
-        <name>knox_pid_dir</name>
-        <value>/var/run/knox</value>
-        <description>Knox PID dir.</description>
-    </property>
+  <property>
+    <name>knox_pid_dir</name>
+    <value>/var/run/knox</value>
+    <display-name>Knox PID dir</display-name>
+    <description>Knox PID dir.</description>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
 
 </configuration>

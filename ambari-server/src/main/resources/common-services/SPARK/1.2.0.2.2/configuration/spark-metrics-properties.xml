@@ -156,5 +156,8 @@
 #executor.source.jvm.class=org.apache.spark.metrics.source.JvmSource
 
     </value>
+    <value-attributes>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
   </property>
 </configuration>

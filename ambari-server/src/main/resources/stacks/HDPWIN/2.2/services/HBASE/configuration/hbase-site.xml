@@ -60,6 +60,7 @@
   <property>
     <name>hbase.hregion.memstore.block.multiplier</name>
     <value>4</value>
+    <display-name>HBase Region Block Multiplier</display-name>
     <description>
     Block updates if memstore has hbase.hregion.memstore.block.multiplier
     times hbase.hregion.memstore.flush.size bytes.  Useful preventing
@@ -90,16 +91,25 @@
     <value></value>
     <description>Where to store the contents of the bucketcache. One of: onheap,
       offheap, or file. If a file, set it to file:PATH_TO_FILE.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.bucketcache.size</name>
     <value></value>
     <description>The size of the buckets for the bucketcache if you only use a single size.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.bucketcache.percentage.in.combinedcache</name>
     <value></value>
     <description>Value to be set between 0.0 and 1.0</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.regionserver.global.memstore.size</name>

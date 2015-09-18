@@ -808,7 +808,6 @@ App.config = Em.Object.create({
     var checkboxProperties = ['ignore_groupsusers_create', 'override_uid'];
     if (Em.isArray(config.property_type)) {
       if (config.property_type.contains('USER') || config.property_type.contains('ADDITIONAL_USER_PROPERTY') || config.property_type.contains('GROUP')) {
-        propertyData.id = "puppet var";
         propertyData.category = 'Users and Groups';
         propertyData.isVisible = !App.get('isHadoopWindowsStack');
         propertyData.serviceName = 'MISC';
@@ -1320,10 +1319,7 @@ App.config = Em.Object.create({
   generateConfigPropertiesByName: function (names, properties) {
     return names.map(function (item) {
       var baseObj = {
-        name: item,
-        displayName: item,
-        isVisible: true,
-        isReconfigurable: true
+        name: item
       };
       if (properties) return $.extend(baseObj, properties);
       else return baseObj;

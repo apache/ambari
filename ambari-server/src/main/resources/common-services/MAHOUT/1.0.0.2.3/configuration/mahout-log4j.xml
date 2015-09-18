@@ -60,6 +60,9 @@ log4j.logger.org.eclipse.jetty=WARN
 log4j.logger.org.apache.spark.repl.SparkIMain$exprTyper=WARN
 log4j.logger.org.apache.spark.repl.SparkILoop$SparkILoopInterpreter=WARN
         </value>
+        <value-attributes>
+            <show-property-name>false</show-property-name>
+        </value-attributes>
     </property>
 
 </configuration>

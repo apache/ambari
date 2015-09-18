@@ -62,7 +62,10 @@ log4j.rootLogger=ALL, kms
 log4j.logger.org.apache.hadoop.conf=ERROR
 log4j.logger.org.apache.hadoop=INFO
 log4j.logger.com.sun.jersey.server.wadl.generators.WadlGeneratorJAXBGrammarGenerator=OFF        
-    </value>        
+    </value>
+    <value-attributes>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
   </property>     
 
 </configuration>  
