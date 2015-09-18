@@ -106,9 +106,10 @@ regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xm
 
 
 phoenix_hosts = default('/clusterHostInfo/phoenix_query_server_hosts', [])
+phoenix_enabled = default('/configurations/hbase-env/phoenix_sql_enabled', False)
 has_phoenix = len(phoenix_hosts) > 0
 
-if not has_phoenix:
+if not has_phoenix and not phoenix_enabled:
   exclude_packages = ['phoenix*']
 else:
   exclude_packages = []

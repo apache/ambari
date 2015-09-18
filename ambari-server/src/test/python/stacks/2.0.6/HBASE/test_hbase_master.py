@@ -28,6 +28,33 @@ class TestHBaseMaster(RMFTestCase):
   STACK_VERSION = "2.0.6"
   TMP_PATH = "/hadoop"
 
+  def test_install_hbase_master_default_no_phx(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
+                       classname = "HbaseMaster",
+                       command = "install",
+                       config_file="hbase_no_phx.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       try_install=True
+    )
+    self.assertResourceCalled('Package', 'hbase_2_3_*',)
+
+    self.assertNoMoreResources()
+
+  def test_install_hbase_master_default_with_phx(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
+                       classname = "HbaseMaster",
+                       command = "install",
+                       config_file="hbase_with_phx.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       try_install=True
+    )
+    self.assertResourceCalled('Package', 'hbase_2_3_*',)
+    self.assertResourceCalled('Package', 'phoenix_2_3_*',)
+
+    self.assertNoMoreResources()
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
                    classname = "HbaseMaster",
