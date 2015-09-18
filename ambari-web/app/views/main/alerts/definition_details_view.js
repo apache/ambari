@@ -110,6 +110,28 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
     willDestroyElement: function() {
       this.$("[rel=tooltip]").tooltip('destroy');
       this.$(".alert-text").tooltip('destroy');
+    },
+
+    /**
+     * Router transition to service page
+     * @param event
+     */
+    goToService: function (event) {
+      if (event && event.context) {
+        App.router.transitionTo('main.services.service.summary', event.context);
+      }
+    },
+
+    /**
+     * Router transition to host level alerts page
+     * @param {object} event
+     * @method goToHostAlerts
+     */
+    goToHostAlerts: function (event) {
+      if (event && event.context) {
+        App.router.get('mainHostDetailsController').set('referer', App.router.location.lastSetURL);
+        App.router.transitionTo('main.hosts.hostDetails.alerts', event.context);
+      }
     }
 
   }),
@@ -172,4 +194,5 @@ App.AlertInstanceServiceHostView = Em.View.extend({
   showSeparator: function () {
     return this.get('instance.serviceDisplayName') && this.get('instance.hostName');
   }.property('instance.serviceDisplayName', 'instance.hostName')
+
 });
