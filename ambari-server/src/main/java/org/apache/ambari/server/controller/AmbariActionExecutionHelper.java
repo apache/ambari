@@ -214,8 +214,7 @@ public class AmbariActionExecutionHelper {
    *
    * @throws AmbariException if the task can not be added
    */
-  public void addExecutionCommandsToStage(
-final ActionExecutionContext actionContext, Stage stage)
+  public void addExecutionCommandsToStage(final ActionExecutionContext actionContext, Stage stage)
       throws AmbariException {
 
     String actionName = actionContext.getActionName();
@@ -343,11 +342,17 @@ final ActionExecutionContext actionContext, Stage stage)
           actionContext.isFailureAutoSkipped());
 
       Map<String, String> commandParams = new TreeMap<String, String>();
-      int maxTaskTimeout = Integer.parseInt(configs.getDefaultAgentTaskTimeout(false));
-      if(maxTaskTimeout < actionContext.getTimeout()) {
-        commandParams.put(COMMAND_TIMEOUT, Integer.toString(maxTaskTimeout));
-      } else {
+
+      int taskTimeout = Integer.parseInt(configs.getDefaultAgentTaskTimeout(false));
+
+      // use the biggest of all these:
+      // if the action context timeout is bigger than the default, use the context
+      // if the action context timeout is smaller than the default, use the default
+      // if the action context timeout is undefined, use the default
+      if (null != actionContext.getTimeout() && actionContext.getTimeout() > taskTimeout) {
         commandParams.put(COMMAND_TIMEOUT, actionContext.getTimeout().toString());
+      } else {
+        commandParams.put(COMMAND_TIMEOUT, Integer.toString(taskTimeout));
       }
 
       commandParams.put(SCRIPT, actionName + ".py");
