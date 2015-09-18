@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,8 +31,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -54,17 +51,6 @@ public class ExecutionCommandWrapper {
 
   public ExecutionCommandWrapper(ExecutionCommand executionCommand) {
     this.executionCommand = executionCommand;
-  }
-
-  public ExecutionCommand getExecutionCommand(boolean forceRefreshAllConfig) {
-    // for Blueprint-based installs, force a refresh on the configuration
-    // prior to sending the commands down
-    if (forceRefreshAllConfig && (executionCommand != null)) {
-      executionCommand.setForceRefreshConfigTagsBeforeExecution(Collections.singleton("*"));
-    }
-
-    // delegate to main wrapper method to handle the configuration merging
-    return getExecutionCommand();
   }
 
   @SuppressWarnings("serial")
