@@ -284,7 +284,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
             String configType = ConfigHelper.fileNameToConfigType(property.getFilename());
             Config clusterConfigs = cluster.getDesiredConfigByType(configType);
             if(clusterConfigs == null || !clusterConfigs.getProperties().containsKey(property.getName())) {
-              if (!checkAccordingToStackAdvisor(property, cluster)) {
+              if (!checkAccordingToStackAdvisor(property, cluster) || property.getValue() == null) {
                 continue;
               }
 
