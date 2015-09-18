@@ -6472,6 +6472,19 @@ class TestAmbariServer(TestCase):
     pass
 
 
+  @not_for_platform(PLATFORM_WINDOWS)
+  def test_configure_database_password_silent(self):
+
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    set_silent(True)
+    result = LinuxDBMSConfig._configure_database_password(True, "CustomDefaultPasswd")
+    self.assertEquals("CustomDefaultPasswd", result)
+
+    sys.stdout = sys.__stdout__
+    pass
+
   @patch("os.path.exists")
   @patch("ambari_server.setupSecurity.get_is_secure")
   @patch("ambari_server.setupSecurity.get_is_persisted")
