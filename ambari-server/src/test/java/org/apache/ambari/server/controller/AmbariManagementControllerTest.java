@@ -4154,10 +4154,9 @@ public class AmbariManagementControllerTest {
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost("h1").persist();
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost("h2").persist();
 
-    controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
-        "a1", ActionType.SYSTEM, "test,[optional1]", "", "", "Does file exist",
-        TargetHostType.SPECIFIC, Short.valueOf("100")));
-
+    ActionDefinition a1 = new ActionDefinition("a1", ActionType.SYSTEM,
+        "test,[optional1]", "", "", "Does file exist", TargetHostType.SPECIFIC, Short.valueOf("100"));
+    controller.getAmbariMetaInfo().addActionDefinition(a1);
     controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
         "a2", ActionType.SYSTEM, "", "HDFS", "DATANODE", "Does file exist",
         TargetHostType.ALL, Short.valueOf("1000")));
@@ -4199,8 +4198,17 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("HDFS", cmd.getServiceName());
     Assert.assertEquals("DATANODE", cmd.getComponentName());
     Assert.assertNotNull(hostParametersStage.get("jdk_location"));
-    Assert.assertEquals("100", cmd.getCommandParams().get("command_timeout"));
+    Assert.assertEquals("900", cmd.getCommandParams().get("command_timeout"));
     Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
+
+    // !!! test that the action execution helper is using the right timeout
+    a1.setDefaultTimeout((short) 1800);
+    actionRequest = new ExecuteActionRequest("c1", null, "a1", resourceFilters, null, params, false);
+    response = controller.createAction(actionRequest, requestProperties);
+
+    List<HostRoleCommand> storedTasks1 = actionDB.getRequestTasks(response.getRequestId());
+    cmd = storedTasks1.get(0).getExecutionCommandWrapper().getExecutionCommand();
+    Assert.assertEquals("1800", cmd.getCommandParams().get("command_timeout"));
 
     resourceFilters.clear();
     resourceFilter = new RequestResourceFilter("", "", null);
@@ -6432,7 +6440,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(nnCommand);
     ExecutionCommand cmd = nnCommand.getExecutionCommandWrapper().getExecutionCommand();
     Assert.assertEquals("a1", cmd.getRole());
-    Assert.assertEquals("900", cmd.getCommandParams().get("command_timeout"));
+    Assert.assertEquals("10010", cmd.getCommandParams().get("command_timeout"));
     Type type = new TypeToken<Map<String, String>>(){}.getType();
     for (Stage stage : actionDB.getAllStages(response.getRequestId())){
       Map<String, String> commandParamsStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
