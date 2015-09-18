@@ -114,7 +114,7 @@ class LinuxDBMSConfig(DBMSConfig):
           "followed by alphanumeric or _ or - characters",
           False
       )
-      self.database_password = LinuxDBMSConfig._configure_database_password(True)
+      self.database_password = LinuxDBMSConfig._configure_database_password(True, self.database_password)
 
     self._display_db_properties()
     return True
@@ -186,8 +186,8 @@ class LinuxDBMSConfig(DBMSConfig):
     return None
 
   @staticmethod
-  def _configure_database_password(showDefault=True):
-    passwordDefault = DEFAULT_PASSWORD
+  def _configure_database_password(showDefault=True, defaultPassword=DEFAULT_PASSWORD):
+    passwordDefault = defaultPassword
     if showDefault:
       passwordPrompt = 'Enter Database Password (' + passwordDefault + '): '
     else:
