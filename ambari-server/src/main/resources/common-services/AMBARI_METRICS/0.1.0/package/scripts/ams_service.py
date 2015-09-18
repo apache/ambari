@@ -50,7 +50,7 @@ def ams_service(name, action):
       cmd = format("{cmd} --distributed")
 
     if action == 'start':
-      Execute(format('{sudo} rm -rf {hbase_tmp_dir}/*.tmp {zookeeper_data_dir}/*')
+      Execute(format("{sudo} rm -rf {hbase_tmp_dir}/*.tmp")
       )
 
       daemon_cmd = format("{cmd} start")
