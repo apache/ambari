@@ -46,6 +46,18 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   upgradeVersion: null,
 
   /**
+   * @type {string}
+   * @default null
+   */
+  upgradeTypeDisplayName: null,
+
+  /**
+   * @type {object}
+   * @default null
+   */
+  failuresTolerance: null,
+
+  /**
    * @type {boolean}
    * @default false
    */
@@ -65,6 +77,30 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   targetVersions: [],
 
   /**
+   * methods through which cluster could be upgraded, "allowed" indicated if the method is allowed
+   * by stack upgrade path
+   * @type {Array}
+   */
+  upgradeMethods: [
+    Em.Object.create({
+      displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.title'),
+      type: 'ROLLING',
+      icon: "icon-dashboard",
+      description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.description'),
+      selected: false,
+      allowed: true
+    }),
+    Em.Object.create({
+      displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.title'),
+      type: 'NON-ROLLING',
+      icon: "icon-bolt",
+      description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.description'),
+      selected: false,
+      allowed: true
+    })
+  ],
+
+  /**
    * @type {boolean} true if some request that should disable actions is in progress
    */
   requestInProgress: false,
@@ -75,7 +111,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   /**
    * properties that stored to localStorage to resume wizard progress
    */
-  wizardStorageProperties: ['upgradeId', 'upgradeVersion', 'currentVersion', 'isDowngrade', 'isSuspended'],
+  wizardStorageProperties: ['upgradeId', 'upgradeVersion', 'currentVersion', 'upgradeTypeDisplayName', 'failuresTolerance', 'isDowngrade', 'isSuspended'],
 
   /**
    * mutable properties of Upgrade Task
@@ -472,11 +508,23 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.set('upgradeId', data.resources[0].Upgrade.request_id);
     this.set('upgradeVersion', params.label);
     this.set('isDowngrade', !!params.isDowngrade);
+    var upgradeMethod = this.get('upgradeMethods').findProperty('type', params.type);
+    var upgradeTypeDisplayName  = upgradeMethod ? upgradeMethod.get('displayName') : null;
+    this.set('upgradeTypeDisplayName', upgradeTypeDisplayName);
+    this.set('failuresTolerance', Em.Object.create({
+      skipComponentFailures: params.skipComponentFailures,
+      skipSCFailures: params.skipSCFailures
+    }));
     this.setDBProperties({
       upgradeVersion: params.label,
       upgradeId: data.resources[0].Upgrade.request_id,
       upgradeState: 'PENDING',
-      isDowngrade: !!params.isDowngrade
+      isDowngrade: !!params.isDowngrade,
+      upgradeTypeDisplayName: upgradeTypeDisplayName,
+      failuresTolerance: Em.Object.create({
+        skipComponentFailures: params.skipComponentFailures,
+        skipSCFailures: params.skipSCFailures
+      })
     });
     App.set('upgradeState', 'PENDING');
     App.clusterStatus.setClusterStatus({
@@ -488,21 +536,221 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   },
 
   /**
-   * upgrade confirmation popup
+   * success callback of updating upgrade options including failures tolerance. etc
+   * @param {object} data
+   */
+  updateOptionsSuccessCallback: function (data, opt, params) {
+    this.set('failuresTolerance', Em.Object.create({
+      skipComponentFailures: params.skipComponentFailures,
+      skipSCFailures: params.skipSCFailures
+    }));
+  },
+
+  /**
+   * Open upgrade options window: upgrade type and failures tolerance
+   * @param {boolean} isInUpgradeWizard
+   * @param {object} version
+   * @return App.ModalPopup
+   */
+  upgradeOptions: function(isInUpgradeWizard, version) {
+    var self = this;
+    return App.ModalPopup.show({
+      encodeBody: false,
+      primary: isInUpgradeWizard? Em.I18n.t('ok') : Em.I18n.t('common.proceed'),
+      primaryClass: 'btn-success',
+      classNames: ['upgrade-options-popup'],
+      header: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.header'),
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/admin/stack_upgrade/upgrade_options'),
+        didInsertElement: function() {
+          //add pre-upgrade check results to each method object and set selected method
+          var view = this;
+          self.get('upgradeMethods').forEach(function(method){
+            if (!isInUpgradeWizard && method.get('allowed')) {
+              self.runPreUpgradeCheckOnly.call(self, {
+                value: version.get('repositoryVersion'),
+                label: version.get('displayName'),
+                type: method.get('type')
+              });
+            }
+            if (method.get('selected')) {
+              view.set('parentView.selectedMethod', method);
+            }
+          });
+          App.tooltip($(".not-allowed.thumbnail"), {
+            placement: "bottom",
+            title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.notAllowed')
+          });
+        },
+        parentView: this.get('parentView'),
+        isInUpgradeWizard: isInUpgradeWizard,
+        versionText: isInUpgradeWizard? '' : Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version').format(version.get('displayName')),
+        upgradeMethods: function () {
+          if (isInUpgradeWizard) {
+            self.get('upgradeMethods').forEach(function(method){
+              if (method.get('displayName') == self.get('upgradeTypeDisplayName')) {
+                method.set('selected', true);
+              } else {
+                method.set('selected', false);
+              }
+            });
+          } else {
+            var ruMethod = self.get('upgradeMethods').findProperty('type', 'ROLLING');
+            var ssuMethod = self.get('upgradeMethods').findProperty('type', 'NON-ROLLING');
+            ruMethod.set('selected', ruMethod.get('allowed'));
+            ssuMethod.set('selected', !ruMethod.get('allowed') && ssuMethod.get('allowed'));
+          }
+          return self.get('upgradeMethods');
+        }.property('self.upgradeMethods', 'upgradeTypeDisplayName'),
+        selectMethod: function(event) {
+          if (isInUpgradeWizard || !event.context.get('allowed')) return;
+          var selectedMethod = event.context;
+          this.get('upgradeMethods').forEach(function(method){
+            method.set('selected', false);
+          });
+          selectedMethod.set('selected', true);
+          this.set('parentView.selectedMethod', selectedMethod);
+        },
+        openMessage: function(event) {
+          if (isInUpgradeWizard || !event.context.get('allowed')) return;
+          var data = event.context.get('precheckResultsData');
+          var header = Em.I18n.t('popup.clusterCheck.Upgrade.header').format(version.get('displayName')),
+            failTitle = Em.I18n.t('popup.clusterCheck.Upgrade.fail.title'),
+            failAlert = new Em.Handlebars.SafeString(Em.I18n.t('popup.clusterCheck.Upgrade.fail.alert')),
+            warningTitle = Em.I18n.t('popup.clusterCheck.Upgrade.warning.title'),
+            warningAlert = new Em.Handlebars.SafeString(Em.I18n.t('popup.clusterCheck.Upgrade.warning.alert')),
+            configsMergeWarning = data.items.findProperty('UpgradeChecks.id', "CONFIG_MERGE"),
+            configs = [];
+          if (configsMergeWarning && Em.get(configsMergeWarning, 'UpgradeChecks.status') === 'WARNING') {
+            data.items = data.items.rejectProperty('UpgradeChecks.id', 'CONFIG_MERGE');
+            var configsMergeCheckData = Em.get(configsMergeWarning, 'UpgradeChecks.failed_detail');
+            if (configsMergeCheckData) {
+              configs = configsMergeCheckData.map(function (item) {
+                var isDeprecated = Em.isNone(item.new_stack_value),
+                  willBeRemoved = Em.isNone(item.result_value);
+                return {
+                  type: item.type,
+                  name: item.property,
+                  currentValue: item.current,
+                  recommendedValue: isDeprecated ? Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated') : item.new_stack_value,
+                  isDeprecated: isDeprecated,
+                  resultingValue: willBeRemoved ? Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.willBeRemoved') : item.result_value,
+                  willBeRemoved: willBeRemoved
+                };
+              });
+            }
+          }
+          App.showPreUpgradeCheckPopup(data, header, failTitle, failAlert, warningTitle, warningAlert, function () {
+            self.runPreUpgradeCheckOnly.call(self, {
+              value: version.get('repositoryVersion'),
+              label: version.get('displayName'),
+              type: event.context.get('type')
+            });
+          }, configs, version.get('displayName'));
+        }
+      }),
+      selectedMethod: '',
+      skipComponentFailures: self.get('failuresTolerance.skipComponentFailures'),
+      skipSCFailures: self.get('failuresTolerance.skipSCFailures'),
+      disablePrimary: function() {
+        if (isInUpgradeWizard) return false;
+        var selectedMethod = self.get('upgradeMethods').findProperty('selected', true);
+        return selectedMethod ? selectedMethod.get('precheckResultsMessageClass') == 'RED' : true;
+      }.property('selectedMethod', 'selectedMethod.precheckResultsMessageClass'),
+      onPrimary: function () {
+        this.hide();
+        if (isInUpgradeWizard) {
+          return App.ajax.send({
+            name: 'admin.upgrade.update.options',
+            sender: self,
+            data: {
+              upgradeId: self.get('upgradeId'),
+              skipComponentFailures: this.get('skipComponentFailures') || false,
+              skipSCFailures: this.get('skipSCFailures') || false
+            },
+            success: 'updateOptionsSuccessCallback'
+          });
+        } else {
+          version.upgradeType = self.get('upgradeMethods').findProperty('selected', true).get('type');
+          version.upgradeTypeDisplayName = self.get('upgradeMethods').findProperty('selected', true).get('displayName');
+          version.skipComponentFailures = this.get('skipComponentFailures');
+          version.skipSCFailures = this.get('skipSCFailures');
+          self.runPreUpgradeCheck.call(self, version);
+        }
+      },
+      onSecondary: function () {
+        this.hide();
+      },
+      onClose:  function () {
+        this.hide();
+      }
+    });
+  },
+
+  /**
+   * open upgrade options from upgrade wizard
+   * @return App.ModalPopup
+   */
+  openUpgradeOptions: function () {
+    this.upgradeOptions(true, null);
+  },
+
+  /**
+   * upgrade confirmation popup including upgrade options: upgrade type and failures tolerance
    * @param {object} version
    * @return App.ModalPopup
    */
   confirmUpgrade: function (version) {
-    var self = this;
+    this.upgradeOptions(false, version);
+  },
 
-    return App.showConfirmationPopup(
-      function () {
-        self.runPreUpgradeCheck.call(self, version);
-      },
-      Em.I18n.t('admin.stackUpgrade.upgrade.confirm.body').format(version.get('displayName')),
-      null,
-      Em.I18n.t('admin.stackUpgrade.dialog.header').format(version.get('displayName'))
-    );
+  /**
+   * send request for pre upgrade check only
+   */
+  runPreUpgradeCheckOnly: function(data) {
+    if (App.get('supports.preUpgradeCheck')) {
+      App.ajax.send({
+        name: "admin.upgrade.pre_upgrade_check",
+        sender: this,
+        data: data,
+        success: "runPreUpgradeCheckOnlySuccess",
+        error: "runPreUpgradeCheckError"
+      });
+    }
+  },
+
+  /**
+   * success callback of <code>runPreUpgradeCheckOnly()</code>
+   * Show a message how many fails/warnings/passed
+   * on clicking that message a popup window show up
+   * @param data {object}
+   * @param opt {object}
+   * @param params {object}
+   */
+  runPreUpgradeCheckOnlySuccess: function (data, opt, params) {
+    var self = this;
+    var message = '';
+    var messageClass = 'GREEN';
+    var messageIconClass = 'icon-ok';
+    if (data.items.someProperty('UpgradeChecks.status', 'WARNING')) {
+      message = message + data.items.filterProperty('UpgradeChecks.status', 'WARNING').length + ' Warning ';
+      messageClass = 'ORANGE';
+      messageIconClass = 'icon-warning-sign';
+    }
+    if (data.items.someProperty('UpgradeChecks.status', 'FAIL')) {
+      message = data.items.filterProperty('UpgradeChecks.status', 'FAIL').length + ' Required ' + message;
+      messageClass = 'RED';
+      messageIconClass = 'icon-remove';
+    }
+
+    if (!message) {
+      message = Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.allPassed');
+    }
+    var method = self.get('upgradeMethods').findProperty('type', params.type);
+    method.set('precheckResultsMessage', message);
+    method.set('precheckResultsMessageClass', messageClass);
+    method.set('precheckResultsMessageIconClass', messageIconClass);
+    method.set('precheckResultsData', data);
   },
 
   /**
@@ -512,13 +760,15 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   runPreUpgradeCheck: function(version) {
     var params = {
       value: version.get('repositoryVersion'),
-      label: version.get('displayName')
+      label: version.get('displayName'),
+      type: version.get('upgradeType'),
+      skipComponentFailures: version.get('skipComponentFailures'),
+      skipSCFailures: version.get('skipSCFailures')
     };
-
     if (App.get('supports.preUpgradeCheck')) {
       this.set('requestInProgress', true);
       App.ajax.send({
-        name: "admin.rolling_upgrade.pre_upgrade_check",
+        name: "admin.upgrade.pre_upgrade_check",
         sender: this,
         data: params,
         success: "runPreUpgradeCheckSuccess",
@@ -587,7 +837,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       },
       Em.I18n.t('admin.stackUpgrade.upgrade.retry.confirm.body').format(version.get('displayName')),
       null,
-      Em.I18n.t('admin.stackUpgrade.dialog.header').format(version.get('displayName'))
+      Em.I18n.t('admin.stackUpgrade.dialog.header').format(version.get('upgradeTypeDislayName'), version.get('displayName'))
     );
   },
 
@@ -814,6 +1064,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         upgradeState: 'INIT',
         upgradeVersion: undefined,
         currentVersion: undefined,
+        upgradeTypeDisplayName: undefined,
+        failuresTolerance: undefined,
         isDowngrade: undefined
       });
       App.clusterStatus.setClusterStatus({
