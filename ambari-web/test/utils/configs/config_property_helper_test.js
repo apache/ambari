@@ -344,7 +344,7 @@ describe('configPropertyHelper', function () {
           name: 'kafka.ganglia.metrics.host',
           value: 'localhost'
         });
-        configPropertyHelper.initialValue(serviceConfigProperty, item.localDB);
+        configPropertyHelper.initialValue(serviceConfigProperty, item.localDB, []);
         expect(serviceConfigProperty.get('value')).to.equal(item.expected);
       });
     });
@@ -361,7 +361,7 @@ describe('configPropertyHelper', function () {
           value: item.receivedValue,
           options: item.options
         });
-        configPropertyHelper.initialValue(serviceConfigProperty, {});
+        configPropertyHelper.initialValue(serviceConfigProperty, {}, []);
         expect(serviceConfigProperty.get('value')).to.equal(item.value);
         expect(serviceConfigProperty.get('options').findProperty('displayName', 'New MySQL Database').hidden).to.equal(item.hidden);
         App.get.restore();
@@ -385,7 +385,7 @@ describe('configPropertyHelper', function () {
               };
             }
           }
-        });
+        }, []);
         expect(serviceConfigProperty.get('value')).to.equal(item.value);
         expect(serviceConfigProperty.get('recommendedValue')).to.equal(item.recommendedValue);
       });
@@ -394,13 +394,13 @@ describe('configPropertyHelper', function () {
 
     it(cases['hivemetastore_host'].title, function () {
       serviceConfigProperty.set('name', 'hivemetastore_host');
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['hivemetastore_host'].localDB);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['hivemetastore_host'].localDB, []);
       expect(serviceConfigProperty.get('value')).to.eql(cases['hivemetastore_host'].value);
     });
 
     it(cases['hive_master_hosts'].title, function () {
       serviceConfigProperty.set('name', 'hive_master_hosts');
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['hive_master_hosts'].localDB);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['hive_master_hosts'].localDB, []);
       expect(serviceConfigProperty.get('value')).to.equal(cases['hive_master_hosts'].value);
     });
 
@@ -409,7 +409,7 @@ describe('configPropertyHelper', function () {
         name: 'hive.metastore.uris',
         recommendedValue: cases['hive.metastore.uris'].recommendedValue
       });
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['hive.metastore.uris'].localDB, cases['hive.metastore.uris'].dependencies);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['hive.metastore.uris'].localDB, [{name:'hive.metastore.uris', recommendedValue:cases['hive.metastore.uris'].dependencies['hive.metastore.uris'],  filename: 'hive-site.xml'}]);
       expect(serviceConfigProperty.get('value')).to.equal(cases['hive.metastore.uris'].value);
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['hive.metastore.uris'].value);
     });
@@ -420,7 +420,7 @@ describe('configPropertyHelper', function () {
         recommendedValue: cases['templeton.hive.properties'].recommendedValue,
         value: cases['templeton.hive.properties'].recommendedValue
       });
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['templeton.hive.properties'].localDB, cases['templeton.hive.properties'].dependencies);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['templeton.hive.properties'].localDB,  [{name:'hive.metastore.uris', recommendedValue:cases['templeton.hive.properties'].dependencies['hive.metastore.uris'],  filename: 'hive-site.xml'}]);
       expect(serviceConfigProperty.get('value')).to.equal(cases['templeton.hive.properties'].value);
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['templeton.hive.properties'].value);
     });
@@ -430,20 +430,20 @@ describe('configPropertyHelper', function () {
         name: 'yarn.resourcemanager.zk-address',
         recommendedValue: cases['yarn.resourcemanager.zk-address'].recommendedValue
       });
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['yarn.resourcemanager.zk-address'].localDB, cases['yarn.resourcemanager.zk-address'].dependencies);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['yarn.resourcemanager.zk-address'].localDB,  [{name:'clientPort', recommendedValue:cases['yarn.resourcemanager.zk-address'].dependencies['clientPort'],  filename: 'zoo.cfg.xml'}]);
       expect(serviceConfigProperty.get('value')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
     });
 
     it(cases['oozieserver_host'].title, function () {
       serviceConfigProperty.set('name', 'oozieserver_host');
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['oozieserver_host'].localDB);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['oozieserver_host'].localDB, []);
       expect(serviceConfigProperty.get('value')).to.eql(cases['oozieserver_host'].value);
     });
 
     it(cases['knox_gateway_host'].title, function () {
       serviceConfigProperty.set('name', 'knox_gateway_host');
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['knox_gateway_host'].localDB);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['knox_gateway_host'].localDB, []);
       expect(serviceConfigProperty.get('value')).to.eql(cases['knox_gateway_host'].value);
     });
 

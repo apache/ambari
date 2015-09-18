@@ -350,7 +350,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
       displayType: stringUtils.isSingleLine(propertyObj.value) ? 'advanced' : 'multiLine',
       isSecureConfig: isSecureConfig,
       category: propertyObj.categoryName,
-      id: 'site property',
       serviceName: propertyObj.serviceName,
       savedValue: null,
       recommendedValue: null,
@@ -386,10 +385,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
         var serviceName = service.get('serviceName');
 
         var configsOfFile = service.get('configs').filterProperty('filename', siteFileName);
-        var siteFileProperties = App.config.get('configMapping').all().filterProperty('filename', siteFileName);
 
         function isDuplicatedConfigKey(name) {
-          return siteFileProperties.findProperty('name', name) || configsOfFile.findProperty('name', name);
+          return configsOfFile.findProperty('name', name);
         }
 
         var serviceConfigObj = Ember.Object.create({
@@ -567,17 +565,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   removeProperty: function (event) {
     var serviceConfigProperty = event.contexts[0];
     this.get('serviceConfigs').removeObject(serviceConfigProperty);
-    if (App.get('isClusterSupportsEnhancedConfigs')) {
-      var deletedConfig = App.ConfigProperty.find().find(function(cp) {
-        return cp.get('name') === serviceConfigProperty.get('name')
-          && cp.get('fileName') === serviceConfigProperty.get('filename')
-          && cp.get('isOriginalSCP');
-      });
-      if (deletedConfig) {
-        deletedConfig.deleteRecord();
-        App.store.commit();
-      }
-    }
     // push config's file name if this config was stored on server
     if (!serviceConfigProperty.get('isNotSaved')) {
       var modifiedFileNames = this.get('controller.modifiedFileNames'),

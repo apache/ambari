@@ -185,7 +185,6 @@ var serviceConfigProperty,
     },
     {
       initial: {
-        id: 'puppet var',
         value: '',
         savedValue: 'default',
         recommendedValue: 'recommended'

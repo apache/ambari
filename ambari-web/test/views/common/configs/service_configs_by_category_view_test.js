@@ -263,7 +263,6 @@ describe('App.ServiceConfigsByCategoryView', function () {
           displayType: 'advanced',
           isSecureConfig: true,
           category: 'c0',
-          id: 'site property',
           serviceName: 's0',
           savedValue: null,
           supportsFinal: true,
@@ -292,7 +291,6 @@ describe('App.ServiceConfigsByCategoryView', function () {
           displayType: 'multiLine',
           isSecureConfig: false,
           category: 'c1',
-          id: 'site property',
           serviceName: 's1',
           savedValue: null,
           supportsFinal: false,
@@ -334,7 +332,7 @@ describe('App.ServiceConfigsByCategoryView', function () {
         view.createProperty(item.propertyObj);
         expect(view.get('serviceConfigs').filterProperty('name', item.propertyObj.name)).to.have.length(1);
         expect(view.get('serviceConfigs').findProperty('name', item.propertyObj.name).getProperties([
-          'name', 'displayName', 'value', 'displayType', 'isSecureConfig', 'category', 'id', 'serviceName', 'savedValue',
+          'name', 'displayName', 'value', 'displayType', 'isSecureConfig', 'category', 'serviceName', 'savedValue',
           'supportsFinal', 'filename', 'isUserProperty', 'isNotSaved', 'isRequired', 'group', 'isOverridable'
         ])).to.eql(item.result);
       });

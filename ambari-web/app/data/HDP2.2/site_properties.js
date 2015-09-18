@@ -59,12 +59,6 @@ hdp22properties.push(
     "category": "Advanced yarn-site"
   },
   {
-    "name": "hadoop.registry.zk.quorum",
-    "serviceName": "YARN",
-    "filename": "yarn-site.xml",
-    "category": "Advanced yarn-site"
-  },
-  {
     "name": "yarn.timeline-service.leveldb-state-store.path",
     "category": "APP_TIMELINE_SERVER",
     "displayType": "directory",
@@ -112,18 +106,6 @@ hdp22properties.push(
     "category": "Advanced ranger-hdfs-plugin-properties",
     "serviceName": "HDFS",
     "index": 1
-  },
-  {
-    "name": "policy_user",
-    "filename": "ranger-hdfs-plugin-properties.xml",
-    "category": "Advanced ranger-hdfs-plugin-properties",
-    "serviceName": "HDFS"
-  },
-  {
-    "name": "REPOSITORY_CONFIG_USERNAME",
-    "filename": "ranger-hdfs-plugin-properties.xml",
-    "category": "Advanced ranger-hdfs-plugin-properties",
-    "serviceName": "HDFS"
   },
   /*********RANGER FOR HIVE************/
   {
@@ -227,18 +209,6 @@ hdp22properties.push(
     "serviceName": "STORM",
     "index": 1
   },
-  {
-    "name": "policy_user",
-    "filename": "ranger-storm-plugin-properties.xml",
-    "category": "Advanced ranger-storm-plugin-properties",
-    "serviceName": "STORM"
-  },
-  {
-    "name": "REPOSITORY_CONFIG_USERNAME",
-    "filename": "ranger-storm-plugin-properties.xml",
-    "category": "Advanced ranger-storm-plugin-properties",
-    "serviceName": "STORM"
-  },
   /*********RANGER FOR KNOX************/
   {
     "name": "XAAUDIT.HDFS.IS_ENABLED",
@@ -262,31 +232,6 @@ hdp22properties.push(
     "category": "Advanced ranger-knox-plugin-properties",
     "serviceName": "KNOX",
     "index": 1
-  },
-  {
-    "name": "policy_user",
-    "filename": "ranger-knox-plugin-properties.xml",
-    "category": "Advanced ranger-knox-plugin-properties",
-    "serviceName": "KNOX"
-  },
-  {
-    "name": "REPOSITORY_CONFIG_USERNAME",
-    "filename": "ranger-knox-plugin-properties.xml",
-    "category": "Advanced ranger-knox-plugin-properties",
-    "serviceName": "KNOX"
-  },
-  /**********************************************SPARK***************************************/
-  {
-    "name": "spark.driver.extraJavaOptions",
-    "category": "Advanced spark-defaults",
-    "serviceName": "SPARK",
-    "filename": "spark-defaults.xml"
-  },
-  {
-    "name": "spark.yarn.am.extraJavaOptions",
-    "category": "Advanced spark-defaults",
-    "serviceName": "SPARK",
-    "filename": "spark-defaults.xml"
   },
   /**********************************************RANGER***************************************/
   {
@@ -488,86 +433,6 @@ hdp22properties.push(
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "ADSettings"
-  },
-  {
-    "name": "common.name.for.certificate",
-    "category": "Advanced ranger-hdfs-plugin-properties",
-    "serviceName": "HDFS",
-    "filename": "ranger-hdfs-plugin-properties.xml"
-  },
-  {
-    "name": "hadoop.rpc.protection",
-    "category": "Advanced ranger-hdfs-plugin-properties",
-    "serviceName": "HDFS",
-    "filename": "ranger-hdfs-plugin-properties.xml"
-  },  
-  {
-    "name": "common.name.for.certificate",
-    "serviceName": "HIVE",
-    "filename": "ranger-hive-plugin-properties.xml"
-  },
-  {
-    "name": "common.name.for.certificate",
-    "category": "Advanced ranger-hbase-plugin-properties",
-    "serviceName": "HBASE",
-    "filename": "ranger-hbase-plugin-properties.xml"
-  },
-  {
-    "name": "common.name.for.certificate",
-    "category": "Advanced ranger-knox-plugin-properties",
-    "serviceName": "KNOX",
-    "filename": "ranger-knox-plugin-properties.xml"
-  },
-  {
-    "name": "common.name.for.certificate",
-    "category": "Advanced ranger-storm-plugin-properties",
-    "serviceName": "STORM",
-    "filename": "ranger-storm-plugin-properties.xml"
-  },
-  {
-    "name": "SYNC_LDAP_USER_SEARCH_FILTER",
-    "category": "Advanced usersync-properties",
-    "serviceName": "RANGER",
-    "filename": "usersync-properties.xml"
-  },
-  {
-    "name": "hbase.bucketcache.ioengine",
-    "serviceName": "HBASE",
-    "filename": "hbase-site.xml",
-    "category": "Advanced hbase-site"
-  },
-  {
-    "name": "hbase.bucketcache.size",
-    "displayType": "int",
-    "serviceName": "HBASE",
-    "filename": "hbase-site.xml",
-    "category": "Advanced hbase-site"
-  },
-  {
-    "name": "hbase.bucketcache.percentage.in.combinedcache",
-    "displayType": "float",
-    "serviceName": "HBASE",
-    "filename": "hbase-site.xml",
-    "category": "Advanced hbase-site"
-  },
-  {
-    "name": "hbase_max_direct_memory_size",
-    "displayType": "int",
-    "serviceName": "HBASE",
-    "filename": "hbase-env.xml",
-    "category": "Advanced hbase-env"
-  },
-  {
-    "name": "hbase.region.server.rpc.scheduler.factory.class",
-    "category": "Advanced hbase-site",
-    "serviceName": "HBASE",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.rpc.controllerfactory.class",
-    "category": "Advanced hbase-site",
-    "serviceName": "HBASE",
-    "filename": "hbase-site.xml"
   }
 );
 

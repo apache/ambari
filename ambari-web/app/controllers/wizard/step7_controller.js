@@ -676,31 +676,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     }
     this.set('hash', this.getHash());
   },
-  /**
-   * After user navigates back to step7, values for depended configs should be set to values set by user and not to default values
-   * @method restoreRecommendedConfigs
-   */
-  restoreRecommendedConfigs: function () {
-    var recommendationsConfigs = this.get('recommendationsConfigs') || {};
-    var serviceConfigProperties = this.get('content.serviceConfigProperties') || [];
-    var stepConfigs = this.get('stepConfigs');
-    Em.keys(recommendationsConfigs).forEach(function (file) {
-      (Em.keys(recommendationsConfigs[file].properties).concat(Em.keys(recommendationsConfigs[file].property_attributes || {}))).forEach(function (configName) {
-        stepConfigs.forEach(function (stepConfig) {
-          stepConfig.get('configs').filterProperty('name', configName).forEach(function (configProperty) {
-            if (Em.get(configProperty, 'filename').contains(file)) {
-              var scps = serviceConfigProperties.filterProperty('name', configName).filter(function (cp) {
-                return Em.get(cp, 'filename').contains(file);
-              });
-              if (scps.length) {
-                Em.set(configProperty, 'value', Em.get(scps[0], 'value'));
-              }
-            }
-          });
-        });
-      });
-    });
-  },
 
   /**
    * Mark descriptor properties in configuration object.
@@ -913,25 +888,16 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }
     });
     //add user properties
-
     Em.keys(configsMap).forEach(function (filename) {
       Em.keys(configsMap[filename]).forEach(function (propertyName) {
-        configs.push(configMixin.addUserProperty({
-          id: 'site property',
-          name: propertyName,
-          serviceName: configMixin.getServiceNameByConfigType(filename),
-          value: configsMap[filename][propertyName],
-          savedValue: configsMap[filename][propertyName],
-          filename: configMixin.get('filenameExceptions').contains(filename) ? filename : filename + '.xml',
-          category: 'Advanced',
-          hasInitialValue: true,
-          isUserProperty: true,
-          isOverridable: true,
-          overrides: [],
-          isRequired: true,
-          isVisible: true,
-          showLabel: true
-        }, false, []));
+        configs.push(configMixin.createDefaultConfig(propertyName,
+          configMixin.getServiceByConfigType(filename).get('serviceName'),
+          configMixin.getOriginalFileName(filename),
+          false, {
+            value: configsMap[filename][propertyName],
+            savedValue: configsMap[filename][propertyName],
+            hasInitialValue: true
+        }));
       });
     });
   },
@@ -1044,7 +1010,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       this._setEditableValue(config);
       this._setOverrides(config, overrides);
     }, this);
-    //this.getRecommendationsForDependencies(null, true, Em.K);
   }.observes('selectedConfigGroup'),
 
   /**

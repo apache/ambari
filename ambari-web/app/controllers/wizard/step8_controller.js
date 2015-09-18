@@ -80,18 +80,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     return !!App.get('router.mainAdminKerberosController.kdc_type')
   }.property('App.router.mainAdminKerberosController.kdc_type'),
 
-  /**
-   * All configs
-   * @type {Array}
-   */
-  configMapping: function () {
-    return App.config.get('configMapping').all(true);
-  }.property('App.config.configMapping'),
-
-  /**
-   *
-   */
-  slaveComponentConfig: null,
 
   /**
    * Should Submit button be disabled
@@ -231,114 +219,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   },
 
   /**
-   * Remove unused Hive configs
-   * @param {Ember.Enumerable} configs
-   * @returns {Ember.Enumerable}
-   * @method removeHiveConfigs
-   */
-  removeHiveConfigs: function (configs) {
-    var hiveDb = configs.findProperty('name', 'hive_database');
-    var hiveDbType = configs.findProperty('name', 'hive_database_type');
-    if (hiveDbType) {
-      var hive_properties = Em.A([]);
-
-      switch (hiveDb.value) {
-        case 'New MySQL Database':
-          if (configs.someProperty('name', 'hive_ambari_host')) {
-            configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_ambari_host').value;
-          }
-          hive_properties = Em.A(['hive_existing_mysql_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database',
-            'hive_existing_mssql_server_database', 'hive_existing_mssql_server_2_database']);
-          break;
-        case 'New PostgreSQL Database':
-          if (configs.someProperty('name', 'hive_ambari_host')) {
-            configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_ambari_host').value;
-          }
-          hive_properties = Em.A(['hive_existing_mysql_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database']);
-          break;
-        case 'Existing MySQL Database':
-          configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_mysql_host').value;
-          hive_properties = Em.A(['hive_ambari_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database',
-            'hive_existing_mssql_server_database', 'hive_existing_mssql_server_2_database']);
-          break;
-        case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
-          configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_postgresql_host').value;
-          hive_properties = Em.A(['hive_ambari_database', 'hive_existing_oracle_database', 'hive_existing_mysql_database',
-            'hive_existing_mssql_server_database', 'hive_existing_mssql_server_2_database']);
-          break;
-        case 'Existing MSSQL Server database with SQL authentication':
-          configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_mssql_server_host').value;
-          hive_properties = Em.A(['hive_ambari_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database',
-            'hive_existing_mysql_database', 'hive_existing_mssql_server_database', 'hive_existing_mssql_server_database']);
-          break;
-        case 'Existing MSSQL Server database with integrated authentication':
-          configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_mssql_server_2_host').value;
-          hive_properties = Em.A(['hive_ambari_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database',
-            'hive_existing_mysql_database', 'hive_existing_mssql_server_database', 'hive_existing_mssql_server_2_database']);
-          break;
-        default:
-          configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_oracle_host').value;
-          hive_properties = Em.A(['hive_ambari_database',  'hive_existing_mysql_database', 'hive_existing_postgresql_database',
-            'hive_existing_mssql_server_database', 'hive_existing_mssql_server_2_database']);
-          break;
-      }
-
-      hive_properties.push('hive_master_hosts');
-      configs = dataManipulationUtils.rejectPropertyValues(configs, 'name', hive_properties);
-    }
-    return configs;
-  },
-
-  /**
-   * Remove unused Oozie configs
-   * @param {Ember.Enumerable} configs
-   * @returns {Ember.Enumerable}
-   * @method removeOozieConfigs
-   */
-  removeOozieConfigs: function (configs) {
-    var oozieDb = configs.findProperty('name', 'oozie_database');
-    if (oozieDb) {
-      var oozie_properties = Em.A(['oozie_ambari_database']);
-
-      switch (oozieDb.value) {
-        case 'New Derby Database':
-          configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_ambari_host').value;
-          oozie_properties = Em.A(['oozie_ambari_database', 'oozie_existing_mysql_database', 'oozie_existing_oracle_database',
-            'oozie_existing_postgresql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_2_database']);
-          break;
-        case 'Existing MySQL Database':
-          configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_existing_mysql_host').value;
-          oozie_properties = Em.A(['oozie_ambari_database', 'oozie_existing_oracle_database', 'oozie_derby_database',
-            'oozie_existing_postgresql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_2_database']);
-          break;
-        case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
-          configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_existing_postgresql_host').value;
-          oozie_properties = Em.A(['oozie_ambari_database', 'oozie_existing_oracle_database', 'oozie_existing_mysql_database',
-            'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_2_database']);
-          break;
-        case 'Existing MSSQL Server database with SQL authentication':
-          configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_existing_mssql_server_host').value;
-          oozie_properties = Em.A(['oozie_existing_oracle_database', 'oozie_existing_postgresql_database',
-            'oozie_existing_mysql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_2_database']);
-          break;
-        case 'Existing MSSQL Server database with integrated authentication':
-          configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_existing_mssql_server_2_host').value;
-          oozie_properties = Em.A(['oozie_existing_oracle_database', 'oozie_existing_postgresql_database',
-            'oozie_existing_mysql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_database']);
-          break;
-        default:
-          configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_existing_oracle_host').value;
-          oozie_properties = Em.A(['oozie_ambari_database', 'oozie_existing_mysql_database', 'oozie_derby_database',
-            'oozie_existing_postgresql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_2_database']);
-          break;
-      }
-
-      configs = dataManipulationUtils.rejectPropertyValues(configs, 'name', oozie_properties);
-    }
-    return configs;
-  },
-
-  /**
    * Load all site properties
    * @method loadConfigs
    */
@@ -359,37 +239,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     });
     this.set('customNonDefaultGroupConfigs', customGroupConfigs);
     this.set('configs', allConfigs);
-  },
-
-  /**
-   * Load UI configs
-   * @param {Array} configMapping
-   * @return {Array}
-   * @method loadUiSideConfigs
-   */
-  loadUiSideConfigs: function (configMapping) {
-    var uiConfig = [];
-    var dependentConfig = $.extend(true, [], configMapping.filterProperty('foreignKey'));
-    dependentConfig.forEach(function (_config) {
-      App.config.setConfigValue(uiConfig, this.get('content.serviceConfigProperties'), _config);
-      // generated config name using template for example `hadoop.proxyuser.hive.hosts`
-      var configName = _config._name || _config.name;
-      // property from <code>content.serviceConfigProperties</code>. This property can be added in custom-site.xml
-      // with the same name as propety from defined config mapping. In this case property from config mapping
-      // object should be ignored.
-      var isPropertyDefined = this.get('content.serviceConfigProperties')
-            .filterProperty('filename', _config.filename).someProperty('name', configName);
-      // ignore config mapping property if no matches for template was found or property already added by user
-      if(!_config.noMatchSoSkipThisConfig && !isPropertyDefined) {
-        uiConfig.pushObject({
-          "id": "site property",
-          "name": configName,
-          "value": _config.value,
-          "filename": _config.filename
-        });
-      }
-    }, this);
-    return uiConfig;
   },
 
   /**
@@ -1020,10 +869,10 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         if (App.get('isKerberosEnabled') && !this.get('isManualKerberos')) {
           this.updateKerberosDescriptor();
         }
-      }
-      var fileNamesToUpdate = this.get('wizardController').getDBProperty('fileNamesToUpdate');
-      if (fileNamesToUpdate && fileNamesToUpdate.length) {
-        this.updateConfigurations(fileNamesToUpdate);
+        var fileNamesToUpdate = this.get('wizardController').getDBProperty('fileNamesToUpdate');
+        if (fileNamesToUpdate && fileNamesToUpdate.length) {
+          this.updateConfigurations(fileNamesToUpdate);
+        }
       }
       this.createConfigurations();
       this.applyConfigurationsToCluster(this.get('serviceConfigTags'));
@@ -1689,61 +1538,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     groupsToDelete.forEach(function (item) {
       self.deleteConfigurationGroup(Em.Object.create(item));
     });
-  },
-
-  /**
-   * proxyuser configs which depend on service
-   * @type {{serviceName: string, user: string}[]}
-   */
-  optionalCoreSiteConfigs: [
-    {
-      serviceName: 'OOZIE',
-      user: 'oozie_user'
-    },
-    {
-      serviceName: 'HIVE',
-      user: 'hive_user'
-    },
-    {
-      serviceName: 'HIVE',
-      user: 'hcat_user'
-    },
-    {
-      serviceName: 'FALCON',
-      user: 'falcon_user'
-    }
-  ],
-
-  /**
-   * push proxyuser properties to core-site if they required by dependencies
-   * @param coreSiteObj
-   * @param installedAndSelectedServices
-   * @return {Object}
-   */
-  resolveProxyuserDependecies: function (coreSiteObj, installedAndSelectedServices) {
-    var coreSiteProperties = {};
-    var optionalCoreSiteConfigs = this.get('optionalCoreSiteConfigs');
-    var proxyuserGroup = this.get('configs').findProperty('name', 'proxyuser_group');
-
-    coreSiteObj.forEach(function (_coreSiteObj) {
-      //proxyuser_group property should be added only if proxyuser properties are used
-      if (proxyuserGroup && _coreSiteObj.name === proxyuserGroup.name) return;
-
-      // exclude some configs if service wasn't selected
-      var addProperty = optionalCoreSiteConfigs.every(function (config) {
-        var userValue = this.get('configs').someProperty('name', config.user) ? this.get('configs').findProperty('name', config.user).value : null;
-        return (installedAndSelectedServices.someProperty('serviceName', config.serviceName) ||
-          (_coreSiteObj.name != 'hadoop.proxyuser.' + userValue + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + userValue + '.groups'))
-      }, this);
-      if (addProperty) {
-        coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
-      }
-    }, this);
-
-    if (!App.isEmptyObject(coreSiteProperties) && proxyuserGroup) {
-      coreSiteProperties[proxyuserGroup.name] = proxyuserGroup.value;
-    }
-    return coreSiteProperties;
   },
 
   /**

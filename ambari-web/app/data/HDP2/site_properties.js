@@ -55,7 +55,6 @@ var hdp2properties = [
   },
   {
     "name": "dfs.datanode.failed.volumes.tolerated",
-    "displayType": "int",
     "category": "DATANODE",
     "serviceName": "HDFS",
     "filename": "hdfs-site.xml",
@@ -102,7 +101,6 @@ var hdp2properties = [
   },
   {
     "name": "nfs.exports.allowed.hosts",
-    "displayType": "string",
     "category": "NFS_GATEWAY",
     "serviceName": "HDFS",
     "filename": "hdfs-site.xml",
@@ -263,13 +261,6 @@ var hdp2properties = [
   {
     "name": "hadoop_pid_dir_prefix",
     "displayType": "directory",
-    "serviceName": "HDFS",
-    "filename": "hadoop-env.xml",
-    "category": "Advanced hadoop-env"
-  },
-  {
-    "name": "hadoop_root_logger",
-    "displayType": "string",
     "serviceName": "HDFS",
     "filename": "hadoop-env.xml",
     "category": "Advanced hadoop-env"
@@ -724,12 +715,6 @@ var hdp2properties = [
     "index": 4
   },
   {
-    "name": "hive.server2.tez.default.queues",
-    "serviceName": "HIVE",
-    "filename": "hive-site.xml",
-    "category": "Advanced hive-site"
-  },
-  {
     "name": "hive.server2.thrift.port",
     "displayType": "int",
     "category": "Advanced hive-site",
@@ -1098,24 +1083,6 @@ var hdp2properties = [
     "serviceName": "HBASE",
     "filename": "hbase-site.xml",
     "index": 5
-  },
-  {
-    "name": "hbase.coprocessor.region.classes",
-    "category": "Advanced hbase-site",
-    "serviceName": "HBASE",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.coprocessor.master.classes",
-    "category": "Advanced hbase-site",
-    "serviceName": "HBASE",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.coprocessor.regionserver.classes",
-    "category": "Advanced hbase-site",
-    "serviceName": "HBASE",
-    "filename": "hbase-site.xml"
   },
   {
     "name": "hbase.zookeeper.quorum",
@@ -1813,48 +1780,14 @@ var hdp2properties = [
 
 /**********************************************webhcat-site***************************************/
   {
-    "name": "templeton.hive.archive",
-    "serviceName": "HIVE",
-    "filename": "webhcat-site.xml",
-    "category": "Advanced webhcat-site"
-  },
-  {
-    "name": "templeton.pig.archive",
-    "serviceName": "HIVE",
-    "filename": "webhcat-site.xml",
-    "category": "Advanced webhcat-site"
-  },
-  {
     "name": "templeton.zookeeper.hosts",
     "displayType": "multiLine",
     "serviceName": "HIVE",
     "filename": "webhcat-site.xml",
     "category": "Advanced webhcat-site"
   },
-/**********************************************pig.properties*****************************************/
-  {
-    "name": "content",
-    "category": "Advanced pig-properties",
-    "serviceName": "PIG",
-    "filename": "pig-properties.xml"
-  },
 
 /**********************************************KNOX*****************************************/
-  {
-    "name": "content",
-    "displayType": "content",
-    "serviceName": "KNOX",
-    "filename": "topology.xml",
-    "category": "Advanced topology"
-  },
-
-  {
-    "name": "content",
-    "displayType": "content",
-    "serviceName": "KNOX",
-    "filename": "users-ldif.xml",
-    "category": "Advanced users-ldif"
-  },
   {
     "name": "knox_gateway_host",
     "displayName": "Knox Gateway host",
@@ -2611,22 +2544,8 @@ var hdp2properties = [
     "category": "Advanced falcon-env"
   },
   {
-    "name": "falcon.embeddedmq",
-    "displayType": "string",
-    "serviceName": "FALCON",
-    "filename": "falcon-env.xml",
-    "category": "Advanced falcon-env"
-  },
-  {
     "name": "falcon.embeddedmq.data",
     "displayType": "directory",
-    "serviceName": "FALCON",
-    "filename": "falcon-env.xml",
-    "category": "Advanced falcon-env"
-  },
-  {
-    "name": "falcon.emeddedmq.port",
-    "displayType": "string",
     "serviceName": "FALCON",
     "filename": "falcon-env.xml",
     "category": "Advanced falcon-env"
@@ -2838,7 +2757,6 @@ var hdp2properties = [
 /************************************************AMBARI_METRICS******************************************/
   {
     "name": "timeline.metrics.service.operation.mode",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "General",
@@ -2846,7 +2764,6 @@ var hdp2properties = [
   },
   {
     "name": "metrics_collector_log_dir",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-env.xml",
     "category": "General",
@@ -2854,7 +2771,6 @@ var hdp2properties = [
   },
   {
     "name": "metrics_collector_pid_dir",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-env.xml",
     "category": "General",
@@ -2862,7 +2778,6 @@ var hdp2properties = [
   },
   {
     "name": "metrics_monitor_log_dir",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-env.xml",
     "category": "General",
@@ -2870,7 +2785,6 @@ var hdp2properties = [
   },
   {
     "name": "metrics_monitor_pid_dir",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-env.xml",
     "category": "General",
@@ -2894,7 +2808,6 @@ var hdp2properties = [
   },
   {
     "name": "timeline.metrics.cluster.aggregator.hourly.disabled",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
@@ -2918,7 +2831,6 @@ var hdp2properties = [
   },
   {
     "name": "timeline.metrics.cluster.aggregator.minute.disabled",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
@@ -2950,7 +2862,6 @@ var hdp2properties = [
   },
   {
     "name": "timeline.metrics.host.aggregator.hourly.disabled",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
@@ -2974,7 +2885,6 @@ var hdp2properties = [
   },
   {
     "name": "timeline.metrics.host.aggregator.minute.disabled",
-    "displayType": "string",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
@@ -3011,114 +2921,6 @@ var hdp2properties = [
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 3
-  },
-  {
-    "name": "ams.zookeeper.keytab",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "ams.zookeeper.principal",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hadoop.security.authentication",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.coprocessor.master.classes",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.coprocessor.region.classes",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.master.kerberos.principal",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.master.keytab.file",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.myclient.keytab",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.myclient.principal",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.regionserver.kerberos.principal",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.regionserver.keytab.file",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.security.authentication",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.security.authorization",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.zookeeper.property.authProvider.1",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.zookeeper.property.jaasLoginRenew",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.zookeeper.property.kerberos.removeHostFromPrincipal",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "hbase.zookeeper.property.kerberos.removeRealmFromPrincipal",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
-  },
-  {
-    "name": "zookeeper.znode.parent",
-    "serviceName": "AMBARI_METRICS",
-    "category": "Advanced ams-hbase-security-site",
-    "filename": "ams-hbase-security-site.xml"
   },
 /************************************************Kerberos Descriptor******************************************/
   {
@@ -3335,21 +3137,18 @@ var atsProperties = [
   },
   {
     "name": "yarn.timeline-service.webapp.address",
-    "displayType": "string",
     "category": "APP_TIMELINE_SERVER",
     "serviceName": "YARN",
     "filename": "yarn-site.xml"
   },
   {
     "name": "yarn.timeline-service.webapp.https.address",
-    "displayType": "string",
     "category": "APP_TIMELINE_SERVER",
     "serviceName": "YARN",
     "filename": "yarn-site.xml"
   },
   {
     "name": "yarn.timeline-service.address",
-    "displayType": "string",
     "category": "APP_TIMELINE_SERVER",
     "serviceName": "YARN",
     "filename": "yarn-site.xml"

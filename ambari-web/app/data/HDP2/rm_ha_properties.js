@@ -28,7 +28,6 @@ module.exports =
     configs: [
     /**********************************************HDFS***************************************/
       {
-        "id": "site property",
         "name": "yarn.resourcemanager.ha.enabled",
         "displayName": "yarn.resourcemanager.ha.enabled",
         "isReconfigurable": false,
@@ -40,7 +39,6 @@ module.exports =
         serviceName: 'MISC'
       },
       {
-        "id": "site property",
         "name": "yarn.resourcemanager.ha.rm-ids",
         "displayName": "yarn.resourcemanager.ha.rm-ids",
         "isReconfigurable": false,
@@ -51,7 +49,6 @@ module.exports =
         serviceName: 'MISC'
       },
       {
-        "id": "site property",
         "name": "yarn.resourcemanager.hostname.rm1",
         "displayName": "yarn.resourcemanager.hostname.rm1",
         "isReconfigurable": false,
@@ -63,7 +60,6 @@ module.exports =
       },
 
       {
-        "id": "site property",
         "name": "yarn.resourcemanager.webapp.address.rm1",
         "displayName": "yarn.resourcemanager.webapp.address.rm1",
         "isReconfigurable": false,
@@ -74,7 +70,6 @@ module.exports =
         serviceName: 'MISC'
       },
       {
-        "id": "site property",
         "name": "yarn.resourcemanager.webapp.address.rm2",
         "displayName": "yarn.resourcemanager.webapp.address.rm2",
         "isReconfigurable": false,
@@ -85,7 +80,6 @@ module.exports =
         serviceName: 'MISC'
       },
       {
-        "id": "site property",
         "name": "yarn.resourcemanager.webapp.https.address.rm1",
         "displayName": "yarn.resourcemanager.webapp.https.address.rm1",
         "isReconfigurable": false,
@@ -96,7 +90,6 @@ module.exports =
         serviceName: 'MISC'
       },
       {
-        "id": "site property",
         "name": "yarn.resourcemanager.webapp.https.address.rm2",
         "displayName": "yarn.resourcemanager.webapp.https.address.rm2",
         "isReconfigurable": false,
@@ -108,7 +101,6 @@ module.exports =
       },
 
       {
-        "id": "site property",
         "name": "yarn.resourcemanager.hostname.rm2",
         "displayName": "yarn.resourcemanager.hostname.rm2",
         "isReconfigurable": false,
@@ -119,7 +111,6 @@ module.exports =
         serviceName: 'MISC'
       },
       {
-        "id": "site property",
         "name": "yarn.resourcemanager.recovery.enabled",
         "displayName": "yarn.resourcemanager.recovery.enabled",
         "isReconfigurable": false,
@@ -131,7 +122,6 @@ module.exports =
         serviceName: 'MISC'
       },
       {
-        "id": "site property",
         "name": "yarn.resourcemanager.store.class",
         "displayName": "yarn.resourcemanager.store.class",
         "isReconfigurable": false,
@@ -142,7 +132,6 @@ module.exports =
         serviceName: 'MISC'
       },
       {
-        "id": "site property",
         "name": "yarn.resourcemanager.zk-address",
         "displayName": "yarn.resourcemanager.zk-address",
         "isReconfigurable": false,
@@ -153,7 +142,6 @@ module.exports =
         serviceName: 'MISC'
       },
       {
-        "id": "site property",
         "name": "yarn.resourcemanager.cluster-id",
         "displayName": "yarn.resourcemanager.cluster-id",
         "isReconfigurable": false,
@@ -164,7 +152,6 @@ module.exports =
         serviceName: 'MISC'
       },
       {
-        "id": "site property",
         "name": "yarn.resourcemanager.ha.automatic-failover.zk-base-path",
         "displayName": "yarn.resourcemanager.ha.automatic-failover.zk-base-path",
         "isReconfigurable": false,
