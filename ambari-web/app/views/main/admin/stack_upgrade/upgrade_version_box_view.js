@@ -144,7 +144,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('action', 'showProgressPopup');
     }
     else if ((status === 'INSTALLED' && !this.get('isUpgrading')) ||
-             (status === 'INSTALL_FAILED' && this.get('isUpgradeAvailable'))) {
+             (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status) && this.get('isUpgradeAvailable'))) {
       if (stringUtils.compareVersions(this.get('content.repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1) {
         var isDisabled = !App.isAccessible('ADMIN') || this.get('controller.requestInProgress') || isInstalling;
         element.set('isButtonGroup', true);
@@ -372,7 +372,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
    * when version in INSTALL_FAILED state it still could be upgraded if check passed
    */
   checkUpgradeAvailability: function () {
-    if (this.get('content.status') === 'INSTALL_FAILED') {
+    if (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(this.get('content.status'))) {
       this.runUpgradeCheck();
     }
   }.observes('content.status'),
