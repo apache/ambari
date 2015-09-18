@@ -35,6 +35,9 @@ from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.functions.format import format
 from resource_management.core.exceptions import Fail
 from resource_management.core.shell import as_sudo
+from resource_management.core.shell import quote_bash_args
+from resource_management.core.logger import Logger
+from resource_management.core import utils
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -274,6 +277,15 @@ def hive(name=None):
                                         "-dbType {hive_metastore_db_type} "
                                         "-userName {hive_metastore_user_name} "
                                         "-passWord {hive_metastore_user_passwd!p}"), params.hive_user)
+
+      # HACK: in cases with quoted passwords and as_user (which does the quoting as well) !p won't work for hiding passwords.
+      # Fixing it with the hack below:
+      quoted_hive_metastore_user_passwd = quote_bash_args(quote_bash_args(params.hive_metastore_user_passwd))
+      if quoted_hive_metastore_user_passwd[0] == "'" and quoted_hive_metastore_user_passwd[-1] == "'" \
+          or quoted_hive_metastore_user_passwd[0] == '"' and quoted_hive_metastore_user_passwd[-1] == '"':
+        quoted_hive_metastore_user_passwd = quoted_hive_metastore_user_passwd[1:-1]
+      Logger.sensitive_strings[repr(check_schema_created_cmd)] = repr(check_schema_created_cmd.replace(
+          format("-passWord {quoted_hive_metastore_user_passwd}"), "-passWord " + utils.PASSWORDS_HIDE_STRING))
 
       Execute(create_schema_cmd,
               not_if = check_schema_created_cmd,
