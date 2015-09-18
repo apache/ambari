@@ -151,7 +151,7 @@ App.StackServiceComponent = DS.Model.extend({
    * @property {Boolean} isMasterAddableOnlyOnHA
    */
   isMasterAddableOnlyOnHA: function () {
-    return ['NAMENODE', 'RESOURCEMANAGER', 'RANGER_ADMIN'].contains(this.get('componentName'));
+    return ['NAMENODE', 'RESOURCEMANAGER', 'RANGER_ADMIN', 'OOZIE_SERVER'].contains(this.get('componentName'));
   }.property('componentName'),
 
   /** @property {Boolean} isHAComponentOnly - Components that can be installed only if HA enabled **/
