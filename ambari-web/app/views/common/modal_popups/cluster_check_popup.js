@@ -71,3 +71,58 @@ App.showClusterCheckPopup = function (data, header, failTitle, failAlert, warnin
     }
   });
 };
+
+
+/**
+ * popup to display requirements that are not met
+ * for current action
+ * @param data
+ * @param header
+ * @param failTitle
+ * @param failAlert
+ * @param warningTitle
+ * @param warningAlert
+ * @param callback
+ * @param configs
+ * @param upgradeVersion
+ * @returns {*|void}
+ */
+App.showPreUpgradeCheckPopup = function (data, header, failTitle, failAlert, warningTitle, warningAlert, callback, configs, upgradeVersion) {
+  var fails = data.items.filterProperty('UpgradeChecks.status', 'FAIL'),
+    warnings = data.items.filterProperty('UpgradeChecks.status', 'WARNING'),
+    hasConfigsMergeConflicts = !!(configs && configs.length),
+    popupBody = {
+      failTitle: failTitle,
+      failAlert: failAlert,
+      warningTitle: warningTitle,
+      warningAlert: warningAlert,
+      templateName: require('templates/common/modal_popups/cluster_check_dialog'),
+      fails: fails,
+      warnings: warnings,
+      hasConfigsMergeConflicts: hasConfigsMergeConflicts
+    };
+  if (hasConfigsMergeConflicts) {
+    popupBody.configsMergeTable = Em.View.extend({
+      templateName: require('templates/main/admin/stack_upgrade/upgrade_configs_merge_table'),
+      configs: configs,
+      didInsertElement: function () {
+        App.tooltip($('.recommended-value'), {
+          title: upgradeVersion
+        });
+      }
+    });
+  }
+  return App.ModalPopup.show({
+    primary: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.rerun'),
+    secondary: Em.I18n.t('common.cancel'),
+    header: header,
+    classNames: ['cluster-check-popup'],
+    bodyClass: Em.View.extend(popupBody),
+    onPrimary: function () {
+      this._super();
+      if (callback) {
+        callback();
+      }
+    }
+  });
+};

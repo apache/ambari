@@ -1573,6 +1573,21 @@ var urls = {
   'admin.upgrade.service_checks': {
     'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups?upgrade_items/UpgradeItem/status=COMPLETED&upgrade_items/tasks/Tasks/status.in(FAILED,ABORTED,TIMEDOUT)&upgrade_items/tasks/Tasks/command=SERVICE_CHECK&fields=upgrade_items/tasks/Tasks/command_detail,upgrade_items/tasks/Tasks/status&minimal_response=true'
   },
+  'admin.upgrade.update.options': {
+    'real': '/clusters/{clusterName}/upgrades/{upgradeId}',
+    'mock': '/data/stack_versions/start_upgrade.json',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "Upgrade": {
+            "skip_failures": data.skipComponentFailures,
+            "skip_service_check_failures": data.skipSCFailures
+          }
+        })
+      }
+    }
+  },
   'admin.upgrade.start': {
     'real': '/clusters/{clusterName}/upgrades',
     'mock': '/data/stack_versions/start_upgrade.json',
@@ -1581,7 +1596,10 @@ var urls = {
       return {
         data: JSON.stringify({
           "Upgrade": {
-            "repository_version": data.value
+            "repository_version": data.value,
+            "type": data.type,
+            "skip_failures": data.skipComponentFailures,
+            "skip_service_check_failures": data.skipSCFailures
           }
         })
       }
@@ -1689,8 +1707,8 @@ var urls = {
     }
   },
 
-  'admin.rolling_upgrade.pre_upgrade_check': {
-    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version={value}',
+  'admin.upgrade.pre_upgrade_check': {
+    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version={value}&UpgradeChecks/upgrade_type={type}',
     'mock': '/data/stack_versions/pre_upgrade_check.json'
   },
 

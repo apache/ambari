@@ -267,6 +267,12 @@
   .task-list-main-warp i {
     font-size: 16px;
   }
+  .upgrade-options-button {
+    position: absolute;
+    right: 10%;
+    top: 10px;
+    width: 100px;
+  }
 }
 
 .repository-list {
@@ -276,6 +282,127 @@
   }
   input[type="text"] {
     width: 80%;
+  }
+}
+
+#upgrade-options-popup-content {
+  .method-options {
+    margin: 10px;
+    .method-option {
+      width: 43.5%;
+    }
+    .thumbnail {
+      height: 140px;
+      border: solid 2px white;
+      cursor: pointer;
+      width: 99%;
+      .method-icon {
+        font-size: 40px;
+      }
+      .method-name {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 2px;
+      }
+      .method-description {
+        margin-top: 5px;
+        text-align: center;
+      }
+    }
+    .ROLLING {
+      background-color: #d3e7ca;
+      .method-icon {
+        margin-left: 88px;
+      }
+    }
+    .selected.ROLLING {
+      border: solid 2px #a3c197;
+      box-shadow: 0 8px 6px -6px #91ac86;
+    }
+    .ROLLING:hover {
+      background-color: #c4dfb9;
+    }
+    .NON-ROLLING {
+      background-color: #d8e7fb;
+      .method-icon {
+        margin-left: 94px;
+      }
+    }
+    .selected.NON-ROLLING {
+      border: solid 2px #7fb2f4;
+      box-shadow: 0 8px 6px -6px #72a0db;
+    }
+    .NON-ROLLING:hover {
+      background-color: #c9defa;
+    }
+    .ROLLING.not-allowed:hover, .NON-ROLLING.not-allowed:hover {
+      background-color: #f3f3f3;
+    }
+    .thumbnail.not-allowed {
+      cursor: not-allowed;
+      background-color: #f3f3f3;
+      .method-name,.method-icon,.method-description {
+        color: #a9a9a9;
+      }
+    }
+  }
+
+  .method-options.disabled {
+    .thumbnail {
+      cursor: not-allowed;
+      .method-name,.method-icon,.method-description {
+        color: #a9a9a9;
+      }
+    }
+    .ROLLING,.NON-ROLLING,
+    .ROLLING:hover,.NON-ROLLING:hover {
+      background-color: #f3f3f3;
+    }
+    .selected.ROLLING,.selected.NON-ROLLING,
+    .selected.ROLLING:hover,.selected.NON-ROLLING:hover {
+      border: solid 2px #a9a9a9;
+      box-shadow: 0 8px 6px -6px #a9a9a9;
+    }
+  }
+
+  .method-precheck-message {
+    cursor: pointer;
+    text-align: center;
+    padding-top: 10px;
+  }
+  .method-precheck-message.GREEN {
+    a {
+      font-size: 13px;
+    }
+    .icon-ok {
+      color: @health-status-green;
+      font-size: 16px;
+    }
+  }
+  .method-precheck-message.RED {
+    a {
+      font-size: 13px;
+    }
+    .icon-remove {
+      color: #cf2a27;
+      font-size: 16px;
+    }
+  }
+  .method-precheck-message.ORANGE {
+    a {
+      font-size: 13px;
+    }
+    .icon-warning-sign {
+      color: @health-status-orange;
+      font-size: 16px;
+    }
+  }
+  .tolerance-text .tolerance-option {
+    margin: 5px 15px;
+  }
+  .text {
+    margin-left: 10px;
   }
 }
 
