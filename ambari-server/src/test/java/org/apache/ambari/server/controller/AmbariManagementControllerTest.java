@@ -5486,7 +5486,8 @@ public class AmbariManagementControllerTest {
     long requestId2 = startService(clusterName, serviceName1, true, true);
     long requestId3 = startService(clusterName, serviceName2, true, true);
 
-    stages = actionDB.getAllStages(requestId2);
+    stages = new ArrayList<>();
+    stages.addAll(actionDB.getAllStages(requestId2));
     stages.addAll(actionDB.getAllStages(requestId3));
     HostRoleCommand hdfsCmdHost3 = null;
     HostRoleCommand hdfsCmdHost2 = null;
