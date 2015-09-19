@@ -22,6 +22,7 @@ from resource_management import *
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from hbase_service import hbase_service
+import os
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def ams_service(name, action):
@@ -52,6 +53,10 @@ def ams_service(name, action):
     if action == 'start':
       Execute(format("{sudo} rm -rf {hbase_tmp_dir}/*.tmp")
       )
+
+      if not params.is_hbase_distributed and os.path.exists(format("{zookeeper_data_dir}")):
+        Execute(format("{sudo} rm -rf {zookeeper_data_dir}/*")
+        )
 
       daemon_cmd = format("{cmd} start")
       Execute(daemon_cmd,

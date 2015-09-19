@@ -313,4 +313,24 @@
       a normal table and would return items in rowkey order for scans
     </description>
   </property>
+
+  <property>
+    <name>dfs.client.read.shortcircuit</name>
+    <value>true</value>
+    <description>Enable/Disable short circuit read for your client.
+      Hadoop servers should be configured to allow short circuit read
+      for the hbase user for this to take effect
+    </description>
+    <depends-on>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.cluster.distributed</name>
+      </property>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.rootdir</name>
+      </property>
+    </depends-on>
+  </property>
+
 </configuration>
