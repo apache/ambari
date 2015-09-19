@@ -33,11 +33,21 @@
   </property>
   <property>
     <name>hbase_regionserver_heapsize</name>
-    <value>1024m</value>
+    <value>512m</value>
     <description>
         HBase RegionServer Heap Size. In embedded mode, total heap size is
         sum of master and regionserver heap sizes.
     </description>
+    <depends-on>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.cluster.distributed</name>
+      </property>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.rootdir</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>regionserver_xmn_size</name>
@@ -63,11 +73,21 @@
   </property>
   <property>
     <name>hbase_master_heapsize</name>
-    <value>1024m</value>
+    <value>512m</value>
     <description>
         HBase Master Heap Size. In embedded mode, total heap size is
         sum of master and regionserver heap sizes.
     </description>
+    <depends-on>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.cluster.distributed</name>
+      </property>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.rootdir</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>max_open_files_limit</name>

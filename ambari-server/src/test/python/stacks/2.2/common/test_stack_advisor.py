@@ -2161,6 +2161,8 @@ class TestHDP22StackAdvisor(TestCase):
     services["configurations"]['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
     expected['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512m'
+    # services["configurations"]['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'
+    expected['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'
 
     # Distributed mode, low memory, no splitpoints recommended
     services["configurations"]['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '512m'
