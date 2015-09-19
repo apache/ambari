@@ -369,6 +369,15 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       putHbaseEnvProperty("hbase_master_heapsize", str(hbase_heapsize) + "m")
       putHbaseEnvProperty("hbase_master_xmn_size", hbase_xmn_size)
 
+    # If no local DN in distributed mode
+    if rootDir.startswith("hdfs://"):
+      dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
+      if set(amsCollectorHosts).intersection(dn_hosts):
+        collector_cohosted_with_dn = "true"
+      else:
+        collector_cohosted_with_dn = "false"
+      putAmsHbaseSiteProperty("dfs.client.read.shortcircuit", collector_cohosted_with_dn)
+
     #split points
     scriptDir = os.path.dirname(os.path.abspath(__file__))
     metricsDir = os.path.join(scriptDir, '../../../../common-services/AMBARI_METRICS/0.1.0/package')
@@ -651,6 +660,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.rootdir', host["Hosts"])}])
           validationItems.extend([{"config-name": 'hbase.tmp.dir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.tmp.dir', host["Hosts"])}])
 
+          dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
           if not hbase_rootdir.startswith("hdfs"):
             mountPoints = []
             for mountPoint in host["Hosts"]["disk_info"]:
@@ -669,7 +679,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
             # if METRICS_COLLECTOR is co-hosted with DATANODE
             # cross-check dfs.datanode.data.dir and hbase.rootdir
             # they shouldn't share same disk partition IO
-            dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
             hdfs_site = getSiteProperties(configurations, "hdfs-site")
             dfs_datadirs = hdfs_site.get("dfs.datanode.data.dir").split(",") if hdfs_site and "dfs.datanode.data.dir" in hdfs_site else []
             if dn_hosts and collectorHostName in dn_hosts and ams_site and \
@@ -679,8 +688,18 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                 if dfs_datadir_mountpoint == hbase_rootdir_mountpoint:
                   item = self.getWarnItem("Consider not using {0} partition for storing metrics data. "
                                           "{0} is already used by datanode to store HDFS data".format(hbase_rootdir_mountpoint))
-                  validationItems.extend([{"config-name":'hbase.rootdir', "item": item}])
+                  validationItems.extend([{"config-name": 'hbase.rootdir', "item": item}])
                   break
+          # If no local DN in distributed mode
+          elif collectorHostName not in dn_hosts and distributed.lower() == "true":
+            item = self.getWarnItem("It's recommended to install Datanode component on {0} "
+                                    "to speed up IO operations between HDFS and Metrics "
+                                    "Collector in distributed mode ".format(collectorHostName))
+            validationItems.extend([{"config-name": "hbase.cluster.distributed", "item": item}])
+          # Short circuit read should be enabled in distibuted mode
+          # if local DN installed
+          else:
+            validationItems.extend([{"config-name": "dfs.client.read.shortcircuit", "item": self.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "dfs.client.read.shortcircuit")}])
 
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-site")
 
@@ -757,16 +776,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
             validationItems.extend([{"config-name": heapPropertyToIncrease, "item": unusedMemoryHbaseItem}])
       pass
 
-    # Check RS memory in distributed mode since we set default as 512m
-    hbase_site = getSiteProperties(configurations, "ams-hbase-site")
-    hbase_rootdir = hbase_site.get("hbase.rootdir")
-    regionServerMinMemItem = None
-    if hbase_rootdir and hbase_rootdir.startswith("hdfs://"):
-      regionServerMinMemItem = self.validateMinMemorySetting(properties, 1024, 'hbase_regionserver_heapsize')
-
     validationItems.extend([
       {"config-name": "hbase_regionserver_heapsize", "item": regionServerItem},
-      {"config-name": "hbase_regionserver_heapsize", "item": regionServerMinMemItem},
       {"config-name": "hbase_master_heapsize", "item": masterItem},
       {"config-name": "hbase_master_heapsize", "item": masterHostItem},
       {"config-name": "hbase_log_dir", "item": logDirItem}
@@ -888,6 +899,19 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       return self.getWarnItem("It is recommended to set equal values "
              "for properties {0} and {1}".format(propertyName1, propertyName2))
 
+    return None
+
+  def validatorEqualsToRecommendedItem(self, properties, recommendedDefaults,
+                                       propertyName):
+    if not propertyName in properties:
+      return self.getErrorItem("Value should be set for %s" % propertyName)
+    value = properties.get(propertyName)
+    if not propertyName in recommendedDefaults:
+      return self.getErrorItem("Value should be recommended for %s" % propertyName)
+    recommendedValue = recommendedDefaults.get(propertyName)
+    if value != recommendedValue:
+      return self.getWarnItem("It is recommended to set value {0} "
+             "for property {1}".format(recommendedValue, propertyName))
     return None
 
   def validateMinMemorySetting(self, properties, defaultValue, propertyName):

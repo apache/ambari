@@ -50,7 +50,7 @@ class TestOozieClient(RMFTestCase):
                               not_if = 'ls /var/run/ambari-metrics-collector//hbase-ams-regionserver.pid >/dev/null 2>&1 && ps `cat /var/run/ambari-metrics-collector//hbase-ams-regionserver.pid` >/dev/null 2>&1',
                               user = 'ams'
     )
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh rm -rf /var/lib/ambari-metrics-collector/hbase-tmp/*.tmp /var/lib/ambari-metrics-collector/hbase-tmp/zookeeper/*',
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh rm -rf /var/lib/ambari-metrics-collector/hbase-tmp/*.tmp',
     )
     self.assertResourceCalled('Execute', '/usr/sbin/ambari-metrics-collector --config /etc/ambari-metrics-collector/conf --distributed start',
                               user = 'ams'
@@ -210,6 +210,15 @@ class TestOozieClient(RMFTestCase):
                               owner = 'ams',
                               template_tag = None,
                               )
+    self.assertResourceCalled('Directory', '/var/run/ambari-metrics-collector/',
+                              owner = 'ams',
+                              recursive = True
+    )
+    self.assertResourceCalled('Directory', '/var/log/ambari-metrics-collector',
+                              owner = 'ams',
+                              recursive = True
+    )
+
     if name == 'master':
       self.assertResourceCalled('HdfsResource', 'hdfs://localhost:8020/apps/hbase/data',
                                 security_enabled = False,
@@ -257,14 +266,6 @@ class TestOozieClient(RMFTestCase):
                                 )
       self.assertResourceCalled('File', '/var/run/ambari-metrics-collector//distributed_mode', action=["create"],
                                 mode=0644, owner='ams')
-    self.assertResourceCalled('Directory', '/var/run/ambari-metrics-collector/',
-                              owner = 'ams',
-                              recursive = True
-    )
-    self.assertResourceCalled('Directory', '/var/log/ambari-metrics-collector',
-                              owner = 'ams',
-                              recursive = True
-    )
     self.assertResourceCalled('File', '/etc/ams-hbase/conf/log4j.properties',
                               owner = 'ams',
                               group = 'hadoop',

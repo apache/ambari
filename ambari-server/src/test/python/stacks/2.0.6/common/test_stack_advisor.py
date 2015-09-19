@@ -1394,3 +1394,20 @@ class TestHDP206StackAdvisor(TestCase):
     self.assertEquals(self.stack_advisor_impl.getMountPointForDir("file:///var/log", ["/var", "/"]), "/var")
     self.assertEquals(self.stack_advisor_impl.getMountPointForDir("hdfs:///hdfs_path", ["/var", "/"]), None)
     self.assertEquals(self.stack_advisor_impl.getMountPointForDir("relative/path", ["/var", "/"]), None)
+
+  def test_getValidatorEqualsToRecommendedItem(self):
+    properties = {"property1": "value1"}
+    recommendedDefaults = {"property1": "value1"}
+    self.assertEquals(self.stackAdvisor.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "property1"), None)
+    properties = {"property1": "value1"}
+    recommendedDefaults = {"property1": "value2"}
+    expected = {'message': 'It is recommended to set value value2 for property property1', 'level': 'WARN'}
+    self.assertEquals(self.stackAdvisor.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "property1"), expected)
+    properties = {}
+    recommendedDefaults = {"property1": "value2"}
+    expected = {'level': 'ERROR', 'message': 'Value should be set for property1'}
+    self.assertEquals(self.stackAdvisor.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "property1"), expected)
+    properties = {"property1": "value1"}
+    recommendedDefaults = {}
+    expected = {'level': 'ERROR', 'message': 'Value should be recommended for property1'}
+    self.assertEquals(self.stackAdvisor.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "property1"), expected)
