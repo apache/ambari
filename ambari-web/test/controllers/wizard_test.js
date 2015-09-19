@@ -94,11 +94,11 @@ describe('App.WizardController', function () {
 
   describe('#launchBootstrapSuccessCallback', function() {
     it('Save bootstrapRequestId', function() {
-      var data = {requestId: 123};
+      var data = {requestId: 123, status: 'SUCCESS', log: 'ok'};
       var params = {popup: {finishLoading: function(){}}};
       sinon.spy(params.popup, "finishLoading");
       wizardController.launchBootstrapSuccessCallback(data, {}, params);
-      expect(params.popup.finishLoading.calledWith(123)).to.be.true;
+      expect(params.popup.finishLoading.calledWith(123, null, 'SUCCESS', 'ok')).to.be.true;
       params.popup.finishLoading.restore();
     });
   });
@@ -247,17 +247,119 @@ describe('App.WizardController', function () {
   });
 
   describe('#showLaunchBootstrapPopup', function () {
-    beforeEach(function(){
-      sinon.stub(App.ModalPopup,'show', function(data){
-        data.finishLoading.call(wizardController);
-      });
-    });
     afterEach(function(){
       App.ModalPopup.show.restore();
     });
     it('should set error', function () {
-      wizardController.showLaunchBootstrapPopup(Em.K);
-      expect(wizardController.get('isError')).to.be.true;
+      sinon.stub(App.ModalPopup,'show', function (data) {
+        data.finishLoading.call(c);
+      });
+      c.showLaunchBootstrapPopup(Em.K);
+      expect(c.get('isError')).to.be.true;
+    });
+    describe('#finishLoading', function () {
+      var callback = sinon.spy(),
+        stepController = App.get('router.wizardStep3Controller'),
+        cases = [
+          {
+            requestId: null,
+            serverError: 'error',
+            wizardControllerProperties: {
+              isError: true,
+              showFooter: true,
+              showCloseButton: true,
+              serverError: 'error'
+            },
+            stepControllerProperties: {
+              isRegistrationInProgress: false,
+              isBootstrapFailed: true
+            },
+            bootStatus: 'FAILED',
+            callbackCallCount: 0,
+            hideCallCount: 0,
+            title: 'no request id'
+          },
+          {
+            requestId: 0,
+            status: 'ERROR',
+            log: 'log',
+            wizardControllerProperties: {
+              isError: true,
+              showFooter: true,
+              showCloseButton: true,
+              serverError: 'log'
+            },
+            stepControllerProperties: {
+              isRegistrationInProgress: false,
+              isBootstrapFailed: true
+            },
+            bootStatus: 'FAILED',
+            callbackCallCount: 0,
+            hideCallCount: 0,
+            title: 'ERROR status'
+          },
+          {
+            requestId: 1,
+            log: 'log',
+            wizardControllerProperties: {
+              isError: false,
+              showFooter: false,
+              showCloseButton: false,
+              serverError: null
+            },
+            stepControllerProperties: {
+              isRegistrationInProgress: true,
+              isBootstrapFailed: false
+            },
+            bootStatus: 'PENDING',
+            callbackCallCount: 1,
+            hideCallCount: 1,
+            title: 'request accepted'
+          }
+        ];
+      beforeEach(function () {
+        c.setProperties({
+          isError: false,
+          showFooter: false,
+          showCloseButton: false,
+          serverError: null,
+          hide: Em.K,
+          callback: Em.K
+        });
+        stepController.setProperties({
+          isRegistrationInProgress: true,
+          isBootstrapFailed: false,
+          hosts: [
+            {
+              bootStatus: 'PENDING'
+            },
+            {
+              bootStatus: 'PENDING'
+            }
+          ]
+        });
+        sinon.spy(c, 'hide');
+        sinon.spy(c, 'callback');
+      });
+      afterEach(function () {
+        c.hide.restore();
+        c.callback.restore();
+      });
+      cases.forEach(function (item) {
+        it(item.title, function () {
+          var wizardControllerProperties = Em.keys(item.wizardControllerProperties),
+            stepControllerProperties = Em.keys(item.stepControllerProperties);
+          sinon.stub(App.ModalPopup,'show', function (data) {
+            data.finishLoading.call(c, item.requestId, item.serverError, item.status, item.log);
+          });
+          c.showLaunchBootstrapPopup(c.callback);
+          expect(c.getProperties.apply(c, wizardControllerProperties)).to.eql(item.wizardControllerProperties);
+          expect(stepController.getProperties.apply(stepController, stepControllerProperties)).to.eql(item.stepControllerProperties);
+          expect(stepController.get('hosts').mapProperty('bootStatus').uniq()).to.eql([item.bootStatus]);
+          expect(c.callback.callCount).to.equal(item.callbackCallCount);
+          expect(c.hide.callCount).to.equal(item.hideCallCount);
+        });
+      });
     });
   });
 

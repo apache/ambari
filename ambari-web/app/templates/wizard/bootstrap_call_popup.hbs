@@ -22,9 +22,9 @@
         <div class="alert alert-error">
           {{t installer.step2.bootStrap.error}}
         </div>
-      <pre>
-        {{view.parentView.serverError}}
-      </pre>
+        {{#if view.parentView.serverError}}
+          <pre>{{view.parentView.serverError}}</pre>
+        {{/if}}
     </div>
 {{else}}
     <div>

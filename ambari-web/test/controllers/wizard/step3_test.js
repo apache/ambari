@@ -2191,7 +2191,7 @@ describe('App.WizardStep3Controller', function () {
       expect(host.get('cpu')).to.equal(2);
       expect(host.get('os_type')).to.equal('t1');
       expect(host.get('os_arch')).to.equal('os1');
-      expect(host.get('os_family')).to.equal('osf1')
+      expect(host.get('os_family')).to.equal('osf1');
       expect(host.get('ip')).to.equal('0.0.0.0');
       expect(host.get('memory')).to.equal('12345.00');
       expect(host.get('disk_info.length')).to.equal(2);
@@ -2588,5 +2588,92 @@ describe('App.WizardStep3Controller', function () {
         expect(c.getDataForCheckRequest('checkExecuteList', t.addHosts)).to.be.eql(t.rez);
       });
     })
+  });
+
+  describe('#isBackDisabled', function () {
+
+    var cases = [
+      {
+        inputData: {
+          isRegistrationInProgress: true,
+          isWarningsLoaded: true,
+          isBootstrapFailed: true
+        },
+        isBackDisabled: false
+      },
+      {
+        inputData: {
+          isRegistrationInProgress: true,
+          isWarningsLoaded: false,
+          isBootstrapFailed: false
+        },
+        isBackDisabled: true
+      },
+      {
+        inputData: {
+          isRegistrationInProgress: true,
+          isWarningsLoaded: true,
+          isBootstrapFailed: false
+        },
+        isBackDisabled: true
+      },
+      {
+        inputData: {
+          isRegistrationInProgress: true,
+          isWarningsLoaded: false,
+          isBootstrapFailed: true
+        },
+        isBackDisabled: false
+      },
+      {
+        inputData: {
+          isRegistrationInProgress: false,
+          isWarningsLoaded: true,
+          isBootstrapFailed: true
+        },
+        isBackDisabled: false
+      },
+      {
+        inputData: {
+          isRegistrationInProgress: false,
+          isWarningsLoaded: false,
+          isBootstrapFailed: false
+        },
+        isBackDisabled: true
+      },
+      {
+        inputData: {
+          isRegistrationInProgress: false,
+          isWarningsLoaded: true,
+          isBootstrapFailed: false
+        },
+        isBackDisabled: false
+      },
+      {
+        inputData: {
+          isRegistrationInProgress: false,
+          isWarningsLoaded: false,
+          isBootstrapFailed: true
+        },
+        isBackDisabled: false
+      }
+    ];
+
+    cases.forEach(function (item) {
+      var title = Em.keys(item.inputData).map(function (key) {
+        return key + ':' + item.inputData[key];
+      }).join(', ');
+      it(title, function () {
+        c.setProperties({
+          isRegistrationInProgress: item.inputData.isRegistrationInProgress,
+          isBootstrapFailed: item.inputData.isBootstrapFailed
+        });
+        c.reopen({
+          isWarningsLoaded: item.inputData.isWarningsLoaded
+        });
+        expect(c.get('isBackDisabled')).to.equal(item.isBackDisabled);
+      });
+    });
+
   });
 });

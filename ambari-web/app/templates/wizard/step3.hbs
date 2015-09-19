@@ -141,8 +141,10 @@
   <div {{bindAttr class=":alert view.status isWarningsBoxVisible::hidden"}}>
     {{view.message}}
     <a href="#" {{action hostWarningsPopup warnings target="controller"}}>{{view.linkText}}</a>
-    {{#unless isWarningsLoaded}}
-      <div class="spinner"></div>
+    {{#unless isBootstrapFailed}}
+      {{#unless isWarningsLoaded}}
+        <div class="spinner"></div>
+      {{/unless}}
     {{/unless}}
   </div>
   <div class="btn-area">

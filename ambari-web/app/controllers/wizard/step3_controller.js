@@ -95,6 +95,12 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
   isSubmitDisabled: true,
 
   /**
+   * True if bootstrap POST request failed
+   * @type {bool}
+   */
+  isBootstrapFailed: false,
+
+  /**
    * is Retry button disabled
    * @type {bool}
    */
@@ -107,8 +113,8 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @return {bool}
    */
   isBackDisabled: function () {
-    return this.get('isRegistrationInProgress') || !this.get('isWarningsLoaded');
-  }.property('isRegistrationInProgress', 'isWarningsLoaded'),
+    return (this.get('isRegistrationInProgress') || !this.get('isWarningsLoaded')) && !this.get('isBootstrapFailed');
+  }.property('isRegistrationInProgress', 'isWarningsLoaded', 'isBootstrapFailed'),
 
   /**
    * Controller is using in Add Host Wizard
@@ -588,7 +594,9 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       // Multiple hosts : if one or more hostnames are invalid
       // following check will mark the bootStatus as 'FAILED' for the invalid hostname
       var installedHosts = App.Host.find().mapProperty('hostName');
-      if (data.status == 'ERROR' || data.hostsStatus.mapProperty('hostName').removeObjects(installedHosts).length != this.get('bootHosts').length) {
+      var isErrorStatus = data.status == 'ERROR';
+      this.set('isBootstrapFailed', isErrorStatus);
+      if (isErrorStatus || data.hostsStatus.mapProperty('hostName').removeObjects(installedHosts).length != this.get('bootHosts').length) {
 
         var hosts = this.get('bootHosts');
 
@@ -604,7 +612,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         }
       }
 
-      if (data.status == 'ERROR' || data.hostsStatus.someProperty('status', 'DONE') || data.hostsStatus.someProperty('status', 'FAILED')) {
+      if (isErrorStatus || data.hostsStatus.someProperty('status', 'DONE') || data.hostsStatus.someProperty('status', 'FAILED')) {
         // kicking off registration polls after at least one host has succeeded
         this.startRegistration();
       }
