@@ -48,6 +48,9 @@ import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.utils.LoopBody;
+import org.apache.ambari.server.utils.Parallel;
+import org.apache.ambari.server.utils.ParallelLoopResult;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -134,11 +137,25 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   public List<Stage> getAllStages(long requestId) {
-    List<Stage> stages = new ArrayList<Stage>();
-    for (StageEntity stageEntity : stageDAO.findByRequestId(requestId)) {
-      stages.add(stageFactory.createExisting(stageEntity));
+    List<StageEntity> stageEntities = stageDAO.findByRequestId(requestId);
+    ParallelLoopResult<Stage> loopResult = Parallel.forLoop(stageEntities, new LoopBody<StageEntity, Stage>() {
+      @Override
+      public Stage run(StageEntity stageEntity) {
+        return stageFactory.createExisting(stageEntity);
+      }
+    });
+    if(loopResult.getIsCompleted()) {
+      return loopResult.getResult();
+    } else {
+      // Fetch any missing results sequentially
+      List<Stage> stages = loopResult.getResult();
+      for(int i = 0; i < stages.size(); i++) {
+        if(stages.get(i) == null) {
+          stages.set(i, stageFactory.createExisting(stageEntities.get(i)));
+        }
+      }
+      return stages;
     }
-    return stages;
   }
 
   @Override
@@ -207,15 +224,25 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   public List<Stage> getStagesInProgress() {
-    List<Stage> stages = new ArrayList<Stage>();
-
     List<StageEntity> stageEntities = stageDAO.findByCommandStatuses(HostRoleStatus.IN_PROGRESS_STATUSES);
-
-    for (StageEntity stageEntity : stageEntities) {
-      stages.add(stageFactory.createExisting(stageEntity));
+    ParallelLoopResult<Stage> loopResult = Parallel.forLoop(stageEntities, new LoopBody<StageEntity, Stage>() {
+      @Override
+      public Stage run(StageEntity stageEntity) {
+        return stageFactory.createExisting(stageEntity);
+      }
+    });
+    if(loopResult.getIsCompleted()) {
+      return loopResult.getResult();
+    } else {
+      // Fetch any missing results sequentially
+      List<Stage> stages = loopResult.getResult();
+      for(int i = 0; i < stages.size(); i++) {
+        if(stages.get(i) == null) {
+          stages.set(i, stageFactory.createExisting(stageEntities.get(i)));
+        }
+      }
+      return stages;
     }
-
-    return stages;
   }
 
   /**
@@ -676,11 +703,24 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   public List<Request> getRequests(Collection<Long> requestIds){
     List<RequestEntity> requestEntities = requestDAO.findByPks(requestIds);
-    List<Request> requests = new ArrayList<Request>(requestEntities.size());
-    for (RequestEntity requestEntity : requestEntities) {
-      requests.add(requestFactory.createExisting(requestEntity));
+    ParallelLoopResult<Request> loopResult = Parallel.forLoop(requestEntities, new LoopBody<RequestEntity, Request>() {
+      @Override
+      public Request run(RequestEntity requestEntity) {
+        return requestFactory.createExisting(requestEntity);
+      }
+    });
+    if(loopResult.getIsCompleted()) {
+      return loopResult.getResult();
+    } else {
+      // Fetch any missing results sequentially
+      List<Request> requests = loopResult.getResult();
+      for(int i = 0; i < requests.size(); i++) {
+        if(requests.get(i) == null) {
+          requests.set(i, requestFactory.createExisting(requestEntities.get(i)));
+        }
+      }
+      return requests;
     }
-    return requests;
   }
 
   @Override
