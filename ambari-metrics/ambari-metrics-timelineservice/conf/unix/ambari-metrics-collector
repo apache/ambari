@@ -29,6 +29,9 @@ DAEMON_NAME=timelineserver
 COLLECTOR_CONF_DIR=/etc/ambari-metrics-collector/conf
 HBASE_CONF_DIR=/etc/ams-hbase/conf
 
+HBASE_CMD=${HBASE_DIR}/bin/hbase
+
+METRIC_TABLE_NAME=METRIC_AGGREGATE_DAILY
 METRIC_COLLECTOR=ambari-metrics-collector
 
 AMS_LOG_DIR=/var/log/ambari-metrics-collector
@@ -197,6 +200,22 @@ function start()
   fi
 
   echo "Collector successfully started."
+  echo "Initializing Ambari Metrics data model"
+  # Wait until METRIC_RECORD table created
+  for retry in {1..10}
+  do
+    echo 'list' | ${HBASE_CMD} --config ${HBASE_CONF_DIR} shell | grep ^${METRIC_TABLE_NAME} > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      echo "Ambari Metrics data model initialization completed."
+      break
+    fi
+    sleep 5
+  done
+  if [ $? -ne 0 ]; then
+    echo "Ambari Metrics data model initialization failed."
+    exit -1
+  fi
+
 }
 
 function stop()
