@@ -20,6 +20,7 @@ package org.apache.ambari.server.actionmanager;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.google.inject.Inject;
@@ -36,6 +37,9 @@ import org.apache.ambari.server.orm.entities.RequestOperationLevelEntity;
 import org.apache.ambari.server.orm.entities.RequestResourceFilterEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.utils.LoopBody;
+import org.apache.ambari.server.utils.Parallel;
+import org.apache.ambari.server.utils.ParallelLoopResult;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,7 +162,7 @@ public class Request {
   /**
    * Load existing request from database
    */
-  public Request(@Assisted RequestEntity entity, StageFactory stageFactory, Clusters clusters){
+  public Request(@Assisted RequestEntity entity, final StageFactory stageFactory, Clusters clusters){
     if (entity == null) {
       throw new RuntimeException("Request entity cannot be null.");
     }
@@ -189,13 +193,37 @@ public class Request {
       this.requestScheduleId = entity.getRequestScheduleEntity().getScheduleId();
     }
 
-    for (StageEntity stageEntity : entity.getStages()) {
-      Stage stage = stageFactory.createExisting(stageEntity);
-      stages.add(stage);
+    Collection<StageEntity> stageEntities = entity.getStages();
+    if(stageEntities == null || stageEntities.isEmpty()) {
+      stages = Collections.emptyList();
+    } else {
+      List<StageEntity> stageEntityList;
+      if(stageEntities instanceof List) {
+        stageEntityList = (List<StageEntity>) stageEntities;
+      } else {
+        stageEntityList = new ArrayList<StageEntity>(stageEntities);
+      }
+      ParallelLoopResult<Stage> loopResult = Parallel.forLoop(stageEntityList, new LoopBody<StageEntity, Stage>() {
+        @Override
+        public Stage run(StageEntity stageEntity) {
+          return stageFactory.createExisting(stageEntity);
+        }
+      });
+      List<Stage> stageList;
+      if(loopResult.getIsCompleted()) {
+        stageList = loopResult.getResult();
+      } else {
+        // Fetch any missing results sequentially
+        stageList = loopResult.getResult();
+        for(int i = 0; i < stages.size(); i++) {
+          if(stageList.get(i) == null) {
+            stageList.set(i, stageFactory.createExisting(stageEntityList.get(i)));
+          }
+        }
+      }
+      stages = stageList;
     }
-
     resourceFilters = filtersFromEntity(entity);
-
     operationLevel = operationLevelFromEntity(entity);
   }
 

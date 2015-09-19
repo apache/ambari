@@ -468,14 +468,8 @@ class ActionScheduler implements Runnable {
 
     if (prevStageId > 0) {
       // Find previous stage instance
-      List<Stage> allStages = db.getAllStages(stage.getRequestId());
-      Stage prevStage = null;
-      for (Stage s : allStages) {
-        if (s.getStageId() == prevStageId) {
-          prevStage = s;
-          break;
-        }
-      }
+      String actionId = StageUtils.getActionId(stage.getRequestId(), prevStageId);
+      Stage prevStage = db.getStage(actionId);
 
       // If the previous stage is skippable then we shouldn't automatically fail the given stage
       if (prevStage == null || prevStage.isSkippable()) {
