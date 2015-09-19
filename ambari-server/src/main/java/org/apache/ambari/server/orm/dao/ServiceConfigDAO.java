@@ -67,6 +67,14 @@ public class ServiceConfigDAO {
             "WHERE scv.serviceName=?1 AND scv.version=?2", ServiceConfigEntity.class);
     return daoUtils.selectOne(query, serviceName, version);
   }
+  
+  @RequiresSession
+  public List<ServiceConfigEntity> findByService(Long clusterId, String serviceName) {
+    TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().
+        createQuery("SELECT scv FROM ServiceConfigEntity scv " +
+            "WHERE scv.clusterId=?1 AND scv.serviceName=?2", ServiceConfigEntity.class);
+    return daoUtils.selectList(query, clusterId, serviceName);
+  }
 
   @RequiresSession
   public List<ServiceConfigEntity> getLastServiceConfigVersionsForGroups(Collection<Long> configGroupIds) {
