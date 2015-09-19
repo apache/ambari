@@ -165,13 +165,16 @@ class TestResourceFilesKeeper(TestCase):
     except Exception, e:
       self.fail('Unexpected exception thrown:' + str(e))
 
+  @patch("os.listdir")
   @patch.object(ResourceFilesKeeper, "count_hash_sum")
   @patch.object(ResourceFilesKeeper, "read_hash_sum")
   @patch.object(ResourceFilesKeeper, "zip_directory")
   @patch.object(ResourceFilesKeeper, "write_hash_sum")
   def test_update_directory_archive(self, write_hash_sum_mock,
                                     zip_directory_mock, read_hash_sum_mock,
-                                    count_hash_sum_mock):
+                                    count_hash_sum_mock,
+                                    os_listdir_mock):
+    os_listdir_mock.return_value = ['file1', 'dir1']
     # Test situation when there is no saved directory hash
     read_hash_sum_mock.return_value = None
     count_hash_sum_mock.return_value = self.YA_HASH
@@ -245,6 +248,24 @@ class TestResourceFilesKeeper(TestCase):
     self.assertTrue(count_hash_sum_mock.called)
     self.assertFalse(zip_directory_mock.called)
     self.assertTrue(write_hash_sum_mock.called)
+
+    # Test empty directory
+    read_hash_sum_mock.reset_mock()
+    count_hash_sum_mock.reset_mock()
+    zip_directory_mock.reset_mock()
+    write_hash_sum_mock.reset_mock()
+
+    # If the input directory is empty, then write_hash_sum() should not be called
+    os_listdir_mock.return_value = [] # Empty dir
+    zip_directory_mock.side_effect = None
+    read_hash_sum_mock.return_value = None # hash read from .hash file
+    resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.SOME_PATH)
+    resource_files_keeper.update_directory_archive(self.SOME_PATH)
+
+    self.assertTrue(read_hash_sum_mock.called)
+    self.assertTrue(count_hash_sum_mock.called)
+    self.assertTrue(zip_directory_mock.called)
+    self.assertFalse(write_hash_sum_mock.called)
     pass
 
 

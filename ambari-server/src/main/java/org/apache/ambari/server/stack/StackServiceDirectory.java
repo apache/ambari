@@ -63,12 +63,20 @@ public class StackServiceDirectory extends ServiceDirectory {
 
     File absPackageDir = new File(getAbsolutePath() + File.separator + PACKAGE_FOLDER_NAME);
     if (absPackageDir.isDirectory()) {
-      packageDir = absPackageDir.getPath().substring(stackDir.getParentFile().getParentFile().getPath().length() + 1);
-      LOG.debug(String.format("Service package folder for service %s for stack %s has been resolved to %s",
-          serviceDir.getName(), stackId, packageDir));
+      String[] files = absPackageDir.list();
+      int fileCount = files.length;
+      if (fileCount > 0) {
+        packageDir = absPackageDir.getPath().substring(stackDir.getParentFile().getParentFile().getPath().length() + 1);
+        LOG.debug(String.format("Service package folder for service %s for stack %s has been resolved to %s",
+                serviceDir.getName(), stackId, packageDir));
+      }
+      else {
+        LOG.debug(String.format("Service package folder %s for service %s for stack %s is empty.",
+                absPackageDir, serviceDir.getName(), stackId));
+      }
     } else {
       LOG.debug(String.format("Service package folder %s for service %s for stack %s does not exist.",
-          absPackageDir, serviceDir.getName(), stackId));
+              absPackageDir, serviceDir.getName(), stackId));
     }
     parseMetaInfoFile();
   }

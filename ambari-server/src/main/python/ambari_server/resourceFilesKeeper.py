@@ -152,8 +152,12 @@ class ResourceFilesKeeper():
     if cur_hash != saved_hash:
       if not self.nozip:
         self.zip_directory(directory, skip_empty_directory)
-      self.write_hash_sum(directory, cur_hash)
-
+      # Skip generation of .hash file is directory is empty
+      if (skip_empty_directory and not os.listdir(directory)):
+        self.dbg_out("Empty directory. Skipping generation of hash file for {0}".format(directory))
+      else:
+        self.write_hash_sum(directory, cur_hash)
+      pass
 
   def count_hash_sum(self, directory):
     """
