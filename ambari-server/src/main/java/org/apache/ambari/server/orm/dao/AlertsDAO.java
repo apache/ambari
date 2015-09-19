@@ -521,7 +521,7 @@ public class AlertsDAO {
 
       int integerValue;
       if (hostStateValue instanceof Boolean) {
-        integerValue = (boolean)hostStateValue ? 1 : 0;
+        integerValue = ((Boolean)hostStateValue).booleanValue() ? 1 : 0;
       } else {
         integerValue = ((Number)hostStateValue).intValue();
       }
