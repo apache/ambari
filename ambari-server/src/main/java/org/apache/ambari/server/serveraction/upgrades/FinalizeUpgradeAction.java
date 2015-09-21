@@ -201,7 +201,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
       checkHostComponentVersions(cluster, version, clusterDesiredStackId);
 
-      // May need to first transition to UPGRADED
+      // May need to first transition to UPGRADED from UPGRADING
       if (atLeastOneHostInInstalledState) {
         cluster.transitionClusterVersion(clusterDesiredStackId, version,
             RepositoryVersionState.UPGRADED);

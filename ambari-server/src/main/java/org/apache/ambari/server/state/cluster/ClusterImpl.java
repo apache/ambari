@@ -1465,8 +1465,10 @@ public class ClusterImpl implements Cluster {
       List<ClusterVersionEntity> clusterVersionEntities = clusterVersionDAO.findByCluster(getClusterName());
       StackId currentStackId = getCurrentStackVersion();
       for (ClusterVersionEntity clusterVersionEntity : clusterVersionEntities) {
-        if (clusterVersionEntity.getRepositoryVersion().getStack().equals(
-            currentStackId.getStackId())
+        RepositoryVersionEntity repositoryVersionEntity = clusterVersionEntity.getRepositoryVersion();
+        StackId repoVersionStackId = repositoryVersionEntity.getStackId();
+
+        if (repoVersionStackId.equals(currentStackId)
             && clusterVersionEntity.getState() != RepositoryVersionState.CURRENT) {
           recalculateClusterVersionState(clusterVersionEntity.getRepositoryVersion());
         }

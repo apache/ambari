@@ -778,14 +778,42 @@ public class ClustersImpl implements Clusters {
   }
 
   /***
-   * Delete a host entirely from the cluster and all database tables, except AlertHistory.
-   * If the host is not found, throws {@link org.apache.ambari.server.HostNotFoundException}
+   * Delete a host entirely from the cluster and all database tables, except
+   * AlertHistory. If the host is not found, throws
+   * {@link org.apache.ambari.server.HostNotFoundException}.
+   * <p/>
+   * This method will trigger a {@link HostRemovedEvent} when completed.
+   *
    * @param hostname
    * @throws AmbariException
    */
   @Override
-  @Transactional
   public void deleteHost(String hostname) throws AmbariException {
+    // unmapping hosts from a cluster modifies the collections directly; keep
+    // a copy of this to ensure that we can pass in the original set of
+    // clusters that the host belonged to to the host removal event
+    Set<Cluster> clusters = hostClusterMap.get(hostname);
+    Set<Cluster> hostsClusters = new HashSet<>(clusters);
+
+    deleteHostEntityRelationships(hostname);
+
+    // Publish the event, using the original list of clusters that the host
+    // belonged to
+    HostRemovedEvent event = new HostRemovedEvent(hostname, hostsClusters);
+    eventPublisher.publish(event);
+  }
+
+  /***
+   * Deletes all of the JPA relationships between a host and other entities.
+   * This method will not fire {@link HostRemovedEvent} since it is performed
+   * within an {@link Transactional} and the event must fire after the
+   * transaction is successfully committed.
+   *
+   * @param hostname
+   * @throws AmbariException
+   */
+  @Transactional
+  private void deleteHostEntityRelationships(String hostname) throws AmbariException {
     checkLoaded();
 
     if (!hosts.containsKey(hostname)) {
@@ -796,13 +824,14 @@ public class ClustersImpl implements Clusters {
 
     try {
       HostEntity entity = hostDAO.findByName(hostname);
-      
+
       if (entity == null) {
         return;
       }
       // Remove from all clusters in the cluster_host_mapping table.
-      // This will also remove from kerberos_principal_hosts, hostconfigmapping, and configgrouphostmapping 
+      // This will also remove from kerberos_principal_hosts, hostconfigmapping, and configgrouphostmapping
       Set<Cluster> clusters = hostClusterMap.get(hostname);
+
       unmapHostFromClusters(hostname, clusters);
       hostDAO.refresh(entity);
 
@@ -822,10 +851,6 @@ public class ClustersImpl implements Clusters {
 
       hostDAO.remove(entity);
 
-      // Publish the event
-      HostRemovedEvent event = new HostRemovedEvent(hostname);
-      eventPublisher.publish(event);
-      
       // Note, if the host is still heartbeating, then new records will be re-inserted
       // into the hosts and hoststate tables
     } catch (Exception e) {
