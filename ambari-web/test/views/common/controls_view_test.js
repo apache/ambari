@@ -91,17 +91,19 @@ describe('App.ServiceConfigRadioButtons', function () {
             value: 'New MySQL Database',
             serviceName: 'HIVE'
           },
-          parentView: Em.Object.create({
-            serviceConfigs: [
-              Em.Object.create({
-                name: 'javax.jdo.option.ConnectionURL',
-                displayName: 'Database URL'
-              }),
-              Em.Object.create({
-                name: 'hive_database',
-                displayName: 'Hive Database'
-              })
-            ]
+          controller: Em.Object.create({
+            selectedService: {
+              configs: [
+                Em.Object.create({
+                  name: 'javax.jdo.option.ConnectionURL',
+                  displayName: 'Database URL'
+                }),
+                Em.Object.create({
+                  name: 'hive_database',
+                  displayName: 'Hive Database'
+                })
+              ]
+            }
           }),
           currentStackVersion: 'HDP-2.2',
           propertyAppendTo1: 'javax.jdo.option.ConnectionURL',
@@ -118,17 +120,19 @@ describe('App.ServiceConfigRadioButtons', function () {
             value: 'Existing PostgreSQL Database',
             serviceName: 'HIVE'
           },
-          parentView: Em.Object.create({
-            serviceConfigs: [
-              Em.Object.create({
-                name: 'javax.jdo.option.ConnectionURL',
-                displayName: 'Database URL'
-              }),
-              Em.Object.create({
-                name: 'hive_database',
-                displayName: 'Hive Database'
-              })
-            ]
+          controller: Em.Object.create({
+            selectedService: {
+              configs: [
+                Em.Object.create({
+                  name: 'javax.jdo.option.ConnectionURL',
+                  displayName: 'Database URL'
+                }),
+                Em.Object.create({
+                  name: 'hive_database',
+                  displayName: 'Hive Database'
+                })
+              ]
+            }
           }),
           currentStackVersion: 'HDP-2.2',
           propertyAppendTo1: 'javax.jdo.option.ConnectionURL',
@@ -145,17 +149,19 @@ describe('App.ServiceConfigRadioButtons', function () {
             value: 'New Derby Database',
             serviceName: 'OOZIE'
           },
-          parentView: Em.Object.create({
-            serviceConfigs: [
-              Em.Object.create({
-                name: 'oozie.service.JPAService.jdbc.url',
-                displayName: 'Database URL'
-              }),
-              Em.Object.create({
-                name: 'oozie_database',
-                displayName: 'Oozie Database'
-              })
-            ]
+          controller: Em.Object.create({
+            selectedService: {
+              configs: [
+                Em.Object.create({
+                  name: 'oozie.service.JPAService.jdbc.url',
+                  displayName: 'Database URL'
+                }),
+                Em.Object.create({
+                  name: 'oozie_database',
+                  displayName: 'Oozie Database'
+                })
+              ]
+            }
           }),
           currentStackVersion: 'HDP-2.2',
           propertyAppendTo1: 'oozie.service.JPAService.jdbc.url',
@@ -172,17 +178,19 @@ describe('App.ServiceConfigRadioButtons', function () {
             value: 'Existing Oracle Database',
             serviceName: 'OOZIE'
           },
-          parentView: Em.Object.create({
-            serviceConfigs: [
-              Em.Object.create({
-                name: 'oozie.service.JPAService.jdbc.url',
-                displayName: 'Database URL'
-              }),
-              Em.Object.create({
-                name: 'oozie_database',
-                displayName: 'Oozie Database'
-              })
-            ]
+          controller: Em.Object.create({
+            selectedService: {
+              configs: [
+                Em.Object.create({
+                  name: 'oozie.service.JPAService.jdbc.url',
+                  displayName: 'Database URL'
+                }),
+                Em.Object.create({
+                  name: 'oozie_database',
+                  displayName: 'Oozie Database'
+                })
+              ]
+            }
           }),
           currentStackVersion: 'HDP-2.2',
           propertyAppendTo1: 'oozie.service.JPAService.jdbc.url',
@@ -199,15 +207,17 @@ describe('App.ServiceConfigRadioButtons', function () {
             value: 'MYSQL',
             serviceName: 'RANGER'
           },
-          parentView: Em.Object.create({
-            serviceConfigs: [
-              Em.Object.create({
-                name: 'ranger.jpa.jdbc.url'
-              }),
-              Em.Object.create({
-                name: 'DB_FLAVOR'
-              })
-            ]
+          controller: Em.Object.create({
+            selectedService: {
+              configs: [
+                Em.Object.create({
+                  name: 'ranger.jpa.jdbc.url'
+                }),
+                Em.Object.create({
+                  name: 'DB_FLAVOR'
+                })
+              ]
+            }
           }),
           currentStackVersion: 'HDP-2.2',
           propertyAppendTo1: 'ranger.jpa.jdbc.url',
@@ -224,15 +234,17 @@ describe('App.ServiceConfigRadioButtons', function () {
             value: 'MSSQL',
             serviceName: 'RANGER'
           },
-          parentView: Em.Object.create({
-            serviceConfigs: [
-              Em.Object.create({
-                name: 'ranger.jpa.jdbc.url'
-              }),
-              Em.Object.create({
-                name: 'DB_FLAVOR'
-              })
-            ]
+          controller: Em.Object.create({
+            selectedService: {
+              configs: [
+                Em.Object.create({
+                  name: 'ranger.jpa.jdbc.url'
+                }),
+                Em.Object.create({
+                  name: 'DB_FLAVOR'
+                })
+              ]
+            }
           }),
           currentStackVersion: 'HDP-2.3',
           propertyAppendTo1: 'ranger.jpa.jdbc.url',
@@ -261,10 +273,10 @@ describe('App.ServiceConfigRadioButtons', function () {
     cases.forEach(function (item) {
       it(item.title, function () {
         sinon.stub(App, 'get').withArgs('currentStackName').returns('HDP').withArgs('currentStackVersion').returns(item.currentStackVersion);
-        view = App.ServiceConfigRadioButtons.create({parentView: item.parentView});
+        view = App.ServiceConfigRadioButtons.create({controller: item.controller});
         sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K);
         view.setProperties({
-          categoryConfigsAll: item.parentView.get('serviceConfigs'),
+          categoryConfigsAll: item.controller.get('selectedService.configs'),
           serviceConfig: item.serviceConfig
         });
         var additionalView1 = view.get('categoryConfigsAll').findProperty('name', item.propertyAppendTo1).get('additionalView'),
