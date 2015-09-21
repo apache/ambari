@@ -22,7 +22,12 @@
       <div class="alert alert-danger" role="alert"><strong>{{error}}</strong></div>
     {{else}}
       {{#if polestarUrl}}
-        {{#visualization-tabs-widget tabs=visualizationTabs}}
+        <div class="max-rows" >
+          <label>Maximum Row Count: </label> {{input value=selectedRowCount placeholder=selectedRowCount }}
+          <button {{action "changeRowCount"}}>OK</button>
+        </div>
+        {{#visualization-tabs-widget tabs=visualizationTabs }}
+
         {{/visualization-tabs-widget}}
       {{else}}
           <div class="alert alert-danger" role="alert"><strong>An unknown error occurred! Please try again later.</strong></div>
