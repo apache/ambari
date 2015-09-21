@@ -41,7 +41,7 @@ def post_upgrade_check():
   _check_nodemanager_startup()
 
 
-@retry(times=12, sleep_time=10, err_class=Fail)
+@retry(times=30, sleep_time=10, err_class=Fail)
 def _check_nodemanager_startup():
   '''
   Checks that a NodeManager is in a RUNNING state in the cluster via

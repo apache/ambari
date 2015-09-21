@@ -245,7 +245,7 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Execute', ('tar',
      '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-data-backup.tar',
-     '/usr/hdp/current/knox-server/data/'),
+     '/var/lib/knox/data'),
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', '2.2.1.0-3242'),
@@ -257,12 +257,15 @@ class TestKnoxGateway(RMFTestCase):
   @patch("os.path.exists")
   @patch("os.path.isdir")
   @patch("resource_management.core.shell.call")
-  def test_pre_rolling_restart_23(self, call_mock, isdir_mock, path_exists_mock, remove_mock):
+  def test_pre_rolling_restart_to_hdp_2300(self, call_mock, isdir_mock, path_exists_mock, remove_mock):
+    """
+    In HDP 2.3.0.0, Knox was using a data dir of /var/lib/knox/data
+    """
     isdir_mock.return_value = True
     config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/knox_upgrade.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
-    version = '2.3.0.0-1234'
+    version = "2.3.0.0-1234"
     json_content['commandParams']['version'] = version
 
     path_exists_mock.return_value = True
@@ -286,10 +289,10 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Execute', ('tar',
      '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-data-backup.tar',
-     '/usr/hdp/current/knox-server/data/'),
+     '/var/lib/knox/data'),
         sudo = True,
     )
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', '2.3.0.0-1234'),
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', version),
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('cp',
@@ -312,11 +315,158 @@ class TestKnoxGateway(RMFTestCase):
     self.assertEquals(1, mocks_dict['call'].call_count)
     self.assertEquals(1, mocks_dict['checked_call'].call_count)
     self.assertEquals(
-      ('conf-select', 'set-conf-dir', '--package', 'knox', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
+      ('conf-select', 'set-conf-dir', '--package', 'knox', '--stack-version', version, '--conf-version', '0'),
        mocks_dict['checked_call'].call_args_list[0][0][0])
     self.assertEquals(
-      ('conf-select', 'create-conf-dir', '--package', 'knox', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
+      ('conf-select', 'create-conf-dir', '--package', 'knox', '--stack-version', version, '--conf-version', '0'),
        mocks_dict['call'].call_args_list[0][0][0])
+
+  @patch("os.remove")
+  @patch("os.path.exists")
+  @patch("os.path.isdir")
+  @patch("resource_management.core.shell.call")
+  def test_pre_rolling_restart_from_hdp_2300_to_2320(self, call_mock, isdir_mock, path_exists_mock, remove_mock):
+    """
+    In RU from HDP 2.3.0.0 to 2.3.2.0, should backup the data dir used by the source version, which
+    is /var/lib/knox/data
+    """
+    isdir_mock.return_value = True
+    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/knox_upgrade.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    source_version = "2.3.0.0-1234"
+    version = "2.3.2.0-5678"
+    # This is an RU from 2.3.0.0 to 2.3.2.0
+    json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['current_version'] = source_version
+
+    path_exists_mock.return_value = True
+    mocks_dict = {}
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
+                       classname = "KnoxGateway",
+                       command = "pre_rolling_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None), (0, None)],
+                       mocks_dict = mocks_dict)
+
+    self.assertResourceCalled('Execute', ('tar',
+     '-zcvhf',
+     '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
+     '/usr/hdp/current/knox-server/conf/'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('tar',
+     '-zcvhf',
+     '/tmp/knox-upgrade-backup/knox-data-backup.tar',
+     '/var/lib/knox/data'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', version),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('cp',
+     '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
+     '/usr/hdp/current/knox-server/conf/knox-conf-backup.tar'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('tar',
+     '-xvf',
+     '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
+     '-C',
+     '/usr/hdp/current/knox-server/conf/'),
+        sudo = True,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/knox-conf-backup.tar',
+        action = ['delete'],
+    )
+    self.assertNoMoreResources()
+
+    self.assertEquals(1, mocks_dict['call'].call_count)
+    self.assertEquals(1, mocks_dict['checked_call'].call_count)
+    self.assertEquals(
+      ('conf-select', 'set-conf-dir', '--package', 'knox', '--stack-version', version, '--conf-version', '0'),
+       mocks_dict['checked_call'].call_args_list[0][0][0])
+    self.assertEquals(
+      ('conf-select', 'create-conf-dir', '--package', 'knox', '--stack-version', version, '--conf-version', '0'),
+       mocks_dict['call'].call_args_list[0][0][0])
+
+  @patch("os.remove")
+  @patch("os.path.exists")
+  @patch("os.path.isdir")
+  @patch("resource_management.core.shell.call")
+  def test_pre_rolling_restart_from_hdp_2320(self, call_mock, isdir_mock, path_exists_mock, remove_mock):
+    """
+    In RU from HDP 2.3.2 to anything higher, should backup the data dir used by the source version, which
+    is /var/lib/knox/data_${source_version}
+    """
+    isdir_mock.return_value = True
+    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/knox_upgrade.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    source_version = "2.3.2.0-1000"
+    version = "2.3.2.0-1001"
+    # This is an RU from 2.3.2.0 to 2.3.2.1
+    json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['current_version'] = source_version
+
+    path_exists_mock.return_value = True
+    mocks_dict = {}
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
+                       classname = "KnoxGateway",
+                       command = "pre_rolling_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None), (0, None)],
+                       mocks_dict = mocks_dict)
+
+    self.assertResourceCalled('Execute', ('tar',
+     '-zcvhf',
+     '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
+     '/usr/hdp/current/knox-server/conf/'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('tar',
+     '-zcvhf',
+     '/tmp/knox-upgrade-backup/knox-data-backup.tar',
+     "/usr/hdp/%s/knox/data" % source_version),
+        sudo = True,
+    )
+
+    '''
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', version),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('cp',
+     '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
+     '/usr/hdp/current/knox-server/conf/knox-conf-backup.tar'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('tar',
+     '-xvf',
+     '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
+     '-C',
+     '/usr/hdp/current/knox-server/conf/'),
+        sudo = True,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/knox-conf-backup.tar',
+        action = ['delete'],
+    )
+    self.assertNoMoreResources()
+
+    self.assertEquals(1, mocks_dict['call'].call_count)
+    self.assertEquals(1, mocks_dict['checked_call'].call_count)
+    self.assertEquals(
+      ('conf-select', 'set-conf-dir', '--package', 'knox', '--stack-version', version, '--conf-version', '0'),
+       mocks_dict['checked_call'].call_args_list[0][0][0])
+    self.assertEquals(
+      ('conf-select', 'create-conf-dir', '--package', 'knox', '--stack-version', version, '--conf-version', '0'),
+       mocks_dict['call'].call_args_list[0][0][0])
+    '''
 
   @patch("os.path.islink")
   def test_start_default(self, islink_mock):
