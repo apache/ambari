@@ -132,7 +132,7 @@ public class UpgradeCatalog212Test {
     dbAccessor.dropColumn(eq("topology_request"), eq("cluster_name"));
     dbAccessor.setColumnNullable(eq("topology_request"), eq("cluster_id"), eq(false));
     dbAccessor.addFKConstraint(eq("topology_request"), eq("FK_topology_request_cluster_id"), eq("cluster_id"),
-            eq("clusters"), eq("cluster_id"), eq(false));
+      eq("clusters"), eq("cluster_id"), eq(false));
 
     replay(dbAccessor);
     Module module = new Module() {
@@ -321,6 +321,46 @@ public class UpgradeCatalog212Test {
     mockInjector.getInstance(UpgradeCatalog212.class).updateHiveConfigs();
     easyMockSupport.verifyAll();
 
+  }
+
+  @Test
+  public void testUpdateOozieConfigs() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Config mockOozieEnv = easyMockSupport.createNiceMock(Config.class);
+
+    final Map<String, String> propertiesExpectedOozieEnv = new HashMap<String, String>() {{
+      put("oozie_hostname", "");
+      put("oozie_ambari_database", "123");
+    }};
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    expect(mockClusterExpected.getDesiredConfigByType("oozie-env")).andReturn(mockOozieEnv).atLeastOnce();
+    expect(mockOozieEnv.getProperties()).andReturn(propertiesExpectedOozieEnv).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog212.class).updateOozieConfigs();
+    easyMockSupport.verifyAll();
   }
 
   @Test
