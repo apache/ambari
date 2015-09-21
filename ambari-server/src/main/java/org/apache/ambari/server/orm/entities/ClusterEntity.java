@@ -248,7 +248,7 @@ public class ClusterEntity {
 
   @Override
   public int hashCode() {
-    int result = clusterId.hashCode();
+    int result = null == clusterId ? 0 : clusterId.hashCode();
     result = 31 * result + clusterName.hashCode();
     return result;
   }

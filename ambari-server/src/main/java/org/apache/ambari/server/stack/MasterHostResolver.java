@@ -204,7 +204,7 @@ public class MasterHostResolver {
         // !!! FIXME: only rely on maintenance state once the upgrade endpoint
         // is using the pre-req endpoint for determining if an upgrade is
         // possible
-        if (maintenanceState != MaintenanceState.OFF && !sc.isMasterComponent()) {
+        if (maintenanceState != MaintenanceState.OFF) {
           unhealthyHosts.add(sch);
         } else if (null == m_version || null == sch.getVersion() || !sch.getVersion().equals(m_version)) {
           upgradeHosts.add(hostName);

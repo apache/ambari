@@ -35,7 +35,6 @@ import java.util.UUID;
 
 import javax.persistence.EntityManager;
 
-import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -94,6 +93,8 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+
+import junit.framework.Assert;
 
 @Singleton
 public class OrmTestHelper {
@@ -626,11 +627,15 @@ public class OrmTestHelper {
    * Convenient method to create host version for given stack.
    */
   public HostVersionEntity createHostVersion(String hostName, RepositoryVersionEntity repositoryVersionEntity,
-                                             RepositoryVersionState repositoryVersionState) {
+      RepositoryVersionState repositoryVersionState) {
     HostEntity hostEntity = hostDAO.findByName(hostName);
     HostVersionEntity hostVersionEntity = new HostVersionEntity(hostEntity, repositoryVersionEntity, repositoryVersionState);
+    hostVersionEntity.setHostId(hostEntity.getHostId());
     hostVersionDAO.create(hostVersionEntity);
+
+    hostEntity.getHostVersionEntities().add(hostVersionEntity);
+    hostDAO.merge(hostEntity);
+
     return hostVersionEntity;
   }
-
 }
