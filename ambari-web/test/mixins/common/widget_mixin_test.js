@@ -77,6 +77,10 @@ describe('App.WidgetMixin', function () {
         expect(mixinObject.extractExpressions(input)).to.eql(test.result);
       });
     });
+    it('input is null', function () {
+      var input = null;
+      expect(mixinObject.extractExpressions(input)).to.be.empty;
+    });
   });
 
   describe("#getRequestData()", function () {

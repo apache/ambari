@@ -120,6 +120,12 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
   computeExpression: function (expressions, metrics) {
     var hostToValueMap = {};
     var hostNames = metrics.mapProperty('hostName');
+    var metricsMap = {};
+
+    metrics.forEach(function (_metric) {
+      metricsMap[_metric.name + "_" + _metric.hostName] = _metric;
+    }, this);
+
     hostNames.forEach(function (_hostName) {
       expressions.forEach(function (_expression) {
         var validExpression = true;
@@ -128,7 +134,7 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
         var beforeCompute = _expression.replace(this.get('VALUE_NAME_REGEX'), function (match) {
           var _metric;
           if (window.isNaN(match)) {
-            _metric = metrics.filterProperty('name', match).findProperty('hostName', _hostName);
+            _metric = metricsMap[match + "_" + _hostName];
             if (_metric) {
               return _metric.data;
             } else {

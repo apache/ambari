@@ -410,6 +410,8 @@ App.WidgetMixin = Ember.Mixin.create({
       expressions = [],
       match;
 
+    if (Em.isNone(input)) return expressions;
+
     while (match = pattern.exec(input.value)) {
       expressions.push(match[1]);
     }
