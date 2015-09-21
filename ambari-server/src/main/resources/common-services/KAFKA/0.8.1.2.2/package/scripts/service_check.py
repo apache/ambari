@@ -40,7 +40,7 @@ class ServiceCheck(Script):
     command = source_cmd + " ; " + create_topic_cmd
 
     Logger.info("Running kafka create topic command: %s" % command)
-    call_and_match_output(command, format("({create_topic_cmd_created_output})|({create_topic_cmd_exists_output})"), "Failed to check that topic exists")
+    call_and_match_output(command, format("({create_topic_cmd_created_output})|({create_topic_cmd_exists_output})"), "Failed to check that topic exists", user=params.kafka_user)
 
   def read_kafka_config(self):
     import params
