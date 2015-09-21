@@ -30,7 +30,8 @@ import glob
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg, print_error_msg, get_verbose
 from ambari_commons.os_utils import is_root, run_os_command
-from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers, get_jdbc_driver_path
+from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers, \
+  get_jdbc_driver_path, ensure_jdbc_driver_is_installed
 from ambari_server.properties import Properties
 from ambari_server.serverConfiguration import configDefaults, \
   check_database_name_property, get_ambari_properties, get_ambari_version, get_full_ambari_classpath, \
@@ -231,6 +232,8 @@ def run_schema_upgrade(args):
                     "command to install a JDK automatically or install any "
                     "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
     return 1
+
+  ensure_jdbc_driver_is_installed(args, get_ambari_properties())
 
   print 'Upgrading database schema'
 

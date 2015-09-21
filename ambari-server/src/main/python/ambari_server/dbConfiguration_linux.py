@@ -768,6 +768,13 @@ class OracleConfig(LinuxDBMSConfig):
   def _is_jdbc_driver_installed(self, properties):
     return LinuxDBMSConfig._find_jdbc_driver("*ojdbc*.jar")
 
+  def _get_default_driver_path(self, properties):
+    drivers = LinuxDBMSConfig._find_jdbc_driver("*ojdbc*.jar")
+    if drivers == -1:
+      return os.path.join(configDefaults.JAVA_SHARE_PATH, self.driver_file_name)
+    else:
+      return os.pathsep.join(drivers)
+
   def _configure_database_name(self):
     if self.persistence_type != STORAGE_TYPE_LOCAL:
       # Oracle uses service name or service id
