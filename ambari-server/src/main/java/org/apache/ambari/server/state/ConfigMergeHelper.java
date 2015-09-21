@@ -116,7 +116,6 @@ public class ConfigMergeHelper {
         }
       }
 
-
       Collection<String> common = CollectionUtils.intersection(newPairs.keySet(),
           oldPairs.keySet());
 
@@ -128,7 +127,11 @@ public class ConfigMergeHelper {
           savedVal = config.getProperties().get(prop);
         }
 
-        if (!newStackVal.equals(savedVal) &&
+        // If values are not defined in stack (null), we skip them
+        // Or if values in old stack and in new stack are the same, and value
+        // in current config is different, skip it
+        if (!(newStackVal == null && oldStackVal == null)
+                && !newStackVal.equals(savedVal) &&
             (!oldStackVal.equals(newStackVal) || !oldStackVal.equals(savedVal))) {
           ThreeWayValue twv = new ThreeWayValue();
           twv.oldStackValue = normalizeValue(savedVal, oldStackVal.trim());
