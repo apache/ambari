@@ -244,7 +244,7 @@
   </property>
   <property>
     <name>zookeeper.connection.timeout.ms</name>
-    <value>15000</value>
+    <value>25000</value>
     <description>The maximum amount of time that the client waits to establish a connection to zookeeper.</description>
   </property>
   <property>
