@@ -18,7 +18,8 @@ limitations under the License.
 Ambari Agent
 
 """
-from resource_management import *
+from resource_management.core.logger import Logger
+
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
@@ -35,9 +36,37 @@ tmp_dir = Script.get_tmp_dir()
 stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 version = default("/commandParams/version", None)
+# E.g., 2.3.2.0
+version_formatted = format_hdp_stack_version(version)
 
-knox_master_secret_path = '/var/lib/knox/data/security/master'
-knox_cert_store_path = '/var/lib/knox/data/security/keystores/gateway.jks'
+# E.g., 2.3
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+
+# This is the version whose state is CURRENT. During an RU, this is the source version.
+# DO NOT format it since we need the build number too.
+upgrade_from_version = default("/hostLevelParams/current_version", None)
+
+# server configurations
+# Default value used in HDP 2.3.0.0 and earlier.
+
+knox_data_dir = '/var/lib/knox/data'
+
+# Important, it has to be strictly greater than 2.3.0.0!!!
+if stack_name and stack_name.upper() == "HDP":
+  Logger.info(format("HDP version to use is {version_formatted}"))
+  if Script.is_hdp_stack_greater(version_formatted, "2.3.0.0"):
+    # This is the current version. In the case of a Rolling Upgrade, it will be the newer version.
+    # In the case of a Downgrade, it will be the version downgrading to.
+    # This is always going to be a symlink to /var/lib/knox/data_${version}
+    knox_data_dir = format('/usr/hdp/{version}/knox/data')
+    Logger.info(format("Detected HDP with stack version {version}, will use knox_data_dir = {knox_data_dir}"))
+
+
+knox_logs_dir = '/var/log/knox'
+
+knox_master_secret_path = format('{knox_data_dir}/security/master')
+knox_cert_store_path = format('{knox_data_dir}/security/keystores/gateway.jks')
 knox_user = default("/configurations/knox-env/knox_user", "knox")
 
 # server configurations
