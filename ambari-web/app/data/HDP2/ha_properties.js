@@ -30,7 +30,6 @@ module.exports =
     configs: [
     /**********************************************HDFS***************************************/
       {
-        "id": "site property",
         "name": "dfs.journalnode.edits.dir",
         "displayName": "dfs.journalnode.edits.dir",
         "description": "The Directory where the JournalNode will store its local state.",
@@ -44,7 +43,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "fs.defaultFS",
         "displayName": "fs.defaultFS",
         "description": "The default path prefix used by the Hadoop FS client when none is given.",
@@ -56,7 +54,6 @@ module.exports =
         serviceName: 'MISC'
       },
       {
-        "id": "site property",
         "name": "ha.zookeeper.quorum",
         "displayName": "ha.zookeeper.quorum",
         "isReconfigurable": false,
@@ -68,7 +65,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "dfs.nameservices",
         "displayName": "dfs.nameservices",
         "description": "Comma-separated list of nameservices.",
@@ -80,7 +76,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "dfs.ha.namenodes.${dfs.nameservices}",
         "displayName": "dfs.ha.namenodes.${dfs.nameservices}",
         "description": "The prefix for a given nameservice, contains a comma-separated list of namenodes for a given nameservice.",
@@ -92,7 +87,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "dfs.namenode.rpc-address.${dfs.nameservices}.nn1",
         "displayName": "dfs.namenode.rpc-address.${dfs.nameservices}.nn1",
         "description": "RPC address that handles all clients requests for nn1.",
@@ -104,7 +98,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "dfs.namenode.rpc-address.${dfs.nameservices}.nn2",
         "displayName": "dfs.namenode.rpc-address.${dfs.nameservices}.nn2",
         "description": "RPC address that handles all clients requests for nn2.",
@@ -116,7 +109,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "dfs.namenode.http-address.${dfs.nameservices}.nn1",
         "displayName": "dfs.namenode.http-address.${dfs.nameservices}.nn1",
         "description": "The fully-qualified HTTP address for nn1 NameNode.",
@@ -128,7 +120,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "dfs.namenode.http-address.${dfs.nameservices}.nn2",
         "displayName": "dfs.namenode.http-address.${dfs.nameservices}.nn2",
         "description": "The fully-qualified HTTP address for nn2 NameNode.",
@@ -140,7 +131,6 @@ module.exports =
         serviceName: 'MISC'
       },
       {
-        "id": "site property",
         "name": "dfs.namenode.https-address.${dfs.nameservices}.nn1",
         "displayName": "dfs.namenode.https-address.${dfs.nameservices}.nn1",
         "description": "The fully-qualified HTTP address for nn1 NameNode.",
@@ -152,7 +142,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "dfs.namenode.https-address.${dfs.nameservices}.nn2",
         "displayName": "dfs.namenode.https-address.${dfs.nameservices}.nn2",
         "description": "The fully-qualified HTTP address for nn2 NameNode.",
@@ -164,7 +153,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "dfs.client.failover.proxy.provider.${dfs.nameservices}",
         "displayName": "dfs.client.failover.proxy.provider.${dfs.nameservices}",
         "description": "The Java class that HDFS clients use to contact the Active NameNode.",
@@ -176,7 +164,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "dfs.namenode.shared.edits.dir",
         "displayName": "dfs.namenode.shared.edits.dir",
         "description": " The URI which identifies the group of JNs where the NameNodes will write/read edits.",
@@ -188,7 +175,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "dfs.ha.fencing.methods",
         "displayName": "dfs.ha.fencing.methods",
         "description": "A list of scripts or Java classes which will be used to fence the Active NameNode during a failover.",
@@ -200,7 +186,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "dfs.ha.automatic-failover.enabled",
         "displayName": "dfs.ha.automatic-failover.enabled",
         "description": "Enable Automatic failover.",
@@ -213,7 +198,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "dfs.namenode.safemode.threshold-pct",
         "displayName": "dfs.namenode.safemode.threshold-pct",
         "description": "Specifies the percentage of blocks that should satisfy\n        the minimal replication requirement defined by dfs.namenode.replication.min.\n        Values less than or equal to 0 mean not to start in safe mode.\n        Values greater than 1 will make safe mode permanent.\n ",
@@ -225,7 +209,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "hbase.rootdir",
         "displayName": "hbase.rootdir",
         "description": "The directory shared by region servers and into which HBase persists.",
@@ -237,7 +220,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "instance.volumes",
         "displayName": "instance.volumes",
         "isReconfigurable": false,
@@ -248,7 +230,6 @@ module.exports =
         "serviceName": 'MISC'
       },
       {
-        "id": "site property",
         "name": "instance.volumes.replacements",
         "displayName": "instance.volumes.replacements",
         "isReconfigurable": false,

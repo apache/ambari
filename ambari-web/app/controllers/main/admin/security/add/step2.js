@@ -339,11 +339,11 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     if (Em.isNone(securityUsers) || securityUsers.length === 0) {
       if (App.get('testMode')) {
         securityUsers = securityUsers || [];
-        securityUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
-        securityUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
-        securityUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
-        securityUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
-        securityUsers.pushObject({id: 'puppet var', name: 'smokeuser', value: 'ambari-qa'});
+        securityUsers.pushObject({ name: 'hdfs_user', value: 'hdfs'});
+        securityUsers.pushObject({ name: 'mapred_user', value: 'mapred'});
+        securityUsers.pushObject({ name: 'hbase_user', value: 'hbase'});
+        securityUsers.pushObject({ name: 'hive_user', value: 'hive'});
+        securityUsers.pushObject({ name: 'smokeuser', value: 'ambari-qa'});
       } else {
         securityUsers = App.db.getSecureUserInfo();
       }

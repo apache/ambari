@@ -30,7 +30,7 @@
 var props = {
   "configProperties": [
     {
-      "id": "puppet var",
+
       "name": "security_enabled",
       "displayName": "Enable security",
       "value": "",
@@ -43,7 +43,7 @@ var props = {
       "category": "KERBEROS"
     },
     {
-      "id": "puppet var",
+
       "name": "kerberos_install_type",
       "displayName": "Type of security",
       "value": "",
@@ -55,7 +55,7 @@ var props = {
       "category": "KERBEROS"
     },
     {
-      "id": "puppet var",
+
       "name": "kerberos_domain",
       "displayName": "Realm name",
       "value": "",
@@ -69,7 +69,7 @@ var props = {
       "category": "KERBEROS"
     },
     {
-      "id": "puppet var",
+
       "name": "kinit_path_local",
       "displayName": "Kerberos tool path",
       "value": "",
@@ -83,7 +83,7 @@ var props = {
       "category": "KERBEROS"
     },
     {
-      "id": "puppet var",
+
       "name": "smokeuser_principal_name",
       "displayName": "Smoke test user principal",
       "value": "",
@@ -97,7 +97,7 @@ var props = {
       "category": "AMBARI"
     },
     {
-      "id": "puppet var",
+
       "name": "smokeuser_keytab",
       "displayName": "Path to smoke test user keytab file",
       "value": "",
@@ -111,7 +111,7 @@ var props = {
       "category": "AMBARI"
     },
     {
-      "id": "puppet var",
+
       "name": "hdfs_principal_name",
       "displayName": "HDFS user principal",
       "value": "",
@@ -126,7 +126,7 @@ var props = {
       "category": "AMBARI"
     },
     {
-      "id": "puppet var",
+
       "name": "hdfs_user_keytab",
       "displayName": "Path to HDFS user keytab file",
       "value": "",
@@ -140,7 +140,7 @@ var props = {
       "category": "AMBARI"
     },
     {
-      "id": "puppet var",
+
       "name": "hbase_principal_name",
       "displayName": "HBase user principal",
       "value": "",
@@ -155,7 +155,7 @@ var props = {
       "category": "AMBARI"
     },
     {
-      "id": "puppet var",
+
       "name": "hbase_user_keytab",
       "displayName": "Path to HBase user keytab file",
       "value": "",
@@ -171,7 +171,7 @@ var props = {
 
   /**********************************************HDFS***************************************/
     {
-      "id": "puppet var",
+
       "name": "namenode_host",
       "displayName": "NameNode hosts",
       "value": "",
@@ -184,7 +184,7 @@ var props = {
       "category": "NameNode"
     },
     {
-      "id": "puppet var",
+
       "name": "namenode_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -198,7 +198,7 @@ var props = {
       "components": ["NAMENODE"]
     },
     {
-      "id": "puppet var",
+
       "name": "namenode_keytab",
       "displayName": "Path to Keytab File",
       "value": "",
@@ -212,7 +212,7 @@ var props = {
       "components": ["NAMENODE"]
     },
     {
-      "id": "puppet var",
+
       "name": "snamenode_host",
       "displayName": "SNameNode host",
       "value": "",
@@ -225,7 +225,7 @@ var props = {
       "category": "SNameNode"
     },
     {
-      "id": "puppet var",
+
       "name": "snamenode_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -239,7 +239,7 @@ var props = {
       "components": ["SECONDARY_NAMENODE"]
     },
     {
-      "id": "puppet var",
+
       "name": "snamenode_keytab",
       "displayName": "Path to Keytab File",
       "value": "",
@@ -253,7 +253,7 @@ var props = {
       "components": ["SECONDARY_NAMENODE"]
     },
     {
-      "id": "puppet var",
+
       "name": "journalnode_hosts",
       "displayName": "JournalNode hosts",
       "value": "",
@@ -266,7 +266,7 @@ var props = {
       "category": "JournalNode"
     },
     {
-      "id": "puppet var",
+
       "name": "journalnode_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -280,7 +280,7 @@ var props = {
       "component": "JOURNALNODE"
     },
     {
-      "id": "puppet var",
+
       "name": "journalnode_keytab",
       "displayName": "Path to keytab file",
       "value": "",
@@ -294,7 +294,7 @@ var props = {
       "component": "JOURNALNODE"
     },
     {
-      "id": "puppet var",
+
       "name": "datanode_hosts", //not in the schema. For UI purpose
       "displayName": "DataNode hosts",
       "value": "",
@@ -307,7 +307,7 @@ var props = {
       "category": "DataNode"
     },
     {
-      "id": "puppet var",
+
       "name": "dfs_datanode_address",
       "displayName": "Datanode address",
       "value": "",
@@ -320,7 +320,7 @@ var props = {
       "category": "DataNode"
     },
     {
-      "id": "puppet var",
+
       "name": "dfs_datanode_http_address",
       "displayName": "Datanode HTTP address",
       "value": "",
@@ -333,7 +333,7 @@ var props = {
       "category": "DataNode"
     },
     {
-      "id": "puppet var",
+
       "name": "datanode_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -347,7 +347,7 @@ var props = {
       "component": "DATANODE"
     },
     {
-      "id": "puppet var",
+
       "name": "datanode_keytab",
       "displayName": "Path to keytab file",
       "value": "",
@@ -361,7 +361,7 @@ var props = {
       "component": "DATANODE"
     },
     {
-      "id": "puppet var",
+
       "name": "hadoop_http_principal_name",
       "displayName": "DFS web principal name",
       "value": "",
@@ -374,7 +374,7 @@ var props = {
       "category": "General"
     },
     {
-      "id": "puppet var",
+
       "name": "hadoop_http_keytab",
       "displayName": "Path to SPNEGO keytab file",
       "value": "",
@@ -389,7 +389,7 @@ var props = {
 
   /**********************************************MAPREDUCE2***************************************/
     {
-      "id": "puppet var",
+
       "name": "jobhistoryserver_host",
       "displayName": "History Server host",
       "value": "",
@@ -402,7 +402,7 @@ var props = {
       "category": "JobHistoryServer"
     },
     {
-      "id": "puppet var",
+
       "name": "jobhistory_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -416,7 +416,7 @@ var props = {
       "component": "HISTORYSERVER"
     },
     {
-      "id": "puppet var",
+
       "name": "jobhistory_keytab",
       "displayName": "Path to keytab file",
       "value": "",
@@ -430,7 +430,7 @@ var props = {
       "component": "HISTORYSERVER"
     },
     {
-      "id": "puppet var",
+
       "name": "jobhistory_http_principal_name",
       "displayName": "Web principal name",
       "value": "",
@@ -443,7 +443,7 @@ var props = {
       "category": "JobHistoryServer"
     },
     {
-      "id": "puppet var",
+
       "name": "jobhistory_http_keytab",
       "displayName": "Path to SPNEGO keytab file",
       "value": "",
@@ -458,7 +458,7 @@ var props = {
 
   /**********************************************YARN***************************************/
     {
-      "id": "puppet var",
+
       "name": "resourcemanager_host",
       "displayName": "ResourceManager host",
       "value": "",
@@ -472,7 +472,7 @@ var props = {
     },
     // YARN Application Timeline Server
     {
-      "id": "puppet var",
+
       "name": "apptimelineserver_host",
       "displayName": "Application Timeline Server host",
       "value": "",
@@ -485,7 +485,7 @@ var props = {
       "category": "AppTimelineServer"
     },
     {
-      "id": "puppet var",
+
       "name": "apptimelineserver_principal_name",
       "displayName": "App Timeline Server Principal name",
       "value": "",
@@ -499,7 +499,7 @@ var props = {
       "component": "APP_TIMELINE_SERVER"
     },
     {
-      "id": "puppet var",
+
       "name": "apptimelineserver_keytab",
       "displayName": "Path to App Timeline Server keytab file",
       "value": "",
@@ -513,7 +513,7 @@ var props = {
       "component": "APP_TIMELINE_SERVER"
     },
     {
-      "id": "puppet var",
+
       "name": "apptimelineserver_http_principal_name",
       "displayName": "App Timeline Server HTTP Principal name",
       "value": "",
@@ -526,7 +526,7 @@ var props = {
       "category": "AppTimelineServer"
     },
     {
-      "id": "puppet var",
+
       "name": "apptimelineserver_http_keytab",
       "displayName": "Path to App Timeline Server SPNEGO HTTP keytab file",
       "value": "",
@@ -541,7 +541,7 @@ var props = {
 
     // YARN Resource Manager
     {
-      "id": "puppet var",
+
       "name": "resourcemanager_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -555,7 +555,7 @@ var props = {
       "component": "RESOURCEMANAGER"
     },
     {
-      "id": "puppet var",
+
       "name": "resourcemanager_keytab",
       "displayName": "Path to keytab file",
       "value": "",
@@ -569,7 +569,7 @@ var props = {
       "component": "RESOURCEMANAGER"
     },
     {
-      "id": "puppet var",
+
       "name": "resourcemanager_http_principal_name",
       "displayName": "Web principal name",
       "value": "",
@@ -582,7 +582,7 @@ var props = {
       "category": "ResourceManager"
     },
     {
-      "id": "puppet var",
+
       "name": "resourcemanager_http_keytab",
       "displayName": "Path to SPNEGO keytab file",
       "value": "",
@@ -595,7 +595,7 @@ var props = {
       "category": "ResourceManager"
     },
     {
-      "id": "puppet var",
+
       "name": "nodemanager_host",
       "displayName": "NodeManager hosts",
       "value": "",
@@ -608,7 +608,7 @@ var props = {
       "category": "NodeManager"
     },
     {
-      "id": "puppet var",
+
       "name": "nodemanager_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -622,7 +622,7 @@ var props = {
       "component": "NODEMANAGER"
     },
     {
-      "id": "puppet var",
+
       "name": "nodemanager_keytab",
       "displayName": "Path to keytab file",
       "value": "",
@@ -636,7 +636,7 @@ var props = {
       "component": "NODEMANAGER"
     },
     {
-      "id": "puppet var",
+
       "name": "nodemanager_http_principal_name",
       "displayName": "Web principal name",
       "value": "",
@@ -649,7 +649,7 @@ var props = {
       "category": "NodeManager"
     },
     {
-      "id": "puppet var",
+
       "name": "nodemanager_http_keytab",
       "displayName": "Path to SPNEGO keytab file",
       "value": "",
@@ -662,7 +662,7 @@ var props = {
       "category": "NodeManager"
     },
     {
-      "id": "puppet var",
+
       "name": "yarn_nodemanager_container-executor_class",
       "displayName": "yarn.nodemanager.container-executor.class",
       "value": "",
@@ -675,7 +675,7 @@ var props = {
       "category": "NodeManager"
     },
     {
-      "id": "puppet var",
+
       "name": "webhcatserver_host",
       "displayName": "WebHCat Server host",
       "value": "",
@@ -688,7 +688,7 @@ var props = {
       "category": "WebHCat Server"
     },
     {
-      "id": "puppet var",
+
       "name": "webHCat_http_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -701,7 +701,7 @@ var props = {
       "category": "WebHCat Server"
     },
     {
-      "id": "puppet var",
+
       "name": "webhcat_http_keytab",
       "displayName": "Path to keytab file",
       "value": "",
@@ -716,7 +716,7 @@ var props = {
 
   /**********************************************HBASE***************************************/
     {
-      "id": "puppet var",
+
       "name": "hbasemaster_host",
       "displayName": "HBase Master hosts",
       "value": "",
@@ -729,7 +729,7 @@ var props = {
       "category": "HBase Master"
     },
     {
-      "id": "puppet var",
+
       "name": "hbase_master_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -743,7 +743,7 @@ var props = {
       "components": ["HBASE_MASTER"]
     },
     {
-      "id": "puppet var",
+
       "name": "hbase_master_keytab",
       "displayName": "Path to keytab file",
       "value": "",
@@ -757,7 +757,7 @@ var props = {
       "components": ["HBASE_MASTER"]
     },
     {
-      "id": "puppet var",
+
       "name": "regionserver_hosts",
       "displayName": "RegionServer hosts",
       "value": "",
@@ -770,7 +770,7 @@ var props = {
       "category": "RegionServer"
     },
     {
-      "id": "puppet var",
+
       "name": "hbase_regionserver_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -784,7 +784,7 @@ var props = {
       "components": ["HBASE_REGIONSERVER"]
     },
     {
-      "id": "puppet var",
+
       "name": "hbase_regionserver_keytab",
       "displayName": "Path to keytab file",
       "value": "",
@@ -800,7 +800,7 @@ var props = {
 
   /**********************************************HIVE***************************************/
     {
-      "id": "puppet var",
+
       "name": "hive_metastore",
       "displayName": "Hive Metastore hosts",
       "value": "",
@@ -813,7 +813,7 @@ var props = {
       "category": "Hive Metastore"
     },
     {
-      "id": "puppet var",
+
       "name": "hive_metastore_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -827,7 +827,7 @@ var props = {
       "components": ["HIVE_SERVER", "HIVE_METASTORE"]
     },
     {
-      "id": "puppet var",
+
       "name": "hive_metastore_keytab",
       "displayName": "Path to keytab file",
       "value": "",
@@ -841,7 +841,7 @@ var props = {
       "components": ["HIVE_SERVER", "HIVE_METASTORE"]
     },
     {
-      "id": "puppet var",
+
       "name": "hive_metastore_http_principal_name",
       "displayName": "Web principal name",
       "value": "",
@@ -854,7 +854,7 @@ var props = {
       "category": "Hive Metastore"
     },
     {
-      "id": "puppet var",
+
       "name": "hive_metastore_http_keytab",
       "displayName": "Path to SPNEGO keytab file",
       "value": "",
@@ -869,7 +869,7 @@ var props = {
 
   /**********************************************OOZIE***************************************/
     {
-      "id": "puppet var",
+
       "name": "oozie_servername",
       "displayName": "Oozie Server host",
       "value": "",
@@ -882,7 +882,7 @@ var props = {
       "category": "Oozie Server"
     },
     {
-      "id": "puppet var",
+
       "name": "oozie_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -896,7 +896,7 @@ var props = {
       "component": "OOZIE_SERVER"
     },
     {
-      "id": "puppet var",
+
       "name": "oozie_keytab",
       "displayName": "Path to keytab file",
       "value": "",
@@ -911,7 +911,7 @@ var props = {
       "component": "OOZIE_SERVER"
     },
     {
-      "id": "puppet var",
+
       "name": "oozie_http_principal_name",
       "displayName": "Web principal name",
       "value": "",
@@ -924,7 +924,7 @@ var props = {
       "category": "Oozie Server"
     },
     {
-      "id": "puppet var",
+
       "name": "oozie_http_keytab",
       "displayName": "Path to SPNEGO keytab file",
       "value": "",
@@ -939,7 +939,7 @@ var props = {
 
   /**********************************************ZOOKEEPER***************************************/
     {
-      "id": "puppet var",
+
       "name": "zookeeperserver_hosts",
       "displayName": "ZooKeeper Server hosts",
       "value": "",
@@ -952,7 +952,7 @@ var props = {
       "category": "ZooKeeper Server"
     },
     {
-      "id": "puppet var",
+
       "name": "zookeeper_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -967,7 +967,7 @@ var props = {
       "component": "ZOOKEEPER_SERVER"
     },
     {
-      "id": "puppet var",
+
       "name": "zookeeper_keytab_path",
       "displayName": "Path to keytab file",
       "value": "",
@@ -983,7 +983,7 @@ var props = {
     },
   /**********************************************Falcon***************************************/
     {
-      "id": "puppet var",
+
       "name": "falcon_server_host",
       "displayName": "Falcon server host",
       "value": "",
@@ -996,7 +996,7 @@ var props = {
       "category": "Falcon Server"
     },
     {
-      "id": "puppet var",
+
       "name": "falcon_principal_name",
       "displayName": "Falcon principal name",
       "value": "",
@@ -1010,7 +1010,7 @@ var props = {
       "component": "FALCON_SERVER"
     },
     {
-      "id": "puppet var",
+
       "name": "falcon_keytab",
       "displayName": "Path to Falcon server keytab file",
       "value": "",
@@ -1024,7 +1024,7 @@ var props = {
       "component": "FALCON_SERVER"
     },
     {
-      "id": "puppet var",
+
       "name": "falcon_http_principal_name",
       "displayName": "Web principal name",
       "value": "",
@@ -1037,7 +1037,7 @@ var props = {
       "category": "Falcon Server"
     },
     {
-      "id": "puppet var",
+
       "name": "falcon_http_keytab",
       "displayName": "Path to SPNEGO keytab file",
       "value": "",
@@ -1050,7 +1050,7 @@ var props = {
       "category": "Falcon Server"
     },
     {
-      "id": "puppet var",
+
       "name": "namenode_principal_name_falcon",
       "displayName": "NameNode principal name",
       "value": "",
@@ -1065,7 +1065,7 @@ var props = {
 
   /**********************************************Knox***************************************/
     {
-      "id": "puppet var",
+
       "name": "knox_gateway_hosts",
       "displayName": "Knox Gateway hosts",
       "value": "",
@@ -1078,7 +1078,7 @@ var props = {
       "category": "Knox Gateway"
     },
     {
-      "id": "puppet var",
+
       "name": "knox_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -1093,7 +1093,7 @@ var props = {
       "component": "KNOX_GATEWAY"
     },
     {
-      "id": "puppet var",
+
       "name": "knox_keytab_path",
       "displayName": "Path to keytab file",
       "value": "",

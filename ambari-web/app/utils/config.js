@@ -120,8 +120,6 @@ App.config = Em.Object.create({
 
   secureConfigs: require('data/HDP2/secure_mapping'),
 
-  configMapping: require('data/HDP2/config_mapping'),
-
   customStackMapping: require('data/custom_stack_map'),
 
   mapCustomStack: function () {
@@ -193,74 +191,6 @@ App.config = Em.Object.create({
       return require('data/{0}/{1}'.format(folder, file));
     } catch (err) {
       // the file doesn't exist, which might be expected.
-    }
-  },
-
-  //configs with these filenames go to appropriate category not in Advanced
-  customFileNames: ['flume-conf.xml'],
-
-  /**
-   * identify category by filename of config
-   * @param config
-   * @return {object|null}
-   */
-  identifyCategory: function (config) {
-    var category = null,
-      serviceConfigMetaData = this.get('preDefinedServiceConfigs').findProperty('serviceName', Em.get(config, 'serviceName')),
-      configCategories = (serviceConfigMetaData && serviceConfigMetaData.get('configCategories')) || [];
-
-    if (Em.get(config, 'filename') && Em.get(config, 'filename').contains("env")) {
-      if (Em.get(config, 'category')) {
-        category = configCategories.findProperty("name", Em.get(config, 'category'));
-      } else {
-        configCategories.forEach(function (_category) {
-          if (_category.name.contains(this.getConfigTagFromFileName(Em.get(config, 'filename')))) {
-            category = _category;
-          }
-        }, this);
-      }
-    } else {
-      configCategories.forEach(function (_category) {
-        if (_category.siteFileNames && Array.isArray(_category.siteFileNames) && _category.siteFileNames.contains(Em.get(config, 'filename'))) {
-          category = _category;
-        }
-      });
-      category = Em.isNone(category) ? configCategories.findProperty('siteFileName', this.getOriginalFileName(Em.get(config, 'filename'))) : category;
-    }
-    return category;
-  },
-
-  /**
-   * additional handling for special properties such as
-   * checkbox and digital which values with 'm' at the end
-   * @param config
-   */
-  handleSpecialProperties: function (config) {
-    if (Em.get(config, 'displayType') === 'int' && /\d+m$/.test(Em.get(config, 'value') )) {
-      Em.set(config, 'value', Em.get(config, 'value').slice(0, Em.get(config, 'value.length') - 1));
-      Em.set(config, 'savedValue', Em.get(config, 'value'));
-    }
-  },
-
-  /**
-   * calculate config properties:
-   * category, filename, description
-   * @param config
-   * @param isAdvanced
-   * @param advancedProperty
-   */
-  calculateConfigProperties: function (config, isAdvanced, advancedProperty) {
-    if (!isAdvanced || this.get('customFileNames').contains(Em.get(config, 'filename'))) {
-      var categoryMetaData = this.identifyCategory(config);
-      if (categoryMetaData != null) {
-        Em.set(config, 'category', categoryMetaData.get('name'));
-      }
-    } else {
-      var configType = this.getConfigTagFromFileName(Em.get(config, 'filename'));
-      Em.set(config, 'category', Em.get(config, 'category') ? Em.get(config, 'category') : 'Advanced ' + configType);
-    }
-    if (advancedProperty) {
-      Em.set(config, 'description', Em.get(advancedProperty, 'description'));
     }
   },
 
@@ -361,7 +291,6 @@ App.config = Em.Object.create({
       isUserProperty: !definedInStack,
       isRequired: definedInStack,
       group: null,
-      id: 'site property',
       isRequiredByAgent:  true,
       isReconfigurable: true,
       unit: null,
@@ -526,6 +455,9 @@ App.config = Em.Object.create({
     if (Em.get(serviceConfigProperty, 'name') === 'kdc_type') {
       return App.router.get('mainAdminKerberosController.kdcTypesValues')[value];
     }
+    if ( /^\s+$/.test("" + value)) {
+      value = " ";
+    }
     return value;
   },
 
@@ -566,7 +498,10 @@ App.config = Em.Object.create({
   mergePreDefinedWithStack: function (selectedServiceNames) {
     var mergedConfigs = [];
 
-    var uiPersistentProperties = ['oozie_hostname_oozie-env', 'oozie_ambari_database_oozie-env'];
+    var uiPersistentProperties = [
+      this.configId('oozie_hostname', 'oozie-env.xml'),
+      this.configId('oozie_ambari_database', 'oozie-env.xml')
+    ];
     var configTypes = App.StackService.find().filter(function(service) {
       return selectedServiceNames.contains(service.get('serviceName'));
     }).map(function(item) {
@@ -612,9 +547,7 @@ App.config = Em.Object.create({
         if (['directory' ,'directories'].contains(configData.displayType) && configData.defaultDirectory) {
           configData.value = configData.defaultDirectory;
         } else if (advanced && advanced.get('id')) {
-          var configValue = this.formatPropertyValue(advanced, advanced.get('value'));
-          // for property which value is single/multiple spaces set single space as well
-          configData.value = configData.recommendedValue = /^\s+$/.test("" + configValue) ? " " : configValue;
+          configData.value = this.formatPropertyValue(advanced, advanced.get('value'));
         }
 
         mergedConfigs.push(configData);
@@ -656,7 +589,6 @@ App.config = Em.Object.create({
     this.get('preDefinedServiceConfigs').forEach(function (serviceConfig) {
       var serviceName = serviceConfig.get('serviceName');
       if (allSelectedServiceNames.contains(serviceName) || serviceName === 'MISC') {
-        console.log('pushing ' + serviceName, serviceConfig);
         if (!installedServiceNames.contains(serviceName) || serviceName === 'MISC') {
           serviceConfig.set('showConfig', true);
         }
@@ -667,24 +599,10 @@ App.config = Em.Object.create({
       var configsByService = [];
       var serviceConfigs = configs.filterProperty('serviceName', service.get('serviceName'));
       serviceConfigs.forEach(function (_config) {
-        _config.isOverridable = (_config.isOverridable === undefined) ? true : _config.isOverridable;
         var serviceConfigProperty = App.ServiceConfigProperty.create(_config);
         this.updateHostOverrides(serviceConfigProperty, _config);
         if (!storedConfigs && !serviceConfigProperty.get('hasInitialValue')) {
-          var hiveMetastoreUrisConfig = configs.filterProperty('filename', 'hive-site.xml').findProperty('name', 'hive.metastore.uris');
-          var clientPortConfig = configs.filterProperty('filename', 'zoo.cfg.xml').findProperty('name', 'clientPort');
-          var dependencies = {
-            'hive.metastore.uris': hiveMetastoreUrisConfig && hiveMetastoreUrisConfig.recommendedValue,
-            'clientPort': clientPortConfig && clientPortConfig.recommendedValue
-          };
-          configPropertyHelper.initialValue(serviceConfigProperty, localDB, dependencies);
-        }
-        if (storedConfigs && storedConfigs.filterProperty('name', _config.name).length && !!_config.filename) {
-          var storedConfig = storedConfigs.filterProperty('name', _config.name).findProperty('filename', _config.filename);
-          if (storedConfig) {
-            serviceConfigProperty.set('recommendedValue', storedConfig.recommendedValue);
-            serviceConfigProperty.set('value', storedConfig.value);
-          }
+          configPropertyHelper.initialValue(serviceConfigProperty, localDB, configs);
         }
         this.tweakDynamicDefaults(localDB, serviceConfigProperty, _config);
         serviceConfigProperty.validate();
@@ -733,11 +651,6 @@ App.config = Em.Object.create({
         newSCP.set('value', overrideEntry.value);
         newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
         newSCP.set('parentSCP', configProperty);
-        var hostsArray = Ember.A([]);
-        overrideEntry.hosts.forEach(function (host) {
-          hostsArray.push(host);
-        });
-        newSCP.set('selectedHostOptions', hostsArray);
         overrides.pushObject(newSCP);
       });
       configProperty.set('overrides', overrides);
@@ -908,12 +821,11 @@ App.config = Em.Object.create({
       for (var prop in properties) {
         var fileName = this.getOriginalFileName(config.type);
         var serviceConfig = !!params.configKeyToConfigMap[fileName] ? params.configKeyToConfigMap[fileName][prop] : false;
-        var hostOverrideValue = this.formatOverrideValue(serviceConfig, properties[prop]);
+        var hostOverrideValue = this.formatPropertyValue(serviceConfig, properties[prop]);
         var hostOverrideIsFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
         if (serviceConfig) {
           // Value of this property is different for this host.
           if (!Em.get(serviceConfig, 'overrides')) Em.set(serviceConfig, 'overrides', []);
-          console.log("loadServiceConfigGroupOverridesSuccess(): [" + group + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
           serviceConfig.overrides.pushObject({value: hostOverrideValue, group: group, isFinal: hostOverrideIsFinal});
         } else {
           params.serviceConfigs.push(this.createCustomGroupConfig(prop, config, group));
@@ -934,214 +846,20 @@ App.config = Em.Object.create({
    * @return {Object}
    **/
   createCustomGroupConfig: function (propertyName, config, group, isEditable) {
-    var propertyValue = config.properties[propertyName];
-    var propertyObject = {
-      name: propertyName,
-      displayName: propertyName,
-      savedValue: propertyValue,
-      value: propertyValue,
-      displayType: stringUtils.isSingleLine(propertyValue) ? 'advanced' : 'multiLine',
-      isSecureConfig: false,
+    var propertyObject = this.createDefaultConfig(propertyName, group.get('service.serviceName'), this.getOriginalFileName(config.type), false, {
+      savedValue: config.properties[propertyName],
+      value: config.properties[propertyName],
       group: group,
-      id: 'site property',
-      serviceName: group.get('service.serviceName'),
-      filename: this.getOriginalFileName(config.type),
-      isUserProperty: true,
-      isVisible: true,
+      isEditable: isEditable !== false,
       isOverridable: false
-    };
-    propertyObject.category = this.identifyCategory(propertyObject).name;
-    if(isEditable == false) {
-      propertyObject.isEditable = isEditable;
-    }
+    });
     group.set('switchGroupTextShort', Em.I18n.t('services.service.config_groups.switchGroupTextShort').format(group.get('name')));
     group.set('switchGroupTextFull', Em.I18n.t('services.service.config_groups.switchGroupTextFull').format(group.get('name')));
     return App.ServiceConfigProperty.create(propertyObject);
   },
 
-  /**
-   * format value of override of config
-   * @param serviceConfig
-   * @param hostOverrideValue
-   */
-  formatOverrideValue: function (serviceConfig, hostOverrideValue) {
-    if (serviceConfig && serviceConfig.displayType === 'int') {
-      if (/\d+m$/.test(hostOverrideValue)) {
-        return hostOverrideValue.slice(0, hostOverrideValue.length - 1);
-      }
-    } else if (serviceConfig &&
-               serviceConfig.displayType === 'masterHosts' &&
-               typeof hostOverrideValue === 'string') {
-      try {
-        var value = JSON.parse(hostOverrideValue.replace(/'/g, "\""));
-        if (typeof value === 'object') {
-          return value;
-        }
-      } catch(err) {
-        console.error(err);
-      }
-
-    }
-    return hostOverrideValue;
-  },
-
-  /**
-   * Set all site property that are derived from other site-properties
-   * Replace <foreignKey[0]>, <foreignKey[1]>, ... (in the name and value) to values from configs with names in foreignKey-array
-   * Replace <templateName[0]>, <templateName[1]>, ... (in the value) to values from configs with names in templateName-array
-   * Example:
-   * <code>
-   *  config: {
-   *    name: "name.<foreignKey[0]>.name",
-   *    foreignKey: ["name1"],
-   *    templateName: ["name2"],
-   *    value: "<foreignKey[0]><templateName[0]>"
-   *  }
-   * </code>
-   * "<foreignKey[0]>" in the name will be replaced with value from config with name "name1" (this config will be found
-   * in the mappedConfigs or allConfigs). New name will be set to the '_name'-property. If config with name "name1" won't
-   * be found, updated config will be marked as skipped (<code>noMatchSoSkipThisConfig</code>-property is set to true)
-   * "<templateName[0]>" in the value will be replace with value from config with name "name2" (it also will be found
-   * in the mappedConfigs or allConfigs).
-   *
-   * @param {object[]} mappedConfigs
-   * @param {object[]} allConfigs
-   * @param {object} config
-   * @method setConfigValue
-   */
-  setConfigValue: function (mappedConfigs, allConfigs, config) {
-    var globalValue;
-    if (config.value == null) {
-      return;
-    }
-    var fkValue = config.value.match(/<(foreignKey.*?)>/g);
-    var fkName = config.name.match(/<(foreignKey.*?)>/g);
-    var templateValue = config.value.match(/<(templateName.*?)>/g);
-
-    if (fkValue) {
-      fkValue.forEach(function (_fkValue) {
-
-        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
-        var cfk = config.foreignKey[index];
-        var cFromMapped = mappedConfigs.findProperty('name', cfk);
-        if (Em.isNone(cFromMapped)) {
-          var cFromAll = allConfigs.findProperty('name', cfk);
-          if (!Em.isNone(cFromAll)) {
-            globalValue = Em.get(cFromAll, 'value') === '' ? Em.get(cFromAll, 'recommendedValue') : Em.get(cFromAll, 'value');
-            config.value = config.value.replace(_fkValue, globalValue);
-          }
-        }
-        else {
-          globalValue = Em.get(cFromMapped, 'value');
-          config.value = config.value.replace(_fkValue, globalValue);
-        }
-      });
-    }
-
-    // config._name - formatted name from original config name
-    if (fkName) {
-      fkName.forEach(function (_fkName) {
-
-        var index = parseInt(_fkName.match(/\[([\d]*)(?=\])/)[1]);
-        var cfk = config.foreignKey[index];
-        var cFromMapped = mappedConfigs.findProperty('name', cfk);
-
-        if (Em.isNone(cFromMapped)) {
-          var cFromAll = allConfigs.findProperty('name', cfk);
-          if (Em.isNone(cFromAll)) {
-            config.noMatchSoSkipThisConfig = true;
-          }
-          else {
-            globalValue = Em.get(cFromAll, 'value') === '' ? Em.get(cFromAll, 'recommendedValue') : Em.get(cFromAll, 'value');
-            config._name = config.name.replace(_fkName, globalValue);
-          }
-        }
-        else {
-          globalValue = Em.get(cFromMapped, 'value');
-          config._name = config.name.replace(_fkName, globalValue);
-        }
-      });
-    }
-
-    //For properties in the configMapping file having foreignKey and templateName properties.
-    if (templateValue) {
-      templateValue.forEach(function (_value) {
-        var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
-        var cfk = config.templateName[index];
-        var cFromAll = allConfigs.findProperty('name', cfk);
-        if (Em.isNone(cFromAll)) {
-          config.value = null;
-        }
-        else {
-          var globalValue = Em.get(cFromAll, 'value');
-          config.value = config.value.replace(_value, globalValue);
-        }
-      });
-    }
-  },
-
-  /**
-   * identify service name of config by its config's type
-   * @param type
-   * @return {string|null}
-   */
-  getServiceNameByConfigType: function (type) {
-    var preDefinedServiceConfigs = this.get('preDefinedServiceConfigs');
-    var service = preDefinedServiceConfigs.find(function (serviceConfig) {
-      return !!serviceConfig.get('configTypes')[type];
-    }, this);
-    return service && service.get('serviceName');
-  },
-
-  /**
-   * add user property
-   * @param stored
-   * @param isAdvanced
-   * @param advancedConfigs
-   * @return {Object}
-   */
-  addUserProperty: function (stored, isAdvanced, advancedConfigs) {
-    var
-      skipAttributeChanges = {
-        displayType: ['ignore_groupsusers_create'],
-        displayName: ['ignore_groupsusers_create', 'smokeuser', 'user_group', 'mapred_user', 'zk_user']
-      },
-      configData = {
-        id: stored.id,
-        name: stored.name,
-        displayName: skipAttributeChanges.displayName.contains(stored.name) ?
-          this.getOriginalConfigAttribute(stored, 'displayName', advancedConfigs) : stored.name,
-        serviceName: stored.serviceName,
-        value: stored.value,
-        savedValue: stored.savedValue,
-        recommendedValue: stored.recommendedValue,
-        displayType: skipAttributeChanges.displayType.contains(stored.name) ?
-          this.getOriginalConfigAttribute(stored, 'displayType', advancedConfigs) :
-          (stringUtils.isSingleLine(stored.value) ? 'advanced' : 'multiLine'),
-        filename: stored.filename,
-        isUserProperty: stored.isUserProperty === true,
-        hasInitialValue: !!stored.hasInitialValue,
-        isOverridable: true,
-        overrides: stored.overrides,
-        isRequired: false,
-        isVisible: stored.isVisible,
-        isFinal: stored.isFinal,
-        savedIsFinal: stored.savedIsFinal,
-        supportsFinal: this.shouldSupportFinal(stored.serviceName, stored.filename),
-        showLabel: stored.showLabel !== false,
-        category: stored.category
-      };
-    if (stored.category == 'Users and Groups') {
-      configData.index = this.getOriginalConfigAttribute(stored, 'index', advancedConfigs);
-    }
-    var advancedConfig = advancedConfigs.filterProperty('name', stored.name).findProperty('filename', stored.filename);
-    App.get('config').calculateConfigProperties(configData, isAdvanced, advancedConfig);
-    return configData;
-  },
-
   complexConfigsTemplate: [
     {
-      "id": "site property",
       "name": "capacity-scheduler",
       "displayName": "Capacity Scheduler",
       "value": "",
@@ -1225,7 +943,6 @@ App.config = Em.Object.create({
           name = _property[0];
           value = (_property[1]) ? _property[1] : "";
           configs.push(Em.Object.create({
-            id: configsTextarea.get('id'),
             name: name,
             value: value,
             savedValue: value,
@@ -1278,21 +995,6 @@ App.config = Em.Object.create({
   },
 
   /**
-   * exclude configs that depends on services which are uninstalled
-   * if config doesn't have serviceName or dependent service is installed then
-   * config not excluded
-   * @param {object[]} configs
-   * @param {string[]} installedServices
-   * @return {object[]}
-   * @method excludeUnsupportedConfigs
-   */
-  excludeUnsupportedConfigs: function (configs, installedServices) {
-    return configs.filter(function (config) {
-      return !(config.serviceName && !installedServices.contains(config.serviceName));
-    });
-  },
-
-  /**
    * Generate minimal config property object used in *_properties.js files.
    * Example:
    * <code>
@@ -1324,23 +1026,6 @@ App.config = Em.Object.create({
       if (properties) return $.extend(baseObj, properties);
       else return baseObj;
     });
-  },
-
-  /**
-   * replace some values in config property
-   * @param {string} name
-   * @param {string} express
-   * @param {string} value
-   * @param {string} globValue
-   * @return {string}
-   * @private
-   * @method replaceConfigValues
-   */
-  replaceConfigValues: function (name, express, value, globValue) {
-    if (name == 'templeton.hive.properties') {
-      globValue = globValue.replace(/,/g, '\\,');
-    }
-    return value.replace(express, globValue);
   },
 
   /**

@@ -178,11 +178,11 @@ App.MainAdminSecurityController = Em.Controller.extend({
     var securityUsers = this.get('serviceUsers');
     if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
       if (App.get('testMode')) {
-        securityUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
-        securityUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
-        securityUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
-        securityUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
-        securityUsers.pushObject({id: 'puppet var', name: 'smokeuser', value: 'ambari-qa'});
+        securityUsers.pushObject({ name: 'hdfs_user', value: 'hdfs'});
+        securityUsers.pushObject({ name: 'mapred_user', value: 'mapred'});
+        securityUsers.pushObject({ name: 'hbase_user', value: 'hbase'});
+        securityUsers.pushObject({ name: 'hive_user', value: 'hive'});
+        securityUsers.pushObject({ name: 'smokeuser', value: 'ambari-qa'});
       } else {
         this.setSecurityStatus();
         securityUsers = this.get('serviceUsers');
@@ -365,7 +365,6 @@ App.MainAdminSecurityController = Em.Controller.extend({
 
     for (var configName in defaultUserNameMap) {
       this.get('serviceUsers').push({
-        id: 'puppet var',
         name: configName,
         value: configs[configName] || defaultUserNameMap[configName]['defaultValue']
       });

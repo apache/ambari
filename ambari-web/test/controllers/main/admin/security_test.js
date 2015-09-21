@@ -207,7 +207,6 @@ describe('App.MainAdminSecurityController', function () {
       controller.loadUsers(configs);
       expect(controller.get('serviceUsers')).to.eql([
         {
-          "id": "puppet var",
           "name": "test_user",
           "value": "test"
         }
@@ -225,7 +224,6 @@ describe('App.MainAdminSecurityController', function () {
       controller.loadUsers(configs);
       expect(controller.get('serviceUsers')).to.eql([
         {
-          "id": "puppet var",
           "name": "test_user",
           "value": "config-value"
         }

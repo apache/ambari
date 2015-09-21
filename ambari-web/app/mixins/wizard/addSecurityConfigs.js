@@ -142,7 +142,6 @@ App.AddSecurityConfigs = Em.Mixin.create({
       if (hostComponent) {
         var hostName = hostComponent.get('hostName');
         this.get('configs').push({
-          id: 'puppet var',
           name: configName,
           value: hostName
         });
@@ -217,7 +216,6 @@ App.AddSecurityConfigs = Em.Mixin.create({
     if (App.get('testMode')) {
       var serviceUsers = this.get('serviceUsers');
       this.get('testModeUsers').forEach(function (user) {
-        user.id = 'puppet var';
         serviceUsers.push(user);
       }, this);
     } else {
@@ -241,7 +239,6 @@ App.AddSecurityConfigs = Em.Mixin.create({
       }
       value = this.getConfigValue(_config.templateName, value, _config.name);
       uiConfig.push({
-        "id": "site property",
         "name": _config.name,
         "value": value,
         "filename": _config.filename
@@ -253,7 +250,6 @@ App.AddSecurityConfigs = Em.Mixin.create({
         this.setConfigValue(_config);
         this.formatConfigName(uiConfig, _config);
         uiConfig.push({
-          "id": "site property",
           "name": _config._name || _config.name,
           "value": _config.value,
           "filename": _config.filename
@@ -279,7 +275,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
   },
 
   /**
-   * Set all site property that are derived from other puppet-variable
+   * Set all property that are derived from other puppet-variable
    * @param templateName
    * @param expression
    * @param name

@@ -449,7 +449,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
           for (var prop in config.properties) {
             var fileName = App.config.getOriginalFileName(config.type);
             var serviceConfig = allConfigs.filterProperty('name', prop).findProperty('filename', fileName);
-            var value = App.config.formatOverrideValue(serviceConfig, config.properties[prop]);
+            var value = App.config.formatPropertyValue(serviceConfig, config.properties[prop]);
             var isFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
 
             if (serviceConfig) {
@@ -471,66 +471,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
         });
       }
     });
-  },
-
-  /**
-   * @param serviceConfig
-   * @private
-   * @method checkDatabaseProperties
-   */
-  checkDatabaseProperties: function (serviceConfig) {
-    this.hideHiveDatabaseProperties(serviceConfig.configs);
-    this.hideOozieDatabaseProperties(serviceConfig.configs);
-  },
-
-  /**
-   * @param configs
-   * @private
-   * @method hideHiveDatabaseProperties
-   */
-  hideHiveDatabaseProperties: function (configs) {
-    if (!['HIVE'].contains(this.get('content.serviceName'))) return;
-    var property = configs.findProperty('name', 'hive_hostname');
-    if (property) property.set('isVisible', false);
-
-    if (configs.someProperty('name', 'hive_database')) {
-      var hiveDb = configs.findProperty('name', 'hive_database');
-      if (hiveDb.value === 'Existing MSSQL Server database with integrated authentication') {
-        configs.findProperty('name', 'javax.jdo.option.ConnectionUserName').setProperties({
-          isVisible: false,
-          isRequired: false
-        });
-        configs.findProperty('name', 'javax.jdo.option.ConnectionPassword').setProperties({
-          isVisible: false,
-          isRequired: false
-        });
-      }
-    }
-  },
-
-  /**
-   * @param configs
-   * @private
-   * @method hideOozieDatabaseProperties
-   */
-  hideOozieDatabaseProperties: function (configs) {
-    if (!['OOZIE'].contains(this.get('content.serviceName'))) return;
-    var property = configs.findProperty('name', 'oozie_hostname');
-    if (property) property.set('isVisible', false);
-
-    if (configs.someProperty('name', 'oozie_database')) {
-      var oozieDb = configs.findProperty('name', 'oozie_database');
-      if (oozieDb.value === 'Existing MSSQL Server database with integrated authentication') {
-        configs.findProperty('name', 'oozie.service.JPAService.jdbc.username').setProperties({
-          isVisible: false,
-          isRequired: false
-        });
-        configs.findProperty('name', 'oozie.service.JPAService.jdbc.password').setProperties({
-          isVisible: false,
-          isRequired: false
-        });
-      }
-    }
   },
 
   /**
@@ -569,7 +509,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     }
     this.set('selectedService', selectedService);
     this.checkOverrideProperty(selectedService);
-    //this.checkDatabaseProperties(selectedService);
     if (!App.Service.find().someProperty('serviceName', 'RANGER')) {
       App.config.removeRangerConfigs(this.get('stepConfigs'));
     } else {

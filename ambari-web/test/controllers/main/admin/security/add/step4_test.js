@@ -384,7 +384,7 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       sinon.stub(controller, 'onJsError', Em.K);
       controller.set('serviceConfigTags', null);
       controller.set('configs', [
-        {id: 'site property'}
+        {}
       ]);
       controller.set('commands', [Em.Object.create({
         name: 'APPLY_CONFIGURATIONS'
@@ -406,7 +406,6 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       ]);
       controller.set('configs', [
         {
-          id: 'site property',
           name: 'config1',
           value: "value1",
           filename: 'site1.xml'
@@ -434,7 +433,6 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       ]);
       controller.set('globalProperties', [
         {
-          id: 'site property',
           name: 'config1_hosts',
           value: "value1",
           filename: 'site1.xml'

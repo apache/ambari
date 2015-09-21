@@ -186,13 +186,4 @@ describe('App.MainAdminServiceAccountsController', function () {
       });
     });
   });
-
-  describe('#setProxyUserGroupLabel()', function () {
-
-    it('proxyuser_group config is absent', function () {
-      var misc_configs = [];
-      controller.setProxyUserGroupLabel(misc_configs);
-      expect(misc_configs.findProperty('name', 'proxyuser_group')).to.be.undefined;
-    });
-  })
 });

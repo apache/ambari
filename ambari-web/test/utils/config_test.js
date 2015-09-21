@@ -25,40 +25,6 @@ var modelSetup = setups.configs;
 
 describe('App.config', function () {
 
-  var loadServiceSpecificConfigs = function(context, serviceName) {
-    context.configGroups = modelSetup.setupConfigGroupsObject(serviceName);
-    context.advancedConfigs = modelSetup.setupAdvancedConfigsObject();
-    context.tags = modelSetup.setupServiceConfigTagsObject(serviceName);
-    context.result = App.config.mergePreDefinedWithLoaded(context.configGroups, context.advancedConfigs, context.tags, App.Service.find().findProperty('id', serviceName).get('serviceName'));
-  };
-
-  var loadAllServicesConfigs = function(context, serviceNames) {
-    context.configGroups = modelSetup.setupConfigGroupsObject();
-  };
-
-  var loadServiceModelsData = function(serviceNames) {
-    serviceNames.forEach(function(serviceName) {
-      App.store.load(App.Service, {
-        id: serviceName,
-        service_name: serviceName
-      });
-    });
-  };
-
-  describe('#handleSpecialProperties', function () {
-    var config = {};
-    it('value should be transformed to "1024" from "1024m"', function () {
-      config = {
-        displayType: 'int',
-        value: '1024m',
-        savedValue: '1024m'
-      };
-      App.config.handleSpecialProperties(config);
-      expect(config.value).to.equal('1024');
-      expect(config.savedValue).to.equal('1024');
-    });
-  });
-
   describe('#fileConfigsIntoTextarea', function () {
     var filename = 'capacity-scheduler.xml';
     var configs = [
@@ -434,35 +400,6 @@ describe('App.config', function () {
   });
 
 
-  describe('#replaceConfigValues', function () {
-
-    var cases = [
-      {
-        name: 'name',
-        express: '<templateName[0]>',
-        value: '<templateName[0]>',
-        globValue: 'v',
-        expected: 'v',
-        title: 'default case'
-      },
-      {
-        name: 'templeton.hive.properties',
-        express: '<templateName[0]>',
-        value: 'hive.matestore.uris=<templateName[0]>',
-        globValue: 'thrift://h0:9933,thrift://h1:9933,thrift://h2:9933',
-        expected: 'hive.matestore.uris=thrift://h0:9933\\,thrift://h1:9933\\,thrift://h2:9933',
-        title: 'should escape commas for templeton.hive.properties'
-      }
-    ];
-
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        expect(App.config.replaceConfigValues(item.name, item.express, item.value, item.globValue)).to.equal(item.expected);
-      });
-    });
-
-  });
-
   describe('#advancedConfigIdentityData', function () {
 
     var configs = [
@@ -612,148 +549,6 @@ describe('App.config', function () {
           expect(propertyData[key]).to.eql(item.output[key]);
         });
       });
-    });
-
-  });
-
-  describe('#setConfigValue', function () {
-
-    Em.A([
-        {
-          mappedConfigs: [
-            {
-              name: 'falcon_user',
-              value: 'fu'
-            }
-          ],
-          allConfigs: [],
-          m: 'in mapped, value used',
-          e: {
-            _name: 'hadoop.proxyuser.fu.groups',
-            value: 'fu',
-            noMatchSoSkipThisConfig: false
-          }
-        },
-        {
-          mappedConfigs: [],
-          allConfigs: [
-            {
-              name: 'falcon_user',
-              value: 'fu'
-            }
-          ],
-          m: 'in all, value used',
-          e: {
-            _name: 'hadoop.proxyuser.fu.groups',
-            value: 'fu',
-            noMatchSoSkipThisConfig: false
-          }
-        },
-        {
-          mappedConfigs: [],
-          allConfigs: [
-            {
-              name: 'falcon_user',
-              value: '',
-              recommendedValue: 'fu'
-            }
-          ],
-          m: 'in all, default value used',
-          e: {
-            _name: 'hadoop.proxyuser.fu.groups',
-            value: 'fu',
-            noMatchSoSkipThisConfig: false
-          }
-        },
-        {
-          mappedConfigs: [],
-          allConfigs: [],
-          m: 'not found',
-          e: {
-            _name: 'hadoop.proxyuser.<foreignKey[0]>.groups',
-            value: '<foreignKey[0]>',
-            noMatchSoSkipThisConfig: true
-          }
-        }
-      ]).forEach(function (test) {
-        it(test.m, function () {
-          var config = {
-            name: "hadoop.proxyuser.<foreignKey[0]>.groups",
-            templateName: ["proxyuser_group"],
-            foreignKey: ["falcon_user"],
-            noMatchSoSkipThisConfig: false,
-            value: "<foreignKey[0]>"
-          };
-          App.config.setConfigValue(test.mappedConfigs, test.allConfigs, config);
-          expect(config.value).to.equal(test.e.value);
-          if(test.e.noMatchSoSkipThisConfig) {
-            expect(Em.isNone(config._name)).to.be.true;
-          }
-          else {
-            expect(config._name).to.equal(test.e._name);
-          }
-          expect(config.noMatchSoSkipThisConfig).to.equal(test.e.noMatchSoSkipThisConfig);
-        });
-
-        Em.A([
-          {
-            mappedConfigs: [],
-            allConfigs: [
-              {
-                name: 'falcon_user',
-                value: 'fu'
-              },
-              {
-                name: 'proxyuser_group',
-                value: 'pg'
-              }
-            ],
-            m: 'in all, template in all',
-            e: {
-              _name: 'hadoop.proxyuser.fu.groups',
-              value: 'fupg'
-            }
-          },
-            {
-              mappedConfigs: [
-                {
-                  name: 'falcon_user',
-                  value: 'fu'
-                },
-                {
-                  name: 'proxyuser_group',
-                  value: 'pg'
-                }
-              ],
-              allConfigs: [],
-              m: 'in mapped, template in mapped',
-              e: {
-                _name: 'hadoop.proxyuser.fu.groups',
-                value: 'fupg'
-              }
-            },
-            {
-              mappedConfigs: [],
-              allConfigs: [],
-              m: 'not found (template not found too)',
-              e: {
-                _name: 'hadoop.proxyuser.<foreignKey[0]>.groups',
-                value: null
-              }
-            }
-        ]).forEach(function (test) {
-            it(test.m, function () {
-              var config = {
-                name: "hadoop.proxyuser.<foreignKey[0]>.groups",
-                templateName: ["proxyuser_group"],
-                foreignKey: ["falcon_user"],
-                noMatchSoSkipThisConfig: false,
-                value: "<foreignKey[0]><templateName[0]>"
-              };
-              App.config.setConfigValue(test.mappedConfigs, test.allConfigs, config);
-            });
-          });
-
     });
 
   });
@@ -1276,8 +1071,7 @@ describe('App.config', function () {
       isUserProperty: false,
       isRequired: true,
       group: null,
-      id: 'site property',
-      isRequiredByAgent: true,
+      isRequiredByAgent:  true,
       isReconfigurable: true,
       unit: null,
       hasInitialValue: false,

@@ -100,7 +100,6 @@ App.ServiceConfigProperty = Em.Object.extend({
   filename: '',
   isOriginalSCP : true, // if true, then this is original SCP instance and its value is not overridden value.
   parentSCP: null, // This is the main SCP which is overridden by this. Set only when isOriginalSCP is false.
-  selectedHostOptions : null, // contain array of hosts configured with overridden value
   overrides : null,
   overrideValues: [],
   group: null, // Contain group related to this property. Set only when isOriginalSCP is false.

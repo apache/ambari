@@ -158,24 +158,5 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
     } else {
       return arrayToSort;
     }
-  },
-  /**
-   * set displayName of "proxyuser_group" depending on stack version
-   * @param misc_configs
-   */
-  setProxyUserGroupLabel: function (misc_configs) {
-    var proxyUserGroup = misc_configs.findProperty('name', 'proxyuser_group');
-    //stack, with version lower than 2.1, doesn't have Falcon service
-    if (proxyUserGroup) {
-      var proxyServices = ['HIVE', 'OOZIE', 'FALCON'];
-      var services = Em.A([]);
-      proxyServices.forEach(function (serviceName) {
-        var stackService = App.StackService.find(serviceName);
-        if (stackService) {
-          services.push(stackService.get('displayName'));
-        }
-      }, this);
-      proxyUserGroup.set('displayName', "Proxy group for " + stringUtils.getFormattedStringFromArray(services));
-    }
   }
 });

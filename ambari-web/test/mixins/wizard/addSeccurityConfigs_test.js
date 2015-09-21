@@ -80,7 +80,6 @@ describe('App.AddSecurityConfigs', function () {
       }]);
 
       expect(controller.loadUiSideSecureConfigs()).to.eql([{
-        "id": "site property",
         "name": 'config1',
         "value": 'value1',
         "filename": 'file1'
@@ -98,7 +97,6 @@ describe('App.AddSecurityConfigs', function () {
       }]);
 
       expect(controller.loadUiSideSecureConfigs()).to.eql([{
-        "id": "site property",
         "name": 'config1',
         "value": 'value2',
         "filename": 'file1'
@@ -127,7 +125,6 @@ describe('App.AddSecurityConfigs', function () {
       }]);
 
       expect(controller.loadUiSideSecureConfigs()).to.eql([{
-        "id": "site property",
         "name": 'config1',
         "value": 'value1',
         "filename": 'file1'
@@ -353,8 +350,7 @@ describe('App.AddSecurityConfigs', function () {
       controller.loadUsersFromServer();
       expect(controller.get('serviceUsers')).to.eql([{
         name: 'user1',
-        value: 'value1',
-        id: 'puppet var'
+        value: 'value1'
       }]);
       App.get.restore();
     });

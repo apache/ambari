@@ -225,7 +225,7 @@ App.ConfigsComparator = Em.Mixin.create({
       compareObject = App.ServiceConfigProperty.create(compareObject);
       compareObject.setProperties({
         isFinal: !!compareConfig.isFinal,
-        value: App.config.formatOverrideValue(serviceConfig, compareConfig.value),
+        value: App.config.formatPropertyValue(serviceConfig, compareConfig.value),
         compareConfigs: null,
         isOriginalSCP: false
       });
@@ -303,7 +303,6 @@ App.ConfigsComparator = Em.Mixin.create({
     var undefinedConfig = {
       description: name,
       displayName: name,
-      id: "site property",
       isOverridable: false,
       isReconfigurable: false,
       isRequired: false,
