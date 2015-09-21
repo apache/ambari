@@ -1465,8 +1465,10 @@ public class ClusterImpl implements Cluster {
       List<ClusterVersionEntity> clusterVersionEntities = clusterVersionDAO.findByCluster(getClusterName());
       StackId currentStackId = getCurrentStackVersion();
       for (ClusterVersionEntity clusterVersionEntity : clusterVersionEntities) {
-        if (clusterVersionEntity.getRepositoryVersion().getStack().equals(
-            currentStackId.getStackId())
+        RepositoryVersionEntity repositoryVersionEntity = clusterVersionEntity.getRepositoryVersion();
+        StackId repoVersionStackId = repositoryVersionEntity.getStackId();
+
+        if (repoVersionStackId.equals(currentStackId)
             && clusterVersionEntity.getState() != RepositoryVersionState.CURRENT) {
           recalculateClusterVersionState(clusterVersionEntity.getRepositoryVersion());
         }
@@ -2855,16 +2857,16 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.writeLock().lock();
     try {
       Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
-      
+
       // disable previous config
       for (ClusterConfigMappingEntity e : configMappingEntities) {
         LOG.debug("{} with tag {} is unselected", e.getType(), e.getTag());
         e.setSelected(0);
       }
-      
+
       List<ClusterConfigMappingEntity> clusterConfigMappingEntities = clusterDAO.getClusterConfigMappingsByStack(clusterEntity.getClusterId(), stackId);
       Collection<ClusterConfigMappingEntity> latestConfigMappingByStack = getLatestConfigMapping(clusterConfigMappingEntities);
-      
+
       for(ClusterConfigMappingEntity e: configMappingEntities){
         String type = e.getType(); //loop thru all the config mappings
         String tag =  e.getTag();
@@ -2877,7 +2879,7 @@ public class ClusterImpl implements Cluster {
           }
         }
       }
-      
+
       clusterEntity = clusterDAO.merge(clusterEntity);
 
       cacheConfigurations();
@@ -2891,7 +2893,7 @@ public class ClusterImpl implements Cluster {
     for (ClusterConfigMappingEntity e : clusterConfigMappingEntities) {
       String type = e.getType();
       if(temp.containsKey(type)){
-        ClusterConfigMappingEntity entityStored = (ClusterConfigMappingEntity)temp.get(type);
+        ClusterConfigMappingEntity entityStored = temp.get(type);
         Long timestampStored = entityStored.getCreateTimestamp();
         Long timestamp = e.getCreateTimestamp();
         if(timestamp > timestampStored){
@@ -2902,7 +2904,7 @@ public class ClusterImpl implements Cluster {
       }
     }
 
-    return (Collection<ClusterConfigMappingEntity>) temp.values();
+    return temp.values();
   }
 
   /**

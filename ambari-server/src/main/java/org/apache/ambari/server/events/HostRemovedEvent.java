@@ -17,18 +17,43 @@
  */
 package org.apache.ambari.server.events;
 
+import java.util.Collections;
+import java.util.Set;
+
+import org.apache.ambari.server.state.Cluster;
+
 /**
  * The {@link HostRemovedEvent} class is fired when a host is removed from the
  * cluster.
  */
 public class HostRemovedEvent extends HostEvent {
+
+  /**
+   * The clusters that the removed host belonged to.
+   */
+  private final Set<Cluster> m_clusters;
+
   /**
    * Constructor.
    *
    * @param hostName
    */
-  public HostRemovedEvent(String hostName) {
+  public HostRemovedEvent(String hostName, Set<Cluster> clusters) {
     super(AmbariEventType.HOST_REMOVED, hostName);
+    m_clusters = clusters;
+  }
+
+  /**
+   * The clusters that the host belonged to.
+   *
+   * @return the clusters, or an empty set.
+   */
+  public Set<Cluster> getClusters() {
+    if (null == m_clusters) {
+      return Collections.emptySet();
+    }
+
+    return m_clusters;
   }
 
   /**
