@@ -21,6 +21,7 @@ limitations under the License.
 import os
 import time
 
+from resource_management.core.logger import Logger
 from resource_management.core import shell
 from resource_management.libraries.functions.format import format
 from resource_management.core.resources.system import File, Execute
@@ -119,7 +120,12 @@ def hive_service(name, action='start', rolling_restart=False):
     )
 
 def check_fs_root():
-  import params  
+  import params
+
+  if not params.fs_root.startswith("hdfs://"):
+    Logger.info("Skipping fs root check as fs_root does not start with hdfs://")
+    return
+
   metatool_cmd = format("hive --config {hive_server_conf_dir} --service metatool")
   cmd = as_user(format("{metatool_cmd} -listFSRoot", env={'PATH': params.execute_path}), params.hive_user) \
         + format(" 2>/dev/null | grep hdfs:// | cut -f1,2,3 -d '/' | grep -v '{fs_root}' | head -1")

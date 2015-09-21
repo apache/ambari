@@ -92,6 +92,38 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
+  @patch("socket.socket")
+  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
+  def test_start_default_non_hdfs(self, socket_mock, copy_to_hfds_mock):
+    copy_to_hfds_mock.return_value = None
+    s = socket_mock.return_value
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
+                       classname="HiveServer",
+                       command="start",
+                       config_file="default_hive_non_hdfs.json",
+                       hdp_stack_version=self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    self.assert_configure_default(default_fs_default='hcfs://c6401.ambari.apache.org:8020')
+
+    self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
+                              environment = {'HADOOP_HOME': '/usr',
+                                             'HIVE_BIN': 'hive',
+                                             'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+                              not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1",
+                              user = 'hive',
+                              path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
+                              )
+    self.assertResourceCalled('Execute',
+                              '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
+                              path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries=5,
+                              try_sleep=10
+    )
+    self.assertNoMoreResources()
+
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_start_default_no_copy(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
@@ -287,7 +319,7 @@ class TestHiveServer(RMFTestCase):
     
     self.assertNoMoreResources()
 
-  def assert_configure_default(self, no_tmp = False):
+  def assert_configure_default(self, no_tmp = False, default_fs_default='hdfs://c6401.ambari.apache.org:8020'):
     # Verify creating of Hcat and Hive directories
     self.assertResourceCalled('HdfsResource', '/apps/webhcat',
         security_enabled = False,
@@ -299,7 +331,7 @@ class TestHiveServer(RMFTestCase):
         owner = 'hcat',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs=default_fs_default,
         mode = 0755,
     )
     self.assertResourceCalled('HdfsResource', '/user/hcat',
@@ -312,7 +344,7 @@ class TestHiveServer(RMFTestCase):
         owner = 'hcat',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs=default_fs_default,
         mode = 0755,
     )
 
@@ -330,7 +362,7 @@ class TestHiveServer(RMFTestCase):
         owner = 'hive',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs=default_fs_default,
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/hive',
@@ -343,7 +375,7 @@ class TestHiveServer(RMFTestCase):
         owner = 'hive',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs=default_fs_default,
         mode = 0700,
     )
     if not no_tmp:
@@ -358,7 +390,7 @@ class TestHiveServer(RMFTestCase):
           group = 'hdfs',
           hadoop_bin_dir = '/usr/bin',
           type = 'directory',
-          action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs='hdfs://c6401.ambari.apache.org:8020',
+          action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs=default_fs_default,
           mode = 0777,
       )
     self.assertResourceCalled('HdfsResource', None,
@@ -368,7 +400,7 @@ class TestHiveServer(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs=default_fs_default,
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertResourceCalled('Directory', '/etc/hive',
