@@ -469,6 +469,19 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   }
 
   /**
+   * Remove properties from the cluster
+   * @param cluster cluster object
+   * @param configType config to be updated
+   * @param removePropertiesList properties to be removed. Could be <code>null</code>
+   * @throws AmbariException
+   */
+  protected void removeConfigurationPropertiesFromCluster(Cluster cluster, String configType, Set<String> removePropertiesList)
+      throws AmbariException {
+
+    updateConfigurationPropertiesForCluster(cluster, configType, new HashMap<String, String>(), removePropertiesList, false, true);
+  }
+
+  /**
    * Create a new cluster scoped configuration with the new properties added
    * to the existing set of properties.
    * @param configType Configuration type. (hdfs-site, etc.)

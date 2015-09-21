@@ -54,6 +54,7 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
   private static final String HBASE_ENV = "hbase-env";
   private static final String HBASE_SITE = "hbase-site";
   private static final String CLUSTER_ENV = "cluster-env";
+  private static final String OOZIE_ENV = "oozie-env";
 
   private static final String TOPOLOGY_REQUEST_TABLE = "topology_request";
   private static final String CLUSTERS_TABLE = "clusters";
@@ -193,6 +194,7 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
 
   protected void addMissingConfigs() throws AmbariException {
     updateHiveConfigs();
+    updateOozieConfigs();
     updateHbaseAndClusterConfigurations();
   }
 
@@ -273,6 +275,50 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
             hiveSiteRemoveProps.add("hive.auto.convert.sortmerge.join.noconditionaltask");
 
             updateConfigurationPropertiesForCluster(cluster, HIVE_SITE, new HashMap<String, String>(), hiveSiteRemoveProps, false, true);
+          }
+        }
+      }
+    }
+  }
+
+  protected void updateOozieConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Config oozieEnv = cluster.getDesiredConfigByType(OOZIE_ENV);
+          if (oozieEnv != null) {
+            Map<String, String> oozieEnvProperties = oozieEnv.getProperties();
+
+            String hostname = oozieEnvProperties.get("oozie_hostname");
+            String db_type = oozieEnvProperties.get("oozie_ambari_database");
+            String final_db_host = null;
+            // fix for empty hostname after 1.7 -> 2.1.x+ upgrade
+            if (hostname != null && db_type != null && hostname.equals("")) {
+              switch (db_type.toUpperCase()) {
+                case "MYSQL":
+                  final_db_host = oozieEnvProperties.get("oozie_existing_mysql_host");
+                  break;
+                case "POSTGRESQL":
+                  final_db_host = oozieEnvProperties.get("oozie_existing_postgresql_host");
+                  break;
+                case "ORACLE":
+                  final_db_host = oozieEnvProperties.get("oozie_existing_oracle_host");
+                  break;
+                default:
+                  final_db_host = null;
+                  break;
+              }
+              if (final_db_host != null) {
+                Map<String, String> newProperties = new HashMap<>();
+                newProperties.put("oozie_hostname", final_db_host);
+                updateConfigurationPropertiesForCluster(cluster, OOZIE_ENV, newProperties, true, true);
+              }
+            }
           }
         }
       }
