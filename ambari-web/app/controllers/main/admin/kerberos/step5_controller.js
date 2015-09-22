@@ -64,6 +64,8 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
   downloadCSV: function () {
     if ($.browser.msie && $.browser.version < 10) {
       this.openInfoInNewTab();
+    } else if (typeof safari !== 'undefined') {
+      this.safariDownload();
     } else {
       try {
         var blob = new Blob([stringUtils.arrayToCSV(this.get('csvData'))], {type: "text/csv;charset=utf-8;"});
@@ -72,6 +74,20 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
         this.openInfoInNewTab();
       }
     }
+  },
+
+  /**
+   * Hack to dowload csv data in Safari
+   */
+  safariDownload: function() {
+    var file = 'data:attachment/csv;charset=utf-8,' + encodeURI(stringUtils.arrayToCSV(this.get('csvData')));
+    var linkEl = document.createElement("a");
+    linkEl.href = file;
+    linkEl.download = 'kerberos.csv';
+
+    document.body.appendChild(linkEl);
+    linkEl.click();
+    document.body.removeChild(linkEl);
   },
 
   /**
