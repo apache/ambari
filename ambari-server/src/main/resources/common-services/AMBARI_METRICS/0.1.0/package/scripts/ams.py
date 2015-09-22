@@ -348,6 +348,9 @@ def ams(name=None):
               cd_access="a",
               recursive=True)
 
+    Execute(format("{sudo} chown -R {ams_user}:{user_group} {ams_monitor_dir}")
+    )
+
     TemplateConfig(
       format("{ams_monitor_conf_dir}/metric_monitor.ini"),
       owner=params.ams_user,
