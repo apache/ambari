@@ -68,7 +68,7 @@ class TestXmlConfigResource(TestCase):
                 configuration_attributes={}
                 )
 
-    create_file_mock.assert_called_with('/dir/conf/file.xml', u'<!--Wed 2014-02-->\n    <configuration>\n    \n  </configuration>', encoding='UTF-8')
+    create_file_mock.assert_called_with('/dir/conf/file.xml', u'  <configuration>\n    \n  </configuration>', encoding='UTF-8')
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
@@ -97,7 +97,7 @@ class TestXmlConfigResource(TestCase):
                 configuration_attributes={'attr': {'property1': 'attr_value'}}
                 )
 
-    create_file_mock.assert_called_with('/dir/conf/file.xml', u'<!--Wed 2014-02-->\n    <configuration>\n    \n    <property>\n      <name>property1</name>\n      <value>value1</value>\n      <attr>attr_value</attr>\n    </property>\n    \n  </configuration>', encoding='UTF-8')
+    create_file_mock.assert_called_with('/dir/conf/file.xml', u'  <configuration>\n    \n    <property>\n      <name>property1</name>\n      <value>value1</value>\n      <attr>attr_value</attr>\n    </property>\n    \n  </configuration>', encoding='UTF-8')
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
@@ -150,7 +150,7 @@ class TestXmlConfigResource(TestCase):
                     }
                 })
 
-    create_file_mock.assert_called_with('/dir/conf/file.xml', u'<!--Wed 2014-02-->\n    <configuration>\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>prop.1</name>\n      <value>&#39;.&#39;yyyy-MM-dd-HH</value>\n      <attr1>x</attr1>\n    </property>\n    \n    <property>\n      <name>prop.2</name>\n      <value>INFO, openjpa</value>\n    </property>\n    \n    <property>\n      <name>prop.3</name>\n      <value>%d{ISO8601} %5p %c{1}:%L - %m%n</value>\n      <attr2>value3</attr2>\n    </property>\n    \n    <property>\n      <name>prop.4</name>\n      <value>${oozie.log.dir}/oozie.log</value>\n      <attr_value_empty></attr_value_empty>\n      <attr2>value4</attr2>\n    </property>\n    \n    <property>\n      <name>prop.empty</name>\n      <value></value>\n      <attr_value_empty></attr_value_empty>\n    </property>\n    \n  </configuration>', encoding='UTF-8')
+    create_file_mock.assert_called_with('/dir/conf/file.xml', u'  <configuration>\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>prop.1</name>\n      <value>&#39;.&#39;yyyy-MM-dd-HH</value>\n      <attr1>x</attr1>\n    </property>\n    \n    <property>\n      <name>prop.2</name>\n      <value>INFO, openjpa</value>\n    </property>\n    \n    <property>\n      <name>prop.3</name>\n      <value>%d{ISO8601} %5p %c{1}:%L - %m%n</value>\n      <attr2>value3</attr2>\n    </property>\n    \n    <property>\n      <name>prop.4</name>\n      <value>${oozie.log.dir}/oozie.log</value>\n      <attr_value_empty></attr_value_empty>\n      <attr2>value4</attr2>\n    </property>\n    \n    <property>\n      <name>prop.empty</name>\n      <value></value>\n      <attr_value_empty></attr_value_empty>\n    </property>\n    \n  </configuration>', encoding='UTF-8')
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch("resource_management.core.sudo.create_file")
@@ -183,7 +183,7 @@ class TestXmlConfigResource(TestCase):
                 configuration_attributes={}
                 )
 
-    create_file_mock.assert_called_with('/dir/conf/file.xml', u'<!--Wed 2014-02-->\n    <configuration>\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>first</name>\n      <value>should be first</value>\n    </property>\n    \n    <property>\n      <name>second</name>\n      <value>should be second</value>\n    </property>\n    \n    <property>\n      <name>third</name>\n      <value>should be third</value>\n    </property>\n    \n    <property>\n      <name>z_last</name>\n      <value>should be last</value>\n    </property>\n    \n  </configuration>', encoding='UTF-8')
+    create_file_mock.assert_called_with('/dir/conf/file.xml', u'  <configuration>\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>first</name>\n      <value>should be first</value>\n    </property>\n    \n    <property>\n      <name>second</name>\n      <value>should be second</value>\n    </property>\n    \n    <property>\n      <name>third</name>\n      <value>should be third</value>\n    </property>\n    \n    <property>\n      <name>z_last</name>\n      <value>should be last</value>\n    </property>\n    \n  </configuration>', encoding='UTF-8')
 
   @patch("resource_management.libraries.providers.xml_config.File")
   @patch("resource_management.core.sudo.path_exists")
