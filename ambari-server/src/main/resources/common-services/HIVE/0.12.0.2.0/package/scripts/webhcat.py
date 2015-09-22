@@ -95,13 +95,17 @@ def webhcat():
       conf_dir = format("/usr/hdp/{version}/hive/conf"),
       configurations = params.config['configurations']['hive-site'],
       configuration_attributes = params.config['configuration_attributes']['hive-site'],
-      owner = params.hive_user)
+      owner = params.hive_user,
+      group = params.user_group,
+      )
 
     XmlConfig("yarn-site.xml",
       conf_dir = format("/usr/hdp/{version}/hadoop/conf"),
       configurations = params.config['configurations']['yarn-site'],
       configuration_attributes = params.config['configuration_attributes']['yarn-site'],
-      owner = params.yarn_user)
+      owner = params.yarn_user,
+      group = params.user_group,    
+  )
   
 
   File(format("{config_dir}/webhcat-env.sh"),
