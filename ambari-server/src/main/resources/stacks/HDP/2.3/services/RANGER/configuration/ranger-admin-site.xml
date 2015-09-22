@@ -96,6 +96,12 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>admin-properties</type>
+        <name>DB_FLAVOR</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -106,6 +112,20 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>admin-properties</type>
+        <name>DB_FLAVOR</name>
+      </property>
+      <property>
+        <type>admin-properties</type>
+        <name>db_host</name>
+      </property>
+      <property>
+        <type>admin-properties</type>
+        <name>db_name</name>
+      </property>
+    </depends-on>
   </property> 
 
   <property>

@@ -86,7 +86,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "MAPREDUCE2": self.recommendMapReduce2Configurations,
       "HDFS": self.recommendHDFSConfigurations,
       "HBASE": self.recommendHbaseConfigurations,
-      "AMBARI_METRICS": self.recommendAmsConfigurations
+      "AMBARI_METRICS": self.recommendAmsConfigurations,
+      "RANGER": self.recommendRangerConfigurations
     }
 
   def putProperty(self, config, configType, services=None):
@@ -240,6 +241,24 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       and 'hbase-env' in services['configurations'] and 'hbase_user' in services['configurations']['hbase-env']['properties'] \
       and services['configurations']['hbase-env']['properties']['hbase_user'] != services['configurations']['hbase-site']['properties']['hbase.superuser']:
       putHbaseSiteProperty("hbase.superuser", services['configurations']['hbase-env']['properties']['hbase_user'])
+
+
+  def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
+    ranger_sql_connector_dict = {
+      'MYSQL': '/usr/share/java/mysql-connector-java.jar',
+      'ORACLE': '/usr/share/java/ojdbc6.jar',
+      'POSTGRES': '/usr/share/java/postgresql.jar',
+      'MSSQL': '/usr/share/java/sqljdbc4.jar',
+      'SQLA': '/path_to_driver/sqla-client-jdbc.tar.gz'
+    }
+
+    putRangerAdminProperty = self.putProperty(configurations, "admin-properties", services)
+
+    if 'admin-properties' in services['configurations'] and 'DB_FLAVOR' in services['configurations']['admin-properties']['properties']:
+      rangerDbFlavor = services['configurations']["admin-properties"]["properties"]["DB_FLAVOR"]
+      rangerSqlConnectorProperty = ranger_sql_connector_dict.get(rangerDbFlavor, ranger_sql_connector_dict['MYSQL'])
+      putRangerAdminProperty('SQL_CONNECTOR_JAR', rangerSqlConnectorProperty)
+
 
   def getAmsMemoryRecommendation(self, services, hosts):
     # MB per sink in hbase heapsize
