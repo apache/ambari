@@ -164,7 +164,7 @@ execute_path = os.environ['PATH'] + os.pathsep + hive_bin + os.pathsep + hadoop_
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
 hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.option.ConnectionURL']
 
-hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
+hive_metastore_user_passwd = unicode(config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword'])
 hive_metastore_db_type = config['configurations']['hive-env']['hive_database_type']
 #HACK Temporarily use dbType=azuredb while invoking schematool
 if hive_metastore_db_type == "mssql":
