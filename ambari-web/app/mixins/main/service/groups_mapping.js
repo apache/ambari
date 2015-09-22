@@ -34,6 +34,7 @@ App.GroupsMappingMixin = Em.Mixin.create({
   loadConfigGroups: function (serviceNames) {
     var dfd = $.Deferred();
     if (!serviceNames || serviceNames.length === 0) {
+      this.set('configGroupsAreLoaded', true);
       dfd.resolve();
     } else {
       App.ajax.send({
@@ -59,6 +60,7 @@ App.GroupsMappingMixin = Em.Mixin.create({
   saveConfigGroupsToModel: function (data, opt, params) {
     App.store.commit();
     App.configGroupsMapper.map(data, false, params.serviceNames.split(','));
+    this.set('configGroupsAreLoaded', true);
     params.dfd.resolve();
   }
 
