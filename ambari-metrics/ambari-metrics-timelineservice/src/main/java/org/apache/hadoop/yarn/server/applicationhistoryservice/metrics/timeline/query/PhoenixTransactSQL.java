@@ -285,7 +285,7 @@ public class PhoenixTransactSQL {
         long endTime = condition.getEndTime() == null ? System.currentTimeMillis() : condition.getEndTime();
         long startTime = condition.getStartTime() == null ? 0 : condition.getStartTime();
         Long timeRange = endTime - startTime;
-        if (timeRange > 7 * DAY) {
+        if (timeRange > 30 * DAY) {
           metricsTable = METRICS_AGGREGATE_DAILY_TABLE_NAME;
           query = GET_METRIC_AGGREGATE_ONLY_SQL;
           condition.setPrecision(Precision.DAYS);
@@ -529,7 +529,7 @@ public class PhoenixTransactSQL {
       long endTime = condition.getEndTime() == null ? System.currentTimeMillis() : condition.getEndTime();
       long startTime = condition.getStartTime() == null ? 0 : condition.getStartTime();
       Long timeRange = endTime - startTime;
-      if (timeRange > 7 * DAY) {
+      if (timeRange > 30 * DAY) {
         metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME;
         queryStmt = GET_CLUSTER_AGGREGATE_TIME_SQL;
         condition.setPrecision(Precision.DAYS);
