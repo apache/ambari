@@ -55,7 +55,7 @@ log4j.appender.file.File=${ams.log.dir}/${ams.log.file}
 log4j.appender.file.MaxFileSize=80MB
 log4j.appender.file.MaxBackupIndex=60
 log4j.appender.file.layout=org.apache.log4j.PatternLayout
-log4j.appender.file.layout.ConversionPattern=%d{ABSOLUTE} %5p [%t] %c{1}:%L - %m%n
+log4j.appender.file.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n
     </value>
     <value-attributes>
       <show-property-name>false</show-property-name>
