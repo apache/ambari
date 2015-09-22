@@ -27,6 +27,7 @@ require('controllers/global/cluster_controller');
 require('controllers/main/service/reassign_controller');
 require('controllers/main/service/item');
 var batchUtils = require('utils/batch_scheduled_requests');
+var componentsUtils = require('utils/components');
 
 describe('App.MainServiceItemController', function () {
 
@@ -1075,15 +1076,15 @@ describe('App.MainServiceItemController', function () {
     });
 
     beforeEach(function () {
-      sinon.stub(mainServiceItemController, 'downloadClientConfigsCall', Em.K);
+      sinon.stub(componentsUtils, 'downloadClientConfigs', Em.K);
     });
     afterEach(function () {
-      mainServiceItemController.downloadClientConfigsCall.restore();
+      componentsUtils.downloadClientConfigs.restore();
     });
 
     it('should launch $.fileDownload method', function () {
       mainServiceItemController.downloadClientConfigs();
-      expect(mainServiceItemController.downloadClientConfigsCall.calledWith({
+      expect(componentsUtils.downloadClientConfigs.calledWith({
         serviceName: 'S1',
         componentName: 'C1',
         displayName: 'd1'
@@ -1095,7 +1096,7 @@ describe('App.MainServiceItemController', function () {
         name: 'name1'
       };
       mainServiceItemController.downloadClientConfigs(event);
-      expect(mainServiceItemController.downloadClientConfigsCall.calledWith({
+      expect(componentsUtils.downloadClientConfigs.calledWith({
         serviceName: 'S1',
         componentName: 'name1',
         displayName: 'label1'
