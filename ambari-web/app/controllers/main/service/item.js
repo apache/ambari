@@ -18,8 +18,9 @@
 
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
+var componentsUtils = require('utils/components');
 
-App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDownload, {
+App.MainServiceItemController = Em.Controller.extend({
   name: 'mainServiceItemController',
 
   /**
@@ -807,7 +808,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
             }
           );
         } else {
-          self.installHostComponentCall(selectedHost, component);
+          componentsUtils.installHostComponent(selectedHost, component);
         }
 
         // Remove host from 'without' collection to immediate recalculate add menu item state
@@ -887,7 +888,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
 
   downloadClientConfigs: function (event) {
     var component = this.get('content.clientComponents').rejectProperty('totalCount', 0)[0];
-    this.downloadClientConfigsCall({
+    componentsUtils.downloadClientConfigs.call(this, {
       serviceName: this.get('content.serviceName'),
       componentName: (event && event.name) || component.get('componentName'),
       displayName: (event && event.label) || component.get('displayName')

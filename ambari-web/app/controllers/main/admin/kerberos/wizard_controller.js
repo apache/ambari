@@ -18,8 +18,9 @@
 
 
 var App = require('app');
+var componentsUtils = require('utils/components');
 
-App.KerberosWizardController = App.WizardController.extend(App.InstallComponent, {
+App.KerberosWizardController = App.WizardController.extend({
 
   exceptionsOnSkipClient: [{'KDC': 'realm'}, {'KDC': 'kdc_type'}, {'Advanced kerberos-env': 'executable_search_paths'}],
 
@@ -178,7 +179,7 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
   createKerberosResources: function (callback) {
     var self = this;
     this.createKerberosService().done(function () {
-      self.updateAndCreateServiceComponent('KERBEROS_CLIENT').done(function () {
+      componentsUtils.updateAndCreateServiceComponent('KERBEROS_CLIENT').done(function () {
         self.createKerberosHostComponents().done(callback);
       });
     });
