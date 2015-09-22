@@ -25,9 +25,9 @@ from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions import format
 from resource_management.core.resources.system import File, Execute
 
-def spark_service(action):
+def spark_service(name, action):
   import params
-  
+
   if action == 'start':
     if params.security_enabled:
       spark_kinit_cmd = format("{kinit_path_local} -kt {spark_kerberos_keytab} {spark_principal}; ")
@@ -40,18 +40,39 @@ def spark_service(action):
       if resource_created:
         params.HdfsResource(None, action="execute")
 
-    no_op_test = format(
+    if name == 'jobhistoryserver':
+      historyserver_no_op_test = format(
       'ls {spark_history_server_pid_file} >/dev/null 2>&1 && ps -p `cat {spark_history_server_pid_file}` >/dev/null 2>&1')
-    Execute(format('{spark_history_server_start}'),
-            user=params.spark_user,
-            environment={'JAVA_HOME': params.java_home},
-            not_if=no_op_test
-    )
+      Execute(format('{spark_history_server_start}'),
+              user=params.spark_user,
+              environment={'JAVA_HOME': params.java_home},
+              not_if=historyserver_no_op_test)
+
+    elif name == 'sparkthriftserver':
+      thriftserver_no_op_test = format(
+      'ls {spark_thrift_server_pid_file} >/dev/null 2>&1 && ps -p `cat {spark_thrift_server_pid_file}` >/dev/null 2>&1')
+      Execute(format('{spark_thrift_server_start} --properties-file {spark_thrift_server_conf_file}'),
+              user=params.spark_user,
+              environment={'JAVA_HOME': params.java_home},
+              not_if=thriftserver_no_op_test
+      )
   elif action == 'stop':
-    Execute(format('{spark_history_server_stop}'),
-            user=params.spark_user,
-            environment={'JAVA_HOME': params.java_home}
-    )
-    File(params.spark_history_server_pid_file,
-         action="delete"
-    )
+    if name == 'jobhistoryserver':
+      Execute(format('{spark_history_server_stop}'),
+              user=params.spark_user,
+              environment={'JAVA_HOME': params.java_home}
+      )
+      File(params.spark_history_server_pid_file,
+        action="delete"
+      )
+
+    elif name == 'sparkthriftserver':
+      Execute(format('{spark_thrift_server_stop}'),
+              user=params.spark_user,
+              environment={'JAVA_HOME': params.java_home}
+      )
+      File(params.spark_thrift_server_pid_file,
+        action="delete"
+      )
+
+
