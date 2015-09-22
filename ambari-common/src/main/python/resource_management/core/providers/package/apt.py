@@ -26,6 +26,7 @@ import re
 
 from resource_management.core.providers.package import PackageProvider
 from resource_management.core import shell
+from resource_management.core import sudo
 from resource_management.core.shell import string_cmd_from_args_list
 from resource_management.core.logger import Logger
 
@@ -70,7 +71,7 @@ class AptProvider(PackageProvider):
           if repo != 'base':
             new_sources_file = os.path.join(apt_sources_list_tmp_dir, repo + '.list')
             Logger.info("Temporal sources file will be copied: %s" % new_sources_file)
-            shutil.copy(os.path.join(APT_SOURCES_LIST_DIR, repo + '.list'), new_sources_file)
+            sudo.copy(os.path.join(APT_SOURCES_LIST_DIR, repo + '.list'), new_sources_file)
             copied_sources_files.append(new_sources_file)
         cmd = cmd + ['-o', 'Dir::Etc::SourceParts=%s' % apt_sources_list_tmp_dir]
 

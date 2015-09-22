@@ -46,6 +46,9 @@ if os.geteuid() == 0:
       os.chmod(path, st.st_mode | mode_to_stat[mode])
     else:
       shell.checked_call(["chmod", mode, path])
+      
+  def copy(src, dst):
+    shutil.copy(src, dst)
     
   def makedirs(path, mode):
     os.makedirs(path, mode)
@@ -215,3 +218,7 @@ else:
       shell.checked_call(["kill", "-"+str(signal), str(pid)], sudo=True)
     except Fail as ex:
       raise OSError(str(ex))
+    
+  # shutil.copy replacement
+  def copy(src, dst):
+    shell.checked_call(["sudo", "cp", "-r", src, dst], sudo=True)
