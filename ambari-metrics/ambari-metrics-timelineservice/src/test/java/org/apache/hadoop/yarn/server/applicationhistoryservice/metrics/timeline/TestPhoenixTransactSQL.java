@@ -191,7 +191,7 @@ public class TestPhoenixTransactSQL {
     verify(connection, preparedStatement);
 
     // HOURS precision
-    startTime = endTime-PhoenixTransactSQL.DAY*7/1000;
+    startTime = endTime-PhoenixTransactSQL.DAY*30/1000;
     condition = new DefaultCondition(
       Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
@@ -209,7 +209,7 @@ public class TestPhoenixTransactSQL {
     verify(connection, preparedStatement);
 
     // DAYS precision
-    startTime = endTime-PhoenixTransactSQL.DAY*7*2/1000;
+    startTime = endTime-PhoenixTransactSQL.DAY*30*2/1000;
     condition = new DefaultCondition(
       Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
@@ -320,7 +320,7 @@ public class TestPhoenixTransactSQL {
     verify(connection, preparedStatement);
 
     // HOURS precision
-    startTime = endTime-PhoenixTransactSQL.DAY*7/1000;
+    startTime = endTime-PhoenixTransactSQL.DAY*30/1000;
     condition = new DefaultCondition(
       Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
@@ -337,7 +337,7 @@ public class TestPhoenixTransactSQL {
     verify(connection, preparedStatement);
 
     // DAYS precision
-    startTime = endTime-PhoenixTransactSQL.DAY*7*2/1000;
+    startTime = endTime-PhoenixTransactSQL.DAY*30*2/1000;
     condition = new DefaultCondition(
       Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
