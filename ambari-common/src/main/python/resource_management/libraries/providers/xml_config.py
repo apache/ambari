@@ -36,8 +36,7 @@ class XmlConfigProvider(Provider):
     xml_config_provider_config_dir = self.resource.conf_dir
 
     # |e - for html-like escaping of <,>,',"
-    config_content = InlineTemplate('''<!--{{time.asctime(time.localtime())}}-->
-    <configuration>
+    config_content = InlineTemplate('''  <configuration>
     {% for key, value in configurations_dict|dictsort %}
     <property>
       <name>{{ key|e }}</name>
