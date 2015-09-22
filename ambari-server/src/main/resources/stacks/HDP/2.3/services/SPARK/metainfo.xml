@@ -23,7 +23,7 @@
     <services>
         <service>
           <name>SPARK</name>
-          <version>1.3.1.2.3</version>
+          <version>1.4.1.2.3</version>
           <extends>common-services/SPARK/1.3.1.2.3</extends>
           <osSpecifics>
             <osSpecific>
@@ -52,6 +52,53 @@
           <requiredServices>
             <service>YARN</service>
           </requiredServices>
+          <components>
+              <component>
+                <name>SPARK_THRIFTSERVER</name>
+                <displayName>Spark Thrift Server</displayName>
+                <deleted>true</deleted>
+                <category>MASTER</category>
+                <cardinality>0+</cardinality>
+                <versionAdvertised>true</versionAdvertised>
+                <dependencies>
+                  <dependency>
+                    <name>HDFS/HDFS_CLIENT</name>
+                    <scope>host</scope>
+                    <auto-deploy>
+                      <enabled>true</enabled>
+                    </auto-deploy>
+                  </dependency>
+                  <dependency>
+                     <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+                     <scope>host</scope>
+                     <auto-deploy>
+                       <enabled>true</enabled>
+                     </auto-deploy>
+                  </dependency>
+                  <dependency>
+                    <name>YARN/YARN_CLIENT</name>
+                    <scope>host</scope>
+                    <auto-deploy>
+                      <enabled>true</enabled>
+                   </auto-deploy>
+                 </dependency>
+                </dependencies>
+                <commandScript>
+                  <script>scripts/spark_thrift_server.py</script>
+                  <scriptType>PYTHON</scriptType>
+                  <timeout>600</timeout>
+                </commandScript>
+              </component>
+          </components>
+          <configuration-dependencies>
+            <config-type>spark-defaults</config-type>
+            <config-type>spark-env</config-type>
+            <config-type>spark-log4j-properties</config-type>
+            <config-type>spark-metrics-properties</config-type>
+            <config-type>spark-javaopts-properties</config-type>
+            <config-type>spark-thrift-sparkconf</config-type>
+            <config-type>spark-hive-site-override</config-type>
+          </configuration-dependencies>          
         </service>
     </services>
 </metainfo>

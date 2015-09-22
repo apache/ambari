@@ -58,6 +58,7 @@ SERVER_ROLE_DIRECTORY_MAP = {
   'RANGER_ADMIN' : 'ranger-admin',
   'RANGER_USERSYNC' : 'ranger-usersync',
   'SPARK_JOBHISTORYSERVER' : 'spark-historyserver',
+  'SPARK_THRIFTSERVER' : 'spark-thriftserver',
   'NIMBUS' : 'storm-nimbus',
   'SUPERVISOR' : 'storm-supervisor',
   'HISTORYSERVER' : 'hadoop-mapreduce-historyserver',
