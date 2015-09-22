@@ -23,7 +23,6 @@ require('models/service');
 require('models/host_component');
 require('models/host_stack_version');
 var batchUtils = require('utils/batch_scheduled_requests');
-var componentsUtils = require('utils/components');
 var hostsManagement = require('utils/hosts');
 var controller;
 
@@ -35,7 +34,7 @@ describe('App.MainHostDetailsController', function () {
       then: Em.K,
       complete: Em.K
     });
-    controller = App.MainHostDetailsController.create({
+    controller = App.MainHostDetailsController.create(App.InstallComponent, {
       content: Em.Object.create()
     });
   });
@@ -224,11 +223,11 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#ajaxErrorCallback()', function () {
-    it('call componentsUtils.ajaxErrorCallback', function () {
-      sinon.stub(componentsUtils, 'ajaxErrorCallback', Em.K);
+    it('call mainServiceItemController.ajaxErrorCallback', function () {
+      sinon.stub(controller, 'ajaxErrorCallback', Em.K);
       controller.ajaxErrorCallback('request', 'ajaxOptions', 'error', 'opt', 'params');
-      expect(componentsUtils.ajaxErrorCallback.calledWith('request', 'ajaxOptions', 'error', 'opt', 'params')).to.be.true;
-      componentsUtils.ajaxErrorCallback.restore();
+      expect(controller.ajaxErrorCallback.calledWith('request', 'ajaxOptions', 'error', 'opt', 'params')).to.be.true;
+      controller.ajaxErrorCallback.restore();
     });
   });
 
@@ -487,7 +486,7 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.spy(App, "showConfirmationPopup");
       sinon.stub(controller, "addClientComponent", Em.K);
-      sinon.stub(controller, "primary", Em.K);
+      sinon.stub(controller, "installHostComponentCall", Em.K);
       controller.set('content', {
         hostComponents: [Em.Object.create({
           componentName: "HDFS_CLIENT"
@@ -501,7 +500,7 @@ describe('App.MainHostDetailsController', function () {
     afterEach(function () {
       App.showConfirmationPopup.restore();
       controller.addClientComponent.restore();
-      controller.primary.restore();
+      controller.installHostComponentCall.restore();
     });
 
     it('add ZOOKEEPER_SERVER', function () {
@@ -510,12 +509,8 @@ describe('App.MainHostDetailsController', function () {
           componentName: 'ZOOKEEPER_SERVER'
         })
       };
-      var popup = controller.addComponent(event);
+      controller.addComponent(event);
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
-      popup.onPrimary();
-      expect(controller.primary.calledWith(Em.Object.create({
-        componentName: 'ZOOKEEPER_SERVER'
-      }))).to.be.true;
     });
     it('add slave component', function () {
       var event = {
@@ -603,60 +598,16 @@ describe('App.MainHostDetailsController', function () {
 
     beforeEach(function () {
       sinon.spy(App.ModalPopup, 'show');
-      sinon.stub(controller, 'primary', Em.K);
     });
 
     afterEach(function () {
       App.ModalPopup.show.restore();
-      controller.primary.restore();
     });
 
     it('should display add component confirmation', function () {
-      var popup = controller.showAddComponentPopup(message, false, function () {
-        controller.primary(component);
-      });
+      var popup = controller.showAddComponentPopup(message, false, Em.K);
       expect(App.ModalPopup.show.calledOnce).to.be.true;
       expect(popup.get('addComponentMsg')).to.eql(Em.I18n.t('hosts.host.addComponent.msg').format(message));
-      popup.onPrimary();
-      expect(controller.primary.calledWith(component)).to.be.true;
-    });
-  });
-
-  describe('#primary()', function () {
-    beforeEach(function () {
-      sinon.stub(App.StackServiceComponent, 'find', function () {
-        return [
-          Em.Object.create({
-            componentName: 'COMP1',
-            serviceName: 's1'
-          })
-        ]
-      });
-
-      sinon.stub(App.router, 'get', function () {
-        return Em.Object.create({
-          updateComponentsState: function (callback) {
-            return callback();
-          },
-          updateServiceMetric: function (callback) {
-            return callback();
-          }
-        })
-      });
-    });
-    afterEach(function () {
-      App.router.get.restore();
-      App.StackServiceComponent.find.restore();
-    });
-
-    it('Query should be sent', function () {
-      var component = Em.Object.create({
-        componentName: 'COMP1',
-        displayName: 'comp1'
-      });
-      App.serviceComponents = ['COMP1'];
-      controller.primary(component);
-      expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
 
@@ -2056,16 +2007,16 @@ describe('App.MainHostDetailsController', function () {
       }))).to.equal(0);
     });
   });
-  describe('#downloadClientConfigs()', function () {
+  describe('#downloadClientConfigsCall', function () {
 
     beforeEach(function () {
-      sinon.stub(componentsUtils, 'downloadClientConfigs', Em.K);
+      sinon.stub(controller, 'downloadClientConfigsCall', Em.K);
     });
     afterEach(function () {
-      componentsUtils.downloadClientConfigs.restore();
+      controller.downloadClientConfigsCall.restore();
     });
 
-    it('should launch componentsUtils.downloadClientConfigs method', function () {
+    it('should launch controller.downloadClientConfigsCall method', function () {
       controller.downloadClientConfigs({
         context: Em.Object.create({
           componentName: 'name',
@@ -2073,7 +2024,7 @@ describe('App.MainHostDetailsController', function () {
           displayName: 'dName'
         })
       });
-      expect(componentsUtils.downloadClientConfigs.calledWith({
+      expect(controller.downloadClientConfigsCall.calledWith({
         componentName: 'name',
         hostName: 'host1',
         displayName: 'dName'
@@ -2441,8 +2392,7 @@ describe('App.MainHostDetailsController', function () {
           showAlertPopupCalled: false,
           title: 'Clients to add have mutual dependencies'
         }
-      ],
-      componentsUtils = require('utils/components');
+      ];
 
     beforeEach(function () {
       sinon.stub(controller, 'sendComponentCommand', Em.K);
@@ -2468,12 +2418,12 @@ describe('App.MainHostDetailsController', function () {
       App.get('router.mainAdminKerberosController').getSecurityType.restore();
       App.showAlertPopup.restore();
       App.StackServiceComponent.find.restore();
-      componentsUtils.checkComponentDependencies.restore();
+      controller.checkComponentDependencies.restore();
     });
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        sinon.stub(componentsUtils, 'checkComponentDependencies', function (componentName, params) {
+        sinon.stub(controller, 'checkComponentDependencies', function (componentName, params) {
           return item.dependencies[componentName];
         });
         controller.installClients({

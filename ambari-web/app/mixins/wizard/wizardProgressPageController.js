@@ -17,14 +17,13 @@
  */
 
 var App = require('app');
-var componentsUtils = require('utils/components');
 
 /**
  * Mixin for wizard controller for showing command progress on wizard pages
  * This should
  * @type {Ember.Mixin}
  */
-App.wizardProgressPageControllerMixin = Em.Mixin.create({
+App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
   controllerName: '',
   clusterDeployState: 'WIZARD_DEPLOY',
   status: 'IN_PROGRESS',
@@ -517,7 +516,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
         }
       };
       if (!!hostsWithoutComponents.length) {
-        componentsUtils.updateAndCreateServiceComponent(componentName).done(function () {
+        self.updateAndCreateServiceComponent(componentName).done(function () {
           App.ajax.send({
             name: 'wizard.step8.register_host_to_component',
             sender: self,

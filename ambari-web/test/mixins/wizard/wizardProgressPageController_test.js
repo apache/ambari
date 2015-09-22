@@ -30,7 +30,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
           callback();
         }});
       });
-      sinon.stub(require('utils/components'), "updateAndCreateServiceComponent").returns({
+      sinon.stub(mixedObjectInstance, "updateAndCreateServiceComponent").returns({
         done: function(callback) {
           return callback();
         }
@@ -70,7 +70,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
     afterEach(function() {
       App.ajax.send.restore();
       App.StackServiceComponent.find.restore();
-      require('utils/components').updateAndCreateServiceComponent.restore();
+      mixedObjectInstance.updateAndCreateServiceComponent.restore();
       mixedObjectInstance.onCreateComponent.restore();
       mixedObjectInstance.updateComponent.restore();
       mixedObjectInstance.checkInstalledComponents.restore();
