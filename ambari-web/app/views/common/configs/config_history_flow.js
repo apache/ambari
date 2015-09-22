@@ -402,6 +402,14 @@ App.ConfigHistoryFlowView = Em.View.extend({
         serviceConfigVersion.set('serviceConfigNote', this.get('serviceConfigNote'));
         self.sendRevertCall(serviceConfigVersion);
         this.hide();
+      },
+      onSecondary: function () {
+        // force <code>serviceVersions</code> recalculating
+        self.propertyDidChange('controller.selectedConfigGroup.name');
+        this._super();
+      },
+      onThird: function () {
+        this.onSecondary();
       }
     });
   },
