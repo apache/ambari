@@ -967,6 +967,9 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param params
    */
   installHostComponent: function (data, opt, params) {
+    if (App.router.get('location.location.hash').contains('configs')) {
+      App.router.get('mainServiceInfoConfigsController').loadStep();
+    }
     if (params.host) {
       componentsUtils.installHostComponent(params.host, App.StackServiceComponent.find(params.componentName));
     }
