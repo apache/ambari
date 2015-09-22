@@ -54,16 +54,6 @@ module.exports = {
 
       user_name: 'oozie.service.JPAService.jdbc.username',
       password: 'oozie.service.JPAService.jdbc.password'
-    },
-    'RANGER': {
-      db_selector: 'DB_FLAVOR',
-
-      host_name: 'db_host',
-      db_name: 'db_name',
-
-      connection_url:  App.get('isHadoop23Stack') ? 'ranger.jpa.jdbc.url' : 'ranger_jdbc_connection_url',
-      driver: App.get('isHadoop23Stack') ? 'ranger.jpa.jdbc.driver' : 'ranger_jdbc_driver',
-      sql_jar_connector: 'SQL_CONNECTOR_JAR'
     }
   },
 

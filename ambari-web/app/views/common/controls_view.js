@@ -505,13 +505,13 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
       } else {
         this.get('hostNameProperty').set('isEditable', true);
       }
-      this.setRequiredProperties(['driver', 'sql_jar_connector', 'db_type']);
+      this.setRequiredProperties(['driver', 'db_type']);
       if (this.getPropertyByType('connection_url')) {
-        this.setConnectionUrl(this.get('hostNameProperty.value'), this.get('databaseProperty.value'), this.get('userProperty.value'), this.get('passwordProperty.value'));
+        this.setConnectionUrl(this.get('hostNameProperty.value'), this.get('databaseProperty.value'));
       }
       this.handleSpecialUserPassProperties();
     }
-  }.observes('databaseProperty.value', 'hostNameProperty.value', 'serviceConfig.value', 'userProperty.value', 'passwordProperty.value'),
+  }.observes('databaseProperty.value', 'hostNameProperty.value', 'serviceConfig.value'),
 
   nameBinding: 'serviceConfig.radioName',
 
@@ -586,15 +586,13 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
    * and sets hostName as dbName in appropriate position of <code>connection_url<code> string
    * @param {String} hostName
    * @param {String} dbName
-   * @param {String} user
-   * @param {String} password
    * @method setConnectionUrl
    */
-  setConnectionUrl: function(hostName, dbName, user, password) {
+  setConnectionUrl: function(hostName, dbName) {
     var connectionUrlProperty = this.getPropertyByType('connection_url');
     var connectionUrlTemplate = this.getDefaultPropertyValue('connection_url');
     try {
-      var connectionUrlValue = connectionUrlTemplate.format(hostName, dbName, user, password);
+      var connectionUrlValue = connectionUrlTemplate.format(hostName, dbName);
       connectionUrlProperty.set('value', connectionUrlValue);
       connectionUrlProperty.set('recommendedValue', connectionUrlValue);
     } catch(e) {

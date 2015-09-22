@@ -30,6 +30,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "HIVE": self.recommendHIVEConfigurations,
       "HBASE": self.recommendHBASEConfigurations,
       "KAFKA": self.recommendKAFKAConfigurations,
+      "RANGER": self.recommendRangerConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -250,6 +251,27 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       rangerPluginEnabled = services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled']
       if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == "Yes".lower()):
         putKafkaBrokerProperty("authorizer.class.name", 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer')
+
+  def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP23StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
+    putRangerAdminProperty = self.putProperty(configurations, "ranger-admin-site", services)
+
+    if 'admin-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['admin-properties']['properties'])\
+      and ('db_host' in services['configurations']['admin-properties']['properties']) and ('db_name' in services['configurations']['admin-properties']['properties']):
+
+      rangerDbFlavor = services['configurations']["admin-properties"]["properties"]["DB_FLAVOR"]
+      rangerDbHost =   services['configurations']["admin-properties"]["properties"]["db_host"]
+      rangerDbName =   services['configurations']["admin-properties"]["properties"]["db_name"]
+      ranger_db_driver_dict = {
+        'MYSQL': {'ranger.jpa.jdbc.driver': 'com.mysql.jdbc.Driver', 'ranger.jpa.jdbc.url': 'jdbc:mysql://' + rangerDbHost + '/' + rangerDbName},
+        'ORACLE': {'ranger.jpa.jdbc.driver': 'oracle.jdbc.driver.OracleDriver', 'ranger.jpa.jdbc.url': 'jdbc:oracle:thin:@/' + rangerDbHost + ':1521/' + rangerDbName},
+        'POSTGRES': {'ranger.jpa.jdbc.driver': 'org.postgresql.Driver', 'ranger.jpa.jdbc.url': 'jdbc:postgresql://' + rangerDbHost + ':5432/' + rangerDbName},
+        'MSSQL': {'ranger.jpa.jdbc.driver': 'com.microsoft.sqlserver.jdbc.SQLServerDriver', 'ranger.jpa.jdbc.url': 'jdbc:sqlserver://' + rangerDbHost + ';databaseName=' + rangerDbName},
+        'SQLA': {'ranger.jpa.jdbc.driver': 'sap.jdbc4.sqlanywhere.IDriver', 'ranger.jpa.jdbc.url': 'jdbc:sqlanywhere:host=' + rangerDbHost + ';database=' + rangerDbName}
+      }
+      rangerDbProperties = ranger_db_driver_dict.get(rangerDbFlavor, ranger_db_driver_dict['MYSQL'])
+      for key in rangerDbProperties:
+        putRangerAdminProperty(key, rangerDbProperties.get(key))
 
   def getServiceConfigurationValidators(self):
       parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()

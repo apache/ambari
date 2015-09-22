@@ -49,6 +49,12 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>admin-properties</type>
+        <name>DB_FLAVOR</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
