@@ -58,6 +58,13 @@ App.ServerValidatorMixin = Em.Mixin.create({
   recommendationsConfigs: null,
 
   /**
+   * array of cluster-env configs
+   * used for validation request
+   * @type {Array}
+   */
+  clusterEnvConfigs: [],
+
+  /**
    * by default loads data from model otherwise must be overridden as computed property
    * refer to \assets\data\stacks\HDP-2.1\recommendations_configs.json to learn structure
    * (shouldn't contain configurations filed)
@@ -231,32 +238,88 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * send request to validate configs
    * @returns {*}
    */
-  runServerSideValidation: function(deferred) {
+  runServerSideValidation: function (deferred) {
     var self = this;
     var recommendations = this.get('hostGroups');
-    recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs'));
+    var services = this.get('services');
+    var stepConfigs = this.get('stepConfigs');
+    var allConfigTypes = [];
+    var callback = function () {
+      recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(services, stepConfigs);
 
-    return App.ajax.send({
-      name: 'config.validations',
-      sender: this,
-      data: {
-        stackVersionUrl: App.get('stackVersionURL'),
-        hosts: this.get('hostNames'),
-        services: this.get('serviceNames'),
-        validate: 'configurations',
-        recommendations: recommendations
-      },
-      success: 'validationSuccess',
-      error: 'validationError'
-    }).complete(function() {
-      self.warnUser(deferred);
+      return App.ajax.send({
+        name: 'config.validations',
+        sender: self,
+        data: {
+          stackVersionUrl: App.get('stackVersionURL'),
+          hosts: self.get('hostNames'),
+          services: self.get('serviceNames'),
+          validate: 'configurations',
+          recommendations: recommendations
+        },
+        success: 'validationSuccess',
+        error: 'validationError'
+      }).complete(function () {
+        self.warnUser(deferred);
+      });
+    };
+
+    services.forEach(function (service) {
+      allConfigTypes = allConfigTypes.concat(Em.keys(service.get('configTypes')))
+    });
+    // check if we have configs from 'cluster-env', if not, then load them, as they are mandatory for validation request
+    if (!allConfigTypes.contains('cluster-env')) {
+      services = services.concat(Em.Object.create({
+        serviceName: 'MISC',
+        configTypes: {'cluster-env': {}}
+      }));
+      App.ajax.send({
+        name: 'config.cluster_env_site',
+        sender: self,
+        success: 'getClusterEnvSiteTagSuccess',
+        error: 'validationError'
+      }).complete(function () {
+        stepConfigs = stepConfigs.concat(Em.Object.create({
+          serviceName: 'MISC',
+          configs: self.get('clusterEnvConfigs')
+        }));
+        callback(deferred);
+      });
+    } else {
+      callback(deferred);
+    }
+  },
+
+  /**
+   * success callback after getting response from server
+   * convert cluster-env configs to array to be used in validation request
+   * @param data
+   */
+  getClusterEnvSiteTagSuccess: function (data) {
+    var self = this;
+    App.router.get('configurationController').getConfigsByTags([{
+      siteName: data.items[0].type,
+      tagName: data.items[0].tag
+    }]).done(function (clusterEnvConfigs) {
+      var configsObject = clusterEnvConfigs[0].properties;
+      var configsArray = [];
+      for (var property in configsObject) {
+        if (configsObject.hasOwnProperty(property)) {
+          configsArray.push(Em.Object.create({
+            name: property,
+            value: configsObject[property],
+            filename: 'cluster-env.xml'
+          }));
+        }
+      }
+      self.set('clusterEnvConfigs', configsArray);
     });
   },
 
 
   /**
    * @method validationSuccess
-   * success callback after getting responce from server
+   * success callback after getting response from server
    * go through the step configs and set warn and error messages
    * @param data
    */
