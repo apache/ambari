@@ -130,8 +130,8 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
     this.set('versionLoaded', false);
     version = version || this.get('currentDefaultVersion');
     if (version === this.get('currentDefaultVersion') && (!switchToGroup || switchToGroup.get('isDefault'))) {
-      this.loadCurrentVersions();
       this.set('selectedVersion', this.get('currentDefaultVersion'));
+      this.loadCurrentVersions();
     } else {
       //version of non-default group require properties from current version of default group to correctly display page
       var versions = (this.isVersionDefault(version)) ? [version] : [this.get('currentDefaultVersion'), version];
