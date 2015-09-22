@@ -29,66 +29,50 @@ from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.core.logger import Logger
 from resource_management.core import shell
-from setup_spark import *
+from setup_spark import setup_spark
 from spark_service import spark_service
 
 
-class JobHistoryServer(Script):
+class SparkThriftServer(Script):
 
   def install(self, env):
     import params
     env.set_params(params)
-    
+
     self.install_packages(env)
-    
+
   def configure(self, env):
     import params
     env.set_params(params)
-    
     setup_spark(env, 'server', action = 'config')
-    
+
   def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-    
+
     self.configure(env)
-    spark_service('jobhistoryserver', action='start')
+    spark_service('sparkthriftserver',action='start')
 
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-    
-    spark_service('jobhistoryserver', action='stop')
+    spark_service('sparkthriftserver',action='stop')
 
   def status(self, env):
     import status_params
     env.set_params(status_params)
-
-    check_process_status(status_params.spark_history_server_pid_file)
-    
+    check_process_status(status_params.spark_thrift_server_pid_file)
 
   def get_stack_to_component(self):
-     return {"HDP": "spark-historyserver"}
+     return {"HDP": "spark-thriftserver"}
 
   def pre_rolling_restart(self, env):
     import params
 
     env.set_params(params)
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.3.2.0') >= 0:
       conf_select.select(params.stack_name, "spark", params.version)
-      hdp_select.select("spark-historyserver", params.version)
-
-      # Spark 1.3.1.2.3, and higher, which was included in HDP 2.3, does not have a dependency on Tez, so it does not
-      # need to copy the tarball, otherwise, copy it.
-
-      if params.version and compare_versions(format_hdp_stack_version(params.version), '2.3.0.0') < 0:
-        resource_created = copy_to_hdfs(
-          "tez",
-          params.user_group,
-          params.hdfs_user,
-          host_sys_prepped=params.host_sys_prepped)
-        if resource_created:
-          params.HdfsResource(None, action="execute")
+      hdp_select.select("spark-thriftserver", params.version)
 
 if __name__ == "__main__":
-  JobHistoryServer().execute()
+  SparkThriftServer().execute()

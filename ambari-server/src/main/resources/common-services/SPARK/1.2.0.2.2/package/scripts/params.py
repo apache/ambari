@@ -23,7 +23,6 @@ import status_params
 
 from setup_spark import *
 
-from resource_management import *
 import resource_management.libraries.functions
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
@@ -38,7 +37,8 @@ from resource_management.libraries.script.script import Script
 # for use with /usr/hdp/current/<component>
 SERVER_ROLE_DIRECTORY_MAP = {
   'SPARK_JOBHISTORYSERVER' : 'spark-historyserver',
-  'SPARK_CLIENT' : 'spark-client'
+  'SPARK_CLIENT' : 'spark-client',
+  'SPARK_THRIFTSERVER' : 'spark-thriftserver'
 }
 
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "SPARK_CLIENT")
@@ -72,7 +72,7 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   spark_pid_dir = status_params.spark_pid_dir
   spark_home = format("/usr/hdp/current/{component_directory}")
 
-
+spark_thrift_server_conf_file = spark_conf + "/spark-thrift-sparkconf.conf"
 java_home = config['hostLevelParams']['java_home']
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
@@ -84,9 +84,13 @@ spark_group = status_params.spark_group
 user_group = status_params.user_group
 spark_hdfs_user_dir = format("/user/{spark_user}")
 spark_history_server_pid_file = status_params.spark_history_server_pid_file
+spark_thrift_server_pid_file = status_params.spark_thrift_server_pid_file
 
 spark_history_server_start = format("{spark_home}/sbin/start-history-server.sh")
 spark_history_server_stop = format("{spark_home}/sbin/stop-history-server.sh")
+
+spark_thrift_server_start = format("{spark_home}/sbin/start-thriftserver.sh")
+spark_thrift_server_stop = format("{spark_home}/sbin/stop-thriftserver.sh")
 
 spark_submit_cmd = format("{spark_home}/bin/spark-submit")
 spark_smoke_example = "org.apache.spark.examples.SparkPi"
@@ -133,10 +137,12 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 spark_kerberos_keytab =  config['configurations']['spark-defaults']['spark.history.kerberos.keytab']
 spark_kerberos_principal =  config['configurations']['spark-defaults']['spark.history.kerberos.principal']
 
+# hive-site params
 spark_hive_properties = {
   'hive.metastore.uris': config['configurations']['hive-site']['hive.metastore.uris']
 }
 
+# security settings
 if security_enabled:
   spark_principal = spark_kerberos_principal.replace('_HOST',spark_history_server_host.lower())
   
@@ -152,7 +158,15 @@ if security_enabled:
       'hive.security.authorization.enabled': spark_hive_sec_authorization_enabled,
       'hive.server2.enable.doAs': str(config['configurations']['hive-site']['hive.server2.enable.doAs']).lower()
     })
-  
+
+# thrift server support - available on HDP 2.3 or higher
+spark_thrift_sparkconf = None
+if version and compare_versions(format_hdp_stack_version(version), '2.3.2.0') >= 0 \
+    and 'spark-thrift-sparkconf' in config['configurations']:
+  spark_thrift_sparkconf = config['configurations']['spark-thrift-sparkconf']
+  if is_hive_installed:
+      spark_hive_properties.update(config['configurations']['spark-hive-site-override'])
+
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 hdfs_site = config['configurations']['hdfs-site']
 
