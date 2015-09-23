@@ -71,14 +71,6 @@ public class AlertsDAO {
   /**
    * A template of JPQL for getting the number of hosts in various states.
    */
-  private static final String HOST_COUNT_SQL_TEMPLATE = "SELECT MAX("
-      + "CASE "
-      + "  WHEN history.alertState = :criticalState AND alert.maintenanceState = :maintenanceStateOff THEN 3 "
-      + "  WHEN history.alertState = :warningState AND alert.maintenanceState = :maintenanceStateOff THEN 2 "
-      + "  WHEN history.alertState = :unknownState AND alert.maintenanceState = :maintenanceStateOff THEN 1 ELSE 0 END) "
-      + "FROM AlertCurrentEntity alert JOIN alert.alertHistory history "
-      + "WHERE history.clusterId = :clusterId AND history.hostName IS NOT NULL GROUP BY history.hostName";
-
   private static final String ALERT_COUNT_SQL_TEMPLATE = "SELECT NEW %s("
       + "SUM(CASE WHEN history.alertState = :okState AND alert.maintenanceState = :maintenanceStateOff THEN 1 ELSE 0 END), "
       + "SUM(CASE WHEN history.alertState = :warningState AND alert.maintenanceState = :maintenanceStateOff THEN 1 ELSE 0 END), "
@@ -497,12 +489,14 @@ public class AlertsDAO {
    */
   @RequiresSession
   public AlertHostSummaryDTO findCurrentHostCounts(long clusterId) {
-    // use Number here since some databases like MySQL return Long and some
-    // return Integer and we don't want a class cast exception
-    TypedQuery<Object> query = m_entityManagerProvider.get().createQuery(
-        HOST_COUNT_SQL_TEMPLATE, Object.class);
+    String sql = String.format(ALERT_COUNT_PER_HOST_SQL_TEMPLATE, HostAlertSummaryDTO.class.getName());
+
+    StringBuilder sb = new StringBuilder(sql);
+
+    TypedQuery<HostAlertSummaryDTO> query = m_entityManagerProvider.get().createQuery(sb.toString(), HostAlertSummaryDTO.class);
 
     query.setParameter("clusterId", Long.valueOf(clusterId));
+    query.setParameter("okState", AlertState.OK);
     query.setParameter("criticalState", AlertState.CRITICAL);
     query.setParameter("warningState", AlertState.WARNING);
     query.setParameter("unknownState", AlertState.UNKNOWN);
@@ -513,37 +507,27 @@ public class AlertsDAO {
     int criticalCount = 0;
     int unknownCount = 0;
 
-    List<Object> hostStateValues = m_daoUtils.selectList(query);
-    for (Object hostStateValue : hostStateValues) {
-      if (null == hostStateValue) {
+    List<HostAlertSummaryDTO> resultList = m_daoUtils.selectList(query);
+    for (HostAlertSummaryDTO result : resultList) {
+      if (result.getHostName() == null) {
         continue;
       }
-
-      int integerValue;
-      if (hostStateValue instanceof Boolean) {
-        integerValue = ((Boolean)hostStateValue).booleanValue() ? 1 : 0;
-      } else {
-        integerValue = ((Number)hostStateValue).intValue();
+      if (result.getCriticalCount() > 0) {
+        criticalCount++;
       }
-
-      switch (integerValue) {
-        case 0:
-          okCount++;
-          break;
-        case 1:
-          unknownCount++;
-          break;
-        case 2:
-          warningCount++;
-          break;
-        case 3:
-          criticalCount++;
-          break;
+      else if (result.getWarningCount() > 0) {
+        warningCount++;
+      }
+      else if (result.getUnknownCount() > 0) {
+        unknownCount++;
+      }
+      else {
+        okCount++;
       }
     }
 
     AlertHostSummaryDTO hostSummary = new AlertHostSummaryDTO(okCount,
-        unknownCount, warningCount, criticalCount);
+            unknownCount, warningCount, criticalCount);
 
     return hostSummary;
   }
