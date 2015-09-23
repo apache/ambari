@@ -117,7 +117,7 @@ class TestDatanodeHelper(TestCase):
 
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
-  @patch.object(dfs_datanode_helper, "_get_data_dir_to_mount_from_file")
+  @patch.object(dfs_datanode_helper, "get_data_dir_to_mount_from_file")
   @patch.object(dfs_datanode_helper, "_write_data_dir_to_mount_in_file")
   @patch.object(dfs_datanode_helper, "get_mount_point_for_dir")
   @patch.object(os.path, "isdir")
@@ -157,7 +157,7 @@ class TestDatanodeHelper(TestCase):
 
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
-  @patch.object(dfs_datanode_helper, "_get_data_dir_to_mount_from_file")
+  @patch.object(dfs_datanode_helper, "get_data_dir_to_mount_from_file")
   @patch.object(dfs_datanode_helper, "_write_data_dir_to_mount_in_file")
   @patch.object(dfs_datanode_helper, "get_mount_point_for_dir")
   @patch.object(os.path, "isdir")
