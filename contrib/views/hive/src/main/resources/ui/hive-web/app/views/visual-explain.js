@@ -424,7 +424,7 @@ export default Ember.View.extend({
 
   renderDag: function () {
     var json = this.get('controller.json');
-    var isVisualExplain = json && (json['STAGE PLANS'] != undefined);
+    var isVisualExplain = json && (json['STAGE PLANS'] != undefined) &&  (json['STAGE PLANS']['Stage-1'] != undefined) && (json['STAGE PLANS']['Stage-1']['Tez'] != undefined);
     if (isVisualExplain) {
       this.set('edges', []);
 
