@@ -43,7 +43,7 @@ PASSWORD_PATTERN = "^[a-zA-Z0-9_-]*$"
 DATABASE_NAMES = ["postgres", "oracle", "mysql", "mssql", "sqlanywhere"]
 DATABASE_FULL_NAMES = {"oracle": "Oracle", "mysql": "MySQL", "mssql": "Microsoft SQL Server", "postgres":
   "PostgreSQL", "sqlanywhere": "SQL Anywhere"}
-
+LINUX_DBMS_KEYS_LIST = [ 'embedded', 'oracle', 'mysql', 'postgres', 'mssql', 'sqlanywhere']
 AMBARI_DATABASE_NAME = "ambari"
 AMBARI_DATABASE_TITLE = "ambari"
 
@@ -326,14 +326,7 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
     from ambari_server.dbConfiguration_linux import createPGConfig, createOracleConfig, createMySQLConfig, \
       createMSSQLConfig, createSQLAConfig
 
-    self.DBMS_KEYS_LIST = [
-      'embedded',
-      'oracle',
-      'mysql',
-      'postgres',
-      'mssql',
-      'sqlanywhere'
-    ]
+    self.DBMS_KEYS_LIST = LINUX_DBMS_KEYS_LIST
 
     self.DRIVER_KEYS_LIST = [
       'oracle',
