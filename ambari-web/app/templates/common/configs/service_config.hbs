@@ -84,7 +84,7 @@
   </div>
 {{/if}}
 
-{{#if view.showConfigHistoryFeature}}
+{{#if view.isOnTheServicePage}}
   {{#if allVersionsLoaded}}
     {{view App.ConfigHistoryFlowView serviceBinding="selectedService"}}
   {{else}}
