@@ -101,6 +101,7 @@ class TestSparkThriftServer(RMFTestCase):
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
         action = ['create_on_execute'],
+        dfs_type = '',
         mode = 0775,
     )
     self.assertResourceCalled('HdfsResource', None,
@@ -113,6 +114,7 @@ class TestSparkThriftServer(RMFTestCase):
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
         action = ['execute'],
+        dfs_type = '',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',
