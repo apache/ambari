@@ -837,7 +837,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @method updateFinalizeSuccessCallback
    */
   updateFinalizeSuccessCallback: function (data) {
-    var context = data ? Em.get(data, 'upgrade_groups.firstObject.upgrade_items.firstObject.UpgradeItem.context') : '';
+    var context = data ? Em.get(data, 'items.firstObject.upgrade_groups.firstObject.upgrade_items.firstObject.UpgradeItem.context') : '';
     this.set('isFinalizeItem', context === this.get('finalizeContext'));
   },
 
