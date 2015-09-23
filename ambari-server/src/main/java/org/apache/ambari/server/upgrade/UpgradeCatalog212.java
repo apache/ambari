@@ -119,7 +119,7 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
 
   private void executeTopologyDDLUpdates() throws AmbariException, SQLException {
     dbAccessor.addColumn(TOPOLOGY_REQUEST_TABLE, new DBColumnInfo(TOPOLOGY_REQUEST_CLUSTER_ID_COLUMN,
-        Long.class, null, null, true));
+      Long.class, null, null, true));
     // TOPOLOGY_REQUEST_CLUSTER_NAME_COLUMN will be deleted in PreDML. We need a cluster name to set cluster id.
     // dbAccessor.dropColumn(TOPOLOGY_REQUEST_TABLE, TOPOLOGY_REQUEST_CLUSTER_NAME_COLUMN);
     // dbAccessor.setColumnNullable(TOPOLOGY_REQUEST_TABLE, TOPOLOGY_REQUEST_CLUSTER_ID_COLUMN, false);
@@ -140,7 +140,7 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
     dbAccessor.dropColumn(TOPOLOGY_REQUEST_TABLE, TOPOLOGY_REQUEST_CLUSTER_NAME_COLUMN);
     dbAccessor.setColumnNullable(TOPOLOGY_REQUEST_TABLE, TOPOLOGY_REQUEST_CLUSTER_ID_COLUMN, false);
     dbAccessor.addFKConstraint(TOPOLOGY_REQUEST_TABLE, TOPOLOGY_REQUEST_CLUSTER_ID_FK_CONSTRAINT_NAME,
-        TOPOLOGY_REQUEST_CLUSTER_ID_COLUMN, CLUSTERS_TABLE, CLUSTERS_TABLE_CLUSTER_ID_COLUMN, false);
+      TOPOLOGY_REQUEST_CLUSTER_ID_COLUMN, CLUSTERS_TABLE, CLUSTERS_TABLE_CLUSTER_ID_COLUMN, false);
   }
 
   /**
@@ -196,6 +196,21 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
     updateHiveConfigs();
     updateOozieConfigs();
     updateHbaseAndClusterConfigurations();
+    updateKafkaConfigurations();
+  }
+
+  protected void updateKafkaConfigurations() throws AmbariException {
+    Map<String, String> properties = new HashMap<>();
+    properties.put("external.kafka.metrics.exclude.prefix",
+      "kafka.network.RequestMetrics,kafka.server.DelayedOperationPurgatory," +
+        "kafka.server.BrokerTopicMetrics.BytesRejectedPerSec");
+    properties.put("external.kafka.metrics.include.prefix",
+      "kafka.network.RequestMetrics.ResponseQueueTimeMs.request.OffsetCommit.98percentile," +
+        "kafka.network.RequestMetrics.ResponseQueueTimeMs.request.Offsets.95percentile," +
+        "kafka.network.RequestMetrics.ResponseSendTimeMs.request.Fetch.95percentile," +
+        "kafka.network.RequestMetrics.RequestsPerSec.request");
+
+    updateConfigurationProperties("kafka-broker", properties, false, false);
   }
 
   protected void updateHbaseAndClusterConfigurations() throws AmbariException {
