@@ -70,6 +70,10 @@ class RangerUsersync(Script):
     env.set_params(params)
     upgrade.prestart(env, "ranger-usersync")
 
+    if params.xml_configurations_supported:
+      from setup_ranger_xml import ranger
+      ranger('ranger_usersync', rolling_upgrade=True)
+
   def get_stack_to_component(self):
     return {"HDP": "ranger-usersync"}
 

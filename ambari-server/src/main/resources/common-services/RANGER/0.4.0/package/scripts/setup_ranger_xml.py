@@ -40,7 +40,7 @@ def ranger(name=None, rolling_upgrade=False):
     setup_ranger_admin(rolling_upgrade=rolling_upgrade)
 
   if name == 'ranger_usersync':
-    setup_usersync()
+    setup_usersync(rolling_upgrade=rolling_upgrade)
 
 def setup_ranger_admin(rolling_upgrade=False):
   import params
@@ -101,8 +101,11 @@ def setup_ranger_admin(rolling_upgrade=False):
     group = params.unix_group
   )
 
-  File(params.ranger_admin_default_file, owner=params.unix_user, group=params.unix_group)
-  File(params.security_app_context_file, owner=params.unix_user, group=params.unix_group)
+  if os.path.isfile(params.ranger_admin_default_file):
+    File(params.ranger_admin_default_file, owner=params.unix_user, group=params.unix_group)
+
+  if os.path.isfile(params.security_app_context_file):
+    File(params.security_app_context_file, owner=params.unix_user, group=params.unix_group)
 
   Execute(('ln','-sf', format('{ranger_home}/ews/ranger-admin-services.sh'),'/usr/bin/ranger-admin'),
     not_if=format("ls /usr/bin/ranger-admin"),
@@ -268,8 +271,17 @@ def do_keystore_setup(rolling_upgrade=False):
     )
 
  
-def setup_usersync():
+def setup_usersync(rolling_upgrade=False):
   import params
+
+  usersync_home = params.usersync_home
+  ranger_home = params.ranger_home
+  ranger_ugsync_conf = params.ranger_ugsync_conf
+
+  if rolling_upgrade:
+    usersync_home = format("/usr/hdp/{version}/ranger-usersync")
+    ranger_home = format("/usr/hdp/{version}/ranger-admin")
+    ranger_ugsync_conf = format("/usr/hdp/{version}/ranger-usersync/conf")
 
   Directory(params.ranger_pid_dir,
     mode=0750,
@@ -286,29 +298,43 @@ def setup_usersync():
        owner = params.unix_user
   )
 
+  if rolling_upgrade:
+    src_file = format('{usersync_home}/conf.dist/ranger-ugsync-default.xml')
+    dst_file = format('{usersync_home}/conf/ranger-ugsync-default.xml')
+    Execute(('cp', '-f', src_file, dst_file), sudo=True)
+
+    src_file = format('{usersync_home}/conf.dist/log4j.xml')
+    dst_file = format('{usersync_home}/conf/log4j.xml')
+    Execute(('cp', '-f', src_file, dst_file), sudo=True)
+
   XmlConfig("ranger-ugsync-site.xml",
-    conf_dir=params.ranger_ugsync_conf,
+    conf_dir=ranger_ugsync_conf,
     configurations=params.config['configurations']['ranger-ugsync-site'],
     configuration_attributes=params.config['configuration_attributes']['ranger-ugsync-site'],
     owner=params.unix_user,
     group=params.unix_group,
     mode=0644)
 
-  File(params.ranger_ugsync_default_file, owner=params.unix_user, group=params.unix_group)
-  File(params.usgsync_log4j_file, owner=params.unix_user, group=params.unix_group)
-  File(params.cred_validator_file, group=params.unix_group, mode=04555)
+  if os.path.isfile(params.ranger_ugsync_default_file):
+    File(params.ranger_ugsync_default_file, owner=params.unix_user, group=params.unix_group)
 
-  cred_lib = os.path.join(params.usersync_home,"lib","*")
+  if os.path.isfile(params.usgsync_log4j_file):
+    File(params.usgsync_log4j_file, owner=params.unix_user, group=params.unix_group)
+
+  if os.path.isfile(params.cred_validator_file):
+    File(params.cred_validator_file, group=params.unix_group, mode=04555)
+
+  cred_lib = os.path.join(usersync_home,"lib","*")
   cred_setup_prefix = (format('{ranger_home}/ranger_credential_helper.py'), '-l', cred_lib)
 
   cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'usersync.ssl.key.password', '-v', PasswordString(params.ranger_usersync_keystore_password), '-c', '1')
-  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
+  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
   cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'ranger.usersync.ldap.bindalias', '-v', PasswordString(params.ranger_usersync_ldap_ldapbindpassword), '-c', '1')
-  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
+  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
   cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'usersync.ssl.truststore.password', '-v', PasswordString(params.ranger_usersync_truststore_password), '-c', '1')
-  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
+  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
   File(params.ugsync_jceks_path,
        owner = params.unix_user,
