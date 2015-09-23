@@ -15,8 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var App = require('app');
 
-require('controllers/queue');
-require('controllers/queues');
-require('controllers/trace');
-require('controllers/configs');
+App.Config =  DS.Model.extend({
+    siteName : DS.attr('string'),
+    configName : DS.attr('string'),
+    configValue : DS.attr('string')
+});

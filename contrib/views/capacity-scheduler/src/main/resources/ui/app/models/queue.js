@@ -244,3 +244,4 @@ App.Queue = DS.Model.extend({
     }
   }.observes('labels','default_node_label_expression')
 });
+
