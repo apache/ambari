@@ -1154,14 +1154,18 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
     it('data exists and Finalize should be true', function() {
       var data = {
-        upgrade_groups: [
+        items: [
           {
-            upgrade_items: [
+            upgrade_groups: [
               {
-                UpgradeItem: {
-                  context: controller.get('finalizeContext'),
-                  status: "HOLDING"
-                }
+                upgrade_items: [
+                  {
+                    UpgradeItem: {
+                      context: controller.get('finalizeContext'),
+                      status: "HOLDING"
+                    }
+                  }
+                ]
               }
             ]
           }
