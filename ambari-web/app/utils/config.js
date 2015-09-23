@@ -18,7 +18,6 @@
 
 var App = require('app');
 var stringUtils = require('utils/string_utils');
-var configPropertyHelper = require('utils/configs/config_property_helper');
 
 App.config = Em.Object.create({
 
@@ -578,98 +577,6 @@ App.config = Em.Object.create({
       }
     });
     return configs;
-  },
-
-  /**
-   * render configs, distribute them by service
-   * and wrap each in ServiceConfigProperty object
-   * @param configs
-   * @param storedConfigs
-   * @param allSelectedServiceNames
-   * @param installedServiceNames
-   * @param localDB
-   * @return {App.ServiceConfig[]}
-   */
-  renderConfigs: function (configs, storedConfigs, allSelectedServiceNames, installedServiceNames, localDB) {
-    var renderedServiceConfigs = [];
-    var services = [];
-
-    this.get('preDefinedServiceConfigs').forEach(function (serviceConfig) {
-      var serviceName = serviceConfig.get('serviceName');
-      if (allSelectedServiceNames.contains(serviceName) || serviceName === 'MISC') {
-        if (!installedServiceNames.contains(serviceName) || serviceName === 'MISC') {
-          serviceConfig.set('showConfig', true);
-        }
-        services.push(serviceConfig);
-      }
-    });
-    services.forEach(function (service) {
-      var configsByService = [];
-      var serviceConfigs = configs.filterProperty('serviceName', service.get('serviceName'));
-      serviceConfigs.forEach(function (_config) {
-        var serviceConfigProperty = App.ServiceConfigProperty.create(_config);
-        this.updateHostOverrides(serviceConfigProperty, _config);
-        if (!storedConfigs && !serviceConfigProperty.get('hasInitialValue')) {
-          configPropertyHelper.initialValue(serviceConfigProperty, localDB, configs);
-        }
-        serviceConfigProperty.validate();
-        configsByService.pushObject(serviceConfigProperty);
-      }, this);
-      var serviceConfig = this.createServiceConfig(service.get('serviceName'));
-      serviceConfig.set('showConfig', service.get('showConfig'));
-      serviceConfig.set('configs', configsByService);
-      this.addHostNamesToConfigs(serviceConfig, localDB.masterComponentHosts, localDB.slaveComponentHosts);
-      renderedServiceConfigs.push(serviceConfig);
-    }, this);
-    return renderedServiceConfigs;
-  },
-
-  /**
-   * Add host name properties to appropriate categories (for installer only)
-   * @param serviceConfig
-   * @param masterComponents
-   * @param slaveComponents
-   */
-  addHostNamesToConfigs: function(serviceConfig, masterComponents, slaveComponents) {
-    serviceConfig.get('configCategories').forEach(function(c) {
-      if (c.showHost) {
-        var value = [];
-        var componentName = c.name;
-        var masters = masterComponents.filterProperty('component', componentName);
-        if (masters.length) {
-          value = masters.mapProperty('hostName');
-        } else {
-          var slaves = slaveComponents.findProperty('componentName', componentName);
-          if (slaves) {
-            value = slaves.hosts.mapProperty('hostName');
-          }
-        }
-        var stackComponent = App.StackServiceComponent.find(componentName);
-        var hProperty = this.createHostNameProperty(serviceConfig.get('serviceName'), componentName, value, stackComponent);
-        serviceConfig.get('configs').push(App.ServiceConfigProperty.create(hProperty));
-      }
-    }, this);
-  },
-
-  /**
-   * create new child configs from overrides, attach them to parent config
-   * override - value of config, related to particular host(s)
-   * @param configProperty
-   * @param storedConfigProperty
-   */
-  updateHostOverrides: function (configProperty, storedConfigProperty) {
-    if (storedConfigProperty.overrides != null && storedConfigProperty.overrides.length > 0) {
-      var overrides = [];
-      storedConfigProperty.overrides.forEach(function (overrideEntry) {
-        // create new override with new value
-        var newSCP = App.ServiceConfigProperty.create(configProperty);
-        newSCP.set('value', overrideEntry.value);
-        newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
-        newSCP.set('parentSCP', configProperty);
-        overrides.pushObject(newSCP);
-      });
-      configProperty.set('overrides', overrides);
-    }
   },
 
   /**

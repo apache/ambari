@@ -1145,15 +1145,15 @@ describe('App.InstallerStep7Controller', function () {
     });
 
     afterEach(function () {
-      App.config.renderConfigs.restore();
+      installerStep7Controller.renderConfigs.restore();
     });
 
-    it('if wizard isn\'t addService, should set output of App.config.renderConfigs', function () {
+    it('if wizard isn\'t addService, should set output of installerStep7Controller.renderConfigs', function () {
       var serviceConfigs = Em.A([
         {serviceName:'HDFS', configs: []},
         {}
       ]);
-      sinon.stub(App.config, 'renderConfigs', function () {
+      sinon.stub(installerStep7Controller, 'renderConfigs', function () {
         return serviceConfigs;
       });
       installerStep7Controller.set('wizardController.name', 'installerController');
@@ -1165,7 +1165,7 @@ describe('App.InstallerStep7Controller', function () {
       var serviceConfigs = Em.A([Em.Object.create({serviceName: 'HDFS', configs: []}), Em.Object.create({serviceName: 's2'})]);
       installerStep7Controller.set('wizardController.name', 'addServiceController');
       installerStep7Controller.reopen({selectedServiceNames: ['s2']});
-      sinon.stub(App.config, 'renderConfigs', function () {
+      sinon.stub(installerStep7Controller, 'renderConfigs', function () {
         return serviceConfigs;
       });
       installerStep7Controller.setStepConfigs([], []);
@@ -1195,7 +1195,7 @@ describe('App.InstallerStep7Controller', function () {
       );
       installerStep7Controller.set('wizardController.name', 'addServiceController');
       installerStep7Controller.reopen({selectedServiceNames: ['HDFS', 's2']});
-      sinon.stub(App.config, 'renderConfigs', function () {
+      sinon.stub(installerStep7Controller, 'renderConfigs', function () {
         return serviceConfigs;
       });
       installerStep7Controller.setStepConfigs([], []);
@@ -1223,7 +1223,7 @@ describe('App.InstallerStep7Controller', function () {
       );
 
       installerStep7Controller.reopen({selectedServiceNames: ['HDFS', 's2']});
-      sinon.stub(App.config, 'renderConfigs', function () {
+      sinon.stub(installerStep7Controller, 'renderConfigs', function () {
         return serviceConfigs;
       });
       installerStep7Controller.setStepConfigs([], []);
@@ -1253,7 +1253,7 @@ describe('App.InstallerStep7Controller', function () {
 
       installerStep7Controller.reopen({selectedServiceNames: ['HDFS', 's2']});
       installerStep7Controller.set('installedServiceNames',['HDFS', 's2', 's3']);
-      sinon.stub(App.config, 'renderConfigs', function () {
+      sinon.stub(installerStep7Controller, 'renderConfigs', function () {
         return serviceConfigs;
       });
       installerStep7Controller.setStepConfigs([], []);
