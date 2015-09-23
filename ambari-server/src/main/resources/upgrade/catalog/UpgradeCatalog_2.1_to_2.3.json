@@ -364,12 +364,10 @@
         "capacity-scheduler": {
           "yarn.scheduler.capacity.root.default-node-label-expression": "",
           "yarn.scheduler.capacity.root.accessible-node-labels.default.capacity": {
-            "value": "10",
-            "value-required": "-1"
+            "remove": "yes"
           },
           "yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity": {
-            "value": "100",
-            "value-required": "-1"
+            "remove": "yes"
           }
         }
       },

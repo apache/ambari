@@ -656,20 +656,14 @@
             <set key="yarn.scheduler.capacity.root.default-node-label-expression" value=""/>
           </task>
 
-          <task xsi:type="configure" summary="Checking the Capacity Scheduler root default capacity">
-            <condition type="capacity-scheduler" key="yarn.scheduler.capacity.root.accessible-node-labels.default.capacity" value="-1">
-              <type>capacity-scheduler</type>
-              <key>yarn.scheduler.capacity.root.accessible-node-labels.default.capacity</key>
-              <value>10</value>
-            </condition>
+          <task xsi:type="configure" summary="Deleting the Capacity Scheduler root default capacity property">
+            <type>capacity-scheduler</type>
+            <transfer operation="delete" delete-key="yarn.scheduler.capacity.root.accessible-node-labels.default.capacity"/>
           </task>
 
-          <task xsi:type="configure" summary="Checking the Capacity Scheduler root maximum capacity">
-            <condition type="capacity-scheduler" key="yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity" value="-1">
-              <type>capacity-scheduler</type>
-              <key>yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity</key>
-              <value>100</value>
-            </condition>
+          <task xsi:type="configure" summary="Deleting the Capacity Scheduler root maximum capacity property">
+            <type>capacity-scheduler</type>
+            <transfer operation="delete" delete-key="yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity"/>
           </task>
 
         </pre-upgrade>
