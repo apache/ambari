@@ -82,7 +82,7 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     List<TimelineMetric> metricList = new ArrayList<TimelineMetric>();
     for (DataPoint dataPoint : dataPoints) {
       if (dataPoint.value != null && NumberUtils.isNumber(dataPoint.value.toString())) {
-        LOG.info(dataPoint.name + " = " + dataPoint.value);
+        LOG.debug(dataPoint.name + " = " + dataPoint.value);
         TimelineMetric timelineMetric = createTimelineMetric(taskInfo.timestamp,
             taskInfo.srcComponentId, dataPoint.name, dataPoint.value.toString());
         // Put intermediate values into the cache until it is time to send

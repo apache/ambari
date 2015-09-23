@@ -33,8 +33,9 @@ import com.yammer.metrics.stats.Snapshot;
 import kafka.metrics.KafkaMetricsConfig;
 import kafka.metrics.KafkaMetricsReporter;
 import kafka.utils.VerifiableProperties;
-import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
@@ -46,7 +47,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -64,6 +69,8 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private static final String TIMELINE_HOST_PROPERTY = "kafka.timeline.metrics.host";
   private static final String TIMELINE_PORT_PROPERTY = "kafka.timeline.metrics.port";
   private static final String TIMELINE_REPORTER_ENABLED_PROPERTY = "kafka.timeline.metrics.reporter.enabled";
+  private static final String EXCLUDED_METRICS_PROPERTY = "external.kafka.metrics.exclude.prefix";
+  private static final String INCLUDED_METRICS_PROPERTY = "external.kafka.metrics.include.prefix";
   private static final String TIMELINE_DEFAULT_HOST = "localhost";
   private static final String TIMELINE_DEFAULT_PORT = "8188";
 
@@ -75,6 +82,11 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private TimelineScheduledReporter reporter;
   private TimelineMetricsCache metricsCache;
   private int timeoutSeconds = 10;
+
+  private String[] excludedMetricsPrefixes;
+  private String[] includedMetricsPrefixes;
+  // Local cache to avoid prefix matching everytime
+  private Set<String> excludedMetrics = new HashSet<>();
 
   @Override
   protected String getCollectorUri() {
@@ -108,14 +120,28 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
         String metricCollectorPort = props.getString(TIMELINE_PORT_PROPERTY, TIMELINE_DEFAULT_PORT);
         setMetricsCache(new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval));
         collectorUri = "http://" + metricCollectorHost + ":" + metricCollectorPort + "/ws/v1/timeline/metrics";
+
+        // Exclusion policy
+        String excludedMetricsStr = props.getString(EXCLUDED_METRICS_PROPERTY, "");
+        if (!StringUtils.isEmpty(excludedMetricsStr.trim())) {
+          excludedMetricsPrefixes = excludedMetricsStr.trim().split(",");
+        }
+        // Inclusion override
+        String includedMetricsStr = props.getString(INCLUDED_METRICS_PROPERTY, "");
+        if (!StringUtils.isEmpty(includedMetricsStr.trim())) {
+          includedMetricsPrefixes = includedMetricsStr.trim().split(",");
+        }
+
         initializeReporter();
         if (props.getBoolean(TIMELINE_REPORTER_ENABLED_PROPERTY, false)) {
           startReporter(metricsConfig.pollingIntervalSecs());
         }
-        if (LOG.isTraceEnabled()) {
-          LOG.trace("CollectorUri = " + collectorUri);
-          LOG.trace("MetricsSendInterval = " + metricsSendInterval);
-          LOG.trace("MaxRowCacheSize = " + maxRowCacheSize);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("CollectorUri = " + collectorUri);
+          LOG.debug("MetricsSendInterval = " + metricsSendInterval);
+          LOG.debug("MaxRowCacheSize = " + maxRowCacheSize);
+          LOG.debug("Excluded metrics prefixes = " + excludedMetricsStr);
+          LOG.debug("Included metrics prefixes = " + includedMetricsStr);
         }
       }
     }
@@ -156,6 +182,24 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
     public List<TimelineMetric> getTimelineMetricList();
   }
 
+  protected boolean isExcludedMetric(String metricName) {
+    if (excludedMetrics.contains(metricName)) {
+      return true;
+    }
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("metricName => " + metricName +
+        ", exclude: " + StringUtils.startsWithAny(metricName, excludedMetricsPrefixes) +
+        ", include: " + StringUtils.startsWithAny(metricName, includedMetricsPrefixes));
+    }
+    if (StringUtils.startsWithAny(metricName, excludedMetricsPrefixes)) {
+      if (!StringUtils.startsWithAny(metricName, includedMetricsPrefixes)) {
+        excludedMetrics.add(metricName);
+        return true;
+      }
+    }
+    return false;
+  }
+
   class TimelineScheduledReporter extends ScheduledReporter implements MetricProcessor<Context> {
 
     private static final String APP_ID = "kafka_broker";
@@ -187,21 +231,21 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
           final MetricName metricName = entry.getKey();
           final Metric metric = entry.getValue();
           Context context = new Context() {
-
             public List<TimelineMetric> getTimelineMetricList() {
               return metricsList;
             }
-
           };
           metric.processWith(this, metricName, context);
         }
       } catch (Throwable t) {
         LOG.error("Exception processing Kafka metric", t);
       }
-      if (LOG.isTraceEnabled()) {
-        LOG.trace("Metrics List size: " + metricsList.size());
-        LOG.trace("Metics Set size: " + metrics.size());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Metrics List size: " + metricsList.size());
+        LOG.debug("Metics Set size: " + metrics.size());
+        LOG.debug("Excluded metrics set: " + excludedMetrics);
       }
+
       if (!metricsList.isEmpty()) {
         TimelineMetrics timelineMetrics = new TimelineMetrics();
         timelineMetrics.setMetrics(metricsList);
@@ -333,7 +377,7 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       final String ninetyNinthPercentileName = cacheSanitizedTimelineMetric(currentTimeMillis, sanitizedName,
           NINETY_NINTH_PERCENTILE_SUFIX, snapshot.get99thPercentile());
       final String ninetyNinePointNinePercentileName = cacheSanitizedTimelineMetric(currentTimeMillis, sanitizedName,
-          NINETY_NINE_POINT_NINE_PERCENTILE_SUFIX, snapshot.get999thPercentile());
+        NINETY_NINE_POINT_NINE_PERCENTILE_SUFIX, snapshot.get999thPercentile());
 
       return new String[] { medianName,
           ninetyEighthPercentileName, ninetyFifthPercentileName, ninetyNinePointNinePercentileName,
@@ -343,7 +387,11 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
     private String cacheSanitizedTimelineMetric(long currentTimeMillis, String sanitizedName, String suffix, Number metricValue) {
       final String meterName = sanitizedName + suffix;
       final TimelineMetric metric = createTimelineMetric(currentTimeMillis, APP_ID, meterName, metricValue);
-      metricsCache.putTimelineMetric(metric);
+      // Skip cache if we decide not to include the metric
+      // Cannot do this before calculations of percentiles
+      if (!isExcludedMetric(meterName)) {
+        metricsCache.putTimelineMetric(metric);
+      }
       return meterName;
     }
 
