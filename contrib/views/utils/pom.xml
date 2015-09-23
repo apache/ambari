@@ -33,11 +33,23 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
       <version>${hadoop-version}</version>
+        <exclusions>
+            <exclusion>
+                <groupId>tomcat</groupId>
+                <artifactId>jasper-runtime</artifactId>
+            </exclusion>
+        </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop-version}</version>
+        <exclusions>
+            <exclusion>
+                <groupId>tomcat</groupId>
+                <artifactId>jasper-runtime</artifactId>
+            </exclusion>
+        </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
