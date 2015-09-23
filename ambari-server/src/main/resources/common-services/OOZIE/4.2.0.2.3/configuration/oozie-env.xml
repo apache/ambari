@@ -95,7 +95,7 @@ export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native/Linux-amd64-64
 # upgrade/downgrade
 export OOZIE_CLIENT_OPTS="${OOZIE_CLIENT_OPTS} -Doozie.connection.retry.count=5 "
 
-{% if sqla_db_used %}
+{% if lib_dir_available %}
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:{{jdbc_libs_dir}}"
 export JAVA_LIBRARY_PATH="$JAVA_LIBRARY_PATH:{{jdbc_libs_dir}}"
 {% endif %}
