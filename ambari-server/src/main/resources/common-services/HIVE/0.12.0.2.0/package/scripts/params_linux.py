@@ -205,11 +205,13 @@ prepackaged_ojdbc_symlink = format("{hive_lib}/ojdbc6.jar")
 templeton_port = config['configurations']['webhcat-site']['templeton.port']
 
 #constants for type2 jdbc
+jdbc_libs_dir = format("{hive_lib}/native/lib64")
+lib_dir_available = os.path.exists(jdbc_libs_dir)
+
 if sqla_db_used:
   jars_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/java/*")
   libs_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/native/lib64/*")
   downloaded_custom_connector = format("{tmp_dir}/sqla-client-jdbc.tar.gz")
-  jdbc_libs_dir = format("{hive_lib}/native/lib64")
   libs_in_hive_lib = format("{jdbc_libs_dir}/*")
 
 #common

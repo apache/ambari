@@ -222,11 +222,13 @@ else:
   target = format("{oozie_libext_dir}/{jdbc_driver_jar}")
 
 #constants for type2 jdbc
+jdbc_libs_dir = format("{oozie_libext_dir}/native/lib64")
+lib_dir_available = os.path.exists(jdbc_libs_dir)
+
 if sqla_db_used:
   jars_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/java/*")
   libs_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/native/lib64/*")
   downloaded_custom_connector = format("{tmp_dir}/sqla-client-jdbc.tar.gz")
-  jdbc_libs_dir = format("{oozie_libext_dir}/native/lib64")
 
 hdfs_share_dir = "/user/oozie/share"
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
