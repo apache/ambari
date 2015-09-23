@@ -708,7 +708,19 @@
             "value": "({1} - {0})/{1} * 100.0"
           }
         }
-      }    
+      },
+      {
+        "name": "datanode_unmounted_data_dir",
+        "label": "DataNode Unmounted Data Dir",
+        "description": "This host-level alert is triggered if one of the data directories on a host was previously on a mount point and became unmounted. If the mount history file does not exist, then report an error if a host has one or more mounted data directories as well as one or more unmounted data directories on the root partition. This may indicate that a data directory is writing to the root partition, which is undesirable.",
+        "interval": 2,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDFS/2.1.0.2.0/package/alerts/alert_datanode_unmounted_data_dir.py"
+        }
+      }
     ],
     "ZKFC": [
       {
