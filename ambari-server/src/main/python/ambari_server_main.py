@@ -31,6 +31,7 @@ from ambari_server.dbConfiguration import ensure_dbms_is_running, ensure_jdbc_dr
   get_native_libs_path, get_jdbc_driver_path
 from ambari_server.serverConfiguration import configDefaults, find_jdk, get_ambari_classpath, get_ambari_properties, \
   get_conf_dir, get_is_persisted, get_is_secure, get_java_exe_path, get_original_master_key, read_ambari_user, \
+  get_is_active_instance, \
   PID_NAME, SECURITY_KEY_ENV_VAR_NAME, SECURITY_MASTER_KEY_LOCATION, \
   SETUP_OR_UPGRADE_MSG, check_database_name_property, parse_properties_file
 from ambari_server.serverUtils import refresh_stack_hash
@@ -218,6 +219,12 @@ def server_process_main(options, scmStatus=None):
 
   check_database_name_property()
   parse_properties_file(options)
+
+  is_active_instance = get_is_active_instance()
+  if not is_active_instance:
+      print_warning_msg("This instance of ambari server is not designated as active. Cannot start ambari server.")
+      err = "This is not an active instance. Shutting down..."
+      raise FatalException(1, err)
 
   ambari_user = read_ambari_user()
   current_user = ensure_can_start_under_current_user(ambari_user)

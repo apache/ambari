@@ -63,6 +63,7 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
           check_database_name_property, OS_FAMILY_PROPERTY, \
           find_properties_file, get_ambari_classpath, get_ambari_jars, get_ambari_properties, get_JAVA_HOME, \
           parse_properties_file, read_ambari_user, update_ambari_properties, update_properties_2, write_property, find_jdk, \
+          get_is_active_instance, \
           AMBARI_CONF_VAR, AMBARI_SERVER_LIB, JDBC_DATABASE_PROPERTY, JDBC_RCA_PASSWORD_FILE_PROPERTY, \
           PERSISTENCE_TYPE_PROPERTY, JDBC_URL_PROPERTY, get_conf_dir, JDBC_USER_NAME_PROPERTY, JDBC_PASSWORD_PROPERTY, \
           JDBC_DATABASE_NAME_PROPERTY, OS_TYPE_PROPERTY, validate_jdk, JDBC_POSTGRES_SCHEMA_PROPERTY, \
@@ -1108,6 +1109,45 @@ class TestAmbariServer(TestCase):
     properties_mock.__getitem__.return_value = None
     user = read_ambari_user()
     self.assertEquals(user, None)
+    pass
+
+  @patch("ambari_server.serverConfiguration.get_ambari_properties")
+  @patch("ambari_server.serverConfiguration.Properties")
+  def test_read_active_instance(self, properties_mock, get_ambari_properties_mock):
+    # Set up the mock
+    properties_mock.propertyNames = MagicMock(return_value=['active.instance'])
+    get_ambari_properties_mock.return_value = properties_mock
+
+    # Test with explicitly set value of "false" (should return False)
+    properties_mock.__getitem__.return_value = "false"
+    is_active_instance = get_is_active_instance()
+    self.assertFalse(is_active_instance)
+
+    # Test with empty string  (should return False)
+    properties_mock.__getitem__.return_value = ""
+    is_active_instance = get_is_active_instance()
+    self.assertFalse(is_active_instance)
+
+    # Test with a random string (should return False)
+    properties_mock.__getitem__.return_value = "xyz"
+    is_active_instance = get_is_active_instance()
+    self.assertFalse(is_active_instance)
+
+    # Test with a explicit false string (should return False)
+    properties_mock.__getitem__.return_value = "false"
+    is_active_instance = get_is_active_instance()
+    self.assertFalse(is_active_instance)
+
+    # Test with explicitly set value of "true"  (should return True)
+    properties_mock.__getitem__.return_value = "true"
+    is_active_instance = get_is_active_instance()
+    self.assertTrue(is_active_instance)
+
+    # Test with missing active.instance entry (should return True)
+    properties_mock.propertyNames = MagicMock(return_value=[])
+    is_active_instance = get_is_active_instance()
+    self.assertTrue(is_active_instance)
+
     pass
 
   @patch("ambari_server.setupSecurity.get_file_owner")
@@ -4115,6 +4155,7 @@ class TestAmbariServer(TestCase):
 
 
   @not_for_platform(PLATFORM_WINDOWS)
+  @patch("ambari_server_main.get_is_active_instance")
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("sys.stdout.flush")
   @patch("sys.stdout.write")
@@ -4168,10 +4209,13 @@ class TestAmbariServer(TestCase):
                  save_master_key_method, get_master_key_location_method,
                  os_chown_mock, is_server_running_mock, locate_file_mock,
                  os_makedirs_mock, check_exitcode_mock, save_main_pid_ex_mock,
-                 wait_for_pid_mock, looking_for_pid_mock, stdout_write_mock, stdout_flush_mock):
+                 wait_for_pid_mock, looking_for_pid_mock, stdout_write_mock, stdout_flush_mock,
+                 get_is_active_instance_mock):
 
     def reset_mocks():
       pexistsMock.reset_mock()
+      get_is_active_instance_mock.reset_mock()
+      get_is_active_instance_mock.return_value = True
 
       args = MagicMock()
       del args.dbms
@@ -4260,6 +4304,17 @@ class TestAmbariServer(TestCase):
       # Expected
       self.assertTrue('Unable to start Ambari Server as user' in e.reason)
       #self.assertFalse(parse_properties_file_mock.called)
+
+    # If not active instance, exception should be thrown
+    args = reset_mocks()
+    get_is_active_instance_mock.return_value = False
+    try:
+      _ambari_server_.start(args)
+      self.fail("Should fail with 'This is not an active instance. Shutting down...'")
+    except FatalException as e:
+      # Expected
+      self.assertTrue('This is not an active instance' in e.reason)
+      pass
 
     # Checking "jdk not found"
     args = reset_mocks()

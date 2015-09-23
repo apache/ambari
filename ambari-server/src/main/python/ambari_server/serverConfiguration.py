@@ -170,6 +170,8 @@ JDK_RELEASES="java.releases"
 
 VIEWS_DIR_PROPERTY = "views.dir"
 
+ACTIVE_INSTANCE_PROPERTY = "active.instance"
+
 #Common setup or upgrade message
 SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server setup\" command to create the user\n" \
                        "- If this is an upgrade of an existing setup, run the \"ambari-server upgrade\" command.\n" \
@@ -521,6 +523,26 @@ def read_ambari_user():
     if user:
       return user
   return None
+
+def get_is_active_instance():
+  # active.instance, if missing, will be considered to be true;
+  # if present, it should be explicitly set to "true" to set this as the active instance;
+  # any other value will be taken as a "false"
+  properties = get_ambari_properties()
+  # Get the value of active.instance.
+  active_instance_value = None
+  if properties != -1:
+    if ACTIVE_INSTANCE_PROPERTY in properties.propertyNames():
+      active_instance_value = properties[ACTIVE_INSTANCE_PROPERTY]
+
+  if active_instance_value is None:  # property is missing
+    is_active_instance = True
+  elif (active_instance_value == 'true'): # property is explicitly set to true
+    is_active_instance = True
+  else:  # any other value
+    is_active_instance = False
+
+  return is_active_instance
 
 def get_value_from_properties(properties, key, default=""):
   try:
