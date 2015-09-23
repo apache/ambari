@@ -298,3 +298,12 @@ App.TagSerializer = DS.RESTSerializer.extend({
     }
   }
 });
+
+
+App.ConfigSerializer = DS.RESTSerializer.extend({
+  normalize : function(modelclass, resourceHash, prop){
+    resourceHash.id = 'siteName_'+ resourceHash.siteName + "_configName_" + resourceHash.configName;
+    return resourceHash;
+  }
+});
+

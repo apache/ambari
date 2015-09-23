@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-require('controllers/queue');
-require('controllers/queues');
-require('controllers/trace');
-require('controllers/configs');
+    var App = require('app');
+
+App.ConfigsController = Ember.ArrayController.extend({
+});

@@ -23,6 +23,7 @@ import org.apache.ambari.view.capacityscheduler.utils.MisconfigurationFormattedE
 import org.apache.ambari.view.capacityscheduler.utils.ServiceFormattedException;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
 import org.apache.commons.io.IOUtils;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.slf4j.Logger;
@@ -482,6 +483,29 @@ public class ConfigurationService {
 
   private String getRMUrl() {
     return ambariApi.getServices().getRMUrl();
+  }
+
+  @GET
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("/getConfig")
+  public Response getConfigurationValue(@QueryParam("siteName") String siteName,@QueryParam("configName") String configName){
+    try{
+      String configValue = ambariApi.getCluster().getConfigurationValue(siteName,configName);
+      JSONObject res = new JSONObject();
+      JSONArray arr = new JSONArray();
+      JSONObject conf = new JSONObject();
+      conf.put("siteName",siteName);
+      conf.put("configName", configName);
+      conf.put("configValue", configValue);
+      arr.add(conf);
+      res.put("configs" ,arr);
+      return Response.ok(res).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
   }
 
   private String getRMHosts() {

@@ -73,12 +73,14 @@
   </div>
   <div class="row queue-acl-row">
     <div class="col-md-12 col-lg-6 queue-acl">
+
       <div class="panel panel-default">
         <div class="panel-heading">
           <div class="panel-title">
             Access Control and Status
           </div>
         </div>
+        {{#unless isRangerEnabledForYarn}}
         <div class="panel-body">
           <form class="form-horizontal form-acl" role="form">
           <div class="form-group row">
@@ -179,7 +181,13 @@
           {{/if}}
           </form>
         </div>
+        {{else}}
+          <div class="panel-body">
+              Permissions are managed by Ranger
+          </div>
+        {{/unless}}
       </div>
+
     </div>
 
     <div class="col-md-12 col-lg-6 queue-resources">

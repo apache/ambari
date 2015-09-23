@@ -22,7 +22,21 @@ var _runState = 'RUNNING';
 var _stopState = 'STOPPED';
 
 App.QueueController = Ember.ObjectController.extend({
-  needs:['queues'],
+  needs:['queues','configs'],
+  isRangerEnabledForYarn : function() {
+    var isRanger = this.get('controllers.configs.isRangerEnabledForYarn');
+    console.log("controllers.queue : isRanger : ", isRanger);
+    if (isRanger == null || typeof isRanger == 'undefined') {
+      return false;
+    }
+
+    isRanger = isRanger.toLowerCase();
+    if (isRanger == 'yes' || isRanger == 'true') {
+      return true;
+    }
+
+    return false;
+  }.property('controllers.configs.isRangerEnabledForYarn'),
   actions:{
     setState:function (state) {
       this.set('content.state', (state === "running") ? (this.get('content.state') == null) ? null : _runState : _stopState );
