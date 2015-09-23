@@ -26,6 +26,8 @@ App.Router.map(function() {
   this.route('refuse');
 });
 
+var RANGER_SITE = 'ranger-yarn-plugin-properties';
+var RANGER_YARN_ENABLED = 'ranger-yarn-plugin-enabled';
 /**
  * The queues route.
  *
@@ -49,13 +51,22 @@ App.QueuesRoute = Ember.Route.extend({
     var store = this.get('store'),
         controller = this.controllerFor('queues'),
         loadingController = this.container.lookup('controller:loading');
+    var _this = this;
     return new Ember.RSVP.Promise(function (resolve,reject) {
       loadingController.set('model', {message:'access check'});
-      store.checkOperator().then(function (isOperator) {
+      store.checkOperator().then(function   (isOperator) {
         controller.set('isOperator', isOperator);
 
         loadingController.set('model', {message:'loading node labels'});
         return store.get('nodeLabels');
+      }).then(function(){
+        return store.findQuery( 'config', {siteName : RANGER_SITE, configName : RANGER_YARN_ENABLED}).then(function(){
+          return store.find( 'config', "siteName_" + RANGER_SITE + "_configName_" + RANGER_YARN_ENABLED)
+              .then(function(data){
+                console.log("router.queuesRoute : data.configValue isRangerEnabled : " + data.get('configValue'));
+                _this.controllerFor('configs').set('isRangerEnabledForYarn', data.get('configValue'));
+              });
+        })
       }).then(function () {
         loadingController.set('model', {message:'loading queues'});
         return store.find('queue');
@@ -90,11 +101,13 @@ App.QueuesRoute = Ember.Route.extend({
  * /queues/:id
  */
 App.QueueRoute = Ember.Route.extend({
+
   model: function(params,tr) {
     var queues = this.modelFor('queues') || this.store.find('queue'),
         filterQueues = function (queues) {
           return queues.findBy('id',params.queue_id);
         };
+
     return (queues instanceof DS.PromiseArray)?queues.then(filterQueues):filterQueues(queues);
   },
   afterModel:function (model) {
@@ -175,5 +188,4 @@ App.ErrorRoute = Ember.Route.extend({
     controller.set('model',response);
   }
 });
-
 

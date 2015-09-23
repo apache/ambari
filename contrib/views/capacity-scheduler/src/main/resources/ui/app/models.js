@@ -17,3 +17,4 @@
  */
 
 require('models/queue');
+require('models/config');
