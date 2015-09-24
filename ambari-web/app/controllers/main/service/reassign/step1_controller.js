@@ -99,7 +99,7 @@ App.ReassignMasterWizardStep1Controller = Em.Controller.extend({
     this.set('content.serviceProperties', properties);
 
     databaseProperty = properties[ this.dbProperty() ];
-    databaseType = databaseProperty.match(/MySQL|PostgreS|Oracle|Derby|MSSQL/gi)[0];
+    databaseType = databaseProperty.match(/MySQL|PostgreS|Oracle|Derby|MSSQL|Anywhere/gi)[0];
     this.set('databaseType', databaseType);
 
     if (this.get('content.reassign.component_name') == 'OOZIE_SERVER' && databaseType !== 'derby') {
