@@ -257,7 +257,13 @@
           "hbase.hregion.majorcompaction": "604800000",
           "hbase.hregion.memstore.block.multiplier": "4",
           "hbase.hstore.flush.retries.number": {"remove": "yes"},
-          "hbase.region.server.rpc.scheduler.factory.class": "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory",
+          "hbase.region.server.rpc.scheduler.factory.class": {
+            "value": "{HBASE_REGION_SERVER_RPC_SCHEDULER_FACTORY_CLASS}",
+            "required-services": [
+              "HBASE"
+            ],
+            "template": "yes"
+          },
           "hbase.rpc.controllerfactory.class": "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory",
           "hbase.regionserver.wal.codec": "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec",
           "phoenix.functions.allowUserDefinedFunctions": "true",
