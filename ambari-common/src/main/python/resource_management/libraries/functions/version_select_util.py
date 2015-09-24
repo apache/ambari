@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+import os
 import re
 import tempfile
 
@@ -75,3 +76,20 @@ def get_component_version(stack_name, component_name):
     Logger.error("Could not find a stack for stack name: %s" % str(stack_name))
 
   return version
+
+
+def get_versions_from_stack_root(stack_root):
+  """
+  Given a stack install root (/usr/hdp), returns a list of stack versions currently installed.
+  The list of installed stack versions is determined purely based on the stack version directories
+  found in the stack install root.
+  Because each stack name may have different logic, the input is a generic dictionary.
+  :param stack_root: Stack install root directory
+  :return: Returns list of installed stack versions
+  """
+  if stack_root is None or not os.path.exists(stack_root):
+    return []
+
+  installed_stack_versions = [f for f in os.listdir(stack_root) if os.path.isdir(os.path.join(stack_root, f))
+                              and re.match("([\d\.]+(-\d+)?)", f)]
+  return installed_stack_versions
