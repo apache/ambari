@@ -424,6 +424,40 @@ class TestAmbariServer(TestCase):
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup")
+  @patch("optparse.OptionParser")
+  def test_main_with_preset_dbms(self, optionParserMock, setup_method):
+    opm = optionParserMock.return_value
+    options = MagicMock()
+    args = ["setup"]
+    opm.parse_args.return_value = (options, args)
+
+    options.dbms = "sqlanywhere"
+    options.sid_or_sname = "sname"
+    _ambari_server_.mainBody()
+
+    self.assertTrue(setup_method.called)
+    self.assertEquals(options.database_index, 5)
+    pass
+
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(_ambari_server_, "setup")
+  @patch.object(_ambari_server_, "fix_database_options")
+  @patch("optparse.OptionParser")
+  def test_fix_database_options_called(self, optionParserMock, fixDBOptionsMock, setup_method):
+    opm = optionParserMock.return_value
+    options = MagicMock()
+    args = ["setup"]
+    opm.parse_args.return_value = (options, args)
+
+    _ambari_server_.mainBody()
+
+    self.assertTrue(setup_method.called)
+    self.assertTrue(fixDBOptionsMock.called)
+    set_silent(False)
+    pass
+
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(_ambari_server_, "setup")
   @patch.object(_ambari_server_, "start")
   @patch.object(_ambari_server_, "stop")
   @patch.object(_ambari_server_, "reset")
