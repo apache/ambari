@@ -18,22 +18,22 @@
 
 package org.apache.ambari.view.hive.resources.jobs;
 
+import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive.utils.SharedObjectsFactory;
-import org.apache.hive.service.cli.thrift.TOperationHandle;
 
 public class OperationHandleControllerFactory {
-  private SharedObjectsFactory connectionsFabric;
   private IOperationHandleResourceManager operationHandlesStorage;
+  private ViewContext context;
 
-  public OperationHandleControllerFactory(SharedObjectsFactory connectionsFabric) {
-    this.connectionsFabric = connectionsFabric;
-    operationHandlesStorage = new OperationHandleResourceManager(connectionsFabric);
+  public OperationHandleControllerFactory(ViewContext context, SharedObjectsFactory storageFactory) {
+    this.context = context;
+    this.operationHandlesStorage = new OperationHandleResourceManager(storageFactory);
   }
 
   public OperationHandleController createControllerForHandle(StoredOperationHandle storedOperationHandle) {
-    return new OperationHandleController(connectionsFabric, storedOperationHandle, operationHandlesStorage);
+    return new OperationHandleController(context, storedOperationHandle, operationHandlesStorage);
   }
 
   public OperationHandleController getHandleForJob(Job job) throws ItemNotFound {

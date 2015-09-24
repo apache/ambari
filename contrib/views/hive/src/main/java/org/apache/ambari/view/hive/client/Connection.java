@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Holds session
+ * Holds sessions
  */
 public class Connection {
   private final static Logger LOG =
@@ -59,12 +59,15 @@ public class Connection {
 
   private DDLDelegator ddl;
   private String username;
+  private String password;
 
-  public Connection(String host, int port, Map<String, String> authParams, String username) throws HiveClientException {
+  public Connection(String host, int port, Map<String, String> authParams, String username, String password)
+      throws HiveClientException, HiveAuthRequiredException {
     this.host = host;
     this.port = port;
     this.authParams = authParams;
     this.username = username;
+    this.password = password;
 
     this.sessHandles = new HashMap<String, TSessionHandle>();
 
@@ -76,7 +79,7 @@ public class Connection {
     return ddl;
   }
 
-  public synchronized void openConnection() throws HiveClientException {
+  public synchronized void openConnection() throws HiveClientException, HiveAuthRequiredException {
     try {
       transport = getTransport();
       transport.open();
@@ -94,7 +97,7 @@ public class Connection {
    * @return transport
    * @throws HiveClientException
    */
-  protected TTransport getTransport() throws HiveClientException, TTransportException {
+  protected TTransport getTransport() throws HiveClientException, TTransportException, HiveAuthRequiredException {
     TTransport transport;
     boolean assumeSubject =
         Utils.HiveAuthenticationParams.AUTH_KERBEROS_AUTH_TYPE_FROM_SUBJECT.equals(authParams
@@ -133,7 +136,7 @@ public class Connection {
           } else {
             // we are using PLAIN Sasl connection with user/password
             String userName = getAuthParamDefault(Utils.HiveAuthenticationParams.AUTH_USER, getUsername());
-            String passwd = getAuthParamDefault(Utils.HiveAuthenticationParams.AUTH_PASSWD, Utils.HiveAuthenticationParams.ANONYMOUS_USER);
+            String passwd = getPassword();
             // Note: Thrift returns an SSL socket that is already bound to the specified host:port
             // Therefore an open called on this would be a no-op later
             // Hence, any TTransportException related to connecting with the peer are thrown here.
@@ -166,6 +169,18 @@ public class Connection {
           + host + ": " + e.getMessage(), e);
     }
     return transport;
+  }
+
+  private String getPassword() throws HiveAuthRequiredException {
+    String password = getAuthParamDefault(Utils.HiveAuthenticationParams.AUTH_PASSWD, Utils.HiveAuthenticationParams.ANONYMOUS_USER);
+    if (password.equals("${ask_password}")) {
+      if (this.password == null) {
+        throw new HiveAuthRequiredException();
+      } else {
+        password = this.password;
+      }
+    }
+    return password;
   }
 
   private boolean isSslConnection() {

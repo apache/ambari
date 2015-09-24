@@ -33,7 +33,6 @@ public class JobControllerFactory implements IJobControllerFactory {
   @Override
   public JobController createControllerForJob(Job job) {
     return new JobControllerImpl(context, job,
-        sharedObjectsFactory.getHiveConnectionController(),
         sharedObjectsFactory.getOperationHandleControllerFactory(),
         sharedObjectsFactory.getSavedQueryResourceManager(),
         sharedObjectsFactory.getATSParser(),

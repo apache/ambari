@@ -16,19 +16,12 @@
  * limitations under the License.
  */
 
-import Ember from 'ember';
+package org.apache.ambari.view.utils;
 
-export default Ember.Controller.extend({
-  actions: {
-    save: function () {
-      this.send('closeModal');
-      this.defer.resolve(this.get('text'));
-      this.defer.resolve(this.get('type'));
-    },
-
-    close: function () {
-      this.send('closeModal');
-      this.defer.reject();
-    }
-  }
-});
+/**
+ *
+ * @param <T>
+ */
+public interface UserLocalFactory <T>{
+  T create();
+}

@@ -38,7 +38,7 @@ public class ViewUserLocalTest {
     expect(viewContext2.getUsername()).andReturn("leia").anyTimes();
     replay(viewContext, viewContext2);
 
-    ViewUserLocal<Object> test = new ViewUserLocal<Object>(Object.class) {
+    UserLocal<Object> test = new UserLocal<Object>(Object.class) {
       @Override
       protected synchronized Object initialValue(ViewContext context) {
         return new Object();
@@ -61,7 +61,7 @@ public class ViewUserLocalTest {
     expect(viewContext2.getUsername()).andReturn("luke").anyTimes();
     replay(viewContext, viewContext2);
 
-    ViewUserLocal<Object> test = new ViewUserLocal<Object>(Object.class) {
+    UserLocal<Object> test = new UserLocal<Object>(Object.class) {
       @Override
       protected synchronized Object initialValue(ViewContext context) {
         return new Object();
@@ -84,7 +84,7 @@ public class ViewUserLocalTest {
     expect(viewContext2.getUsername()).andReturn("luke").anyTimes();
     replay(viewContext, viewContext2);
 
-    ViewUserLocal<Object> test = new ViewUserLocal<Object>(Object.class) {
+    UserLocal<Object> test = new UserLocal<Object>(Object.class) {
       @Override
       protected synchronized Object initialValue(ViewContext context) {
         return new Object();
