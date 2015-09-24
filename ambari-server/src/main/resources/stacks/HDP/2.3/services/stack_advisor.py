@@ -182,7 +182,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     # if hive using sqla db, then we should add DataNucleus property
     sqla_db_used = 'hive-env' in services['configurations'] and 'hive_database' in services['configurations']['hive-env']['properties'] and \
-                   services['configurations']['hive-env']['properties']['hive_database'] == 'Existing SQLA Database'
+                   services['configurations']['hive-env']['properties']['hive_database'] == 'Existing SQL Anywhere Database'
     if sqla_db_used:
       putHiveSiteProperty('datanucleus.rdbms.datastoreAdapterClassName','org.datanucleus.store.rdbms.adapter.SQLAnywhereAdapter')
     else:
@@ -309,19 +309,19 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     hive_env_properties = getSiteProperties(configurations, "hive-env")
     validationItems = []
     sqla_db_used = "hive_database" in hive_env_properties and \
-                   hive_env_properties['hive_database'] == 'Existing SQLA Database'
+                   hive_env_properties['hive_database'] == 'Existing SQL Anywhere Database'
     prop_name = "datanucleus.rdbms.datastoreAdapterClassName"
     prop_value = "org.datanucleus.store.rdbms.adapter.SQLAnywhereAdapter"
     if sqla_db_used:
       if not prop_name in hive_site:
         validationItems.append({"config-name": prop_name,
                               "item": self.getWarnItem(
-                              "If Hive using SQLA db." \
+                              "If Hive using SQL Anywhere db." \
                               " {0} needs to be added with value {1}".format(prop_name,prop_value))})
       elif prop_name in hive_site and hive_site[prop_name] != "org.datanucleus.store.rdbms.adapter.SQLAnywhereAdapter":
         validationItems.append({"config-name": prop_name,
                                 "item": self.getWarnItem(
-                                  "If Hive using SQLA db." \
+                                  "If Hive using SQL Anywhere db." \
                                   " {0} needs to be set to {1}".format(prop_name,prop_value))})
     return self.toConfigurationValidationProblems(validationItems, "hive-site")
 

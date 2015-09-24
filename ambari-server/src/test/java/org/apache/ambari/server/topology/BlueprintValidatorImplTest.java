@@ -181,8 +181,8 @@ public class BlueprintValidatorImplTest{
 
   @Test(expected=InvalidTopologyException.class)
   public void testValidateRequiredProperties_SqlaInHiveStackHdp22() throws Exception {
-    Map<String, String> hiveEnvConfig = new HashMap<>();
-    hiveEnvConfig.put("hive_database","Existing SQLA Database");
+    Map<String, String> hiveEnvConfig = new HashMap<String, String>();
+    hiveEnvConfig.put("hive_database","Existing SQL Anywhere Database");
     configProperties.put("hive-env", hiveEnvConfig);
 
     group1Components.add("HIVE_METASTORE");
@@ -204,8 +204,8 @@ public class BlueprintValidatorImplTest{
 
   @Test(expected=InvalidTopologyException.class)
   public void testValidateRequiredProperties_SqlaInOozieStackHdp22() throws Exception {
-    Map<String, String> hiveEnvConfig = new HashMap<>();
-    hiveEnvConfig.put("oozie_database","Existing SQLA Database");
+    Map<String, String> hiveEnvConfig = new HashMap<String, String>();
+    hiveEnvConfig.put("oozie_database","Existing SQL Anywhere Database");
     configProperties.put("oozie-env", hiveEnvConfig);
 
     group1Components.add("OOZIE_SERVER");

@@ -480,7 +480,8 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
    */
   getDbTypeFromRadioValue: function() {
     var currentValue = this.get('serviceConfig.value');
-    var databases = /MySQL|Postgres|Oracle|Derby|MSSQL|Anywhere/gi;
+    /** TODO: Remove SQLA from the list of databases once Ranger DB_FLAVOR=SQLA is replaced with SQL Anywhere */
+    var databases = /MySQL|Postgres|Oracle|Derby|MSSQL|SQLA|Anywhere/gi;
     if (this.get('inMSSQLWithIA')) {
       return 'MSSQL2';
     } else {
@@ -648,9 +649,11 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     }
     var handledProperties = ['oozie_database', 'hive_database', 'DB_FLAVOR'];
     var currentValue = this.get('serviceConfig.value');
-    var databases = /MySQL|PostgreSQL|Postgres|Oracle|Derby|MSSQL|Anywhere/gi;
+    /** TODO: Remove SQLA from the list of databases once Ranger DB_FLAVOR=SQLA is replaced with SQL Anywhere */
+    var databases = /MySQL|PostgreSQL|Postgres|Oracle|Derby|MSSQL|SQLA|Anywhere/gi;
     var currentDB = currentValue.match(databases)[0];
-    var databasesTypes = /MySQL|Postgres|Oracle|Derby|MSSQL|Anywhere/gi;
+    /** TODO: Remove SQLA from the list of databases once Ranger DB_FLAVOR=SQLA is replaced with SQL Anywhere */
+    var databasesTypes = /MySQL|Postgres|Oracle|Derby|MSSQL|SQLA|Anywhere/gi;
     var currentDBType = currentValue.match(databasesTypes)[0];
     var checkDatabase = /existing/gi.test(currentValue);
     // db connection check button show up if existed db selected
@@ -1109,7 +1112,8 @@ App.CheckDBConnectionView = Ember.View.extend({
 
     if (this.get('parentView.service.serviceName') === 'RANGER') {
       var dbFlavor = this.get('parentView.categoryConfigsAll').findProperty('name','DB_FLAVOR').get('value'),
-        databasesTypes = /MYSQL|POSTGRES|ORACLE|MSSQL|Anywhere/gi,
+        /** TODO: Remove SQLA from the list of databases once Ranger DB_FLAVOR=SQLA is replaced with SQL Anywhere */
+        databasesTypes = /MYSQL|POSTGRES|ORACLE|MSSQL|SQLA|Anywhere/gi,
         dbType = dbFlavor.match(databasesTypes)?dbFlavor.match(databasesTypes)[0].toLowerCase():'';
 
       if (dbType==='oracle') {
