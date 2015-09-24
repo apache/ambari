@@ -163,6 +163,14 @@ class TestRangerUsersync(RMFTestCase):
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/ranger-usersync/install.properties',
         properties = self.getConfig()['configurations']['usersync-properties'],
     )
+
+    custom_config=dict()
+    custom_config['unix_user'] = "ranger"
+    custom_config['unix_group'] = "ranger"
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-usersync/install.properties',
+        properties = custom_config,
+    )
+
     self.assertResourceCalled('Execute', 'cd /usr/hdp/current/ranger-usersync && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/hdp/current/ranger-usersync/setup.sh',
         logoutput = True,
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
@@ -176,11 +184,22 @@ class TestRangerUsersync(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-usersync/ranger-usersync-services.sh',
         mode = 0755,
     )
+    self.assertResourceCalled('Directory', '/var/log/ranger/usersync',
+        owner = custom_config['unix_user'],
+        group = custom_config['unix_group']
+    )
+
       
   def assert_configure_secured(self):
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/ranger-usersync/install.properties',
         properties = self.getConfig()['configurations']['usersync-properties'],
     )
+    custom_config=dict()
+    custom_config['unix_user'] = "ranger"
+    custom_config['unix_group'] = "ranger"
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-usersync/install.properties',
+        properties = custom_config,
+    )
     self.assertResourceCalled('Execute', 'cd /usr/hdp/current/ranger-usersync && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/hdp/current/ranger-usersync/setup.sh',
         logoutput = True,
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
@@ -193,4 +212,8 @@ class TestRangerUsersync(RMFTestCase):
     )
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-usersync/ranger-usersync-services.sh',
         mode = 0755,
+    )
+    self.assertResourceCalled('Directory', '/var/log/ranger/usersync',
+        owner = custom_config['unix_user'],
+        group = custom_config['unix_group']
     )

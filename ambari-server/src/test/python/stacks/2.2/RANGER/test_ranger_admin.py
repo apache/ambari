@@ -130,6 +130,12 @@ class TestRangerAdmin(RMFTestCase):
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
         properties = self.getConfig()['configurations']['admin-properties'],
     )
+    custom_config=dict()
+    custom_config['unix_user'] = "ranger"
+    custom_config['unix_group'] = "ranger"
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
+        properties = custom_config,
+    )
     self.assertResourceCalled('Execute', 'cd /usr/hdp/current/ranger-admin && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/hdp/current/ranger-admin/setup.sh',
         logoutput = True,
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
@@ -141,7 +147,11 @@ class TestRangerAdmin(RMFTestCase):
         mode = 0744,
         properties = self.getConfig()['configurations']['ranger-site']
     )
-      
+    self.assertResourceCalled('Directory', '/var/log/ranger/admin',
+        owner = custom_config['unix_user'],
+        group = custom_config['unix_group']
+    )
+
   def assert_configure_secured(self):
     self.assertResourceCalled('Execute', 'mysql -u root --password=rootpassword -h localhost  -s -e "select version();"',logoutput = True,
                               environment = {})
@@ -162,6 +172,12 @@ class TestRangerAdmin(RMFTestCase):
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
         properties = self.getConfig()['configurations']['admin-properties'],
     )
+    custom_config=dict()
+    custom_config['unix_user'] = "ranger"
+    custom_config['unix_group'] = "ranger"
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
+        properties = custom_config,
+    )
     self.assertResourceCalled('Execute', 'cd /usr/hdp/current/ranger-admin && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/hdp/current/ranger-admin/setup.sh',
         logoutput = True,
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
@@ -172,6 +188,10 @@ class TestRangerAdmin(RMFTestCase):
     self.assertResourceCalled('ModifyPropertiesFile', '/etc/ranger/admin/conf/ranger_webserver.properties',
         mode = 0744,
         properties = self.getConfig()['configurations']['ranger-site']
+    )
+    self.assertResourceCalled('Directory', '/var/log/ranger/admin',
+        owner = custom_config['unix_user'],
+        group = custom_config['unix_group']
     )
 
 

@@ -45,9 +45,17 @@ def setup_ranger_admin():
           sudo=True)
 
   File(params.driver_curl_target, mode=0644)
-  
+
   ModifyPropertiesFile(format("{ranger_home}/install.properties"),
     properties = params.config['configurations']['admin-properties']
+  )
+
+  custom_config = dict()
+  custom_config['unix_user'] = params.unix_user
+  custom_config['unix_group'] = params.unix_group
+
+  ModifyPropertiesFile(format("{ranger_home}/install.properties"),
+    properties=custom_config
   )
 
   ##if db flavor == oracle - set oracle home env variable
@@ -71,11 +79,24 @@ def setup_ranger_admin():
     mode=0744
   )
 
+  Directory(params.admin_log_dir,
+    owner = params.unix_user,
+    group = params.unix_group
+  )
+
 def setup_usersync():
   import params
 
   PropertiesFile(format("{usersync_home}/install.properties"),
     properties = params.config['configurations']['usersync-properties'],
+  )
+
+  custom_config = dict()
+  custom_config['unix_user'] = params.unix_user
+  custom_config['unix_group'] = params.unix_group
+
+  ModifyPropertiesFile(format("{usersync_home}/install.properties"),
+    properties=custom_config
   )
 
   cmd = format("cd {usersync_home} && ") + as_sudo([format('{usersync_home}/setup.sh')])
@@ -86,6 +107,11 @@ def setup_usersync():
   )
   File(params.usersync_services_file,
     mode = 0755,
+  )
+
+  Directory(params.usersync_log_dir,
+    owner = params.unix_user,
+    group = params.unix_group
   )
 
 def check_db_connnection():

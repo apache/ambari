@@ -32,12 +32,12 @@ from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
 
 def setup_ranger_plugin(component_select_name, service_name,
-                        downloaded_custom_connector, driver_curl_source, 
+                        downloaded_custom_connector, driver_curl_source,
                         driver_curl_target, java_home,
                         repo_name, plugin_repo_dict, 
                         ranger_env_properties, plugin_properties,
                         policy_user, policymgr_mgr_url,
-                        plugin_enabled,api_version=None, **kwargs):
+                        plugin_enabled, component_user, component_group, api_version=None, **kwargs):
   File(downloaded_custom_connector,
       content = DownloadSource(driver_curl_source),
       mode = 0644
@@ -59,6 +59,11 @@ def setup_ranger_plugin(component_select_name, service_name,
   ModifyPropertiesFile(file_path,
     properties = plugin_properties
   )
+
+  custom_plugin_properties = dict()
+  custom_plugin_properties['CUSTOM_USER'] = component_user
+  custom_plugin_properties['CUSTOM_GROUP'] = component_group
+  ModifyPropertiesFile(file_path,properties = custom_plugin_properties)
 
   if plugin_enabled:
     cmd = (format('enable-{service_name}-plugin.sh'),)
