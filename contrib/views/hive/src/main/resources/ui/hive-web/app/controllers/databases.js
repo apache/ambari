@@ -155,12 +155,60 @@ export default Ember.Controller.extend({
       self.set('isLoading');
     }).catch(function (error) {
       self._handleError(error);
+
+      if(error.status == 401) {
+         self.send('passwordLDAPDB');
+      }
+
+
     });
   }.on('init'),
 
   actions: {
     refreshDatabaseExplorer: function () {
       this.getDatabases();
+    },
+
+    passwordLDAPDB: function(){
+      var self = this,
+          defer = Ember.RSVP.defer();
+
+      self.getDatabases = this.getDatabases;
+
+      this.send('openModal', 'modal-save', {
+        heading: "modals.authenticationLDAP.heading",
+        text:"",
+        type: "password",
+        defer: defer
+      });
+
+      defer.promise.then(function (text) {
+        // make a post call with the given ldap password.
+        var password = text;
+        var pathName = window.location.pathname;
+        var pathNameArray = pathName.split("/");
+        var hiveViewVersion = pathNameArray[3];
+        var hiveViewName = pathNameArray[4];
+        var ldapAuthURL = "/api/v1/views/HIVE/versions/"+ hiveViewVersion + "/instances/" + hiveViewName + "/jobs/auth";
+
+        $.ajax({
+          url: ldapAuthURL,
+          dataType: "json",
+          type: 'post',
+          headers: {'X-Requested-With': 'XMLHttpRequest', 'X-Requested-By': 'ambari'},
+          contentType: 'application/json',
+          data: JSON.stringify({ "password" : password}),
+          success: function( data, textStatus, jQxhr ){
+            console.log( "LDAP done: " + data );
+            self.getDatabases();
+          },
+          error: function( jqXhr, textStatus, errorThrown ){
+            console.log( "LDAP fail: " + errorThrown );
+            self.get('notifyService').error( "Wrong Credentials." );
+          }
+        });
+
+      });
     },
 
     loadSampleData: function (tableName, database) {

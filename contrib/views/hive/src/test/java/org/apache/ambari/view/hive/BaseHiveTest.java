@@ -58,7 +58,6 @@ public abstract class BaseHiveTest {
   @Before
   public void setUp() throws Exception {
     handler = createNiceMock(ViewResourceHandler.class);
-    context = createNiceMock(ViewContext.class);
 
     properties = new HashMap<String, String>();
     baseDir = new File(DATA_DIRECTORY)
@@ -66,19 +65,31 @@ public abstract class BaseHiveTest {
     hiveStorageFile = new File("./target/HiveTest/storage.dat")
         .getAbsoluteFile();
 
+    setupDefaultContextProperties(properties);
+    setupProperties(properties, baseDir);
+
+    context = makeContext(properties, "ambari-qa", "MyHive");
+
+    replay(handler, context);
+  }
+
+  public void setupDefaultContextProperties(Map<String, String> properties) {
     properties.put("dataworker.storagePath", hiveStorageFile.toString());
     properties.put("scripts.dir", "/tmp/.hiveQueries");
     properties.put("jobs.dir", "/tmp/.hiveJobs");
     properties.put("yarn.ats.url", "127.0.0.1:8188");
     properties.put("yarn.resourcemanager.url", "127.0.0.1:8088");
+  }
 
+  public ViewContext makeContext(Map<String, String> properties, String username, String instanceName) throws Exception {
+    setupDefaultContextProperties(properties);
     setupProperties(properties, baseDir);
 
+    ViewContext context = createNiceMock(ViewContext.class);
     expect(context.getProperties()).andReturn(properties).anyTimes();
-    expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
-    expect(context.getInstanceName()).andReturn("MyHive").anyTimes();
-
-    replay(handler, context);
+    expect(context.getUsername()).andReturn(username).anyTimes();
+    expect(context.getInstanceName()).andReturn(instanceName).anyTimes();
+    return context;
   }
 
   protected void setupProperties(Map<String, String> properties, File baseDir) throws Exception {

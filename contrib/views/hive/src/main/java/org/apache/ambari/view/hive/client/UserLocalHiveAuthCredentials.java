@@ -16,19 +16,18 @@
  * limitations under the License.
  */
 
-import Ember from 'ember';
+package org.apache.ambari.view.hive.client;
 
-export default Ember.Controller.extend({
-  actions: {
-    save: function () {
-      this.send('closeModal');
-      this.defer.resolve(this.get('text'));
-      this.defer.resolve(this.get('type'));
-    },
+import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.utils.UserLocal;
 
-    close: function () {
-      this.send('closeModal');
-      this.defer.reject();
-    }
+public class UserLocalHiveAuthCredentials extends UserLocal<HiveAuthCredentials> {
+  public UserLocalHiveAuthCredentials() {
+    super(HiveAuthCredentials.class);
   }
-});
+
+  @Override
+  protected synchronized HiveAuthCredentials initialValue(ViewContext context) {
+    return new HiveAuthCredentials();
+  }
+}

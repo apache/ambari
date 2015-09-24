@@ -20,6 +20,7 @@ package org.apache.ambari.view.hive.resources.jobs;
 
 import org.apache.ambari.view.hive.ServiceTestUtils;
 import org.apache.ambari.view.hive.BaseHiveTest;
+import org.apache.ambari.view.hive.client.UserLocalConnection;
 import org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl;
 import org.apache.ambari.view.hive.utils.HdfsApiMock;
 import org.apache.ambari.view.hive.client.Connection;
@@ -71,7 +72,7 @@ public class JobServiceTest extends BaseHiveTest {
 
     Connection hiveConnection = configureHiveConnectionMock();
 
-    jobService.getSharedObjectsFactory().setInstance(Connection.class, hiveConnection);
+    new UserLocalConnection().set(hiveConnection, context);
     jobService.setAggregator(
         new Aggregator(
             jobService.getResourceManager(),

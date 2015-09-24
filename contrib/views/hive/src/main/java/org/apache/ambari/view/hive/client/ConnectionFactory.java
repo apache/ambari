@@ -21,6 +21,7 @@ package org.apache.ambari.view.hive.client;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive.utils.HiveClientFormattedException;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
+import org.apache.ambari.view.utils.UserLocalFactory;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
 import org.apache.ambari.view.utils.ambari.AmbariApiException;
 import org.slf4j.Logger;
@@ -31,22 +32,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ConnectionFactory implements IConnectionFactory {
+public class ConnectionFactory implements UserLocalFactory<Connection> {
   private final static Logger LOG =
       LoggerFactory.getLogger(ConnectionFactory.class);
   private ViewContext context;
+  private HiveAuthCredentials credentials;
   private AmbariApi ambariApi;
 
-  public ConnectionFactory(ViewContext context) {
+  public ConnectionFactory(ViewContext context, HiveAuthCredentials credentials) {
     this.context = context;
+    this.credentials = credentials;
     this.ambariApi = new AmbariApi(context);
   }
 
   @Override
-  public Connection getHiveConnection() {
+  public Connection create() {
     try {
       return new Connection(getHiveHost(), Integer.valueOf(getHivePort()),
-          getHiveAuthParams(), context.getUsername());
+          getHiveAuthParams(), context.getUsername(), getCredentials().getPassword());
     } catch (HiveClientException e) {
       throw new HiveClientFormattedException(e);
     }
@@ -90,5 +93,13 @@ public class ConnectionFactory implements IConnectionFactory {
       params.put(keyvalue[0], keyvalue[1]);
     }
     return params;
+  }
+
+  public HiveAuthCredentials getCredentials() {
+    return credentials;
+  }
+
+  public void setCredentials(HiveAuthCredentials credentials) {
+    this.credentials = credentials;
   }
 }
