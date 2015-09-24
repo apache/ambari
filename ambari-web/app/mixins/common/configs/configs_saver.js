@@ -442,6 +442,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
   formatValueBeforeSave: function(property) {
     var name = property.get('name');
     var value = property.get('value');
+    var kdcTypesMap = App.router.get('mainAdminKerberosController.kdcTypesValues');
     //TODO check for core-site
     if (this.get('heapsizeRegExp').test(name) && !this.get('heapsizeException').contains(name) && !(value).endsWith("m")) {
       return value += "m";
@@ -451,7 +452,9 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     }
     switch (name) {
       case 'kdc_type':
-        return App.router.get('mainAdminKerberosController.kdcTypesValues')[property.get('value')];
+        return Em.keys(kdcTypesMap).filter(function(key) {
+            return kdcTypesMap[key] === property.get('value');
+        })[0];
       case 'storm.zookeeper.servers':
       case 'nimbus.seeds':
         if (Em.isArray(value)) {
