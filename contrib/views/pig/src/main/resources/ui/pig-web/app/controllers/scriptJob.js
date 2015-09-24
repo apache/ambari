@@ -21,18 +21,22 @@ var App = require('app');
 App.ScriptJobController = Em.ObjectController.extend(App.FileHandler,{
   fullscreen:false,
   scriptContents:function () {
-    var promise = new Ember.RSVP.Promise(function(resolve,reject){
-      return this.get('content.pigScript').then(function (pigScript) {
-        return resolve(pigScript);
-      },function (error) {
-        var response = (error.responseJSON)?error.responseJSON:{};
-        reject(response.message);
-        if (error.status != 404) {
-          controller.send('showAlert', {'message': Em.I18n.t('job.alert.promise_error',
-            {status:response.status, message:response.message}), status:'error', trace: response.trace});
-        }
-      }.bind(this));
-    }.bind(this));
+    var job = this.get('content'),
+        controller = this,
+        promise = new Ember.RSVP.Promise(function (resolve,reject){
+          var file = (job.get('jobType') !== 'explain') ? job.get('pigScript') : job.store.find('file',[job.get('statusDir'),'source.pig'].join('/'));
+
+          return file.then(function (data) {
+            resolve(data);
+          },function (error) {
+            var response = (error.responseJSON)?error.responseJSON:{};
+            reject(response.message);
+            if (error.status != 404) {
+              controller.send('showAlert', {'message': Em.I18n.t('job.alert.promise_error',
+                {status:response.status, message:response.message}), status:'error', trace: response.trace});
+            }
+          });
+        });
     return Ember.ObjectProxy.extend(Ember.PromiseProxyMixin).create({
       promise: promise
     });
