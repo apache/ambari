@@ -1,4 +1,4 @@
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -14,7 +14,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 
 from mock.mock import MagicMock, call
@@ -922,7 +922,6 @@ class TestUpgradeHelper(TestCase):
     self.assertEqual(1, configuration_item_diff_mock.call_count)
     self.assertEqual(1, configuration_diff_analyze_mock.call_count)
     self.assertEqual(1, open_mock.call_count)
-
 
   def test_report_formatter(self):
     file = StringIO()
