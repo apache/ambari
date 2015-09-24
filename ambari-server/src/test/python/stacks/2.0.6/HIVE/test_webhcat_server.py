@@ -356,7 +356,7 @@ class TestWebHCatServer(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
-                              ('hdp-select', 'set', 'hive-webhcat', version), sudo=True,)
+                              ('ambari-python-wrap', 'hdp-select', 'set', 'hive-webhcat', version), sudo=True,)
     self.assertNoMoreResources()
 
   @patch("resource_management.core.shell.call")
@@ -385,7 +385,7 @@ class TestWebHCatServer(RMFTestCase):
     self.assertTrue("/usr/hdp/current/hive-webhcat/etc/webhcat" == sys.modules["params"].webhcat_conf_dir)
 
     self.assertResourceCalled('Execute',
-                              ('hdp-select', 'set', 'hive-webhcat', version), sudo=True,)
+                              ('ambari-python-wrap', 'hdp-select', 'set', 'hive-webhcat', version), sudo=True,)
     self.assertNoMoreResources()
 
     self.assertEquals(2, mocks_dict['call'].call_count)

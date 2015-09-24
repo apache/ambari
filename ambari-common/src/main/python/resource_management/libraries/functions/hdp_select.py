@@ -28,8 +28,9 @@ from resource_management.libraries.script.script import Script
 from resource_management.core.shell import call
 from resource_management.libraries.functions.version import format_hdp_stack_version
 
+HDP_SELECT_PREFIX = ('ambari-python-wrap', 'hdp-select')
 # hdp-select set oozie-server 2.2.0.0-1234
-TEMPLATE = ('hdp-select', 'set')
+TEMPLATE = HDP_SELECT_PREFIX + ('set',)
 
 # a mapping of Ambari server role to hdp-select component name for all
 # non-clients
@@ -240,7 +241,7 @@ def _get_upgrade_stack():
 
 
 def get_hdp_versions():
-  code, out = call("hdp-select versions")
+  code, out = call(HDP_SELECT_PREFIX + ('versions',))
   if 0 == code:
     versions = []
     for line in out.splitlines():

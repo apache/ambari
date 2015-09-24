@@ -202,9 +202,9 @@ class TestHBaseClient(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES,
                    mocks_dict = mocks_dict)
 
-    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'hbase-client', '2.2.1.0-2067'), sudo=True)
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'phoenix-client', '2.2.1.0-2067'), sudo=True)
-    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
+    self.assertResourceCalled("Execute", ('ambari-python-wrap', 'hdp-select', 'set', 'hbase-client', '2.2.1.0-2067'), sudo=True)
+    self.assertResourceCalled('Execute', ('ambari-python-wrap', 'hdp-select', 'set', 'phoenix-client', '2.2.1.0-2067'), sudo=True)
+    self.assertResourceCalled("Execute", ('ambari-python-wrap', 'hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
     self.assertEquals(1, mocks_dict['call'].call_count)
 
 
@@ -228,9 +228,9 @@ class TestHBaseClient(RMFTestCase):
                        call_mocks = [(0, None), (0, None), (0, None), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hbase-client', version), sudo=True)
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'phoenix-client', version), sudo=True)
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hadoop-client', version), sudo=True)
+    self.assertResourceCalled('Execute', ('ambari-python-wrap', 'hdp-select', 'set', 'hbase-client', version), sudo=True)
+    self.assertResourceCalled('Execute', ('ambari-python-wrap', 'hdp-select', 'set', 'phoenix-client', version), sudo=True)
+    self.assertResourceCalled('Execute', ('ambari-python-wrap', 'hdp-select', 'set', 'hadoop-client', version), sudo=True)
 
     self.assertEquals(3, mocks_dict['call'].call_count)
     self.assertEquals(6, mocks_dict['checked_call'].call_count)

@@ -59,7 +59,7 @@ class UpgradeSetAll(Script):
     real_ver = format_hdp_stack_version(version)
     if stack_name == "HDP":
       if compare_versions(real_ver, min_ver) >= 0:
-        cmd = ('hdp-select', 'set', 'all', version)
+        cmd = ('ambari-python-wrap', 'hdp-select', 'set', 'all', version)
         code, out = shell.call(cmd, sudo=True)
 
       if compare_versions(real_ver, format_hdp_stack_version("2.3")) >= 0:
