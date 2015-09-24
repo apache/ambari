@@ -144,6 +144,11 @@
                           <i class="icon-remove"></i>&nbsp;{{t admin.stackVersions.version.upgrade.aborted}}</span>
                     {{/if}}
                   {{/if}}
+                  {{#if App.router.mainAdminStackAndUpgradeController.isSuspended}}
+                      <span class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                          <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.upgrade.suspended}}
+                      </span>
+                  {{/if}}
                 </a>
                 </p>
                 {{#if App.router.mainAdminStackAndUpgradeController.isFinalizeItem}}

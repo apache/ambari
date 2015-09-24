@@ -69,9 +69,9 @@ module.exports = Em.Application.create({
    * flag is true when upgrade process is aborted
    * @returns {boolean}
    */
-  upgradeAborted: function() {
-    return this.get('upgradeState') === "ABORTED";
-  }.property('upgradeState'),
+  upgradeAborted: function () {
+    return this.get('upgradeState') === "ABORTED" && !App.router.get('mainAdminStackAndUpgradeController.isSuspended');
+  }.property('upgradeState', 'router.mainAdminStackAndUpgradeController.isSuspended'),
 
   /**
    * RU is running
@@ -87,8 +87,11 @@ module.exports = Em.Application.create({
    * @returns {boolean}
    */
   wizardIsNotFinished: function () {
-    return this.get('upgradeIsRunning') || this.get('upgradeAborted') || App.router.get('wizardWatcherController.isNonWizardUser');
-  }.property('upgradeIsRunning', 'upgradeAborted', 'router.wizardWatcherController.isNonWizardUser'),
+    return this.get('upgradeIsRunning') ||
+           this.get('upgradeAborted') ||
+           App.router.get('wizardWatcherController.isNonWizardUser') ||
+           App.router.get('mainAdminStackAndUpgradeController.isSuspended');
+  }.property('upgradeIsRunning', 'upgradeAborted', 'router.wizardWatcherController.isNonWizardUser', 'router.mainAdminStackAndUpgradeController.isSuspended'),
 
   /**
    * compute user access rights by permission type
@@ -102,11 +105,14 @@ module.exports = Em.Application.create({
    * @return {boolean}
    */
   isAccessible: function (type) {
-    if (!App.get('supports.opsDuringRollingUpgrade') && !['INIT', 'COMPLETED'].contains(this.get('upgradeState')) && !type.contains('upgrade_')) {
+    if (!App.router.get('mainAdminStackAndUpgradeController.isSuspended') &&
+        !App.get('supports.opsDuringRollingUpgrade') &&
+        !['INIT', 'COMPLETED'].contains(this.get('upgradeState')) &&
+        !type.contains('upgrade_')) {
       return false;
     }
 
-    if (App.router.get('wizardWatcherController').get('isNonWizardUser')) {
+    if (App.router.get('wizardWatcherController.isNonWizardUser')) {
       return false;
     }
 

@@ -183,7 +183,7 @@ App.upgradeWizardView = Em.View.extend({
    */
   upgradeStatusLabel: function() {
     var labelKey = null;
-    switch (this.get('controller.upgradeData.Upgrade.request_status')) {
+    switch (App.get('upgradeState')) {
       case 'QUEUED':
       case 'PENDING':
       case 'IN_PROGRESS':
@@ -193,7 +193,11 @@ App.upgradeWizardView = Em.View.extend({
         labelKey = 'admin.stackUpgrade.state.completed';
         break;
       case 'ABORTED':
-        labelKey = 'admin.stackUpgrade.state.aborted';
+        if (this.get('controller.isSuspended')) {
+          labelKey = 'admin.stackUpgrade.state.paused';
+        } else {
+          labelKey = 'admin.stackUpgrade.state.aborted';
+        }
         break;
       case 'TIMEDOUT':
       case 'FAILED':
@@ -209,7 +213,7 @@ App.upgradeWizardView = Em.View.extend({
     } else {
       return "";
     }
-  }.property('controller.upgradeData.Upgrade.request_status', 'controller.isDowngrade'),
+  }.property('App.upgradeState', 'controller.isDowngrade', 'controller.isSuspended'),
 
   /**
    * toggle details box
@@ -353,5 +357,12 @@ App.upgradeWizardView = Em.View.extend({
   complete: function (event) {
     this.get('controller').setUpgradeItemStatus(event.context, 'COMPLETED');
     this.set('isManualDone', false);
+  },
+
+  pauseUpgrade: function() {
+    if (this.get('isFinalizeItem')) {
+      this.get('controller').suspendUpgrade();
+    }
+    this.get('parentView').closeWizard();
   }
 });

@@ -399,81 +399,118 @@ describe('App', function () {
   });
 
   describe("#isAccessible()", function() {
+
+    beforeEach(function () {
+      this.mock = sinon.stub(App.router, 'get');
+    });
+    afterEach(function () {
+      this.mock.restore();
+    });
+
     it("Upgrade running, element should be blocked", function() {
       App.set('upgradeState', "IN_PROGRESS");
       App.set('isAdmin', true);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
       expect(App.isAccessible('ADMIN')).to.be.false;
     });
     it("Upgrade running, upgrade element should not be blocked", function() {
       App.set('upgradeState', "IN_PROGRESS");
       App.set('isAdmin', true);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
       expect(App.isAccessible('upgrade_ADMIN')).to.be.true;
     });
     it("Upgrade running, upgrade element should not be blocked", function() {
       App.set('upgradeState', "IN_PROGRESS");
       App.set('isAdmin', true);
       App.set('supports.opsDuringRollingUpgrade', true);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
       expect(App.isAccessible('ADMIN')).to.be.true;
       App.set('supports.opsDuringRollingUpgrade', false);
     });
     it("ADMIN type, isAdmin true", function() {
       App.set('upgradeState', "INIT");
       App.set('isAdmin', true);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
       expect(App.isAccessible('ADMIN')).to.be.true;
     });
     it("ADMIN type, isAdmin false", function() {
       App.set('upgradeState', "INIT");
       App.set('isAdmin', false);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
       expect(App.isAccessible('ADMIN')).to.be.false;
     });
     it("MANAGER type, isOperator false", function() {
       App.set('upgradeState', "INIT");
       App.set('isAdmin', true);
       App.set('isOperator', false);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
       expect(App.isAccessible('MANAGER')).to.be.true;
     });
     it("MANAGER type, isAdmin false", function() {
       App.set('upgradeState', "INIT");
       App.set('isAdmin', false);
       App.set('isOperator', true);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
       expect(App.isAccessible('MANAGER')).to.be.true;
     });
     it("MANAGER type, isAdmin and isOperator false", function() {
       App.set('upgradeState', "INIT");
       App.set('isAdmin', false);
       App.set('isOperator', false);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
       expect(App.isAccessible('MANAGER')).to.be.false;
     });
     it("OPERATOR type, isOperator false", function() {
       App.set('upgradeState', "INIT");
       App.set('isOperator', false);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
       expect(App.isAccessible('OPERATOR')).to.be.false;
     });
     it("OPERATOR type, isOperator false", function() {
       App.set('upgradeState', "INIT");
       App.set('isOperator', true);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
       expect(App.isAccessible('OPERATOR')).to.be.true;
     });
     it("ONLY_ADMIN type, isAdmin false", function() {
       App.set('upgradeState', "INIT");
       App.set('isAdmin', false);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
       expect(App.isAccessible('ONLY_ADMIN')).to.be.false;
     });
     it("ONLY_ADMIN type, isAdmin true, isOperator false", function() {
       App.set('upgradeState', "INIT");
       App.set('isAdmin', true);
       App.set('isOperator', false);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
       expect(App.isAccessible('ONLY_ADMIN')).to.be.true;
     });
     it("ONLY_ADMIN type, isAdmin true, isOperator true", function() {
       App.set('upgradeState', "INIT");
       App.set('isAdmin', true);
       App.set('isOperator', true);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
       expect(App.isAccessible('ONLY_ADMIN')).to.be.false;
     });
     it("unknown type", function() {
       App.set('upgradeState', "INIT");
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
       expect(App.isAccessible('')).to.be.false;
+    });
+    it("ONLY_ADMIN type, isAdmin true, isOperator true, isSuspended true", function() {
+      App.set('upgradeState', "ABORTED");
+      App.set('isAdmin', true);
+      App.set('isOperator', false);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(false);
+      this.mock.withArgs('mainAdminStackAndUpgradeController.isSuspended').returns(true);
+      expect(App.isAccessible('ONLY_ADMIN')).to.be.true;
+    });
+    it("ONLY_ADMIN type, isNonWizardUser true", function() {
+      App.set('upgradeState', "ABORTED");
+      App.set('isAdmin', true);
+      App.set('isOperator', false);
+      this.mock.withArgs('wizardWatcherController.isNonWizardUser').returns(true);
+      expect(App.isAccessible('ONLY_ADMIN')).to.be.false;
     });
   });
 
@@ -561,44 +598,81 @@ describe('App', function () {
     var cases = [
       {
         upgradeState: 'INIT',
+        isSuspended: false,
+        upgradeAborted: false
+      },
+      {
+        upgradeState: 'INIT',
+        isSuspended: true,
         upgradeAborted: false
       },
       {
         upgradeState: 'ABORTED',
+        isSuspended: true,
+        upgradeAborted: false
+      },
+      {
+        upgradeState: 'ABORTED',
+        isSuspended: false,
         upgradeAborted: true
       }
     ];
 
+    beforeEach(function () {
+      this.mock = sinon.stub(App.router, 'get');
+    });
+    afterEach(function () {
+      this.mock.restore();
+    });
+
     cases.forEach(function (item) {
-      it(item.upgradeState, function () {
+      it(item.upgradeState + ", " + item.isSuspended, function () {
+        this.mock.returns(item.isSuspended);
         App.set('upgradeState', item.upgradeState);
+        App.propertyDidChange('upgradeAborted');
         expect(App.get('upgradeAborted')).to.equal(item.upgradeAborted);
       });
     });
-
   });
 
   describe('#wizardIsNotFinished', function () {
 
+    beforeEach(function () {
+      this.mock = sinon.stub(App.router, 'get');
+    });
+    afterEach(function () {
+      this.mock.restore();
+    });
+
     var cases = [
       {
         upgradeState: 'INIT',
+        isSuspended: false,
         wizardIsNotFinished: false
       },
       {
         upgradeState: 'IN_PROGRESS',
+        isSuspended: false,
         wizardIsNotFinished: true
       },
       {
         upgradeState: 'HOLDING',
+        isSuspended: false,
         wizardIsNotFinished: true
       },
       {
         upgradeState: 'HOLDING_TIMEDOUT',
+        isSuspended: false,
         wizardIsNotFinished: true
       },
       {
         upgradeState: 'ABORTED',
+        isSuspended: false,
+        wizardIsNotFinished: true
+      },
+      {
+        upgradeState: 'ABORTED',
+        isSuspended: true,
         wizardIsNotFinished: true
       }
     ];
@@ -606,10 +680,10 @@ describe('App', function () {
     cases.forEach(function (item) {
       it(item.upgradeState, function () {
         App.set('upgradeState', item.upgradeState);
+        this.mock.returns(item.isSuspended);
+        App.propertyDidChange('wizardIsNotFinished');
         expect(App.get('wizardIsNotFinished')).to.equal(item.wizardIsNotFinished);
       });
     });
-
   });
-
 });

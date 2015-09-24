@@ -73,6 +73,21 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
+  describe("#requestStatus", function() {
+    it("isSuspended false", function() {
+      App.set('upgradeState', 'ABORTED');
+      controller.set('isSuspended', false);
+      controller.propertyDidChange('requestStatus');
+      expect(controller.get('requestStatus')).to.equal('ABORTED');
+    });
+    it("isSuspended true", function() {
+      App.set('upgradeState', 'ABORTED');
+      controller.set('isSuspended', true);
+      controller.propertyDidChange('requestStatus');
+      expect(controller.get('requestStatus')).to.equal('SUSPENDED');
+    });
+  });
+
   describe("#load()", function() {
     before(function(){
       sinon.stub(controller, 'loadUpgradeData').returns({
@@ -1211,4 +1226,55 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   });
 
+  describe("#suspendUpgrade()", function() {
+    beforeEach(function () {
+      sinon.stub(controller, 'abortUpgrade').returns({
+        done: function (callback) {
+          callback();
+        }
+      });
+      sinon.stub(controller, 'setDBProperty', Em.K);
+      sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
+    });
+    afterEach(function () {
+      controller.abortUpgrade.restore();
+      controller.setDBProperty.restore();
+      App.clusterStatus.setClusterStatus.restore();
+    });
+    it("", function() {
+      controller.suspendUpgrade();
+      expect(controller.abortUpgrade.calledOnce).to.be.true;
+      expect(App.get('upgradeState')).to.equal('ABORTED');
+      expect(controller.get('isSuspended')).to.be.true;
+      expect(controller.setDBProperty.calledWith('upgradeState', 'ABORTED')).to.be.true;
+      expect(controller.setDBProperty.calledWith('isSuspended', true)).to.be.true;
+      expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#resumeUpgrade()", function() {
+    beforeEach(function () {
+      sinon.stub(controller, 'retryUpgrade').returns({
+        done: function (callback) {
+          callback();
+        }
+      });
+      sinon.stub(controller, 'setDBProperty', Em.K);
+      sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
+    });
+    afterEach(function () {
+      controller.retryUpgrade.restore();
+      controller.setDBProperty.restore();
+      App.clusterStatus.setClusterStatus.restore();
+    });
+    it("", function() {
+      controller.resumeUpgrade();
+      expect(controller.retryUpgrade.calledOnce).to.be.true;
+      expect(App.get('upgradeState')).to.equal('PENDING');
+      expect(controller.get('isSuspended')).to.be.false;
+      expect(controller.setDBProperty.calledWith('upgradeState', 'PENDING')).to.be.true;
+      expect(controller.setDBProperty.calledWith('isSuspended', false)).to.be.true;
+      expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
+    });
+  });
 });
