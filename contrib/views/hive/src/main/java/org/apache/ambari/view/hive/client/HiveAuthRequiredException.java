@@ -16,19 +16,12 @@
  * limitations under the License.
  */
 
-import Ember from 'ember';
+package org.apache.ambari.view.hive.client;
 
-export default Ember.Controller.extend({
-  actions: {
-    save: function () {
-      this.send('closeModal');
-      this.defer.resolve(this.get('text'));
-      this.defer.resolve(this.get('type'));
-    },
+import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 
-    close: function () {
-      this.send('closeModal');
-      this.defer.reject();
-    }
+public class HiveAuthRequiredException extends ServiceFormattedException {
+  public HiveAuthRequiredException() {
+    super("Hive Password Required", null, 401);
   }
-});
+}

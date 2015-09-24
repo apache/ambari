@@ -18,7 +18,14 @@
 
 package org.apache.ambari.view.hive.client;
 
+public class HiveAuthCredentials {
+  private String password;
 
-public interface IConnectionFactory {
-  Connection getHiveConnection();
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
 }

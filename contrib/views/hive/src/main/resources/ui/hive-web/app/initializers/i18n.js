@@ -98,6 +98,9 @@ TRANSLATIONS = {
 
     changeTitle: {
       heading: 'Rename worksheet'
+    },
+    authenticationLDAP: {
+       heading: 'Enter the LDAP password'
     }
   },
 

@@ -39,6 +39,7 @@ export default Ember.Route.extend({
         message: options.message,
         heading: options.heading,
         text: options.text,
+        type: options.type || "text",
         defer: options.defer
       });
 

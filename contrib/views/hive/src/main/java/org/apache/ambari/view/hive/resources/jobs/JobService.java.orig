@@ -21,7 +21,9 @@ package org.apache.ambari.view.hive.resources.jobs;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.hive.BaseService;
 import org.apache.ambari.view.hive.backgroundjobs.BackgroundJobController;
-import org.apache.ambari.view.hive.client.*;
+import org.apache.ambari.view.hive.client.Connection;
+import org.apache.ambari.view.hive.client.Cursor;
+import org.apache.ambari.view.hive.client.HiveClientException;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.IATSParser;
 import org.apache.ambari.view.hive.resources.jobs.viewJobs.*;
@@ -58,10 +60,8 @@ public class JobService extends BaseService {
   @Inject
   ViewResourceHandler handler;
 
-  private JobResourceManager resourceManager;
+  protected JobResourceManager resourceManager;
   private IOperationHandleResourceManager opHandleResourceManager;
-  private UserLocalConnection connectionLocal = new UserLocalConnection();
-
   protected final static Logger LOG =
       LoggerFactory.getLogger(JobService.class);
   private Aggregator aggregator;
@@ -422,53 +422,13 @@ public class JobService extends BaseService {
   }
 
   /**
-   * Set password and connect to Hive
-   */
-  @POST
-  @Path("auth")
-  @Consumes(MediaType.APPLICATION_JSON)
-  public Response setupPassword(AuthRequest request) {
-    try {
-      HiveAuthCredentials authCredentials = new HiveAuthCredentials();
-      authCredentials.setPassword(request.password);
-      new UserLocalHiveAuthCredentials().set(authCredentials, context);
-
-      connectionLocal.remove(context);  // force reconnect on next get
-      connectionLocal.get(context);
-      return Response.ok().status(200).build();
-    } catch (WebApplicationException ex) {
-      throw ex;
-    } catch (Exception ex) {
-      throw new ServiceFormattedException(ex.getMessage(), ex);
-    }
-  }
-
-  /**
-   * Remove connection credentials
-   */
-  @DELETE
-  @Path("auth")
-  public Response removePassword() {
-    try {
-      new UserLocalHiveAuthCredentials().remove(context);
-      connectionLocal.remove(context);  // force reconnect on next get
-      return Response.ok().status(200).build();
-    } catch (WebApplicationException ex) {
-      throw ex;
-    } catch (Exception ex) {
-      throw new ServiceFormattedException(ex.getMessage(), ex);
-    }
-  }
-
-
-  /**
    * Invalidate session
    */
   @DELETE
   @Path("sessions/{sessionTag}")
   public Response invalidateSession(@PathParam("sessionTag") String sessionTag) {
     try {
-      Connection connection = connectionLocal.get(context);
+      Connection connection = getSharedObjectsFactory().getHiveConnection();
       connection.invalidateSessionByTag(sessionTag);
       return Response.ok().build();
     } catch (WebApplicationException ex) {
@@ -486,7 +446,7 @@ public class JobService extends BaseService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response sessionStatus(@PathParam("sessionTag") String sessionTag) {
     try {
-      Connection connection = connectionLocal.get(context);
+      Connection connection = getSharedObjectsFactory().getHiveConnection();
 
       JSONObject session = new JSONObject();
       session.put("sessionTag", sessionTag);
@@ -512,12 +472,5 @@ public class JobService extends BaseService {
    */
   public static class JobRequest {
     public JobImpl job;
-  }
-
-  /**
-   * Wrapper for authentication json mapping
-   */
-  public static class AuthRequest {
-    public String password;
   }
 }

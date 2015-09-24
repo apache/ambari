@@ -58,7 +58,6 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
    * Warning: Create JobControllers ONLY using JobControllerFactory!
    */
   public JobControllerImpl(ViewContext context, Job job,
-                           ConnectionController hiveConnection,
                            OperationHandleControllerFactory opHandleControllerFactory,
                            SavedQueryResourceManager savedQueryResourceManager,
                            IATSParser atsParser,
@@ -66,10 +65,12 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
     this.context = context;
     setJobPOJO(job);
     this.opHandleControllerFactory = opHandleControllerFactory;
-    this.hiveConnection = hiveConnection;
     this.savedQueryResourceManager = savedQueryResourceManager;
     this.atsParser = atsParser;
     this.hdfsApi = hdfsApi;
+
+    UserLocalConnection connectionLocal = new UserLocalConnection();
+    this.hiveConnection = new ConnectionController(opHandleControllerFactory, connectionLocal.get(context));
   }
 
   public String getQueryForJob() {

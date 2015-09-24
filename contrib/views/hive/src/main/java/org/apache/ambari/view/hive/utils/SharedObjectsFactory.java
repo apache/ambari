@@ -20,12 +20,9 @@ package org.apache.ambari.view.hive.utils;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive.client.Connection;
-import org.apache.ambari.view.hive.client.ConnectionFactory;
-import org.apache.ambari.view.hive.client.IConnectionFactory;
 import org.apache.ambari.view.hive.persistence.IStorageFactory;
 import org.apache.ambari.view.hive.persistence.Storage;
 import org.apache.ambari.view.hive.persistence.utils.StorageFactory;
-import org.apache.ambari.view.hive.resources.jobs.ConnectionController;
 import org.apache.ambari.view.hive.resources.jobs.OperationHandleControllerFactory;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.ATSParser;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.ATSParserFactory;
@@ -48,12 +45,11 @@ import java.util.Map;
  * e.g. user 'admin' using view instance 'HIVE1' will use one connection, another user
  * will use different connection.
  */
-public class SharedObjectsFactory implements IStorageFactory, IConnectionFactory {
+public class SharedObjectsFactory implements IStorageFactory {
   protected final static Logger LOG =
       LoggerFactory.getLogger(SharedObjectsFactory.class);
 
   private ViewContext context;
-  private final IConnectionFactory hiveConnectionFactory;
   private final IStorageFactory storageFactory;
   private final ATSParserFactory atsParserFactory;
   private final RMParserFactory rmParserFactory;
@@ -62,14 +58,12 @@ public class SharedObjectsFactory implements IStorageFactory, IConnectionFactory
 
   public SharedObjectsFactory(ViewContext context) {
     this.context = context;
-    this.hiveConnectionFactory = new ConnectionFactory(context);
     this.storageFactory = new StorageFactory(context);
     this.atsParserFactory = new ATSParserFactory(context);
     this.rmParserFactory = new RMParserFactory(context);
 
     synchronized (localObjects) {
       if (localObjects.size() == 0) {
-        localObjects.put(Connection.class, new HashMap<String, Object>());
         localObjects.put(OperationHandleControllerFactory.class, new HashMap<String, Object>());
         localObjects.put(Storage.class, new HashMap<String, Object>());
         localObjects.put(IJobControllerFactory.class, new HashMap<String, Object>());
@@ -81,28 +75,11 @@ public class SharedObjectsFactory implements IStorageFactory, IConnectionFactory
     }
   }
 
-  /**
-   * Returns Connection object specific to unique tag
-   * @return Hdfs business delegate object
-   */
-  @Override
-  public Connection getHiveConnection() {
-    if (!localObjects.get(Connection.class).containsKey(getTagName())) {
-      Connection newConnection = hiveConnectionFactory.getHiveConnection();
-      localObjects.get(Connection.class).put(getTagName(), newConnection);
-    }
-    return (Connection) localObjects.get(Connection.class).get(getTagName());
-  }
-
-  public ConnectionController getHiveConnectionController() {
-    return new ConnectionController(getOperationHandleControllerFactory(), getHiveConnection());
-  }
-
   // =============================
 
   public OperationHandleControllerFactory getOperationHandleControllerFactory() {
     if (!localObjects.get(OperationHandleControllerFactory.class).containsKey(getTagName()))
-      localObjects.get(OperationHandleControllerFactory.class).put(getTagName(), new OperationHandleControllerFactory(this));
+      localObjects.get(OperationHandleControllerFactory.class).put(getTagName(), new OperationHandleControllerFactory(context, this));
     return (OperationHandleControllerFactory) localObjects.get(OperationHandleControllerFactory.class).get(getTagName());
   }
 
