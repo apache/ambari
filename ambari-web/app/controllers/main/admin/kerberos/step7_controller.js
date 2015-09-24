@@ -113,10 +113,11 @@ App.KerberosWizardStep7Controller = App.KerberosProgressPageController.extend({
 
   retry: function () {
     this.set('showRetry', false);
+    this.removeObserver('tasks.@each.status', this, 'onTaskStatusChange');
+    this.set('status', 'IN_PROGRESS');
     this.get('tasks').setEach('status', 'PENDING');
-    App.router.send('retry');
+    this.setRequest(true);
   },
-
 
   /**
    * Enable or disable previous steps according to tasks statuses
