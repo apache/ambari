@@ -18,6 +18,7 @@ limitations under the License.
 
 """
 
+import os
 import sys
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
@@ -27,6 +28,7 @@ from resource_management.libraries.functions.get_hdp_version import get_hdp_vers
 from resource_management.libraries.script.script import Script
 from resource_management.core.shell import call
 from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version_select_util import get_versions_from_stack_root
 
 # hdp-select set oozie-server 2.2.0.0-1234
 TEMPLATE = ('hdp-select', 'set')
@@ -239,12 +241,19 @@ def _get_upgrade_stack():
   return None
 
 
-def get_hdp_versions():
+def get_hdp_versions(stack_root):
+  """
+  Gets list of stack versions installed on the host.
+  Be default a call to hdp-select versions is made to get the list of installed stack versions.
+  As a fallback list of installed versions is collected from stack version directories in stack install root.
+  :param stack_root: Stack install root
+  :return: Returns list of installed stack versions.
+  """
   code, out = call("hdp-select versions")
+  versions = []
   if 0 == code:
-    versions = []
     for line in out.splitlines():
       versions.append(line.rstrip('\n'))
-    return versions
-  else:
-    return []
+  if not versions:
+    versions = get_versions_from_stack_root(stack_root)
+  return versions

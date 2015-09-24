@@ -66,7 +66,10 @@ class TestInstallPackages(RMFTestCase):
                             read_actual_version_from_history_file_mock,
                             hdp_versions_mock,
                             put_structured_out_mock, allInstalledPackages_mock, list_ambari_managed_repos_mock):
-    read_actual_version_from_history_file_mock.return_value = VERSION_STUB
+    hdp_versions_mock.side_effect = [
+      [],  # before installation attempt
+      [VERSION_STUB]
+    ]
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
     list_ambari_managed_repos_mock.return_value=[]
     self.executeScript("scripts/install_packages.py",
@@ -121,7 +124,10 @@ class TestInstallPackages(RMFTestCase):
                             read_actual_version_from_history_file_mock,
                             hdp_versions_mock, put_structured_out_mock, allInstalledPackages_mock, list_ambari_managed_repos_mock, is_suse_family_mock):
     is_suse_family_mock = True
-    read_actual_version_from_history_file_mock.return_value = VERSION_STUB
+    hdp_versions_mock.side_effect = [
+      [],  # before installation attempt
+      [VERSION_STUB]
+    ]
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
     list_ambari_managed_repos_mock.return_value=[]
     self.executeScript("scripts/install_packages.py",
@@ -178,7 +184,10 @@ class TestInstallPackages(RMFTestCase):
                                  hdp_versions_mock,
                                  allInstalledPackages_mock, put_structured_out_mock,
                                  is_redhat_family_mock, list_ambari_managed_repos_mock):
-    read_actual_version_from_history_file_mock.return_value = VERSION_STUB
+    hdp_versions_mock.side_effect = [
+      [],  # before installation attempt
+      [VERSION_STUB]
+    ]
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
     list_ambari_managed_repos_mock.return_value=["HDP-UTILS-2.2.0.1-885"]
     is_redhat_family_mock.return_value = True
@@ -269,7 +278,6 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out_mock.called)
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'stack_id': 'HDP-2.2',
-                      'actual_version': VERSION_STUB,
                       'installed_repository_version': VERSION_STUB,
                       'ambari_repositories': [],
                       'package_installation_result': 'FAIL'})
@@ -308,6 +316,10 @@ class TestInstallPackages(RMFTestCase):
                                hdp_versions_mock,
                                allInstalledPackages_mock, put_structured_out_mock,
                                package_mock, is_suse_family_mock):
+    hdp_versions_mock.side_effect = [
+      [],  # before installation attempt
+      [VERSION_STUB]
+    ]
     read_actual_version_from_history_file_mock.return_value = VERSION_STUB
     allInstalledPackages_mock = MagicMock(side_effect = TestInstallPackages._add_packages)
     is_suse_family_mock.return_value = True

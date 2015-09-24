@@ -99,19 +99,22 @@ public class DistributeRepositoriesActionListener {
     String repositoryVersion = null;
 
     if (event.getCommandReport() == null) {
-      LOG.error("Command report is null, will set all INSTALLING versions for host {} to INSTALL_FAILED.", event.getHostname());
+      LOG.error(
+          "Command report is null, will set all INSTALLING versions for host {} to INSTALL_FAILED.",
+          event.getHostname());
+    } else if (!event.getCommandReport().getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
+      LOG.warn(
+          "Distribute repositories did not complete, will set all INSTALLING versions for host {} to INSTALL_FAILED.",
+          event.getHostname());
     } else {
       // Parse structured output
       try {
+        newHostState = RepositoryVersionState.INSTALLED;
         DistributeRepositoriesStructuredOutput structuredOutput = StageUtils.getGson().fromJson(
                 event.getCommandReport().getStructuredOut(),
                 DistributeRepositoriesStructuredOutput.class);
 
         repositoryVersion = structuredOutput.getInstalledRepositoryVersion();
-
-        if (event.getCommandReport().getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
-          newHostState = RepositoryVersionState.INSTALLED;
-        }
 
         // Handle the case in which the version to install did not contain the build number,
         // but the structured output does contain the build number.
