@@ -1077,7 +1077,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   }.property(),
 
   dbType: function() {
-    var databaseTypes = /MySQL|PostgreS|Oracle|Derby|MSSQL/gi;
+    var databaseTypes = /MySQL|PostgreS|Oracle|Derby|MSSQL|Anywhere/gi;
     var databaseProp = this.get('content.serviceProperties')[this.get('dbProperty')];
 
     return databaseProp.match(databaseTypes)[0];
