@@ -143,6 +143,7 @@ App.Decommissionable = Em.Mixin.create({
    * Get desired_admin_state status from server
    */
   getDesiredAdminState: function () {
+    if (Em.isNone(this.get('content'))) return null;
     return App.ajax.send({
       name: 'host.host_component.slave_desired_admin_state',
       sender: this,
