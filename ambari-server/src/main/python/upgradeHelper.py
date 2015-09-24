@@ -207,6 +207,7 @@ class Options(Const):
   REPLACE_JH_HOST_NAME_TAG = "REPLACE_JH_HOST"
   REPLACE_RM_HOST_NAME_TAG = "REPLACE_RM_HOST"
   REPLACE_WITH_TAG = "REPLACE_WITH_"
+  PHOENIX_QUERY_SERVER = "PHOENIX_QUERY_SERVER"
   ZK_OPTIONS = "zoo.cfg"
   KAFKA_BROKER_CONF = "kafka-broker"
   RANGER_ADMIN = "admin-properties"
@@ -1396,8 +1397,6 @@ def get_tez_history_url_base():
     raise TemplateProcessingException(str(e))
 
   version = ""
-
-
   if "versions" in tez_view and \
     len(tez_view['versions']) > 0 and \
     "ViewVersionInfo" in tez_view['versions'][0] and \
@@ -1418,6 +1417,24 @@ def get_kafka_listeners():
   kafka_listeners = "PLAINTEXT://{0}:{1}".format(kafka_host, kafka_port)
 
   return kafka_listeners
+
+
+def check_phoenix_component_existence():
+  try:
+    resultset = curl(Options.COMPONENTS_FORMAT.format(Options.PHOENIX_QUERY_SERVER), validate=False, parse=True)
+  except HTTPError as e:
+    raise TemplateProcessingException(str(e))
+
+  if "ServiceComponentInfo" in resultset and "total_count" in resultset["ServiceComponentInfo"]:
+    try:
+      component_count = int(resultset["ServiceComponentInfo"]["total_count"])
+      if component_count > 0:
+        return True
+    except ValueError:
+      return False
+
+  return False
+
 
 def get_ranger_xaaudit_hdfs_destination_directory():
   namenode_hostname="localhost"
@@ -1606,6 +1623,11 @@ def get_hbase_coprocessmaster_classes():
 
   return old_value
 
+def get_rpc_scheduler_factory_class():
+  if check_phoenix_component_existence():
+    return "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory"
+  else:
+    return ""
 
 def get_hbase_coprocessor_region_classes():
   scf = Options.server_config_factory
@@ -1644,6 +1666,8 @@ def _substitute_handler(upgrade_catalog, tokens, value):
       value = value.replace(token, get_jh_host(upgrade_catalog))
     elif token == "{RESOURCEMANAGER_HOST}":
       value = value.replace(token, get_jt_host(upgrade_catalog))
+    elif token == "{HBASE_REGION_SERVER_RPC_SCHEDULER_FACTORY_CLASS}":
+      value = value.replace(token, get_rpc_scheduler_factory_class())
     elif token == "{ZOOKEEPER_QUORUM}":
       value = value.replace(token, get_zookeeper_quorum())
     elif token == "{HBASE_COPROCESS_MASTER_CLASSES}":
@@ -1933,8 +1957,12 @@ def curl(url, tokens=None, headers=None, request_type="GET", data=None, parse=Fa
     if write_only_print:
       if request_type in post_req:
         Options.logger.info(url)
+        if data is not None:
+          Options.logger.info("POST Data: \n" + str(data))
     else:
       Options.logger.info(url)
+      if request_type in post_req and data is not None:
+        Options.logger.info("POST Data: \n" + str(data))
 
   code = 200
   if not (print_url and request_type in post_req):
