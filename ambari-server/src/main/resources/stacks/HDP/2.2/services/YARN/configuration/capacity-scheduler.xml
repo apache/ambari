@@ -41,16 +41,6 @@
     <description></description>
   </property>
   <property>
-    <name>yarn.scheduler.capacity.root.accessible-node-labels.default.capacity</name>
-    <value>-1</value>
-    <description></description>
-  </property>
-  <property>
-    <name>yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity</name>
-    <value>-1</value>
-    <description></description>
-  </property>
-  <property>
     <name>yarn.scheduler.capacity.root.default-node-label-expression</name>
     <value> </value>
     <description></description>

@@ -79,8 +79,8 @@
         "capacity-scheduler": {
           "yarn.scheduler.capacity.resource-calculator": "org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator",
           "yarn.scheduler.capacity.root.accessible-node-labels": "*",
-          "yarn.scheduler.capacity.root.accessible-node-labels.default.capacity": "-1",
-          "yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity": "-1",
+          "yarn.scheduler.capacity.root.accessible-node-labels.default.capacity": {"remove": "yes"},
+          "yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity": {"remove": "yes"},
           "yarn.scheduler.capacity.root.default-node-label-expression": " "
         },
 		"cluster-env": {
