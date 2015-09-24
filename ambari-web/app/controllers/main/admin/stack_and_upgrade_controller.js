@@ -75,7 +75,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   /**
    * properties that stored to localStorage to resume wizard progress
    */
-  wizardStorageProperties: ['upgradeId', 'upgradeVersion', 'currentVersion', 'isDowngrade'],
+  wizardStorageProperties: ['upgradeId', 'upgradeVersion', 'currentVersion', 'isDowngrade', 'isSuspended'],
 
   /**
    * mutable properties of Upgrade Task
@@ -152,6 +152,18 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @type {Array}
    */
   nonActiveStates: ['PENDING', 'ABORTED'],
+
+  /**
+   * status of Upgrade request
+   * @type {string}
+   */
+  requestStatus: function () {
+    if (this.get('isSuspended')) {
+      return 'SUSPENDED';
+    } else {
+      return App.get('upgradeState');
+    }
+  }.property('isSuspended', 'App.upgradeState'),
 
   init: function () {
     this.initDBProperties();
@@ -987,5 +999,40 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
   loadRepositoriesErrorCallback: function (request, ajaxOptions, error) {
     console.log('Error message is: ' + request.responseText);
+  },
+
+  /**
+   * @returns {$.ajax}
+   */
+  suspendUpgrade: function () {
+    var self = this;
+    return this.abortUpgrade().done(function () {
+      App.set('upgradeState', 'ABORTED');
+      self.set('isSuspended', true);
+      self.setDBProperty('upgradeState', 'ABORTED');
+      self.setDBProperty('isSuspended', true);
+      App.clusterStatus.setClusterStatus({
+        wizardControllerName: self.get('name'),
+        localdb: App.db.data
+      });
+    });
+  },
+
+  /**
+   * @returns {$.ajax}
+   */
+  resumeUpgrade: function() {
+    var self = this;
+    this.retryUpgrade().done(function () {
+      App.set('upgradeState', 'PENDING');
+      App.propertyDidChange('upgradeAborted');
+      self.set('isSuspended', false);
+      self.setDBProperty('upgradeState', 'PENDING');
+      self.setDBProperty('isSuspended', false);
+      App.clusterStatus.setClusterStatus({
+        wizardControllerName: self.get('name'),
+        localdb: App.db.data
+      });
+    });
   }
 });

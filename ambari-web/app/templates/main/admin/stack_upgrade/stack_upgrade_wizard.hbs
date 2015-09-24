@@ -18,12 +18,12 @@
 
 <div id="stack-upgrade-dialog">
   <div {{bindAttr class="view.isLoaded::hidden :row-fluid"}}>
-    <div class="span3 task-list-main-warp">{{statusIcon controller.upgradeData.Upgrade.request_status}}
+    <div class="span3 task-list-main-warp">{{statusIcon controller.requestStatus}}
       &nbsp;{{view.upgradeStatusLabel}}</div>
     <div class="span8">
       {{view App.ProgressBarView
         progressBinding="view.overallProgress"
-        statusBinding="controller.upgradeData.Upgrade.request_status"
+        statusBinding="controller.requestStatus"
       }}
     </div>
     <div class="span1">
@@ -115,7 +115,7 @@
                 {{#if view.isDowngradeAvailable}}
                   <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
                 {{/if}}
-                <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.finalize.later}}</button>
+                <button class="btn" {{action pauseUpgrade target="view"}}>{{t admin.stackUpgrade.finalize.later}}</button>
                 <button class="btn btn-success" {{bindAttr disabled="view.isManualProceedDisabled"}} {{action complete view.manualItem target="view"}}>
                   {{t common.finalize}}
                 </button>
@@ -153,30 +153,43 @@
             </div>
           </div>
         {{/if}}
-        {{#if App.upgradeAborted}}
-          {{#unless requestInProgress}}
-            <div class="box details-box">
-              <label class="message">
-                {{#if view.isDowngradeAvailable}}
-                  {{t admin.stackUpgrade.dialog.aborted}}
-                {{else}}
-                  {{t admin.stackUpgrade.dialog.downgrade.aborted}}
-                {{/if}}
-              </label>
-              <div class="button-row">
-                {{#if view.isDowngradeAvailable}}
-                  <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
-                {{/if}}
-                <button class="btn btn-success" {{action retryUpgrade target="controller"}}>
-                  {{#if view.isDowngradeAvailable}}
-                    {{t common.reUpgrade}}
-                  {{else}}
-                    {{t common.reDowngrade}}
-                  {{/if}}
-                </button>
-              </div>
+        {{#if isSuspended}}
+          <div class="box details-box">
+            <label class="message">
+              {{t admin.stackUpgrade.dialog.suspended}}
+            </label>
+            <div class="button-row">
+              <button class="btn btn-primary" {{action resumeUpgrade target="controller"}}>
+                {{t admin.stackUpgrade.dialog.resume}}
+              </button>
             </div>
-          {{/unless}}
+          </div>
+        {{else}}
+          {{#if App.upgradeAborted}}
+            {{#unless requestInProgress}}
+              <div class="box details-box">
+                <label class="message">
+                    {{#if view.isDowngradeAvailable}}
+                      {{t admin.stackUpgrade.dialog.aborted}}
+                    {{else}}
+                      {{t admin.stackUpgrade.dialog.downgrade.aborted}}
+                    {{/if}}
+                </label>
+                <div class="button-row">
+                    {{#if view.isDowngradeAvailable}}
+                  <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
+                    {{/if}}
+                    <button class="btn btn-success" {{action retryUpgrade target="controller"}}>
+                      {{#if view.isDowngradeAvailable}}
+                        {{t common.reUpgrade}}
+                      {{else}}
+                        {{t common.reDowngrade}}
+                      {{/if}}
+                    </button>
+                </div>
+              </div>
+            {{/unless}}
+          {{/if}}
         {{/if}}
       </div>
       {{#each group in view.upgradeGroups}}

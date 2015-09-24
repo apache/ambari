@@ -399,6 +399,14 @@ describe('App', function () {
   });
 
   describe("#isAccessible()", function() {
+
+    beforeEach(function () {
+      this.mock = sinon.stub(App.router, 'get');
+    });
+    afterEach(function () {
+      this.mock.restore();
+    });
+
     it("Upgrade running, element should be blocked", function() {
       App.set('upgradeState', "IN_PROGRESS");
       App.set('isAdmin', true);
@@ -474,6 +482,13 @@ describe('App', function () {
     it("unknown type", function() {
       App.set('upgradeState', "INIT");
       expect(App.isAccessible('')).to.be.false;
+    });
+    it("ONLY_ADMIN type, isAdmin true, isOperator true, isSuspended true", function() {
+      App.set('upgradeState', "ABORTED");
+      App.set('isAdmin', true);
+      App.set('isOperator', false);
+      this.mock.returns(true);
+      expect(App.isAccessible('ONLY_ADMIN')).to.be.true;
     });
   });
 
@@ -561,44 +576,81 @@ describe('App', function () {
     var cases = [
       {
         upgradeState: 'INIT',
+        isSuspended: false,
+        upgradeAborted: false
+      },
+      {
+        upgradeState: 'INIT',
+        isSuspended: true,
         upgradeAborted: false
       },
       {
         upgradeState: 'ABORTED',
+        isSuspended: true,
+        upgradeAborted: false
+      },
+      {
+        upgradeState: 'ABORTED',
+        isSuspended: false,
         upgradeAborted: true
       }
     ];
 
+    beforeEach(function () {
+      this.mock = sinon.stub(App.router, 'get');
+    });
+    afterEach(function () {
+      this.mock.restore();
+    });
+
     cases.forEach(function (item) {
-      it(item.upgradeState, function () {
+      it(item.upgradeState + ", " + item.isSuspended, function () {
+        this.mock.returns(item.isSuspended);
         App.set('upgradeState', item.upgradeState);
+        App.propertyDidChange('upgradeAborted');
         expect(App.get('upgradeAborted')).to.equal(item.upgradeAborted);
       });
     });
-
   });
 
   describe('#upgradeIsNotFinished', function () {
 
+    beforeEach(function () {
+      this.mock = sinon.stub(App.router, 'get');
+    });
+    afterEach(function () {
+      this.mock.restore();
+    });
+
     var cases = [
       {
         upgradeState: 'INIT',
+        isSuspended: false,
         upgradeIsNotFinished: false
       },
       {
         upgradeState: 'IN_PROGRESS',
+        isSuspended: false,
         upgradeIsNotFinished: true
       },
       {
         upgradeState: 'HOLDING',
+        isSuspended: false,
         upgradeIsNotFinished: true
       },
       {
         upgradeState: 'HOLDING_TIMEDOUT',
+        isSuspended: false,
         upgradeIsNotFinished: true
       },
       {
         upgradeState: 'ABORTED',
+        isSuspended: false,
+        upgradeIsNotFinished: true
+      },
+      {
+        upgradeState: 'ABORTED',
+        isSuspended: true,
         upgradeIsNotFinished: true
       }
     ];
@@ -606,10 +658,10 @@ describe('App', function () {
     cases.forEach(function (item) {
       it(item.upgradeState, function () {
         App.set('upgradeState', item.upgradeState);
+        this.mock.returns(item.isSuspended);
+        App.propertyDidChange('upgradeIsNotFinished');
         expect(App.get('upgradeIsNotFinished')).to.equal(item.upgradeIsNotFinished);
       });
     });
-
   });
-
 });

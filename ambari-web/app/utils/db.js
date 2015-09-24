@@ -36,7 +36,6 @@ var InitialData =  {
   'AddService' : {},
   'WidgetWizard' : {},
   'KerberosWizard': {},
-  'StackUpgrade' : {},
   'ReassignMaster' : {},
   'AddSecurity': {},
   'AddAlertDefinition': {

@@ -814,6 +814,7 @@ App.registerBoundHelper('statusIcon', Em.View.extend({
     'QUEUED': 'icon-cog queued',
     'IN_PROGRESS': 'icon-cogs in_progress',
     'HOLDING': 'icon-pause',
+    'SUSPENDED': 'icon-pause',
     'ABORTED': 'icon-minus aborted',
     'TIMEDOUT': 'icon-time timedout',
     'HOLDING_TIMEDOUT': 'icon-time timedout',
