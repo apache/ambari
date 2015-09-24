@@ -182,15 +182,17 @@ App.hostsMapper = App.QuickDataMapper.create({
 
 
       for (var k = 0; k < advancedHostComponents.length; k++) {
-        var id = advancedHostComponents[k];
-        if (componentsIdMap[id]) componentsIdMap[id].display_name_advanced = App.HostComponent.find(id).get('displayNameAdvanced');
-      };
+        var key = advancedHostComponents[k];
+        if (componentsIdMap[key]) componentsIdMap[key].display_name_advanced = App.HostComponent.find(key).get('displayNameAdvanced');
+      }
+
       App.store.commit();
       if (stackUpgradeSupport) {
         App.store.loadMany(App.HostStackVersion, stackVersions);
       }
       App.store.loadMany(App.HostComponent, components);
-      if (App.router.get('currentState.parentState.name') != 'hostDetails') {
+      //"itemTotal" present only for Hosts page request
+      if (!Em.isNone(json.itemTotal)) {
         App.Host.find().clear();
       }
       App.store.loadMany(App.Host, hostsWithFullInfo);

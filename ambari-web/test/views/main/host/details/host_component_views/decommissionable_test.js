@@ -220,4 +220,38 @@ describe('App.Decommissionable', function() {
 
   });
 
+  describe("#getDesiredAdminState()", function() {
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+    });
+    afterEach(function () {
+      App.ajax.send.restore();
+    });
+    it("content is null", function() {
+      hostComponentView = Em.View.create(App.Decommissionable, {
+        content: null
+      });
+      hostComponentView.getDesiredAdminState();
+      expect(App.ajax.send.called).to.be.false;
+    });
+    it("content is correct", function() {
+      hostComponentView = Em.View.create(App.Decommissionable, {
+        content: Em.Object.create({
+          hostName: 'host1',
+          componentName: 'C1'
+        })
+      });
+      hostComponentView.getDesiredAdminState();
+      expect(App.ajax.send.calledWith({
+        name: 'host.host_component.slave_desired_admin_state',
+        sender: hostComponentView,
+        data: {
+          hostName: 'host1',
+          componentName: 'C1'
+        },
+        success: 'getDesiredAdminStateSuccessCallback',
+        error: 'getDesiredAdminStateErrorCallback'
+      })).to.be.true;
+    });
+  });
 });
