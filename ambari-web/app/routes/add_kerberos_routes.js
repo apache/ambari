@@ -347,9 +347,6 @@ module.exports = App.WizardRoute.extend({
         controller.connectOutlet('kerberosWizardStep7', controller.get('content'));
       });
     },
-    retry: function (router) {
-      router.get('kerberosWizardStep7Controller').setRequest(true);
-    },
     unroutePath: function () {
       return false;
     },
