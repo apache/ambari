@@ -261,7 +261,7 @@ App.MainServiceItemController = Em.Controller.extend({
     if (!lastCheckpointTime) {
       this.set("isNNCheckpointTooOld", null);
     } else {
-      var time_criteria = 12; // time in hours to define how many hours ago is too old
+      var time_criteria = App.nnCheckpointAgeAlertThreshold; // time in hours to define how many hours ago is too old
       var time_ago = (Math.round(App.dateTime() / 1000) - (time_criteria * 3600)) *1000;
       if (lastCheckpointTime <= time_ago) {
         // too old, set the effected hostName
