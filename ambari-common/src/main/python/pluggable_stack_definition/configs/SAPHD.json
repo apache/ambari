@@ -34,7 +34,7 @@
               "name": "hive-env",
               "properties": {
                 "hive_database_type": "sqlanywhere",
-                "hive_database": "Existing SQLA Database"
+                "hive_database": "Existing SQL Anywhere Database"
               }
             },
             {
@@ -57,7 +57,7 @@
             {
               "name": "oozie-env",
               "properties": {
-                "oozie_database": "Existing SQLA Database"
+                "oozie_database": "Existing SQL Anywhere Database"
               }
             },
             {
