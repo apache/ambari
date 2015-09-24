@@ -61,7 +61,7 @@ fi
 
 export METASTORE_PORT={{hive_metastore_port}}
 
-{% if lib_dir_available %}
+{% if sqla_db_used or lib_dir_available %}
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:{{jdbc_libs_dir}}"
 export JAVA_LIBRARY_PATH="$JAVA_LIBRARY_PATH:{{jdbc_libs_dir}}"
 {% endif %}
