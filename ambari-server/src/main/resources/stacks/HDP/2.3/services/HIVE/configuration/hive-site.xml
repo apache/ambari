@@ -31,7 +31,7 @@ limitations under the License.
 
   <property>
     <name>datanucleus.rdbms.datastoreAdapterClassName</name>
-    <description>Datanucleus Class, This property used only when hive db is SQLA</description>
+    <description>Datanucleus Class, This property used only when hive db is SQL Anywhere</description>
     <depends-on>
       <property>
         <type>hive-env</type>

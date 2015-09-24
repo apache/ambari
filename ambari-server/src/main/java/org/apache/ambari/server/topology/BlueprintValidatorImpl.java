@@ -103,10 +103,10 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         if (component.equals("HIVE_METASTORE")) {
           Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
           if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") !=null
-                  && hiveEnvConfig.get("hive_database").equals("Existing SQLA Database")
+                  && hiveEnvConfig.get("hive_database").equals("Existing SQL Anywhere Database")
                   && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
                   && stack.getName().equalsIgnoreCase("HDP")) {
-            throw new InvalidTopologyException("Incorrect configuration: SQLA db is available only for stack HDP-2.3+ " +
+            throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
                     "and repo version 2.3.2+!");
           }
         }
@@ -114,10 +114,10 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         if (component.equals("OOZIE_SERVER")) {
           Map<String, String> oozieEnvConfig = clusterConfigurations.get("oozie-env");
           if (oozieEnvConfig != null && !oozieEnvConfig.isEmpty() && oozieEnvConfig.get("oozie_database") !=null
-                  && oozieEnvConfig.get("oozie_database").equals("Existing SQLA Database")
+                  && oozieEnvConfig.get("oozie_database").equals("Existing SQL Anywhere Database")
                   && VersionUtils.compareVersions(stack.getVersion(), "2.3.0.0") < 0
                   && stack.getName().equalsIgnoreCase("HDP")) {
-            throw new InvalidTopologyException("Incorrect configuration: SQLA db is available only for stack HDP-2.3+ " +
+            throw new InvalidTopologyException("Incorrect configuration: SQL Anywhere db is available only for stack HDP-2.3+ " +
                     "and repo version 2.3.2+!");
           }
         }

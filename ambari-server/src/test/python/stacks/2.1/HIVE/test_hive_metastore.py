@@ -607,7 +607,7 @@ class TestHiveMetastore(RMFTestCase):
     # trigger the code to think it needs to copy the JAR
     json_content['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName'] = "sap.jdbc4.sqlanywhere.IDriver"
     json_content['configurations']['hive-env']['hive_database'] = "Existing"
-    json_content['configurations']['hive-env']['hive_database_type'] = "sqla"
+    json_content['configurations']['hive-env']['hive_database_type'] = "sqlanywhere"
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
@@ -667,7 +667,7 @@ class TestHiveMetastore(RMFTestCase):
                               mode = 0644,
                               )
 
-    self.assertResourceCalled('Execute', "/usr/hdp/2.3.0.0-1234/hive/bin/schematool -dbType sqla -upgradeSchema",
+    self.assertResourceCalled('Execute', "/usr/hdp/2.3.0.0-1234/hive/bin/schematool -dbType sqlanywhere -upgradeSchema",
                               logoutput = True, environment = {'HIVE_CONF_DIR': '/usr/hdp/current/hive-server2/conf/conf.server'},
                               tries = 1, user = 'hive')
 

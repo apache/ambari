@@ -108,6 +108,13 @@ module.exports = {
       'sql_jar_connector': '/usr/share/java/sqljdbc4.jar',
       'db_type': 'mssql'
     },
+    /** TODO: Remove SQLA from the list of databases once Ranger DB_FLAVOR=SQLA is replaced with SQL Anywhere */
+    'SQLA': {
+      'connection_url': 'jdbc:sqlanywhere:host={0};database={1}',
+      'driver': 'sap.jdbc4.sqlanywhere.IDriver',
+      'sql_jar_connector': '/path_to_driver/sqla-client-jdbc.tar.gz',
+      'db_type': 'sqlanywhere'
+    },
     'ANYWHERE': {
       'connection_url': 'jdbc:sqlanywhere:host={0};database={1}',
       'driver': 'sap.jdbc4.sqlanywhere.IDriver',

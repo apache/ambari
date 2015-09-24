@@ -87,7 +87,7 @@ hdp23properties.push({
         displayName: 'MSSQL'
       },
       {
-        displayName: 'SQL Anywhere',
+        displayName: 'SQLA',
         hidden: App.get('currentStackName') !== 'SAPHD' && App.get('currentStackName') !== 'HDP'
       }
     ],
