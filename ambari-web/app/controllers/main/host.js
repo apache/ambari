@@ -24,7 +24,6 @@ var hostsManagement = require('utils/hosts');
 App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   name: 'mainHostController',
 
-  dataSource: App.Host.find(),
   clearFilters: null,
 
   filteredCount: 0,
