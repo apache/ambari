@@ -248,7 +248,7 @@ class TestKnoxGateway(RMFTestCase):
      '/var/lib/knox/data'),
         sudo = True,
     )
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', 'hdp-select', 'set', 'knox-server', '2.2.1.0-3242'),
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', '2.2.1.0-3242'),
         sudo = True,
     )
     self.assertNoMoreResources()
@@ -292,7 +292,7 @@ class TestKnoxGateway(RMFTestCase):
      '/var/lib/knox/data'),
         sudo = True,
     )
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', 'hdp-select', 'set', 'knox-server', version),
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', version),
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('cp',
@@ -364,7 +364,7 @@ class TestKnoxGateway(RMFTestCase):
      '/var/lib/knox/data'),
         sudo = True,
     )
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', 'hdp-select', 'set', 'knox-server', version),
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', version),
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('cp',
@@ -438,7 +438,7 @@ class TestKnoxGateway(RMFTestCase):
     )
 
     '''
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', 'hdp-select', 'set', 'knox-server', version),
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', version),
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('cp',

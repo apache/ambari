@@ -192,7 +192,7 @@ def setup_ranger_db(rolling_upgrade=False):
   # User wants us to setup the DB user and DB?
   if params.create_db_dbuser:
     Logger.info('Setting up Ranger DB and DB User')
-    dba_setup = format('ambari-python-wrap {ranger_home}/dba_script.py -q')
+    dba_setup = format('python {ranger_home}/dba_script.py -q')
     Execute(dba_setup, 
             environment=env_dict,
             logoutput=True,
@@ -201,7 +201,7 @@ def setup_ranger_db(rolling_upgrade=False):
   else:
     Logger.info('Separate DBA property not set. Assuming Ranger DB and DB User exists!')
 
-  db_setup = format('ambari-python-wrap {ranger_home}/db_setup.py')
+  db_setup = format('python {ranger_home}/db_setup.py')
   Execute(db_setup, 
           environment=env_dict,
           logoutput=True,
@@ -220,7 +220,7 @@ def setup_java_patch(rolling_upgrade=False):
   if params.db_flavor.lower() == 'sqla':
     env_dict = {'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME':params.java_home, 'LD_LIBRARY_PATH':params.ld_lib_path}
 
-  setup_java_patch = format('ambari-python-wrap {ranger_home}/db_setup.py -javapatch')
+  setup_java_patch = format('python {ranger_home}/db_setup.py -javapatch')
   Execute(setup_java_patch, 
           environment=env_dict,
           logoutput=True,

@@ -401,5 +401,5 @@ class TestNFSGateway(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None), (0, None), (0, None), (0, None)])
     self.assertResourceCalled('Execute',
-                              ('ambari-python-wrap', 'hdp-select', 'set', 'hadoop-hdfs-nfs3', version), sudo=True,)
+                              ('hdp-select', 'set', 'hadoop-hdfs-nfs3', version), sudo=True,)
     self.assertNoMoreResources()

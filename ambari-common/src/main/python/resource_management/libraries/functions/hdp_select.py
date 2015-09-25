@@ -30,9 +30,8 @@ from resource_management.core.shell import call
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.version_select_util import get_versions_from_stack_root
 
-HDP_SELECT_PREFIX = ('ambari-python-wrap', 'hdp-select')
 # hdp-select set oozie-server 2.2.0.0-1234
-TEMPLATE = HDP_SELECT_PREFIX + ('set',)
+TEMPLATE = ('hdp-select', 'set')
 
 # a mapping of Ambari server role to hdp-select component name for all
 # non-clients
@@ -250,7 +249,7 @@ def get_hdp_versions(stack_root):
   :param stack_root: Stack install root
   :return: Returns list of installed stack versions.
   """
-  code, out = call(HDP_SELECT_PREFIX + ('versions',))
+  code, out = call("hdp-select versions")
   versions = []
   if 0 == code:
     for line in out.splitlines():

@@ -98,8 +98,8 @@ def setup_kms_db():
     if params.db_flavor.lower() == 'sqla':
       env_dict = {'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home, 'LD_LIBRARY_PATH':params.ld_library_path}
 
-    dba_setup = format('ambari-python-wrap {kms_home}/dba_script.py -q')
-    db_setup = format('ambari-python-wrap {kms_home}/db_setup.py')
+    dba_setup = format('python {kms_home}/dba_script.py -q')
+    db_setup = format('python {kms_home}/db_setup.py')
 
     Execute(dba_setup, environment=env_dict, logoutput=True, user=params.kms_user)
     Execute(db_setup, environment=env_dict, logoutput=True, user=params.kms_user)
@@ -109,7 +109,7 @@ def setup_java_patch():
 
   if params.has_ranger_admin:
 
-    setup_java_patch = format('ambari-python-wrap {kms_home}/db_setup.py -javapatch')
+    setup_java_patch = format('python {kms_home}/db_setup.py -javapatch')
 
     env_dict = {'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home}
     if params.db_flavor.lower() == 'sqla':

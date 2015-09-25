@@ -733,7 +733,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
      call_mocks = call_side_effects
     )
 
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', 'hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
     self.assertResourceCalledByIndex(31, 'Execute', 'hive --config /usr/hdp/current/hive-server2/conf/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
@@ -757,7 +757,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
      call_mocks = call_side_effects
     )
 
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', 'hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
     self.assertResourceCalledByIndex(33, 'Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
@@ -773,7 +773,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     except:
       pass
 
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', 'hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.security_commons.build_expectations")
@@ -905,7 +905,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
-                              ('ambari-python-wrap', 'hdp-select', 'set', 'hive-server2', version), sudo=True,)
+                              ('hdp-select', 'set', 'hive-server2', version), sudo=True,)
 
     copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs", host_sys_prepped=False)
     copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs", host_sys_prepped=False)
@@ -945,7 +945,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
 
     self.assertResourceCalled('Execute',
 
-                              ('ambari-python-wrap', 'hdp-select', 'set', 'hive-server2', version), sudo=True,)
+                              ('hdp-select', 'set', 'hive-server2', version), sudo=True,)
     copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs", host_sys_prepped=False)
     copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs", host_sys_prepped=False)
     self.assertEquals(2, copy_to_hdfs_mock.call_count)

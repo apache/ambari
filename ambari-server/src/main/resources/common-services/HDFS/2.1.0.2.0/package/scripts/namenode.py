@@ -228,7 +228,7 @@ class NameNodeDefault(NameNode):
     basedir = os.path.join(env.config.basedir, 'scripts')
     if(threshold == 'DEBUG'): #FIXME TODO remove this on PROD
       basedir = os.path.join(env.config.basedir, 'scripts', 'balancer-emulator')
-      command = ['ambari-python-wrap','hdfs-command.py']
+      command = ['python','hdfs-command.py']
 
     _print("Executing command %s\n" % command)
 
