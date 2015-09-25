@@ -49,11 +49,15 @@ App.MainServiceInfoFlumeGraphsView = App.MainServiceInfoSummaryMetricGraphsView.
     var metricNames = {};
     var metricItems = [];
     if (data != null && data.metrics != null && data.metrics.flume != null && data.metrics.flume.flume != null && data.metrics.flume.flume[metricType] != null) {
-      for (var name in data.metrics.flume.flume[metricType]) {
-        for (var metricName in data.metrics.flume.flume[metricType][name]) {
-          metricNames[metricName] = name;
+      for ( var name in data.metrics.flume.flume[metricType]) {
+        if (data.metrics.flume.flume[metricType].hasOwnProperty(name)) {
+          for ( var metricName in data.metrics.flume.flume[metricType][name]) {
+            if (data.metrics.flume.flume[metricType][name].hasOwnProperty(metricName)) {
+              metricNames[metricName] = name;
+            }
+          }
+          metricItems.push(name);
         }
-        metricItems.push(name);
       }
     }
     // Now that we have collected all metric names, we create
