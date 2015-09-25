@@ -153,7 +153,10 @@ App.hostsMapper = App.QuickDataMapper.create({
         var alertsSummary = item.alerts_summary;
         item.critical_warning_alerts_count = alertsSummary ? (alertsSummary.CRITICAL || 0) + (alertsSummary.WARNING || 0) : 0;
         item.cluster_id = clusterName;
-        item.index = index;
+        var existingHost = App.Host.find().findProperty('hostName', component.host_name);
+        var fromHostDetail = App.router.get('currentState.parentState.name') == 'hostDetails';
+        // There is no need to override existing index in host detail view since old model(already have indexes) will not be cleared.
+        item.index = (existingHost && fromHostDetail)? existingHost.get('index'): index;
 
         if (stackUpgradeSupport) {
           this.config = $.extend(this.config, {
