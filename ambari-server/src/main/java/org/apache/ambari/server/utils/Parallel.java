@@ -19,22 +19,21 @@ package org.apache.ambari.server.utils;
 
 import java.util.Arrays;
 import java.util.Collections;
-
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ThreadFactory;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,17 +47,24 @@ public class Parallel {
   /**
    * Max pool size
    */
-  private static final int MAX_POOL_SIZE = Math.max(2, Runtime.getRuntime().availableProcessors());
+  private static final int MAX_POOL_SIZE = Math.max(8, Runtime.getRuntime().availableProcessors());
 
   /**
-   * Keep alive time (1 sec)
+   * Keep alive time (15 min)
    */
-  private static final int KEEP_ALIVE_TIME_MILLISECONDS = 1000;
+  // !!! changed from 1 second because EclipseLink was making threads idle and
+  // they kept timing out
+  private static final int KEEP_ALIVE_TIME_MINUTES = 15;
 
   /**
    * Poll duration (10 secs)
    */
   private static final int POLL_DURATION_MILLISECONDS = 10000;
+
+  /**
+   * Core pool size
+   */
+  private static final int CORE_POOL_SIZE = 2;
 
   /**
    * Logger
@@ -81,10 +87,10 @@ public class Parallel {
 
     // Create thread pool
     ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
-        0,                                        // Core pool size
+        CORE_POOL_SIZE,                           // Core pool size
         MAX_POOL_SIZE,                            // Max pool size
-        KEEP_ALIVE_TIME_MILLISECONDS,             // Keep alive time for idle threads
-        TimeUnit.MILLISECONDS,
+        KEEP_ALIVE_TIME_MINUTES,                  // Keep alive time for idle threads
+        TimeUnit.MINUTES,
         blockingQueue,                            // Using synchronous queue
         new ParallelLoopsThreadFactory(),         // Thread pool factory to use
         new ThreadPoolExecutor.CallerRunsPolicy() // Rejected tasks will run on calling thread.
