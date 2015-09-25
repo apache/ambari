@@ -203,18 +203,28 @@ var serverWrapperView = Em.View.extend({
    * Initialize and save sorting statuses: hostName sorting_asc
    */
   loadSortStatuses: function () {
-    var statuses = [];
     var childViews = this.get('childViews');
-    childViews.forEach(function (childView) {
-      var sortStatus = (childView.get('name') == 'hostName' && childView.get('status') == 'sorting') ? 'sorting_asc' : childView.get('status');
-      statuses.push({
-        name: childView.get('name'),
-        status: sortStatus
+    var statuses = App.db.getSortingStatuses(this.get('controller.name'));
+    if (statuses) {
+      var sortingColumn = App.db.getSortingStatuses(this.get('controller.name')).find(function(column){ return column.status != 'sorting'})
+      if (sortingColumn) {
+        var sortingColumnView = childViews.findProperty('name', sortingColumn.name);
+        sortingColumnView.set('status', sortingColumn.status);
+        this.get('controller').set('sortingColumn', sortingColumnView);
+      }
+    } else {
+      statuses = [];
+      childViews.forEach(function (childView) {
+        var sortStatus = (childView.get('name') == 'hostName' && childView.get('status') == 'sorting') ? 'sorting_asc' : childView.get('status');
+        statuses.push({
+          name: childView.get('name'),
+          status: sortStatus
+        });
+        childView.set('status', sortStatus);
       });
-      childView.set('status', sortStatus);
-    });
-    App.db.setSortingStatuses(this.get('controller.name'), statuses);
-    this.get('controller').set('sortingColumn', childViews.findProperty('name', 'hostName'));
+      App.db.setSortingStatuses(this.get('controller.name'), statuses);
+      this.get('controller').set('sortingColumn', childViews.findProperty('name', 'hostName'));
+    }
   },
 
   /**
