@@ -187,6 +187,6 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
       mockData.id = 'metric' + index;
       mockData.toggleIndex = '#' + mockData.id;
     });
-    this.set('parentView.parentView.collapsedSections', mockMetricData);
+    this.set('parentView.collapsedSections', mockMetricData);
   }
 });
