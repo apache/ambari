@@ -243,10 +243,9 @@ App.ServerValidatorMixin = Em.Mixin.create({
     var recommendations = this.get('hostGroups');
     var services = this.get('services');
     var stepConfigs = this.get('stepConfigs');
-    var allConfigTypes = [];
-    var callback = function () {
-      recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(services, stepConfigs);
 
+    return this.getBlueprintConfigurations().done(function(blueprintConfigurations){
+      recommendations.blueprint.configurations = blueprintConfigurations;
       return App.ajax.send({
         name: 'config.validations',
         sender: self,
@@ -262,60 +261,68 @@ App.ServerValidatorMixin = Em.Mixin.create({
       }).complete(function () {
         self.warnUser(deferred);
       });
-    };
+    });
+  },
+
+  /**
+   * Return JSON for blueprint configurations
+   * @returns {*}
+   */
+  getBlueprintConfigurations: function () {
+    var dfd = $.Deferred();
+    var services = this.get('services');
+    var stepConfigs = this.get('stepConfigs');
+    var allConfigTypes = [];
 
     services.forEach(function (service) {
       allConfigTypes = allConfigTypes.concat(Em.keys(service.get('configTypes')))
     });
     // check if we have configs from 'cluster-env', if not, then load them, as they are mandatory for validation request
     if (!allConfigTypes.contains('cluster-env')) {
-      services = services.concat(Em.Object.create({
-        serviceName: 'MISC',
-        configTypes: {'cluster-env': {}}
-      }));
-      App.ajax.send({
-        name: 'config.cluster_env_site',
-        sender: self,
-        success: 'getClusterEnvSiteTagSuccess',
-        error: 'validationError'
-      }).complete(function () {
+      this.getClusterEnvConfigsForValidation().done(function(clusterEnvConfigs){
+        services = services.concat(Em.Object.create({
+          serviceName: 'MISC',
+          configTypes: {'cluster-env': {}}
+        }));
         stepConfigs = stepConfigs.concat(Em.Object.create({
           serviceName: 'MISC',
-          configs: self.get('clusterEnvConfigs')
+          configs: clusterEnvConfigs
         }));
-        callback(deferred);
+        dfd.resolve(blueprintUtils.buildConfigsJSON(services, stepConfigs));
       });
     } else {
-      callback(deferred);
+      dfd.resolve(blueprintUtils.buildConfigsJSON(services, stepConfigs));
     }
+    return dfd.promise();
   },
 
-  /**
-   * success callback after getting response from server
-   * convert cluster-env configs to array to be used in validation request
-   * @param data
-   */
-  getClusterEnvSiteTagSuccess: function (data) {
-    var self = this;
-    App.router.get('configurationController').getConfigsByTags([{
-      siteName: data.items[0].type,
-      tagName: data.items[0].tag
-    }]).done(function (clusterEnvConfigs) {
-      var configsObject = clusterEnvConfigs[0].properties;
-      var configsArray = [];
-      for (var property in configsObject) {
-        if (configsObject.hasOwnProperty(property)) {
-          configsArray.push(Em.Object.create({
-            name: property,
-            value: configsObject[property],
-            filename: 'cluster-env.xml'
-          }));
+  getClusterEnvConfigsForValidation: function () {
+    var dfd = $.Deferred();
+    App.ajax.send({
+      name: 'config.cluster_env_site',
+      sender: this,
+      error: 'validationError'
+    }).done(function (data) {
+      App.router.get('configurationController').getConfigsByTags([{
+        siteName: data.items[0].type,
+        tagName: data.items[0].tag
+      }]).done(function (clusterEnvConfigs) {
+        var configsObject = clusterEnvConfigs[0].properties;
+        var configsArray = [];
+        for (var property in configsObject) {
+          if (configsObject.hasOwnProperty(property)) {
+            configsArray.push(Em.Object.create({
+              name: property,
+              value: configsObject[property],
+              filename: 'cluster-env.xml'
+            }));
+          }
         }
-      }
-      self.set('clusterEnvConfigs', configsArray);
+        dfd.resolve(configsArray);
+      });
     });
+    return dfd.promise();
   },
-
 
   /**
    * @method validationSuccess
