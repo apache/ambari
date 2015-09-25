@@ -23,6 +23,8 @@ from mock.mock import MagicMock, patch
 from resource_management.libraries.script import Script
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
+import resource_management.libraries.functions.dfs_datanode_helper
+
 
 class TestDatanode(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
@@ -355,6 +357,13 @@ class TestDatanode(RMFTestCase):
                               recursive = True,
                               cd_access='a'
                               )
+    content = resource_management.libraries.functions.dfs_datanode_helper.DATA_DIR_TO_MOUNT_HEADER
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs_data_dir_mount.hist',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0644,
+                              content = content
+                              )
 
   def assert_configure_secured(self, stackVersion=STACK_VERSION, snappy_enabled=True):
     conf_dir = '/etc/hadoop/conf'
@@ -419,6 +428,13 @@ class TestDatanode(RMFTestCase):
                               mode = 0755,
                               recursive = True,
                               cd_access='a'
+                              )
+    content = resource_management.libraries.functions.dfs_datanode_helper.DATA_DIR_TO_MOUNT_HEADER
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs_data_dir_mount.hist',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0644,
+                              content = content
                               )
 
 

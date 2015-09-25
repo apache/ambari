@@ -48,7 +48,13 @@ def datanode(action=None):
               owner=params.hdfs_user,
               group=params.user_group)
 
-    handle_dfs_data_dir(create_dirs, params)
+    File(params.data_dir_mount_file,
+         owner=params.hdfs_user,
+         group=params.user_group,
+         mode=0644,
+         content=handle_dfs_data_dir(create_dirs, params)
+    )
+
   elif action == "start" or action == "stop":
     import params
     service(
