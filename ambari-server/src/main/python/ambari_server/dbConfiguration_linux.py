@@ -551,10 +551,14 @@ class PGConfig(LinuxDBMSConfig):
   @staticmethod
   def _get_postgre_status():
     retcode, out, err = run_os_command(PGConfig.PG_ST_CMD)
-    try:
-      pg_status = re.search('(stopped|running)', out, re.IGNORECASE).group(0).lower()
-    except AttributeError:
-      pg_status = None
+    # on RHEL and SUSE PG_ST_COMD returns RC 0 for running and 3 for stoppped
+    if retcode == 0:
+      pg_status = PGConfig.PG_STATUS_RUNNING
+    else:
+      if retcode == 3:
+        pg_status = "stopped"
+      else:
+        pg_status = None
     return pg_status, retcode, out, err
 
   @staticmethod
