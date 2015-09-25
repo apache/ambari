@@ -94,6 +94,13 @@ App.hostsMapper = App.QuickDataMapper.create({
       var clusterName = App.get('clusterName');
       var advancedHostComponents = [];
 
+      // Create a map for quick access on existing hosts
+      var hosts = App.Host.find().toArray();
+      var hostsMap = {};
+      for (var p = 0; p < hosts.length; p++) {
+        hostsMap[hosts[p].get('hostName')] = hosts[p];
+      }
+
       // Use normal for loop instead of foreach to enhance performance
       for (var index = 0; index < json.items.length; index++) {
         var item = json.items[index];
@@ -153,10 +160,9 @@ App.hostsMapper = App.QuickDataMapper.create({
         var alertsSummary = item.alerts_summary;
         item.critical_warning_alerts_count = alertsSummary ? (alertsSummary.CRITICAL || 0) + (alertsSummary.WARNING || 0) : 0;
         item.cluster_id = clusterName;
-        var existingHost = App.Host.find().findProperty('hostName', component.host_name);
-        var fromHostDetail = App.router.get('currentState.parentState.name') == 'hostDetails';
+        var existingHost = hostsMap[component.host_name];
         // There is no need to override existing index in host detail view since old model(already have indexes) will not be cleared.
-        item.index = (existingHost && fromHostDetail)? existingHost.get('index'): index;
+        item.index = (existingHost && !json.itemTotal)? existingHost.get('index'): index;
 
         if (stackUpgradeSupport) {
           this.config = $.extend(this.config, {
