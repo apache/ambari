@@ -22,11 +22,6 @@
 
 <configuration supports_final="true">
   <property>
-    <name>topology.metrics.consumer.register</name>
-    <value>[{'class': 'org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsSink', 'parallelism.hint': 1}]</value>
-    <description>Topology metrics consumer register parameters.</description>
-  </property>
-  <property>
     <name>metrics.reporter.register</name>
     <value>org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter</value>
     <description>Topology metrics reporter.</description>

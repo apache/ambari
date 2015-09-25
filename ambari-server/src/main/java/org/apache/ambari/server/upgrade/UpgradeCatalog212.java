@@ -19,6 +19,7 @@
 package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -197,6 +198,26 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
     updateOozieConfigs();
     updateHbaseAndClusterConfigurations();
     updateKafkaConfigurations();
+    updateStormConfigs();
+  }
+
+  protected void updateStormConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if ((clusterMap != null) && !clusterMap.isEmpty()) {
+        // Iterate through the clusters and perform any configuration updates
+        for (final Cluster cluster : clusterMap.values()) {
+          Set<String> removes = new HashSet<String>();
+          removes.add("topology.metrics.consumer.register");
+          updateConfigurationPropertiesForCluster(cluster, "storm-site",
+            new HashMap<String, String>(), removes, false, false);
+        }
+      }
+    }
   }
 
   protected void updateKafkaConfigurations() throws AmbariException {
