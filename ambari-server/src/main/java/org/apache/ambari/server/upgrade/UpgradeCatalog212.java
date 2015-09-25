@@ -331,18 +331,18 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
             Map<String, String> oozieEnvProperties = oozieEnv.getProperties();
 
             String hostname = oozieEnvProperties.get("oozie_hostname");
-            String db_type = oozieEnvProperties.get("oozie_ambari_database");
+            String db_type = oozieEnvProperties.get("oozie_database");
             String final_db_host = null;
             // fix for empty hostname after 1.7 -> 2.1.x+ upgrade
             if (hostname != null && db_type != null && hostname.equals("")) {
               switch (db_type.toUpperCase()) {
-                case "MYSQL":
+                case "EXISTING MYSQL DATABASE":
                   final_db_host = oozieEnvProperties.get("oozie_existing_mysql_host");
                   break;
-                case "POSTGRESQL":
+                case "EXISTING POSTGRESQL DATABASE":
                   final_db_host = oozieEnvProperties.get("oozie_existing_postgresql_host");
                   break;
-                case "ORACLE":
+                case "EXISTING ORACLE DATABASE":
                   final_db_host = oozieEnvProperties.get("oozie_existing_oracle_host");
                   break;
                 default:
