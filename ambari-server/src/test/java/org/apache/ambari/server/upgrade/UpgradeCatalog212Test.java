@@ -335,7 +335,7 @@ public class UpgradeCatalog212Test {
 
     final Map<String, String> propertiesExpectedOozieEnv = new HashMap<String, String>() {{
       put("oozie_hostname", "");
-      put("oozie_ambari_database", "123");
+      put("oozie_database", "123");
     }};
 
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
