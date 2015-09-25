@@ -65,8 +65,7 @@ class TestDatanodeHelper(TestCase):
 
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
-  @patch.object(dfs_datanode_helper, "_write_data_dir_to_mount_in_file")
-  def test_normalized(self, mock_write_data_dir_to_file, log_error, log_info):
+  def test_normalized(self, log_error, log_info):
     """
     Test that the data dirs are normalized by removing leading and trailing whitespace, and case sensitive.
     """
@@ -88,41 +87,13 @@ class TestDatanodeHelper(TestCase):
 
     self.assertEquals(0, log_error.call_count)
 
-
-  @patch.object(Logger, "info")
-  @patch.object(Logger, "error")
-  @patch.object(dfs_datanode_helper, "_write_data_dir_to_mount_in_file")
-  @patch.object(dfs_datanode_helper, "get_mount_point_for_dir")
-  @patch.object(os.path, "isdir")
-  def test_save_mount_points(self, mock_os_isdir, mock_get_mount_point, mock_write_data_dir_to_mount_in_file, log_error, log_info):
-    """
-    Test when all mounts are on root.
-    """
-    mock_get_mount_point.side_effect = ["/", "/", "/"] * 2
-    mock_os_isdir.side_effect = [False, False, False] + [True, True, True]
-    mock_write_data_dir_to_mount_in_file.return_value = True
-
-    # Function under test
-    dfs_datanode_helper.handle_dfs_data_dir(fake_create_dir, self.params, update_cache=False)
-
-    for (name, args, kwargs) in log_info.mock_calls:
-      print args[0]
-
-    for (name, args, kwargs) in log_error.mock_calls:
-      print args[0]
-
-    self.assertEquals(0, log_error.call_count)
-    mock_write_data_dir_to_mount_in_file.assert_called_once_with(self.params, {self.grid0: "/", self.grid1: "/", self.grid2: "/"})
-
-
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
   @patch.object(dfs_datanode_helper, "get_data_dir_to_mount_from_file")
-  @patch.object(dfs_datanode_helper, "_write_data_dir_to_mount_in_file")
   @patch.object(dfs_datanode_helper, "get_mount_point_for_dir")
   @patch.object(os.path, "isdir")
   @patch.object(os.path, "exists")
-  def test_grid_becomes_unmounted(self, mock_os_exists, mock_os_isdir, mock_get_mount_point, mock_write_data_dir_to_mount_in_file, mock_get_data_dir_to_mount_from_file, log_error, log_info):
+  def test_grid_becomes_unmounted(self, mock_os_exists, mock_os_isdir, mock_get_mount_point, mock_get_data_dir_to_mount_from_file, log_error, log_info):
     """
     Test when grid2 becomes unmounted
     """
@@ -134,7 +105,6 @@ class TestDatanodeHelper(TestCase):
     # Grid2 then becomes unmounted
     mock_get_mount_point.side_effect = ["/dev0", "/dev1", "/"] * 2
     mock_os_isdir.side_effect = [False, False, False] + [True, True, True]
-    mock_write_data_dir_to_mount_in_file.return_value = True
 
     # Function under test
     dfs_datanode_helper.handle_dfs_data_dir(fake_create_dir, self.params, update_cache=False)
@@ -151,18 +121,13 @@ class TestDatanodeHelper(TestCase):
     self.assertEquals(1, log_error.call_count)
     self.assertTrue("Directory /grid/2/data does not exist and became unmounted from /dev2" in error_msg)
 
-    # Notice that grid2 is still written with its original mount point because an error occurred on it
-    mock_write_data_dir_to_mount_in_file.assert_called_once_with(self.params, {self.grid0: "/dev0", self.grid1: "/dev1", self.grid2: "/dev2"})
-
-
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
   @patch.object(dfs_datanode_helper, "get_data_dir_to_mount_from_file")
-  @patch.object(dfs_datanode_helper, "_write_data_dir_to_mount_in_file")
   @patch.object(dfs_datanode_helper, "get_mount_point_for_dir")
   @patch.object(os.path, "isdir")
   @patch.object(os.path, "exists")
-  def test_grid_becomes_remounted(self, mock_os_exists, mock_os_isdir, mock_get_mount_point, mock_write_data_dir_to_mount_in_file, mock_get_data_dir_to_mount_from_file, log_error, log_info):
+  def test_grid_becomes_remounted(self, mock_os_exists, mock_os_isdir, mock_get_mount_point, mock_get_data_dir_to_mount_from_file, log_error, log_info):
     """
     Test when grid2 becomes remounted
     """
@@ -174,7 +139,6 @@ class TestDatanodeHelper(TestCase):
     # Grid2 then becomes remounted
     mock_get_mount_point.side_effect = ["/dev0", "/dev1", "/dev2"] * 2
     mock_os_isdir.side_effect = [False, False, False] + [True, True, True]
-    mock_write_data_dir_to_mount_in_file.return_value = True
 
     # Function under test
     dfs_datanode_helper.handle_dfs_data_dir(fake_create_dir, self.params, update_cache=False)
@@ -186,6 +150,3 @@ class TestDatanodeHelper(TestCase):
       print args[0]
 
     self.assertEquals(0, log_error.call_count)
-
-    # Notice that grid2 is now written with its new mount point to prevent a regression
-    mock_write_data_dir_to_mount_in_file.assert_called_once_with(self.params, {self.grid0: "/dev0", self.grid1: "/dev1", self.grid2: "/dev2"})
