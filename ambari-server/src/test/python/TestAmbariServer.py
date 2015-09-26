@@ -2911,7 +2911,7 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.dbConfiguration_linux.run_os_command")
   def test_get_postgre_status(self, run_os_command_mock):
 
-    run_os_command_mock.return_value = (1, "running", None)
+    run_os_command_mock.return_value = (0, "running", None)
     pg_status, retcode, out, err = PGConfig._get_postgre_status()
     self.assertEqual("running", pg_status)
 
