@@ -60,7 +60,9 @@ class TestSparkClient(RMFTestCase):
         recursive = True,
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',
+        owner = 'spark',
         key_value_delimiter = ' ',
+        group = 'spark',
         properties = self.getConfig()['configurations']['spark-defaults'],
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/spark-env.sh',
@@ -96,7 +98,9 @@ class TestSparkClient(RMFTestCase):
         recursive = True,
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',
+        owner = 'spark',
         key_value_delimiter = ' ',
+        group = 'spark',
         properties = self.getConfig()['configurations']['spark-defaults'],
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/spark-env.sh',
