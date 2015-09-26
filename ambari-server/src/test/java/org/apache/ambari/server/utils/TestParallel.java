@@ -109,7 +109,7 @@ public class TestParallel {
    * @throws Exception
    */
   @Test
-  public void testNestedParallelForLoopIterationFailures() throws Exception {
+  public void testNestedParallelForLoop() throws Exception {
     final List<Integer> input = new LinkedList<Integer>();
     for(int i = 0; i < 10; i++) {
       input.add(i);
@@ -167,6 +167,41 @@ public class TestParallel {
         if(failForList.contains(in1)) {
           // Return null
           return null;
+        }
+        return in1 * in1;
+      }
+    });
+    Assert.assertFalse(loopResult.getIsCompleted());
+    Assert.assertNotNull(loopResult.getResult());
+    List<Integer> output = loopResult.getResult();
+    Assert.assertEquals(input.size(), output.size());
+
+    for(int i = 0; i < input.size(); i++) {
+      if(failForList.contains(i)) {
+        Assert.assertNull(output.get(i));
+        output.set(i, i * i);
+      } else {
+        Assert.assertEquals(i * i, (int) output.get(i));
+      }
+    }
+  }
+
+  /**
+   * Tests {@link org.apache.ambari.server.utils.Parallel} forLoop iteration exceptions
+   * @throws Exception
+   */
+  @Test
+  public void testParallelForLoopIterationExceptions() throws Exception {
+    final List<Integer> input = new LinkedList<Integer>();
+    for(int i = 0; i < 10; i++) {
+      input.add(i);
+    }
+    final List<Integer> failForList = Arrays.asList(new Integer[] { 2, 5, 7});
+    ParallelLoopResult<Integer> loopResult = Parallel.forLoop(input, new LoopBody<Integer, Integer>() {
+      @Override
+      public Integer run(Integer in1) {
+        if(failForList.contains(in1)) {
+          throw new RuntimeException("Ignore this exception");
         }
         return in1 * in1;
       }
