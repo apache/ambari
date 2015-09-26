@@ -237,6 +237,7 @@ App.InstallerController = App.WizardController.extend({
     App.Section.find().clear();
     App.SubSection.find().clear();
     App.Tab.find().clear();
+    this.set('stackConfigsLoaded', false);
     if (stacks && stacks.get('length')) {
       App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('id'));
       dfd.resolve(true);
