@@ -47,7 +47,9 @@ def setup_spark(env, type, action = None):
     
   PropertiesFile(format("{spark_conf}/spark-defaults.conf"),
     properties = params.config['configurations']['spark-defaults'],
-    key_value_delimiter = " ",               
+    key_value_delimiter = " ", 
+    owner=params.spark_user,
+    group=params.spark_group,              
   )
 
   # create spark-env.sh in etc/conf dir
