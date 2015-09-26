@@ -35,13 +35,21 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.eclipse.persistence.internal.helper.ConcurrencyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *  This class provides support for parallel loops.
- *  Iterations in the loop run in parallel in parallel loops.
+ * <b>TEMPORARILY DO NOT USE WITH JPA ENTITIES</b>
+ * <p/>
+ * Deprecated since the use of this class to access JPA from multiple Ambari
+ * threads seems to cause thread liveliness problems in
+ * {@link ConcurrencyManager}.
+ * <p/>
+ * This class provides support for parallel loops. Iterations in the loop run in
+ * parallel in parallel loops.
  */
+@Deprecated
 public class Parallel {
 
   /**

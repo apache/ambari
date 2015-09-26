@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
@@ -37,14 +36,12 @@ import org.apache.ambari.server.orm.entities.RequestOperationLevelEntity;
 import org.apache.ambari.server.orm.entities.RequestResourceFilterEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.utils.LoopBody;
-import org.apache.ambari.server.utils.Parallel;
-import org.apache.ambari.server.utils.ParallelLoopResult;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
@@ -197,32 +194,12 @@ public class Request {
     if(stageEntities == null || stageEntities.isEmpty()) {
       stages = Collections.emptyList();
     } else {
-      List<StageEntity> stageEntityList;
-      if(stageEntities instanceof List) {
-        stageEntityList = (List<StageEntity>) stageEntities;
-      } else {
-        stageEntityList = new ArrayList<StageEntity>(stageEntities);
+      stages = new ArrayList<>(stageEntities.size());
+      for (StageEntity stageEntity : stageEntities) {
+        stages.add(stageFactory.createExisting(stageEntity));
       }
-      ParallelLoopResult<Stage> loopResult = Parallel.forLoop(stageEntityList, new LoopBody<StageEntity, Stage>() {
-        @Override
-        public Stage run(StageEntity stageEntity) {
-          return stageFactory.createExisting(stageEntity);
-        }
-      });
-      List<Stage> stageList;
-      if(loopResult.getIsCompleted()) {
-        stageList = loopResult.getResult();
-      } else {
-        // Fetch any missing results sequentially
-        stageList = loopResult.getResult();
-        for(int i = 0; i < stages.size(); i++) {
-          if(stageList.get(i) == null) {
-            stageList.set(i, stageFactory.createExisting(stageEntityList.get(i)));
-          }
-        }
-      }
-      stages = stageList;
     }
+
     resourceFilters = filtersFromEntity(entity);
     operationLevel = operationLevelFromEntity(entity);
   }
@@ -424,7 +401,7 @@ public class Request {
   }
 
   public void setExclusive(boolean isExclusive) {
-    this.exclusive = isExclusive;
+    exclusive = isExclusive;
   }
 
   /**
