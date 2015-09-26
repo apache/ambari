@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
@@ -185,11 +186,16 @@ public class Parallel {
 
     boolean completed = true;
     R[] result = (R[]) new Object[futures.size()];
-    try {
-      for (int i = 0; i < futures.size(); i++) {
-        Future<ResultWrapper<R>> futureResult = completionService.poll(POLL_DURATION_MILLISECONDS, TimeUnit.MILLISECONDS);
+    for (int i = 0; i < futures.size(); i++) {
+      try {
+        Future<ResultWrapper<R>> futureResult = null;
+        try {
+          futureResult = completionService.poll(POLL_DURATION_MILLISECONDS, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+          LOG.error("Caught InterruptedException in Parallel.forLoop", e);
+        }
         if (futureResult == null) {
-          // Time out! no progress was made during the last poll duration. Abort the threads and cancel the threads.
+          // Timed out! no progress was made during the last poll duration. Abort the threads and cancel the threads.
           LOG.error("Completion service in Parallel.forLoop timed out!");
           completed = false;
           for(int fIndex = 0; fIndex < futures.size(); fIndex++) {
@@ -204,6 +210,7 @@ public class Parallel {
               LOG.debug("    Task - {} successfully cancelled", fIndex);
             }
           }
+          // Finished processing all futures
           break;
         } else {
           ResultWrapper<R> res = futureResult.get();
@@ -214,13 +221,16 @@ public class Parallel {
             completed = false;
           }
         }
+      } catch (InterruptedException e) {
+        LOG.error("Caught InterruptedException in Parallel.forLoop", e);
+        completed = false;
+      } catch (ExecutionException e) {
+        LOG.error("Caught ExecutionException in Parallel.forLoop", e);
+        completed = false;
+      } catch (CancellationException e) {
+        LOG.error("Caught CancellationException in Parallel.forLoop", e);
+        completed = false;
       }
-    } catch (InterruptedException e) {
-      LOG.error("Caught InterruptedException in Parallel.forLoop", e);
-      completed = false;
-    } catch (ExecutionException e) {
-      LOG.error("Caught ExecutionException in Parallel.forLoop", e);
-      completed = false;
     }
     // Return parallel loop result
     return new ParallelLoopResult<R>(completed, Arrays.asList(result));
