@@ -116,7 +116,9 @@ class TestSparkThriftServer(RMFTestCase):
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',
+        owner = 'spark',
         key_value_delimiter = ' ',
+        group = 'spark',
         properties = self.getConfig()['configurations']['spark-defaults'],
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/spark-env.sh',
