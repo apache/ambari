@@ -393,8 +393,20 @@
             ],
             "template": "yes"
           },
-          "hbase.rpc.controllerfactory.class": "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory",
-          "hbase.regionserver.wal.codec": "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec",
+          "hbase.rpc.controllerfactory.class": {
+            "value": "{HBASE_RPC_CONTROLLERFACTORY_CLASS}",
+            "template": "yes",
+            "required-services": [
+              "HBASE"
+            ]
+          },
+          "hbase.regionserver.wal.codec": {
+            "value": "{HBASE_REGIONSERVER_WAL_CODEC}",
+            "template": "yes",
+            "required-services": [
+              "HBASE"
+            ]
+          },
           "phoenix.functions.allowUserDefinedFunctions": "true",
           "fs.hdfs.impl": "org.apache.hadoop.hdfs.DistributedFileSystem",
           "hbase.bucketcache.percentage.in.combinedcache": {
