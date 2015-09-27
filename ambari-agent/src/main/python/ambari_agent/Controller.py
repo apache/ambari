@@ -28,6 +28,7 @@ import threading
 import urllib2
 import pprint
 from random import randint
+import subprocess
 
 import hostname
 import security
@@ -45,6 +46,8 @@ from ambari_agent.ClusterConfiguration import  ClusterConfiguration
 from ambari_agent.RecoveryManager import  RecoveryManager
 from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
 from ambari_agent.ExitHelper import ExitHelper
+from resource_management.libraries.functions.version import compare_versions
+
 logger = logging.getLogger(__name__)
 
 AGENT_AUTO_RESTART_EXIT_CODE = 77
@@ -95,6 +98,8 @@ class Controller(threading.Thread):
     cluster_config_cache_dir = os.path.join(cache_dir, 'cluster_configuration')
 
     self.cluster_configuration = ClusterConfiguration(cluster_config_cache_dir)
+
+    self.move_data_dir_mount_file()
 
     self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir, 
       stacks_cache_dir, common_services_cache_dir, host_scripts_cache_dir,
@@ -434,6 +439,29 @@ class Controller(threading.Thread):
     logger.debug("LiveStatus.SERVICES" + str(LiveStatus.SERVICES))
     logger.debug("LiveStatus.CLIENT_COMPONENTS" + str(LiveStatus.CLIENT_COMPONENTS))
     logger.debug("LiveStatus.COMPONENTS" + str(LiveStatus.COMPONENTS))
+
+  def move_data_dir_mount_file(self):
+    """
+    In Ambari 2.1.2, we moved the dfs_data_dir_mount.hist to a static location
+    because /etc/hadoop/conf points to a symlink'ed location that would change during
+    Rolling Upgrade.
+    """
+    try:
+      if compare_versions(self.version, "2.1.2") >= 0:
+        source_file = "/etc/hadoop/conf/dfs_data_dir_mount.hist"
+        destination_file = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
+        if os.path.exists(source_file) and not os.path.exists(destination_file):
+          command = "mkdir -p %s" % os.path.dirname(destination_file)
+          logger.info("Moving Data Dir Mount History file. Executing command: %s" % command)
+          return_code = subprocess.call(command, shell=True)
+          logger.info("Return code: %d" % return_code)
+
+          command = "mv %s %s" % (source_file, destination_file)
+          logger.info("Moving Data Dir Mount History file. Executing command: %s" % command)
+          return_code = subprocess.call(command, shell=True)
+          logger.info("Return code: %d" % return_code)
+    except Exception, e:
+      logger.info("Exception in move_data_dir_mount_file(). Error: {0}".format(str(e)))
 
 def main(argv=None):
   # Allow Ctrl-C

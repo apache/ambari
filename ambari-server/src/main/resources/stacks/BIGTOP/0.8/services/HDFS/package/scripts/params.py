@@ -140,7 +140,7 @@ namenode_formatted_mark_dir = format("/var/lib/hdfs/namenode/formatted/")
 fs_checkpoint_dir = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.dir']
 
 dfs_data_dir = config['configurations']['hdfs-site']['dfs.datanode.data.dir']
-data_dir_mount_file = config['configurations']['hadoop-env']['dfs.datanode.data.dir.mount.file']
+data_dir_mount_file = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
 
 dfs_dn_addr = default('/configurations/hdfs-site/dfs.datanode.address', None)
 dfs_dn_http_addr = default('/configurations/hdfs-site/dfs.datanode.http.address', None)
