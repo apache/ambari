@@ -262,6 +262,7 @@ class Options(Const):
   def initialize(cls):
     cls.ROOT_URL = '%s://%s:%s/api/v1' % (cls.API_PROTOCOL, cls.HOST, cls.API_PORT)
     cls.CLUSTER_URL = cls.ROOT_URL + "/clusters/%s" % cls.CLUSTER_NAME
+    cls.COMPONENTS_URL = cls.CLUSTER_URL + "/components?fields=ServiceComponentInfo/total_count"
     cls.COMPONENTS_FORMAT = cls.CLUSTER_URL + "/components/{0}"
     cls.TEZ_VIEW_URL = cls.ROOT_URL + "/views/TEZ"
     cls.STACKS_URL = cls.ROOT_URL + "/stacks"
@@ -281,8 +282,6 @@ class Options(Const):
     if cls.ambari_server.server_version[0] * 10 + cls.ambari_server.server_version[1] >= 17:
       return True
     return False
-
-
 
   @classmethod
   def initialize_logger(cls, filename=None):
@@ -350,6 +349,16 @@ class AmbariServer(object):
     Options.logger.info("Resolving Ambari server configuration ...")
     self._get_server_info()
     self._get_agents_info()
+    self._get_components()
+
+  def _get_components(self):
+    info = curl(Options.COMPONENTS_URL, parse=True)
+    self._components = []
+    if CatConst.ITEMS_TAG in info:
+      for item in info[CatConst.ITEMS_TAG]:
+        if "ServiceComponentInfo" in item and "total_count" in item["ServiceComponentInfo"] and \
+          int(item["ServiceComponentInfo"]["total_count"]) > 0 and "component_name" in item["ServiceComponentInfo"]:
+          self._components.append(item["ServiceComponentInfo"]["component_name"])
 
   def _get_server_info(self):
     info = curl(Options.AMBARI_SERVER_URL, parse=True)
@@ -369,6 +378,10 @@ class AmbariServer(object):
     if "hostComponents" in info:
       agent_props = info["hostComponents"]
       self._agents = list(map(lambda x: x["RootServiceHostComponents"]["host_name"], agent_props))
+
+  @property
+  def components(self):
+    return self._components
 
   @property
   def server_version(self):
@@ -1419,23 +1432,6 @@ def get_kafka_listeners():
   return kafka_listeners
 
 
-def check_phoenix_component_existence():
-  try:
-    resultset = curl(Options.COMPONENTS_FORMAT.format(Options.PHOENIX_QUERY_SERVER), validate=False, parse=True)
-  except HTTPError as e:
-    raise TemplateProcessingException(str(e))
-
-  if "ServiceComponentInfo" in resultset and "total_count" in resultset["ServiceComponentInfo"]:
-    try:
-      component_count = int(resultset["ServiceComponentInfo"]["total_count"])
-      if component_count > 0:
-        return True
-    except ValueError:
-      return False
-
-  return False
-
-
 def get_ranger_xaaudit_hdfs_destination_directory():
   namenode_hostname="localhost"
   namenode_cfg = curl(Options.COMPONENTS_FORMAT.format(Options.NAMENODE), validate=False, parse=True)
@@ -1623,11 +1619,29 @@ def get_hbase_coprocessmaster_classes():
 
   return old_value
 
+
 def get_rpc_scheduler_factory_class():
-  if check_phoenix_component_existence():
+  if Options.PHOENIX_QUERY_SERVER in Options.ambari_server.components:
     return "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory"
   else:
     return ""
+
+
+def get_hbase_rpc_controllerfactory_class():
+  if Options.PHOENIX_QUERY_SERVER in Options.ambari_server.components:
+    return "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory"
+  else:
+    return ""
+
+
+def get_hbase_regionserver_wal_codec():
+  prop = "phoenix_sql_enabled"
+  scf = Options.server_config_factory
+  if "hbase-env" in scf.items():
+    if prop in scf.get_config("hbase-env").properties and scf.get_config("hbase-env").properties[prop].upper() == "TRUE":
+      return "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec"
+  return "org.apache.hadoop.hbase.regionserver.wal.WALCellCodec"
+
 
 def get_hbase_coprocessor_region_classes():
   scf = Options.server_config_factory
@@ -1666,8 +1680,12 @@ def _substitute_handler(upgrade_catalog, tokens, value):
       value = value.replace(token, get_jh_host(upgrade_catalog))
     elif token == "{RESOURCEMANAGER_HOST}":
       value = value.replace(token, get_jt_host(upgrade_catalog))
+    elif token == "{HBASE_REGIONSERVER_WAL_CODEC}":
+      value = value.replace(token, get_hbase_regionserver_wal_codec())
     elif token == "{HBASE_REGION_SERVER_RPC_SCHEDULER_FACTORY_CLASS}":
       value = value.replace(token, get_rpc_scheduler_factory_class())
+    elif token == "{HBASE_RPC_CONTROLLERFACTORY_CLASS}":
+      value = value.replace(token, get_hbase_rpc_controllerfactory_class())
     elif token == "{ZOOKEEPER_QUORUM}":
       value = value.replace(token, get_zookeeper_quorum())
     elif token == "{HBASE_COPROCESS_MASTER_CLASSES}":
