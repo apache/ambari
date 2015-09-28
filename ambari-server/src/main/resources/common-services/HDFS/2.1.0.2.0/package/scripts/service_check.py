@@ -86,7 +86,7 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
         checkWebUIFileName = "checkWebUI.py"
         checkWebUIFilePath = format("{tmp_dir}/{checkWebUIFileName}")
         comma_sep_jn_hosts = ",".join(params.journalnode_hosts)
-        checkWebUICmd = format("python {checkWebUIFilePath} -m {comma_sep_jn_hosts} -p {journalnode_port} -s {https_only}")
+        checkWebUICmd = format("ambari-python-wrap {checkWebUIFilePath} -m {comma_sep_jn_hosts} -p {journalnode_port} -s {https_only}")
         File(checkWebUIFilePath,
              content=StaticFile(checkWebUIFileName),
              mode=0775)

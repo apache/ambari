@@ -536,7 +536,7 @@ class TestFlumeHandler(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled("Execute", ('hdp-select', 'set', 'flume-server', '2.2.1.0-2067'), sudo=True)
+    self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'flume-server', '2.2.1.0-2067'), sudo=True)
 
 
 def build_flume(content):

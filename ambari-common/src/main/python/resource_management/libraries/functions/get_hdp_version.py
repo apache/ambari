@@ -31,6 +31,8 @@ from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core import shell
 
+HDP_SELECT_BINARY = "/usr/bin/hdp-select"
+
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def get_hdp_version(package_name):
   """
@@ -63,12 +65,12 @@ def get_hdp_version(package_name):
   @param package_name, name of the package, from which, function will try to get hdp version
   """
   
-  if not os.path.exists("/usr/bin/hdp-select"):
+  if not os.path.exists(HDP_SELECT_BINARY):
     Logger.info('Skipping get_hdp_version since hdp-select is not yet available')
     return None # lazy fail
   
   try:
-    command = 'hdp-select status ' + package_name
+    command = 'ambari-python-wrap {HDP_SELECT_BINARY} status {package_name}'.format(HDP_SELECT_BINARY=HDP_SELECT_BINARY, package_name=package_name)
     return_code, hdp_output = shell.call(command, timeout=20)
   except Exception, e:
     Logger.error(str(e))

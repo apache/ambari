@@ -220,7 +220,7 @@ class TestFalconServer(RMFTestCase):
      u'/hadoop/falcon'),
         sudo = True,
     )
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'falcon-server', u'2.2.1.0-2135'),
+    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'falcon-server', u'2.2.1.0-2135'),
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('tar',
@@ -504,7 +504,7 @@ class TestFalconServer(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
-                              ('hdp-select', 'set', 'falcon-server', version), sudo=True,)
+                              ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'falcon-server', version), sudo=True,)
     self.printResources()
 
   @patch('os.path.isfile', new=MagicMock(return_value=True))
@@ -531,7 +531,7 @@ class TestFalconServer(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute',
-                              ('hdp-select', 'set', 'falcon-server', version), sudo=True,)
+                              ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'falcon-server', version), sudo=True,)
 
     self.assertResourceCalled('Execute', ('tar',
      '-xvf',

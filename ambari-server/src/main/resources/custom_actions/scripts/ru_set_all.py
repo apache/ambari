@@ -33,7 +33,8 @@ from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, Link
-from resource_management.core.shell import as_sudo
+
+HDP_SELECT = '/usr/bin/hdp-select'
 
 class UpgradeSetAll(Script):
   """
@@ -59,7 +60,7 @@ class UpgradeSetAll(Script):
     real_ver = format_hdp_stack_version(version)
     if stack_name == "HDP":
       if compare_versions(real_ver, min_ver) >= 0:
-        cmd = ('hdp-select', 'set', 'all', version)
+        cmd = ('ambari-python-wrap', HDP_SELECT, 'set', 'all', version)
         code, out = shell.call(cmd, sudo=True)
 
       if compare_versions(real_ver, format_hdp_stack_version("2.3")) >= 0:
@@ -169,7 +170,7 @@ def link_config(old_conf, link_conf):
 
   old_conf_copy = os.path.join(old_parent, "conf.backup")
   if not os.path.exists(old_conf_copy):
-    Execute(as_sudo(["cp", "-R", "-p", old_conf, old_conf_copy]), logoutput=True)
+    Execute(("cp", "-R", "-p", old_conf, old_conf_copy), sudo=True, logoutput=True)
 
   shutil.rmtree(old_conf, ignore_errors=True)
 

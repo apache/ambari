@@ -93,7 +93,7 @@ class TestRUSetAll(RMFTestCase):
     ru_execute = UpgradeSetAll()
     ru_execute.actionexecute(None)
 
-    call_mock.assert_called_with(('hdp-select', 'set', 'all', u'2.2.1.0-2260'), sudo=True)
+    call_mock.assert_called_with(('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'all', u'2.2.1.0-2260'), sudo=True)
 
   @patch("resource_management.core.shell.call")
   @patch.object(Script, 'get_config')
@@ -129,7 +129,7 @@ class TestRUSetAll(RMFTestCase):
     ru_execute.actionexecute(None)
 
     self.assertTrue(link_mock.called)
-    call_mock.assert_called_with(('hdp-select', 'set', 'all', '2.3.0.0-1234'), sudo=True)
+    call_mock.assert_called_with(('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'all', '2.3.0.0-1234'), sudo=True)
 
 
   @patch("os.path.islink")
