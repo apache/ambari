@@ -349,6 +349,12 @@ class TestDatanode(RMFTestCase):
                               mode = 0751,
                               recursive = True,
                               )
+    self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/datanode',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755,
+                              recursive = True
+    )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/data',
                               owner = 'hdfs',
                               ignore_failures = True,
@@ -358,7 +364,7 @@ class TestDatanode(RMFTestCase):
                               cd_access='a'
                               )
     content = resource_management.libraries.functions.dfs_datanode_helper.DATA_DIR_TO_MOUNT_HEADER
-    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs_data_dir_mount.hist',
+    self.assertResourceCalled('File', '/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0644,
@@ -421,6 +427,12 @@ class TestDatanode(RMFTestCase):
                               mode = 0751,
                               recursive = True,
                               )
+    self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/datanode',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755,
+                              recursive = True
+    )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/data',
                               owner = 'hdfs',
                               ignore_failures = True,
@@ -430,7 +442,7 @@ class TestDatanode(RMFTestCase):
                               cd_access='a'
                               )
     content = resource_management.libraries.functions.dfs_datanode_helper.DATA_DIR_TO_MOUNT_HEADER
-    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs_data_dir_mount.hist',
+    self.assertResourceCalled('File', '/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0644,

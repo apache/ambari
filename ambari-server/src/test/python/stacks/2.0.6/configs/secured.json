@@ -568,8 +568,7 @@
             "proxyuser_group": "users",
             "hadoop_heapsize": "1024", 
             "hadoop_pid_dir_prefix": "/var/run/hadoop",
-            "hdfs_user_keytab": "/etc/security/keytabs/hdfs.headless.keytab",
-            "dfs.datanode.data.dir.mount.file": "/etc/hadoop/conf/dfs_data_dir_mount.hist"
+            "hdfs_user_keytab": "/etc/security/keytabs/hdfs.headless.keytab"
         },
         "hive-env": {
             "hcat_pid_dir": "/var/run/webhcat", 

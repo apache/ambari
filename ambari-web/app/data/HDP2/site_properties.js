@@ -61,14 +61,6 @@ var hdp2properties = [
     "index": 3
   },
   {
-    "name": "dfs.datanode.data.dir.mount.file",
-    "displayType": "directory",
-    "category": "DATANODE",
-    "serviceName": "HDFS",
-    "filename": "hadoop-env.xml",
-    "index": 4
-  },
-  {
     "name": "dfs.datanode.data.dir",
     "displayType": "directories",
     "category": "DATANODE",

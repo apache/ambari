@@ -73,18 +73,6 @@ module.exports =
       "index": 3
     },
     {
-      "name": "dfs.datanode.data.dir.mount.file",
-      "displayName": "File that stores mount point for each data dir",
-      "description": "File path that contains the last known mount point for each data dir. This file is used to avoid creating a DFS data dir on the root drive (and filling it up) if a path was previously mounted on a drive.",
-      "recommendedValue": "/etc/hadoop/conf/dfs_data_dir_mount.hist",
-      "displayType": "directory",
-      "isVisible": true,
-      "category": "DATANODE",
-      "serviceName": "HDFS",
-      "filename": "hadoop-env.xml",
-      "index": 4
-    },
-    {
       "name": "dfs.datanode.data.dir",
       "displayName": "DataNode directories",
       "displayType": "directories",
