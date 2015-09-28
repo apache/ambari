@@ -338,6 +338,12 @@ App.UpdateController = Em.Controller.extend({
     var hostNames = data.items.mapProperty('Hosts.host_name');
     var skipCall = hostNames.length === 0;
 
+    /**
+     * exclude pagination parameters as they were applied in previous call
+     * to obtain hostnames of filtered hosts
+     */
+    preLoadKeys = preLoadKeys.concat(this.get('paginationKeys'));
+
     var itemTotal = parseInt(data.itemTotal);
     if (!isNaN(itemTotal)) {
       App.router.set('mainHostController.filteredCount', itemTotal);
