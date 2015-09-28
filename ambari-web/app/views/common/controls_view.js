@@ -697,7 +697,25 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     }
   }.observes('serviceConfig.value'),
 
-  optionsBinding: 'serviceConfig.options'
+  options: function () {
+    return this.get('serviceConfig.options').map(function (option) {
+      var dbTypePattern = /mysql|postgres|oracle|derby|mssql|sql\s?a/i,
+        className = '',
+        displayName = Em.get(option, 'displayName'),
+        dbTypeMatch = displayName.match(dbTypePattern);
+      if (dbTypeMatch) {
+        var dbSourcePattern = /new/i,
+          newDbMatch = displayName.match(dbSourcePattern);
+        if (newDbMatch) {
+          className += 'new-';
+        }
+        className += dbTypeMatch[0].replace(' ', '').toLowerCase();
+      }
+      return className ? Em.Object.create(option, {
+        className: className
+      }) : option;
+    });
+  }.property('serviceConfig.options')
 });
 
 App.ServiceConfigRadioButton = Ember.Checkbox.extend({
