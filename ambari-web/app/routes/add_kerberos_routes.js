@@ -292,8 +292,6 @@ module.exports = App.WizardRoute.extend({
 
     next: function (router) {
       var kerberosWizardController = router.get('kerberosWizardController');
-      var kerberosWizardStep4Controller = router.get('kerberosWizardStep4Controller');
-      kerberosWizardController.saveServiceConfigProperties(kerberosWizardStep4Controller);
       kerberosWizardController.setDBProperties({
         tasksStatuses: null,
         tasksRequestIds: null
@@ -321,14 +319,11 @@ module.exports = App.WizardRoute.extend({
     back: Em.Router.transitionTo('step4'),
     next: function (router) {
       var kerberosWizardController = router.get('kerberosWizardController');
-      var callback = function () {
-        kerberosWizardController.setDBProperties({
-          tasksStatuses: null,
-          tasksRequestIds: null
-        });
-        router.transitionTo('step7');
-      };
-      callback();
+      kerberosWizardController.setDBProperties({
+        tasksStatuses: null,
+        tasksRequestIds: null
+      });
+      router.transitionTo('step7');
     }
   }),
 
