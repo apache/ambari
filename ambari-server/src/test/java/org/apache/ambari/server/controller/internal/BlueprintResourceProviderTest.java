@@ -167,6 +167,38 @@ public class BlueprintResourceProviderTest {
     verify(dao, entity, blueprintFactory, metaInfo, request, managementController);
   }
 
+  @Test()
+  public void testCreateResources_ReqestBodyIsEmpty() throws Exception {
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Request request = createMock(Request.class);
+
+    Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, null);
+
+    // set expectations
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
+
+    replay(request, managementController);
+    // end expectations
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+      Resource.Type.Blueprint,
+      PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
+      PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
+      managementController);
+
+    try {
+      provider.createResources(request);
+      fail("Exception expected");
+    } catch (IllegalArgumentException e) {
+      //expected exception
+      assertEquals(BlueprintResourceProvider.REQUEST_BODY_EMPTY_ERROR_MESSAGE, e.getMessage());
+    }
+    verify(request, managementController);
+  }
+
   @Test
   public void testCreateResources_NoValidation() throws Exception {
 
@@ -491,7 +523,7 @@ public class BlueprintResourceProviderTest {
   }
 
   @Test
-  public void testCreateResources_withWrongConfigurationsStructure() throws ResourceAlreadyExistsException, SystemException,
+  public void testCreateResources_wrongConfigurationsStructure_withWrongConfigMapSize() throws ResourceAlreadyExistsException, SystemException,
       UnsupportedPropertyException, NoSuchParentResourceException
   {
     Request request = createMock(Request.class);
@@ -516,6 +548,65 @@ public class BlueprintResourceProviderTest {
       fail("Exception expected");
     } catch (IllegalArgumentException e) {
       //expected exception
+      assertEquals(BlueprintResourceProvider.CONFIGURATION_MAP_SIZE_CHECK_ERROR_MESSAGE, e.getMessage());
+    }
+    verify(dao, metaInfo, request);
+  }
+
+  @Test
+  public void testCreateResources_wrongConfigurationStructure_withoutConfigMaps() throws ResourceAlreadyExistsException, SystemException,
+    UnsupportedPropertyException, NoSuchParentResourceException {
+
+    Request request = createMock(Request.class);
+
+    Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
+
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    String configurationData = "{\"configurations\":[\"config-type1\", \"config-type2\"]}";
+    requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, configurationData);
+
+    // set expectations
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
+
+    replay(dao, metaInfo, request);
+    // end expectations
+
+    try {
+      provider.createResources(request);
+      fail("Exception expected");
+    } catch (IllegalArgumentException e) {
+      //expected exception
+      assertEquals(BlueprintResourceProvider.CONFIGURATION_MAP_CHECK_ERROR_MESSAGE, e.getMessage());
+    }
+    verify(dao, metaInfo, request);
+  }
+
+  @Test
+  public void testCreateResources_wrongConfigurationStructure_withoutConfigsList() throws ResourceAlreadyExistsException, SystemException,
+    UnsupportedPropertyException, NoSuchParentResourceException {
+
+    Request request = createMock(Request.class);
+
+    Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
+
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    String configurationData = "{\"configurations\":{\"config-type1\": \"properties\", \"config-type2\": \"properties\"}}";
+    requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, configurationData);
+
+    // set expectations
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
+
+    replay(dao, metaInfo, request);
+    // end expectations
+
+    try {
+      provider.createResources(request);
+      fail("Exception expected");
+    } catch (IllegalArgumentException e) {
+      //expected exception
+      assertEquals(BlueprintResourceProvider.CONFIGURATION_LIST_CHECK_ERROR_MESSAGE, e.getMessage());
     }
     verify(dao, metaInfo, request);
   }
