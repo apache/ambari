@@ -236,7 +236,7 @@ fs_checkpoint_dirs = default("/configurations/hdfs-site/dfs.namenode.checkpoint.
 dfs_data_dir = config['configurations']['hdfs-site']['dfs.datanode.data.dir']
 dfs_data_dir = ",".join([re.sub(r'^\[.+\]', '', dfs_dir.strip()) for dfs_dir in dfs_data_dir.split(",")])
 
-data_dir_mount_file = config['configurations']['hadoop-env']['dfs.datanode.data.dir.mount.file']
+data_dir_mount_file = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
 
 # HDFS High Availability properties
 dfs_ha_enabled = False

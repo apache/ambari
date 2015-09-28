@@ -59,7 +59,7 @@ class TestDatanodeHelper(TestCase):
   grid2 = "/grid/2/data"
 
   params = StubParams()
-  params.data_dir_mount_file = "/etc/hadoop/conf/dfs_data_dir_mount.hist"
+  params.data_dir_mount_file = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
   params.dfs_data_dir = "{0},{1},{2}".format(grid0, grid1, grid2)
 
 
@@ -70,7 +70,7 @@ class TestDatanodeHelper(TestCase):
     Test that the data dirs are normalized by removing leading and trailing whitespace, and case sensitive.
     """
     params = StubParams()
-    params.data_dir_mount_file = "/etc/hadoop/conf/dfs_data_dir_mount.hist"
+    params.data_dir_mount_file = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
     params.dfs_data_dir = "/grid/0/data  ,  /grid/1/data  ,/GRID/2/Data/"
 
     # Function under test

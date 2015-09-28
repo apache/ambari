@@ -30,7 +30,7 @@ RESULT_STATE_CRITICAL = 'CRITICAL'
 RESULT_STATE_UNKNOWN = 'UNKNOWN'
 
 DFS_DATA_DIR = '{{hdfs-site/dfs.datanode.data.dir}}'
-DATA_DIR_MOUNT_FILE = '{{hadoop-env/dfs.datanode.data.dir.mount.file}}'
+DATA_DIR_MOUNT_FILE = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
 
 logger = logging.getLogger()
 
@@ -62,23 +62,16 @@ def execute(configurations={}, parameters={}, host_name=None):
   if DFS_DATA_DIR not in configurations:
     return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script'.format(DFS_DATA_DIR)])
 
-  if DATA_DIR_MOUNT_FILE not in configurations:
-    return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script'.format(DATA_DIR_MOUNT_FILE)])
-
   dfs_data_dir = configurations[DFS_DATA_DIR]
-  data_dir_mount_file = configurations[DATA_DIR_MOUNT_FILE]
 
   if dfs_data_dir is None:
     return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script and the value is null'.format(DFS_DATA_DIR)])
 
-  if data_dir_mount_file is None:
-    return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script and the value is null'.format(DATA_DIR_MOUNT_FILE)])
-
   data_dir_mount_file_exists = True
   # This follows symlinks and will return False for a broken link (even in the middle of the linked list)
-  if not os.path.exists(data_dir_mount_file):
+  if not os.path.exists(DATA_DIR_MOUNT_FILE):
     data_dir_mount_file_exists = False
-    warnings.append("File not found, {0} .".format(data_dir_mount_file))
+    warnings.append("File not found, {0} .".format(DATA_DIR_MOUNT_FILE))
 
   valid_data_dirs = set()            # data dirs that have been normalized
   data_dirs_not_exist = set()        # data dirs that do not exist
@@ -129,7 +122,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     class Params:
       def __init__(self, mount_file):
         self.data_dir_mount_file = mount_file
-    params = Params(data_dir_mount_file)
+    params = Params(DATA_DIR_MOUNT_FILE)
 
     # This dictionary contains the expected values of <data_dir, mount_point>
     # Hence, we only need to analyze the data dirs that are currently on the root partition

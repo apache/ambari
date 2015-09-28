@@ -30,7 +30,7 @@ from stacks.utils.RMFTestCase import *
 import resource_management.libraries.functions.file_system
 
 COMMON_SERVICES_ALERTS_DIR = "HDFS/2.1.0.2.0/package/alerts"
-DATA_DIR_MOUNT_HIST_FILE_PATH = "/etc/hadoop/conf/dfs_data_dir_mount.hist"
+DATA_DIR_MOUNT_HIST_FILE_PATH = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
 
 file_path = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(file_path)))))
@@ -69,23 +69,6 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
       "{{hdfs-site/dfs.datanode.data.dir}}": ""
     }
     [status, messages] = alert.execute(configurations=configs)
-    self.assertEqual(status, RESULT_STATE_UNKNOWN)
-    self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertTrue('is a required parameter for the script' in messages[0])
-
-    configs = {
-      "{{hadoop-env/dfs.datanode.data.dir.mount.file}}": DATA_DIR_MOUNT_HIST_FILE_PATH
-    }
-    [status, messages] = alert.execute(configurations=configs)
-    self.assertEqual(status, RESULT_STATE_UNKNOWN)
-    self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertTrue('is a required parameter for the script' in messages[0])
-
-    configs = {
-      "{{hdfs-site/dfs.datanode.data.dir}}": "",
-      "{{hadoop-env/dfs.datanode.data.dir.mount.file}}": DATA_DIR_MOUNT_HIST_FILE_PATH
-    }
-    [status, messages] = alert.execute(configurations=configs)
     self.assertNotEqual(status, RESULT_STATE_UNKNOWN)
 
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
@@ -97,8 +80,7 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     does not exist.
     """
     configs = {
-      "{{hdfs-site/dfs.datanode.data.dir}}": "/grid/0/data",
-      "{{hadoop-env/dfs.datanode.data.dir.mount.file}}": DATA_DIR_MOUNT_HIST_FILE_PATH
+      "{{hdfs-site/dfs.datanode.data.dir}}": "/grid/0/data"
     }
 
     # Mock calls
@@ -121,8 +103,7 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     and this coincides with the expected values.
     """
     configs = {
-      "{{hdfs-site/dfs.datanode.data.dir}}": "/grid/0/data,/grid/1/data,/grid/2/data",
-      "{{hadoop-env/dfs.datanode.data.dir.mount.file}}": DATA_DIR_MOUNT_HIST_FILE_PATH
+      "{{hdfs-site/dfs.datanode.data.dir}}": "/grid/0/data,/grid/1/data,/grid/2/data"
     }
 
     # Mock calls
@@ -147,8 +128,7 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     Test that the status is OK when the mount points match the expected values.
     """
     configs = {
-      "{{hdfs-site/dfs.datanode.data.dir}}": "/grid/0/data,/grid/1/data,/grid/2/data",
-      "{{hadoop-env/dfs.datanode.data.dir.mount.file}}": DATA_DIR_MOUNT_HIST_FILE_PATH
+      "{{hdfs-site/dfs.datanode.data.dir}}": "/grid/0/data,/grid/1/data,/grid/2/data"
     }
 
     # Mock calls
@@ -174,8 +154,7 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     and at least one data dir is on a mount and at least one data dir is on the root partition.
     """
     configs = {
-      "{{hdfs-site/dfs.datanode.data.dir}}": "/grid/0/data,/grid/1/data,/grid/2/data,/grid/3/data",
-      "{{hadoop-env/dfs.datanode.data.dir.mount.file}}": DATA_DIR_MOUNT_HIST_FILE_PATH
+      "{{hdfs-site/dfs.datanode.data.dir}}": "/grid/0/data,/grid/1/data,/grid/2/data,/grid/3/data"
     }
 
     # Mock calls
@@ -199,8 +178,7 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     became unmounted.
     """
     configs = {
-      "{{hdfs-site/dfs.datanode.data.dir}}": "/grid/0/data,/grid/1/data,/grid/2/data,/grid/3/data",
-      "{{hadoop-env/dfs.datanode.data.dir.mount.file}}": DATA_DIR_MOUNT_HIST_FILE_PATH
+      "{{hdfs-site/dfs.datanode.data.dir}}": "/grid/0/data,/grid/1/data,/grid/2/data,/grid/3/data"
     }
 
     # Mock calls

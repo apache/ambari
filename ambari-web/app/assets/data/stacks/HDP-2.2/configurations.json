@@ -4297,20 +4297,6 @@
           }
         },
         {
-          "href" : "http://c6401:8080/api/v1/stacks/HDP/versions/2.2/services/HDFS/configurations/dfs.datanode.data.dir.mount.file",
-          "StackConfigurations" : {
-            "final" : "false",
-            "property_description" : "File path that contains the last known mount point for each data dir. This file is used to avoid creating a DFS data dir on the root drive (and filling it up) if a path was previously mounted on a drive.",
-            "property_name" : "dfs.datanode.data.dir.mount.file",
-            "property_type" : [ ],
-            "property_value" : "/etc/hadoop/conf/dfs_data_dir_mount.hist",
-            "service_name" : "HDFS",
-            "stack_name" : "HDP",
-            "stack_version" : "2.2",
-            "type" : "hadoop-env.xml"
-          }
-        },
-        {
           "href" : "http://c6401:8080/api/v1/stacks/HDP/versions/2.2/services/HDFS/configurations/dfs.datanode.data.dir.perm",
           "StackConfigurations" : {
             "final" : "false",

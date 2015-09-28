@@ -46,13 +46,6 @@
     </value-attributes>
   </property>
   <property>
-    <name>dfs.datanode.data.dir.mount.file</name>
-    <value>file:///c:/hadoop/conf/dfs_data_dir_mount.hist</value>
-    <display-name>File that stores mount point for each data dir</display-name>
-    <description>File path that contains the last known mount point for each data dir. This file is used to avoid creating a DFS data dir on the root drive (and filling it up) if a path was previously mounted on a drive.</description>
-  </property>
-
-  <property>
     <name>proxyuser_group</name>
     <deleted>true</deleted>
   </property>

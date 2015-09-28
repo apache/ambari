@@ -199,6 +199,7 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
     updateHbaseAndClusterConfigurations();
     updateKafkaConfigurations();
     updateStormConfigs();
+    removeDataDirMountConfig();
   }
 
   protected void updateStormConfigs() throws AmbariException {
@@ -380,5 +381,22 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
   private void executeHostRoleCommandDDLUpdates() throws AmbariException, SQLException {
     dbAccessor.addColumn(HOST_ROLE_COMMAND_TABLE,
         new DBColumnInfo(HOST_ROLE_COMMAND_SKIP_COLUMN, Integer.class, 1, 0, false));
+  }
+
+  protected void removeDataDirMountConfig() throws AmbariException {
+    Set<String> properties = new HashSet<>();
+    properties.add("dfs.datanode.data.dir.mount.file");
+
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          removeConfigurationPropertiesFromCluster(cluster, "hadoop-env", properties);
+        }
+      }
+    }
   }
 }

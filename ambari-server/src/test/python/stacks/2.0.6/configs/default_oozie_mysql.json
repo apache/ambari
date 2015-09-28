@@ -449,8 +449,7 @@
             "dtnode_heapsize": "1024m", 
             "proxyuser_group": "users",
             "hadoop_heapsize": "1024", 
-            "hadoop_pid_dir_prefix": "/var/run/hadoop",
-            "dfs.datanode.data.dir.mount.file": "/etc/hadoop/conf/dfs_data_dir_mount.hist"
+            "hadoop_pid_dir_prefix": "/var/run/hadoop"
         },
         "hive-env": {
             "hcat_pid_dir": "/var/run/webhcat", 
