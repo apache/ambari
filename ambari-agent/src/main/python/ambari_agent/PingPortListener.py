@@ -39,7 +39,7 @@ class PingPortListener(threading.Thread):
     self.host = '0.0.0.0'
     self.port = int(self.config.get('agent','ping_port'))
     if not self.port == None and not self.port == 0:
-      (stdoutdata, stderrdata) = self.run_os_command_in_shell(FUSER_CMD.format(str(self.port), "{print $2}"))
+      (stdoutdata, stderrdata) = self.run_os_command_in_shell(FUSER_CMD.format(str(self.port), "{print $1}"))
       if stdoutdata.strip() and stdoutdata.strip().isdigit():
         (stdoutdata, stderrdata) = self.run_os_command_in_shell(PSPF_CMD.format(stdoutdata.strip()))
         raise Exception(PORT_IN_USE_MESSAGE.format(str(self.port), stdoutdata))      
