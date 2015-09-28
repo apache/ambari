@@ -22,8 +22,13 @@ var validator = require('utils/validator');
 
 describe('App.ServiceConfigRadioButtons', function () {
 
+  var view;
+
+  beforeEach(function () {
+    view = App.ServiceConfigRadioButtons.create();
+  });
+
   describe('#setConnectionUrl', function () {
-    var view = App.ServiceConfigRadioButtons.create();
     beforeEach(function () {
       sinon.stub(view, 'getPropertyByType', function (name) {
         return App.ServiceConfigProperty.create({'name': name});
@@ -44,21 +49,21 @@ describe('App.ServiceConfigRadioButtons', function () {
   });
 
   describe('#setRequiredProperties', function () {
-    var view = App.ServiceConfigRadioButtons.create({
-      serviceConfig: Em.Object.create(),
-      categoryConfigsAll: [
-        App.ServiceConfigProperty.create({
-          name: 'p1',
-          value: 'v1'
-        }),
-        App.ServiceConfigProperty.create({
-          name: 'p2',
-          value: 'v2'
-        })
-      ]
-    });
 
     beforeEach(function () {
+      view.reopen({
+        serviceConfig: Em.Object.create(),
+        categoryConfigsAll: [
+          App.ServiceConfigProperty.create({
+            name: 'p1',
+            value: 'v1'
+          }),
+          App.ServiceConfigProperty.create({
+            name: 'p2',
+            value: 'v2'
+          })
+        ]
+      });
       sinon.stub(view, 'getPropertyByType', function (name) {
         return view.get('categoryConfigsAll').findProperty('name', name);
       });
@@ -81,8 +86,7 @@ describe('App.ServiceConfigRadioButtons', function () {
 
   describe('#handleDBConnectionProperty', function () {
 
-    var view,
-      cases = [
+    var cases = [
         {
           dbType: 'mysql',
           driver: 'mysql-connector-java.jar',
@@ -273,7 +277,7 @@ describe('App.ServiceConfigRadioButtons', function () {
     cases.forEach(function (item) {
       it(item.title, function () {
         sinon.stub(App, 'get').withArgs('currentStackName').returns('HDP').withArgs('currentStackVersion').returns(item.currentStackVersion);
-        view = App.ServiceConfigRadioButtons.create({controller: item.controller});
+        view.reopen({controller: item.controller});
         sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K);
         view.setProperties({
           categoryConfigsAll: item.controller.get('selectedService.configs'),
@@ -287,6 +291,45 @@ describe('App.ServiceConfigRadioButtons', function () {
           expect(additionalView2.create().get('message')).to.equal(Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(item.dbType, item.driver));
         }
       });
+    });
+
+  });
+
+  describe('#options', function () {
+
+    var options = [
+        {
+          displayName: 'MySQL'
+        },
+        {
+          displayName: 'New PostgreSQL Database'
+        },
+        {
+          displayName: 'existing postgres db'
+        },
+        {
+          displayName: 'sqla database: existing'
+        },
+        {
+          displayName: 'SQL Anywhere database (New)'
+        },
+        {
+          displayName: 'displayName'
+        }
+      ],
+      classNames = ['mysql', 'new-postgres', 'postgres', 'sqla', 'new-sqla', undefined];
+
+    beforeEach(function () {
+      view.reopen({
+        serviceConfig: Em.Object.create({
+          options: options
+        })
+      });
+    });
+
+    it('should set class names for options', function () {
+      expect(view.get('options').mapProperty('displayName')).to.eql(options.mapProperty('displayName'));
+      expect(view.get('options').mapProperty('className')).to.eql(classNames);
     });
 
   });

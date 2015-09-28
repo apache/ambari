@@ -18,7 +18,7 @@
 
 {{#each option in view.options}}
   {{#unless option.hidden}}
-    <label class="radio">
+    <label {{bindAttr class="option.className :radio"}}>
       {{#view App.ServiceConfigRadioButton nameBinding = "view.name" valueBinding = "option.displayName"}}{{/view}}
       {{option.displayName}} &nbsp;
     </label>
