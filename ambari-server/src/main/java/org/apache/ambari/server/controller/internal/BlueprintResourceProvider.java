@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -85,8 +87,15 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   public static final String PROPERTIES_PROPERTY_ID = "properties";
   public static final String PROPERTIES_ATTRIBUTES_PROPERTY_ID = "properties_attributes";
   public static final String SCHEMA_IS_NOT_SUPPORTED_MESSAGE =
-      "Configuration format provided in Blueprint is not supported";
-
+    "Configuration format provided in Blueprint is not supported";
+  public static final String REQUEST_BODY_EMPTY_ERROR_MESSAGE =
+    "Request body for Blueprint create request is empty";
+  public static final String CONFIGURATION_LIST_CHECK_ERROR_MESSAGE =
+    "Configurations property must be a List of Maps";
+  public static final String CONFIGURATION_MAP_CHECK_ERROR_MESSAGE =
+    "Configuration elements must be Maps";
+  public static final String CONFIGURATION_MAP_SIZE_CHECK_ERROR_MESSAGE =
+    "Configuration Maps must hold a single configuration type each";
   // Primary Key Fields
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -384,22 +393,16 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       @Override
       public Void invoke() throws AmbariException {
         String rawRequestBody = requestInfoProps.get(Request.REQUEST_INFO_BODY_PROPERTY);
+        Preconditions.checkArgument(!Strings.isNullOrEmpty(rawRequestBody), REQUEST_BODY_EMPTY_ERROR_MESSAGE);
+
         Map<String, Object> rawBodyMap = jsonSerializer.<Map<String, Object>>fromJson(rawRequestBody, Map.class);
         Object configurationData = rawBodyMap.get(CONFIGURATION_PROPERTY_ID);
 
         if (configurationData != null) {
-          if (configurationData instanceof List) {
-            for (Object map : (List) configurationData) {
-              if (map instanceof Map) {
-                if (((Map) map).size() > 1) {
-                  throw new IllegalArgumentException("Configuration Maps must hold a single configuration type each");
-                }
-              } else {
-                throw new IllegalArgumentException("Configuration elements must be Maps");
-              }
-            }
-          } else {
-            throw new IllegalArgumentException("Configurations property must be a List of Maps");
+          Preconditions.checkArgument(configurationData instanceof List, CONFIGURATION_LIST_CHECK_ERROR_MESSAGE);
+          for (Object map : (List) configurationData) {
+            Preconditions.checkArgument(map instanceof Map, CONFIGURATION_MAP_CHECK_ERROR_MESSAGE);
+            Preconditions.checkArgument(((Map) map).size() <= 1, CONFIGURATION_MAP_SIZE_CHECK_ERROR_MESSAGE);
           }
         }
         Blueprint blueprint;
