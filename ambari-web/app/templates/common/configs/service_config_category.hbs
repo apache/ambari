@@ -40,12 +40,6 @@
                     <a href="javascript:void(null);"><i class="icon-lock" rel="tooltip" data-toggle="tooltip"
                                                         title="security knob"></i></a>
                   {{/if}}
-                  {{#if view.supportsHostOverrides}}
-                    {{#if isRestartRequired}}
-                      <i class="icon-refresh restart-required-property"
-                         rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
-                    {{/if}}
-                  {{/if}}
                 </label>
               </span>
             {{/if}}
@@ -65,50 +59,7 @@
                       &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
                   {{/if}}
                 {{/if}}
-                {{#if supportsFinal}}
-                  <a href="#" data-toggle="tooltip"
-                    {{bindAttr class=":btn-small :btn-final isFinal:active hideFinalIcon:hidden" disabled="isNotEditable"}}
-                    {{action "toggleFinalFlag" this target="view"}}
-                    {{translateAttr data-original-title="services.service.config.final"}}>
-                    <i class="icon-lock"></i>
-                  </a>
-                {{/if}}
-                {{#if view.canEdit}}
-                  {{#if view.supportsHostOverrides}}
-                    {{#isAccessible ADMIN}}
-                      <a href="#" data-toggle="tooltip"
-                        {{action "createOverrideProperty" this target="view"}}
-                        {{translateAttr data-original-title="common.override"}}
-                        {{bindAttr class="overrideAvailable::hide :btn-small"}}>
-                        <i class="icon-plus-sign"></i>
-                      </a>
-                    {{/isAccessible}}
-                  {{/if}}
-                  <a href="#" data-toggle="tooltip"
-                    {{action "doRestoreDefaultValue" this target="view"}}
-                    {{translateAttr data-original-title="common.undo"}}
-                    {{bindAttr class="undoAvailable::hide :btn-small"}}>
-                    <i class="icon-undo"></i>
-                  </a>
-                  {{#isAccessible ADMIN}}
-                    <a href="#" data-toggle="tooltip"
-                      {{action "removeProperty" this target="view"}}
-                      {{translateAttr data-original-title="common.remove"}}
-                      {{bindAttr class="removeAvailable::hide :btn-small"}}>
-                      <i class="icon-minus-sign"></i>
-                    </a>
-                  {{/isAccessible}}
-                  <a rel='SwitchGroupTooltip' {{bindAttr data-original-title="this.group.switchGroupTextShort" class="switchGroupAvailable:show:hide :action"}}
-                    {{action selectConfigGroup group target="controller"}}>
-                    {{group.switchGroupTextShort}}
-                  </a>
-                  <a href="#" data-toggle="tooltip"
-                    {{action "setRecommendedValue" this target="view"}}
-                    {{translateAttr data-original-title="services.service.config.setRecommendedValue"}}
-                    {{bindAttr class="setRecommendedAvailable::hide :btn-small"}}>
-                    <i class="icon-repeat"></i>
-                  </a>
-                {{/if}}
+                {{view App.ControlsView serviceConfigPropertyBinding="this"}}
                 <span class="help-inline">{{errorMessage}}</span>
                 <span class="help-inline">{{warnMessage}}</span>
               </div>

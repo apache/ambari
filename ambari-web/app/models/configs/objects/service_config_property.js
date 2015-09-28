@@ -137,8 +137,6 @@ App.ServiceConfigProperty = Em.Object.extend({
   }.property('errorMessage', 'warnMessage', 'overrideErrorTrigger'),
 
   overrideErrorTrigger: 0, //Trigger for overridable property error
-  isRestartRequired: false,
-  restartRequiredMessage: 'Restart required',
   index: null, //sequence number in category
   editDone: false, //Text field: on focusOut: true, on focusIn: false
   isNotSaved: false, // user property was added but not saved
@@ -177,12 +175,11 @@ App.ServiceConfigProperty = Em.Object.extend({
     var editable = this.get('isEditable');
     var overrides = this.get('overrides');
     var dt = this.get('displayType');
-    return overrideable && (editable || !overrides || !overrides.length) && ("componentHost" != dt);
+    return overrideable && (editable || !overrides || !overrides.length) && (!["componentHost", "password"].contains(dt));
   }.property('isEditable', 'displayType', 'isOverridable', 'overrides.length'),
 
   isOverridden: function() {
-    var overrides = this.get('overrides');
-    return (overrides != null && overrides.get('length')>0) || !this.get('isOriginalSCP');
+    return (this.get('overrides') != null && this.get('overrides.length') > 0) || !this.get('isOriginalSCP');
   }.property('overrides', 'overrides.length', 'isOriginalSCP'),
 
   isOverrideChanged: function () {
@@ -192,14 +189,9 @@ App.ServiceConfigProperty = Em.Object.extend({
   }.property('isOverridden', 'overrides.@each.isNotDefaultValue', 'overrideValues.length'),
 
   isRemovable: function() {
-    var isOriginalSCP = this.get('isOriginalSCP');
-    var isUserProperty = this.get('isUserProperty');
-    var isRequiredByAgent = this.get('isRequiredByAgent');
-    var isEditable = this.get('isEditable');
-    var hasOverrides = this.get('overrides.length') > 0;
-    // Removable when this is a user property, or it is not an original property and it is editable
-    return isEditable && !hasOverrides && isRequiredByAgent && (isUserProperty || !isOriginalSCP);
-  }.property('isUserProperty', 'isOriginalSCP', 'overrides.length'),
+    return this.get('isEditable') && this.get('isRequiredByAgent') && !(this.get('overrides.length') > 0)
+       && (this.get('isUserProperty') || !this.get('isOriginalSCP'));
+  }.property('isUserProperty', 'isOriginalSCP', 'overrides.length', 'isRequiredByAgent'),
 
   init: function () {
     if (this.get('value') == '') {
@@ -209,7 +201,7 @@ App.ServiceConfigProperty = Em.Object.extend({
         this.set('value', this.get('recommendedValue'));
       }
     }
-    if(this.get("displayType") === "password"){
+    if(this.get("displayType") === "password") {
       this.set('retypedPassword', this.get('value'));
       this.set('recommendedValue', '');
     }
@@ -241,46 +233,6 @@ App.ServiceConfigProperty = Em.Object.extend({
   cantBeUndone: function() {
     return ["componentHost", "componentHosts", "radio button"].contains(this.get('displayType'));
   }.property('displayType'),
-
-  /**
-   * Used in <code>templates/common/configs/service_config_category.hbs</code>
-   * @type {boolean}
-   */
-  undoAvailable: function () {
-    return !this.get('cantBeUndone') && this.get('isNotDefaultValue');
-  }.property('cantBeUndone', 'isNotDefaultValue'),
-
-  /**
-   * Used in <code>templates/common/configs/service_config_category.hbs</code>
-   * @type {boolean}
-   */
-  removeAvailable: function () {
-    return this.get('isRemovable') && !this.get('isComparison');
-  }.property('isComparison', 'isRemovable'),
-
-  /**
-   * Used in <code>templates/common/configs/service_config_category.hbs</code>
-   * @type {boolean}
-   */
-  switchGroupAvailable: function () {
-    return !this.get('isEditable') && this.get('group');
-  }.property('isEditable', 'group'),
-
-  /**
-   * Used in <code>templates/common/configs/service_config_category.hbs</code>
-   * @type {boolean}
-   */
-  setRecommendedAvailable: function () {
-    return this.get('isEditable') && this.get('recommendedValueExists');
-  }.property('isEditable', 'recommendedValueExists'),
-
-  /**
-   * Used in <code>templates/common/configs/service_config_category.hbs</code>
-   * @type {boolean}
-   */
-  overrideAvailable: function () {
-    return !this.get('isComparison') && this.get('isPropertyOverridable') && (this.get('displayType') !== 'password');
-  }.property('isPropertyOverridable', 'isComparison'),
 
   isValid: function () {
     return this.get('errorMessage') === '';

@@ -859,56 +859,6 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
 
 });
 
-
-/**
- * Show tabs list for slave hosts
- * @type {*}
- */
-App.SlaveComponentGroupsMenu = Em.CollectionView.extend(App.ServiceConfigCalculateId, {
-
-  content: function () {
-    return this.get('controller.componentGroups');
-  }.property('controller.componentGroups'),
-
-  tagName: 'ul',
-  classNames: ["nav", "nav-tabs"],
-
-  itemViewClass: Em.View.extend({
-    classNameBindings: ["active"],
-
-    active: function () {
-      return this.get('content.active');
-    }.property('content.active'),
-
-    errorCount: function () {
-      return this.get('content.properties').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
-    }.property('content.properties.@each.isValid', 'content.properties.@each.isVisible'),
-
-    templateName: require('templates/wizard/controls_slave_component_groups_menu')
-  })
-
-});
-
-/**
- * <code>Add group</code> button
- * @type {*}
- */
-App.AddSlaveComponentGroupButton = Ember.View.extend(App.ServiceConfigCalculateId, {
-
-  tagName: 'span',
-  slaveComponentName: null,
-
-  didInsertElement: function () {
-    App.popover(this.$(), {
-      title: Em.I18n.t('installer.controls.addSlaveComponentGroupButton.title').format(this.get('slaveComponentName')),
-      content: Em.I18n.t('installer.controls.addSlaveComponentGroupButton.content').format(this.get('slaveComponentName'), this.get('slaveComponentName'), this.get('slaveComponentName')),
-      placement: 'right',
-      trigger: 'hover'
-    });
-  }
-
-});
-
 /**
  * Multiple Slave Hosts component
  * @type {*}
@@ -940,26 +890,6 @@ App.ServiceConfigComponentHostsView = Ember.View.extend(App.ServiceConfigMultipl
 
 });
 
-/**
- * properties for present active slave group
- * @type {*}
- */
-App.SlaveGroupPropertiesView = Ember.View.extend(App.ServiceConfigCalculateId, {
-
-  viewName: 'serviceConfigComponentHostsView',
-
-  group: function () {
-    return this.get('controller.activeGroup');
-  }.property('controller.activeGroup'),
-
-  groupConfigs: function () {
-    return this.get('group.properties');
-  }.property('group.properties.@each').cacheable(),
-
-  errorCount: function () {
-    return this.get('group.properties').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
-  }.property('configs.@each.isValid', 'configs.@each.isVisible')
-});
 
 /**
  * DropDown component for <code>select hosts for groups</code> popup
@@ -990,35 +920,6 @@ App.SlaveComponentDropDownGroupView = Ember.View.extend(App.ServiceConfigCalcula
   })
 });
 
-/**
- * Show info about current group
- * @type {*}
- */
-App.SlaveComponentChangeGroupNameView = Ember.View.extend(App.ServiceConfigCalculateId, {
-
-  contentBinding: 'controller.activeGroup',
-  classNames: ['control-group'],
-  classNameBindings: 'error',
-  error: false,
-  setError: function () {
-    this.set('error', false);
-  }.observes('controller.activeGroup'),
-  errorMessage: function () {
-    return this.get('error') ? Em.I18n.t('installer.controls.slaveComponentChangeGroupName.error') : '';
-  }.property('error'),
-
-  /**
-   * Onclick handler for saving updated group name
-   * @param event
-   */
-  changeGroupName: function (event) {
-    var inputVal = $('#' + this.get('elementId') + ' input[type="text"]').val();
-    if (inputVal !== this.get('content.name')) {
-      var result = this.get('controller').changeSlaveGroupName(this.get('content'), inputVal);
-      this.set('error', result);
-    }
-  }
-});
 /**
  * View for testing connection to database.
  **/

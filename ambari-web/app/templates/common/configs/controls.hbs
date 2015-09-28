@@ -1,0 +1,61 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+{{#if view.showSwitchToGroup}}
+  <a rel='SwitchGroupTooltip' {{bindAttr data-original-title="this.group.switchGroupTextShort" class="switchGroupAvailable:show:hide :action"}}
+    {{action selectConfigGroup group target="controller"}}>
+    {{group.switchGroupTextShort}}
+  </a>
+{{else}}
+  {{#if view.showIsFinal}}
+    <a href="#" data-toggle="tooltip"
+      {{bindAttr class=":btn-small :btn-final view.serviceConfigProperty.isFinal:active view.serviceConfigProperty.hideFinalIcon:hidden" disabled="view.serviceConfigProperty.isNotEditable"}}
+      {{action "toggleFinalFlag" this target="view.parentView"}}
+      {{translateAttr data-original-title="services.service.config.final"}}>
+      <i class="icon-lock"></i>
+    </a>
+  {{/if}}
+  {{#if view.showOverride}}
+    <a href="#" data-toggle="tooltip" class="btn-small"
+      {{action "createOverrideProperty" this target="view.parentView"}}
+      {{translateAttr data-original-title="common.override"}}>
+      <i class="icon-plus-sign"></i>
+    </a>
+  {{/if}}
+  {{#if view.showUndo}}
+    <a href="#" data-toggle="tooltip" class="btn-small"
+      {{action "doRestoreDefaultValue" this target="view.parentView"}}
+      {{translateAttr data-original-title="common.undo"}}>
+      <i class="icon-undo"></i>
+    </a>
+  {{/if}}
+  {{#if view.showRemove}}
+    <a href="#" data-toggle="tooltip" class="btn-small"
+      {{action "removeProperty" this target="view.parentView"}}
+      {{translateAttr data-original-title="common.remove"}}>
+      <i class="icon-minus-sign"></i>
+    </a>
+  {{/if}}
+  {{#if view.showSetRecommended}}
+    <a href="#" data-toggle="tooltip" class="btn-small"
+      {{action "setRecommendedValue" this target="view.parentView"}}
+      {{translateAttr data-original-title="services.service.config.setRecommendedValue"}}>
+      <i class="icon-repeat"></i>
+    </a>
+  {{/if}}
+{{/if}}

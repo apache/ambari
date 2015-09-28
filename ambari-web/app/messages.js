@@ -481,8 +481,6 @@ Em.I18n.translations = {
   'installer.controls.serviceConfigMultipleHosts.other':'1 other',
   'installer.controls.serviceConfigMultipleHosts.others':'{0} others',
   'installer.controls.serviceConfigMasterHosts.header':'{0} Hosts',
-  'installer.controls.addSlaveComponentGroupButton.title':'Add a {0} Group',
-  'installer.controls.addSlaveComponentGroupButton.content':'If you need different settings on certain {0}s, you can add a {1} group.<br>All {2}s within the same group will have the same set of settings.  You can create multiple groups.',
   'installer.controls.slaveComponentChangeGroupName.error':'group with this name already exist',
 
   'installer.step0.header':'Get Started',
