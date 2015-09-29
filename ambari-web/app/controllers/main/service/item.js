@@ -19,7 +19,7 @@
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
 
-App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDownload, {
+App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDownload, App.InstallComponent, {
   name: 'mainServiceItemController',
 
   /**
