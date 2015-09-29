@@ -20,7 +20,7 @@ var App = require('app');
 
 App.MainServiceInfoMenuView = Em.CollectionView.extend({
   tagName: 'ul',
-  classNames: ["nav", "nav-tabs"],
+  classNames: ["nav", "nav-tabs", "background-text"],
   content:function(){
     var menuItems = [
       { label: Em.I18n.t('services.service.info.menu.summary'), id: 'summary-service-tab',routing:'summary', active:"active"}

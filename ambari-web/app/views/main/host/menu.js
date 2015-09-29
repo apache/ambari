@@ -20,7 +20,7 @@ var App = require('app');
 
 App.MainHostMenuView = Em.CollectionView.extend({
   tagName: 'ul',
-  classNames: ["nav", "nav-tabs"],
+  classNames: ["nav", "nav-tabs", "background-text"],
   host: null,
 
   content: function () {
