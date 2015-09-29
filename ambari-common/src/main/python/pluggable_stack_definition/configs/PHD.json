@@ -5,7 +5,7 @@
   "textReplacements": [
     ["hdp-select", "distro-select"]
    ],
-  "preservedText": ["ext-2.2", "HDP-oozie", "hdp.version", "HDP_VERSION"],
+  "preservedText": ["ext-2.2", "HDP-oozie", "hdp.version", "HDP_VERSION", "192.168."],
   "uiMapping": [
     {
       "stackVersionNumber": "3.0",
