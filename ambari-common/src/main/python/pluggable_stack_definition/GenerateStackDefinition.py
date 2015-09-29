@@ -369,6 +369,9 @@ def process_py_files(file_path, config_data, stack_version_changes):
 def process_xml_files(file_path, config_data, stack_version_changes):
   return process_replacements(file_path, config_data, stack_version_changes)
 
+def process_other_files(file_path, config_data, stack_version_changes):
+  return process_replacements(file_path, config_data, stack_version_changes)
+
 def process_config_xml(file_path, config_data):
   tree = ET.parse(file_path)
   root = tree.getroot()
@@ -520,6 +523,11 @@ class GeneratorHelper(object):
           ###################################################################
           target = process_py_files(target, self.config_data, self.stack_version_changes)
           return
+        ####################################################################
+        # Generic processing for all other types of files.
+        ####################################################################
+        if target.endswith(".j2") or target.endswith(".sh"):
+          process_other_files(target, self.config_data, self.stack_version_changes)
 
       copy_tree(original_stack, target_stack, ignored_files, post_copy=post_copy)
       # copy default stack advisor
@@ -542,12 +550,17 @@ class GeneratorHelper(object):
             # process configuration xml
             target = process_config_xml(target, self.config_data)
           # process generic xml
-          if target.endswith('.xml'):
-            process_xml_files(target, self.config_data, self.stack_version_changes)
+          process_xml_files(target, self.config_data, self.stack_version_changes)
+          return
         # process python files
         if target.endswith('.py'):
           process_py_files(target, self.config_data, self.stack_version_changes)
           return
+        ####################################################################
+        # Generic processing for all other types of files.
+        ####################################################################
+        if target.endswith(".j2") or target.endswith(".sh"):
+          process_other_files(target, self.config_data, self.stack_version_changes)
 
       copy_tree(source_folder, target_folder, ignored_files, post_copy=post_copy)
       if parent_services:
