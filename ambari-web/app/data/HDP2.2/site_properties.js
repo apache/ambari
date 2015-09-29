@@ -265,16 +265,25 @@ hdp22properties.push(
   },
   /**********************************************RANGER***************************************/
   {
+    "name": "ranger_admin_username",
+    "serviceName": "RANGER",
+    "filename": "ranger-env.xml",
+    "category": "RANGER_ADMIN",
+    "index": 0
+  },
+  {
     "name": "ranger_admin_password",
     "serviceName": "RANGER",
     "filename": "ranger-env.xml",
-    "category": "RANGER_ADMIN"
+    "category": "RANGER_ADMIN",
+    "index": 1
   },
   {
     "name": "SQL_CONNECTOR_JAR",
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
-    "category": "RANGER_ADMIN"
+    "category": "RANGER_ADMIN",
+    "index": 2
   },
   {
     "name": "DB_FLAVOR",

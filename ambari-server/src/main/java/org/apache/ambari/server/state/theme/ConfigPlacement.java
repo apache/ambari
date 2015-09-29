@@ -18,9 +18,12 @@
 
 package org.apache.ambari.server.state.theme;
 
+import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+
+import java.util.List;
 
 @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,6 +32,13 @@ public class ConfigPlacement {
 	private String config;
 	@JsonProperty("subsection-name")
 	private String subsectionName;
+
+  @JsonProperty("property_value_attributes")
+  private ValueAttributesInfo propertyValueAttributes;
+
+  @JsonProperty("depends-on")
+  private List<ConfigCondition> dependsOn;
+
 
   public String getConfig() {
     return config;
@@ -44,6 +54,22 @@ public class ConfigPlacement {
 
   public void setSubsectionName(String subsectionName) {
     this.subsectionName = subsectionName;
+  }
+
+  public ValueAttributesInfo getPropertyValueAttributes() {
+    return propertyValueAttributes;
+  }
+
+  public void setPropertyValueAttributes(ValueAttributesInfo propertyValueAttributes) {
+    this.propertyValueAttributes = propertyValueAttributes;
+  }
+
+  public List<ConfigCondition> getDependsOn() {
+    return dependsOn;
+  }
+
+  public void setDependsOn(List<ConfigCondition> dependsOn) {
+    this.dependsOn = dependsOn;
   }
 
   public boolean isRemoved() {

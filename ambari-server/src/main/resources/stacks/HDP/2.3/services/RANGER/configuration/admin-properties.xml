@@ -22,6 +22,64 @@
 <configuration supports_final="false">
 
   <property>
+    <name>DB_FLAVOR</name>
+    <value>MYSQL</value>
+    <display-name>DB FLAVOR</display-name>
+    <description>The database type to be used (mysql/oracle)</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>MYSQL</value>
+          <label>MYSQL</label>
+        </entry>
+        <entry>
+          <value>ORACLE</value>
+          <label>ORACLE</label>
+        </entry>
+        <entry>
+          <value>POSTGRES</value>
+          <label>POSTGRES</label>
+        </entry>
+        <entry>
+          <value>MSSQL</value>
+          <label>MSSQL</label>
+        </entry>
+        <entry>
+          <value>SQLA</value>
+          <label>SQL Anywhere</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>db_root_user</name>
+    <value>root</value>
+    <display-name>Ranger DB root user</display-name>
+    <description>Database admin user</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+  </property>
+
+  <property require-input="true">
+    <name>db_root_password</name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <display-name>Ranger DB root password</display-name>
+    <description>Database password for the database admin user-id</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+  </property>
+
+
+  <property>
     <name>policymgr_http_enabled</name>
     <deleted>true</deleted>
   </property>

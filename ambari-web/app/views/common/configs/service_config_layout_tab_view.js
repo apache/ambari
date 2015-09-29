@@ -64,7 +64,8 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
     'text-field': App.TextFieldConfigWidgetView,
     'time-interval-spinner': App.TimeIntervalSpinnerView,
     toggle: App.ToggleConfigWidgetView,
-    'text-area': App.StringConfigWidgetView
+    'text-area': App.StringConfigWidgetView,
+    'test-db-connection': App.TestDbConnectionWidgetView
   },
 
   /**
@@ -83,8 +84,11 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
       row.forEach(function (section) {
         section.get('subsectionRows').forEach(function (subRow) {
           subRow.forEach(function (subsection) {
+            var subsectionName = subsection.get('name');
+            var uiOnlyConfigs = App.uiOnlyConfigDerivedFromTheme.filterProperty('subSection.name', subsectionName);
+
             subsection.set('configs', []);
-            subsection.get('configProperties').forEach(function (config) {
+            subsection.get('configProperties').toArray().concat(uiOnlyConfigs).forEach(function (config) {
 
               var service = self.get('controller.stepConfigs').findProperty('serviceName', serviceName);
               if (!service) return;
@@ -95,10 +99,22 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
               var configWidgetType = config.get('widget.type');
               var widget = widgetTypeMap[configWidgetType];
               Em.assert('Unknown config widget view for config ' + configProperty.get('id') + ' with type ' + configWidgetType, widget);
-              configProperty.setProperties({
+
+              var additionalProperties = {
                 widget: widget,
                 stackConfigProperty: config
-              });
+              };
+
+              var configConditions = App.ConfigCondition.find().filter(function(_configCondition){
+                var conditionalConfigs = _configCondition.get('configs').filterProperty('fileName', config.get('filename')).filterProperty('configName', config.get('name'));
+                return (conditionalConfigs && conditionalConfigs.length);
+              }, this);
+
+              if (configConditions && configConditions.length) {
+                additionalProperties.configConditions = configConditions;
+              }
+              configProperty.setProperties(additionalProperties);
+
               if (configProperty.get('overrides')) {
                 configProperty.get('overrides').setEach('stackConfigProperty', config);
               }

@@ -23,6 +23,8 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import java.util.List;
+
 
 @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -41,6 +43,10 @@ public class Subsection {
 	private String columnIndex;
   @JsonProperty("border")
 	private String border;
+  @JsonProperty("left-vertical-splitter")
+  private Boolean leftVerticalSplitter;
+  @JsonProperty("depends-on")
+  private List<ConfigCondition> dependsOn;
 
 
   public String getRowIndex() {
@@ -99,6 +105,22 @@ public class Subsection {
     this.border = border;
   }
 
+  public Boolean getLeftVerticalSplitter() {
+    return leftVerticalSplitter;
+  }
+
+  public void setLeftVerticalSplitter(Boolean leftVerticalSplitter) {
+    this.leftVerticalSplitter = leftVerticalSplitter;
+  }
+
+  public List<ConfigCondition> getDependsOn() {
+    return dependsOn;
+  }
+
+  public void setDependsOn(List<ConfigCondition> dependsOn) {
+    this.dependsOn = dependsOn;
+  }
+
   public boolean isRemoved() {
     return rowIndex == null && rowSpan == null && columnIndex == null && columnSpan == null;
   }
@@ -121,6 +143,12 @@ public class Subsection {
     }
     if (border == null) {
       border = parent.border;
+    }
+    if (leftVerticalSplitter == null) {
+      leftVerticalSplitter = parent.leftVerticalSplitter;
+    }
+    if (dependsOn == null) {
+      dependsOn = parent.dependsOn;
     }
   }
 }

@@ -128,7 +128,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     }).filter(function(config) {
       return !config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false);
     }).filterProperty('isVisible').length;
-  }.property('selectedService.configs.@each.isValid', 'selectedService.configs.@each.overrideErrorTrigger'),
+  }.property('selectedService.configs.@each.isValid', 'selectedService.configs.@each.isVisible','selectedService.configs.@each.overrideErrorTrigger'),
 
   /**
    * Should Next-button be disabled

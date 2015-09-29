@@ -188,6 +188,8 @@ describe('App.themeMapper', function () {
         "row_index": "0",
         "row_span": "1",
         "column_index": "0",
+        "depends_on": [],
+        "left_vertical_splitter": true,
         "column_span": "1",
         "section_id": "Section-1"
       });

@@ -56,24 +56,24 @@ describe('App.Section', function () {
         },
         {
           subSections: [
-            App.SubSection.createRecord({configs: [{isHiddenByFilter: false}, {isHiddenByFilter: false}]}),
-            App.SubSection.createRecord({configs: [{isHiddenByFilter: false}, {isHiddenByFilter: false}]})
+            App.SubSection.createRecord({configs: [{isHiddenByFilter: false, isVisible: true}, {isHiddenByFilter: false, isVisible: true}]}),
+            App.SubSection.createRecord({configs: [{isHiddenByFilter: false, isVisible: true}, {isHiddenByFilter: false, isVisible: true}]})
           ],
           m: 'no subsections are hidden',
           e: false
         },
         {
           subSections: [
-            App.SubSection.createRecord({configs: [{isHiddenByFilter: true}, {isHiddenByFilter: true}]}),
-            App.SubSection.createRecord({configs: [{isHiddenByFilter: false}, {isHiddenByFilter: false}]})
+            App.SubSection.createRecord({configs: [{isHiddenByFilter: true, isVisible: true}, {isHiddenByFilter: true, isVisible: true}]}),
+            App.SubSection.createRecord({configs: [{isHiddenByFilter: false, isVisible: true}, {isHiddenByFilter: false, isVisible: true}]})
           ],
           m: 'one subsection is hidden',
           e: false
         },
         {
           subSections: [
-            App.SubSection.createRecord({configs: [{isHiddenByFilter: true}, {isHiddenByFilter: true}]}),
-            App.SubSection.createRecord({configs: [{isHiddenByFilter: true}, {isHiddenByFilter: true}]})
+            App.SubSection.createRecord({configs: [{isHiddenByFilter: true, isVisible: true}, {isHiddenByFilter: true, isVisible: true}]}),
+            App.SubSection.createRecord({configs: [{isHiddenByFilter: true, isVisible: true}, {isHiddenByFilter: true, isVisible: true}]})
           ],
           m: 'all subsections are hidden',
           e: true

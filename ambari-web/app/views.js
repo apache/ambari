@@ -67,6 +67,7 @@ require('views/common/configs/widgets/string_config_widget_view');
 require('views/common/configs/widgets/textfield_config_widget_view');
 require('views/common/configs/widgets/time_interval_spinner_view');
 require('views/common/configs/widgets/toggle_config_widget_view');
+require('views/common/configs/widgets/test_db_connection_widget_view');
 require('views/common/configs/widgets/overrides/config_widget_override_view');
 require('views/common/configs/widgets/comparison/config_widget_comparison_view');
 require('views/common/configs/service_config_layout_tab_view');

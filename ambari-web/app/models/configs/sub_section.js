@@ -67,6 +67,13 @@ App.SubSection = DS.Model.extend({
    */
   configProperties: DS.hasMany('App.StackConfigProperty'),
 
+  dependsOn: DS.attr('array', {defaultValue: []}),
+
+  /**
+   * @type {boolean}
+   */
+  leftVerticalSplitter: DS.attr('boolean', {defaultValue: true}),
+
   /**
    * @type {App.ServiceConfigProperty[]}
    */
@@ -86,8 +93,8 @@ App.SubSection = DS.Model.extend({
    * @type {boolean}
    */
   addLeftVerticalSplitter: function() {
-    return !this.get('isFirstColumn');
-  }.property('isFirstColumn'),
+    return !this.get('isFirstColumn') && this.get('leftVerticalSplitter');
+  }.property('isFirstColumn', 'leftVerticalSplitter'),
 
   /**
    * @type {boolean}
@@ -153,7 +160,15 @@ App.SubSection = DS.Model.extend({
   isHiddenByFilter: function () {
     var configs = this.get('configs');
     return configs.length ? configs.everyProperty('isHiddenByFilter', true) : false;
-  }.property('configs.@each.isHiddenByFilter')
+  }.property('configs.@each.isHiddenByFilter'),
+
+  /**
+   * Determines if subsection is visible
+   * @type {boolean}
+   */
+  isSectionVisible: function () {
+    return !this.get('isHiddenByFilter') && this.get('configs').someProperty('isVisible', true);
+  }.property('isHiddenByFilter', 'configs.@each.isVisible')
 });
 
 
