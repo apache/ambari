@@ -837,15 +837,18 @@ class TestHDP22StackAdvisor(TestCase):
       "changed-configurations": [
         {
           "type": "yarn-site",
-          "name": "yarn.nodemanager.resource.memory-mb"
+          "name": "yarn.nodemanager.resource.memory-mb",
+          "old_value": "512"
         },
         {
           "type": "yarn-site",
-          "name": "yarn.scheduler.minimum-allocation-mb"
+          "name": "yarn.scheduler.minimum-allocation-mb",
+          "old_value": "512"
         },
         {
           "type": "yarn-site",
-          "name": "yarn.scheduler.maximum-allocation-mb"
+          "name": "yarn.scheduler.maximum-allocation-mb",
+          "old_value": "512"
         },
         {
           "type": "yarn-site",
@@ -926,7 +929,8 @@ class TestHDP22StackAdvisor(TestCase):
     configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"] = '0.5'
     services["changed-configurations"].append({
           "type": "yarn-site",
-          "name": "yarn.nodemanager.resource.percentage-physical-cpu-limit"
+          "name": "yarn.nodemanager.resource.percentage-physical-cpu-limit",
+          "old_value": "6"
         })
     expected["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"] = '5'
     expected["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-vcores"] = '1'
@@ -1600,7 +1604,8 @@ class TestHDP22StackAdvisor(TestCase):
       "changed-configurations": [
         {
           "type": "yarn-site",
-          "name": "yarn.scheduler.minimum-allocation-mb"
+          "name": "yarn.scheduler.minimum-allocation-mb",
+          "old_value": "512"
         },
         ]
 
@@ -1836,7 +1841,8 @@ class TestHDP22StackAdvisor(TestCase):
       "changed-configurations": [
         {
           "type": "yarn-site",
-          "name": "yarn.scheduler.minimum-allocation-mb"
+          "name": "yarn.scheduler.minimum-allocation-mb",
+          "old_value": "512"
         },
       ]
 
@@ -2114,7 +2120,8 @@ class TestHDP22StackAdvisor(TestCase):
     services['changed-configurations'] = [
       {
         "type": "ams-hbase-env",
-        "name": "hbase_master_heapsize"
+        "name": "hbase_master_heapsize",
+        "old_value": "1024"
       }
     ]
 
@@ -2155,7 +2162,8 @@ class TestHDP22StackAdvisor(TestCase):
     services['changed-configurations'] = [
       {
         "type": "ams-hbase-env",
-        "name": "hbase_regionserver_heapsize"
+        "name": "hbase_regionserver_heapsize",
+        "old_value": "512"
       }
     ]
     services["configurations"]['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
