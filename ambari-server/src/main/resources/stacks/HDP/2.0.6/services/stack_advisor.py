@@ -105,11 +105,18 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if"properties" not in config[configType]:
       config[configType]["properties"] = {}
     def appendProperty(key, value):
-      if {'type': configType, 'name': key} in changedConfigs:
+      # If property exists in changedConfigs, do not override, use user defined property
+      if self.__isPropertyInChangedConfigs(configType, key, changedConfigs):
         config[configType]["properties"][key] = userConfigs[configType]['properties'][key]
       else:
         config[configType]["properties"][key] = str(value)
     return appendProperty
+
+  def __isPropertyInChangedConfigs(self, configType, propertyName, changedConfigs):
+    for changedConfig in changedConfigs:
+      if changedConfig['type']==configType and changedConfig['name']==propertyName:
+        return True
+    return False
 
   def putPropertyAttribute(self, config, configType):
     if configType not in config:
