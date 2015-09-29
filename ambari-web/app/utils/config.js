@@ -208,16 +208,17 @@ App.config = Em.Object.create({
 
   /**
    * generates config objects
-   * @param configCategories
+   * @param configGroups
    * @param serviceName
    * @param selectedConfigGroup
    * @param canEdit
    * @returns {Array}
    */
-  mergePredefinedWithSaved: function (configCategories, serviceName, selectedConfigGroup, canEdit) {
+  mergePredefinedWithSaved: function (configGroups, serviceName, selectedConfigGroup, canEdit) {
     var configs = [];
+    var serviceConfigProperty;
 
-    configCategories.forEach(function (siteConfig) {
+    configGroups.forEach(function (siteConfig) {
       var service = this.getServiceByConfigType(siteConfig.type);
       if (service && serviceName != 'MISC') {
         serviceName = service.get('serviceName');
@@ -227,11 +228,22 @@ App.config = Em.Object.create({
       var finalAttributes = attributes.final || {};
       var properties = siteConfig.properties || {};
 
+      var uiOnlyConfigsObj = {};
+      var uiOnlyConfigDerivedFromTheme = App.uiOnlyConfigDerivedFromTheme.toArray();
+      uiOnlyConfigDerivedFromTheme.forEach(function(item) {
+        if (filename === item.filename) {
+          uiOnlyConfigsObj[item.name] = item.value;
+        }
+      });
+      properties = $.extend({}, properties, uiOnlyConfigsObj);
+
       for (var index in properties) {
         var id = this.configId(index, siteConfig.type);
-        var configsPropertyDef = this.get('preDefinedSitePropertiesMap')[id];
+        var preDefinedPropertyDef = this.get('preDefinedSitePropertiesMap')[id];
+        var uiOnlyConfigFromTheme = uiOnlyConfigDerivedFromTheme.findProperty('name', index);
+        var configsPropertyDef =  preDefinedPropertyDef  || uiOnlyConfigFromTheme;
         var advancedConfig = App.StackConfigProperty.find(id);
-        var isStackProperty = !!advancedConfig.get('id') || !!configsPropertyDef;
+        var isStackProperty = !!advancedConfig.get('id') || !!preDefinedPropertyDef;
         var template = this.createDefaultConfig(index, serviceName, filename, isStackProperty, configsPropertyDef);
         var serviceConfigObj = isStackProperty ? this.mergeStaticProperties(template, advancedConfig) : template;
 
@@ -340,8 +352,10 @@ App.config = Em.Object.create({
   mergeStaticProperties: function(coreObject, stackProperty, preDefined, propertiesToSkip) {
     propertiesToSkip = propertiesToSkip || ['name', 'filename', 'value', 'savedValue', 'isFinal', 'savedIsFinal'];
     for (var k in coreObject) {
-      if (!propertiesToSkip.contains(k)) {
-        coreObject[k] = this.getPropertyIfExists(k, coreObject[k], stackProperty, preDefined);
+      if (coreObject.hasOwnProperty(k)) {
+        if (!propertiesToSkip.contains(k)) {
+          coreObject[k] = this.getPropertyIfExists(k, coreObject[k], stackProperty, preDefined);
+        }
       }
     }
     return coreObject;
@@ -522,19 +536,22 @@ App.config = Em.Object.create({
     }).reduce(function(p,c) { return p.concat(c); }).concat(['cluster-env', 'alert_notification'])
       .uniq().compact().filter(function(configType) { return !!configType; });
 
+    // ui only required configs from theme are required to show configless widgets (widget that are not related to a config)
     var predefinedIds = Object.keys(this.get('preDefinedSitePropertiesMap'));
+    var uiOnlyConfigDerivedFromTheme =  App.uiOnlyConfigDerivedFromTheme.mapProperty('name');
     var stackIds = App.StackConfigProperty.find().filterProperty('isValueDefined').mapProperty('id');
 
-    var configIds = stackIds.concat(predefinedIds).uniq();
+    var configIds = stackIds.concat(predefinedIds).concat(uiOnlyConfigDerivedFromTheme).uniq();
 
     configIds.forEach(function(id) {
 
       var preDefined = this.get('preDefinedSitePropertiesMap')[id];
+      var isUIOnlyFromTheme = App.uiOnlyConfigDerivedFromTheme.findProperty('name',id);
       var advanced = App.StackConfigProperty.find(id);
 
-      var name = preDefined ? preDefined.name : advanced.get('name');
-      var filename = preDefined ? preDefined.filename : advanced.get('filename');
-      var isUIOnly = Em.getWithDefault(preDefined || {}, 'isRequiredByAgent', true) === false;
+      var name = preDefined ? preDefined.name : isUIOnlyFromTheme ? isUIOnlyFromTheme.get('name') : advanced.get('name');
+      var filename = preDefined ? preDefined.filename : isUIOnlyFromTheme ? isUIOnlyFromTheme.get('filename') : advanced.get('filename');
+      var isUIOnly = (Em.getWithDefault(preDefined || {}, 'isRequiredByAgent', true) === false) || isUIOnlyFromTheme;
       /*
         Take properties that:
           - UI specific only, marked with <code>isRequiredByAgent: false</code>
@@ -546,9 +563,9 @@ App.config = Em.Object.create({
       if (!(uiPersistentProperties.contains(id) || isUIOnly || advanced.get('id')) && filename != 'alert_notification') {
         return;
       }
-      var serviceName = preDefined ? preDefined.serviceName : advanced.get('serviceName');
+      var serviceName = preDefined ? preDefined.serviceName : isUIOnlyFromTheme ? isUIOnlyFromTheme.get('serviceName') : advanced.get('serviceName');
       if (configTypes.contains(this.getConfigTagFromFileName(filename))) {
-        var configData = this.createDefaultConfig(name, serviceName, filename, true, preDefined || {});
+        var configData = this.createDefaultConfig(name, serviceName, filename, true, preDefined || isUIOnlyFromTheme || {});
         if (configData.recommendedValue) {
           configData.value = configData.recommendedValue;
         }

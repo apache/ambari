@@ -58,6 +58,7 @@
     <name>ranger_admin_username</name>
     <value>amb_ranger_admin</value>
     <property-type>TEXT</property-type>
+    <display-name>Ranger Admin username for Ambari</display-name>
     <description>This is the ambari user created for creating repositories and policies in Ranger Admin for each plugin</description>
   </property>
 
@@ -102,6 +103,6 @@
     <name>ranger_pid_dir</name>
     <value>/var/run/ranger</value>
     <description></description>
-  </property>    
+  </property>
 
 </configuration>

@@ -135,7 +135,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     }).filter(function(config) {
       return !config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false);
     }).filterProperty('isVisible').length;
-  }.property('selectedService.configs.@each.isValid', 'selectedService.configs.@each.overrideErrorTrigger'),
+  }.property('selectedService.configs.@each.isValid', 'selectedService.configs.@each.isVisible', 'selectedService.configs.@each.overrideErrorTrigger'),
 
   /**
    * Determines if Save-button should be disabled
@@ -302,16 +302,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method loadStep
    */
   loadStep: function () {
+    var self = this;
     var serviceName = this.get('content.serviceName');
     this.clearStep();
     this.set('dependentServiceNames', App.StackService.find(serviceName).get('dependentServiceNames'));
     if (App.get('isClusterSupportsEnhancedConfigs')) {
       this.loadConfigTheme(serviceName).always(function() {
         App.themesMapper.generateAdvancedTabs([serviceName]);
+        // Theme mapper has UI only configs that needs to be merged with current service version configs
+        // This requires calling  `loadCurrentVersions` after theme has loaded
+        self.loadCurrentVersions();
       });
-    }
-    if (!this.get('preSelectedConfigVersion')) {
-      this.loadCurrentVersions();
     }
     this.loadServiceConfigVersions();
   },

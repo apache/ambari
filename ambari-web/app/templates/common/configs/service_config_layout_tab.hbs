@@ -29,7 +29,7 @@
                 {{#each subRow in section.subsectionRows}}
                   <tr>
                     {{#each subsection in subRow}}
-                      <td {{bindAttr class="subsection.isHiddenByFilter:invisible subsection.showTopSplitter:top-horizontal-splitter:no-horizontal-splitter :config-subsection" colspan="subsection.columnSpan" rowspan="subsection.rowSpan"}}>
+                      <td {{bindAttr class="subsection.isSectionVisible::invisible subsection.showTopSplitter:top-horizontal-splitter:no-horizontal-splitter :config-subsection" colspan="subsection.columnSpan" rowspan="subsection.rowSpan"}}>
                         <div {{bindAttr class="subsection.addLeftVerticalSplitter:vertical-splitter-l"}}>
                           <div {{bindAttr class="subsection.border:with-border"}}>
                             <h5 class="subsection-display-name">
@@ -40,9 +40,11 @@
                             </h5>
                             {{#each config in subsection.configs}}
                               {{#if config.widget}}
-                                {{#unless config.isHiddenByFilter}}
-                                  {{view config.widget configBinding="config" canEditBinding="view.canEdit" sectionBinding="section" subSectionBinding="subsection" tabBinding="tab"}}
-                                {{/unless}}
+                                {{#if config.isVisible}}
+                                  {{#unless config.isHiddenByFilter}}
+                                    {{view config.widget configBinding="config" canEditBinding="view.canEdit" sectionBinding="section" subSectionBinding="subsection" tabBinding="tab"}}
+                                  {{/unless}}
+                                {{/if}}
                               {{/if}}
                             {{/each}}
                           </div>

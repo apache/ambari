@@ -43,6 +43,10 @@ public class ValueAttributesInfo {
   @JsonProperty("empty_value_valid")
   private Boolean emptyValueValid;
 
+  @XmlElement(name = "ui-only-property")
+  @JsonProperty("ui_only_property")
+  private Boolean uiOnlyProperty;
+
   @XmlElement(name = "read-only")
   @JsonProperty("read_only")
   private Boolean readOnly;
@@ -194,6 +198,14 @@ public class ValueAttributesInfo {
     this.showPropertyName = isPropertyNameVisible;
   }
 
+  public Boolean getUiOnlyProperty() {
+    return uiOnlyProperty;
+  }
+
+  public void setUiOnlyProperty(Boolean isUiOnlyProperty) {
+    this.uiOnlyProperty = isUiOnlyProperty;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -215,6 +227,8 @@ public class ValueAttributesInfo {
     if (overridable != null ? !overridable.equals(that.overridable) : that.overridable != null)
       return false;
     if (showPropertyName != null ? !showPropertyName.equals(that.showPropertyName) : that.showPropertyName != null)
+      return false;
+    if (uiOnlyProperty != null ? !uiOnlyProperty.equals(that.uiOnlyProperty) : that.uiOnlyProperty != null)
       return false;
     if (maximum != null ? !maximum.equals(that.maximum) : that.maximum != null) return false;
     if (minimum != null ? !minimum.equals(that.minimum) : that.minimum != null) return false;
@@ -245,6 +259,7 @@ public class ValueAttributesInfo {
     result = 31 * result + (editableOnlyAtInstall != null ? editableOnlyAtInstall.hashCode() : 0);
     result = 31 * result + (overridable != null ? overridable.hashCode() : 0);
     result = 31 * result + (showPropertyName != null ? showPropertyName.hashCode() : 0);
+    result = 31 * result + (uiOnlyProperty != null ? uiOnlyProperty.hashCode() : 0);
     return result;
   }
 
@@ -263,6 +278,7 @@ public class ValueAttributesInfo {
       ", editableOnlyAtInstall='" + editableOnlyAtInstall + '\'' +
       ", overridable='" + overridable + '\'' +
       ", showPropertyName='" + showPropertyName + '\'' +
+      ", uiOnlyProperty='" + uiOnlyProperty + '\'' +
       ", incrementStep='" + incrementStep + '\'' +
       ", entriesEditable=" + entriesEditable +
       ", selectionCardinality='" + selectionCardinality + '\'' +

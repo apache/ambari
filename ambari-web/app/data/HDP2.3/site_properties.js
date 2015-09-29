@@ -23,6 +23,8 @@ var hdp22properties = require('data/HDP2.2/site_properties').configProperties;
 var excludedConfigs = [
   'DB_FLAVOR',
   'db_name',
+  'db_user',
+  'db_password',
   'db_root_user',
   'db_root_password',
   'nimbus.host',
@@ -67,48 +69,8 @@ var hdp23properties = hdp22properties.filter(function (item) {
 });
 
 hdp23properties.push({
-    "name": "DB_FLAVOR",
-    "options": [
-      {
-        displayName: 'MYSQL'
-      },
-      {
-        displayName: 'ORACLE'
-      },
-      {
-        displayName: 'POSTGRES'
-      },
-      {
-        displayName: 'MSSQL'
-      },
-      {
-        displayName: 'SQLA',
-        hidden: App.get('currentStackName') !== 'SAPHD' && App.get('currentStackName') !== 'HDP'
-      }
-    ],
-    "displayType": "radio button",
-    "radioName": "RANGER DB_FLAVOR",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 1
-  },
-  {
-    "name": "db_host",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 2
-  },
-  {
-    "name": "create_db_dbuser",
-    "displayType": "checkbox",
-    "filename": "ranger-env.xml",
-    "category": "Advanced ranger-env",
-    "serviceName": "RANGER"
-  },
   /**************************************** RANGER - HDFS Plugin ***************************************/
-  {
+
     "name": "xasecure.audit.destination.db",
     "displayType": "checkbox",
     "filename": "ranger-hdfs-audit.xml",

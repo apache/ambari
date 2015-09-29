@@ -184,6 +184,8 @@ module.exports = Em.Application.create({
 
   allHostNames: [],
 
+  uiOnlyConfigDerivedFromTheme: [],
+
   currentStackVersionNumber: function () {
     var regExp = new RegExp(this.get('currentStackName') + '-');
     return (this.get('currentStackVersion') || this.get('defaultStackVersion')).replace(regExp, '');

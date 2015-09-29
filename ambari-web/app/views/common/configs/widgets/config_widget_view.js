@@ -375,6 +375,56 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     this.initIncompatibleWidgetAsTextBox();
   },
 
+  willInsertElement: function() {
+    var configConditions = this.get('config.configConditions');
+    if (configConditions && configConditions.length) {
+      this.configValueObserver();
+      this.addObserver('config.value', this, this.configValueObserver);
+    }
+  },
+
+  willDestroyElement: function() {
+    if (this.get('config.configConditions')) {
+      this.removeObserver('config.value', this, this.configValueObserver);
+    }
+  },
+
+  configValueObserver: function() {
+    var configConditions = this.get('config.configConditions');
+    var serviceName = this.get('config.serviceName');
+    var serviceConfigs = this.get('controller.stepConfigs').findProperty('serviceName',serviceName).get('configs');
+    configConditions.forEach(function(configCondition){
+      var ifCondition =  configCondition.get("if");
+      var conditionalConfigName = configCondition.get("configName");
+      var conditionalConfigFileName = configCondition.get("fileName");
+      var parseIfConditionVal = ifCondition;
+      var regex = /\$\{.*?\}/g;
+      var configStrings = ifCondition.match(regex);
+      configStrings.forEach(function(_configString){
+        var configObject = _configString.substring(2, _configString.length-1).split("/");
+        var config = serviceConfigs.filterProperty('filename',configObject[0] + '.xml').findProperty('name', configObject[1]);
+        if (config) {
+          var configValue = config.get('value');
+          parseIfConditionVal = parseIfConditionVal.replace(_configString, configValue);
+        }
+      }, this);
+
+      var isConditionTrue =  Boolean(window.eval(parseIfConditionVal));
+      var action = isConditionTrue ? configCondition.get("then") : configCondition.get("else");
+      var valueAttributes = action.property_value_attributes;
+      for (var key in valueAttributes) {
+        if (valueAttributes.hasOwnProperty(key)) {
+          var valueAttribute = App.StackConfigValAttributesMap[key] || key;
+          var conditionalConfig = serviceConfigs.filterProperty('filename',conditionalConfigFileName).findProperty('name', conditionalConfigName);
+          if (conditionalConfig) {
+            conditionalConfig.set(valueAttribute, valueAttributes[key]);
+          }
+        }
+      }
+    }, this);
+  },
+
+
   /**
    * set widget value same as config value
    * useful for widgets that work with intermediate config value, not original

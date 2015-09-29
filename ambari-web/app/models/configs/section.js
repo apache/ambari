@@ -77,9 +77,9 @@ App.Section = DS.Model.extend({
    * @type {number}
    */
   errorsCount: function () {
-    var errors = this.get('subSections').mapProperty('errorsCount');
+    var errors = this.get('subSections').filterProperty('isSectionVisible').mapProperty('errorsCount');
     return errors.length ? errors.reduce(Em.sum) : 0;
-  }.property('subSections.@each.errorsCount'),
+  }.property('subSections.@each.errorsCount', 'subSections.@each.isSectionVisible'),
 
   /**
    * @type {boolean}
@@ -128,7 +128,7 @@ App.Section = DS.Model.extend({
    * @type {boolean}
    */
   isHiddenByFilter: function () {
-    return this.get('subSections').everyProperty('isHiddenByFilter', true);
+    return !this.get('subSections').someProperty('isSectionVisible', true);
   }.property('subSections.@each.isHiddenByFilter')
 
 });

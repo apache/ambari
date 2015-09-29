@@ -21,6 +21,7 @@ App.themesMapper = App.QuickDataMapper.create({
   tabModel: App.Tab,
   sectionModel: App.Section,
   subSectionModel: App.SubSection,
+  configConditionModel: App.ConfigCondition,
 
   tabConfig: {
     "id": "name",
@@ -55,7 +56,9 @@ App.themesMapper = App.QuickDataMapper.create({
     "column_span": "column-span",
     "row_span": "row-span",
     "configProperties": "config_properties",
-    "section_id": "section_id"
+    "section_id": "section_id",
+    "depends_on": "depends-on",
+    "left_vertical_splitter": "left-vertical-splitter"
   },
 
   map: function (json) {
@@ -123,19 +126,82 @@ App.themesMapper = App.QuickDataMapper.create({
    * @param {Object} json - json to parse
    */
   mapThemeConfigs: function(json) {
+    var serviceName = Em.get(json, "ThemeInfo.service_name");
     Em.getWithDefault(json, "ThemeInfo.theme_data.Theme.configuration.placement.configs", []).forEach(function(configLink) {
       var configId = this.getConfigId(configLink);
       var subSectionId = configLink["subsection-name"];
       var subSection = App.SubSection.find(subSectionId);
       var configProperty = App.StackConfigProperty.find(configId);
+      var subSectionDependsOnConfigs = subSection.get('dependsOn');
+      var configDependsOnOtherConfigs =  configLink["depends-on"] || [];
+      var dependsOnConfigs = configDependsOnOtherConfigs.concat(subSectionDependsOnConfigs);
 
-      if (configProperty && subSection) {
+      if (configProperty.get('id') && subSection) {
         subSection.get('configProperties').pushObject(configProperty);
         configProperty.set('subSection', subSection);
       } else {
-        console.warn('there is no such property: ' + configId + '. Or subsection: ' + subSectionId);
+        console.log('there is no such property: ' + configId + '. Or subsection: ' + subSectionId);
+        var valueAttributes = configLink["property_value_attributes"];
+        if (valueAttributes) {
+          var isUiOnlyProperty = valueAttributes["ui_only_property"];
+          // UI only configs are mentioned in the themes for supporting widgets that is not intended for setting a value
+          // And thus is affiliated witha fake config peperty termed as ui only config property
+          if (isUiOnlyProperty && subSection) {
+            var split = configLink.config.split("/");
+            var fileName =  split[0] + '.xml';
+            var configName = split[1];
+            var uiOnlyConfig = App.uiOnlyConfigDerivedFromTheme.filterProperty('filename', fileName).findProperty('name', configName);
+            if (!uiOnlyConfig) {
+              var coreObject = {
+                id: configName + '_' + split[0],
+                isRequiredByAgent: false,
+                showLabel: false,
+                isOverridable: false,
+                recommendedValue: true,
+                name: configName,
+                isUserProperty: false,
+                filename: fileName,
+                serviceName: serviceName,
+                subSection: subSection
+              };
+              var uiOnlyConfigDerivedFromTheme = Em.Object.create(App.config.createDefaultConfig(configName, serviceName, fileName, false, coreObject));
+              App.uiOnlyConfigDerivedFromTheme.pushObject(uiOnlyConfigDerivedFromTheme);
+            }
+          }
+        }
       }
+
+      // map all the configs which conditionally affect the value attributes of a config
+      if (dependsOnConfigs && dependsOnConfigs.length) {
+        this.mapThemeConfigConditions(dependsOnConfigs, uiOnlyConfigDerivedFromTheme || configProperty);
+      }
+
     }, this);
+  },
+
+  /**
+   *
+   * @param configConditions: Array
+   * @param configProperty: DS.Model Object (App.StackConfigProperty)
+   */
+  mapThemeConfigConditions: function(configConditions, configProperty) {
+    var configConditionsCopy = [];
+    configConditions.forEach(function(_configCondition, index){
+      var configCondition = $.extend({},_configCondition);
+      configCondition.id = configProperty.get('id') + '_' + index;
+      configCondition.config_name =  configProperty.get('name');
+      configCondition.file_name =  configProperty.get('filename');
+      configCondition.configs =  _configCondition.configs.map(function(item) {
+        var result = {};
+        result.fileName = item.split('/')[0] + '.xml';
+        result.configName = item.split('/')[1];
+        return result;
+      });
+      configConditionsCopy.pushObject(configCondition);
+    }, this);
+
+    App.store.loadMany(this.get("configConditionModel"), configConditionsCopy);
+    App.store.commit();
   },
 
   /**
@@ -148,10 +214,18 @@ App.themesMapper = App.QuickDataMapper.create({
       var configId = this.getConfigId(widget);
       var configProperty = App.StackConfigProperty.find(configId);
 
-      if (configProperty) {
+      if (configProperty.get('id')) {
         configProperty.set('widget', widget.widget);
       } else {
-        console.warn('there is no such property: ' + configId);
+        var split = widget.config.split("/");
+        var fileName =  split[0] + '.xml';
+        var configName = split[1];
+        var uiOnlyProperty = App.uiOnlyConfigDerivedFromTheme.filterProperty('filename',fileName).findProperty('name',configName);
+        if (uiOnlyProperty) {
+          uiOnlyProperty.set('widget', widget.widget);
+        } else {
+          console.warn('there is no such property: ' + configId);
+        }
       }
     }, this);
   },

@@ -28,6 +28,18 @@
     <description>The database type to be used (mysql/oracle)</description>
     <value-attributes>
       <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>MYSQL</value>
+          <label>MYSQL</label>
+        </entry>
+        <entry>
+          <value>ORACLE</value>
+          <label>ORACLE</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
 

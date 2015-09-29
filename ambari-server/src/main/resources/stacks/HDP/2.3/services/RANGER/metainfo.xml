@@ -52,6 +52,13 @@
         </osSpecific>
       </osSpecifics>
 
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
       <configuration-dependencies>
         <config-type>ranger-admin-site</config-type>
         <config-type>ranger-ugsync-site</config-type>

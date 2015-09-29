@@ -30,6 +30,7 @@ App.PasswordConfigWidgetView = App.ConfigWidgetView.extend({
   }),
 
   didInsertElement: function() {
+    this._super();
     this.set('config.displayType', this.get('config.stackConfigProperty.widget.type'));
   }
 });
