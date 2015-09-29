@@ -20,7 +20,7 @@ var App = require('app');
 
 App.MainAdminStackMenuView = Em.CollectionView.extend({
   tagName: 'ul',
-  classNames: ["nav", "nav-tabs"],
+  classNames: ["nav", "nav-tabs", "background-text"],
   defaultRoute: 'services',
 
   content: function () {

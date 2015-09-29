@@ -22,7 +22,7 @@
     {{view App.AllServicesActionView}}
   </div>
     <div class="summary-width span10" id="dashboard-widgets-container">
-      <ul class="nav nav-tabs">
+      <ul class="nav nav-tabs background-text">
         {{#each category in view.categories}}
           {{#view view.NavItemView itemBinding="category.name" }}
             <a href="#" {{action "goToDashboardView" category.url}} >{{category.label}}</a>

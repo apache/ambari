@@ -36,16 +36,21 @@ body {
   &.text-success {
     color: @green-on-background;
   }
-}
 
-// Text color for not-active nav tab
-.nav-tabs > li > a {
-  color: @text-on-background;
-}
+  // Text color for not-active nav tab
+  &.nav-tabs > li > a {
+    color: @text-on-background;
+  }
 
-// Text color for hovered nav tab
-.nav-tabs > li:hover > a {
-  color: #000000;
+  // Text color for hovered nav tab
+  &.nav-tabs > li:hover > a {
+    color: #000000;
+  }
+
+  // Text color for active nav tab
+  &.nav-tabs > li.active > a {
+    color: #000000;
+  }
 }
 
 // Text and caret color for quick links dropdown (not active)
