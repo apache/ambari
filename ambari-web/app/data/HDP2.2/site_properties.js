@@ -217,6 +217,13 @@ hdp22properties.push(
     "index": 0
   },
   {
+    "name": "ranger_admin_username",
+    "serviceName": "RANGER",
+    "filename": "ranger-env.xml",
+    "category": "RANGER_ADMIN",
+    "index": 0
+  },
+  {
     "name": "ranger_admin_password",
     "serviceName": "RANGER",
     "filename": "ranger-env.xml",
