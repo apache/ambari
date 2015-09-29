@@ -177,7 +177,7 @@ PACKAGE_DIRS = {
 }
 
 def get_cmd(command, package, version):
-  return ('conf-select', command, '--package', package, '--stack-version', version, '--conf-version', '0')
+  return ('ambari-python-wrap','/usr/bin/conf-select', command, '--package', package, '--stack-version', version, '--conf-version', '0')
 
 def _valid(stack_name, package, ver):
   if stack_name != "HDP":
