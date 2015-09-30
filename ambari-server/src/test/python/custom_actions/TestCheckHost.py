@@ -292,7 +292,6 @@ class TestCheckHost(TestCase):
     put_structured_out_mock.assert_called_with({'last_agent_env_check': {'message': 'test exception', 'exit_code': 1}})
 
 
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = ('debian','7','Final')))
   @patch.object(HostCheckReportFileHandler, "resolve_ambari_config")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch.object(Script, 'get_tmp_dir')
