@@ -333,6 +333,77 @@ describe('App.ServiceConfigRadioButtons', function () {
     });
 
   });
+
+  describe('#name', function () {
+
+    var cases = [
+      {
+        serviceConfig: {
+          radioName: 'n0',
+          isOriginalSCP: true,
+          isComparison: false
+        },
+        name: 'n0',
+        title: 'original value'
+      },
+      {
+        serviceConfig: {
+          radioName: 'n1',
+          isOriginalSCP: false,
+          isComparison: true,
+          compareConfigs: []
+        },
+        controller: {
+          selectedVersion: 1
+        },
+        name: 'n1-v1',
+        title: 'comparison view, original value'
+      },
+      {
+        serviceConfig: {
+          radioName: 'n2',
+          isOriginalSCP: false,
+          isComparison: true,
+          compareConfigs: null
+        },
+        version: 2,
+        name: 'n2-v2',
+        title: 'comparison view, value to be compared with'
+      },
+      {
+        serviceConfig: {
+          radioName: 'n3',
+          isOriginalSCP: false,
+          isComparison: false,
+          group: {
+            name: 'g'
+          }
+        },
+        name: 'n3-g',
+        title: 'override value'
+      }
+    ];
+
+    beforeEach(function () {
+      view.reopen({
+        serviceConfig: Em.Object.create()
+      });
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        if (item.controller) {
+          view.reopen({
+            controller: item.controller
+          });
+        }
+        view.set('version', item.version);
+        view.get('serviceConfig').setProperties(item.serviceConfig);
+        expect(view.get('name')).to.equal(item.name);
+      });
+    });
+
+  });
 });
 
 describe('App.ServiceConfigRadioButton', function () {

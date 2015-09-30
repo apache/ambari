@@ -18,7 +18,7 @@
 
 {{#each compareConfig in view.serviceConfigProperty.compareConfigs}}
     <div {{bindAttr class=":control-group :overrideField"}}>
-      {{view compareConfig.viewClass serviceConfigBinding="compareConfig" categoryConfigsAllBinding="view.parentView.categoryConfigsAll"}}
+      {{view compareConfig.viewClass serviceConfigBinding="compareConfig" versionBinding="compareConfig.serviceVersion.version" categoryConfigsAllBinding="view.parentView.categoryConfigsAll"}}
       <span class="label label-info">{{compareConfig.serviceVersion.versionText}}</span>
       {{#if compareConfig.serviceVersion.isCurrent}}
         <span class="label label-success">{{t common.current}}</span>
