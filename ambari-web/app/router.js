@@ -587,9 +587,11 @@ App.Router = Em.Router.extend({
       },
       connectOutlets: function (router, context) {
         if (App.isAccessible('upgrade_ONLY_ADMIN')) {
-          $('title').text(Em.I18n.t('app.name.subtitle.experimental'));
-          console.log('/experimental:connectOutlet');
-          router.get('applicationController').connectOutlet('experimental');
+          App.router.get('experimentalController').loadSupports().complete(function () {
+            $('title').text(Em.I18n.t('app.name.subtitle.experimental'));
+            console.log('/experimental:connectOutlet');
+            router.get('applicationController').connectOutlet('experimental');
+          });
         }
       }
     }),

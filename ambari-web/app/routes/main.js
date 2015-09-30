@@ -28,42 +28,44 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     router.getAuthenticated().done(function (loggedIn) {
       if (loggedIn) {
         var applicationController = App.router.get('applicationController');
-        applicationController.startKeepAlivePoller();
-        App.router.get('mainController').checkServerClientVersion().done(function () {
-          App.router.get('mainViewsController').loadAmbariViews();
-          App.router.get('clusterController').loadClusterName(false).done(function () {
-            if (App.get('testMode')) {
-              router.get('mainController').initialize();
-            } else {
-              if (router.get('clusterInstallCompleted')) {
-                App.router.get('clusterController').loadClientServerClockDistance().done(function () {
-                  App.router.get('clusterController').checkDetailedRepoVersion().done(function () {
-                    router.get('mainController').initialize();
+        App.router.get('experimentalController').loadSupports().complete(function () {
+          applicationController.startKeepAlivePoller();
+          App.router.get('mainController').checkServerClientVersion().done(function () {
+            App.router.get('mainViewsController').loadAmbariViews();
+            App.router.get('clusterController').loadClusterName(false).done(function () {
+              if (App.get('testMode')) {
+                router.get('mainController').initialize();
+              } else {
+                if (router.get('clusterInstallCompleted')) {
+                  App.router.get('clusterController').loadClientServerClockDistance().done(function () {
+                    App.router.get('clusterController').checkDetailedRepoVersion().done(function () {
+                      router.get('mainController').initialize();
+                    });
                   });
-                });
-              }
-              else {
-                Em.run.next(function () {
-                  App.clusterStatus.updateFromServer().complete(function () {
-                    var currentClusterStatus = App.clusterStatus.get('value');
-                    if (router.get('currentState.parentState.name') !== 'views'
-                      && currentClusterStatus && self.get('installerStatuses').contains(currentClusterStatus.clusterState)) {
-                      if (App.isAccessible('ADMIN')) {
-                        self.redirectToInstaller(router, currentClusterStatus, false);
-                      } else {
-                        Em.run.next(function () {
-                          App.router.transitionTo('main.views.index');
-                        });
+                }
+                else {
+                  Em.run.next(function () {
+                    App.clusterStatus.updateFromServer().complete(function () {
+                      var currentClusterStatus = App.clusterStatus.get('value');
+                      if (router.get('currentState.parentState.name') !== 'views'
+                          && currentClusterStatus && self.get('installerStatuses').contains(currentClusterStatus.clusterState)) {
+                        if (App.isAccessible('ADMIN')) {
+                          self.redirectToInstaller(router, currentClusterStatus, false);
+                        } else {
+                          Em.run.next(function () {
+                            App.router.transitionTo('main.views.index');
+                          });
+                        }
                       }
-                    }
+                    });
                   });
-                });
-                App.router.get('clusterController').set('isLoaded', true);
+                  App.router.get('clusterController').set('isLoaded', true);
+                }
               }
-            }
+            });
           });
+          // TODO: redirect to last known state
         });
-        // TODO: redirect to last known state
       } else {
         router.set('preferedPath', router.location.location.hash);
         Em.run.next(function () {

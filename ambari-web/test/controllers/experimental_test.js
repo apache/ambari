@@ -18,13 +18,13 @@
 
 var App = require('app');
 
-require('views/experimental');
+require('controllers/experimental');
 
-var view,
+var controller,
   transition,
   supports = {},
   transitionStubbed = false,
-  viewSupports = [
+  controllerSupports = [
     Em.Object.create({
       name: 'sup0',
       selected: true
@@ -36,10 +36,10 @@ var view,
   ],
   saveObject = {};
 
-describe('App.ExperimentalView', function () {
+describe('App.ExperimentalController', function () {
 
   before(function () {
-    viewSupports.forEach(function(item) {
+    controllerSupports.forEach(function(item) {
       supports[item.get('name')] = item.get('selected');
     });
     sinon.stub(App, 'get', function(k) {
@@ -49,7 +49,7 @@ describe('App.ExperimentalView', function () {
   });
 
   beforeEach(function () {
-    view = App.ExperimentalView.create();
+    controller = App.ExperimentalController.create();
   });
 
   after(function () {
@@ -58,7 +58,7 @@ describe('App.ExperimentalView', function () {
 
   describe('#supports', function () {
     it('should take data from App.supports', function () {
-      expect(view.get('supports')).to.eql(viewSupports);
+      expect(controller.get('supports')).to.eql(controllerSupports);
     });
   });
 
@@ -82,8 +82,8 @@ describe('App.ExperimentalView', function () {
     });
 
     it('should pass data to App.supports', function () {
-      view.set('supports', viewSupports);
-      view.doSave();
+      controller.set('supports', controllerSupports);
+      controller.doSave();
       expect(saveObject).to.eql(supports);
     });
 

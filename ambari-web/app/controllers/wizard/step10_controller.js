@@ -106,7 +106,8 @@ App.WizardStep10Controller = Em.Controller.extend({
       return ['warning', 'failed'].contains(host.status);
     });
     if (succeededHosts.length) {
-      var successStatement = Em.I18n.t('installer.step10.servicesSummary').format(succeededHosts.length) + ((succeededHosts.length > 1) ? Em.I18n.t('installer.step8.hosts') : Em.I18n.t('installer.step8.host'));
+      var successMessage = this.get('content.cluster.status') === 'START_SKIPPED' ? Em.I18n.t('installer.step10.installed') : Em.I18n.t('installer.step10.installedAndStarted');
+      var successStatement = successMessage.format(succeededHosts.length) + ((succeededHosts.length > 1) ? Em.I18n.t('installer.step8.hosts') : Em.I18n.t('installer.step8.host'));
       this.get('clusterInfo').findProperty('id', 1).get('status').pushObject(Em.Object.create({
         id: 1,
         color: 'text-success',

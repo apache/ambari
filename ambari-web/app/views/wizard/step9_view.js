@@ -269,7 +269,7 @@ App.WizardStep9View = App.TableView.extend({
     } else if (this.get('controller.status') === 'success') {
       console.log('TRACE: Inside success view step9');
       this.set('barColor', 'progress-success');
-      this.set('resultMsg', Em.I18n.t('installer.step9.status.success'));
+      this.set('resultMsg', this.get('controller.content.cluster.status') === 'START_SKIPPED' ? Em.I18n.t('installer.step9.status.skipStartSuccess') : Em.I18n.t('installer.step9.status.success'));
       this.set('resultMsgColor', 'alert-success');
     }
   }.observes('controller.status', 'controller.startCallFailed','isHostHeartbeatLost'),
