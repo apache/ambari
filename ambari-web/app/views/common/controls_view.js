@@ -519,7 +519,19 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     }
   }.observes('databaseProperty.value', 'hostNameProperty.value', 'serviceConfig.value'),
 
-  nameBinding: 'serviceConfig.radioName',
+  name: function () {
+    var name = this.get('serviceConfig.radioName');
+    if (!this.get('serviceConfig.isOriginalSCP')) {
+      if (this.get('serviceConfig.isComparison')) {
+        var version = this.get('serviceConfig.compareConfigs') ? this.get('controller.selectedVersion') : this.get('version');
+        name += '-v' + version;
+      } else {
+        var group = this.get('serviceConfig.group.name');
+        name += '-' + group;
+      }
+    }
+    return name;
+  }.property('serviceConfig.radioName'),
 
   /**
    * Just property object for database name
