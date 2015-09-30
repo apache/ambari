@@ -18,30 +18,5 @@
 var App = require('app');
 
 App.ExperimentalView = Em.View.extend({
-  templateName: require('templates/experimental'),
-  supports: function () {
-    var supports = [];
-    Em.keys(App.get('supports')).forEach(function (sup) {
-      supports.push(Ember.Object.create({
-        name: sup,
-        selected: App.get('supports')[sup]
-      }));
-    });
-    return supports;
-  }.property('App.supports'),
-
-  doSave: function () {
-    var supports = this.get('supports');
-    supports.forEach(function(s){
-      var propName = 'App.supports.' + s.get('name');
-      var propValue = s.get('selected');
-      console.log(">>>>>>>> " + propName + " = "+ propValue);
-      Ember.set(propName, propValue);
-    });
-    App.router.transitionTo('root.index');
-  },
-
-  doCancel: function () {
-    App.router.transitionTo('root.index');
-  }
+  templateName: require('templates/experimental')
 });

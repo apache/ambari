@@ -74,7 +74,8 @@ App.supports = {
   opsDuringRollingUpgrade: false,
   customizedWidgetLayout: false,
   enhancedConfigs: true,
-  showPageLoadTime: false
+  showPageLoadTime: false,
+  skipComponentStartAfterInstall: false
 };
 
 if (App.enableExperimental) {

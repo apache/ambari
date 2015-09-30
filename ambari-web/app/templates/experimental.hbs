@@ -39,7 +39,7 @@
         </tr>
       </thead>
       <tbody>
-		    {{#each support in view.supports}}
+		    {{#each support in controller.supports}}
 		      <tr>
 		        <td>{{support.name}}</td>
 		        <td>{{view Ember.Checkbox checkedBinding="support.selected"}}</td>
@@ -50,8 +50,8 @@
     </table>
     <div class="control-group" style="margin-bottom: 100px;">
 	    <div class="controls pull-right">
-	      <button class="btn" {{action doCancel target="view"}}>{{t form.cancel}}</button>
-	      <button class="btn btn-primary" {{action doSave target="view"}}>{{t common.save}}</button>
+	      <button class="btn" {{action doCancel target="controller"}}>{{t form.cancel}}</button>
+	      <button class="btn btn-primary" {{action doSave target="controller"}}>{{t common.save}}</button>
 	    </div>
 	  </div>
   {{else}}

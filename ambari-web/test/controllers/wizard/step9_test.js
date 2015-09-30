@@ -1,4 +1,4 @@
-/**
+  /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -32,6 +32,7 @@ var c, obj;
 describe('App.InstallerStep9Controller', function () {
 
   beforeEach(function () {
+    App.set('supports.skipComponentStartAfterInstall', false);
     modelSetup.setupStackServiceComponent();
     c = App.WizardStep9Controller.create({
       content: {controllerName: ''},
@@ -74,16 +75,19 @@ describe('App.InstallerStep9Controller', function () {
   describe('#isSubmitDisabled', function () {
     var tests = Em.A([
       {controllerName: 'addHostController', state: 'STARTED', e: false},
+      {controllerName: 'addHostController', state: 'START_SKIPPED', e: false},
       {controllerName: 'addHostController', state: 'START FAILED', e: false},
       {controllerName: 'addHostController', state: 'INSTALL FAILED', e: false},
       {controllerName: 'addHostController', state: 'PENDING', e: true},
       {controllerName: 'addHostController', state: 'INSTALLED', e: true},
       {controllerName: 'addServiceController', state: 'STARTED', e: false},
+      {controllerName: 'addServiceController', state: 'START_SKIPPED', e: false},
       {controllerName: 'addServiceController', state: 'START FAILED', e: false},
       {controllerName: 'addServiceController', state: 'INSTALL FAILED', e: false},
       {controllerName: 'addServiceController', state: 'PENDING', e: true},
       {controllerName: 'addServiceController', state: 'INSTALLED', e: true},
       {controllerName: 'installerController', state: 'STARTED', e: false},
+      {controllerName: 'installerController', state: 'START_SKIPPED', e: false},
       {controllerName: 'installerController', state: 'START FAILED', e: false},
       {controllerName: 'installerController', state: 'INSTALL FAILED', e: true},
       {controllerName: 'installerController', state: 'INSTALLED', e: true},
@@ -911,6 +915,7 @@ describe('App.InstallerStep9Controller', function () {
           'IN_PROGRESS': 1
         },
         e: {progress: 17},
+        s: false,
         m: 'All types of status available. cluster status PENDING'
       },
       {
@@ -918,7 +923,16 @@ describe('App.InstallerStep9Controller', function () {
         host: Em.Object.create({progress: 0}),
         actions: {},
         e: {progress: 33},
+        s: false,
         m: 'No tasks available. cluster status PENDING'
+      },
+      {
+        cluster: {status: 'PENDING'},
+        host: Em.Object.create({progress: 0}),
+        actions: {},
+        e: {progress: 100},
+        s: true,
+        m: 'No tasks available. cluster status PENDING. skipComponentStartAfterInstall is true.'
       },
       {
         cluster: {status: 'INSTALLED'},
@@ -936,6 +950,7 @@ describe('App.InstallerStep9Controller', function () {
           'IN_PROGRESS': 1
         },
         e: {progress: 66},
+        s: false,
         m: 'All types of status available. cluster status INSTALLED'
       },
       {
@@ -943,6 +958,7 @@ describe('App.InstallerStep9Controller', function () {
         host: Em.Object.create({progress: 0}),
         actions: {},
         e: {progress: 100},
+        s: false,
         m: 'Cluster status is not PENDING or INSTALLED'
       },
       {
@@ -954,6 +970,7 @@ describe('App.InstallerStep9Controller', function () {
           'IN_PROGRESS': 1
         },
         e: {progress: 99},
+        s: false,
         m: '150 tasks on host'
       },
       {
@@ -965,6 +982,7 @@ describe('App.InstallerStep9Controller', function () {
           'IN_PROGRESS': 1
         },
         e: {progress: 99},
+        s: false,
         m: '500 tasks on host'
       },
       {
@@ -976,6 +994,7 @@ describe('App.InstallerStep9Controller', function () {
           'IN_PROGRESS': 0
         },
         e: {progress: 100},
+        s: false,
         m: '100 tasks, 100 completed'
       },
       {
@@ -987,6 +1006,7 @@ describe('App.InstallerStep9Controller', function () {
           'IN_PROGRESS': 0
         },
         e: {progress: 100},
+        s: false,
         m: '1 task, 1 completed'
       }
     ]);
@@ -1001,6 +1021,7 @@ describe('App.InstallerStep9Controller', function () {
           }
         }
         c.reopen({content: {cluster: {status: test.cluster.status}}});
+        App.set('supports.skipComponentStartAfterInstall', test.s);
         var progress = c.progressPerHost(actions, test.host);
         expect(progress).to.equal(test.e.progress);
         expect(test.host.progress).to.equal(test.e.progress.toString());

@@ -31,39 +31,41 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     router.getAuthenticated().done(function (loggedIn) {
       if (loggedIn) {
         var applicationController = router.get('applicationController');
-        applicationController.startKeepAlivePoller();
-        // check server/web client versions match
-        App.router.get('installerController').checkServerClientVersion().done(function () {
+        App.router.get('experimentalController').loadSupports().complete(function () {
+          applicationController.startKeepAlivePoller();
+          // check server/web client versions match
+          App.router.get('installerController').checkServerClientVersion().done(function () {
 
-          var name = 'Cluster Install Wizard';
-          $('title').text('Ambari - ' + name);
-          $('#main').addClass('install-wizard-content');
+            var name = 'Cluster Install Wizard';
+            $('title').text('Ambari - ' + name);
+            $('#main').addClass('install-wizard-content');
 
-          App.router.get('mainViewsController').loadAmbariViews();
-          if (App.isAccessible('ADMIN')) {
-            router.get('mainController').stopPolling();
-            console.log('In installer with successful authenticated');
-            console.log('current step=' + router.get('installerController.currentStep'));
-            Em.run.next(function () {
-              App.clusterStatus.updateFromServer().complete(function () {
-                var currentClusterStatus = App.clusterStatus.get('value');
-                //@TODO: Clean up  following states. Navigation should be done solely via currentStep stored in the localDb and API persist endpoint.
-                //       Actual currentStep value for the installer controller should always remain in sync with localdb and at persist store in the server.
-                if (currentClusterStatus) {
-                  if (self.get('installerStatuses').contains(currentClusterStatus.clusterState)) {
-                    self.redirectToInstaller(router, currentClusterStatus, true);
+            App.router.get('mainViewsController').loadAmbariViews();
+            if (App.isAccessible('ADMIN')) {
+              router.get('mainController').stopPolling();
+              console.log('In installer with successful authenticated');
+              console.log('current step=' + router.get('installerController.currentStep'));
+              Em.run.next(function () {
+                App.clusterStatus.updateFromServer().complete(function () {
+                  var currentClusterStatus = App.clusterStatus.get('value');
+                  //@TODO: Clean up  following states. Navigation should be done solely via currentStep stored in the localDb and API persist endpoint.
+                  //       Actual currentStep value for the installer controller should always remain in sync with localdb and at persist store in the server.
+                  if (currentClusterStatus) {
+                    if (self.get('installerStatuses').contains(currentClusterStatus.clusterState)) {
+                      self.redirectToInstaller(router, currentClusterStatus, true);
+                    }
+                    else {
+                      router.transitionTo('main.dashboard.index');
+                    }
                   }
-                  else {
-                    router.transitionTo('main.dashboard.index');
-                  }
-                }
+                });
               });
-            });
-          } else {
-            Em.run.next(function () {
-              App.router.transitionTo('main.views.index');
-            });
-          }
+            } else {
+              Em.run.next(function () {
+                App.router.transitionTo('main.views.index');
+              });
+            }
+          });
         });
       } else {
         console.log('In installer but its not authenticated');

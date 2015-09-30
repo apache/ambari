@@ -811,6 +811,7 @@ Em.I18n.translations = {
   'installer.step9.header':'Install, Start and Test',
   'installer.step9.body':'Please wait while the selected services are installed and started.',
   'installer.step9.status.success':'Successfully installed and started the services.',
+  'installer.step9.status.skipStartSuccess':'Successfully installed the services.',
   'installer.step9.status.warning':'Installed and started the services with some warnings.',
   'installer.step9.status.failed':'Failed to install/start the services.',
   'installer.step9.status.start.services.failed':'Start all services API call failed.',
@@ -876,7 +877,8 @@ Em.I18n.translations = {
     'services to function properly (for example, HDFS and YARN/MapReduce need to be restarted after adding Oozie). After closing this ' +
     'wizard, please restart all services that have the restart indicator <i class="icon-refresh"></i> next to the service name.',
   'installer.step10.hostsSummary':'The cluster consists of {0} hosts',
-  'installer.step10.servicesSummary':'Installed and started services successfully on {0} new ',
+  'installer.step10.installedAndStarted':'Installed and started services successfully on {0} new ',
+  'installer.step10.installed':'Installed services successfully on {0} new ',
   'installer.step10.warnings':' warnings',
   'installer.step10.clusterState.installing':'Installing ',
   'installer.step10.clusterState.starting':'Starting ',
