@@ -271,6 +271,17 @@ class TestPhoenixQueryServer(RMFTestCase):
         self.getConfig()['configurations']['hbase-env']['content']),
       group = 'hadoop',
     )
+    self.assertResourceCalled('Directory', '/etc/security/limits.d',
+      owner = 'root',
+      group = 'root',
+      recursive = True,
+    )
+    self.assertResourceCalled('File', '/etc/security/limits.d/hbase.conf',
+      content = Template('hbase.conf.j2'),
+      owner = 'root',
+      group = 'root',
+      mode = 0644,
+    )    
     self.assertResourceCalled('TemplateConfig',
       '/usr/hdp/current/hbase-regionserver/conf/hadoop-metrics2-hbase.properties',
       owner = 'hbase',
@@ -360,6 +371,17 @@ class TestPhoenixQueryServer(RMFTestCase):
       content = InlineTemplate(
         self.getConfig()['configurations']['hbase-env']['content']),
       group = 'hadoop',
+    )
+    self.assertResourceCalled('Directory', '/etc/security/limits.d',
+      owner = 'root',
+      group = 'root',
+      recursive = True,
+    )
+    self.assertResourceCalled('File', '/etc/security/limits.d/hbase.conf',
+      content = Template('hbase.conf.j2'),
+      owner = 'root',
+      group = 'root',
+      mode = 0644,
     )
     self.assertResourceCalled('TemplateConfig',
       '/usr/hdp/current/hbase-regionserver/conf/hadoop-metrics2-hbase.properties',

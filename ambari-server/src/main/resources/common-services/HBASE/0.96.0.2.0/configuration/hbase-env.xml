@@ -86,11 +86,21 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
       <increment-step>256</increment-step>
     </value-attributes>
   </property>
-   <property>
+  <property>
     <name>hbase_user</name>
     <value>hbase</value>
     <property-type>USER</property-type>
     <description>HBase User Name.</description>
+  </property>
+  <property>
+    <name>hbase_user_nofile_limit</name>
+    <value>32000</value>
+    <description>Max open files limit setting for HBASE user.</description>
+  </property>
+  <property>
+    <name>hbase_user_nproc_limit</name>
+    <value>16000</value>
+    <description>Max number of processes limit setting for HBASE user.</description>
   </property>
 
   <!-- hbase-env.sh -->
