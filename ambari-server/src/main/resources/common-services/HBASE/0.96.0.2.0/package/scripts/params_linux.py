@@ -76,6 +76,10 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
 
 
 hbase_conf_dir = status_params.hbase_conf_dir
+limits_conf_dir = status_params.limits_conf_dir
+
+hbase_user_nofile_limit = default("/configurations/hbase-env/hbase_user_nofile_limit", "32000")
+hbase_user_nproc_limit = default("/configurations/hbase-env/hbase_user_nproc_limit", "16000")
 
 # no symlink for phoenix-server at this point
 phx_daemon_script = '/usr/hdp/current/phoenix-server/bin/queryserver.py'

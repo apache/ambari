@@ -90,6 +90,17 @@ class TestHBaseClient(RMFTestCase):
         owner = 'hbase',
         group = 'hadoop'
     )
+    self.assertResourceCalled('Directory', '/etc/security/limits.d',
+      owner = 'root',
+      group = 'root',
+      recursive = True,
+    )
+    self.assertResourceCalled('File', '/etc/security/limits.d/hbase.conf',
+      content = Template('hbase.conf.j2'),
+      owner = 'root',
+      group = 'root',
+      mode = 0644,
+    )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics2-hbase.properties',
       owner = 'hbase',
       template_tag = 'GANGLIA-RS',
@@ -170,6 +181,17 @@ class TestHBaseClient(RMFTestCase):
         content = InlineTemplate(self.getConfig()['configurations']['hbase-env']['content']),
         owner = 'hbase',
         group = 'hadoop',
+    )
+    self.assertResourceCalled('Directory', '/etc/security/limits.d',
+      owner = 'root',
+      group = 'root',
+      recursive = True,
+    )
+    self.assertResourceCalled('File', '/etc/security/limits.d/hbase.conf',
+      content = Template('hbase.conf.j2'),
+      owner = 'root',
+      group = 'root',
+      mode = 0644,
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics2-hbase.properties',
       owner = 'hbase',
