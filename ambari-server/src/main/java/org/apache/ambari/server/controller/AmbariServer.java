@@ -78,6 +78,7 @@ import org.apache.ambari.server.resources.api.rest.GetResource;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
+import org.apache.ambari.server.security.SecurityHeaderFilter;
 import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
@@ -281,6 +282,8 @@ public class AmbariServer {
       rootServlet = agentroot.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitOrder(1);
 
+      // Conditionally adds security-related headers to all HTTP responses.
+      root.addFilter(new FilterHolder(injector.getInstance(SecurityHeaderFilter.class)), "/*", DISPATCHER_TYPES);
       //session-per-request strategy for api and agents
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", DISPATCHER_TYPES);
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/proxy/*", DISPATCHER_TYPES);
