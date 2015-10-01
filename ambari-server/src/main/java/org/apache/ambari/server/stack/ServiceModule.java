@@ -18,6 +18,24 @@
 
 package org.apache.ambari.server.stack;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.Sets;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.CustomCommandDefinition;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ServicePropertyInfo;
+import org.apache.ambari.server.state.ThemeInfo;
+
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -27,13 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.CustomCommandDefinition;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ThemeInfo;
 
 /**
  * Service module which provides all functionality related to parsing and fully
@@ -118,6 +129,8 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     populateComponentModules();
     populateConfigurationModules();
     populateThemeModules();
+
+    validateServiceInfo();
   }
 
   @Override
@@ -129,6 +142,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
   public void resolve(
       ServiceModule parentModule, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
       throws AmbariException {
+
+    if (!serviceInfo.isValid() || !parentModule.isValid())
+      return;
+
     ServiceInfo parent = parentModule.getModuleInfo();
     
     if (serviceInfo.getComment() == null) {
@@ -188,6 +205,47 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     mergeConfigurations(parentModule, allStacks, commonServices);
     mergeThemes(parentModule, allStacks, commonServices);
     mergeExcludedConfigTypes(parent);
+
+
+    mergeServiceProperties(parent.getServicePropertyList());
+
+  }
+
+  /**
+   * Merges service properties from parent into the the service properties of this this service.
+   * Current properties overrides properties with same name from parent
+   * @param other service properties to merge with the current service property list
+   */
+  private void mergeServiceProperties(List<ServicePropertyInfo> other) {
+    if (!other.isEmpty()) {
+      List<ServicePropertyInfo> servicePropertyList = serviceInfo.getServicePropertyList();
+      List<ServicePropertyInfo> servicePropertiesToAdd = Lists.newArrayList();
+
+      Set<String> servicePropertyNames = Sets.newTreeSet(
+        Iterables.transform(servicePropertyList, new Function<ServicePropertyInfo, String>() {
+          @Nullable
+          @Override
+          public String apply(ServicePropertyInfo serviceProperty) {
+            return serviceProperty.getName();
+          }
+        })
+      );
+
+      for (ServicePropertyInfo otherServiceProperty : other) {
+        if (!servicePropertyNames.contains(otherServiceProperty.getName()))
+          servicePropertiesToAdd.add(otherServiceProperty);
+      }
+
+      List<ServicePropertyInfo> mergedServicePropertyList =
+        ImmutableList.<ServicePropertyInfo>builder()
+          .addAll(servicePropertyList)
+          .addAll(servicePropertiesToAdd)
+          .build();
+
+      serviceInfo.setServicePropertyList(mergedServicePropertyList);
+
+      validateServiceInfo();
+    }
   }
 
   /**
@@ -480,5 +538,13 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
   @Override
   public void setErrors(Collection error) {
     this.errorSet.addAll(error);
-  }  
+  }
+
+
+  private void validateServiceInfo() {
+    if (!serviceInfo.isValid()) {
+      setValid(false);
+      setErrors(serviceInfo.getErrors());
+    }
+  }
 }

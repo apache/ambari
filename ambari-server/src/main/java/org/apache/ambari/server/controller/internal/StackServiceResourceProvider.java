@@ -25,15 +25,23 @@ import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.StackServiceResponse;
-import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 
 @StaticallyInject
 public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
@@ -74,9 +82,12 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   private static final String CUSTOM_COMMANDS_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServices", "custom_commands");
 
+  private static final String SERVICE_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId(
+    "StackServices", "properties");
+
   private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
-          STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID }));
+      Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID,
+        STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID}));
 
   /**
    * KerberosServiceDescriptorFactory used to create KerberosServiceDescriptor instances
@@ -93,7 +104,7 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
-      NoSuchResourceException, NoSuchParentResourceException {
+    NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<StackServiceRequest> requests = new HashSet<StackServiceRequest>();
 
@@ -117,48 +128,60 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
     Set<Resource> resources = new HashSet<Resource>();
 
     for (StackServiceResponse response : responses) {
-      Resource resource = new ResourceImpl(Resource.Type.StackService);
-
-      setResourceProperty(resource, STACK_NAME_PROPERTY_ID,
-          response.getStackName(), requestedIds);
-
-      setResourceProperty(resource, STACK_VERSION_PROPERTY_ID,
-          response.getStackVersion(), requestedIds);
-
-      setResourceProperty(resource, SERVICE_NAME_PROPERTY_ID,
-          response.getServiceName(), requestedIds);
-      
-      setResourceProperty(resource, SERVICE_TYPE_PROPERTY_ID,
-    		  response.getServiceType(), requestedIds); 
-
-      setResourceProperty(resource, SERVICE_DISPLAY_NAME_PROPERTY_ID,
-          response.getServiceDisplayName(), requestedIds);
-
-      setResourceProperty(resource, USER_NAME_PROPERTY_ID,
-          response.getUserName(), requestedIds);
-
-      setResourceProperty(resource, COMMENTS_PROPERTY_ID,
-          response.getComments(), requestedIds);
-
-      setResourceProperty(resource, VERSION_PROPERTY_ID,
-          response.getServiceVersion(), requestedIds);
-
-      setResourceProperty(resource, CONFIG_TYPES,
-          response.getConfigTypes(), requestedIds);
-
-      setResourceProperty(resource, REQUIRED_SERVICES_ID,
-          response.getRequiredServices(), requestedIds);
-
-      setResourceProperty(resource, SERVICE_CHECK_SUPPORTED_PROPERTY_ID,
-          response.isServiceCheckSupported(), requestedIds);
-
-      setResourceProperty(resource, CUSTOM_COMMANDS_PROPERTY_ID,
-          response.getCustomCommands(), requestedIds);
+      Resource resource = createResource(response, requestedIds);
 
       resources.add(resource);
     }
 
     return resources;
+  }
+
+  private Resource createResource(StackServiceResponse response, Set<String> requestedIds) {
+    Resource resource = new ResourceImpl(Type.StackService);
+
+    setResourceProperty(resource, STACK_NAME_PROPERTY_ID,
+        response.getStackName(), requestedIds);
+
+      setResourceProperty(resource, SERVICE_NAME_PROPERTY_ID,
+          response.getServiceName(), requestedIds);
+      
+      setResourceProperty(resource, SERVICE_TYPE_PROPERTY_ID,
+    		  response.getServiceType(), requestedIds);
+
+    setResourceProperty(resource, STACK_VERSION_PROPERTY_ID,
+        response.getStackVersion(), requestedIds);
+
+    setResourceProperty(resource, SERVICE_NAME_PROPERTY_ID,
+        response.getServiceName(), requestedIds);
+
+    setResourceProperty(resource, SERVICE_DISPLAY_NAME_PROPERTY_ID,
+        response.getServiceDisplayName(), requestedIds);
+
+    setResourceProperty(resource, USER_NAME_PROPERTY_ID,
+        response.getUserName(), requestedIds);
+
+    setResourceProperty(resource, COMMENTS_PROPERTY_ID,
+        response.getComments(), requestedIds);
+
+    setResourceProperty(resource, VERSION_PROPERTY_ID,
+        response.getServiceVersion(), requestedIds);
+
+    setResourceProperty(resource, CONFIG_TYPES,
+        response.getConfigTypes(), requestedIds);
+
+    setResourceProperty(resource, REQUIRED_SERVICES_ID,
+        response.getRequiredServices(), requestedIds);
+
+    setResourceProperty(resource, SERVICE_CHECK_SUPPORTED_PROPERTY_ID,
+        response.isServiceCheckSupported(), requestedIds);
+
+    setResourceProperty(resource, CUSTOM_COMMANDS_PROPERTY_ID,
+        response.getCustomCommands(), requestedIds);
+
+    setResourceProperty(resource, SERVICE_PROPERTIES_PROPERTY_ID,
+      response.getServiceProperties(), requestedIds);
+
+    return resource;
   }
 
   private StackServiceRequest getRequest(Map<String, Object> properties) {

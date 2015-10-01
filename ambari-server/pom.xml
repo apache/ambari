@@ -1913,6 +1913,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>nl.jqno.equalsverifier</groupId>
+      <artifactId>equalsverifier</artifactId>
+      <version>1.7.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.objenesis</groupId>
       <artifactId>objenesis-tck</artifactId>
       <version>1.2</version>
