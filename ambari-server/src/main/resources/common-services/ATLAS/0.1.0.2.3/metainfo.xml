@@ -23,6 +23,7 @@
       <displayName>Atlas</displayName>
       <comment>Atlas Metadata and Governance platform</comment>
       <version>0.1.0.2.3</version>
+      
       <components>
         <component>
           <name>ATLAS_SERVER</name>
@@ -36,6 +37,30 @@
             <script>scripts/metadata_server.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
+          </commandScript>
+          <configFile>
+            <type>properties</type>
+            <fileName>application.properties</fileName>
+            <dictionaryName>application-properties</dictionaryName>
+          </configFile>
+          <configFile>
+            <type>env</type>
+            <fileName>atlas-env.sh</fileName>
+            <dictionaryName>atlas-env</dictionaryName>
+          </configFile>
+        </component>
+
+        <component>
+          <name>ATLAS_CLIENT</name>
+          <displayName>Atlas Metadata Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <dependencies>
+          </dependencies>
+          <commandScript>
+            <script>scripts/atlas_client.py</script>
+            <scriptType>PYTHON</scriptType>
           </commandScript>
           <configFile>
             <type>properties</type>
@@ -66,13 +91,11 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
-      
 
       <configuration-dependencies>
         <config-type>application-properties</config-type>
         <config-type>atlas-env</config-type>
       </configuration-dependencies>
-
 
     </service>
   </services>
