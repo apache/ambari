@@ -73,7 +73,8 @@ JARS_PATH_IN_ARCHIVE_SQLA = "/sqla-client-jdbc/java"
 LIBS_PATH_IN_ARCHIVE_SQLA = "/sqla-client-jdbc/native/lib64"
 JDBC_DRIVER_SQLA_JAR_PATH_IN_ARCHIVE = "/sqla-client-jdbc/java/" + JDBC_DRIVER_SQLA_JAR
 
-THP_FILE = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
+THP_FILE_REDHAT = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
+THP_FILE_UBUNTU = "/sys/kernel/mm/transparent_hugepage/enabled"
 
 class CheckHost(Script):
   # Packages that are used to find repos (then repos are used to find other packages)
@@ -171,10 +172,14 @@ class CheckHost(Script):
     # Here we are checking transparent huge page if CHECK_TRANSPARENT_HUGE_PAGE is in check_execute_list
     if CHECK_TRANSPARENT_HUGE_PAGE in check_execute_list:
       try :
-        # This file exist only on redhat 6
         thp_regex = "\[(.+)\]"
-        if os.path.isfile(THP_FILE):
-          with open(THP_FILE) as f:
+        file_name = None
+        if OSCheck.is_ubuntu_family():
+          file_name = THP_FILE_UBUNTU
+        elif OSCheck.is_redhat_family():
+          file_name = THP_FILE_REDHAT
+        if file_name and os.path.isfile(file_name):
+          with open(file_name) as f:
             file_content = f.read()
             structured_output[CHECK_TRANSPARENT_HUGE_PAGE] = {"exit_code" : 0, "message": str(re.search(thp_regex,
                                                                                             file_content).groups()[0])}
