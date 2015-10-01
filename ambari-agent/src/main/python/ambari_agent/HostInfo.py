@@ -157,7 +157,8 @@ class HostInfoLinux(HostInfo):
   DEFAULT_SERVICE_NAME = "ntpd"
   SERVICE_STATUS_CMD = "%s %s status" % (SERVICE_CMD, DEFAULT_SERVICE_NAME)
 
-  THP_FILE = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
+  THP_FILE_REDHAT = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
+  THP_FILE_UBUNTU = "/sys/kernel/mm/transparent_hugepage/enabled"
 
   def __init__(self, config=None):
     super(HostInfoLinux, self).__init__(config)
@@ -216,10 +217,15 @@ class HostInfoLinux(HostInfo):
     pass
 
   def getTransparentHugePage(self):
-    # This file exist only on redhat 6
     thp_regex = "\[(.+)\]"
-    if os.path.isfile(self.THP_FILE):
-      with open(self.THP_FILE) as f:
+    file_name = None
+    if OSCheck.is_ubuntu_family():
+      file_name = self.THP_FILE_UBUNTU
+    elif OSCheck.is_redhat_family():
+      file_name = self.THP_FILE_REDHAT
+
+    if file_name and os.path.isfile(file_name):
+      with open(file_name) as f:
         file_content = f.read()
         return re.search(thp_regex, file_content).groups()[0]
     else:

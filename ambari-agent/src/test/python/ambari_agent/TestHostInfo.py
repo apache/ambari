@@ -515,12 +515,36 @@ class TestHostInfo(TestCase):
     run_os_command_mock.return_value = 3, "", ""
     self.assertFalse(Firewall().getFirewallObject().check_firewall())
 
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = ('redhat','11','Final')))
+  @patch.object(OSCheck, "get_os_family")
   @patch("os.path.isfile")
   @patch('__builtin__.open')
-  def test_transparent_huge_page(self, open_mock, os_path_isfile_mock):
+  def test_transparent_huge_page(self, open_mock, os_path_isfile_mock, get_os_family_mock):
     context_manager_mock = MagicMock()
     open_mock.return_value = context_manager_mock
+    get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
+    file_mock = MagicMock()
+    file_mock.read.return_value = "[never] always"
+    enter_mock = MagicMock()
+    enter_mock.return_value = file_mock
+    exit_mock  = MagicMock()
+    setattr( context_manager_mock, '__enter__', enter_mock )
+    setattr( context_manager_mock, '__exit__', exit_mock )
+
+    hostInfo = HostInfoLinux()
+
+    os_path_isfile_mock.return_value = True
+    self.assertEqual("never", hostInfo.getTransparentHugePage())
+
+    os_path_isfile_mock.return_value = False
+    self.assertEqual("", hostInfo.getTransparentHugePage())
+
+  @patch.object(OSCheck, "get_os_family")
+  @patch("os.path.isfile")
+  @patch('__builtin__.open')
+  def test_transparent_huge_page_debian(self, open_mock, os_path_isfile_mock, get_os_family_mock):
+    context_manager_mock = MagicMock()
+    open_mock.return_value = context_manager_mock
+    get_os_family_mock.return_value = OSConst.UBUNTU_FAMILY
     file_mock = MagicMock()
     file_mock.read.return_value = "[never] always"
     enter_mock = MagicMock()
