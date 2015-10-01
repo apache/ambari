@@ -438,6 +438,16 @@ public class Configuration {
   public static final String ALERTS_EXECUTION_SCHEDULER_THREADS_KEY = "alerts.execution.scheduler.maxThreads";
   public static final String ALERTS_EXECUTION_SCHEDULER_THREADS_DEFAULT = "2";
 
+  /**
+   *   For HTTP Response header configuration
+   */
+  public static final String HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY = "http.strict-transport-security";
+  public static final String HTTP_STRICT_TRANSPORT_HEADER_VALUE_DEFAULT = "max-age=31536000";
+  public static final String HTTP_X_FRAME_OPTIONS_HEADER_VALUE_KEY = "http.x-frame-options";
+  public static final String HTTP_X_FRAME_OPTIONS_HEADER_VALUE_DEFAULT = "DENY";
+  public static final String HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY = "http.x-xss-protection";
+  public static final String HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT = "1; mode=block";
+
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
 
@@ -1001,6 +1011,53 @@ public class Configuration {
    */
   public boolean getApiSSLAuthentication() {
     return ("true".equals(properties.getProperty(API_USE_SSL, "false")));
+  }
+
+  /**
+   * Get the value that should be set for the <code>Strict-Transport-Security</code> HTTP response header.
+   * <p/>
+   * By default this will be <code>max-age=31536000; includeSubDomains</code>. For example:
+   * <p/>
+   * <code>
+   * Strict-Transport-Security: max-age=31536000; includeSubDomains
+   * </code>
+   * <p/>
+   * This value may be ignored when {@link #getApiSSLAuthentication()} is <code>false</code>.
+   *
+   * @return the Strict-Transport-Security value - null or "" indicates that the value is not set
+   */
+  public String getStrictTransportSecurityHTTPResponseHeader() {
+    return properties.getProperty(HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY, HTTP_STRICT_TRANSPORT_HEADER_VALUE_DEFAULT);
+  }
+
+  /**
+   * Get the value that should be set for the <code>X-Frame-Options</code> HTTP response header.
+   * <p/>
+   * By default this will be <code>DENY</code>. For example:
+   * <p/>
+   * <code>
+   * X-Frame-Options: DENY
+   * </code>
+   *
+   * @return the X-Frame-Options value - null or "" indicates that the value is not set
+   */
+  public String getXFrameOptionsHTTPResponseHeader() {
+    return properties.getProperty(HTTP_X_FRAME_OPTIONS_HEADER_VALUE_KEY, HTTP_X_FRAME_OPTIONS_HEADER_VALUE_DEFAULT);
+  }
+
+  /**
+   * Get the value that should be set for the <code>X-XSS-Protection</code> HTTP response header.
+   * <p/>
+   * By default this will be <code>1; mode=block</code>. For example:
+   * <p/>
+   * <code>
+   * X-XSS-Protection: 1; mode=block
+   * </code>
+   *
+   * @return the X-XSS-Protection value - null or "" indicates that the value is not set
+   */
+  public String getXXSSProtectionHTTPResponseHeader() {
+    return properties.getProperty(HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY, HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT);
   }
 
   /**
