@@ -32,8 +32,6 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Properties;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
@@ -57,6 +55,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
+import junit.framework.Assert;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Configuration.class })
@@ -495,5 +495,19 @@ public class ConfigurationTest {
 
     ambariProperties.setProperty(Configuration.AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY, "0");
     Assert.assertEquals(1, configuration.getAgentPackageParallelCommandsLimit());
+  }
+
+  @Test
+  public void testExperimentalConcurrentStageProcessing() throws Exception {
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    Assert.assertFalse(configuration.isExperimentalConcurrentStageProcessingEnabled());
+
+    ambariProperties.setProperty(Configuration.EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED,
+        Boolean.TRUE.toString());
+
+    Assert.assertTrue(configuration.isExperimentalConcurrentStageProcessingEnabled());
+
   }
 }
