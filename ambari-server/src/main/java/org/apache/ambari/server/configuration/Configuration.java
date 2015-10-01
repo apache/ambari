@@ -17,22 +17,6 @@
  */
 package org.apache.ambari.server.configuration;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.orm.JPATableGenerationStrategy;
-import org.apache.ambari.server.orm.PersistenceType;
-import org.apache.ambari.server.security.ClientSecurityType;
-import org.apache.ambari.server.security.authorization.LdapServerProperties;
-import org.apache.ambari.server.security.encryption.CredentialProvider;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.utils.ShellCommandUtil;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.RandomStringUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -42,6 +26,27 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.orm.JPATableGenerationStrategy;
+import org.apache.ambari.server.orm.PersistenceType;
+import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.ambari.server.security.authorization.LdapServerProperties;
+import org.apache.ambari.server.security.encryption.CredentialProvider;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.utils.Parallel;
+import org.apache.ambari.server.utils.ShellCommandUtil;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 
 /**
@@ -187,7 +192,7 @@ public class Configuration {
   public static final String SERVER_JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL = "server.jdbc.connection-pool.idle-test-interval";
   public static final String SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_ATTEMPTS = "server.jdbc.connection-pool.acquisition-retry-attempts";
   public static final String SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_DELAY = "server.jdbc.connection-pool.acquisition-retry-delay";
-  
+
   public static final String SERVER_JDBC_RCA_USER_NAME_KEY = "server.jdbc.rca.user.name";
   public static final String SERVER_JDBC_RCA_USER_PASSWD_KEY = "server.jdbc.rca.user.passwd";
   public static final String SERVER_JDBC_RCA_DRIVER_KEY = "server.jdbc.rca.driver";
@@ -429,6 +434,14 @@ public class Configuration {
   private static final String DEFAULT_TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL = "300000";
   private static final String TIMELINE_METRICS_CACHE_HEAP_PERCENT = "server.timeline.metrics.cache.heap.percent";
   private static final String DEFAULT_TIMELINE_METRICS_CACHE_HEAP_PERCENT = "15%";
+
+  // experimental options
+
+  /**
+   * Governs the use of {@link Parallel} to process {@link StageEntity}
+   * instances into {@link Stage}.
+   */
+  protected static final String EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED = "experimental.concurrency.stage_processing.enabled";
 
   /**
    * The full path to the XML file that describes the different alert templates.
@@ -1522,7 +1535,7 @@ public class Configuration {
     }
     return value;
   }
-  
+
   /**
    * @param isPackageInstallationTask true, if task is for installing packages
    * @return default task timeout in seconds (string representation). This value
@@ -1813,7 +1826,7 @@ public class Configuration {
         SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS,
         DEFAULT_JDBC_POOL_EXCESS_MAX_IDLE_TIME_SECONDS));
   }
-  
+
   /**
    * Gets the number of connections that should be retrieved when the pool size
    * must increase. It's wise to set this higher than 1 since the assumption is
@@ -1838,7 +1851,7 @@ public class Configuration {
         SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_ATTEMPTS,
         DEFAULT_JDBC_POOL_ACQUISITION_RETRY_ATTEMPTS));
   }
-  
+
   /**
    * Gets the delay in milliseconds between connection acquire attempts.
    *
@@ -1961,5 +1974,19 @@ public class Configuration {
       DEFAULT_TIMELINE_METRICS_CACHE_HEAP_PERCENT);
 
     return percent.trim().endsWith("%") ? percent.trim() : percent.trim() + "%";
+  }
+
+  /**
+   * Gets whether to use experiemental concurrent processing to convert
+   * {@link StageEntity} instances into {@link Stage} instances. The default is
+   * {@code false}.
+   *
+   * @return {code true} if the experimental feature is enabled, {@code false}
+   *         otherwise.
+   */
+  @Experimental
+  public boolean isExperimentalConcurrentStageProcessingEnabled() {
+    return Boolean.parseBoolean(properties.getProperty(
+        EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED, Boolean.FALSE.toString()));
   }
 }
