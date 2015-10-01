@@ -37,6 +37,8 @@ from resource_management.core.resources import Directory, File
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core import shell
 
+# WARNING. If you are adding a new host check that is used by cleanup, add it to BEFORE_CLEANUP_HOST_CHECKS
+# It is used by HostCleanup.py
 CHECK_JAVA_HOME = "java_home_check"
 CHECK_DB_CONNECTION = "db_connection_check"
 CHECK_HOST_RESOLUTION = "host_resolution_check"
@@ -44,6 +46,8 @@ CHECK_LAST_AGENT_ENV = "last_agent_env_check"
 CHECK_INSTALLED_PACKAGES = "installed_packages"
 CHECK_EXISTING_REPOS = "existing_repos"
 CHECK_TRANSPARENT_HUGE_PAGE = "transparentHugePage"
+
+BEFORE_CLEANUP_HOST_CHECKS = ','.join([CHECK_LAST_AGENT_ENV, CHECK_INSTALLED_PACKAGES, CHECK_EXISTING_REPOS, CHECK_TRANSPARENT_HUGE_PAGE])
 
 DB_MYSQL = "mysql"
 DB_ORACLE = "oracle"
@@ -115,6 +119,8 @@ class CheckHost(Script):
     #print "CONFIG: " + str(config)
 
     check_execute_list = config['commandParams']['check_execute_list']
+    if check_execute_list == '*BEFORE_CLEANUP_HOST_CHECKS*':
+      check_execute_list = BEFORE_CLEANUP_HOST_CHECKS
     structured_output = {}
 
     # check each of the commands; if an unknown exception wasn't handled
