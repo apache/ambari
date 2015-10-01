@@ -352,7 +352,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveSiteProperty("hive.server2.enable.doAs", "true")
 
     yarn_queues = "default"
-    capacitySchedulerProperties = services['configurations']["capacity-scheduler"]["properties"] if "capacity-scheduler" in services['configurations'] else {}
+    capacitySchedulerProperties = {}
+    if "capacity-scheduler" in services['configurations'] and "capacity-scheduler" in services['configurations']["capacity-scheduler"]["properties"]:
+      properties = str(services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"]).split('\n')
+      for property in properties:
+        key,sep,value = property.partition("=")
+        capacitySchedulerProperties[key] = value
     if "yarn.scheduler.capacity.root.queues" in capacitySchedulerProperties:
       yarn_queues = str(capacitySchedulerProperties["yarn.scheduler.capacity.root.queues"])
     # Interactive Queues property attributes
