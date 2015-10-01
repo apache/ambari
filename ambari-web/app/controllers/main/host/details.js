@@ -430,10 +430,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (data.componentName == 'ZOOKEEPER_SERVER') {
       this.set('fromDeleteZkServer', true);
       this.updateStormConfigs();
-      var callback =   function () {
+      self.isServiceMetricsLoaded(function () {
         self.loadConfigs();
-      };
-      self.isServiceMetricsLoaded(callback);
+      });
     } else if (data.componentName == 'HIVE_METASTORE') {
       this.set('deleteHiveMetaStore', true);
       this.loadConfigs('loadHiveConfigs');

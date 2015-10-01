@@ -29,19 +29,23 @@ var flumeAgent,
   cases = [
     {
       status: 'RUNNING',
-      healthClass: App.healthIconClassGreen
+      healthClass: App.healthIconClassGreen,
+      displayStatus: Em.I18n.t('common.running')
     },
     {
       status: 'NOT_RUNNING',
-      healthClass: App.healthIconClassRed
+      healthClass: App.healthIconClassRed,
+      displayStatus: Em.I18n.t('common.stopped')
     },
     {
       status: 'UNKNOWN',
-      healthClass: App.healthIconClassYellow
+      healthClass: App.healthIconClassYellow,
+      displayStatus: Em.I18n.t('common.unknown')
     },
     {
       status: 'ANOTHER_STATUS',
-      healthClass: App.healthIconClassYellow
+      healthClass: App.healthIconClassYellow,
+      displayStatus: Em.I18n.t('common.unknown')
     }
   ];
 
@@ -65,4 +69,13 @@ describe('App.FlumeAgent', function () {
     });
   });
 
+  describe('#displayStatus', function () {
+    cases.forEach(function (item) {
+      var displayStatus = item.displayStatus;
+      it('should be ' + displayStatus, function () {
+        flumeAgent.set('status', item.status);
+        expect(flumeAgent.get('displayStatus')).to.equal(displayStatus);
+      });
+    });
+  });
 });

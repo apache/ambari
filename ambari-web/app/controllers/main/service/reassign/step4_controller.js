@@ -79,6 +79,12 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     'MYSQL_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM']
   },
 
+  dbPropertyMap: {
+    'HIVE_SERVER': 'javax.jdo.option.ConnectionDriverName',
+    'HIVE_METASTORE': 'javax.jdo.option.ConnectionDriverName',
+    'OOZIE_SERVER': 'oozie.service.JPAService.jdbc.url'
+  },
+
   /**
    * additional configs with template values
    * Part of value to substitute has following format: "<replace-value>"
@@ -895,7 +901,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * make server call to clean MYSQL
    */
   cleanMySqlServer: function () {
-    var hostname = App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName');
+    var hostname = App.HostComponent.find().findProperty('componentName', 'MYSQL_SERVER').get('hostName');
 
     if (this.get('content.reassign.component_name') === 'MYSQL_SERVER') {
       hostname = this.get('content.reassignHosts.target');
@@ -916,7 +922,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * make server call to configure MYSQL
    */
   configureMySqlServer : function () {
-    var hostname = App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName');
+    var hostname = App.HostComponent.find().findProperty('componentName', 'MYSQL_SERVER').get('hostName');
 
     if (this.get('content.reassign.component_name') === 'MYSQL_SERVER') {
       hostname = this.get('content.reassignHosts.target');
@@ -939,7 +945,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       sender: this,
       data: {
         context: "Start MySQL Server",
-        hostName: App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName'),
+        hostName: App.HostComponent.find().findProperty('componentName', 'MYSQL_SERVER').get('hostName'),
         serviceName: "HIVE",
         componentName: "MYSQL_SERVER",
         HostRoles: {
@@ -1007,23 +1013,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     return ['HIVE_SERVER', 'HIVE_METASTORE', 'OOZIE_SERVER'].contains(this.get('content.reassign.component_name'));
   },
 
-  dbProperty: function() {
-    var componentName = this.get('content.reassign.component_name');
-
-    var property = null;
-    switch(componentName) {
-      case 'HIVE_SERVER':
-      case 'HIVE_METASTORE':
-        property = 'javax.jdo.option.ConnectionDriverName';
-        break;
-      case 'OOZIE_SERVER':
-        property = 'oozie.service.JPAService.jdbc.url';
-        break;
-    }
-
-    return property;
-  }.property(),
-
   /** @property {Object} propertiesPattern - check pattern according to type of connection properties **/
   propertiesPattern: function() {
     return {
@@ -1078,10 +1067,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   dbType: function() {
     var databaseTypes = /MySQL|PostgreS|Oracle|Derby|MSSQL|Anywhere/gi;
-    var databaseProp = this.get('content.serviceProperties')[this.get('dbProperty')];
+    var databaseProp = this.get('content.serviceProperties')[Em.getWithDefault(this.get('dbPropertyMap'), this.get('content.reassign.component_name'), null)];
 
     return databaseProp.match(databaseTypes)[0];
-  }.property('dbProperty'),
+  }.property(),
 
   prepareDBCheckAction: function() {
     var ambariProperties = null;

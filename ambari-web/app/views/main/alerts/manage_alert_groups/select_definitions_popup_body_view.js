@@ -37,15 +37,19 @@ App.SelectDefinitionsPopupBodyView = App.TableView.extend({
     this.set('filteredContent', filtered);
   },
 
+  /**
+   * @type {boolean}
+   */
   showOnlySelectedDefs: false,
 
   filterComponent: null,
 
   filterService: null,
 
-  isDisabled: function () {
-    return !this.get('parentView.isLoaded');
-  }.property('parentView.isLoaded'),
+  /**
+   * @type {boolean}
+   */
+  isDisabled: Em.computed.not('parentView.isLoaded'),
 
   didInsertElement: function () {
     var initialDefs = this.get('initialDefs');
@@ -60,37 +64,41 @@ App.SelectDefinitionsPopupBodyView = App.TableView.extend({
    */
   filter: Em.K,
 
+  /**
+   * filter definitions by componentName and serviceName
+   */
   filterDefs: function () {
     var showOnlySelectedDefs = this.get('showOnlySelectedDefs');
     var filterComponent = this.get('filterComponent');
     var filterService = this.get('filterService');
+
     this.get('parentView.availableDefs').forEach(function (defObj) {
-      var componentOnObj = true;
-      var serviceOnObj = true;
-      if (filterComponent) {
-        componentOnObj = (defObj.componentName == filterComponent.get('componentName'));
-      }
-      if (defObj.serviceName && filterService) {
-        serviceOnObj = (defObj.serviceName == filterService.get('serviceName'));
-      }
-      defObj.set('filtered', showOnlySelectedDefs ? (componentOnObj && serviceOnObj && defObj.get('selected')) : (componentOnObj && serviceOnObj));
+      var matchComponent = filterComponent ? (defObj.get('componentName') === filterComponent.get('componentName')) : true,
+          matchService = filterService ? (defObj.get('serviceName') === filterService.get('serviceName')) : true,
+          filtered = (matchComponent && matchService);
+
+      defObj.set('filtered', showOnlySelectedDefs ? (filtered && defObj.get('selected')) : filtered);
     }, this);
     this.set('startIndex', 1);
-  }.observes('parentView.availableDefs', 'filterService', 'filterService.serviceName', 'filterComponent', 'filterComponent.componentName', 'showOnlySelectedDefs'),
+  }.observes('parentView.availableDefs', 'filterService.serviceName', 'filterComponent.componentName', 'showOnlySelectedDefs'),
 
   defSelectMessage: function () {
     var defs = this.get('parentView.availableDefs');
-    var selectedDefs = defs.filterProperty('selected', true);
-    return this.t('alerts.actions.manage_alert_groups_popup.selectDefsDialog.selectedDefsLink').format(selectedDefs.get('length'), defs.get('length'));
+    return this.t('alerts.actions.manage_alert_groups_popup.selectDefsDialog.selectedDefsLink')
+           .format(defs.filterProperty('selected').get('length'), defs.get('length'));
   }.property('parentView.availableDefs.@each.selected'),
 
+  /**
+   * apply component filter
+   * @param {object|null} event
+   */
   selectFilterComponent: function (event) {
-    if (event != null && event.context != null && event.context.componentName != null) {
+    if (event && event.context.get('componentName')) {
       var currentFilter = this.get('filterComponent');
-      if (currentFilter != null) {
+      if (currentFilter) {
         currentFilter.set('selected', false);
       }
-      if (currentFilter != null && currentFilter.componentName === event.context.componentName) {
+      if (currentFilter && currentFilter.get('componentName') === event.context.get('componentName')) {
         // selecting the same filter deselects it.
         this.set('filterComponent', null);
       } else {
@@ -100,13 +108,17 @@ App.SelectDefinitionsPopupBodyView = App.TableView.extend({
     }
   },
 
+  /**
+   * apply service filter
+   * @param {object|null} event
+   */
   selectFilterService: function (event) {
-    if (event != null && event.context != null && event.context.serviceName != null) {
+    if (event && event.context.get('serviceName')) {
       var currentFilter = this.get('filterService');
-      if (currentFilter != null) {
+      if (currentFilter) {
         currentFilter.set('selected', false);
       }
-      if (currentFilter != null && currentFilter.serviceName === event.context.serviceName) {
+      if (currentFilter && currentFilter.get('serviceName') === event.context.get('serviceName')) {
         // selecting the same filter deselects it.
         this.set('filterService', null);
       } else {
@@ -131,16 +143,10 @@ App.SelectDefinitionsPopupBodyView = App.TableView.extend({
   }.observes('allDefsSelected'),
 
   toggleShowSelectedDefs: function () {
-    var filter1 = this.get('filterComponent');
-    if (filter1 != null) {
-      filter1.set('selected', false);
-    }
-    var filter2 = this.get('filterService');
-    if (filter2 != null) {
-      filter2.set('selected', false);
-    }
+    if (this.get('filterComponent')) this.get('filterComponent').set('selected', false);
+    if (this.get('filterService')) this.get('filterService').set('selected', false);
     this.set('filterComponent', null);
     this.set('filterService', null);
-    this.set('showOnlySelectedDefs', !this.get('showOnlySelectedDefs'));
+    this.toggleProperty('showOnlySelectedDefs');
   }
 });

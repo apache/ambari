@@ -195,11 +195,11 @@ App.HostComponentView = Em.View.extend({
 
   /**
    * Host component with some <code>workStatus</code> can't be moved (so, disable such action in the dropdown list)
-   * @type {bool}
+   * @type {boolean}
    */
   isMoveComponentDisabled: function () {
-    return App.allHostNames.length === App.HostComponent.find().filterProperty('componentName', this.get('content.componentName')).mapProperty('hostName').length;
-  }.property('content'),
+    return App.get('allHostNames').length === App.HostComponent.find().filterProperty('componentName', this.get('content.componentName')).mapProperty('hostName').length;
+  }.property('content.componentName', 'App.allHostNames'),
 
   /**
    * Host component with some <code>workStatus</code> can't be deleted (so, disable such action in the dropdown list)
@@ -207,41 +207,19 @@ App.HostComponentView = Em.View.extend({
    */
   isDeleteComponentDisabled: function () {
     var stackComponentCount = App.StackServiceComponent.find(this.get('hostComponent.componentName')).get('minToInstall');
-    var installedCount = this.get('componentCounter');
+    var installedCount = App.HostComponent.getCount(this.get('hostComponent.componentName'), 'totalCount');
     return (installedCount <= stackComponentCount)
       || ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
   }.property('workStatus', 'componentCounter'),
-
-  /**
-   * gets number of current component that are applied to the cluster;
-   * @returns {Number}
-   */
-  componentCounter: function() {
-    var component;
-    var stackServiceComponent =  App.StackServiceComponent.find(this.get('hostComponent.componentName'));
-    if (stackServiceComponent && App.get('router.clusterController.isHostContentLoaded')) {
-      if (stackServiceComponent.get('isMaster')) {
-        component = App.MasterComponent.find().findProperty('componentName', this.get('content.componentName'))
-      } else {
-        component = App.SlaveComponent.find().findProperty('componentName', this.get('content.componentName'));
-      }
-    }
-    return component ? component.get('totalCount') : 0;
-  }.property('App.router.clusterController.isHostContentLoaded'),
 
   /**
    * Gets number of current running components that are applied to the cluster
    * @returns {Number}
    */
   runningComponentCounter: function () {
-    var runningComponents;
-    var self = this;
-
-    runningComponents = App.HostComponent.find().filter(function (component) {
-      return (component.get('componentName') === self.get('content.componentName') && [App.HostComponentStatus.started, App.HostComponentStatus.starting].contains(component.get('workStatus')))
-    });
-
-    return runningComponents ? runningComponents.length : 0;
+    return App.HostComponent.find().filter(function (component) {
+      return (component.get('componentName') === this.get('content.componentName') && [App.HostComponentStatus.started, App.HostComponentStatus.starting].contains(component.get('workStatus')))
+    }, this).length;
   },
 
   /**
@@ -395,7 +373,7 @@ App.HostComponentView = Em.View.extend({
 
     if (component.get('cardinality') !== '1') {
       if (!this.get('isStart')) {
-        if (this.get('componentCounter') > 1) {
+        if (App.HostComponent.getCount(this.get('hostComponent.componentName'), 'totalCount') > 1) {
           if (this.runningComponentCounter()) {
             return false;
           }

@@ -172,4 +172,75 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
       expect(reassignCtrl.get('content.hasManualSteps')).to.be.false;
     });
   });
+
+  describe("#getConfigUrlParams()", function() {
+    it("unknown component", function() {
+      expect(controller.getConfigUrlParams("", {})).to.be.empty;
+    });
+    it("OOZIE_SERVER component", function() {
+      var data = {
+        Clusters: {
+          desired_configs: {
+            'oozie-site': {
+              tag: 'tag'
+            },
+            'oozie-env': {
+              tag: 'tag'
+            }
+          }
+        }
+      };
+      expect(controller.getConfigUrlParams("OOZIE_SERVER", data)).to.eql([
+        "(type=oozie-site&tag=tag)",
+        "(type=oozie-env&tag=tag)"
+      ]);
+    });
+    it("HIVE_SERVER component", function() {
+      var data = {
+        Clusters: {
+          desired_configs: {
+            'hive-site': {
+              tag: 'tag'
+            },
+            'hive-env': {
+              tag: 'tag'
+            }
+          }
+        }
+      };
+      expect(controller.getConfigUrlParams("HIVE_SERVER", data)).to.eql([
+        "(type=hive-site&tag=tag)",
+        "(type=hive-env&tag=tag)"
+      ]);
+    });
+  });
+
+  describe("#onLoadConfigsTags()", function () {
+    beforeEach(function () {
+      this.mock = sinon.stub(controller, 'getConfigUrlParams');
+      sinon.stub(App.ajax, 'send');
+    });
+    afterEach(function () {
+      this.mock.restore();
+      App.ajax.send.restore();
+    });
+    it("empty params", function () {
+      this.mock.returns([]);
+      controller.onLoadConfigsTags();
+      expect(App.ajax.send.called).to.be.false;
+    });
+    it("correct params", function () {
+      this.mock.returns(['p1', 'p2']);
+      controller.onLoadConfigsTags();
+      expect(App.ajax.send.calledWith({
+        name: 'reassign.load_configs',
+        sender: controller,
+        data: {
+          urlParams: 'p1|p2'
+        },
+        success: 'onLoadConfigs',
+        error: ''
+      })).to.be.true;
+    });
+  });
 });

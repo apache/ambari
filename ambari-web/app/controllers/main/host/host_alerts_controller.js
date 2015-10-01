@@ -39,9 +39,7 @@ App.MainHostAlertsController = Em.ArrayController.extend({
    * @method routeToAlertDefinition
    */
   routeToAlertDefinition: function (event) {
-    var alertDefinition = App.AlertDefinition.find().findProperty('id', event.context);
+    var alertDefinition = App.AlertDefinition.find(event.context);
     App.router.transitionTo('main.alerts.alertDetails', alertDefinition);
   }
-
-
 });

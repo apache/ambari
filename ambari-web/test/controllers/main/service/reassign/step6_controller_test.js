@@ -19,17 +19,18 @@
 App = require('app');
 
 require('controllers/main/service/reassign/step6_controller');
+var controller;
 
 describe('App.ReassignMasterWizardStep6Controller', function () {
 
-  var controller = App.ReassignMasterWizardStep6Controller.create({
-    content: Em.Object.create({
-      reassign: Em.Object.create(),
-      reassignHosts: Em.Object.create()
-    })
-  });
-
   beforeEach(function () {
+    controller = App.ReassignMasterWizardStep6Controller.create({
+      content: Em.Object.create({
+        reassign: Em.Object.create(),
+        reassignHosts: Em.Object.create()
+      }),
+      startServices: Em.K
+    });
     sinon.stub(App.ajax, 'send', Em.K);
   });
   afterEach(function () {
@@ -148,19 +149,6 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
     });
   });
 
-  describe('#startServices()', function () {
-    before(function () {
-      sinon.stub(App.router, 'get').returns({"skip.service.checks": "false"});
-    });
-    after(function () {
-      App.router.get.restore();
-    });
-    it('', function () {
-      controller.startServices();
-      expect(App.ajax.send.calledOnce).to.be.true;
-    });
-  });
-
   describe('#deleteHostComponents()', function () {
 
     it('No host components', function () {
@@ -197,14 +185,14 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
     it('task success', function () {
       var error = {
         responseText: 'org.apache.ambari.server.controller.spi.NoSuchResourceException'
-      }
+      };
       controller.onDeleteHostComponentsError(error);
       expect(controller.onComponentsTasksSuccess.calledOnce).to.be.true;
     });
     it('unknown error', function () {
       var error = {
         responseText: ''
-      }
+      };
       controller.onDeleteHostComponentsError(error);
       expect(controller.onTaskError.calledOnce).to.be.true;
     });
@@ -236,6 +224,32 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
       controller.putHostComponentsInMaintenanceMode();
       expect(App.ajax.send.calledOnce).to.be.true;
       expect(controller.get('multiTaskCounter')).to.equal(0);
+    });
+  });
+
+  describe("#removeTasks()", function() {
+    it("no tasks to delete", function() {
+      controller.set('tasks', [Em.Object.create()]);
+      controller.removeTasks([]);
+      expect(controller.get('tasks').length).to.equal(1);
+    });
+    it("one task to delete", function() {
+      controller.set('tasks', [Em.Object.create({command: 'task1'})]);
+      controller.removeTasks(['task1']);
+      expect(controller.get('tasks')).to.be.empty;
+    });
+  });
+
+  describe("#startAllServices()", function() {
+    beforeEach(function () {
+      sinon.stub(controller, 'startServices', Em.K);
+    });
+    afterEach(function () {
+      controller.startServices.restore();
+    });
+    it("", function () {
+      controller.startAllServices();
+      expect(controller.startServices.calledWith(true)).to.be.true;
     });
   });
 });

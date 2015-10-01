@@ -94,4 +94,51 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
       expect(controller.customClientSideValidation()).to.be.false;
     });
   });
+
+  describe("#mastersToShow", function() {
+    it("", function() {
+      controller.set('content.reassign.component_name', 'C1');
+      controller.propertyDidChange('mastersToShow');
+      expect(controller.get('mastersToShow')).to.eql(['C1']);
+    });
+  });
+
+  describe("#mastersToMove", function() {
+    it("", function() {
+      controller.set('content.reassign.component_name', 'C1');
+      controller.propertyDidChange('mastersToMove');
+      expect(controller.get('mastersToMove')).to.eql(['C1']);
+    });
+  });
+
+  describe("#additionalHostsList", function () {
+    beforeEach(function () {
+      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({
+        componentName: 'C1',
+        hostName: 'host1'
+      })]);
+    });
+    afterEach(function () {
+      App.HostComponent.find.restore();
+    });
+    it("servicesMastersToShow empty", function () {
+      controller.reopen({
+        servicesMastersToShow: []
+      });
+      controller.set('content.reassign.component_name', 'C1');
+      controller.propertyDidChange('additionalHostsList');
+      expect(controller.get('additionalHostsList')).to.be.empty;
+    });
+    it("servicesMastersToShow has one master", function () {
+      controller.reopen({
+        servicesMastersToShow: [{}]
+      });
+      controller.set('content.reassign.component_name', 'C1');
+      controller.propertyDidChange('additionalHostsList');
+      expect(controller.get('additionalHostsList')).to.eql([{
+        label: Em.I18n.t('services.reassign.step2.currentHost'),
+        host: 'host1'
+      }]);
+    });
+  });
 });

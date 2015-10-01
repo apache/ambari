@@ -59,14 +59,14 @@ App.FlumeAgent = DS.Model.extend({
   displayStatus : function() {
     switch (this.get('status')) {
       case 'RUNNING':
-        return "Running";
+        return Em.I18n.t('common.running');
         break;
       case 'NOT_RUNNING':
-        return "Stopped";
+        return Em.I18n.t('common.stopped');
         break;
       case 'UNKNOWN':
       default:
-        return "Unknown";
+        return Em.I18n.t('common.unknown');
         break;
     }
   }.property('status')

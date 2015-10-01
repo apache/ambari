@@ -258,6 +258,42 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.removeUnneededTasks();
       expect(controller.get('tasks').mapProperty('id')).to.eql([1,2,3,4,5,6,7,8,9,10,11,12]);
     });
+
+    it('reassign component is Metrics Collector', function () {
+      controller.set('content.hasManualSteps', false);
+      controller.set('content.databaseType', 'mysql');
+      controller.set('content.reassign.component_name', 'METRICS_COLLECTOR');
+      isHaEnabled = false;
+
+      controller.set('tasks', commandsForDB);
+      controller.removeUnneededTasks();
+      expect(controller.get('tasks').mapProperty('id')).to.eql([1,2,5,6,8,10,12]);
+    });
+
+    it('reassign component is Mysql Server', function () {
+      controller.set('content.hasManualSteps', false);
+      controller.set('content.databaseType', 'mysql');
+      controller.set('content.reassign.component_name', 'MYSQL_SERVER');
+      isHaEnabled = false;
+
+      controller.set('tasks', commandsForDB);
+      controller.removeUnneededTasks();
+      expect(controller.get('tasks').mapProperty('id')).to.eql([1,2,3,4,5,6,8,9,10,11,12]);
+    });
+  });
+
+  describe("#stopRequiredServices()", function() {
+    before(function () {
+      sinon.stub(controller, 'stopServices', Em.K);
+    });
+    after(function () {
+      controller.stopServices.restore();
+    });
+    it("", function() {
+      controller.set('content.reassign.component_name', 'JOBTRACKER');
+      controller.stopRequiredServices();
+      expect(controller.stopServices.calledWith(['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'])).to.be.true;
+    });
   });
 
   describe('#initializeTasks()', function () {
@@ -265,14 +301,25 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.set('tasks', []);
       sinon.stub(controller, 'getHostComponentsNames', Em.K);
       sinon.stub(controller, 'removeUnneededTasks', Em.K);
+      this.mock = sinon.stub(controller, 'isComponentWithDB');
     });
     afterEach(function () {
       controller.removeUnneededTasks.restore();
       controller.getHostComponentsNames.restore();
+      this.mock.restore();
     });
     it('No commands', function () {
       controller.set('commands', []);
       controller.set('commandsForDB', []);
+      this.mock.returns(false);
+      controller.initializeTasks();
+
+      expect(controller.get('tasks')).to.be.empty;
+    });
+    it('No commands', function () {
+      controller.set('commands', []);
+      controller.set('commandsForDB', []);
+      this.mock.returns(true);
       controller.initializeTasks();
 
       expect(controller.get('tasks')).to.be.empty;
@@ -483,7 +530,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         componentName: 'APP_TIMELINE_SERVER',
         result: [
           "(type=yarn-site&tag=5)",
-          "(type=yarn-env&tag=8)",
+          "(type=yarn-env&tag=8)"
         ]
       },
       {
@@ -497,6 +544,30 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         componentName: 'WEBHCAT_SERVER',
         result: [
           "(type=webhcat-site&tag=7)"
+        ]
+      },
+      {
+        componentName: 'HIVE_SERVER',
+        result: [
+          '(type=hive-site&tag=10)',
+          '(type=webhcat-site&tag=7)',
+          '(type=hive-env&tag=11)',
+          '(type=core-site&tag=2)'
+        ]
+      },
+      {
+        componentName: 'HIVE_METASTORE',
+        result: [
+          '(type=hive-site&tag=10)',
+          '(type=webhcat-site&tag=7)',
+          '(type=hive-env&tag=11)',
+          '(type=core-site&tag=2)'
+        ]
+      },
+      {
+        componentName: 'MYSQL_SERVER',
+        result: [
+          '(type=hive-site&tag=10)'
         ]
       }
     ];
@@ -512,7 +583,9 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           'oozie-site': {tag: 6},
           'webhcat-site': {tag: 7},
           'yarn-env': {tag: 8},
-          'accumulo-site': {tag: 9}
+          'accumulo-site': {tag: 9},
+          'hive-site': {tag: 10},
+          'hive-env': {tag: 11}
         }
       }
     };
@@ -582,6 +655,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       sinon.stub(controller, 'setSecureConfigs', Em.K);
       sinon.stub(controller, 'setSpecificNamenodeConfigs', Em.K);
       sinon.stub(controller, 'setSpecificResourceMangerConfigs', Em.K);
+      sinon.stub(controller, 'setSpecificHiveConfigs', Em.K);
       sinon.stub(controller, 'getWebAddressPort', Em.K);
       sinon.stub(controller, 'getComponentDir', Em.K);
       sinon.stub(controller, 'saveClusterStatus', Em.K);
@@ -594,6 +668,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.setSecureConfigs.restore();
       controller.setSpecificNamenodeConfigs.restore();
       controller.setSpecificResourceMangerConfigs.restore();
+      controller.setSpecificHiveConfigs.restore();
       controller.getWebAddressPort.restore();
       controller.getComponentDir.restore();
       controller.saveClusterStatus.restore();
@@ -646,6 +721,23 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(controller.saveClusterStatus.calledWith([])).to.be.true;
       expect(controller.saveConfigsToServer.calledWith({'hdfs-site': {}})).to.be.true;
       expect(controller.saveServiceProperties.calledWith({'hdfs-site': {}})).to.be.true;
+    });
+    it('component is HIVE_METASTORE, has configs', function () {
+      controller.set('content.reassign.component_name', 'HIVE_METASTORE');
+
+      controller.onLoadConfigs({items: [
+        {
+          type: 'hive-site',
+          properties: {}
+        }
+      ]});
+      expect(controller.setAdditionalConfigs.calledWith({'hive-site': {}}, 'HIVE_METASTORE', 'host1')).to.be.true;
+      expect(controller.setSecureConfigs.calledWith([], {'hive-site': {}}, 'HIVE_METASTORE')).to.be.true;
+      expect(controller.setSpecificHiveConfigs.calledWith({'hive-site': {}}, 'host1')).to.be.true;
+      expect(controller.getComponentDir.calledWith({'hive-site': {}}, 'HIVE_METASTORE')).to.be.true;
+      expect(controller.saveClusterStatus.calledWith([])).to.be.true;
+      expect(controller.saveConfigsToServer.calledWith({'hive-site': {}})).to.be.true;
+      expect(controller.saveServiceProperties.calledWith({'hive-site': {}})).to.be.true;
     });
   });
 
@@ -1231,31 +1323,283 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
   });
 
-  describe('#testsMySqlServer()', function () {
+  describe('#cleanMySqlServer()', function () {
     beforeEach(function() {
       sinon.stub(App.HostComponent, 'find', function() {
         return Em.A([
           Em.Object.create({
             'componentName': 'MYSQL_SERVER',
-            'hostName': 'c6401.ambari.apache.org'
+            'hostName': 'host1'
           })
         ]);
       });
     });
-
     afterEach(function() {
       App.HostComponent.find.restore();
     });
 
-    it('Cleans MySql Server', function () {
+    it('component_name is C1', function () {
+      controller.set('content.reassign.component_name', 'C1');
       controller.cleanMySqlServer();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(App.ajax.send.calledWith({
+        name: 'service.mysql.clean',
+        sender: controller,
+        data: {
+          host: 'host1'
+        },
+        success: 'startPolling',
+        error: 'onTaskError'
+      })).to.be.true;
     });
 
-    it('Configures MySql Server', function () {
+    it('component_name is MYSQL_SERVER', function () {
+      controller.set('content.reassign.component_name', 'MYSQL_SERVER');
+      controller.set('content.reassignHosts.target', 'host2');
+      controller.cleanMySqlServer();
+      expect(App.ajax.send.calledWith({
+        name: 'service.mysql.clean',
+        sender: controller,
+        data: {
+          host: 'host2'
+        },
+        success: 'startPolling',
+        error: 'onTaskError'
+      })).to.be.true;
+    });
+  });
+
+  describe('#configureMySqlServer()', function () {
+    beforeEach(function() {
+      sinon.stub(App.HostComponent, 'find', function() {
+        return Em.A([
+          Em.Object.create({
+            'componentName': 'MYSQL_SERVER',
+            'hostName': 'host1'
+          })
+        ]);
+      });
+    });
+    afterEach(function() {
+      App.HostComponent.find.restore();
+    });
+
+    it('component_name is C1', function () {
+      controller.set('content.reassign.component_name', 'C1');
       controller.configureMySqlServer();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(App.ajax.send.calledWith({
+        name: 'service.mysql.configure',
+        sender: controller,
+        data: {
+          host: 'host1'
+        },
+        success: 'startPolling',
+        error: 'onTaskError'
+      })).to.be.true;
     });
 
+    it('component_name is MYSQL_SERVER', function () {
+      controller.set('content.reassign.component_name', 'MYSQL_SERVER');
+      controller.set('content.reassignHosts.target', 'host2');
+      controller.configureMySqlServer();
+      expect(App.ajax.send.calledWith({
+        name: 'service.mysql.configure',
+        sender: controller,
+        data: {
+          host: 'host2'
+        },
+        success: 'startPolling',
+        error: 'onTaskError'
+      })).to.be.true;
+    });
+  });
+
+  describe("#startRequiredServices()", function() {
+    beforeEach(function () {
+      sinon.stub(controller, 'startServices', Em.K);
+    });
+    afterEach(function () {
+      controller.startServices.restore();
+    });
+    it("component has related services", function() {
+      controller.set('content.reassign.component_name', 'JOBTRACKER');
+      controller.startRequiredServices();
+      expect(controller.startServices.calledWith(false, ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'])).to.be.true;
+    });
+    it("component does not have related services", function() {
+      controller.set('content.reassign.component_name', 'C1');
+      controller.startRequiredServices();
+      expect(controller.startServices.calledWith(true)).to.be.true;
+    });
+  });
+
+  describe("#setSpecificHiveConfigs()", function() {
+    beforeEach(function () {
+      sinon.stub(App.HostComponent, 'find').returns([
+        {
+          componentName: 'HIVE_METASTORE',
+          hostName: 'host1'
+        },
+        {
+          componentName: 'HIVE_METASTORE',
+          hostName: 'host3'
+        },
+        {
+          componentName: 'HIVE_SERVER',
+          hostName: 'host4'
+        }
+      ]);
+    });
+    afterEach(function () {
+      App.HostComponent.find.restore();
+    });
+    it("reassign component is HIVE_METASTORE", function() {
+      var configs = {
+        'hive-env': {
+          'hive_user': 'hive_user',
+          'webhcat_user': 'webhcat_user'
+        },
+        'hive-site': {
+          'hive.metastore.uris': ''
+        },
+        'webhcat-site': {
+          'templeton.hive.properties': 'thrift'
+        },
+        'core-site': {
+
+        }
+      };
+      controller.set('content.reassignHosts.source', 'host1');
+      controller.set('content.reassign.component_name', 'HIVE_METASTORE');
+      controller.setSpecificHiveConfigs(configs, 'host2');
+      expect(configs['hive-site']['hive.metastore.uris']).to.equal('thrift://host3:9083,thrift://host2:9083');
+      expect(configs['webhcat-site']['templeton.hive.properties']).to.equal('thrift');
+      expect(configs['core-site']['hadoop.proxyuser.hive_user.hosts']).to.equal('host3,host2,host4');
+      expect(configs['core-site']['hadoop.proxyuser.webhcat_user.hosts']).to.equal('host3,host2,host4');
+    });
+
+    it("reassign component is HIVE_SERVER", function() {
+      var configs = {
+        'hive-env': {
+          'hive_user': 'hive_user',
+          'webhcat_user': 'webhcat_user'
+        },
+        'hive-site': {
+          'hive.metastore.uris': ''
+        },
+        'webhcat-site': {
+          'templeton.hive.properties': 'thrift'
+        },
+        'core-site': {
+
+        }
+      };
+      controller.set('content.reassignHosts.source', 'host1');
+      controller.set('content.reassign.component_name', 'HIVE_SERVER');
+      controller.setSpecificHiveConfigs(configs, 'host2');
+      expect(configs['hive-site']['hive.metastore.uris']).to.equal('thrift://host1:9083,thrift://host3:9083');
+      expect(configs['webhcat-site']['templeton.hive.properties']).to.equal('thrift');
+      expect(configs['core-site']['hadoop.proxyuser.hive_user.hosts']).to.equal('host1,host3,host4,host2');
+      expect(configs['core-site']['hadoop.proxyuser.webhcat_user.hosts']).to.equal('host1,host3,host4,host2');
+    });
+  });
+
+  describe("#startMySqlServer()", function() {
+    beforeEach(function () {
+      sinon.stub(App.HostComponent, 'find').returns([
+        Em.Object.create({
+          componentName: 'MYSQL_SERVER',
+          hostName: 'host1'
+        })
+      ]);
+    });
+    afterEach(function () {
+      App.HostComponent.find.restore();
+    });
+    it("", function() {
+      controller.startMySqlServer();
+      expect(App.ajax.send.calledWith({
+        name: 'common.host.host_component.update',
+        sender: controller,
+        data: {
+          context: "Start MySQL Server",
+          hostName: 'host1',
+          serviceName: "HIVE",
+          componentName: "MYSQL_SERVER",
+          HostRoles: {
+            state: "STARTED"
+          }
+        },
+        success: 'startPolling',
+        error: 'onTaskError'
+      })).to.be.true;
+    });
+  });
+
+  describe("#restartMySqlServer()", function() {
+    beforeEach(function () {
+      sinon.stub(App.HostComponent, 'find').returns([
+        Em.Object.create({
+          componentName: 'MYSQL_SERVER',
+          hostName: 'host1'
+        })
+      ]);
+    });
+    afterEach(function () {
+      App.HostComponent.find.restore();
+    });
+    it("", function() {
+      controller.set('content', Em.Object.create({
+        cluster: Em.Object.create({
+          name: 'cl1'
+        })
+      }));
+      controller.restartMySqlServer();
+      expect(App.ajax.send.calledWith({
+        name: 'restart.hostComponents',
+        sender: controller,
+        data: {
+          context: 'Restart MySql Server',
+          resource_filters: [{
+            component_name: "MYSQL_SERVER",
+            hosts: 'host1',
+            service_name: "HIVE"
+          }],
+          operation_level: {
+            level: "HOST_COMPONENT",
+            cluster_name: 'cl1',
+            service_name: "HIVE",
+            hostcomponent_name: "MYSQL_SERVER"
+          }
+        },
+        success: 'startPolling',
+        error: 'onTaskError'
+      })).to.be.true;
+    });
+  });
+
+  describe("#startNewMySqlServer()", function() {
+    it("", function() {
+      controller.set('content', Em.Object.create({
+        reassignHosts: Em.Object.create({
+          target: 'host1'
+        })
+      }));
+      controller.startNewMySqlServer();
+      expect(App.ajax.send.calledWith({
+        name: 'common.host.host_component.update',
+        sender: controller,
+        data: {
+          context: "Start MySQL Server",
+          hostName: 'host1',
+          serviceName: "HIVE",
+          componentName: "MYSQL_SERVER",
+          HostRoles: {
+            state: "STARTED"
+          }
+        },
+        success: 'startPolling',
+        error: 'onTaskError'
+      })).to.be.true;
+    });
   });
 });

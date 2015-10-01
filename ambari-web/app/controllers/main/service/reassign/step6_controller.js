@@ -46,7 +46,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     }, this);
     var currentStep = App.router.get('reassignMasterController.currentStep');
     for (var i = 0; i < commands.length; i++) {
-      var title =  Em.I18n.t('services.reassign.step6.tasks.' + commands[i] + '.title').format(hostComponentsNames);
+      var title = Em.I18n.t('services.reassign.step6.tasks.' + commands[i] + '.title').format(hostComponentsNames);
       this.get('tasks').pushObject(Ember.Object.create({
         title: title,
         status: 'PENDING',
@@ -76,21 +76,19 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
    * remove tasks by command name
    */
   removeTasks: function(commands) {
-    var tasks = this.get('tasks'),
-        index = null
-        cmd = null;
+    var tasks = this.get('tasks');
 
     commands.forEach(function(command) {
-      cmd = tasks.filterProperty('command', command);
-
-      if (cmd.length === 0) {
-        return false;
-      } else {
-        index = tasks.indexOf( cmd[0] );
+      var index;
+      tasks.forEach(function(_task, _index) {
+        if (_task.get('command') === command) {
+          index = _index;
+        }
+      });
+      if (!Em.isNone(index)) {
+        tasks.splice(index, 1);
       }
-
-      tasks.splice( index, 1 );
-    });
+    }, this);
   },
 
   hideRollbackButton: function () {
