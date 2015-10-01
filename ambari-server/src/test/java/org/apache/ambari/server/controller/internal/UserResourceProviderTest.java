@@ -46,6 +46,8 @@ import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactoryImpl;
@@ -536,6 +538,7 @@ public class UserResourceProviderTest {
         bind(Users.class).toInstance(createMock(Users.class));
 
         bind(AmbariManagementController.class).to(AmbariManagementControllerImpl.class);
+        bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
       }
     });
   }

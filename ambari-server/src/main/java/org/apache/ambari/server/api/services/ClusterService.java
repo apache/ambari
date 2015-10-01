@@ -670,6 +670,21 @@ public class ClusterService extends BaseService {
     return new WidgetService(clusterName);
   }
 
+  /**
+   * Gets the credentials service.
+   *
+   * @param request          the request.
+   * @param clusterName         the cluster name.
+   * @return the credentials service.
+   */
+  @Path("{clusterName}/credentials")
+  public CredentialService getCredentials(
+      @Context javax.ws.rs.core.Request request,
+      @PathParam("clusterName") String clusterName) {
+    hasPermission(Request.Type.valueOf(request.getMethod()), clusterName);
+    return new CredentialService(clusterName);
+  }
+
   // ----- helper methods ----------------------------------------------------
 
   /**

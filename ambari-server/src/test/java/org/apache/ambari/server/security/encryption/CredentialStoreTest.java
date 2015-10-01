@@ -18,6 +18,8 @@
 package org.apache.ambari.server.security.encryption;
 
 import junit.framework.Assert;
+import org.apache.ambari.server.security.credential.Credential;
+import org.apache.ambari.server.security.credential.GenericKeyCredential;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,7 +29,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-public class CredentialStoreServiceTest {
+public class CredentialStoreTest {
 
   @Rule
   public TemporaryFolder tmpFolder = new TemporaryFolder();
@@ -95,12 +97,12 @@ public class CredentialStoreServiceTest {
     File masterKeyFile = new File(directory, "master");
 
     MasterKeyService masterKeyService = masterKeyServiceFactory.createPersisted(masterKeyFile, masterKey);
-    CredentialStoreService credentialStoreService = credentialStoreServiceFactory.create(directory, masterKeyService);
+    CredentialStore credentialStore = credentialStoreServiceFactory.create(directory, masterKeyService);
 
     String password = "mypassword";
-    credentialStoreService.addCredential("myalias", password.toCharArray());
-    char[] credential = credentialStoreService.getCredential("myalias");
-    Assert.assertEquals(password, new String(credential));
+    credentialStore.addCredential("myalias", new GenericKeyCredential(password.toCharArray()));
+    Credential credential = credentialStore.getCredential("myalias");
+    Assert.assertEquals(password, new String(credential.toValue()));
 
     Assert.assertTrue(masterKeyFile.exists());
   }
@@ -113,18 +115,18 @@ public class CredentialStoreServiceTest {
     File masterKeyFile = new File(directory, "master");
 
     MasterKeyService masterKeyService = masterKeyServiceFactory.create(masterKey);
-    CredentialStoreService credentialStoreService = credentialStoreServiceFactory.create(directory, masterKeyService);
+    CredentialStore credentialStore = credentialStoreServiceFactory.create(directory, masterKeyService);
 
     String password = "mypassword";
-    credentialStoreService.addCredential("password", password.toCharArray());
-    char[] credential = credentialStoreService.getCredential("password");
-    Assert.assertEquals(password, new String(credential));
+    credentialStore.addCredential("password", new GenericKeyCredential(password.toCharArray()));
+    Credential credential = credentialStore.getCredential("password");
+    Assert.assertEquals(password, new String(credential.toValue()));
 
-    credentialStoreService.addCredential("null_password", null);
-    Assert.assertNull(credentialStoreService.getCredential("null_password"));
+    credentialStore.addCredential("null_password", null);
+    Assert.assertNull(credentialStore.getCredential("null_password"));
 
-    credentialStoreService.addCredential("empty_password", new char[0]);
-    Assert.assertNull(credentialStoreService.getCredential("empty_password"));
+    credentialStore.addCredential("empty_password", new GenericKeyCredential(new char[0]));
+    Assert.assertNull(credentialStore.getCredential("empty_password"));
 
     Assert.assertFalse(masterKeyFile.exists());
   }
@@ -136,17 +138,17 @@ public class CredentialStoreServiceTest {
     String masterKey = "ThisIsSomeSecretPassPhrase1234";
 
     MasterKeyService masterKeyService = masterKeyServiceFactory.create(masterKey);
-    CredentialStoreService credentialStoreService = credentialStoreServiceFactory.create(directory, masterKeyService);
+    CredentialStore credentialStore = credentialStoreServiceFactory.create(directory, masterKeyService);
 
-    Assert.assertNull(credentialStoreService.getCredential(""));
-    Assert.assertNull(credentialStoreService.getCredential(null));
+    Assert.assertNull(credentialStore.getCredential(""));
+    Assert.assertNull(credentialStore.getCredential(null));
 
     String password = "mypassword";
-    credentialStoreService.addCredential("myalias", password.toCharArray());
-    char[] credential = credentialStoreService.getCredential("myalias");
-    Assert.assertEquals(password, new String(credential));
+    credentialStore.addCredential("myalias", new GenericKeyCredential(password.toCharArray()));
+    Credential credential = credentialStore.getCredential("myalias");
+    Assert.assertEquals(password, new String(credential.toValue()));
 
-    Assert.assertNull(credentialStoreService.getCredential("does_not_exist"));
+    Assert.assertNull(credentialStore.getCredential("does_not_exist"));
   }
 
   private void getExpiredCredentialTest(CredentialStoreServiceFactory credentialStoreServiceFactory,
@@ -156,17 +158,17 @@ public class CredentialStoreServiceTest {
     String masterKey = "ThisIsSomeSecretPassPhrase1234";
 
     MasterKeyService masterKeyService = masterKeyServiceFactory.create(masterKey);
-    CredentialStoreService credentialStoreService = credentialStoreServiceFactory.create(directory, masterKeyService);
+    CredentialStore credentialStore = credentialStoreServiceFactory.create(directory, masterKeyService);
 
     String password = "mypassword";
-    credentialStoreService.addCredential("myalias", password.toCharArray());
-    Assert.assertEquals(password, new String(credentialStoreService.getCredential("myalias")));
+    credentialStore.addCredential("myalias", new GenericKeyCredential(password.toCharArray()));
+    Assert.assertEquals(password, new String(credentialStore.getCredential("myalias").toValue()));
 
     Thread.sleep(250);
-    Assert.assertEquals(password, new String(credentialStoreService.getCredential("myalias")));
+    Assert.assertEquals(password, new String(credentialStore.getCredential("myalias").toValue()));
 
     Thread.sleep(550);
-    Assert.assertNull(password, credentialStoreService.getCredential("myalias"));
+    Assert.assertNull(password, credentialStore.getCredential("myalias"));
 
   }
 
@@ -177,42 +179,49 @@ public class CredentialStoreServiceTest {
     String masterKey = "ThisIsSomeSecretPassPhrase1234";
 
     MasterKeyService masterKeyService = masterKeyServiceFactory.create(masterKey);
-    CredentialStoreService credentialStoreService = credentialStoreServiceFactory.create(directory, masterKeyService);
+    CredentialStore credentialStore = credentialStoreServiceFactory.create(directory, masterKeyService);
 
     String password = "mypassword";
-    credentialStoreService.addCredential("myalias", password.toCharArray());
+    credentialStore.addCredential("myalias", new GenericKeyCredential(password.toCharArray()));
 
-    char[] credential = credentialStoreService.getCredential("myalias");
-    Assert.assertEquals(password, new String(credential));
+    Credential credential = credentialStore.getCredential("myalias");
+    Assert.assertEquals(password, new String(credential.toValue()));
 
-    credentialStoreService = credentialStoreServiceFactory.create(directory, masterKeyService);
-    credentialStoreService.setMasterKeyService(masterKeyService);
+    credentialStore.removeCredential("myalias");
+    Assert.assertNull(credentialStore.getCredential("myalias"));
 
-    credentialStoreService.removeCredential("myalias");
-    Assert.assertNull(credentialStoreService.getCredential("myalias"));
+    credentialStore.addCredential("myalias", new GenericKeyCredential(password.toCharArray()));
+    credential = credentialStore.getCredential("myalias");
+    Assert.assertEquals(password, new String(credential.toValue()));
 
-    credentialStoreService.removeCredential("does_not_exist");
+    credentialStore = credentialStoreServiceFactory.create(directory, masterKeyService);
+    credentialStore.setMasterKeyService(masterKeyService);
+
+    credentialStore.removeCredential("myalias");
+    Assert.assertNull(credentialStore.getCredential("myalias"));
+
+    credentialStore.removeCredential("does_not_exist");
   }
 
   private interface CredentialStoreServiceFactory {
-    CredentialStoreService create(File directory, MasterKeyService masterKeyService);
+    CredentialStore create(File path, MasterKeyService masterKeyService);
   }
 
   private class FileBasedCredentialStoreServiceFactory implements CredentialStoreServiceFactory {
     @Override
-    public CredentialStoreService create(File directory, MasterKeyService masterKeyService) {
-      CredentialStoreService credentialStoreService = new FileBasedCredentialStoreService(directory.getAbsolutePath());
-      credentialStoreService.setMasterKeyService(masterKeyService);
-      return credentialStoreService;
+    public CredentialStore create(File path, MasterKeyService masterKeyService) {
+      CredentialStore credentialStore = new FileBasedCredentialStore(path);
+      credentialStore.setMasterKeyService(masterKeyService);
+      return credentialStore;
     }
   }
 
   private class InMemoryCredentialStoreServiceFactory implements CredentialStoreServiceFactory {
     @Override
-    public CredentialStoreService create(File directory, MasterKeyService masterKeyService) {
-      CredentialStoreService credentialStoreService = new InMemoryCredentialStoreService(500, TimeUnit.MILLISECONDS, true);
-      credentialStoreService.setMasterKeyService(masterKeyService);
-      return credentialStoreService;
+    public CredentialStore create(File path, MasterKeyService masterKeyService) {
+      CredentialStore credentialStore = new InMemoryCredentialStore(500, TimeUnit.MILLISECONDS, true);
+      credentialStore.setMasterKeyService(masterKeyService);
+      return credentialStore;
     }
   }
 

@@ -56,6 +56,8 @@ public class ClusterResponse {
 
   private ClusterHealthReport clusterHealthReport;
 
+  private Map<String, String> credentialStoreServiceProperties = null;
+
   public ClusterResponse(Long clusterId, String clusterName,
                          State provisioningState, SecurityType securityType, Set<String> hostNames, Integer totalHosts,
                          String desiredStackVersion, ClusterHealthReport clusterHealthReport) {
@@ -230,5 +232,13 @@ public class ClusterResponse {
 
   public void setDesiredServiceConfigVersions(Map<String, Collection<ServiceConfigVersionResponse>> desiredServiceConfigVersions) {
     this.desiredServiceConfigVersions = desiredServiceConfigVersions;
+  }
+
+  public void setCredentialStoreServiceProperties(Map<String, String> credentialServiceProperties) {
+    this.credentialStoreServiceProperties = credentialServiceProperties;
+  }
+
+  public Map<String, String> getCredentialStoreServiceProperties() {
+    return credentialStoreServiceProperties;
   }
 }

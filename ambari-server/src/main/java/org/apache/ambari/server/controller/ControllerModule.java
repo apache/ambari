@@ -62,6 +62,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
+import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostKerberosIdentityResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
@@ -81,6 +82,8 @@ import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
@@ -290,6 +293,8 @@ public class ControllerModule extends AbstractModule {
     bind(KerberosServiceDescriptorFactory.class);
     bind(KerberosHelper.class).to(KerberosHelperImpl.class);
 
+    bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
+
     bind(Configuration.class).toInstance(configuration);
     bind(OsFamily.class).toInstance(os_family);
     bind(HostsMap.class).toInstance(hostsMap);
@@ -400,6 +405,7 @@ public class ControllerModule extends AbstractModule {
         .implement(ResourceProvider.class, Names.named("member"), MemberResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("repositoryVersion"), RepositoryVersionResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("hostKerberosIdentity"), HostKerberosIdentityResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("credential"), CredentialResourceProvider.class)
         .build(ResourceProviderFactory.class));
 
     install(new FactoryModuleBuilder().implement(

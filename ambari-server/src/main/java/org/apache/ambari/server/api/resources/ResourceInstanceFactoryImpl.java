@@ -388,6 +388,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new HostKerberosIdentityResourceDefinition();
         break;
 
+      case Credential:
+        resourceDefinition = new CredentialResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

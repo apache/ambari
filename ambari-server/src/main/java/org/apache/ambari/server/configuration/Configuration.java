@@ -246,8 +246,14 @@ public class Configuration {
   public static final String HIVE_METASTORE_PASSWORD_PROPERTY = "javax.jdo.option.ConnectionPassword";
   public static final String MASTER_KEY_PERSISTED = "security.master.key.ispersisted";
   public static final String MASTER_KEY_LOCATION = "security.master.key.location";
+  public static final String MASTER_KEYSTORE_LOCATION = "security.master.keystore.location";
   public static final String MASTER_KEY_ENV_PROP = "AMBARI_SECURITY_MASTER_KEY";
   public static final String MASTER_KEY_FILENAME_DEFAULT = "master";
+  public static final String MASTER_KEYSTORE_FILENAME_DEFAULT = "credentials.jceks";
+  public static final String TEMPORARY_KEYSTORE_RETENTION_MINUTES = "security.temporary.keystore.retention.minutes";
+  public static final long TEMPORARY_KEYSTORE_RETENTION_MINUTES_DEFAULT = 90;
+  public static final String TEMPORARY_KEYSTORE_ACTIVELY_PURGE = "security.temporary.keystore.actibely.purge";
+  public static final boolean TEMPORARY_KEYSTORE_ACTIVELY_PURGE_DEFAULT = true;
 
   /**
    * Key for repo validation suffixes.
@@ -770,7 +776,9 @@ public class Configuration {
     if (!credentialProviderInitialized) {
       try {
         credentialProvider = new CredentialProvider(null,
-          getMasterKeyLocation(), isMasterKeyPersisted());
+            getMasterKeyLocation(),
+            isMasterKeyPersisted(),
+            getMasterKeyStoreLocation());
       } catch (Exception e) {
         LOG.info("Credential provider creation failed. Reason: " + e.getMessage());
         if (LOG.isDebugEnabled()) {
@@ -1367,15 +1375,135 @@ public class Configuration {
   }
 
   public boolean isMasterKeyPersisted() {
-    String masterKeyLocation = getMasterKeyLocation();
-    File f = new File(masterKeyLocation);
-    return f.exists();
+    File masterKeyFile = getMasterKeyLocation();
+    return (masterKeyFile != null) && masterKeyFile.exists();
   }
 
-  public String getMasterKeyLocation() {
-    String defaultDir = properties.getProperty(MASTER_KEY_LOCATION,
-      properties.getProperty(SRVR_KSTR_DIR_KEY, SRVR_KSTR_DIR_DEFAULT));
-    return defaultDir + File.separator + MASTER_KEY_FILENAME_DEFAULT;
+  public File getServerKeyStoreDirectory() {
+    String path = properties.getProperty(SRVR_KSTR_DIR_KEY, SRVR_KSTR_DIR_DEFAULT);
+    return ((path == null) || path.isEmpty())
+        ? new File(".")
+        : new File(path);
+  }
+
+  /**
+   * Returns a File pointing where master key file is expected to be
+   * <p/>
+   * The master key file is named 'master'.  The directory that this file is to be found in is
+   * calculated by obtaining the directory path assigned to the Ambari property
+   * 'security.master.key.location'; else if that value is empty, then the directory is determined
+   * by calling {@link #getServerKeyStoreDirectory()}.
+   * <p/>
+   * If it exists, this file contains the key used to decrypt values stored in the master keystore.
+   *
+   * @return a File that points to the master key file
+   * @see #getServerKeyStoreDirectory()
+   * @see #MASTER_KEY_FILENAME_DEFAULT
+   */
+  public File getMasterKeyLocation() {
+    File location;
+    String path = properties.getProperty(MASTER_KEY_LOCATION);
+
+    if (StringUtils.isEmpty(path)) {
+      location = new File(getServerKeyStoreDirectory(), MASTER_KEY_FILENAME_DEFAULT);
+      LOG.debug("Value of {} is not set, using {}", MASTER_KEY_LOCATION, location.getAbsolutePath());
+    } else {
+      location = new File(path, MASTER_KEY_FILENAME_DEFAULT);
+      LOG.debug("Value of {} is {}", MASTER_KEY_LOCATION, location.getAbsolutePath());
+    }
+
+    return location;
+  }
+
+  /**
+   * Returns the location of the master keystore file.
+   * <p/>
+   * The master keystore file is named 'credentials.jceks'.  The directory that this file is to be
+   * found in is calculated by obtaining the directory path assigned to the Ambari property
+   * 'security.master.keystore.location'; else if that value is empty, then the directory is determined
+   * by calling {@link #getServerKeyStoreDirectory()}.
+   * <p/>
+   * The location is calculated by obtaining the Ambari property directory path assigned to the key
+   * 'security.master.keystore.location'. If that value is empty, then the directory is determined
+   * by {@link #getServerKeyStoreDirectory()}.
+   *
+   * @return a File that points to the master keystore file
+   * @see #getServerKeyStoreDirectory()
+   * @see #MASTER_KEYSTORE_FILENAME_DEFAULT
+   */
+  public File getMasterKeyStoreLocation() {
+    File location;
+    String path = properties.getProperty(MASTER_KEYSTORE_LOCATION);
+
+    if (StringUtils.isEmpty(path)) {
+      location = new File(getServerKeyStoreDirectory(), MASTER_KEYSTORE_FILENAME_DEFAULT);
+      LOG.debug("Value of {} is not set, using {}", MASTER_KEYSTORE_LOCATION, location.getAbsolutePath());
+    } else {
+      location = new File(path, MASTER_KEYSTORE_FILENAME_DEFAULT);
+      LOG.debug("Value of {} is {}", MASTER_KEYSTORE_LOCATION, location.getAbsolutePath());
+    }
+
+    return location;
+  }
+
+  /**
+   * Gets the temporary keystore retention time in minutes.
+   * <p/>
+   * This value is retrieved from the Ambari property named 'security.temporary.keystore.retention.minutes'.
+   * If not set, the default value of 90 (minutes) will be returned.
+   *
+   * @return a timeout value (in minutes)
+   */
+  public long getTemporaryKeyStoreRetentionMinutes() {
+    long minutes;
+    String value = properties.getProperty(TEMPORARY_KEYSTORE_RETENTION_MINUTES);
+
+    if(StringUtils.isEmpty(value)) {
+      LOG.debug("Value of {} is not set, using default value ({})",
+          TEMPORARY_KEYSTORE_RETENTION_MINUTES, TEMPORARY_KEYSTORE_RETENTION_MINUTES_DEFAULT);
+      minutes = TEMPORARY_KEYSTORE_RETENTION_MINUTES_DEFAULT;
+    }
+    else {
+      try {
+        minutes = Long.parseLong(value);
+        LOG.debug("Value of {} is {}", TEMPORARY_KEYSTORE_RETENTION_MINUTES, value);
+      } catch (NumberFormatException e) {
+        LOG.warn("Value of {} ({}) should be a number, falling back to default value ({})",
+            TEMPORARY_KEYSTORE_RETENTION_MINUTES, value, TEMPORARY_KEYSTORE_RETENTION_MINUTES_DEFAULT);
+        minutes = TEMPORARY_KEYSTORE_RETENTION_MINUTES_DEFAULT;
+      }
+    }
+
+    return minutes;
+  }
+
+  /**
+   * Gets a boolean value indicating whether to actively purge the temporary keystore when the retention
+   * time expires (true) or to passively purge when credentials are queried (false).
+   * <p/>
+   * This value is retrieved from the Ambari property named 'security.temporary.keystore.actibely.purge'.
+   * If not set, the default value of true.
+   *
+   * @return a Boolean value declaring whether to actively (true) or passively (false) purge the temporary keystore
+   */
+  public boolean isActivelyPurgeTemporaryKeyStore() {
+    String value = properties.getProperty(TEMPORARY_KEYSTORE_ACTIVELY_PURGE);
+
+    if (StringUtils.isEmpty(value)) {
+      LOG.debug("Value of {} is not set, using default value ({})",
+          TEMPORARY_KEYSTORE_ACTIVELY_PURGE, TEMPORARY_KEYSTORE_ACTIVELY_PURGE_DEFAULT);
+      return TEMPORARY_KEYSTORE_ACTIVELY_PURGE_DEFAULT;
+    } else if ("true".equalsIgnoreCase(value)) {
+      LOG.debug("Value of {} is {}", TEMPORARY_KEYSTORE_ACTIVELY_PURGE, value);
+      return true;
+    } else if ("false".equalsIgnoreCase(value)) {
+      LOG.debug("Value of {} is {}", TEMPORARY_KEYSTORE_ACTIVELY_PURGE, value);
+      return false;
+    } else {
+      LOG.warn("Value of {} should be either \"true\" or \"false\" but is \"{}\", falling back to default value ({})",
+          TEMPORARY_KEYSTORE_ACTIVELY_PURGE, value, TEMPORARY_KEYSTORE_ACTIVELY_PURGE_DEFAULT);
+      return TEMPORARY_KEYSTORE_ACTIVELY_PURGE_DEFAULT;
+    }
   }
 
   public String getSrvrDisabledCiphers() {
@@ -1844,7 +1972,7 @@ public class Configuration {
    * Gets the number of times connections should be retried to be acquired from
    * the database before giving up.
    *
-   * @return default of {@value #DEFAULT_JDBC_POOL_AQUISITION_RETRY_ATTEMPTS}
+   * @return default of {@value #DEFAULT_JDBC_POOL_ACQUISITION_RETRY_ATTEMPTS}
    */
   public int getConnectionPoolAcquisitionRetryAttempts() {
     return Integer.parseInt(properties.getProperty(
@@ -1855,7 +1983,7 @@ public class Configuration {
   /**
    * Gets the delay in milliseconds between connection acquire attempts.
    *
-   * @return default of {@value #DEFAULT_JDBC_POOL_AQUISITION_RETRY_DELAY}
+   * @return default of {@value #DEFAULT_JDBC_POOL_ACQUISITION_RETRY_DELAY}
    */
   public int getConnectionPoolAcquisitionRetryDelay() {
     return Integer.parseInt(properties.getProperty(

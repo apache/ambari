@@ -64,6 +64,8 @@ public class AmbariAuthorizationFilter implements Filter {
   private static final String API_VIEWS_ALL_PATTERN            = API_VERSION_PREFIX + "/views.*";
   private static final String API_PERSIST_ALL_PATTERN          = API_VERSION_PREFIX + "/persist.*";
   private static final String API_LDAP_SYNC_EVENTS_ALL_PATTERN = API_VERSION_PREFIX + "/ldap_sync_events.*";
+  private static final String API_CREDENTIALS_ALL_PATTERN      = API_VERSION_PREFIX + "/clusters/.*?/credentials.*";
+  private static final String API_CREDENTIALS_AMBARI_PATTERN   = API_VERSION_PREFIX + "/clusters/.*?/credentials/ambari\\..*";
 
   protected static final String LOGIN_REDIRECT_BASE = "/#/login?targetURI=";
 
@@ -120,7 +122,18 @@ public class AmbariAuthorizationFilter implements Filter {
           }
 
           // clusters require permission
-          if (requestURI.matches(API_CLUSTERS_ALL_PATTERN)) {
+          if (!"GET".equalsIgnoreCase(httpRequest.getMethod()) && requestURI.matches(API_CREDENTIALS_AMBARI_PATTERN)) {
+            // Only the administrator can operate on credentials where the alias starts with "ambari."
+            if (permissionId.equals(PermissionEntity.AMBARI_ADMIN_PERMISSION)) {
+              authorized = true;
+              break;
+            }
+          } else if (requestURI.matches(API_CREDENTIALS_ALL_PATTERN)) {
+            if (permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
+              authorized = true;
+              break;
+            }
+          } else if (requestURI.matches(API_CLUSTERS_ALL_PATTERN)) {
             if (permissionId.equals(PermissionEntity.CLUSTER_READ_PERMISSION) ||
               permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
               authorized = true;
@@ -167,6 +180,7 @@ public class AmbariAuthorizationFilter implements Filter {
             || requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)
             || requestURI.matches(API_USERS_ALL_PATTERN)
             || requestURI.matches(API_GROUPS_ALL_PATTERN)
+            || requestURI.matches(API_CREDENTIALS_ALL_PATTERN)
             || requestURI.matches(API_LDAP_SYNC_EVENTS_ALL_PATTERN))) {
 
         httpResponse.setHeader("WWW-Authenticate", "Basic realm=\"" + realm + "\"");

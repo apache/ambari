@@ -65,6 +65,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   public static final String CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_service_config_versions");
   public static final String CLUSTER_TOTAL_HOSTS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "total_hosts");
   public static final String CLUSTER_HEALTH_REPORT_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "health_report");
+  public static final String CLUSTER_CREDENTIAL_STORE_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "credential_store_properties");
   public static final String BLUEPRINT_PROPERTY_ID = PropertyHelper.getPropertyId(null, "blueprint");
   public static final String SESSION_ATTRIBUTES_PROPERTY_ID = "session_attributes";
 
@@ -118,6 +119,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     propertyIds.add(CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID);
     propertyIds.add(CLUSTER_TOTAL_HOSTS_PROPERTY_ID);
     propertyIds.add(CLUSTER_HEALTH_REPORT_PROPERTY_ID);
+    propertyIds.add(CLUSTER_CREDENTIAL_STORE_PROPERTIES_PROPERTY_ID);
     propertyIds.add(BLUEPRINT_PROPERTY_ID);
     propertyIds.add(SESSION_ATTRIBUTES_PROPERTY_ID);
   }
@@ -204,6 +206,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         response.getDesiredServiceConfigVersions(), requestedIds);
       setResourceProperty(resource, CLUSTER_TOTAL_HOSTS_PROPERTY_ID, response.getTotalHosts(), requestedIds);
       setResourceProperty(resource, CLUSTER_HEALTH_REPORT_PROPERTY_ID, response.getClusterHealthReport(), requestedIds);
+      setResourceProperty(resource, CLUSTER_CREDENTIAL_STORE_PROPERTIES_PROPERTY_ID, response.getCredentialStoreServiceProperties(), requestedIds);
 
       resource.setProperty(CLUSTER_VERSION_PROPERTY_ID,
           response.getDesiredStackVersion());

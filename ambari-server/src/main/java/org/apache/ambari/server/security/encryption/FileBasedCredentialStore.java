@@ -19,6 +19,7 @@
 package org.apache.ambari.server.security.encryption;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,57 +31,71 @@ import java.io.FileOutputStream;
 import java.security.KeyStore;
 
 /**
- * FileBasedCredentialStoreService is a CredentialStoreService implementation that creates and manages
+ * FileBasedCredentialStore is a CredentialStore implementation that creates and manages
  * a JCEKS (Java Cryptography Extension KeyStore) file on disk.  The key store and its contents are
  * encrypted using the key from the supplied {@link MasterKeyService}.
  * <p/>
- * Most of the work for this implementation is handled by the {@link CredentialStoreServiceImpl}.
+ * Most of the work for this implementation is handled by the {@link AbstractCredentialStore}.
  * This class handles the details of the storage location and associated input and output streams.
  */
-public class FileBasedCredentialStoreService extends CredentialStoreServiceImpl {
-  private static final String KEYSTORE_FILENAME = "credentials.jceks";
-  private static final Logger LOG = LoggerFactory.getLogger(FileBasedCredentialStoreService.class);
+public class FileBasedCredentialStore extends AbstractCredentialStore {
+  private static final Logger LOG = LoggerFactory.getLogger(FileBasedCredentialStore.class);
 
   /**
    * The directory to use for storing the key store file
    */
-  private File keyStoreDir;
+  private File keyStoreFile;
 
   /**
-   * Constructs a new FileBasedCredentialStoreService using the specified key store directory
+   * Constructs a new FileBasedCredentialStore using the specified key store directory
    *
-   * @param keyStoreDir a String containing the absolute path to the directory in which to store the key store file
+   * @param keyStoreLocation a File pointing to the directory in which to store the key store file; or the file itself
    */
-  public FileBasedCredentialStoreService(String keyStoreDir) {
-    this(new File(keyStoreDir));
-  }
-
-  /**
-   * Constructs a new FileBasedCredentialStoreService using the specified key store directory
-   *
-   * @param keyStoreDir a File pointing to the directory in which to store the key store file
-   */
-  public FileBasedCredentialStoreService(File keyStoreDir) {
-    if (keyStoreDir == null) {
+  public FileBasedCredentialStore(File keyStoreLocation) {
+    if (keyStoreLocation == null) {
+      // If the keyStoreLocation is not set, create the file (using the default filename)  in the
+      // current working directory.
       LOG.warn("Writing key store to the current working directory of the running process");
-    } else if (!keyStoreDir.exists()) {
-      LOG.warn("The destination directory does not exist. Failures may occur when writing the key store to disk: {}", keyStoreDir.getAbsolutePath());
-    } else if (!keyStoreDir.isDirectory()) {
-      LOG.warn("The destination does not point to directory. Failures may occur when writing the key store to disk: {}", keyStoreDir.getAbsolutePath());
+      keyStoreLocation = new File(Configuration.MASTER_KEYSTORE_FILENAME_DEFAULT);
+    } else if (keyStoreLocation.isDirectory()) {
+      // If the keyStoreLocation is a directory, create the file (using the default filename) in
+      // that directory.
+      keyStoreLocation = new File(keyStoreLocation, Configuration.MASTER_KEYSTORE_FILENAME_DEFAULT);
     }
 
-    this.keyStoreDir = keyStoreDir;
+    if (keyStoreLocation.exists()) {
+      if (!keyStoreLocation.canWrite()) {
+        LOG.warn("The destination file is not writable. Failures may occur when writing the key store to disk: {}", keyStoreLocation.getAbsolutePath());
+      }
+    } else {
+      File directory = keyStoreLocation.getParentFile();
+      if ((directory != null) && !directory.canWrite()) {
+        LOG.warn("The destination directory is not writable. Failures may occur when writing the key store to disk: {}", keyStoreLocation.getAbsolutePath());
+      }
+    }
+
+    this.keyStoreFile = keyStoreLocation;
   }
+
+  /**
+   * Gets the path to this FileBasedCredentialStore's KeyStore file
+   *
+   * @return a file indicating the path to this FileBasedCredentialStore's KeyStore file
+   */
+  public File getKeyStorePath() {
+    return keyStoreFile;
+  }
+
 
   @Override
   protected void persistCredentialStore(KeyStore keyStore) throws AmbariException {
-    putKeyStore(keyStore, getKeyStoreFile());
+    putKeyStore(keyStore, this.keyStoreFile);
   }
 
 
   @Override
   protected KeyStore loadCredentialStore() throws AmbariException {
-    return getKeyStore(getKeyStoreFile(), DEFAULT_STORE_TYPE);
+    return getKeyStore(this.keyStoreFile, DEFAULT_STORE_TYPE);
   }
 
   /**
@@ -90,19 +105,24 @@ public class FileBasedCredentialStoreService extends CredentialStoreServiceImpl 
    * @param keyStoreFile a File pointing to the key store file
    * @param keyStoreType the type of key store data to read (or create)
    * @return the loaded KeyStore
-   * @throws AmbariException           if the Master Key Service is not set
-   * @see CredentialStoreServiceImpl#loadCredentialStore()
+   * @throws AmbariException if the Master Key Service is not set
+   * @see AbstractCredentialStore#loadCredentialStore()
    */
-  private KeyStore getKeyStore(final File keyStoreFile, String keyStoreType) throws AmbariException{
+  private KeyStore getKeyStore(final File keyStoreFile, String keyStoreType) throws AmbariException {
     KeyStore keyStore;
     FileInputStream inputStream;
 
     if (keyStoreFile.exists()) {
-      LOG.debug("Reading key store from {}", keyStoreFile.getAbsolutePath());
-      try {
-        inputStream = new FileInputStream(keyStoreFile);
-      } catch (FileNotFoundException e) {
-        throw new AmbariException(String.format("Failed to open the key store file: %s", e.getLocalizedMessage()), e);
+      if (keyStoreFile.length() > 0) {
+        LOG.debug("Reading key store from {}", keyStoreFile.getAbsolutePath());
+        try {
+          inputStream = new FileInputStream(keyStoreFile);
+        } catch (FileNotFoundException e) {
+          throw new AmbariException(String.format("Failed to open the key store file: %s", e.getLocalizedMessage()), e);
+        }
+      } else {
+        LOG.debug("The key store file found in {} is empty. Returning new (non-persisted) KeyStore", keyStoreFile.getAbsolutePath());
+        inputStream = null;
       }
     } else {
       LOG.debug("Key store file not found in {}. Returning new (non-persisted) KeyStore", keyStoreFile.getAbsolutePath());
@@ -131,21 +151,12 @@ public class FileBasedCredentialStoreService extends CredentialStoreServiceImpl 
     FileOutputStream outputStream = null;
 
     try {
-      outputStream = new FileOutputStream(new File(keyStoreDir, KEYSTORE_FILENAME));
+      outputStream = new FileOutputStream(this.keyStoreFile);
       writeKeyStore(keyStore, outputStream);
     } catch (FileNotFoundException e) {
       throw new AmbariException(String.format("Failed to open the key store file: %s", e.getLocalizedMessage()), e);
     } finally {
       IOUtils.closeQuietly(outputStream);
     }
-  }
-
-  /**
-   * Calculates the absolute path to the key store file
-   *
-   * @return a File pointing to the absolute path of the key store file
-   */
-  private File getKeyStoreFile() {
-    return new File(keyStoreDir, KEYSTORE_FILENAME);
   }
 }
