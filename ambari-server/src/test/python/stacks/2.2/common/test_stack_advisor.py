@@ -993,7 +993,7 @@ class TestHDP22StackAdvisor(TestCase):
       'hive-site': {
         'properties': {
           'hive.server2.enable.doAs': 'true',
-          'hive.server2.tez.default.queues': "queue1,queue2",
+          'hive.server2.tez.default.queues': "default",
           'hive.server2.tez.initialize.default.sessions': 'false',
           'hive.server2.tez.sessions.per.default.queue': '1',
           'hive.auto.convert.join.noconditionaltask.size': '268435456',
@@ -1040,7 +1040,7 @@ class TestHDP22StackAdvisor(TestCase):
          'hive.server2.authentication.kerberos.keytab': {'delete': 'true'}, 
          'hive.server2.authentication.ldap.url': {'delete': 'true'},
          'hive.server2.tez.default.queues': {
-           'entries': [{'value': 'queue1', 'label': 'queue1 queue'}, {'value': 'queue2', 'label': 'queue2 queue'}]
+           'entries': [{'value': 'default', 'label': 'default queue'}]
           }
         }
       },
@@ -1307,55 +1307,55 @@ class TestHDP22StackAdvisor(TestCase):
 
     # test 'hive.server2.tez.default.queues' leaf queues
     services["configurations"]['capacity-scheduler']['properties'] = {
-            "yarn.scheduler.capacity.maximum-am-resource-percent": "0.2",
-            "yarn.scheduler.capacity.maximum-applications": "10000",
-            "yarn.scheduler.capacity.node-locality-delay": "40",
-            "yarn.scheduler.capacity.queue-mappings-override.enable": "false",
-            "yarn.scheduler.capacity.resource-calculator": "org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator",
-            "yarn.scheduler.capacity.root.accessible-node-labels": "*",
-            "yarn.scheduler.capacity.root.acl_administer_queue": "*",
-            "yarn.scheduler.capacity.root.capacity": "100",
-            "yarn.scheduler.capacity.root.default.a.a1.acl_administer_queue": "*",
-            "yarn.scheduler.capacity.root.default.a.a1.acl_submit_applications": "*",
-            "yarn.scheduler.capacity.root.default.a.a1.capacity": "75",
-            "yarn.scheduler.capacity.root.default.a.a1.maximum-capacity": "100",
-            "yarn.scheduler.capacity.root.default.a.a1.minimum-user-limit-percent": "100",
-            "yarn.scheduler.capacity.root.default.a.a1.ordering-policy": "fifo",
-            "yarn.scheduler.capacity.root.default.a.a1.state": "RUNNING",
-            "yarn.scheduler.capacity.root.default.a.a1.user-limit-factor": "1",
-            "yarn.scheduler.capacity.root.default.a.a2.acl_administer_queue": "*",
-            "yarn.scheduler.capacity.root.default.a.a2.acl_submit_applications": "*",
-            "yarn.scheduler.capacity.root.default.a.a2.capacity": "25",
-            "yarn.scheduler.capacity.root.default.a.a2.maximum-capacity": "25",
-            "yarn.scheduler.capacity.root.default.a.a2.minimum-user-limit-percent": "100",
-            "yarn.scheduler.capacity.root.default.a.a2.ordering-policy": "fifo",
-            "yarn.scheduler.capacity.root.default.a.a2.state": "RUNNING",
-            "yarn.scheduler.capacity.root.default.a.a2.user-limit-factor": "1",
-            "yarn.scheduler.capacity.root.default.a.acl_administer_queue": "*",
-            "yarn.scheduler.capacity.root.default.a.acl_submit_applications": "*",
-            "yarn.scheduler.capacity.root.default.a.capacity": "50",
-            "yarn.scheduler.capacity.root.default.a.maximum-capacity": "100",
-            "yarn.scheduler.capacity.root.default.a.minimum-user-limit-percent": "100",
-            "yarn.scheduler.capacity.root.default.a.ordering-policy": "fifo",
-            "yarn.scheduler.capacity.root.default.a.queues": "a1,a2",
-            "yarn.scheduler.capacity.root.default.a.state": "RUNNING",
-            "yarn.scheduler.capacity.root.default.a.user-limit-factor": "1",
-            "yarn.scheduler.capacity.root.default.acl_submit_applications": "*",
-            "yarn.scheduler.capacity.root.default.b.acl_administer_queue": "*",
-            "yarn.scheduler.capacity.root.default.b.acl_submit_applications": "*",
-            "yarn.scheduler.capacity.root.default.b.capacity": "50",
-            "yarn.scheduler.capacity.root.default.b.maximum-capacity": "50",
-            "yarn.scheduler.capacity.root.default.b.minimum-user-limit-percent": "100",
-            "yarn.scheduler.capacity.root.default.b.ordering-policy": "fifo",
-            "yarn.scheduler.capacity.root.default.b.state": "RUNNING",
-            "yarn.scheduler.capacity.root.default.b.user-limit-factor": "1",
-            "yarn.scheduler.capacity.root.default.capacity": "100",
-            "yarn.scheduler.capacity.root.default.maximum-capacity": "100",
-            "yarn.scheduler.capacity.root.default.queues": "a,b",
-            "yarn.scheduler.capacity.root.default.state": "RUNNING",
-            "yarn.scheduler.capacity.root.default.user-limit-factor": "1",
-            "yarn.scheduler.capacity.root.queues": "default"
-          }
+            "capacity-scheduler" : "yarn.scheduler.capacity.maximum-am-resource-percent=0.2\n"
+                                   "yarn.scheduler.capacity.maximum-applications=10000\n"
+                                   "yarn.scheduler.capacity.node-locality-delay=40\n"
+                                   "yarn.scheduler.capacity.queue-mappings-override.enable=false\n"
+                                   "yarn.scheduler.capacity.resource-calculator=org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator\n"
+                                   "yarn.scheduler.capacity.root.accessible-node-labels=*\n"
+                                   "yarn.scheduler.capacity.root.acl_administer_queue=*\n"
+                                   "yarn.scheduler.capacity.root.capacity=100\n"
+                                   "yarn.scheduler.capacity.root.default.a.a1.acl_administer_queue=*\n"
+                                   "yarn.scheduler.capacity.root.default.a.a1.acl_submit_applications=*\n"
+                                   "yarn.scheduler.capacity.root.default.a.a1.capacity=75\n"
+                                   "yarn.scheduler.capacity.root.default.a.a1.maximum-capacity=100\n"
+                                   "yarn.scheduler.capacity.root.default.a.a1.minimum-user-limit-percent=100\n"
+                                   "yarn.scheduler.capacity.root.default.a.a1.ordering-policy=fifo\n"
+                                   "yarn.scheduler.capacity.root.default.a.a1.state=RUNNING\n"
+                                   "yarn.scheduler.capacity.root.default.a.a1.user-limit-factor=1\n"
+                                   "yarn.scheduler.capacity.root.default.a.a2.acl_administer_queue=*\n"
+                                   "yarn.scheduler.capacity.root.default.a.a2.acl_submit_applications=*\n"
+                                   "yarn.scheduler.capacity.root.default.a.a2.capacity=25\n"
+                                   "yarn.scheduler.capacity.root.default.a.a2.maximum-capacity=25\n"
+                                   "yarn.scheduler.capacity.root.default.a.a2.minimum-user-limit-percent=100\n"
+                                   "yarn.scheduler.capacity.root.default.a.a2.ordering-policy=fifo\n"
+                                   "yarn.scheduler.capacity.root.default.a.a2.state=RUNNING\n"
+                                   "yarn.scheduler.capacity.root.default.a.a2.user-limit-factor=1\n"
+                                   "yarn.scheduler.capacity.root.default.a.acl_administer_queue=*\n"
+                                   "yarn.scheduler.capacity.root.default.a.acl_submit_applications=*\n"
+                                   "yarn.scheduler.capacity.root.default.a.capacity=50\n"
+                                   "yarn.scheduler.capacity.root.default.a.maximum-capacity=100\n"
+                                   "yarn.scheduler.capacity.root.default.a.minimum-user-limit-percent=100\n"
+                                   "yarn.scheduler.capacity.root.default.a.ordering-policy=fifo\n"
+                                   "yarn.scheduler.capacity.root.default.a.queues=a1,a2\n"
+                                   "yarn.scheduler.capacity.root.default.a.state=RUNNING\n"
+                                   "yarn.scheduler.capacity.root.default.a.user-limit-factor=1\n"
+                                   "yarn.scheduler.capacity.root.default.acl_submit_applications=*\n"
+                                   "yarn.scheduler.capacity.root.default.b.acl_administer_queue=*\n"
+                                   "yarn.scheduler.capacity.root.default.b.acl_submit_applications=*\n"
+                                   "yarn.scheduler.capacity.root.default.b.capacity=50\n"
+                                   "yarn.scheduler.capacity.root.default.b.maximum-capacity=50\n"
+                                   "yarn.scheduler.capacity.root.default.b.minimum-user-limit-percent=100\n"
+                                   "yarn.scheduler.capacity.root.default.b.ordering-policy=fifo\n"
+                                   "yarn.scheduler.capacity.root.default.b.state=RUNNING\n"
+                                   "yarn.scheduler.capacity.root.default.b.user-limit-factor=1\n"
+                                   "yarn.scheduler.capacity.root.default.capacity=100\n"
+                                   "yarn.scheduler.capacity.root.default.maximum-capacity=100\n"
+                                   "yarn.scheduler.capacity.root.default.queues=a,b\n"
+                                   "yarn.scheduler.capacity.root.default.state=RUNNING\n"
+                                   "yarn.scheduler.capacity.root.default.user-limit-factor=1\n"
+                                   "yarn.scheduler.capacity.root.queues=default"}
+
     expected['hive-site']['properties']['hive.server2.tez.default.queues'] = 'default.a.a1,default.a.a2,default.b'
     expected['hive-site']['property_attributes']['hive.server2.tez.default.queues'] = {
            'entries': [{'value': 'default.a.a1', 'label': 'default.a.a1 queue'}, {'value': 'default.a.a2', 'label': 'default.a.a2 queue'}, {'value': 'default.b', 'label': 'default.b queue'}]

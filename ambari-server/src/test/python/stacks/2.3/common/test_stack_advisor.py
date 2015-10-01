@@ -417,7 +417,7 @@ class TestHDP23StackAdvisor(TestCase):
       "configurations": {
         "capacity-scheduler": {
           "properties": {
-            "yarn.scheduler.capacity.root.queues": "queue1,queue2"
+            "capacity-scheduler" :"yarn.scheduler.capacity.root.queues=queue1,queue2"
           }
         },
         "hive-env": {
