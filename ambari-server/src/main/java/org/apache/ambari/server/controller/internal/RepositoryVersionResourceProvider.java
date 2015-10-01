@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
@@ -223,6 +224,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   }
 
   @Override
+  @Transactional
   public RequestStatus updateResources(Request request, Predicate predicate)
     throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Map<String, Object>> propertyMaps = request.getProperties();
@@ -261,11 +263,13 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
             entity.setUpgradePackage(upgradePackage);
           }
 
+          List<OperatingSystemEntity> operatingSystemEntities = null;
+
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID)))) {
             final Object operatingSystems = propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
             final String operatingSystemsJson = gson.toJson(operatingSystems);
             try {
-              repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
+              operatingSystemEntities = repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
             } catch (Exception ex) {
               throw new AmbariException("Json structure for operating systems is incorrect", ex);
             }
@@ -278,6 +282,20 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
 
           validateRepositoryVersion(entity);
           repositoryVersionDAO.merge(entity);
+
+          //
+          // Update metaInfo table as well
+          //
+          if (operatingSystemEntities != null) {
+            String stackName = entity.getStackName();
+            String stackVersion = entity.getStackVersion();
+            for (OperatingSystemEntity osEntity : operatingSystemEntities) {
+              List<RepositoryEntity> repositories = osEntity.getRepositories();
+              for (RepositoryEntity repository : repositories) {
+                ambariMetaInfo.updateRepoBaseURL(stackName, stackVersion, osEntity.getOsType(), repository.getRepositoryId(), repository.getBaseUrl());
+              }
+            }
+          }
         }
         return null;
       }

@@ -45,11 +45,15 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -389,9 +393,29 @@ public class RepositoryVersionResourceProviderTest {
 
     Assert.assertEquals("name2", provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).iterator().next().getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID));
 
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    String stackName = properties.get(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID).toString();
+    String stackVersion = properties.get(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID).toString();
+    Object operatingSystems = properties.get(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
+    Gson gson = new Gson();
+    String operatingSystemsJson = gson.toJson(operatingSystems);
+    RepositoryVersionHelper repositoryVersionHelper = new RepositoryVersionHelper();
+    List<OperatingSystemEntity> operatingSystemEntities = repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
+    for (OperatingSystemEntity operatingSystemEntity : operatingSystemEntities) {
+      String osType = operatingSystemEntity.getOsType();
+      List<RepositoryEntity> repositories = operatingSystemEntity.getRepositories();
+      for (RepositoryEntity repository : repositories) {
+        RepositoryInfo repo = ambariMetaInfo.getRepository(stackName, stackVersion, osType, repository.getRepositoryId());
+        if (repo != null) {
+          String baseUrlActual = repo.getBaseUrl();
+          String baseUrlExpected = repository.getBaseUrl();
+          Assert.assertEquals(baseUrlExpected, baseUrlActual);
+        }
+      }
+    }
+
     properties.put(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID, new Gson().fromJson("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"2\",\"Repositories/repo_name\":\"2\",\"Repositories/base_url\":\"2\"}]}]", Object.class));
     provider.updateResources(updateRequest, new AndPredicate(predicateStackName, predicateStackVersion));
-
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID, "pack2");
     try {
       provider.updateResources(updateRequest, new AndPredicate(predicateStackName, predicateStackVersion));
