@@ -136,7 +136,7 @@ public class AmbariAuthorizationFilterTest {
     expect(securityContext.getAuthentication()).andReturn(authentication);
 
 
-    expect(request.getMethod()).andReturn("POST");
+    expect(request.getMethod()).andReturn("POST").anyTimes();
     expect(permission.getId()).andReturn(PermissionEntity.VIEW_USE_PERMISSION);
 
     // expect permission denial
@@ -163,6 +163,14 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/views", "POST", true);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
     urlTests.put("/api/v1/persist/SomeValue", "POST", true);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "POST", true);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "PUT", true);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "GET", true);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "DELETE", true);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "POST", true);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "PUT", true);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "GET", true);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "DELETE", true);
     urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "GET", true);
     urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "POST", true);
     urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "GET", true);
@@ -188,6 +196,14 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/views", "POST", false);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
     urlTests.put("/api/v1/persist/SomeValue", "POST", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "POST", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "PUT", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "GET", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "DELETE", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "POST", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "PUT", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "GET", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "DELETE", false);
     urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "GET", false);
     urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "POST", false);
     urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "GET", false);
@@ -213,6 +229,14 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/views", "POST", false);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
     urlTests.put("/api/v1/persist/SomeValue", "POST", true);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "POST", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "PUT", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "GET", true);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "DELETE", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "POST", true);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "PUT", true);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "GET", true);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "DELETE", true);
     urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "GET", false);
     urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "POST", false);
     urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "GET", false);
@@ -238,6 +262,14 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/views", "POST", true);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
     urlTests.put("/api/v1/persist/SomeValue", "POST", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "POST", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "PUT", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "GET", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "DELETE", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "POST", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "PUT", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "GET", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "DELETE", false);
     urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "GET", true);
     urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "POST", true);
     urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "GET", false);
@@ -263,6 +295,14 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/views", "POST", false);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
     urlTests.put("/api/v1/persist/SomeValue", "POST", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "POST", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "PUT", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "GET", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "DELETE", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "POST", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "PUT", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "GET", false);
+    urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "DELETE", false);
     urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "GET", false);
     urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "POST", false);
     urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "GET", false);

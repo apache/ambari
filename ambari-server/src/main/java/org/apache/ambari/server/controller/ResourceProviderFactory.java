@@ -56,6 +56,9 @@ public interface ResourceProviderFactory {
   @Named("hostKerberosIdentity")
   ResourceProvider getHostKerberosIdentityResourceProvider(AmbariManagementController managementController);
 
+  @Named("credential")
+  ResourceProvider getCredentialResourceProvider(AmbariManagementController managementController);
+
   @Named("repositoryVersion")
   ResourceProvider getRepositoryVersionResourceProvider();
 }

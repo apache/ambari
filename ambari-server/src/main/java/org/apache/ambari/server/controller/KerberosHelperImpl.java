@@ -61,7 +61,9 @@ import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.security.SecurePasswordHelper;
-import org.apache.ambari.server.security.encryption.InMemoryCredentialStoreService;
+import org.apache.ambari.server.security.credential.Credential;
+import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
+import org.apache.ambari.server.security.encryption.InMemoryCredentialStore;
 import org.apache.ambari.server.security.encryption.MasterKeyServiceImpl;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.kerberos.CleanupServerAction;
@@ -203,16 +205,16 @@ public class KerberosHelperImpl implements KerberosHelper {
 
   /**
    * The secure storage facility to use to store KDC administrator credentials. This implementation
-   * is uses an InMemoryCredentialStoreService to keep the credentials in memory rather than
+   * is uses an InMemoryCredentialStore to keep the credentials in memory rather than
    * storing them on disk.
    */
-  private final InMemoryCredentialStoreService kdcCredentialStoreService;
+  private final InMemoryCredentialStore kdcCredentialStoreService;
 
   /**
    * Default KerberosHelperImpl constructor
    */
   public KerberosHelperImpl() {
-    kdcCredentialStoreService = new InMemoryCredentialStoreService(DEFAULT_KDC_ADMINISTRATOR_CREDENTIALS_RETENTION_MINUTES, TimeUnit.MINUTES, true);
+    kdcCredentialStoreService = new InMemoryCredentialStore(DEFAULT_KDC_ADMINISTRATOR_CREDENTIALS_RETENTION_MINUTES, TimeUnit.MINUTES, true);
   }
 
   @Override
@@ -931,12 +933,8 @@ public class KerberosHelperImpl implements KerberosHelper {
     kdcCredentialStoreService.removeCredential(KDC_ADMINISTRATOR_CREDENTIAL_ALIAS);
 
     if (credentials != null) {
-      String jsonValue = credentials.toJSON();
-
-      if (jsonValue != null) {
-        kdcCredentialStoreService.setMasterKeyService(new MasterKeyServiceImpl(securePasswordHelper.createSecurePassword()));
-        kdcCredentialStoreService.addCredential(KDC_ADMINISTRATOR_CREDENTIAL_ALIAS, jsonValue.toCharArray());
-      }
+      kdcCredentialStoreService.setMasterKeyService(new MasterKeyServiceImpl(securePasswordHelper.createSecurePassword()));
+      kdcCredentialStoreService.addCredential(KDC_ADMINISTRATOR_CREDENTIAL_ALIAS, new PrincipalKeyCredential(credentials.getPrincipal(), credentials.getPassword()));
     }
   }
 
@@ -967,11 +965,13 @@ public class KerberosHelperImpl implements KerberosHelper {
    */
   @Override
   public KerberosCredential getKDCCredentials() throws AmbariException {
-    char[] credentials = kdcCredentialStoreService.getCredential(KDC_ADMINISTRATOR_CREDENTIAL_ALIAS);
+    Credential credentials = kdcCredentialStoreService.getCredential(KDC_ADMINISTRATOR_CREDENTIAL_ALIAS);
 
-    return (credentials == null)
-        ? null
-        : KerberosCredential.fromJSON(new String(credentials));
+    if (credentials instanceof PrincipalKeyCredential) {
+      PrincipalKeyCredential principalKeyCredential = (PrincipalKeyCredential) credentials;
+      return new KerberosCredential(principalKeyCredential.getPrincipal(), principalKeyCredential.getKey(), null);
+    } else
+      return null;
   }
 
   /**

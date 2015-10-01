@@ -113,6 +113,8 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.Group;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
@@ -248,6 +250,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private WidgetLayoutDAO widgetLayoutDAO;
   @Inject
   private ClusterDAO clusterDAO;
+  @Inject
+  private CredentialStoreService credentialStoreService;
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
@@ -921,6 +925,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       ClusterResponse cr = singleCluster.convertToResponse();
       cr.setDesiredConfigs(singleCluster.getDesiredConfigs());
       cr.setDesiredServiceConfigVersions(singleCluster.getActiveServiceConfigVersions());
+      cr.setCredentialStoreServiceProperties(getCredentialStoreServiceProperties());
       response.add(cr);
       return response;
     }
@@ -4365,5 +4370,20 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public TimelineMetricCacheProvider getTimelineMetricCacheProvider() {
     return injector.getInstance(TimelineMetricCacheProvider.class);
+  }
+
+  /**
+   * Queries the CredentialStoreService to gather properties about it.
+   * <p/>
+   * In particular, the details about which storage facilities are avaialble are returned via Boolean
+   * properties.
+   *
+   * @return a map of properties
+   */
+  public Map<String,String> getCredentialStoreServiceProperties() {
+    Map<String,String> properties = new HashMap<String, String>();
+    properties.put("storage.persistent", String.valueOf(credentialStoreService.isInitialized(CredentialStoreType.PERSISTED)));
+    properties.put("storage.temporary", String.valueOf(credentialStoreService.isInitialized(CredentialStoreType.TEMPORARY)));
+    return properties;
   }
 }

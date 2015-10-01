@@ -44,6 +44,8 @@ import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.state.Cluster;
@@ -200,18 +202,26 @@ public class AmbariManagementControllerImplTest {
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
     expect(cluster.convertToResponse()).andReturn(response);
 
+    CredentialStoreService credentialStoreService = createNiceMock(CredentialStoreService.class);
+    expect(credentialStoreService.isInitialized(anyObject(CredentialStoreType.class))).andReturn(true).anyTimes();
+
     // replay mocks
-    replay(injector, clusters, cluster, response);
+    replay(injector, clusters, cluster, response, credentialStoreService);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+
+    Field f = controller.getClass().getDeclaredField("credentialStoreService");
+    f.setAccessible(true);
+    f.set(controller, credentialStoreService);
+
     Set<ClusterResponse> setResponses = controller.getClusters(setRequests);
 
     // assert and verify
     assertEquals(1, setResponses.size());
     assertTrue(setResponses.contains(response));
 
-    verify(injector, clusters, cluster, response);
+    verify(injector, clusters, cluster, response, credentialStoreService);
   }
 
   @Test
@@ -474,11 +484,20 @@ public class AmbariManagementControllerImplTest {
 
     expect(cluster.convertToResponse()).andReturn(response);
     expect(cluster2.convertToResponse()).andReturn(response2);
+
+    CredentialStoreService credentialStoreService = createNiceMock(CredentialStoreService.class);
+    expect(credentialStoreService.isInitialized(anyObject(CredentialStoreType.class))).andReturn(true).anyTimes();
+
     // replay mocks
-    replay(injector, clusters, cluster, cluster2, response, response2);
+    replay(injector, clusters, cluster, cluster2, response, response2, credentialStoreService);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+
+    Field f = controller.getClass().getDeclaredField("credentialStoreService");
+    f.setAccessible(true);
+    f.set(controller, credentialStoreService);
+
     Set<ClusterResponse> setResponses = controller.getClusters(setRequests);
 
     // assert and verify
@@ -487,7 +506,7 @@ public class AmbariManagementControllerImplTest {
     assertTrue(setResponses.contains(response));
     assertTrue(setResponses.contains(response2));
 
-    verify(injector, clusters, cluster, cluster2, response, response2);
+    verify(injector, clusters, cluster, cluster2, response, response2, credentialStoreService);
   }
 
   /**
