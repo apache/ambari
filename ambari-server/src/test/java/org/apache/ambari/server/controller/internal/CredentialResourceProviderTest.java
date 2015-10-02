@@ -451,6 +451,38 @@ public class CredentialResourceProviderTest {
 
     verify(request, factory, managementController);
   }
+  @Test
+  public void testGetResources_WithOutPredicateNoResults() throws Exception {
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Request request = createMock(Request.class);
+
+    CredentialResourceProvider credentialResourceProvider = new CredentialResourceProvider(managementController);
+    injector.injectMembers(credentialResourceProvider);
+
+    // Get resources request
+    expect(request.getPropertyIds()).andReturn(null).once();
+
+    ResourceProviderFactory factory = createMock(ResourceProviderFactory.class);
+    expect(factory.getCredentialResourceProvider(anyObject(AmbariManagementController.class))).andReturn(credentialResourceProvider);
+
+    replay(request, factory, managementController);
+    // end expectations
+
+    AbstractControllerResourceProvider.init(factory);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.Credential,
+        PropertyHelper.getPropertyIds(Resource.Type.Credential),
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Credential),
+        managementController);
+
+
+    Set<Resource> results = provider.getResources(request, null);
+    Assert.assertTrue(results.isEmpty());
+
+    verify(request, factory, managementController);
+  }
 
   @Test
   public void testUpdateResources() throws Exception {
