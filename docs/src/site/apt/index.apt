@@ -52,7 +52,7 @@ Introduction
 
 Getting Started with Ambari
 
-  Follow the {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.1.1} installation guide for Ambari 2.1.1}}.
+  Follow the {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.1.2} installation guide for Ambari 2.1.2}}.
 
   Note: Ambari currently supports the 64-bit version of the following Operating Systems:
 
@@ -64,7 +64,9 @@ Getting Started with Ambari
 
   * SLES (SuSE Linux Enterprise Server) 11
 
-  * Ubuntu 12
+  * Ubuntu 12 and 14
+
+  * Debian 7
 
 Get Involved
 

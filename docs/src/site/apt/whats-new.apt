@@ -16,26 +16,17 @@
 
 What's New with Ambari?
 
- * The latest release Ambari 2.1.1 is a maintenance release for Ambari 2.1.0.
+ * The latest release Ambari 2.1.2 is a maintenance release for Ambari 2.1.
 
- * Ambari 2.1.0 added the following features:
+ * Ambari 2.1.2 added the following features:
 
-   * Updated Ambari OS Support
+   * Ubuntu 12 support
 
-   * Updated Ambari JDK support
+   * Ubuntu 14 support
 
-   * Enhanced Configuration support in the Ambari User Interface
+   * Debian 7 support
 
-   * Additional Blueprint HA Support (Oozie, Hive, Storm Nimbus)
-
-   * New Dynamic Provisioning model for Blueprint installs
-
-   * Rack Awareness
-
-   * Updated stacks (NFS Gateway, Accumulo)
-
-   * Delivered set of contrib Views
-
+   * Performance and stability improvements
 
 Getting Ambari Source
 
@@ -50,7 +41,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.1.1} how to install a Hadoop cluster using Ambari 2.1.1}}.
+  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.1.2} how to install a Hadoop cluster using Ambari 2.1.2}}.
 
 Stay Tuned
 
