@@ -31,6 +31,7 @@
     <display-name>HTTP enabled</display-name>
     <value-attributes>
       <overridable>false</overridable>
+      <type>boolean</type>
     </value-attributes>
   </property>
 

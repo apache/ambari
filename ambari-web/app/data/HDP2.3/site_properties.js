@@ -71,59 +71,9 @@ var hdp23properties = hdp22properties.filter(function (item) {
 hdp23properties.push({
   /**************************************** RANGER - HDFS Plugin ***************************************/
 
-    "name": "xasecure.audit.destination.db",
-    "displayType": "checkbox",
-    "filename": "ranger-hdfs-audit.xml",
-    "category": "Advanced ranger-hdfs-audit",
-    "serviceName": "HDFS"
-  },
-  {
-    "name": "xasecure.audit.destination.hdfs",
-    "displayType": "checkbox",
-    "filename": "ranger-hdfs-audit.xml",
-    "category": "Advanced ranger-hdfs-audit",
-    "serviceName": "HDFS"
-  },
-  {
-    "name": "xasecure.audit.destination.solr",
-    "displayType": "checkbox",
-    "filename": "ranger-hdfs-audit.xml",
-    "category": "Advanced ranger-hdfs-audit",
-    "serviceName": "HDFS"
-  },
-  {
-    "name": "xasecure.audit.destination.db",
-    "displayType": "checkbox",
-    "filename": "ranger-kms-audit.xml",
-    "category": "Advanced ranger-kms-audit",
-    "serviceName": "RANGER_KMS"
-  },
-  {
-    "name": "xasecure.audit.destination.hdfs",
-    "displayType": "checkbox",
-    "filename": "ranger-kms-audit.xml",
-    "category": "Advanced ranger-kms-audit",
-    "serviceName": "RANGER_KMS"
-  },
-  {
-    "name": "xasecure.audit.destination.solr",
-    "displayType": "checkbox",
-    "filename": "ranger-kms-audit.xml",
-    "category": "Advanced ranger-kms-audit",
-    "serviceName": "RANGER_KMS"
-  },
-  {
-    "name": "xasecure.audit.provider.summary.enabled",
-    "displayType": "checkbox",
-    "filename": "ranger-kms-audit.xml",
-    "category": "Advanced ranger-kms-audit",
-    "serviceName": "RANGER_KMS"
-  },
-  {
     "name": "ranger-yarn-plugin-enabled",
     "displayType": "checkbox",
     "filename": "ranger-yarn-plugin-properties.xml",
-    "category": "Advanced ranger-yarn-plugin-properties",
     "serviceName": "YARN",
     "index": 1
   },
@@ -131,114 +81,8 @@ hdp23properties.push({
     "name": "ranger-kafka-plugin-enabled",
     "displayType": "checkbox",
     "filename": "ranger-kafka-plugin-properties.xml",
-    "category": "Advanced ranger-kafka-plugin-properties",
     "serviceName": "KAFKA",
     "index": 1
-  },
-  {
-    "name": "xasecure.audit.destination.db",
-    "displayType": "checkbox",
-    "filename": "ranger-hbase-audit.xml",
-    "category": "Advanced ranger-hbase-audit",
-    "serviceName": "HBASE"
-  },
-  {
-    "name": "xasecure.audit.destination.hdfs",
-    "displayType": "checkbox",
-    "filename": "ranger-hbase-audit.xml",
-    "category": "Advanced ranger-hbase-audit",
-    "serviceName": "HBASE"
-  },
-  {
-    "name": "xasecure.audit.destination.solr",
-    "displayType": "checkbox",
-    "filename": "ranger-hbase-audit.xml",
-    "category": "Advanced ranger-hbase-audit",
-    "serviceName": "HBASE"
-  },
-  {
-    "name": "xasecure.audit.destination.db",
-    "displayType": "checkbox",
-    "filename": "ranger-hive-audit.xml",
-    "category": "Advanced ranger-hive-audit",
-    "serviceName": "HIVE"
-  },
-  {
-    "name": "xasecure.audit.destination.hdfs",
-    "displayType": "checkbox",
-    "filename": "ranger-hive-audit.xml",
-    "category": "Advanced ranger-hive-audit",
-    "serviceName": "HIVE"
-  },
-  {
-    "name": "xasecure.audit.destination.solr",
-    "displayType": "checkbox",
-    "filename": "ranger-hive-audit.xml",
-    "category": "Advanced ranger-hive-audit",
-    "serviceName": "HIVE"
-  },
-  {
-    "name": "xasecure.audit.destination.db",
-    "displayType": "checkbox",
-    "filename": "ranger-knox-audit.xml",
-    "category": "Advanced ranger-knox-audit",
-    "serviceName": "KNOX"
-  },
-  {
-    "name": "xasecure.audit.destination.hdfs",
-    "displayType": "checkbox",
-    "filename": "ranger-knox-audit.xml",
-    "category": "Advanced ranger-knox-audit",
-    "serviceName": "KNOX"
-  },
-  {
-    "name": "xasecure.audit.destination.solr",
-    "displayType": "checkbox",
-    "filename": "ranger-knox-audit.xml",
-    "category": "Advanced ranger-knox-audit",
-    "serviceName": "KNOX"
-  },
-  {
-    "name": "xasecure.audit.destination.db",
-    "displayType": "checkbox",
-    "filename": "ranger-storm-audit.xml",
-    "category": "Advanced ranger-storm-audit",
-    "serviceName": "STORM"
-  },
-  {
-    "name": "xasecure.audit.destination.hdfs",
-    "displayType": "checkbox",
-    "filename": "ranger-storm-audit.xml",
-    "category": "Advanced ranger-storm-audit",
-    "serviceName": "STORM"
-  },
-  {
-    "name": "xasecure.audit.destination.solr",
-    "displayType": "checkbox",
-    "filename": "ranger-storm-audit.xml",
-    "category": "Advanced ranger-storm-audit",
-    "serviceName": "STORM"
-  },
-  {
-    "name": "xasecure.audit.destination.db",
-    "displayType": "checkbox",
-    "filename": "ranger-yarn-audit.xml",
-    "category": "Advanced ranger-yarn-audit",
-    "serviceName": "YARN"
-  },
-  {
-    "name": "xasecure.audit.destination.hdfs",
-    "displayType": "checkbox",
-    "filename": "ranger-yarn-audit.xml",
-    "category": "Advanced ranger-yarn-audit",
-    "serviceName": "YARN"
-  },
-  {
-    "name": "xasecure.audit.destination.solr",
-    "displayType": "checkbox",
-    "filename": "ranger-yarn-audit.xml",
-    "category": "Advanced ranger-yarn-audit",
-    "serviceName": "YARN"
   },
   {
     "name": "nimbus.seeds",
@@ -248,111 +92,6 @@ hdp23properties.push({
     "category": "NIMBUS"
   },
   {
-    "name": "xasecure.audit.destination.db",
-    "displayType": "checkbox",
-    "filename": "ranger-kafka-audit.xml",
-    "category": "Advanced ranger-kafka-audit",
-    "serviceName": "KAFKA"
-  },
-  {
-    "name": "xasecure.audit.destination.hdfs",
-    "displayType": "checkbox",
-    "filename": "ranger-kafka-audit.xml",
-    "category": "Advanced ranger-kafka-audit",
-    "serviceName": "KAFKA"
-  },
-  {
-    "name": "xasecure.audit.destination.solr",
-    "displayType": "checkbox",
-    "filename": "ranger-kafka-audit.xml",
-    "category": "Advanced ranger-kafka-audit",
-    "serviceName": "KAFKA"
-  },
-  {
-    "name": "xasecure.audit.provider.summary.enabled",
-    "displayType": "checkbox",
-    "filename": "ranger-hdfs-audit.xml",
-    "category": "Advanced ranger-hdfs-audit",
-    "serviceName": "HDFS"
-  },
-  {
-    "name": "xasecure.audit.provider.summary.enabled",
-    "displayType": "checkbox",
-    "filename": "ranger-hbase-audit.xml",
-    "category": "Advanced ranger-hbase-audit",
-    "serviceName": "HBASE"
-  },
-  {
-    "name": "xasecure.audit.provider.summary.enabled",
-    "displayType": "checkbox",
-    "filename": "ranger-hive-audit.xml",
-    "category": "Advanced ranger-hive-audit",
-    "serviceName": "HIVE"
-  },
-  {
-    "name": "xasecure.audit.provider.summary.enabled",
-    "displayType": "checkbox",
-    "filename": "ranger-knox-audit.xml",
-    "category": "Advanced ranger-knox-audit",
-    "serviceName": "KNOX"
-  },
-  {
-    "name": "xasecure.audit.provider.summary.enabled",
-    "displayType": "checkbox",
-    "filename": "ranger-yarn-audit.xml",
-    "category": "Advanced ranger-yarn-audit",
-    "serviceName": "YARN"
-  },
-  {
-    "name": "xasecure.audit.provider.summary.enabled",
-    "displayType": "checkbox",
-    "filename": "ranger-storm-audit.xml",
-    "category": "Advanced ranger-storm-audit",
-    "serviceName": "STORM"
-  },
-  {
-    "name": "xasecure.audit.provider.summary.enabled",
-    "displayType": "checkbox",
-    "filename": "ranger-kafka-audit.xml",
-    "category": "Advanced ranger-kafka-audit",
-    "serviceName": "KAFKA"
-  },
-  {
-    "name": "ranger.jpa.jdbc.url",
-    "serviceName": "RANGER",
-    "filename": "ranger-admin-site.xml",
-    "category": "DBSettings",
-    "index": 9
-  },
-  {
-    "name": "ranger.jpa.jdbc.driver",
-    "serviceName": "RANGER",
-    "filename": "ranger-admin-site.xml",
-    "category": "DBSettings",
-    "index": 8
-  },
-  {
-    "name": "db_root_user",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 5
-  },
-  {
-    "name": "db_root_password",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 6
-  },
-  {
-    "name": "db_name",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 7
-  },
-  {
     "name": "ranger.externalurl",
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
@@ -360,7 +99,6 @@ hdp23properties.push({
   },
   {
     "name": "ranger.service.http.enabled",
-    "displayType": "checkbox",
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
     "category": "RangerSettings"
@@ -505,22 +243,6 @@ hdp23properties.push({
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
     "category": "ADSettings"
-  },
-  /*********RANGER FOR HBASE************/
-  {
-    "name": "xasecure.hbase.update.xapolicies.on.grant.revoke",
-    "displayType": "checkbox",
-    "filename": "ranger-hbase-security.xml",
-    "category": "Advanced ranger-hbase-security",
-    "serviceName": "HBASE"
-  },
-  /*********RANGER FOR HIVE************/
-  {
-    "name": "xasecure.hive.update.xapolicies.on.grant.revoke",
-    "displayType": "checkbox",
-    "filename": "ranger-hive-security.xml",
-    "category": "Advanced ranger-hive-security",
-    "serviceName": "HIVE"
   }
 );
 

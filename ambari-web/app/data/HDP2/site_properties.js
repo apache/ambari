@@ -117,7 +117,6 @@ var hdp2properties = [
   {
     "name": "dfs.client.read.shortcircuit",
     "displayType": "checkbox",
-    "category": "Advanced hdfs-site",
     "serviceName": "HDFS",
     "filename": "hdfs-site.xml"
   },
@@ -189,15 +188,13 @@ var hdp2properties = [
     "name": "hdfs_log_dir_prefix",
     "displayType": "directory",
     "serviceName": "HDFS",
-    "filename": "hadoop-env.xml",
-    "category": "Advanced hadoop-env"
+    "filename": "hadoop-env.xml"
   },
   {
     "name": "hadoop_pid_dir_prefix",
     "displayType": "directory",
     "serviceName": "HDFS",
-    "filename": "hadoop-env.xml",
-    "category": "Advanced hadoop-env"
+    "filename": "hadoop-env.xml"
   },
 
 /**********************************************YARN***************************************/
@@ -326,22 +323,19 @@ var hdp2properties = [
     "name": "yarn_log_dir_prefix",
     "displayType": "directory",
     "serviceName": "YARN",
-    "filename": "yarn-env.xml",
-    "category": "Advanced yarn-env"
+    "filename": "yarn-env.xml"
   },
   {
     "name": "yarn_pid_dir_prefix",
     "displayType": "directory",
     "serviceName": "YARN",
-    "filename": "yarn-env.xml",
-    "category": "Advanced yarn-env"
+    "filename": "yarn-env.xml"
   },
   {
     "name": "min_user_id",
     "displayType": "int",
     "serviceName": "YARN",
-    "filename": "yarn-env.xml",
-    "category": "Advanced yarn-env"
+    "filename": "yarn-env.xml"
   },
   {
     "name": "apptimelineserver_heapsize",
@@ -377,13 +371,11 @@ var hdp2properties = [
     "name": "hadoop.security.auth_to_local",
     "displayType": "multiLine",
     "serviceName": "HDFS",
-    "filename": "core-site.xml",
-    "category": "Advanced core-site"
+    "filename": "core-site.xml"
   },
   {
     "name": "yarn.app.mapreduce.am.resource.mb",
     "displayType": "int",
-    "category": "Advanced mapred-site",
     "serviceName": "MAPREDUCE2",
     "filename": "mapred-site.xml"
   },
@@ -399,15 +391,13 @@ var hdp2properties = [
     "name": "mapred_log_dir_prefix",
     "displayType": "directory",
     "serviceName": "MAPREDUCE2",
-    "filename": "mapred-env.xml",
-    "category": "Advanced mapred-env"
+    "filename": "mapred-env.xml"
   },
   {
     "name": "mapred_pid_dir_prefix",
     "displayType": "directory",
     "serviceName": "MAPREDUCE2",
-    "filename": "mapred-env.xml",
-    "category": "Advanced mapred-env"
+    "filename": "mapred-env.xml"
   },
 /**********************************************oozie-site***************************************/
   {
@@ -499,22 +489,19 @@ var hdp2properties = [
     "name": "oozie_log_dir",
     "displayType": "directory",
     "serviceName": "OOZIE",
-    "filename": "oozie-env.xml",
-    "category": "Advanced oozie-env"
+    "filename": "oozie-env.xml"
   },
   {
     "name": "oozie_pid_dir",
     "displayType": "directory",
     "serviceName": "OOZIE",
-    "filename": "oozie-env.xml",
-    "category": "Advanced oozie-env"
+    "filename": "oozie-env.xml"
   },
   {
     "name": "oozie_admin_port",
     "displayType": "int",
     "serviceName": "OOZIE",
-    "filename": "oozie-env.xml",
-    "category": "Advanced oozie-env"
+    "filename": "oozie-env.xml"
   },
 
 /**********************************************HIVE***************************************/
@@ -584,21 +571,18 @@ var hdp2properties = [
   {
     "name": "hive.server2.thrift.port",
     "displayType": "int",
-    "category": "Advanced hive-site",
     "serviceName": "HIVE",
     "filename": "hive-site.xml"
   },
   {
     "name": "hive.server2.support.dynamic.service.discovery",
     "displayType": "checkbox",
-    "category": "Advanced hive-site",
     "serviceName": "HIVE",
     "filename": "hive-site.xml"
   },
   {
     "name": "hive.security.authorization.enabled",
     "displayType": "checkbox",
-    "category": "Advanced hive-site",
     "serviceName": "HIVE",
     "filename": "hive-site.xml"
   },
@@ -652,15 +636,13 @@ var hdp2properties = [
     "name": "hive_log_dir",
     "displayType": "directory",
     "serviceName": "HIVE",
-    "filename": "hive-env.xml",
-    "category": "Advanced hive-env"
+    "filename": "hive-env.xml"
   },
   {
     "name": "hive_pid_dir",
     "displayType": "directory",
     "serviceName": "HIVE",
-    "filename": "hive-env.xml",
-    "category": "Advanced hive-env"
+    "filename": "hive-env.xml"
   },
   {
     "name": "hcat_log_dir",
@@ -679,8 +661,7 @@ var hdp2properties = [
   {
     "name": "hive_database_name",
     "serviceName": "HIVE",
-    "filename": "hive-env.xml",
-    "category": "Advanced hive-env"
+    "filename": "hive-env.xml"
   },
   {
     "name": "hive_database_type",
@@ -760,7 +741,6 @@ var hdp2properties = [
   {
     "name": "hbase.tmp.dir",
     "displayType": "directory",
-    "category": "Advanced hbase-site",
     "serviceName": "HBASE",
     "filename": "hbase-site.xml"
   },
@@ -768,27 +748,23 @@ var hdp2properties = [
     "name": "hbase.master.port",
     "displayType": "int",
     "serviceName": "HBASE",
-    "filename": "hbase-site.xml",
-    "category": "Advanced hbase-site"
+    "filename": "hbase-site.xml"
   },
   {
     "name": "hbase.regionserver.global.memstore.upperLimit",
     "displayType": "float",
-    "category": "Advanced hbase-site",
     "serviceName": "HBASE",
     "filename": "hbase-site.xml"
   },
   {
     "name": "hbase.regionserver.global.memstore.lowerLimit",
     "displayType": "float",
-    "category": "Advanced hbase-site",
     "serviceName": "HBASE",
     "filename": "hbase-site.xml"
   },
   {
     "name": "hbase.hstore.blockingStoreFiles",
     "displayType": "int",
-    "category": "Advanced hbase-site",
     "serviceName": "HBASE",
     "filename": "hbase-site.xml"
   },
@@ -843,7 +819,6 @@ var hdp2properties = [
   {
     "name": "hbase.hregion.memstore.mslab.enabled",
     "displayType": "checkbox",
-    "category": "Advanced hbase-site",
     "serviceName": "HBASE",
     "filename": "hbase-site.xml"
   },
@@ -883,8 +858,7 @@ var hdp2properties = [
     "name": "hbase.zookeeper.quorum",
     "displayType": "multiLine",
     "serviceName": "HBASE",
-    "filename": "hbase-site.xml",
-    "category": "Advanced hbase-site"
+    "filename": "hbase-site.xml"
   },
   {
     "name": "hbase_master_heapsize",
@@ -922,15 +896,13 @@ var hdp2properties = [
     "name": "hbase_log_dir",
     "displayType": "directory",
     "serviceName": "HBASE",
-    "filename": "hbase-env.xml",
-    "category": "Advanced hbase-env"
+    "filename": "hbase-env.xml"
   },
   {
     "name": "hbase_pid_dir",
     "displayType": "directory",
     "serviceName": "HBASE",
-    "filename": "hbase-env.xml",
-    "category": "Advanced hbase-env"
+    "filename": "hbase-env.xml"
   },
 
 /**********************************************storm-site***************************************/
@@ -1252,7 +1224,6 @@ var hdp2properties = [
   {
     "name": "worker.childopts",
     "displayType": "multiLine",
-    "category": "Advanced storm-site",
     "serviceName": "STORM",
     "filename": "storm-site.xml"
   },
@@ -1546,8 +1517,7 @@ var hdp2properties = [
     "name": "templeton.zookeeper.hosts",
     "displayType": "multiLine",
     "serviceName": "HIVE",
-    "filename": "webhcat-site.xml",
-    "category": "Advanced webhcat-site"
+    "filename": "webhcat-site.xml"
   },
 
 /**********************************************KNOX*****************************************/
@@ -1561,8 +1531,7 @@ var hdp2properties = [
     "name": "knox_pid_dir",
     "displayType": "directory",
     "serviceName": "KNOX",
-    "filename": "knox-env.xml",
-    "category": "Advanced knox-env"
+    "filename": "knox-env.xml"
   },
 
 /********************************************* KAFKA *****************************/
@@ -1618,7 +1587,6 @@ var hdp2properties = [
     "displayType": "directory",
     "serviceName": "KAFKA",
     "filename": "kafka-env.xml",
-    "category": "Advanced kafka-env",
     "index": 0
   },
 
@@ -1658,84 +1626,72 @@ var hdp2properties = [
     "name": "server_content",
     "displayType": "content",
     "serviceName": "ACCUMULO",
-    "filename": "accumulo-env.xml",
-    "category": "Advanced accumulo-env"
+    "filename": "accumulo-env.xml"
   },
   {
     "name": "accumulo_master_heapsize",
     "displayType": "int",
     "serviceName": "ACCUMULO",
-    "filename": "accumulo-env.xml",
-    "category": "Advanced accumulo-env"
+    "filename": "accumulo-env.xml"
   },
   {
     "name": "accumulo_tserver_heapsize",
     "displayType": "int",
     "serviceName": "ACCUMULO",
-    "filename": "accumulo-env.xml",
-    "category": "Advanced accumulo-env"
+    "filename": "accumulo-env.xml"
   },
   {
     "name": "accumulo_monitor_heapsize",
     "displayType": "int",
     "serviceName": "ACCUMULO",
-    "filename": "accumulo-env.xml",
-    "category": "Advanced accumulo-env"
+    "filename": "accumulo-env.xml"
   },
   {
     "name": "accumulo_gc_heapsize",
     "displayType": "int",
     "serviceName": "ACCUMULO",
-    "filename": "accumulo-env.xml",
-    "category": "Advanced accumulo-env"
+    "filename": "accumulo-env.xml"
   },
   {
     "name": "accumulo_other_heapsize",
     "displayType": "int",
     "serviceName": "ACCUMULO",
-    "filename": "accumulo-env.xml",
-    "category": "Advanced accumulo-env"
+    "filename": "accumulo-env.xml"
   },
   {
     "name": "accumulo_log_dir",
     "displayType": "directory",
     "serviceName": "ACCUMULO",
-    "filename": "accumulo-env.xml",
-    "category": "Advanced accumulo-env"
+    "filename": "accumulo-env.xml"
   },
   {
     "name": "accumulo_pid_dir",
     "displayType": "directory",
     "serviceName": "ACCUMULO",
-    "filename": "accumulo-env.xml",
-    "category": "Advanced accumulo-env"
+    "filename": "accumulo-env.xml"
   },
   {
     "name": "accumulo_monitor_bind_all",
     "displayType": "checkbox",
     "serviceName": "ACCUMULO",
-    "filename": "accumulo-env.xml",
-    "category": "Advanced accumulo-env"
+    "filename": "accumulo-env.xml"
   },
   {
     "name": "instance.volumes",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
-    "category": "Advanced accumulo-site",
     "index": 0
   },
   {
     "name": "instance.zookeeper.host",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
-    "category": "Advanced accumulo-site",
     "index": 1
   },
   {
     "name": "instance.zookeeper.timeout",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
-    "category": "Advanced accumulo-site",
     "index": 2
   },
   {
@@ -1743,7 +1699,6 @@ var hdp2properties = [
     "displayType": "int",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
-    "category": "Advanced accumulo-site",
     "index": 3
   },
   {
@@ -1751,7 +1706,6 @@ var hdp2properties = [
     "displayType": "int",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
-    "category": "Advanced accumulo-site",
     "index": 4
   },
   {
@@ -1759,7 +1713,6 @@ var hdp2properties = [
     "displayType": "int",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
-    "category": "Advanced accumulo-site",
     "index": 5
   },
   {
@@ -1767,7 +1720,6 @@ var hdp2properties = [
     "displayType": "int",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
-    "category": "Advanced accumulo-site",
     "index": 6
   },
   {
@@ -1775,7 +1727,6 @@ var hdp2properties = [
     "displayType": "int",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
-    "category": "Advanced accumulo-site",
     "index": 7
   },
   {
@@ -1783,7 +1734,6 @@ var hdp2properties = [
     "displayType": "int",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
-    "category": "Advanced accumulo-site",
     "index": 8
   },
   {
@@ -1791,7 +1741,6 @@ var hdp2properties = [
     "displayType": "checkbox",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
-    "category": "Advanced accumulo-site",
     "index": 9
   },
   {
@@ -1799,7 +1748,6 @@ var hdp2properties = [
     "displayType": "content",
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
-    "category": "Advanced accumulo-site",
     "index": 10
   },
 
@@ -2021,7 +1969,6 @@ var hdp2properties = [
     "isOverridable": false,
     "serviceName": "FLUME",
     "filename": "flume-env.xml",
-    "category": "Advanced flume-env",
     "index": 0
   },
   {
@@ -2029,7 +1976,6 @@ var hdp2properties = [
     "displayType": "directory",
     "serviceName": "FLUME",
     "filename": "flume-env.xml",
-    "category": "Advanced flume-env",
     "index": 1
   },
 
@@ -2174,7 +2120,6 @@ var hdp2properties = [
     "displayType": "directory",
     "serviceName": "ZOOKEEPER",
     "filename": "zookeeper-env.xml",
-    "category": "Advanced zookeeper-env",
     "index": 0
   },
   {
@@ -2182,7 +2127,6 @@ var hdp2properties = [
     "displayType": "directory",
     "serviceName": "ZOOKEEPER",
     "filename": "zookeeper-env.xml",
-    "category": "Advanced zookeeper-env",
     "index": 1
   },
 /**********************************************FALCON***************************************/
@@ -2210,37 +2154,32 @@ var hdp2properties = [
     "name": "falcon_log_dir",
     "displayType": "directory",
     "serviceName": "FALCON",
-    "filename": "falcon-env.xml",
-    "category": "Advanced falcon-env"
+    "filename": "falcon-env.xml"
   },
   {
     "name": "falcon_pid_dir",
     "displayType": "directory",
     "serviceName": "FALCON",
-    "filename": "falcon-env.xml",
-    "category": "Advanced falcon-env"
+    "filename": "falcon-env.xml"
   },
   {
     "name": "falcon.embeddedmq.data",
     "displayType": "directory",
     "serviceName": "FALCON",
-    "filename": "falcon-env.xml",
-    "category": "Advanced falcon-env"
+    "filename": "falcon-env.xml"
   },
 /**********************************************STORM***************************************/
   {
     "name": "storm_log_dir",
     "displayType": "directory",
     "serviceName": "STORM",
-    "filename": "storm-env.xml",
-    "category": "Advanced storm-env"
+    "filename": "storm-env.xml"
   },
   {
     "name": "storm_pid_dir",
     "displayType": "directory",
     "serviceName": "STORM",
-    "filename": "storm-env.xml",
-    "category": "Advanced storm-env"
+    "filename": "storm-env.xml"
   },
 /**********************************************MISC***************************************/
   {
@@ -2254,129 +2193,6 @@ var hdp2properties = [
     "displayType": "checkbox",
     "filename": "cluster-env.xml",
     "category": "Users and Groups"
-  },
-  /******************************************Alert Notification***************************/
-  {
-    "name": "create_notification",
-    "displayName": "Create Notification",
-    "isOverridable": false,
-    "isVisible": false,
-    "serviceName": "MISC",
-    "category": "Notifications",
-    "recommendedValue": "no",
-    "filename": "alert_notification"
-  },
-  {
-    "name": "mail.smtp.host",
-    "displayName": "SMTP Host",
-    "displayType": "host",
-    "isRequired": false,
-    "isReconfigurable": true,
-    "isOverridable": false,
-    "isVisible": true,
-    "serviceName": "MISC",
-    "category": "Notifications",
-    "rowStyleClass": "indent-1",
-    "filename": "alert_notification"
-  },
-  {
-    "name": "mail.smtp.port",
-    "displayName": "SMTP Port",
-    "displayType": "int",
-    "isRequired": false,
-    "isReconfigurable": true,
-    "isOverridable": false,
-    "isVisible": true,
-    "serviceName": "MISC",
-    "category": "Notifications",
-    "rowStyleClass": "indent-1",
-    "filename": "alert_notification"
-  },
-  {
-    "name": "mail.smtp.from",
-    "displayName": "FROM Email Address",
-    "displayType": "email",
-    "isRequired": false,
-    "isReconfigurable": true,
-    "isOverridable": false,
-    "isVisible": true,
-    "serviceName": "MISC",
-    "category": "Notifications",
-    "rowStyleClass": "indent-1",
-    "filename": "alert_notification"
-  },
-  {
-    "name": "ambari.dispatch.recipients",
-    "displayName": " TO Email Address",
-    "displayType": "email",
-    "isRequired": false,
-    "isReconfigurable": true,
-    "isOverridable": false,
-    "isVisible": true,
-    "serviceName": "MISC",
-    "category": "Notifications",
-    "rowStyleClass": "indent-1",
-    "filename": "alert_notification"
-  },
-  {
-    "name": "smtp_use_auth",
-    "displayName": "SMTP server requires authentication",
-    "displayType": "checkbox",
-    "isRequired": false,
-    "isReconfigurable": true,
-    "isOverridable": false,
-    "recommendedValue": true,
-    "isVisible": true,
-    "serviceName": "MISC",
-    "category": "Notifications",
-    "rowStyleClass": "indent-1",
-    "filename": "alert_notification"
-  },
-  {
-    "name": "ambari.dispatch.credential.username",
-    "displayName": "SMTP Username",
-    "isRequired": false,
-    "isReconfigurable": true,
-    "isOverridable": false,
-    "isVisible": true,
-    "serviceName": "MISC",
-    "category": "Notifications",
-    "rowStyleClass": "indent-2",
-    "filename": "alert_notification"
-  },
-  {
-    "name": "ambari.dispatch.credential.password",
-    "displayName": "SMTP Password",
-    "isRequired": false,
-    "isReconfigurable": true,
-    "isOverridable": false,
-    "isVisible": true,
-    "serviceName": "MISC",
-    "category": "Notifications",
-    "rowStyleClass": "indent-2",
-    "filename": "alert_notification"
-  },
-  {
-    "name": "mail.smtp.starttls.enable",
-    "isRequired": false,
-    "isReconfigurable": true,
-    "isOverridable": false,
-    "isVisible": false,
-    "serviceName": "MISC",
-    "category": "Notifications",
-    "rowStyleClass": "indent-1",
-    "filename": "alert_notification"
-  },
-  {
-    "name": "mail.smtp.startssl.enable",
-    "isRequired": false,
-    "isReconfigurable": true,
-    "isOverridable": false,
-    "isVisible": false,
-    "serviceName": "MISC",
-    "category": "Notifications",
-    "rowStyleClass": "indent-1",
-    "filename": "alert_notification"
   },
 /************************************************AMBARI_METRICS******************************************/
   {
@@ -2446,7 +2262,7 @@ var hdp2properties = [
     "index": 15
   },
   {
-    "name": "timeline.metrics.cluster.aggregator.minute.checkpointCutOffMultiplier",
+    "name": "timeline.me.metrics.cluster.aggregator.minute.checkpointCutOffMultiplier",
     "displayType": "int",
     "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
@@ -2631,7 +2447,7 @@ var hdp2properties = [
     "filename": "storm-env.xml",
     "index": 12
   }
-];
+].concat(require('data/HDP2/alert_notification'));
 
 if (App.get('isHadoopWindowsStack')) {
   var excludedWindowsConfigs = [

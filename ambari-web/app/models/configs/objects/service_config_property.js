@@ -289,6 +289,7 @@ App.ServiceConfigProperty = Em.Object.extend({
   viewClass: function () {
     switch (this.get('displayType')) {
       case 'checkbox':
+      case 'boolean':
         if (this.get('dependentConfigPattern')) {
           return App.ServiceConfigCheckboxWithDependencies;
         } else {

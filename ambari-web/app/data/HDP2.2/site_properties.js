@@ -47,15 +47,13 @@ hdp22properties.push(
     "name": "hive.zookeeper.quorum",
     "displayType": "multiLine",
     "serviceName": "HIVE",
-    "filename": "hive-site.xml",
-    "category": "Advanced hive-site"
+    "filename": "hive-site.xml"
   },
   {
     "name": "hadoop.registry.rm.enabled",
     "displayType": "checkbox",
     "serviceName": "YARN",
-    "filename": "yarn-site.xml",
-    "category": "Advanced yarn-site"
+    "filename": "yarn-site.xml"
   },
   {
     "name": "hadoop.registry.zk.quorum",
@@ -94,21 +92,18 @@ hdp22properties.push(
     "displayType": "checkbox",
     "dependentConfigPattern": "^XAAUDIT.HDFS",
     "filename": "ranger-hdfs-plugin-properties.xml",
-    "category": "Advanced ranger-hdfs-plugin-properties",
     "serviceName": "HDFS"
   },
   {
     "name": "XAAUDIT.DB.IS_ENABLED",
     "displayType": "checkbox",
     "filename": "ranger-hdfs-plugin-properties.xml",
-    "category": "Advanced ranger-hdfs-plugin-properties",
     "serviceName": "HDFS"
   },
   {
     "name": "ranger-hdfs-plugin-enabled",
     "displayType": "checkbox",
     "filename": "ranger-hdfs-plugin-properties.xml",
-    "category": "Advanced ranger-hdfs-plugin-properties",
     "serviceName": "HDFS",
     "index": 1
   },
@@ -130,21 +125,18 @@ hdp22properties.push(
     "displayType": "checkbox",
     "dependentConfigPattern": "^XAAUDIT.HDFS",
     "filename": "ranger-hive-plugin-properties.xml",
-    "category": "Advanced ranger-hive-plugin-properties",
     "serviceName": "HIVE"
   },
   {
     "name": "XAAUDIT.DB.IS_ENABLED",
     "displayType": "checkbox",
     "filename": "ranger-hive-plugin-properties.xml",
-    "category": "Advanced ranger-hive-plugin-properties",
     "serviceName": "HIVE"
   },
   {
     "name": "UPDATE_XAPOLICIES_ON_GRANT_REVOKE",
     "displayType": "checkbox",
     "filename": "ranger-hive-plugin-properties.xml",
-    "category": "Advanced ranger-hive-plugin-properties",
     "serviceName": "HIVE"
   },
   /*********RANGER FOR HBASE************/
@@ -153,21 +145,18 @@ hdp22properties.push(
     "displayType": "checkbox",
     "dependentConfigPattern": "^XAAUDIT.HDFS",
     "filename": "ranger-hbase-plugin-properties.xml",
-    "category": "Advanced ranger-hbase-plugin-properties",
     "serviceName": "HBASE"
   },
   {
     "name": "XAAUDIT.DB.IS_ENABLED",
     "displayType": "checkbox",
     "filename": "ranger-hbase-plugin-properties.xml",
-    "category": "Advanced ranger-hbase-plugin-properties",
     "serviceName": "HBASE"
   },
   {
     "name": "ranger-hbase-plugin-enabled",
     "displayType": "checkbox",
     "filename": "ranger-hbase-plugin-properties.xml",
-    "category": "Advanced ranger-hbase-plugin-properties",
     "serviceName": "HBASE",
     "index": 1
   },
@@ -175,7 +164,6 @@ hdp22properties.push(
     "name": "UPDATE_XAPOLICIES_ON_GRANT_REVOKE",
     "displayType": "checkbox",
     "filename": "ranger-hbase-plugin-properties.xml",
-    "category": "Advanced ranger-hbase-plugin-properties",
     "serviceName": "HBASE"
   },
   /*********RANGER FOR STORM************/
@@ -184,21 +172,18 @@ hdp22properties.push(
     "displayType": "checkbox",
     "dependentConfigPattern": "^XAAUDIT.HDFS",
     "filename": "ranger-storm-plugin-properties.xml",
-    "category": "Advanced ranger-storm-plugin-properties",
     "serviceName": "STORM"
   },
   {
     "name": "XAAUDIT.DB.IS_ENABLED",
     "displayType": "checkbox",
     "filename": "ranger-storm-plugin-properties.xml",
-    "category": "Advanced ranger-storm-plugin-properties",
     "serviceName": "STORM"
   },
   {
     "name": "ranger-storm-plugin-enabled",
     "displayType": "checkbox",
     "filename": "ranger-storm-plugin-properties.xml",
-    "category": "Advanced ranger-storm-plugin-properties",
     "serviceName": "STORM",
     "index": 1
   },
@@ -220,21 +205,18 @@ hdp22properties.push(
     "displayType": "checkbox",
     "dependentConfigPattern": "^XAAUDIT.HDFS",
     "filename": "ranger-knox-plugin-properties.xml",
-    "category": "Advanced ranger-knox-plugin-properties",
     "serviceName": "KNOX"
   },
   {
     "name": "XAAUDIT.DB.IS_ENABLED",
     "displayType": "checkbox",
     "filename": "ranger-knox-plugin-properties.xml",
-    "category": "Advanced ranger-knox-plugin-properties",
     "serviceName": "KNOX"
   },
   {
     "name": "ranger-knox-plugin-enabled",
     "displayType": "checkbox",
     "filename": "ranger-knox-plugin-properties.xml",
-    "category": "Advanced ranger-knox-plugin-properties",
     "serviceName": "KNOX",
     "index": 1
   },

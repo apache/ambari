@@ -29,8 +29,11 @@
   <property>
     <name>xasecure.audit.destination.db</name>
     <value>false</value>
-    <description>Is Audit to DB enabled?</description>
     <display-name>Audit to DB</display-name>
+    <description>Is Audit to DB enabled?</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -49,7 +52,7 @@
     <name>xasecure.audit.destination.db.password</name>
     <value>crypted</value>
     <property-type>PASSWORD</property-type>
-    <description>Audit DB JDBC Passwords</description>
+    <description>Audit DB JDBC Password</description>
   </property>
 
   <property>
@@ -73,8 +76,11 @@
   <property>
     <name>xasecure.audit.destination.hdfs</name>
     <value>true</value>
-    <description>Is Audit to HDFS enabled?</description>
     <display-name>Audit to HDFS</display-name>
+    <description>Is Audit to HDFS enabled?</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -92,8 +98,11 @@
   <property>
     <name>xasecure.audit.destination.solr</name>
     <value>false</value>
-    <description>Is Solr audit enabled?</description>
     <display-name>Audit to SOLR</display-name>
+    <description>Is Solr audit enabled?</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -117,8 +126,11 @@
   <property>
     <name>xasecure.audit.provider.summary.enabled</name>
     <value>false</value>
-    <description>Enable Summary audit?</description>
     <display-name>Audit provider summary enabled</display-name>
+    <description>Enable Summary audit?</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>  
 
 </configuration>
