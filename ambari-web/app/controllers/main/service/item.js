@@ -613,12 +613,12 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
       this.checkNnLastCheckpointTime(function () {
         return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
-          batchUtils.restartAllServiceHostComponents(serviceName, false, query, runMmOperation);
+          batchUtils.restartAllServiceHostComponents(serviceDisplayName, serviceName, false, query, runMmOperation);
         }, bodyMessage);
       });
     } else {
       return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
-        batchUtils.restartAllServiceHostComponents(serviceName, false, query, runMmOperation);
+        batchUtils.restartAllServiceHostComponents(serviceDisplayName, serviceName, false, query, runMmOperation);
       }, bodyMessage);
     }
   },

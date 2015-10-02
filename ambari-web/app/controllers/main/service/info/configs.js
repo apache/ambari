@@ -625,13 +625,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       App.router.get('mainServiceItemController').checkNnLastCheckpointTime(function () {
         return App.showConfirmationFeedBackPopup(function (query) {
           var selectedService = self.get('content.id');
-          batchUtils.restartAllServiceHostComponents(selectedService, true, query);
+          batchUtils.restartAllServiceHostComponents(serviceDisplayName, selectedService, true, query);
         }, bodyMessage);
       });
     } else {
       return App.showConfirmationFeedBackPopup(function (query) {
         var selectedService = self.get('content.id');
-        batchUtils.restartAllServiceHostComponents(selectedService, true, query);
+        batchUtils.restartAllServiceHostComponents(serviceDisplayName, selectedService, true, query);
       }, bodyMessage);
     }
   },
