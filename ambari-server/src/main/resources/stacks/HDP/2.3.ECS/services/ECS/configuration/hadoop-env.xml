@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<configuration supports_final="false">
+  <property>
+    <name>hdfs_log_dir_prefix</name>
+    <value>/var/log/hadoop</value>
+    <description>Hadoop Log Dir Prefix</description>
+  </property>
+  <property>
+    <name>proxyuser_group</name>
+    <value>users</value>
+    <property-type>GROUP</property-type>`
+    <description>Proxy user group.</description>
+  </property>
+  <property>
+    <name>hdfs_user</name>
+    <value>hdfs</value>
+    <property-type>USER</property-type>
+    <description>ECS bucket owner user</description>
+  </property>
+  <property>
+    <name>user_group</name>
+    <value>hadoop</value>
+    <property-type>GROUP</property-type>
+    <description>Proxy user group.</description>
+  </property>
+  <!-- hadoop-env.sh -->
+  <property>
+    <name>content</name>
+    <description>This is the jinja template for hadoop-env.sh file</description>
+    <value>
+# Set Hadoop-specific environment variables here.
+
+# The only required environment variable is JAVA_HOME.  All others are
+# optional.  When running a distributed configuration it is best to
+# set JAVA_HOME in this file, so that it is correctly defined on
+# remote nodes.
+
+# The java implementation to use.  Required.
+export JAVA_HOME={{java_home}}
+export HADOOP_HOME_WARN_SUPPRESS=1
+
+# Hadoop home directory
+export HADOOP_HOME=${HADOOP_HOME:-/usr/lib/hadoop}
+
+# Hadoop Configuration Directory
+#TODO: if env var set that can cause problems
+export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-{{hadoop_conf_dir}}}
+
+{# this is different for HDP1 #}
+# Path to jsvc required by secure HDP 2.0 datanode
+export JSVC_HOME={{jsvc_path}}
+
+
+# Extra Java runtime options.  Empty by default.
+export HADOOP_OPTS="-Djava.net.preferIPv4Stack=true ${HADOOP_OPTS}"
+
+HADOOP_TASKTRACKER_OPTS="-server -Xmx{{ttnode_heapsize}} -Dhadoop.security.logger=ERROR,console -Dmapred.audit.logger=ERROR,console ${HADOOP_TASKTRACKER_OPTS}"
+
+# Extra ssh options.  Empty by default.
+export HADOOP_SSH_OPTS="-o ConnectTimeout=5 -o SendEnv=HADOOP_CONF_DIR"
+
+# Where log files are stored.  $HADOOP_HOME/logs by default.
+export HADOOP_LOG_DIR={{hdfs_log_dir_prefix}}/$USER
+
+# History server logs
+export HADOOP_MAPRED_LOG_DIR={{mapred_log_dir_prefix}}/$USER
+
+# Where log files are stored in the secure data environment.
+export HADOOP_SECURE_DN_LOG_DIR={{hdfs_log_dir_prefix}}/$HADOOP_SECURE_DN_USER
+
+# History server pid
+export HADOOP_MAPRED_PID_DIR={{mapred_pid_dir_prefix}}/$USER
+
+YARN_RESOURCEMANAGER_OPTS="-Dyarn.server.resourcemanager.appsummary.logger=INFO,RMSUMMARY"
+
+# A string representing this instance of hadoop. $USER by default.
+export HADOOP_IDENT_STRING=$USER
+
+# Use libraries from standard classpath
+JAVA_JDBC_LIBS=""
+#Add libraries required by mysql connector
+for jarFile in `ls /usr/share/java/*mysql* 2>/dev/null`
+do
+  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
+done
+#Add libraries required by oracle connector
+for jarFile in `ls /usr/share/java/*ojdbc* 2>/dev/null`
+do
+  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
+done
+#Add libraries required by nodemanager
+MAPREDUCE_LIBS={{mapreduce_libs_path}}
+
+export VIPRFS_LIBS=/usr/lib/hadoop/lib/*
+export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}:${VIPRFS_LIBS}
+
+if [ -d "/usr/lib/tez" ]; then
+  export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/tez/*:/usr/lib/tez/lib/*:/etc/tez/conf
+fi
+
+# Setting path to hdfs command line
+export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
+
+#Mostly required for hadoop 2.0
+export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop/lib/native/Linux-amd64-64
+    </value>
+  </property>
+
+</configuration>

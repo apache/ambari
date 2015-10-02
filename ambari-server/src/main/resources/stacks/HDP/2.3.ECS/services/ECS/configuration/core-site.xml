@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+ <!--
+    Licensed to the Apache Software Foundation (ASF) under one or more
+    contributor license agreements.  See the NOTICE file distributed with
+    this work for additional information regarding copyright ownership.
+    The ASF licenses this file to You under the Apache License, Version 2.0
+    (the "License"); you may not use this file except in compliance with
+    the License.  You may obtain a copy of the License at
+ 
+        http://www.apache.org/licenses/LICENSE-2.0
+ 
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+ -->
+ 
+<configuration supports_final="true" xmlns:xi="http://www.w3.org/2001/XInclude">
+
+<!-- file system properties -->
+
+  <property>
+  <name>fs.viprfs.impl</name>
+  <value>com.emc.hadoop.fs.vipr.ViPRFileSystem</value>
+  </property>
+
+  <property>
+  <name>fs.AbstractFileSystem.viprfs.impl</name>
+  <value>com.emc.hadoop.fs.vipr.ViPRAbstractFileSystem</value>
+  </property>
+
+  <property>
+    <name>fs.vipr.installations</name>
+    <value>Site1</value>
+  </property>  
+
+  <property>
+    <name>fs.vipr.installation.Site1.hosts</name>
+    <value></value>
+  </property>  
+
+  <property>
+    <name>fs.vipr.installation.Site1.hosts.resolution</name>
+    <value>dynamic</value>
+  </property>  
+
+  <property>
+    <name>fs.vipr.installation.Site1.resolution.dynamic.time_to_live_ms</name>
+    <value>900000</value>
+  </property>  
+ 
+  <property>
+    <name>fs.permissions.umask-mode</name>
+    <value>022</value>
+  </property>  
+
+  <property>
+    <name>fs.viprfs.auth.anonymous_translation</name>
+    <value>LOCAL_USER</value>
+  </property>  
+
+  <property>
+    <name>fs.viprfs.auth.identity_translation</name>
+    <value>NONE</value>
+  </property>  
+
+  <property>
+    <name>fs.defaultFS</name>
+    <value></value>
+  </property>  
+
+  <property>
+    <name>io.file.buffer.size</name>
+    <value>131072</value>
+    <description>The size of buffer for use in sequence files.
+  The size of this buffer should probably be a multiple of hardware
+  page size (4096 on Intel x86), and it determines how much data is
+  buffered during read and write operations.</description>
+  </property>
+
+  <property>
+    <name>io.serializations</name>
+    <value>org.apache.hadoop.io.serializer.WritableSerialization</value>
+    <description> A list of comma-delimited serialization classes that can be used for obtaining serializers and deserializers.
+    </description>
+  </property>
+
+  <property>
+    <name>io.compression.codecs</name>
+    <value>org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec</value>
+    <description>A list of the compression codec classes that can be used for compression/decompression.</description>
+  </property>
+
+  <property>
+    <name>hadoop.security.authentication</name>
+    <value>simple</value>
+    <description>
+      Set the authentication for the cluster. Valid values are: simple or kerberos
+    </description>
+  </property>
+
+  <property>
+    <name>hadoop.security.authorization</name>
+    <value>false</value>
+    <description>
+        Enable authorization for different protocols.
+    </description>
+  </property>
+
+
+</configuration>
