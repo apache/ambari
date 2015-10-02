@@ -990,7 +990,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
         secondary: false
       });
     } else {
-      App.router.get('applicationController').dataLoading().done(function (initValue) {
+      App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
         if (initValue) {
           App.router.get('backgroundOperationsController').showPopup();
         }

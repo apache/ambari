@@ -26,8 +26,8 @@ var App = require('app');
  * <ul>
  *   <li>getUserPrefSuccessCallback</li>
  *   <li>getUserPrefErrorCallback</li>
- *   <li>postuserPrefSuccessCallback</li>
- *   <li>postuserPrefErrorCallback</li>
+ *   <li>postUserPrefSuccessCallback</li>
+ *   <li>postUserPrefErrorCallback</li>
  * </ul>
  * @type {Em.Mixin}
  */

@@ -179,7 +179,7 @@ App.ClusterController = Em.Controller.extend({
       App.router.get('mainController').startPolling();
       return;
     }
-
+    App.router.get('userSettingsController').getAllUserSettings();
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
     var hostsController = App.router.get('mainHostController');
     hostsController.set('isCountersUpdating', true);

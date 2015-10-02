@@ -81,76 +81,8 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
     });
   },
 
-  dataLoading: function () {
-    var dfd = $.Deferred();
-    var self = this;
-    this.getUserPref(this.persistKey()).complete(function () {
-      var curPref = self.get('currentPrefObject');
-      self.set('currentPrefObject', null);
-      dfd.resolve(curPref);
-    });
-    return dfd.promise();
-  },
-  persistKey: function (loginName) {
-    if (App.get('testMode')) {
-      return 'admin_settings_show_bg';
-    }
-    if (!loginName)
-      loginName = App.router.get('loginName');
-    return 'admin-settings-show-bg-' + loginName;
-  },
-  currentPrefObject: null,
-
-  getUserPrefSuccessCallback: function (response, request, data) {
-    if (response != null) {
-      console.log('Got persist value from server with key ' + data.key + '. Value is: ' + response);
-      this.set('currentPrefObject', response);
-      return response;
-    }
-  },
-  getUserPrefErrorCallback: function (request, ajaxOptions, error) {
-    // this user is first time login
-    if (request.status == 404) {
-      console.log('Persist did NOT find the key');
-      this.set('currentPrefObject', true);
-      this.postUserPref(this.persistKey(), true);
-      return true;
-    }
-  },
-
   goToAdminView: function () {
     App.router.route("adminView");
-  },
-
-  showSettingsPopup: function() {
-    // Settings only for admins
-    if (!App.isAccessible('upgrade_ADMIN')) return;
-
-    var self = this;
-    var curValue = null;
-    this.dataLoading().done(function (initValue) {
-      App.ModalPopup.show({
-        header: Em.I18n.t('common.userSettings'),
-        bodyClass: Em.View.extend({
-          templateName: require('templates/common/settings'),
-          isNotShowBgChecked: !initValue,
-          updateValue: function () {
-            curValue = !this.get('isNotShowBgChecked');
-          }.observes('isNotShowBgChecked')
-        }),
-        primary: Em.I18n.t('common.save'),
-        onPrimary: function() {
-          if (curValue == null) {
-            curValue = initValue;
-          }
-          var key = self.persistKey();
-          if (!App.get('testMode')) {
-            self.postUserPref(key, curValue);
-          }
-          this.hide();
-        }
-      })
-    });
   },
 
   showAboutPopup: function() {

@@ -242,7 +242,7 @@ describe('App.MainHostDetailsController', function () {
     };
     beforeEach(function () {
       var stub = sinon.stub(App.router, 'get');
-      stub.withArgs('applicationController').returns({
+      stub.withArgs('userSettingsController').returns({
         dataLoading: function () {
           return mock;
         }

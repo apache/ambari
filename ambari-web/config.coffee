@@ -56,6 +56,7 @@ exports.config =
           'vendor/scripts/jquery.ajax-retry.js',
           'vendor/scripts/jquery.sticky-kit.js',
           'vendor/scripts/moment.js',
+          'vendor/scripts/moment-timezone-with-data-2010-2020.js',
           'vendor/scripts/workflow_visualization.js',
           'vendor/scripts/rickshaw.js',
           'vendor/scripts/spin.js',

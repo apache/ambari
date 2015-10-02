@@ -621,6 +621,19 @@ App.dateTime = function() {
 };
 
 /**
+ *
+ * @param {number} [x] timestamp
+ * @returns {number}
+ */
+App.dateTimeWithTimeZone = function (x) {
+  var timezone = App.router.get('userSettingsController.userSettings.timezone');
+  if (timezone) {
+    return moment(moment.tz(x ? new Date(x) : new Date(), timezone).toArray()).toDate().getTime();
+  }
+  return x || new Date().getTime();
+};
+
+/**
  * Helper function for bound property helper registration
  * @memberof App
  * @method registerBoundHelper

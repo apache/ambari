@@ -38,6 +38,7 @@ Em.I18n.translations = {
   'app.settings':'Settings',
   'app.manageAmbari': 'Manage Ambari',
   'app.aboutAmbari':'About',
+  'app.settings.selectTimezone': 'Select your timezone',
   'app.settings.notshowBgOperationsPopup': 'Do not show the Background Operations dialog when starting an operation',
   'app.settings.notShowBgOperations': 'Do not show this dialog again when starting a background operation',
 

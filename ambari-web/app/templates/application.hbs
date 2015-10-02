@@ -80,7 +80,7 @@
                 {{/if}}
                 {{#if isClusterDataLoaded}}
                   {{#isAccessible upgrade_ADMIN}}
-                    <li><a href="" {{action showSettingsPopup target="controller"}}>{{t app.settings}}</a></li>
+                    <li><a href="" {{action showSettingsPopup target="App.router.userSettingsController"}}>{{t app.settings}}</a></li>
                   {{/isAccessible}}
                 {{/if}}
                 {{#if showExitLink}}

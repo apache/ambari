@@ -133,7 +133,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         }, App.get('testModeDelayForActions'));
       }
       // load data (if we need to show this background operations popup) from persist
-      App.router.get('applicationController').dataLoading().done(function (initValue) {
+      App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
         if (initValue) {
           App.router.get('backgroundOperationsController').showPopup();
         }
@@ -401,7 +401,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     return App.showConfirmationPopup(function() {
       self.set("content.runRebalancer", true);
       // load data (if we need to show this background operations popup) from persist
-      App.router.get('applicationController').dataLoading().done(function (initValue) {
+      App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
         if (initValue) {
           App.router.get('backgroundOperationsController').showPopup();
         }
@@ -576,7 +576,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     return App.showConfirmationPopup(function() {
       self.set("content.runCompaction", true);
       // load data (if we need to show this background operations popup) from persist
-      App.router.get('applicationController').dataLoading().done(function (initValue) {
+      App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
         if (initValue) {
           App.router.get('backgroundOperationsController').showPopup();
         }
@@ -666,7 +666,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   runSmokeTestSuccessCallBack: function (data, ajaxOptions, params) {
     if (data.Requests.id) {
       // load data (if we need to show this background operations popup) from persist
-      App.router.get('applicationController').dataLoading().done(function (initValue) {
+      App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
         params.query.set('status', 'SUCCESS');
         if (initValue) {
           App.router.get('backgroundOperationsController').showPopup();
