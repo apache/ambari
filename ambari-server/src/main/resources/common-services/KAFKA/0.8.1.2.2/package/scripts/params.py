@@ -43,6 +43,10 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 kafka_home = '/usr/lib/kafka/'
 kafka_bin = kafka_home+'/bin/kafka'
 conf_dir = "/etc/kafka/conf"
+limits_conf_dir = "/etc/security/limits.d"
+
+kafka_user_nofile_limit = config['configurations']['kafka-env']['kafka_user_nofile_limit']
+kafka_user_nproc_limit = config['configurations']['kafka-env']['kafka_user_nproc_limit']
 
 # parameters for 2.2+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
