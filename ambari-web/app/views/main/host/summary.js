@@ -302,10 +302,7 @@ App.MainHostSummaryView = Em.View.extend({
    */
   timeSinceHeartBeat: function () {
     var d = this.get('content.lastHeartBeatTime');
-    if (d) {
-      return $.timeago(d);
-    }
-    return "";
+    return d ? $.timeago(d) : '';
   }.property('content.lastHeartBeatTime'),
 
   /**

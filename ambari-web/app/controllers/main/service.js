@@ -201,7 +201,7 @@ App.MainServiceController = Em.ArrayController.extend({
   silentStopSuccess: function () {
     var self = this;
 
-    App.router.get('applicationController').dataLoading().done(function (initValue) {
+    App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
       if (initValue) {
         App.router.get('backgroundOperationsController').showPopup();
       }
@@ -241,7 +241,7 @@ App.MainServiceController = Em.ArrayController.extend({
    */
   silentCallSuccessCallback: function () {
     // load data (if we need to show this background operations popup) from persist
-    App.router.get('applicationController').dataLoading().done(function (initValue) {
+    App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
       if (initValue) {
         App.router.get('backgroundOperationsController').showPopup();
       }
@@ -259,7 +259,7 @@ App.MainServiceController = Em.ArrayController.extend({
     params.query.set('status', 'SUCCESS');
 
     // load data (if we need to show this background operations popup) from persist
-    App.router.get('applicationController').dataLoading().done(function (initValue) {
+    App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
       if (initValue) {
         App.router.get('backgroundOperationsController').showPopup();
       }

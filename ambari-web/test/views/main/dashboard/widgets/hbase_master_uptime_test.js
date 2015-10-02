@@ -23,16 +23,14 @@ require('views/main/dashboard/widgets/hbase_master_uptime');
 require('views/main/dashboard/widgets/text_widget');
 require('views/main/dashboard/widget');
 
-describe('App.HBaseMasterUptimeView', function() {
+describe('App.HBaseMasterUptimeView', function () {
 
   var tests = [
     {
       model: Em.Object.create({
-        masterStartTime: ((new Date()).getTime() - 192.1*24*3600*1000)
+        masterStartTime: ((new Date()).getTime() - 192.1 * 24 * 3600 * 1000)
       }),
       e: {
-        isRed: false,
-        isOrange: false,
         isGreen: true,
         isNA: false,
         content: '192.1 d',
@@ -40,12 +38,10 @@ describe('App.HBaseMasterUptimeView', function() {
       }
     },
     {
-      model:  Em.Object.create({
+      model: Em.Object.create({
         masterStartTime: 0
       }),
       e: {
-        isRed: false,
-        isOrange: false,
         isGreen: false,
         isNA: true,
         content: Em.I18n.t('services.service.summary.notAvailable'),
@@ -53,12 +49,10 @@ describe('App.HBaseMasterUptimeView', function() {
       }
     },
     {
-      model:  Em.Object.create({
+      model: Em.Object.create({
         masterStartTime: null
       }),
       e: {
-        isRed: false,
-        isOrange: false,
         isGreen: false,
         isNA: true,
         content: Em.I18n.t('services.service.summary.notAvailable'),
@@ -67,26 +61,28 @@ describe('App.HBaseMasterUptimeView', function() {
     }
   ];
 
-  tests.forEach(function(test) {
-    var hBaseMasterUptimeView = App.HBaseMasterUptimeView.create({model_type:null, model: test.model});
+  beforeEach(function () {
+    sinon.stub(App.router, 'get').withArgs('userSettingsController.userSettings.timezone').returns('');
+  });
+
+  afterEach(function () {
+    App.router.get.restore();
+  });
+
+  tests.forEach(function (test) {
+    var hBaseMasterUptimeView = App.HBaseMasterUptimeView.create({model_type: null, model: test.model});
     hBaseMasterUptimeView.calc();
-    describe('masterStartTime - ' + test.model.masterStartTime, function() {
-      it('content', function() {
+    describe('#masterStartTime - ' + test.model.masterStartTime, function () {
+      it('content', function () {
         expect(hBaseMasterUptimeView.get('content')).to.equal(test.e.content);
       });
-      it('data', function() {
+      it('data', function () {
         expect(hBaseMasterUptimeView.get('data')).to.equal(test.e.data);
       });
-      it('isRed', function() {
-        expect(hBaseMasterUptimeView.get('isRed')).to.equal(test.e.isRed);
-      });
-      it('isOrange', function() {
-        expect(hBaseMasterUptimeView.get('isOrange')).to.equal(test.e.isOrange);
-      });
-      it('isGreen', function() {
+      it('isGreen', function () {
         expect(hBaseMasterUptimeView.get('isGreen')).to.equal(test.e.isGreen);
       });
-      it('isNA', function() {
+      it('isNA', function () {
         expect(hBaseMasterUptimeView.get('isNA')).to.equal(test.e.isNA);
       });
     });

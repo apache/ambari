@@ -288,7 +288,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param callback
    */
   showBackgroundOperationsPopup: function (callback) {
-    App.router.get('applicationController').dataLoading().done(function (initValue) {
+    App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
       if (initValue) {
         App.router.get('backgroundOperationsController').showPopup();
       }

@@ -53,6 +53,7 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
         var parsedItem = this.parseIt(item, this.get('config'));
         parsedItem.id = this.makeId(parsedItem.service_name, parsedItem.version);
         parsedItem.is_requested = true;
+        parsedItem.create_time = App.dateTimeWithTimeZone(parsedItem.create_time);
         itemIds[parsedItem.id] = true;
         parsedItem.index = index;
         if (serviceToHostMap[item.service_name]) {

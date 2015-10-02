@@ -260,7 +260,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
   commandSuccessCallback: function () {
     console.log('Send request for refresh configs successfully');
     // load data (if we need to show this background operations popup) from persist
-    App.router.get('applicationController').dataLoading().done(function (showPopup) {
+    App.router.get('userSettingsController').dataLoading('show_bg').done(function (showPopup) {
       if (showPopup) {
         App.router.get('backgroundOperationsController').showPopup();
       }
@@ -285,8 +285,11 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
         controllerBinding: 'App.router.mainAlertDefinitionsController',
         didInsertElement: function () {
           Em.run.next(this, function () {
-            App.tooltip($(".timeago"));
+            App.tooltip(this.$(".timeago"));
           });
+        },
+        willDestroyElement:function () {
+          this.$(".timeago").tooltip('destroy');
         },
         alerts: function () {
           var serviceDefinitions = this.get('controller.content').filterProperty('service', service);

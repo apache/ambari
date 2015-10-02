@@ -58,6 +58,8 @@ App.alertInstanceMapper = App.QuickDataMapper.create({
 
       json.items.forEach(function (item) {
         var alert = this.parseIt(item, this.get('config'));
+        alert.original_timestamp = App.dateTimeWithTimeZone(alert.original_timestamp);
+        alert.latest_timestamp = App.dateTimeWithTimeZone(alert.latest_timestamp);
         alertInstances.push(alert);
         alertsToDelete = alertsToDelete.without(alert.id);
       }, this);

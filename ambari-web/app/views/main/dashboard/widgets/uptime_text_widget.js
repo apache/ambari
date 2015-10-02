@@ -39,19 +39,16 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
   modelField: null,
 
   data: null,
+
   content: null,
 
   isGreen: function () {
-    return this.get('data') != null;
+    return !Em.isNone(this.get('data'));
   }.property('data'),
 
-  isOrange: function () {
-    return false;
-  }.property('data'),
+  isOrange: false,
 
-  isRed: function () {
-    return false;
-  }.property('data'),
+  isRed: false,
 
   timeConverter: function (timestamp) {
     var m = moment((new Date(timestamp)));
@@ -73,13 +70,14 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
   },
 
   calc: function () {
+    // don't do this.setProperties!
     this.set('data', this.calcData());
     this.set('content', this.calcContent());
   },
 
   uptimeProcessing: function (uptime) {
     var uptimeString = this.timeConverter(uptime);
-    var diff = App.dateTime() - uptime;
+    var diff = App.dateTimeWithTimeZone() - uptime;
     if (diff < 0) {
       diff = 0;
     }
@@ -102,11 +100,10 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
         default:
           timeUnit = formatted.split(" ")[1];
       }
-      this.set('timeUnit', timeUnit);
-      this.set('hiddenInfo', []);
-      this.get('hiddenInfo').pushObject(formatted);
-      this.get('hiddenInfo').pushObject(uptimeString[0]);
-      this.get('hiddenInfo').pushObject(uptimeString[1]);
+      this.setProperties({
+        timeUnit: timeUnit,
+        hiddenInfo: [formatted, uptimeString[0], uptimeString[1]]
+      });
     }
     return formatted;
   },
@@ -114,9 +111,9 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
   calcData: function () {
     var field = this.get('modelField');
     var uptime = this.get('model').get(field);
-    if (uptime && uptime > 0) {
-      var formatted = this.uptimeProcessing(uptime);
-      if (formatted != null) {
+    if (uptime) {
+      var formatted = this.uptimeProcessing(App.dateTimeWithTimeZone(uptime));
+      if (!Em.isNone(formatted)) {
         return parseFloat(formatted.split(" ")[0]);
       }
     }
@@ -126,11 +123,8 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
 
   calcContent: function () {
     var data = this.get('data');
-    if (data) {
-      return data.toFixed(1) + ' ' + this.get('timeUnit');
-    }
-    else {
-      return Em.I18n.t('services.service.summary.notAvailable');
-    }
+    return data ?
+      data.toFixed(1) + ' ' + this.get('timeUnit') :
+      Em.I18n.t('services.service.summary.notAvailable');
   }
 });

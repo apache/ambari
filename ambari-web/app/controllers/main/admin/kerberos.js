@@ -171,7 +171,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
    */
   regenerateKeytabsSuccess: function (data, opt, params, request) {
     var self = this;
-    App.router.get('applicationController').dataLoading().done(function (initValue) {
+    App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
       if (initValue) {
         App.router.get('backgroundOperationsController').showPopup();
       }

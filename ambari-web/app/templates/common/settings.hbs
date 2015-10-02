@@ -23,4 +23,14 @@
       {{t app.settings.notshowBgOperationsPopup}}
     </label>
   </div>
+  <div>
+    <label>
+      {{t app.settings.selectTimezone}}
+      {{view Em.Select
+        contentBinding="view.timezonesList"
+        selectionBinding="view.parentView.selectedTimezone"
+        class="group-select select-group-box"
+      }}
+    </label>
+  </div>
 </div>

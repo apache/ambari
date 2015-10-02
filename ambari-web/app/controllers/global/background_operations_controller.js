@@ -158,7 +158,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
     if (request.get('isRunning')) {
       request.set('progress', App.HostPopup.getProgress(data.tasks));
       request.set('status', App.HostPopup.getStatus(data.tasks)[0]);
-      request.set('isRunning', (request.get('progress') !== 100));
+      request.set('isRunning', request.get('progress') !== 100);
     }
     request.set('previousTaskStatusMap', currentTaskStatusMap);
     request.set('hostsMap', hostsMap);
@@ -353,7 +353,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
   showPopup: function(){
     // load the checkbox on footer first, then show popup.
     var self = this;
-    App.router.get('applicationController').dataLoading().done(function (initValue) {
+    App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
       App.updater.immediateRun('requestMostRecent');
       if(self.get('popupView') && App.HostPopup.get('isBackgroundOperations')){
         self.set ('popupView.isNotShowBgChecked', !initValue);

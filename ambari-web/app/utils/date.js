@@ -41,8 +41,7 @@ module.exports = {
    * @method dateFormatZeroFirst
    */
   dateFormatZeroFirst: function (time) {
-    if (time < 10) return '0' + time;
-    return ""  + time;
+    return (time < 10 ? '0' : '') + time;
   },
 
   /**
@@ -127,7 +126,6 @@ module.exports = {
     var durationSummary = '';
     var startDate = new Date(startTimestamp);
     var endDate = new Date(endTimestamp);
-    var self = this;
     if (startDate.getFullYear() == 1969 || startTimestamp < 1) {
       // not started
       return Em.I18n.t('common.na');
@@ -176,19 +174,21 @@ module.exports = {
 
     if (lengthOfNumber < 4) {
       return time + ' ms';
-    } else if (lengthOfNumber < 7) {
+    }
+    if (lengthOfNumber < 7) {
       time = (time / 1000).toFixed(2);
       return time + ' secs';
-    } else if (time < oneHourMs) {
+    }
+    if (time < oneHourMs) {
       time = (time / oneMinMs).toFixed(2);
       return time + ' mins';
-    } else if (time < oneDayMs) {
+    }
+    if (time < oneDayMs) {
       time = (time / oneHourMs).toFixed(2);
       return time + ' hours';
-    } else {
-      time = (time / oneDayMs).toFixed(2);
-      return time + ' days';
     }
+    time = (time / oneDayMs).toFixed(2);
+    return time + ' days';
   },
 
   /**
