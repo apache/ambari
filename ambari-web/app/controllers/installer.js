@@ -236,6 +236,7 @@ App.InstallerController = App.WizardController.extend({
     App.StackConfigProperty.find().clear();
     App.Section.find().clear();
     App.SubSection.find().clear();
+    App.SubSectionTab.find().clear();
     App.Tab.find().clear();
     this.set('stackConfigsLoaded', false);
     if (stacks && stacks.get('length')) {

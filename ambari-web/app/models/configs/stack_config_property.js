@@ -156,6 +156,12 @@ App.StackConfigProperty = DS.Model.extend({
    */
   subSection: DS.belongsTo('App.SubSection'),
 
+  /**
+   * sub section tab to which belongs this property
+   * @property {App.SubSectionTab}
+   */
+  subSectionTab: DS.belongsTo('App.SubSectionTab'),
+
   /******************************* UI properties ****************************************/
 
   /**

@@ -67,6 +67,12 @@ App.SubSection = DS.Model.extend({
    */
   configProperties: DS.hasMany('App.StackConfigProperty'),
 
+  /**
+   * @type {App.SubSectionTab[]}
+   */
+  subSectionTabs: DS.hasMany('App.SubSectionTab'),
+
+
   dependsOn: DS.attr('array', {defaultValue: []}),
 
   /**
@@ -78,6 +84,13 @@ App.SubSection = DS.Model.extend({
    * @type {App.ServiceConfigProperty[]}
    */
   configs: [],
+
+  /**
+   * @type {boolean}
+   */
+  hasTabs: function() {
+    return this.get('subSectionTabs.length');
+  }.property('subSectionTabs.length'),
 
   /**
    * Number of the errors in all configs

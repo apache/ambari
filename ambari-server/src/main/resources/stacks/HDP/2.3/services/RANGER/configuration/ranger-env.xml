@@ -53,4 +53,27 @@
     <deleted>true</deleted>
   </property>
 
+  <property>
+    <name>bind_anonymous</name>
+    <display-name>Bind Anonymous</display-name>
+    <value>false</value>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+
 </configuration>
