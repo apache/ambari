@@ -64,8 +64,25 @@
 
   <property>
     <name>ranger.usersync.enabled</name>
+    <display-name>Enable User Sync</display-name>
     <value>true</value>
     <description>Usersync enabled?</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -94,8 +111,27 @@
 
   <property>
     <name>ranger.usersync.unix.minUserId</name>
+    <display-name>Minimum User ID</display-name>
     <value>500</value>
     <description>Only sync users above this user id (applicable for UNIX)</description>
+  </property>
+
+  <property>
+    <name>ranger.usersync.unix.group.file</name>
+    <display-name>Group File</display-name>
+    <value></value>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.usersync.unix.password.file</name>
+    <display-name>Password File</display-name>
+    <value></value>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
@@ -107,38 +143,69 @@
   <property>
     <name>ranger.usersync.source.impl.class</name>
     <value>org.apache.ranger.unixusersync.process.UnixUserGroupBuilder</value>
+    <display-name>Sync Source</display-name>
     <description>For Ldap: org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder, For Unix: org.apache.ranger.unixusersync.process.UnixUserGroupBuilder, org.apache.ranger.unixusersync.process.FileSourceUserGroupBuilder</description>
     <value-attributes>
+      <type>value-list</type>
       <empty-value-valid>true</empty-value-valid>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value></value>
+          <label>NONE</label>
+        </entry>
+        <entry>
+          <value>org.apache.ranger.unixusersync.process.UnixUserGroupBuilder</value>
+          <label>UNIX</label>
+        </entry>
+        <entry>
+          <value>org.apache.ranger.unixusersync.process.FileSourceUserGroupBuilder</value>
+          <label>FILE</label>
+        </entry>
+        <entry>
+          <value>org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder</value>
+          <label>LDAP</label>
+        </entry>
+        <entry>
+          <value>org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder</value>
+          <label>AD</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.filesource.file</name>
+    <display-name>File Name</display-name>
     <value>/tmp/usergroup.txt</value>
     <description>/tmp/usergroup.json or /tmp/usergroup.csv or /tmp/usergroup.txt</description>
   </property>
 
   <property>
     <name>ranger.usersync.filesource.text.delimiter</name>
+    <display-name>Delimeter</display-name>
     <value>,</value>
     <description>Delimiter used in file, if File based user sync is used</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.url</name>
+    <display-name>LDAP (AD) URL</display-name>
     <value>ldap://localhost:389</value>
     <description>LDAP server URL</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.binddn</name>
+    <display-name>​Bind User</display-name>
     <value>cn=admin,dc=xasecure,dc=net</value>
     <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. </description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.ldapbindpassword</name>
+    <display-name>Bind User Password</display-name>
     <value></value>
     <property-type>PASSWORD</property-type>
     <description>Password for the account that can search for users.</description>
@@ -174,6 +241,7 @@
 
   <property>
     <name>ranger.usersync.ldap.user.searchbase</name>
+    <display-name>User Search Base</display-name>
     <value>ou=users,dc=xasecure,dc=net</value>
     <description>"# search base for users
 # sample value would be ou=users,dc=hadoop,dc=apache,dc=org
@@ -182,6 +250,7 @@
 
   <property>
     <name>ranger.usersync.ldap.user.searchscope</name>
+    <display-name>User Search Scope</display-name>
     <value>sub</value>
     <description>"# search scope for the users, only base, one and sub are supported values
 # please customize the value to suit your deployment
@@ -190,12 +259,14 @@
 
   <property>
     <name>ranger.usersync.ldap.user.objectclass</name>
+    <display-name>User Object Class​</display-name>
     <value>person</value>
     <description>LDAP User Object Class</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.user.searchfilter</name>
+    <display-name>​User Search Filter</display-name>
     <value>empty</value>
     <description>"optional additional filter constraining the users selected for syncing
 # a sample value would be (dept=eng)
@@ -205,6 +276,7 @@
 
   <property>
     <name>ranger.usersync.ldap.user.nameattribute</name>
+    <display-name>Username Attribute</display-name>
     <value>cn</value>
     <description>LDAP user name attribute</description>
   </property>
@@ -220,6 +292,7 @@
 
   <property>
     <name>ranger.usersync.ldap.user.groupnameattribute</name>
+    <display-name>User Group Name Attribute</display-name>
     <value>memberof, ismemberof</value>
     <description>LDAP user group name attribute</description>
   </property>
@@ -244,6 +317,7 @@
 
   <property>
     <name>ranger.usersync.group.searchenabled</name>
+    <display-name>Enable Group Sync (Group Search Filter)</display-name>
     <value>false</value>
     <description>"# do we want to do ldapsearch to find groups instead of relying on user entry attributes
 # valid values: true, false
@@ -251,20 +325,48 @@
 # default value: false"</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.group.usermapsyncenabled</name>
     <value>false</value>
+    <display-name>Group User Map Sync</display-name>
     <description>User map sync enabled?</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.group.searchbase</name>
+    <display-name>Group Search Base</display-name>
     <value> </value>
     <description>"# search base for groups
 # sample value would be ou=groups,dc=hadoop,dc=apache,dc=org
@@ -289,6 +391,7 @@
 
   <property>
     <name>ranger.usersync.group.objectclass</name>
+    <display-name>Group Object Class</display-name>
     <value> </value>
     <description></description>
     <value-attributes>
@@ -299,6 +402,7 @@
   <property>
     <name>ranger.usersync.group.searchfilter</name>
     <value> </value>
+    <display-name>Group Search Filter</display-name>
     <description>"# optional additional filter constraining the groups selected for syncing
 # a sample value would be (dept=eng)
 # please customize the value to suit your deployment
@@ -310,6 +414,7 @@
 
   <property>
     <name>ranger.usersync.group.nameattribute</name>
+    <display-name>Group Name Attribute</display-name>
     <value> </value>
     <description>LDAP group name attribute</description>
     <value-attributes>
@@ -319,6 +424,7 @@
 
   <property>
     <name>ranger.usersync.group.memberattributename</name>
+    <display-name>Group Member Attribute</display-name>
     <value> </value>
     <description>LDAP group member attribute name</description>
     <value-attributes>
@@ -330,6 +436,22 @@
     <name>ranger.usersync.pagedresultsenabled</name>
     <value>true</value>
     <description>Results can be paged?</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>

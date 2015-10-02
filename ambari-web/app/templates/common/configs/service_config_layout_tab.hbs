@@ -47,6 +47,30 @@
                                 {{/if}}
                               {{/if}}
                             {{/each}}
+                            {{#if subsection.hasTabs}}
+                              <ul class="nav nav-tabs mbm config-tabs">
+                                {{#each subSectionTab in subsection.subSectionTabs}}
+                                  <li rel='tooltip' {{bindAttr class="subSectionTab.isActive:active subSectionTab.isHiddenByFilter:disabled" data-original-title="tab.tooltipMsg"}}>
+                                    <a href="#" {{action setActiveSubTab subSectionTab target="view"}}{{bindAttr data-target="subSectionTab.id"}} data-toggle="tab">
+                                      {{subSectionTab.displayName}}
+                                    </a>
+                                  </li>
+                                {{/each}}
+                              </ul>
+                              <div class="tab-content service-config-tab-content">
+                              {{#each subSectionTab in subsection.subSectionTabs}}
+                                {{#each config in subSectionTab.configs}}
+                                  <div {{bindAttr class=":tab-pane subSectionTab.isActive:active subSectionTab.id"}}>
+                                    {{#if config.isVisible}}
+                                      {{#unless config.isHiddenByFilter}}
+                                        {{view config.widget configBinding="config" canEditBinding="view.canEdit" sectionBinding="section" subSectionBinding="subsection" tabBinding="tab"}}
+                                      {{/unless}}
+                                    {{/if}}
+                                  </div>
+                                {{/each}}
+                              {{/each}}
+                              </div>
+                            {{/if}}
                           </div>
                         </div>
                       </td>

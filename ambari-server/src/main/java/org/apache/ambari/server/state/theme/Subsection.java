@@ -47,6 +47,8 @@ public class Subsection {
   private Boolean leftVerticalSplitter;
   @JsonProperty("depends-on")
   private List<ConfigCondition> dependsOn;
+  @JsonProperty("subsection-tabs")
+  private List<SubsectionTab> subsectionTabs;
 
 
   public String getRowIndex() {
@@ -121,8 +123,16 @@ public class Subsection {
     this.dependsOn = dependsOn;
   }
 
+  public List<SubsectionTab> getSubsectionTabs() {
+    return subsectionTabs;
+  }
+
+  public void setSubsectionTabs(List<SubsectionTab> subsectionTabs) {
+    this.subsectionTabs = subsectionTabs;
+  }
+
   public boolean isRemoved() {
-    return rowIndex == null && rowSpan == null && columnIndex == null && columnSpan == null;
+    return rowIndex == null && rowSpan == null && columnIndex == null && columnSpan == null && dependsOn == null && subsectionTabs == null;
   }
 
   public void mergeWithParent(Subsection parent) {
@@ -149,6 +159,34 @@ public class Subsection {
     }
     if (dependsOn == null) {
       dependsOn = parent.dependsOn;
+    }
+    if (subsectionTabs == null) {
+      subsectionTabs = parent.subsectionTabs;
+    }
+  }
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  private static class SubsectionTab {
+    @JsonProperty("name")
+    private String name;
+    @JsonProperty("display-name")
+    private String displayName;
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public String getDisplayName() {
+      return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+      this.displayName = displayName;
     }
   }
 }

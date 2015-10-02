@@ -21,6 +21,7 @@ App.themesMapper = App.QuickDataMapper.create({
   tabModel: App.Tab,
   sectionModel: App.Section,
   subSectionModel: App.SubSection,
+  subSectionTabModel: App.SubSectionTab,
   configConditionModel: App.ConfigCondition,
 
   tabConfig: {
@@ -59,6 +60,13 @@ App.themesMapper = App.QuickDataMapper.create({
     "section_id": "section_id",
     "depends_on": "depends-on",
     "left_vertical_splitter": "left-vertical-splitter"
+  },
+
+  subSectionTabConfig: {
+    "id": "name",
+    "name": "name",
+    "display_name": "display-name",
+    "sub_section_id": "sub_section_id"
   },
 
   map: function (json) {
@@ -100,6 +108,21 @@ App.themesMapper = App.QuickDataMapper.create({
                   var parsedSubSection = this.parseIt(subSection, this.get("subSectionConfig"));
                   parsedSubSection.section_id = parsedSection.id;
 
+                  if (subSection['subsection-tabs']) {
+                    var subSectionTabs = [];
+
+                    subSection['subsection-tabs'].forEach(function (subSectionTab) {
+                      var parsedSubSectionTab = this.parseIt(subSectionTab, this.get("subSectionTabConfig"));
+                      parsedSubSectionTab.sub_section_id = parsedSubSection.id;
+
+                      subSectionTabs.push(parsedSubSectionTab);
+                    }, this);
+                    subSectionTabs[0].is_active = true;
+
+                    App.store.loadMany(this.get("subSectionTabModel"), subSectionTabs);
+                    parsedSubSection.sub_section_tabs = subSectionTabs.mapProperty("id");
+                  }
+
                   subSections.push(parsedSubSection);
                 }, this);
                 App.store.loadMany(this.get("subSectionModel"), subSections);
@@ -130,15 +153,25 @@ App.themesMapper = App.QuickDataMapper.create({
     Em.getWithDefault(json, "ThemeInfo.theme_data.Theme.configuration.placement.configs", []).forEach(function(configLink) {
       var configId = this.getConfigId(configLink);
       var subSectionId = configLink["subsection-name"];
-      var subSection = App.SubSection.find(subSectionId);
+      var subSectionTabId = configLink["subsection-tab-name"];
+      if (subSectionTabId) {
+        var subSectionTab = App.SubSectionTab.find(subSectionTabId);
+        var subSectionTabDependsOnConfigs = subSectionTab.get('dependsOn');
+      } else if (subSectionId) {
+        var subSection = App.SubSection.find(subSectionId);
+        var subSectionDependsOnConfigs = subSection.get('dependsOn');
+      }
       var configProperty = App.StackConfigProperty.find(configId);
-      var subSectionDependsOnConfigs = subSection.get('dependsOn');
-      var configDependsOnOtherConfigs =  configLink["depends-on"] || [];
-      var dependsOnConfigs = configDependsOnOtherConfigs.concat(subSectionDependsOnConfigs);
+
+      var configDependsOnOtherConfigs = configLink["depends-on"] || [];
+      var dependsOnConfigs = configDependsOnOtherConfigs.concat(subSectionDependsOnConfigs || []).concat(subSectionTabDependsOnConfigs || []);
 
       if (configProperty.get('id') && subSection) {
         subSection.get('configProperties').pushObject(configProperty);
         configProperty.set('subSection', subSection);
+      } else if (configProperty.get('id') && subSectionTab) {
+        subSectionTab.get('configProperties').pushObject(configProperty);
+        configProperty.set('subSectionTab', subSectionTab);
       } else {
         console.log('there is no such property: ' + configId + '. Or subsection: ' + subSectionId);
         var valueAttributes = configLink["property_value_attributes"];

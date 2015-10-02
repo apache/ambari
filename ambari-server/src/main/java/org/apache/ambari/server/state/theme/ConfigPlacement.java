@@ -32,6 +32,8 @@ public class ConfigPlacement {
 	private String config;
 	@JsonProperty("subsection-name")
 	private String subsectionName;
+  @JsonProperty("subsection-tab-name")
+  private String subsectionTabName;
 
   @JsonProperty("property_value_attributes")
   private ValueAttributesInfo propertyValueAttributes;
@@ -54,6 +56,14 @@ public class ConfigPlacement {
 
   public void setSubsectionName(String subsectionName) {
     this.subsectionName = subsectionName;
+  }
+
+  public String getSubsectionTabName() {
+    return subsectionTabName;
+  }
+
+  public void setSubsectionTabName(String subsectionTabName) {
+    this.subsectionTabName = subsectionTabName;
   }
 
   public ValueAttributesInfo getPropertyValueAttributes() {

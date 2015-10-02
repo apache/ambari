@@ -18,9 +18,9 @@
 
 var App = require('app');
 require('mappers/configs/themes_mapper');
-require('models/configs/tab');
-require('models/configs/section');
-require('models/configs/sub_section');
+require('models/configs/theme/tab');
+require('models/configs/theme/section');
+require('models/configs/theme/sub_section');
 require('models/configs/stack_config_property');
 
 describe('App.themeMapper', function () {
