@@ -223,10 +223,10 @@
               <dictionaryName>hcat-env</dictionaryName>
             </configFile>
           </configFiles>
+          <configuration-dependencies>
+            <config-type>hive-site</config-type>
+          </configuration-dependencies>
         </component>
-        <configuration-dependencies>
-          <config-type>hive-site</config-type>
-        </configuration-dependencies>
       </components>
 
       <osSpecifics>
