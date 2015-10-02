@@ -113,7 +113,7 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
     var self = this;
     Object.keys(keys).forEach(function (key) {
       if (Em.isNone(response[keys[key].name])) {
-        self.postUserPref(keys[key].name, keys[key].defaultValue);
+        self.postUserPref(key, keys[key].defaultValue);
       }
     });
   },
