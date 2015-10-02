@@ -42,7 +42,7 @@ from resource_management.libraries.functions.get_hdp_version import *
 from resource_management.libraries.functions.get_lzo_packages import *
 from resource_management.libraries.functions.setup_ranger_plugin import *
 from resource_management.libraries.functions.curl_krb_request import *
-
+from resource_management.libraries.functions.get_bare_principal import *
 IS_WINDOWS = platform.system() == "Windows"
 
 if IS_WINDOWS:

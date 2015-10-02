@@ -26,26 +26,10 @@ from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.get_bare_principal import get_bare_principal
 from resource_management.libraries.script import Script
 
 
-def get_bare_principal(normalized_principal_name):
-  """
-  Given a normalized principal name (nimbus/c6501.ambari.apache.org@EXAMPLE.COM) returns just the
-  primary component (nimbus)
-  :param normalized_principal_name: a string containing the principal name to process
-  :return: a string containing the primary component value or None if not valid
-  """
-
-  bare_principal = None
-
-  if normalized_principal_name:
-    match = re.match(r"([^/@]+)(?:/[^@])?(?:@.*)?", normalized_principal_name)
-
-    if match:
-      bare_principal = match.group(1)
-
-  return bare_principal
 
 
 # server configurations
