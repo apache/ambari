@@ -119,6 +119,7 @@ public class CredentialResourceProvider extends AbstractControllerResourceProvid
 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     Set<Resource> resources = new HashSet<Resource>();
+    boolean sendNotFoundErrorIfEmpty = false;
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       String clusterName = (String) propertyMap.get(CREDENTIAL_CLUSTER_NAME_PROPERTY_ID);
@@ -132,6 +133,14 @@ public class CredentialResourceProvider extends AbstractControllerResourceProvid
         try {
           if (credentialStoreService.containsCredential(clusterName, alias)) {
             resources.add(toResource(clusterName, alias, credentialStoreService.getCredentialStoreType(clusterName, alias), requestedIds));
+          }
+          else {
+            // Only throw a NoSuchResourceException if a specific item is being requested and it
+            // wasn't found. If multiple resources are queried, one or may not exist and this
+            // sendNotFoundErrorIfEmpty will be set to true.  However if at least one resource is
+            // found, the resources Set will not be empty and NoSuchResourceException will not be
+            // thrown
+            sendNotFoundErrorIfEmpty = true;
           }
         } catch (AmbariException e) {
           throw new SystemException(e.getLocalizedMessage(), e);
@@ -150,7 +159,7 @@ public class CredentialResourceProvider extends AbstractControllerResourceProvid
       }
     }
 
-    if ((predicate != null) && resources.isEmpty()) {
+    if (sendNotFoundErrorIfEmpty && resources.isEmpty()) {
       throw new NoSuchResourceException("The requested resource doesn't exist: Credential not found, " + predicate);
     }
 
