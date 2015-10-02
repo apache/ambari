@@ -31,6 +31,9 @@
     <value>false</value>
     <display-name>Audit to DB</display-name>
     <description>Is Audit to DB enabled?</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -75,6 +78,9 @@
     <value>true</value>
     <display-name>Audit to HDFS</display-name>
     <description>Is Audit to HDFS enabled?</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -94,6 +100,9 @@
     <value>false</value>
     <display-name>Audit to SOLR</display-name>
     <description>Is Solr audit enabled?</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -119,6 +128,9 @@
     <value>false</value>
     <display-name>Audit provider summary enabled</display-name>
     <description>Enable Summary audit?</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
 </configuration>

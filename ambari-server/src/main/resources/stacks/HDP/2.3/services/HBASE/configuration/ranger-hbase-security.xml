@@ -60,6 +60,9 @@
     <value>true</value>
     <display-name>Should HBase GRANT/REVOKE update XA policies</display-name>
     <description>Should HBase plugin update Ranger policies for updates to permissions done using GRANT/REVOKE?</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
 </configuration>
