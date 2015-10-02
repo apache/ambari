@@ -84,6 +84,11 @@
             "general.delegation.token.lifetime": "7d",
             "general.delegation.token.update.interval": "1d"
           }
+        },
+        {
+          "client": {
+            "kerberos.server.primary": "{{bare_accumulo_principal}}"
+          }
         }
       ],
       "components": [

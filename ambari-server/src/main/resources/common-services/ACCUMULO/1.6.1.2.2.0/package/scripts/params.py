@@ -23,6 +23,7 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.get_bare_principal import get_bare_principal
 from resource_management.libraries.script.script import Script
 
 import status_params
@@ -142,6 +143,7 @@ accumulo_principal_name = config['configurations']['accumulo-env']['accumulo_pri
 # kinit properties
 kinit_path_local = status_params.kinit_path_local
 if security_enabled:
+  bare_accumulo_principal = get_bare_principal(config['configurations']['accumulo-site']['general.kerberos.principal'])
   kinit_cmd = format("{kinit_path_local} -kt {accumulo_user_keytab} {accumulo_principal_name};")
 else:
   kinit_cmd = ""
