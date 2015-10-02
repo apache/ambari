@@ -46,6 +46,7 @@
           <cardinality>1+</cardinality>
           <configuration-dependencies>
               <config-type>hiveserver2-site</config-type>
+              <config-type>hive-site</config-type>
           </configuration-dependencies>
         </component>
         <component>
