@@ -1347,6 +1347,12 @@
         }
       },
       "property-mapping": {
+        "hive.heapsize": {
+          "map-to": "hive.heapsize",
+          "from-catalog": "hive-site",
+          "to-catalog": "hive-env",
+          "required-services": ["HIVE"]
+        },
         "templeton.jar": {
           "from-catalog": "webhcat-site",
           "to-catalog": "webhcat-site",
