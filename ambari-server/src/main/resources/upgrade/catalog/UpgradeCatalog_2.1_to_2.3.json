@@ -408,6 +408,12 @@
           "from-catalog": "mapred-site",
           "to-catalog": "mapred-site",
           "default": "0.1"
+        },
+        "hive.heapsize": {
+          "map-to": "hive.heapsize",
+          "from-catalog": "hive-site",
+          "to-catalog": "hive-env",
+          "required-services": ["HIVE"]
         }
       }
     }
