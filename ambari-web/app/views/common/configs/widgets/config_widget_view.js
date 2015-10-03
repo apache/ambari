@@ -394,7 +394,10 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     var serviceName = this.get('config.serviceName');
     var serviceConfigs = this.get('controller.stepConfigs').findProperty('serviceName',serviceName).get('configs');
     configConditions.forEach(function(configCondition){
-      var ifCondition =  configCondition.get("if");
+      var ifStatement =  configCondition.get("if");
+      var splitIfCondition = ifStatement.split('===');
+      var ifCondition =  splitIfCondition[0];
+      var result = splitIfCondition[1] || "true";
       var conditionalConfigName = configCondition.get("configName");
       var conditionalConfigFileName = configCondition.get("fileName");
       var parseIfConditionVal = ifCondition;
@@ -409,7 +412,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
         }
       }, this);
 
-      var isConditionTrue =  Boolean(window.eval(parseIfConditionVal));
+      var isConditionTrue =  window.eval(JSON.stringify(parseIfConditionVal.trim())) === result.trim();
       var action = isConditionTrue ? configCondition.get("then") : configCondition.get("else");
       var valueAttributes = action.property_value_attributes;
       for (var key in valueAttributes) {

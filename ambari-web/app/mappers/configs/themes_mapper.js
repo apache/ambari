@@ -66,6 +66,7 @@ App.themesMapper = App.QuickDataMapper.create({
     "id": "name",
     "name": "name",
     "display_name": "display-name",
+    "depends_on": "depends-on",
     "sub_section_id": "sub_section_id"
   },
 

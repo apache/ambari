@@ -269,7 +269,7 @@
 
   <property>
     <name>ranger.ldap.ad.domain</name>
-    <display-name>Domain Name</display-name>
+    <display-name>Domain Name (AD specific)</display-name>
     <value>localhost</value>
     <description>AD domain, only used if Authentication method is AD</description>
     <value-attributes>
