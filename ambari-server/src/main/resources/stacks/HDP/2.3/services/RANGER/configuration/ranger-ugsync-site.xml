@@ -120,18 +120,12 @@
     <name>ranger.usersync.unix.group.file</name>
     <display-name>Group File</display-name>
     <value></value>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.unix.password.file</name>
     <display-name>Password File</display-name>
     <value></value>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
   </property>
 
   <property>
@@ -151,10 +145,6 @@
       <overridable>false</overridable>
       <entries>
         <entry>
-          <value></value>
-          <label>NONE</label>
-        </entry>
-        <entry>
           <value>org.apache.ranger.unixusersync.process.UnixUserGroupBuilder</value>
           <label>UNIX</label>
         </entry>
@@ -164,11 +154,7 @@
         </entry>
         <entry>
           <value>org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder</value>
-          <label>LDAP</label>
-        </entry>
-        <entry>
-          <value>org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder</value>
-          <label>AD</label>
+          <label>LDAP/AD</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -209,9 +195,6 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <description>Password for the account that can search for users.</description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
   </property>
 
   <property>
@@ -317,7 +300,7 @@
 
   <property>
     <name>ranger.usersync.group.searchenabled</name>
-    <display-name>Enable Group Sync (Group Search Filter)</display-name>
+    <display-name>Enable Group Sync</display-name>
     <value>false</value>
     <description>"# do we want to do ldapsearch to find groups instead of relying on user entry attributes
 # valid values: true, false
@@ -373,9 +356,6 @@
 # overrides value specified in ranger.usersync.ldap.searchBase,  ranger.usersync.ldap.user.searchbase
 # if a value is not specified, takes the value of  ranger.usersync.ldap.searchBase
 # if  ranger.usersync.ldap.searchBase is also not specified, takes the value of ranger.usersync.ldap.user.searchbase"</description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
   </property>
 
   <property>

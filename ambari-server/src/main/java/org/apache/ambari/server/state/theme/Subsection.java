@@ -172,6 +172,8 @@ public class Subsection {
     private String name;
     @JsonProperty("display-name")
     private String displayName;
+    @JsonProperty("depends-on")
+    private List<ConfigCondition> dependsOn;
 
     public String getName() {
       return name;
@@ -188,5 +190,14 @@ public class Subsection {
     public void setDisplayName(String displayName) {
       this.displayName = displayName;
     }
+
+    public List<ConfigCondition> getDependsOn() {
+      return dependsOn;
+    }
+
+    public void setDependsOn(List<ConfigCondition> dependsOn) {
+      this.dependsOn = dependsOn;
+    }
+
   }
 }
