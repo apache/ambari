@@ -2399,15 +2399,6 @@ describe('App.MainHostDetailsController', function () {
       expect(controller.get('deleteHiveMetaStore')).to.be.true;
       expect(controller.loadConfigs.calledWith('loadHiveConfigs')).to.be.true;
     });
-    it('HIVE_SERVER component', function () {
-      var data = {
-        componentName: 'HIVE_SERVER'
-      };
-      controller._doDeleteHostComponentSuccessCallback({}, {}, data);
-      expect(controller.get('_deletedHostComponentResult')).to.be.null;
-      expect(controller.get('deleteHiveMetaStore')).to.be.true;
-      expect(controller.loadConfigs.calledWith('loadHiveConfigs')).to.be.true;
-    });
     it('NIMBUS component', function () {
       var data = {
         componentName: 'NIMBUS'

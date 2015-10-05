@@ -433,7 +433,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       self.isServiceMetricsLoaded(function () {
         self.loadConfigs();
       });
-    } else if (['HIVE_METASTORE', 'HIVE_SERVER'].contains(data.componentName)) {
+    } else if (data.componentName == 'HIVE_METASTORE') {
       this.set('deleteHiveMetaStore', true);
       this.loadConfigs('loadHiveConfigs');
     } else if (data.componentName == 'NIMBUS') {
@@ -588,7 +588,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
         break;
       case 'HIVE_METASTORE':
-      case 'HIVE_SERVER':
         returnFunc = App.showConfirmationPopup(function () {
           self.set('hiveMetastoreHost', hostName);
           self.loadConfigs("loadHiveConfigs");
@@ -672,7 +671,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param {object} data
    * @param {object} opt
    * @param {object} params
-   * @method installNewComponentSuccessCallback
+   * @method installNewComponentSuccessCallbƒack
    */
   installNewComponentSuccessCallback: function (data, opt, params) {
     if (!data || !data.Requests || !data.Requests.id) {
