@@ -2177,6 +2177,16 @@ a:focus {
   .modal-body {
     min-height: 420px !important;
     overflow: hidden;
+    .corner-icon {
+      text-decoration: none;
+      .icon-save {
+        color: #555;
+      }
+    }
+    .export-graph-list {
+      top: auto;
+      right: 15px;
+    }
   }
 }
 
@@ -2299,8 +2309,30 @@ a:focus {
     z-index: 5;
   }
   .chart-title {
+    padding-right: 15px;
     text-align: center;
     font-size: small;
+  }
+  .corner-icon {
+    position: absolute;
+    right: 0;
+    bottom: -10px;
+    text-decoration: none;
+    i {
+      color: #555;
+    }
+  }
+  .export-graph-list-top {
+    position: absolute;
+    bottom: -5px;
+    display: block;
+    width: 100%;
+    height: 10px;
+  }
+  .export-graph-list {
+    top: auto;
+    right: -1px;
+    bottom: -65px;
   }
 }
 
@@ -2649,8 +2681,15 @@ table.graphs {
         left: -13px;
         top: -10px;
       }
-      .icon-edit{
+      .icon-edit, .icon-save {
         color: #555555;
+      }
+    }
+    .export-graph-list {
+      right: 3px;
+      li {
+        margin: 0;
+        height: auto;
       }
     }
     .thumbnail .hidden-info-general{
@@ -2792,47 +2831,49 @@ table.graphs {
       }
     }
 
-    .cluster-metrics .chart-container{
-      margin: 0px 10px 0px 10px;
-      .chart-y-axis{
-        margin-top: 10px;
+    .cluster-metrics {
+      position: relative;
+      .chart-container{
+        margin: 0px 10px 0px 10px;
+        .chart-y-axis{
+          margin-top: 10px;
+        }
+        .chart svg{
+          margin-right: 20px;
+        }
+        .rickshaw_legend{
+          padding-top: 3px;
+        }
+        .chart-legend {
+          top: 120px;
+          left:15px;
+          text-align: left;
+          z-index: 3;
+          ul >li{
+            max-height: 10px;
+          }
+        }
       }
-      .chart svg{
-        margin-right: 20px;
+      &> ul {
+        margin:0;
       }
-      .rickshaw_legend{
-        padding-top: 3px;
+      .alert {
+        padding: 0px;
+        font-size: 12px;
       }
-      .chart-legend {
-        top: 120px;
-        left:15px;
-        text-align: left;
-        z-index: 3;
-        ul >li{
-          max-height: 10px;
+      .thumbnail:hover {
+        cursor: move;
+        .corner-icon {
+          display:block;
+          text-decoration: none;
+          z-index: 9;
+        }
+        .caption {
+          margin-left: -6px;
         }
       }
     }
 
-    .cluster-metrics > ul {
-      margin:0;
-    }
-
-    .cluster-metrics .alert {
-      padding: 0px;
-      font-size: 12px;
-    }
-    .cluster-metrics .thumbnail:hover{
-      cursor: move;
-      .corner-icon{
-        display:block;
-        text-decoration: none;
-        z-index: 9;
-      }
-      .caption{
-        margin-left: -6px;
-      }
-    }
     .links {
       ul {
         margin: 0;

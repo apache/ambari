@@ -374,6 +374,7 @@ App.WidgetMixin = Ember.Mixin.create({
       Em.run.next(function(){
         App.tooltip(self.$(".corner-icon > .icon-copy"), {title: Em.I18n.t('common.clone')});
         App.tooltip(self.$(".corner-icon > .icon-edit"), {title: Em.I18n.t('common.edit')});
+        App.tooltip(self.$(".corner-icon > .icon-save"), {title: Em.I18n.t('common.export')});
       });
     }
   }.observes('isLoaded'),
