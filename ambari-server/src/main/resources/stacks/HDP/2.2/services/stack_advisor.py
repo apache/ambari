@@ -1006,14 +1006,21 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           validationItems.append({"config-name": prop_name,
                                   "item": self.getWarnItem(
                                   "If Ranger Hive Plugin is enabled."\
-                                  " {0} needs to be set to {1}".format(prop_name,prop_val))})
+                                  " {0} under hiveserver2-site needs to be set to {1}".format(prop_name,prop_val))})
         prop_name = 'hive.security.authenticator.manager'
         prop_val = "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
         if prop_name not in hive_server2 or hive_server2[prop_name] != prop_val:
           validationItems.append({"config-name": prop_name,
                                   "item": self.getWarnItem(
                                   "If Ranger Hive Plugin is enabled."\
-                                  " {0} needs to be set to {1}".format(prop_name,prop_val))})
+                                  " {0} under hiveserver2-site needs to be set to {1}".format(prop_name,prop_val))})
+        prop_name = 'hive.security.authorization.enabled'
+        prop_val = 'true'
+        if prop_name in hive_server2 and hive_server2[prop_name] != prop_val:
+          validationItems.append({"config-name": prop_name,
+                                  "item": self.getWarnItem(
+                                  "If Ranger Hive Plugin is enabled."\
+                                  " {0} under hiveserver2-site needs to be set to {1}".format(prop_name, prop_val))})
       ##Add stack validations for  Ranger plugin disabled.
       elif not ranger_plugin_enabled:
         prop_name = 'hive.security.authorization.manager'
@@ -1049,44 +1056,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     parentValidationProblems = super(HDP22StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hive_site = properties
     validationItems = []
-    #Adding Ranger Plugin logic here
-    ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
-    hive_env_properties = getSiteProperties(configurations, "hive-env")
-    ranger_plugin_enabled = hive_env_properties \
-                            and 'hive_security_authorization' in hive_env_properties \
-                            and hive_env_properties['hive_security_authorization'].lower() == 'ranger'
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    ##Add stack validations only if Ranger is enabled.
-    if ("RANGER" in servicesList):
-      ##Add stack validations for  Ranger plugin enabled.
-      if ranger_plugin_enabled:
-        prop_name = 'hive.security.authorization.enabled'
-        prop_val = 'true'
-        if hive_site and \
-            prop_name in hive_site and \
-          hive_site[prop_name] != prop_val:
-          validationItems.append({"config-name": prop_name,
-                                  "item": self.getWarnItem(
-                                    "If Ranger Hive Plugin is enabled." \
-                                    " {0} needs to be set to {1}".format(prop_name,prop_val))})
-
-        prop_name = 'hive.conf.restricted.list'
-        prop_vals = 'hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager'.split(',')
-        current_vals = []
-        if hive_site and prop_name in hive_site:
-          current_vals = hive_site[prop_name].split(',')
-
-        missing_vals = []
-
-        for val in prop_vals:
-          if not val in current_vals:
-            missing_vals.append(val)
-
-        if missing_vals:
-          validationItems.append({"config-name": prop_name,
-                                  "item": self.getWarnItem(
-                                  "If Ranger Hive Plugin is enabled." \
-                                  " {0} needs to contain {1}".format(prop_name, ','.join(missing_vals)))})
     stripe_size_values = [8388608, 16777216, 33554432, 67108864, 134217728, 268435456]
     stripe_size_property = "hive.exec.orc.default.stripe.size"
     if stripe_size_property in properties and \
