@@ -393,18 +393,30 @@ describe('App.UpgradeVersionBoxView', function () {
             Em.Object.create({
               status: 'INSTALLING'
             })
-          ]
+          ],
+          'controller.currentVersion': {
+            repository_version: '2.2.0'
+          },
+          'content.repositoryVersion': '2.2.1',
+          'controller.upgradeVersion': 'HDP-2.2.0',
+          'content.displayName': 'HDP-2.2.1'
         },
         setup: function () {
           this.isAccessibleMock.withArgs('ADMIN').returns(false);
         },
         expected: {
           status: 'INSTALL_FAILED',
-          isButton: true,
-          buttons: [],
+          isButtonGroup: true,
+          buttons: [{
+            text: Em.I18n.t('admin.stackVersions.version.reinstall'),
+            action: 'installRepoVersionConfirmation',
+            isDisabled: true
+          }],
+          text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
+          action: 'confirmUpgrade',
           isDisabled: true
         },
-        title: 'install failed, no admin access, request in progress, another installation running'
+        title: 'INSTALL_FAILED state, no admin access, request in progress, another installation running'
       },
       {
         inputData: {
@@ -417,46 +429,30 @@ describe('App.UpgradeVersionBoxView', function () {
             Em.Object.create({
               status: 'INSTALLING'
             })
-          ]
+          ],
+          'controller.currentVersion': {
+            repository_version: '2.2.0'
+          },
+          'content.repositoryVersion': '2.2.1',
+          'controller.upgradeVersion': 'HDP-2.2.0',
+          'content.displayName': 'HDP-2.2.1'
         },
         setup: function () {
           this.isAccessibleMock.withArgs('ADMIN').returns(false);
         },
         expected: {
           status: 'INSTALL_FAILED',
-          isButton: true,
-          buttons: [],
+          isButtonGroup: true,
+          buttons: [{
+            text: Em.I18n.t('admin.stackVersions.version.reinstall'),
+            action: 'installRepoVersionConfirmation',
+            isDisabled: true
+          }],
+          text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
+          action: 'confirmUpgrade',
           isDisabled: true
         },
-        title: 'install failed, no admin access, no requests in progress, another installation running'
-      },
-      {
-        inputData: {
-          'controller.currentVersion': {
-            repository_version: '2.2.0'
-          },
-          'content.repositoryVersion': '2.2.1',
-          'content.status': 'INSTALL_FAILED',
-          'controller.requestInProgress': false,
-          'parentView.repoVersions': [],
-          'isUpgradeAvailable': true
-        },
-        setup: function () {
-          this.isAccessibleMock.withArgs('ADMIN').returns(true);
-        },
-        expected: {
-          status: 'INSTALL_FAILED',
-          isButtonGroup: true,
-          buttons: [
-            {
-              text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-              action: 'installRepoVersionConfirmation',
-              isDisabled: false
-            }
-          ],
-          isDisabled: false
-        },
-        title: 'install failed version should be enabled to Upgrade'
+        title: 'INSTALL_FAILED state, no admin access, no requests in progress, another installation running'
       },
       {
         inputData: {
@@ -466,18 +462,30 @@ describe('App.UpgradeVersionBoxView', function () {
             Em.Object.create({
               status: 'OUT_OF_SYNC'
             })
-          ]
+          ],
+          'controller.currentVersion': {
+            repository_version: '2.2.0'
+          },
+          'content.repositoryVersion': '2.2.1',
+          'controller.upgradeVersion': 'HDP-2.2.0',
+          'content.displayName': 'HDP-2.2.1'
         },
         setup: function () {
           this.isAccessibleMock.withArgs('ADMIN').returns(true);
         },
         expected: {
           status: 'OUT_OF_SYNC',
-          isButton: true,
-          buttons: [],
+          isButtonGroup: true,
+          buttons: [{
+            text: Em.I18n.t('admin.stackVersions.version.reinstall'),
+            action: 'installRepoVersionConfirmation',
+            isDisabled: false
+          }],
+          text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
+          action: 'confirmUpgrade',
           isDisabled: false
         },
-        title: 'version out of sync, admin access, no requests in progress, no installation'
+        title: 'OUT_OF_SYNC state, admin access, no requests in progress, no installation'
       },
       {
         inputData: {
@@ -487,18 +495,30 @@ describe('App.UpgradeVersionBoxView', function () {
             Em.Object.create({
               status: 'OUT_OF_SYNC'
             })
-          ]
+          ],
+          'controller.currentVersion': {
+            repository_version: '2.2.0'
+          },
+          'content.repositoryVersion': '2.2.1',
+          'controller.upgradeVersion': 'HDP-2.2.0',
+          'content.displayName': 'HDP-2.2.1'
         },
         setup: function () {
           this.isAccessibleMock.withArgs('ADMIN').returns(true);
         },
         expected: {
           status: 'OUT_OF_SYNC',
-          isButton: true,
-          buttons: [],
+          isButtonGroup: true,
+          buttons: [{
+            text: Em.I18n.t('admin.stackVersions.version.reinstall'),
+            action: 'installRepoVersionConfirmation',
+            isDisabled: true
+          }],
+          text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
+          action: 'confirmUpgrade',
           isDisabled: true
         },
-        title: 'version out of sync, admin access, request in progress, no installation'
+        title: 'OUT_OF_SYNC state, admin access, request in progress, no installation'
       },
       {
         inputData: {
@@ -854,69 +874,6 @@ describe('App.UpgradeVersionBoxView', function () {
         view.set('content.status', item.status);
         expect(view.get('isRepoUrlsEditDisabled')).to.equal(item.isRepoUrlsEditDisabled);
       });
-    });
-  });
-
-  describe("#checkUpgradeAvailability()", function () {
-    beforeEach(function () {
-      sinon.stub(view, 'runUpgradeCheck', Em.K);
-    });
-    afterEach(function () {
-      view.runUpgradeCheck.restore();
-    });
-
-    it("status is INSTALLED", function () {
-      view.set('content.status', 'INSTALLED');
-      view.checkUpgradeAvailability();
-      expect(view.runUpgradeCheck.called).to.be.false;
-    });
-    it("status is INSTALL_FAILED", function () {
-      view.set('content.status', 'INSTALL_FAILED');
-      view.checkUpgradeAvailability();
-      expect(view.runUpgradeCheck.calledTwice).to.be.true;
-    });
-  });
-
-  describe("#runUpgradeCheck()", function () {
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
-    it("upgradeCheckInProgress is true", function () {
-      view.set('upgradeCheckInProgress', true);
-      view.runUpgradeCheck();
-      expect(App.ajax.send.called).to.be.false;
-      expect(view.get('upgradeCheckInProgress')).to.be.true;
-    });
-    it("upgradeCheckInProgress is false", function () {
-      view.set('upgradeCheckInProgress', false);
-      view.runUpgradeCheck();
-      expect(App.ajax.send.calledOnce).to.be.true;
-      expect(view.get('upgradeCheckInProgress')).to.be.true;
-    });
-  });
-
-  describe("#runUpgradeCheckSuccess()", function () {
-    it("check failed", function () {
-      view.runUpgradeCheckSuccess({items: [{UpgradeChecks: {status: 'FAIL'}}]});
-      expect(view.get('isUpgradeAvailable')).to.be.false;
-      expect(view.get('upgradeCheckInProgress')).to.be.false;
-    });
-    it("check passed", function () {
-      view.runUpgradeCheckSuccess({items: [{UpgradeChecks: {status: 'PASS'}}]});
-      expect(view.get('isUpgradeAvailable')).to.be.true;
-      expect(view.get('upgradeCheckInProgress')).to.be.false;
-    });
-  });
-
-  describe("#runUpgradeCheckError()", function () {
-    it("check failed", function () {
-      view.runUpgradeCheckError();
-      expect(view.get('isUpgradeAvailable')).to.be.false;
-      expect(view.get('upgradeCheckInProgress')).to.be.false;
     });
   });
 });

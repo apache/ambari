@@ -32,12 +32,6 @@ App.UpgradeVersionBoxView = Em.View.extend({
   PROGRESS_STATUS: 'IN_PROGRESS',
 
   /**
-   * flag that verify Upgrade availability when version in INSTALL_FAILED state
-   * @type {boolean}
-   */
-  isUpgradeAvailable: false,
-
-  /**
    * @type {boolean}
    */
   upgradeCheckInProgress: false,
@@ -132,7 +126,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('text', Em.I18n.t('common.current'));
       element.set('class', 'label label-success');
     }
-    else if (['INIT', 'INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status) && !this.get('isUpgradeAvailable')) {
+    else if (status === 'INIT') {
       element.set('isButton', true);
       element.set('text', Em.I18n.t('admin.stackVersions.version.installNow'));
       element.set('action', 'installRepoVersionConfirmation');
@@ -145,7 +139,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('action', 'showProgressPopup');
     }
     else if ((status === 'INSTALLED' && !this.get('isUpgrading')) ||
-             (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status) && this.get('isUpgradeAvailable'))) {
+             (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status))) {
       if (stringUtils.compareVersions(this.get('content.repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1) {
         var isDisabled = !App.isAccessible('ADMIN') || this.get('controller.requestInProgress') || isInstalling;
         element.set('isButtonGroup', true);
@@ -207,12 +201,10 @@ App.UpgradeVersionBoxView = Em.View.extend({
     'isUpgrading',
     'controller.requestInProgress',
     'parentView.repoVersions.@each.status',
-    'isUpgradeAvailable',
     'App.router.mainAdminStackAndUpgradeController.isSuspended'
   ),
 
   didInsertElement: function () {
-    this.checkUpgradeAvailability();
     App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});
     App.tooltip($('.hosts-tooltip'));
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
@@ -376,43 +368,5 @@ App.UpgradeVersionBoxView = Em.View.extend({
     App.router.get('mainHostController').filterByStack(displayName, state);
     App.router.get('mainHostController').set('showFilterConditionsFirstLoad', true);
     App.router.transitionTo('hosts.index');
-  },
-
-  /**
-   * when version in INSTALL_FAILED state it still could be upgraded if check passed
-   */
-  checkUpgradeAvailability: function () {
-    if (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(this.get('content.status'))) {
-      this.runUpgradeCheck();
-    }
-  }.observes('content.status'),
-
-  /**
-   * run Upgrade Check
-   */
-  runUpgradeCheck: function() {
-    if (App.get('supports.preUpgradeCheck') && !this.get('upgradeCheckInProgress')) {
-      App.ajax.send({
-        name: "admin.rolling_upgrade.pre_upgrade_check",
-        sender: this,
-        data: {
-          value: this.get('content.repositoryVersion'),
-          label: this.get('content.displayName')
-        },
-        success: "runUpgradeCheckSuccess",
-        error: "runUpgradeCheckError"
-      });
-      this.set('upgradeCheckInProgress', true);
-    }
-  },
-
-  runUpgradeCheckSuccess: function (data) {
-    this.set('isUpgradeAvailable', !data.items.someProperty('UpgradeChecks.status', 'FAIL'));
-    this.set('upgradeCheckInProgress', false);
-  },
-
-  runUpgradeCheckError: function() {
-    this.set('isUpgradeAvailable', false);
-    this.set('upgradeCheckInProgress', false);
   }
 });
