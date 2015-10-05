@@ -892,6 +892,7 @@ Em.I18n.translations = {
   'installer.step10.installStatus.installed':'Master services installed',
   'installer.step10.master.installedOn':'{0} installed on {1}',
   'installer.step10.startStatus.failed':'Starting services failed',
+  'installer.step10.startStatus.skipped':'Starting services skipped',
   'installer.step10.startStatus.passed':'All tests passed',
   'installer.step10.startStatus.started':'All services started',
   'installer.step10.installTime.seconds':'Install and start completed in {0} seconds',

@@ -345,6 +345,13 @@ describe('App.WizardStep10Controller', function () {
           ids: [3],
           r: false
         }
+      },
+      {
+        status: 'START_SKIPPED',
+        e: {
+          ids: [3],
+          r: false
+        }
       }
     ]);
     tests.forEach(function(test) {

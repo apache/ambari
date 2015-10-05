@@ -272,7 +272,7 @@ App.WizardStep9View = App.TableView.extend({
       this.set('resultMsg', this.get('controller.content.cluster.status') === 'START_SKIPPED' ? Em.I18n.t('installer.step9.status.skipStartSuccess') : Em.I18n.t('installer.step9.status.success'));
       this.set('resultMsgColor', 'alert-success');
     }
-  }.observes('controller.status', 'controller.startCallFailed','isHostHeartbeatLost'),
+  }.observes('controller.status', 'controller.content.cluster.status', 'controller.startCallFailed','isHostHeartbeatLost'),
 
   /**
    * Show popup with info about failed hosts
