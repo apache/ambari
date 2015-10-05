@@ -1236,6 +1236,11 @@
             <function>delete_storm_local_data</function>
           </task>
 
+          <task xsi:type="configure" summary="Updating nimbus.monitor.freq.secs">
+            <type>storm-site</type>
+            <set key="nimbus.monitor.freq.secs" value="120" />
+          </task>
+
           <task xsi:type="configure" summary="Converting nimbus.host into nimbus.seeds">
             <type>storm-site</type>
             <transfer operation="copy" from-key="nimbus.host" to-key="nimbus.seeds" coerce-to="yaml-array"/>

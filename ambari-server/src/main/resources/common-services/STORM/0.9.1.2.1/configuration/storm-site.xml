@@ -156,7 +156,7 @@
   </property>
   <property>
     <name>nimbus.monitor.freq.secs</name>
-    <value>10</value>
+    <value>120</value>
     <description>
       How often nimbus should wake up to check heartbeats and do reassignments. Note
        that if a machine ever goes down Nimbus will immediately wake up and take action.
