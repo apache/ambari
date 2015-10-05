@@ -17,7 +17,18 @@
 }}
 
 <div {{bindAttr class="view.isReady:hide:show :screensaver :no-borders :chart-container"}}></div>
-<div {{bindAttr class="view.isReady::hidden :time-label"}}>{{view.parentView.currentTimeState.name}}</div>
+<div {{bindAttr class="view.isReady::hidden :time-label"}}>
+  {{view.parentView.currentTimeState.name}}
+  {{#if view.parentView.graph.hasData}}
+    <a class="corner-icon pull-right" href="#" {{action toggleFormatsList target="view"}}>
+      <i class="icon-save"></i>
+    </a>
+    <ul class="export-graph-list pull-right dropdown-menu">
+      <li><a {{action exportGraphData view.parentView.graph.exportToCSVArgument target="view"}}>{{t common.csv}}</a></li>
+      <li><a {{action exportGraphData target="view"}}>{{t common.json}}</a></li>
+    </ul>
+  {{/if}}
+</div>
 {{#if view.isTimePagingEnable}}
   <div {{bindAttr class="view.leftArrowVisible:visibleArrow :arrow-left"}} {{action "switchTimeBack" target="view.parentView"}}></div>
 {{/if}}

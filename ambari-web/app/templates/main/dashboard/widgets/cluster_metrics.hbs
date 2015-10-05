@@ -23,6 +23,17 @@
           <i class="icon-remove-sign icon-large"></i>
       </a>
       <div class="caption span10">{{view.title}}</div>
+      {{#if view.isDataLoaded}}
+        {{#if view.childViews.firstObject.hasData}}
+          <a class="corner-icon span1" href="#" {{action toggleFormatsList target="view"}}>
+            <i class="icon-save"></i>
+          </a>
+          <ul class="export-graph-list pull-right dropdown-menu">
+            <li><a {{action exportGraphData view.exportToCSVArgument target="view"}}>{{t common.csv}}</a></li>
+            <li><a {{action exportGraphData target="view"}}>{{t common.json}}</a></li>
+          </ul>
+        {{/if}}
+      {{/if}}
 
       <div class="widget-content" >
         {{view view.content}}

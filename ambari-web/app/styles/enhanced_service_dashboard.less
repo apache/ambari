@@ -59,6 +59,9 @@
     .chart-container .alert {
       margin-bottom: 5px;
     }
+    .export-graph-list {
+      right: -5px;
+    }
   }
 }
 
@@ -202,58 +205,66 @@
 
 #widget_layout {
   .widget {
-    .thumbnail .corner-icon {
-      display: none;
-      .icon-remove-sign{
-        color: #000000;
-        text-shadow: #fff 0px 0px 15px;
-        position: absolute;
-        left: -7px;
-        top: -7px;
+    .thumbnail {
+      .corner-icon {
+        display: none;
+        .icon-remove-sign{
+          color: #000000;
+          text-shadow: #fff 0px 0px 15px;
+          position: absolute;
+          left: -7px;
+          top: -7px;
+        }
+        .icon-edit, .icon-copy, .icon-save {
+          color: #555555;
+          font-weight: bold;
+          text-shadow: #ffffff -8px 8px 10px;
+          background-color: rgba(255,255,255,0.6);
+          position: absolute;
+          padding: 5px 5px;
+        }
+        .icon-copy {
+          right: 45px;
+        }
+        .icon-edit {
+          right: 25px;
+        }
+        .icon-save {
+          right: 5px;
+        }
       }
-      .icon-edit,.icon-copy{
+      .export-graph-list {
+        right: -1px;
+      }
+      &:hover {
+        cursor: move;
+        .corner-icon{
+          display: block;
+          text-decoration: none;
+          z-index: 9;
+        }
+        .caption{
+          margin-left: -10px;
+        }
+      }
+      & .hidden-description{
+        display: none;
         color: #555555;
+        z-index: 7;
+        font-size: 12px;
         font-weight: bold;
-        text-shadow: #ffffff -8px 8px 10px;
-        background-color: rgba(255,255,255,0.6);
-        position: absolute;
-        padding: 5px 5px;
-      }
-      .icon-copy {
-        right: 25px;
-      }
-      .icon-edit {
-        right: 5px;
-      }
-    }
-    .thumbnail:hover {
-      cursor: move;
-      .corner-icon{
-        display: block;
+        line-height: 18px;
+        text-align: center;
         text-decoration: none;
-        z-index: 9;
+        position: absolute;
+        top: 40px;
+        padding: 8px 5px;
+        width: 89%;
+        height: 62%;
+        overflow: scroll;
+        white-space: pre-line;
+        background: rgba(255,255,255, 0.7);
       }
-      .caption{
-        margin-left: -10px;
-      }
-    }
-    .thumbnail .hidden-description{
-      display: none;
-      color: #555555;
-      z-index: 7;
-      font-size: 12px;
-      font-weight: bold;
-      line-height: 18px;
-      text-align: center;
-      text-decoration: none;
-      position: absolute;
-      top: 40px;
-      padding: 8px 5px;
-      width: 89%;
-      height: 62%;
-      overflow: scroll;
-      white-space: pre-line;
-      background: rgba(255,255,255, 0.7);
     }
   }
   .thumbnail .chart-legend {
