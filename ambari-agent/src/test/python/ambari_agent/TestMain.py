@@ -80,7 +80,7 @@ class TestMain(unittest.TestCase):
   @patch("logging.basicConfig")
   def test_setup_logging(self, basicConfig_mock, rfh_mock, setLevel_mock, addHandler_mock):
     # Testing silent mode
-    main.setup_logging(False)
+    main.setup_logging(logging.getLogger(), '/var/log/ambari-agent/ambari-agent.log', False)
     self.assertTrue(addHandler_mock.called)
     setLevel_mock.assert_called_with(logging.INFO)
 
@@ -88,7 +88,7 @@ class TestMain(unittest.TestCase):
     setLevel_mock.reset_mock()
 
     # Testing verbose mode
-    main.setup_logging(True)
+    main.setup_logging(logging.getLogger(), '/var/log/ambari-agent/ambari-agent.log', True)
     self.assertTrue(addHandler_mock.called)
     setLevel_mock.assert_called_with(logging.DEBUG)
 

@@ -202,6 +202,13 @@ class AmbariConfig:
       return os.path.join(os.environ['AMBARI_AGENT_LOG_DIR'], "ambari-agent.log")
     else:
       return os.path.join(os.sep, "var", "log", "ambari-agent", "ambari-agent.log")
+    
+  @staticmethod
+  def getAlertsLogFile():
+    if 'AMBARI_ALERTS_AGENT_LOG_DIR' in os.environ:
+      return os.path.join(os.environ['AMBARI_ALERTS_AGENT_LOG_DIR'], "ambari-agent.log")
+    else:
+      return os.path.join(os.sep, "var", "log", "ambari-agent", "ambari-alerts.log")
 
   @staticmethod
   def getOutFile():

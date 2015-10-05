@@ -46,6 +46,7 @@ import HeartbeatHandlers
 from HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 logger = logging.getLogger()
+alerts_logger = logging.getLogger('ambari_alerts')
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
@@ -57,24 +58,20 @@ IS_LINUX = platform.system() == "Linux"
 SYSLOG_FORMAT_STRING = ' ambari_agent - %(filename)s - [%(process)d] - %(name)s - %(levelname)s - %(message)s'
 SYSLOG_FORMATTER = logging.Formatter(SYSLOG_FORMAT_STRING)
 
-
-def setup_logging(verbose):
+def setup_logging(logger, filename, verbose):
   formatter = logging.Formatter(formatstr)
-  rotateLog = logging.handlers.RotatingFileHandler(AmbariConfig.AmbariConfig.getLogFile(), "a", 10000000, 25)
+  rotateLog = logging.handlers.RotatingFileHandler(filename, "a", 10000000, 25)
   rotateLog.setFormatter(formatter)
   logger.addHandler(rotateLog)
       
   if verbose:
-    logging.basicConfig(format=formatstr, level=logging.DEBUG, filename=AmbariConfig.AmbariConfig.getLogFile())
+    logging.basicConfig(format=formatstr, level=logging.DEBUG, filename=filename)
     logger.setLevel(logging.DEBUG)
     logger.info("loglevel=logging.DEBUG")
   else:
-    logging.basicConfig(format=formatstr, level=logging.INFO, filename=AmbariConfig.AmbariConfig.getLogFile())
+    logging.basicConfig(format=formatstr, level=logging.INFO, filename=filename)
     logger.setLevel(logging.INFO)
     logger.info("loglevel=logging.INFO")
-    
-  global is_logger_setup
-  is_logger_setup = True
 
 def add_syslog_handler(logger):
     
@@ -236,9 +233,10 @@ def main(heartbeat_stop_callback=None):
 
   expected_hostname = options.expected_hostname
 
-  current_user = getpass.getuser()
-
-  setup_logging(options.verbose)
+  setup_logging(logger, AmbariConfig.AmbariConfig.getLogFile(), options.verbose)
+  global is_logger_setup
+  is_logger_setup = True
+  setup_logging(alerts_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), options.verbose)
 
   default_cfg = {'agent': {'prefix': '/home/ambari'}}
   config.load(default_cfg)

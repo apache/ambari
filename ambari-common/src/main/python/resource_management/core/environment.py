@@ -39,7 +39,7 @@ from resource_management.core.logger import Logger
 class Environment(object):
   _instances = []
 
-  def __init__(self, basedir=None, tmp_dir=None, test_mode=False, logging_level=logging.INFO):
+  def __init__(self, basedir=None, tmp_dir=None, test_mode=False, logger=None, logging_level=logging.INFO):
     """
     @param basedir: basedir/files, basedir/templates are the places where templates / static files
     are looked up
@@ -47,7 +47,9 @@ class Environment(object):
     """   
     self.reset(basedir, test_mode, tmp_dir)
     
-    if not Logger.logger:
+    if logger:
+      Logger.logger = logger
+    else:
       Logger.initialize_logger(__name__, logging_level)
 
   def reset(self, basedir, test_mode, tmp_dir):
