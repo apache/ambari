@@ -130,7 +130,7 @@
 
   <property>
     <name>ranger.usersync.sleeptimeinmillisbetweensynccycle</name>
-    <value>5</value>
+    <value>60</value>
     <description>Sleeptime interval in milliseconds, if &lt; 1000 then default to 30 sec</description>
   </property>
 
@@ -250,11 +250,14 @@
   <property>
     <name>ranger.usersync.ldap.user.searchfilter</name>
     <display-name>​User Search Filter</display-name>
-    <value>empty</value>
+    <value></value>
     <description>"optional additional filter constraining the users selected for syncing
 # a sample value would be (dept=eng)
 # please customize the value to suit your deployment
 # default value is empty"</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 
   <property>
