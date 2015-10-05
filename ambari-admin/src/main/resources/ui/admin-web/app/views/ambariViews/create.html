@@ -44,7 +44,7 @@
       <div class="form-group"
       ng-class="{'has-error' : ( (form.instanceCreateForm.instanceNameInput.$error.required || form.instanceCreateForm.instanceNameInput.$error.pattern) && form.instanceCreateForm.submitted) || instanceExists }"
       >
-        <label for="" class="control-label col-sm-3">Instance Name</label>
+        <label for="" class="control-label col-sm-3">Instance Name*</label>
         <div class="col-sm-9">
           <input type="text" class="form-control instancename-input" name="instanceNameInput" ng-pattern="nameValidationPattern" required ng-model="instance.instance_name" autocomplete="off">
 
@@ -61,7 +61,7 @@
       </div>
       <div class="form-group"
       ng-class="{'has-error' : ( (form.instanceCreateForm.displayLabel.$error.required || form.instanceCreateForm.displayLabel.$error.pattern) && form.instanceCreateForm.submitted)}">
-        <label for="" class="control-label col-sm-3">Display Name</label>
+        <label for="" class="control-label col-sm-3">Display Name*</label>
         <div class="col-sm-9">
           <input type="text" class="form-control instancelabel-input" name="displayLabel" ng-model="instance.label" required ng-pattern="/^([a-zA-Z0-9._\s]+)$/" autocomplete="off">
 
@@ -74,7 +74,7 @@
         </div>
       </div>
       <div class="form-group" ng-class="{'has-error' : form.instanceCreateForm.description.$error.required && form.instanceCreateForm.submitted }">
-        <label for="" class="control-label col-sm-3">Description</label>
+        <label for="" class="control-label col-sm-3">Description*</label>
         <div class="col-sm-9">
           <input type="text" class="form-control" name="description" ng-model="instance.description" maxlength="140" required>
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm.description.$error.required && form.instanceCreateForm.submitted'>
