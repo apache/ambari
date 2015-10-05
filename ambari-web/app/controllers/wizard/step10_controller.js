@@ -211,7 +211,8 @@ App.WizardStep10Controller = Em.Controller.extend({
    * @method loadStartedServices
    */
   loadStartedServices: function () {
-    if (this.get('content.cluster.status') === 'STARTED') {
+    var status = this.get('content.cluster.status');
+    if (status === 'STARTED') {
       this.get('clusterInfo').pushObject(Em.Object.create({
         id: 3,
         color: 'text-success',
@@ -225,6 +226,14 @@ App.WizardStep10Controller = Em.Controller.extend({
         status: []
       }));
       return true;
+    } else if (status === 'START_SKIPPED') {
+      this.get('clusterInfo').pushObject(Em.Object.create({
+        id: 3,
+        color: 'text-warning',
+        displayStatement: Em.I18n.t('installer.step10.startStatus.skipped'),
+        status: []
+      }));
+      return false
     } else {
       this.get('clusterInfo').pushObject(Em.Object.create({
         id: 3,
