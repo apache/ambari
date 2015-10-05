@@ -68,6 +68,26 @@ do_remove(){
   if [ -f "$PYTHON_WRAPER_TARGET" ]; then
     rm -f "$PYTHON_WRAPER_TARGET"
   fi
+  
+  if [ -d "$COMMON_DIR" ]; then
+    rm -f $COMMON_DIR
+  fi
+  
+  if [ -d "$RESOURCE_MANAGEMENT_DIR" ]; then
+    rm -rf $RESOURCE_MANAGEMENT_DIR
+  fi
+  
+  if [ -d "$JINJA_DIR" ]; then
+    rm -rf $JINJA_DIR
+  fi
+
+  if [ -d "$SIMPLEJSON_DIR" ]; then
+    rm -f $SIMPLEJSON_DIR
+  fi
+
+  if [ -d "$OLD_COMMON_DIR" ]; then
+    rm -f $OLD_COMMON_DIR
+  fi
 
   # if server package exists, restore their settings
   if [ -f "$INSTALL_HELPER_SERVER" ]; then  #  call server shared files installer

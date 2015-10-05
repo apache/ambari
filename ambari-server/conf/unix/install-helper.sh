@@ -22,6 +22,7 @@ RESOURCE_MANAGEMENT_DIR="/usr/lib/python2.6/site-packages/resource_management"
 JINJA_DIR="/usr/lib/python2.6/site-packages/ambari_jinja2"
 SIMPLEJSON_DIR="/usr/lib/python2.6/site-packages/ambari_simplejson"
 OLD_COMMON_DIR="/usr/lib/python2.6/site-packages/common_functions"
+AMBARI_SERVER="/usr/lib/python2.6/site-packages/ambari_server"
 INSTALL_HELPER_AGENT="/var/lib/ambari-agent/install-helper.sh"
 COMMON_DIR_SERVER="/usr/lib/ambari-server/lib/ambari_commons"
 RESOURCE_MANAGEMENT_DIR_SERVER="/usr/lib/ambari-server/lib/resource_management"
@@ -61,9 +62,33 @@ do_remove(){
     rm -f "$PYTHON_WRAPER_TARGET"
   fi
 
+  if [ -d "$COMMON_DIR" ]; then
+    rm -f $COMMON_DIR
+  fi
+
+  if [ -d "$RESOURCE_MANAGEMENT_DIR" ]; then
+    rm -f $RESOURCE_MANAGEMENT_DIR
+  fi
+
+  if [ -d "$JINJA_DIR" ]; then
+    rm -f $JINJA_DIR
+  fi
+
+  if [ -d "$SIMPLEJSON_DIR" ]; then
+    rm -f $SIMPLEJSON_DIR
+  fi
+
+  if [ -d "$OLD_COMMON_DIR" ]; then
+    rm -rf $OLD_COMMON_DIR
+  fi
+
+  if [ -d "$AMBARI_SERVER" ]; then
+    rm -rf "$AMBARI_SERVER"
+  fi
+
   # if server package exists, restore their settings
   if [ -f "$INSTALL_HELPER_AGENT" ]; then  #  call agent shared files installer
-      $INSTALL_HELPER_AGENT install
+    $INSTALL_HELPER_AGENT install
   fi
 }
 
