@@ -69,12 +69,10 @@ class TestHookAfterInstall(RMFTestCase):
                        config_dict = json_content)
 
 
-    self.assertResourceCalled("Execute",
-      "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E touch /var/lib/ambari-agent/data/hdp-select-set-all.performed ; " \
-      "ambari-sudo.sh /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^2.3 | tail -1`",
-      only_if = "ls -d /usr/hdp/2.3*",
-      not_if = "test -f /var/lib/ambari-agent/data/hdp-select-set-all.performed")
-
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^2.3 | tail -1` && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E touch /var/lib/ambari-agent/data/hdp-select-set-all.performed',
+        not_if = 'test -f /var/lib/ambari-agent/data/hdp-select-set-all.performed',
+        only_if = 'ls -d /usr/hdp/2.3*',
+    )
 
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
@@ -310,12 +308,10 @@ class TestHookAfterInstall(RMFTestCase):
                        config_dict = json_content)
 
 
-    self.assertResourceCalled("Execute",
-      "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E touch /var/lib/ambari-agent/data/hdp-select-set-all.performed ; " \
-      "ambari-sudo.sh /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^2.3 | tail -1`",
-      only_if = "ls -d /usr/hdp/2.3*",
-      not_if = "test -f /var/lib/ambari-agent/data/hdp-select-set-all.performed")
-
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^2.3 | tail -1` && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E touch /var/lib/ambari-agent/data/hdp-select-set-all.performed',
+        not_if = 'test -f /var/lib/ambari-agent/data/hdp-select-set-all.performed',
+        only_if = 'ls -d /usr/hdp/2.3*',
+    )
 
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
