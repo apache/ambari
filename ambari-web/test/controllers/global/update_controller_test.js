@@ -72,7 +72,7 @@ describe('App.UpdateController', function () {
       {
         title: 'No services exist',
         services: [],
-        result: []
+        result: ['metrics/1']
       },
       {
         title: 'HDFS service',
@@ -83,7 +83,7 @@ describe('App.UpdateController', function () {
             }
           }
         ],
-        result: []
+        result: ['metrics/1']
       },
       {
         title: 'FLUME service',
@@ -94,7 +94,7 @@ describe('App.UpdateController', function () {
             }
           }
         ],
-        result: ["host_components/processes/HostComponentProcess"]
+        result: ['metrics/1', "host_components/processes/HostComponentProcess"]
       },
       {
         title: 'YARN service',
@@ -105,7 +105,7 @@ describe('App.UpdateController', function () {
             }
           }
         ],
-        result: ["host_components/metrics/yarn/Queue," +
+        result: ['metrics/1', "host_components/metrics/yarn/Queue," +
         "host_components/metrics/yarn/ClusterMetrics/NumActiveNMs," +
         "host_components/metrics/yarn/ClusterMetrics/NumLostNMs," +
         "host_components/metrics/yarn/ClusterMetrics/NumUnhealthyNMs," +
@@ -121,7 +121,7 @@ describe('App.UpdateController', function () {
             }
           }
         ],
-        result: ["host_components/metrics/hbase/master/IsActiveMaster," +
+        result: ['metrics/1', "host_components/metrics/hbase/master/IsActiveMaster," +
         "host_components/metrics/hbase/master/MasterStartTime," +
         "host_components/metrics/hbase/master/MasterActiveTime," +
         "host_components/metrics/hbase/master/AverageLoad," +
@@ -136,9 +136,9 @@ describe('App.UpdateController', function () {
             }
           }
         ],
-        result: ["metrics/api/v1/cluster/summary," +
-                 "metrics/api/v1/topology/summary," +
-                 "metrics/api/v1/nimbus/summary"]
+        result: ['metrics/1', "metrics/api/v1/cluster/summary," +
+        "metrics/api/v1/topology/summary," +
+        "metrics/api/v1/nimbus/summary"]
       }
     ];
 
@@ -153,7 +153,7 @@ describe('App.UpdateController', function () {
           }
         ],
         stackVersionNumber: '2.1',
-        result: ["metrics/api/cluster/summary"]
+        result: ['metrics/1', "metrics/api/cluster/summary"]
       },
       {
         title: 'STORM service stack 2.2',
@@ -165,7 +165,7 @@ describe('App.UpdateController', function () {
           }
         ],
         stackVersionNumber: '2.2',
-        result: ["metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary"]
+        result: ['metrics/1', "metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary"]
       },
       {
         title: 'STORM service stack 2.3',
@@ -177,27 +177,44 @@ describe('App.UpdateController', function () {
           }
         ],
         stackVersionNumber: '2.3',
-        result: ["metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary,metrics/api/v1/nimbus/summary"]
+        result: ['metrics/1', "metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary,metrics/api/v1/nimbus/summary"]
       }
     ];
-    testCases.forEach(function(test){
+
+    beforeEach(function () {
+      this.mock = sinon.stub(App, 'get');
+      controller.set('serviceComponentMetrics', ['metrics/1']);
+    });
+    afterEach(function () {
+      this.mock.restore();
+    });
+    testCases.forEach(function (test) {
       it(test.title, function () {
         App.cache['services'] = test.services;
+        this.mock.withArgs('router.clusterController.isServiceMetricsLoaded').returns(true);
         expect(controller.getConditionalFields()).to.eql(test.result);
       });
     });
 
-    testCasesByStackVersion.forEach(function(test) {
-      it(test.title, function() {
+    testCasesByStackVersion.forEach(function (test) {
+      it(test.title, function () {
         App.cache['services'] = test.services;
-        sinon.stub(App, 'get', function(key) {
-          if (key == 'currentStackVersionNumber') {
-            return test.stackVersionNumber;
-          }
-        });
+        this.mock.withArgs('currentStackVersionNumber').returns(test.stackVersionNumber);
+        this.mock.withArgs('router.clusterController.isServiceMetricsLoaded').returns(true);
         expect(controller.getConditionalFields()).to.eql(test.result);
-        App.get.restore();
       });
+    });
+
+    it('FLUME service, first load', function () {
+      App.cache['services'] = [
+        {
+          ServiceInfo: {
+            service_name: 'FLUME'
+          }
+        }
+      ];
+      this.mock.withArgs('router.clusterController.isServiceMetricsLoaded').returns(false);
+      expect(controller.getConditionalFields()).to.eql(["host_components/processes/HostComponentProcess"]);
     });
   });
 
