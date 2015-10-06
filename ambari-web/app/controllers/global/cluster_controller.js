@@ -249,6 +249,8 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
           // service metrics loading doesn't affect overall progress
           updater.updateServiceMetric(function () {
             self.set('isServiceMetricsLoaded', true);
+            // make second call, because first is light since it doesn't request host-component metrics
+            updater.updateServiceMetric(Em.K);
             // components config loading doesn't affect overall progress
             updater.updateComponentConfig(function () {
               self.set('isComponentsConfigLoaded', true);

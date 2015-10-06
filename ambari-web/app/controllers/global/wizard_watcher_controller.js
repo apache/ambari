@@ -103,5 +103,9 @@ App.WizardWatcherController = Em.Controller.extend(App.UserPref, {
       this.set('wizardUser', data.userName);
       this.set('controllerName', data.controllerName);
     }
+  },
+
+  getUserPrefErrorCallback: function () {
+    this.resetUser();
   }
 });

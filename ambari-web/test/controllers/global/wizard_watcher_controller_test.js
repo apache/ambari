@@ -148,4 +148,17 @@ describe('App.wizardWatcherController', function () {
       expect(controller.get('controllerName')).to.equal('ctrl1');
     });
   });
+
+  describe("#getUserPrefErrorCallback()", function() {
+    beforeEach(function () {
+      sinon.stub(controller, 'resetUser', Em.K);
+    });
+    afterEach(function () {
+      controller.resetUser.restore();
+    });
+    it("reset wizard-data", function() {
+      controller.getUserPrefErrorCallback();
+      expect(controller.resetUser.calledOnce).to.be.true;
+    });
+  });
 });
