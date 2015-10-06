@@ -436,6 +436,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     } else if (data.componentName == 'HIVE_METASTORE') {
       this.set('deleteHiveMetaStore', true);
       this.loadConfigs('loadHiveConfigs');
+    } else if (data.componentName == 'HIVE_SERVER') {
+      this.set('deleteHiveServer', true);
+      this.loadConfigs('loadHiveConfigs');
     } else if (data.componentName == 'NIMBUS') {
       this.set('deleteNimbusHost', true);
       this.loadConfigs('loadStormConfigs');
@@ -671,7 +674,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param {object} data
    * @param {object} opt
    * @param {object} params
-   * @method installNewComponentSuccessCallbƒack
+   * @method installNewComponentSuccessCallback
    */
   installNewComponentSuccessCallback: function (data, opt, params) {
     if (!data || !data.Requests || !data.Requests.id) {
@@ -824,13 +827,16 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method loadHiveConfigs
    */
   loadHiveConfigs: function (data) {
-    App.ajax.send({
+    return App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
-        urlParams: '(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')|(type=webhcat-site&tag=' +
-        data.Clusters.desired_configs['webhcat-site'].tag + ')|(type=hive-env&tag=' + data.Clusters.desired_configs['hive-env'].tag +
-        ')|(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')'
+        urlParams: [
+          '(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')',
+          '(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')',
+          '(type=hive-env&tag=' + data.Clusters.desired_configs['hive-env'].tag + ')',
+          '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')'
+        ].join('|')
       },
       success: 'onLoadHiveConfigs'
     });
@@ -965,8 +971,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       this.set('hiveMetastoreHost', '');
     }
 
-    if (this.get('fromDeleteHost') || this.get('deleteHiveMetaStore')) {
+    if (this.get('fromDeleteHost') || this.get('deleteHiveMetaStore') || this.get('deleteHiveServer')) {
       this.set('deleteHiveMetaStore', false);
+      this.set('deleteHiveServer', false);
       this.set('fromDeleteHost', false);
       return hiveHosts.without(this.get('content.hostName'));
     }

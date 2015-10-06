@@ -800,7 +800,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
 
         // Install
         if(['HIVE_METASTORE', 'RANGER_KMS_SERVER', 'NIMBUS'].contains(component.get('componentName')) && !!selectedHost){
-          App.router.get('mainHostDetailsController').addComponent(
+          App.router.get('mainHostDetailsController').addComponentWithCheck(
             {
               context: component,
               selectedHost: selectedHost
