@@ -841,6 +841,16 @@ App.registerBoundHelper('statusIcon', Em.View.extend({
   },
 
   classNameBindings: ['iconClass'],
+  attributeBindings: ['data-original-title'],
+
+  didInsertElement: function () {
+    App.tooltip($(this.get('element')));
+  },
+
+  'data-original-title': function() {
+    return this.get('content').toCapital();
+  }.property('content'),
+
   /**
    * @type {string}
    */
