@@ -283,8 +283,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "FLUME") {
       finalJson = this.flumeMapper(item);
       finalJson.rand = Math.random();
-      App.store.load(App.FlumeService, finalJson);
       App.store.loadMany(App.FlumeAgent, finalJson.agentJsons);
+      App.store.load(App.FlumeService, finalJson);
     } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "YARN") {
       finalJson = this.yarnMapper(item);
       finalJson.rand = Math.random();
