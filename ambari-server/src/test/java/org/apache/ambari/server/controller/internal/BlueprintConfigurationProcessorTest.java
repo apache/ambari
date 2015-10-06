@@ -1427,11 +1427,13 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, String> oozieSiteProperties = new HashMap<String, String>();
     Map<String, String> oozieEnvProperties = new HashMap<String, String>();
     Map<String, String> coreSiteProperties = new HashMap<String, String>();
-
+    Map<String, String> yarnSiteProperties = new HashMap<String, String>();
+    
     configProperties.put("oozie-site", oozieSiteProperties);
     configProperties.put("oozie-env", oozieEnvProperties);
     configProperties.put("hive-env", oozieEnvProperties);
     configProperties.put("core-site", coreSiteProperties);
+    configProperties.put("yarn-site", yarnSiteProperties);
 
     oozieSiteProperties.put("oozie.base.url", expectedHostName);
     oozieSiteProperties.put("oozie.authentication.kerberos.principal", expectedHostName);
@@ -1444,6 +1446,8 @@ public class BlueprintConfigurationProcessorTest {
     oozieEnvProperties.put("oozie_permsize", "2048m");
 
     coreSiteProperties.put("hadoop.proxyuser.oozie.hosts", expectedHostName + "," + expectedHostNameTwo);
+    
+    oozieEnvProperties.put("yarn.nodemanager.resource.memory-mb", "2048m");
 
     Configuration clusterConfig = new Configuration(configProperties,
         Collections.<String, Map<String, Map<String, String>>>emptyMap());
@@ -1497,6 +1501,9 @@ public class BlueprintConfigurationProcessorTest {
       "1024m", oozieEnvProperties.get("oozie_heapsize"));
     assertEquals("oozie_permsize should have been included in exported configuration",
       "2048m", oozieEnvProperties.get("oozie_permsize"));
+    
+    assertEquals("yarn.nodemanager.resource.memory-mb should have been included in exported configuration",
+        "2048m", oozieEnvProperties.get("yarn.nodemanager.resource.memory-mb"));
 
   }
 
