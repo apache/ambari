@@ -448,7 +448,7 @@ class CheckHost(Script):
     print "Last Agent Env check started."
     hostInfo = HostInfo()
     last_agent_env_check_structured_output = { }
-    hostInfo.register(last_agent_env_check_structured_output)
+    hostInfo.register(last_agent_env_check_structured_output, False, False)
     print "Last Agent Env check completed successfully."
 
     return last_agent_env_check_structured_output

@@ -1314,6 +1314,494 @@ describe('App.WizardStep3Controller', function () {
     });
   });
 
+  describe('#parseHostCheckWarnings', function () {
+
+    beforeEach(function () {
+      sinon.stub(App, 'get', function (k) {
+        if ('testMode' === k) return false;
+        return Em.get(App, k);
+      });
+      sinon.stub(c, 'filterHostsData', function (k) {
+        return k;
+      });
+    });
+
+    afterEach(function () {
+      App.get.restore();
+      c.filterHostsData.restore();
+    });
+
+    it('no warnings if last_agent_env isn\'t specified', function () {
+      c.set('warnings', [
+        {}
+      ]);
+      c.set('warningsByHost', [
+        {},
+        {}
+      ]);
+      c.parseHostCheckWarnings({tasks: [
+        {Tasks: {host_name: 'c1'}}
+      ]});
+      expect(c.get('warnings')).to.eql([]);
+      expect(c.get('warningsByHost.length')).to.equal(1); // default group
+    });
+
+    Em.A([
+        {
+          m: 'parse stackFoldersAndFiles',
+          tests: Em.A([
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1',
+                         structured_out:{last_agent_env_check: {stackFoldersAndFiles: []}}
+                        }
+                }
+              ],
+              m: 'empty stackFoldersAndFiles',
+              e: {
+                warnings: [],
+                warningsByHost: [0]
+              }
+            },
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1',
+                         structured_out: {last_agent_env_check: {stackFoldersAndFiles: [{name: 'n1'}]}}
+                        }
+                }
+              ],
+              m: 'not empty stackFoldersAndFiles',
+              e: {
+                warnings: [
+                  {
+                    name: 'n1',
+                    hosts: ['c1'],
+                    onSingleHost: true,
+                    category: 'fileFolders'
+                  }
+                ],
+                warningsByHost: [1]
+              }
+            },
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1', structured_out:{last_agent_env_check: {stackFoldersAndFiles: [
+                  {name: 'n1'}
+                ]}}}},
+                {Tasks: {host_name: 'c2', structured_out: {last_agent_env_check: {stackFoldersAndFiles: [
+                  {name: 'n1'}
+                ]}}}}
+              ],
+              m: 'not empty stackFoldersAndFiles on two hosts',
+              e: {
+                warnings: [
+                  {
+                    name: 'n1',
+                    hosts: ['c1', 'c2'],
+                    onSingleHost: false,
+                    category: 'fileFolders'
+                  }
+                ],
+                warningsByHost: [1]
+              }
+            }
+          ])
+        },
+        {
+          m: 'parse hostHealth.liveServices',
+          tests: Em.A([
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1', structured_out: {last_agent_env_check: {hostHealth: []}}}}
+              ],
+              m: 'empty hostHealth',
+              e: {
+                warnings: [],
+                warningsByHost: [0]
+              }
+            },
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1', structured_out: {last_agent_env_check: {hostHealth: {liveServices: []}}}}}
+              ],
+              m: 'empty liveServices',
+              e: {
+                warnings: [],
+                warningsByHost: [0]
+              }
+            },
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1',
+                         structured_out: {last_agent_env_check: {hostHealth: {liveServices: [{status: 'Unhealthy', name: 'n1'}]}}}
+                        }
+                }
+              ],
+              m: 'not empty hostHealth.liveServices',
+              e: {
+                warnings: [
+                  {
+                    name: 'n1',
+                    hosts: ['c1'],
+                    onSingleHost: true,
+                    category: 'services'
+                  }
+                ],
+                warningsByHost: [1]
+              }
+            },
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1',
+                         structured_out:{last_agent_env_check: {hostHealth: {liveServices: [{status: 'Unhealthy', name: 'n1'}]}}}
+                        }
+                },
+
+                {Tasks: {host_name: 'c2',
+                         structured_out:{last_agent_env_check: {hostHealth: {liveServices: [{status: 'Unhealthy', name: 'n1'}]}}}
+                        }
+                }
+              ],
+              m: 'not empty hostHealth.liveServices on two hosts',
+              e: {
+                warnings: [
+                  {
+                    name: 'n1',
+                    hosts: ['c1', 'c2'],
+                    onSingleHost: false,
+                    category: 'services'
+                  }
+                ],
+                warningsByHost: [1, 1]
+              }
+            }
+          ])
+        },
+        {
+          m: 'parse existingUsers',
+          tests: Em.A([
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1',
+                         structured_out: {last_agent_env_check: {existingUsers: []}}
+                        }
+                }
+              ],
+              m: 'empty existingUsers',
+              e: {
+                warnings: [],
+                warningsByHost: [0]
+              }
+            },
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1',
+                         structured_out: {last_agent_env_check: {existingUsers: [{userName: 'n1'}]}}
+                        }
+                }
+              ],
+              m: 'not empty existingUsers',
+              e: {
+                warnings: [
+                  {
+                    name: 'n1',
+                    hosts: ['c1'],
+                    onSingleHost: true,
+                    category: 'users'
+                  }
+                ],
+                warningsByHost: [1]
+              }
+            },
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1',
+                         structured_out:{last_agent_env_check: {existingUsers: [{userName: 'n1'}]}}
+                        }
+                },
+                {Tasks: {host_name: 'c2',
+                         structured_out:{last_agent_env_check: {existingUsers: [{userName: 'n1'}]}}
+                        }
+                }
+              ],
+              m: 'not empty existingUsers on two hosts',
+              e: {
+                warnings: [
+                  {
+                    name: 'n1',
+                    hosts: ['c1', 'c2'],
+                    onSingleHost: false,
+                    category: 'users'
+                  }
+                ],
+                warningsByHost: [1, 1]
+              }
+            }
+          ])
+        },
+        {
+          m: 'parse alternatives',
+          tests: Em.A([
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1',
+                         structured_out:{last_agent_env_check: {alternatives: []}}
+                        }
+                }
+              ],
+              m: 'empty alternatives',
+              e: {
+                warnings: [],
+                warningsByHost: [0]
+              }
+            },
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1',
+                         structured_out: {last_agent_env_check: {alternatives: [{name: 'n1'}]}}
+                        }
+                }
+              ],
+              m: 'not empty alternatives',
+              e: {
+                warnings: [
+                  {
+                    name: 'n1',
+                    hosts: ['c1'],
+                    onSingleHost: true,
+                    category: 'alternatives'
+                  }
+                ],
+                warningsByHost: [1]
+              }
+            },
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1',
+                         structured_out:{last_agent_env_check: {alternatives: [{name: 'n1'}]}}
+                        }
+                },
+                {Tasks: {host_name: 'c2',
+                         structured_out:{last_agent_env_check: {alternatives: [{name: 'n1'}]}}
+                        }
+                }
+              ],
+              m: 'not empty alternatives on two hosts',
+              e: {
+                warnings: [
+                  {
+                    name: 'n1',
+                    hosts: ['c1', 'c2'],
+                    onSingleHost: false,
+                    category: 'alternatives'
+                  }
+                ],
+                warningsByHost: [1, 1]
+              }
+            }
+          ])
+        },
+        {
+          m: 'parse hostHealth.activeJavaProcs',
+          tests: Em.A([
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1',
+                         structured_out:{last_agent_env_check: {hostHealth: [], javaProcs: []}}
+                        }
+                }
+              ],
+              m: 'empty hostHealth',
+              e: {
+                warnings: [],
+                warningsByHost: [0]
+              }
+            },
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1', structured_out:{last_agent_env_check: {hostHealth: {activeJavaProcs: []}}}}}
+              ],
+              m: 'empty activeJavaProcs',
+              e: {
+                warnings: [],
+                warningsByHost: [0]
+              }
+            },
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1',
+                         structured_out:{last_agent_env_check: {hostHealth: {activeJavaProcs: [{pid: 'n1', command: ''}]}}}
+                        }
+                }
+              ],
+              m: 'not empty hostHealth.activeJavaProcs',
+              e: {
+                warnings: [
+                  {
+                    pid: 'n1',
+                    hosts: ['c1'],
+                    onSingleHost: true,
+                    category: 'processes'
+                  }
+                ],
+                warningsByHost: [1]
+              }
+            },
+            {
+              tasks: [
+                {Tasks: {host_name: 'c1',
+                         structured_out:{last_agent_env_check: {hostHealth: {activeJavaProcs: [{pid: 'n1', command: ''}]}}}
+                        }
+                },
+                {Tasks: {host_name: 'c2',
+                         structured_out:{last_agent_env_check: {hostHealth: {activeJavaProcs: [{pid: 'n1', command: ''}]}}}
+                        }
+                }
+              ],
+              m: 'not empty hostHealth.activeJavaProcs on two hosts',
+              e: {
+                warnings: [
+                  {
+                    pid: 'n1',
+                    hosts: ['c1', 'c2'],
+                    onSingleHost: false,
+                    category: 'processes'
+                  }
+                ],
+                warningsByHost: [1, 1]
+              }
+            }
+          ])
+        }
+      ]).forEach(function (category) {
+        describe(category.m, function () {
+          category.tests.forEach(function (test) {
+            it(test.m, function () {
+              c.parseHostCheckWarnings({tasks: test.tasks});
+              c.get('warnings').forEach(function (w, i) {
+                Em.keys(test.e.warnings[i]).forEach(function (k) {
+                  expect(w[k]).to.eql(test.e.warnings[i][k]);
+                });
+              });
+              for (var i in test.e.warningsByHost) {
+                if (test.e.warningsByHost.hasOwnProperty(i)) {
+                  expect(c.get('warningsByHost')[i].warnings.length).to.equal(test.e.warningsByHost[i]);
+                }
+              }
+            });
+          });
+        });
+      });
+
+    it('should parse umask warnings', function () {
+
+      var tasks = [
+        {Tasks: {host_name: 'c1', structured_out:{last_agent_env_check: {umask: 24}}}},
+        {Tasks: {host_name: 'c2', structured_out:{last_agent_env_check: {umask: 1}}}}
+      ];
+
+      c.parseHostCheckWarnings({tasks: tasks});
+      var warnings = c.get('warnings');
+      expect(warnings.length).to.equal(1);
+      expect(warnings[0].hosts).to.eql(['c1']);
+      expect(warnings[0].hostsLong).to.eql(['c1']);
+      expect(warnings[0].onSingleHost).to.equal(true);
+
+    });
+
+    it('should parse umask warnings (2)', function () {
+
+      var tasks = [
+        {Tasks: {host_name: 'c1', structured_out:{last_agent_env_check: {umask: 24}}}},
+        {Tasks: {host_name: 'c2', structured_out:{last_agent_env_check: {umask: 25}}}}
+      ];
+
+      c.parseHostCheckWarnings({tasks: tasks});
+      var warnings = c.get('warnings');
+      expect(warnings.length).to.equal(2);
+      expect(warnings.mapProperty('hosts')).to.eql([
+        ['c1'],
+        ['c2']
+      ]);
+
+    });
+
+    it('should parse firewall warnings', function () {
+
+      var tasks = [
+        {Tasks: {host_name: 'c1', structured_out:{last_agent_env_check: {firewallRunning: true, firewallName: "iptables"}}}},
+        {Tasks: {host_name: 'c2', structured_out:{last_agent_env_check: {firewallRunning: false, firewallName: "iptables"}}}}
+      ];
+
+      c.parseHostCheckWarnings({tasks: tasks});
+      var warnings = c.get('warnings');
+      expect(warnings.length).to.equal(1);
+      expect(warnings[0].hosts).to.eql(['c1']);
+      expect(warnings[0].hostsLong).to.eql(['c1']);
+      expect(warnings[0].onSingleHost).to.equal(true);
+
+    });
+
+    it('should parse firewall warnings (2)', function () {
+
+      var tasks = [
+        {Tasks: {host_name: 'c1', structured_out:{last_agent_env_check: {firewallRunning: true, firewallName: "iptables"}}}},
+        {Tasks: {host_name: 'c2', structured_out:{last_agent_env_check: {firewallRunning: true, firewallName: "iptables"}}}}
+      ];
+
+      c.parseHostCheckWarnings({tasks: tasks});
+      var warnings = c.get('warnings');
+      expect(warnings.length).to.equal(1);
+      expect(warnings[0].hosts).to.eql(['c1', 'c2']);
+      expect(warnings[0].hostsLong).to.eql(['c1', 'c2']);
+      expect(warnings[0].onSingleHost).to.equal(false);
+
+    });
+
+    it('should parse reverseLookup warnings', function () {
+
+      var tasks = [
+        {Tasks: {host_name: 'c1', structured_out:{last_agent_env_check: {reverseLookup: true}}}}
+      ];
+
+      c.parseHostCheckWarnings({tasks: tasks});
+      var warnings = c.get('warnings');
+      expect(warnings.length).to.equal(0);
+
+    });
+
+    it('should parse reverseLookup warnings (2)', function () {
+
+      var tasks = [
+        {Tasks: {host_name: 'c1', structured_out:{last_agent_env_check: {reverseLookup: false}}}}
+      ];
+
+      c.parseHostCheckWarnings({tasks: tasks});
+      var warnings = c.get('warnings');
+      expect(warnings.length).to.equal(1);
+      expect(warnings[0].hosts).to.eql(['c1']);
+      expect(warnings[0].hostsLong).to.eql(['c1']);
+      expect(warnings[0].onSingleHost).to.equal(true);
+
+    });
+
+    it('should parse reverseLookup warnings (3)', function () {
+
+      var tasks = [
+        {Tasks: {host_name: 'c1', structured_out:{last_agent_env_check: {reverseLookup: false}}}},
+        {Tasks: {host_name: 'c2', structured_out:{last_agent_env_check: {reverseLookup: false}}}}
+      ];
+
+      c.parseHostCheckWarnings({tasks: tasks});
+      var warnings = c.get('warnings');
+      expect(warnings.length).to.equal(1);
+      expect(warnings[0].hosts).to.eql(['c1', 'c2']);
+      expect(warnings[0].hostsLong).to.eql(['c1', 'c2']);
+      expect(warnings[0].onSingleHost).to.equal(false);
+
+    });
+  });
+
   describe('#parseWarnings', function () {
 
     beforeEach(function () {

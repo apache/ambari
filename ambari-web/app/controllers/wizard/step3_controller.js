@@ -71,6 +71,8 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
 
   registrationStartedAt: null,
 
+  hostCheckResult: null,
+
   requestId: 0,
 
   /**
@@ -1081,6 +1083,13 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
             installedPackages: installed_packages ? installed_packages : []
           };
         }));
+
+        console.log("Host check result available");
+        this.set("hostCheckResult", data); //store the data so that it can be used later on in the getHostInfo handling logic.
+        /**
+         * Still need to get host info for checks that the host check does not perform currently
+         * Such as the OS type check and the disk space check
+         * */
         this.getHostInfo();
       } else if (data.Requests.inputs.indexOf("host_resolution_check") != -1) {
         this.parseHostNameResolution(data);
@@ -1089,6 +1098,288 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     } else {
       this.getHostCheckTasks();
     }
+  },
+
+  parseHostCheckWarnings: function (data) {
+    data = App.get('testMode') ? data : this.filterHostsData(data);
+    var warnings = [];
+    var warning;
+    var hosts = [];
+    var warningCategories = {
+      fileFoldersWarnings: {},
+      packagesWarnings: {},
+      processesWarnings: {},
+      servicesWarnings: {},
+      usersWarnings: {},
+      alternativeWarnings: {}
+    };
+
+    var hostsPackagesData = this.get('hostsPackagesData');
+    data.tasks.sortPropertyLight('Tasks.host_name').forEach(function (_task) {
+      var hostName = _task.Tasks.host_name;
+      var host = {
+        name: hostName,
+        warnings: []
+      };
+
+      if (!_task.Tasks.structured_out || !_task.Tasks.structured_out.last_agent_env_check) {
+        console.log("last_agent_env is missing for " + hostName + ".  Skipping host check.");
+        return;
+      }
+
+      var lastAgentEnvCheck = _task.Tasks.structured_out.last_agent_env_check;
+
+      //parse all directories and files warnings for host
+      var stackFoldersAndFiles = lastAgentEnvCheck.stackFoldersAndFiles || [];
+      stackFoldersAndFiles.forEach(function (path) {
+        warning = warningCategories.fileFoldersWarnings[path.name];
+        if (warning) {
+          warning.hosts.push(hostName);
+          warning.hostsLong.push(hostName);
+          warning.onSingleHost = false;
+        } else {
+          warningCategories.fileFoldersWarnings[path.name] = warning = {
+            name: path.name,
+            hosts: [hostName],
+            hostsLong: [hostName],
+            category: 'fileFolders',
+            onSingleHost: true
+          };
+        }
+        host.warnings.push(warning);
+      }, this);
+
+      //parse all package warnings for host
+      var _hostPackagesData = hostsPackagesData.findProperty('hostName', hostName);
+
+      if (_hostPackagesData) {
+        _hostPackagesData.installedPackages.forEach(function (_package) {
+          warning = warningCategories.packagesWarnings[_package.name];
+          if (warning) {
+            warning.hosts.push(hostName);
+            warning.hostsLong.push(hostName);
+            warning.version = _package.version;
+            warning.onSingleHost = false;
+          } else {
+            warningCategories.packagesWarnings[_package.name] = warning = {
+              name: _package.name,
+              version: _package.version,
+              hosts: [hostName],
+              hostsLong: [hostName],
+              category: 'packages',
+              onSingleHost: true
+            };
+          }
+          host.warnings.push(warning);
+        }, this);
+      }
+
+      //parse all process warnings for host
+      var hostHealth = lastAgentEnvCheck.hostHealth;
+
+      var liveServices = null;
+      var javaProcs = null;
+
+      if(hostHealth) {
+        if(hostHealth.activeJavaProcs)
+          javaProcs = hostHealth.activeJavaProcs;
+        if(hostHealth.liveServices)
+          liveServices = hostHealth.liveServices;
+      }
+
+      if (javaProcs) {
+        javaProcs.forEach(function (process) {
+          warning = warningCategories.processesWarnings[process.pid];
+          if (warning) {
+            warning.hosts.push(hostName);
+            warning.hostsLong.push(hostName);
+            warning.onSingleHost = false;
+          } else {
+            warningCategories.processesWarnings[process.pid] = warning = {
+              name: (process.command.substr(0, 35) + '...'),
+              hosts: [hostName],
+              hostsLong: [hostName],
+              category: 'processes',
+              user: process.user,
+              pid: process.pid,
+              command: '<table><tr><td style="word-break: break-all;">' +
+                ((process.command.length < 500) ? process.command : process.command.substr(0, 230) + '...' +
+                  '<p style="text-align: center">................</p>' +
+                  '...' + process.command.substr(-230)) + '</td></tr></table>',
+              onSingleHost: true
+            };
+          }
+          host.warnings.push(warning);
+        }, this);
+      }
+
+      //parse all service warnings for host
+      if (liveServices) {
+        liveServices.forEach(function (service) {
+          if (service.status === 'Unhealthy') {
+            warning = warningCategories.servicesWarnings[service.name];
+            if (warning) {
+              warning.hosts.push(hostName);
+              warning.hostsLong.push(hostName);
+              warning.onSingleHost = false;
+            } else {
+              warningCategories.servicesWarnings[service.name] = warning = {
+                name: service.name,
+                hosts: [hostName],
+                hostsLong: [hostName],
+                category: 'services',
+                onSingleHost: true
+              };
+            }
+            host.warnings.push(warning);
+          }
+        }, this);
+      }
+      //parse all user warnings for host
+      var existingUsers = lastAgentEnvCheck.existingUsers;
+      if (existingUsers) {
+        existingUsers.forEach(function (user) {
+          warning = warningCategories.usersWarnings[user.userName];
+          if (warning) {
+            warning.hosts.push(hostName);
+            warning.hostsLong.push(hostName);
+            warning.onSingleHost = false;
+          } else {
+            warningCategories.usersWarnings[user.userName] = warning = {
+              name: user.userName,
+              hosts: [hostName],
+              hostsLong: [hostName],
+              category: 'users',
+              onSingleHost: true
+            };
+          }
+          host.warnings.push(warning);
+        }, this);
+      }
+
+      //parse misc warnings for host
+      var umask = lastAgentEnvCheck.umask;
+      if (umask && umask > 23) {
+        warning = warnings.filterProperty('category', 'misc').findProperty('name', umask);
+        if (warning) {
+          warning.hosts.push(hostName);
+          warning.hostsLong.push(hostName);
+          warning.onSingleHost = false;
+        } else {
+          warning = {
+            name: umask,
+            hosts: [hostName],
+            hostsLong: [hostName],
+            category: 'misc',
+            onSingleHost: true
+          };
+          warnings.push(warning);
+        }
+        host.warnings.push(warning);
+      }
+
+      var firewallRunning = lastAgentEnvCheck.firewallRunning;
+      if (firewallRunning !== null && firewallRunning) {
+        var name = lastAgentEnvCheck.firewallName + " Running";
+        warning = warnings.filterProperty('category', 'firewall').findProperty('name', name);
+        if (warning) {
+          warning.hosts.push(hostName);
+          warning.hostsLong.push(hostName);
+          warning.onSingleHost = false;
+        } else {
+          warning = {
+            name: name,
+            hosts: [hostName],
+            hostsLong: [hostName],
+            category: 'firewall',
+            onSingleHost: true
+          };
+          warnings.push(warning);
+        }
+        host.warnings.push(warning);
+      }
+
+      if (lastAgentEnvCheck.alternatives) {
+        lastAgentEnvCheck.alternatives.forEach(function (alternative) {
+          warning = warningCategories.alternativeWarnings[alternative.name];
+          if (warning) {
+            warning.hosts.push(hostName);
+            warning.hostsLong.push(hostName);
+            warning.onSingleHost = false;
+          } else {
+            warningCategories.alternativeWarnings[alternative.name] = warning = {
+              name: alternative.name,
+              target: alternative.target,
+              hosts: [hostName],
+              hostsLong: [hostName],
+              category: 'alternatives',
+              onSingleHost: true
+            };
+          }
+          host.warnings.push(warning);
+        }, this);
+      }
+
+      if (lastAgentEnvCheck.reverseLookup === false) {
+        var name = Em.I18n.t('installer.step3.hostWarningsPopup.reverseLookup.name');
+        warning = warnings.filterProperty('category', 'reverseLookup').findProperty('name', name);
+        console.log("warning--"+warning);
+        if (warning) {
+          warning.hosts.push(hostName);
+          warning.hostsLong.push(hostName);
+          warning.onSingleHost = false;
+        } else {
+          warning = {
+            name: name,
+            hosts: [hostName],
+            hostsLong: [hostName],
+            category: 'reverseLookup',
+            onSingleHost: true
+          };
+          warnings.push(warning);
+        }
+        host.warnings.push(warning);
+      }
+      hosts.push(host);
+    }, this);
+
+    for (var categoryId in warningCategories) {
+      var category = warningCategories[categoryId];
+      for (var warningId in category) {
+        warnings.push(category[warningId]);
+      }
+    }
+
+    hosts.unshift({
+      name: 'All Hosts',
+      warnings: warnings
+    });
+    this.set('warnings', warnings);
+    this.set('warningsByHost', hosts);
+  },
+
+  /**
+   * Filter data for warnings parse
+   * is data from host in bootStrap
+   * @param {object} data
+   * @return {Object}
+   * @method filterBootHosts
+   */
+  filterHostsData: function (data) {
+    var bootHostNames = {};
+    this.get('bootHosts').forEach(function (bootHost) {
+      bootHostNames[bootHost.get('name')] = true;
+    });
+    var filteredData = {
+      href: data.href,
+      tasks: []
+    };
+    data.tasks.forEach(function (_task) {
+      if (bootHostNames[_task.Tasks.host_name]) {
+        filteredData.tasks.push(_task);
+      }
+    });
+    return filteredData;
   },
 
   /**
@@ -1143,7 +1434,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @method getHostCheckTasksError
    */
   getHostCheckTasksError: function() {
-    console.warn("failed to cheek hostName resolution");
+    console.warn("failed to check hostName resolution");
     this.set('stopChecking', true);
   },
 
@@ -1160,7 +1451,15 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       thpWarnings = [], thpContext = [], thpHostsNames = [];
 
     // parse host checks warning
-    this.parseWarnings(jsonData);
+    var hostCheckResult = this.get("hostCheckResult");
+    if(hostCheckResult){
+      console.log("Parsing available host check result...");
+      this.parseHostCheckWarnings(hostCheckResult);
+      this.set("hostCheckResult", null);
+    } else {
+      console.log("Parsing host info result...");
+      this.parseWarnings(jsonData);
+    }
     this.set('isHostsWarningsLoaded', true);
     hosts.forEach(function (_host) {
       var host = (App.get('testMode')) ? jsonData.items[0] : jsonData.items.findProperty('Hosts.host_name', _host.name);
