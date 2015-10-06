@@ -74,13 +74,6 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
 App.SupportsDependentConfigs = Ember.Mixin.create({
 
   /**
-   * do not apply recommended value if user change value by himself.
-   */
-  keyUp: function() {
-    this.get('controller').removeCurrentFromDependentList(this.get('serviceConfig') || this.get('config'));
-  },
-
-  /**
    * method send request to check if some of dependent configs was changes
    * and in case there was changes shows popup with info about changed configs
    *
@@ -91,7 +84,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
     if (!config || !config.get('isValid')) return $.Deferred().resolve().promise();
     if (['mainServiceInfoConfigsController','wizardStep7Controller'].contains(this.get('controller.name'))) {
       var name = config.get('name');
-      var saveRecommended = (this.get('config.value') === this.get('config.recommendedValue'));
+      var saveRecommended = (config.get('value') === config.get('recommendedValue'));
       var controller = this.get('controller');
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
       var p = App.StackConfigProperty.find(App.config.configId(name, type));
@@ -172,10 +165,12 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
   placeholderBinding: 'serviceConfig.savedValue',
 
   onValueUpdate: function () {
-    var self = this;
-    delay(function(){
-      self.sendRequestRorDependentConfigs(self.get('serviceConfig'));
-    }, 500);
+    if ($(this.get('element')).is(':focus')) {
+      var self = this;
+      delay(function(){
+        self.sendRequestRorDependentConfigs(self.get('serviceConfig'));
+      }, 500);
+    }
   }.observes('serviceConfig.value'),
 
   //Set editDone true for last edited config text field parameter
@@ -213,10 +208,12 @@ App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverS
   placeholderBinding: 'serviceConfig.savedValue',
 
   onValueUpdate: function () {
-    var self = this;
-    delay(function(){
-      self.sendRequestRorDependentConfigs(self.get('serviceConfig'));
-    }, 500);
+    if ($(this.get('element')).is(':focus')) {
+      var self = this;
+      delay(function(){
+        self.sendRequestRorDependentConfigs(self.get('serviceConfig'));
+      }, 500);
+    }
   }.observes('serviceConfig.value'),
 
   templateName: require('templates/wizard/controls_service_config_textfield_with_unit')
@@ -273,10 +270,12 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
 
 
   onValueUpdate: function () {
-    var self = this;
-    delay(function(){
-      self.sendRequestRorDependentConfigs(self.get('serviceConfig'));
-    }, 500);
+    if ($(this.get('element')).is(':focus')) {
+      var self = this;
+      delay(function(){
+        self.sendRequestRorDependentConfigs(self.get('serviceConfig'));
+      }, 500);
+    }
   }.observes('serviceConfig.value'),
 
   valueBinding: 'serviceConfig.value',
