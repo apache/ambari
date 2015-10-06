@@ -90,8 +90,9 @@ public class LatestRepoCallable implements Callable<Void> {
         }
       }
     } catch (Exception e) {
-      LOG.error("Could not load the URI for stack " + stack.getName() + "-" +
-              stack.getVersion() + " from " + sourceUri + " (" + e.getMessage() + ")");
+      LOG.info("Could not load the URI for stack " + stack.getName() + "-" +
+              stack.getVersion() + " from " + sourceUri + " (" + e.getMessage() + ")" +
+              ". Using default repository values.");
       throw e;
     }
 
