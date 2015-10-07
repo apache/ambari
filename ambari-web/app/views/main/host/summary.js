@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.MainHostSummaryView = Em.View.extend({
+App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
 
   templateName: require('templates/main/host/summary'),
 
