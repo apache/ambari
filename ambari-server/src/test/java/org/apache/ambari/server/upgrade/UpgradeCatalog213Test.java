@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.upgrade;
 
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -27,6 +28,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,6 +48,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Assert;
@@ -93,12 +96,16 @@ public class UpgradeCatalog213Test {
   @Test
   public void testExecuteDMLUpdates() throws Exception {
     Method addMissingConfigs = UpgradeCatalog213.class.getDeclaredMethod("addMissingConfigs");
+    Method updateAMSConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateAMSConfigs");
 
     UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
         .addMockedMethod(addMissingConfigs)
+        .addMockedMethod(updateAMSConfigs)
         .createMock();
 
     upgradeCatalog213.addMissingConfigs();
+    expectLastCall().once();
+    upgradeCatalog213.updateAMSConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog213);
@@ -151,6 +158,103 @@ public class UpgradeCatalog213Test {
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog213.class).updateStormConfigs();
+    easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testUpdateAmsHbaseEnvContent() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    Method updateAmsHbaseEnvContent = UpgradeCatalog213.class.getDeclaredMethod("updateAmsHbaseEnvContent", String.class);
+    UpgradeCatalog213 upgradeCatalog213 = new UpgradeCatalog213(injector);
+    String oldContent = "export HBASE_CLASSPATH=${HBASE_CLASSPATH}\n" +
+            "\n" +
+            "# The maximum amount of heap to use, in MB. Default is 1000.\n" +
+            "export HBASE_HEAPSIZE={{hbase_heapsize}}\n" +
+            "\n" +
+            "{% if java_version &lt; 8 %}\n" +
+            "export HBASE_MASTER_OPTS=\" -XX:PermSize=64m -XX:MaxPermSize={{hbase_master_maxperm_size}} -Xms{{hbase_heapsize}} -Xmx{{hbase_heapsize}} -Xmn{{hbase_master_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly\"\n" +
+            "export HBASE_REGIONSERVER_OPTS=\"-XX:MaxPermSize=128m -Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}}\"\n" +
+            "{% else %}\n" +
+            "export HBASE_MASTER_OPTS=\" -Xms{{hbase_heapsize}} -Xmx{{hbase_heapsize}} -Xmn{{hbase_master_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly\"\n" +
+            "export HBASE_REGIONSERVER_OPTS=\" -Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}}\"\n" +
+            "{% endif %}\n";
+    String expectedContent = "export HBASE_CLASSPATH=${HBASE_CLASSPATH}\n" +
+            "\n" +
+            "# The maximum amount of heap to use, in MB. Default is 1000.\n" +
+            "export HBASE_HEAPSIZE={{hbase_heapsize}}m\n" +
+            "\n" +
+            "{% if java_version &lt; 8 %}\n" +
+            "export HBASE_MASTER_OPTS=\" -XX:PermSize=64m -XX:MaxPermSize={{hbase_master_maxperm_size}}m -Xms{{hbase_heapsize}}m -Xmx{{hbase_heapsize}}m -Xmn{{hbase_master_xmn_size}}m -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly\"\n" +
+            "export HBASE_REGIONSERVER_OPTS=\"-XX:MaxPermSize=128m -Xmn{{regionserver_xmn_size}}m -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{regionserver_heapsize}}m -Xmx{{regionserver_heapsize}}m\"\n" +
+            "{% else %}\n" +
+            "export HBASE_MASTER_OPTS=\" -Xms{{hbase_heapsize}}m -Xmx{{hbase_heapsize}}m -Xmn{{hbase_master_xmn_size}}m -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly\"\n" +
+            "export HBASE_REGIONSERVER_OPTS=\" -Xmn{{regionserver_xmn_size}}m -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{regionserver_heapsize}}m -Xmx{{regionserver_heapsize}}m\"\n" +
+            "{% endif %}\n";
+    String result = (String) updateAmsHbaseEnvContent.invoke(upgradeCatalog213, oldContent);
+    Assert.assertEquals(expectedContent, result);
+  }
+
+  @Test
+  public void testUpdateAmsEnvContent() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    Method updateAmsEnvContent = UpgradeCatalog213.class.getDeclaredMethod("updateAmsEnvContent", String.class);
+    UpgradeCatalog213 upgradeCatalog213 = new UpgradeCatalog213(injector);
+    String oldContent = "# AMS Collector heapsize\n" +
+            "export AMS_COLLECTOR_HEAPSIZE={{metrics_collector_heapsize}}\n";
+    String expectedContent = "# AMS Collector heapsize\n" +
+            "export AMS_COLLECTOR_HEAPSIZE={{metrics_collector_heapsize}}m\n";
+    String result = (String) updateAmsEnvContent.invoke(upgradeCatalog213, oldContent);
+    Assert.assertEquals(expectedContent, result);
+  }
+
+  @Test
+  public void testUpdateAmsConfigs() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Map<String, String> propertiesAmsEnv = new HashMap<String, String>() {
+      {
+        put("metrics_collector_heapsize", "512m");
+      }
+    };
+
+    final Map<String, String> propertiesAmsHbaseEnv = new HashMap<String, String>() {
+      {
+        put("hbase_regionserver_heapsize", "512m");
+        put("regionserver_xmn_size", "512m");
+        put("hbase_master_xmn_size", "512m");
+        put("hbase_master_maxperm_size", "512");
+      }
+    };
+
+    final Config mockAmsEnv = easyMockSupport.createNiceMock(Config.class);
+    final Config mockAmsHbaseEnv = easyMockSupport.createNiceMock(Config.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    expect(mockClusterExpected.getDesiredConfigByType("ams-env")).andReturn(mockAmsEnv).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("ams-hbase-env")).andReturn(mockAmsHbaseEnv).atLeastOnce();
+    expect(mockAmsEnv.getProperties()).andReturn(propertiesAmsEnv).atLeastOnce();
+    expect(mockAmsHbaseEnv.getProperties()).andReturn(propertiesAmsHbaseEnv).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog213.class).updateAMSConfigs();
     easyMockSupport.verifyAll();
   }
 

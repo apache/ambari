@@ -1983,13 +1983,13 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "ams-hbase-env": {
         "properties": {
-          "hbase_master_xmn_size": "128m",
-          "hbase_master_heapsize": "512m"
+          "hbase_master_xmn_size": "128",
+          "hbase_master_heapsize": "512"
         }
       },
       "ams-env": {
         "properties": {
-          "metrics_collector_heapsize": "512m",
+          "metrics_collector_heapsize": "512",
         }
       },
       "ams-hbase-site": {
@@ -2042,8 +2042,8 @@ class TestHDP22StackAdvisor(TestCase):
         ]
       }
     ]
-    expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '1408m'
-    expected["ams-env"]['properties']['metrics_collector_heapsize'] = '512m'
+    expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '1408'
+    expected["ams-env"]['properties']['metrics_collector_heapsize'] = '512'
 
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
@@ -2109,9 +2109,9 @@ class TestHDP22StackAdvisor(TestCase):
       }
 
     ]
-    expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '2432m'
-    expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '256m'
-    expected["ams-env"]['properties']['metrics_collector_heapsize'] = '640m'
+    expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '2432'
+    expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '256'
+    expected["ams-env"]['properties']['metrics_collector_heapsize'] = '640'
 
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
@@ -2131,29 +2131,29 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     # Embedded mode, 512m master heapsize, no splitpoints recommended
-    services["configurations"]['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512m'
+    services["configurations"]['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512'
     services["configurations"]['ams-hbase-site']['properties']['hbase.regionserver.global.memstore.lowerLimit'] = '0.3'
     services["configurations"]['ams-hbase-site']['properties']['hbase.hregion.memstore.flush.size'] = '134217728'
 
     expected['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'] = ' '
     expected['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = ' '
-    expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512m'
+    expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512'
 
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
     # Embedded mode, 4096m master heapsize, some splitpoints recommended
-    services["configurations"]['ams-hbase-env']['properties']['hbase_master_heapsize'] = '4096m'
+    services["configurations"]['ams-hbase-env']['properties']['hbase_master_heapsize'] = '4096'
     expected['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'] = \
       'jvm.JvmMetrics.MemHeapCommittedM,regionserver.Server.Increment_median'
     expected['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = ' '
-    expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '4096m'
+    expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '4096'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
     # Embedded mode, 8192m master heapsize, more splitpoints recommended
-    services["configurations"]['ams-hbase-env']['properties']['hbase_master_heapsize'] = '8192m'
-    expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '8192m'
+    services["configurations"]['ams-hbase-env']['properties']['hbase_master_heapsize'] = '8192'
+    expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '8192'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'].split(',')), 10)
     self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'].split(',')), 2)
@@ -2168,22 +2168,22 @@ class TestHDP22StackAdvisor(TestCase):
     ]
     services["configurations"]['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
     expected['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
-    expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512m'
+    expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512'
     # services["configurations"]['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'
     expected['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'
 
     # Distributed mode, low memory, no splitpoints recommended
-    services["configurations"]['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '512m'
+    services["configurations"]['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '512'
     expected['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'] = ' '
     expected['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = ' '
-    expected['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '512m'
-    expected['ams-hbase-env']['properties']['regionserver_xmn_size'] = '256m'
+    expected['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '512'
+    expected['ams-hbase-env']['properties']['regionserver_xmn_size'] = '256'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
     # Distributed mode, more memory, more splitpoints recommended
-    services["configurations"]['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '8192m'
-    expected['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '8192m'
+    services["configurations"]['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '8192'
+    expected['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '8192'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'].split(',')), 10)
     self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'].split(',')), 2)
