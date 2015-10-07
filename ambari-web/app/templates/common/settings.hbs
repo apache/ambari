@@ -17,20 +17,26 @@
 }}
 
 <div class="admin-user-settings">
-  <div>
+  <div class="setting-wrapper">
+    <h4>{{t app.settings.categories.general}}</h4>
+    <hr />
     <label>
       {{view Ember.Checkbox checkedBinding="view.isNotShowBgChecked" class="checkbox"}}
       {{t app.settings.notshowBgOperationsPopup}}
     </label>
   </div>
-  <div>
+  <div class="setting-wrapper">
+    <h4>{{t app.settings.categories.locale}}</h4>
+    <hr />
     <label>
       {{t app.settings.selectTimezone}}
-      {{view Em.Select
-        contentBinding="view.timezonesList"
-        selectionBinding="view.parentView.selectedTimezone"
-        class="group-select select-group-box"
-      }}
+        {{view Em.Select
+          contentBinding="view.timezonesList"
+          optionLabelPath="content.label"
+          optionValuePath="content.value"
+          selectionBinding="view.parentView.selectedTimezone"
+          class="group-select select-group-box"
+        }}
     </label>
   </div>
 </div>
