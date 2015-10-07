@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -27,13 +29,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -49,6 +50,7 @@ import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -66,6 +68,8 @@ import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import junit.framework.Assert;
 
 /**
  * RepositoryVersionResourceProvider tests.
@@ -440,6 +444,46 @@ public class RepositoryVersionResourceProviderTest {
     Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid, "2.4.2.0-2300"));
     Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid2, "2.1"));
   }
+
+  @Test
+  public void testCreateResourcesWithComponents() throws Exception {
+    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
+
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
+    properties.put(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID, new Gson().fromJson("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"1\"}]}]", Object.class));
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID, "HDP");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID, "pack1");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID, "1.1");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID, "1.1.1.1");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_COMPONENTS + "/HDFS", Arrays.asList("NAMENODE", "DATANODE"));
+    propertySet.add(properties);
+
+    final Predicate predicateStackName = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID).equals("HDP").toPredicate();
+    final Predicate predicateStackVersion = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID).equals("1.1").toPredicate();
+    final Request getRequest = PropertyHelper.getReadRequest("RepositoryVersions");
+    Assert.assertEquals(0, provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
+
+    final Request createRequest = PropertyHelper.getCreateRequest(propertySet, null);
+    provider.createResources(createRequest);
+
+    Set<Resource> resources = provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion));
+
+    Assert.assertEquals(1, resources.size());
+
+    Resource r = resources.iterator().next();
+
+    Assert.assertEquals(RepositoryType.PATCH,
+        r.getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_TYPE_PROPERTY_ID));
+
+    Object o = r.getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_COMPONENTS + "/HDFS");
+
+    Assert.assertTrue(Collection.class.isInstance(o));
+    Assert.assertTrue(((Collection) o).contains("NAMENODE"));
+    Assert.assertTrue(((Collection) o).contains("DATANODE"));
+  }
+
 
   @After
   public void after() {

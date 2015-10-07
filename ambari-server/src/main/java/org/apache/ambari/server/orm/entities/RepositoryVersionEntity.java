@@ -17,13 +17,19 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -38,6 +44,7 @@ import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.StringUtils;
@@ -97,11 +104,19 @@ public class RepositoryVersionEntity {
   @Column(name = "repositories")
   private String operatingSystems;
 
+  @Column(name = "repo_type", nullable = false, insertable = true, updatable = true)
+  @Enumerated(value = EnumType.STRING)
+  private RepositoryType type = RepositoryType.STANDARD;
+
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
   private Collection<ClusterVersionEntity> clusterVersionEntities;
 
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
   private Collection<HostVersionEntity> hostVersionEntities;
+
+  @ElementCollection(targetClass = Component.class)
+  @CollectionTable(name = "repo_version_component", joinColumns = @JoinColumn(name = "repo_version_id"))
+  private List<Component> components = new ArrayList<>();
 
   // ----- RepositoryVersionEntity -------------------------------------------------------
 
@@ -210,6 +225,20 @@ public class RepositoryVersionEntity {
     return new StackId(stack.getStackName(), stack.getStackVersion());
   }
 
+  /**
+   * @return the type
+   */
+  public RepositoryType getType() {
+    return type;
+  }
+
+  /**
+   * @param type the repo type
+   */
+  public void setType(RepositoryType type) {
+    this.type = type;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -280,4 +309,47 @@ public class RepositoryVersionEntity {
     }
     return false;
   }
+
+
+  /**
+   * Used to identify the components associated with a repository.
+   */
+  @Embeddable
+  public static class Component {
+    private String service;
+    private String component;
+    private int component_order;
+
+    public Component() {
+    }
+
+    public Component(String serviceName, String componentName, int order) {
+      service = serviceName;
+      component = componentName;
+      component_order = order;
+    }
+
+    public String getService() {
+      return service;
+    }
+
+    public String getComponent() {
+      return component;
+    }
+
+  }
+
+
+  /**
+   * @param components
+   */
+  public void setComponents(List<Component> components) {
+    // TODO Auto-generated method stub
+    this.components = components;
+  }
+
+  public List<Component> getComponents() {
+    return components;
+  }
+
 }

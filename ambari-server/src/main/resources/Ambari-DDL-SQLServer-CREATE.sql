@@ -643,7 +643,16 @@ CREATE TABLE repo_version (
   display_name VARCHAR(128) NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
   repositories VARCHAR(MAX) NOT NULL,
+  repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
   PRIMARY KEY CLUSTERED (repo_version_id)
+  );
+
+CREATE TABLE repo_version_component (
+  repo_version_id BIGINT NOT NULL,
+  service VARCHAR(255) NOT NULL,
+  component VARCHAR(255) NOT NULL,
+  component_order BIGINT NOT NULL,
+  PRIMARY KEY CLUSTERED (repo_version_id, service, component)
   );
 
 CREATE TABLE artifact (
@@ -850,6 +859,7 @@ ALTER TABLE servicecomponentdesiredstate ADD CONSTRAINT FK_scds_desired_stack_id
 ALTER TABLE servicedesiredstate ADD CONSTRAINT FK_sds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id);
 ALTER TABLE blueprint ADD CONSTRAINT FK_blueprint_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id);
 ALTER TABLE repo_version ADD CONSTRAINT FK_repoversion_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id);
+ALTER TABLE repo_version_component ADD CONSTRAINT FK_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version(repo_version_id);
 
 -- Kerberos
 CREATE TABLE kerberos_principal (

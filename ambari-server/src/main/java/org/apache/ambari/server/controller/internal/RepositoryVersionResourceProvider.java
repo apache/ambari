@@ -19,13 +19,14 @@ package org.apache.ambari.server.controller.internal;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
@@ -51,6 +52,7 @@ import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -59,8 +61,10 @@ import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 
 /**
  * Resource provider for repository versions resources.
@@ -75,6 +79,8 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   public static final String REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("RepositoryVersions", "repository_version");
   public static final String REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID       = PropertyHelper.getPropertyId("RepositoryVersions", "display_name");
   public static final String REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID       = PropertyHelper.getPropertyId("RepositoryVersions", "upgrade_pack");
+  public static final String REPOSITORY_VERSION_TYPE_PROPERTY_ID               = "RepositoryVersions/type";
+  public static final String REPOSITORY_VERSION_COMPONENTS                     = "RepositoryVersions/components";
   public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = new OperatingSystemResourceDefinition().getPluralName();
   public static final String SUBRESOURCE_REPOSITORIES_PROPERTY_ID              = new RepositoryResourceDefinition().getPluralName();
 
@@ -86,17 +92,16 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   };
 
   @SuppressWarnings("serial")
-  public static Set<String> propertyIds = new HashSet<String>() {
-    {
-      add(REPOSITORY_VERSION_ID_PROPERTY_ID);
-      add(REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
-      add(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID);
-      add(REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID);
-      add(REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID);
-      add(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID);
-      add(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
-    }
-  };
+  public static Set<String> propertyIds = Sets.newHashSet(
+      REPOSITORY_VERSION_ID_PROPERTY_ID,
+      REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
+      REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,
+      REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
+      REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID,
+      REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID,
+      SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID,
+      REPOSITORY_VERSION_TYPE_PROPERTY_ID,
+      REPOSITORY_VERSION_COMPONENTS);
 
   @SuppressWarnings("serial")
   public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
@@ -217,6 +222,22 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
       setResourceProperty(resource, REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, entity.getDisplayName(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID, entity.getUpgradePackage(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID, entity.getVersion(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_VERSION_TYPE_PROPERTY_ID, entity.getType(), requestedIds);
+
+      if (isPropertyRequested(REPOSITORY_VERSION_COMPONENTS, requestedIds)) {
+        Map<String, List<String>> map = new HashMap<>();
+
+        // !!! sort via ordering first?
+
+        for (RepositoryVersionEntity.Component comp : entity.getComponents()) {
+          if (!map.containsKey(comp.getService())) {
+            map.put(comp.getService(), new ArrayList<String>());
+          }
+          map.get(comp.getService()).add(comp.getComponent());
+        }
+
+        setResourceProperty(resource, REPOSITORY_VERSION_COMPONENTS, map, requestedIds);
+      }
 
       resources.add(resource);
     }
@@ -449,6 +470,31 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
     }
     entity.setOperatingSystems(operatingSystemsJson);
     entity.setUpgradePackage(repositoryVersionHelper.getUpgradePackageName(stackName, stackVersion, entity.getVersion()));
+
+
+    List<RepositoryVersionEntity.Component> components = null;
+    int i = 1;
+
+    for (Entry<String, Object> entry : properties.entrySet()) {
+      if (entry.getKey().startsWith(REPOSITORY_VERSION_COMPONENTS)) {
+        if (null == components) {
+          components = new ArrayList<>();
+        }
+
+        String serviceName = PropertyHelper.getPropertyName(entry.getKey());
+        Collection<String> componentNames = (Collection<String>) entry.getValue();
+
+        for (String componentName : componentNames) {
+          components.add(new RepositoryVersionEntity.Component(serviceName, componentName, i++));
+        }
+      }
+    }
+
+    if (null != components) {
+      entity.setType(RepositoryType.PATCH);
+      entity.setComponents(components);
+    }
+
     return entity;
   }
 
