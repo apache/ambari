@@ -208,7 +208,8 @@ def build_flume_topology(content):
     if 0 != len(rline) and not rline.startswith('#'):
       pair = rline.split('=')
       lhs = pair[0].strip()
-      rhs = pair[1].strip()
+      # workaround for properties that contain '='
+      rhs = "=".join(pair[1:]).strip()
 
       part0 = lhs.split('.')[0]
 
