@@ -478,6 +478,7 @@ var hdp2properties = [
   },
   {
     "name": "oozie_hostname",
+    "displayName": "Database Host",
     "displayType": "host",
     "serviceName": "OOZIE",
     "filename": "oozie-env.xml",
