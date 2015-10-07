@@ -19,6 +19,7 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import junit.framework.Assert;
+import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.IAnswer;
@@ -54,7 +55,7 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
   @Test(expected = KerberosKDCConnectionException.class)
   public void testOpenExceptionLdapUrlNotProvided() throws Exception {
     KerberosOperationHandler handler = new ADKerberosOperationHandler();
-    KerberosCredential kc = new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null);
+    PrincipalKeyCredential kc = new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD);
     Map<String, String> kerberosEnvMap = new HashMap<String, String>() {
       {
         put(ADKerberosOperationHandler.KERBEROS_ENV_PRINCIPAL_CONTAINER_DN, DEFAULT_PRINCIPAL_CONTAINER_DN);
@@ -67,7 +68,7 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
   @Test(expected = KerberosLDAPContainerException.class)
   public void testOpenExceptionPrincipalContainerDnNotProvided() throws Exception {
     KerberosOperationHandler handler = new ADKerberosOperationHandler();
-    KerberosCredential kc = new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null);
+    PrincipalKeyCredential kc = new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD);
     Map<String, String> kerberosEnvMap = new HashMap<String, String>() {
       {
         put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, DEFAULT_LDAP_URL);
@@ -92,7 +93,7 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
 
   @Test(expected = KerberosAdminAuthenticationException.class)
   public void testTestAdministratorCredentialsIncorrectAdminPassword() throws Exception {
-    KerberosCredential kc = new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, "wrong".toCharArray(), null);
+    PrincipalKeyCredential kc = new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, "wrong");
     Map<String, String> kerberosEnvMap = new HashMap<String, String>() {
       {
         put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, DEFAULT_LDAP_URL);
@@ -120,7 +121,7 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
 
   @Test(expected = KerberosAdminAuthenticationException.class)
   public void testTestAdministratorCredentialsIncorrectAdminPrincipal() throws Exception {
-    KerberosCredential kc = new KerberosCredential("wrong", DEFAULT_ADMIN_PASSWORD.toCharArray(), null);
+    PrincipalKeyCredential kc = new PrincipalKeyCredential("wrong", DEFAULT_ADMIN_PASSWORD);
     Map<String, String> kerberosEnvMap = new HashMap<String, String>() {
       {
         put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, DEFAULT_LDAP_URL);
@@ -148,7 +149,7 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
 
   @Test(expected = KerberosKDCConnectionException.class)
   public void testTestAdministratorCredentialsKDCConnectionException() throws Exception {
-    KerberosCredential kc = new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null);
+    PrincipalKeyCredential kc = new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD);
     Map<String, String> kerberosEnvMap = new HashMap<String, String>() {
       {
         put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, "invalid");
@@ -177,7 +178,7 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
 
   @Test
   public void testTestAdministratorCredentialsSuccess() throws Exception {
-    KerberosCredential kc = new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null);
+    PrincipalKeyCredential kc = new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD);
     Map<String, String> kerberosEnvMap = new HashMap<String, String>() {
       {
         put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, DEFAULT_LDAP_URL);
@@ -229,7 +230,7 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
 
   @Test
   public void testProcessCreateTemplateDefault() throws Exception {
-    KerberosCredential kc = new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null);
+    PrincipalKeyCredential kc = new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD);
     Map<String, String> kerberosEnvMap = new HashMap<String, String>() {
       {
         put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, DEFAULT_LDAP_URL);
@@ -338,7 +339,7 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
 
   @Test
   public void testProcessCreateTemplateCustom() throws Exception {
-    KerberosCredential kc = new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD.toCharArray(), null);
+    PrincipalKeyCredential kc = new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD);
     Map<String, String> kerberosEnvMap = new HashMap<String, String>() {
       {
         put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, DEFAULT_LDAP_URL);
@@ -475,7 +476,7 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
       containerDN = DEFAULT_PRINCIPAL_CONTAINER_DN;
     }
 
-    KerberosCredential credentials = new KerberosCredential(principal, password.toCharArray(), null);
+    PrincipalKeyCredential credentials = new PrincipalKeyCredential(principal, password);
     Map<String, String> kerberosEnvMap = new HashMap<String, String>();
 
     kerberosEnvMap.put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, ldapUrl);

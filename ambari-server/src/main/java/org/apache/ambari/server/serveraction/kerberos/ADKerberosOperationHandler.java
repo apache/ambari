@@ -21,7 +21,9 @@ package org.apache.ambari.server.serveraction.kerberos;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.velocity.VelocityContext;
@@ -116,25 +118,25 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    * <li>container_dn - DN of the container in ldap back end where principals would be created</li>
    * </il>
    *
-   * @param administratorCredentials a KerberosCredential containing the administrative credentials
-   *                                 for the relevant KDC
-   * @param realm                    a String declaring the default Kerberos realm (or domain)
-   * @param kerberosConfiguration    a Map of key/value pairs containing data from the kerberos-env configuration set
+   * @param administratorCredential a PrincipalKeyCredential containing the administrative credential
+   *                                for the relevant KDC
+   * @param realm                   a String declaring the default Kerberos realm (or domain)
+   * @param kerberosConfiguration   a Map of key/value pairs containing data from the kerberos-env configuration set
    * @throws KerberosKDCConnectionException       if a connection to the KDC cannot be made
    * @throws KerberosAdminAuthenticationException if the administrator credentials fail to authenticate
    * @throws KerberosRealmException               if the realm does not map to a KDC
    * @throws KerberosOperationException           if an unexpected error occurred
    */
   @Override
-  public void open(KerberosCredential administratorCredentials, String realm,
+  public void open(PrincipalKeyCredential administratorCredential, String realm,
                    Map<String, String> kerberosConfiguration) throws KerberosOperationException {
 
     if (isOpen()) {
       close();
     }
 
-    if (administratorCredentials == null) {
-      throw new KerberosAdminAuthenticationException("administrator credentials not provided");
+    if (administratorCredential == null) {
+      throw new KerberosAdminAuthenticationException("administrator credential not provided");
     }
     if (realm == null) {
       throw new KerberosRealmException("realm not provided");
@@ -159,7 +161,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosLDAPContainerException("principalContainerDn is not a valid LDAP name", e);
     }
 
-    setAdministratorCredentials(administratorCredentials);
+    setAdministratorCredential(administratorCredential);
     setDefaultRealm(realm);
     setKeyEncryptionTypes(translateEncryptionTypes(kerberosConfiguration.get(KERBEROS_ENV_ENCRYPTION_TYPES), "\\s+"));
 
@@ -422,13 +424,13 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    * @throws KerberosOperationException           if an unexpected error occurred
    */
   protected LdapContext createLdapContext() throws KerberosOperationException {
-    KerberosCredential administratorCredentials = getAdministratorCredentials();
+    PrincipalKeyCredential administratorCredential = getAdministratorCredential();
 
     Properties properties = new Properties();
     properties.put(Context.INITIAL_CONTEXT_FACTORY, LDAP_CONTEXT_FACTORY_CLASS);
     properties.put(Context.PROVIDER_URL, ldapUrl);
-    properties.put(Context.SECURITY_PRINCIPAL, administratorCredentials.getPrincipal());
-    properties.put(Context.SECURITY_CREDENTIALS, administratorCredentials.getPassword());
+    properties.put(Context.SECURITY_PRINCIPAL, administratorCredential.getPrincipal());
+    properties.put(Context.SECURITY_CREDENTIALS, String.valueOf(administratorCredential.getKey()));
     properties.put(Context.SECURITY_AUTHENTICATION, "simple");
     properties.put(Context.REFERRAL, "follow");
     properties.put("java.naming.ldap.factory.socket", TrustingSSLSocketFactory.class.getName());
@@ -446,7 +448,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     } catch (NamingException e) {
       String error = e.getMessage();
 
-      if ((error != null) && !error.isEmpty()) {
+      if (StringUtils.isEmpty(error)) {
         String message = String.format("Failed to communicate with the Active Directory at %s: %s", ldapUrl, e.getMessage());
         LOG.warn(message, e);
 
@@ -511,7 +513,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     String template;
     StringWriter stringWriter = new StringWriter();
 
-    if ((createTemplate == null) || createTemplate.isEmpty()) {
+    if (StringUtils.isEmpty(createTemplate)) {
       template = "{" +
           "\"objectClass\": [\"top\", \"person\", \"organizationalPerson\", \"user\"]," +
           "\"cn\": \"$principal_name\"," +
