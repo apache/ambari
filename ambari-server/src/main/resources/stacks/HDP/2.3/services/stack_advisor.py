@@ -255,6 +255,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
     putRangerAdminProperty = self.putProperty(configurations, "ranger-admin-site", services)
+    putRangerEnvProperty = self.putProperty(configurations, "ranger-env", services)
 
     if 'admin-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['admin-properties']['properties'])\
       and ('db_host' in services['configurations']['admin-properties']['properties']) and ('db_name' in services['configurations']['admin-properties']['properties']):
@@ -262,16 +263,32 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       rangerDbFlavor = services['configurations']["admin-properties"]["properties"]["DB_FLAVOR"]
       rangerDbHost =   services['configurations']["admin-properties"]["properties"]["db_host"]
       rangerDbName =   services['configurations']["admin-properties"]["properties"]["db_name"]
-      ranger_db_driver_dict = {
+      ranger_db_url_dict = {
         'MYSQL': {'ranger.jpa.jdbc.driver': 'com.mysql.jdbc.Driver', 'ranger.jpa.jdbc.url': 'jdbc:mysql://' + rangerDbHost + '/' + rangerDbName},
         'ORACLE': {'ranger.jpa.jdbc.driver': 'oracle.jdbc.driver.OracleDriver', 'ranger.jpa.jdbc.url': 'jdbc:oracle:thin:@/' + rangerDbHost + ':1521/' + rangerDbName},
         'POSTGRES': {'ranger.jpa.jdbc.driver': 'org.postgresql.Driver', 'ranger.jpa.jdbc.url': 'jdbc:postgresql://' + rangerDbHost + ':5432/' + rangerDbName},
         'MSSQL': {'ranger.jpa.jdbc.driver': 'com.microsoft.sqlserver.jdbc.SQLServerDriver', 'ranger.jpa.jdbc.url': 'jdbc:sqlserver://' + rangerDbHost + ';databaseName=' + rangerDbName},
         'SQLA': {'ranger.jpa.jdbc.driver': 'sap.jdbc4.sqlanywhere.IDriver', 'ranger.jpa.jdbc.url': 'jdbc:sqlanywhere:host=' + rangerDbHost + ';database=' + rangerDbName}
       }
-      rangerDbProperties = ranger_db_driver_dict.get(rangerDbFlavor, ranger_db_driver_dict['MYSQL'])
+      rangerDbProperties = ranger_db_url_dict.get(rangerDbFlavor, ranger_db_url_dict['MYSQL'])
       for key in rangerDbProperties:
         putRangerAdminProperty(key, rangerDbProperties.get(key))
+
+      if 'admin-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['admin-properties']['properties']) \
+        and ('db_host' in services['configurations']['admin-properties']['properties']):
+
+        rangerDbFlavor = services['configurations']["admin-properties"]["properties"]["DB_FLAVOR"]
+        rangerDbHost =   services['configurations']["admin-properties"]["properties"]["db_host"]
+        ranger_db_privelege_url_dict = {
+          'MYSQL': {'ranger_privelege_user_jdbc_url': 'jdbc:mysql://' + rangerDbHost},
+          'ORACLE': {'ranger_privelege_user_jdbc_url': 'jdbc:oracle:thin:@/' + rangerDbHost + ':1521'},
+          'POSTGRES': {'ranger_privelege_user_jdbc_url': 'jdbc:postgresql://' + rangerDbHost + ':5432'},
+          'MSSQL': {'ranger_privelege_user_jdbc_url': 'jdbc:sqlserver://' + rangerDbHost + ';'},
+          'SQLA': {'ranger_privelege_user_jdbc_url': 'jdbc:sqlanywhere:host=' + rangerDbHost + ';'}
+        }
+        rangerPrivelegeDbProperties = ranger_db_privelege_url_dict.get(rangerDbFlavor, ranger_db_privelege_url_dict['MYSQL'])
+        for key in rangerPrivelegeDbProperties:
+          putRangerEnvProperty(key, rangerPrivelegeDbProperties.get(key))
 
   def getServiceConfigurationValidators(self):
       parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
