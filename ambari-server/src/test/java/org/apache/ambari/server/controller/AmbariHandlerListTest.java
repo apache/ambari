@@ -22,6 +22,7 @@ import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
+import org.apache.ambari.server.security.SecurityHeaderFilter;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.Capture;
 import org.eclipse.jetty.server.Handler;
@@ -51,6 +52,7 @@ import static org.easymock.EasyMock.verify;
  */
 public class AmbariHandlerListTest {
 
+  private final SecurityHeaderFilter securityHeaderFilter = createNiceMock(SecurityHeaderFilter.class);
   private final AmbariPersistFilter persistFilter = createNiceMock(AmbariPersistFilter.class);
   private final DelegatingFilterProxy springSecurityFilter = createNiceMock(DelegatingFilterProxy.class);
 
@@ -66,9 +68,11 @@ public class AmbariHandlerListTest {
     expect(handler.getServer()).andReturn(server);
     handler.setServer(null);
 
+    Capture<FilterHolder> securityHeaderFilterCapture = new Capture<FilterHolder>();
     Capture<FilterHolder> persistFilterCapture = new Capture<FilterHolder>();
     Capture<FilterHolder> securityFilterCapture = new Capture<FilterHolder>();
 
+    handler.addFilter(capture(securityHeaderFilterCapture), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));
     handler.addFilter(capture(persistFilterCapture), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));
     handler.addFilter(capture(securityFilterCapture), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));
     handler.setAllowNullPathInfo(true);
@@ -83,6 +87,7 @@ public class AmbariHandlerListTest {
 
     Assert.assertTrue(handlers.contains(handler));
 
+    Assert.assertEquals(securityHeaderFilter, securityHeaderFilterCapture.getValue().getFilter());
     Assert.assertEquals(persistFilter, persistFilterCapture.getValue().getFilter());
     Assert.assertEquals(springSecurityFilter, securityFilterCapture.getValue().getFilter());
 
@@ -156,6 +161,7 @@ public class AmbariHandlerListTest {
     AmbariHandlerList handlerList = new AmbariHandlerList();
 
     handlerList.webAppContextProvider = new HandlerProvider(handler);
+    handlerList.securityHeaderFilter = securityHeaderFilter;
     handlerList.persistFilter = persistFilter;
     handlerList.springSecurityFilter = springSecurityFilter;
 
