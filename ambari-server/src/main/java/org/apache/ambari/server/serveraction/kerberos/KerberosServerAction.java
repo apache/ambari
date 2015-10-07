@@ -24,6 +24,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -341,7 +342,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
 
     if (commandParameters != null) {
       // Grab the relevant data from this action's command parameters map
-      KerberosCredential administratorCredential = kerberosHelper.getKDCCredentials();
+      PrincipalKeyCredential administratorCredential = kerberosHelper.getKDCAdministratorCredentials(getClusterName());
       String defaultRealm = getDefaultRealm(commandParameters);
       KDCType kdcType = getKDCType(commandParameters);
       String dataDirectoryPath = getDataDirectoryPath(commandParameters);
