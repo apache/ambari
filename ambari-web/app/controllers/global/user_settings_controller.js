@@ -18,6 +18,8 @@
 
 var App = require('app');
 
+var dateUtils = require('utils/date');
+
 /**
  * Controller for user settings
  * Allows to get them from persist and update them to the persist
@@ -47,10 +49,46 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
       },
       timezone: {
         name: prefix + 'timezone-' + loginName,
-        defaultValue: ''
+        defaultValue: dateUtils.detectUserTimezone()
       }
     };
   }.property('App.router.loginName'),
+
+  init: function () {
+    this.set('timezonesFormatted', this._parseTimezones());
+    this._super();
+  },
+
+  /**
+   *
+   * @private
+   * @method _parseTimezones
+   * @return {{utcOffset: number, label: string, value: string}[]}
+   */
+  _parseTimezones: function () {
+    return dateUtils.getAllTimezoneNames().map(function (timeZoneName) {
+      var zone = moment(new Date()).tz(timeZoneName);
+      var offset = zone.format('Z');
+      return {
+        utcOffset: zone.utcOffset(),
+        label: '(UTC' + offset + ') ' + timeZoneName,
+        value: timeZoneName
+      };
+    }).sort(function (zoneA, zoneB) {
+      if (zoneA.utcOffset === zoneB.utcOffset) {
+        if (zoneA.value === zoneB.value) {
+          return 0;
+        }
+        return zoneA.value < zoneB.value ? -1 : 1;
+      }
+      else {
+        if(zoneA.utcOffset === zoneB.utcOffset) {
+          return 0;
+        }
+        return zoneA.utcOffset < zoneB.utcOffset ? -1 : 1;
+      }
+    });
+  },
 
   /**
    * Load some user's setting from the persist
@@ -152,11 +190,11 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
     var self = this;
     var curValue = null;
     var keys = this.get('userSettingsKeys');
+    var timezonesFormatted = this.get('timezonesFormatted');
 
     this.dataLoading().done(function (response) {
       var initValue = JSON.parse(response[keys.show_bg.name]);
-      var initTimezone = JSON.parse(response[keys.timezone.name]);
-
+      var initTimezone = timezonesFormatted.findProperty('value', JSON.parse(response[keys.timezone.name]));
       return App.ModalPopup.show({
 
         header: Em.I18n.t('common.userSettings'),
@@ -172,9 +210,9 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
           }.observes('isNotShowBgChecked'),
 
           /**
-           * @type {string[]}
+           * @type {{label: string, value: string}}
            */
-          timezonesList: [''].concat(moment.tz.names())
+          timezonesList: timezonesFormatted
 
         }),
 
@@ -191,7 +229,7 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
           }
           if (!App.get('testMode')) {
             self.postUserPref('show_bg', curValue);
-            self.postUserPref('timezone', this.get('selectedTimezone'));
+            self.postUserPref('timezone', this.get('selectedTimezone.value'));
           }
           if (this.needsPageRefresh()) {
             location.reload();
