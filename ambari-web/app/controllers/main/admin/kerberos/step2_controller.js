@@ -19,7 +19,7 @@
 var App = require('app');
 require('controllers/wizard/step7_controller');
 
-App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
+App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCredentialsControllerMixin, {
   name: "kerberosWizardStep2Controller",
 
   isKerberosWizard: true,
@@ -35,6 +35,10 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
   servicesInstalled: false,
 
   addMiscTabToPage: false,
+
+  isStorePersisted: function() {
+    return this.get('wizardController.content.secureStoragePersisted');
+  }.property('wizardController.content.secureStoragePersisted'),
 
   /**
    * @type {boolean} true if test connection to hosts is in progress
@@ -93,6 +97,9 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
 
     this.filterConfigs(this.get('configs'));
+    if (App.get('supports.storeKDCCredentials') && !this.get('wizardController.skipClientInstall')) {
+      this.initilizeKDCStoreProperties(this.get('configs'));
+    }
     this.applyServicesConfigs(this.get('configs'), storedConfigs);
   },
 
@@ -136,8 +143,11 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
     if (this.get('isSubmitDisabled')) return false;
     this.set('isSubmitDisabled', true);
     var self = this;
-    this.deleteKerberosService().always(function (data) {
+    this.deleteKerberosService().always(function () {
       self.configureKerberos();
+      if (App.get('supports.storeKDCCredentials') && !self.get('wizardController.skipClientInstall')) {
+        self.createKDCCredentials(self.get('stepConfigs.0.configs'));
+      }
     });
   },
 

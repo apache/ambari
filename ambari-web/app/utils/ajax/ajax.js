@@ -791,6 +791,53 @@ var urls = {
     'mock': '/data/configuration/cluster_env_site.json'
   },
 
+  'credentials.store.info': {
+    'real': '/clusters/{clusterName}?fields=Clusters/credential_store_properties',
+    'mock': ''
+  },
+
+  'credentials.list': {
+    'real': '/clusters/{clusterName}/credentials',
+    'mock': ''
+  },
+
+  'credentials.get': {
+    'real': '/clusters/{clusterName}/credentials/{alias}',
+    'mock': ''
+  },
+
+  'credentials.create': {
+    'real': '/clusters/{clusterName}/credentials/{alias}',
+    'mock': '',
+    type: 'POST',
+    'format': function(data) {
+      return {
+        data: JSON.stringify({
+          Credential: data.resource
+        })
+      };
+    }
+  },
+
+  'credentials.update': {
+    'real': '/clusters/{clusterName}/credentials/{alias}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function(data) {
+      return {
+        data: JSON.stringify({
+          Credential: data.resource
+        })
+      };
+    }
+  },
+
+  'credentials.delete': {
+    'real': '/clusters/{clusterName}/credentials/{alias}',
+    'mock': '',
+    'type':'DELETE'
+  },
+
   'host.host_component.add_new_component': {
     'real': '/clusters/{clusterName}/hosts?Hosts/host_name={hostName}',
     'mock': '/data/wizard/deploy/poll_1.json',
