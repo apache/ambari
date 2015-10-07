@@ -20,7 +20,7 @@ limitations under the License.
 import status_params
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
-from functions import calc_xmn_from_xms
+from functions import calc_xmn_from_xms, ensure_unit_for_memory
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 
@@ -102,9 +102,9 @@ java64_home = config['hostLevelParams']['java_home']
 java_version = int(config['hostLevelParams']['java_version'])
 
 log_dir = config['configurations']['hbase-env']['hbase_log_dir']
-master_heapsize = config['configurations']['hbase-env']['hbase_master_heapsize']
+master_heapsize = ensure_unit_for_memory(config['configurations']['hbase-env']['hbase_master_heapsize'])
 
-regionserver_heapsize = config['configurations']['hbase-env']['hbase_regionserver_heapsize']
+regionserver_heapsize = ensure_unit_for_memory(config['configurations']['hbase-env']['hbase_regionserver_heapsize'])
 regionserver_xmn_max = config['configurations']['hbase-env']['hbase_regionserver_xmn_max']
 regionserver_xmn_percent = config['configurations']['hbase-env']['hbase_regionserver_xmn_ratio']
 regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)

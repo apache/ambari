@@ -51,8 +51,12 @@
   </property>
   <property>
     <name>metrics_collector_heapsize</name>
-    <value>512m</value>
+    <value>512</value>
     <description>Metrics Collector Heap Size</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
   </property>
   <property>
     <name>content</name>
@@ -78,7 +82,7 @@ export AMS_MONITOR_PID_DIR={{ams_monitor_pid_dir}}
 export AMS_HBASE_PID_DIR={{hbase_pid_dir}}
 
 # AMS Collector heapsize
-export AMS_COLLECTOR_HEAPSIZE={{metrics_collector_heapsize}}
+export AMS_COLLECTOR_HEAPSIZE={{metrics_collector_heapsize}}m
 
 # AMS Collector options
 export AMS_COLLECTOR_OPTS="-Djava.library.path=/usr/lib/ams-hbase/lib/hadoop-native"

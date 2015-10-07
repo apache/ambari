@@ -44,14 +44,14 @@ def to_number(s):
   except ValueError:
     return None
 
-def format_Xmx_size_to_bytes(value):
+def format_Xmx_size_to_bytes(value, default='b'):
   strvalue = str(value).lower()
   if len(strvalue) == 0:
     return 0
   modifier = strvalue[-1]
 
   if modifier == ' ' or modifier in "0123456789":
-    modifier = 'b'
+    modifier = default
 
   m = {
     modifier == 'b': b_bytes,
@@ -88,10 +88,10 @@ class FindSplitPointsForAMSRegions():
 
   def initialize_region_counts(self):
     try:
-      xmx_master_bytes = format_Xmx_size_to_bytes(self.ams_hbase_env['hbase_master_heapsize'])
+      xmx_master_bytes = format_Xmx_size_to_bytes(self.ams_hbase_env['hbase_master_heapsize'], 'm')
       xmx_region_bytes = 0
       if "hbase_regionserver_heapsize" in self.ams_hbase_env:
-        xmx_region_bytes = format_Xmx_size_to_bytes(self.ams_hbase_env['hbase_regionserver_heapsize'])
+        xmx_region_bytes = format_Xmx_size_to_bytes(self.ams_hbase_env['hbase_regionserver_heapsize'], 'm')
       xmx_bytes = xmx_master_bytes + xmx_region_bytes
       if self.mode == 'distributed':
         xmx_bytes = xmx_region_bytes
