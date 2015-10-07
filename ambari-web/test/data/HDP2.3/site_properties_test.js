@@ -25,7 +25,7 @@ describe('hdp2SiteProperties', function () {
    * @stackProperties: All the properties that are derived from stack definition
    */
   var stackProperties = siteProperties.filter(function(item){
-    return  (!(item.isRequiredByAgent === false || item.filename === 'alert_notification' || item.category === 'Ambari Principals'))
+    return  (!(item.isRequiredByAgent === false || item.filename === 'alert_notification' || item.category === 'Ambari Principals' || item.name === 'oozie_hostname'))
   });
 
   stackProperties.forEach(function(siteProperty){
