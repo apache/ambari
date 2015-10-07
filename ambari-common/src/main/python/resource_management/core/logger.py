@@ -37,10 +37,6 @@ class Logger:
   @staticmethod
   def initialize_logger(name='resource_management', logging_level=logging.INFO, format='%(asctime)s - %(message)s'):
     # set up logging (two separate loggers for stderr and stdout with different loglevels)
-    
-    if Logger.logger:
-      return
-    
     logger = logging.getLogger(name)
     logger.setLevel(logging_level)
     formatter = logging.Formatter(format)
