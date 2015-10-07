@@ -171,9 +171,11 @@ class Script(object):
     Sets up logging;
     Parses command parameters and executes method relevant to command type
     """
+    logger, chout, cherr = Logger.initialize_logger(__name__)
+    
     # parse arguments
     if len(sys.argv) < 7:
-     print "Script expects at least 6 arguments"
+     logger.error("Script expects at least 6 arguments")
      print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
      sys.exit(1)
 
@@ -186,7 +188,8 @@ class Script(object):
     Script.tmp_dir = sys.argv[6]
 
     logging_level_str = logging._levelNames[self.logging_level]
-    Logger.initialize_logger(__name__, logging_level=logging_level_str)
+    chout.setLevel(logging_level_str)
+    logger.setLevel(logging_level_str)
 
     # on windows we need to reload some of env variables manually because there is no default paths for configs(like
     # /etc/something/conf on linux. When this env vars created by one of the Script execution, they can not be updated
@@ -205,7 +208,7 @@ class Script(object):
             Script.passwords[get_path_from_configuration(k, Script.config)] = get_path_from_configuration(v, Script.config)
 
     except IOError:
-      Logging.logger.exception("Can not read json file with command parameters: ")
+      logger.exception("Can not read json file with command parameters: ")
       sys.exit(1)
 
     # Run class method depending on a command type
