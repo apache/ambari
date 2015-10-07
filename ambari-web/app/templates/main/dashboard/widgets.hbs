@@ -17,10 +17,10 @@
 }}
 {{#if view.isDataLoaded}}
 
-  <div id="widgets-options-menu" class="dropdown">
+  <div id="widgets-options-menu" class="dropdown btn-group pull-left">
     <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-        <span>Metric Actions</span>
-        <span class="caret"></span>
+      <span>{{t dashboard.widgets.actions.title}}</span>
+      <span class="caret"></span>
     </a>
     <ul class="dropdown-menu">
       <li class="dropdown-submenu add-widgets-text">
@@ -46,6 +46,8 @@
       </li>
     </ul>
   </div>
+  {{view view.timeRangeListView}}
+  <div class="clearfix"></div>
 
   <div class="dashboard-widgets-box">
     <div id="dashboard-widgets"  class="widgets-container">

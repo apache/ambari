@@ -39,6 +39,7 @@ require('views/common/rolling_restart_view');
 require('views/common/select_custom_date_view');
 require('views/common/metric');
 require('views/common/time_range');
+require('views/common/time_range_list');
 require('views/common/form/field');
 require('views/common/form/spinner_input_view');
 require('views/common/quick_view_link_view');

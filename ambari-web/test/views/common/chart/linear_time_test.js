@@ -93,7 +93,7 @@ describe('App.ChartLinearTimeView', function () {
         expect(App.ChartLinearTimeView.BytesFormatter(test.i)).to.equal(test.e);
       });
     });
-  }),
+  });
   describe('#PercentageFormatter', function() {
     var tests = [
       {m:'undefined to "0 %"',i:undefined,e:'0 %'},
@@ -207,6 +207,48 @@ describe('App.ChartLinearTimeView', function () {
       });
       services.yarnService = [];
     });
+  });
+
+  describe('#setCurrentTimeIndexFromParent', function () {
+
+    var view,
+      cases = [
+      {
+        isServiceWithEnhancedWidgets: false,
+        currentTimeIndex: 1,
+        title: 'service with enhanced widgets'
+      },
+      {
+        isServiceWithEnhancedWidgets: true,
+        currentTimeIndex: 2,
+        title: 'service without enhanced widgets'
+      },
+      {
+        currentTimeIndex: 2,
+        title: 'other view'
+      }
+    ];
+
+    beforeEach(function () {
+      view = App.ChartLinearTimeView.create({
+        controller: {},
+        parentView: {
+          currentTimeRangeIndex: 1,
+          parentView: {
+            currentTimeRangeIndex: 2
+          }
+        }
+      });
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        view.set('controller.isServiceWithEnhancedWidgets', item.isServiceWithEnhancedWidgets);
+        view.propertyDidChange('parentView.currentTimeRangeIndex');
+        expect(view.get('currentTimeIndex')).to.equal(item.currentTimeIndex);
+      });
+    });
+
   });
 });
 
