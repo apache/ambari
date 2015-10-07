@@ -1020,6 +1020,9 @@ Em.I18n.translations = {
   'admin.authentication.form.test.success':'The configuration passes the test',
   'admin.authentication.form.test.fail':'The configuration fails the test',
 
+
+  'admin.kerberos.credentials.store.hint.supported': 'When checked, Ambari will store the KDC Admin credentials so they are not required to be re-entered during future changes of services, hosts, and components.',
+  'admin.kerberos.credentials.store.hint.not.supported': 'Ambari is not configured for storing credentials',
   'admin.kerberos.wizard.configuration.note': 'This is the initial configuration created by Enable Kerberos wizard.',
   'admin.kerberos.wizard.header':'Enable Kerberos Wizard',
   'admin.kerberos.button.enable': 'Enable Kerberos',

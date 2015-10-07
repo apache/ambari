@@ -33,26 +33,36 @@
         {{#unless widget}} {{! configs with widgets should be shown only on the EnhancedConfigs tabs }}
           <div {{bindAttr class=":entry-row isHiddenByFilter:hide isOverridden:overridden-property hasCompareDiffs:overridden-property"}}>
             {{#if showLabel}}
-              <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
-                <label class="control-label">
-                  {{formatWordBreak displayName}}
-                  {{#if isSecureConfig}}
-                    <a href="javascript:void(null);"><i class="icon-lock" rel="tooltip" data-toggle="tooltip"
-                                                        title="security knob"></i></a>
-                  {{/if}}
-                  {{#if view.supportsHostOverrides}}
-                    {{#if isRestartRequired}}
-                      <i class="icon-refresh restart-required-property"
-                         rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
+              {{#unless rightSideLabel}}
+                <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
+                  <label class="control-label">
+                    {{formatWordBreak displayName}}
+                    {{#if isSecureConfig}}
+                      <a href="javascript:void(null);"><i class="icon-lock" rel="tooltip" data-toggle="tooltip"
+                                                          title="security knob"></i></a>
                     {{/if}}
-                  {{/if}}
-                </label>
-              </span>
+                    {{#if view.supportsHostOverrides}}
+                      {{#if isRestartRequired}}
+                        <i class="icon-refresh restart-required-property"
+                           rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
+                      {{/if}}
+                    {{/if}}
+                  </label>
+                </span>
+              {{else}}
+                <span class="control-group control-label-span"> </span>
+              {{/unless}}
             {{/if}}
             <div {{bindAttr class="showLabel:controls"}}>
               {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
               <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
                 {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
+                {{#if rightSideLabel}}
+                  <span {{bindAttr class="isEditable::muted"}}>{{formatWordBreak displayName}}</span>
+                {{/if}}
+                {{#if hintMessage}}
+                  <a class="icon-question-sign icon-blue" href="#" data-toggle="tooltip" {{bindAttr data-original-title="hintMessage"}}><a/>
+                {{/if}}
                 {{#if this.isComparison}}
                   {{#if controller.selectedConfigGroup.isDefault}}
                     <span

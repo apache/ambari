@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+var credentialsUtils = require('utils/credentials');
 
 App.KerberosWizardController = App.WizardController.extend(App.InstallComponent, {
 
@@ -58,7 +59,8 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
     services: [],
     advancedServiceConfig: null,
     serviceConfigProperties: [],
-    failedTask: null
+    failedTask: null,
+    secureStoragePersisted: null
   }),
 
   /**
@@ -249,6 +251,18 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
               self.set('stackConfigsLoaded', true);
             }, this);
           }
+        }
+      },
+      {
+        type: 'async',
+        callback: function() {
+          var self = this;
+          var dfd = $.Deferred();
+          credentialsUtils.isStorePersisted(App.get('clusterName')).then(function(isPersisted) {
+            self.set('content.secureStoragePersisted', isPersisted);
+            dfd.resolve();
+          });
+          return dfd.promise();
         }
       }
     ],
