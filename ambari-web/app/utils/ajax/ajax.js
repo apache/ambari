@@ -2749,6 +2749,13 @@ var ajax = Em.Object.extend({
 
   // A single instance of App.ModalPopup view
   modalPopup: null,
+
+  /**
+   * Upon error with one of these statuses modal should be displayed
+   * @type {Array}
+   */
+  statuses: ['500', '401', '407', '413'],
+
   /**
    * defaultErrorHandler function is referred from App.ajax.send function and App.HttpClient.defaultErrorHandler function
    * @jqXHR {jqXHR Object}
@@ -2759,15 +2766,14 @@ var ajax = Em.Object.extend({
   defaultErrorHandler: function (jqXHR, url, method, showStatus) {
     method = method || 'GET';
     var self = this;
+    showStatus = (Em.isNone(showStatus)) ? this.get('statuses') : [showStatus];
     try {
       var json = $.parseJSON(jqXHR.responseText);
       var message = json.message;
     } catch (err) {
     }
-    if (!showStatus) {
-      showStatus = 500;
-    }
-    if (jqXHR.status === showStatus && !this.get('modalPopup')) {
+
+    if (showStatus.contains(jqXHR.status) && !this.get('modalPopup')) {
       this.set('modalPopup', App.ModalPopup.show({
         header: Em.I18n.t('common.error'),
         secondary: false,
