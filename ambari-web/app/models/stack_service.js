@@ -364,6 +364,13 @@ App.StackService.configCategories = function () {
       break;
     case 'SQOOP':
       break;
+
+    case 'HAWQ':
+      serviceConfigCategories.pushObjects([
+        App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
+      ]);
+      break;
+
     default:
       serviceConfigCategories.pushObjects([
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
