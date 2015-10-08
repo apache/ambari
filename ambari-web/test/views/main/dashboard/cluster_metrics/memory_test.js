@@ -30,147 +30,7 @@ describe('App.ChartClusterMetricsMemory', function () {
 
   describe('#transformToSeries', function () {
 
-    var cases = [
-        {
-          isAmbariMetricsInstalled: true,
-          seriesData: [
-            [
-              {
-                x: 1000000000,
-                y: 262144
-              },
-              {
-                x: 1000001000,
-                y: 524288
-              }
-            ],
-            [
-              {
-                x: 1100000000,
-                y: 1048576
-              },
-              {
-                x: 1100001000,
-                y: 2097152
-              }
-            ]
-          ],
-          title: 'Ambari Metrics is installed'
-        },
-        {
-          isAmbariMetricsInstalled: false,
-          isAmbariMetricsAvailable: true,
-          isGangliaInstalled: false,
-          seriesData: [
-            [
-              {
-                x: 1000000000,
-                y: 262144
-              },
-              {
-                x: 1000001000,
-                y: 524288
-              }
-            ],
-            [
-              {
-                x: 1100000000,
-                y: 1048576
-              },
-              {
-                x: 1100001000,
-                y: 2097152
-              }
-            ]
-          ],
-          title: 'Ganglia is not installed, Ambari Metrics is available'
-        },
-        {
-          isAmbariMetricsInstalled: false,
-          isAmbariMetricsAvailable: true,
-          isGangliaInstalled: true,
-          seriesData: [
-            [
-              {
-                x: 1000000000,
-                y: 256
-              },
-              {
-                x: 1000001000,
-                y: 512
-              }
-            ],
-            [
-              {
-                x: 1100000000,
-                y: 1024
-              },
-              {
-                x: 1100001000,
-                y: 2048
-              }
-            ]
-          ],
-          title: 'Ganglia is installed, Ambari Metrics is available'
-        },
-        {
-          isAmbariMetricsInstalled: false,
-          isAmbariMetricsAvailable: false,
-          isGangliaInstalled: true,
-          seriesData: [
-            [
-              {
-                x: 1000000000,
-                y: 256
-              },
-              {
-                x: 1000001000,
-                y: 512
-              }
-            ],
-            [
-              {
-                x: 1100000000,
-                y: 1024
-              },
-              {
-                x: 1100001000,
-                y: 2048
-              }
-            ]
-          ],
-          title: 'Ganglia is installed, Ambari Metrics is not available'
-        },
-        {
-          isAmbariMetricsInstalled: false,
-          isAmbariMetricsAvailable: false,
-          isGangliaInstalled: false,
-          seriesData: [
-            [
-              {
-                x: 1000000000,
-                y: 256
-              },
-              {
-                x: 1000001000,
-                y: 512
-              }
-            ],
-            [
-              {
-                x: 1100000000,
-                y: 1024
-              },
-              {
-                x: 1100001000,
-                y: 2048
-              }
-            ]
-          ],
-          title: 'Ganglia is not installed, Ambari Metrics is not available'
-        }
-      ],
-      jsonData = {
+    var jsonData = {
         metrics: {
           memory: {
             Buffer: [
@@ -184,38 +44,35 @@ describe('App.ChartClusterMetricsMemory', function () {
           }
         }
       },
-      names = ['Buffer', 'Total'];
+      seriesData = [
+        [
+          {
+            x: 1000000000,
+            y: 262144
+          },
+          {
+            x: 1000001000,
+            y: 524288
+          }
+        ],
+        [
+          {
+            x: 1100000000,
+            y: 1048576
+          },
+          {
+            x: 1100001000,
+            y: 2097152
+          }
+        ]
+      ],
+      names = ['Buffer', 'Total'],
+      title = 'should transform data to series';
 
-    afterEach(function () {
-      App.StackService.find.restore();
-      App.Service.find.restore();
-    });
-
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        var stackServices = [],
-          services = [];
-        if (item.isAmbariMetricsAvailable) {
-          stackServices.push({
-            serviceName: 'AMBARI_METRICS'
-          });
-        }
-        if (item.isAmbariMetricsInstalled) {
-          services.push({
-            serviceName: 'AMBARI_METRICS'
-          });
-        }
-        if (item.isGangliaInstalled) {
-          services.push({
-            serviceName: 'GANGLIA'
-          });
-        }
-        sinon.stub(App.StackService, 'find').returns(stackServices);
-        sinon.stub(App.Service, 'find').returns(services);
+      it(title, function () {
         var series = view.transformToSeries(jsonData);
         expect(series.mapProperty('name')).to.eql(names);
-        expect(series.mapProperty('data')).to.eql(item.seriesData);
-      });
+        expect(series.mapProperty('data')).to.eql(seriesData);
     });
 
   });

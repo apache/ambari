@@ -2354,7 +2354,6 @@ Em.I18n.translations = {
   'dashboard.button.switch': 'Switch to classic dashboard',
   'dashboard.button.switchShort': 'Switch',
   'dashboard.button.reset': 'Reset all widgets to default ',
-  'dashboard.button.gangliaLink': 'View metrics in Ganglia',
   'dashboard.widgets.actions.title': 'Metric Actions',
   'dashboard.widgets.create': 'Create Widget',
   'dashboard.widgets.actions.browse': 'Browse Widgets',
