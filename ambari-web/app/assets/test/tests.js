@@ -115,6 +115,7 @@ var files = [
   'test/controllers/wizard/step5_test',
   'test/controllers/wizard/step6_test',
   'test/controllers/wizard/step7_test',
+  'test/controllers/wizard/step7/pre_install_checks_controller_test',
   'test/controllers/wizard/step8_test',
   'test/controllers/wizard/step9_test',
   'test/controllers/wizard/step10_test',

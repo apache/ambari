@@ -324,9 +324,18 @@ describe('App.InstallerStep7Controller', function () {
   });
 
   describe('#submit', function () {
-    it('should return undefined if submit disabled', function () {
+
+    beforeEach(function () {
+      sinon.stub(App, 'get').withArgs('supports.preInstallChecks').returns(false);
+    });
+
+    afterEach(function () {
+      App.get.restore();
+    });
+
+    it('should return false if submit disabled', function () {
       installerStep7Controller.set('isSubmitDisabled',true);
-      expect(installerStep7Controller.submit()).to.be.undefined;
+      expect(installerStep7Controller.submit()).to.be.false;
     });
     it('sumbit button should be unclicked if no configs', function () {
       installerStep7Controller.set('isSubmitDisabled',false);

@@ -119,6 +119,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   }.property('wizardController.stackConfigsLoaded', 'isAppliedConfigLoaded'),
 
   /**
+   * PreInstall Checks allowed only for Install
+   * @type {boolean}
+   */
+  supportsPreInstallChecks: function () {
+    return App.get('supports.preInstallChecks') && 'installerController' === this.get('content.controllerName');
+  }.property('App.supports.preInstallChecks', 'wizardController.name'),
+
+  /**
    * Number of errors in the configs in the selected service
    * @type {number}
    */
@@ -1414,22 +1422,33 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   submit: function () {
     if (this.get('isSubmitDisabled')) {
-      return;
+      return false;
     }
+    var preInstallChecksController = App.router.get('preInstallChecksController');
+    if (this.get('supportsPreInstallChecks')) {
+      if (preInstallChecksController.get('preInstallChecksWhereRun')) {
+        return this.postSubmit();
+      }
+      return preInstallChecksController.notRunChecksWarnPopup(this.postSubmit.bind(this));
+    }
+    return this.postSubmit();
+  },
+
+  postSubmit: function () {
     var self = this;
     this.set('submitButtonClicked', true);
     this.serverSideValidation().done(function() {
       self.serverSideValidationCallback();
     })
-    .fail(function (value) {
-      if ("invalid_configs" == value) {
-        self.set('submitButtonClicked', false);
-      } else {
-        // Failed due to validation mechanism failure.
-        // Should proceed with other checks
-        self.serverSideValidationCallback();
-      }
-    });
+      .fail(function (value) {
+        if ("invalid_configs" == value) {
+          self.set('submitButtonClicked', false);
+        } else {
+          // Failed due to validation mechanism failure.
+          // Should proceed with other checks
+          self.serverSideValidationCallback();
+        }
+      });
   },
 
   /**
@@ -1461,4 +1480,5 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }
     }
   }
+
 });

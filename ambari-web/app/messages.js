@@ -804,6 +804,13 @@ Em.I18n.translations = {
   'installer.step7.misc.notification.use_tls':'Use TLS',
   'installer.step7.misc.notification.use_ssl':'Use SSL',
 
+  'installer.step7.preInstallChecks':'Pre Install Checks',
+  'installer.step7.preInstallChecks.notRunChecksWarnPopup.header':'Skipping Pre Install Checks',
+  'installer.step7.preInstallChecks.notRunChecksWarnPopup.body':'Skipping Pre Install Checks is not recommended.',
+  'installer.step7.preInstallChecks.notRunChecksWarnPopup.primary':'Ignore and Proceed',
+  'installer.step7.preInstallChecks.notRunChecksWarnPopup.secondary':'Run Pre Install Checks',
+  'installer.step7.preInstallChecks.checksPopup.header':'Pre Install Checks',
+
 
   'installer.step8.header': 'Review',
   'installer.step8.body': 'Please review the configuration before installation',
