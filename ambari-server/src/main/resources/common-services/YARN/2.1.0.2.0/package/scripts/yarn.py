@@ -96,6 +96,9 @@ def yarn(name = None):
               recursive=True,
               cd_access="a",
               )
+    Execute(("chown", "-R", format("{mapred_user}:{user_group}"), params.jhs_leveldb_state_store_dir),
+            sudo = True,
+    )
 
   if name == "nodemanager":
 

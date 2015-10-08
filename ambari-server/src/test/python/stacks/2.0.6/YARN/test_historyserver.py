@@ -253,6 +253,9 @@ class TestHistoryServer(RMFTestCase):
       recursive = True,
       cd_access = 'a',
     )
+    self.assertResourceCalled('Execute', ('chown', '-R', u'mapred:hadoop', '/hadoop/mapreduce/jhs'),
+        sudo = True,
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -475,6 +478,9 @@ class TestHistoryServer(RMFTestCase):
       group = 'hadoop',
       recursive = True,
       cd_access = 'a',
+    )
+    self.assertResourceCalled('Execute', ('chown', '-R', u'mapred:hadoop', '/hadoop/mapreduce/jhs'),
+        sudo = True,
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
