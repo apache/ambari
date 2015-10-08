@@ -307,6 +307,9 @@
         "ranger_admin_hosts": [
             "c6402.ambari.apache.org"
         ],
+        "ranger_usersync_hosts" : [
+            "c6408.ambari.apache.org"
+        ],
         "ambari_server_host": [
             "hw10897.ix"
         ],

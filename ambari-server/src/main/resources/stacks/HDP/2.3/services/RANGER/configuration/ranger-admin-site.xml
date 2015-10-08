@@ -389,7 +389,7 @@
 
   <property>
     <name>ranger.unixauth.service.hostname</name>
-    <value>localhost</value>
+    <value>{{ugsync_host}}</value>
     <description>Host where unix authentication service is running - only used if Authentication method is UNIX</description>
     <value-attributes>
       <overridable>false</overridable>
