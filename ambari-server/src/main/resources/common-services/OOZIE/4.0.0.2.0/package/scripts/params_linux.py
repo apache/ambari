@@ -230,7 +230,7 @@ if sqla_db_used:
   libs_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/native/lib64/*")
   downloaded_custom_connector = format("{tmp_dir}/sqla-client-jdbc.tar.gz")
 
-hdfs_share_dir = "/user/oozie/share"
+hdfs_share_dir = format("{oozie_hdfs_user_dir}/share")
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 falcon_host = default("/clusterHostInfo/falcon_server_hosts", [])
 has_falcon_host = not len(falcon_host)  == 0
