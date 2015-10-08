@@ -16,25 +16,7 @@
 * limitations under the License.
 }}
 
-<div class="cluster-metrics">
-  <ul>
-    <li class="thumbnail row">
-      <a {{bindAttr class=":corner-icon :span1 view.parentView.isMoving:hidden"}} href="#" {{action deleteWidget target="view"}}>
-          <i class="icon-remove-sign icon-large"></i>
-      </a>
-      <div class="caption span10">{{view.title}}</div>
-      {{#if view.isDataLoaded}}
-        {{#if view.childViews.firstObject.hasData}}
-          <a class="corner-icon span1" href="#" {{action toggleFormatsList target="view"}}>
-            <i class="icon-save"></i>
-          </a>
-          {{view view.exportMetricsMenuView}}
-        {{/if}}
-      {{/if}}
-
-      <div class="widget-content" >
-        {{view view.content}}
-      </div>
-    </li>
-  </ul>
-</div>
+<ul class="export-graph-list pull-right dropdown-menu">
+  <li><a {{action exportGraphData view.parentView.exportToCSVArgument target="view.parentView"}}>{{t common.csv}}</a></li>
+  <li><a {{action exportGraphData target="view.parentView"}}>{{t common.json}}</a></li>
+</ul>

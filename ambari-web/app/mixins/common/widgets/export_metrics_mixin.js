@@ -18,22 +18,27 @@
 
 var App = require('app');
 
+require('views/common/export_metrics_menu_view');
 var stringUtils = require('utils/string_utils');
 var fileUtils = require('utils/file_utils');
 
 App.ExportMetricsMixin = Em.Mixin.create({
 
   /**
-   * Used as argument passed from template to indicate that resulting format is CSV, not JSON
+   * Used as argument passed from template to indicate that resulting format is CSV instead of JSON
    */
   exportToCSVArgument: true,
 
+  isMenuHidden: true,
+
+  exportMetricsMenuView: App.ExportMetricsMenuView.extend(),
+
   toggleFormatsList: function () {
-    this.$('.export-graph-list').toggle();
+    this.toggleProperty('isMenuHidden');
   },
 
   exportGraphData: function () {
-    this.toggleFormatsList();
+    this.set('isMenuHidden', true);
   },
 
   exportGraphDataSuccessCallback: function (response, request, params) {

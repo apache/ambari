@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 
-var stringUtils = require('utils/string_utils');
-
 module.exports = {
 
   fileTypeMap: {
