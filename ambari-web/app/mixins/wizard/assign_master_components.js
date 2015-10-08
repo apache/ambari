@@ -649,76 +649,66 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @return {Object[]}
    */
   createComponentInstallationObjects: function() {
-    var self = this;
+    var stackMasterComponentsMap = {},
+        masterHosts = this.get('content.masterComponentHosts'), //saved to local storage info
+        servicesToAdd = this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName'),
+        recommendations = this.get('content.recommendations'),
+        resultComponents = [],
+        multipleComponentHasBeenAdded = {},
+        hostGroupsMap = {};
 
-    var masterComponents = [];
-    if (self.get('isInstallerWizard')) {
-      masterComponents = App.StackServiceComponent.find().filterProperty('isShownOnInstallerAssignMasterPage');
-    } else {
-      masterComponents = App.StackServiceComponent.find().filter(function(component){
-        return component.get('isShownOnAddServiceAssignMasterPage') || self.get('mastersToShow').contains(component.get('componentName'));
-      });
-    }
-    var masterComponentsMap = {};
-    masterComponents.forEach(function(masterComponent) {
-      masterComponentsMap[masterComponent.get('componentName')] = masterComponent;
-    });
+    App.StackServiceComponent.find().forEach(function(component) {
+      if (this.get('isInstallerWizard')) {
+        if (component.get('isShownOnInstallerAssignMasterPage')) {
+          stackMasterComponentsMap[component.get('componentName')] = component;
+        }
+      } else {
+        if (component.get('isShownOnAddServiceAssignMasterPage') || this.get('mastersToShow').contains(component.get('componentName'))) {
+          stackMasterComponentsMap[component.get('componentName')] = component;
+        }
+      }
+    }, this);
 
-    var masterHosts = self.get('content.masterComponentHosts'); //saved to local storage info
-    var selectedNotInstalledServices = self.get('content.services').filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName');
-    var recommendations = this.get('content.recommendations');
-
-    var resultComponents = [];
-    var multipleComponentHasBeenAdded = {};
-
-    var existingHostComponentsMap = {};
-    App.HostComponent.find().forEach(function(c) {
-      existingHostComponentsMap[c.get('componentName')] = c;
-    });
-
-    var hostGroupsMap = {};
     recommendations.blueprint_cluster_binding.host_groups.forEach(function(group) {
       hostGroupsMap[group.name] = group;
     });
+
     recommendations.blueprint.host_groups.forEach(function(host_group) {
       var hosts = hostGroupsMap[host_group.name] ? hostGroupsMap[host_group.name].hosts : [];
 
       hosts.forEach(function(host) {
         host_group.components.forEach(function(component) {
-          var willBeAdded = true;
-          //var fullComponent = masterComponents.findProperty('componentName', component.name);
-          var fullComponent = masterComponentsMap[component.name];
-          // If it's master component which should be shown
-          if (fullComponent) {
+          var willBeDisplayed = true;
+          var stackMasterComponent = stackMasterComponentsMap[component.name];
+          if (stackMasterComponent) {
             // If service is already installed and not being added as a new service then render on UI only those master components
             // that have already installed hostComponents.
             // NOTE: On upgrade there might be a prior installed service with non-installed newly introduced serviceComponent
-            var isNotSelectedService = !selectedNotInstalledServices.contains(fullComponent.get('serviceName'));
-            if (isNotSelectedService) {
-              willBeAdded = existingHostComponentsMap[component.name];
+            if (!servicesToAdd.contains(stackMasterComponent.get('serviceName'))) {
+              willBeDisplayed = masterHosts.someProperty('component', component.name);
             }
 
-            if (willBeAdded) {
+            if (willBeDisplayed) {
               var savedComponents = masterHosts.filterProperty('component', component.name);
 
-              if (self.get('multipleComponents').contains(component.name) && savedComponents.length > 0) {
+              if (this.get('multipleComponents').contains(component.name) && savedComponents.length > 0) {
                 if (!multipleComponentHasBeenAdded[component.name]) {
                   multipleComponentHasBeenAdded[component.name] = true;
 
                   savedComponents.forEach(function(saved) {
-                    resultComponents.push(self.createComponentInstallationObject(fullComponent, host.fqdn.toLowerCase(), saved));
-                  });
+                    resultComponents.push(this.createComponentInstallationObject(stackMasterComponent, host.fqdn.toLowerCase(), saved));
+                  }, this);
                 }
               }
               else {
                 var savedComponent = masterHosts.findProperty('component', component.name);
-                resultComponents.push(self.createComponentInstallationObject(fullComponent, host.fqdn.toLowerCase(), savedComponent));
+                resultComponents.push(this.createComponentInstallationObject(stackMasterComponent, host.fqdn.toLowerCase(), savedComponent));
               }
             }
           }
-        });
-      });
-    });
+        }, this);
+      }, this);
+    }, this);
     return resultComponents;
   },
 
