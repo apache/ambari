@@ -275,12 +275,10 @@ def setup_usersync(rolling_upgrade=False):
   import params
 
   usersync_home = params.usersync_home
-  ranger_home = params.ranger_home
   ranger_ugsync_conf = params.ranger_ugsync_conf
 
   if rolling_upgrade:
     usersync_home = format("/usr/hdp/{version}/ranger-usersync")
-    ranger_home = format("/usr/hdp/{version}/ranger-admin")
     ranger_ugsync_conf = format("/usr/hdp/{version}/ranger-usersync/conf")
 
   Directory(params.ranger_pid_dir,
@@ -325,16 +323,16 @@ def setup_usersync(rolling_upgrade=False):
     File(params.cred_validator_file, group=params.unix_group, mode=04555)
 
   cred_lib = os.path.join(usersync_home,"lib","*")
-  cred_setup_prefix = (format('{ranger_home}/ranger_credential_helper.py'), '-l', cred_lib)
+  cred_setup_prefix = (format('{usersync_home}/ranger_credential_helper.py'), '-l', cred_lib)
 
   cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'usersync.ssl.key.password', '-v', PasswordString(params.ranger_usersync_keystore_password), '-c', '1')
-  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
+  Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
   cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'ranger.usersync.ldap.bindalias', '-v', PasswordString(params.ranger_usersync_ldap_ldapbindpassword), '-c', '1')
-  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
+  Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
   cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'usersync.ssl.truststore.password', '-v', PasswordString(params.ranger_usersync_truststore_password), '-c', '1')
-  Execute(cred_setup, environment={'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
+  Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 
   File(params.ugsync_jceks_path,
        owner = params.unix_user,

@@ -172,6 +172,9 @@
         "ranger_admin_hosts" : [
             "c6401.ambari.apache.org"
         ],
+        "ranger_usersync_hosts" : [
+            "c6408.ambari.apache.org"
+        ],
         "all_hosts": [
             "c6401.ambari.apache.org",
             "c6402.ambari.apache.org"
