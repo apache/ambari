@@ -41,6 +41,12 @@
     <value>No</value>
     <display-name>Enable Ranger for STORM</display-name>
     <description>Enable ranger storm plugin ?</description>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>ranger-storm-plugin-enabled</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>

@@ -27,6 +27,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     childRecommendConfDict = {
       "TEZ": self.recommendTezConfigurations,
       "HDFS": self.recommendHDFSConfigurations,
+      "YARN": self.recommendYARNConfigurations,
       "HIVE": self.recommendHIVEConfigurations,
       "HBASE": self.recommendHBASEConfigurations,
       "KAFKA": self.recommendKAFKAConfigurations,
@@ -246,6 +247,12 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
   def recommendKAFKAConfigurations(self, configurations, clusterData, services, hosts):
     putKafkaBrokerProperty = self.putProperty(configurations, "kafka-broker", services)
 
+    if "ranger-env" in services["configurations"] and "ranger-kafka-plugin-properties" in services["configurations"] and \
+        "ranger-kafka-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      putKafkaRangerPluginProperty = self.putProperty(configurations, "ranger-kafka-plugin-properties", services)
+      rangerEnvKafkaPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-kafka-plugin-enabled"]
+      putKafkaRangerPluginProperty("ranger-kafka-plugin-enabled", rangerEnvKafkaPluginProperty)
+
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if 'ranger-kafka-plugin-properties' in services['configurations'] and ('ranger-kafka-plugin-enabled' in services['configurations']['ranger-kafka-plugin-properties']['properties']):
       rangerPluginEnabled = services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled']
@@ -289,6 +296,14 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         rangerPrivelegeDbProperties = ranger_db_privelege_url_dict.get(rangerDbFlavor, ranger_db_privelege_url_dict['MYSQL'])
         for key in rangerPrivelegeDbProperties:
           putRangerEnvProperty(key, rangerPrivelegeDbProperties.get(key))
+
+  def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP23StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    if "ranger-env" in services["configurations"] and "ranger-yarn-plugin-properties" in services["configurations"] and \
+        "ranger-yarn-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      putYarnRangerPluginProperty = self.putProperty(configurations, "ranger-yarn-plugin-properties", services)
+      rangerEnvYarnPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-yarn-plugin-enabled"]
+      putYarnRangerPluginProperty("ranger-yarn-plugin-enabled", rangerEnvYarnPluginProperty)
 
   def getServiceConfigurationValidators(self):
       parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()

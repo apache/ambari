@@ -35,7 +35,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "MAPREDUCE2": self.recommendMapReduce2Configurations,
       "TEZ": self.recommendTezConfigurations,
       "AMBARI_METRICS": self.recommendAmsConfigurations,
-      "YARN": self.recommendYARNConfigurations
+      "YARN": self.recommendYARNConfigurations,
+      "STORM": self.recommendStormConfigurations,
+      "KNOX": self.recommendKnoxConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -236,6 +238,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putCoreSiteProperty("hadoop.security.key.provider.path", kmsPath)
       putHdfsSiteProperty("dfs.encryption.key.provider.uri", kmsPath)
 
+    if "ranger-env" in services["configurations"] and "ranger-hdfs-plugin-properties" in services["configurations"] and \
+      "ranger-hdfs-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      putHdfsRangerPluginProperty = self.putProperty(configurations, "ranger-hdfs-plugin-properties", services)
+      rangerEnvHdfsPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hdfs-plugin-enabled"]
+      putHdfsRangerPluginProperty("ranger-hdfs-plugin-enabled", rangerEnvHdfsPluginProperty)
+
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendHiveConfigurations(configurations, clusterData, services, hosts)
 
@@ -365,7 +373,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     toProcessQueues = yarn_queues.split(",")
     leafQueues = []
     while len(toProcessQueues) > 0:
-      queue = toProcessQueues.pop();
+      queue = toProcessQueues.pop()
       queueKey = "yarn.scheduler.capacity.root." + queue + ".queues"
       if queueKey in capacitySchedulerProperties:
         # This is a parent queue - need to add children
@@ -378,6 +386,14 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     leafQueues = sorted(leafQueues, key=lambda q:q['value'])
     putHiveSitePropertyAttribute("hive.server2.tez.default.queues", "entries", leafQueues)
     putHiveSiteProperty("hive.server2.tez.default.queues", ",".join([leafQueue['value'] for leafQueue in leafQueues]))
+
+
+    # Recommend Ranger Hive authorization as per Ranger Hive plugin property
+    if "ranger-env" in services["configurations"] and "ranger-hive-plugin-properties" in services["configurations"] and \
+        "ranger-hive-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      putHiveRangerPluginProperty = self.putProperty(configurations, "ranger-hive-plugin-properties", services)
+      rangerEnvHivePluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hive-plugin-enabled"]
+      putHiveRangerPluginProperty("ranger-hive-plugin-enabled", rangerEnvHivePluginProperty)
 
     # Security
     if ("configurations" not in services) or ("hive-env" not in services["configurations"]) or \
@@ -642,6 +658,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     [uniqueCoprocessorRegionClassList.append(i) for i in coprocessorRegionClassList if not uniqueCoprocessorRegionClassList.count(i)]
     putHbaseSiteProperty('hbase.coprocessor.region.classes', ','.join(set(uniqueCoprocessorRegionClassList)))
 
+    if "ranger-env" in services["configurations"] and "ranger-hbase-plugin-properties" in services["configurations"] and \
+        "ranger-hbase-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      putHbaseRangerPluginProperty = self.putProperty(configurations, "ranger-hbase-plugin-properties", services)
+      rangerEnvHbasePluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hbase-plugin-enabled"]
+      putHbaseRangerPluginProperty("ranger-hbase-plugin-enabled", rangerEnvHbasePluginProperty)
+
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     if not "yarn-site" in configurations:
@@ -695,6 +717,23 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       tez_url = '{0}://{1}:{2}/#/main/views/TEZ/{3}/TEZ_CLUSTER_INSTANCE'.format(server_protocol, server_host, server_port, latest_tez_jar_version)
       putTezProperty("tez.tez-ui.history-url.base", tez_url)
     pass
+
+
+  def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
+    if "ranger-env" in services["configurations"] and "ranger-storm-plugin-properties" in services["configurations"] and \
+        "ranger-storm-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      putStormRangerPluginProperty = self.putProperty(configurations, "ranger-storm-plugin-properties", services)
+      rangerEnvStormPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-storm-plugin-enabled"]
+      putStormRangerPluginProperty("ranger-storm-plugin-enabled", rangerEnvStormPluginProperty)
+
+  def recommendKnoxConfigurations(self, configurations, clusterData, services, hosts):
+    if "ranger-env" in services["configurations"] and "ranger-knox-plugin-properties" in services["configurations"] and \
+        "ranger-knox-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      putKnoxRangerPluginProperty = self.putProperty(configurations, "ranger-knox-plugin-properties", services)
+      rangerEnvKnoxPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-knox-plugin-enabled"]
+      putKnoxRangerPluginProperty("ranger-knox-plugin-enabled", rangerEnvKnoxPluginProperty)
+
+
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP22StackAdvisor, self).getServiceConfigurationValidators()

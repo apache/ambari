@@ -24,6 +24,12 @@
     <service>
       <name>RANGER</name>
       <extends>common-services/RANGER/0.4.0</extends>
+      <themes>
+        <theme>
+          <fileName>theme_version_1.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat6,suse11</osFamily>

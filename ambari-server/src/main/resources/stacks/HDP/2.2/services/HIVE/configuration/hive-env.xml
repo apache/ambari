@@ -148,6 +148,12 @@ export METASTORE_PORT={{hive_metastore_port}}
     <name>hive_security_authorization</name>
     <display-name>Choose Authorization</display-name>
     <value>None</value>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>ranger-hive-plugin-enabled</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <type>value-list</type>
       <entries>
