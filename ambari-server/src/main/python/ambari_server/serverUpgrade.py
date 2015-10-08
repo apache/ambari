@@ -34,9 +34,9 @@ from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers,
   get_jdbc_driver_path, ensure_jdbc_driver_is_installed
 from ambari_server.properties import Properties
 from ambari_server.serverConfiguration import configDefaults, \
-  check_database_name_property, get_ambari_properties, get_ambari_version, get_full_ambari_classpath, \
+  check_database_name_property, get_ambari_properties, get_ambari_version, \
   get_java_exe_path, get_stack_location, parse_properties_file, read_ambari_user, update_ambari_properties, \
-  update_database_name_property, get_admin_views_dir, get_views_dir,\
+  update_database_name_property, get_admin_views_dir, get_views_dir, \
   AMBARI_PROPERTIES_FILE, IS_LDAP_CONFIGURED, LDAP_PRIMARY_URL_PROPERTY, RESOURCES_DIR_PROPERTY, \
   SETUP_OR_UPGRADE_MSG, update_krb_jaas_login_properties, AMBARI_KRB_JAAS_LOGIN_FILE, get_db_type, update_ambari_env, \
   AMBARI_ENV_FILE
@@ -45,6 +45,7 @@ from ambari_server.setupSecurity import adjust_directory_permissions, \
 from ambari_server.utils import compare_versions
 from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input
+from ambari_server.serverClassPath import ServerClassPath
 
 # constants
 STACK_NAME_VER_SEP = "-"
@@ -86,7 +87,7 @@ def upgrade_stack(args):
     repo_url_os = None
 
   stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
-  retcode = run_stack_upgrade(stack_name, stack_version, repo_url, repo_url_os)
+  retcode = run_stack_upgrade(args, stack_name, stack_version, repo_url, repo_url_os)
 
   if not retcode == 0:
     raise FatalException(retcode, 'Stack upgrade failed.')
@@ -114,7 +115,7 @@ def load_stack_values(version, filename):
   return values
 
 
-def run_stack_upgrade(stackName, stackVersion, repo_url, repo_url_os):
+def run_stack_upgrade(args, stackName, stackVersion, repo_url, repo_url_os):
   jdk_path = get_java_exe_path()
   if jdk_path is None:
     print_error_msg("No JDK found, please run the \"setup\" "
@@ -128,7 +129,8 @@ def run_stack_upgrade(stackName, stackVersion, repo_url, repo_url_os):
   if repo_url_os is not None:
     stackId['repo_url_os'] = repo_url_os
 
-  command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_full_ambari_classpath(),
+  serverClassPath = ServerClassPath(get_ambari_properties(), args)
+  command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, serverClassPath.get_full_ambari_classpath_escaped_for_shell(),
                                             "updateStackId",
                                             "'" + json.dumps(stackId) + "'")
   (retcode, stdout, stderr) = run_os_command(command)
@@ -137,7 +139,7 @@ def run_stack_upgrade(stackName, stackVersion, repo_url, repo_url_os):
     print_error_msg("Error executing stack upgrade, please check the server logs.")
   return retcode
 
-def run_metainfo_upgrade(keyValueMap=None):
+def run_metainfo_upgrade(args, keyValueMap=None):
   jdk_path = get_java_exe_path()
   if jdk_path is None:
     print_error_msg("No JDK found, please run the \"setup\" "
@@ -146,7 +148,8 @@ def run_metainfo_upgrade(keyValueMap=None):
 
   retcode = 1
   if keyValueMap:
-    command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_full_ambari_classpath(),
+    serverClassPath = ServerClassPath(get_ambari_properties(), args)
+    command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, serverClassPath.get_full_ambari_classpath_escaped_for_shell(),
                                               'updateMetaInfo',
                                               "'" + json.dumps(keyValueMap) + "'")
     (retcode, stdout, stderr) = run_os_command(command)
@@ -211,7 +214,7 @@ def upgrade_local_repo(args):
           if repo_url != local_url:
             metainfo_update_items[k] = local_url
 
-    run_metainfo_upgrade(metainfo_update_items)
+    run_metainfo_upgrade(args, metainfo_update_items)
 
 #
 # Schema upgrade
@@ -237,16 +240,14 @@ def run_schema_upgrade(args):
 
   print 'Upgrading database schema'
 
-  class_path = get_full_ambari_classpath()
-  jdbc_driver_path = get_jdbc_driver_path(args, get_ambari_properties())
-  if jdbc_driver_path not in class_path:
-    class_path = class_path + os.pathsep + jdbc_driver_path
+  serverClassPath = ServerClassPath(get_ambari_properties(), args)
+  class_path = serverClassPath.get_full_ambari_classpath_escaped_for_shell()
 
   command = SCHEMA_UPGRADE_HELPER_CMD.format(jdk_path, class_path)
 
   ambari_user = read_ambari_user()
   current_user = ensure_can_start_under_current_user(ambari_user)
-  environ = generate_env(ambari_user, current_user)
+  environ = generate_env(args, ambari_user, current_user)
 
   (retcode, stdout, stderr) = run_os_command(command, env=environ)
   print_info_msg("Return code from schema upgrade command, retcode = " + str(retcode))
