@@ -220,6 +220,49 @@
                 }
               ]
             }
+          },
+          {
+            "name": "ranger_plugin",
+            "display-name": "Ranger Plugin",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-ranger-plugin",
+                  "display-name": "Ranger Plugin",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "3",
+                  "section-columns": "3",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "section-ranger-plugin-row1-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "section-ranger-plugin-row1-col2",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "section-ranger-plugin-row1-col3",
+                      "row-index": "0",
+                      "column-index": "2",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
           }
         ]
       }
@@ -746,6 +789,34 @@
               }
             }
           ]
+        },
+        {
+          "config": "ranger-env/ranger-hdfs-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col1"
+        },
+        {
+          "config": "ranger-env/ranger-yarn-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col1"
+        },
+        {
+          "config": "ranger-env/ranger-hive-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col1"
+        },
+        {
+          "config": "ranger-env/ranger-hbase-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col2"
+        },
+        {
+          "config": "ranger-env/ranger-storm-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col2"
+        },
+        {
+          "config": "ranger-env/ranger-knox-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col3"
+        },
+        {
+          "config": "ranger-env/ranger-kafka-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col3"
         }
       ]
     },
@@ -1000,6 +1071,48 @@
         "config": "ranger-ugsync-site/ranger.usersync.filesource.text.delimiter",
         "widget": {
           "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-hdfs-plugin-enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-hive-plugin-enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-hbase-plugin-enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-kafka-plugin-enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-knox-plugin-enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-storm-plugin-enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-yarn-plugin-enabled",
+        "widget": {
+          "type": "toggle"
         }
       }
     ]

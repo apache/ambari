@@ -41,6 +41,12 @@
     <value>No</value>
     <display-name>Enable Ranger for KNOX</display-name>
     <description>Enable ranger knox plugin ?</description>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>ranger-knox-plugin-enabled</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>

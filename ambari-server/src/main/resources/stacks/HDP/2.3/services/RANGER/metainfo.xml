@@ -54,7 +54,7 @@
 
       <themes>
         <theme>
-          <fileName>theme.json</fileName>
+          <fileName>theme_version_2.json</fileName>
           <default>true</default>
         </theme>
       </themes>

@@ -44,6 +44,12 @@
 		<value>No</value>
 		<display-name>Enable Ranger for HDFS</display-name>
 		<description>Enable ranger hdfs plugin</description>
+		<depends-on>
+			<property>
+				<type>ranger-env</type>
+				<name>ranger-hdfs-plugin-enabled</name>
+			</property>
+		</depends-on>
 		<value-attributes>
 			<overridable>false</overridable>
 		</value-attributes>

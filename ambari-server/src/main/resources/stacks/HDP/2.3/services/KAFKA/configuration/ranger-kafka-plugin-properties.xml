@@ -54,7 +54,13 @@
     <name>ranger-kafka-plugin-enabled</name>
     <value>No</value>
     <display-name>Enable Ranger for KAFKA</display-name>
-    <description>Enable ranger kafka plugin ?</description>
+    <description>Enable ranger kafka plugin</description>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>ranger-kafka-plugin-enabled</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
