@@ -35,7 +35,7 @@ from ambari_commons.os_utils import copy_files, run_os_command, is_root
 from ambari_commons.str_utils import compress_backslashes
 from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers
 from ambari_server.serverConfiguration import configDefaults, JDKRelease, \
-  get_ambari_properties, get_full_ambari_classpath, get_is_secure, get_is_persisted, get_java_exe_path, get_JAVA_HOME, \
+  get_ambari_properties, get_is_secure, get_is_persisted, get_java_exe_path, get_JAVA_HOME, \
   get_resources_location, get_value_from_properties, read_ambari_user, update_properties, validate_jdk, write_property, \
   JAVA_HOME, JAVA_HOME_PROPERTY, JCE_NAME_PROPERTY, JDBC_RCA_URL_PROPERTY, JDBC_URL_PROPERTY, \
   JDK_NAME_PROPERTY, JDK_RELEASES, NR_USER_PROPERTY, OS_FAMILY, OS_FAMILY_PROPERTY, OS_TYPE, OS_TYPE_PROPERTY, OS_VERSION, \
@@ -44,6 +44,7 @@ from ambari_server.serverUtils import is_server_runing
 from ambari_server.setupSecurity import adjust_directory_permissions
 from ambari_server.userInput import get_YN_input, get_validated_string_input
 from ambari_server.utils import locate_file
+from ambari_server.serverClassPath import ServerClassPath
 
 
 # selinux commands
@@ -988,7 +989,7 @@ def _reset_database(options):
 #
 # Extract the system views
 #
-def extract_views():
+def extract_views(options):
   java_exe_path = get_java_exe_path()
   if java_exe_path is None:
     print_error_msg("No JDK found, please run the \"setup\" "
@@ -1004,9 +1005,10 @@ def extract_views():
   vdir = get_value_from_properties(properties, VIEWS_DIR_PROPERTY, configDefaults.DEFAULT_VIEWS_DIR)
 
   files = [f for f in os.listdir(vdir) if os.path.isfile(os.path.join(vdir,f))]
+  serverClassPath = ServerClassPath(get_ambari_properties(), options)
   for f in files:
     command = VIEW_EXTRACT_CMD.format(java_exe_path,
-                                      get_full_ambari_classpath(), os.path.join(vdir,f))
+                                      serverClassPath.get_full_ambari_classpath_escaped_for_shell(), os.path.join(vdir,f))
     retcode, stdout, stderr = run_os_command(command)
     if retcode == 0:
       sys.stdout.write(f + "\n")
@@ -1128,7 +1130,7 @@ def setup(options):
   check_jdbc_drivers(options)
 
   print 'Extracting system views...'
-  retcode = extract_views()
+  retcode = extract_views(options)
   if not retcode == 0:
     err = 'Error while extracting system views. Exiting'
     raise FatalException(retcode, err)
