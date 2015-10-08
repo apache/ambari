@@ -545,25 +545,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
     return !App.get('services.serviceMetrics').length;
   }.property('App.services.serviceMetrics'),
 
-  gangliaUrl:function () {
-    var gangliaUrl = App.router.get('clusterController.gangliaUrl');
-    if (!gangliaUrl) return null;
-    var svcName = this.get('service.serviceName');
-    if (svcName) {
-      switch (svcName.toLowerCase()) {
-        case 'hdfs':
-          gangliaUrl += "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPSlaves&tab=m&vn=";
-          break;
-        case 'hbase':
-          gangliaUrl += "?r=hour&cs=&ce=&m=&s=by+name&c=HDPHBaseMaster&tab=m&vn=";
-          break;
-        default:
-          break;
-      }
-    }
-    return gangliaUrl;
-  }.property('App.router.clusterController.gangliaUrl', 'service.serviceName'),
-
   didInsertElement: function () {
     var svcName = this.get('controller.content.serviceName');
     this.set('service', this.getServiceModel(svcName));
