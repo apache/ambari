@@ -163,20 +163,18 @@ class TestFlumeHandler(RMFTestCase):
 
    self.assertFalse("version" in script.structuredOut)
 
-  @patch("resource_management.libraries.script.Script.logger", autospec = True)
-  def test_bad_struct_out(self, logger_mock):
+  def test_bad_struct_out(self):
       from resource_management.libraries.script import Script
-
-      logger_mock.warn = MagicMock()
+      from resource_management.core.logger import Logger
 
       configs_path = os.path.join(RMFTestCase.get_src_folder(),
                                   "test/python/stacks", self.STACK_VERSION, "configs")
 
+      Logger.initialize_logger()
       script = Script()
       script.stroutfile = os.path.join(configs_path, "structured-out-status-bad.json")
       script.load_structured_out()
 
-      self.assertTrue(logger_mock.warn.called)
       self.assertTrue(script.structuredOut == {})
 
   @patch("resource_management.libraries.script.Script.put_structured_out")

@@ -116,7 +116,7 @@ class Script(object):
             Script.structuredOut = json.load(fp)
           except Exception:
             errMsg = 'Unable to read structured output from ' + self.stroutfile
-            Logging.logger.exception(errMsg)
+            Logger.logger.exception(errMsg)
             pass
 
     # version is only set in a specific way and should not be carried
@@ -211,7 +211,7 @@ class Script(object):
             Script.passwords[get_path_from_configuration(k, Script.config)] = get_path_from_configuration(v, Script.config)
 
     except IOError:
-      Logging.logger.exception("Can not read json file with command parameters: ")
+      Logger.logger.exception("Can not read json file with command parameters: ")
       sys.exit(1)
 
     # Run class method depending on a command type
