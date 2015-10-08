@@ -288,8 +288,9 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
     },
 
     didInsertElement: function () {
+      var self = this;
       this.$().closest('.graph-widget').on('mouseleave', function () {
-        $(this).find('.export-graph-list').hide();
+        self.set('parentView.isMenuHidden', true);
       });
       this.setYAxisFormatter();
       this.loadData();
@@ -306,10 +307,6 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
       });
     }.observes('parentView.data')
   }),
-
-  toggleFormatsList: function () {
-    this.get('childViews.firstObject').$().closest('.graph-widget').find('.export-graph-list').toggle();
-  },
 
   exportGraphData: function (event) {
     this._super();

@@ -23,10 +23,7 @@
     <a class="corner-icon pull-right" href="#" {{action toggleFormatsList target="view"}}>
       <i class="icon-save"></i>
     </a>
-    <ul class="export-graph-list pull-right dropdown-menu">
-      <li><a {{action exportGraphData view.parentView.graph.exportToCSVArgument target="view"}}>{{t common.csv}}</a></li>
-      <li><a {{action exportGraphData target="view"}}>{{t common.json}}</a></li>
-    </ul>
+    {{view view.exportMetricsMenuView}}
   {{/if}}
 </div>
 {{#if view.isTimePagingEnable}}

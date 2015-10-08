@@ -29,19 +29,48 @@ describe('App.ExportMetricsMixin', function () {
     obj = Em.Object.create(App.ExportMetricsMixin);
   });
 
+  describe('#toggleFormatsList', function () {
+
+    var cases = [
+      {
+        isMenuHidden: true,
+        title: 'menu should be visible'
+      },
+      {
+        isMenuHidden: false,
+        title: 'menu should be hidden'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        obj.set('isMenuHidden', !item.isMenuHidden);
+        obj.toggleFormatsList();
+        expect(obj.get('isMenuHidden')).to.equal(item.isMenuHidden);
+      });
+    });
+
+  });
+
   describe('#exportGraphData', function () {
 
-    beforeEach(function () {
-      sinon.stub(obj, 'toggleFormatsList', Em.K);
-    });
+    var cases = [
+      {
+        isMenuHidden: true,
+        title: 'menu should remain hidden'
+      },
+      {
+        isMenuHidden: false,
+        title: 'menu should become hidden'
+      }
+    ];
 
-    afterEach(function () {
-      obj.toggleFormatsList.restore();
-    });
-
-    it('should toggle formats menu', function () {
-      obj.exportGraphData();
-      expect(obj.toggleFormatsList.calledOnce).to.be.true;
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        obj.set('isMenuHidden', item.isMenuHidden);
+        obj.exportGraphData();
+        expect(obj.get('isMenuHidden')).to.be.true;
+      });
     });
 
   });
