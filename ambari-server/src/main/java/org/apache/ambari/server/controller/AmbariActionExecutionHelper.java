@@ -18,18 +18,10 @@
 
 package org.apache.ambari.server.controller;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.Role;
@@ -43,6 +35,10 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.customactions.ActionDefinition;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
+import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -55,8 +51,17 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 
 /**
  * Helper class containing logic to process custom action execution requests
@@ -77,6 +82,8 @@ public class AmbariActionExecutionHelper {
   private MaintenanceStateHelper maintenanceStateHelper;
   @Inject
   private Configuration configs;
+  @Inject
+  private ClusterVersionDAO clusterVersionDAO;
 
   /**
    * Validates the request to execute an action.
@@ -195,13 +202,14 @@ public class AmbariActionExecutionHelper {
       }
     }
 
-    if (TargetHostType.SPECIFIC.equals(actionDef.getTargetType())
-      || (targetService.isEmpty() && targetComponent.isEmpty())) {
-      if (resourceFilter == null || resourceFilter.getHostNames().size() == 0) {
-        throw new AmbariException("Action " + actionRequest.getActionName() + " requires explicit target host(s)" +
-          " that is not provided.");
-      }
-    }
+    // decided to hide this part of code, to have ability, by default execute custom action on all hosts(according to targetType in definition)
+    //if (TargetHostType.SPECIFIC.equals(actionDef.getTargetType())
+    //  || (targetService.isEmpty() && targetComponent.isEmpty())) {
+    //  if (resourceFilter == null || resourceFilter.getHostNames().size() == 0) {
+    //    throw new AmbariException("Action " + actionRequest.getActionName() + " requires explicit target host(s)" +
+    //      " that is not provided.");
+    //  }
+    //}
   }
 
 
@@ -380,6 +388,8 @@ public class AmbariActionExecutionHelper {
       execCmd.setComponentName(componentName == null || componentName.isEmpty() ?
         resourceFilter.getComponentName() : componentName);
 
+      addRepoInfoToHostLevelParams(cluster, execCmd.getHostLevelParams(), hostName);
+
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
         roleParams = new TreeMap<String, String>();
@@ -410,6 +420,32 @@ public class AmbariActionExecutionHelper {
         execCmd.setClusterHostInfo(
           StageUtils.getClusterHostInfo(cluster));
       }
+    }
+  }
+
+  private void addRepoInfoToHostLevelParams(Cluster cluster, Map<String, String> hostLevelParams, String hostName) throws AmbariException {
+    if (cluster != null) {
+      JsonObject rootJsonObject = new JsonObject();
+      JsonArray repositories = new JsonArray();
+      ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName());
+      if (clusterVersionEntity != null && clusterVersionEntity.getRepositoryVersion() != null) {
+        String hostOsFamily = clusters.getHost(hostName).getOsFamily();
+        for (OperatingSystemEntity operatingSystemEntity : clusterVersionEntity.getRepositoryVersion().getOperatingSystems()) {
+          // ostype in OperatingSystemEntity it's os family. That should be fixed in OperatingSystemEntity.
+          if (operatingSystemEntity.getOsType().equals(hostOsFamily)) {
+            for (RepositoryEntity repositoryEntity : operatingSystemEntity.getRepositories()) {
+              JsonObject repositoryInfo = new JsonObject();
+              repositoryInfo.addProperty("base_url", repositoryEntity.getBaseUrl());
+              repositoryInfo.addProperty("repo_name", repositoryEntity.getName());
+              repositoryInfo.addProperty("repo_id", repositoryEntity.getRepositoryId());
+
+              repositories.add(repositoryInfo);
+            }
+            rootJsonObject.add("repositories", repositories);
+          }
+        }
+      }
+      hostLevelParams.put("repo_info", rootJsonObject.toString());
     }
   }
 }

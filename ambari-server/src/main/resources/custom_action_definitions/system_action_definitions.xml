@@ -30,6 +30,16 @@
     <targetType>ANY</targetType>
   </actionDefinition>
   <actionDefinition>
+    <actionName>update_repo</actionName>
+    <actionType>SYSTEM</actionType>
+    <inputs/>
+    <targetService/>
+    <targetComponent/>
+    <defaultTimeout>60</defaultTimeout>
+    <description>Update repo files on hosts</description>
+    <targetType>ALL</targetType>
+  </actionDefinition>
+  <actionDefinition>
     <actionName>validate_configs</actionName>
     <actionType>SYSTEM</actionType>
     <inputs/>
