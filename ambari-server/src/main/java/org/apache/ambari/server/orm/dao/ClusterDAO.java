@@ -128,19 +128,6 @@ public class ClusterDAO {
     TypedQuery<ClusterConfigEntity> query = entityManagerProvider.get().createQuery(cq);
     return daoUtils.selectOne(query);
   }
-  
-  @RequiresSession
-  public List<ClusterConfigMappingEntity> findClusterConfigMappingEntitiesByType(Long clusterId, String type) {
-    CriteriaBuilder cb = entityManagerProvider.get().getCriteriaBuilder();
-    CriteriaQuery<ClusterConfigMappingEntity> cq = cb.createQuery(ClusterConfigMappingEntity.class);
-    Root<ClusterConfigMappingEntity> config = cq.from(ClusterConfigMappingEntity.class);
-    cq.where(cb.and(
-        cb.equal(config.get("clusterId"), clusterId)),
-      cb.equal(config.get("typeName"), type)
-    );
-    TypedQuery<ClusterConfigMappingEntity> query = entityManagerProvider.get().createQuery(cq);
-    return daoUtils.selectList(query);
-  }
 
   /**
    * Gets the next version that will be created for a given
@@ -248,6 +235,29 @@ public class ClusterDAO {
   public void removeConfigMapping(ClusterConfigMappingEntity entity) {
     entityManagerProvider.get().remove(entity);
   }
+  
+  
+  /**
+   * Sets selected = 0, for clusterConfigEntities which has type_name which is in the given types list
+   * 
+   * @param clusterId
+   *          the cluster that the service is a part of.
+   * @param types
+   *          the names of the configuration types.
+   */
+    @Transactional
+    public void removeClusterConfigMappingEntityByTypes(Long clusterId, List<String> types) {
+      if(types.isEmpty()) {
+        return;
+      }
+      
+      TypedQuery<Long> query = entityManagerProvider.get().createQuery
+          ("DELETE FROM ClusterConfigMappingEntity configs WHERE configs" +
+            ".clusterId=?1 AND configs.typeName IN ?2", Long.class);
+
+      daoUtils.executeUpdate(query, clusterId, types);
+    }
+
 
   /**
    * Retrieve entity data from DB

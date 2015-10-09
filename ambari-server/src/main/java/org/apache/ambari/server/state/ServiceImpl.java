@@ -565,12 +565,11 @@ public class ServiceImpl implements Service {
     }
     
     if(lastServiceConfigEntity != null) {
+      List<String> configTypesToDisable = new ArrayList<String>();
       for(ClusterConfigEntity clusterConfigEntity:lastServiceConfigEntity.getClusterConfigEntities()) {
-        List<ClusterConfigMappingEntity> clusterConfigMappingEntities = clusterDAO.findClusterConfigMappingEntitiesByType(cluster.getClusterId() ,clusterConfigEntity.getType());
-        for(ClusterConfigMappingEntity clusterConfigMappingEntity:clusterConfigMappingEntities) {
-          clusterDAO.removeConfigMapping(clusterConfigMappingEntity);
-        }
+        configTypesToDisable.add(clusterConfigEntity.getType());
       }
+      clusterDAO.removeClusterConfigMappingEntityByTypes(cluster.getClusterId(), configTypesToDisable);
     }
   }
   
