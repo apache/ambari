@@ -4531,9 +4531,9 @@ public class AmbariManagementControllerTest {
         "Action a1 requires input 'dirName' that is not provided");
 
     params.put("dirName", "dirName");
-    //actionRequest = new ExecuteActionRequest("c1", null, "a1", null, null, params, false);
-    //expectActionCreationErrorWithMessage(actionRequest, requestProperties,
-    //    "Action a1 requires explicit target host(s)");
+    actionRequest = new ExecuteActionRequest("c1", null, "a1", null, null, params, false);
+    expectActionCreationErrorWithMessage(actionRequest, requestProperties,
+        "Action a1 requires explicit target host(s)");
 
     resourceFilters.clear();
     resourceFilter = new RequestResourceFilter("HIVE", null, null);
