@@ -176,7 +176,9 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
         this.set('disablePrimary', !modified);
       }.observes('subViewController.isDefsModified'),
 
-      didInsertElement: Em.K
+      didInsertElement: function () {
+        this.fitZIndex();
+      }
 
     });
   },
