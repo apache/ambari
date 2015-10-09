@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -126,6 +127,19 @@ public class ClusterDAO {
     );
     TypedQuery<ClusterConfigEntity> query = entityManagerProvider.get().createQuery(cq);
     return daoUtils.selectOne(query);
+  }
+  
+  @RequiresSession
+  public List<ClusterConfigMappingEntity> findClusterConfigMappingEntitiesByType(Long clusterId, String type) {
+    CriteriaBuilder cb = entityManagerProvider.get().getCriteriaBuilder();
+    CriteriaQuery<ClusterConfigMappingEntity> cq = cb.createQuery(ClusterConfigMappingEntity.class);
+    Root<ClusterConfigMappingEntity> config = cq.from(ClusterConfigMappingEntity.class);
+    cq.where(cb.and(
+        cb.equal(config.get("clusterId"), clusterId)),
+      cb.equal(config.get("typeName"), type)
+    );
+    TypedQuery<ClusterConfigMappingEntity> query = entityManagerProvider.get().createQuery(cq);
+    return daoUtils.selectList(query);
   }
 
   /**
