@@ -204,7 +204,7 @@ public class AmbariActionExecutionHelper {
 
     TargetHostType targetHostType = actionDef.getTargetType();
 
-    if (TargetHostType.SPECIFIC.equals(actionDef.getTargetType())
+    if (TargetHostType.SPECIFIC.equals(targetHostType)
       || (targetService.isEmpty() && targetComponent.isEmpty())) {
       if ((resourceFilter == null || resourceFilter.getHostNames().size() == 0) && !isTargetHostTypeAllowsEmptyHosts(targetHostType)) {
         throw new AmbariException("Action " + actionRequest.getActionName() + " requires explicit target host(s)" +
