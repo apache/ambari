@@ -325,10 +325,10 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       var series = {};
       series.name = displayName;
       series.data = [];
+      var timeDiff = App.dateTimeWithTimeZone(seriesData[0][1] * 1000) / 1000 - seriesData[0][1];
       for (var index = 0; index < seriesData.length; index++) {
-        var x = App.dateTimeWithTimeZone(seriesData[index][1] * 1000) / 1000;
         series.data.push({
-          x: x,
+          x: seriesData[index][1] + timeDiff,
           y: seriesData[index][0]
         });
       }
@@ -394,6 +394,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     if (this.get('isDestroyed')) {
       return;
     }
+    console.time('_refreshGraph');
     var seriesData = this.transformToSeries(jsonData);
 
     //if graph opened as modal popup
@@ -438,6 +439,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     graph_container = null;
     container = null;
     popup_path = null;
+    console.timeEnd('_refreshGraph');
   },
 
   /**
@@ -1226,9 +1228,11 @@ App.ChartLinearTimeView.LoadAggregator = Em.Object.create({
             hostName: hostName
           }
         }).done(function (response) {
+          console.time('==== runRequestsDone');
           _request.subRequests.forEach(function (subRequest) {
             subRequest.context._refreshGraph.call(subRequest.context, response);
           }, this);
+          console.timeEnd('==== runRequestsDone');
         }).fail(function (jqXHR, textStatus, errorThrown) {
           _request.subRequests.forEach(function (subRequest) {
             subRequest.context.loadDataErrorCallback.call(subRequest.context, jqXHR, textStatus, errorThrown);
