@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,8 @@ import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
@@ -550,10 +553,24 @@ public class ServiceImpl implements Service {
     
     List<ServiceConfigEntity> serviceConfigEntities = serviceConfigDAO.findByService(cluster.getClusterId(), getName());
 
+    Long maxServiceConfigEntityId = -1L;
+    ServiceConfigEntity lastServiceConfigEntity = null; // last service config by id, should have all needed clusterConfigEntities
+    
     for (ServiceConfigEntity serviceConfigEntity : serviceConfigEntities) {
+      if(serviceConfigEntity.getServiceConfigId() > maxServiceConfigEntityId) {
+        maxServiceConfigEntityId = serviceConfigEntity.getServiceConfigId();
+        lastServiceConfigEntity = serviceConfigEntity;
+      }
       serviceConfigDAO.remove(serviceConfigEntity);
     }
-
+    
+    if(lastServiceConfigEntity != null) {
+      List<String> configTypesToDisable = new ArrayList<String>();
+      for(ClusterConfigEntity clusterConfigEntity:lastServiceConfigEntity.getClusterConfigEntities()) {
+        configTypesToDisable.add(clusterConfigEntity.getType());
+      }
+      clusterDAO.removeClusterConfigMappingEntityByTypes(cluster.getClusterId(), configTypesToDisable);
+    }
   }
   
   @Override
