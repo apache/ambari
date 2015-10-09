@@ -838,7 +838,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   /**
-   * Add host name properties to appropriate categories (for installer only)
+   * Add host name properties to appropriate categories (for installer and add service)
    * @param serviceConfig
    * @param masterComponents
    * @param slaveComponents
@@ -859,7 +859,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         }
         var stackComponent = App.StackServiceComponent.find(componentName);
         var hProperty = App.config.createHostNameProperty(serviceConfig.get('serviceName'), componentName, value, stackComponent);
-        serviceConfig.get('configs').push(App.ServiceConfigProperty.create(hProperty));
+        var newConfigName = Em.get(hProperty, 'name');
+        if (!serviceConfig.get('configs').someProperty('name', newConfigName)) {
+          serviceConfig.get('configs').push(App.ServiceConfigProperty.create(hProperty));
+        }
       }
     }, this);
   },
