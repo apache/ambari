@@ -1282,7 +1282,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   setZKConfigs: function (configs, zksWithPort, zks) {
     if (typeof configs !== 'object' || !Array.isArray(zks)) return false;
-    if (App.get('isHaEnabled')) {
+    if (App.get('isHaEnabled') && configs['core-site']) {
       App.config.updateHostsListValue(configs['core-site'], 'ha.zookeeper.quorum', zksWithPort);
     }
     if (configs['hbase-site']) {
@@ -1300,7 +1300,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (configs['storm-site']) {
       configs['storm-site']['storm.zookeeper.servers'] = JSON.stringify(zks).replace(/"/g, "'");
     }
-    if (App.get('isRMHaEnabled')) {
+    if (App.get('isRMHaEnabled') && configs['yarn-site']) {
       App.config.updateHostsListValue(configs['yarn-site'], 'yarn.resourcemanager.zk-address', zksWithPort);
     }
     if (App.get('isHadoop22Stack')) {
