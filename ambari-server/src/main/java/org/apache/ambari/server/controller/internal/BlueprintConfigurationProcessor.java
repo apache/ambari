@@ -1937,7 +1937,6 @@ public class BlueprintConfigurationProcessor {
     mPropertyUpdaters.put("hbase-env", hbaseEnvMap);
     mPropertyUpdaters.put("mapred-env", mapredEnvMap);
     mPropertyUpdaters.put("oozie-env", oozieEnvHeapSizeMap);
-    mPropertyUpdaters.put("yarn-site", yarnSiteMap);
 
     multiHostTopologyUpdaters.put("webhcat-site", multiWebhcatSiteMap);
     multiHostTopologyUpdaters.put("hbase-site", multiHbaseSiteMap);
@@ -2145,7 +2144,6 @@ public class BlueprintConfigurationProcessor {
     hbaseEnvMap.put("hbase_regionserver_heapsize", new MPropertyUpdater());
     oozieEnvHeapSizeMap.put("oozie_heapsize", new MPropertyUpdater());
     oozieEnvHeapSizeMap.put("oozie_permsize", new MPropertyUpdater());
-    yarnSiteMap.put("yarn.nodemanager.resource.memory-mb", new MPropertyUpdater());
   }
 
   /**
