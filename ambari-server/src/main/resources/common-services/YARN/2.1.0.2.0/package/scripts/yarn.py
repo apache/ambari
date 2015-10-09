@@ -104,7 +104,7 @@ def yarn(name = None):
 
     # First start after enabling/disabling security
     if params.toggle_nm_security:
-      Directory(params.nm_local_dirs.split(',') + params.nm_log_dirs.split(','),
+      Directory(params.nm_local_dirs_list + params.nm_log_dirs_list,
                 action='delete'
       )
 
@@ -125,7 +125,7 @@ def yarn(name = None):
 
 
     if not params.security_enabled or params.toggle_nm_security:
-      Directory(params.nm_local_dirs.split(',') + params.nm_log_dirs.split(','),
+      Directory(params.nm_local_dirs_list + params.nm_log_dirs_list,
                 owner=params.yarn_user,
                 group=params.user_group,
                 recursive=True,
@@ -133,6 +133,9 @@ def yarn(name = None):
                 ignore_failures=True,
                 mode=0775
                 )
+      Execute(("chmod", "-R", "755") + tuple(params.nm_local_dirs_list),
+                sudo=True,
+      )
 
   if params.yarn_nodemanager_recovery_dir:
     Directory(InlineTemplate(params.yarn_nodemanager_recovery_dir).get_content(),

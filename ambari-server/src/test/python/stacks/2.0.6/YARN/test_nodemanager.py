@@ -167,6 +167,9 @@ class TestNodeManager(RMFTestCase):
                               mode = 0775,
                               cd_access='a'
                               )
+    self.assertResourceCalled('Execute', ('chmod', '-R', '755', u'/hadoop/yarn/local',  u'/hadoop/yarn/local1'),
+        sudo = True,
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -349,7 +352,9 @@ class TestNodeManager(RMFTestCase):
                               mode = 0775,
                               cd_access='a'
                               )
-
+    self.assertResourceCalled('Execute', ('chmod', '-R', '755', u'/hadoop/yarn/local'),
+        sudo = True,
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
