@@ -2220,10 +2220,20 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   restartAllStaleConfigComponents: function () {
     var self = this;
-    return App.showConfirmationPopup(function () {
-      var staleComponents = self.get('content.componentsWithStaleConfigs');
-      batchUtils.restartHostComponents(staleComponents, Em.I18n.t('rollingrestart.context.allWithStaleConfigsOnSelectedHost').format(self.get('content.hostName')), "HOST");
-    });
+    var staleComponents = self.get('content.componentsWithStaleConfigs');
+    if (staleComponents.someProperty('componentName', 'NAMENODE') &&
+      this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
+      this.checkNnLastCheckpointTime(function () {
+        App.showConfirmationPopup(function () {
+          batchUtils.restartHostComponents(staleComponents, Em.I18n.t('rollingrestart.context.allWithStaleConfigsOnSelectedHost').format(self.get('content.hostName')), "HOST");
+        });
+      });
+    } else {
+      return App.showConfirmationPopup(function () {
+        batchUtils.restartHostComponents(staleComponents, Em.I18n.t('rollingrestart.context.allWithStaleConfigsOnSelectedHost').format(self.get('content.hostName')), "HOST");
+      });
+    }
+
   },
 
   /**

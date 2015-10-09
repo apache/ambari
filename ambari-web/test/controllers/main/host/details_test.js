@@ -1843,10 +1843,14 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.spy(App, "showConfirmationPopup");
       sinon.stub(batchUtils, "restartHostComponents", Em.K);
+      sinon.stub(controller, 'checkNnLastCheckpointTime', function(callback){
+        callback();
+      });
     });
     afterEach(function () {
       App.showConfirmationPopup.restore();
       batchUtils.restartHostComponents.restore();
+      controller.checkNnLastCheckpointTime.restore();
     });
 
     it('popup should be displayed', function () {
@@ -1861,6 +1865,20 @@ describe('App.MainHostDetailsController', function () {
       expect(batchUtils.restartHostComponents.calledWith([
         {}
       ])).to.be.true;
+    });
+
+    it('popup ro check NameNode checkpoint should be displayed first', function () {
+      controller.set('content.componentsWithStaleConfigs', [Em.Object.create({
+        componentName: 'NAMENODE',
+        workStatus: 'STARTED'
+      })]);
+      controller.set('content.hostComponents', [Em.Object.create({
+        componentName: 'NAMENODE',
+        workStatus: 'STARTED'
+      })]);
+      controller.restartAllStaleConfigComponents();
+      expect(controller.checkNnLastCheckpointTime.calledOnce).to.be.true;
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
     });
   });
 
