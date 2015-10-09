@@ -47,6 +47,11 @@ App.ConfigCondition = DS.Model.extend({
   configs: DS.attr('array', {defaultValue: []}),
 
   /**
+   * resource can be `config`, `service`
+   */
+  resource: DS.attr('string', {defaultValue: 'config'}),
+
+  /**
    * conditional String which can be evaluated to boolean result.
    * If evaluated result of this staring is true then use the statement provided by `then` attribute.
    * Otherwise use the attribute provided by `else` attributes

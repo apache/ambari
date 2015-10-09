@@ -28,7 +28,7 @@
 
   <property>
     <name>create_db_dbuser</name>
-    <value>false</value>
+    <value>true</value>
     <display-name>Setup Database and Databse User</display-name>
     <description>If set to Yes, Ranger will Setup Database and Databse User. This will require to specify Database root user and password</description>
     <value-attributes>

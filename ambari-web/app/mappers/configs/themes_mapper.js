@@ -225,12 +225,17 @@ App.themesMapper = App.QuickDataMapper.create({
       configCondition.id = configProperty.get('id') + '_' + index;
       configCondition.config_name =  configProperty.get('name');
       configCondition.file_name =  configProperty.get('filename');
-      configCondition.configs =  _configCondition.configs.map(function(item) {
-        var result = {};
-        result.fileName = item.split('/')[0] + '.xml';
-        result.configName = item.split('/')[1];
-        return result;
-      });
+      if (_configCondition.configs && _configCondition.configs.length) {
+        configCondition.configs = _configCondition.configs.map(function (item) {
+          var result = {};
+          result.fileName = item.split('/')[0] + '.xml';
+          result.configName = item.split('/')[1];
+          return result;
+        });
+      }
+
+      configCondition.resource = _configCondition.resource || 'config';
+
       configConditionsCopy.pushObject(configCondition);
     }, this);
 

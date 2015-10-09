@@ -178,8 +178,8 @@
   <property>
     <name>ranger.usersync.ldap.url</name>
     <display-name>LDAP (AD) URL</display-name>
-    <value>ldap://localhost:389</value>
-    <description>LDAP server URL</description>
+    <value></value>
+    <description>LDAP server URL. Example value = ldap://localhost:389</description>
   </property>
 
   <property>
@@ -225,7 +225,7 @@
   <property>
     <name>ranger.usersync.ldap.user.searchbase</name>
     <display-name>User Search Base</display-name>
-    <value>ou=users,dc=xasecure,dc=net</value>
+    <value></value>
     <description>"# search base for users
 # sample value would be ou=users,dc=hadoop,dc=apache,dc=org
 # overrides value specified in ranger.usersync.ldap.searchBase"</description>
@@ -353,7 +353,7 @@
   <property>
     <name>ranger.usersync.group.searchbase</name>
     <display-name>Group Search Base</display-name>
-    <value> </value>
+    <value></value>
     <description>"# search base for groups
 # sample value would be ou=groups,dc=hadoop,dc=apache,dc=org
 # overrides value specified in ranger.usersync.ldap.searchBase,  ranger.usersync.ldap.user.searchbase
@@ -375,44 +375,32 @@
   <property>
     <name>ranger.usersync.group.objectclass</name>
     <display-name>Group Object Class</display-name>
-    <value> </value>
+    <value></value>
     <description></description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.group.searchfilter</name>
-    <value> </value>
+    <value></value>
     <display-name>Group Search Filter</display-name>
     <description>"# optional additional filter constraining the groups selected for syncing
 # a sample value would be (dept=eng)
 # please customize the value to suit your deployment
 # default value is empty"</description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.group.nameattribute</name>
     <display-name>Group Name Attribute</display-name>
-    <value> </value>
+    <value></value>
     <description>LDAP group name attribute</description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
   </property>
 
   <property>
     <name>ranger.usersync.group.memberattributename</name>
     <display-name>Group Member Attribute</display-name>
-    <value> </value>
+    <value></value>
     <description>LDAP group member attribute name</description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
   </property>
 
   <property>
