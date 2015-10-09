@@ -202,14 +202,20 @@ public class AmbariActionExecutionHelper {
       }
     }
 
-    // decided to hide this part of code, to have ability, by default execute custom action on all hosts(according to targetType in definition)
-    //if (TargetHostType.SPECIFIC.equals(actionDef.getTargetType())
-    //  || (targetService.isEmpty() && targetComponent.isEmpty())) {
-    //  if (resourceFilter == null || resourceFilter.getHostNames().size() == 0) {
-    //    throw new AmbariException("Action " + actionRequest.getActionName() + " requires explicit target host(s)" +
-    //      " that is not provided.");
-    //  }
-    //}
+    TargetHostType targetHostType = actionDef.getTargetType();
+
+    if (TargetHostType.SPECIFIC.equals(actionDef.getTargetType())
+      || (targetService.isEmpty() && targetComponent.isEmpty())) {
+      if ((resourceFilter == null || resourceFilter.getHostNames().size() == 0) && !isTargetHostTypeAllowsEmptyHosts(targetHostType)) {
+        throw new AmbariException("Action " + actionRequest.getActionName() + " requires explicit target host(s)" +
+          " that is not provided.");
+      }
+    }
+  }
+
+  private boolean isTargetHostTypeAllowsEmptyHosts(TargetHostType targetHostType) {
+    return targetHostType.equals(TargetHostType.ALL) || targetHostType.equals(TargetHostType.ANY)
+            || targetHostType.equals(TargetHostType.MAJORITY);
   }
 
 
