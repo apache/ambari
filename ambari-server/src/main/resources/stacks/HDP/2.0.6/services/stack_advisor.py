@@ -266,6 +266,41 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       rangerSqlConnectorProperty = ranger_sql_connector_dict.get(rangerDbFlavor, ranger_sql_connector_dict['MYSQL'])
       putRangerAdminProperty('SQL_CONNECTOR_JAR', rangerSqlConnectorProperty)
 
+    # Build policymgr_external_url
+    protocol = 'http'
+    ranger_admin_host = 'localhost'
+    port = '6080'
+
+    if 'ranger-site' in services['configurations'] and 'http.enabled' in services['configurations']['ranger-site']['properties'] \
+      and services['configurations']['ranger-site']['properties']['http.enabled'].lower() == 'false':
+      # HTTPS protocol is used
+      protocol = 'https'
+      # In HDP-2.3 port stored in ranger-admin-site ranger.service.https.port
+      if 'ranger-admin-site' in services['configurations'] and \
+          'ranger.service.https.port' in services['configurations']['ranger-admin-site']['properties']:
+        port = services['configurations']['ranger-admin-site']['properties']['ranger.service.https.port']
+      # In HDP-2.2 port stored in ranger-site https.service.port
+      elif 'ranger-site' in services['configurations'] and \
+          'https.service.port' in services['configurations']['ranger-site']['properties']:
+        port = services['configurations']['ranger-site']['properties']['https.service.port']
+    else:
+      # HTTP protocol is used
+      # In HDP-2.3 port stored in ranger-admin-site ranger.service.http.port
+      if 'ranger-admin-site' in services['configurations'] and \
+          'ranger.service.http.port' in services['configurations']['ranger-admin-site']['properties']:
+        port = services['configurations']['ranger-admin-site']['properties']['ranger.service.http.port']
+      # In HDP-2.2 port stored in ranger-site http.service.port
+      elif 'ranger-site' in services['configurations'] and \
+          'http.service.port' in services['configurations']['ranger-site']['properties']:
+        port = services['configurations']['ranger-site']['properties']['http.service.port']
+
+    ranger_admin_hosts = self.getComponentHostNames(services, "RANGER", "RANGER_ADMIN")
+    if ranger_admin_hosts:
+      ranger_admin_host = ranger_admin_hosts[0]
+
+    policymgr_external_url = "%s://%s:%s" % (protocol, ranger_admin_host, port)
+    putRangerAdminProperty('policymgr_external_url', policymgr_external_url)
+
 
   def getAmsMemoryRecommendation(self, services, hosts):
     # MB per sink in hbase heapsize
