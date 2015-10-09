@@ -29,6 +29,10 @@ module.exports = {
     TEMPORARY_PATH: 'storage.temporary'
   },
 
+  ALIAS: {
+    KDC_CREDENTIALS: 'kdc.admin.credential'
+  },
+
   /**
    * Store credentials to server
    *
@@ -221,5 +225,21 @@ module.exports = {
       dfd.reject(error);
     });
     return dfd.promise();
+  },
+
+  /**
+   * Generate payload for storing credential.
+   *
+   * @param {string} principal principal name
+   * @param {string} key secret key
+   * @param {string} type storage type e.g. <b>persisted</b>, <b>temporary</b>
+   * @returns {object} resource template
+   */
+  createCredentialResource: function(principal, key, type) {
+    return {
+      principal: principal,
+      key: key,
+      type: type
+    };
   }
 };

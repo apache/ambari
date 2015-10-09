@@ -26,7 +26,7 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
    *
    * @type {string}
    */
-  credentialAlias: 'kdc.admin.credential',
+  credentialAlias: credentialsUtils.ALIAS.KDC_CREDENTIALS,
 
   /**
    * Returns <code>true</code> if persisted secure storage available.
@@ -51,7 +51,7 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
       recommendedValue: 'false',
       supportsFinal: false,
       recommendedIsFinal: false,
-      displayName: 'Save Admin credentials',
+      displayName: Em.I18n.t('admin.kerberos.credentials.store.label'),
       category: 'Kadmin',
       isRequired: false,
       isRequiredByAgent: false,
@@ -82,11 +82,10 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
    */
   createKDCCredentials: function(configs) {
     var self = this;
-    var resource = {
-      type: this._getStorageTypeValue(configs),
-      key: configs.findProperty('name', 'admin_password').get('value'),
-      principal:  configs.findProperty('name', 'admin_principal').get('value')
-    };
+    var resource = credentialsUtils.createCredentialResource(
+      configs.findProperty('name', 'admin_principal').get('value'),
+      configs.findProperty('name', 'admin_password').get('value'),
+      this._getStorageTypeValue(configs));
     return credentialsUtils.createCredentials(App.get('clusterName'), this.get('credentialAlias'), resource).fail(function() {
       return self.updateKDCCredentials(resource);
     });

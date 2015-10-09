@@ -32,4 +32,18 @@
       {{view Ember.TextField type="password" valueBinding="view.parentView.password" class="form-control"}}
     </div>
   </div>
+  <div class="control-group">
+    <span class="control-label"></span>
+    <div class="controls ">
+      {{#if App.supports.storeKDCCredentials}}
+        <label>
+          {{view Ember.Checkbox checkedBinding="view.parentView.storeCredentials" disabledBinding="view.parentView.checkboxDisabled" classNames="pull-left"}}
+          <span {{bindAttr class=":mls view.parentView.checkboxDisabled:muted"}}>
+            {{t admin.kerberos.credentials.store.label}}
+            <a class="icon-question-sign icon-blue" rel="tooltip" href="javascript:void(null);" data-toggle="tooltip" {{bindAttr data-original-title="view.parentView.hintMessage"}}><a/>
+          </span>
+        </label>
+      {{/if}}
+    </div>
+  </div>
 </form>
