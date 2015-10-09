@@ -2052,4 +2052,43 @@ describe('App.InstallerStep7Controller', function () {
       });
     });
   });
+
+  describe('#addHostNamesToConfigs', function() {
+
+    beforeEach(function () {
+      sinon.stub(App.StackServiceComponent, 'find', function () {
+        return Em.Object.create({
+          id: 'NAMENODE',
+          displayName: 'NameNode'
+        });
+      });
+    });
+
+    afterEach(function () {
+      App.StackServiceComponent.find.restore();
+    });
+
+    it('should not create duplicate configs', function () {
+      var serviceConfig = Em.Object.create({
+        configs: [],
+        serviceName: 'HDFS',
+        configCategories: [
+          {
+            showHost: true,
+            name: 'NAMENODE'
+          }
+        ]
+      });
+      var masterComponents = [
+        {component: 'NAMENODE', hostName: 'h1'}
+      ];
+      var slaveComponents = [];
+      installerStep7Controller.addHostNamesToConfigs(serviceConfig, masterComponents, slaveComponents);
+      expect(serviceConfig.get('configs').filterProperty('name', 'namenode_host').length).to.equal(1);
+      installerStep7Controller.addHostNamesToConfigs(serviceConfig, masterComponents, slaveComponents);
+      expect(serviceConfig.get('configs').filterProperty('name', 'namenode_host').length).to.equal(1);
+    });
+
+  });
+
 });
