@@ -34,7 +34,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
    * @type Object
    */
   configsToRemove: {
-    'hdfs-site': ['dfs.namenode.secondary.http-address']
+    'hdfs-site': ['dfs.namenode.secondary.http-address', 'dfs.namenode.rpc-address']
   },
 
   clearStep: function () {
