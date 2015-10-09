@@ -57,23 +57,103 @@
       "configs": [
         {
           "config": "ranger-env/ranger-hdfs-plugin-enabled",
-          "subsection-name": "section-ranger-plugin-row1-col1"
+          "subsection-name": "section-ranger-plugin-row1-col1",
+          "depends-on": [
+            {
+              "resource": "service",
+              "if": "HDFS",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
         },
         {
           "config": "ranger-env/ranger-hive-plugin-enabled",
-          "subsection-name": "section-ranger-plugin-row1-col1"
+          "subsection-name": "section-ranger-plugin-row1-col1",
+          "depends-on": [
+            {
+              "resource": "service",
+              "if": "HIVE",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
         },
         {
           "config": "ranger-env/ranger-hbase-plugin-enabled",
-          "subsection-name": "section-ranger-plugin-row1-col2"
+          "subsection-name": "section-ranger-plugin-row1-col2",
+          "depends-on": [
+            {
+              "resource": "service",
+              "if": "HBASE",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
         },
         {
           "config": "ranger-env/ranger-storm-plugin-enabled",
-          "subsection-name": "section-ranger-plugin-row1-col2"
+          "subsection-name": "section-ranger-plugin-row1-col2",
+          "depends-on": [
+            {
+              "resource": "service",
+              "if": "STORM",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
         },
         {
           "config": "ranger-env/ranger-knox-plugin-enabled",
-          "subsection-name": "section-ranger-plugin-row1-col3"
+          "subsection-name": "section-ranger-plugin-row1-col3",
+          "depends-on": [
+            {
+              "resource": "service",
+              "if": "KNOX",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
         }
       ]
     },

@@ -30,6 +30,8 @@ import java.util.List;
 public class ConfigCondition {
   @JsonProperty("configs")
   private List<String> configs;
+  @JsonProperty("resource")
+  private String resource;
   @JsonProperty("if")
   private String ifLabel;
   @JsonProperty("then")
@@ -67,6 +69,15 @@ public class ConfigCondition {
 
   public void setElseLabel(ConfigConditionResult elseLabel) {
     this.elseLabel = elseLabel;
+  }
+
+
+  public String getResource() {
+    return resource;
+  }
+
+  public void setResource(String resource) {
+    this.resource = resource;
   }
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
