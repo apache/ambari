@@ -676,6 +676,86 @@ class TestHDP206StackAdvisor(TestCase):
     self.stackAdvisor.recommendHbaseConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
+
+  def test_recommendRangerConfigurations(self):
+    clusterData = {}
+    # Recommend for not existing DB_FLAVOR and http enabled, HDP-2.3
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "RANGER"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "RANGER_ADMIN",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        },
+      ],
+      "configurations": {
+        "admin-properties": {
+          "properties": {
+            "DB_FLAVOR": "NOT_EXISTING",
+            }
+        },
+        "ranger-admin-site": {
+          "properties": {
+            "ranger.service.http.port": "7777",
+            }
+        },
+        "ranger-site": {
+          "properties": {
+            "http.enabled": "true",
+            }
+        }
+      }
+    }
+    expected = {
+      "admin-properties": {
+        "properties": {
+          "SQL_CONNECTOR_JAR": "/usr/share/java/mysql-connector-java.jar",
+          "policymgr_external_url": "http://host1:7777",
+        }
+      },
+    }
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)
+
+    # Recommend for DB_FLAVOR ORACLE and https enabled, HDP-2.2
+    configurations = {
+      "admin-properties": {
+        "properties": {
+          "DB_FLAVOR": "ORACLE",
+          }
+      },
+      "ranger-site": {
+        "properties": {
+          "http.enabled": "false",
+          "https.service.port": "8888",
+          }
+      }
+    }
+    services['configurations'] = configurations
+    expected = {
+      "admin-properties": {
+        "properties": {
+          "SQL_CONNECTOR_JAR": "/usr/share/java/ojdbc6.jar",
+          "policymgr_external_url": "https://host1:8888",
+          }
+      },
+    }
+
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)
+
+
+
   def test_recommendHDFSConfigurations(self):
     configurations = {
       "hadoop-env": {
