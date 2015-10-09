@@ -892,7 +892,9 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
         this.set('disablePrimary', !modified);
       }.observes('subViewController.isHostsModified'),
 
-      didInsertElement: Em.K
+      didInsertElement: function () {
+        this.fitZIndex();
+      }
     });
   }
 
