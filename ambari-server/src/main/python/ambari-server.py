@@ -142,7 +142,7 @@ def stop(args):
 
   if status:
     try:
-      os.killpg(os.getpgid(pid), signal.SIGKILL)
+      os.kill(pid, signal.SIGTERM)
     except OSError, e:
       print_info_msg("Unable to stop Ambari Server - " + str(e))
       return
