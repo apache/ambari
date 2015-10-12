@@ -23,12 +23,14 @@
 <configuration>
   <property>
     <name>spark_user</name>
+    <display-name>Spark User</display-name>
     <value>spark</value>
     <property-type>USER</property-type>
   </property>
 
   <property>
     <name>spark_group</name>
+    <display-name>Spark Group</display-name>
     <value>spark</value>
     <property-type>GROUP</property-type>
     <description>spark group</description>

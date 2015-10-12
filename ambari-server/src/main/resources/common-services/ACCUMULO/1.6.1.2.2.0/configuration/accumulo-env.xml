@@ -90,6 +90,7 @@
   </property>
   <property>
     <name>accumulo_user</name>
+    <display-name>Accumulo User</display-name>
     <value>accumulo</value>
     <property-type>USER</property-type>
     <description>User for running Accumulo server processes.</description>
