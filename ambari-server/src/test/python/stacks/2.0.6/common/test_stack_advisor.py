@@ -705,11 +705,7 @@ class TestHDP206StackAdvisor(TestCase):
         "ranger-admin-site": {
           "properties": {
             "ranger.service.http.port": "7777",
-            }
-        },
-        "ranger-site": {
-          "properties": {
-            "http.enabled": "true",
+            "ranger.service.http.enabled": "true",
             }
         }
       }
@@ -722,6 +718,34 @@ class TestHDP206StackAdvisor(TestCase):
         }
       },
     }
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)
+
+    # Recommend for DB_FLAVOR POSTGRES and https enabled, HDP-2.3
+    configurations = {
+      "admin-properties": {
+        "properties": {
+          "DB_FLAVOR": "POSTGRES",
+          }
+      },
+      "ranger-admin-site": {
+        "properties": {
+          "ranger.service.https.port": "7777",
+          "ranger.service.http.enabled": "false",
+          }
+      }
+    }
+    services['configurations'] = configurations
+
+    expected = {
+      "admin-properties": {
+        "properties": {
+          "SQL_CONNECTOR_JAR": "/usr/share/java/postgresql.jar",
+          "policymgr_external_url": "https://host1:7777",
+          }
+      },
+      }
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
     self.assertEquals(recommendedConfigurations, expected)
