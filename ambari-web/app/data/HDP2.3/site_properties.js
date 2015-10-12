@@ -243,6 +243,78 @@ hdp23properties.push({
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
     "category": "ADSettings"
+  },
+  /*********HAWQ************/
+  {
+    "name": "hawq_master_address_host",
+    "displayType": "masterHost",
+    "filename": "hawq-site.xml",
+    "category": "General",
+    "serviceName": "HAWQ",
+    "index": 0
+  },
+  {
+    "name": "hawq_standby_address_host",
+    "displayType": "masterHost",
+    "filename": "hawq-site.xml",
+    "category": "General",
+    "serviceName": "HAWQ",
+    "index": 1
+  },
+  {
+    "name": "hawq_master_address_port",
+    "displayType": "int",
+    "filename": "hawq-site.xml",
+    "category": "General",
+    "serviceName": "HAWQ",
+    "index": 2
+  },
+  {
+    "name": "hawq_segment_address_port",
+    "displayType": "int",
+    "filename": "hawq-site.xml",
+    "category": "General",
+    "serviceName": "HAWQ",
+    "index": 3
+  },
+  {
+    "name": "hawq_dfs_url",
+    "filename": "hawq-site.xml",
+    "category": "General",
+    "serviceName": "HAWQ",
+    "index": 4
+  },
+  {
+    "name": "hawq_master_directory",
+    "displayType": "directory",
+    "filename": "hawq-site.xml",
+    "category": "General",
+    "serviceName": "HAWQ",
+    "index": 5
+  },
+  {
+    "name": "hawq_master_temp_directory",
+    "displayType": "directory",
+    "filename": "hawq-site.xml",
+    "category": "General",
+    "serviceName": "HAWQ",
+    "index": 6
+  },
+  {
+    "name": "hawq_segment_directory",
+    "displayType": "directory",
+    "filename": "hawq-site.xml",
+    "category": "General",
+    "serviceName": "HAWQ",
+    "index": 7
+  },
+  {
+    "name": "hawq_segment_temp_directory",
+    "displayType": "directory",
+    "filename": "hawq-site.xml",
+    "category": "General",
+    "serviceName": "HAWQ",
+    "index": 8
   }
 );
 
