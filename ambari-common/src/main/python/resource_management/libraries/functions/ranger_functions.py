@@ -25,6 +25,7 @@ from resource_management.core.logger import Logger
 import urllib2, base64, httplib
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.format import format
+import re
 
 class Rangeradmin:
   sInstance = None
@@ -41,10 +42,14 @@ class Rangeradmin:
     self.urlUsers = self.baseUrl + '/service/xusers/users'
     self.urlSecUsers = self.baseUrl + '/service/xusers/secure/users'
 
-    self.session = None
-    self.isLoggedIn = False
-
   def get_repository_by_name_urllib2(self, name, component, status, usernamepassword):
+    """
+    param name: name of the component, from which, function will search in list of repositories
+    param component: component for which repository has to be checked
+    param status: active or inactive
+    param usernamepassword: user credentials using which repository needs to be searched
+    return: Returns Ranger repository dict if found otherwise None
+    """
     try:
       searchRepoURL = self.urlReposPub + "?name=" + name + "&type=" + component + "&status=" + status
       request = urllib2.Request(searchRepoURL)
@@ -55,21 +60,19 @@ class Rangeradmin:
       result = urllib2.urlopen(request)
       response_code = result.getcode()
       response = json.loads(result.read())
-
       if response_code == 200 and len(response['vXRepositories']) > 0:
         for repo in response['vXRepositories']:
           repoDump = json.loads(json.JSONEncoder().encode(repo))
-          if repoDump['name'] == name:
+          if repoDump['name'].lower() == name.lower():
             return repoDump
         return None
       else:
         return None
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("HTTP Code: {0}".format(e.code))
-        Logger.error("HTTP Data: {0}".format(e.read()))
+        Logger.error("Error getting {0} repository for component {1}. Http status code - {2}. \n {3}".format(name, component, e.code, e.read()))
       else:
-        Logger.error("Error : {0}".format(e.reason))
+        Logger.error("Error getting {0} repository for component {1}. Reason - {2}.".format(name, component, e.reason))
       return None
     except httplib.BadStatusLine:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
@@ -80,18 +83,30 @@ class Rangeradmin:
   def create_ranger_repository(self, component, repo_name, repo_properties, 
                                ambari_ranger_admin, ambari_ranger_password,
                                admin_uname, admin_password, policy_user):
-    response_code, response_recieved = self.check_ranger_login_urllib2(self.urlLogin, 'test:test')
+    """
+    param component: name of the component, from which it will get or create repository
+    param repo_name: name of the repository to be get or create
+    param repo_properties: dict of repository to be create if not exist
+    param ambari_ranger_admin: ambari admin user creation username
+    param ambari_ranger_password: ambari admin user creation password
+    param admin_uname: ranger admin username
+    param admin_password: ranger admin password
+    param policy_user: use this policy user for policies that will be used during repository creation
+    """
+    response_code = self.check_ranger_login_urllib2(self.baseUrl)
     repo_data = json.dumps(repo_properties)
+    ambari_ranger_password = unicode(ambari_ranger_password)
+    admin_password = unicode(admin_password)
+    ambari_username_password_for_ranger = format('{ambari_ranger_admin}:{ambari_ranger_password}')
     
     if response_code is not None and response_code == 200:
-      ambari_ranger_admin, ambari_ranger_password = self.create_ambari_admin_user(ambari_ranger_admin, ambari_ranger_password, format("{admin_uname}:{admin_password}"))
-      ambari_username_password_for_ranger = ambari_ranger_admin + ':' + ambari_ranger_password
-      if ambari_ranger_admin != '' and ambari_ranger_password != '':
+      user_resp_code = self.create_ambari_admin_user(ambari_ranger_admin, ambari_ranger_password, format("{admin_uname}:{admin_password}"))
+      if user_resp_code is not None and user_resp_code == 200:
         retryCount = 0
         while retryCount <= 5:
           repo = self.get_repository_by_name_urllib2(repo_name, component, 'true', ambari_username_password_for_ranger)
-          if repo and repo['name'] == repo_name:
-            Logger.info('{0} Repository exist'.format(component.title()))
+          if repo is not None:
+            Logger.info('{0} Repository {1} exist'.format(component.title(), repo['name']))
             break
           else:
             response = self.create_repository_urllib2(repo_data, ambari_username_password_for_ranger, policy_user)
@@ -105,9 +120,15 @@ class Rangeradmin:
               else:
                 raise Fail('{0} Repository creation failed in Ranger admin'.format(component.title()))
       else:
-        raise Fail('Ambari admin username and password are blank ')
+        raise Fail('Ambari admin user creation failed')
           
   def create_repository_urllib2(self, data, usernamepassword, policy_user):
+    """
+    param data: repository dict 
+    param usernamepassword: user credentials using which repository needs to be created
+    param policy_user: use this policy user for policies that will be used during repository creation
+    return: Returns created repository response else None
+    """
     try:
       searchRepoURL = self.urlReposPub
       base64string = base64.encodestring('{0}'.format(usernamepassword)).replace('\n', '')
@@ -126,7 +147,7 @@ class Rangeradmin:
         repoData = json.loads(data)
         repoName = repoData['name']
         typeOfPolicy = repoData['repositoryType']
-        ##Get Policies by repo name
+        # Get Policies by repo name
         policyList = self.get_policy_by_repo_name(name=repoName, component=typeOfPolicy, status="true",
                                                   usernamepassword=usernamepassword)
         if policyList is not None and (len(policyList)) > 0:
@@ -139,7 +160,7 @@ class Rangeradmin:
               policiesUpdateCount = policiesUpdateCount + 1
             else:
               Logger.info('Policy Update failed')
-              ##Check for count of updated policies
+              # Check for count of updated policies
           if len(policyList) == policiesUpdateCount:
             Logger.info(
               "Ranger Repository created successfully and policies updated successfully providing ambari-qa user all permissions")
@@ -154,38 +175,41 @@ class Rangeradmin:
         return None
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("HTTP Code: {0}".format(e.code))
-        Logger.error("HTTP Data: {0}".format(e.read()))
+        Logger.error("Error creating repository. Http status code - {0}. \n {1}".format(e.code, e.read()))
       else:
-        Logger.error("Error: {0}".format(e.reason))
+        Logger.error("Error creating repository. Reason - {0}.".format(e.reason))
       return None
     except httplib.BadStatusLine:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
       return None
 
-  def check_ranger_login_urllib2(self, url, usernamepassword):
+  def check_ranger_login_urllib2(self, url):
+    """
+    param url: ranger admin host url
+    return: Returns login check response 
+    """
     try:
-      request = urllib2.Request(url)
-      base64string = base64.encodestring(usernamepassword).replace('\n', '')
-      request.add_header("Content-Type", "application/json")
-      request.add_header("Accept", "application/json")
-      request.add_header("Authorization", "Basic {0}".format(base64string))
-      result = urllib2.urlopen(request)
-      response = result.read()
-      response_code = result.getcode()
-      return response_code, response
+      response = urllib2.urlopen(url)
+      response_code = response.getcode()
+      return response_code
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("HTTP Code: {0}".format(e.code))
-        Logger.error("HTTP Data: {0}".format(e.read()))
+        Logger.error("Connection failed to Ranger Admin. Http status code - {0}. \n {1}".format(e.code, e.read()))
       else:
-        Logger.error("Error : {0}".format(e.reason))
-      return None, None
+        Logger.error("Connection failed to Ranger Admin. Reason - {0}.".format(e.reason))
+      return None
     except httplib.BadStatusLine, e:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
-      return None, None
+      return None
 
   def get_policy_by_repo_name(self, name, component, status, usernamepassword):
+    """
+    param name: repository name
+    param component: component name for which policy needs to be searched
+    param status: true or false
+    param usernamepassword: user credentials using which policy needs to be searched
+    return: Returns successful response else None
+    """
     try:
       searchPolicyURL = self.urlPolicies + "?repositoryName=" + name + "&repositoryType=" + component + "&isEnabled=" + status
       request = urllib2.Request(searchPolicyURL)
@@ -202,16 +226,21 @@ class Rangeradmin:
         return None
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("HTTP Code: {0}".format(e.code))
-        Logger.error("HTTP Data: {0}".format(e.read()))
+        Logger.error("Error getting policy from repository {0} for component {1}. Http status code - {2}. \n {3}".format(name, component, e.code, e.read()))
       else:
-        Logger.error("Error: {0}".format(e.reason))
+        Logger.error("Error getting policy from repository {0} for component {1}. Reason - {2}.".format(name, component, e.reason))
       return None
     except httplib.BadStatusLine:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
       return None
 
   def update_ranger_policy(self, policyId, data, usernamepassword):
+    """
+    param policyId: policy id which needs to be updated
+    param data: policy data that needs to be updated
+    param usernamepassword: user credentials using which policy needs to be updated
+    return: Returns successful response and response code else None
+    """
     try:
       searchRepoURL = self.urlPolicies + "/" + str(policyId)
       base64string = base64.encodestring('{0}'.format(usernamepassword)).replace('\n', '')
@@ -233,17 +262,21 @@ class Rangeradmin:
         return None, None
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("HTTP Code: {0}".format(e.code))
-        Logger.error("HTTP Data: {0}".format(e.read()))
+        Logger.error("Error updating policy. Http status code - {0}. \n {1}".format(e.code, e.read()))
       else:
-        Logger.error("Error: {0}".format(e.reason))
+        Logger.error("Error updating policy. Reason - {0}.".format(e.reason))
       return None, None
     except httplib.BadStatusLine:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
       return None, None
 
   def get_policy_params(self, typeOfPolicy, policyObj, policy_user):
-
+    """
+    param typeOfPolicy: component name for which policy has to be get
+    param policyObj: policy dict
+    param policy_user: policy user that needs to be updated
+    returns: Returns updated policy dict
+    """    
     typeOfPolicy = typeOfPolicy.lower()
     if typeOfPolicy == "hdfs":
       policyObj['permMapList'] = [{'userList': [policy_user], 'permList': ['read', 'write', 'execute', 'admin']}]
@@ -265,6 +298,15 @@ class Rangeradmin:
 
 
   def create_ambari_admin_user(self,ambari_admin_username, ambari_admin_password,usernamepassword):
+    """
+    param ambari_admin_username: username of user to be created 
+    param ambari_admin_username: user password of user to be created 
+    return: Returns response code for successful user creation else None
+    """
+    flag_ambari_admin_present = False
+    match = re.match('[a-zA-Z0-9_\S]+$', ambari_admin_password)
+    if match is None:
+      raise Fail('Invalid password given for Ranger Admin user for Ambari')
     try:
       url =  self.urlUsers + '?name=' + str(ambari_admin_username)
       request = urllib2.Request(url)
@@ -273,22 +315,19 @@ class Rangeradmin:
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base64string))
       result = urllib2.urlopen(request)
-      response_code =  result.getcode()
+      response_code = result.getcode()
       response = json.loads(result.read())
       if response_code == 200 and len(response['vXUsers']) >= 0:
-        ambari_admin_username = ambari_admin_username
-        flag_ambari_admin_present = False
         for vxuser in response['vXUsers']:
-          rangerlist_username = vxuser['name']
-          if rangerlist_username == ambari_admin_username:
+          if vxuser['name'] == ambari_admin_username:
             flag_ambari_admin_present = True
             break
           else:
             flag_ambari_admin_present = False
 
         if flag_ambari_admin_present:
-          Logger.info(ambari_admin_username + ' user already exists, using existing user from configurations.')
-          return ambari_admin_username,ambari_admin_password
+          Logger.info(ambari_admin_username + ' user already exists.')
+          return response_code
         else:
           Logger.info(ambari_admin_username + ' user is not present, creating user using given configurations')
           url = self.urlSecUsers
@@ -312,22 +351,19 @@ class Rangeradmin:
           response = json.loads(json.JSONEncoder().encode(result.read()))
           if response_code == 200 and response is not None:
             Logger.info('Ambari admin user creation successful.')
+            return response_code
           else:
-            Logger.info('Ambari admin user creation failed,setting username and password as blank')
-            ambari_admin_username = ''
-            ambari_admin_password = ''
-          return ambari_admin_username,ambari_admin_password
+            Logger.info('Ambari admin user creation failed.')
+            return None
       else:
-        return '',''
-
+        return None
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("HTTP Code: {0}".format(e.code))
-        Logger.error("HTTP Data: {0}".format(e.read()))
-        return '',''
+        Logger.error("Error creating ambari admin user. Http status code - {0}. \n {1}".format(e.code, e.read()))
+        return None
       else:
-        Logger.error("Error: {0}".format(e.reason))
-        return '',''
+        Logger.error("Error creating ambari admin user. Reason - {0}.".format(e.reason))
+        return None
     except httplib.BadStatusLine:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
-      return '',''
+      return None
