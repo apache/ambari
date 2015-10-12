@@ -341,6 +341,20 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   }
 
   /**
+   * This method returns Map of clusters.
+   * Map can be empty or with some objects, but never be null.
+   */
+  protected Map<String, Cluster> getCheckedClusterMap(Clusters clusters) {
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      if (clusterMap != null) {
+        return clusterMap;
+      }
+    }
+    return new HashMap<>();
+  }
+
+  /**
    * Create a new cluster scoped configuration with the new properties added
    * with the values from the coresponding xml files.
    *
