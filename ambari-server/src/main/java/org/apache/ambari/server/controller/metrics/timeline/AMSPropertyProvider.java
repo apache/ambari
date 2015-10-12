@@ -399,13 +399,19 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
               if (metricsMap.containsKey(propertyId)){
                 if (containsArguments(propertyId)) {
                   int i = 1;
-                  for (String param : parameterList) {
-                    propertyId = substituteArgument(propertyId, "$" + i, param);
-                    ++i;
+                  //if nothing to substitute in metric name, then
+                  //substitute $1 with an instanceId
+                  if (!parameterList.isEmpty())  {
+                    for (String param : parameterList) {
+                      propertyId = substituteArgument(propertyId, "$" + i, param);
+                      ++i;
+                    }
+                  } else {
+                    propertyId = substituteArgument(propertyId, "$1", metric.getInstanceId());
                   }
                 }
                 Object value = getValue(metric, temporalInfo);
-                if (value != null) {
+                if (value != null && !containsArguments(propertyId)) {
                   resource.setProperty(propertyId, value);
                 }
               }

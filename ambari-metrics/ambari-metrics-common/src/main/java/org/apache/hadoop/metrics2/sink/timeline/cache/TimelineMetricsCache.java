@@ -78,7 +78,7 @@ public class TimelineMetricsCache {
   }
 
   // TODO: Change to ConcurentHashMap with weighted eviction
-  class TimelineMetricHolder extends LinkedHashMap<String, TimelineMetricWrapper> {
+  class TimelineMetricHolder extends LinkedHashMap<String, TimelineMetricWrapper> {//
     private static final long serialVersionUID = 1L;
     private boolean gotOverflow = false;
     // To avoid duplication at the end of the buffer and beginning of the next

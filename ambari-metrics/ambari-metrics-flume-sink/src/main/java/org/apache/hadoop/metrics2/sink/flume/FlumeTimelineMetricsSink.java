@@ -36,6 +36,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,10 @@ import java.util.concurrent.TimeUnit;
 
 public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implements MonitorService {
   private String collectorUri;
-  private TimelineMetricsCache metricsCache;
+  // Key - component(instance_id)
+  private Map<String, TimelineMetricsCache> metricsCaches;
+  private int maxRowCacheSize;
+  private int metricsSendInterval;
   private ScheduledExecutorService scheduledExecutorService;
   private long pollFrequency;
   private String hostname;
@@ -83,11 +87,11 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     Configuration configuration = new Configuration("/flume-metrics2.properties");
     timeoutSeconds = Integer.parseInt(configuration.getProperty(METRICS_POST_TIMEOUT_SECONDS,
         String.valueOf(DEFAULT_POST_TIMEOUT_SECONDS)));
-    int maxRowCacheSize = Integer.parseInt(configuration.getProperty(MAX_METRIC_ROW_CACHE_SIZE,
+    maxRowCacheSize = Integer.parseInt(configuration.getProperty(MAX_METRIC_ROW_CACHE_SIZE,
         String.valueOf(TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT)));
-    int metricsSendInterval = Integer.parseInt(configuration.getProperty(METRICS_SEND_INTERVAL,
+    metricsSendInterval = Integer.parseInt(configuration.getProperty(METRICS_SEND_INTERVAL,
         String.valueOf(TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS)));
-    metricsCache = new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval);
+    metricsCaches = new HashMap<String, TimelineMetricsCache>();
     String collectorHostname = configuration.getProperty(COLLECTOR_HOST_PROPERTY);
     String port = configuration.getProperty(COLLECTOR_PORT_PROPERTY);
     collectorUri = "http://" + collectorHostname + ":" + port + "/ws/v1/timeline/metrics";
@@ -111,8 +115,9 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     this.pollFrequency = pollFrequency;
   }
 
-  public void setMetricsCache(TimelineMetricsCache metricsCache) {
-    this.metricsCache = metricsCache;
+  //Test hepler method
+  protected void setMetricsCaches(Map<String, TimelineMetricsCache> metricsCaches) {
+    this.metricsCaches = metricsCaches;
   }
 
   /**
@@ -144,6 +149,10 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
 
     private void processComponentAttributes(long currentTimeMillis, String component, Map<String, String> attributeMap) throws IOException {
       List<TimelineMetric> metricList = new ArrayList<TimelineMetric>();
+      if (!metricsCaches.containsKey(component)) {
+        metricsCaches.put(component, new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval));
+      }
+      TimelineMetricsCache metricsCache = metricsCaches.get(component);
       for (String attributeName : attributeMap.keySet()) {
         String attributeValue = attributeMap.get(attributeName);
         if (NumberUtils.isNumber(attributeValue)) {

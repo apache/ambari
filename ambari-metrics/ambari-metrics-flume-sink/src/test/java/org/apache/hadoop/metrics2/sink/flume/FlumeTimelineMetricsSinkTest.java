@@ -65,7 +65,7 @@ public class FlumeTimelineMetricsSinkTest {
 
   private TimelineMetricsCache getTimelineMetricsCache(FlumeTimelineMetricsSink flumeTimelineMetricsSink) {
     TimelineMetricsCache timelineMetricsCache = EasyMock.createNiceMock(TimelineMetricsCache.class);
-    flumeTimelineMetricsSink.setMetricsCache(timelineMetricsCache);
+    flumeTimelineMetricsSink.setMetricsCaches(Collections.singletonMap("SINK",timelineMetricsCache));
     EasyMock.expect(timelineMetricsCache.getTimelineMetric("key1"))
         .andReturn(new TimelineMetric()).once();
     timelineMetricsCache.putTimelineMetric(EasyMock.anyObject(TimelineMetric.class));

@@ -218,205 +218,204 @@
         "type": "ganglia",
         "metrics": {
           "default": {
-            "metrics/flume/flume/CHANNEL/ChannelCapacity": {
+              "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/ChannelCapacity": {
               "metric": "ChannelCapacity",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/StartTime": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/StartTime": {
               "metric": "StartTime",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/EventTakeAttemptCount": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventTakeAttemptCount": {
               "metric": "EventTakeAttemptCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/EventTakeSuccessCount": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventTakeSuccessCount": {
               "metric": "EventTakeSuccessCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/EventPutAttemptCount": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventPutAttemptCount": {
               "metric": "EventPutAttemptCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/StopTime": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/StopTime": {
               "metric": "StopTime",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/ChannelFillPercentage": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/ChannelFillPercentage": {
               "metric": "ChannelFillPercentage",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/ChannelSize": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/ChannelSize": {
               "metric": "ChannelSize",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/EventPutSuccessCount": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventPutSuccessCount": {
               "metric": "EventPutSuccessCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SINK/ConnectionCreatedCount": {
+            "metrics/flume/flume/SINK/$1.replaceAll(\"^SINK\.\",\"\")/ConnectionCreatedCount": {
               "metric": "ConnectionCreatedCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SINK/BatchCompleteCount": {
+            "metrics/flume/flume/SINK/$1.replaceAll(\"^SINK\.\",\"\")/BatchCompleteCount": {
               "metric": "BatchCompleteCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SINK/EventDrainSuccessCount": {
+            "metrics/flume/flume/SINK/$1.replaceAll(\"^SINK\.\",\"\")/EventDrainSuccessCount": {
               "metric": "EventDrainSuccessCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SINK/StartTime": {
+            "metrics/flume/flume/SINK/$1.replaceAll(\"^SINK\.\",\"\")/StartTime": {
               "metric": "StartTime",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SINK/EventDrainAttemptCount": {
+            "metrics/flume/flume/SINK/$1.replaceAll(\"^SINK\.\",\"\")/EventDrainAttemptCount": {
               "metric": "EventDrainAttemptCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SINK/ConnectionFailedCount": {
+            "metrics/flume/flume/SINK/$1.replaceAll(\"^SINK\.\",\"\")/ConnectionFailedCount": {
               "metric": "ConnectionFailedCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SINK/BatchUnderflowCount": {
+            "metrics/flume/flume/SINK/$1.replaceAll(\"^SINK\.\",\"\")/BatchUnderflowCount": {
               "metric": "BatchUnderflowCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SINK/ConnectionClosedCount": {
+            "metrics/flume/flume/SINK/$1.replaceAll(\"^SINK\.\",\"\")/ConnectionClosedCount": {
               "metric": "ConnectionClosedCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SINK/StopTime": {
+            "metrics/flume/flume/SINK/$1.replaceAll(\"^SINK\.\",\"\")/StopTime": {
               "metric": "StopTime",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SINK/BatchEmptyCount": {
+            "metrics/flume/flume/SINK/$1.replaceAll(\"^SINK\.\",\"\")/BatchEmptyCount": {
               "metric": "BatchEmptyCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SOURCE/AppendBatchReceivedCount": {
+            "metrics/flume/flume/SOURCE/$1.replaceAll(\"^SOURCE\.\",\"\")/AppendBatchReceivedCount": {
               "metric": "AppendBatchReceivedCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SOURCE/AppendAcceptedCount": {
+            "metrics/flume/flume/SOURCE/$1.replaceAll(\"^SOURCE\.\",\"\")/AppendAcceptedCount": {
               "metric": "AppendAcceptedCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SOURCE/StartTime": {
+            "metrics/flume/flume/SOURCE/$1.replaceAll(\"^SOURCE\.\",\"\")/StartTime": {
               "metric": "StartTime",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SOURCE/OpenConnectionCount": {
+            "metrics/flume/flume/SOURCE/$1.replaceAll(\"^SOURCE\.\",\"\")/OpenConnectionCount": {
               "metric": "OpenConnectionCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SOURCE/AppendBatchAcceptedCount": {
+            "metrics/flume/flume/SOURCE/$1.replaceAll(\"^SOURCE\.\",\"\")/AppendBatchAcceptedCount": {
               "metric": "AppendBatchAcceptedCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SOURCE/AppendReceivedCount": {
+            "metrics/flume/flume/SOURCE/$1.replaceAll(\"^SOURCE\.\",\"\")/AppendReceivedCount": {
               "metric": "AppendReceivedCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SOURCE/EventReceivedCount": {
+            "metrics/flume/flume/SOURCE/$1.replaceAll(\"^SOURCE\.\",\"\")/EventReceivedCount": {
               "metric": "EventReceivedCount",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SOURCE/StopTime": {
+            "metrics/flume/flume/SOURCE/$1.replaceAll(\"^SOURCE\.\",\"\")/StopTime": {
               "metric": "StopTime",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/flume/flume/SOURCE/EventAcceptedCount": {
+            "metrics/flume/flume/SOURCE/$1.replaceAll(\"^SOURCE\.\",\"\")/EventAcceptedCount": {
               "metric": "EventAcceptedCount",
               "pointInTime": true,
               "temporal": true
             },
 
-            "metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/avg": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventTakeSuccessCount/rate/avg": {
               "metric": "EventTakeSuccessCount._rate._avg",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/max": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventTakeSuccessCount/rate/max": {
               "metric": "EventTakeSuccessCount._rate._max",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/min": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventTakeSuccessCount/rate/min": {
               "metric": "EventTakeSuccessCount._rate._min",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/sum": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventTakeSuccessCount/rate/sum": {
               "metric": "EventTakeSuccessCount._rate._sum",
               "pointInTime": false,
               "temporal": true
             },
-
-            "metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/avg": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventPutSuccessCount/rate/avg": {
               "metric": "EventPutSuccessCount._rate._avg",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/max": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventPutSuccessCount/rate/max": {
               "metric": "EventPutSuccessCount._rate._max",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/min": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventPutSuccessCount/rate/min": {
               "metric": "EventPutSuccessCount._rate._min",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/sum": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventPutSuccessCount/rate/sum": {
               "metric": "EventPutSuccessCount._rate._sum",
               "pointInTime": false,
               "temporal": true
             },
 
-            "metrics/flume/flume/CHANNEL/ChannelSize/rate/avg": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/ChannelSize/rate/avg": {
               "metric": "ChannelSize._rate._avg",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/ChannelSize/rate/max": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/ChannelSize/rate/max": {
               "metric": "ChannelSize._rate._max",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/ChannelSize/rate/min": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/ChannelSize/rate/min": {
               "metric": "ChannelSize._rate._min",
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/flume/flume/CHANNEL/ChannelSize/rate/sum": {
+            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/ChannelSize/rate/sum": {
               "metric": "ChannelSize._rate._sum",
               "pointInTime": false,
               "temporal": true
