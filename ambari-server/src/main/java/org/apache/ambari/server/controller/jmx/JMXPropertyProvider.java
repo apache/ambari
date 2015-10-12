@@ -61,8 +61,6 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
   static {
     DEFAULT_JMX_PORTS.put("NAMENODE",           "50070");
     DEFAULT_JMX_PORTS.put("DATANODE",           "50075");
-    DEFAULT_JMX_PORTS.put("JOBTRACKER",         "50030");
-    DEFAULT_JMX_PORTS.put("TASKTRACKER",        "50060");
     DEFAULT_JMX_PORTS.put("HBASE_MASTER",       "60010");
     DEFAULT_JMX_PORTS.put("HBASE_REGIONSERVER", "60030");
     DEFAULT_JMX_PORTS.put("RESOURCEMANAGER",     "8088");

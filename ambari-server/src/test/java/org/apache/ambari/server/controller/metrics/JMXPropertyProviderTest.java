@@ -109,99 +109,8 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(21933376, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
 
 
-    // jobtracker
-    resource = new ResourceImpl(Resource.Type.HostComponent);
-
-    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
-    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "JOBTRACKER");
-
     // only ask for specific properties
     Set<String> properties = new HashSet<String>();
-    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "threadsWaiting"));
-    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax"));
-    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed"));
-    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax"));
-    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "jobs_submitted"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "jobs_completed"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "jobs_failed"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "maps_launched"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "maps_completed"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "maps_failed"));
-
-    request = PropertyHelper.getReadRequest(properties);
-
-    propertyProvider.populateResources(Collections.singleton(resource), request, null);
-
-    Assert.assertEquals(propertyProvider.getSpec("http", "domu-12-31-39-14-ee-b3.compute-1.internal", "50030", "/jmx"), streamProvider.getLastSpec());
-
-    // see test/resources/mapreduce_jobtracker_jmx.json for values
-    Assert.assertEquals(13, PropertyHelper.getProperties(resource).size());
-    Assert.assertEquals(59, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "threadsWaiting")));
-    Assert.assertEquals(1052770304, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
-    Assert.assertEquals(43580400, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
-    Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
-    Assert.assertEquals(29602888, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
-    Assert.assertEquals(2, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "jobs_submitted")));
-    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "jobs_completed")));
-    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "jobs_failed")));
-    Assert.assertEquals(2, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "maps_launched")));
-    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "maps_completed")));
-    Assert.assertEquals(0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/jobtracker", "maps_failed")));
-
-    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "gcCount")));
-
-    // tasktracker
-    resource = new ResourceImpl(Resource.Type.HostComponent);
-
-    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
-    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "TASKTRACKER");
-
-    // only ask for specific properties
-    properties = new HashSet<String>();
-    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax"));
-    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed"));
-    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax"));
-    properties.add(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_exceptions_caught"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_failed_outputs"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_output_bytes"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_success_outputs"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "maps_running"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "reduces_running"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "mapTaskSlots"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "reduceTaskSlots"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "failedDirs"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "tasks_completed"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "tasks_failed_timeout"));
-    properties.add(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "tasks_failed_ping"));
-
-    request = PropertyHelper.getReadRequest(properties);
-
-    propertyProvider.populateResources(Collections.singleton(resource), request, null);
-
-    Assert.assertEquals(propertyProvider.getSpec("http", "domu-12-31-39-14-ee-b3.compute-1.internal", "50060", "/jmx"), streamProvider.getLastSpec());
-
-    Assert.assertEquals(18, PropertyHelper.getProperties(resource).size());
-    Assert.assertEquals(954466304, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
-    Assert.assertEquals(18330984, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
-    Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
-    Assert.assertEquals(24235104, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
-    Assert.assertEquals(0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_exceptions_caught")));
-    Assert.assertEquals(0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_failed_outputs")));
-    Assert.assertEquals(1841, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_output_bytes")));
-    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/shuffleOutput", "shuffle_success_outputs")));
-    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "maps_running")));
-    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "reduces_running")));
-    Assert.assertEquals(4, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "mapTaskSlots")));
-    Assert.assertEquals(2, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "reduceTaskSlots")));
-    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "failedDirs")));
-    Assert.assertEquals(4, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "tasks_completed")));
-    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "tasks_failed_timeout")));
-    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/mapred/tasktracker", "tasks_failed_ping")));
-
-
-    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "gcCount")));
 
     // hbase master
     resource = new ResourceImpl(Resource.Type.HostComponent);
@@ -499,10 +408,6 @@ public class JMXPropertyProviderTest {
         return "50070";
       else if (componentName.equals("DATANODE"))
         return "50075";
-      else if (componentName.equals("JOBTRACKER"))
-        return "50030";
-      else if (componentName.equals("TASKTRACKER"))
-        return "50060";
       else if (componentName.equals("HBASE_MASTER"))
         return null == clusterName ? "60010" : "60011";
       else  if (componentName.equals("JOURNALNODE"))

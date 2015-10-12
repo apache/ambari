@@ -138,7 +138,6 @@ public class StackDefinedPropertyProviderTest {
   @Test
   public void testPopulateHostComponentResources() throws Exception {
     JMXPropertyProviderTest.TestJMXHostProvider tj = new JMXPropertyProviderTest.TestJMXHostProvider(true);
-    TestGangliaHostProvider tg = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider tm = new JMXPropertyProviderTest.TestMetricHostProvider();
     TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
@@ -328,7 +327,6 @@ public class StackDefinedPropertyProviderTest {
 
     StreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(true);
-    TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
     TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
@@ -391,7 +389,6 @@ public class StackDefinedPropertyProviderTest {
   public void testPopulateResources_HDP2_params() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
-    TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
     TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
@@ -445,7 +442,6 @@ public class StackDefinedPropertyProviderTest {
   public void testPopulateResources_HDP2_params_singleProperty() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
-    TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
     TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
@@ -484,7 +480,6 @@ public class StackDefinedPropertyProviderTest {
   public void testPopulateResources_HDP2_params_category() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
-    TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
     TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
@@ -538,7 +533,6 @@ public class StackDefinedPropertyProviderTest {
   public void testPopulateResources_HDP2_params_category2() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
-    TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
     TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
@@ -598,7 +592,6 @@ public class StackDefinedPropertyProviderTest {
   public void testPopulateResources_jmx_JournalNode() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
-    TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
     TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
@@ -767,7 +760,6 @@ public class StackDefinedPropertyProviderTest {
   public void testPopulateResources_NoRegionServer() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
-    TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
     TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
@@ -805,7 +797,6 @@ public class StackDefinedPropertyProviderTest {
   public void testPopulateResources_HBaseMaster2() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
-    TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
     TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
@@ -1021,7 +1012,6 @@ public class StackDefinedPropertyProviderTest {
         new org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider("yarn_ganglia_data.txt");
 
     JMXPropertyProviderTest.TestJMXHostProvider jmxHostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(true);
-    JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
     TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 

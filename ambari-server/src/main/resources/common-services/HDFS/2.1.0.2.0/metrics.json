@@ -236,7 +236,7 @@
             },
             "metrics/rpcdetailed/renewLease_num_ops": {
               "metric": "rpcdetailed.rpcdetailed.RenewLeaseNumOps",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/rpcdetailed/getFileInfo_avg_time": {
@@ -713,7 +713,7 @@
             },
             "metrics/dfs/FSNamesystem/UnderReplicatedBlocks": {
               "metric": "dfs.FSNamesystem.UnderReplicatedBlocks",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/rpcdetailed/sendHeartbeat_avg_time": {
@@ -758,7 +758,7 @@
             },
             "metrics/rpcdetailed/renewLease_avg_time": {
               "metric": "rpcdetailed.rpcdetailed.RenewLeaseAvgTime",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/default/StartupProgress/ElapsedTime": {
@@ -853,67 +853,67 @@
             },
             "metrics/dfs/FSNamesystem/ExpiredHeartbeats": {
               "metric": "dfs.FSNamesystem.ExpiredHeartbeats",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/LastCheckpointTime": {
               "metric": "dfs.FSNamesystem.LastCheckpointTime",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/LastWrittenTransactionId": {
               "metric": "dfs.FSNamesystem.LastWrittenTransactionId",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/MillisSinceLastLoadedEdits": {
               "metric": "dfs.FSNamesystem.MillisSinceLastLoadedEdits",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/MissingReplOneBlocks": {
               "metric": "dfs.FSNamesystem.MissingReplOneBlocks",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/PendingDataNodeMessageCount": {
               "metric": "dfs.FSNamesystem.PendingDataNodeMessageCount",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/PostponedMisreplicatedBlocks": {
               "metric": "dfs.FSNamesystem.PostponedMisreplicatedBlocks",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/Snapshots": {
               "metric": "dfs.FSNamesystem.Snapshots",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/SnapshottableDirectories": {
               "metric": "dfs.FSNamesystem.SnapshottableDirectories",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/StaleDataNodes": {
               "metric": "dfs.FSNamesystem.StaleDataNodes",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/TotalFiles": {
               "metric": "dfs.FSNamesystem.TotalFiles",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/TransactionsSinceLastCheckpoint": {
               "metric": "dfs.FSNamesystem.TransactionsSinceLastCheckpoint",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/TransactionsSinceLastLogRoll": {
               "metric": "dfs.FSNamesystem.TransactionsSinceLastLogRoll",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/namenode/AllowSnapshotOps": {
@@ -1253,7 +1253,7 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/dfs/FSNamesystem/TransactionsSinceLastCheckpointvvvv": {
+            "metrics/dfs/FSNamesystem/TransactionsSinceLastCheckpoint": {
               "metric": "Hadoop:service=NameNode,name=FSNamesystem.TransactionsSinceLastCheckpoint",
               "pointInTime": true,
               "temporal": false
@@ -2240,7 +2240,7 @@
             },
             "metrics/rpcdetailed/renewLease_num_ops": {
               "metric": "rpcdetailed.rpcdetailed.RenewLeaseNumOps",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/rpcdetailed/getFileInfo_avg_time": {
@@ -2777,7 +2777,7 @@
             },
             "metrics/rpcdetailed/renewLease_avg_time": {
               "metric": "rpcdetailed.rpcdetailed.RenewLeaseAvgTime",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/default/StartupProgress/ElapsedTime": {
@@ -2872,67 +2872,67 @@
             },
             "metrics/dfs/FSNamesystem/ExpiredHeartbeats": {
               "metric": "dfs.FSNamesystem.ExpiredHeartbeats",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/LastCheckpointTime": {
               "metric": "dfs.FSNamesystem.LastCheckpointTime",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/LastWrittenTransactionId": {
               "metric": "dfs.FSNamesystem.LastWrittenTransactionId",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/MillisSinceLastLoadedEdits": {
               "metric": "dfs.FSNamesystem.MillisSinceLastLoadedEdits",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/MissingReplOneBlocks": {
               "metric": "dfs.FSNamesystem.MissingReplOneBlocks",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/PendingDataNodeMessageCount": {
               "metric": "dfs.FSNamesystem.PendingDataNodeMessageCount",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/PostponedMisreplicatedBlocks": {
               "metric": "dfs.FSNamesystem.PostponedMisreplicatedBlocks",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/Snapshots": {
               "metric": "dfs.FSNamesystem.Snapshots",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/SnapshottableDirectories": {
               "metric": "dfs.FSNamesystem.SnapshottableDirectories",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/StaleDataNodes": {
               "metric": "dfs.FSNamesystem.StaleDataNodes",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/TotalFiles": {
               "metric": "dfs.FSNamesystem.TotalFiles",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/TransactionsSinceLastCheckpoint": {
               "metric": "dfs.FSNamesystem.TransactionsSinceLastCheckpoint",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/FSNamesystem/TransactionsSinceLastLogRoll": {
               "metric": "dfs.FSNamesystem.TransactionsSinceLastLogRoll",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/dfs/namenode/AllowSnapshotOps": {
