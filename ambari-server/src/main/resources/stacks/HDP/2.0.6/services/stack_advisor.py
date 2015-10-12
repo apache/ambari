@@ -271,8 +271,12 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     ranger_admin_host = 'localhost'
     port = '6080'
 
-    if 'ranger-site' in services['configurations'] and 'http.enabled' in services['configurations']['ranger-site']['properties'] \
-      and services['configurations']['ranger-site']['properties']['http.enabled'].lower() == 'false':
+    # Check if http is disabled. For HDP-2.3 this can be checked in ranger-admin-site/ranger.service.http.enabled
+    # For HDP-2.2 this can be checked in ranger-site/http.enabled
+    if ('ranger-site' in services['configurations'] and 'http.enabled' in services['configurations']['ranger-site']['properties'] \
+      and services['configurations']['ranger-site']['properties']['http.enabled'].lower() == 'false') or \
+      ('ranger-admin-site' in services['configurations'] and 'ranger.service.http.enabled' in services['configurations']['ranger-admin-site']['properties'] \
+      and services['configurations']['ranger-admin-site']['properties']['ranger.service.http.enabled'].lower() == 'false'):
       # HTTPS protocol is used
       protocol = 'https'
       # In HDP-2.3 port stored in ranger-admin-site ranger.service.https.port
