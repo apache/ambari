@@ -202,7 +202,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         self.getHdfsUser().done(function() {
           var msg = Em.Object.create({
             confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld').format(App.nnCheckpointAgeAlertThreshold) +
-              Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(isNNCheckpointTooOld, self.get('content.hdfsUser')),
+              Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(isNNCheckpointTooOld, self.get('hdfsUser')),
             confirmButton: Em.I18n.t('common.next')
           });
           return App.showConfirmationFeedBackPopup(callback, msg);
@@ -282,7 +282,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     miscController.loadUsers();
     var interval = setInterval(function () {
       if (miscController.get('dataIsLoaded') && miscController.get('users')) {
-        self.set('content.hdfsUser', miscController.get('users').findProperty('name', 'hdfs_user').get('value'));
+        self.set('hdfsUser', miscController.get('users').findProperty('name', 'hdfs_user').get('value'));
         dfd.resolve();
         clearInterval(interval);
       }
