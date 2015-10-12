@@ -23,6 +23,7 @@ import ambari_simplejson as json # simplejson is much faster comparing to Python
 from functions import calc_xmn_from_xms, ensure_unit_for_memory
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from ambari_commons.os_check import OSCheck
 
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
@@ -117,6 +118,13 @@ if not has_phoenix and not phoenix_enabled:
   exclude_packages = ['phoenix*']
 else:
   exclude_packages = []
+
+underscored_version = stack_version_unformatted.replace('.', '_')
+dashed_version = stack_version_unformatted.replace('.', '-')
+if OSCheck.is_redhat_family() or OSCheck.is_suse_family():
+  phoenix_package = format("phoenix_{underscored_version}_*")
+elif OSCheck.is_ubuntu_family():
+  phoenix_package = format("phoenix-{dashed_version}-.*")
 
 pid_dir = status_params.pid_dir
 tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
