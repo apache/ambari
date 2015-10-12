@@ -30,6 +30,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -182,6 +183,8 @@ public class SchemaUpgradeHelper {
       catalogBinder.addBinding().to(UpgradeCatalog213.class);
       catalogBinder.addBinding().to(UpgradeCatalog220.class);
       catalogBinder.addBinding().to(FinalUpgradeCatalog.class);
+
+      EventBusSynchronizer.synchronizeAmbariEventPublisher(binder());
     }
   }
 

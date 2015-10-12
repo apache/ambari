@@ -18,20 +18,28 @@
 
 package org.apache.ambari.server.upgrade;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Upgrade catalog for version 2.1.3.
@@ -46,7 +54,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   /**
    * Logger.
    */
-  private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog212.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog213.class);
 
   @Inject
   DaoUtils daoUtils;
@@ -104,6 +112,76 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addMissingConfigs();
     updateAMSConfigs();
+    updateAlertDefinitions();
+  }
+
+  /**
+   * Modifies the JSON of some of the alert definitions which have changed
+   * between Ambari versions.
+   */
+  protected void updateAlertDefinitions() {
+    LOG.info("Updating alert definitions.");
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+    for (final Cluster cluster : clusterMap.values()) {
+      final AlertDefinitionEntity alertDefinitionEntity = alertDefinitionDAO.findByName(
+          cluster.getClusterId(), "journalnode_process");
+
+      if (alertDefinitionEntity != null) {
+        String source = alertDefinitionEntity.getSource();
+
+        alertDefinitionEntity.setSource(modifyJournalnodeProcessAlertSource(source));
+        alertDefinitionEntity.setSourceType(SourceType.WEB);
+        alertDefinitionEntity.setHash(UUID.randomUUID().toString());
+
+        alertDefinitionDAO.merge(alertDefinitionEntity);
+        LOG.info("journalnode_process alert definition was updated.");
+      }
+    }
+  }
+
+  /**
+   * Modifies type of the journalnode_process alert to WEB.
+   * Changes reporting text and uri according to the WEB type.
+   * Removes default_port property.
+   */
+  String modifyJournalnodeProcessAlertSource(String source) {
+    JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
+
+    rootJson.remove("type");
+    rootJson.addProperty("type", "WEB");
+
+    rootJson.remove("default_port");
+
+    rootJson.remove("uri");
+    JsonObject uriJson = new JsonObject();
+    uriJson.addProperty("http", "{{hdfs-site/dfs.journalnode.http-address}}");
+    uriJson.addProperty("https", "{{hdfs-site/dfs.journalnode.https-address}}");
+    uriJson.addProperty("kerberos_keytab", "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}");
+    uriJson.addProperty("kerberos_principal", "{{hdfs-site/dfs.web.authentication.kerberos.principal}}");
+    uriJson.addProperty("https_property", "{{hdfs-site/dfs.http.policy}}");
+    uriJson.addProperty("https_property_value", "HTTPS_ONLY");
+    uriJson.addProperty("connection_timeout", 5.0);
+    rootJson.add("uri", uriJson);
+
+    rootJson.getAsJsonObject("reporting").getAsJsonObject("ok").remove("text");
+    rootJson.getAsJsonObject("reporting").getAsJsonObject("ok").addProperty(
+            "text", "HTTP {0} response in {2:.3f}s");
+
+    rootJson.getAsJsonObject("reporting").getAsJsonObject("warning").remove("text");
+    rootJson.getAsJsonObject("reporting").getAsJsonObject("warning").addProperty(
+            "text", "HTTP {0} response from {1} in {2:.3f}s ({3})");
+    rootJson.getAsJsonObject("reporting").getAsJsonObject("warning").remove("value");
+
+    rootJson.getAsJsonObject("reporting").getAsJsonObject("critical").remove("text");
+    rootJson.getAsJsonObject("reporting").getAsJsonObject("critical").addProperty("text",
+            "Connection failed to {1} ({3})");
+    rootJson.getAsJsonObject("reporting").getAsJsonObject("critical").remove("value");
+
+    return rootJson.toString();
   }
 
   protected void addMissingConfigs() throws AmbariException {

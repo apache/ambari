@@ -97,15 +97,19 @@ public class UpgradeCatalog213Test {
   public void testExecuteDMLUpdates() throws Exception {
     Method addMissingConfigs = UpgradeCatalog213.class.getDeclaredMethod("addMissingConfigs");
     Method updateAMSConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateAMSConfigs");
+    Method updateAlertDefinitions = UpgradeCatalog213.class.getDeclaredMethod("updateAlertDefinitions");
 
     UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
         .addMockedMethod(addMissingConfigs)
         .addMockedMethod(updateAMSConfigs)
+        .addMockedMethod(updateAlertDefinitions)
         .createMock();
 
     upgradeCatalog213.addMissingConfigs();
     expectLastCall().once();
     upgradeCatalog213.updateAMSConfigs();
+    expectLastCall().once();
+    upgradeCatalog213.updateAlertDefinitions();
     expectLastCall().once();
 
     replay(upgradeCatalog213);
@@ -256,6 +260,25 @@ public class UpgradeCatalog213Test {
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog213.class).updateAMSConfigs();
     easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testModifyJournalnodeProcessAlertSource() throws Exception {
+    UpgradeCatalog213 upgradeCatalog213 = new UpgradeCatalog213(injector);
+    String alertSource = "{\"uri\":\"{{hdfs-site/dfs.journalnode.http-address}}\",\"default_port\":8480," +
+            "\"type\":\"PORT\",\"reporting\":{\"ok\":{\"text\":\"TCP OK - {0:.3f}s response on port {1}\"}," +
+            "\"warning\":{\"text\":\"TCP OK - {0:.3f}s response on port {1}\",\"value\":1.5}," +
+            "\"critical\":{\"text\":\"Connection failed: {0} to {1}:{2}\",\"value\":5.0}}}";
+    String expected = "{\"reporting\":{\"ok\":{\"text\":\"HTTP {0} response in {2:.3f}s\"}," +
+            "\"warning\":{\"text\":\"HTTP {0} response from {1} in {2:.3f}s ({3})\"}," +
+            "\"critical\":{\"text\":\"Connection failed to {1} ({3})\"}},\"type\":\"WEB\"," +
+            "\"uri\":{\"http\":\"{{hdfs-site/dfs.journalnode.http-address}}\"," +
+            "\"https\":\"{{hdfs-site/dfs.journalnode.https-address}}\"," +
+            "\"kerberos_keytab\":\"{{hdfs-site/dfs.web.authentication.kerberos.keytab}}\"," +
+            "\"kerberos_principal\":\"{{hdfs-site/dfs.web.authentication.kerberos.principal}}\"," +
+            "\"https_property\":\"{{hdfs-site/dfs.http.policy}}\"," +
+            "\"https_property_value\":\"HTTPS_ONLY\",\"connection_timeout\":5.0}}";
+    Assert.assertEquals(expected, upgradeCatalog213.modifyJournalnodeProcessAlertSource(alertSource));
   }
 
   /**
