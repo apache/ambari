@@ -2689,7 +2689,8 @@ var formatRequest = function (data) {
     type: this.type || 'GET',
     timeout: App.timeout,
     dataType: 'json',
-    statusCode: require('data/statusCodes')
+    statusCode: require('data/statusCodes'),
+    headers: {}
   };
   if (App.get('testMode')) {
     opt.url = formatUrl(this.mock ? this.mock : '', data);
@@ -2707,11 +2708,38 @@ var formatRequest = function (data) {
 };
 
 /**
+ * transform GET to POST call
+ * @param {object} opt
+ * @returns {object} opt
+ */
+var doGetAsPost = function(opt) {
+  var delimiterPos = opt.url.indexOf('?');
+
+  opt.type = "POST";
+  opt.headers["X-Http-Method-Override"] = "GET";
+  if (delimiterPos !== -1) {
+    opt.data = JSON.stringify({
+      "RequestInfo": {"query" : opt.url.substr(delimiterPos + 1, opt.url.length)}
+    });
+    opt.url = opt.url.substr(0, delimiterPos);
+  }
+  opt.url += '?_=' + App.dateTime();
+  return opt;
+};
+
+/**
  * Wrapper for all ajax requests
  *
  * @type {Object}
  */
 var ajax = Em.Object.extend({
+  /**
+   * max number of symbols in URL of GET call
+   * @const
+   * @type {number}
+   */
+  MAX_GET_URL_LENGTH: 2048,
+
   /**
    * Send ajax request
    *
@@ -2750,6 +2778,10 @@ var ajax = Em.Object.extend({
       return null;
     }
     opt = formatRequest.call(urls[config.name], params);
+
+    if (opt.url && opt.url.length > this.get('MAX_GET_URL_LENGTH')) {
+      opt = doGetAsPost(opt);
+    }
 
     opt.context = this;
 
@@ -2905,6 +2937,16 @@ if ($.mocho) {
      */
     fakeFormatRequest: function (urlObj, data) {
       return formatRequest.call(urlObj, data);
+    },
+
+    /**
+     * Don't use it anywhere except tests!
+     * @param urlObj
+     * @param data
+     * @returns {Object}
+     */
+    fakeDoGetAsPost: function (urlObj, data) {
+      return doGetAsPost.call(urlObj, data);
     }
   });
 }
