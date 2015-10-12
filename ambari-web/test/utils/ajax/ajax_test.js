@@ -150,4 +150,37 @@ describe('App.ajax', function() {
     });
   });
 
+  describe("#doGetAsPost()", function () {
+    beforeEach(function () {
+      sinon.stub(App, 'dateTime').returns(1);
+    });
+    afterEach(function () {
+      App.dateTime.restore();
+    });
+    it("url does not have '?'", function () {
+      var opt = {
+        type: 'GET',
+        url: '',
+        headers: {}
+      };
+      expect(App.ajax.fakeDoGetAsPost({}, opt)).to.eql({
+        type: 'POST',
+        url: '?_=1',
+        headers: {"X-Http-Method-Override": "GET"}
+      });
+    });
+    it("url has '?'", function () {
+      var opt = {
+        type: 'GET',
+        url: 'root?params',
+        headers: {}
+      };
+      expect(App.ajax.fakeDoGetAsPost({}, opt)).to.eql({
+        type: 'POST',
+        url: 'root?_=1',
+        headers: {"X-Http-Method-Override": "GET"},
+        data: "{\"RequestInfo\":{\"query\":\"params\"}}"
+      });
+    });
+  });
 });
