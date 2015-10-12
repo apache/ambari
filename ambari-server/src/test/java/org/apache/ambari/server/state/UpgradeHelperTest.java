@@ -662,6 +662,7 @@ public class UpgradeHelperTest {
   }
 
   @Test
+  @Ignore
   public void testServiceCheckUpgradeStages() throws Exception {
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.2.0");
     assertTrue(upgrades.containsKey("upgrade_test_checks"));
