@@ -28,6 +28,7 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -87,15 +88,11 @@ public class MapReduce2JobHistoryStatePreservingCheck extends AbstractCheckDescr
    */
   @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request)) {
+    if (!super.isApplicable(request, Arrays.asList("MAPREDUCE2"), true)) {
       return false;
     }
 
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    Map<String, Service> services = cluster.getServices();
-    if (!services.containsKey("MAPREDUCE2")) {
-      return false;
-    }
 
     // Applicable only if stack not defined in MinimumApplicableStackVersion, or
     // version equals or exceeds the enumerated version.

@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -42,6 +43,8 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -49,11 +52,18 @@ import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
+import org.apache.ambari.server.state.stack.upgrade.RestartGrouping;
+import org.apache.ambari.server.state.stack.upgrade.RestartTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapperBuilder;
+import org.apache.ambari.server.state.stack.upgrade.StartGrouping;
+import org.apache.ambari.server.state.stack.upgrade.StartTask;
+import org.apache.ambari.server.state.stack.upgrade.StopGrouping;
+import org.apache.ambari.server.state.stack.upgrade.StopTask;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.Task.Type;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -171,6 +181,68 @@ public class UpgradeHelper {
   @Inject
   private Provider<AmbariMetaInfo> m_ambariMetaInfo;
 
+  @Inject
+  private Provider<Clusters> clusters;
+
+  @Inject
+  private Provider<RepositoryVersionDAO> s_repoVersionDAO;
+
+
+  /**
+   * Get right Upgrade Pack, depends on stack, direction and upgrade type information
+   * @param clusterName The name of the cluster
+   * @param upgradeFromVersion Current stack version
+   * @param upgradeToVersion Target stack version
+   * @param direction {@code Direction} of the upgrade
+   * @param upgradeType The {@code UpgradeType}
+   * @return {@code UpgradeType} object
+   * @throws AmbariException
+   */
+  public UpgradePack suggestUpgradePack(String clusterName, String upgradeFromVersion, String upgradeToVersion,
+    Direction direction, UpgradeType upgradeType) throws AmbariException {
+
+    // !!! find upgrade packs based on current stack. This is where to upgrade from
+    Cluster cluster = clusters.get().getCluster(clusterName);
+    StackId stack =  cluster.getCurrentStackVersion();
+
+    String repoVersion = upgradeToVersion;
+
+    // ToDo: AMBARI-12706. Here we need to check, how this would work with SWU Downgrade
+    if (direction.isDowngrade() && null != upgradeFromVersion) {
+      repoVersion = upgradeFromVersion;
+    }
+
+    RepositoryVersionEntity versionEntity = s_repoVersionDAO.get().findByStackNameAndVersion(stack.getStackName(), repoVersion);
+
+    if (versionEntity == null) {
+      throw new AmbariException(String.format("Repository version %s was not found", repoVersion));
+    }
+
+    Map<String, UpgradePack> packs = m_ambariMetaInfo.get().getUpgradePacks(stack.getStackName(), stack.getStackVersion());
+    UpgradePack pack = null;
+
+    String repoStackId = versionEntity.getStackId().getStackId();
+    for (UpgradePack upgradePack : packs.values()) {
+      if (upgradePack.getTargetStack() != null && upgradePack.getTargetStack().equals(repoStackId) &&
+           upgradeType == upgradePack.getType()) {
+        if (pack == null) {
+          pack = upgradePack;
+        } else {
+          throw new AmbariException(
+            String.format("Found multiple upgrade packs for type %s and target version %s",
+              upgradeType.toString(), repoVersion));
+        }
+      }
+    }
+
+    if (pack == null) {
+      throw new AmbariException(String.format("No upgrade pack found for type %s and target version %s",
+        upgradeType.toString(),repoVersion));
+    }
+
+   return pack;
+  }
+
 
   /**
    * Generates a list of UpgradeGroupHolder items that are used to execute either
@@ -189,14 +261,16 @@ public class UpgradeHelper {
     Cluster cluster = context.getCluster();
     MasterHostResolver mhr = context.getResolver();
 
+    // Note, only a Rolling Upgrade uses processing tasks.
     Map<String, Map<String, ProcessingComponent>> allTasks = upgradePack.getTasks();
-    List<UpgradeGroupHolder> groups = new ArrayList<UpgradeGroupHolder>();
+    List<UpgradeGroupHolder> groups = new ArrayList<>();
 
     for (Grouping group : upgradePack.getGroups(context.getDirection())) {
 
       UpgradeGroupHolder groupHolder = new UpgradeGroupHolder();
       groupHolder.name = group.name;
       groupHolder.title = group.title;
+      groupHolder.groupClass = group.getClass();
       groupHolder.skippable = group.skippable;
       groupHolder.allowRetry = group.allowRetry;
 
@@ -205,29 +279,52 @@ public class UpgradeHelper {
         groupHolder.skippable = true;
       }
 
+      // NonRolling defaults to not performing service checks on a group.
+      // Of course, a Service Check Group does indeed run them.
+      if (upgradePack.getType() == UpgradeType.NON_ROLLING) {
+        group.performServiceCheck = false;
+      }
+
       StageWrapperBuilder builder = group.getBuilder();
 
       List<UpgradePack.OrderService> services = group.services;
 
-      if (context.getDirection().isDowngrade() && !services.isEmpty()) {
-        List<UpgradePack.OrderService> reverse = new ArrayList<UpgradePack.OrderService>(services);
-        Collections.reverse(reverse);
-        services = reverse;
+      // Rolling Downgrade must reverse the order of services.
+      if (upgradePack.getType() == UpgradeType.ROLLING) {
+        if (context.getDirection().isDowngrade() && !services.isEmpty()) {
+          List<UpgradePack.OrderService> reverse = new ArrayList<>(services);
+          Collections.reverse(reverse);
+          services = reverse;
+        }
       }
 
       // !!! cluster and service checks are empty here
       for (UpgradePack.OrderService service : services) {
 
-        if (!allTasks.containsKey(service.serviceName)) {
+        if (upgradePack.getType() == UpgradeType.ROLLING && !allTasks.containsKey(service.serviceName)) {
           continue;
+        }
+        
+        // Attempt to get the function of the group, during a NonRolling Upgrade
+        Task.Type functionName = null;
+
+        if (RestartGrouping.class.isInstance(group)) {
+          functionName = ((RestartGrouping) group).getFunction();
+        }
+        if (StartGrouping.class.isInstance(group)) {
+          functionName = ((StartGrouping) group).getFunction();
+        }
+        if (StopGrouping.class.isInstance(group)) {
+          functionName = ((StopGrouping) group).getFunction();
         }
 
         for (String component : service.components) {
-          if (!allTasks.get(service.serviceName).containsKey(component)) {
+          if (upgradePack.getType() == UpgradeType.ROLLING && !allTasks.get(service.serviceName).containsKey(component)) {
             continue;
           }
-
+          
           HostsType hostsType = mhr.getMasterAndHosts(service.serviceName, component);
+          // TODO AMBARI-12698, how does this impact SECONDARY NAMENODE if there's no NameNode HA?
           if (null == hostsType) {
             continue;
           }
@@ -237,7 +334,31 @@ public class UpgradeHelper {
           }
 
           Service svc = cluster.getService(service.serviceName);
-          ProcessingComponent pc = allTasks.get(service.serviceName).get(component);
+
+          ProcessingComponent pc = null;
+          if (upgradePack.getType() == UpgradeType.ROLLING) {
+            pc = allTasks.get(service.serviceName).get(component);
+          } else if (upgradePack.getType() == UpgradeType.NON_ROLLING) {
+            // Construct a processing task on-the-fly
+            if (null != functionName) {
+              pc = new ProcessingComponent();
+              pc.name = component;
+              pc.tasks = new ArrayList<>();
+
+              if (functionName == Type.START) {
+                pc.tasks.add(new StartTask());
+              } else if (functionName == Type.STOP) {
+                pc.tasks.add(new StopTask());
+              } else if (functionName == Type.RESTART) {
+                pc.tasks.add(new RestartTask());
+              }
+            }
+          }
+
+          if (pc == null) {
+            LOG.error(MessageFormat.format("Couldn't create a processing component for service {0} and component {1}.", service.serviceName, component));
+            continue;
+          }
 
           setDisplayNames(context, service.serviceName, component);
 
@@ -246,7 +367,7 @@ public class UpgradeHelper {
             // !!! revisit if needed
             if (!hostsType.hosts.isEmpty() && hostsType.master != null && hostsType.secondary != null) {
               // The order is important, first do the standby, then the active namenode.
-              LinkedHashSet<String> order = new LinkedHashSet<String>();
+              LinkedHashSet<String> order = new LinkedHashSet<>();
 
               order.add(hostsType.secondary);
               order.add(hostsType.master);
@@ -342,7 +463,7 @@ public class UpgradeHelper {
 
     String result = source;
 
-    List<String> tokens = new ArrayList<String>(5);
+    List<String> tokens = new ArrayList<>(5);
     Matcher matcher = PLACEHOLDER_REGEX.matcher(source);
     while (matcher.find()) {
       tokens.add(matcher.group(1));
@@ -424,6 +545,9 @@ public class UpgradeHelper {
      */
     public String title;
 
+
+    public Class<? extends Grouping> groupClass;
+
     /**
      * Indicate whether retry is allowed for the stages in this group.
      */
@@ -438,7 +562,7 @@ public class UpgradeHelper {
     /**
      * List of stages for the group
      */
-    public List<StageWrapper> items = new ArrayList<StageWrapper>();
+    public List<StageWrapper> items = new ArrayList<>();
 
     /**
      * {@inheritDoc}
@@ -521,8 +645,5 @@ public class UpgradeHelper {
     } catch (AmbariException e) {
       LOG.debug("Could not get service detail", e);
     }
-
-
   }
-
 }

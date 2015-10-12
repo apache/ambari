@@ -602,7 +602,6 @@ CREATE TABLE ambari.repo_version (
   stack_id BIGINT NOT NULL,
   version VARCHAR(255) NOT NULL,
   display_name VARCHAR(128) NOT NULL,
-  upgrade_package VARCHAR(255) NOT NULL,
   repositories TEXT NOT NULL,
   PRIMARY KEY(repo_version_id)
 );
@@ -965,6 +964,8 @@ CREATE TABLE ambari.upgrade (
   from_version VARCHAR(255) DEFAULT '' NOT NULL,
   to_version VARCHAR(255) DEFAULT '' NOT NULL,
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
+  upgrade_package VARCHAR(255) NOT NULL,
+  upgrade_type VARCHAR(32) NOT NULL,
   PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES ambari.clusters(cluster_id),
   FOREIGN KEY (request_id) REFERENCES ambari.request(request_id)

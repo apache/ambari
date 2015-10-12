@@ -35,6 +35,7 @@ import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -69,13 +70,14 @@ public class UpgradeDAOTest {
     helper = injector.getInstance(OrmTestHelper.class);
     clusterId = helper.createCluster();
 
-
     // create upgrade entities
     UpgradeEntity entity = new UpgradeEntity();
     entity.setClusterId(Long.valueOf(1));
     entity.setRequestId(Long.valueOf(1));
     entity.setFromVersion("");
     entity.setToVersion("");
+    entity.setUpgradeType(UpgradeType.ROLLING);
+    entity.setUpgradePackage("test-upgrade");
 
     UpgradeGroupEntity group = new UpgradeGroupEntity();
     group.setName("group_name");
@@ -144,6 +146,8 @@ public class UpgradeDAOTest {
     entity1.setRequestId(Long.valueOf(1));
     entity1.setFromVersion("2.2.0.0-1234");
     entity1.setToVersion("2.3.0.0-4567");
+    entity1.setUpgradeType(UpgradeType.ROLLING);
+    entity1.setUpgradePackage("test-upgrade");
     dao.create(entity1);
     UpgradeEntity entity2 = new UpgradeEntity();
     entity2.setId(22L);
@@ -152,6 +156,8 @@ public class UpgradeDAOTest {
     entity2.setRequestId(Long.valueOf(1));
     entity2.setFromVersion("2.3.0.0-4567");
     entity2.setToVersion("2.2.0.0-1234");
+    entity2.setUpgradeType(UpgradeType.ROLLING);
+    entity2.setUpgradePackage("test-upgrade");
     dao.create(entity2);
     UpgradeEntity entity3 = new UpgradeEntity();
     entity3.setId(33L);
@@ -160,6 +166,8 @@ public class UpgradeDAOTest {
     entity3.setRequestId(Long.valueOf(1));
     entity3.setFromVersion("2.2.0.0-1234");
     entity3.setToVersion("2.3.1.1-4567");
+    entity3.setUpgradeType(UpgradeType.ROLLING);
+    entity3.setUpgradePackage("test-upgrade");
     dao.create(entity3);
     UpgradeEntity lastUpgradeForCluster = dao.findLastUpgradeForCluster(1);
     assertNotNull(lastUpgradeForCluster);

@@ -27,6 +27,8 @@ import org.apache.commons.lang.BooleanUtils;
 
 import com.google.inject.Singleton;
 
+import java.util.Arrays;
+
 /**
  * Checks that YARN has work-preserving restart enabled.
  */
@@ -46,17 +48,7 @@ public class ServicesYarnWorkPreservingCheck extends AbstractCheckDescriptor {
    */
   @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request)) {
-      return false;
-    }
-
-    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    try {
-      cluster.getService("YARN");
-    } catch (ServiceNotFoundException ex) {
-      return false;
-    }
-    return true;
+    return super.isApplicable(request, Arrays.asList("YARN"), true);
   }
 
   /**

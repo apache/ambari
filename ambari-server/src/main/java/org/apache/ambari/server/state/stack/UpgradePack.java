@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -36,6 +37,7 @@ import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 /**
  * Represents an upgrade pack.
@@ -43,6 +45,11 @@ import org.apache.ambari.server.state.stack.upgrade.Task;
 @XmlRootElement(name="upgrade")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class UpgradePack {
+
+  /**
+   * Name of the file without the extension, such as upgrade-2.2
+   */
+  private String name;
 
   @XmlElement(name="target")
   private String target;
@@ -54,6 +61,15 @@ public class UpgradePack {
   @XmlElement(name="group")
   private List<Grouping> groups;
 
+  @XmlElementWrapper(name="prerequisite-checks")
+  @XmlElement(name="check", type=String.class)
+  private List<String> prerequisiteChecks = new ArrayList<String>();
+
+  /**
+   * In the case of a rolling upgrade, will specify processing logic for a particular component.
+   * NonRolling upgrades are simpler so the "processing" is embedded into the  group's "type", which is a function like
+   * "stop" or "start".
+   */
   @XmlElementWrapper(name="processing")
   @XmlElement(name="service")
   private List<ProcessingService> processing;
@@ -81,12 +97,46 @@ public class UpgradePack {
   @XmlTransient
   private boolean m_resolvedGroups = false;
 
+  @XmlElement(name="type", defaultValue="rolling")
+  private UpgradeType type;
 
+  @XmlElementWrapper(name="upgrade-path")
+  @XmlElement(name="intermediate-stack")
+  private List<IntermediateStack> intermediateStacks;
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
   /**
    * @return the target version for the upgrade pack
    */
   public String getTarget() {
     return target;
+  }
+
+  /**
+   * @return the type of upgrade, e.g., "ROLLING" or "NON_ROLLING"
+   */
+  public UpgradeType getType() {
+    return type;
+  }
+
+  /**
+   * @return the preCheck name, e.g. "CheckDescription"
+   */
+  public List<String> getPrerequisiteChecks() {
+    return new ArrayList<String>(prerequisiteChecks);
+  }
+
+  /**
+   * @return a list for intermediate stacks for cross-stack upgrade, or null if no any
+   */
+  public List<IntermediateStack> getIntermediateStacks() {
+    return intermediateStacks;
   }
 
   /**
@@ -124,7 +174,16 @@ public class UpgradePack {
    * @return the list of groups
    */
   public List<Grouping> getGroups(Direction direction) {
-    List<Grouping> list = direction.isUpgrade() ? groups : getDowngradeGroups();
+    List<Grouping> list = new ArrayList<Grouping>();
+    if (direction.isUpgrade()) {
+      list = groups;
+    } else {
+      if (type == UpgradeType.ROLLING) {
+        list = getDowngradeGroupsForRolling();
+      } else if (type == UpgradeType.NON_ROLLING) {
+        list = getDowngradeGroupsForNonrolling();
+      }
+    }
 
     List<Grouping> checked = new ArrayList<Grouping>();
     for (Grouping group : list) {
@@ -137,8 +196,18 @@ public class UpgradePack {
     return checked;
   }
 
+  public boolean canBeApplied(String targetVersion){
+    // check that upgrade pack can be applied to selected stack
+    // converting 2.2.*.* -> 2\.2(\.\d+)?(\.\d+)?(-\d+)?
+
+    String regexPattern = getTarget().replaceAll("\\.", "\\\\."); // . -> \.
+    regexPattern = regexPattern.replaceAll("\\\\\\.\\*", "(\\\\\\.\\\\d+)?"); // \.* -> (\.\d+)?
+    regexPattern = regexPattern.concat("(-\\d+)?");
+    return Pattern.matches(regexPattern, targetVersion);
+  }
+
   /**
-   * Calculates the group orders when performing a downgrade
+   * Calculates the group orders when performing a rolling downgrade
    * <ul>
    *   <li>ClusterGroupings must remain at the same positions (first/last).</li>
    *   <li>When there is a ServiceCheck group, it must ALWAYS follow the same</li>
@@ -169,7 +238,7 @@ public class UpgradePack {
    * </ol>
    * @return the list of groups, reversed appropriately for a downgrade.
    */
-  private List<Grouping> getDowngradeGroups() {
+  private List<Grouping> getDowngradeGroupsForRolling() {
     List<Grouping> reverse = new ArrayList<Grouping>();
 
     int idx = 0;
@@ -199,6 +268,17 @@ public class UpgradePack {
     return reverse;
   }
 
+  private List<Grouping> getDowngradeGroupsForNonrolling() {
+    throw new UnsupportedOperationException("TODO AMBARI-12698");
+    /*
+    List<Grouping> list = new ArrayList<Grouping>();
+    for (Grouping g : groups) {
+      list.add(g);
+    }
+    return list;
+    */
+  }
+
   /**
    * Gets the tasks by which services and components should be upgraded.
    * @return a map of service_name -> map(component_name -> process).
@@ -208,15 +288,17 @@ public class UpgradePack {
     if (null == m_process) {
       m_process = new LinkedHashMap<String, Map<String, ProcessingComponent>>();
 
-      for (ProcessingService svc : processing) {
-        if (!m_process.containsKey(svc.name)) {
-          m_process.put(svc.name, new LinkedHashMap<String, ProcessingComponent>());
-        }
+      if (processing != null) {
+        for (ProcessingService svc : processing) {
+          if (!m_process.containsKey(svc.name)) {
+            m_process.put(svc.name, new LinkedHashMap<String, ProcessingComponent>());
+          }
 
-        Map<String, ProcessingComponent> componentMap = m_process.get(svc.name);
+          Map<String, ProcessingComponent> componentMap = m_process.get(svc.name);
 
-        for (ProcessingComponent pc : svc.components) {
-          componentMap.put(pc.name, pc);
+          for (ProcessingComponent pc : svc.components) {
+            componentMap.put(pc.name, pc);
+          }
         }
       }
     }
@@ -248,8 +330,6 @@ public class UpgradePack {
     public List<ProcessingComponent> components;
   }
 
-
-
   /**
    * A component definition in the 'processing/service' path.
    */
@@ -278,5 +358,15 @@ public class UpgradePack {
     @XmlElementWrapper(name="post-downgrade")
     @XmlElement(name="task")
     public List<Task> postDowngradeTasks;
+  }
+
+  /**
+   * An intermediate stack definition in
+   * upgrade/upgrade-path/intermediate-stack path
+   */
+  public static class IntermediateStack {
+
+    @XmlAttribute
+    public String version;
   }
 }

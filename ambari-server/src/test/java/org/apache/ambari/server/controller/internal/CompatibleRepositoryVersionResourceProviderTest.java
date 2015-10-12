@@ -102,6 +102,12 @@ public class CompatibleRepositoryVersionResourceProviderTest {
         Map<String, UpgradePack> map = new HashMap<String, UpgradePack>();
 
         UpgradePack pack1 = new UpgradePack() {
+
+          @Override
+          public String getName() {
+            return "pack1";
+          }
+
           @Override
           public String getTarget() {
             return "1.1.*.*";
@@ -109,6 +115,11 @@ public class CompatibleRepositoryVersionResourceProviderTest {
         };
 
         final UpgradePack pack2 = new UpgradePack() {
+          @Override
+          public String getName() {
+            return "pack2";
+          }
+
           @Override
           public String getTarget() {
             return "2.2.*.*";
@@ -132,6 +143,11 @@ public class CompatibleRepositoryVersionResourceProviderTest {
         Map<String, UpgradePack> map = new HashMap<String, UpgradePack>();
 
         UpgradePack pack = new UpgradePack() {
+          @Override
+          public String getName() {
+            return "pack2";
+          }
+
           @Override
           public String getTarget() {
             return "2.2.*.*";

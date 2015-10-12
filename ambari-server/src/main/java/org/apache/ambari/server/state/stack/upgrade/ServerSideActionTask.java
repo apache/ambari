@@ -27,7 +27,14 @@ public abstract class ServerSideActionTask extends Task {
   @XmlAttribute(name="class")
   protected String implClass;
 
+  public static final String actionVerb = "Executing";
+
   public String getImplementationClass() {
     return implClass;
+  }
+
+  @Override
+  public String getActionVerb() {
+    return actionVerb;
   }
 }

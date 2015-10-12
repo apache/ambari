@@ -61,7 +61,6 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
   public static final String REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID      = "CompatibleRepositoryVersions/stack_version";
   public static final String REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID = "CompatibleRepositoryVersions/repository_version";
   public static final String REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID       = "CompatibleRepositoryVersions/display_name";
-  public static final String REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID       = "CompatibleRepositoryVersions/upgrade_pack";
   public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = new OperatingSystemResourceDefinition().getPluralName();
   public static final String SUBRESOURCE_REPOSITORIES_PROPERTY_ID              = new RepositoryResourceDefinition().getPluralName();
 
@@ -73,7 +72,6 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
       REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,
       REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
       REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID,
-      REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID,
       SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
 
   static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
@@ -151,7 +149,6 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
       setResourceProperty(resource, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID, entity.getStackName(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID, entity.getStackVersion(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, entity.getDisplayName(), requestedIds);
-      setResourceProperty(resource, REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID, entity.getUpgradePackage(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID, entity.getVersion(), requestedIds);
 
       resources.add(resource);

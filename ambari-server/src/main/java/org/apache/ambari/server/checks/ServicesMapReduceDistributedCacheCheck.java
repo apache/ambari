@@ -18,6 +18,7 @@
 package org.apache.ambari.server.checks;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -48,14 +49,7 @@ public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescrip
   public boolean isApplicable(PrereqCheckRequest request)
     throws AmbariException {
 
-    if (!super.isApplicable(request)) {
-      return false;
-    }
-
-    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    try {
-      cluster.getService("YARN");
-    } catch (ServiceNotFoundException ex) {
+    if (!super.isApplicable(request, Arrays.asList("YARN"), true)) {
       return false;
     }
 

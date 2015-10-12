@@ -3348,7 +3348,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         actionManager,
         actionRequest);
 
-    ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(actionExecContext, cluster);
+    StackId stackId = null;
+    if (null != cluster) {
+      stackId = cluster.getDesiredStackVersion();
+    }
+    ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(actionExecContext, cluster, stackId);
     String commandParamsForStage = jsons.getCommandParamsForStage();
 
     // Ensure that the specified requestContext (if any) is set as the request context

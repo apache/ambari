@@ -73,6 +73,21 @@ public class CrudDAO<E, K> {
   }
 
   /**
+   * Retrieves the maximum ID from the entities.
+   *
+   * @param idColName name of the column that corresponds to the ID.
+   * @return maximum ID, or 0 if none exist.
+   */
+  @RequiresSession
+  public Long findMaxId(String idColName) {
+    final TypedQuery<Long> query = entityManagerProvider.get().createQuery("SELECT MAX(entity." + idColName + ") FROM "
+        + entityClass.getSimpleName() + " entity", Long.class);
+    // May be null if no results.
+    Long result = daoUtils.selectOne(query);
+    return result == null ? 0 : result;
+  }
+
+  /**
    * Creates entity.
    *
    * @param entity entity to create

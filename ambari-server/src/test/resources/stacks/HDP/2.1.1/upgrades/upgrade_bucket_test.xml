@@ -16,8 +16,21 @@
    limitations under the License.
 -->
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <target>2.2.*</target>
-  
+  <target>2.2.*.*</target>
+  <target-stack>HDP-2.2.6</target-stack>
+  <type>ROLLING</type>
+  <prerequisite-checks>
+    <check>org.apache.ambari.server.checks.HiveMultipleMetastoreCheck</check>
+    <check>org.apache.ambari.server.checks.MapReduce2JobHistoryStatePreservingCheck</check>
+    <check>org.apache.ambari.server.checks.SecondaryNamenodeDeletedCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesMapReduceDistributedCacheCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesNamenodeHighAvailabilityCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesNamenodeTruncateCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesTezDistributedCacheCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck</check>
+    <check>org.apache.ambari.server.checks.YarnRMHighAvailabilityCheck</check>
+    <check>org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck</check>
+  </prerequisite-checks>
   <order>
   
     <group name="ZOOKEEPER" title="Zookeeper">

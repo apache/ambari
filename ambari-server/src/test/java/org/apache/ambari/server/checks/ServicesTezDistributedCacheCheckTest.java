@@ -65,27 +65,28 @@ public class ServicesTezDistributedCacheCheckTest {
   @Test
   public void testIsApplicable() throws Exception {
     final Cluster cluster = Mockito.mock(Cluster.class);
+    final Map<String, Service> services = new HashMap<>();
+    final Service service = Mockito.mock(Service.class);
+
+    services.put("TEZ", service);
+
+    Mockito.when(cluster.getServices()).thenReturn(services);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
 
-    final Service service = Mockito.mock(Service.class);
-    Mockito.when(cluster.getService("TEZ")).thenReturn(service);
+
     Assert.assertTrue(servicesTezDistributedCacheCheck.isApplicable(new PrereqCheckRequest("cluster")));
 
     PrereqCheckRequest req = new PrereqCheckRequest("cluster");
     req.addResult(CheckDescription.SERVICES_NAMENODE_HA, PrereqCheckStatus.FAIL);
-    Mockito.when(cluster.getService("TEZ")).thenReturn(service);
     Assert.assertFalse(servicesTezDistributedCacheCheck.isApplicable(req));
 
     req.addResult(CheckDescription.SERVICES_NAMENODE_HA, PrereqCheckStatus.PASS);
-    Mockito.when(cluster.getService("TEZ")).thenReturn(service);
     Assert.assertTrue(servicesTezDistributedCacheCheck.isApplicable(req));
 
 
-    Mockito.when(cluster.getService("TEZ")).thenThrow(new ServiceNotFoundException("no", "service"));
+    services.remove("TEZ");
     Assert.assertFalse(servicesTezDistributedCacheCheck.isApplicable(new PrereqCheckRequest("cluster")));
-
-
   }
 
   @Test

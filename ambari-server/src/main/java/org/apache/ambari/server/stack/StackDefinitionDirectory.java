@@ -37,6 +37,8 @@ public abstract class StackDefinitionDirectory {
     }
   };
 
+  protected static final String CONFIG_UPGRADE_XML_FILENAME_PREFIX = "config-upgrade.xml";
+
   /**
    * underlying directory
    */

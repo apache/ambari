@@ -46,7 +46,10 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
-import org.apache.ambari.server.state.stack.upgrade.ConfigureTask.ConfigurationKeyValue;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Masked;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
@@ -176,27 +179,27 @@ public class ConfigureAction extends AbstractServerAction {
     String configType = commandParameters.get(ConfigureTask.PARAMETER_CONFIG_TYPE);
 
     // extract transfers
-    List<ConfigureTask.ConfigurationKeyValue> keyValuePairs = Collections.emptyList();
+    List<ConfigurationKeyValue> keyValuePairs = Collections.emptyList();
     String keyValuePairJson = commandParameters.get(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS);
     if (null != keyValuePairJson) {
       keyValuePairs = m_gson.fromJson(
-          keyValuePairJson, new TypeToken<List<ConfigureTask.ConfigurationKeyValue>>(){}.getType());
+          keyValuePairJson, new TypeToken<List<ConfigurationKeyValue>>(){}.getType());
     }
 
     // extract transfers
-    List<ConfigureTask.Transfer> transfers = Collections.emptyList();
+    List<Transfer> transfers = Collections.emptyList();
     String transferJson = commandParameters.get(ConfigureTask.PARAMETER_TRANSFERS);
     if (null != transferJson) {
       transfers = m_gson.fromJson(
-        transferJson, new TypeToken<List<ConfigureTask.Transfer>>(){}.getType());
+        transferJson, new TypeToken<List<Transfer>>(){}.getType());
     }
 
     // extract replacements
-    List<ConfigureTask.Replace> replacements = Collections.emptyList();
+    List<Replace> replacements = Collections.emptyList();
     String replaceJson = commandParameters.get(ConfigureTask.PARAMETER_REPLACEMENTS);
     if (null != replaceJson) {
       replacements = m_gson.fromJson(
-          replaceJson, new TypeToken<List<ConfigureTask.Replace>>(){}.getType());
+          replaceJson, new TypeToken<List<Replace>>(){}.getType());
     }
 
     // if there is nothing to do, then skip the task
@@ -240,7 +243,7 @@ public class ConfigureAction extends AbstractServerAction {
 
     // !!! do transfers first before setting defined values
     StringBuilder outputBuffer = new StringBuilder(250);
-    for (ConfigureTask.Transfer transfer : transfers) {
+    for (Transfer transfer : transfers) {
       switch (transfer.operation) {
         case COPY:
           String valueToCopy = null;
@@ -400,7 +403,7 @@ public class ConfigureAction extends AbstractServerAction {
     }
 
     // !!! string replacements happen only on the new values.
-    for (ConfigureTask.Replace replacement : replacements) {
+    for (Replace replacement : replacements) {
       if (newValues.containsKey(replacement.key)) {
         String toReplace = newValues.get(replacement.key);
 
@@ -534,7 +537,7 @@ public class ConfigureAction extends AbstractServerAction {
     return result;
   }
 
-  private static String mask(ConfigureTask.Masked mask, String value) {
+  private static String mask(Masked mask, String value) {
     if (mask.mask) {
       return StringUtils.repeat("*", value.length());
     }

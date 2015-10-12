@@ -90,9 +90,6 @@ public class RepositoryVersionEntity {
   @Column(name = "display_name")
   private String displayName;
 
-  @Column(name = "upgrade_package")
-  private String upgradePackage;
-
   @Lob
   @Column(name = "repositories")
   private String operatingSystems;
@@ -110,11 +107,10 @@ public class RepositoryVersionEntity {
   }
 
   public RepositoryVersionEntity(StackEntity stack, String version,
-      String displayName, String upgradePackage, String operatingSystems) {
+      String displayName, String operatingSystems) {
     this.stack = stack;
     this.version = version;
     this.displayName = displayName;
-    this.upgradePackage = upgradePackage;
     this.operatingSystems = operatingSystems;
   }
 
@@ -159,14 +155,6 @@ public class RepositoryVersionEntity {
 
   public void setDisplayName(String displayName) {
     this.displayName = displayName;
-  }
-
-  public String getUpgradePackage() {
-    return upgradePackage;
-  }
-
-  public void setUpgradePackage(String upgradePackage) {
-    this.upgradePackage = upgradePackage;
   }
 
   public String getOperatingSystemsJson() {
@@ -233,9 +221,6 @@ public class RepositoryVersionEntity {
     if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) {
       return false;
     }
-    if (upgradePackage != null ? !upgradePackage.equals(that.upgradePackage) : that.upgradePackage != null) {
-      return false;
-    }
     if (operatingSystems != null ? !operatingSystems.equals(that.operatingSystems) : that.operatingSystems != null) {
       return false;
     }
@@ -249,7 +234,6 @@ public class RepositoryVersionEntity {
     result = 31 * result + (stack != null ? stack.hashCode() : 0);
     result = 31 * result + (version != null ? version.hashCode() : 0);
     result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
-    result = 31 * result + (upgradePackage != null ? upgradePackage.hashCode() : 0);
     result = 31 * result + (operatingSystems != null ? operatingSystems.hashCode() : 0);
     return result;
   }

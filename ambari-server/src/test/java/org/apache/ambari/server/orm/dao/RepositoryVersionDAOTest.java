@@ -81,7 +81,6 @@ public class RepositoryVersionDAOTest {
     entity.setDisplayName("display name");
     entity.setOperatingSystems("repositories");
     entity.setStack(stackEntity);
-    entity.setUpgradePackage("upgrade package");
     entity.setVersion("version");
     repositoryVersionDAO.create(entity);
 
@@ -103,12 +102,11 @@ public class RepositoryVersionDAOTest {
     dupVersion.setDisplayName("display name " + uuid.toString());
     dupVersion.setOperatingSystems("repositories");
     dupVersion.setStack(stackEntity);
-    dupVersion.setUpgradePackage("upgrade package");
     dupVersion.setVersion(first.getVersion());
 
     boolean exceptionThrown = false;
     try {
-      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getUpgradePackage(), dupVersion.getOperatingSystemsJson());
+      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getOperatingSystemsJson());
     } catch (AmbariException e) {
       exceptionThrown = true;
       Assert.assertTrue(e.getMessage().contains("already exists"));
@@ -121,7 +119,7 @@ public class RepositoryVersionDAOTest {
     // The version must belong to the stack
     dupVersion.setVersion("2.3-1234");
     try {
-      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getUpgradePackage(), dupVersion.getOperatingSystemsJson());
+      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getOperatingSystemsJson());
     } catch (AmbariException e) {
       exceptionThrown = true;
       Assert.assertTrue(e.getMessage().contains("needs to belong to stack"));
@@ -132,7 +130,7 @@ public class RepositoryVersionDAOTest {
     // Success
     dupVersion.setVersion(stackEntity.getStackVersion() + "-1234");
     try {
-      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getUpgradePackage(), dupVersion.getOperatingSystemsJson());
+      repositoryVersionDAO.create(stackEntity, dupVersion.getVersion(), dupVersion.getDisplayName(), dupVersion.getOperatingSystemsJson());
     } catch (AmbariException e) {
       Assert.fail("Did not expect a failure creating the Repository Version");
     }

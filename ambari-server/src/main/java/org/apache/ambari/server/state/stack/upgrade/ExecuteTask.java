@@ -66,8 +66,20 @@ public class ExecuteTask extends Task {
   @XmlElement(name="command")
   public String command;
 
+  public static final String actionVerb = "Executing";
+
   @Override
   public Task.Type getType() {
     return type;
+  }
+
+  @Override
+  public StageWrapper.Type getStageWrapperType() {
+    return StageWrapper.Type.RU_TASKS;
+  }
+
+  @Override
+  public String getActionVerb() {
+    return actionVerb;
   }
 }

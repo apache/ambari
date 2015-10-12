@@ -65,14 +65,18 @@ public class ServicesYarnWorkPreservingCheckTest {
   @Test
   public void testIsApplicable() throws Exception {
     final Cluster cluster = Mockito.mock(Cluster.class);
+    final Map<String, Service> services = new HashMap<>();
+    final Service service = Mockito.mock(Service.class);
+
+    services.put("YARN", service);
+
+    Mockito.when(cluster.getServices()).thenReturn(services);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
 
-    final Service service = Mockito.mock(Service.class);
-    Mockito.when(cluster.getService("YARN")).thenReturn(service);
     Assert.assertTrue(servicesYarnWorkPreservingCheck.isApplicable(new PrereqCheckRequest("cluster")));
 
-    Mockito.when(cluster.getService("YARN")).thenThrow(new ServiceNotFoundException("no", "service"));
+   services.remove("YARN");
     Assert.assertFalse(servicesYarnWorkPreservingCheck.isApplicable(new PrereqCheckRequest("cluster")));
   }
 

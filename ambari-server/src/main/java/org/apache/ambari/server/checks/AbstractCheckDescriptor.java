@@ -18,7 +18,9 @@
 package org.apache.ambari.server.checks;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -82,7 +84,7 @@ public abstract class AbstractCheckDescriptor {
 
   /**
    * Tests if the prerequisite check is applicable to given cluster. This
-   * method's defautl logic is to ensure that the cluster stack source and
+   * method's default logic is to ensure that the cluster stack source and
    * target are compatible with the prerequisite check. When overridding this
    * method, call {@code super#isApplicable(PrereqCheckRequest)}.
    *
@@ -94,26 +96,36 @@ public abstract class AbstractCheckDescriptor {
    *           if server error happens
    */
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    StackId sourceStackId = getSourceStack();
-    StackId targetStackId = getTargetStack();
+    // this is default behaviour
+   return true;
+  }
 
-    if( null == sourceStackId && null == targetStackId ) {
-      return true;
+  /**
+   * Same like {@code isApplicable(PrereqCheckRequest request)}, but with service presence check
+   * @param request
+   *          prerequisite check request
+   * @param requiredServices
+   *          set of services, which need to be present to allow check execution
+   * @param requiredAll
+   *          require all services in the list or at least one need to present
+   * @return true if check should be performed
+   * @throws org.apache.ambari.server.AmbariException
+   *           if server error happens
+   */
+  public boolean isApplicable(PrereqCheckRequest request, List<String> requiredServices, boolean requiredAll) throws AmbariException {
+    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
+    Set<String> services = cluster.getServices().keySet();
+    boolean serviceFound = false;
+
+    for (String service : requiredServices) {
+      if (services.contains(service) && !requiredAll) {
+        serviceFound = true;
+      } else if (!services.contains(service) && requiredAll) {
+        return false;
+      }
     }
 
-    StackId requestSourceStack = request.getSourceStackId();
-    if (null != sourceStackId && null != requestSourceStack
-        && sourceStackId.compareTo(requestSourceStack) > 0) {
-      return false;
-    }
-
-    StackId requestTargetStack = request.getTargetStackId();
-    if (null != targetStackId && null != requestTargetStack
-        && targetStackId.compareTo(requestTargetStack) < 0) {
-      return false;
-    }
-
-    return true;
+    return !(!serviceFound && !requiredAll);
   }
 
   /**
@@ -291,5 +303,13 @@ public abstract class AbstractCheckDescriptor {
     }
 
     return formatted.toString();
+  }
+
+  /**
+   * Return the optionality flag of the Upgrade Check
+   * @return
+   */
+  public Boolean isRequired(){
+      return getClass().getAnnotation(UpgradeCheck.class).required();
   }
 }

@@ -50,10 +50,17 @@ public class ServiceCheckGrouping extends Grouping {
 
   private static Logger LOG = LoggerFactory.getLogger(ServiceCheckGrouping.class);
 
+  /**
+   * During a Rolling Upgrade, the priority services are ran first, then the remaining services in the cluster.
+   * During a Stop-and-Start Upgrade, only the priority services are ran.
+   */
   @XmlElementWrapper(name="priority")
   @XmlElement(name="service")
   private Set<String> priorityServices = new LinkedHashSet<String>();
 
+  /**
+   * During a Rolling Upgrade, exclude certain services.
+   */
   @XmlElementWrapper(name="exclude")
   @XmlElement(name="service")
   private Set<String> excludeServices = new HashSet<String>();
@@ -122,29 +129,42 @@ public class ServiceCheckGrouping extends Grouping {
       for (String service : priorityServices) {
         if (checkServiceValidity(upgradeContext, service, serviceMap)) {
           StageWrapper wrapper = new StageWrapper(
-              StageWrapper.Type.SERVICE_CHECK,
-              "Service Check " + upgradeContext.getServiceDisplay(service),
-              new TaskWrapper(service, "", Collections.<String>emptySet(),
-                  new ServiceCheckTask()));
+            StageWrapper.Type.SERVICE_CHECK,
+            "Service Check " + upgradeContext.getServiceDisplay(service),
+            new TaskWrapper(service, "", Collections.<String>emptySet(),
+              new ServiceCheckTask()));
 
           result.add(wrapper);
           clusterServices.remove(service);
         }
       }
 
-      // create stages for everything else, as long it is valid
-      for (String service : clusterServices) {
-        if (excludeServices.contains(service)) {
-          continue;
-        }
-
-        if (checkServiceValidity(upgradeContext, service, serviceMap)) {
-          StageWrapper wrapper = new StageWrapper(
+      if (upgradeContext.getType() == UpgradeType.ROLLING) {
+        // During Rolling Upgrade, create stages for everything else, as long it is valid
+        for (String service : clusterServices) {
+          if (ServiceCheckGrouping.this.excludeServices.contains(service)) {
+            continue;
+          }
+          if (checkServiceValidity(upgradeContext, service, serviceMap)) {
+            StageWrapper wrapper = new StageWrapper(
               StageWrapper.Type.SERVICE_CHECK,
               "Service Check " + upgradeContext.getServiceDisplay(service),
               new TaskWrapper(service, "", Collections.<String>emptySet(),
-                  new ServiceCheckTask()));
-          result.add(wrapper);
+                new ServiceCheckTask()));
+            result.add(wrapper);
+          }
+          if (excludeServices.contains(service)) {
+            continue;
+          }
+
+          if (checkServiceValidity(upgradeContext, service, serviceMap)) {
+            StageWrapper wrapper = new StageWrapper(
+              StageWrapper.Type.SERVICE_CHECK,
+              "Service Check " + upgradeContext.getServiceDisplay(service),
+              new TaskWrapper(service, "", Collections.<String>emptySet(),
+                new ServiceCheckTask()));
+            result.add(wrapper);
+          }
         }
       }
       return result;

@@ -23,6 +23,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
+import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.io.FilenameUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -95,8 +96,12 @@ public class StackDirectory extends StackDefinitionDirectory {
   /**
    * map of upgrade pack name to upgrade pack
    */
-  //todo: should be a collection but upgrade pack doesn't have a name attribute
   private Map<String, UpgradePack> upgradePacks;
+
+  /**
+   * Config delta from prev stack
+   */
+  private ConfigUpgradePack configUpgradePack;
 
   /**
    * metainfo file representation
@@ -255,6 +260,13 @@ public class StackDirectory extends StackDefinitionDirectory {
   }
 
   /**
+   * @return Config delta from prev stack or null if no config upgrade patches available
+   */
+  public ConfigUpgradePack getConfigUpgradePack() {
+    return configUpgradePack;
+  }
+
+  /**
    * Obtain the object representation of the stack role_command_order.json file
    *
    * @return object representation of the stack role_command_order.json file
@@ -409,18 +421,35 @@ public class StackDirectory extends StackDefinitionDirectory {
    * @throws AmbariException if unable to parse stack upgrade file
    */
   private void parseUpgradePacks(Collection<String> subDirs) throws AmbariException {
-    Map<String, UpgradePack> upgradeMap = new HashMap<String, UpgradePack>();
+    Map<String, UpgradePack> upgradeMap = new HashMap<>();
+    ConfigUpgradePack configUpgradePack = null;
     if (subDirs.contains(UPGRADE_PACK_FOLDER_NAME)) {
       File f = new File(getAbsolutePath() + File.separator + UPGRADE_PACK_FOLDER_NAME);
       if (f.isDirectory()) {
         upgradesDir = f.getAbsolutePath();
         for (File upgradeFile : f.listFiles(XML_FILENAME_FILTER)) {
-          try {
-            upgradeMap.put(FilenameUtils.removeExtension(upgradeFile.getName()),
-                unmarshaller.unmarshal(UpgradePack.class, upgradeFile));
-          } catch (JAXBException e) {
-            throw new AmbariException("Unable to parse stack upgrade file at location: " +
-                upgradeFile.getAbsolutePath(), e);
+          if (upgradeFile.getName().toLowerCase().startsWith(CONFIG_UPGRADE_XML_FILENAME_PREFIX)) {
+            try { // Parse config upgrade pack
+              if (configUpgradePack == null) {
+                configUpgradePack = unmarshaller.unmarshal(ConfigUpgradePack.class, upgradeFile);
+              } else { // If user messed things up with lower/upper case filenames
+                throw new AmbariException(String.format("There are multiple files with name like %s" +
+                        upgradeFile.getAbsolutePath()));
+              }
+            } catch (JAXBException e) {
+              throw new AmbariException("Unable to parse stack upgrade file at location: " +
+                      upgradeFile.getAbsolutePath(), e);
+            }
+          } else {
+            try {
+              String upgradePackName = FilenameUtils.removeExtension(upgradeFile.getName());
+              UpgradePack pack = unmarshaller.unmarshal(UpgradePack.class, upgradeFile);
+              pack.setName(upgradePackName);
+              upgradeMap.put(upgradePackName, pack);
+            } catch (JAXBException e) {
+              throw new AmbariException("Unable to parse stack upgrade file at location: " +
+                      upgradeFile.getAbsolutePath(), e);
+            }
           }
         }
       }
@@ -433,6 +462,13 @@ public class StackDirectory extends StackDefinitionDirectory {
     if (! upgradeMap.isEmpty()) {
       upgradePacks = upgradeMap;
     }
+
+    if (configUpgradePack != null) {
+      this.configUpgradePack = configUpgradePack;
+    } else {
+      LOG.info("Stack '{}' doesn't contain config upgrade pack file", getPath());
+    }
+
   }
 
   /**

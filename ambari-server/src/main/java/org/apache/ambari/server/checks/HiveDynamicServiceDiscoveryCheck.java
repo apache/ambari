@@ -18,6 +18,7 @@
 package org.apache.ambari.server.checks;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ import com.google.inject.Singleton;
  * is properly configured for dynamic discovery.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 1.0f)
+@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 1.0f, required = true)
 public class HiveDynamicServiceDiscoveryCheck extends AbstractCheckDescriptor {
 
   static final String HIVE_DYNAMIC_SERVICE_DISCOVERY_ENABLED_KEY = "hive.dynamic-service.discovery.enabled.key";
@@ -56,17 +57,7 @@ public class HiveDynamicServiceDiscoveryCheck extends AbstractCheckDescriptor {
    */
   @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request)) {
-      return false;
-    }
-
-    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    Map<String, Service> services = cluster.getServices();
-    if (services.containsKey("HIVE")) {
-      return true;
-    }
-
-    return false;
+    return super.isApplicable(request, Arrays.asList("HIVE"), true);
   }
 
   /**

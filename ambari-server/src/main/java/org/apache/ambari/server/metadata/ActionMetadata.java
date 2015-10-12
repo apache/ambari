@@ -58,8 +58,10 @@ public class ActionMetadata {
 
   private void fillHostComponentCommands() {
     //Standart commands for any host component
-    // TODO: Add START/STOP/INSTALL commands
     defaultHostComponentCommands.add("RESTART");
+    defaultHostComponentCommands.add("START");
+    defaultHostComponentCommands.add("STOP");
+    defaultHostComponentCommands.add("INSTALL");
     defaultHostComponentCommands.add("CONFIGURE");
   }
 

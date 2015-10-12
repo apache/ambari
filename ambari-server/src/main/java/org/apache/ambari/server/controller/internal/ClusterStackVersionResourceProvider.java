@@ -680,11 +680,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         throw new SystemException(detailedOutput);
       }
     } catch (AmbariException e) {
-      e.printStackTrace();
-      throw new SystemException("Can not perform request. " + e.getMessage(), e);
+      throw new SystemException("Cannot perform request", e);
     } catch (InterruptedException e) {
-      e.printStackTrace();
-      throw new SystemException("Can not perform request. " + e.getMessage(), e);
+      throw new SystemException("Cannot perform request", e);
     }
   }
 

@@ -44,7 +44,7 @@ import com.google.inject.Singleton;
  * Checks that services are up.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.LIVELINESS, order = 2.0f)
+@UpgradeCheck(group = UpgradeCheckGroup.LIVELINESS, order = 2.0f, required = true)
 public class ServicesUpCheck extends AbstractCheckDescriptor {
 
   private static final float SLAVE_THRESHOLD = 0.5f;

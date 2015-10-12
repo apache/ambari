@@ -169,7 +169,6 @@ public class UpgradeResourceProviderHDP22Test {
     repoVersionEntity.setDisplayName("For Stack Version 2.2.0");
     repoVersionEntity.setOperatingSystems("");
     repoVersionEntity.setStack(stackEntity);
-    repoVersionEntity.setUpgradePackage("upgrade_test");
     repoVersionEntity.setVersion("2.2.0.0");
     repoVersionDao.create(repoVersionEntity);
 
@@ -177,7 +176,6 @@ public class UpgradeResourceProviderHDP22Test {
     repoVersionEntity.setDisplayName("For Stack Version 2.2.4.2");
     repoVersionEntity.setOperatingSystems("");
     repoVersionEntity.setStack(stackEntity);
-    repoVersionEntity.setUpgradePackage("upgrade_test");
     repoVersionEntity.setVersion("2.2.4.2");
     repoVersionDao.create(repoVersionEntity);
 
@@ -272,6 +270,7 @@ public class UpgradeResourceProviderHDP22Test {
     assertEquals(1, upgrades.size());
 
     UpgradeEntity upgrade = upgrades.get(0);
+    assertEquals("upgrade_test", upgrade.getUpgradePackage());
     assertEquals(3, upgrade.getUpgradeGroups().size());
 
     UpgradeGroupEntity group = upgrade.getUpgradeGroups().get(2);

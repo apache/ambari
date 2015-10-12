@@ -34,6 +34,7 @@ import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -60,15 +61,15 @@ public class HostsMasterMaintenanceCheckTest {
     Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
     hmmc.config = config;
     Assert.assertTrue(hmmc.isApplicable(request));
-
-    request.setRepositoryVersion(null);
+    Assert.assertTrue(new HostsMasterMaintenanceCheck().isApplicable(request));
     HostsMasterMaintenanceCheck hmmc2 = new HostsMasterMaintenanceCheck();
     hmmc2.config = config;
-    Assert.assertFalse(hmmc2.isApplicable(request));
+    Assert.assertTrue(hmmc2.isApplicable(request));
   }
 
   @Test
   public void testPerform() throws Exception {
+    final String upgradePackName = "upgrade_pack";
     final HostsMasterMaintenanceCheck hostsMasterMaintenanceCheck = new HostsMasterMaintenanceCheck();
     hostsMasterMaintenanceCheck.clustersProvider = new Provider<Clusters>() {
 
@@ -100,13 +101,13 @@ public class HostsMasterMaintenanceCheckTest {
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
     Mockito.when(cluster.getDesiredStackVersion()).thenReturn(new StackId("HDP", "1.0"));
-    Mockito.when(repositoryVersionHelper.getUpgradePackageName(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(null);
+    Mockito.when(repositoryVersionHelper.getUpgradePackageName(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), (UpgradeType) Mockito.anyObject())).thenReturn(null);
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     hostsMasterMaintenanceCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
-    Mockito.when(repositoryVersionHelper.getUpgradePackageName(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn("upgrade pack");
+    Mockito.when(repositoryVersionHelper.getUpgradePackageName(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), (UpgradeType) Mockito.anyObject())).thenReturn(upgradePackName);
     Mockito.when(ambariMetaInfo.getUpgradePacks(Mockito.anyString(), Mockito.anyString())).thenReturn(new HashMap<String, UpgradePack>());
 
     check = new PrerequisiteCheck(null, null);
@@ -115,7 +116,8 @@ public class HostsMasterMaintenanceCheckTest {
 
     final Map<String, UpgradePack> upgradePacks = new HashMap<String, UpgradePack>();
     final UpgradePack upgradePack = Mockito.mock(UpgradePack.class);
-    upgradePacks.put("upgrade pack", upgradePack);
+    Mockito.when(upgradePack.getName()).thenReturn(upgradePackName);
+    upgradePacks.put(upgradePack.getName(), upgradePack);
     Mockito.when(ambariMetaInfo.getUpgradePacks(Mockito.anyString(), Mockito.anyString())).thenReturn(upgradePacks);
     Mockito.when(upgradePack.getTasks()).thenReturn(new HashMap<String, Map<String,ProcessingComponent>>());
     Mockito.when(cluster.getServices()).thenReturn(new HashMap<String, Service>());
