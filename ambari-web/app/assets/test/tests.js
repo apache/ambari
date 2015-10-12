@@ -238,6 +238,7 @@ var files = [
   'test/views/main/dashboard/widgets/links_widget_test',
   'test/views/main/dashboard/widgets/pie_chart_widget_test',
   'test/views/main/dashboard/widgets/namenode_cpu_test',
+  'test/views/main/dashboard/widgets/cluster_metrics_widget_test',
   'test/views/main/host/details_test',
   'test/views/main/host/summary_test',
   'test/views/main/host/menu_test',

@@ -34,10 +34,10 @@ App.ClusterMetricsDashboardWidgetView = App.DashboardWidgetView.extend(App.Expor
 
   exportGraphData: function (event) {
     this._super();
-    var ajaxIndex = this.get('childViews.firstObject.ajaxIndex');
+    var ajaxIndex = this.get('childViews.lastObject.ajaxIndex');
     App.ajax.send({
       name: ajaxIndex,
-      data: $.extend(this.get('childViews.firstObject').getDataForAjaxRequest(), {
+      data: $.extend(this.get('childViews.lastObject').getDataForAjaxRequest(), {
         isCSV: !!event.context
       }),
       sender: this,
