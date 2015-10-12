@@ -112,7 +112,7 @@ public class Configuration {
   public static final String SRVR_DISABLED_CIPHERS = "security.server.disabled.ciphers";
   public static final String SRVR_DISABLED_PROTOCOLS = "security.server.disabled.protocols";
   public static final String RESOURCES_DIR_KEY = "resources.dir";
-  public static final String METADETA_DIR_PATH = "metadata.path";
+  public static final String METADATA_DIR_PATH = "metadata.path";
   public static final String COMMON_SERVICES_DIR_PATH = "common.services.path";
   public static final String SERVER_VERSION_FILE = "server.version.file";
   public static final String SERVER_VERSION_KEY = "version";
@@ -981,7 +981,7 @@ public class Configuration {
    * @return String
    */
   public String getMetadataPath() {
-    return properties.getProperty(METADETA_DIR_PATH);
+    return properties.getProperty(METADATA_DIR_PATH);
   }
 
   /**

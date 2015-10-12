@@ -8323,7 +8323,7 @@ public class AmbariManagementControllerTest {
     // verify change with new meta info
     Configuration configuration = injector.getInstance(Configuration.class);
     Properties properties = configuration.getProperties();
-    properties.setProperty(Configuration.METADETA_DIR_PATH, "src/test/resources/stacks");
+    properties.setProperty(Configuration.METADATA_DIR_PATH, "src/test/resources/stacks");
     properties.setProperty(Configuration.SERVER_VERSION_FILE, "src/test/resources/version");
     Configuration newConfiguration = new Configuration(properties);
 
@@ -8864,7 +8864,7 @@ public class AmbariManagementControllerTest {
       protected void configure() {
         Properties properties = new Properties();
         properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-        properties.setProperty(Configuration.METADETA_DIR_PATH,"src/test/resources/stacks");
+        properties.setProperty(Configuration.METADATA_DIR_PATH,"src/test/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,"src/test/resources/version");
         properties.setProperty(Configuration.OS_VERSION_KEY,"centos6");
         properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
@@ -8937,7 +8937,7 @@ public class AmbariManagementControllerTest {
         Properties properties = new Properties();
         properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
 
-        properties.setProperty(Configuration.METADETA_DIR_PATH,
+        properties.setProperty(Configuration.METADATA_DIR_PATH,
             "src/test/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,
             "../version");
@@ -9047,7 +9047,7 @@ public class AmbariManagementControllerTest {
       protected void configure() {
         Properties properties = new Properties();
         properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY,"in-memory");
-        properties.setProperty(Configuration.METADETA_DIR_PATH,"src/test/resources/stacks");
+        properties.setProperty(Configuration.METADATA_DIR_PATH,"src/test/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,"src/test/resources/version");
         properties.setProperty(Configuration.OS_VERSION_KEY,"centos5");
         properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
@@ -9386,7 +9386,7 @@ public class AmbariManagementControllerTest {
         Properties properties = new Properties();
         properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
 
-        properties.setProperty(Configuration.METADETA_DIR_PATH,
+        properties.setProperty(Configuration.METADATA_DIR_PATH,
             "src/test/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,
             "../version");

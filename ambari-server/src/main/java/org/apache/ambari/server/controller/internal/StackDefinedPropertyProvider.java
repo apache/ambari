@@ -67,7 +67,6 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
   @Inject
   private static Injector injector = null;
 
-
   private Resource.Type type = null;
   private String clusterNamePropertyId = null;
   private String hostNamePropertyId = null;
@@ -81,7 +80,6 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
 
   private final MetricHostProvider metricHostProvider;
   private final MetricsServiceProvider metricsServiceProvider;
-  private MetricsService metricsService = MetricsService.GANGLIA;
   private TimelineMetricCacheProvider cacheProvider;
 
   /**
@@ -130,29 +128,6 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
     defaultGanglia = defaultGangliaPropertyProvider;
     cacheProvider = injector.getInstance(TimelineMetricCacheProvider.class);
   }
-
-
-  public StackDefinedPropertyProvider(Resource.Type type,
-                                      MetricsService metricsService,
-                                      JMXHostProvider jmxHostProvider,
-                                      MetricHostProvider metricHostProvider,
-                                      MetricsServiceProvider serviceProvider,
-                                      StreamProvider streamProvider,
-                                      String clusterPropertyId,
-                                      String hostPropertyId,
-                                      String componentPropertyId,
-                                      String jmxStatePropertyId,
-                                      PropertyProvider defaultJmxPropertyProvider,
-                                      PropertyProvider defaultGangliaPropertyProvider) {
-
-    this(type, jmxHostProvider, metricHostProvider, serviceProvider,
-      streamProvider, clusterPropertyId, hostPropertyId, componentPropertyId,
-      jmxStatePropertyId, defaultJmxPropertyProvider, defaultGangliaPropertyProvider);
-
-    this.metricsService = metricsService;
-    cacheProvider = injector.getInstance(TimelineMetricCacheProvider.class);
-  }
-
 
   @Override
   public Set<Resource> populateResources(Set<Resource> resources,

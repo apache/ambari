@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
-import java.sql.SQLSyntaxErrorException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -97,7 +96,7 @@ public class UpgradeTest {
     properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "remote");
     properties.setProperty(Configuration.SERVER_JDBC_URL_KEY, Configuration.JDBC_IN_MEMORY_URL);
     properties.setProperty(Configuration.SERVER_JDBC_DRIVER_KEY, Configuration.JDBC_IN_MEMROY_DRIVER);
-    properties.setProperty(Configuration.METADETA_DIR_PATH, "src/test/resources/stacks");
+    properties.setProperty(Configuration.METADATA_DIR_PATH, "src/test/resources/stacks");
     properties.setProperty(Configuration.SERVER_VERSION_FILE, "src/test/resources/version");
     properties.setProperty(Configuration.OS_VERSION_KEY, "centos5");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");

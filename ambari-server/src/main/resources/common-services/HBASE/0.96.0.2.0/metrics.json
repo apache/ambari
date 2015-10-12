@@ -6752,7 +6752,7 @@
             },
             "metrics/master/AssignmentManger/ritCount": {
               "metric":"master.AssignmentManger.ritCount",
-              "pointInTime": true,
+              "pointInTime": false,
               "temporal": true
             },
             "metrics/master/AssignmentManger/ritCountOverThreshold": {
