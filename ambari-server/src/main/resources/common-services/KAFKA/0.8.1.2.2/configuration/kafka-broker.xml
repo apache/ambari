@@ -271,7 +271,7 @@
   </property>
   <property>
     <name>kafka.metrics.reporters</name>
-    <value>{{kafka_metrics_reporters}}</value>
+    <value>org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter</value>
     <description>
       kafka ganglia metrics reporter and kafka timeline metrics reporter
     </description>

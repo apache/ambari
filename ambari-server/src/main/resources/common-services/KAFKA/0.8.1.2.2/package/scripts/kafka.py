@@ -21,8 +21,7 @@ limitations under the License.
 from resource_management import *
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.resources.template_config import TemplateConfig
-import sys, os
-from copy import deepcopy
+import os
 
 def kafka():
     import params
@@ -53,8 +52,6 @@ def kafka():
     else:
         kafka_server_config['host.name'] = params.hostname
 
-
-    kafka_server_config['kafka.metrics.reporters'] = params.kafka_metrics_reporters
     if(params.has_metric_collector):
             kafka_server_config['kafka.timeline.metrics.host'] = params.metric_collector_host
             kafka_server_config['kafka.timeline.metrics.port'] = params.metric_collector_port
