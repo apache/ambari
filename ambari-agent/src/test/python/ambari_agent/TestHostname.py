@@ -41,19 +41,32 @@ class TestHostname(TestCase):
                       "hostname should equal the socket-based hostname")
     pass
 
-  def test_server_hostname(self):
-    hostname.cached_server_hostname = None
+  def test_server_hostnames(self):
+    hostname.cached_server_hostnames = []
     config = AmbariConfig()
     default_server_hostname = config.get('server', 'hostname')
     config.set('server', 'hostname', 'ambari-host')
-    self.assertEquals('ambari-host', hostname.server_hostname(config),
-                      "hostname should equal the socket-based hostname")
+    server_hostnames = hostname.server_hostnames(config)
+    self.assertEquals(['ambari-host'], server_hostnames,
+                      "expected host name ['ambari-host']; got {0}".format(server_hostnames))
+    config.set('server', 'hostname', default_server_hostname)
+    pass
+
+  def test_server_hostnames_multiple(self):
+    hostname.cached_server_hostnames = []
+    config = AmbariConfig()
+    default_server_hostname = config.get('server', 'hostname')
+    config.set('server', 'hostname', 'ambari-host, ambari-host2, ambari-host3')
+    server_hostnames = hostname.server_hostnames(config)
+    self.assertEquals(len(server_hostnames), 3)
+    self.assertEquals(['ambari-host', 'ambari-host2', 'ambari-host3'], server_hostnames,
+                      "expected host name ['ambari-host']; got {0}".format(server_hostnames))
     config.set('server', 'hostname', default_server_hostname)
     pass
 
   @not_for_platform(PLATFORM_WINDOWS)
-  def test_server_hostname_override(self):
-    hostname.cached_server_hostname = None
+  def test_server_hostnames_override(self):
+    hostname.cached_server_hostnames = []
     fd = tempfile.mkstemp(text=True)
     tmpname = fd[1]
     os.close(fd[0])
@@ -67,7 +80,33 @@ class TestHostname(TestCase):
 
       config.set('server', 'hostname_script', tmpname)
 
-      self.assertEquals(hostname.server_hostname(config), 'test.example.com', "expected hostname 'test.example.com'")
+      server_hostnames = hostname.server_hostnames(config)
+      self.assertEquals(server_hostnames, ['test.example.com'], "expected hostname ['test.example.com']; got {0}".format(server_hostnames))
+    finally:
+      os.remove(tmpname)
+      config.remove_option('server', 'hostname_script')
+    pass
+
+
+  @not_for_platform(PLATFORM_WINDOWS)
+  def test_server_hostnames_multiple_override(self):
+    hostname.cached_server_hostnames = []
+    fd = tempfile.mkstemp(text=True)
+    tmpname = fd[1]
+    os.close(fd[0])
+    os.chmod(tmpname, os.stat(tmpname).st_mode | stat.S_IXUSR)
+
+    tmpfile = file(tmpname, "w+")
+    config = AmbariConfig()
+    try:
+      tmpfile.write("#!/bin/sh\n\necho 'host1.example.com, host2.example.com, host3.example.com'")
+      tmpfile.close()
+
+      config.set('server', 'hostname_script', tmpname)
+
+      expected_hostnames = ['host1.example.com', 'host2.example.com', 'host3.example.com']
+      server_hostnames = hostname.server_hostnames(config)
+      self.assertEquals(server_hostnames, expected_hostnames, "expected hostnames {0}; got {1}".format(expected_hostnames, server_hostnames))
     finally:
       os.remove(tmpname)
       config.remove_option('server', 'hostname_script')

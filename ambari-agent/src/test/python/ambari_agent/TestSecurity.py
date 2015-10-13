@@ -52,7 +52,7 @@ class TestSecurity(unittest.TestCase):
     self.config = AmbariConfig()
     # Instantiate CachedHTTPSConnection (skip connect() call)
     with patch.object(security.VerifiedHTTPSConnection, "connect"):
-      self.cachedHTTPSConnection = security.CachedHTTPSConnection(self.config)
+      self.cachedHTTPSConnection = security.CachedHTTPSConnection(self.config, "example.com")
 
 
   def tearDown(self):
@@ -177,7 +177,7 @@ class TestSecurity(unittest.TestCase):
   def test_getAgentKeyName(self, hostname_mock):
     hostname_mock.return_value = "dummy.hostname"
     self.config.set('security', 'keysdir', '/dummy-keysdir')
-    man = CertificateManager(self.config)
+    man = CertificateManager(self.config, "active_server")
     res = man.getAgentKeyName()
     self.assertEquals(res, os.path.abspath("/dummy-keysdir/dummy.hostname.key"))
 
@@ -186,7 +186,7 @@ class TestSecurity(unittest.TestCase):
   def test_getAgentCrtName(self, hostname_mock):
     hostname_mock.return_value = "dummy.hostname"
     self.config.set('security', 'keysdir', '/dummy-keysdir')
-    man = CertificateManager(self.config)
+    man = CertificateManager(self.config, "active_server")
     res = man.getAgentCrtName()
     self.assertEquals(res, os.path.abspath("/dummy-keysdir/dummy.hostname.crt"))
 
@@ -195,14 +195,14 @@ class TestSecurity(unittest.TestCase):
   def test_getAgentCrtReqName(self, hostname_mock):
     hostname_mock.return_value = "dummy.hostname"
     self.config.set('security', 'keysdir', '/dummy-keysdir')
-    man = CertificateManager(self.config)
+    man = CertificateManager(self.config, "active_server")
     res = man.getAgentCrtReqName()
     self.assertEquals(res, os.path.abspath("/dummy-keysdir/dummy.hostname.csr"))
 
 
   def test_getSrvrCrtName(self):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
-    man = CertificateManager(self.config)
+    man = CertificateManager(self.config, "active_server")
     res = man.getSrvrCrtName()
     self.assertEquals(res, os.path.abspath("/dummy-keysdir/ca.crt"))
 
@@ -219,7 +219,7 @@ class TestSecurity(unittest.TestCase):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     getAgentKeyName_mock.return_value = "dummy AgentKeyName"
     getAgentCrtName_mock.return_value = "dummy AgentCrtName"
-    man = CertificateManager(self.config)
+    man = CertificateManager(self.config, "active_server")
 
     # Case when all files exist
     exists_mock.side_effect = [True, True, True]
@@ -263,7 +263,7 @@ class TestSecurity(unittest.TestCase):
     _, tmpoutfile = tempfile.mkstemp()
     getSrvrCrtName_mock.return_value = tmpoutfile
 
-    man = CertificateManager(self.config)
+    man = CertificateManager(self.config, "active_server")
     man.loadSrvrCrt()
 
     # Checking file contents
@@ -285,7 +285,7 @@ class TestSecurity(unittest.TestCase):
   def test_reqSignCrt(self, loads_mock, urlopen_mock, request_mock, dumps_mock, open_mock, hostname_mock):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     self.config.set('security', 'passphrase_env_var_name', 'DUMMY_PASSPHRASE')
-    man = CertificateManager(self.config)
+    man = CertificateManager(self.config, "active_server")
     hostname_mock.return_value = "dummy-hostname"
 
     open_mock.return_value.read.return_value = "dummy_request"
@@ -345,7 +345,7 @@ class TestSecurity(unittest.TestCase):
   @patch("subprocess.Popen.communicate")
   @patch.object(os, "chmod")
   def test_genAgentCrtReq(self, chmod_mock, communicate_mock, popen_mock):
-    man = CertificateManager(self.config)
+    man = CertificateManager(self.config, "active_server")
     p = MagicMock(spec=subprocess.Popen)
     p.communicate = communicate_mock
     popen_mock.return_value = p
@@ -363,7 +363,7 @@ class TestSecurity(unittest.TestCase):
     open_mock.return_value.read.return_value = "dummy_request"
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     self.config.set('security', 'passphrase_env_var_name', 'DUMMY_PASSPHRASE')
-    man = CertificateManager(self.config)
+    man = CertificateManager(self.config, "active_server")
 
     # test valid JSON response
     urlopen_mock.return_value.read.return_value = '{"result": "OK", "signedCa":"dummy"}'
@@ -385,7 +385,7 @@ class TestSecurity(unittest.TestCase):
 
   @patch.object(security.CertificateManager, "checkCertExists")
   def test_initSecurity(self, checkCertExists_method):
-    man = CertificateManager(self.config)
+    man = CertificateManager(self.config, "active_server")
     man.initSecurity()
     self.assertTrue(checkCertExists_method.called)
 
