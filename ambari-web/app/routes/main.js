@@ -25,6 +25,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     App.db.updateStorage();
     console.log('in /main:enter');
     var self = this;
+    var location = router.location.location.hash;
     router.getAuthenticated().done(function (loggedIn) {
       if (loggedIn) {
         var applicationController = App.router.get('applicationController');
@@ -67,7 +68,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           // TODO: redirect to last known state
         });
       } else {
-        router.set('preferedPath', router.location.location.hash);
+        router.savePreferedPath(location);
         Em.run.next(function () {
           router.transitionTo('login');
         });
