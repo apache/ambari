@@ -17,7 +17,7 @@
 -->
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <target>2.2.*.*</target>
-  <target-stack>HDP-2.1.1</target-stack>
+  <target-stack>HDP-2.2.0</target-stack>
   <type>ROLLING</type>
   
   <order>

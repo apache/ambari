@@ -72,6 +72,10 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
   public static final String UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID         = PropertyHelper.getPropertyId("UpgradeChecks", "check_type");
   public static final String UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID       = PropertyHelper.getPropertyId("UpgradeChecks", "cluster_name");
   public static final String UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID       = PropertyHelper.getPropertyId("UpgradeChecks", "upgrade_type");
+  /**
+   * Optional parameter to specify the preferred Upgrade Pack to use.
+   */
+  public static final String UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID       = PropertyHelper.getPropertyId("UpgradeChecks", "upgrade_pack");
   public static final String UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("UpgradeChecks", "repository_version");
 
   @Inject
@@ -98,6 +102,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
       UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID,
       UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID,
       UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID,
+      UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID,
       UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID);
 
 
@@ -131,9 +136,8 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
 
     for (Map<String, Object> propertyMap: propertyMaps) {
       final String clusterName = propertyMap.get(UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).toString();
-      // TODO AMBARI-12698, uncomment once the UI starts passing the property.
-      // final UpgradeType upgradeType = (UpgradeType) propertyMap.get(UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID);
-      final UpgradeType upgradeType = UpgradeType.NON_ROLLING;
+      final UpgradeType upgradeType = propertyMap.containsKey(UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID) ?
+          UpgradeType.valueOf(propertyMap.get(UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).toString()) : UpgradeType.ROLLING;
       final Cluster cluster;
 
       try {
@@ -159,10 +163,12 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
       //ambariMetaInfo.getStack(stackName, cluster.getCurrentStackVersion().getStackVersion()).getUpgradePacks()
       // TODO AMBARI-12698, filter the upgrade checks to run based on the stack and upgrade type, or the upgrade pack.
       UpgradePack upgradePack = null;
+      String preferredUpgradePackName = propertyMap.containsKey(UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID) ?
+          (String) propertyMap.get(UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID) : null;
       try{
         // Hint: PreChecks currently executing only before UPGRADE direction
         upgradePack = upgradeHelper.get().suggestUpgradePack(clusterName, sourceStackVersion,
-            upgradeCheckRequest.getRepositoryVersion(), Direction.UPGRADE, upgradeType);
+            upgradeCheckRequest.getRepositoryVersion(), Direction.UPGRADE, upgradeType, preferredUpgradePackName);
       } catch (AmbariException e) {
         throw new SystemException(e.getMessage(), e);
       }

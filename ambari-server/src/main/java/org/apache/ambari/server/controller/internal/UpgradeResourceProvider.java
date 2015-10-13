@@ -486,7 +486,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // Default to ROLLING upgrade, but attempt to read from properties.
     final UpgradeType upgradeType = requestMap.containsKey(UPGRADE_TYPE) ?
-        UpgradeType.valueOf((String) requestMap.get(UPGRADE_TYPE)) : UpgradeType.ROLLING;
+        UpgradeType.valueOf(requestMap.get(UPGRADE_TYPE).toString()) : UpgradeType.ROLLING;
 
     if (null == clusterName) {
       throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
@@ -496,68 +496,43 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       throw new AmbariException(String.format("%s is required", UPGRADE_VERSION));
     }
 
-    return s_upgradeHelper.suggestUpgradePack(clusterName, versionForUpgradePack, version, direction, upgradeType);
-    // TODO AMBARI-12698, reconcile these changes.
-    /*
     Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
+    UpgradePack pack = s_upgradeHelper.suggestUpgradePack(clusterName, versionForUpgradePack, version, direction, upgradeType, preferredUpgradePackName);
 
-    // !!! find upgrade packs based on current stack. This is where to upgrade
-    // from.
-    StackId stack = cluster.getCurrentStackVersion();
+    // Do not insert here additional checks! Wrap them to separate functions.
+    // Pre-req checks, function generate exceptions if something going wrong
+    validatePreRequest(cluster, direction, version, requestMap);
 
-    String repoVersion = version;
+    return pack;
+  }
 
-    if (direction.isDowngrade() && null != versionForUpgradePack) {
-      repoVersion = versionForUpgradePack;
-    }
-
-    RepositoryVersionEntity versionEntity = s_repoVersionDAO.findByStackNameAndVersion(stack.getStackName(), repoVersion);
-
-    if (null == versionEntity) {
-      throw new AmbariException(String.format("Repository version %s was not found", repoVersion));
-    }
-
-    Map<String, UpgradePack> packs = s_metaProvider.get().getUpgradePacks(stack.getStackName(),
-            stack.getStackVersion());
-
-    UpgradePack pack = null;
-    if (preferredUpgradePackName != null && !preferredUpgradePackName.isEmpty() && packs.containsKey(preferredUpgradePackName)) {
-      pack = packs.get(preferredUpgradePackName);
-    }
-
-    if (null == pack) {
-      // !!! in case there is an upgrade pack that doesn't match the name
-      String repoStackId = versionEntity.getStackId().getStackId();
-      for (UpgradePack upgradePack : packs.values()) {
-        if (null != upgradePack.getTargetStack() && upgradePack.getTargetStack().equals(repoStackId) && upgradeType == upgradePack.getType()) {
-          if (null == pack) {
-            pack = upgradePack;
-          } else {
-            throw new AmbariException(
-                String.format("Unable to perform %s. Found multiple upgrade packs for type %s and target version %s",
-                    direction.getText(false), upgradeType.toString(), repoVersion));
-          }
-        }
-      }
-    }
-
-    if (null == pack) {
-      throw new AmbariException(
-          String.format("Unable to perform %s. Could not locate %s upgrade pack for version %s",
-              direction.getText(false), upgradeType.toString(), repoVersion));
-    }
+  /**
+   * Pre-req checks.
+   * @param cluster Cluster
+   * @param direction Direction of upgrade
+   * @param repoVersion target repository version
+   * @param requestMap request arguments
+   * @throws AmbariException
+   */
+  private void validatePreRequest(Cluster cluster, Direction direction, String repoVersion, Map<String, Object> requestMap)
+      throws AmbariException {
+    boolean skipPrereqChecks = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_PREREQUISITE_CHECKS));
+    boolean failOnCheckWarnings = Boolean.parseBoolean((String) requestMap.get(UPGRADE_FAIL_ON_CHECK_WARNINGS));
+    String preferredUpgradePack = requestMap.containsKey(UPGRADE_PACK) ? (String) requestMap.get(UPGRADE_PACK) : null;
+    UpgradeType upgradeType = requestMap.containsKey(UPGRADE_TYPE) ?
+        UpgradeType.valueOf(requestMap.get(UPGRADE_TYPE).toString()) : UpgradeType.ROLLING;
 
     // Validate there isn't an direction == upgrade/downgrade already in progress.
     List<UpgradeEntity> upgrades = s_upgradeDAO.findUpgrades(cluster.getClusterId());
     for (UpgradeEntity entity : upgrades) {
-      if(entity.getDirection() == direction) {
+      if (entity.getDirection() == direction) {
         Map<Long, HostRoleCommandStatusSummaryDTO> summary = s_hostRoleCommandDAO.findAggregateCounts(
             entity.getRequestId());
         CalculatedStatus calc = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
         HostRoleStatus status = calc.getStatus();
-        if(!HostRoleStatus.getCompletedStates().contains(status)) {
+        if (!HostRoleStatus.getCompletedStates().contains(status)) {
           throw new AmbariException(
-              String.format("Unable to perform %s as another %s is in progress. %s %d is in %s",
+              String.format("Unable to perform %s as another %s is in progress. %s request %d is in %s",
                   direction.getText(false), direction.getText(false), direction.getText(true),
                   entity.getRequestId().longValue(), status)
           );
@@ -565,46 +540,48 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
     }
 
-    if(direction.isUpgrade() && !skipPrereqChecks) {
+    if (direction.isUpgrade() && !skipPrereqChecks) {
       // Validate pre-req checks pass
       PreUpgradeCheckResourceProvider preUpgradeCheckResourceProvider = (PreUpgradeCheckResourceProvider)
           getResourceProvider(Resource.Type.PreUpgradeCheck);
       Predicate preUpgradeCheckPredicate = new PredicateBuilder().property(
-          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and().property(
-          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID).equals(repoVersion).toPredicate();
+          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals(cluster.getClusterName()).and().property(
+          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID).equals(repoVersion).and().property(
+          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(upgradeType).and().property(
+          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID).equals(preferredUpgradePack).toPredicate();
       Request preUpgradeCheckRequest = PropertyHelper.getReadRequest();
 
       Set<Resource> preUpgradeCheckResources;
       try {
         preUpgradeCheckResources = preUpgradeCheckResourceProvider.getResources(
             preUpgradeCheckRequest, preUpgradeCheckPredicate);
-      } catch (NoSuchResourceException e) {
+      } catch (NoSuchResourceException|SystemException|UnsupportedPropertyException|NoSuchParentResourceException e) {
         throw new AmbariException(
             String.format("Unable to perform %s. Prerequisite checks could not be run",
                 direction.getText(false)));
       }
+
       List<Resource> failedResources = new LinkedList<Resource>();
       if (preUpgradeCheckResources != null) {
-        for(Resource res : preUpgradeCheckResources) {
+        for (Resource res : preUpgradeCheckResources) {
           String id = (String) res.getPropertyValue((PreUpgradeCheckResourceProvider.UPGRADE_CHECK_ID_PROPERTY_ID));
           PrereqCheckStatus prereqCheckStatus = (PrereqCheckStatus) res.getPropertyValue(
               PreUpgradeCheckResourceProvider.UPGRADE_CHECK_STATUS_PROPERTY_ID);
-          if(prereqCheckStatus == PrereqCheckStatus.FAIL
+
+          if (prereqCheckStatus == PrereqCheckStatus.FAIL
               || (failOnCheckWarnings && prereqCheckStatus == PrereqCheckStatus.WARNING)) {
             failedResources.add(res);
           }
         }
       }
-      if(!failedResources.isEmpty()) {
+
+      if (!failedResources.isEmpty()) {
         Gson gson = new Gson();
         throw new AmbariException(
             String.format("Unable to perform %s. Prerequisite checks failed %s",
                 direction.getText(false), gson.toJson(failedResources)));
       }
     }
-
-    return pack;
-    */
   }
 
   /**
