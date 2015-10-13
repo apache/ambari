@@ -19,14 +19,14 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.0.0.0-SNAPSHOT</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-agent</artifactId>
   <packaging>pom</packaging>
-  <version>2.0.0-SNAPSHOT</version>
+  <version>2.0.0.0-SNAPSHOT</version>
   <name>Ambari Agent</name>
   <description>Ambari Agent</description>
   <properties>
@@ -77,8 +77,8 @@
             <configuration>
               <name>ambariVersion</name>
               <value>${project.version}</value>
-              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
-              <replacement>$1.$2.$3</replacement>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
+              <replacement>$1.$2.$3.$4</replacement>
               <failIfNoMatch>false</failIfNoMatch>
             </configuration>
           </execution>
