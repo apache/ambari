@@ -222,6 +222,6 @@ export default Ember.Object.create({
     comment: "--Global Settings--\n\n"
   },
 
-  defaultVisualizationRowCount: 30000
+  defaultVisualizationRowCount: 10000
 
 });
