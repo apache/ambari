@@ -254,6 +254,7 @@ dropdown .fa-remove {
 .query-container {
   position: relative;
   padding-right: 0;
+  -moz-box-sizing: border-box;
 
   &.col-md-9 {
     @include animate-width(0.25s);
@@ -574,4 +575,8 @@ tree-view ul li {
     .max-rows {
       float: right;
     }
+}
+
+.mozBoxSizeFix {
+  -moz-box-sizing: border-box;
 }
