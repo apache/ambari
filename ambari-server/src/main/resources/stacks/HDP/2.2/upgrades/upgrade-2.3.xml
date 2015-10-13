@@ -358,7 +358,7 @@
       </execute-stage>
 
       <execute-stage title="Save Cluster State" service="" component="">
-        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction" />
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction"/>
       </execute-stage>
 
     </group>
@@ -368,25 +368,25 @@
     <service name="ZOOKEEPER">
       <component name="ZOOKEEPER_SERVER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="ZOOKEEPER_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
 
     <service name="RANGER">
       <component name="RANGER_ADMIN">
-        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_env"/>
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin"/>
 
-          <task xsi:type="server_action" summary="Calculating Ranger Properties" class="org.apache.ambari.server.serveraction.upgrades.RangerConfigCalculation" />
+          <task xsi:type="server_action" summary="Calculating Ranger Properties" class="org.apache.ambari.server.serveraction.upgrades.RangerConfigCalculation"/>
           
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync"/>
             
@@ -398,20 +398,20 @@
         </pre-upgrade>
       
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="RANGER_USERSYNC">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
 
     <service name="HDFS">
       <component name="NAMENODE">
-        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_modify_hadoop_env"/>
@@ -428,68 +428,68 @@
         </pre-upgrade>
 
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="DATANODE">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="HDFS_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="JOURNALNODE">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="ZKFC">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
 
     <service name="MAPREDUCE2">
       <component name="HISTORYSERVER">
-        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
-          <task xsi:type="configure" id="hdp_2_3_0_0_mapreduce2_adjust_history_server" />
+          <task xsi:type="configure" id="hdp_2_3_0_0_mapreduce2_adjust_history_server"/>
         </pre-upgrade>
 
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="MAPREDUCE2_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
 
     <service name="YARN">
       <component name="APP_TIMELINE_SERVER">
-        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_yarn_ats_enable_recovery"/>
         </pre-upgrade>
 
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="RESOURCEMANAGER">
-        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_disable_node_labels"/>
 
@@ -501,26 +501,26 @@
 
         </pre-upgrade>
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="NODEMANAGER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="YARN_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
 
     <service name="HBASE">
       <component name="HBASE_MASTER">
-        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_adjust_phoenix_scheduler_factory"/>
 
@@ -528,7 +528,7 @@
 
           <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_set_global_memstore_size"/>
 
-          <task xsi:type="server_action" summary="Calculating HBase Properties" class="org.apache.ambari.server.serveraction.upgrades.HBaseConfigCalculation" />
+          <task xsi:type="server_action" summary="Calculating HBase Properties" class="org.apache.ambari.server.serveraction.upgrades.HBaseConfigCalculation"/>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_adjust_phoenix_indexed_wal_edit_codec"/>
 
@@ -536,7 +536,7 @@
 
           <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_transition_ranger_hbase_policy"/>
 
-          <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_transition_ranger_hbase_audit" />
+          <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_transition_ranger_hbase_audit"/>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_copy_ranger_policies"/>
 
@@ -544,19 +544,19 @@
         </pre-upgrade>
 
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="HBASE_REGIONSERVER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="HBASE_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
@@ -567,7 +567,7 @@
           <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_properties"/>
         </pre-upgrade>
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
@@ -575,7 +575,7 @@
     <service name="PIG">
       <component name="PIG">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
@@ -583,7 +583,7 @@
     <service name="SQOOP">
       <component name="SQOOP">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
@@ -591,7 +591,7 @@
     <service name="HIVE">
       <component name="HIVE_METASTORE">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
@@ -627,7 +627,7 @@
         </pre-downgrade>
 
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
@@ -639,19 +639,19 @@
         </pre-upgrade>
 
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="HIVE_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="HCAT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
@@ -659,7 +659,7 @@
     <service name="SLIDER">
       <component name="SLIDER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
@@ -667,12 +667,12 @@
     <service name="SPARK">
       <component name="SPARK_JOBHISTORYSERVER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
       <component name="SPARK_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
@@ -706,13 +706,13 @@
         </pre-downgrade>
 
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="OOZIE_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
@@ -720,12 +720,12 @@
     <service name="FALCON">
       <component name="FALCON_SERVER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
       <component name="FALCON_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
@@ -733,14 +733,14 @@
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
 
     <service name="KNOX">
       <component name="KNOX_GATEWAY">
-        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_knox_configure_ranger_policy"/>
 
@@ -749,7 +749,7 @@
           <task xsi:type="configure" id="hdp_2_3_0_0_knox_remove_deprecated_ranger_properties"/>
         </pre-upgrade>
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
@@ -800,7 +800,7 @@
           <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_remove_deprecated_ranger_properties"/>
         </pre-upgrade>
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
@@ -812,7 +812,7 @@
           </task>
         </pre-upgrade>
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
@@ -824,7 +824,7 @@
           </task>
         </pre-upgrade>
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
@@ -837,7 +837,7 @@
         </pre-upgrade>
 
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
@@ -850,7 +850,7 @@
         </pre-upgrade>
 
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
 
         <post-upgrade>
@@ -864,7 +864,7 @@
     <service name="FLUME">
       <component name="FLUME_HANDLER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
@@ -872,32 +872,32 @@
     <service name="ACCUMULO">
       <component name="ACCUMULO_MASTER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
       <component name="ACCUMULO_MONITOR">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
       <component name="ACCUMULO_GC">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
       <component name="ACCUMULO_TRACER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
       <component name="ACCUMULO_TSERVER">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
       <component name="ACCUMULO_CLIENT">
         <upgrade>
-          <task xsi:type="restart" />
+          <task xsi:type="restart-task"/>
         </upgrade>
       </component>
     </service>
