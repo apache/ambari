@@ -48,6 +48,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -172,6 +173,7 @@ public class UpgradeCatalog213Test {
     Method bootstrapRepoVersionForHDP21 = UpgradeCatalog213.class.getDeclaredMethod("bootstrapRepoVersionForHDP21");
     Method updateStormConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateStormConfigs");
     Method updateAMSConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateAMSConfigs");
+    Method updateKafkaConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateKafkaConfigs");
     Method updateHbaseEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHbaseEnvConfig");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
 
@@ -184,6 +186,7 @@ public class UpgradeCatalog213Test {
         .addMockedMethod(bootstrapRepoVersionForHDP21)
         .addMockedMethod(updateStormConfigs)
         .addMockedMethod(updateHbaseEnvConfig)
+        .addMockedMethod(updateKafkaConfigs)
         .createMock();
 
     upgradeCatalog213.addNewConfigurationsFromXml();
@@ -199,6 +202,8 @@ public class UpgradeCatalog213Test {
     upgradeCatalog213.updateAMSConfigs();
     expectLastCall().once();
     upgradeCatalog213.updateAlertDefinitions();
+    expectLastCall().once();
+    upgradeCatalog213.updateKafkaConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog213);
@@ -501,6 +506,55 @@ public class UpgradeCatalog213Test {
             "\"https_property\":\"{{hdfs-site/dfs.http.policy}}\"," +
             "\"https_property_value\":\"HTTPS_ONLY\",\"connection_timeout\":5.0}}";
     Assert.assertEquals(expected, upgradeCatalog213.modifyJournalnodeProcessAlertSource(alertSource));
+  }
+
+  @Test
+  public void testUpdateKafkaConfigs() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Map<String, String> propertiesAmsEnv = new HashMap<String, String>() {
+      {
+        put("kafka.metrics.reporters", "{{kafka_metrics_reporters}}");
+      }
+    };
+    final Map<String, Service> installedServices = new HashMap<String, Service>() {
+      {
+        put("KAFKA", null);
+        put("AMBARI_METRICS", null);
+      }
+    };
+
+    final Config mockAmsEnv = easyMockSupport.createNiceMock(Config.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    expect(mockClusterExpected.getServices()).andReturn(installedServices).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("kafka-broker")).andReturn(mockAmsEnv).atLeastOnce();
+    expect(mockAmsEnv.getProperties()).andReturn(propertiesAmsEnv).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog213.class).updateKafkaConfigs();
+    easyMockSupport.verifyAll();
   }
 
   /**

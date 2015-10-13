@@ -65,6 +65,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -73,6 +74,7 @@ import java.util.UUID;
 public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
   private static final String STORM_SITE = "storm-site";
+  private static final String KAFKA_BROKER = "kafka-broker";
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_HBASE_ENV = "ams-hbase-env";
   private static final String HBASE_ENV_CONFIG = "hbase-env";
@@ -156,6 +158,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     updateAMSConfigs();
     updateHbaseEnvConfig();
     updateAlertDefinitions();
+    updateKafkaConfigs();
   }
 
   /**
@@ -641,6 +644,41 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
       }
     }
 
+  }
+
+  protected void updateKafkaConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Set<String> installedServices =cluster.getServices().keySet();
+          Config kafkaBroker = cluster.getDesiredConfigByType(KAFKA_BROKER);
+          if (kafkaBroker != null) {
+            Map<String, String> newProperties = new HashMap<>();
+            Map<String, String> kafkaBrokerProperties = kafkaBroker.getProperties();
+            String kafkaMetricsReporters = kafkaBrokerProperties.get("kafka.metrics.reporters");
+            if (kafkaMetricsReporters == null ||
+              "{{kafka_metrics_reporters}}".equals(kafkaMetricsReporters)) {
+
+              if (installedServices.contains("AMBARI_METRICS")) {
+                newProperties.put("kafka.metrics.reporters", "org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter");
+              } else if (installedServices.contains("GANGLIA")) {
+                newProperties.put("kafka.metrics.reporters", "kafka.ganglia.KafkaGangliaMetricsReporter");
+              } else {
+                newProperties.put("kafka.metrics.reporters", " ");
+              }
+
+            }
+            if (!newProperties.isEmpty()) {
+              updateConfigurationPropertiesForCluster(cluster, KAFKA_BROKER, newProperties, true, true);
+            }
+          }
+        }
+      }
+    }
   }
 
   protected String updateAmsEnvContent(String oldContent) {
