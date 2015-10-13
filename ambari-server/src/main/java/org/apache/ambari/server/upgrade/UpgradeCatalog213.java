@@ -52,6 +52,7 @@ import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +62,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -73,6 +75,8 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String STORM_SITE = "storm-site";
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_HBASE_ENV = "ams-hbase-env";
+  private static final String HBASE_ENV_CONFIG = "hbase-env";
+  private static final String CONTENT_PROPERTY = "content";
 
   public static final String UPGRADE_PACKAGE_COL = "upgrade_package";
   public static final String UPGRADE_TYPE_COL = "upgrade_type";
@@ -147,8 +151,10 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     executeStackUpgradeDDLUpdates();
     bootstrapRepoVersionForHDP21();
 
-    addMissingConfigs();
+    addNewConfigurationsFromXml();
+    updateStormConfigs();
     updateAMSConfigs();
+    updateHbaseEnvConfig();
     updateAlertDefinitions();
   }
 
@@ -546,10 +552,6 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     return rootJson.toString();
   }
 
-  protected void addMissingConfigs() throws AmbariException {
-    updateStormConfigs();
-  }
-
   protected void updateStormConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -569,6 +571,27 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
               updates.put("nimbus.monitor.freq.secs", "120");
               updateConfigurationPropertiesForCluster(cluster, STORM_SITE, updates, true, false);
             }
+          }
+        }
+      }
+    }
+  }
+
+  protected void updateHbaseEnvConfig() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      StackId stackId = cluster.getCurrentStackVersion();
+      if (stackId != null && stackId.getStackName().equals("HDP") &&
+               VersionUtils.compareVersions(stackId.getStackVersion(), "2.2") >= 0) {
+        Config hbaseEnvConfig = cluster.getDesiredConfigByType(HBASE_ENV_CONFIG);
+        if (hbaseEnvConfig != null) {
+          String content = hbaseEnvConfig.getProperties().get(CONTENT_PROPERTY);
+          if (content != null && content.indexOf("MaxDirectMemorySize={{hbase_max_direct_memory_size}}m") < 0) {
+            String newPartOfContent = "\n\nexport HBASE_REGIONSERVER_OPTS=\"$HBASE_REGIONSERVER_OPTS {% if hbase_max_direct_memory_size %} -XX:MaxDirectMemorySize={{hbase_max_direct_memory_size}}m {% endif %}\"\n\n";
+            content += newPartOfContent;
+            Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
+            updateConfigurationPropertiesForCluster(cluster, HBASE_ENV_CONFIG, updates, true, false);
           }
         }
       }

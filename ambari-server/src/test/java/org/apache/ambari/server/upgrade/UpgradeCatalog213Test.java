@@ -167,25 +167,34 @@ public class UpgradeCatalog213Test {
     f.set(upgradeCatalog, configuration);
     */
 
-    Method addMissingConfigs = UpgradeCatalog213.class.getDeclaredMethod("addMissingConfigs");
-    Method updateAMSConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateAMSConfigs");
     Method updateAlertDefinitions = UpgradeCatalog213.class.getDeclaredMethod("updateAlertDefinitions");
     Method executeStackUpgradeDDLUpdates = UpgradeCatalog213.class.getDeclaredMethod("executeStackUpgradeDDLUpdates");
     Method bootstrapRepoVersionForHDP21 = UpgradeCatalog213.class.getDeclaredMethod("bootstrapRepoVersionForHDP21");
+    Method updateStormConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateStormConfigs");
+    Method updateAMSConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateAMSConfigs");
+    Method updateHbaseEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHbaseEnvConfig");
+    Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
+
 
     UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
-        .addMockedMethod(addMissingConfigs)
+        .addMockedMethod(addNewConfigurationsFromXml)
         .addMockedMethod(updateAMSConfigs)
         .addMockedMethod(updateAlertDefinitions)
         .addMockedMethod(executeStackUpgradeDDLUpdates)
         .addMockedMethod(bootstrapRepoVersionForHDP21)
+        .addMockedMethod(updateStormConfigs)
+        .addMockedMethod(updateHbaseEnvConfig)
         .createMock();
 
+    upgradeCatalog213.addNewConfigurationsFromXml();
+    expectLastCall().once();
     upgradeCatalog213.executeStackUpgradeDDLUpdates();
     expectLastCall().once();
     upgradeCatalog213.bootstrapRepoVersionForHDP21();
     expectLastCall().once();
-    upgradeCatalog213.addMissingConfigs();
+    upgradeCatalog213.updateStormConfigs();
+    expectLastCall().once();
+    upgradeCatalog213.updateHbaseEnvConfig();
     expectLastCall().once();
     upgradeCatalog213.updateAMSConfigs();
     expectLastCall().once();
@@ -202,6 +211,48 @@ public class UpgradeCatalog213Test {
 
     // Verify sections
     //upgradeSectionDDL.verify(dbAccessor);
+  }
+
+  @Test
+  public void testUpdateHbaseEnvConfig() throws AmbariException {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Map<String, String> propertiesHbaseEnv = new HashMap<String, String>() {
+      {
+        put("content", "test");
+      }
+    };
+
+    final Config mockHbaseEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(mockHbaseEnv.getProperties()).andReturn(propertiesHbaseEnv).once();
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP","2.2"));
+
+    expect(mockClusterExpected.getDesiredConfigByType("hbase-env")).andReturn(mockHbaseEnv).atLeastOnce();
+    expect(mockHbaseEnv.getProperties()).andReturn(propertiesHbaseEnv).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog213.class).updateHbaseEnvConfig();
+    easyMockSupport.verifyAll();
+
   }
 
   /**
