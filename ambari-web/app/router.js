@@ -122,7 +122,10 @@ App.Router = Em.Router.extend({
     return currentStep;
   },
 
-  loggedIn: !!App.db.getAuthenticated(),
+  /**
+   * @type {boolean}
+   */
+  loggedIn: App.db.getAuthenticated(),
 
   loginName: function() {
     return this.getLoginName();
@@ -140,7 +143,7 @@ App.Router = Em.Router.extend({
     }).complete(function (xhr) {
       if (xhr.isResolved()) {
         // if server knows the user and user authenticated by UI
-        if (auth && auth === true) {
+        if (auth) {
           dfd.resolve(self.get('loggedIn'));
           // if server knows the user but UI don't, check the response header
           // and try to authorize
@@ -160,6 +163,10 @@ App.Router = Em.Router.extend({
           self.setAuthenticated(false);
           dfd.resolve(false);
         }
+      } else {
+        //if provisioning state unreachable then consider user as unauthenticated
+        self.setAuthenticated(false);
+        dfd.resolve(false);
       }
     });
     return dfd.promise();
@@ -345,26 +352,7 @@ App.Router = Em.Router.extend({
       }
       App.set('isPermissionDataLoaded', true);
       if (transitionToApp) {
-        var preferredPath = router.get('preferedPath');
-        // If the preferred path is relative, allow a redirect to it.
-        // If the path is not relative, silently ignore it - if the path is an absolute URL, the user
-        // may be routed to a different server where the [possibility exists for a phishing attack.
-        if (!Em.isNone(preferredPath)) {
-          if (preferredPath.startsWith('/') || preferredPath.startsWith('#')) {
-            console.log("INFO: Routing to preferred path: " + preferredPath);
-          }
-          else {
-            console.log("WARNING: Ignoring preferred path since it is not a relative URL: " + preferredPath);
-            preferredPath = null;
-          }
-
-          // Unset preferedPath
-          router.set('preferedPath', null);
-        }
-
-        if (!Em.isNone(preferredPath)) {
-          window.location = preferredPath;
-        } else {
+        if (!router.restorePreferedPath()) {
           router.getSection(function (route) {
             router.transitionTo(route);
             loginController.postLogin(true, true);
@@ -486,6 +474,47 @@ App.Router = Em.Router.extend({
   },
 
   /**
+   * save prefered path
+   * @param {string} path
+   * @param {string} key
+   */
+  savePreferedPath: function(path, key) {
+    if (key) {
+      if (path.contains(key)) {
+        this.set('preferedPath', path.slice(path.indexOf(key) + key.length));
+      }
+    } else {
+      this.set('preferedPath', path);
+    }
+  },
+
+  /**
+   * If path exist route to it, otherwise return false
+   * @returns {boolean}
+   */
+  restorePreferedPath: function() {
+    var preferredPath = this.get('preferedPath');
+    var isRestored = false;
+
+    if (preferredPath) {
+      // If the preferred path is relative, allow a redirect to it.
+      // If the path is not relative, silently ignore it - if the path is an absolute URL, the user
+      // may be routed to a different server where the possibility exists for a phishing attack.
+      if ((preferredPath.startsWith('/') || preferredPath.startsWith('#')) && !preferredPath.contains('#/login')) {
+        console.log("INFO: Routing to preferred path: " + preferredPath);
+        window.location = preferredPath;
+        isRestored = true;
+      } else {
+        console.log("WARNING: Ignoring preferred path since it is not a relative URL: " + preferredPath);
+      }
+      // Unset preferedPath
+      this.set('preferedPath', null);
+    }
+
+    return isRestored;
+  },
+
+  /**
    * initialize isAdmin if user is administrator
    */
   initAdmin: function(){
@@ -521,11 +550,8 @@ App.Router = Em.Router.extend({
        *  If the user is already logged in, redirect to where the user was previously
        */
       enter: function (router, context) {
+        var location = router.location.location.hash;
         router.getAuthenticated().done(function (loggedIn) {
-          var location = router.location.location.hash;
-          //key to parse URI for prefered path to route
-          var key = '?targetURI=';
-
           if (loggedIn) {
             Ember.run.next(function () {
               console.log(router.getLoginName() + ' already authenticated.  Redirecting...');
@@ -534,9 +560,8 @@ App.Router = Em.Router.extend({
               });
             });
           } else {
-            if (location.contains(key)) {
-              router.set('preferedPath', location.slice(location.indexOf(key) + key.length));
-            }
+            //key to parse URI for prefered path to route
+            router.savePreferedPath(location, '?targetURI=');
           }
         });
       },

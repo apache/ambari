@@ -162,4 +162,50 @@ describe('App.Router', function () {
       });
     });
   });
+
+  describe("#savePreferedPath()", function() {
+    beforeEach(function () {
+      router.set('preferedPath', null);
+    });
+    it("has no key", function() {
+      router.savePreferedPath('path');
+      expect(router.get('preferedPath')).to.equal('path');
+    });
+    it("path does not contain key", function() {
+      router.savePreferedPath('path', 'key');
+      expect(router.get('preferedPath')).to.be.null;
+    });
+    it("path contains key", function() {
+      router.savePreferedPath('key=path', 'key=');
+      expect(router.get('preferedPath')).to.equal('path');
+    });
+  });
+
+  describe("#restorePreferedPath()", function() {
+    it("preferedPath is null", function() {
+      router.set('preferedPath', null);
+      expect(router.restorePreferedPath()).to.be.false;
+      expect(router.get('preferedPath')).to.be.null;
+    });
+    it("preferedPath is '/relativeURL'", function() {
+      router.set('preferedPath', '/relativeURL');
+      expect(router.restorePreferedPath()).to.be.true;
+      expect(router.get('preferedPath')).to.be.null;
+    });
+    it("preferedPath is '#/relativeURL'", function() {
+      router.set('preferedPath', '#/relativeURL');
+      expect(router.restorePreferedPath()).to.be.true;
+      expect(router.get('preferedPath')).to.be.null;
+    });
+    it("preferedPath is '#/login'", function() {
+      router.set('preferedPath', '#/login');
+      expect(router.restorePreferedPath()).to.be.false;
+      expect(router.get('preferedPath')).to.be.null;
+    });
+    it("preferedPath is 'http://absoluteURL'", function() {
+      router.set('preferedPath', 'http://absoluteURL');
+      expect(router.restorePreferedPath()).to.be.false;
+      expect(router.get('preferedPath')).to.be.null;
+    });
+  });
 });
