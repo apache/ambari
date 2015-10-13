@@ -18,24 +18,14 @@
 
 package org.apache.ambari.server.upgrade;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-
 import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -47,20 +37,28 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
+import javax.persistence.EntityManager;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog213} unit tests.
@@ -95,17 +93,25 @@ public class UpgradeCatalog213Test {
 
   @Test
   public void testExecuteDMLUpdates() throws Exception {
-    Method addMissingConfigs = UpgradeCatalog213.class.getDeclaredMethod("addMissingConfigs");
     Method updateAMSConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateAMSConfigs");
+    Method updateStormConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateStormConfigs");
+    Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
+    Method updateHbaseEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHbaseEnvConfig");
     Method updateAlertDefinitions = UpgradeCatalog213.class.getDeclaredMethod("updateAlertDefinitions");
 
     UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
-        .addMockedMethod(addMissingConfigs)
         .addMockedMethod(updateAMSConfigs)
+        .addMockedMethod(updateStormConfigs)
+        .addMockedMethod(addNewConfigurationsFromXml)
+        .addMockedMethod(updateHbaseEnvConfig)
         .addMockedMethod(updateAlertDefinitions)
         .createMock();
 
-    upgradeCatalog213.addMissingConfigs();
+    upgradeCatalog213.updateHbaseEnvConfig();
+    expectLastCall().once();
+    upgradeCatalog213.addNewConfigurationsFromXml();
+    expectLastCall().once();
+    upgradeCatalog213.updateStormConfigs();
     expectLastCall().once();
     upgradeCatalog213.updateAMSConfigs();
     expectLastCall().once();
@@ -163,6 +169,47 @@ public class UpgradeCatalog213Test {
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog213.class).updateStormConfigs();
     easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testUpdateHbaseEnvConfig() throws AmbariException {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Map<String, String> propertiesHbaseEnv = new HashMap<String, String>() {
+      {
+        put("content", "test");
+      }
+    };
+
+    final Config mockHbaseEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(mockHbaseEnv.getProperties()).andReturn(propertiesHbaseEnv).once();
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP","2.2"));
+
+    expect(mockClusterExpected.getDesiredConfigByType("hbase-env")).andReturn(mockHbaseEnv).atLeastOnce();
+    expect(mockHbaseEnv.getProperties()).andReturn(propertiesHbaseEnv).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog213.class).updateHbaseEnvConfig();
+    easyMockSupport.verifyAll();
+
   }
 
   @Test
