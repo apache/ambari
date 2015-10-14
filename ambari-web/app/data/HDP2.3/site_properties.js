@@ -244,7 +244,7 @@ hdp23properties.push({
     "filename": "ranger-admin-site.xml",
     "category": "ADSettings"
   },
-  /*********HAWQ************/
+  /*********************************************** HAWQ **********************************************/
   {
     "name": "hawq_master_address_host",
     "displayType": "masterHost",
@@ -315,6 +315,12 @@ hdp23properties.push({
     "category": "General",
     "serviceName": "HAWQ",
     "index": 8
+  },
+  {
+    "name": "content",
+    "serviceName": "HAWQ",
+    "filename": "gpcheck-env.xml",
+    "category": "AdvancedGpcheck"
   }
 );
 
