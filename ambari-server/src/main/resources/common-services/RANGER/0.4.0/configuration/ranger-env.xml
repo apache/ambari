@@ -194,28 +194,6 @@
   </property>
 
   <property>
-    <name>ranger-kafka-plugin-enabled</name>
-    <value>No</value>
-    <display-name>Kafka Ranger Plugin</display-name>
-    <description>Enable Kafka Ranger plugin</description>
-    <value-attributes>
-      <overridable>false</overridable>
-      <type>value-list</type>
-      <entries>
-        <entry>
-          <value>Yes</value>
-          <label>Enabled</label>
-        </entry>
-        <entry>
-          <value>No</value>
-          <label>Disabled</label>
-        </entry>
-      </entries>
-      <selection-cardinality>1</selection-cardinality>
-    </value-attributes>
-  </property>
-
-  <property>
     <name>ranger-knox-plugin-enabled</name>
     <value>No</value>
     <display-name>Knox Ranger Plugin</display-name>
@@ -236,27 +214,4 @@
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
-
-  <property>
-    <name>ranger-yarn-plugin-enabled</name>
-    <value>No</value>
-    <display-name>YARN Ranger Plugin</display-name>
-    <description>Enable YARN Ranger plugin</description>
-    <value-attributes>
-      <overridable>false</overridable>
-      <type>value-list</type>
-      <entries>
-        <entry>
-          <value>Yes</value>
-          <label>Enabled</label>
-        </entry>
-        <entry>
-          <value>No</value>
-          <label>Disabled</label>
-        </entry>
-      </entries>
-      <selection-cardinality>1</selection-cardinality>
-    </value-attributes>
-  </property>
-
 </configuration>

@@ -119,13 +119,13 @@
   <property>
     <name>ranger.usersync.unix.group.file</name>
     <display-name>Group File</display-name>
-    <value></value>
+    <value>/etc/group</value>
   </property>
 
   <property>
     <name>ranger.usersync.unix.password.file</name>
     <display-name>Password File</display-name>
-    <value></value>
+    <value>/etc/passwd</value>
   </property>
 
   <property>

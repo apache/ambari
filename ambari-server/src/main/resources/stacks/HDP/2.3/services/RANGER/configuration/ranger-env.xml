@@ -95,5 +95,144 @@
     </depends-on>
   </property>
 
+  <property>
+    <name>ranger-yarn-plugin-enabled</name>
+    <value>No</value>
+    <display-name>YARN Ranger Plugin</display-name>
+    <description>Enable YARN Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger-kafka-plugin-enabled</name>
+    <value>No</value>
+    <display-name>Kafka Ranger Plugin</display-name>
+    <description>Enable Kafka Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>xasecure.audit.destination.db</name>
+    <value>false</value>
+    <display-name>Audit to DB</display-name>
+    <description>Enable Audit to DB for all ranger supported services. This property is overridable at service level</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>xasecure.audit.destination.solr</name>
+    <value>false</value>
+    <display-name>Audit to Solr</display-name>
+    <description>Enable Audit to Solr for all ranger supported services. This property is overridable at service level</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>is_solrCloud_enabled</name>
+    <display-name>SolrCloud</display-name>
+    <description>SolrCloud uses zookeeper for distributed search and indexing</description>
+    <value>false</value>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>xasecure.audit.destination.hdfs</name>
+    <value>false</value>
+    <display-name>Audit to HDFS</display-name>
+    <description>Enable Audit to HDFS for all ranger supported services. This property is overridable at service level</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>xasecure.audit.destination.hdfs.dir</name>
+    <value>hdfs://localhost:8020/ranger/audit</value>
+    <display-name>Destination HDFS Directory</display-name>
+    <description>HDFS folder to write audit to, make sure all service user has required permissions. This property is overridable at service level</description>
+  </property>
 
 </configuration>
