@@ -80,51 +80,41 @@ package org.apache.ambari.server.state;
  */
 public enum RepositoryVersionState {
   /**
+   * Repository version is not required
+   */
+  NOT_REQUIRED,
+  /**
    * Repository version that is in the process of being installed.
    */
-  INSTALLING(2),
+  INSTALLING,
   /**
    * Repository version that is installed and supported but not the active version.
    */
-  INSTALLED(3),
+  INSTALLED,
   /**
    * Repository version that during the install process failed to install some components.
    */
-  INSTALL_FAILED(0),
+  INSTALL_FAILED,
   /**
    * Repository version that is installed for some components but not for all.
    */
-  OUT_OF_SYNC(1),
+  OUT_OF_SYNC,
   /**
    * Repository version that is installed and supported and is the active version.
    */
-  CURRENT(7),
+  CURRENT,
   /**
    * Repository version that is in the process of upgrading to become the CURRENT active version,
    * and the previous active version transitions to an INSTALLED state.
    */
-  UPGRADING(5),
+  UPGRADING,
   /**
    * Repository version that during the upgrade process failed to become the active version and must be remedied.
    */
-  UPGRADE_FAILED(4),
+  UPGRADE_FAILED,
   /**
    * Repository version that finished upgrading and should be finalized to become CURRENT.
    */
-  UPGRADED(6);
-
-  /**
-   * Is used to determine cluster version state.
-   * @see org.apache.ambari.server.state.Cluster#recalculateClusterVersionState(String)
-   */
-  private int priority;
-
-  RepositoryVersionState(int priority) {
-    this.priority = priority;
-  }
-
-  public int getPriority() {
-    return priority;
-  }
+  UPGRADED
 
 }

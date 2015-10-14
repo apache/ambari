@@ -50,7 +50,6 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariActionExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
@@ -61,14 +60,13 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
-import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
@@ -111,13 +109,10 @@ public class ClusterStackVersionResourceProviderTest {
   private RepositoryVersionDAO repositoryVersionDAOMock;
   private ResourceTypeDAO resourceTypeDAO;
   private StackDAO stackDAO;
-  private ClusterDAO clusterDAO;
   private ClusterVersionDAO clusterVersionDAO;
-  private HostDAO hostDAO;
   private ConfigHelper configHelper;
   private Configuration configuration;
   private StageFactory stageFactory;
-  private AmbariActionExecutionHelper actionExecutionHelper;
 
   private String operatingSystemsJson = "[\n" +
           "   {\n" +
@@ -157,8 +152,6 @@ public class ClusterStackVersionResourceProviderTest {
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
     stackDAO = injector.getInstance(StackDAO.class);
-    clusterDAO = injector.getInstance(ClusterDAO.class);
-    hostDAO = injector.getInstance(HostDAO.class);
   }
 
   @After
@@ -175,6 +168,10 @@ public class ClusterStackVersionResourceProviderTest {
     Cluster cluster = createNiceMock(Cluster.class);
     StackId stackId = new StackId("HDP", "2.0.1");
 
+    RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
+    repoVersion.setId(1l);
+    repoVersion.setOperatingSystems(operatingSystemsJson);
+
     Map<String, Host> hostsForCluster = new HashMap<String, Host>();
     int hostCount = 10;
     for (int i = 0; i < hostCount; i++) {
@@ -184,6 +181,8 @@ public class ClusterStackVersionResourceProviderTest {
       expect(host.getOsFamily()).andReturn("redhat6").anyTimes();
       expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
           MaintenanceState.OFF).anyTimes();
+      expect(host.getAllHostVersions()).andReturn(
+          Collections.<HostVersionEntity>emptyList()).anyTimes();
 
       replay(host);
       hostsForCluster.put(hostname, host);
@@ -209,9 +208,6 @@ public class ClusterStackVersionResourceProviderTest {
       add(schAMS);
     }};
 
-    RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
-    repoVersion.setId(1l);
-    repoVersion.setOperatingSystems(operatingSystemsJson);
 
     ServiceOsSpecific.Package hdfsPackage = new ServiceOsSpecific.Package();
     hdfsPackage.setName("hdfs");

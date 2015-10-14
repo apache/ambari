@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.events;
 
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.agent.CommandReport;
 
 /**

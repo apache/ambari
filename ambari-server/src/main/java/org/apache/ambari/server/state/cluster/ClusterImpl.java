@@ -1206,9 +1206,9 @@ public class ClusterImpl implements Cluster {
    * UPGRADE_FAILED: at least one host in UPGRADE_FAILED
    * UPGRADED: all hosts are UPGRADED
    * UPGRADING: at least one host is UPGRADING, and the rest in UPGRADING|INSTALLED
-   * INSTALLED: all hosts in INSTALLED
+   * INSTALLED: all hosts in INSTALLED -OR- INSTALLED and NOT_REQUIRED
    * INSTALL_FAILED: at least one host in INSTALL_FAILED
-   * INSTALLING: all hosts in INSTALLING. Notice that if one host is CURRENT and another is INSTALLING, then the
+   * INSTALLING: all hosts in INSTALLING -or- INSTALLING and NOT_REQUIRED. Notice that if one host is CURRENT and another is INSTALLING, then the
    * effective version will be OUT_OF_SYNC.
    * OUT_OF_SYNC: otherwise
    * @param stateToHosts Map from state to the collection of hosts with that state
@@ -1243,10 +1243,22 @@ public class ClusterImpl implements Cluster {
       return RepositoryVersionState.INSTALL_FAILED;
     }
 
-    final int totalINSTALLING = stateToHosts.containsKey(RepositoryVersionState.INSTALLING) ? stateToHosts.get(RepositoryVersionState.INSTALLING).size() : 0;
-    final int totalINSTALLED = stateToHosts.containsKey(RepositoryVersionState.INSTALLED) ? stateToHosts.get(RepositoryVersionState.INSTALLED).size() : 0;
-    if (totalINSTALLING + totalINSTALLED == totalHosts) {
+    int totalInstalling = stateToHosts.containsKey(RepositoryVersionState.INSTALLING) ? stateToHosts.get(RepositoryVersionState.INSTALLING).size() : 0;
+    int totalInstalled = stateToHosts.containsKey(RepositoryVersionState.INSTALLED) ? stateToHosts.get(RepositoryVersionState.INSTALLED).size() : 0;
+    int totalNotRequired = stateToHosts.containsKey(RepositoryVersionState.NOT_REQUIRED) ? stateToHosts.get(RepositoryVersionState.NOT_REQUIRED).size() : 0;
+
+    if (totalInstalling + totalInstalled == totalHosts) {
       return RepositoryVersionState.INSTALLING;
+    }
+
+    if (totalNotRequired > 0) {
+      if (totalInstalling + totalInstalled + totalNotRequired == totalHosts) {
+        return RepositoryVersionState.INSTALLING;
+      }
+
+      if (totalInstalled + totalNotRequired == totalHosts) {
+        return RepositoryVersionState.INSTALLED;
+      }
     }
 
     // Also returns when have a mix of CURRENT and INSTALLING|INSTALLED|UPGRADING|UPGRADED
