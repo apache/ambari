@@ -195,19 +195,20 @@ public class UpgradeHelper {
    * @param upgradeToVersion Target stack version
    * @param direction {@code Direction} of the upgrade
    * @param upgradeType The {@code UpgradeType}
+   * @param preferredUpgradePackName For unit test, need to prefer an upgrade pack since multiple matches can be found.
    * @return {@code UpgradeType} object
    * @throws AmbariException
    */
   public UpgradePack suggestUpgradePack(String clusterName, String upgradeFromVersion, String upgradeToVersion,
-    Direction direction, UpgradeType upgradeType) throws AmbariException {
+    Direction direction, UpgradeType upgradeType, String preferredUpgradePackName) throws AmbariException {
 
-    // !!! find upgrade packs based on current stack. This is where to upgrade from
+    // Find upgrade packs based on current stack. This is where to upgrade from
     Cluster cluster = clusters.get().getCluster(clusterName);
     StackId stack =  cluster.getCurrentStackVersion();
 
     String repoVersion = upgradeToVersion;
 
-    // ToDo: AMBARI-12706. Here we need to check, how this would work with SWU Downgrade
+    // TODO AMBARI-12706. Here we need to check, how this would work with SWU Downgrade
     if (direction.isDowngrade() && null != upgradeFromVersion) {
       repoVersion = upgradeFromVersion;
     }
@@ -221,23 +222,28 @@ public class UpgradeHelper {
     Map<String, UpgradePack> packs = m_ambariMetaInfo.get().getUpgradePacks(stack.getStackName(), stack.getStackVersion());
     UpgradePack pack = null;
 
-    String repoStackId = versionEntity.getStackId().getStackId();
-    for (UpgradePack upgradePack : packs.values()) {
-      if (upgradePack.getTargetStack() != null && upgradePack.getTargetStack().equals(repoStackId) &&
-           upgradeType == upgradePack.getType()) {
-        if (pack == null) {
-          pack = upgradePack;
-        } else {
-          throw new AmbariException(
-            String.format("Found multiple upgrade packs for type %s and target version %s",
-              upgradeType.toString(), repoVersion));
+    if (StringUtils.isNotEmpty(preferredUpgradePackName) && packs.containsKey(preferredUpgradePackName)) {
+      pack = packs.get(preferredUpgradePackName);
+    } else {
+      String repoStackId = versionEntity.getStackId().getStackId();
+      for (UpgradePack upgradePack : packs.values()) {
+        if (null != upgradePack.getTargetStack() && upgradePack.getTargetStack().equals(repoStackId) &&
+          upgradeType == upgradePack.getType()) {
+          if (null == pack) {
+            // Pick the pack.
+            pack = upgradePack;
+          } else {
+            throw new AmbariException(
+                String.format("Unable to perform %s. Found multiple upgrade packs for type %s and target version %s",
+                    direction.getText(false), upgradeType.toString(), repoVersion));
+          }
         }
       }
     }
 
-    if (pack == null) {
-      throw new AmbariException(String.format("No upgrade pack found for type %s and target version %s",
-        upgradeType.toString(),repoVersion));
+    if (null == pack) {
+      throw new AmbariException(String.format("Unable to perform %s. Could not locate %s upgrade pack for version %s",
+          direction.getText(false), upgradeType.toString(), repoVersion));
     }
 
    return pack;
