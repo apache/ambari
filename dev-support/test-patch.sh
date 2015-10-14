@@ -775,7 +775,7 @@ findModules () {
   CHANGED_MODULES=""
   for module in $(cat $TMP_MODULES | sort | uniq); do
     $GREP "<packaging>pom</packaging>" $module/pom.xml > /dev/null
-    if [ "$?" != 0 ]; then
+    if [ "$?" != 0 ] || [ "$module" == "ambari-web" ]; then # ambari-web is packing = pom but has unit tests
       CHANGED_MODULES="$CHANGED_MODULES $module"
     fi
   done
