@@ -379,6 +379,8 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     var configConditions = this.get('config.configConditions');
     if (configConditions && configConditions.length) {
       this.configValueObserver();
+
+      //Add Observer to configCondition that depends on another config value
       var isConditionConfigDependent =  configConditions.filterProperty('resource', 'config').length;
       if (isConditionConfigDependent) {
         this.addObserver('config.value', this, this.configValueObserver);
@@ -400,22 +402,34 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     configConditions.forEach(function(configCondition){
       var ifStatement =  configCondition.get("if");
       if (configCondition.get("resource") === 'config') {
-        var splitIfCondition = ifStatement.split('===');
-        var ifCondition =  splitIfCondition[0];
-        var result = splitIfCondition[1] || "true";
-        var parseIfConditionVal = ifCondition;
-        var regex = /\$\{.*?\}/g;
-        var configStrings = ifCondition.match(regex);
-        configStrings.forEach(function(_configString){
-          var configObject = _configString.substring(2, _configString.length-1).split("/");
-          var config = serviceConfigs.filterProperty('filename',configObject[0] + '.xml').findProperty('name', configObject[1]);
-          if (config) {
-            var configValue = config.get('value');
-            parseIfConditionVal = parseIfConditionVal.replace(_configString, configValue);
+        // Split `if` statement if it has logical operators
+        var ifStatementRegex = /(&&|\|\|)/;
+        var IfConditions = ifStatement.split(ifStatementRegex);
+        var allConditionResult = [];
+        IfConditions.forEach(function(_condition){
+          var condition = _condition.trim();
+          if (condition === '&&' || condition === '||') {
+            allConditionResult.push(_condition);
+          }  else {
+            var splitIfCondition = condition.split('===');
+            var ifCondition = splitIfCondition[0];
+            var result = splitIfCondition[1] || "true";
+            var parseIfConditionVal = ifCondition;
+            var regex = /\$\{.*?\}/g;
+            var configStrings = ifCondition.match(regex);
+            configStrings.forEach(function (_configString) {
+              var configObject = _configString.substring(2, _configString.length - 1).split("/");
+              var config = serviceConfigs.filterProperty('filename', configObject[0] + '.xml').findProperty('name', configObject[1]);
+              if (config) {
+                var configValue = config.get('value');
+                parseIfConditionVal = parseIfConditionVal.replace(_configString, configValue);
+              }
+            }, this);
+            var conditionResult = window.eval(JSON.stringify(parseIfConditionVal.trim())) === result.trim();
+            allConditionResult.push(conditionResult);
           }
         }, this);
-
-        isConditionTrue =  window.eval(JSON.stringify(parseIfConditionVal.trim())) === result.trim();
+        isConditionTrue = window.eval(allConditionResult.join(''));
         this.changeConfigAttribute(configCondition, isConditionTrue);
       } else if (configCondition.get("resource") === 'service') {
         var service = App.Service.find().findProperty('serviceName', ifStatement);

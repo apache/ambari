@@ -389,11 +389,11 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
 
     # Recommend Ranger Hive authorization as per Ranger Hive plugin property
-    if "ranger-env" in services["configurations"] and "ranger-hive-plugin-properties" in services["configurations"] and \
+    if "ranger-env" in services["configurations"] and "hive-env" in services["configurations"] and \
         "ranger-hive-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
-      putHiveRangerPluginProperty = self.putProperty(configurations, "ranger-hive-plugin-properties", services)
       rangerEnvHivePluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hive-plugin-enabled"]
-      putHiveRangerPluginProperty("ranger-hive-plugin-enabled", rangerEnvHivePluginProperty)
+      if (rangerEnvHivePluginProperty.lower() == "yes"):
+        putHiveEnvProperty("hive_security_authorization", "RANGER")
 
     # Security
     if ("configurations" not in services) or ("hive-env" not in services["configurations"]) or \
@@ -403,6 +403,18 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHiveEnvProperty("hive_security_authorization", "None")
     else:
       putHiveEnvProperty("hive_security_authorization", services["configurations"]["hive-env"]["properties"]["hive_security_authorization"])
+
+
+    # Recommend Ranger Hive authorization as per Ranger Hive plugin property
+    if "ranger-env" in services["configurations"] and "hive-env" in services["configurations"] and \
+        "ranger-hive-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      rangerEnvHivePluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hive-plugin-enabled"]
+      rangerEnvHiveAuthProperty = services["configurations"]["hive-env"]["properties"]["hive_security_authorization"]
+      if (rangerEnvHivePluginProperty.lower() == "yes"):
+        putHiveEnvProperty("hive_security_authorization", "Ranger")
+      elif (rangerEnvHiveAuthProperty.lower() == "ranger"):
+        putHiveEnvProperty("hive_security_authorization", "None")
+
     # hive_security_authorization == 'none'
     # this property is unrelated to Kerberos
     if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "none":

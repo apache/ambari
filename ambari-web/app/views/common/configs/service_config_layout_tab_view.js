@@ -124,9 +124,19 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
         // Filter config condition depending on the value of another config
         var conditionalConfigs = (_configCondition.get('configs')||[]).filterProperty('fileName', config.get('filename')).filterProperty('configName', config.get('name'));
         // Filter config condition depending on the service existence or service state
-        var serviceConfigCondition = ((_configCondition.get('configName') === config.get('name')) &&  (_configCondition.get('fileName') === config.get('filename')) &&  (_configCondition.get('resource') === 'service'));
-        var conditions = conditionalConfigs.concat(serviceConfigCondition);
-        return ((conditions && conditions.length));
+        var serviceConfigConditionFlag = ((_configCondition.get('configName') === config.get('name')) &&  (_configCondition.get('fileName') === config.get('filename')) &&  (_configCondition.get('resource') === 'service'));
+        var conditions;
+
+        if (serviceConfigConditionFlag) {
+          var configCondition = {
+            configName: _configCondition.get('configName'),
+            fileName: _configCondition.get('fileName')
+          };
+          conditions = conditionalConfigs.concat(configCondition)
+        } else {
+          conditions = conditionalConfigs;
+        }
+        return (conditions && conditions.length);
       }, this);
 
       if (configConditions && configConditions.length) {
