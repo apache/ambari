@@ -51,11 +51,25 @@ function verify_output() {
   fi
 }
 
+function rename_output(){
+  if [ -f $test_output_file ]; then
+    time=$(date +"%s")
+    output_file=$(echo $test_output_file | cut -f 1 -d '.')
+    errors=`mv $test_output_file $output_file$time.out`
+    if [ "$?" -ne 0 ]; then
+      echo "Error found in the zookeeper smoke test. Exiting."
+      echo $errors      
+      exit 1
+    fi
+  fi           
+}
+
 # Delete /zk_smoketest znode if exists
 /var/lib/ambari-agent/ambari-sudo.sh su $smoke_user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ;  echo delete /zk_smoketest | ${zk_cli_shell} -server $zk_node1:$client_port" 2>&1>$test_output_file
 # Create /zk_smoketest znode on one zookeeper server
 /var/lib/ambari-agent/ambari-sudo.sh su $smoke_user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ; echo create /zk_smoketest smoke_data | ${zk_cli_shell} -server $zk_node1:$client_port" 2>&1>>$test_output_file
 verify_output
+rename_output
 
 for i in $zkhosts ; do
   echo "Running test on host $i"
