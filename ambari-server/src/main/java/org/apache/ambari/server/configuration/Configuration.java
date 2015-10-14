@@ -458,7 +458,7 @@ public class Configuration {
   public static final String ALERTS_EXECUTION_SCHEDULER_THREADS_DEFAULT = "2";
 
   /**
-   *   For HTTP Response header configuration
+   *   For HTTP Response header configuration for Ambari Server UI
    */
   public static final String HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY = "http.strict-transport-security";
   public static final String HTTP_STRICT_TRANSPORT_HEADER_VALUE_DEFAULT = "max-age=31536000";
@@ -466,6 +466,16 @@ public class Configuration {
   public static final String HTTP_X_FRAME_OPTIONS_HEADER_VALUE_DEFAULT = "DENY";
   public static final String HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY = "http.x-xss-protection";
   public static final String HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT = "1; mode=block";
+
+  /**
+   *   For HTTP Response header configuration for Ambari Views
+   */
+  public static final String VIEWS_HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY = "views.http.strict-transport-security";
+  public static final String VIEWS_HTTP_STRICT_TRANSPORT_HEADER_VALUE_DEFAULT = "max-age=31536000";
+  public static final String VIEWS_HTTP_X_FRAME_OPTIONS_HEADER_VALUE_KEY = "views.http.x-frame-options";
+  public static final String VIEWS_HTTP_X_FRAME_OPTIONS_HEADER_VALUE_DEFAULT = "SAMEORIGIN";
+  public static final String VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY = "views.http.x-xss-protection";
+  public static final String VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT = "1; mode=block";
 
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
@@ -1035,7 +1045,7 @@ public class Configuration {
   }
 
   /**
-   * Get the value that should be set for the <code>Strict-Transport-Security</code> HTTP response header.
+   * Get the value that should be set for the <code>Strict-Transport-Security</code> HTTP response header for Ambari Server UI.
    * <p/>
    * By default this will be <code>max-age=31536000; includeSubDomains</code>. For example:
    * <p/>
@@ -1052,7 +1062,7 @@ public class Configuration {
   }
 
   /**
-   * Get the value that should be set for the <code>X-Frame-Options</code> HTTP response header.
+   * Get the value that should be set for the <code>X-Frame-Options</code> HTTP response header for Ambari Server UI.
    * <p/>
    * By default this will be <code>DENY</code>. For example:
    * <p/>
@@ -1067,7 +1077,7 @@ public class Configuration {
   }
 
   /**
-   * Get the value that should be set for the <code>X-XSS-Protection</code> HTTP response header.
+   * Get the value that should be set for the <code>X-XSS-Protection</code> HTTP response header for Ambari Server UI.
    * <p/>
    * By default this will be <code>1; mode=block</code>. For example:
    * <p/>
@@ -1079,6 +1089,53 @@ public class Configuration {
    */
   public String getXXSSProtectionHTTPResponseHeader() {
     return properties.getProperty(HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY, HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT);
+  }
+
+  /**
+   * Get the value that should be set for the <code>Strict-Transport-Security</code> HTTP response header for Ambari Views.
+   * <p/>
+   * By default this will be <code>max-age=31536000; includeSubDomains</code>. For example:
+   * <p/>
+   * <code>
+   * Strict-Transport-Security: max-age=31536000; includeSubDomains
+   * </code>
+   * <p/>
+   * This value may be ignored when {@link #getApiSSLAuthentication()} is <code>false</code>.
+   *
+   * @return the Strict-Transport-Security value - null or "" indicates that the value is not set
+   */
+  public String getViewsStrictTransportSecurityHTTPResponseHeader() {
+    return properties.getProperty(VIEWS_HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY, VIEWS_HTTP_STRICT_TRANSPORT_HEADER_VALUE_DEFAULT);
+  }
+
+  /**
+   * Get the value that should be set for the <code>X-Frame-Options</code> HTTP response header for Ambari Views.
+   * <p/>
+   * By default this will be <code>DENY</code>. For example:
+   * <p/>
+   * <code>
+   * X-Frame-Options: DENY
+   * </code>
+   *
+   * @return the X-Frame-Options value - null or "" indicates that the value is not set
+   */
+  public String getViewsXFrameOptionsHTTPResponseHeader() {
+    return properties.getProperty(VIEWS_HTTP_X_FRAME_OPTIONS_HEADER_VALUE_KEY, VIEWS_HTTP_X_FRAME_OPTIONS_HEADER_VALUE_DEFAULT);
+  }
+
+  /**
+   * Get the value that should be set for the <code>X-XSS-Protection</code> HTTP response header for Ambari Views.
+   * <p/>
+   * By default this will be <code>1; mode=block</code>. For example:
+   * <p/>
+   * <code>
+   * X-XSS-Protection: 1; mode=block
+   * </code>
+   *
+   * @return the X-XSS-Protection value - null or "" indicates that the value is not set
+   */
+  public String getViewsXXSSProtectionHTTPResponseHeader() {
+    return properties.getProperty(VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY, VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT);
   }
 
   /**
