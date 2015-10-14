@@ -35,16 +35,26 @@ import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.File;
+import java.util.Map;
 import java.util.Properties;
 
 import static org.easymock.EasyMock.expectLastCall;
 
-public class SecurityHeaderFilterTest extends EasyMockSupport {
+public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+  private final Class<? extends AbstractSecurityHeaderFilter> filterClass;
+  private final Map<String, String> propertyNameMap;
+  private final Map<String, String> defatulPropertyValueMap;
+
+  protected AbstractSecurityHeaderFilterTest(Class<? extends AbstractSecurityHeaderFilter> filterClass, Map<String, String> propertyNameMap, Map<String, String> defatulPropertyValueMap) {
+    this.filterClass = filterClass;
+    this.propertyNameMap = propertyNameMap;
+    this.defatulPropertyValueMap = defatulPropertyValueMap;
+  }
 
   @Before
   public void setUp() throws Exception {
@@ -75,9 +85,9 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
     HttpServletRequest servletRequest = createStrictMock(HttpServletRequest.class);
 
     HttpServletResponse servletResponse = createStrictMock(HttpServletResponse.class);
-    servletResponse.setHeader(SecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, Configuration.HTTP_X_FRAME_OPTIONS_HEADER_VALUE_DEFAULT);
+    servletResponse.setHeader(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, defatulPropertyValueMap.get(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER));
     expectLastCall().once();
-    servletResponse.setHeader(SecurityHeaderFilter.X_XSS_PROTECTION_HEADER, Configuration.HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT);
+    servletResponse.setHeader(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER, defatulPropertyValueMap.get(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER));
     expectLastCall().once();
 
     FilterChain filterChain = createStrictMock(FilterChain.class);
@@ -86,7 +96,7 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
 
     replayAll();
 
-    SecurityHeaderFilter securityFilter = injector.getInstance(SecurityHeaderFilter.class);
+    AbstractSecurityHeaderFilter securityFilter = injector.getInstance(filterClass);
     Assert.assertNotNull(securityFilter);
 
     securityFilter.init(filterConfig);
@@ -118,11 +128,11 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
     HttpServletRequest servletRequest = createStrictMock(HttpServletRequest.class);
 
     HttpServletResponse servletResponse = createStrictMock(HttpServletResponse.class);
-    servletResponse.setHeader(SecurityHeaderFilter.STRICT_TRANSPORT_HEADER, Configuration.HTTP_STRICT_TRANSPORT_HEADER_VALUE_DEFAULT);
+    servletResponse.setHeader(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER, defatulPropertyValueMap.get(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER));
     expectLastCall().once();
-    servletResponse.setHeader(SecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, Configuration.HTTP_X_FRAME_OPTIONS_HEADER_VALUE_DEFAULT);
+    servletResponse.setHeader(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, defatulPropertyValueMap.get(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER));
     expectLastCall().once();
-    servletResponse.setHeader(SecurityHeaderFilter.X_XSS_PROTECTION_HEADER, Configuration.HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT);
+    servletResponse.setHeader(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER, defatulPropertyValueMap.get(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER));
     expectLastCall().once();
 
     FilterChain filterChain = createStrictMock(FilterChain.class);
@@ -131,7 +141,7 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
 
     replayAll();
 
-    SecurityHeaderFilter securityFilter = injector.getInstance(SecurityHeaderFilter.class);
+    AbstractSecurityHeaderFilter securityFilter = injector.getInstance(filterClass);
     Assert.assertNotNull(securityFilter);
 
     securityFilter.init(filterConfig);
@@ -151,9 +161,9 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
         Properties properties = new Properties();
         properties.setProperty(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME_KEY, httpPassFile.getParent());
         properties.setProperty(Configuration.CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY, httpPassFile.getName());
-        properties.setProperty(Configuration.HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY, "custom1");
-        properties.setProperty(Configuration.HTTP_X_FRAME_OPTIONS_HEADER_VALUE_KEY, "custom2");
-        properties.setProperty(Configuration.HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY, "custom3");
+        properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER), "custom1");
+        properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER), "custom2");
+        properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER), "custom3");
 
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(Configuration.class).toInstance(new Configuration(properties));
@@ -165,9 +175,9 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
     HttpServletRequest servletRequest = createStrictMock(HttpServletRequest.class);
 
     HttpServletResponse servletResponse = createStrictMock(HttpServletResponse.class);
-    servletResponse.setHeader(SecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, "custom2");
+    servletResponse.setHeader(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, "custom2");
     expectLastCall().once();
-    servletResponse.setHeader(SecurityHeaderFilter.X_XSS_PROTECTION_HEADER, "custom3");
+    servletResponse.setHeader(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER, "custom3");
     expectLastCall().once();
 
     FilterChain filterChain = createStrictMock(FilterChain.class);
@@ -176,7 +186,7 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
 
     replayAll();
 
-    SecurityHeaderFilter securityFilter = injector.getInstance(SecurityHeaderFilter.class);
+    AbstractSecurityHeaderFilter securityFilter = injector.getInstance(filterClass);
     Assert.assertNotNull(securityFilter);
 
     securityFilter.init(filterConfig);
@@ -197,9 +207,9 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
         properties.setProperty(Configuration.API_USE_SSL, "true");
         properties.setProperty(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME_KEY, httpPassFile.getParent());
         properties.setProperty(Configuration.CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY, httpPassFile.getName());
-        properties.setProperty(Configuration.HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY, "custom1");
-        properties.setProperty(Configuration.HTTP_X_FRAME_OPTIONS_HEADER_VALUE_KEY, "custom2");
-        properties.setProperty(Configuration.HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY, "custom3");
+        properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER), "custom1");
+        properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER), "custom2");
+        properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER), "custom3");
 
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(Configuration.class).toInstance(new Configuration(properties));
@@ -211,11 +221,11 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
     HttpServletRequest servletRequest = createStrictMock(HttpServletRequest.class);
 
     HttpServletResponse servletResponse = createStrictMock(HttpServletResponse.class);
-    servletResponse.setHeader(SecurityHeaderFilter.STRICT_TRANSPORT_HEADER, "custom1");
+    servletResponse.setHeader(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER, "custom1");
     expectLastCall().once();
-    servletResponse.setHeader(SecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, "custom2");
+    servletResponse.setHeader(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, "custom2");
     expectLastCall().once();
-    servletResponse.setHeader(SecurityHeaderFilter.X_XSS_PROTECTION_HEADER, "custom3");
+    servletResponse.setHeader(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER, "custom3");
     expectLastCall().once();
 
     FilterChain filterChain = createStrictMock(FilterChain.class);
@@ -224,7 +234,7 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
 
     replayAll();
 
-    SecurityHeaderFilter securityFilter = injector.getInstance(SecurityHeaderFilter.class);
+    AbstractSecurityHeaderFilter securityFilter = injector.getInstance(filterClass);
     Assert.assertNotNull(securityFilter);
 
     securityFilter.init(filterConfig);
@@ -244,9 +254,9 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
         Properties properties = new Properties();
         properties.setProperty(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME_KEY, httpPassFile.getParent());
         properties.setProperty(Configuration.CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY, httpPassFile.getName());
-        properties.setProperty(Configuration.HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY, "");
-        properties.setProperty(Configuration.HTTP_X_FRAME_OPTIONS_HEADER_VALUE_KEY, "");
-        properties.setProperty(Configuration.HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY, "");
+        properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER), "");
+        properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER), "");
+        properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER), "");
 
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(Configuration.class).toInstance(new Configuration(properties));
@@ -265,7 +275,7 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
 
     replayAll();
 
-    SecurityHeaderFilter securityFilter = injector.getInstance(SecurityHeaderFilter.class);
+    AbstractSecurityHeaderFilter securityFilter = injector.getInstance(filterClass);
     Assert.assertNotNull(securityFilter);
 
     securityFilter.init(filterConfig);
@@ -286,9 +296,9 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
         properties.setProperty(Configuration.API_USE_SSL, "true");
         properties.setProperty(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME_KEY, httpPassFile.getParent());
         properties.setProperty(Configuration.CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY, httpPassFile.getName());
-        properties.setProperty(Configuration.HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY, "");
-        properties.setProperty(Configuration.HTTP_X_FRAME_OPTIONS_HEADER_VALUE_KEY, "");
-        properties.setProperty(Configuration.HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY, "");
+        properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER), "");
+        properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER), "");
+        properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER), "");
 
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(Configuration.class).toInstance(new Configuration(properties));
@@ -307,7 +317,7 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
 
     replayAll();
 
-    SecurityHeaderFilter securityFilter = injector.getInstance(SecurityHeaderFilter.class);
+    AbstractSecurityHeaderFilter securityFilter = injector.getInstance(filterClass);
     Assert.assertNotNull(securityFilter);
 
     securityFilter.init(filterConfig);
@@ -315,4 +325,5 @@ public class SecurityHeaderFilterTest extends EasyMockSupport {
 
     verifyAll();
   }
+
 }
