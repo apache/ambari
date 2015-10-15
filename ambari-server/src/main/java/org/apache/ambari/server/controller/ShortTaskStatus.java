@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
 
 public class ShortTaskStatus {
   protected long requestId;
@@ -39,7 +41,7 @@ public class ShortTaskStatus {
                          String customCommandName, String outputLog, String errorLog) {
     this.taskId = taskId;
     this.stageId = stageId;
-    this.hostName = hostName;
+    this.hostName = translateHostName(hostName);
     this.role = role;
     this.command = command;
     this.status = status;
@@ -52,7 +54,7 @@ public class ShortTaskStatus {
     this.taskId = hostRoleCommand.getTaskId();
     this.stageId = hostRoleCommand.getStageId();
     this.command = hostRoleCommand.getRoleCommand().toString();
-    this.hostName = hostRoleCommand.getHostName();
+    this.hostName = translateHostName(hostRoleCommand.getHostName());
     this.role = hostRoleCommand.getRole().toString();
     this.status = hostRoleCommand.getStatus().toString();
     this.customCommandName = hostRoleCommand.getCustomCommandName();
@@ -97,7 +99,7 @@ public class ShortTaskStatus {
   }
 
   public void setHostName(String hostName) {
-    this.hostName = hostName;
+    this.hostName = translateHostName(hostName);
   }
 
   public String getRole() {
@@ -155,4 +157,19 @@ public class ShortTaskStatus {
     return sb.toString();
   }
 
+  /**
+   * If the hostname is null (or empty), returns the hostname of the Ambari Server; else returns the
+   * supplied hostname value.
+   *
+   * @param hostName a hostname
+   * @return the hostname of the Ambari Server if the hostname is null (or empty); else supplied hostname value
+   */
+  private String translateHostName(String hostName) {
+    // if the hostname in the command is null, replace it with the hostname of the Ambari Server
+    // This is because commands (to be) handled by the Ambari Server have a null value for its
+    // host designation.
+    return (StringUtils.isEmpty(hostName))
+        ? StageUtils.getHostName()
+        : hostName;
+  }
 }
