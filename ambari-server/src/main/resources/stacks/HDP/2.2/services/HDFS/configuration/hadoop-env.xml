@@ -172,6 +172,14 @@ export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
 export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}
 
 export HADOOP_OPTS="-Dhdp.version=$HDP_VERSION $HADOOP_OPTS"
+
+{% if is_datanode_max_locked_memory_set %}
+# Fix temporary bug, when ulimit from conf files is not picked up, without full relogin. 
+# Makes sense to fix only when runing DN as root 
+if [ "$command" == "datanode" ] &#038;&#038; [ "$EUID" -eq 0 ] &#038;&#038; [ -n "$HADOOP_SECURE_DN_USER" ]; then
+  ulimit -l {{datanode_max_locked_memory}}
+fi
+{% endif %}
     </value>
   </property>
   

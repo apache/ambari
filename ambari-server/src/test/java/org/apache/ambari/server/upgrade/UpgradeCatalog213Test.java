@@ -182,6 +182,7 @@ public class UpgradeCatalog213Test {
     Method updateHDFSConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateHDFSConfigs");
     Method updateKafkaConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateKafkaConfigs");
     Method updateHbaseEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHbaseEnvConfig");
+    Method updateHadoopEnv = UpgradeCatalog213.class.getDeclaredMethod("updateHadoopEnv");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
 
 
@@ -195,6 +196,7 @@ public class UpgradeCatalog213Test {
         .addMockedMethod(updateStormConfigs)
         .addMockedMethod(updateHbaseEnvConfig)
         .addMockedMethod(updateKafkaConfigs)
+        .addMockedMethod(updateHadoopEnv)
         .createMock();
 
     upgradeCatalog213.addNewConfigurationsFromXml();
@@ -206,6 +208,8 @@ public class UpgradeCatalog213Test {
     upgradeCatalog213.updateStormConfigs();
     expectLastCall().once();
     upgradeCatalog213.updateHbaseEnvConfig();
+    expectLastCall().once();
+    upgradeCatalog213.updateHadoopEnv();
     expectLastCall().once();
     upgradeCatalog213.updateAMSConfigs();
     expectLastCall().once();

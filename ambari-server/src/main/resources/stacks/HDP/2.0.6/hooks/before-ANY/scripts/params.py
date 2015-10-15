@@ -29,6 +29,7 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import format_jvm_option
+from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.version import compare_versions
 from ambari_commons.os_check import OSCheck
@@ -96,6 +97,8 @@ hadoop_secure_dn_user = hdfs_user
 hadoop_dir = "/etc/hadoop"
 versioned_hdp_root = '/usr/hdp/current'
 hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
+datanode_max_locked_memory = config['configurations']['hdfs-site']['dfs.datanode.max.locked.memory']
+is_datanode_max_locked_memory_set = not is_empty(config['configurations']['hdfs-site']['dfs.datanode.max.locked.memory'])
 
 # HDP 2.2+ params
 if Script.is_hdp_stack_greater_or_equal("2.2"):
