@@ -92,7 +92,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     }),
     Em.Object.create({
       displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.title'),
-      type: 'NON-ROLLING',
+      type: 'NON_ROLLING',
       icon: "icon-bolt",
       description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.description'),
       selected: false,
@@ -512,8 +512,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var upgradeTypeDisplayName  = upgradeMethod ? upgradeMethod.get('displayName') : null;
     this.set('upgradeTypeDisplayName', upgradeTypeDisplayName);
     this.set('failuresTolerance', Em.Object.create({
-      skipComponentFailures: params.skipComponentFailures,
-      skipSCFailures: params.skipSCFailures
+      skipComponentFailures: params.skipComponentFailures == 'true',
+      skipSCFailures: params.skipSCFailures == 'true'
     }));
     this.setDBProperties({
       upgradeVersion: params.label,
@@ -522,8 +522,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       isDowngrade: !!params.isDowngrade,
       upgradeTypeDisplayName: upgradeTypeDisplayName,
       failuresTolerance: Em.Object.create({
-        skipComponentFailures: params.skipComponentFailures,
-        skipSCFailures: params.skipSCFailures
+        skipComponentFailures: params.skipComponentFailures == 'true',
+        skipSCFailures: params.skipSCFailures == 'true'
       })
     });
     App.set('upgradeState', 'PENDING');
@@ -541,8 +541,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   updateOptionsSuccessCallback: function (data, opt, params) {
     this.set('failuresTolerance', Em.Object.create({
-      skipComponentFailures: params.skipComponentFailures,
-      skipSCFailures: params.skipSCFailures
+      skipComponentFailures: params.skipComponentFailures == 'true',
+      skipSCFailures: params.skipSCFailures == 'true'
     }));
   },
 
@@ -596,7 +596,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
             });
           } else {
             var ruMethod = self.get('upgradeMethods').findProperty('type', 'ROLLING');
-            var ssuMethod = self.get('upgradeMethods').findProperty('type', 'NON-ROLLING');
+            var ssuMethod = self.get('upgradeMethods').findProperty('type', 'NON_ROLLING');
             ruMethod.set('selected', ruMethod.get('allowed'));
             ssuMethod.set('selected', !ruMethod.get('allowed') && ssuMethod.get('allowed'));
           }
@@ -665,8 +665,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
             sender: self,
             data: {
               upgradeId: self.get('upgradeId'),
-              skipComponentFailures: this.get('skipComponentFailures') || false,
-              skipSCFailures: this.get('skipSCFailures') || false
+              skipComponentFailures: this.get('skipComponentFailures')? 'true': 'false',
+              skipSCFailures: this.get('skipSCFailures')? 'true': 'false'
             },
             success: 'updateOptionsSuccessCallback'
           });
@@ -762,8 +762,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       value: version.get('repositoryVersion'),
       label: version.get('displayName'),
       type: version.get('upgradeType'),
-      skipComponentFailures: version.get('skipComponentFailures'),
-      skipSCFailures: version.get('skipSCFailures')
+      skipComponentFailures: version.get('skipComponentFailures') ? 'true' : 'false',
+      skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false'
     };
     if (App.get('supports.preUpgradeCheck')) {
       this.set('requestInProgress', true);
