@@ -122,6 +122,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final String TOPOLOGY_HOST_REQUEST_TABLE = "topology_host_request";
   private static final String TOPOLOGY_HOST_TASK_TABLE = "topology_host_task";
   private static final String TOPOLOGY_LOGICAL_TASK_TABLE = "topology_logical_task";
+  private static final String HDFS_SITE_CONFIG = "hdfs-site";
 
   // constants for stack table changes
   private static final String STACK_ID_COLUMN_NAME = "stack_id";
@@ -1458,7 +1459,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           /***
            * Update dfs.namenode.rpc-address set hostname instead of localhost
            */
-          if (cluster.getDesiredConfigByType("hdfs-site") != null && !cluster.getHosts("HDFS","NAMENODE").isEmpty()) {
+          if (cluster.getDesiredConfigByType(HDFS_SITE_CONFIG) != null && !cluster.getHosts("HDFS","NAMENODE").isEmpty()) {
 
             URI nameNodeRpc = null;
             String hostName = cluster.getHosts("HDFS","NAMENODE").iterator().next();
@@ -1467,33 +1468,19 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                       cluster.getDesiredConfigByType("core-site").getProperties().get("fs.defaultFS") != null) {
               try {
                 if (isNNHAEnabled(cluster)) {
-                  String nn1RpcAddress = null;
-                  Config hdfsSiteConfig = cluster.getDesiredConfigByType("hdfs-site");
-                  Map<String, String> properties = hdfsSiteConfig.getProperties();
-                  String nameServices = properties.get("dfs.nameservices");
-                  if (!StringUtils.isEmpty(nameServices)) {
-                    String namenodes = properties.get(String.format("dfs.ha.namenodes.%s",nameServices));
-                    if (!StringUtils.isEmpty(namenodes) && namenodes.split(",").length > 1) {
-                      nn1RpcAddress = properties.get(String.format("dfs.namenode.rpc-address.%s.%s", nameServices,
-                              namenodes.split(",")[0]));
-                    }
-                  }
-                  if (!StringUtils.isEmpty(nn1RpcAddress)) {
-                    if (!nn1RpcAddress.startsWith("http")) {
-                      nn1RpcAddress = "http://" + nn1RpcAddress;
-                    }
-                    nameNodeRpc= new URI(nn1RpcAddress);
-                  } else {
-                    // set default value
-                    nameNodeRpc= new URI("http://localhost:8020");
-                  }
+                  // NN HA enabled
+                  // Remove dfs.namenode.rpc-address property
+                  Set<String> removePropertiesSet = new HashSet<>();
+                  removePropertiesSet.add("dfs.namenode.rpc-address");
+                  removeConfigurationPropertiesFromCluster(cluster, HDFS_SITE_CONFIG, removePropertiesSet);
                 } else {
+                  // NN HA disabled
                   nameNodeRpc = new URI(cluster.getDesiredConfigByType("core-site").getProperties().get("fs.defaultFS"));
+                  Map<String, String> hdfsProp = new HashMap<String, String>();
+                  hdfsProp.put("dfs.namenode.rpc-address", hostName + ":" + nameNodeRpc.getPort());
+                  updateConfigurationPropertiesForCluster(cluster, HDFS_SITE_CONFIG,
+                          hdfsProp, false, false);
                 }
-                Map<String, String> hdfsProp = new HashMap<String, String>();
-                hdfsProp.put("dfs.namenode.rpc-address", hostName + ":" + nameNodeRpc.getPort());
-                updateConfigurationPropertiesForCluster(cluster, "hdfs-site",
-                        hdfsProp, true, false);
               } catch (URISyntaxException e) {
                 e.printStackTrace();
               }
