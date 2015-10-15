@@ -21,6 +21,10 @@ require('models/background_operation');
 
 App.MainController = Em.Controller.extend({
   name: 'mainController',
+  isUserActive: true,
+  checkActivenessInterval: null,
+  lastUserActiveTime: null,
+  userTimeOut: 0,
 
   updateTitle: function(){
     var name = App.router.get('clusterController.clusterName');
@@ -109,11 +113,11 @@ App.MainController = Em.Controller.extend({
     clearTimeout(this.get("reloadTimeOut"));
 
     this.set('reloadTimeOut',
-        setTimeout(function () {
-          if (App.clusterStatus.get('isInstalled')) {
-            location.reload();
-          }
-        }, App.pageReloadTime)
+    setTimeout(function () {
+      if (App.clusterStatus.get('isInstalled')) {
+        location.reload();
+      }
+    }, App.pageReloadTime)
     );
   }.observes("App.router.location.lastSetURL", "App.clusterStatus.isInstalled"),
 
@@ -124,17 +128,17 @@ App.MainController = Em.Controller.extend({
   isAllServicesInstalled: function() {
     return this.scRequest('isAllServicesInstalled');
   }.property('App.router.mainServiceController.content.content.@each',
-      'App.router.mainServiceController.content.content.length'),
+  'App.router.mainServiceController.content.content.length'),
 
   isStartAllDisabled: function() {
     return this.scRequest('isStartAllDisabled');
   }.property('App.router.mainServiceController.isStartStopAllClicked',
-      'App.router.mainServiceController.content.@each.healthStatus'),
+  'App.router.mainServiceController.content.@each.healthStatus'),
 
   isStopAllDisabled: function() {
     return this.scRequest('isStopAllDisabled');
   }.property('App.router.mainServiceController.isStartStopAllClicked',
-      'App.router.mainServiceController.content.@each.healthStatus'),
+  'App.router.mainServiceController.content.@each.healthStatus'),
 
   gotoAddService: function() {
     App.router.get('mainServiceController').gotoAddService();
@@ -184,6 +188,88 @@ App.MainController = Em.Controller.extend({
   },
   getServerVersionErrorCallback: function () {
     console.log('ERROR: Cannot load Ambari server version');
-  }
+  },
 
+  monitorInactivity: function() {
+    //console.error('======MONITOR==START========');
+    var timeout = Number(App.router.get('clusterController.ambariProperties')['user.inactivity.timeout.default']);
+    var readonly_timeout = Number(App.router.get('clusterController.ambariProperties')['user.inactivity.timeout.role.readonly.default']);
+    var isAdmin = App.get('isAdmin');
+    if (isAdmin && timeout > 0) {
+      this.set('userTimeOut', timeout * 1000);
+    } else if (!isAdmin && readonly_timeout > 0) {
+      this.set('userTimeOut', readonly_timeout * 1000);
+    }
+    if (this.get('userTimeOut') > 0) {
+      this.startMonitorInactivity();
+    }
+  },
+
+  startMonitorInactivity: function() {
+    this.set('isUserActive', true);
+    this.set('lastUserActiveTime', Date.now());
+
+    this.rebindActivityEventMonitors();
+    if (!this.get('checkActivenessInterval')) {
+      this.set('checkActivenessInterval', window.setInterval(this.checkActiveness, 1000));
+    }
+  },
+
+  /* this will be triggerred by user driven events: 'mousemove', 'keypress' and 'click' */
+  keepActive: function() {
+    var scope = App.router.get('mainController');
+    //console.error('keepActive');
+    if (scope.get('isUserActive')) {
+      scope.set('lastUserActiveTime', Date.now());
+    }
+  },
+
+  checkActiveness: function() {
+    var scope = App.router.get('mainController');
+    //console.error("checkActiveness " + scope.get('lastUserActiveTime') + " : " + Date.now());
+    if (Date.now() - scope.get('lastUserActiveTime') > scope.get('userTimeOut')) {
+      scope.set('isUserActive', false);
+      //console.error("LOGOUT!");
+      scope.unbindActivityEventMonitors();
+      clearInterval(scope.get('checkActivenessInterval'));
+      App.router.logOff({});
+    }
+  },
+
+  rebindActivityEventMonitors: function() {
+    this.unbindActivityEventMonitors();
+    this.bindActivityEventMonitors();
+  },
+
+  bindActivityEventMonitors: function() {
+    $(window).bind('mousemove', this.keepActive);
+    $(window).bind('keypress', this.keepActive);
+    $(window).bind('click', this.keepActive);
+    // iframes need to be monitored as well
+    var iframes = $('iframe');
+    if (iframes.length > 0) {
+      for (var i = 0; i < iframes.length; i++) {
+        var iframe = iframes[i];
+        $(iframe.contentWindow).bind('mousemove', this.keepActive);
+        $(iframe.contentWindow).bind('keypress', this.keepActive);
+        $(iframe.contentWindow).bind('click', this.keepActive);
+      }
+    }
+  },
+
+  unbindActivityEventMonitors: function() {
+    $(window).unbind('mousemove', this.keepActive);
+    $(window).unbind('keypress', this.keepActive);
+    $(window).unbind('click', this.keepActive);
+    // iframes need to be monitored as well
+    var iframes = $('iframe');
+    if (iframes.length > 0) {
+      for (var i = 0; i < iframes.length; i++) {
+        var iframe = iframes[i];
+        $(iframe.contentWindow).unbind('mousemove', this.keepActive);
+        $(iframe.contentWindow).unbind('keypress', this.keepActive);
+        $(iframe.contentWindow).unbind('click', this.keepActive);
+      }
+    }
+  }
 });

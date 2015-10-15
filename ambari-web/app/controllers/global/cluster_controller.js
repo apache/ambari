@@ -370,6 +370,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     this.set('ambariProperties', data.RootServiceComponents.properties);
     // Absence of 'jdk.name' and 'jce.name' properties says that ambari configured with custom jdk.
     this.set('isCustomJDK', App.isEmptyObject(App.permit(data.RootServiceComponents.properties, ['jdk.name', 'jce.name'])));
+    App.router.get('mainController').monitorInactivity();
   },
 
   loadAmbariPropertiesError: function () {

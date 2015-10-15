@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('MainCtrl',['$scope', '$window','Auth', 'Alert', '$modal', 'Cluster', 'View', function($scope, $window, Auth, Alert, $modal, Cluster, View) {
+.controller('MainCtrl',['$scope','$rootScope','$window','Auth', 'Alert', '$modal', 'Cluster', 'View', function($scope, $rootScope, $window, Auth, Alert, $modal, Cluster, View) {
   $scope.signOut = function() {
     var data = JSON.parse(localStorage.ambari);
     delete data.app.authenticated;
@@ -87,5 +87,42 @@ angular.module('ambariAdminConsole')
     $scope.updateInstances();
   });
 
+  $scope.startInactiveTimeoutMonitoring = function(timeout) {
+    var TIME_OUT = timeout;
+    var active = true;
+    var lastActiveTime = Date.now();
+
+    var keepActive = function() {
+      //console.error('keepActive');
+      if (active) {
+        lastActiveTime = Date.now();
+      }
+    };
+
+    $(window).bind('mousemove', keepActive);
+    $(window).bind('keypress', keepActive);
+    $(window).bind('click', keepActive);
+
+    var checkActiveness = function() {
+      //console.error("checkActiveness " + lastActiveTime + " : " + Date.now());
+      if (Date.now() - lastActiveTime > TIME_OUT) {
+        //console.error("LOGOUT!");
+        active = false;
+        $(window).unbind('mousemove', keepActive);
+        $(window).unbind('keypress', keepActive);
+        $(window).unbind('click', keepActive);
+        clearInterval($rootScope.userActivityTimeoutInterval);
+        $scope.signOut();
+      }
+    };
+    $rootScope.userActivityTimeoutInterval = window.setInterval(checkActiveness, 1000);
+  };
+
+  if (!$rootScope.userActivityTimeoutInterval) {
+    Cluster.getAmbariTimeout().then(function(timeout) {
+      if (Number(timeout) > 0)
+        $scope.startInactiveTimeoutMonitoring(timeout * 1000);
+    });
+  }
   $scope.updateInstances();
 }]);
